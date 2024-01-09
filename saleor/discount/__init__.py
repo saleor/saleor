@@ -18,7 +18,7 @@ class DiscountValueType:
 class DiscountType:
     SALE = "sale"
     PROMOTION = "promotion"
-    CHECKOUT_AND_ORDER_PROMOTION = "checkout_and_order_promotion"
+    ORDER_PROMOTION = "order_promotion"
     VOUCHER = "voucher"
     MANUAL = "manual"
     CHOICES = [
@@ -26,7 +26,7 @@ class DiscountType:
         (VOUCHER, "Voucher"),
         (MANUAL, "Manual"),
         (PROMOTION, "Promotion"),
-        (CHECKOUT_AND_ORDER_PROMOTION, "Checkout and order promotion"),
+        (ORDER_PROMOTION, "Order promotion"),
     ]
 
 

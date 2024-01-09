@@ -33,7 +33,7 @@ PROMOTION_RULE_CREATE_MUTATION = """
                 rewardValueType
                 rewardValue
                 cataloguePredicate
-                checkoutAndOrderPredicate
+                orderPredicate
             }
             errors {
                 field
@@ -302,7 +302,7 @@ def test_promotion_rule_create_missing_predicate(
     } in errors
     assert {
         "code": PromotionRuleCreateErrorCode.REQUIRED.name,
-        "field": "checkoutAndOrderPredicate",
+        "field": "orderPredicate",
         "message": ANY,
     } in errors
     assert promotion.rules.count() == rules_count
@@ -535,7 +535,7 @@ def test_promotion_rule_invalid_catalogue_predicate(
     assert promotion.rules.count() == rules_count
 
 
-def test_promotion_rule_invalid_checkout_and_order_predicate(
+def test_promotion_rule_invalid_order_predicate(
     staff_api_client,
     permission_group_manage_discounts,
     description_json,
@@ -547,7 +547,7 @@ def test_promotion_rule_invalid_checkout_and_order_predicate(
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
 
     channel_ids = [graphene.Node.to_global_id("Channel", channel_PLN.pk)]
-    checkout_and_order_predicate = {
+    order_predicate = {
         "OR": [
             {
                 "discountedObjectPredicate": {"subtotalPrice": {"range": {"gte": 100}}},
@@ -576,7 +576,7 @@ def test_promotion_rule_invalid_checkout_and_order_predicate(
             "rewardValueType": reward_value_type,
             "rewardType": RewardTypeEnum.SUBTOTAL_DISCOUNT.name,
             "rewardValue": reward_value,
-            "checkoutAndOrderPredicate": checkout_and_order_predicate,
+            "orderPredicate": order_predicate,
         }
     }
 
@@ -591,7 +591,7 @@ def test_promotion_rule_invalid_checkout_and_order_predicate(
     assert not data["promotionRule"]
     assert len(errors) == 1
     assert errors[0]["code"] == PromotionRuleCreateErrorCode.INVALID.name
-    assert errors[0]["field"] == "checkoutAndOrderPredicate"
+    assert errors[0]["field"] == "orderPredicate"
     assert promotion.rules.count() == rules_count
 
 
@@ -1021,7 +1021,7 @@ def test_promotion_rule_create_multiple_predicates(
     catalogue_predicate = {
         "productPredicate": {"ids": [graphene.Node.to_global_id("Product", product.id)]}
     }
-    checkout_and_order_predicate = {
+    order_predicate = {
         "discountedObjectPredicate": {"subtotalPrice": {"range": {"gte": 100}}}
     }
     rules_count = promotion.rules.count()
@@ -1035,7 +1035,7 @@ def test_promotion_rule_create_multiple_predicates(
             "rewardValueType": reward_value_type,
             "rewardValue": reward_value,
             "cataloguePredicate": catalogue_predicate,
-            "checkoutAndOrderPredicate": checkout_and_order_predicate,
+            "orderPredicate": order_predicate,
         }
     }
 
@@ -1056,13 +1056,13 @@ def test_promotion_rule_create_multiple_predicates(
     } in errors
     assert {
         "code": PromotionRuleCreateErrorCode.MIXED_PREDICATES.name,
-        "field": "checkoutAndOrderPredicate",
+        "field": "orderPredicate",
         "message": ANY,
     } in errors
     assert promotion.rules.count() == rules_count
 
 
-def test_promotion_rule_create_mixed_predicates_checkout_and_order(
+def test_promotion_rule_create_mixed_predicates_order(
     staff_api_client,
     permission_group_manage_discounts,
     description_json,
@@ -1079,7 +1079,7 @@ def test_promotion_rule_create_mixed_predicates_checkout_and_order(
     reward_value_type = RewardValueTypeEnum.FIXED.name
     reward_type = RewardTypeEnum.SUBTOTAL_DISCOUNT.name
     promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
-    checkout_and_order_predicate = {
+    order_predicate = {
         "discountedObjectPredicate": {"subtotalPrice": {"range": {"gte": 100}}}
     }
     rules_count = promotion.rules.count()
@@ -1093,7 +1093,7 @@ def test_promotion_rule_create_mixed_predicates_checkout_and_order(
             "rewardValueType": reward_value_type,
             "rewardValue": reward_value,
             "rewardType": reward_type,
-            "checkoutAndOrderPredicate": checkout_and_order_predicate,
+            "orderPredicate": order_predicate,
         }
     }
 
@@ -1111,7 +1111,7 @@ def test_promotion_rule_create_mixed_predicates_checkout_and_order(
         errors[0]["code"]
         == PromotionRuleCreateErrorCode.MIXED_PROMOTION_PREDICATES.name
     )
-    assert errors[0]["field"] == "checkoutAndOrderPredicate"
+    assert errors[0]["field"] == "orderPredicate"
     assert promotion.rules.count() == rules_count
 
 
@@ -1121,11 +1121,11 @@ def test_promotion_rule_create_mixed_predicates_catalogue(
     description_json,
     channel_USD,
     product,
-    promotion_with_checkout_and_order_rule,
+    promotion_with_order_rule,
 ):
     # given
-    promotion = promotion_with_checkout_and_order_rule
-    assert promotion.rules.first().checkout_and_order_predicate
+    promotion = promotion_with_order_rule
+    assert promotion.rules.first().order_predicate
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.pk)
     name = "test promotion rule"
@@ -1183,7 +1183,7 @@ def test_promotion_rule_create_missing_reward_type(
     reward_value = Decimal("10")
     reward_value_type = RewardValueTypeEnum.FIXED.name
     promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
-    checkout_and_order_predicate = {
+    order_predicate = {
         "discountedObjectPredicate": {"subtotalPrice": {"range": {"gte": 100}}}
     }
     rules_count = promotion.rules.count()
@@ -1196,7 +1196,7 @@ def test_promotion_rule_create_missing_reward_type(
             "channels": [channel_id],
             "rewardValueType": reward_value_type,
             "rewardValue": reward_value,
-            "checkoutAndOrderPredicate": checkout_and_order_predicate,
+            "orderPredicate": order_predicate,
         }
     }
 
@@ -1268,7 +1268,7 @@ def test_promotion_rule_create_reward_type_with_catalogue_predicate(
 @patch(
     "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
 )
-def test_promotion_rule_create_checkout_and_order_predicate(
+def test_promotion_rule_create_order_predicate(
     update_products_discounted_prices_for_promotion_task_mock,
     promotion_rule_created_mock,
     staff_api_client,
@@ -1286,7 +1286,7 @@ def test_promotion_rule_create_checkout_and_order_predicate(
     reward_value_type = RewardValueTypeEnum.PERCENTAGE.name
     reward_type = RewardTypeEnum.SUBTOTAL_DISCOUNT.name
     promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
-    checkout_and_order_predicate = {
+    order_predicate = {
         "discountedObjectPredicate": {"subtotalPrice": {"range": {"gte": "100"}}}
     }
 
@@ -1301,7 +1301,7 @@ def test_promotion_rule_create_checkout_and_order_predicate(
             "rewardValueType": reward_value_type,
             "rewardValue": reward_value,
             "rewardType": reward_type,
-            "checkoutAndOrderPredicate": checkout_and_order_predicate,
+            "orderPredicate": order_predicate,
         }
     }
 
@@ -1317,8 +1317,7 @@ def test_promotion_rule_create_checkout_and_order_predicate(
     assert rule_data["name"] == name
     assert rule_data["description"] == description_json
     assert rule_data["channels"][0]["id"] == channel_id
-    assert rule_data["checkoutAndOrderPredicate"] == checkout_and_order_predicate
-    assert rule_data["rewardValueType"] == reward_value_type
+    assert rule_data["orderPredicate"] == order_predicate
     assert rule_data["rewardValue"] == reward_value
     assert rule_data["promotion"]["id"] == promotion_id
     assert promotion.rules.count() == rules_count + 1
@@ -1342,7 +1341,7 @@ def test_promotion_rule_create_mixed_currencies_for_price_based_predicate(
     reward_value_type = RewardValueTypeEnum.PERCENTAGE.name
     reward_type = RewardTypeEnum.SUBTOTAL_DISCOUNT.name
     promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
-    checkout_and_order_predicate = {
+    order_predicate = {
         "discountedObjectPredicate": {"subtotalPrice": {"range": {"gte": "100"}}}
     }
     channel_ids = [
@@ -1361,7 +1360,7 @@ def test_promotion_rule_create_mixed_currencies_for_price_based_predicate(
             "rewardValueType": reward_value_type,
             "rewardValue": reward_value,
             "rewardType": reward_type,
-            "checkoutAndOrderPredicate": checkout_and_order_predicate,
+            "orderPredicate": order_predicate,
         }
     }
 

@@ -888,12 +888,12 @@ def test_base_checkout_total_high_discount_on_shipping(
     assert total == expected_price
 
 
-def test_base_checkout_total_checkout_and_order_discount(
-    checkout_with_item_with_checkout_and_order_discount, shipping_method
+def test_base_checkout_total_order_discount(
+    checkout_with_item_and_order_discount, shipping_method
 ):
     # given
     manager = get_plugins_manager(allow_replica=False)
-    checkout = checkout_with_item_with_checkout_and_order_discount
+    checkout = checkout_with_item_and_order_discount
     channel = checkout.channel
 
     checkout.shipping_method = shipping_method
@@ -915,12 +915,12 @@ def test_base_checkout_total_checkout_and_order_discount(
     assert total == expected_price
 
 
-def test_checkout_total_checkout_and_order_discount(
-    checkout_with_item_with_checkout_and_order_discount, shipping_method
+def test_checkout_total_order_discount(
+    checkout_with_item_and_order_discount, shipping_method
 ):
     # given
     manager = get_plugins_manager(allow_replica=False)
-    checkout = checkout_with_item_with_checkout_and_order_discount
+    checkout = checkout_with_item_and_order_discount
     channel = checkout.channel
 
     checkout.shipping_method = shipping_method

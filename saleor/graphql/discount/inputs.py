@@ -77,7 +77,7 @@ class DiscountedObjectPredicateInput(PredicateInputObjectType):
         doc_category = DOC_CATEGORY_DISCOUNTS
 
 
-class CheckoutAndOrderPredicateInput(PredicateInputObjectType):
+class orderPredicateInput(PredicateInputObjectType):
     discounted_object_predicate = graphene.Field(
         DiscountedObjectPredicateInput,
         description="Defines the conditions related to checkout and order objects.",
@@ -96,6 +96,13 @@ class PromotionRuleBaseInput(BaseInputObjectType):
             "for the reward to be applied."
         ),
     )
+    order_predicate = graphene.Field(
+        orderPredicateInput,
+        description=(
+            "Defines the conditions on the checkout/draft order level that must be met "
+            "for the reward to be applied." + ADDED_IN_319 + PREVIEW_FEATURE
+        ),
+    )
     reward_value_type = RewardValueTypeEnum(
         description=(
             "Defines the promotion rule reward value type. "
@@ -105,13 +112,6 @@ class PromotionRuleBaseInput(BaseInputObjectType):
     reward_value = PositiveDecimal(
         description=(
             "Defines the discount value. Required when catalogue predicate is provided."
-        ),
-    )
-    checkout_and_order_predicate = graphene.Field(
-        CheckoutAndOrderPredicateInput,
-        description=(
-            "Defines the conditions on the checkout/order level that must be met "
-            "for the reward to be applied." + ADDED_IN_319 + PREVIEW_FEATURE
         ),
     )
     reward_type = RewardTypeEnum(

@@ -407,15 +407,13 @@ def checkout_with_item_on_promotion(checkout_with_item):
 
 
 @pytest.fixture
-def checkout_with_item_with_checkout_and_order_discount(
-    checkout_with_item, promotion_without_rules
-):
+def checkout_with_item_and_order_discount(checkout_with_item, promotion_without_rules):
     channel = checkout_with_item.channel
 
     reward_value = Decimal("5")
 
     rule = promotion_without_rules.rules.create(
-        checkout_and_order_predicate={
+        order_predicate={
             "total_price": {
                 "range": {
                     "gte": 20,
@@ -431,7 +429,7 @@ def checkout_with_item_with_checkout_and_order_discount(
     CheckoutDiscount.objects.create(
         checkout=checkout_with_item,
         promotion_rule=rule,
-        type=DiscountType.CHECKOUT_AND_ORDER_PROMOTION,
+        type=DiscountType.ORDER_PROMOTION,
         value_type=rule.reward_value_type,
         value=rule.reward_value,
         amount_value=rule.reward_value,
@@ -5639,12 +5637,12 @@ def promotion_with_single_rule(catalogue_predicate, channel_USD):
 
 
 @pytest.fixture
-def promotion_with_checkout_and_order_rule(catalogue_predicate, channel_USD):
+def promotion_with_order_rule(catalogue_predicate, channel_USD):
     promotion = Promotion.objects.create(name="Promotion with checkout and order rule")
     rule = PromotionRule.objects.create(
         name="Promotion rule",
         promotion=promotion,
-        checkout_and_order_predicate={
+        order_predicate={
             "discountedObjectPredicate": {"subtotalPrice": {"range": {"gte": 100}}}
         },
         reward_value_type=RewardValueType.FIXED,
@@ -5765,11 +5763,11 @@ def promotion_rule(channel_USD, promotion, product):
 
 
 @pytest.fixture
-def checkout_and_order_promotion_rule(channel_USD, promotion, product):
+def order_promotion_rule(channel_USD, promotion, product):
     rule = PromotionRule.objects.create(
         name="Checkout and order promotion rule",
         promotion=promotion,
-        checkout_and_order_predicate={
+        order_predicate={
             "total_price": {
                 "range": {
                     "gte": 20,

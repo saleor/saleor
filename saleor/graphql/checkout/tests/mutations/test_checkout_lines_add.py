@@ -240,7 +240,7 @@ def test_add_to_existing_line_with_sale_when_checkout_has_voucher(
     )
 
 
-def test_add_to_existing_line_catalogue_and_checkout_and_order_discount_applies(
+def test_add_to_existing_line_catalogue_and_order_discount_applies(
     user_api_client,
     checkout_with_item,
     stock,
@@ -286,7 +286,7 @@ def test_add_to_existing_line_catalogue_and_checkout_and_order_discount_applies(
 
     # create checkout and order promotion discount
     rule = promotion_without_rules.rules.create(
-        checkout_and_order_predicate={
+        order_predicate={
             "total_price": {
                 "range": {
                     "gte": 20,
@@ -393,7 +393,7 @@ def test_add_to_existing_line_on_promotion_with_voucher_checkout_promotion_not_a
 
     # create checkout and order promotion discount
     rule = promotion_without_rules.rules.create(
-        checkout_and_order_predicate={
+        order_predicate={
             "total_price": {
                 "range": {
                     "gte": 20,
@@ -928,13 +928,13 @@ def test_checkout_lines_add_existing_variant_override_previous_custom_price(
     assert line.price_override == price
 
 
-def test_checkout_lines_add_custom_price_and_checkout_and_order_fixed_discount(
+def test_checkout_lines_add_custom_price_and_order_fixed_discount(
     app_api_client,
-    checkout_with_item_with_checkout_and_order_discount,
+    checkout_with_item_and_order_discount,
     permission_handle_checkouts,
 ):
     # given
-    checkout = checkout_with_item_with_checkout_and_order_discount
+    checkout = checkout_with_item_and_order_discount
     line = checkout.lines.first()
     variant_id = graphene.Node.to_global_id("ProductVariant", line.variant.pk)
     price = Decimal("13.11")
@@ -968,13 +968,13 @@ def test_checkout_lines_add_custom_price_and_checkout_and_order_fixed_discount(
     assert checkout.total.gross.amount == total_price - discount_amount
 
 
-def test_checkout_lines_add_custom_price_and_checkout_and_order_percentage_discount(
+def test_checkout_lines_add_custom_price_and_order_percentage_discount(
     app_api_client,
-    checkout_with_item_with_checkout_and_order_discount,
+    checkout_with_item_and_order_discount,
     permission_handle_checkouts,
 ):
     # given
-    checkout = checkout_with_item_with_checkout_and_order_discount
+    checkout = checkout_with_item_and_order_discount
     checkout_discount = checkout.discounts.first()
     rule = checkout_discount.promotion_rule
     rule.reward_value = 50

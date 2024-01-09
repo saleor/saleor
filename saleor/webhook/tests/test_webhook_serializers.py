@@ -403,11 +403,11 @@ def test_serialize_checkout_lines_for_tax_calculation_with_promotion(
     assert len(checkout_lines_data) == len(list(lines))
 
 
-def test_serialize_checkout_lines_for_tax_calculation_with_checkout_and_order_discount(
-    checkout_with_item_with_checkout_and_order_discount, product
+def test_serialize_checkout_lines_for_tax_calculation_with_order_discount(
+    checkout_with_item_and_order_discount, product
 ):
     # given
-    checkout = checkout_with_item_with_checkout_and_order_discount
+    checkout = checkout_with_item_and_order_discount
 
     lines, _ = fetch_checkout_lines(checkout)
     manager = get_plugins_manager(allow_replica=False)

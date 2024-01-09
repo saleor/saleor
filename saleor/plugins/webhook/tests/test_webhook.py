@@ -1118,7 +1118,7 @@ def test_checkout_payload_includes_promotions(
     assert Decimal(data[0]["lines"][0]["base_price"]) == variant_price_with_sale.amount
 
 
-def test_checkout_payload_includes_checkout_and_order_promotion_discount(
+def test_checkout_payload_includes_order_promotion_discount(
     checkout_with_item, promotion_without_rules
 ):
     # given
@@ -1133,7 +1133,7 @@ def test_checkout_payload_includes_checkout_and_order_promotion_discount(
     reward_value = Decimal("5")
     rule = promotion_without_rules.rules.create(
         name="Fixed promotion rule",
-        checkout_and_order_predicate={
+        order_predicate={
             "total_price": {
                 "range": {
                     "gte": 20,

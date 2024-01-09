@@ -1842,22 +1842,22 @@ def test_generate_checkout_payload_for_tax_calculation_specific_product_voucher(
 
 @patch("saleor.webhook.payloads.serialize_checkout_lines_for_tax_calculation")
 @pytest.mark.parametrize("prices_entered_with_tax", [True, False])
-def test_generate_checkout_payload_for_tax_calculation_checkout_and_order_discount(
+def test_generate_checkout_payload_for_tax_calculation_order_discount(
     mocked_serialize_checkout_lines_for_tax_calculation,
     mocked_fetch_checkout,
     checkout_with_prices,
     prices_entered_with_tax,
-    checkout_and_order_promotion_rule,
+    order_promotion_rule,
 ):
     checkout = checkout_with_prices
-    rule = checkout_and_order_promotion_rule
+    rule = order_promotion_rule
     currency = checkout.currency
 
     discount_amount = Decimal("5.00")
     CheckoutDiscount.objects.create(
         checkout=checkout,
         promotion_rule=rule,
-        type=DiscountType.CHECKOUT_AND_ORDER_PROMOTION,
+        type=DiscountType.ORDER_PROMOTION,
         value_type=rule.reward_value_type,
         value=rule.reward_value,
         amount_value=discount_amount,

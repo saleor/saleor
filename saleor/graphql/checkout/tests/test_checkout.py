@@ -1760,12 +1760,12 @@ def test_checkout_prices_with_promotion(
     assert line_total_price.gross.amount < undiscounted_total_price
 
 
-def test_checkout_prices_with_checkout_and_order_promotion(
-    user_api_client, checkout_with_item_with_checkout_and_order_discount
+def test_checkout_prices_with_order_promotion(
+    user_api_client, checkout_with_item_and_order_discount
 ):
     # given
     query = QUERY_CHECKOUT_PRICES
-    checkout = checkout_with_item_with_checkout_and_order_discount
+    checkout = checkout_with_item_and_order_discount
     variables = {"id": to_global_id_or_none(checkout)}
 
     manager = get_plugins_manager(allow_replica=False)
