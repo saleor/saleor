@@ -626,12 +626,6 @@ def _create_or_update_checkout_discount(
     promotion: "Promotion",
     save: bool,
 ):
-    # TODO: handle two scenario when this method is called almost in the same time
-    # we need get_or_create probably and transaction
-    # Will be resolved in #15178
-    checkout_discount = checkout.discounts.filter(
-        type=DiscountType.ORDER_PROMOTION
-    ).first()
     translation_language_code = checkout.language_code
     promotion_translation, rule_translation = get_rule_translations(
         promotion, best_rule, translation_language_code
@@ -643,7 +637,23 @@ def _create_or_update_checkout_discount(
         promotion_translation=promotion_translation,
         rule_translation=rule_translation,
     )
-    if checkout_discount:
+
+    checkout_discount, created = checkout.discounts.filter(
+        type=DiscountType.ORDER_PROMOTION
+    ).get_or_create(
+        checkout=checkout,
+        promotion_rule=best_rule,
+        type=DiscountType.ORDER_PROMOTION,
+        value_type=best_rule.reward_value_type,
+        value=best_rule.reward_value,
+        amount_value=best_discount_amount.amount,
+        currency=currency_code,
+        name=get_discount_name(best_rule, promotion),
+        translated_name=get_discount_translated_name(rule_info),
+        reason=prepare_promotion_discount_reason(promotion, get_sale_id(promotion)),
+    )
+
+    if not created:
         fields_to_update: list[str] = []
         _update_discount(
             best_rule,
@@ -654,21 +664,8 @@ def _create_or_update_checkout_discount(
         )
         if fields_to_update:
             checkout_discount.save(update_fields=fields_to_update)
-    else:
-        checkout_discount = CheckoutDiscount.objects.create(
-            checkout=checkout,
-            promotion_rule=best_rule,
-            type=DiscountType.ORDER_PROMOTION,
-            value_type=best_rule.reward_value_type,
-            value=best_rule.reward_value,
-            amount_value=best_discount_amount.amount,
-            currency=currency_code,
-            name=get_discount_name(best_rule, promotion),
-            translated_name=get_discount_translated_name(rule_info),
-            reason=prepare_promotion_discount_reason(promotion, get_sale_id(promotion)),
-        )
-    checkout_info.discounts = [checkout_discount]
 
+    checkout_info.discounts = [checkout_discount]
     checkout.discount = best_discount_amount
     checkout.discount_name = checkout_discount.name
     checkout.translated_discount_name = checkout_discount.translated_name
