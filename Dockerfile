@@ -1,5 +1,5 @@
 ### Build and install packages
-FROM python:3.9 as build-python
+FROM python:3.9-bookworm as build-python
 
 RUN apt-get -y update \
   && apt-get install -y gettext \
@@ -15,7 +15,7 @@ COPY poetry.lock pyproject.toml /app/
 RUN --mount=type=cache,mode=0755,target=/root/.cache/pypoetry poetry install --no-root
 
 ### Final image
-FROM python:3.9-slim
+FROM python:3.9-slim-bookworm
 
 RUN groupadd -r saleor && useradd -r -g saleor saleor
 
