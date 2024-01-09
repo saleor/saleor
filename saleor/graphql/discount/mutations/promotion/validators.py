@@ -2,9 +2,11 @@ from typing import TYPE_CHECKING, Union
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 from graphene.utils.str_converters import to_camel_case
 
 from .....discount import RewardValueType
+from .....discount.models import PromotionRule
 from ....core.validators import validate_price_precision
 from ...utils import PredicateType
 
@@ -233,6 +235,22 @@ def _clean_order_predicate(
     if "order_predicate" not in cleaned_input:
         return
 
+    checkout_and_order_rules_count = PromotionRule.objects.filter(
+        ~Q(checkout_and_order_predicate={})
+    ).count()
+    rules_limit = settings.CHECKOUT_AND_ORDER_RULES_LIMIT
+    if checkout_and_order_rules_count >= int(rules_limit):
+        errors["checkout_and_order_predicate"].append(
+            ValidationError(
+                message=(
+                    f"Number of rules with checkoutAndOrderPredicate has reached "
+                    f"the limit of {rules_limit} rules."
+                ),
+                code=error_class.RULES_NUMBER_LIMIT.value,
+            )
+        )
+        return
+
     try:
         cleaned_input["order_predicate"] = clean_predicate(
             order_predicate,
@@ -242,22 +260,6 @@ def _clean_order_predicate(
     except ValidationError as error:
         errors["order_predicate"].append(error)
         return
-
-    if promotion := cleaned_input.get("promotion"):
-        rules_count = promotion.rules.count()
-        rules_limit = settings.CHECKOUT_AND_ORDER_RULES_LIMIT
-        # TODO: check the limit only for active promotions
-        # https://github.com/saleor/saleor/issues/15201
-        if rules_count >= int(rules_limit):
-            errors["checkout_and_order_predicate"].append(
-                ValidationError(
-                    message=(
-                        f"Number of rules has reached the limit of {rules_limit} "
-                        f"rules per single promotion."
-                    ),
-                    code=error_class.RULES_NUMBER_LIMIT.value,
-                )
-            )
 
 
 def _clean_reward(

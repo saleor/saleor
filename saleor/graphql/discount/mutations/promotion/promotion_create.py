@@ -7,6 +7,7 @@ import pytz
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.models import Q
 from graphql.error import GraphQLError
 
 from .....channel import models as channel_models
@@ -128,11 +129,14 @@ class PromotionCreate(ModelMutation):
         predicate_type = cls.check_predicate_types(rules_data)
         if predicate_type and predicate_type == PredicateType.CHECKOUT_AND_ORDER:
             rules_limit = settings.CHECKOUT_AND_ORDER_RULES_LIMIT
-            if len(rules_data) > int(rules_limit):
+            checkout_and_order_rules_count = models.PromotionRule.objects.filter(
+                ~Q(checkout_and_order_predicate={})
+            ).count()
+            if checkout_and_order_rules_count + len(rules_data) > int(rules_limit):
                 raise_validation_error(
                     message=(
-                        f"Number of rules has reached the limit of {rules_limit} "
-                        f"rules per single promotion."
+                        f"Number of rules with checkoutAndOrderPredicate has reached "
+                        f"the limit of {rules_limit} rules."
                     ),
                     code=PromotionCreateErrorCode.RULES_NUMBER_LIMIT.value,
                     field="rules",

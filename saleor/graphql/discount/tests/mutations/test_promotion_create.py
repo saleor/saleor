@@ -1403,6 +1403,7 @@ def test_promotion_create_exceeds_rules_number_limit(
     permission_group_manage_discounts,
     channel_USD,
     product,
+    promotion_with_checkout_and_order_rule,
 ):
     # given
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
@@ -1418,21 +1419,22 @@ def test_promotion_create_exceeds_rules_number_limit(
     reward_value_type = RewardValueTypeEnum.PERCENTAGE.name
     reward_type = RewardTypeEnum.SUBTOTAL_DISCOUNT.name
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.pk)
-    rule_input = {
-        "name": rule_name,
-        "channels": [channel_id],
-        "rewardValueType": reward_value_type,
-        "rewardValue": reward_value,
-        "rewardType": reward_type,
-        "checkoutAndOrderPredicate": checkout_and_order_predicate,
-    }
 
     variables = {
         "input": {
             "name": promotion_name,
             "startDate": start_date.isoformat(),
             "endDate": end_date.isoformat(),
-            "rules": [rule_input, rule_input],
+            "rules": [
+                {
+                    "name": rule_name,
+                    "channels": [channel_id],
+                    "rewardValueType": reward_value_type,
+                    "rewardValue": reward_value,
+                    "rewardType": reward_type,
+                    "checkoutAndOrderPredicate": checkout_and_order_predicate,
+                }
+            ],
         }
     }
 
