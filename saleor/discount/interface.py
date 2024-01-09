@@ -44,7 +44,7 @@ def fetch_voucher_info(voucher: Voucher) -> VoucherInfo:
 
 class VariantPromotionRuleInfo(NamedTuple):
     rule: "PromotionRule"
-    variant_listing_promotion_rule: "VariantChannelListingPromotionRule"
+    variant_listing_promotion_rule: Optional["VariantChannelListingPromotionRule"]
     promotion: "Promotion"
     promotion_translation: Optional["PromotionTranslation"]
     rule_translation: Optional["PromotionRuleTranslation"]
@@ -62,22 +62,10 @@ def fetch_variant_rules_info(
     rules_info = []
     for listing_promotion_rule in listings_rules:
         promotion = listing_promotion_rule.promotion_rule.promotion
-        promotion_translations = [
-            translation
-            for translation in promotion.translations.all()
-            if translation.language_code == translation_language_code
-        ]
-        promotion_translation = (
-            promotion_translations[0] if promotion_translations else None
+
+        promotion_translation, rule_translation = get_rule_translations(
+            promotion, listing_promotion_rule.promotion_rule, translation_language_code
         )
-
-        rule_translations = [
-            translation
-            for translation in listing_promotion_rule.promotion_rule.translations.all()
-            if translation.language_code == translation_language_code
-        ]
-        rule_translation = rule_translations[0] if rule_translations else None
-
         rules_info.append(
             VariantPromotionRuleInfo(
                 rule=listing_promotion_rule.promotion_rule,
@@ -88,3 +76,25 @@ def fetch_variant_rules_info(
             )
         )
     return rules_info
+
+
+def get_rule_translations(
+    promotion: "Promotion", rule: "PromotionRule", translation_language_code: str
+):
+    promotion_translations = [
+        translation
+        for translation in promotion.translations.all()
+        if translation.language_code == translation_language_code
+    ]
+    promotion_translation = (
+        promotion_translations[0] if promotion_translations else None
+    )
+
+    rule_translations = [
+        translation
+        for translation in rule.translations.all()
+        if translation.language_code == translation_language_code
+    ]
+    rule_translation = rule_translations[0] if rule_translations else None
+
+    return promotion_translation, rule_translation
