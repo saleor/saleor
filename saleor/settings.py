@@ -627,6 +627,17 @@ CELERY_BEAT_SCHEDULE = {
         "task": "saleor.payment.tasks.transaction_release_funds_for_checkout_task",
         "schedule": timedelta(minutes=10),
     },
+    "update-promotion-rules-and-mark-products-for-price-recalculation": {
+        "task": (
+            "saleor.product.tasks"
+            ".update_promotion_rules_mark_products_for_price_recalculation_task"
+        ),
+        "schedule": timedelta(seconds=10),
+    },
+    "recalculate-discounted-price-for-products": {
+        "task": "saleor.product.tasks.recalculate_discounted_price_for_products_task",
+        "schedule": timedelta(seconds=10),
+    },
 }
 
 # The maximum wait time between each is_due() call on schedulers

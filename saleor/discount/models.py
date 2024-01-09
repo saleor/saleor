@@ -386,6 +386,7 @@ class PromotionRule(models.Model):
         blank=True,
     )
     old_channel_listing_id = models.IntegerField(blank=True, null=True, unique=True)
+    variants_dirty = models.BooleanField(default=False)
 
     class Meta:
         ordering = ("name", "pk")

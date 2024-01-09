@@ -1,11 +1,9 @@
 import graphene
 
+from .....discount.utils import get_active_promotion_rules
 from .....permission.enums import ProductPermissions
 from .....product import models
-from .....product.tasks import (
-    collection_product_updated_task,
-    update_products_discounted_prices_for_promotion_task,
-)
+from .....product.tasks import collection_product_updated_task
 from ....channel import ChannelContext
 from ....core import ResolveInfo
 from ....core.mutations import ModelDeleteMutation
@@ -48,9 +46,8 @@ class CollectionDelete(ModelDeleteMutation):
 
         for ids_batch in cls.batch_product_ids(product_ids):
             collection_product_updated_task.delay(ids_batch)
-        cls.call_event(
-            update_products_discounted_prices_for_promotion_task.delay, product_ids
-        )
+        rules = get_active_promotion_rules()
+        rules.update(variants_dirty=True)
 
         return CollectionDelete(
             collection=ChannelContext(node=result.collection, channel_slug=None)
