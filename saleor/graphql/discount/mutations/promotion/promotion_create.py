@@ -182,7 +182,8 @@ class PromotionCreate(ModelMutation):
             models.PromotionRule.objects.bulk_create(rules)
 
         for rule, channels in rules_with_channels_to_add:
-            rule.channels.set(channels)
+            if channels:
+                rule.channels.set(channels)
 
         return rules
 
