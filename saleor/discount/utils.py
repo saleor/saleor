@@ -12,6 +12,7 @@ from typing import (
 from uuid import UUID
 
 import graphene
+from django.db import transaction
 from django.db.models import Exists, F, OuterRef, QuerySet
 from django.utils import timezone
 from prices import Money, TaxedMoney, fixed_discount, percentage_discount
@@ -581,3 +582,45 @@ def get_current_products_for_rules(rules: "QuerySet[PromotionRule]"):
         Exists(rule_variants.filter(productvariant_id=OuterRef("id")))
     )
     return Product.objects.filter(Exists(variants.filter(product_id=OuterRef("id"))))
+
+
+def update_rule_variant_relation(
+    rules: QuerySet[PromotionRule], new_rules_variants: list
+):
+    """Update PromotionRule - ProductVariant relation.
+
+    Deletes relations, which are not valid anymore.
+    Adds new relations, if they don't exist already.
+    `new_rules_variants` is a list of PromotionRuleVariant objects.
+    """
+    with transaction.atomic():
+        PromotionRuleVariant = PromotionRule.variants.through
+        existing_rules_variants = PromotionRuleVariant.objects.filter(
+            Exists(rules.filter(pk=OuterRef("promotionrule_id")))
+        ).all()
+        new_rule_variant_set = set(
+            (rv.promotionrule_id, rv.productvariant_id) for rv in new_rules_variants
+        )
+        existing_rule_variant_set = set(
+            (rv.promotionrule_id, rv.productvariant_id)
+            for rv in existing_rules_variants
+        )
+
+        # Clear invalid variants assigned to promotion rules
+        rule_variant_to_delete_ids = [
+            rv.id
+            for rv in existing_rules_variants
+            if (rv.promotionrule_id, rv.productvariant_id) not in new_rule_variant_set
+        ]
+        PromotionRuleVariant.objects.filter(id__in=rule_variant_to_delete_ids).delete()
+
+        # Assign new variants to promotion rules
+        rules_variants_to_add = [
+            rv
+            for rv in new_rules_variants
+            if (rv.promotionrule_id, rv.productvariant_id)
+            not in existing_rule_variant_set
+        ]
+        PromotionRuleVariant.objects.bulk_create(
+            rules_variants_to_add, ignore_conflicts=True
+        )
