@@ -197,7 +197,7 @@ def filter_qs_by_predicate(
         result_qs: QuerySet that contains results of previous conditions
         base_qs: QuerySet that contains all objects that can be filtered
         predicate_type: type of predicate (catalogue or order)
-        currency: currency used for filtering by checkoutAndOrder predicates
+        currency: currency used for filtering by order predicates
             with price conditions
     """
     if not predicate:

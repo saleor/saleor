@@ -5638,7 +5638,7 @@ def promotion_with_single_rule(catalogue_predicate, channel_USD):
 
 @pytest.fixture
 def promotion_with_order_rule(catalogue_predicate, channel_USD):
-    promotion = Promotion.objects.create(name="Promotion with checkout and order rule")
+    promotion = Promotion.objects.create(name="Promotion with order rule")
     rule = PromotionRule.objects.create(
         name="Promotion rule",
         promotion=promotion,
@@ -5765,7 +5765,7 @@ def promotion_rule(channel_USD, promotion, product):
 @pytest.fixture
 def order_promotion_rule(channel_USD, promotion, product):
     rule = PromotionRule.objects.create(
-        name="Checkout and order promotion rule",
+        name="Order promotion rule",
         promotion=promotion,
         order_predicate={
             "total_price": {

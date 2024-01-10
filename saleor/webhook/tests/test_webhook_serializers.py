@@ -433,7 +433,7 @@ def test_serialize_checkout_lines_for_tax_calculation_with_order_discount(
     total_price_amount = (unit_price * line.quantity).amount
 
     line_data = checkout_lines_data[0]
-    # the line data shouldn't include checkout and order discount
+    # the line data shouldn't include order promotin discount
     assert line_data == {
         "id": graphene.Node.to_global_id("CheckoutLine", line.pk),
         "sku": variant.sku,

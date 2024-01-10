@@ -69,7 +69,7 @@ def _clean_predicates(
 ):
     """Validate if predicates are provided and if they aren't mixed.
 
-    - At least one predicate is required - `catalogue` or `checkoutAndOrder` predicate.
+    - At least one predicate is required - `catalogue` or `order` predicate.
     - Promotion can have only one predicate type, raise error if there are mixed.
     """
     if catalogue_predicate is None and order_predicate is None:
@@ -101,7 +101,7 @@ def _clean_predicates(
                 )
             )
         return True
-    # the Promotion can have only rules with catalogue or checkoutAndOrder predicate
+    # the Promotion can have only rules with catalogue or order predicate
     elif (
         catalogue_predicate and predicate_type and predicate_type == PredicateType.order
     ):
@@ -180,9 +180,9 @@ def _clean_order_predicate(
     index,
     instance,
 ):
-    """Clean and validate checkoutAndOrder predicate.
+    """Clean and validate order predicate.
 
-    - Reward type is required for rule with checkoutAndOrder predicate.
+    - Reward type is required for rule with order predicate.
     - Price based predicates are allowed only for rules with one currency
     """
     if not order_predicate:

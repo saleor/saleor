@@ -398,7 +398,7 @@ class PluginsManager(PaymentInterface):
             checkout_line_info,
             checkout_info.channel,
         )
-        # apply entire order discount or discount from checkout and order promotion
+        # apply entire order discount or discount from order promotion
         default_value = base_calculations.apply_checkout_discount_on_checkout_line(
             checkout_info,
             lines,

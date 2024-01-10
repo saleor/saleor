@@ -247,7 +247,7 @@ def test_add_to_existing_line_catalogue_and_order_discount_applies(
     channel_USD,
     promotion_without_rules,
 ):
-    """Ensure that both catalogue and checkout and order discount are applied."""
+    """Ensure that both catalogue and order discount are applied."""
     # given
     checkout = checkout_with_item
     variant_unit_price = Decimal(100)
@@ -284,7 +284,7 @@ def test_add_to_existing_line_catalogue_and_order_discount_applies(
         currency=channel_USD.currency_code,
     )
 
-    # create checkout and order promotion discount
+    # create order promotion discount
     rule = promotion_without_rules.rules.create(
         order_predicate={
             "total_price": {
@@ -317,7 +317,7 @@ def test_add_to_existing_line_catalogue_and_order_discount_applies(
     variant_listing = variant.channel_listings.get(channel=checkout.channel)
     base_unit_price = variant_listing.price_amount
     discounted_unit_price = base_unit_price * Decimal("0.5")
-    # catalogue promotion 50% then checkout and order promotion 50%
+    # catalogue promotion 50% then order promotion 50%
     expected_unit_price_after_all_discount = discounted_unit_price * Decimal("0.5")
 
     expected_total_price = expected_unit_price_after_all_discount * line.quantity
@@ -346,7 +346,7 @@ def test_add_to_existing_line_on_promotion_with_voucher_checkout_promotion_not_a
     channel_USD,
     promotion_without_rules,
 ):
-    """Ensure that checkout and order discount is not applied when the voucher is set."""
+    """Ensure that order promotion discount is not applied when the voucher is set."""
     # given
 
     # prepare voucher with 50% discount
@@ -391,7 +391,7 @@ def test_add_to_existing_line_on_promotion_with_voucher_checkout_promotion_not_a
         currency=channel_USD.currency_code,
     )
 
-    # create checkout and order promotion discount
+    # create order promotion discount
     rule = promotion_without_rules.rules.create(
         order_predicate={
             "total_price": {

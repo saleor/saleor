@@ -535,13 +535,12 @@ def create_discount_objects_for_order_promotions(
     *,
     save: bool = False,
 ):
-    # The base prices are required for checkoutAndOrder promotion
-    # discount qualification.
+    # The base prices are required for order promotion discount qualification.
     _set_checkout_base_prices(checkout_info, lines_info)
 
     checkout = checkout_info.checkout
 
-    # Discount from checkout and order rules is applied only when the voucher is not set
+    # Discount from order rules is applied only when the voucher is not set
     if checkout.voucher_code:
         _clear_checkout_discount(checkout_info, save)
         return

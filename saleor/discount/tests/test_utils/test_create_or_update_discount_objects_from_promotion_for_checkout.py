@@ -1232,7 +1232,7 @@ def test_create_or_update_discount_objects_from_promotion(
     rules = PromotionRule.objects.bulk_create(
         [
             PromotionRule(
-                name="Checkout and order promotion rule 1",
+                name="Order promotion rule 1",
                 promotion=promotion,
                 order_predicate={
                     "total_price": {
@@ -1246,7 +1246,7 @@ def test_create_or_update_discount_objects_from_promotion(
                 reward_type=RewardType.SUBTOTAL_DISCOUNT,
             ),
             PromotionRule(
-                name="Checkout and order promotion rule 2",
+                name="Order promotion rule 2",
                 promotion=promotion,
                 order_predicate={
                     "total_price": {
@@ -1307,7 +1307,7 @@ def test_create_or_update_discount_objects_from_promotion_best_rule_applies(
     rules = PromotionRule.objects.bulk_create(
         [
             PromotionRule(
-                name="Checkout and order promotion rule 1",
+                name="Order promotion rule 1",
                 promotion=promotion,
                 order_predicate={
                     "total_price": {
@@ -1321,7 +1321,7 @@ def test_create_or_update_discount_objects_from_promotion_best_rule_applies(
                 reward_type=RewardType.SUBTOTAL_DISCOUNT,
             ),
             PromotionRule(
-                name="Checkout and order promotion rule 2",
+                name="Order promotion rule 2",
                 promotion=promotion,
                 order_predicate={
                     "total_price": {
@@ -1335,7 +1335,7 @@ def test_create_or_update_discount_objects_from_promotion_best_rule_applies(
                 reward_type=RewardType.SUBTOTAL_DISCOUNT,
             ),
             PromotionRule(
-                name="Checkout and order promotion rule 1",
+                name="Order promotion rule 1",
                 promotion=promotion,
                 order_predicate={
                     "total_price": {
@@ -1403,7 +1403,7 @@ def test_create_or_update_discount_objects_from_promotion_total_price_discount(
     rules = PromotionRule.objects.bulk_create(
         [
             PromotionRule(
-                name="Checkout and order promotion rule 2",
+                name="Order promotion rule 2",
                 promotion=promotion,
                 order_predicate={
                     "total_price": {
@@ -1463,7 +1463,7 @@ def test_create_or_update_discount_from_promotion_voucher_code_set_checkout_disc
     )
 
     rule = PromotionRule.objects.create(
-        name="Checkout and order promotion rule 1",
+        name="Order promotion rule 1",
         promotion=promotion,
         order_predicate={
             "total_price": {
@@ -1519,7 +1519,7 @@ def test_create_or_update_discount_from_promotion_checkout_discount_updated(
     )
 
     rule = PromotionRule.objects.create(
-        name="Checkout and order promotion rule 1",
+        name="Order promotion rule 1",
         promotion=promotion,
         order_predicate={
             "total_price": {
@@ -1582,7 +1582,7 @@ def test_create_or_update_discount_from_promotion_rule_not_applies_anymore(
     )
 
     rule = PromotionRule.objects.create(
-        name="Checkout and order promotion rule 1",
+        name="Order promotion rule 1",
         promotion=promotion,
         order_predicate={
             "total_price": {
