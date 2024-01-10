@@ -53,6 +53,7 @@ from ..csv.models import ExportEvent, ExportFile
 from ..discount import (
     DiscountType,
     DiscountValueType,
+    PredicateType,
     PromotionEvents,
     RewardType,
     RewardValueType,
@@ -5582,6 +5583,7 @@ def promotion(channel_USD, product, collection):
                 description=dummy_editorjs(
                     "Test description for percentage promotion rule."
                 ),
+                predicate_type=PredicateType.CATALOGUE,
                 catalogue_predicate={
                     "productPredicate": {
                         "ids": [graphene.Node.to_global_id("Product", product.id)]
@@ -5596,6 +5598,7 @@ def promotion(channel_USD, product, collection):
                 description=dummy_editorjs(
                     "Test description for fixes promotion rule."
                 ),
+                predicate_type=PredicateType.CATALOGUE,
                 catalogue_predicate={
                     "collectionPredicate": {
                         "ids": [graphene.Node.to_global_id("Collection", collection.id)]
@@ -5628,6 +5631,7 @@ def promotion_with_single_rule(catalogue_predicate, channel_USD):
     rule = PromotionRule.objects.create(
         name="Sale rule",
         promotion=promotion,
+        predicate_type=PredicateType.CATALOGUE,
         catalogue_predicate=catalogue_predicate,
         reward_value_type=RewardValueType.FIXED,
         reward_value=Decimal(5),
@@ -5642,6 +5646,7 @@ def promotion_with_order_rule(catalogue_predicate, channel_USD):
     rule = PromotionRule.objects.create(
         name="Promotion rule",
         promotion=promotion,
+        predicate_type=PredicateType.ORDER,
         order_predicate={
             "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 100}}}
         },
@@ -5686,6 +5691,7 @@ def promotion_list(channel_USD, product, collection):
                 description=dummy_editorjs(
                     "Test description for promotion 1 percentage rule."
                 ),
+                predicate_type=PredicateType.CATALOGUE,
                 catalogue_predicate={
                     "productPredicate": {
                         "ids": [graphene.Node.to_global_id("Product", product.id)]
@@ -5714,6 +5720,7 @@ def promotion_list(channel_USD, product, collection):
                 description=dummy_editorjs(
                     "Test description for promotion 2 percentage rule."
                 ),
+                predicate_type=PredicateType.CATALOGUE,
                 catalogue_predicate={
                     "productPredicate": {
                         "ids": [graphene.Node.to_global_id("Product", product.id)]
@@ -5728,6 +5735,7 @@ def promotion_list(channel_USD, product, collection):
                 description=dummy_editorjs(
                     "Test description for promotion 3 fixed rule."
                 ),
+                predicate_type=PredicateType.CATALOGUE,
                 catalogue_predicate={
                     "collectionPredicate": {
                         "ids": [graphene.Node.to_global_id("Collection", collection.id)]
@@ -5750,6 +5758,7 @@ def promotion_rule(channel_USD, promotion, product):
         name="Promotion rule name",
         promotion=promotion,
         description=dummy_editorjs("Test description for percentage promotion rule."),
+        predicate_type=PredicateType.CATALOGUE,
         catalogue_predicate={
             "productPredicate": {
                 "ids": [graphene.Node.to_global_id("Product", product.id)]
@@ -5767,6 +5776,7 @@ def order_promotion_rule(channel_USD, promotion, product):
     rule = PromotionRule.objects.create(
         name="Order promotion rule",
         promotion=promotion,
+        predicate_type=PredicateType.CATALOGUE,
         order_predicate={
             "base_total_price": {
                 "range": {
@@ -5829,6 +5839,7 @@ def promotion_converted_from_sale(catalogue_predicate, channel_USD):
     rule = PromotionRule.objects.create(
         name="Sale rule",
         promotion=promotion,
+        predicate_type=PredicateType.CATALOGUE,
         catalogue_predicate=catalogue_predicate,
         reward_value_type=RewardValueType.FIXED,
         reward_value=Decimal(5),
@@ -5847,6 +5858,7 @@ def promotion_converted_from_sale_with_many_channels(
     rule = PromotionRule.objects.create(
         name="Sale rule 2",
         promotion=promotion,
+        predicate_type=PredicateType.CATALOGUE,
         catalogue_predicate=catalogue_predicate,
         reward_value_type=RewardValueType.FIXED,
         reward_value=Decimal(5),
@@ -5864,6 +5876,7 @@ def promotion_converted_from_sale_with_empty_predicate(channel_USD):
     rule = PromotionRule.objects.create(
         name="Sale with empty predicate rule",
         promotion=promotion,
+        predicate_type=PredicateType.CATALOGUE,
         catalogue_predicate={},
         reward_value_type=RewardValueType.FIXED,
         reward_value=Decimal(5),

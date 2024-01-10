@@ -20,7 +20,7 @@ from ..dataloaders import (
     PromotionEventsByPromotionIdLoader,
     PromotionRulesByPromotionIdLoader,
 )
-from ..enums import RewardTypeEnum, RewardValueTypeEnum
+from ..enums import PredicateTypeEnum, RewardTypeEnum, RewardValueTypeEnum
 from .promotion_events import PromotionEvent
 
 
@@ -90,6 +90,9 @@ class PromotionRule(ModelObjectType[models.PromotionRule]):
     )
     reward_value_type = RewardValueTypeEnum(
         description="The type of reward value of the promotion rule."
+    )
+    predicate_type = PredicateTypeEnum(
+        description="The type of the predicate that must be met to apply the reward."
     )
     catalogue_predicate = JSON(
         description=(

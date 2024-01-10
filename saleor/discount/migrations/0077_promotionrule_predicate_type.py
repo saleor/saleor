@@ -13,10 +13,7 @@ class Migration(migrations.Migration):
             model_name="promotionrule",
             name="predicate_type",
             field=models.CharField(
-                choices=[
-                    ("subtotal_discount", "subtotal_discount"),
-                    ("total_discount", "total_discount"),
-                ],
+                choices=[("catalogue", "Catalogue"), ("order", "Order")],
                 max_length=255,
                 default="catalogue",
             ),

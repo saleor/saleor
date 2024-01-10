@@ -47,6 +47,7 @@ def test_checkout_products_on_percentage_promotion_core_2104(
     discount_value = 3
     discount_type = "PERCENTAGE"
     promotion_rule_name = "rule for product"
+    predicate_type = "CATALOGUE"
 
     promotion_data = create_promotion(e2e_staff_api_client, promotion_name)
     promotion_id = promotion_data["id"]
@@ -56,6 +57,7 @@ def test_checkout_products_on_percentage_promotion_core_2104(
     promotion_rule = create_promotion_rule(
         e2e_staff_api_client,
         promotion_id,
+        predicate_type,
         catalogue_predicate,
         discount_type,
         discount_value,

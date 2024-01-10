@@ -50,6 +50,7 @@ def test_order_products_on_fixed_promotion_CORE_2101(
 
     promotion_data = create_promotion(e2e_staff_api_client, promotion_name)
     promotion_id = promotion_data["id"]
+    predicate_type = "CATALOGUE"
 
     catalogue_predicate = {"productPredicate": {"ids": [product_id]}}
 
@@ -57,6 +58,7 @@ def test_order_products_on_fixed_promotion_CORE_2101(
         e2e_staff_api_client,
         promotion_id,
         catalogue_predicate,
+        predicate_type,
         discount_type,
         discount_value,
         promotion_rule_name,

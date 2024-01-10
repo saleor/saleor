@@ -47,6 +47,7 @@ def test_checkout_products_on_fixed_promotion_core_2102(
     discount_value = 5
     discount_type = "FIXED"
     promotion_rule_name = "rule for product"
+    predicate_type = "CATALOGUE"
 
     promotion_data = create_promotion(e2e_staff_api_client, promotion_name)
     promotion_id = promotion_data["id"]
@@ -57,6 +58,7 @@ def test_checkout_products_on_fixed_promotion_core_2102(
         e2e_staff_api_client,
         promotion_id,
         catalogue_predicate,
+        predicate_type,
         discount_type,
         discount_value,
         promotion_rule_name,

@@ -11,6 +11,7 @@ def prepare_promotion(
     e2e_staff_api_client,
     discount_value,
     discount_type,
+    predicate_type,
     promotion_rule_name="Test rule",
     variant_ids=None,
     channel_id=None,
@@ -24,6 +25,7 @@ def prepare_promotion(
         e2e_staff_api_client,
         promotion_id,
         predicate_input,
+        predicate_type,
         discount_type,
         discount_value,
         promotion_rule_name,
@@ -63,6 +65,7 @@ def test_staff_can_change_reward_value_type_in_promotion_rule_core_2117(
         e2e_staff_api_client,
         30,
         "PERCENTAGE",
+        "CATALOGUE",
         variant_ids=[product_variant_id],
         channel_id=channel_id,
     )

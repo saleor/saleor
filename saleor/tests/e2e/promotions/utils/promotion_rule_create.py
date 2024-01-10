@@ -14,6 +14,7 @@ mutation promotionRuleCreate($input: PromotionRuleCreateInput!) {
       description
       rewardValueType
       rewardValue
+      predicateType
       cataloguePredicate
       channels{
         id
@@ -28,6 +29,7 @@ def create_promotion_rule(
     staff_api_client,
     promotion_id,
     catalogue_predicate,
+    predicate_type,
     reward_value_type="PERCENTAGE",
     reward_value=5.00,
     promotion_rule_name="Test rule",
@@ -44,6 +46,7 @@ def create_promotion_rule(
             "rewardValueType": reward_value_type,
             "rewardValue": reward_value,
             "channels": channel_id,
+            "predicateType": predicate_type,
             "cataloguePredicate": catalogue_predicate,
             "description": description,
         }
@@ -62,4 +65,5 @@ def create_promotion_rule(
     assert data["name"] == promotion_rule_name
     assert data["rewardValueType"] == reward_value_type
     assert data["rewardValue"] == reward_value
+    assert data["predicateType"] == predicate_type
     return data

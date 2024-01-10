@@ -28,7 +28,7 @@ from ....core.utils import WebhookEventInfo
 from ....core.validators import validate_end_is_after_start
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ....utils import get_nodes
-from ...enums import PromotionCreateErrorCode
+from ...enums import PredicateTypeEnum, PromotionCreateErrorCode
 from ...inputs import PromotionRuleBaseInput
 from ...types import Promotion
 from ...utils import PredicateType
@@ -52,6 +52,14 @@ class PromotionRuleInput(PromotionRuleBaseInput):
     channels = NonNullList(
         graphene.ID,
         description="List of channel ids to which the rule should apply to.",
+    )
+    predicate_type = PredicateTypeEnum(
+        description=(
+            "Defines the promotion rule predicate type. Implicate whether the "
+            "promotion rule will give the catalogue or order discount. "
+            "The promotion can have only rules with one type of predicate."
+        ),
+        required=True,
     )
 
     class Meta:

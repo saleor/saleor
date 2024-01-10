@@ -69,11 +69,13 @@ def test_order_promotion_not_applied_when_not_within_time_range_CORE_2110(
     assert promotion_end_date == month_after.isoformat()
 
     catalogue_predicate = {"productPredicate": {"ids": [product_id]}}
+    predicate_type = "CATALOGUE"
 
     promotion_rule = create_promotion_rule(
         e2e_staff_api_client,
         promotion_id,
         catalogue_predicate,
+        predicate_type,
         discount_type,
         discount_value,
         promotion_rule_name,

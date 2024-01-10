@@ -46,6 +46,7 @@ def test_order_products_on_percentage_promotion_CORE_2103(
     discount_value = 10
     discount_type = "PERCENTAGE"
     promotion_rule_name = "rule for product"
+    predicate_type = "CATALOGUE"
 
     promotion_data = create_promotion(e2e_staff_api_client, promotion_name)
     promotion_id = promotion_data["id"]
@@ -56,6 +57,7 @@ def test_order_products_on_percentage_promotion_CORE_2103(
         e2e_staff_api_client,
         promotion_id,
         catalogue_predicate,
+        predicate_type,
         discount_type,
         discount_value,
         promotion_rule_name,

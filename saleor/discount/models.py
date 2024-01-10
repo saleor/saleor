@@ -374,7 +374,7 @@ class PromotionRule(models.Model):
     channels = models.ManyToManyField(Channel)
     predicate_type = models.CharField(
         max_length=255,
-        choices=RewardType.CHOICES,
+        choices=PredicateType.CHOICES,
         default=PredicateType.CATALOGUE,
     )
     catalogue_predicate = models.JSONField(

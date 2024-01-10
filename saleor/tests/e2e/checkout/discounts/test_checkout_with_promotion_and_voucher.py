@@ -37,6 +37,7 @@ def prepare_promotion(
     assert promotion_id is not None
 
     promotion_rule_name = "test_promotion_rule"
+    predicate_type = "CATALOGUE"
 
     catalogue_predicate = {
         "productPredicate": {"ids": [product_id]},
@@ -46,6 +47,7 @@ def prepare_promotion(
         e2e_staff_api_client,
         promotion_id,
         catalogue_predicate,
+        predicate_type,
         promotion_type,
         promotion_value,
         promotion_rule_name,

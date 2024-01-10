@@ -11,7 +11,7 @@ from .....discount import PromotionEvents
 from .....discount.error_codes import PromotionCreateErrorCode
 from .....discount.models import Promotion, PromotionEvent
 from ....tests.utils import assert_no_permission, get_graphql_content
-from ...enums import RewardTypeEnum, RewardValueTypeEnum
+from ...enums import PredicateTypeEnum, RewardTypeEnum, RewardValueTypeEnum
 
 PROMOTION_CREATE_MUTATION = """
     mutation promotionCreate($input: PromotionCreateInput!) {
@@ -35,6 +35,7 @@ PROMOTION_CREATE_MUTATION = """
                     }
                     rewardValueType
                     rewardValue
+                    predicateType
                     cataloguePredicate
                     orderPredicate
                 }
@@ -122,6 +123,7 @@ def test_promotion_create_by_staff_user(
                     "rewardValueType": reward_value_type_1,
                     "rewardValue": reward_value,
                     "cataloguePredicate": catalogue_predicate,
+                    "predicateType": PredicateTypeEnum.CATALOGUE.name,
                 },
                 {
                     "name": rule_2_name,
@@ -130,6 +132,7 @@ def test_promotion_create_by_staff_user(
                     "rewardValueType": reward_value_type_2,
                     "rewardValue": reward_value,
                     "cataloguePredicate": catalogue_predicate,
+                    "predicateType": PredicateTypeEnum.CATALOGUE.name,
                 },
             ],
         }
@@ -219,6 +222,7 @@ def test_promotion_create_by_app(
                     "rewardValueType": RewardValueTypeEnum.FIXED.name,
                     "rewardValue": Decimal("10"),
                     "cataloguePredicate": catalogue_predicate,
+                    "predicateType": PredicateTypeEnum.CATALOGUE.name,
                 }
             ],
         }
@@ -291,6 +295,7 @@ def test_promotion_create_by_customer(
                     "rewardValueType": RewardValueTypeEnum.FIXED.name,
                     "rewardValue": Decimal("10"),
                     "cataloguePredicate": catalogue_predicate,
+                    "predicateType": PredicateTypeEnum.CATALOGUE.name,
                 }
             ],
         }
@@ -346,6 +351,7 @@ def test_promotion_create_with_order_rule(
                     "rewardValue": reward_value,
                     "rewardType": reward_type,
                     "orderPredicate": order_predicate,
+                    "predicateType": PredicateTypeEnum.ORDER.name,
                 }
             ],
         }
@@ -415,6 +421,7 @@ def test_promotion_create_fixed_reward_value_multiple_currencies(
                     "rewardValueType": RewardValueTypeEnum.FIXED.name,
                     "rewardValue": Decimal("10"),
                     "cataloguePredicate": catalogue_predicate,
+                    "predicateType": PredicateTypeEnum.CATALOGUE.name,
                 }
             ],
         }
@@ -483,6 +490,7 @@ def test_promotion_create_invalid_price_precision(
                     "rewardValueType": RewardValueTypeEnum.FIXED.name,
                     "rewardValue": Decimal("10.12345"),
                     "cataloguePredicate": catalogue_predicate,
+                    "predicateType": PredicateTypeEnum.CATALOGUE.name,
                 }
             ],
         }
@@ -551,6 +559,7 @@ def test_promotion_create_invalid_percentage_value(
                     "rewardValueType": RewardValueTypeEnum.PERCENTAGE.name,
                     "rewardValue": Decimal("101"),
                     "cataloguePredicate": catalogue_predicate,
+                    "predicateType": PredicateTypeEnum.CATALOGUE.name,
                 }
             ],
         }
@@ -693,6 +702,7 @@ def test_promotion_create_start_date_and_end_date_after_current_date(
                     "rewardValueType": reward_value_type_1,
                     "rewardValue": reward_value,
                     "cataloguePredicate": catalogue_predicate,
+                    "predicateType": PredicateTypeEnum.CATALOGUE.name,
                 },
                 {
                     "name": rule_2_name,
@@ -701,6 +711,7 @@ def test_promotion_create_start_date_and_end_date_after_current_date(
                     "rewardValueType": reward_value_type_2,
                     "rewardValue": reward_value,
                     "cataloguePredicate": catalogue_predicate,
+                    "predicateType": PredicateTypeEnum.CATALOGUE.name,
                 },
             ],
         }
@@ -782,6 +793,7 @@ def test_promotion_create_missing_predicate(
                     "rewardValueType": reward_value_type_1,
                     "rewardValue": reward_value,
                     "cataloguePredicate": catalogue_predicate,
+                    "predicateType": PredicateTypeEnum.CATALOGUE.name,
                 },
                 {
                     "name": rule_2_name,
@@ -789,6 +801,7 @@ def test_promotion_create_missing_predicate(
                     "channels": rule_2_channel_ids,
                     "rewardValueType": reward_value_type_2,
                     "rewardValue": reward_value,
+                    "predicateType": PredicateTypeEnum.CATALOGUE.name,
                 },
             ],
         }
@@ -852,6 +865,7 @@ def test_promotion_create_missing_reward_value(
                     "channels": rule_1_channel_ids,
                     "rewardValueType": reward_value_type_1,
                     "cataloguePredicate": catalogue_predicate,
+                    "predicateType": PredicateTypeEnum.CATALOGUE.name,
                 },
                 {
                     "name": rule_2_name,
@@ -860,6 +874,7 @@ def test_promotion_create_missing_reward_value(
                     "rewardValueType": reward_value_type_2,
                     "rewardValue": reward_value,
                     "cataloguePredicate": catalogue_predicate,
+                    "predicateType": PredicateTypeEnum.CATALOGUE.name,
                 },
             ],
         }
@@ -918,6 +933,7 @@ def test_promotion_create_missing_reward_value_type(
                     "channels": rule_1_channel_ids,
                     "rewardValue": reward_value,
                     "cataloguePredicate": catalogue_predicate,
+                    "predicateType": PredicateTypeEnum.CATALOGUE.name,
                 },
                 {
                     "name": rule_2_name,
@@ -925,6 +941,7 @@ def test_promotion_create_missing_reward_value_type(
                     "channels": rule_2_channel_ids,
                     "rewardValue": reward_value,
                     "cataloguePredicate": catalogue_predicate,
+                    "predicateType": PredicateTypeEnum.CATALOGUE.name,
                 },
             ],
         }
@@ -988,6 +1005,7 @@ def test_promotion_create_invalid_channel_id(
                     "rewardValueType": reward_value_type_1,
                     "rewardValue": reward_value,
                     "cataloguePredicate": catalogue_predicate,
+                    "predicateType": PredicateTypeEnum.CATALOGUE.name,
                 },
                 {
                     "name": rule_2_name,
@@ -996,6 +1014,7 @@ def test_promotion_create_invalid_channel_id(
                     "rewardValueType": reward_value_type_2,
                     "rewardValue": reward_value,
                     "cataloguePredicate": catalogue_predicate,
+                    "predicateType": PredicateTypeEnum.CATALOGUE.name,
                 },
             ],
         }
@@ -1061,6 +1080,10 @@ def test_promotion_create_mixed_catalogue_and_order_rules(
                     "rewardValueType": reward_value_type_1,
                     "rewardValue": reward_value,
                     "cataloguePredicate": catalogue_predicate,
+<<<<<<< HEAD
+=======
+                    "predicateType": PredicateTypeEnum.CATALOGUE.name,
+>>>>>>> ada357c43d (Add predicateType to PromotionRuleCreateInput)
                 },
                 {
                     "name": rule_2_name,
@@ -1069,6 +1092,10 @@ def test_promotion_create_mixed_catalogue_and_order_rules(
                     "rewardValueType": reward_value_type_2,
                     "rewardValue": reward_value,
                     "orderPredicate": order_predicate,
+<<<<<<< HEAD
+=======
+                    "predicateType": PredicateTypeEnum.ORDER.name,
+>>>>>>> ada357c43d (Add predicateType to PromotionRuleCreateInput)
                 },
             ],
         }
@@ -1131,6 +1158,10 @@ def test_promotion_create_mixed_currencies_for_price_based_predicate(
                     "rewardValue": reward_value,
                     "rewardType": reward_type,
                     "orderPredicate": order_predicate,
+<<<<<<< HEAD
+=======
+                    "predicateType": PredicateTypeEnum.ORDER.name,
+>>>>>>> ada357c43d (Add predicateType to PromotionRuleCreateInput)
                 },
             ],
         }
@@ -1184,6 +1215,7 @@ def test_promotion_create_multiple_errors(
                     "description": description_json,
                     "channels": channel_ids,
                     "cataloguePredicate": catalogue_predicate,
+                    "predicateType": PredicateTypeEnum.CATALOGUE.name,
                 }
             ],
         }
@@ -1270,6 +1302,7 @@ def test_promotion_create_end_date_before_start_date(
                     "rewardValueType": reward_value_type_1,
                     "rewardValue": reward_value,
                     "cataloguePredicate": catalogue_predicate,
+                    "predicateType": PredicateTypeEnum.CATALOGUE.name,
                 },
                 {
                     "name": rule_2_name,
@@ -1278,6 +1311,7 @@ def test_promotion_create_end_date_before_start_date(
                     "rewardValueType": reward_value_type_2,
                     "rewardValue": reward_value,
                     "cataloguePredicate": catalogue_predicate,
+                    "predicateType": PredicateTypeEnum.CATALOGUE.name,
                 },
             ],
         }
@@ -1361,6 +1395,7 @@ def test_promotion_create_invalid_catalogue_predicate(
                     "rewardValueType": reward_value_type_1,
                     "rewardValue": reward_value,
                     "cataloguePredicate": catalogue_predicate_1,
+                    "predicateType": PredicateTypeEnum.CATALOGUE.name,
                 },
                 {
                     "name": rule_2_name,
@@ -1369,6 +1404,7 @@ def test_promotion_create_invalid_catalogue_predicate(
                     "rewardValueType": reward_value_type_2,
                     "rewardValue": reward_value,
                     "cataloguePredicate": catalogue_predicate_2,
+                    "predicateType": PredicateTypeEnum.CATALOGUE.name,
                 },
             ],
         }
@@ -1512,12 +1548,14 @@ def test_promotion_create_events_by_staff_user(
                     "cataloguePredicate": catalogue_predicate,
                     "rewardValueType": RewardValueTypeEnum.FIXED.name,
                     "rewardValue": Decimal("1"),
+                    "predicateType": PredicateTypeEnum.CATALOGUE.name,
                 },
                 {
                     "channels": rule_2_channel_ids,
                     "cataloguePredicate": catalogue_predicate,
                     "rewardValueType": RewardValueTypeEnum.FIXED.name,
                     "rewardValue": Decimal("1"),
+                    "predicateType": PredicateTypeEnum.CATALOGUE.name,
                 },
             ],
         }
@@ -1584,12 +1622,14 @@ def test_promotion_create_events_by_app(
                     "cataloguePredicate": catalogue_predicate,
                     "rewardValueType": RewardValueTypeEnum.FIXED.name,
                     "rewardValue": Decimal("1"),
+                    "predicateType": PredicateTypeEnum.CATALOGUE.name,
                 },
                 {
                     "channels": rule_2_channel_ids,
                     "cataloguePredicate": catalogue_predicate,
                     "rewardValueType": RewardValueTypeEnum.FIXED.name,
                     "rewardValue": Decimal("1"),
+                    "predicateType": PredicateTypeEnum.CATALOGUE.name,
                 },
             ],
         }

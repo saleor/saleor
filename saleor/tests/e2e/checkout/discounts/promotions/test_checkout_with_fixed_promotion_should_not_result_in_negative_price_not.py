@@ -51,6 +51,7 @@ def test_checkout_with_fixed_promotion_should_not_result_in_negative_price_CORE_
     discount_value = 10
     discount_type = "FIXED"
     promotion_rule_name = "rule for product"
+    predicate_type = "CATALOGUE"
 
     catalogue_predicate = {"productPredicate": {"ids": [product_id]}}
 
@@ -58,6 +59,7 @@ def test_checkout_with_fixed_promotion_should_not_result_in_negative_price_CORE_
         e2e_staff_api_client,
         promotion_id,
         catalogue_predicate,
+        predicate_type,
         discount_type,
         discount_value,
         promotion_rule_name,

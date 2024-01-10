@@ -33,6 +33,7 @@ def prepare_promotion(
     promotion_id = promotion_data["id"]
 
     predicate_input = {"productPredicate": {"ids": product_ids}}
+    predicate_type = "CATALOGUE"
     rule_description = {
         "blocks": [{"data": {"text": "rule description"}, "type": "paragraph"}],
         "version": "1.0.0",
@@ -41,6 +42,7 @@ def prepare_promotion(
         e2e_staff_api_client,
         promotion_id,
         predicate_input,
+        predicate_type,
         discount_type,
         discount_value,
         promotion_rule_name,

@@ -59,11 +59,13 @@ def test_order_promotion_still_applied_to_the_order_when_promotion_is_removed_CO
     promotion_id = promotion_data["id"]
 
     catalogue_predicate = {"productPredicate": {"ids": [product_id]}}
+    predicate_type = "CATALOGUE"
 
     promotion_rule = create_promotion_rule(
         e2e_staff_api_client,
         promotion_id,
         catalogue_predicate,
+        predicate_type,
         discount_type,
         discount_value,
         promotion_rule_name,

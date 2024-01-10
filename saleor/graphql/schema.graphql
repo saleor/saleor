@@ -14276,6 +14276,9 @@ type PromotionRule implements Node @doc(category: "Discounts") {
   """The type of reward value of the promotion rule."""
   rewardValueType: RewardValueTypeEnum
 
+  """The type of the predicate that must be met to apply the reward."""
+  predicateType: PredicateTypeEnum
+
   """The catalogue predicate that must be met to apply the rule reward."""
   cataloguePredicate: JSON
 
@@ -14308,6 +14311,12 @@ type PromotionRule implements Node @doc(category: "Discounts") {
 enum RewardValueTypeEnum @doc(category: "Discounts") {
   FIXED
   PERCENTAGE
+}
+
+"""An enumeration."""
+enum PredicateTypeEnum @doc(category: "Discounts") {
+  CATALOGUE
+  ORDER
 }
 
 """An enumeration."""
@@ -27503,6 +27512,11 @@ input PromotionRuleInput @doc(category: "Discounts") {
 
   """List of channel ids to which the rule should apply to."""
   channels: [ID!]
+
+  """
+  Defines the promotion rule predicate type. Implicate whether the promotion rule will give the catalogue or order discount. The promotion can have only rules with one type of predicate.
+  """
+  predicateType: PredicateTypeEnum!
 }
 
 input CataloguePredicateInput @doc(category: "Discounts") {
@@ -27732,6 +27746,11 @@ input PromotionRuleCreateInput {
 
   """List of channel ids to which the rule should apply to."""
   channels: [ID!]
+
+  """
+  Defines the promotion rule predicate type. Implicate whether the promotion rule will give the catalogue or order discount. The promotion can have only rules with one type of predicate.
+  """
+  predicateType: PredicateTypeEnum!
 
   """The ID of the promotion that rule belongs to."""
   promotion: ID!
