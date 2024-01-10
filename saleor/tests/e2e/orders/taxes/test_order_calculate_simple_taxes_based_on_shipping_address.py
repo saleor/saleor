@@ -1,19 +1,9 @@
 import pytest
 
-from ...channel.utils import create_channel
 from ...product.utils.preparing_product import prepare_product
-from ...shipping_zone.utils import (
-    create_shipping_method,
-    create_shipping_method_channel_listing,
-    create_shipping_zone,
-)
-from ...taxes.utils import (
-    get_tax_configurations,
-    update_country_tax_rates,
-    update_tax_configuration,
-)
+from ...shop.utils.preparing_shop import prepare_shop
+from ...taxes.utils import update_country_tax_rates
 from ...utils import assign_permissions
-from ...warehouse.utils import create_warehouse
 from ..utils import (
     draft_order_complete,
     draft_order_create,
@@ -22,70 +12,73 @@ from ..utils import (
 )
 
 
-def prepare_shop_with_few_shipping_zone_countries(
+@pytest.mark.e2e
+def test_order_calculate_simple_tax_based_on_shipping_address_CORE_2002(
     e2e_staff_api_client,
-    shipping_price,
+    shop_permissions,
+    permission_manage_product_types_and_attributes,
+    permission_manage_orders,
 ):
-    warehouse_data = create_warehouse(e2e_staff_api_client)
-    warehouse_id = warehouse_data["id"]
-    channel_slug = "test"
-    warehouse_ids = [warehouse_id]
-    channel_data = create_channel(
+    # Before
+    permissions = [
+        *shop_permissions,
+        permission_manage_product_types_and_attributes,
+        permission_manage_orders,
+    ]
+    assign_permissions(e2e_staff_api_client, permissions)
+
+    tax_settings = {
+        "charge_taxes": True,
+        "tax_calculation_strategy": "FLAT_RATES",
+        "display_gross_prices": False,
+        "prices_entered_with_tax": False,
+    }
+    shop_data, _tax_config = prepare_shop(
         e2e_staff_api_client,
-        slug=channel_slug,
-        warehouse_ids=warehouse_ids,
+        channels=[
+            {
+                "shipping_zones": [
+                    {
+                        "countries": ["US"],
+                        "shipping_methods": [
+                            {
+                                "name": "us shipping zone",
+                                "add_channels": {},
+                            }
+                        ],
+                    },
+                    {
+                        "countries": ["CZ"],
+                        "shipping_methods": [
+                            {
+                                "name": "cz shipping zone",
+                                "add_channels": {},
+                            }
+                        ],
+                    },
+                    {
+                        "countries": ["DE"],
+                        "shipping_methods": [
+                            {
+                                "name": "de shipping zone",
+                                "add_channels": {},
+                            }
+                        ],
+                    },
+                ],
+                "order_settings": {},
+            }
+        ],
+        tax_settings=tax_settings,
     )
-    channel_id = channel_data["id"]
-    channel_ids = [channel_id]
-    shipping_zone_data = create_shipping_zone(
-        e2e_staff_api_client,
-        countries=["CZ", "DE", "US"],
-        warehouse_ids=warehouse_ids,
-        channel_ids=channel_ids,
-    )
-    shipping_zone_id = shipping_zone_data["id"]
+    channel_id = shop_data[0]["id"]
+    warehouse_id = shop_data[0]["warehouse_id"]
+    shipping_method_id = shop_data[0]["shipping_zones"][2]["shipping_methods"][0]["id"]
+    billing_country_tax_rate = 21
+    billing_country_code = "CZ"
+    shipping_country_code = "DE"
+    shipping_country_tax_rate = 19
 
-    shipping_method_data = create_shipping_method(
-        e2e_staff_api_client, shipping_zone_id
-    )
-    shipping_method_id = shipping_method_data["id"]
-    create_shipping_method_channel_listing(
-        e2e_staff_api_client,
-        shipping_method_id,
-        channel_id,
-        price=shipping_price,
-    )
-
-    return (
-        warehouse_id,
-        channel_id,
-        channel_slug,
-        shipping_method_id,
-        shipping_price,
-    )
-
-
-def prepare_tax_configuration(
-    e2e_staff_api_client,
-    channel_slug,
-    shipping_country_code,
-    shipping_country_tax_rate,
-    billing_country_code,
-    billing_country_tax_rate,
-):
-    tax_config_data = get_tax_configurations(e2e_staff_api_client)
-    channel_tax_config = tax_config_data[0]["node"]
-    assert channel_tax_config["channel"]["slug"] == channel_slug
-    tax_config_id = channel_tax_config["id"]
-
-    tax_config_data = update_tax_configuration(
-        e2e_staff_api_client,
-        tax_config_id,
-        charge_taxes=True,
-        tax_calculation_strategy="FLAT_RATES",
-        display_gross_prices=True,
-        prices_entered_with_tax=False,
-    )
     update_country_tax_rates(
         e2e_staff_api_client,
         shipping_country_code,
@@ -96,47 +89,6 @@ def prepare_tax_configuration(
         billing_country_code,
         [{"rate": billing_country_tax_rate}],
     )
-    return shipping_country_tax_rate
-
-
-@pytest.mark.e2e
-def test_order_calculate_simple_tax_based_on_shipping_address_tax_class_CORE_2002(
-    e2e_staff_api_client,
-    permission_manage_products,
-    permission_manage_channels,
-    permission_manage_product_types_and_attributes,
-    permission_manage_shipping,
-    permission_manage_taxes,
-    permission_manage_orders,
-):
-    # Before
-    permissions = [
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_shipping,
-        permission_manage_product_types_and_attributes,
-        permission_manage_taxes,
-        permission_manage_orders,
-    ]
-    assign_permissions(e2e_staff_api_client, permissions)
-
-    (
-        warehouse_id,
-        channel_id,
-        channel_slug,
-        shipping_method_id,
-        shipping_price,
-    ) = prepare_shop_with_few_shipping_zone_countries(e2e_staff_api_client, "6.66")
-
-    shipping_country_tax_rate = prepare_tax_configuration(
-        e2e_staff_api_client,
-        channel_slug,
-        shipping_country_code="DE",
-        shipping_country_tax_rate=19,
-        billing_country_code="CZ",
-        billing_country_tax_rate=21,
-    )
-
     variant_price = "155.88"
     (_product_id, product_variant_id, product_variant_price) = prepare_product(
         e2e_staff_api_client,
@@ -205,7 +157,7 @@ def test_order_calculate_simple_tax_based_on_shipping_address_tax_class_CORE_200
     assert draft_order["order"]["shippingAddress"] is not None
     assert draft_order["order"]["billingAddress"] is not None
 
-    # Step 3 - Add a shipping method
+    # Step 4 - Add a shipping method
     input = {"shippingMethod": shipping_method_id}
     order_data = draft_order_update(
         e2e_staff_api_client,
@@ -228,7 +180,7 @@ def test_order_calculate_simple_tax_based_on_shipping_address_tax_class_CORE_200
     assert order_data["total"]["net"]["amount"] == calculated_total
     assert order_data["total"]["gross"]["amount"] == total_tax + calculated_total
 
-    # Step 4 - Complete the draft order
+    # Step 5 - Complete the draft order
     order = draft_order_complete(
         e2e_staff_api_client,
         order_id,

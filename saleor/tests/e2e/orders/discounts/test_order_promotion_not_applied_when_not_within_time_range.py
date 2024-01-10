@@ -1,32 +1,30 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 import pytest
-from dateutil.tz import tzlocal
+from django.utils import timezone
+from freezegun import freeze_time
 
 from ... import DEFAULT_ADDRESS
 from ...product.utils import get_product
 from ...product.utils.preparing_product import prepare_product
 from ...promotions.utils import create_promotion, create_promotion_rule
-from ...shop.utils.preparing_shop import prepare_shop
+from ...shop.utils.preparing_shop import prepare_default_shop
 from ...utils import assign_permissions
 from ..utils import draft_order_create
 
 
+@freeze_time("2023-10-15 12:00:00")
 @pytest.mark.e2e
 def test_order_promotion_not_applied_when_not_within_time_range_CORE_2110(
     e2e_staff_api_client,
-    permission_manage_products,
-    permission_manage_channels,
-    permission_manage_shipping,
+    shop_permissions,
     permission_manage_product_types_and_attributes,
     permission_manage_discounts,
     permission_manage_orders,
 ):
     # Before
     permissions = [
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_shipping,
+        *shop_permissions,
         permission_manage_product_types_and_attributes,
         permission_manage_discounts,
         permission_manage_orders,
@@ -37,21 +35,20 @@ def test_order_promotion_not_applied_when_not_within_time_range_CORE_2110(
     discount_value = 5
     discount_type = "FIXED"
     promotion_rule_name = "rule for product"
-    today = datetime.now(tzlocal()).isoformat()
-    tomorrow = (datetime.now(tzlocal()) + timedelta(days=1)).isoformat()
-    month_after = (datetime.now(tzlocal()) + timedelta(days=30)).isoformat()
+    today = timezone.now()
+    tomorrow = today + timedelta(days=1)
+    month_after = today + timedelta(days=30)
 
-    (
-        warehouse_id,
-        channel_id,
-        channel_slug,
-        shipping_method_id,
-    ) = prepare_shop(e2e_staff_api_client)
+    shop_data = prepare_default_shop(e2e_staff_api_client)
+    channel_id = shop_data["channel"]["id"]
+    channel_slug = shop_data["channel"]["slug"]
+    warehouse_id = shop_data["warehouse"]["id"]
+    shipping_method_id = shop_data["shipping_method"]["id"]
 
     (
         product_id,
         product_variant_id,
-        product_variant_price,
+        _product_variant_price,
     ) = prepare_product(
         e2e_staff_api_client, warehouse_id, channel_id, variant_price=20
     )
@@ -68,8 +65,8 @@ def test_order_promotion_not_applied_when_not_within_time_range_CORE_2110(
     promotion_end_date = promotion_data["endDate"]
 
     assert promotion_id is not None
-    assert promotion_start_date == tomorrow
-    assert promotion_end_date == month_after
+    assert promotion_start_date == tomorrow.isoformat()
+    assert promotion_end_date == month_after.isoformat()
 
     catalogue_predicate = {"productPredicate": {"ids": [product_id]}}
 
@@ -87,7 +84,6 @@ def test_order_promotion_not_applied_when_not_within_time_range_CORE_2110(
     assert product_predicate[0] == product_id
 
     # Step 2 - Get product and check if it is on promotion
-
     product_data = get_product(e2e_staff_api_client, product_id, channel_slug)
     assert product_data["id"] == product_id
     assert product_data["pricing"]["onSale"] is False
@@ -104,14 +100,11 @@ def test_order_promotion_not_applied_when_not_within_time_range_CORE_2110(
         "shippingMethod": shipping_method_id,
         "lines": [{"variantId": product_variant_id, "quantity": 2}],
     }
-    today = datetime.now(tzlocal()).isoformat().split("T")[0]
     data = draft_order_create(e2e_staff_api_client, input)
     order_id = data["order"]["id"]
     assert order_id is not None
     order_create_date = data["order"]["created"]
-    order_datetime = datetime.strptime(order_create_date, "%Y-%m-%dT%H:%M:%S.%f%z")
-    order_date_formatted = order_datetime.date().isoformat().split("T")[0]
-    assert order_date_formatted == today
+    assert order_create_date == today.isoformat()
     assert today != tomorrow
     assert today != month_after
     assert data["order"]["discounts"] == []

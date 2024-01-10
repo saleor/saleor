@@ -1427,7 +1427,7 @@ def test_product_create_with_invalid_json_description(staff_api_client):
     assert content["errors"]
     assert len(content["errors"]) == 1
     assert content["errors"][0]["extensions"]["exception"]["code"] == "GraphQLError"
-    assert "is not a valid JSONString" in content["errors"][0]["message"]
+    assert 'Expected type "JSONString"' in content["errors"][0]["message"]
 
 
 @freeze_time("2020-03-18 12:00:00")

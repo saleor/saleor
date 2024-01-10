@@ -29,6 +29,7 @@ from ..core.descriptions import (
     ADDED_IN_38,
     ADDED_IN_313,
     ADDED_IN_314,
+    ADDED_IN_319,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -492,6 +493,9 @@ class AppToken(BaseObjectType):
 @federated_entity("id")
 class App(ModelObjectType[models.App]):
     id = graphene.GlobalID(required=True, description="The ID of the app.")
+    identifier = graphene.String(
+        required=False, description="Canonical app ID from the manifest" + ADDED_IN_319
+    )
     permissions = NonNullList(Permission, description="List of the app's permissions.")
     created = graphene.DateTime(
         description="The date and time when the app was created."

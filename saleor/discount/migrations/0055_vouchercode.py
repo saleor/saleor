@@ -48,4 +48,12 @@ class Migration(migrations.Migration):
             """,
             reverse_sql=migrations.RunSQL.noop,
         ),
+        migrations.RunSQL(
+            sql="""
+                ALTER TABLE discount_vouchercode
+                ALTER COLUMN created_at
+                SET DEFAULT CURRENT_TIMESTAMP;
+            """,
+            reverse_sql=migrations.RunSQL.noop,
+        ),
     ]

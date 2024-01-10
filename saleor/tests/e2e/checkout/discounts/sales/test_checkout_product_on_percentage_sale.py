@@ -6,7 +6,7 @@ from ....sales.utils import (
     create_sale_channel_listing,
     sale_catalogues_add,
 )
-from ....shop.utils.preparing_shop import prepare_shop
+from ....shop.utils import prepare_default_shop
 from ....utils import assign_permissions
 from ...utils import (
     checkout_complete,
@@ -55,28 +55,23 @@ def prepare_sale_for_product(
 def test_checkout_products_on_percentage_sale_core_1004(
     e2e_not_logged_api_client,
     e2e_staff_api_client,
-    permission_manage_products,
-    permission_manage_channels,
-    permission_manage_shipping,
+    shop_permissions,
     permission_manage_product_types_and_attributes,
     permission_manage_discounts,
 ):
     # Before
     permissions = [
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_shipping,
+        *shop_permissions,
         permission_manage_product_types_and_attributes,
         permission_manage_discounts,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    (
-        warehouse_id,
-        channel_id,
-        channel_slug,
-        shipping_method_id,
-    ) = prepare_shop(e2e_staff_api_client)
+    shop_data = prepare_default_shop(e2e_staff_api_client)
+    channel_id = shop_data["channel"]["id"]
+    channel_slug = shop_data["channel"]["slug"]
+    warehouse_id = shop_data["warehouse"]["id"]
+    shipping_method_id = shop_data["shipping_method"]["id"]
 
     (
         product_id,
@@ -114,7 +109,6 @@ def test_checkout_products_on_percentage_sale_core_1004(
     )
     checkout_id = checkout_data["id"]
     checkout_lines = checkout_data["lines"][0]
-    shipping_method_id = checkout_data["shippingMethods"][0]["id"]
     line_discount = round(float(product_variant_price) * sale_discount_value / 100, 2)
     unit_price = float(product_variant_price) - line_discount
 

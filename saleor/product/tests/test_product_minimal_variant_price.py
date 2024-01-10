@@ -62,6 +62,7 @@ def test_update_discounted_price_for_promotion_discount_on_variant(
         reward_value=reward_value,
     )
     rule.channels.add(variant_channel_listing.channel)
+    rule.variants.add(variant)
 
     # when
     update_discounted_prices_for_promotion(Product.objects.filter(id__in=[product.id]))
@@ -109,6 +110,7 @@ def test_update_discounted_price_for_promotion_discount_on_product(
         reward_value=reward_value,
     )
     rule.channels.add(variant_channel_listing.channel)
+    rule.variants.set(product.variants.all())
 
     # when
     update_discounted_prices_for_promotion(Product.objects.filter(id__in=[product.id]))
@@ -170,6 +172,8 @@ def test_update_discounted_price_for_promotion_discount_multiple_applicable_rule
     )
     rule_1.channels.add(variant_channel_listing.channel)
     rule_2.channels.add(variant_channel_listing.channel)
+    rule_1.variants.add(variant)
+    rule_2.variants.set(product.variants.all())
 
     # when
     update_discounted_prices_for_promotion(Product.objects.filter(id__in=[product.id]))
@@ -234,6 +238,7 @@ def test_update_discounted_price_for_promotion_1_cent_variant_on_10_percentage_d
         reward_value=reward_value,
     )
     rule.channels.add(variant_channel_listing.channel)
+    rule.variants.add(variant)
 
     # when
     update_discounted_prices_for_promotion(Product.objects.filter(id__in=[product.id]))
@@ -281,6 +286,7 @@ def test_update_discounted_price_for_promotion_promotion_not_applicable_for_chan
         reward_value=reward_value,
     )
     rule.channels.add(channel_PLN)
+    rule.variants.add(variant)
 
     # when
     update_discounted_prices_for_promotion(Product.objects.filter(id__in=[product.id]))
@@ -321,6 +327,7 @@ def test_update_discounted_price_for_promotion_discount_updated(product, channel
         reward_value=reward_value,
     )
     rule.channels.add(variant_channel_listing.channel)
+    rule.variants.add(variant)
 
     listing_promotion_rule = VariantChannelListingPromotionRule.objects.create(
         variant_channel_listing=variant_channel_listing,
@@ -430,6 +437,7 @@ def test_update_discounted_price_for_promotion_discount_one_rule_not_valid_anymo
     )
     rule_1.channels.add(variant_channel_listing.channel)
     rule_2.channels.add(variant_channel_listing.channel)
+    rule_2.variants.set(product.variants.all())
 
     listing_promotion_rules = VariantChannelListingPromotionRule.objects.bulk_create(
         [
@@ -517,6 +525,7 @@ def test_update_discounted_price_for_promotion_promotion_rule_deleted_in_meantim
         reward_value=reward_value,
     )
     rule.channels.add(variant_channel_listing.channel)
+    rule.variants.add(variant)
 
     def delete_promotion_rule(*args, **kwargs):
         PromotionRule.objects.all().delete()
@@ -570,6 +579,7 @@ def test_update_discounted_price_rule_deleted_in_meantime_promotion_listing_exis
         reward_value=reward_value,
     )
     rule.channels.add(variant_channel_listing.channel)
+    rule.variants.add(variant)
 
     listing_promotion_rule = VariantChannelListingPromotionRule.objects.create(
         variant_channel_listing=variant_channel_listing,

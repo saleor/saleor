@@ -74,7 +74,7 @@ Learn more about [architecture](https://docs.saleor.io/docs/3.x/overview/archite
 - **Multichannel**: Per channel control of pricing, currencies, stock, product, and more
 - **Enterprise ready**: Secure, scalable, and stable. Battle-tested by big brands
 - **CMS**: Content is king, that's why we have a kingdom built-in
-- **Dashboard**: User friendly, fast, and productive. (Decoupled project [repo](https://github.com/saleor/saleor-dashboard) )
+- **Dashboard**: User-friendly, fast, and productive. (Decoupled project [repo](https://github.com/saleor/saleor-dashboard) )
 - **Global by design** Multi-currency, multi-language, multi-warehouse, tutti multi!
 - **Orders**: A comprehensive system for orders, dispatch, and refunds
 - **Cart**: Advanced payment and tax options, with full control over discounts and promotions
@@ -113,7 +113,7 @@ and run the following command:
 
 Bootstrap your first [storefront](https://github.com/saleor/react-storefront) with:
 
-`saleor storefront create --demo`
+`saleor storefront create --url {your-saleor-graphql-endpoint}`
 
 ## Documentation
 
@@ -129,26 +129,17 @@ The easiest way to run all components of Saleor (API, storefront, and dashboard)
 
 ## Storefront
 
-An open-source storefront in React.js with Next.js. Built for Headless Commerce, using a modern stack with TypeScript, GraphQL, Apollo, and Tailwind CSS.
+An open-source storefront example built with Next.js App Router, React.js, TypeScript, GraphQL, and Tailwind CSS.
 
-[React Storefront Repository](https://github.com/saleor/react-storefront)
+[React Storefront Repository](https://github.com/saleor/storefront)
 
-[View Storefront Demo](https://reactstorefront.vercel.app/)
+[View Storefront Example](https://storefront.saleor.io/)
 
 ## Dashboard
 
 For the dashboard go to the [saleor-dashboard](https://github.com/saleor/saleor-dashboard) repository.
 
 [View dashboard demo](https://demo.saleor.io/dashboard/)
-
-## Demo
-
-Want to see Saleor in action?
-
-* [View React Storefront](https://demo.saleor.io/)
-* [View Dashboard (admin area)](https://demo.saleor.io/dashboard/)
-
-Login credentials: `admin@example.com`/`admin`
 
 ## Contributing
 
@@ -161,7 +152,7 @@ Get more details in our [Contributing Guide](https://docs.saleor.io/docs/develop
 ## Your feedback
 
 Do you use Saleor as an e-commerce platform?
-Fill out this short survey and help us grow. It will take just a minute, but mean a lot!
+Fill out this short survey and help us grow. It will take just a minute, but means a lot!
 
 [Take a survey](https://mirumee.typeform.com/to/sOIJbJ)
 

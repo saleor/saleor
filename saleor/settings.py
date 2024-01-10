@@ -619,6 +619,14 @@ CELERY_BEAT_SCHEDULE = {
         "task": "saleor.order.tasks.expire_orders_task",
         "schedule": BEAT_EXPIRE_ORDERS_AFTER_TIMEDELTA,
     },
+    "remove-apps-marked-as-removed": {
+        "task": "saleor.app.tasks.remove_apps_task",
+        "schedule": crontab(hour=3, minute=0),
+    },
+    "release-funds-for-abandoned-checkouts": {
+        "task": "saleor.payment.tasks.transaction_release_funds_for_checkout_task",
+        "schedule": timedelta(minutes=10),
+    },
 }
 
 # The maximum wait time between each is_due() call on schedulers
@@ -629,6 +637,12 @@ CELERY_BEAT_MAX_LOOP_INTERVAL = 300  # 5 minutes
 EVENT_PAYLOAD_DELETE_PERIOD = timedelta(
     seconds=parse(os.environ.get("EVENT_PAYLOAD_DELETE_PERIOD", "14 days"))
 )
+# Time between marking app "to remove" and removing the app from the database.
+# App is not visible for the user after removing, but it still exists in the database.
+# Saleor needs time to process sending `APP_DELETED` webhook and possible retrying,
+# so we need to wait for some time before removing the App from the database.
+DELETE_APP_TTL = timedelta(seconds=parse(os.environ.get("DELETE_APP_TTL", "1 day")))
+
 
 # Observability settings
 OBSERVABILITY_BROKER_URL = os.environ.get("OBSERVABILITY_BROKER_URL")
@@ -742,17 +756,6 @@ for entry_point in installed_plugins:
 
 PLUGINS = BUILTIN_PLUGINS + EXTERNAL_PLUGINS
 
-# Default timeout (sec) for establishing a connection when performing external requests.
-REQUESTS_CONN_EST_TIMEOUT = 2
-
-# Default timeout for external requests.
-COMMON_REQUESTS_TIMEOUT = (REQUESTS_CONN_EST_TIMEOUT, 18)
-
-# Timeouts for webhook requests. Sync webhooks (eg. payment webhook) need more time
-# for getting response from the server.
-WEBHOOK_TIMEOUT = 10
-WEBHOOK_SYNC_TIMEOUT = COMMON_REQUESTS_TIMEOUT
-
 # When `True`, HTTP requests made from arbitrary URLs will be rejected (e.g., webhooks).
 # if they try to access private IP address ranges, and loopback ranges (unless
 # `HTTP_IP_FILTER_ALLOW_LOOPBACK_IPS=False`).
@@ -816,6 +819,17 @@ CHECKOUT_PRICES_TTL = timedelta(
     seconds=parse(os.environ.get("CHECKOUT_PRICES_TTL", "1 hour"))
 )
 
+CHECKOUT_TTL_BEFORE_RELEASING_FUNDS = timedelta(
+    seconds=parse(os.environ.get("CHECKOUT_TTL_BEFORE_RELEASING_FUNDS", "6 hours"))
+)
+CHECKOUT_BATCH_FOR_RELEASING_FUNDS = os.environ.get(
+    "CHECKOUT_BATCH_FOR_RELEASING_FUNDS", 30
+)
+TRANSACTION_BATCH_FOR_RELEASING_FUNDS = os.environ.get(
+    "TRANSACTION_BATCH_FOR_RELEASING_FUNDS", 60
+)
+
+
 # The maximum SearchVector expression count allowed per index SQL statement
 # If the count is exceeded, the expression list will be truncated
 INDEX_MAXIMUM_EXPR_COUNT = 4000
@@ -847,6 +861,11 @@ UPDATE_SEARCH_VECTOR_INDEX_QUEUE_NAME = os.environ.get(
 # Queue name for "async webhook" events
 WEBHOOK_CELERY_QUEUE_NAME = os.environ.get("WEBHOOK_CELERY_QUEUE_NAME", None)
 
+# Queue name for execution of collection product_updated events
+COLLECTION_PRODUCT_UPDATED_QUEUE_NAME = os.environ.get(
+    "COLLECTION_PRODUCT_UPDATED_QUEUE_NAME", None
+)
+
 # Lock time for request password reset mutation per user (seconds)
 RESET_PASSWORD_LOCK_TIME = parse(
     os.environ.get("RESET_PASSWORD_LOCK_TIME", "15 minutes")
@@ -861,3 +880,13 @@ CONFIRMATION_EMAIL_LOCK_TIME = parse(
 OAUTH_UPDATE_LAST_LOGIN_THRESHOLD = parse(
     os.environ.get("OAUTH_UPDATE_LAST_LOGIN_THRESHOLD", "15 minutes")
 )
+
+
+# Default timeout (sec) for establishing a connection when performing external requests.
+REQUESTS_CONN_EST_TIMEOUT = 2
+
+# Default timeout for external requests.
+COMMON_REQUESTS_TIMEOUT = (REQUESTS_CONN_EST_TIMEOUT, 18)
+
+WEBHOOK_TIMEOUT = (REQUESTS_CONN_EST_TIMEOUT, 18)
+WEBHOOK_SYNC_TIMEOUT = (REQUESTS_CONN_EST_TIMEOUT, 18)

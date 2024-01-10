@@ -534,5 +534,16 @@ fragment TransactionFragment on TransactionItem {
   order {
     id
   }
+  checkout {
+    id
+    channel {
+      slug
+    }
+    totalPrice {
+      gross {
+        amount
+      }
+    }
+  }
 }
 """

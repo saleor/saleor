@@ -91,7 +91,8 @@ def test_address_update_mutation_trigger_webhook(
             WebhookEventAsyncType.ADDRESS_UPDATED,
             staff_api_client.user,
             any_webhook,
-        )
+        ),
+        allow_replica=False,
     )
 
 

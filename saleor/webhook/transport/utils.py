@@ -32,6 +32,7 @@ from ...core.models import (
 from ...core.taxes import TaxData, TaxLineData
 from ...core.utils import build_absolute_uri
 from ...core.utils.events import call_event
+from ...payment import PaymentError
 from ...payment.interface import (
     GatewayResponse,
     PaymentData,
@@ -39,7 +40,10 @@ from ...payment.interface import (
     PaymentMethodInfo,
     TransactionActionData,
 )
-from ...payment.utils import create_failed_transaction_event
+from ...payment.utils import (
+    create_failed_transaction_event,
+    recalculate_refundable_for_checkout,
+)
 from ...webhook.utils import get_webhooks_for_event
 from .. import observability
 from ..const import APP_ID_PREFIX
@@ -178,7 +182,7 @@ def send_webhook_using_http(
 
 def send_webhook_using_aws_sqs(
     target_url, message, domain, signature, event_type, **kwargs
-):
+) -> WebhookResponse:
     parts = urlparse(target_url)
     region = "us-east-1"
     hostname_parts = parts.hostname.split(".")
@@ -227,7 +231,7 @@ def send_webhook_using_aws_sqs(
         message_kwargs["MessageGroupId"] = domain
     with catch_duration_time() as duration:
         try:
-            response = client.send_message(**message_kwargs)
+            response = json.dumps(client.send_message(**message_kwargs))
         except (ClientError,) as e:
             return WebhookResponse(
                 content=str(e), status=EventDeliveryStatus.FAILED, duration=duration()
@@ -267,7 +271,7 @@ def send_webhook_using_scheme_method(
     custom_headers=None,
 ) -> WebhookResponse:
     parts = urlparse(target_url)
-    message = data.encode("utf-8")
+    message = data if isinstance(data, bytes) else data.encode("utf-8")
     signature = signature_for_payload(message, secret)
     scheme_matrix: dict[WebhookSchemes, Callable] = {
         WebhookSchemes.HTTP: send_webhook_using_http,
@@ -421,13 +425,6 @@ def trigger_transaction_request(
         handle_transaction_request_task,
     )
 
-    if not transaction_data.event:
-        logger.warning(
-            "The transaction request for transaction: %s doesn't have a "
-            "proper REQUEST event.",
-            transaction_data.transaction.id,
-        )
-        return None
     if not transaction_data.transaction_app_owner:
         create_failed_transaction_event(
             transaction_data.event,
@@ -435,6 +432,9 @@ def trigger_transaction_request(
                 "Cannot process the action as the given transaction is not "
                 "attached to any app."
             ),
+        )
+        recalculate_refundable_for_checkout(
+            transaction_data.transaction, transaction_data.event
         )
         return None
     webhook = get_webhooks_for_event(
@@ -445,18 +445,28 @@ def trigger_transaction_request(
             transaction_data.event,
             cause="Cannot find a webhook that can process the action.",
         )
+        recalculate_refundable_for_checkout(
+            transaction_data.transaction, transaction_data.event
+        )
         return None
 
     if webhook.subscription_query:
-        delivery = create_delivery_for_subscription_sync_event(
-            event_type=event_type,
-            subscribable_object=transaction_data,
-            webhook=webhook,
-        )
+        delivery = None
+        try:
+            delivery = create_delivery_for_subscription_sync_event(
+                event_type=event_type,
+                subscribable_object=transaction_data,
+                webhook=webhook,
+            )
+        except PaymentError as e:
+            logger.warning("Failed to create delivery for subscription webhook: %s", e)
         if not delivery:
             create_failed_transaction_event(
                 transaction_data.event,
                 cause="Cannot generate a payload for the action.",
+            )
+            recalculate_refundable_for_checkout(
+                transaction_data.transaction, transaction_data.event
             )
             return None
     else:
@@ -595,6 +605,7 @@ def get_current_tax_app() -> Optional[App]:
     """Return currently used tax app or None, if there aren't any."""
     return (
         App.objects.order_by("pk")
+        .filter(removed_at__isnull=True)
         .for_event_type(WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES)
         .for_event_type(WebhookEventSyncType.ORDER_CALCULATE_TAXES)
         .last()

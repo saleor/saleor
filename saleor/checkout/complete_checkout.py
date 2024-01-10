@@ -1,13 +1,8 @@
+import logging
 from collections.abc import Iterable
 from datetime import timedelta
 from decimal import Decimal
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Optional,
-    Union,
-    cast,
-)
+from typing import TYPE_CHECKING, Any, Optional, Union, cast
 from uuid import UUID
 
 from django.conf import settings
@@ -53,9 +48,11 @@ from ..order.utils import (
     update_order_display_gross_prices,
 )
 from ..payment import PaymentError, TransactionKind, gateway
+from ..payment.model_helpers import get_subtotal
 from ..payment.models import Payment, Transaction
 from ..payment.utils import fetch_customer_id, store_customer_id
 from ..product.models import ProductTranslation, ProductVariantTranslation
+from ..tax.calculations import get_taxed_undiscounted_price
 from ..tax.utils import (
     get_shipping_tax_class_kwargs_for_order,
     get_tax_class_kwargs_for_order_line,
@@ -88,7 +85,6 @@ from .models import Checkout
 from .utils import (
     get_checkout_metadata,
     get_or_create_checkout_metadata,
-    get_taxed_undiscounted_price,
     get_voucher_for_checkout_info,
 )
 
@@ -97,6 +93,8 @@ if TYPE_CHECKING:
     from ..discount.models import Voucher, VoucherCode
     from ..plugins.manager import PluginsManager
     from ..site.models import SiteSettings
+
+logger = logging.getLogger(__name__)
 
 
 def _process_voucher_data_for_order(checkout_info: "CheckoutInfo") -> dict:
@@ -481,11 +479,17 @@ def _prepare_order_data(
         + shipping_total
     )
 
+    subtotal = get_subtotal(
+        [order_line_info.line for order_line_info in order_data["lines"]],
+        taxed_total.currency,
+    )
+
     order_data.update(
         {
             "language_code": checkout.language_code,
             "tracking_client_id": checkout.tracking_code or "",
             "total": taxed_total,
+            "subtotal": subtotal,
             "undiscounted_total": undiscounted_total,
             "shipping_tax_rate": shipping_tax_rate,
         }
@@ -1215,13 +1219,17 @@ def _create_order_from_checkout(
         + shipping_total
     )
     order.undiscounted_total = undiscounted_total
+    currency = checkout_info.checkout.currency
+    subtotal_list = [line.line.total_price for line in order_lines_info]
+    order.subtotal = sum(subtotal_list, zero_taxed_money(currency))
     order.save(
         update_fields=[
             "undiscounted_total_net_amount",
             "undiscounted_total_gross_amount",
+            "subtotal_net_amount",
+            "subtotal_gross_amount",
         ]
     )
-
     # allocations
     _handle_allocations_of_order_lines(
         checkout_info=checkout_info,
@@ -1232,10 +1240,9 @@ def _create_order_from_checkout(
     )
 
     # giftcards
-    currency = checkout_info.checkout.currency
-    subtotal_list = [line.line.total_price for line in order_lines_info]
-    subtotal = sum(subtotal_list, zero_taxed_money(currency))
-    total_without_giftcard = subtotal + shipping_total - checkout_info.checkout.discount
+    total_without_giftcard = (
+        order.subtotal + shipping_total - checkout_info.checkout.discount
+    )
     add_gift_cards_to_order(
         checkout_info, order, total_without_giftcard.gross, user, app
     )
@@ -1506,28 +1513,34 @@ def complete_checkout_with_payment(
     voucher = checkout_info.voucher
     voucher_code = checkout_info.voucher_code
     if payment:
-        txn = _process_payment(
-            payment=payment,
-            customer_id=customer_id,
-            store_source=store_source,
-            payment_data=payment_data,
-            order_data=order_data,
-            manager=manager,
-            channel_slug=channel_slug,
-            voucher_code=checkout_info.voucher_code,
-            voucher=checkout_info.voucher,
-        )
-
-        # As payment processing might take a while, we need to check if the payment
-        # doesn't become inactive in the meantime. If it's inactive we need to refund
-        # the payment.
-        payment.refresh_from_db()
-        if not payment.is_active:
-            gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
-            raise ValidationError(
-                f"The payment with pspReference: {payment.psp_reference} is inactive.",
-                code=CheckoutErrorCode.INACTIVE_PAYMENT.value,
+        with transaction_with_commit_on_errors():
+            Checkout.objects.select_for_update().filter(pk=checkout_pk).first()
+            payment = Payment.objects.select_for_update().get(id=payment.id)
+            txn = _process_payment(
+                payment=payment,
+                customer_id=customer_id,
+                store_source=store_source,
+                payment_data=payment_data,
+                order_data=order_data,
+                manager=manager,
+                channel_slug=channel_slug,
+                voucher_code=checkout_info.voucher_code,
+                voucher=checkout_info.voucher,
             )
+
+            # As payment processing might take a while, we need to check if the payment
+            # doesn't become inactive in the meantime. If it's inactive we need to
+            # refund the payment.
+            payment.refresh_from_db()
+            if not payment.is_active:
+                gateway.payment_refund_or_void(
+                    payment, manager, channel_slug=channel_slug
+                )
+                raise ValidationError(
+                    f"The payment with pspReference: {payment.psp_reference} is "
+                    "inactive.",
+                    code=CheckoutErrorCode.INACTIVE_PAYMENT.value,
+                )
 
     with transaction_with_commit_on_errors():
         checkout = (

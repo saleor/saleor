@@ -199,7 +199,7 @@ def get_not_manageable_permissions_after_removing_users_from_group(
     After removing users from group, for each permission, there should be at least
     one staff member who can manage it (has both “manage staff” and this permission).
     """
-    group_users = group.user_set.all()
+    group_users = group.user_set.all()  # type: ignore[attr-defined]
     group_permissions = group.permissions.values_list("codename", flat=True)
     # if group has manage_staff permission and some users will stay in group
     # given users can me removed (permissions will be manageable)

@@ -45,11 +45,9 @@ PROMOTION_RULE_UPDATE_MUTATION = """
 
 
 @patch("saleor.plugins.manager.PluginsManager.promotion_rule_updated")
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
+@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 def test_promotion_rule_update_by_staff_user(
-    update_products_discounted_prices_for_promotion_task_mock,
+    update_discounted_prices_task_mock,
     promotion_rule_updated_mock,
     staff_api_client,
     permission_group_manage_discounts,
@@ -131,17 +129,15 @@ def test_promotion_rule_update_by_staff_user(
     assert rule_data["rewardValue"] == reward_value
     assert rule_data["promotion"]["id"] == promotion_id
     assert promotion.rules.count() == rules_count
-    update_products_discounted_prices_for_promotion_task_mock.assert_called_once()
-    args, _kwargs = update_products_discounted_prices_for_promotion_task_mock.call_args
+    update_discounted_prices_task_mock.assert_called_once()
+    args, _kwargs = update_discounted_prices_task_mock.call_args
     assert set(args[0]) == {product_list[1].id, product_list[2].id}
     promotion_rule_updated_mock.assert_called_once_with(rule)
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
+@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 def test_promotion_rule_update_by_app(
-    update_products_discounted_prices_for_promotion_task_mock,
+    update_discounted_prices_task_mock,
     app_api_client,
     permission_manage_discounts,
     channel_USD,
@@ -192,16 +188,12 @@ def test_promotion_rule_update_by_app(
     assert rule_data["rewardValue"] == reward_value
     assert rule_data["promotion"]["id"] == promotion_id
     assert promotion.rules.count() == rules_count
-    update_products_discounted_prices_for_promotion_task_mock.assert_called_once_with(
-        [product.id]
-    )
+    update_discounted_prices_task_mock.assert_called_once_with([product.id])
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
+@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 def test_promotion_rule_update_by_customer(
-    update_products_discounted_prices_for_promotion_task_mock,
+    update_discounted_prices_task_mock,
     api_client,
     channel_USD,
     channel_PLN,
@@ -231,7 +223,7 @@ def test_promotion_rule_update_by_customer(
 
     # then
     assert_no_permission(response)
-    update_products_discounted_prices_for_promotion_task_mock.assert_not_called()
+    update_discounted_prices_task_mock.assert_not_called()
 
 
 def test_promotion_rule_update_duplicates_channels_in_add_and_remove_field(
@@ -444,6 +436,45 @@ def test_promotion_rule_update_remove_last_channel_from_fixed_discount(
     assert errors[0]["field"] == "removeChannels"
 
 
+def test_promotion_rule_update_remove_and_add_channel_with_the_same_currency(
+    app_api_client,
+    permission_manage_discounts,
+    channel_USD,
+    other_channel_USD,
+    promotion,
+):
+    # given
+    rule = promotion.rules.get(name="Fixed promotion rule")
+    rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
+
+    remove_channel_ids = [graphene.Node.to_global_id("Channel", channel_USD.pk)]
+    add_channel_ids = [graphene.Node.to_global_id("Channel", other_channel_USD.pk)]
+    reward_value = Decimal("10")
+
+    variables = {
+        "id": rule_id,
+        "input": {
+            "removeChannels": remove_channel_ids,
+            "addChannels": add_channel_ids,
+            "rewardValue": reward_value,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        PROMOTION_RULE_UPDATE_MUTATION,
+        variables,
+        permissions=(permission_manage_discounts,),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleUpdate"]
+    assert data["promotionRule"]
+    assert len(data["promotionRule"]["channels"]) == 1
+    assert data["promotionRule"]["channels"][0]["slug"] == other_channel_USD.slug
+
+
 def test_promotion_rule_update_change_reward_value_type_to_fixed_multiple_channels(
     app_api_client,
     permission_manage_discounts,
@@ -608,11 +639,9 @@ def test_promotion_rule_update_reward_value_invalid_percentage_value(
     assert errors[0]["field"] == "rewardValue"
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
+@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 def test_promotion_rule_update_clears_old_sale_id(
-    update_products_discounted_prices_for_promotion_task_mock,
+    update_discounted_prices_task_mock,
     staff_api_client,
     permission_group_manage_discounts,
     channel_USD,
@@ -695,8 +724,8 @@ def test_promotion_rule_update_clears_old_sale_id(
     assert rule_data["rewardValue"] == reward_value
     assert rule_data["promotion"]["id"] == promotion_id
     assert promotion.rules.count() == rules_count
-    update_products_discounted_prices_for_promotion_task_mock.assert_called_once()
-    args, _kwargs = update_products_discounted_prices_for_promotion_task_mock.call_args
+    update_discounted_prices_task_mock.assert_called_once()
+    args, _kwargs = update_discounted_prices_task_mock.call_args
     assert set(args[0]) == {product_list[1].id, product_list[2].id}
 
     promotion.refresh_from_db()

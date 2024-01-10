@@ -1,11 +1,15 @@
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, Optional
 
+from django.db import transaction
+from django.db.models import Exists, OuterRef, QuerySet
+
 from ...attribute import AttributeType
+from ...discount.models import PromotionRule
+from ..models import ProductVariant
 
 if TYPE_CHECKING:
     from ...attribute.models import AssignedVariantAttribute, Attribute
-    from ..models import ProductVariant
 
 
 def generate_and_set_variant_name(
@@ -34,7 +38,7 @@ def generate_and_set_variant_name(
 
 
 def get_variant_selection_attributes(
-    attributes: Iterable[tuple["Attribute", bool]]
+    attributes: Iterable[tuple["Attribute", bool]],
 ) -> list[tuple["Attribute", bool]]:
     """Return attributes that can be used in variant selection.
 
@@ -46,3 +50,31 @@ def get_variant_selection_attributes(
         for attribute, variant_selection in attributes
         if variant_selection and attribute.type == AttributeType.PRODUCT_TYPE
     ]
+
+
+def fetch_variants_for_promotion_rules(
+    rules: QuerySet[PromotionRule],
+):
+    from ...graphql.discount.utils import get_variants_for_predicate
+
+    PromotionRuleVariant = PromotionRule.variants.through
+    promotion_rule_variants = []
+    for rule in list(rules.iterator()):
+        variants = get_variants_for_predicate(rule.catalogue_predicate)
+        promotion_rule_variants.extend(
+            [
+                PromotionRuleVariant(
+                    promotionrule_id=rule.pk, productvariant_id=variant_id
+                )
+                for variant_id in set(variants.values_list("pk", flat=True))
+            ]
+        )
+
+    with transaction.atomic():
+        # Clear existing variants assigned to promotion rules
+        PromotionRuleVariant.objects.filter(
+            Exists(rules.filter(pk=OuterRef("promotionrule_id")))
+        ).delete()
+        PromotionRuleVariant.objects.bulk_create(
+            promotion_rule_variants, ignore_conflicts=True
+        )

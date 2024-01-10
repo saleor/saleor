@@ -302,6 +302,20 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
     total_charged = MoneyField(
         amount_field="total_charged_amount", currency_field="currency"
     )
+    subtotal_net_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal(0),
+    )
+    subtotal_gross_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal(0),
+    )
+    subtotal = TaxedMoneyField(
+        net_amount_field="subtotal_net_amount",
+        gross_amount_field="subtotal_gross_amount",
+    )
 
     voucher = models.ForeignKey(
         Voucher, blank=True, null=True, related_name="+", on_delete=models.SET_NULL
@@ -353,6 +367,10 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
             ),
             models.Index(fields=["created_at"], name="idx_order_created_at"),
             GinIndex(fields=["voucher_code"], name="order_voucher_code_idx"),
+            GinIndex(
+                fields=["user_email", "user_id"],
+                name="order_user_email_user_id_idx",
+            ),
         ]
 
     def is_fully_paid(self):
@@ -404,11 +422,11 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
             .exists()
         )
 
-    def is_shipping_required(self):
-        return any(line.is_shipping_required for line in self.lines.all())
-
     def get_subtotal(self):
         return get_subtotal(self.lines.all(), self.currency)
+
+    def is_shipping_required(self):
+        return any(line.is_shipping_required for line in self.lines.all())
 
     def get_total_quantity(self):
         return sum([line.quantity for line in self.lines.all()])

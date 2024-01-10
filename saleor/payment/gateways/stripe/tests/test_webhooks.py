@@ -1170,6 +1170,50 @@ def test_handle_refund_already_processed(
     assert payment.captured_amount == payment.total - Decimal("10")
 
 
+@patch("saleor.payment.gateways.stripe.webhooks.stripe.Charge.retrieve")
+def test_handle_refund_missing_refunds(
+    charge_retrieve, stripe_plugin, payment_stripe_for_order, channel_USD
+):
+    # given
+    payment = payment_stripe_for_order
+    payment.captured_amount = payment.total
+    payment.save()
+    payment.transactions.create(
+        is_success=True,
+        action_required=True,
+        kind=TransactionKind.CAPTURE,
+        amount=payment.total,
+        currency=payment.currency,
+        token="ABC",
+        gateway_response={},
+    )
+    plugin = stripe_plugin()
+
+    charge = StripeObject()
+    charge["payment_intent"] = "ABC"
+
+    refund = StripeObject(id="refund_id")
+    refund["amount"] = price_to_minor_unit(payment.total, payment.currency)
+    refund["currency"] = payment.currency
+    refund["last_response"] = None
+
+    charge_retrieve_obj = charge
+    charge_retrieve_obj["refunds"] = StripeObject()
+    charge_retrieve_obj["refunds"]["data"] = [refund]
+
+    charge_retrieve.return_value = charge_retrieve_obj
+
+    # when
+    handle_refund(charge, plugin.config, channel_USD.slug)
+
+    # then
+    payment.refresh_from_db()
+
+    assert payment.charge_status == ChargeStatus.FULLY_REFUNDED
+    assert payment.is_active is False
+    assert payment.captured_amount == Decimal("0")
+
+
 @pytest.mark.parametrize("called", [True, False])
 @patch(
     "saleor.payment.gateways.stripe.webhooks._update_payment_with_new_transaction",
@@ -1529,7 +1573,7 @@ def test_handle_successful_payment_intent_for_checkout_when_already_processing_c
 ):
     # given
     plugin = stripe_plugin()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     payment = payment_stripe_for_checkout
     payment.to_confirm = True
     payment.save()

@@ -1,7 +1,9 @@
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
+from django.db.models import Exists, OuterRef
 
+from ....app.models import App
 from ....permission.auth_filters import AuthorizationFilters
 from ....permission.enums import AppPermission
 from ....webhook import models
@@ -42,7 +44,15 @@ class WebhookDelete(ModelDeleteMutation):
                 "App needs to be active to delete webhook",
                 code=WebhookErrorCode.INVALID.value,
             )
-        webhook = cls.get_node_or_error(info, node_id, only_type=Webhook)
+        apps = App.objects.filter(removed_at__isnull=True)
+        webhook = cls.get_node_or_error(
+            info,
+            node_id,
+            only_type=Webhook,
+            qs=models.Webhook.objects.filter(
+                Exists(apps.filter(id=OuterRef("app_id")))
+            ),
+        )
         if app and webhook.app_id != app.id:
             raise ValidationError(
                 f"Couldn't resolve to a node: {node_id}",

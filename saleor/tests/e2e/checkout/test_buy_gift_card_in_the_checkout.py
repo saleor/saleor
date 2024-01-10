@@ -1,7 +1,6 @@
 import pytest
 
 from ..account.utils import get_own_data
-from ..channel.utils.channel_update import update_channel
 from ..gift_cards.utils import get_gift_cards
 from ..orders.utils import order_query
 from ..product.utils import (
@@ -12,7 +11,6 @@ from ..product.utils import (
     create_product_variant,
     create_product_variant_channel_listing,
 )
-from ..shop.utils import update_shop_settings
 from ..shop.utils.preparing_shop import prepare_shop
 from ..utils import assign_permissions
 from .utils import (
@@ -80,47 +78,47 @@ def test_buy_gift_card_in_the_checkout_CORE_1102(
     e2e_logged_api_client,
     e2e_staff_api_client,
     permission_manage_product_types_and_attributes,
-    permission_manage_channels,
-    permission_manage_products,
-    permission_manage_shipping,
     permission_manage_gift_card,
     permission_manage_orders,
-    permission_manage_settings,
     permission_manage_plugins,
+    shop_permissions,
 ):
     # Before
     permissions = [
         permission_manage_product_types_and_attributes,
-        permission_manage_channels,
-        permission_manage_products,
-        permission_manage_shipping,
+        *shop_permissions,
         permission_manage_gift_card,
         permission_manage_orders,
-        permission_manage_settings,
         permission_manage_plugins,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
-    (
-        warehouse_id,
-        channel_id,
-        channel_slug,
-        _shipping_method_id,
-    ) = prepare_shop(e2e_staff_api_client)
 
-    product_variant_id, _product_variant_price, product_id = prepare_product_gift_card(
+    shop_data, _tax_config = prepare_shop(
+        e2e_staff_api_client,
+        channels=[
+            {
+                "shipping_zones": [
+                    {
+                        "shipping_methods": [{}],
+                    },
+                ],
+                "order_settings": {"automaticallyFulfillNonShippableGiftCard": True},
+            }
+        ],
+        shop_settings={
+            "fulfillmentAutoApprove": True,
+            "fulfillmentAllowUnpaid": True,
+        },
+    )
+    channel_id = shop_data[0]["id"]
+    channel_slug = shop_data[0]["slug"]
+    warehouse_id = shop_data[0]["warehouse_id"]
+
+    product_variant_id, _product_variant_price, _product_id = prepare_product_gift_card(
         e2e_staff_api_client,
         warehouse_id,
         channel_id,
     )
-    channel_input = {
-        "orderSettings": {"automaticallyFulfillNonShippableGiftCard": True}
-    }
-    update_channel(e2e_staff_api_client, channel_id, channel_input)
-    shop_settings_input = {
-        "fulfillmentAutoApprove": True,
-        "fulfillmentAllowUnpaid": True,
-    }
-    update_shop_settings(e2e_staff_api_client, shop_settings_input)
 
     # Step 1  - Create checkout.
     lines = [

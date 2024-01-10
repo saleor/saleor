@@ -4,7 +4,7 @@ from unittest import mock
 import pytest
 from django.utils.html import strip_tags
 
-from ..utils.editorjs import clean_editor_js
+from ..editorjs import clean_editor_js
 
 
 @pytest.mark.parametrize(

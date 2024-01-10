@@ -10,16 +10,20 @@ from aniso8601 import parse_datetime
 from babel.numbers import get_currency_precision
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.db.models import Q
 from django.utils import timezone
 
 from ..account.models import User
 from ..app.models import App
 from ..channel import TransactionFlowStrategy
-from ..checkout.actions import transaction_amounts_for_checkout_updated
+from ..checkout.actions import (
+    transaction_amounts_for_checkout_updated,
+    update_last_transaction_modified_at_for_checkout,
+)
 from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..checkout.models import Checkout
+from ..checkout.payment_utils import update_refundable_for_checkout
 from ..core.prices import quantize_price
 from ..core.tracing import traced_atomic_transaction
 from ..graphql.core.utils import str_to_enum
@@ -35,6 +39,7 @@ from . import (
     StorePaymentMethod,
     TransactionAction,
     TransactionEventType,
+    TransactionItemIdempotencyUniqueError,
     TransactionKind,
 )
 from .error_codes import PaymentErrorCode
@@ -61,6 +66,68 @@ logger = logging.getLogger(__name__)
 
 GENERIC_TRANSACTION_ERROR = "Transaction was unsuccessful"
 ALLOWED_GATEWAY_KINDS = {choices[0] for choices in TransactionKind.CHOICES}
+
+
+def _recalculate_last_refund_success_for_transaction(
+    transaction_item: TransactionItem,
+    request_event: TransactionEvent,
+    response_event: Optional[TransactionEvent] = None,
+) -> bool:
+    """Recalculate last_refund_success for transaction.
+
+    Based on the request and response events, we can determine if the last refund was
+    successful or not.
+    If response event is none, the request event can store the details updated based
+    on the response from the gateway (in case of async flow).
+    If the request event doesn't have these details, we can assume that the last
+    refund failed.
+    As a response we return the boolean flag which determines if the transaction's last
+    refund success was changed.
+    """
+    last_refund_success_changed = False
+    last_refund_success = transaction_item.last_refund_success
+    if response_event:
+        if response_event.type in [
+            TransactionEventType.REFUND_SUCCESS,
+            TransactionEventType.CANCEL_SUCCESS,
+        ]:
+            last_refund_success_changed = last_refund_success is not True
+            transaction_item.last_refund_success = True
+
+        if response_event.type in [
+            TransactionEventType.REFUND_FAILURE,
+            TransactionEventType.CANCEL_FAILURE,
+        ]:
+            last_refund_success_changed = last_refund_success is not False
+            transaction_item.last_refund_success = False
+    elif request_event.type in [
+        TransactionEventType.REFUND_REQUEST,
+        TransactionEventType.CANCEL_REQUEST,
+    ]:
+        if request_event.include_in_calculations:
+            last_refund_success_changed = last_refund_success is not True
+            transaction_item.last_refund_success = True
+        else:
+            last_refund_success_changed = last_refund_success is not False
+            transaction_item.last_refund_success = False
+    return last_refund_success_changed
+
+
+def recalculate_refundable_for_checkout(
+    transaction_item: TransactionItem,
+    request_event: TransactionEvent,
+    response_event: Optional[TransactionEvent] = None,
+):
+    last_refund_success_changed = _recalculate_last_refund_success_for_transaction(
+        transaction_item,
+        request_event,
+        response_event,
+    )
+    if last_refund_success_changed:
+        transaction_item.save(update_fields=["last_refund_success"])
+
+    if transaction_item.checkout_id:
+        update_refundable_for_checkout(transaction_item.checkout_id)
 
 
 def create_payment_lines_information(
@@ -249,7 +316,7 @@ def create_payment_information(
         refund_data=refund_data,
         transactions=generate_transactions_data(payment),
         _resolve_lines_data=lambda: create_payment_lines_information(
-            payment, manager or get_plugins_manager()
+            payment, manager or get_plugins_manager(allow_replica=False)
         ),
     )
 
@@ -1165,13 +1232,13 @@ def create_transaction_event_for_transaction_session(
     if request_event_update_fields:
         request_event.save(update_fields=request_event_update_fields)
 
+    transaction_item = event.transaction
     if event.type in [
         TransactionEventType.AUTHORIZATION_REQUEST,
         TransactionEventType.AUTHORIZATION_SUCCESS,
         TransactionEventType.CHARGE_REQUEST,
         TransactionEventType.CHARGE_SUCCESS,
     ]:
-        transaction_item = event.transaction
         previous_authorized_value = transaction_item.authorized_value
         previous_charged_value = transaction_item.charged_value
         previous_refunded_value = transaction_item.refunded_value
@@ -1194,6 +1261,7 @@ def create_transaction_event_for_transaction_session(
                 "cancel_pending_value",
                 "psp_reference",
                 "available_actions",
+                "modified_at",
             ]
         )
         if transaction_item.order_id:
@@ -1215,6 +1283,13 @@ def create_transaction_event_for_transaction_session(
             )
         elif transaction_item.checkout_id:
             transaction_amounts_for_checkout_updated(transaction_item, manager)
+    elif event.psp_reference and transaction_item.psp_reference != event.psp_reference:
+        transaction_item.psp_reference = event.psp_reference
+        transaction_item.save(update_fields=["psp_reference", "modified_at"])
+        if transaction_item.checkout_id:
+            checkout = cast(Checkout, transaction_item.checkout)
+            update_last_transaction_modified_at_for_checkout(checkout, transaction_item)
+
     return event
 
 
@@ -1227,7 +1302,9 @@ def create_transaction_event_from_request_and_webhook_response(
         transaction_webhook_response=transaction_webhook_response,
         event_type=request_event.type,
     )
+    transaction_item = request_event.transaction
     if not transaction_request_response:
+        recalculate_refundable_for_checkout(transaction_item, request_event)
         return create_failed_transaction_event(request_event, cause=error_msg or "")
 
     psp_reference = transaction_request_response.psp_reference
@@ -1243,6 +1320,7 @@ def create_transaction_event_from_request_and_webhook_response(
             currency=request_event.currency,
         )
         if error_msg:
+            recalculate_refundable_for_checkout(transaction_item, request_event)
             return create_failed_transaction_event(request_event, cause=error_msg)
 
     transaction_item = request_event.transaction
@@ -1265,6 +1343,7 @@ def create_transaction_event_from_request_and_webhook_response(
             "charge_pending_value",
             "refund_pending_value",
             "cancel_pending_value",
+            "modified_at",
         ]
     )
 
@@ -1272,7 +1351,7 @@ def create_transaction_event_from_request_and_webhook_response(
         # circular import
         from ..order.actions import order_transaction_updated
 
-        manager = get_plugins_manager()
+        manager = get_plugins_manager(allow_replica=False)
         order = cast(Order, transaction_item.order)
         order_info = fetch_order_info(order)
         update_order_with_transaction_details(transaction_item)
@@ -1287,7 +1366,8 @@ def create_transaction_event_from_request_and_webhook_response(
             previous_refunded_value=previous_refunded_value,
         )
     elif transaction_item.checkout_id:
-        manager = get_plugins_manager()
+        manager = get_plugins_manager(allow_replica=True)
+        recalculate_refundable_for_checkout(transaction_item, request_event, event)
         transaction_amounts_for_checkout_updated(transaction_item, manager)
     return event
 
@@ -1407,7 +1487,7 @@ def create_manual_adjustment_events(
     return []
 
 
-def create_transaction_item(
+def get_transaction_item_params(
     source_object: Union[Checkout, Order],
     user: Optional[User],
     app: Optional[App],
@@ -1415,17 +1495,19 @@ def create_transaction_item(
     available_actions: Optional[list[str]] = None,
     name: str = "",
 ):
-    return TransactionItem.objects.create(
-        name=name,
-        checkout_id=source_object.pk if isinstance(source_object, Checkout) else None,
-        order_id=source_object.pk if isinstance(source_object, Order) else None,
-        currency=source_object.currency,
-        app=app,
-        app_identifier=app.identifier if app else None,
-        user=user,
-        psp_reference=psp_reference,
-        available_actions=available_actions if available_actions else [],
-    )
+    return {
+        "name": name,
+        "checkout_id": source_object.pk
+        if isinstance(source_object, Checkout)
+        else None,
+        "order_id": source_object.pk if isinstance(source_object, Order) else None,
+        "currency": source_object.currency,
+        "app": app,
+        "app_identifier": app.identifier if app else None,
+        "user": user,
+        "psp_reference": psp_reference,
+        "available_actions": available_actions if available_actions else [],
+    }
 
 
 def create_transaction_for_order(
@@ -1437,7 +1519,7 @@ def create_transaction_for_order(
     available_actions: Optional[list[str]] = None,
     name: str = "",
 ) -> TransactionItem:
-    transaction = create_transaction_item(
+    transaction_defaults = get_transaction_item_params(
         source_object=order,
         user=user,
         app=app,
@@ -1445,14 +1527,15 @@ def create_transaction_for_order(
         available_actions=available_actions,
         name=name,
     )
+    transaction_item = TransactionItem.objects.create(**transaction_defaults)
     create_manual_adjustment_events(
-        transaction=transaction,
+        transaction=transaction_item,
         money_data={"charged_value": charged_value},
         user=user,
         app=app,
     )
-    recalculate_transaction_amounts(transaction=transaction)
-    return transaction
+    recalculate_transaction_amounts(transaction=transaction_item)
+    return transaction_item
 
 
 def handle_transaction_initialize_session(
@@ -1463,10 +1546,44 @@ def handle_transaction_initialize_session(
     customer_ip_address: Optional[str],
     app: App,
     manager: PluginsManager,
+    idempotency_key: str,
 ):
-    transaction_item = create_transaction_item(
+    transaction_item_defaults = get_transaction_item_params(
         source_object=source_object, user=None, app=app, psp_reference=None
     )
+
+    try:
+        transaction_item, _ = TransactionItem.objects.get_or_create(
+            idempotency_key=idempotency_key,
+            order_id=transaction_item_defaults["order_id"],
+            checkout_id=transaction_item_defaults["checkout_id"],
+            defaults=transaction_item_defaults,
+        )
+
+        if action == TransactionFlowStrategy.CHARGE:
+            event_type = TransactionEventType.CHARGE_REQUEST
+        else:
+            event_type = TransactionEventType.AUTHORIZATION_REQUEST
+
+        request_event, _ = TransactionEvent.objects.get_or_create(
+            idempotency_key=idempotency_key,
+            transaction=transaction_item,
+            type=event_type,
+            currency=transaction_item.currency,
+            amount_value=amount,
+            defaults={
+                "include_in_calculations": False,
+                "type": TransactionEventType.CHARGE_REQUEST
+                if action == TransactionFlowStrategy.CHARGE
+                else TransactionEventType.AUTHORIZATION_REQUEST,
+                "currency": transaction_item.currency,
+                "amount_value": amount,
+                "idempotency_key": idempotency_key,
+            },
+        )
+    except IntegrityError:
+        raise TransactionItemIdempotencyUniqueError()
+
     session_data = TransactionSessionData(
         transaction=transaction_item,
         source_object=source_object,
@@ -1475,16 +1592,9 @@ def handle_transaction_initialize_session(
             action_type=action, currency=source_object.currency, amount=amount
         ),
         customer_ip_address=customer_ip_address,
+        idempotency_key=idempotency_key,
     )
 
-    request_event = transaction_item.events.create(
-        include_in_calculations=False,
-        type=TransactionEventType.CHARGE_REQUEST
-        if action == TransactionFlowStrategy.CHARGE
-        else TransactionEventType.AUTHORIZATION_REQUEST,
-        currency=transaction_item.currency,
-        amount_value=amount,
-    )
     result = manager.transaction_initialize_session(session_data)
 
     response_data = result.response if result else None

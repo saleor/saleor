@@ -7,12 +7,14 @@ from .....app.types import AppType
 from .....core.jwt import create_access_token_for_app, jwt_decode
 from .....thumbnail import IconThumbnailFormat
 from .....thumbnail.models import Thumbnail
+from ....tests.fixtures import ApiClient
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 QUERY_APP = """
     query ($id: ID){
         app(id: $id){
             id
+            identifier
             created
             isActive
             permissions{
@@ -81,6 +83,7 @@ def test_app_query(
     app.permissions.add(permission_manage_staff)
     app.store_value_in_metadata({"test": "123"})
     app.author = "Acme Ltd"
+    app.identifier = "saleor.app.mock"
     app.save()
 
     webhook = webhook
@@ -127,6 +130,7 @@ def test_app_query(
     assert app_data["metadata"][0]["value"] == "123"
     assert app_data["metafield"] == "123"
     assert app_data["metafields"] == {"test": "123"}
+    assert app_data["identifier"] == "saleor.app.mock"
 
 
 def test_app_query_no_permission(
@@ -225,6 +229,21 @@ def test_own_app_without_id(
     assert app_data["metadata"][0]["value"] == "metadata"
     assert app_data["privateMetadata"][0]["key"] == "private"
     assert app_data["privateMetadata"][0]["value"] == "metadata"
+
+
+def test_own_app_without_id_as_removed_app(
+    removed_app,
+):
+    # given
+    removed_app_api_client = ApiClient(app=removed_app)
+
+    # when
+    response = removed_app_api_client.post_graphql(
+        QUERY_APP,
+    )
+
+    # then
+    assert_no_permission(response)
 
 
 def test_app_query_without_permission(
@@ -340,6 +359,30 @@ def test_app_query_pending_installation(staff_api_client, app):
 
     # then
     assert content["data"]["app"] is None
+
+
+def test_app_query_app_marked_as_removed(
+    staff_api_client,
+    permission_manage_apps,
+    removed_app,
+):
+    # given
+    app = removed_app
+    id = graphene.Node.to_global_id("App", app.id)
+    variables = {"id": id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_APP,
+        variables,
+        permissions=[permission_manage_apps],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    app_data = content["data"]["app"]
+    assert not app_data
 
 
 QUERY_APP_AVAILABLE_FOR_STAFF_WITHOUT_MANAGE_APPS = """

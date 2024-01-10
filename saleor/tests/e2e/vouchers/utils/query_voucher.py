@@ -24,19 +24,6 @@ query voucherQuery ($id:ID!){
       }
     }
   }
-  checkouts(first: 10) {
-    edges {
-      node {
-        id
-        lines {
-          quantity
-          variant {
-            id
-          }
-        }
-      }
-    }
-  }
 }
 """
 

@@ -50,7 +50,10 @@ def test_trigger_webhooks_with_aws_sqs(
     expected_data = serialize("json", [order_with_lines])
     expected_signature = signature_for_payload(expected_data.encode("utf-8"), None)
     trigger_webhooks_async(
-        expected_data, WebhookEventAsyncType.ORDER_CREATED, [webhook]
+        expected_data,
+        WebhookEventAsyncType.ORDER_CREATED,
+        [webhook],
+        allow_replica=False,
     )
 
     mocked_client_constructor.assert_called_once_with(
@@ -119,7 +122,10 @@ def test_trigger_webhooks_with_aws_sqs_and_secret_key(
         message.encode("utf-8"), webhook.secret_key
     )
     trigger_webhooks_async(
-        expected_data, WebhookEventAsyncType.ORDER_CREATED, [webhook]
+        expected_data,
+        WebhookEventAsyncType.ORDER_CREATED,
+        [webhook],
+        allow_replica=False,
     )
 
     mocked_client_constructor.assert_called_once_with(
@@ -164,7 +170,10 @@ def test_trigger_webhooks_with_google_pub_sub(
     expected_signature = signature_for_payload(expected_data.encode("utf-8"), None)
 
     trigger_webhooks_async(
-        expected_data, WebhookEventAsyncType.ORDER_CREATED, [webhook]
+        expected_data,
+        WebhookEventAsyncType.ORDER_CREATED,
+        [webhook],
+        allow_replica=False,
     )
     mocked_publisher.publish.assert_called_once_with(
         "projects/saleor/topics/test",
@@ -201,7 +210,10 @@ def test_trigger_webhooks_with_google_pub_sub_and_secret_key(
         message.encode("utf-8"), webhook.secret_key
     )
     trigger_webhooks_async(
-        expected_data, WebhookEventAsyncType.ORDER_CREATED, [webhook]
+        expected_data,
+        WebhookEventAsyncType.ORDER_CREATED,
+        [webhook],
+        allow_replica=False,
     )
     mocked_publisher.publish.assert_called_once_with(
         "projects/saleor/topics/test",
@@ -221,6 +233,7 @@ def test_trigger_webhooks_with_http(
     permission_manage_orders,
     permission_manage_users,
     permission_manage_products,
+    settings,
 ):
     mock_request.return_value = MagicMock(
         text="{response: body}",
@@ -239,7 +252,10 @@ def test_trigger_webhooks_with_http(
     )
 
     trigger_webhooks_async(
-        expected_data, WebhookEventAsyncType.ORDER_CREATED, [webhook]
+        expected_data,
+        WebhookEventAsyncType.ORDER_CREATED,
+        [webhook],
+        allow_replica=False,
     )
 
     expected_headers = {
@@ -259,14 +275,14 @@ def test_trigger_webhooks_with_http(
         webhook.target_url,
         data=bytes(expected_data, "utf-8"),
         headers=expected_headers,
-        timeout=10,
+        timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         allow_redirects=False,
     )
 
 
 @patch.object(HTTPSession, "request")
 def test_trigger_webhooks_with_http_and_secret_key(
-    mock_request, webhook, order_with_lines, permission_manage_orders
+    mock_request, webhook, order_with_lines, permission_manage_orders, settings
 ):
     mock_request.return_value = MagicMock(
         text="{response: body}",
@@ -282,7 +298,10 @@ def test_trigger_webhooks_with_http_and_secret_key(
 
     expected_data = serialize("json", [order_with_lines])
     trigger_webhooks_async(
-        expected_data, WebhookEventAsyncType.ORDER_CREATED, [webhook]
+        expected_data,
+        WebhookEventAsyncType.ORDER_CREATED,
+        [webhook],
+        allow_replica=False,
     )
 
     expected_signature = signature_for_payload(
@@ -305,14 +324,14 @@ def test_trigger_webhooks_with_http_and_secret_key(
         webhook.target_url,
         data=bytes(expected_data, "utf-8"),
         headers=expected_headers,
-        timeout=10,
+        timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         allow_redirects=False,
     )
 
 
 @patch.object(HTTPSession, "request")
 def test_trigger_webhooks_with_http_and_secret_key_as_empty_string(
-    mock_request, webhook, order_with_lines, permission_manage_orders
+    mock_request, webhook, order_with_lines, permission_manage_orders, settings
 ):
     mock_request.return_value = MagicMock(
         text="{response: body}",
@@ -328,7 +347,10 @@ def test_trigger_webhooks_with_http_and_secret_key_as_empty_string(
 
     expected_data = serialize("json", [order_with_lines])
     trigger_webhooks_async(
-        expected_data, WebhookEventAsyncType.ORDER_CREATED, [webhook]
+        expected_data,
+        WebhookEventAsyncType.ORDER_CREATED,
+        [webhook],
+        allow_replica=False,
     )
 
     expected_signature = signature_for_payload(expected_data.encode("utf-8"), "")
@@ -355,7 +377,7 @@ def test_trigger_webhooks_with_http_and_secret_key_as_empty_string(
         webhook.target_url,
         data=bytes(expected_data, "utf-8"),
         headers=expected_headers,
-        timeout=10,
+        timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         allow_redirects=False,
     )
 
@@ -387,7 +409,10 @@ def test_trigger_webhooks_with_http_and_custom_headers(
 
     # when
     trigger_webhooks_async(
-        expected_data, WebhookEventAsyncType.ORDER_CREATED, [webhook]
+        expected_data,
+        WebhookEventAsyncType.ORDER_CREATED,
+        [webhook],
+        allow_replica=False,
     )
 
     # then

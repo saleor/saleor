@@ -134,7 +134,10 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader[str, list[CheckoutLineIn
                                 ],
                                 product=products_map[line.variant_id],
                                 product_type=product_types_map[line.variant_id],
-                                collections=collections_map[line.variant_id],
+                                collections=sorted(
+                                    collections_map[line.variant_id],
+                                    key=lambda collection: collection.slug,
+                                ),
                                 discounts=checkout_lines_discounts[line.id],
                                 tax_class=tax_class_map[line.variant_id],
                                 channel=channels[checkout.channel_id],
@@ -778,7 +781,7 @@ class CheckoutProblemsByCheckoutIdDataloader(
         line_problems_dataloader = CheckoutLinesProblemsByCheckoutIdLoader(self.context)
 
         def _resolve_problems(
-            checkouts_lines_problems: list[dict[str, list[CHECKOUT_LINE_PROBLEM_TYPE]]]
+            checkouts_lines_problems: list[dict[str, list[CHECKOUT_LINE_PROBLEM_TYPE]]],
         ):
             checkout_problems = defaultdict(list)
             for checkout_pk, checkout_lines_problems in zip(

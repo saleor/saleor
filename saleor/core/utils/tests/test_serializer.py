@@ -2,8 +2,8 @@ import json
 
 from measurement.measures import Weight
 
-from ..taxes import zero_money
-from ..utils.json_serializer import CustomJsonEncoder
+from ...taxes import zero_money
+from ..json_serializer import CustomJsonEncoder
 
 
 def test_custom_json_encoder_dumps_money_objects():

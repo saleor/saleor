@@ -2,7 +2,6 @@ import pytest
 
 from ..account.utils import account_register
 from ..product.utils.preparing_product import prepare_product
-from ..shop.utils import update_shop_settings
 from ..shop.utils.preparing_shop import prepare_shop
 from ..users.utils import customer_update, get_user
 from ..utils import assign_permissions
@@ -19,26 +18,20 @@ def test_guest_checkout_should_be_assigned_to_user_after_creating_the_account_CO
     e2e_staff_api_client,
     app_api_client,
     e2e_not_logged_api_client,
-    permission_manage_products,
-    permission_manage_channels,
-    permission_manage_shipping,
     permission_manage_product_types_and_attributes,
     permission_manage_orders,
     permission_manage_checkouts,
     permission_manage_users,
-    permission_manage_settings,
     permission_manage_payments,
+    shop_permissions,
 ):
     # Before
     permissions = [
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_shipping,
+        *shop_permissions,
         permission_manage_product_types_and_attributes,
         permission_manage_orders,
         permission_manage_checkouts,
         permission_manage_users,
-        permission_manage_settings,
         permission_manage_payments,
     ]
     assign_permissions(
@@ -51,17 +44,26 @@ def test_guest_checkout_should_be_assigned_to_user_after_creating_the_account_CO
     )
     assign_permissions(e2e_staff_api_client, permissions)
 
-    (
-        warehouse_id,
-        channel_id,
-        channel_slug,
-        shipping_method_id,
-    ) = prepare_shop(e2e_staff_api_client)
-
-    input_data = {
-        "enableAccountConfirmationByEmail": False,
-    }
-    update_shop_settings(e2e_staff_api_client, input_data)
+    shop_data, _tax_config = prepare_shop(
+        e2e_staff_api_client,
+        channels=[
+            {
+                "shipping_zones": [
+                    {
+                        "shipping_methods": [{}],
+                    },
+                ],
+                "order_settings": {},
+            }
+        ],
+        shop_settings={
+            "enableAccountConfirmationByEmail": False,
+        },
+    )
+    channel_id = shop_data[0]["id"]
+    channel_slug = shop_data[0]["slug"]
+    warehouse_id = shop_data[0]["warehouse_id"]
+    shipping_method_id = shop_data[0]["shipping_zones"][0]["shipping_methods"][0]["id"]
 
     variant_price = 10
 
@@ -95,7 +97,6 @@ def test_guest_checkout_should_be_assigned_to_user_after_creating_the_account_CO
     checkout_id = checkout_data["id"]
 
     assert checkout_data["isShippingRequired"] is True
-    shipping_method_id = checkout_data["shippingMethods"][0]["id"]
     assert checkout_data["deliveryMethod"] is None
 
     # Step 2 - Set DeliveryMethod for checkout

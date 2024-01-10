@@ -8,7 +8,7 @@ from ..sales.utils import (
     raw_create_sale_channel_listing,
     sale_catalogues_add,
 )
-from ..shop.utils.preparing_shop import prepare_shop
+from ..shop.utils.preparing_shop import prepare_default_shop
 from ..utils import assign_permissions
 
 
@@ -50,28 +50,21 @@ def prepare_sale_for_product(
 @pytest.mark.e2e
 def test_sale_updated_by_promotion_can_not_be_handled_by_sales_core_2116(
     e2e_staff_api_client,
-    permission_manage_products,
-    permission_manage_channels,
-    permission_manage_shipping,
+    shop_permissions,
     permission_manage_product_types_and_attributes,
     permission_manage_discounts,
 ):
     # Before
     permissions = [
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_shipping,
+        *shop_permissions,
         permission_manage_product_types_and_attributes,
         permission_manage_discounts,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    (
-        warehouse_id,
-        channel_id,
-        _channel_slug,
-        _shipping_method_id,
-    ) = prepare_shop(e2e_staff_api_client)
+    shop_data = prepare_default_shop(e2e_staff_api_client)
+    channel_id = shop_data["channel"]["id"]
+    warehouse_id = shop_data["warehouse"]["id"]
 
     (
         product_id,

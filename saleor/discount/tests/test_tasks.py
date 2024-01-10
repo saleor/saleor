@@ -4,6 +4,7 @@ from unittest.mock import ANY, patch
 
 import graphene
 import pytest
+from django.db.models import Exists, OuterRef
 from django.utils import timezone
 from freezegun import freeze_time
 
@@ -11,10 +12,12 @@ from ...order.models import Order
 from .. import DiscountType, RewardValueType
 from ..models import OrderDiscount, OrderLineDiscount, Promotion, PromotionRule
 from ..tasks import (
+    clear_promotion_rule_variants_task,
     decrease_voucher_codes_usage_task,
     disconnect_voucher_codes_from_draft_orders_task,
     fetch_promotion_variants_and_product_ids,
     handle_promotion_toggle,
+    set_promotion_rule_variants_task,
 )
 
 
@@ -54,6 +57,7 @@ def test_fetch_promotion_variants_and_product_ids(
 
 
 @freeze_time("2020-03-18 12:00:00")
+@patch("saleor.discount.tasks.clear_promotion_rule_variants_task.delay")
 @patch(
     "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
 )
@@ -65,6 +69,7 @@ def test_handle_promotion_toggle(
     promotion_ended_mock,
     sale_toggle_mock,
     mock_update_products_discounted_prices_for_promotion_task,
+    mock_clear_promotion_rule_variants_task,
     product_list,
 ):
     # given
@@ -184,6 +189,53 @@ def test_handle_promotion_toggle(
         product_list[0].id,
         product_list[2].id,
     }
+
+    assert {rule_id for rule_id in kwargs["rule_ids"]} == {
+        rules[0].id,
+        rules[2].id,
+    }
+
+    mock_clear_promotion_rule_variants_task.assert_called_once()
+
+
+def test_clear_promotion_rule_variants_task(promotion_list):
+    # given
+    expired_promotion = promotion_list[-1]
+    expired_promotion.start_date = timezone.now() - timedelta(days=5)
+    expired_promotion.end_date = timezone.now() - timedelta(days=1)
+    expired_promotion.save(update_fields=["start_date", "end_date"])
+
+    PromotionRuleVariant = PromotionRule.variants.through
+    expired_rules = PromotionRule.objects.filter(promotion_id=expired_promotion.id)
+    rule_variants_count = PromotionRuleVariant.objects.count()
+    expired_rule_variants_count = PromotionRuleVariant.objects.filter(
+        Exists(expired_rules.filter(pk=OuterRef("promotionrule_id")))
+    ).count()
+    assert expired_rule_variants_count > 0
+
+    # when
+    clear_promotion_rule_variants_task()
+
+    # then
+    assert (
+        PromotionRuleVariant.objects.count()
+        == rule_variants_count - expired_rule_variants_count
+    )
+
+
+def test_set_promotion_rule_variants_task(promotion_list):
+    # given
+    Promotion.objects.update(start_date=timezone.now() - timedelta(days=5))
+    PromotionRuleVariant = PromotionRule.variants.through
+    PromotionRuleVariant.objects.all().delete()
+
+    # when
+    set_promotion_rule_variants_task()
+
+    # then
+    assert set(
+        PromotionRuleVariant.objects.values_list("promotionrule_id", flat=True)
+    ) == set(PromotionRule.objects.values_list("id", flat=True))
 
 
 def test_decrease_voucher_code_usage_task_multiple_use(

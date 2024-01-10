@@ -118,6 +118,55 @@ def test_create_voucher(
     assert len(codes) == 2
 
 
+def test_create_voucher_no_codes(
+    staff_api_client,
+    permission_manage_discounts,
+    product,
+    variant,
+    collection,
+    category,
+):
+    # given
+    start_date = timezone.now() - timedelta(days=365)
+    end_date = timezone.now() + timedelta(days=365)
+
+    name = "test voucher"
+    variables = {
+        "input": {
+            "name": name,
+            "type": VoucherTypeEnum.ENTIRE_ORDER.name,
+            "addCodes": [""],
+            "discountValueType": DiscountValueTypeEnum.FIXED.name,
+            "minCheckoutItemsQuantity": 10,
+            "startDate": start_date.isoformat(),
+            "endDate": end_date.isoformat(),
+            "applyOncePerOrder": True,
+            "applyOncePerCustomer": True,
+            "singleUse": True,
+            "usageLimit": 3,
+            "products": [graphene.Node.to_global_id("Product", product.pk)],
+            "variants": [graphene.Node.to_global_id("ProductVariant", variant.pk)],
+            "collections": [graphene.Node.to_global_id("Collection", collection.pk)],
+            "categories": [graphene.Node.to_global_id("Category", category.pk)],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["voucherCreate"]
+    assert not data["errors"]
+    voucher = Voucher.objects.get()
+
+    assert voucher.name == name
+    assert voucher.type == VoucherType.ENTIRE_ORDER
+    # check if used function is calculated properly
+    assert data["voucher"]["used"] == 0
+    assert data["voucher"]["usageLimit"] == 3
+
+
 def test_create_voucher_return_error_when_code_and_codes_args_combined(
     staff_api_client, permission_manage_discounts
 ):
@@ -253,6 +302,7 @@ def test_create_voucher_trigger_webhook(
         [any_webhook],
         voucher,
         SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )
 
 

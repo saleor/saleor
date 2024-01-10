@@ -2,6 +2,7 @@ from collections import defaultdict
 from typing import Optional
 
 from django.db.models import Exists, F, OuterRef, Sum
+from django.db.models.functions import Coalesce
 from promise import Promise
 
 from ...channel.models import Channel
@@ -73,7 +74,7 @@ class UsedByVoucherIDLoader(DataLoader):
         vouchers = (
             Voucher.objects.using(self.database_connection_name)
             .filter(id__in=keys)
-            .annotate(max_used=Sum("codes__used"))
+            .annotate(max_used=Coalesce(Sum("codes__used"), 0))
         )
         vouchers_map = {}
         for voucher in vouchers:

@@ -2,7 +2,7 @@ import pytest
 
 from ..gift_cards.utils import create_gift_card
 from ..product.utils.preparing_product import prepare_product
-from ..shop.utils.preparing_shop import prepare_shop
+from ..shop.utils.preparing_shop import prepare_default_shop
 from ..utils import assign_permissions
 from .utils import (
     checkout_add_promo_code,
@@ -17,28 +17,23 @@ from .utils import (
 def test_gift_card_partial_payment_for_checkout_core_1103(
     e2e_logged_api_client,
     e2e_staff_api_client,
-    permission_manage_products,
-    permission_manage_channels,
-    permission_manage_shipping,
+    shop_permissions,
     permission_manage_product_types_and_attributes,
     permission_manage_gift_card,
 ):
     # Before
     permissions = [
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_shipping,
+        *shop_permissions,
         permission_manage_product_types_and_attributes,
         permission_manage_gift_card,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    (
-        warehouse_id,
-        channel_id,
-        channel_slug,
-        shipping_method_id,
-    ) = prepare_shop(e2e_staff_api_client)
+    shop_data = prepare_default_shop(e2e_staff_api_client)
+    channel_id = shop_data["channel"]["id"]
+    channel_slug = shop_data["channel"]["slug"]
+    warehouse_id = shop_data["warehouse"]["id"]
+    shipping_method_id = shop_data["shipping_method"]["id"]
 
     (
         _product_id,
@@ -73,7 +68,6 @@ def test_gift_card_partial_payment_for_checkout_core_1103(
         set_default_shipping_address=True,
     )
     checkout_id = checkout_data["id"]
-    shipping_method_id = checkout_data["shippingMethods"][0]["id"]
     assert checkout_data["isShippingRequired"] is True
     calculated_subtotal = float(product_variant_price * 4)
     assert checkout_data["totalPrice"]["gross"]["amount"] == calculated_subtotal

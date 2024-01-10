@@ -68,7 +68,7 @@ def create_order_taxed_prices_data(
     )
 
 
-def test_recalculate_order_prices(order_with_lines, order_lines, tax_data):
+def test_recalculate_with_plugins(order_with_lines, order_lines, tax_data):
     # given
     order = order_with_lines
     currency = order.currency
@@ -104,7 +104,7 @@ def test_recalculate_order_prices(order_with_lines, order_lines, tax_data):
     )
 
     # when
-    calculations._recalculate_order_prices(manager, order, lines, False)
+    calculations._recalculate_with_plugins(manager, order, lines, False)
 
     # then
     assert order.total == total
@@ -141,7 +141,7 @@ def test_recalculate_order_prices(order_with_lines, order_lines, tax_data):
         "get_order_shipping_tax_rate",
     ],
 )
-def test_recalculate_order_prices_tax_error(
+def test_recalculate_with_plugins_tax_error(
     order_with_lines, order_lines, mocked_method_name
 ):
     # given
@@ -163,13 +163,13 @@ def test_recalculate_order_prices_tax_error(
     manager = Mock(**manager_methods)
 
     # when
-    calculations._recalculate_order_prices(manager, order, lines, False)
+    calculations._recalculate_with_plugins(manager, order, lines, False)
 
     # then
     # no exception is raised
 
 
-def test_recalculate_order_prices_tax_error_line_prices(
+def test_recalculate_with_plugins_tax_error_line_prices(
     order_with_lines, order_lines, tax_data
 ):
     # given
@@ -214,7 +214,7 @@ def test_recalculate_order_prices_tax_error_line_prices(
     )
 
     # when
-    calculations._recalculate_order_prices(manager, order, lines, False)
+    calculations._recalculate_with_plugins(manager, order, lines, False)
 
     # then
     assert order.total == total
@@ -247,7 +247,7 @@ def test_recalculate_order_prices_tax_error_line_prices(
         assert tax_rate == line.tax_rate
 
 
-def test_recalculate_order_prices_tax_error_shipping_price(
+def test_recalculate_with_plugins_tax_error_shipping_price(
     order_with_lines, order_lines, tax_data
 ):
     # given
@@ -287,7 +287,7 @@ def test_recalculate_order_prices_tax_error_shipping_price(
     )
 
     # when
-    calculations._recalculate_order_prices(manager, order, lines, False)
+    calculations._recalculate_with_plugins(manager, order, lines, False)
 
     # then
     assert order.total == subtotal + old_shipping_price
@@ -314,7 +314,7 @@ def test_recalculate_order_prices_tax_error_shipping_price(
         assert tax_rate == line.tax_rate
 
 
-def test_recalculate_order_prices_order_discounts_and_total_undiscounted_price_changed(
+def test_recalculate_with_plugins_order_discounts_and_total_undiscounted_price_changed(
     draft_order, order_lines, shipping_method_weight_based, tax_data
 ):
     # given
@@ -375,7 +375,7 @@ def test_recalculate_order_prices_order_discounts_and_total_undiscounted_price_c
     )
 
     # when
-    calculations._recalculate_order_prices(manager, order, lines, False)
+    calculations._recalculate_with_plugins(manager, order, lines, False)
 
     # then
     order_discount.refresh_from_db()
@@ -794,20 +794,20 @@ def test_fetch_order_prices_when_tax_exemption_and_not_include_taxes_in_prices(
     tax plugins should be ignored and only net prices should be calculated and returned.
     """
     # given
-
     tc = order_with_lines.channel.tax_configuration
     tc.prices_entered_with_tax = False
     tc.save(update_fields=["prices_entered_with_tax"])
     tc.country_exceptions.all().delete()
 
     currency = order_with_lines.currency
-    discount_amount = Decimal("3.00")
-    discount_as_money = Money(discount_amount, currency)
+    discount = Decimal("50")
     order_with_lines.discounts.create(
-        value=discount_amount,
-        amount_value=discount_amount,
+        value=discount,
+        value_type=DiscountValueType.PERCENTAGE,
         currency=order_with_lines.currency,
     )
+    expected_discount_amount = order_with_lines.total_net_amount * discount / 100
+
     order_with_lines.total_net_amount = Decimal("0.00")
     order_with_lines.total_gross_amount = Decimal("0.00")
     order_with_lines.undiscounted_total_net_amount = Decimal("0.00")
@@ -822,19 +822,13 @@ def test_fetch_order_prices_when_tax_exemption_and_not_include_taxes_in_prices(
 
     # then
     order_with_lines.refresh_from_db()
-
+    assert order_with_lines.discounts.first().amount_value == expected_discount_amount
     subtotal = zero_taxed_money(currency)
     undiscounted_subtotal = zero_taxed_money(currency)
-    shipping_price = order_with_lines.base_shipping_price
-    shipping_price = quantize_price(
-        TaxedMoney(
-            shipping_price,
-            shipping_price,
-        ),
-        currency,
-    )
-
-    assert order_with_lines.shipping_price == shipping_price
+    undiscounted_shipping = order_with_lines.base_shipping_price
+    shipping_price = order_with_lines.shipping_price
+    assert shipping_price.net == undiscounted_shipping * discount / 100
+    assert shipping_price.net == shipping_price.gross
     assert order_with_lines.shipping_tax_rate == Decimal("0.00")
 
     for order_line in order_with_lines.lines.all():
@@ -853,7 +847,7 @@ def test_fetch_order_prices_when_tax_exemption_and_not_include_taxes_in_prices(
             currency,
         )
 
-        line_total = line_price_with_discounts * order_line.quantity
+        line_total = line_price_with_discounts * order_line.quantity * discount / 100
         undiscounted_total_price = undiscounted_line_price * order_line.quantity
 
         subtotal += line_total
@@ -866,19 +860,9 @@ def test_fetch_order_prices_when_tax_exemption_and_not_include_taxes_in_prices(
 
     assert (
         order_with_lines.undiscounted_total
-        == undiscounted_subtotal + shipping_price.net
+        == undiscounted_subtotal + undiscounted_shipping
     )
-    assert order_with_lines.total == (
-        subtotal
-        + shipping_price
-        - quantize_price(
-            TaxedMoney(
-                discount_as_money,
-                discount_as_money,
-            ),
-            currency,
-        )
-    )
+    assert order_with_lines.total == subtotal + shipping_price
 
 
 def test_fetch_order_prices_if_expired_prefetch(fetch_kwargs, order_lines):
@@ -1122,7 +1106,12 @@ def test_order_subtotal(mocked_fetch_order_prices_if_expired):
         TaxedMoney(Money(Decimal("2.00"), currency), Money(Decimal("2.00"), currency)),
         TaxedMoney(Money(Decimal("4.00"), currency), Money(Decimal("4.00"), currency)),
     ]
-    order = Mock(currency=currency)
+    order = Mock(
+        currency=currency,
+        subtotal=TaxedMoney(
+            Money(Decimal("7.00"), currency), Money(Decimal("7.00"), currency)
+        ),
+    )
     lines = []
     for expected_line_total in expected_line_totals:
         line = Mock(total_price=expected_line_total, currency=currency)

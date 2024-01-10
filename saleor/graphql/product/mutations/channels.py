@@ -19,7 +19,7 @@ from ....product.models import (
 )
 from ....product.models import Product as ProductModel
 from ....product.models import ProductVariant as ProductVariantModel
-from ....product.tasks import update_products_discounted_prices_for_promotion_task
+from ....product.tasks import update_discounted_prices_task
 from ...channel import ChannelContext
 from ...channel.mutations import BaseChannelListingMutation
 from ...channel.types import Channel
@@ -356,7 +356,7 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
             cls.update_channels(product, cleaned_input.get("update_channels", []))
             cls.remove_channels(product, cleaned_input.get("remove_channels", []))
             product = ProductModel.objects.prefetched_for_webhook().get(pk=product.pk)
-            update_products_discounted_prices_for_promotion_task.delay([product.id])
+            update_discounted_prices_task.delay([product.id])
             manager = get_plugin_manager_promise(info.context).get()
             cls.call_event(manager.product_updated, product)
 
@@ -541,9 +541,7 @@ class ProductVariantChannelListingUpdate(BaseMutation):
                     channel=channel,
                     defaults=defaults,
                 )
-            update_products_discounted_prices_for_promotion_task.delay(
-                [variant.product_id]
-            )
+            update_discounted_prices_task.delay([variant.product_id])
             manager = get_plugin_manager_promise(info.context).get()
             cls.call_event(manager.product_variant_updated, variant)
 

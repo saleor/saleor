@@ -1,7 +1,6 @@
 import pytest
 
-from ..channel.utils import create_channel
-from ..shop.utils import update_shop_settings
+from ..shop.utils import prepare_shop
 from ..utils import assign_permissions
 from .utils import account_register, token_create
 
@@ -10,25 +9,39 @@ from .utils import account_register, token_create
 def test_should_create_account_without_email_confirmation_core_1502(
     e2e_not_logged_api_client,
     e2e_staff_api_client,
-    permission_manage_channels,
-    permission_manage_settings,
+    shop_permissions,
+    permission_manage_product_types_and_attributes,
 ):
     # Before
-    permissions = [permission_manage_channels, permission_manage_settings]
+    permissions = [
+        permission_manage_product_types_and_attributes,
+        *shop_permissions,
+    ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    chanel_data = create_channel(e2e_staff_api_client)
-    channel_slug = chanel_data["slug"]
+    shop_data, _tax_config = prepare_shop(
+        e2e_staff_api_client,
+        channels=[
+            {
+                "shipping_zones": [
+                    {
+                        "shipping_methods": [
+                            {},
+                        ],
+                    },
+                ],
+                "order_settings": {},
+            }
+        ],
+        shop_settings={
+            "enableAccountConfirmationByEmail": False,
+        },
+    )
 
-    input = {
-        "enableAccountConfirmationByEmail": False,
-    }
-
-    update_shop_settings(e2e_staff_api_client, input)
-
+    channel_slug = shop_data[0]["slug"]
     test_email = "new-user@saleor.io"
     test_password = "password!"
-    redirect_url = ""
+    redirect_url = "https://www.example.com"
 
     # Step 1 - Create account for the new customer
     user_account = account_register(
@@ -42,7 +55,6 @@ def test_should_create_account_without_email_confirmation_core_1502(
     assert user_account["user"]["isActive"] is True
 
     # Step 2 - Authenticate as new created user
-
     login_data = token_create(e2e_not_logged_api_client, test_email, test_password)
 
     assert login_data["user"]["id"] == user_id

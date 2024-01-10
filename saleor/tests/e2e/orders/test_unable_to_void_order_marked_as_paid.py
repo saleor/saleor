@@ -2,7 +2,7 @@ import pytest
 
 from .. import DEFAULT_ADDRESS
 from ..product.utils.preparing_product import prepare_product
-from ..shop.utils.preparing_shop import prepare_shop
+from ..shop.utils.preparing_shop import prepare_default_shop
 from ..utils import assign_permissions
 from .utils import (
     draft_order_complete,
@@ -18,12 +18,10 @@ from .utils import (
 def prepare_order_marked_as_paid(e2e_staff_api_client):
     price = 10
 
-    (
-        warehouse_id,
-        channel_id,
-        _channel_slug,
-        shipping_method_id,
-    ) = prepare_shop(e2e_staff_api_client)
+    shop_data = prepare_default_shop(e2e_staff_api_client)
+    channel_id = shop_data["channel"]["id"]
+    warehouse_id = shop_data["warehouse"]["id"]
+    shipping_method_id = shop_data["shipping_method"]["id"]
 
     _product_id, product_variant_id, _product_variant_price = prepare_product(
         e2e_staff_api_client,
@@ -80,17 +78,13 @@ def prepare_order_marked_as_paid(e2e_staff_api_client):
 @pytest.mark.e2e
 def test_unable_to_void_order_marked_as_paid_CORE_0211(
     e2e_staff_api_client,
-    permission_manage_products,
-    permission_manage_channels,
+    shop_permissions,
     permission_manage_product_types_and_attributes,
-    permission_manage_shipping,
     permission_manage_orders,
 ):
     # Before
     permissions = [
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_shipping,
+        *shop_permissions,
         permission_manage_product_types_and_attributes,
         permission_manage_orders,
     ]

@@ -7,14 +7,23 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Highlights
 
 ### Breaking changes
+- Drop `OrderBulkCreateInput.voucher` field. Use `OrderBulkCreateInput.voucherCode` instead. - #14553 by @zedzior
 
 ### GraphQL API
 
 - Add taxes to undiscounted prices - #14095 by @jakubkuc
+- Mark as deprecated: `ordersTotal`, `reportProductSales` and `homepageEvents` - #14806 by @8r2y5
+- Add `identifier` field to App graphql object. Identifier field is the same as Manifest.id field (explicit ID set by the app).
 
 ### Saleor Apps
 
 ### Other changes
+- Add missing descriptions to order module - #14845 by @DevilsAutumn
+- Unify how undiscounted prices are handled in orders and checkouts - #14780 by @jakubkuc
+- Drop demo - #14835 by @fowczarek
+- Add JSON serialization immediately after creating observability events to eliminate extra cPickle serialization and deserialization steps - #14992 by @przlada
+
+- Added caching of GraphQL documents for common queries to improve performance - #14843 by @patrys
 
 # 3.18.0
 
@@ -397,6 +406,7 @@ Shipping methods can be removed by the user after it has been assigned to a chec
 - Add missing descriptions to payment module - #13546 by @devilsautumn
 - Fix `NOTIFY_USER` allow to create webhook with only one event - #13584 by @Air-t
 - Add Index for 'Created' field of the Order Model - #13682 by @ritanjandawn
+- Add missing descriptions to giftcard module - #14847 by @devilsautumn
 
 # 3.14.0
 

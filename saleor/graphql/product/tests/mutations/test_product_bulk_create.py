@@ -15,6 +15,7 @@ from .....attribute.tests.model_helpers import (
 from .....product.error_codes import ProductBulkCreateErrorCode
 from .....product.models import Product
 from .....product.tests.utils import create_image
+from ....core.enums import ErrorPolicyEnum
 from ....tests.utils import (
     get_graphql_content,
     get_multipart_request_body_with_multiple_files,
@@ -23,8 +24,9 @@ from ....tests.utils import (
 PRODUCT_BULK_CREATE_MUTATION = """
     mutation ProductBulkCreate(
         $products: [ProductBulkCreateInput!]!
+        $errorPolicy: ErrorPolicyEnum
     ) {
-        productBulkCreate(products: $products) {
+        productBulkCreate(products: $products, errorPolicy: $errorPolicy) {
             results {
                 errors {
                     path
@@ -45,6 +47,9 @@ PRODUCT_BULK_CREATE_MUTATION = """
                     }
                     category{
                         name
+                    }
+                    collections{
+                        id
                     }
                     description
                     attributes{
@@ -85,6 +90,7 @@ def test_product_bulk_create_with_base_data(
     update_products_discounted_price_task_mock,
     staff_api_client,
     product_type,
+    collection,
     category,
     description_json,
     permission_manage_products,
@@ -93,7 +99,7 @@ def test_product_bulk_create_with_base_data(
     description_json_string = json.dumps(description_json)
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
     category_id = graphene.Node.to_global_id("Category", category.pk)
-
+    collection_id = graphene.Node.to_global_id("Collection", collection.pk)
     product_name_1 = "test name 1"
     product_name_2 = "test name 2"
     base_product_slug = "product-test-slug"
@@ -108,6 +114,7 @@ def test_product_bulk_create_with_base_data(
             "description": description_json_string,
             "chargeTaxes": product_charge_taxes,
             "taxCode": product_tax_rate,
+            "collections": [collection_id],
             "weight": 2,
         },
         {
@@ -139,6 +146,7 @@ def test_product_bulk_create_with_base_data(
     assert data["results"][0]["product"]["slug"] == "test-name-1"
     assert data["results"][0]["product"]["description"] == description_json_string
     assert data["results"][0]["product"]["category"]["name"] == category.name
+    assert data["results"][0]["product"]["collections"][0]["id"] == collection_id
     assert data["results"][1]["product"]["name"] == product_name_2
     assert data["results"][1]["product"]["description"] == description_json_string
     assert data["results"][1]["product"]["category"]["name"] == category.name
@@ -152,6 +160,72 @@ def test_product_bulk_create_with_base_data(
     update_products_discounted_price_task_mock.assert_called_once()
     args = set(update_products_discounted_price_task_mock.call_args.args[0])
     assert args == {product.id for product in products}
+
+
+def test_product_bulk_create_with_base_data_and_collections(
+    staff_api_client,
+    product_type,
+    collection_list,
+    category,
+    description_json,
+    permission_manage_products,
+):
+    # given
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    collection_ids = [
+        graphene.Node.to_global_id("Collection", collection.pk)
+        for collection in collection_list
+    ]
+    product_name_1 = "test name 1"
+    product_name_2 = "test name 2"
+    base_product_slug = "product-test-slug"
+    product_charge_taxes = True
+    product_tax_rate = "STANDARD"
+
+    products = [
+        {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name_1,
+            "chargeTaxes": product_charge_taxes,
+            "taxCode": product_tax_rate,
+            "collections": collection_ids,
+            "weight": 2,
+        },
+        {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name_2,
+            "collections": [collection_ids[0]],
+            "slug": f"{base_product_slug}-2",
+            "chargeTaxes": product_charge_taxes,
+            "taxCode": product_tax_rate,
+        },
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_BULK_CREATE_MUTATION,
+        {"products": products},
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productBulkCreate"]
+
+    # then
+    products = Product.objects.all()
+    assert not data["results"][0]["errors"]
+    assert not data["results"][1]["errors"]
+    assert data["count"] == 2
+    assert data["results"][0]["product"]["name"] == product_name_1
+    assert len(data["results"][0]["product"]["collections"]) == len(collection_ids)
+    for collection in data["results"][0]["product"]["collections"]:
+        assert collection["id"] in collection_ids
+    assert data["results"][1]["product"]["name"] == product_name_2
+    assert len(data["results"][1]["product"]["collections"]) == 1
+    assert data["results"][1]["product"]["collections"][0]["id"] == collection_ids[0]
+    assert len(products) == 2
 
 
 def test_product_bulk_create_with_no_slug_and_name_with_unslugify_characters(
@@ -373,6 +447,62 @@ def test_product_bulk_create_with_invalid_attributes(
     error = data["results"][0]["errors"][0]
     assert error["path"] == "attributes"
     assert error["message"] == "Invalid ID: invalidID. Expected: Attribute."
+
+
+def test_product_bulk_create_without_value_required_attribute(
+    staff_api_client,
+    product_type_with_value_required_attributes,
+    category,
+    description_json,
+    permission_manage_products,
+):
+    # given
+    product_type = product_type_with_value_required_attributes
+    description_json_string = json.dumps(description_json)
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    color_attr = product_type.product_attributes.get(name="Color")
+    color_attr_id = graphene.Node.to_global_id("Attribute", color_attr.id)
+
+    product_name_1 = "test name 1"
+    base_product_slug = "product-test-slug"
+    product_charge_taxes = True
+    product_tax_rate = "STANDARD"
+
+    products = [
+        {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name_1,
+            "slug": f"{base_product_slug}-1",
+            "description": description_json_string,
+            "chargeTaxes": product_charge_taxes,
+            "taxCode": product_tax_rate,
+            "weight": 2,
+            "attributes": [
+                {"id": color_attr_id, "values": ["Green"]},
+            ],
+        }
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_BULK_CREATE_MUTATION,
+        {"products": products},
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productBulkCreate"]
+
+    # then
+    assert data["count"] == 0
+    assert data["results"][0]["errors"]
+    error = data["results"][0]["errors"][0]
+    assert error["path"] == "attributes"
+    assert (
+        error["message"]
+        == "All attributes flagged as having a value required must be supplied."
+    )
 
 
 def test_product_bulk_create_with_media(
@@ -1800,3 +1930,141 @@ def test_product_bulk_create_with_variants_and_channel_listings_with_wrong_price
     assert errors[1]["path"] == "variants.0.channelListings.0.costPrice"
     assert errors[1]["code"] == ProductBulkCreateErrorCode.INVALID_PRICE.name
     assert errors[1]["channels"] == [channel_id]
+
+
+def test_product_bulk_create_with_collections_and_invalid_product_data(
+    staff_api_client,
+    product_type,
+    collection,
+    category,
+    description_json,
+    permission_manage_products,
+):
+    # given
+    description_json_string = json.dumps(description_json)
+    invalid_product_type_id = graphene.Node.to_global_id("ProductType", -999)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    collection_id = graphene.Node.to_global_id("Collection", collection.pk)
+    product_name_1 = "test name 1"
+    product_charge_taxes = True
+    product_tax_rate = "STANDARD"
+
+    products = [
+        {
+            "productType": invalid_product_type_id,
+            "category": category_id,
+            "name": product_name_1,
+            "description": description_json_string,
+            "chargeTaxes": product_charge_taxes,
+            "taxCode": product_tax_rate,
+            "collections": [collection_id],
+            "weight": 2,
+        }
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_BULK_CREATE_MUTATION,
+        {"products": products, "errorPolicy": ErrorPolicyEnum.REJECT_FAILED_ROWS.name},
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productBulkCreate"]
+
+    # then
+    assert data["count"] == 0
+    assert data["results"][0]["errors"]
+    error = data["results"][0]["errors"][0]
+    assert error["code"] == ProductBulkCreateErrorCode.NOT_FOUND.name
+    assert error["path"] == "productType"
+
+
+def test_product_bulk_create_with_media_incorrect_alt(
+    staff_api_client,
+    product_type,
+    category,
+    description_json,
+    permission_manage_products,
+    media_root,
+):
+    # given
+    description_json_string = json.dumps(description_json)
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    alt_over_250 = """
+    Lorem ipsum dolor sit amet, consectetuer adipiscing elit.
+    Aenean commodo ligula eget dolor. Aenean massa. Cym sociis natoque penatibus et
+    magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies
+    nec, pellentesque eu, pretium quis, sem.
+    """
+
+    product_name_1 = "test name 1"
+    product_name_2 = "test name 2"
+    base_product_slug = "product-test-slug"
+    product_charge_taxes = True
+    product_tax_rate = "STANDARD"
+
+    image_file_1, image_name_1 = create_image(image_name="prod1")
+    image_file_2, image_name_2 = create_image(image_name="prod2")
+    media_1 = {
+        "alt": alt_over_250,
+        "image": image_name_1,
+    }
+    media_2 = {
+        "alt": alt_over_250,
+        "image": image_name_2,
+    }
+
+    products = [
+        {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name_1,
+            "slug": f"{base_product_slug}-1",
+            "description": description_json_string,
+            "chargeTaxes": product_charge_taxes,
+            "taxCode": product_tax_rate,
+            "weight": 2,
+            "media": [media_1, media_2],
+        },
+        {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name_2,
+            "slug": f"{base_product_slug}-2",
+            "description": description_json_string,
+            "chargeTaxes": product_charge_taxes,
+            "taxCode": product_tax_rate,
+            "media": [media_1],
+        },
+    ]
+
+    files = [image_file_1, image_file_2]
+
+    map_dict = {
+        0: ["variables.products.0.media.0.image"],
+        1: ["variables.products.0.media.1.image"],
+        2: ["variables.products.1.media.0.image"],
+    }
+
+    # when
+    body = get_multipart_request_body_with_multiple_files(
+        PRODUCT_BULK_CREATE_MUTATION, {"products": products}, files, map_dict
+    )
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_multipart(body)
+
+    content = get_graphql_content(response)
+    data = content["data"]["productBulkCreate"]
+
+    # then
+    error_1 = data["results"][0]["errors"]
+    assert error_1
+    assert len(error_1) == 2
+    for error in error_1:
+        assert error["code"] == ProductBulkCreateErrorCode.INVALID.name
+    error_2 = data["results"][1]["errors"]
+    assert error_2[0]["code"] == ProductBulkCreateErrorCode.INVALID.name
+    assert len(error_2) == 1
+    assert data["count"] == 0

@@ -11,6 +11,7 @@ from .....order import OrderOrigin, OrderStatus
 from .....order import events as order_events
 from .....order.error_codes import OrderErrorCode
 from .....order.models import OrderEvent
+from .....payment.model_helpers import get_subtotal
 from .....plugins.base_plugin import ExcludedShippingMethod
 from .....product.models import ProductVariant
 from .....warehouse.models import Allocation, PreorderAllocation, Stock
@@ -26,6 +27,7 @@ DRAFT_ORDER_COMPLETE_MUTATION = """
                 code
                 message
                 variants
+                orderLines
             }
             order {
                 status
@@ -36,6 +38,11 @@ DRAFT_ORDER_COMPLETE_MUTATION = """
                 }
                 voucherCode
                 total {
+                    net {
+                        amount
+                    }
+                }
+                subtotal {
                     net {
                         amount
                     }
@@ -183,6 +190,7 @@ def test_draft_order_complete_with_voucher(
     order.save(update_fields=["voucher", "voucher_code", "should_refresh_prices"])
 
     voucher_listing = voucher.channel_listings.get(channel=order.channel)
+    discount_value = voucher_listing.discount_value
     order_total = order.total_net_amount
 
     order_id = graphene.Node.to_global_id("Order", order.id)
@@ -200,14 +208,26 @@ def test_draft_order_complete_with_voucher(
     assert data["voucherCode"] == code_instance.code
     assert data["voucher"]["code"] == voucher.code
     assert data["undiscountedTotal"]["net"]["amount"] == order_total
+    assert data["total"]["net"]["amount"] == order_total - discount_value
     assert (
         data["total"]["net"]["amount"] == order_total - voucher_listing.discount_value
     )
+    subtotal = get_subtotal(order.lines.all(), order.currency)
+    assert data["subtotal"]["net"]["amount"] == subtotal.gross.amount
     assert order.search_vector
 
-    for line in order.lines.all():
+    lines = order.lines.all()
+    for line in lines:
         allocation = line.allocations.get()
         assert allocation.quantity_allocated == line.quantity_unfulfilled
+
+    # TODO: ensure entire order discount is propagated to order lines:
+    #  https://github.com/saleor/saleor/issues/14880
+    # lines_undiscounted_total = sum(
+    #     line.undiscounted_total_price_net_amount for line in lines
+    # )
+    # lines_total = sum(line.total_price_net_amount for line in lines)
+    # assert lines_undiscounted_total == lines_total + discount_value
 
     # ensure there are only 2 events with correct types
     event_params = {
@@ -729,6 +749,7 @@ def test_draft_order_complete_with_not_excluded_shipping_method(
 def test_draft_order_complete_out_of_stock_variant(
     staff_api_client, permission_group_manage_orders, staff_user, draft_order
 ):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order
 
@@ -742,15 +763,19 @@ def test_draft_order_complete_out_of_stock_variant(
 
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
+
+    # when
     response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
     content = get_graphql_content(response)
     error = content["data"]["draftOrderComplete"]["errors"][0]
     order.refresh_from_db()
+
+    # then
     assert order.status == OrderStatus.DRAFT
     assert order.origin == OrderOrigin.DRAFT
-
     assert error["field"] == "lines"
     assert error["code"] == OrderErrorCode.INSUFFICIENT_STOCK.name
+    assert error["orderLines"] == [graphene.Node.to_global_id("OrderLine", line_1.id)]
 
 
 def test_draft_order_complete_existing_user_email_updates_user_field(

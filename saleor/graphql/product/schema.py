@@ -8,7 +8,12 @@ from ..channel import ChannelContext, ChannelQsContext
 from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
-from ..core.descriptions import ADDED_IN_310, ADDED_IN_314, PREVIEW_FEATURE
+from ..core.descriptions import (
+    ADDED_IN_310,
+    ADDED_IN_314,
+    DEPRECATED_IN_3X_FIELD,
+    PREVIEW_FEATURE,
+)
 from ..core.doc_category import DOC_CATEGORY_PRODUCTS
 from ..core.enums import ReportingPeriod
 from ..core.fields import (
@@ -331,6 +336,7 @@ class ProductQueries(graphene.ObjectType):
             ProductPermissions.MANAGE_PRODUCTS,
         ],
         doc_category=DOC_CATEGORY_PRODUCTS,
+        deprecation_reason=DEPRECATED_IN_3X_FIELD,
     )
 
     @staticmethod

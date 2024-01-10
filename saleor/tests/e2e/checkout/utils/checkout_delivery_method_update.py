@@ -28,10 +28,8 @@ mutation checkoutDeliveryMethodUpdate($checkoutId: ID!, $deliveryMethodId: ID) {
         gross {
           amount
         }
-      }
-      shippingPrice{
-        gross {
-        amount
+        tax {
+          amount
         }
       }
       shippingMethods {

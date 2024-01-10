@@ -174,8 +174,8 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
                     Exists(shipping_zones.filter(pk=OuterRef("shippingzone_id")))
                 )
             if channel_slug:
-                ShippingZoneChannel = Channel.shipping_zones.through  # type: ignore[attr-defined] # raw access to the through model # noqa: E501
-                WarehouseChannel = Channel.warehouses.through  # type: ignore[attr-defined] # raw access to the through model # noqa: E501
+                ShippingZoneChannel = Channel.shipping_zones.through
+                WarehouseChannel = Channel.warehouses.through
                 channels = (
                     Channel.objects.using(self.database_connection_name)
                     .filter(slug=channel_slug)
@@ -214,7 +214,7 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
                 .filter(slug=channel_slug)
                 .values("pk")
             )
-            WarehouseChannel = Channel.warehouses.through  # type: ignore[attr-defined] # raw access to the through model # noqa: E501
+            WarehouseChannel = Channel.warehouses.through
             warehouse_channels = (
                 WarehouseChannel.objects.using(self.database_connection_name)
                 .filter(
@@ -222,7 +222,7 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
                 )
                 .values("warehouse_id")
             )
-            warehouses = Warehouse.objects.filter(
+            warehouses = Warehouse.objects.using(self.database_connection_name).filter(
                 Exists(warehouse_channels.filter(warehouse_id=OuterRef("id"))),
                 click_and_collect_option__in=[
                     WarehouseClickAndCollectOption.LOCAL_STOCK,
@@ -597,7 +597,7 @@ class WarehousesByShippingZoneIdLoader(DataLoader):
 
     def batch_load(self, keys):
         warehouse_and_shipping_zone_in_pairs = (
-            ShippingZone.warehouses.through.objects.using(self.database_connection_name)  # type: ignore[attr-defined] # raw access to the through model # noqa: E501
+            ShippingZone.warehouses.through.objects.using(self.database_connection_name)
             .filter(shippingzone_id__in=keys)
             .values_list("warehouse_id", "shippingzone_id")
         )

@@ -81,7 +81,7 @@ class ShippingZoneMixin:
         if add_channels := cleaned_input.get("add_channels"):
             add_channel_ids = {channel.id for channel in add_channels}
 
-        ChannelWarehouse = channel_models.Channel.warehouses.through  # type: ignore[attr-defined] # raw access to the through model # noqa: E501
+        ChannelWarehouse = channel_models.Channel.warehouses.through
         channel_warehouses = ChannelWarehouse.objects.filter(
             warehouse_id__in=warehouse_ids
         )
@@ -224,8 +224,8 @@ class ShippingZoneMixin:
         Remove all shipping zone to warehouse relations that will not have common
         channel after removing given channels from the shipping zone.
         """
-        WarehouseShippingZone = models.ShippingZone.warehouses.through  # type: ignore[attr-defined] # raw access to the through model # noqa: E501
-        ChannelWarehouse = channel_models.Channel.warehouses.through  # type: ignore[attr-defined] # raw access to the through model # noqa: E501
+        WarehouseShippingZone = models.ShippingZone.warehouses.through
+        ChannelWarehouse = channel_models.Channel.warehouses.through
         ShippingZoneChannel = models.ShippingZone.channels.through
 
         warehouse_shipping_zones = WarehouseShippingZone.objects.filter(
