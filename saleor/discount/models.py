@@ -26,6 +26,7 @@ from ..permission.enums import DiscountPermissions
 from . import (
     DiscountType,
     DiscountValueType,
+    PredicateType,
     PromotionEvents,
     RewardType,
     RewardValueType,
@@ -371,13 +372,18 @@ class PromotionRule(models.Model):
         Promotion, on_delete=models.CASCADE, related_name="rules"
     )
     channels = models.ManyToManyField(Channel)
+    predicate_type = models.CharField(
+        max_length=255,
+        choices=RewardType.CHOICES,
+        default=PredicateType.CATALOGUE,
+    )
     catalogue_predicate = models.JSONField(
         blank=True, default=dict, encoder=CustomJsonEncoder
     )
-    variants = models.ManyToManyField("product.ProductVariant", blank=True)
     order_predicate = models.JSONField(
         blank=True, default=dict, encoder=CustomJsonEncoder
     )
+    variants = models.ManyToManyField("product.ProductVariant", blank=True)
     reward_value_type = models.CharField(
         max_length=255, choices=RewardValueType.CHOICES, blank=True, null=True
     )

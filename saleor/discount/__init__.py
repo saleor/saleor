@@ -42,6 +42,16 @@ class VoucherType:
     ]
 
 
+class PredicateType:
+    CATALOGUE = "catalogue"
+    ORDER = "order"
+
+    CHOICES = [
+        (CATALOGUE, "Catalogue"),
+        (ORDER, "Order"),
+    ]
+
+
 class RewardValueType:
     FIXED = "fixed"
     PERCENTAGE = "percentage"
