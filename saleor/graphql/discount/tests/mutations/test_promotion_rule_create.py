@@ -168,7 +168,6 @@ def test_promotion_rule_create_by_app(
     }
     name = "test promotion rule"
     reward_value = Decimal("10")
-    predicate_type = PredicateTypeEnum.CATALOGUE.name
     reward_value_type = RewardValueTypeEnum.FIXED.name
     promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
     rules_count = promotion.rules.count()
@@ -182,7 +181,6 @@ def test_promotion_rule_create_by_app(
             "rewardValueType": reward_value_type,
             "rewardValue": reward_value,
             "cataloguePredicate": catalogue_predicate,
-            "predicateType": predicate_type,
         }
     }
 
@@ -202,7 +200,7 @@ def test_promotion_rule_create_by_app(
     assert rule_data["name"] == name
     assert rule_data["description"] == description_json
     assert {channel["id"] for channel in rule_data["channels"]} == set(channel_ids)
-    assert rule_data["predicateType"] == predicate_type
+    assert rule_data["predicateType"] == PredicateTypeEnum.CATALOGUE.name
     assert rule_data["cataloguePredicate"] == catalogue_predicate
     assert rule_data["rewardValueType"] == reward_value_type
     assert rule_data["rewardValue"] == reward_value

@@ -19,7 +19,7 @@ from .....webhook.event_types import WebhookEventAsyncType
 from ....app.dataloaders import get_app_promise
 from ....channel.types import Channel
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_317, PREVIEW_FEATURE
+from ....core.descriptions import ADDED_IN_317, ADDED_IN_319, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import ModelMutation
 from ....core.scalars import JSON
@@ -58,8 +58,12 @@ class PromotionRuleInput(PromotionRuleBaseInput):
             "Defines the promotion rule predicate type. Implicate whether the "
             "promotion rule will give the catalogue or order discount. "
             "The promotion can have only rules with one type of predicate."
+            "\n\nThe default value is `Catalogue`, so defining promotion rule with order "
+            "predicate require providing a value."
+            "\n\nThis field will be required from Saleor 3.20." + ADDED_IN_319
         ),
-        required=True,
+        required=False,
+        default=PredicateTypeEnum.CATALOGUE,
     )
 
     class Meta:

@@ -222,7 +222,6 @@ def test_promotion_create_by_app(
                     "rewardValueType": RewardValueTypeEnum.FIXED.name,
                     "rewardValue": Decimal("10"),
                     "cataloguePredicate": catalogue_predicate,
-                    "predicateType": PredicateTypeEnum.CATALOGUE.name,
                 }
             ],
         }

@@ -27515,8 +27515,14 @@ input PromotionRuleInput @doc(category: "Discounts") {
 
   """
   Defines the promotion rule predicate type. Implicate whether the promotion rule will give the catalogue or order discount. The promotion can have only rules with one type of predicate.
+  
+  The default value is `Catalogue`, so defining promotion rule with order predicate require providing a value.
+  
+  This field will be required from Saleor 3.20.
+  
+  Added in Saleor 3.19.
   """
-  predicateType: PredicateTypeEnum!
+  predicateType: PredicateTypeEnum
 }
 
 input CataloguePredicateInput @doc(category: "Discounts") {
@@ -27749,8 +27755,14 @@ input PromotionRuleCreateInput {
 
   """
   Defines the promotion rule predicate type. Implicate whether the promotion rule will give the catalogue or order discount. The promotion can have only rules with one type of predicate.
+  
+  The default value is `Catalogue`, so defining promotion rule with order predicate require providing a value.
+  
+  This field will be required from Saleor 3.20.
+  
+  Added in Saleor 3.19.
   """
-  predicateType: PredicateTypeEnum!
+  predicateType: PredicateTypeEnum
 
   """The ID of the promotion that rule belongs to."""
   promotion: ID!
