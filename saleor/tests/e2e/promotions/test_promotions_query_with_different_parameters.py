@@ -88,7 +88,7 @@ def test_step_3_query_promotions_first_10_start_date_before_CORE_2118(
             promotion_name = f"Promotion start date before {i + 1}"
             start_date = (base_date - timedelta(days=i + 1)).isoformat() + "+00:00"
             promotion = create_promotion(
-                e2e_staff_api_client, promotion_name, start_date
+                e2e_staff_api_client, promotion_name, start_date=start_date
             )
             assert promotion["startDate"] == start_date
 
