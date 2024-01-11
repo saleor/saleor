@@ -1,11 +1,10 @@
 from collections import defaultdict
 
 import graphene
-from django.db import transaction
-from django.db.models import Exists, OuterRef, QuerySet
+from django.db.models import QuerySet
 
 from ....discount.models import Promotion, PromotionRule
-from ....discount.utils import CatalogueInfo
+from ....discount.utils import CatalogueInfo, update_rule_variant_relation
 from ....product.models import ProductVariant
 
 CATALOGUE_FIELD_TO_TYPE_NAME = {
@@ -52,11 +51,4 @@ def update_variants_for_promotion(
                 for variant in variants
             ]
         )
-    with transaction.atomic():
-        # Clear existing variants assigned to promotion rules
-        PromotionRuleVariant.objects.filter(
-            Exists(rules.filter(id=OuterRef("promotionrule_id")))
-        ).delete()
-        PromotionRuleVariant.objects.bulk_create(
-            promotion_rule_variants, ignore_conflicts=True
-        )
+    update_rule_variant_relation(rules, promotion_rule_variants)
