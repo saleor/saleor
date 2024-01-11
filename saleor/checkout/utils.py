@@ -750,7 +750,7 @@ def add_voucher_to_checkout(
     # with vouchers
     CheckoutDiscount.objects.filter(
         checkout=checkout_info.checkout,
-        type=DiscountType.CHECKOUT_AND_ORDER_PROMOTION,
+        type=DiscountType.ORDER_PROMOTION,
     ).delete()
 
 

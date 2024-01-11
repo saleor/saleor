@@ -1409,11 +1409,11 @@ def test_recalculate_checkout_discount_with_checkout_discount_voucher_not_applic
 
 
 def test_recalculate_checkout_discount_with_checkout_discount_voucher_added(
-    checkout_with_item_with_checkout_and_order_discount,
+    checkout_with_item_and_order_discount,
     voucher_percentage,
 ):
     # given
-    checkout = checkout_with_item_with_checkout_and_order_discount
+    checkout = checkout_with_item_and_order_discount
     checkout_discount = checkout.discounts.first()
     channel = checkout.channel
     discount_value = voucher_percentage.channel_listings.get(
@@ -1799,10 +1799,10 @@ def test_add_voucher_to_checkout_fail(
 
 
 def test_add_voucher_to_checkout_clears_checkout_and_order_promotion_discount(
-    checkout_with_item_with_checkout_and_order_discount, voucher
+    checkout_with_item_and_order_discount, voucher
 ):
     # given
-    checkout = checkout_with_item_with_checkout_and_order_discount
+    checkout = checkout_with_item_and_order_discount
     checkout_discount = checkout.discounts.first()
     assert checkout.voucher_code is None
     manager = get_plugins_manager(allow_replica=False)
