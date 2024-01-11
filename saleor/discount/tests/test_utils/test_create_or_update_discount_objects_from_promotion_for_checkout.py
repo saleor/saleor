@@ -14,7 +14,8 @@ from ....product.models import VariantChannelListingPromotionRule
 from ... import DiscountType, RewardType, RewardValueType
 from ...models import CheckoutDiscount, CheckoutLineDiscount, PromotionRule
 from ...utils import (
-    create_discount_objects_for_checkout_and_order_promotions,
+    _create_or_update_checkout_discount,
+    create_discount_objects_for_order_promotions,
     create_or_update_discount_objects_from_promotion_for_checkout,
 )
 
@@ -1631,7 +1632,7 @@ def test_create_discount_objects_for_order_promotions_race_condition(
 
     reward_value = Decimal("2")
     rule = promotion.rules.create(
-        checkout_and_order_predicate={
+        order_predicate={
             "total_price": {
                 "range": {
                     "gte": 20,
@@ -1645,7 +1646,7 @@ def test_create_discount_objects_for_order_promotions_race_condition(
     rule.channels.add(channel)
 
     rule0 = promotion.rules.create(
-        checkout_and_order_predicate={
+        order_predicate={
             "total_price": {
                 "range": {
                     "gte": 20,
@@ -1663,7 +1664,7 @@ def test_create_discount_objects_for_order_promotions_race_condition(
         CheckoutDiscount.objects.create(
             checkout=checkout,
             promotion_rule=rule0,
-            type=DiscountType.CHECKOUT_AND_ORDER_PROMOTION,
+            type=DiscountType.ORDER_PROMOTION,
             value_type=rule0.reward_value_type,
             value=rule0.reward_value,
             amount_value=rule0.reward_value,
@@ -1674,11 +1675,56 @@ def test_create_discount_objects_for_order_promotions_race_condition(
         "saleor.discount.utils._create_or_update_checkout_discount",
         call_before_creating_discount_object,
     ):
-        create_discount_objects_for_checkout_and_order_promotions(
-            checkout_info, checkout_lines_info
-        )
+        create_discount_objects_for_order_promotions(checkout_info, checkout_lines_info)
 
     # then
     discounts = list(checkout_info.checkout.discounts.all())
     assert len(discounts) == 1
     assert discounts[0].amount_value == reward_value
+
+
+def test_create_or_update_checkout_discount_race_condition(
+    checkout_info,
+    checkout_lines_info,
+    promotion_without_rules,
+):
+    # given
+    promotion = promotion_without_rules
+    checkout = checkout_info.checkout
+    channel = checkout_info.channel
+    currency = channel.currency_code
+
+    reward_value = Decimal("2")
+    rule = promotion.rules.create(
+        order_predicate={
+            "total_price": {
+                "range": {
+                    "gte": 20,
+                }
+            }
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=reward_value,
+        reward_type=RewardType.TOTAL_DISCOUNT,
+    )
+    rule.channels.add(channel)
+
+    def call_update(*args, **kwargs):
+        _create_or_update_checkout_discount(
+            checkout,
+            checkout_info,
+            rule,
+            Money(reward_value, currency),
+            currency,
+            promotion,
+            True,
+        )
+
+    with before_after.before(
+        "saleor.discount.utils.get_rule_translations", call_update
+    ):
+        call_update()
+
+    # then
+    discounts = list(checkout_info.checkout.discounts.all())
+    assert len(discounts) == 1
