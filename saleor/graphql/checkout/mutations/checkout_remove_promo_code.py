@@ -105,7 +105,7 @@ class CheckoutRemovePromoCode(BaseMutation):
                 checkout_info,
                 lines,
                 manager,
-                recalculate_discount=False,
+                recalculate_discount=True,
                 save=True,
             )
             cls.call_event(manager.checkout_updated, checkout)
