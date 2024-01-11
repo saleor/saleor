@@ -12,8 +12,8 @@ from typing import (
 from uuid import UUID
 
 import graphene
-from django.db import transaction
 from django.conf import settings
+from django.db import transaction
 from django.db.models import Exists, F, OuterRef, QuerySet
 from django.utils import timezone
 from prices import Money, TaxedMoney, fixed_discount, percentage_discount
@@ -625,6 +625,7 @@ def update_rule_variant_relation(
         PromotionRuleVariant.objects.bulk_create(
             rules_variants_to_add, ignore_conflicts=True
         )
+
 
 def get_active_promotion_rules(
     allow_replica: bool = False,

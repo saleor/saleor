@@ -20,6 +20,7 @@ from ..product.models import (
     VariantChannelListingPromotionRule,
 )
 from ..product.tasks import update_products_discounted_prices_for_promotion_task
+from ..product.utils.product import mark_products_for_recalculate_discounted_price
 from ..product.utils.variant_prices import update_discounted_prices_for_promotion
 from ..webhook.event_types import WebhookEventAsyncType
 from ..webhook.utils import get_webhooks_for_event
@@ -308,7 +309,7 @@ def update_discounted_prices_task():
     if products_ids:
         products = Product.objects.filter(id__in=products_ids)
         update_discounted_prices_for_promotion(products)
-        update_discounted_prices_task.delay()
+        mark_products_for_recalculate_discounted_price(products_ids)
 
 
 @app.task(

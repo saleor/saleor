@@ -1,8 +1,8 @@
 import graphene
 
+from .....discount.utils import get_active_promotion_rules
 from .....permission.enums import ProductPermissions
 from .....product import models
-from .....product.tasks import update_products_discounted_prices_for_promotion_task
 from ....channel import ChannelContext
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
@@ -49,10 +49,10 @@ class CollectionRemoveProducts(BaseMutation):
         manager = get_plugin_manager_promise(info.context).get()
         for product in products:
             cls.call_event(manager.product_updated, product)
-        # Updated the db entries, recalculating discounts of affected products
-        update_products_discounted_prices_for_promotion_task.delay(
-            [p.pk for p in products]
-        )
+        # Mark PromotionRule variants dirty
+        # This will finally recalculate discounted prices for products.
+        get_active_promotion_rules().update(variants_dirty=True)
+
         return CollectionRemoveProducts(
             collection=ChannelContext(node=collection, channel_slug=None)
         )

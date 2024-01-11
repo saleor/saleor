@@ -7,12 +7,12 @@ from django.db.models import Exists, OuterRef
 from .....attribute import AttributeInputType
 from .....attribute import models as attribute_models
 from .....core.tracing import traced_atomic_transaction
+from .....discount.utils import get_active_promotion_rules
 from .....order import events as order_events
 from .....order import models as order_models
 from .....order.tasks import recalculate_orders_task
 from .....permission.enums import ProductPermissions
 from .....product import models
-from .....product.tasks import update_products_discounted_prices_for_promotion_task
 from ....app.dataloaders import get_app_promise
 from ....channel import ChannelContext
 from ....core import ResolveInfo
@@ -50,10 +50,9 @@ class ProductVariantDelete(ModelDeleteMutation, ModelWithExtRefMutation):
 
     @classmethod
     def success_response(cls, instance):
-        # Update the "discounted_prices" of the parent product
-        update_products_discounted_prices_for_promotion_task.delay(
-            [instance.product_id]
-        )
+        # Mark PromotionRule variants dirty
+        # This will finally recalculate discounted prices for products.
+        get_active_promotion_rules().update(variants_dirty=True)
         product = models.Product.objects.get(id=instance.product_id)
         product.search_index_dirty = True
         product.save(update_fields=["search_index_dirty"])
