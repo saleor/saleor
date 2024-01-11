@@ -414,7 +414,7 @@ def checkout_with_item_and_order_discount(checkout_with_item, promotion_without_
 
     rule = promotion_without_rules.rules.create(
         order_predicate={
-            "total_price": {
+            "base_total_price": {
                 "range": {
                     "gte": 20,
                 }
@@ -5643,7 +5643,7 @@ def promotion_with_order_rule(catalogue_predicate, channel_USD):
         name="Promotion rule",
         promotion=promotion,
         order_predicate={
-            "discountedObjectPredicate": {"subtotalPrice": {"range": {"gte": 100}}}
+            "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 100}}}
         },
         reward_value_type=RewardValueType.FIXED,
         reward_value=Decimal(5),
@@ -5768,7 +5768,7 @@ def order_promotion_rule(channel_USD, promotion, product):
         name="Order promotion rule",
         promotion=promotion,
         order_predicate={
-            "total_price": {
+            "base_total_price": {
                 "range": {
                     "gte": 20,
                 }

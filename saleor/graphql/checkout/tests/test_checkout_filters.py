@@ -614,7 +614,7 @@ def test_checkouts_query_with_filter_charge_status(
     assert content["data"]["checkouts"]["totalCount"] == expected_count
 
 
-def test_filtering_checkout_discounted_object_where_by_total_price_range(
+def test_filtering_checkout_discounted_object_where_by_base_total_price_range(
     checkout_with_item,
 ):
     # given
@@ -638,7 +638,7 @@ def test_filtering_checkout_discounted_object_where_by_total_price_range(
     qs = Checkout.objects.all()
     predicate_data = {
         "currency": currency,
-        "total_price": {
+        "base_total_price": {
             "range": {
                 "gte": 20,
             }
@@ -659,7 +659,7 @@ def test_filtering_checkout_discounted_object_where_by_total_price_range(
     assert result.first() == checkout
 
 
-def test_filtering_checkout_discounted_object_where_by_total_price_one_of(
+def test_filtering_checkout_discounted_object_where_by_base_total_price_one_of(
     checkout_with_item,
 ):
     # given
@@ -681,7 +681,7 @@ def test_filtering_checkout_discounted_object_where_by_total_price_one_of(
     )
 
     qs = Checkout.objects.all()
-    predicate_data = {"currency": currency, "total_price": {"one_of": [15, 40]}}
+    predicate_data = {"currency": currency, "base_total_price": {"one_of": [15, 40]}}
 
     # when
     result = where_filter_qs(
@@ -697,7 +697,7 @@ def test_filtering_checkout_discounted_object_where_by_total_price_one_of(
     assert result.first() == another_checkout
 
 
-def test_filtering_checkout_discounted_object_where_by_total_currency_not_given(
+def test_filtering_checkout_discounted_object_where_by_base_total_currency_not_given(
     checkout_with_item,
 ):
     # given
@@ -720,7 +720,7 @@ def test_filtering_checkout_discounted_object_where_by_total_currency_not_given(
 
     qs = Checkout.objects.all()
     predicate_data = {
-        "total_price": {
+        "base_total_price": {
             "range": {
                 "gte": 20,
             }
@@ -741,7 +741,7 @@ def test_filtering_checkout_discounted_object_where_by_total_currency_not_given(
     assert validation_error.value.code == "required"
 
 
-def test_filtering_checkout_discounted_object_where_by_subtotal_price_range(
+def test_filtering_checkout_discounted_object_where_by_base_subtotal_price_range(
     checkout_with_item,
 ):
     # given
@@ -765,7 +765,7 @@ def test_filtering_checkout_discounted_object_where_by_subtotal_price_range(
     qs = Checkout.objects.all()
     predicate_data = {
         "currency": currency,
-        "subtotal_price": {
+        "base_subtotal_price": {
             "range": {
                 "lte": 12,
             }
@@ -786,7 +786,7 @@ def test_filtering_checkout_discounted_object_where_by_subtotal_price_range(
     assert result.first() == another_checkout
 
 
-def test_filtering_checkout_discounted_object_where_by_subtotal_price_one_of(
+def test_filtering_checkout_discounted_object_where_by_base_subtotal_price_one_of(
     checkout_with_item,
 ):
     # given
@@ -808,7 +808,7 @@ def test_filtering_checkout_discounted_object_where_by_subtotal_price_one_of(
     )
 
     qs = Checkout.objects.all()
-    predicate_data = {"currency": currency, "subtotal_price": {"one_of": [15, 20]}}
+    predicate_data = {"currency": currency, "base_subtotal_price": {"one_of": [15, 20]}}
 
     # when
     result = where_filter_qs(
@@ -824,7 +824,7 @@ def test_filtering_checkout_discounted_object_where_by_subtotal_price_one_of(
     assert result.first() == checkout
 
 
-def test_filtering_checkout_discounted_object_where_by_subtotal_currency_not_given(
+def test_filtering_checkout_discounted_object_where_by_base_subtotal_currency_not_given(
     checkout_with_item,
 ):
     # given
@@ -847,7 +847,7 @@ def test_filtering_checkout_discounted_object_where_by_subtotal_currency_not_giv
 
     qs = Checkout.objects.all()
     predicate_data = {
-        "subtotal_price": {
+        "base_subtotal_price": {
             "range": {
                 "gte": 20,
             }

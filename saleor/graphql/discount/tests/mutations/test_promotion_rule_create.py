@@ -550,11 +550,13 @@ def test_promotion_rule_invalid_order_predicate(
     order_predicate = {
         "OR": [
             {
-                "discountedObjectPredicate": {"subtotalPrice": {"range": {"gte": 100}}},
+                "discountedObjectPredicate": {
+                    "baseSubtotalPrice": {"range": {"gte": 100}}
+                },
                 "AND": [
                     {
                         "discountedObjectPredicate": {
-                            "subtotalPrice": {"range": {"lte": 500}}
+                            "baseSubtotalPrice": {"range": {"lte": 500}}
                         }
                     }
                 ],
@@ -1022,7 +1024,7 @@ def test_promotion_rule_create_multiple_predicates(
         "productPredicate": {"ids": [graphene.Node.to_global_id("Product", product.id)]}
     }
     order_predicate = {
-        "discountedObjectPredicate": {"subtotalPrice": {"range": {"gte": 100}}}
+        "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 100}}}
     }
     rules_count = promotion.rules.count()
 
@@ -1080,7 +1082,7 @@ def test_promotion_rule_create_mixed_predicates_order(
     reward_type = RewardTypeEnum.SUBTOTAL_DISCOUNT.name
     promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
     order_predicate = {
-        "discountedObjectPredicate": {"subtotalPrice": {"range": {"gte": 100}}}
+        "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 100}}}
     }
     rules_count = promotion.rules.count()
 
@@ -1184,7 +1186,7 @@ def test_promotion_rule_create_missing_reward_type(
     reward_value_type = RewardValueTypeEnum.FIXED.name
     promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
     order_predicate = {
-        "discountedObjectPredicate": {"subtotalPrice": {"range": {"gte": 100}}}
+        "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 100}}}
     }
     rules_count = promotion.rules.count()
 
@@ -1287,7 +1289,7 @@ def test_promotion_rule_create_order_predicate(
     reward_type = RewardTypeEnum.SUBTOTAL_DISCOUNT.name
     promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
     order_predicate = {
-        "discountedObjectPredicate": {"subtotalPrice": {"range": {"gte": "100"}}}
+        "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": "100"}}}
     }
 
     rules_count = promotion.rules.count()
@@ -1342,7 +1344,7 @@ def test_promotion_rule_create_mixed_currencies_for_price_based_predicate(
     reward_type = RewardTypeEnum.SUBTOTAL_DISCOUNT.name
     promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
     order_predicate = {
-        "discountedObjectPredicate": {"subtotalPrice": {"range": {"gte": "100"}}}
+        "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": "100"}}}
     }
     channel_ids = [
         graphene.Node.to_global_id("Channel", channel.pk)

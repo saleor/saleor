@@ -27465,7 +27465,7 @@ input PromotionRuleInput @doc(category: "Discounts") {
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
-  orderPredicate: orderPredicateInput
+  orderPredicate: OrderPredicateInput
 
   """
   Defines the promotion rule reward value type. Must be provided together with reward value.
@@ -27510,29 +27510,23 @@ input CataloguePredicateInput @doc(category: "Discounts") {
   OR: [CataloguePredicateInput!]
 }
 
-input orderPredicateInput @doc(category: "Discounts") {
+input OrderPredicateInput @doc(category: "Discounts") {
   """Defines the conditions related to checkout and order objects."""
-  discountedObjectPredicate: DiscountedObjectPredicateInput
+  discountedObjectPredicate: DiscountedObjectWhereInput
 
   """List of conditions that must be met."""
-  AND: [orderPredicateInput!]
+  AND: [OrderPredicateInput!]
 
   """A list of conditions of which at least one must be met."""
-  OR: [orderPredicateInput!]
+  OR: [OrderPredicateInput!]
 }
 
-input DiscountedObjectPredicateInput @doc(category: "Discounts") {
-  """Subtotal price range condition."""
-  subtotalPrice: DecimalFilterInput
+input DiscountedObjectWhereInput @doc(category: "Discounts") {
+  """Filter by the base subtotal price."""
+  baseSubtotalPrice: DecimalFilterInput
 
-  """Total price range condition."""
-  totalPrice: DecimalFilterInput
-
-  """List of conditions that must be met."""
-  AND: [DiscountedObjectPredicateInput!]
-
-  """A list of conditions of which at least one must be met."""
-  OR: [DiscountedObjectPredicateInput!]
+  """Filter by the base total price."""
+  baseTotalPrice: DecimalFilterInput
 }
 
 """
@@ -27687,7 +27681,7 @@ input PromotionRuleCreateInput {
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
-  orderPredicate: orderPredicateInput
+  orderPredicate: OrderPredicateInput
 
   """
   Defines the promotion rule reward value type. Must be provided together with reward value.
@@ -27780,7 +27774,7 @@ input PromotionRuleUpdateInput {
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
-  orderPredicate: orderPredicateInput
+  orderPredicate: OrderPredicateInput
 
   """
   Defines the promotion rule reward value type. Must be provided together with reward value.

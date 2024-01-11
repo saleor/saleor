@@ -16,12 +16,10 @@ from ..core.filters import (
     MetadataFilter,
     MetadataFilterBase,
     ObjectTypeFilter,
-    OperationObjectTypeWhereFilter,
-    WhereFilterSet,
 )
 from ..core.types import DateRangeInput, FilterInputObjectType
-from ..core.types.filter_input import DecimalFilterInput
 from ..core.utils import from_global_id_or_error
+from ..discount.filters import DiscountedObjectWhere
 from ..utils import resolve_global_ids_to_primary_keys
 from ..utils.filters import filter_range_field, filter_where_by_numeric_field
 from .enums import CheckoutAuthorizeStatusEnum, CheckoutChargeStatusEnum
@@ -155,29 +153,16 @@ class CheckoutFilterInput(FilterInputObjectType):
         filterset_class = CheckoutFilter
 
 
-class CheckoutDiscountedObjectWhere(WhereFilterSet):
-    subtotal_price = OperationObjectTypeWhereFilter(
-        input_class=DecimalFilterInput,
-        method="filter_subtotal_price",
-        field_name="filter_subtotal_price",
-        help_text="Filter by the checkout base subtotal price.",
-    )
-    total_price = OperationObjectTypeWhereFilter(
-        input_class=DecimalFilterInput,
-        method="filter_total_price",
-        field_name="filter_total_price",
-        help_text="Filter by the checkout base total price.",
-    )
-
+class CheckoutDiscountedObjectWhere(DiscountedObjectWhere):
     class Meta:
         model = Checkout
-        fields = ["subtotal_price", "total_price"]
+        fields = ["base_subtotal_price", "base_total_price"]
 
-    def filter_subtotal_price(self, queryset, name, value):
+    def filter_base_subtotal_price(self, queryset, name, value):
         currency = get_currency_from_filter_data(self.data)
         return _filter_price(queryset, name, "base_subtotal_amount", value, currency)
 
-    def filter_total_price(self, queryset, name, value):
+    def filter_base_total_price(self, queryset, name, value):
         currency = get_currency_from_filter_data(self.data)
         return _filter_price(queryset, name, "base_total_amount", value, currency)
 
