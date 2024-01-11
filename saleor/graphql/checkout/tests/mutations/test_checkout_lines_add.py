@@ -240,14 +240,14 @@ def test_add_to_existing_line_with_sale_when_checkout_has_voucher(
     )
 
 
-def test_add_to_existing_line_catalogue_and_checkout_and_order_discount_applies(
+def test_add_to_existing_line_catalogue_and_order_discount_applies(
     user_api_client,
     checkout_with_item,
     stock,
     channel_USD,
     promotion_without_rules,
 ):
-    """Ensure that both catalogue and checkout and order discount are applied."""
+    """Ensure that both catalogue and order discount are applied."""
     # given
     checkout = checkout_with_item
     variant_unit_price = Decimal(100)
@@ -284,9 +284,9 @@ def test_add_to_existing_line_catalogue_and_checkout_and_order_discount_applies(
         currency=channel_USD.currency_code,
     )
 
-    # create checkout and order promotion discount
+    # create order promotion discount
     rule = promotion_without_rules.rules.create(
-        checkout_and_order_predicate={
+        order_predicate={
             "total_price": {
                 "range": {
                     "gte": 20,
@@ -317,7 +317,7 @@ def test_add_to_existing_line_catalogue_and_checkout_and_order_discount_applies(
     variant_listing = variant.channel_listings.get(channel=checkout.channel)
     base_unit_price = variant_listing.price_amount
     discounted_unit_price = base_unit_price * Decimal("0.5")
-    # catalogue promotion 50% then checkout and order promotion 50%
+    # catalogue promotion 50% then order promotion 50%
     expected_unit_price_after_all_discount = discounted_unit_price * Decimal("0.5")
 
     expected_total_price = expected_unit_price_after_all_discount * line.quantity
@@ -346,7 +346,7 @@ def test_add_to_existing_line_on_promotion_with_voucher_checkout_promotion_not_a
     channel_USD,
     promotion_without_rules,
 ):
-    """Ensure that checkout and order discount is not applied when the voucher is set."""
+    """Ensure that order promotion discount is not applied when the voucher is set."""
     # given
 
     # prepare voucher with 50% discount
@@ -391,9 +391,9 @@ def test_add_to_existing_line_on_promotion_with_voucher_checkout_promotion_not_a
         currency=channel_USD.currency_code,
     )
 
-    # create checkout and order promotion discount
+    # create order promotion discount
     rule = promotion_without_rules.rules.create(
-        checkout_and_order_predicate={
+        order_predicate={
             "total_price": {
                 "range": {
                     "gte": 20,
@@ -928,13 +928,13 @@ def test_checkout_lines_add_existing_variant_override_previous_custom_price(
     assert line.price_override == price
 
 
-def test_checkout_lines_add_custom_price_and_checkout_and_order_fixed_discount(
+def test_checkout_lines_add_custom_price_and_order_fixed_discount(
     app_api_client,
-    checkout_with_item_with_checkout_and_order_discount,
+    checkout_with_item_and_order_discount,
     permission_handle_checkouts,
 ):
     # given
-    checkout = checkout_with_item_with_checkout_and_order_discount
+    checkout = checkout_with_item_and_order_discount
     line = checkout.lines.first()
     variant_id = graphene.Node.to_global_id("ProductVariant", line.variant.pk)
     price = Decimal("13.11")
@@ -968,13 +968,13 @@ def test_checkout_lines_add_custom_price_and_checkout_and_order_fixed_discount(
     assert checkout.total.gross.amount == total_price - discount_amount
 
 
-def test_checkout_lines_add_custom_price_and_checkout_and_order_percentage_discount(
+def test_checkout_lines_add_custom_price_and_order_percentage_discount(
     app_api_client,
-    checkout_with_item_with_checkout_and_order_discount,
+    checkout_with_item_and_order_discount,
     permission_handle_checkouts,
 ):
     # given
-    checkout = checkout_with_item_with_checkout_and_order_discount
+    checkout = checkout_with_item_and_order_discount
     checkout_discount = checkout.discounts.first()
     rule = checkout_discount.promotion_rule
     rule.reward_value = 50

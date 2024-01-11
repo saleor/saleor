@@ -334,11 +334,11 @@ def test_get_checkout_base_prices_no_charge_taxes_with_voucher(
     assert line.total_price == checkout.total
 
 
-def test_get_checkout_base_prices_no_charge_taxes_with_checkout_and_order_promotion(
-    checkout_with_item_with_checkout_and_order_discount,
+def test_get_checkout_base_prices_no_charge_taxes_with_order_promotion(
+    checkout_with_item_and_order_discount,
 ):
     # given
-    checkout = checkout_with_item_with_checkout_and_order_discount
+    checkout = checkout_with_item_and_order_discount
     discount_amount = checkout.discounts.first().amount_value
 
     line = checkout.lines.first()

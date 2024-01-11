@@ -1283,7 +1283,7 @@ def test_channel_update_set_checkout_use_legacy_error_flow_without_permission(
     assert_no_permission(response)
 
 
-def test_channel_update_checkout_and_order_settings_with_manage_orders(
+def test_channel_update_order_settings_with_manage_orders(
     staff_api_client, channel_USD, permission_manage_orders
 ):
     # given

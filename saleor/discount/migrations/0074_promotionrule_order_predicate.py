@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name="promotionrule",
-            name="checkout_and_order_predicate",
+            name="order_predicate",
             field=models.JSONField(
                 blank=True,
                 default=dict,
@@ -34,7 +34,7 @@ class Migration(migrations.Migration):
             ),
         ),
         migrations.RunSQL(
-            "ALTER TABLE discount_promotionrule ALTER COLUMN checkout_and_order_predicate SET DEFAULT '{}';",
+            "ALTER TABLE discount_promotionrule ALTER COLUMN order_predicate SET DEFAULT '{}';",
             migrations.RunSQL.noop,
         ),
     ]

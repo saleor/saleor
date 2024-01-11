@@ -106,7 +106,7 @@ class PromotionRuleUpdate(ModelMutation):
         predicate_type = (
             PredicateType.CATALOGUE
             if instance.catalogue_predicate
-            else PredicateType.CHECKOUT_AND_ORDER
+            else PredicateType.order
         )
         cleaned_input = clean_promotion_rule(
             cleaned_input,

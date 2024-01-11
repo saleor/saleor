@@ -28,7 +28,7 @@ def calculate_base_line_unit_price(
 ) -> Money:
     """Calculate line unit price including discounts and vouchers.
 
-    The price includes sales, specific product and applied once per order
+    The price includes catalogue promotions, specific product and applied once per order
     voucher discounts.
     The price does not include the entire order discount.
     """
@@ -47,10 +47,9 @@ def calculate_base_line_total_price(
 ) -> Money:
     """Calculate line total price including discounts and vouchers.
 
-    The price includes sales, specific product and applied once per order
+    The price includes catalogue promotions, specific product and applied once per order
     voucher discounts.
-    The price does not include the entire order discount and
-    checkout and order discount.
+    The price does not include order promotions and the entire order vouchers.
     """
     variant = line_info.variant
     currency = line_info.channel_listing.currency
@@ -120,7 +119,7 @@ def calculate_undiscounted_base_line_unit_price(
     line_info: "CheckoutLineInfo",
     channel: "Channel",
 ):
-    """Calculate line unit price without including discounts and vouchers."""
+    """Calculate line unit price without discounts and vouchers."""
     variant = line_info.variant
     variant_price = variant.get_base_price(
         line_info.channel_listing, line_info.line.price_override
@@ -204,10 +203,9 @@ def base_checkout_total(
 ) -> Money:
     """Return the total cost of the checkout.
 
-    The price includes sales, shipping, specific product and applied once per order
-    voucher discounts.
-    The price does not include the entire order discount and checkout
-    and order discount.
+    The price includes catalogue promotions, shipping, specific product
+    and applied once per order voucher discounts.
+    The price does not include order promotions and the entire order vouchers.
     """
     currency = checkout_info.checkout.currency
     subtotal = base_checkout_subtotal(lines, checkout_info.channel, currency)
@@ -224,9 +222,9 @@ def base_checkout_subtotal(
 ) -> Money:
     """Return the checkout subtotal value.
 
-    The price includes sales, specific product and applied once per order
+    The price includes catalogue promotions, specific product and applied once per order
     voucher discounts.
-    The price does not include the entire order discount.
+    The price does not include order promotions and the entire order vouchers.
     """
     line_totals = [
         calculate_base_line_total_price(
@@ -253,7 +251,7 @@ def checkout_total(
     shipping_price = base_checkout_delivery_price(checkout_info, lines)
     discount = checkout_info.checkout.discount
 
-    # checkout and order promotion discount and entire_order discount with
+    # order promotion discount and entire_order voucher discount with
     # apply_once_per_order set to False are not included in the total price yet
     discounted_object_promotion = bool(checkout_info.discounts)
     discount_not_included = discounted_object_promotion or (
@@ -276,7 +274,7 @@ def apply_checkout_discount_on_checkout_line(
 ):
     """Calculate the checkout line price with discounts.
 
-    Include the entire order voucher discount or discount from checkout and order
+    Include the entire order voucher discount or discount from order
     promotion (this discount is applied only when voucher code is not set).
     The discount amount is calculated for every line proportionally to
     the rate of total line price to checkout total price.

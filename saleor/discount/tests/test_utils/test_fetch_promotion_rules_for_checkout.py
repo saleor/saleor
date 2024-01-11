@@ -2,10 +2,10 @@ from ...utils import fetch_promotion_rules_for_checkout
 
 
 def test_fetch_promotion_rules_for_checkout(
-    checkout, checkout_for_cc, checkout_and_order_promotion_rule
+    checkout, checkout_for_cc, order_promotion_rule
 ):
     # given
-    rule = checkout_and_order_promotion_rule
+    rule = order_promotion_rule
 
     checkout.base_total_amount = 100
     checkout.base_subtotal_amount = 100
@@ -27,7 +27,7 @@ def test_fetch_promotion_rules_for_checkout(
 
 
 def test_fetch_promotion_rules_for_checkout_no_matching_rule(
-    checkout, checkout_for_cc, checkout_and_order_promotion_rule
+    checkout, checkout_for_cc, order_promotion_rule
 ):
     # given
     checkout.base_total_amount = 10

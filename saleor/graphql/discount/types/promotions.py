@@ -96,7 +96,7 @@ class PromotionRule(ModelObjectType[models.PromotionRule]):
             "The catalogue predicate that must be met to apply the rule reward."
         ),
     )
-    checkout_and_order_predicate = JSON(
+    order_predicate = JSON(
         description=(
             "The checkout/order predicate that must be met to apply the rule reward."
             + ADDED_IN_319

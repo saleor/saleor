@@ -7,7 +7,7 @@ from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...checkout.utils import add_variant_to_checkout
 from ...core.prices import quantize_price
 from ...core.taxes import zero_taxed_money
-from ...discount.utils import create_discount_objects_for_checkout_and_order_promotions
+from ...discount.utils import create_discount_objects_for_order_promotions
 from ...plugins.manager import get_plugins_manager
 from ...tax.models import TaxClassCountryRate
 from .. import TaxCalculationStrategy
@@ -430,14 +430,14 @@ def test_calculate_checkout_subtotal_with_promotion_prices_not_entered_with_tax(
     )
 
 
-def test_calculate_checkout_subtotal_with_checkout_and_order_promotion(
-    checkout_with_item_with_checkout_and_order_discount,
+def test_calculate_checkout_subtotal_with_order_promotion(
+    checkout_with_item_and_order_discount,
     address,
     shipping_zone,
     stock,
 ):
     # given
-    checkout = checkout_with_item_with_checkout_and_order_discount
+    checkout = checkout_with_item_and_order_discount
     prices_entered_with_tax = True
     _enable_flat_rates(checkout, prices_entered_with_tax)
     discount_amount = checkout.discounts.first().amount_value
@@ -811,12 +811,12 @@ def test_calculate_checkout_line_total_with_shipping_voucher(
     )
 
 
-def test_calculate_checkout_line_total_discount_from_checkout_and_order_promotion(
-    checkout_with_item_with_checkout_and_order_discount, shipping_zone, address
+def test_calculate_checkout_line_total_discount_from_order_promotion(
+    checkout_with_item_and_order_discount, shipping_zone, address
 ):
     # given
     manager = get_plugins_manager(allow_replica=False)
-    checkout = checkout_with_item_with_checkout_and_order_discount
+    checkout = checkout_with_item_and_order_discount
 
     rate = Decimal(23)
     prices_entered_with_tax = True
@@ -838,7 +838,7 @@ def test_calculate_checkout_line_total_discount_from_checkout_and_order_promotio
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     checkout_line_info = lines[0]
-    create_discount_objects_for_checkout_and_order_promotions(checkout_info, lines)
+    create_discount_objects_for_order_promotions(checkout_info, lines)
 
     # when
     line_price = calculate_checkout_line_total(

@@ -244,18 +244,18 @@ def test_calculate_checkout_line_total_with_variant_on_promotion(
     ],
 )
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
-def test_calculate_checkout_line_total_with_checkout_and_order_promotion(
+def test_calculate_checkout_line_total_with_order_promotion(
     expected_net,
     expected_gross,
     prices_entered_with_tax,
-    checkout_with_item_with_checkout_and_order_discount,
+    checkout_with_item_and_order_discount,
     ship_to_pl_address,
     monkeypatch,
     shipping_zone,
     plugin_configuration,
 ):
     # given
-    checkout = checkout_with_item_with_checkout_and_order_discount
+    checkout = checkout_with_item_and_order_discount
     plugin_configuration()
     manager = get_plugins_manager(allow_replica=False)
 
@@ -1354,15 +1354,15 @@ def test_calculate_checkout_total(
 
 @pytest.mark.vcr
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
-def test_calculate_checkout_total_with_checkout_and_order_promotion(
-    checkout_with_item_with_checkout_and_order_discount,
+def test_calculate_checkout_total_with_order_promotion(
+    checkout_with_item_and_order_discount,
     shipping_zone,
     ship_to_pl_address,
     monkeypatch,
     plugin_configuration,
 ):
     # given
-    checkout = checkout_with_item_with_checkout_and_order_discount
+    checkout = checkout_with_item_and_order_discount
     discount_amount = checkout.discount_amount
 
     plugin_configuration()
@@ -2877,15 +2877,15 @@ def test_calculate_checkout_line_unit_price_with_variant_on_promotion(
 
 @pytest.mark.vcr
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
-def test_calculate_checkout_line_unit_price_checkout_and_order_promotion_charge_taxes(
-    checkout_with_item_with_checkout_and_order_discount,
+def test_calculate_checkout_line_unit_price_order_promotion_charge_taxes(
+    checkout_with_item_and_order_discount,
     shipping_zone,
     address,
     plugin_configuration,
 ):
     # given
     plugin_configuration()
-    checkout = checkout_with_item_with_checkout_and_order_discount
+    checkout = checkout_with_item_and_order_discount
 
     lines, _ = fetch_checkout_lines(checkout)
     checkout_line = lines[0]
@@ -2932,14 +2932,14 @@ def test_calculate_checkout_line_unit_price_checkout_and_order_promotion_charge_
 @pytest.mark.vcr
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
 def test_calculate_checkout_line_unit_price_checkout_promotion_do_not_charge_taxes(
-    checkout_with_item_with_checkout_and_order_discount,
+    checkout_with_item_and_order_discount,
     shipping_zone,
     address,
     plugin_configuration,
 ):
     # given
     plugin_configuration()
-    checkout = checkout_with_item_with_checkout_and_order_discount
+    checkout = checkout_with_item_and_order_discount
 
     lines, _ = fetch_checkout_lines(checkout)
     checkout_line = lines[0]
