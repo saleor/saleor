@@ -7,10 +7,10 @@ from django.utils.text import slugify
 from .....attribute import AttributeInputType
 from .....attribute import models as attribute_models
 from .....core.tracing import traced_atomic_transaction
+from .....discount.utils import get_active_promotion_rules
 from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.error_codes import ProductErrorCode
-from .....product.tasks import update_products_discounted_prices_for_promotion_task
 from .....product.utils.variants import generate_and_set_variant_name
 from ....attribute.types import AttributeValueInput
 from ....attribute.utils import AttributeAssignmentMixin, AttrValuesInput
@@ -324,11 +324,9 @@ class ProductVariantCreate(ModelMutation):
             if not instance.product.default_variant:
                 instance.product.default_variant = instance
                 instance.product.save(update_fields=["default_variant", "updated_at"])
-            # Recalculate the "discounted price" for the parent product
-            cls.call_event(
-                update_products_discounted_prices_for_promotion_task.delay,
-                [instance.product_id],
-            )
+            # Mark PromotionRule variants dirty
+            # This will finally recalculate discounted prices for products.
+            get_active_promotion_rules().update(variants_dirty=True)
             stocks = cleaned_input.get("stocks")
             if stocks:
                 cls.create_variant_stocks(instance, stocks)

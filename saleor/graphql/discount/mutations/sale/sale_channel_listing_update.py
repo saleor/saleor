@@ -11,7 +11,7 @@ from .....discount import DiscountValueType
 from .....discount.error_codes import DiscountErrorCode
 from .....discount.models import Promotion, PromotionRule
 from .....permission.enums import DiscountPermissions
-from .....product.tasks import update_products_discounted_prices_of_promotion_task
+from .....product.tasks import mark_promotion_rules_to_recalculate_variants
 from ....channel import ChannelContext
 from ....channel.mutations import BaseChannelListingMutation
 from ....core import ResolveInfo
@@ -223,9 +223,7 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
         with traced_atomic_transaction():
             cls.add_channels(promotion, rule, cleaned_input.get("add_channels", []))
             cls.remove_channels(promotion, cleaned_input.get("remove_channels", []))
-            cls.call_event(
-                update_products_discounted_prices_of_promotion_task.delay, promotion.pk
-            )
+            mark_promotion_rules_to_recalculate_variants(promotion.pk)
 
     @classmethod
     def get_instance(cls, id):

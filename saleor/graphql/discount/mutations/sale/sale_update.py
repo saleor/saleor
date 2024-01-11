@@ -11,7 +11,7 @@ from .....discount.error_codes import DiscountErrorCode
 from .....discount.utils import CATALOGUE_FIELDS
 from .....permission.enums import DiscountPermissions
 from .....product import models as product_models
-from .....product.tasks import update_discounted_prices_task
+from .....product.utils.product import mark_products_for_recalculate_discounted_price
 from .....webhook.event_types import WebhookEventAsyncType
 from ....channel import ChannelContext
 from ....core import ResolveInfo
@@ -198,7 +198,7 @@ class SaleUpdate(ModelMutation):
             )
             update_variants_for_promotion(variants, promotion)
             if product_ids | previous_product_ids:
-                update_discounted_prices_task.delay(list(product_ids))
+                mark_products_for_recalculate_discounted_price(list(product_ids))
 
     @classmethod
     def send_sale_notifications(

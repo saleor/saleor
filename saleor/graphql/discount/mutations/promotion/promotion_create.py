@@ -13,7 +13,6 @@ from .....channel import models as channel_models
 from .....discount import PromotionType, events, models
 from .....permission.enums import DiscountPermissions
 from .....plugins.manager import PluginsManager
-from .....product.tasks import update_products_discounted_prices_of_promotion_task
 from .....webhook.event_types import WebhookEventAsyncType
 from ....app.dataloaders import get_app_promise
 from ....channel.types import Channel
@@ -238,6 +237,8 @@ class PromotionCreate(ModelMutation):
                 channels = rule_data.pop("channels", None)
                 gifts = rule_data.pop("gifts", None)
                 rule = models.PromotionRule(promotion=instance, **rule_data)
+                if instance.type == PromotionType.CATALOGUE:
+                    rule.variants_dirty = True
                 if gifts:
                     rule.gifts.set(gifts)
                 if channels:
@@ -263,9 +264,6 @@ class PromotionCreate(ModelMutation):
         cls.call_event(manager.promotion_created, instance)
         if has_started:
             cls.send_promotion_started_webhook(manager, instance)
-        cls.call_event(
-            update_products_discounted_prices_of_promotion_task.delay, instance.pk
-        )
 
     @classmethod
     def has_started(cls, instance: models.Promotion) -> bool:

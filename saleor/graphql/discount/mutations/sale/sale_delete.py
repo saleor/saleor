@@ -5,7 +5,7 @@ from .....discount import models
 from .....discount.error_codes import DiscountErrorCode
 from .....graphql.core.mutations import ModelDeleteMutation
 from .....permission.enums import DiscountPermissions
-from .....product.tasks import update_discounted_prices_task
+from .....product.utils.product import mark_products_for_recalculate_discounted_price
 from .....webhook.event_types import WebhookEventAsyncType
 from ....channel import ChannelContext
 from ....core import ResolveInfo
@@ -68,7 +68,7 @@ class SaleDelete(ModelDeleteMutation):
 
             manager = get_plugin_manager_promise(info.context).get()
             cls.call_event(manager.sale_deleted, promotion, previous_catalogue)
-            update_discounted_prices_task.delay(list(product_ids))
+            mark_products_for_recalculate_discounted_price(list(product_ids))
 
         return response
 

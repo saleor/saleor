@@ -7,7 +7,7 @@ from django.db import transaction
 from .....discount import events, models
 from .....discount.utils import get_current_products_for_rules
 from .....permission.enums import DiscountPermissions
-from .....product.tasks import update_discounted_prices_task
+from .....product.utils.product import mark_products_for_recalculate_discounted_price
 from .....webhook.event_types import WebhookEventAsyncType
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
@@ -161,7 +161,9 @@ class PromotionRuleUpdate(ModelMutation):
         products = get_products_for_rule(instance, update_rule_variants=True)
         product_ids = set(products.values_list("id", flat=True)) | previous_product_ids
         if product_ids:
-            update_discounted_prices_task.delay(list(product_ids))
+            mark_products_for_recalculate_discounted_price(
+                list(products.values_list("id", flat=True))
+            )
         clear_promotion_old_sale_id(instance.promotion, save=True)
         app = get_app_promise(info.context).get()
         events.rule_updated_event(info.context.user, app, [instance])

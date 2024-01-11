@@ -2,10 +2,10 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from .....core.tracing import traced_atomic_transaction
+from .....discount.utils import get_active_promotion_rules
 from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.error_codes import CollectionErrorCode
-from .....product.tasks import update_products_discounted_prices_for_promotion_task
 from .....product.utils import get_products_ids_without_variants
 from ....channel import ChannelContext
 from ....core import ResolveInfo
@@ -53,11 +53,10 @@ class CollectionAddProducts(BaseMutation):
         manager = get_plugin_manager_promise(info.context).get()
         with traced_atomic_transaction():
             collection.products.add(*products)
-            # Updated the db entries, recalculating discounts of affected products
-            cls.call_event(
-                update_products_discounted_prices_for_promotion_task.delay,
-                [pq.pk for pq in products],
-            )
+            # Mark PromotionRule variants dirty
+            # This will finally recalculate discounted prices for products.
+            rules = get_active_promotion_rules()
+            rules.update(variants_dirty=True)
             for product in products:
                 cls.call_event(manager.product_updated, product)
 

@@ -1,9 +1,9 @@
 import graphene
 
 from .....attribute import models as attribute_models
+from .....discount.utils import get_active_promotion_rules
 from .....permission.enums import ProductPermissions
 from .....product import models
-from .....product.tasks import update_products_discounted_prices_for_promotion_task
 from ....attribute.utils import AttrValuesInput, ProductAttributeAssignmentMixin
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_310
@@ -51,7 +51,7 @@ class ProductUpdate(ProductCreate, ModelWithExtRefMutation):
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
         product = models.Product.objects.prefetched_for_webhook().get(pk=instance.pk)
         if "category" in cleaned_input or "collections" in cleaned_input:
-            update_products_discounted_prices_for_promotion_task.delay([instance.id])
+            get_active_promotion_rules().update(variants_dirty=True)
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.product_updated, product)
 
