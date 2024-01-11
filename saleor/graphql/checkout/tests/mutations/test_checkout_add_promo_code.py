@@ -795,6 +795,32 @@ def test_checkout_add_category_code_checkout_on_promotion(
     assert checkout.subtotal < subtotal_discounted
 
 
+def test_checkout_add_voucher_code_checkout_on_checkout_promotion_discount(
+    api_client, checkout_with_item_with_checkout_and_order_discount, voucher
+):
+    # given
+    checkout = checkout_with_item_with_checkout_and_order_discount
+    checkout_discount = checkout.discounts.first()
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "promoCode": voucher.code,
+    }
+
+    # when
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    # then
+    assert not data["errors"]
+    assert data["checkout"]["token"] == str(checkout.token)
+    assert data["checkout"]["voucherCode"] == voucher.code
+    checkout.refresh_from_db()
+    assert not checkout.discounts.all()
+    assert checkout.discount_amount
+    assert checkout.discount_name == voucher.name
+    with pytest.raises(checkout_discount._meta.model.DoesNotExist):
+        checkout_discount.refresh_from_db()
+
+
 def test_checkout_add_variant_voucher_code_apply_once_per_order(
     api_client, checkout_with_items, voucher_specific_product_type
 ):

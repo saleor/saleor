@@ -609,14 +609,14 @@ def _clear_checkout_discount(checkout_info, save):
         checkout_info.checkout.discount_name = None
         checkout_info.checkout.translated_discount_name = None
 
-    if save:
-        checkout_info.checkout.save(
-            update_fields=[
-                "discount_amount",
-                "discount_name",
-                "translated_discount_name",
-            ]
-        )
+        if save:
+            checkout_info.checkout.save(
+                update_fields=[
+                    "discount_amount",
+                    "discount_name",
+                    "translated_discount_name",
+                ]
+            )
 
 
 def _create_or_update_checkout_discount(

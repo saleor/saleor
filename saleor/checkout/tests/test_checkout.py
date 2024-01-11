@@ -1408,6 +1408,42 @@ def test_recalculate_checkout_discount_with_checkout_discount_voucher_not_applic
     assert not checkout.voucher_code
 
 
+def test_recalculate_checkout_discount_with_checkout_discount_voucher_added(
+    checkout_with_item_with_checkout_and_order_discount,
+    voucher_percentage,
+):
+    # given
+    checkout = checkout_with_item_with_checkout_and_order_discount
+    checkout_discount = checkout.discounts.first()
+    channel = checkout.channel
+    discount_value = voucher_percentage.channel_listings.get(
+        channel=channel
+    ).discount_value
+    checkout.voucher_code = voucher_percentage.code
+    checkout.save(update_fields=["voucher_code"])
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    # when
+    recalculate_checkout_discount(manager, checkout_info, lines)
+
+    # then
+    line_info = lines[0]
+    total_price = (
+        line_info.variant.get_price(line_info.channel_listing) * line_info.line.quantity
+    )
+
+    checkout.refresh_from_db()
+    assert checkout.discount_amount == total_price.amount * discount_value / 100
+    assert checkout.discount_name == voucher_percentage.name
+    assert checkout.voucher_code
+    assert not checkout.discounts.all()
+    with pytest.raises(checkout_discount._meta.model.DoesNotExist):
+        checkout_discount.refresh_from_db()
+
+
 def test_recalculate_checkout_discount_voucher_not_applicable(
     checkout_with_voucher, voucher, channel_USD
 ):
@@ -1760,6 +1796,29 @@ def test_add_voucher_to_checkout_fail(
         )
 
     assert checkout_with_item.voucher_code is None
+
+
+def test_add_voucher_to_checkout_clears_checkout_and_order_promotion_discount(
+    checkout_with_item_with_checkout_and_order_discount, voucher
+):
+    # given
+    checkout = checkout_with_item_with_checkout_and_order_discount
+    checkout_discount = checkout.discounts.first()
+    assert checkout.voucher_code is None
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    # when
+    add_voucher_to_checkout(
+        manager, checkout_info, lines, voucher, voucher.codes.first()
+    )
+
+    # then
+    assert checkout.voucher_code == voucher.code
+    assert not checkout.discounts.all()
+    with pytest.raises(checkout_discount._meta.model.DoesNotExist):
+        checkout_discount.refresh_from_db()
 
 
 def test_get_last_active_payment(checkout_with_payments):
