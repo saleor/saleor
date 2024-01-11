@@ -796,10 +796,10 @@ def test_checkout_add_category_code_checkout_on_promotion(
 
 
 def test_checkout_add_voucher_code_checkout_on_checkout_promotion_discount(
-    api_client, checkout_with_item_with_checkout_and_order_discount, voucher
+    api_client, checkout_with_item_and_order_discount, voucher
 ):
     # given
-    checkout = checkout_with_item_with_checkout_and_order_discount
+    checkout = checkout_with_item_and_order_discount
     checkout_discount = checkout.discounts.first()
     variables = {
         "id": to_global_id_or_none(checkout),
