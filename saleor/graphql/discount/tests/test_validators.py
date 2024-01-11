@@ -8,7 +8,7 @@ from ....discount import RewardType, RewardValueType
 from ..enums import PromotionCreateErrorCode
 from ..mutations.promotion.validators import (
     _clean_catalogue_predicate,
-    _clean_checkout_and_order_predicate,
+    _clean_order_predicate,
     _clean_predicates,
     _clean_reward,
     _clean_reward_value,
@@ -66,9 +66,9 @@ def test_clean_predicate_invalid_predicate(predicate):
     assert validation_error.value.code == PromotionCreateErrorCode.INVALID.value
 
 
-def test_clean_predicates_both_catalogue_and_checkout_and_order_provided(product):
+def test_clean_predicates_both_catalogue_and_order_provided(product):
     # given
-    checkout_and_order_predicate = {
+    order_predicate = {
         "discounted_object_predicate": {"subtotal_price": {"range": {"gte": 100}}}
     }
     catalogue_predicate = {
@@ -78,7 +78,7 @@ def test_clean_predicates_both_catalogue_and_checkout_and_order_provided(product
     }
     cleaned_input = {
         "catalogue_predicate": catalogue_predicate,
-        "checkout_and_order_predicate": checkout_and_order_predicate,
+        "order_predicate": order_predicate,
     }
     errors = defaultdict(list)
 
@@ -86,7 +86,7 @@ def test_clean_predicates_both_catalogue_and_checkout_and_order_provided(product
     _clean_predicates(
         cleaned_input,
         catalogue_predicate,
-        checkout_and_order_predicate,
+        order_predicate,
         errors,
         PromotionCreateErrorCode,
         None,
@@ -97,13 +97,13 @@ def test_clean_predicates_both_catalogue_and_checkout_and_order_provided(product
     # then
     assert len(errors) == 2
     assert len(errors["catalogue_predicate"]) == 1
-    assert len(errors["checkout_and_order_predicate"]) == 1
+    assert len(errors["order_predicate"]) == 1
     assert (
         errors["catalogue_predicate"][0].code
         == PromotionCreateErrorCode.MIXED_PREDICATES.value
     )
     assert (
-        errors["checkout_and_order_predicate"][0].code
+        errors["order_predicate"][0].code
         == PromotionCreateErrorCode.MIXED_PREDICATES.value
     )
 
@@ -112,7 +112,7 @@ def test_clean_predicates_missing_predicates(product):
     # given
     cleaned_input = {
         "catalogue_predicate": None,
-        "checkout_and_order_predicate": None,
+        "order_predicate": None,
     }
     errors = defaultdict(list)
 
@@ -131,14 +131,11 @@ def test_clean_predicates_missing_predicates(product):
     # then
     assert len(errors) == 2
     assert len(errors["catalogue_predicate"]) == 1
-    assert len(errors["checkout_and_order_predicate"]) == 1
+    assert len(errors["order_predicate"]) == 1
     assert (
         errors["catalogue_predicate"][0].code == PromotionCreateErrorCode.REQUIRED.value
     )
-    assert (
-        errors["checkout_and_order_predicate"][0].code
-        == PromotionCreateErrorCode.REQUIRED.value
-    )
+    assert errors["order_predicate"][0].code == PromotionCreateErrorCode.REQUIRED.value
 
 
 def test_clean_predicates_mixed_promotion_predicates_invalid_catalogue_predicate(
@@ -163,7 +160,7 @@ def test_clean_predicates_mixed_promotion_predicates_invalid_catalogue_predicate
         errors,
         PromotionCreateErrorCode,
         None,
-        PredicateType.CHECKOUT_AND_ORDER,
+        PredicateType.order,
         None,
     )
 
@@ -176,15 +173,15 @@ def test_clean_predicates_mixed_promotion_predicates_invalid_catalogue_predicate
     )
 
 
-def test_clean_predicates_mixed_promotion_predicates_invalid_checkout_and_order(
+def test_clean_predicates_mixed_promotion_predicates_invalid_order(
     product,
 ):
     # given
-    checkout_and_order_predicate = {
+    order_predicate = {
         "discounted_object_predicate": {"subtotal_price": {"range": {"gte": 100}}}
     }
     cleaned_input = {
-        "checkout_and_order_predicate": checkout_and_order_predicate,
+        "order_predicate": order_predicate,
     }
     errors = defaultdict(list)
 
@@ -192,7 +189,7 @@ def test_clean_predicates_mixed_promotion_predicates_invalid_checkout_and_order(
     _clean_predicates(
         cleaned_input,
         {},
-        checkout_and_order_predicate,
+        order_predicate,
         errors,
         PromotionCreateErrorCode,
         None,
@@ -202,9 +199,9 @@ def test_clean_predicates_mixed_promotion_predicates_invalid_checkout_and_order(
 
     # then
     assert len(errors) == 1
-    assert len(errors["checkout_and_order_predicate"]) == 1
+    assert len(errors["order_predicate"]) == 1
     assert (
-        errors["checkout_and_order_predicate"][0].code
+        errors["order_predicate"][0].code
         == PromotionCreateErrorCode.MIXED_PROMOTION_PREDICATES.value
     )
 
@@ -237,20 +234,20 @@ def test_clean_catalogue_predicate_reward_type_provided():
     assert errors["reward_type"][0].code == PromotionCreateErrorCode.INVALID.value
 
 
-def test_clean_checkout_and_order_predicate_missing_reward_type():
+def test_clean_order_predicate_missing_reward_type():
     # given
-    checkout_and_order_predicate = {
+    order_predicate = {
         "discounted_object_predicate": {"subtotal_price": {"range": {"gte": 100}}}
     }
     cleaned_input = {
-        "checkout_and_order_predicate": checkout_and_order_predicate,
+        "order_predicate": order_predicate,
     }
     errors = defaultdict(list)
 
     # when
-    _clean_checkout_and_order_predicate(
+    _clean_order_predicate(
         cleaned_input,
-        checkout_and_order_predicate,
+        order_predicate,
         {},
         errors,
         PromotionCreateErrorCode,
@@ -264,23 +261,23 @@ def test_clean_checkout_and_order_predicate_missing_reward_type():
     assert errors["reward_type"][0].code == PromotionCreateErrorCode.REQUIRED.value
 
 
-def test_clean_checkout_and_order_predicate_reward_type_in_instance(
-    promotion_with_checkout_and_order_rule,
+def test_clean_order_predicate_reward_type_in_instance(
+    promotion_with_order_rule,
 ):
     # given
-    rule = promotion_with_checkout_and_order_rule.rules.first()
-    checkout_and_order_predicate = {
+    rule = promotion_with_order_rule.rules.first()
+    order_predicate = {
         "discounted_object_predicate": {"subtotal_price": {"range": {"gte": 100}}}
     }
     cleaned_input = {
-        "checkout_and_order_predicate": checkout_and_order_predicate,
+        "order_predicate": order_predicate,
     }
     errors = defaultdict(list)
 
     # when
-    _clean_checkout_and_order_predicate(
+    _clean_order_predicate(
         cleaned_input,
-        checkout_and_order_predicate,
+        order_predicate,
         {},
         errors,
         PromotionCreateErrorCode,
@@ -292,22 +289,22 @@ def test_clean_checkout_and_order_predicate_reward_type_in_instance(
     assert not errors
 
 
-def test_clean_checkout_and_order_predicate_price_based_predicate_mixed_currencies():
+def test_clean_order_predicate_price_based_predicate_mixed_currencies():
     # given
-    checkout_and_order_predicate = {
+    order_predicate = {
         "discounted_object_predicate": {"subtotal_price": {"range": {"gte": 100}}}
     }
     cleaned_input = {
-        "checkout_and_order_predicate": checkout_and_order_predicate,
+        "order_predicate": order_predicate,
         "reward_type": RewardType.SUBTOTAL_DISCOUNT,
     }
     currencies = {"USD", "PLN"}
     errors = defaultdict(list)
 
     # when
-    _clean_checkout_and_order_predicate(
+    _clean_order_predicate(
         cleaned_input,
-        checkout_and_order_predicate,
+        order_predicate,
         currencies,
         errors,
         PromotionCreateErrorCode,
@@ -324,24 +321,24 @@ def test_clean_checkout_and_order_predicate_price_based_predicate_mixed_currenci
     )
 
 
-def test_clean_checkout_and_order_mixed_currencies_instance_given_invalid_predicate(
-    promotion_with_checkout_and_order_rule,
+def test_clean_order_mixed_currencies_instance_given_invalid_predicate(
+    promotion_with_order_rule,
 ):
     # given
-    rule = promotion_with_checkout_and_order_rule.rules.first()
-    checkout_and_order_predicate = {
+    rule = promotion_with_order_rule.rules.first()
+    order_predicate = {
         "discounted_object_predicate": {"subtotal_price": {"range": {"gte": 100}}}
     }
     cleaned_input = {
-        "checkout_and_order_predicate": checkout_and_order_predicate,
+        "order_predicate": order_predicate,
     }
     currencies = {"USD", "PLN"}
     errors = defaultdict(list)
 
     # when
-    _clean_checkout_and_order_predicate(
+    _clean_order_predicate(
         cleaned_input,
-        checkout_and_order_predicate,
+        order_predicate,
         currencies,
         errors,
         PromotionCreateErrorCode,
@@ -351,19 +348,19 @@ def test_clean_checkout_and_order_mixed_currencies_instance_given_invalid_predic
 
     # then
     assert len(errors) == 1
-    assert len(errors["checkout_and_order_predicate"]) == 1
+    assert len(errors["order_predicate"]) == 1
     assert (
-        errors["checkout_and_order_predicate"][0].code
+        errors["order_predicate"][0].code
         == PromotionCreateErrorCode.MULTIPLE_CURRENCIES_NOT_ALLOWED.value
     )
 
 
-def test_clean_checkout_and_order_mixed_currencies_instance_given_invalid_channels(
-    promotion_with_checkout_and_order_rule,
+def test_clean_order_mixed_currencies_instance_given_invalid_channels(
+    promotion_with_order_rule,
 ):
     # given
-    rule = promotion_with_checkout_and_order_rule.rules.first()
-    checkout_and_order_predicate = {
+    rule = promotion_with_order_rule.rules.first()
+    order_predicate = {
         "discountedObjectPredicate": {"subtotalPrice": {"range": {"gte": 100}}}
     }
     cleaned_input = {
@@ -373,9 +370,9 @@ def test_clean_checkout_and_order_mixed_currencies_instance_given_invalid_channe
     errors = defaultdict(list)
 
     # when
-    _clean_checkout_and_order_predicate(
+    _clean_order_predicate(
         cleaned_input,
-        checkout_and_order_predicate,
+        order_predicate,
         currencies,
         errors,
         PromotionCreateErrorCode,
@@ -394,11 +391,11 @@ def test_clean_checkout_and_order_mixed_currencies_instance_given_invalid_channe
 
 def test_clean_reward_lack_of_reward_value_type():
     # given
-    checkout_and_order_predicate = {
+    order_predicate = {
         "discounted_object_predicate": {"subtotal_price": {"range": {"gte": 100}}}
     }
     cleaned_input = {
-        "checkout_and_order_predicate": checkout_and_order_predicate,
+        "order_predicate": order_predicate,
         "reward_value": 10,
     }
     errors = defaultdict(list)
@@ -407,7 +404,7 @@ def test_clean_reward_lack_of_reward_value_type():
     _clean_reward(
         cleaned_input,
         {},
-        checkout_and_order_predicate,
+        order_predicate,
         {},
         errors,
         PromotionCreateErrorCode,
@@ -425,11 +422,11 @@ def test_clean_reward_lack_of_reward_value_type():
 
 def test_clean_reward_no_reward_value():
     # given
-    checkout_and_order_predicate = {
+    order_predicate = {
         "discounted_object_predicate": {"subtotal_price": {"range": {"gte": 100}}}
     }
     cleaned_input = {
-        "checkout_and_order_predicate": checkout_and_order_predicate,
+        "order_predicate": order_predicate,
         "reward_value_type": RewardValueType.FIXED,
     }
     errors = defaultdict(list)
@@ -438,7 +435,7 @@ def test_clean_reward_no_reward_value():
     _clean_reward(
         cleaned_input,
         {},
-        checkout_and_order_predicate,
+        order_predicate,
         {},
         errors,
         PromotionCreateErrorCode,
@@ -454,11 +451,11 @@ def test_clean_reward_no_reward_value():
 
 def test_clean_reward_lack_of_reward_value_and_reward_value_type():
     # given
-    checkout_and_order_predicate = {
+    order_predicate = {
         "discounted_object_predicate": {"subtotal_price": {"range": {"gte": 100}}}
     }
     cleaned_input = {
-        "checkout_and_order_predicate": checkout_and_order_predicate,
+        "order_predicate": order_predicate,
     }
     errors = defaultdict(list)
 
@@ -466,7 +463,7 @@ def test_clean_reward_lack_of_reward_value_and_reward_value_type():
     _clean_reward(
         cleaned_input,
         {},
-        checkout_and_order_predicate,
+        order_predicate,
         {},
         errors,
         PromotionCreateErrorCode,

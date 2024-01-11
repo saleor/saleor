@@ -31,7 +31,7 @@ PREDICATE_OPERATOR_DATA_T = list[dict[str, Union[list, dict, str, bool]]]
 
 class PredicateType(Enum):
     CATALOGUE = "catalogue"
-    CHECKOUT_AND_ORDER = "checkout_and_order"
+    order = "order"
 
 
 class PredicateObjectType(Enum):
@@ -193,7 +193,7 @@ def filter_qs_by_predicate(
         result_qs: QuerySet that contains results of previous conditions
         base_qs: QuerySet that contains all objects that can be filtered
         predicate_type: type of predicate (catalogue or order)
-        currency: currency used for filtering by checkoutAndOrder predicates
+        currency: currency used for filtering by order predicates
             with price conditions
     """
     if not predicate:
@@ -470,6 +470,6 @@ def get_predicate_type(rule: Optional[PromotionRule]) -> Optional[PredicateType]
     if rule:
         if rule.catalogue_predicate:
             return PredicateType.CATALOGUE
-        elif rule.checkout_and_order_predicate:
-            return PredicateType.CHECKOUT_AND_ORDER
+        elif rule.order_predicate:
+            return PredicateType.order
     return None

@@ -535,8 +535,7 @@ def _get_checkout_discount_amount(checkout_info, lines):
     """Return the discount amount for the checkout.
 
     Return the discount amount from the entire order or shipping voucher, or from
-    checkout and order promotion discount if there is no voucher and any promotion
-    is eligible.
+    order promotion discount if there is no voucher and any promotion is eligible.
     """
     discount_amount = Decimal("0")
     if (voucher := checkout_info.voucher) or checkout_info.discounts:

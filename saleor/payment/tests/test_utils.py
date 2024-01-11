@@ -189,7 +189,7 @@ def test_get_channel_slug_from_payment_with_checkout(checkout_with_payments):
     assert get_channel_slug_from_payment(payment) == expected
 
 
-def test_get_channel_slug_from_payment_without_checkout_and_order(
+def test_get_channel_slug_from_payment_without_order(
     checkout_with_payments,
 ):
     payment = checkout_with_payments.payments.first()

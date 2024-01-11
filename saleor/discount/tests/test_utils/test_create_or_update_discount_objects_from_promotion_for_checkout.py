@@ -1165,7 +1165,7 @@ def test_create_discount_with_promotion_and_rule_translation(
 
 
 def test_create_or_update_discount_objects_from_promotion_for_checkout_voucher_set(
-    checkout_info, checkout_lines_info, checkout_and_order_promotion_rule, voucher
+    checkout_info, checkout_lines_info, order_promotion_rule, voucher
 ):
     # given
     checkout_info.voucher = voucher
@@ -1188,7 +1188,7 @@ def test_create_or_update_discount_objects_from_promotion_no_applicable_rules(
     base_checkout_delivery_price_mock,
     checkout_info,
     checkout_lines_info,
-    checkout_and_order_promotion_rule,
+    order_promotion_rule,
     voucher,
 ):
     # given
@@ -1232,9 +1232,9 @@ def test_create_or_update_discount_objects_from_promotion(
     rules = PromotionRule.objects.bulk_create(
         [
             PromotionRule(
-                name="Checkout and order promotion rule 1",
+                name="Order promotion rule 1",
                 promotion=promotion,
-                checkout_and_order_predicate={
+                order_predicate={
                     "total_price": {
                         "range": {
                             "gte": 10,
@@ -1246,9 +1246,9 @@ def test_create_or_update_discount_objects_from_promotion(
                 reward_type=RewardType.SUBTOTAL_DISCOUNT,
             ),
             PromotionRule(
-                name="Checkout and order promotion rule 2",
+                name="Order promotion rule 2",
                 promotion=promotion,
-                checkout_and_order_predicate={
+                order_predicate={
                     "total_price": {
                         "range": {
                             "gte": 20,
@@ -1307,9 +1307,9 @@ def test_create_or_update_discount_objects_from_promotion_best_rule_applies(
     rules = PromotionRule.objects.bulk_create(
         [
             PromotionRule(
-                name="Checkout and order promotion rule 1",
+                name="Order promotion rule 1",
                 promotion=promotion,
-                checkout_and_order_predicate={
+                order_predicate={
                     "total_price": {
                         "range": {
                             "gte": 10,
@@ -1321,9 +1321,9 @@ def test_create_or_update_discount_objects_from_promotion_best_rule_applies(
                 reward_type=RewardType.SUBTOTAL_DISCOUNT,
             ),
             PromotionRule(
-                name="Checkout and order promotion rule 2",
+                name="Order promotion rule 2",
                 promotion=promotion,
-                checkout_and_order_predicate={
+                order_predicate={
                     "total_price": {
                         "range": {
                             "gte": 20,
@@ -1335,9 +1335,9 @@ def test_create_or_update_discount_objects_from_promotion_best_rule_applies(
                 reward_type=RewardType.SUBTOTAL_DISCOUNT,
             ),
             PromotionRule(
-                name="Checkout and order promotion rule 1",
+                name="Order promotion rule 1",
                 promotion=promotion,
-                checkout_and_order_predicate={
+                order_predicate={
                     "total_price": {
                         "range": {
                             "gte": 100,
@@ -1364,7 +1364,7 @@ def test_create_or_update_discount_objects_from_promotion_best_rule_applies(
     assert checkout_info.discounts[0].promotion_rule == rules[0]
     discount = checkout_info.discounts[0]
     assert discount.promotion_rule == rules[0]
-    assert discount.type == DiscountType.CHECKOUT_AND_ORDER_PROMOTION
+    assert discount.type == DiscountType.ORDER_PROMOTION
     assert discount.value_type == RewardValueType.FIXED
     assert discount.value == rules[0].reward_value
     assert discount.amount_value == rules[0].reward_value
@@ -1403,9 +1403,9 @@ def test_create_or_update_discount_objects_from_promotion_total_price_discount(
     rules = PromotionRule.objects.bulk_create(
         [
             PromotionRule(
-                name="Checkout and order promotion rule 2",
+                name="Order promotion rule 2",
                 promotion=promotion,
-                checkout_and_order_predicate={
+                order_predicate={
                     "total_price": {
                         "range": {
                             "gte": 20,
@@ -1463,9 +1463,9 @@ def test_create_or_update_discount_from_promotion_voucher_code_set_checkout_disc
     )
 
     rule = PromotionRule.objects.create(
-        name="Checkout and order promotion rule 1",
+        name="Order promotion rule 1",
         promotion=promotion,
-        checkout_and_order_predicate={
+        order_predicate={
             "total_price": {
                 "range": {
                     "gte": 10,
@@ -1480,7 +1480,7 @@ def test_create_or_update_discount_from_promotion_voucher_code_set_checkout_disc
     discount = CheckoutDiscount.objects.create(
         checkout=checkout,
         promotion_rule=rule,
-        type=DiscountType.CHECKOUT_AND_ORDER_PROMOTION,
+        type=DiscountType.ORDER_PROMOTION,
     )
     checkout_info.discounts = [discount]
 
@@ -1519,9 +1519,9 @@ def test_create_or_update_discount_from_promotion_checkout_discount_updated(
     )
 
     rule = PromotionRule.objects.create(
-        name="Checkout and order promotion rule 1",
+        name="Order promotion rule 1",
         promotion=promotion,
-        checkout_and_order_predicate={
+        order_predicate={
             "total_price": {
                 "range": {
                     "gte": 10,
@@ -1536,7 +1536,7 @@ def test_create_or_update_discount_from_promotion_checkout_discount_updated(
     discount = CheckoutDiscount.objects.create(
         checkout=checkout,
         promotion_rule=promotion_rule,
-        type=DiscountType.CHECKOUT_AND_ORDER_PROMOTION,
+        type=DiscountType.ORDER_PROMOTION,
     )
     checkout_info.discounts = [discount]
 
@@ -1550,7 +1550,7 @@ def test_create_or_update_discount_from_promotion_checkout_discount_updated(
     assert checkout.discounts.count() == 1
     discount = checkout_info.discounts[0]
     assert discount.promotion_rule_id == rule.id
-    assert discount.type == DiscountType.CHECKOUT_AND_ORDER_PROMOTION
+    assert discount.type == DiscountType.ORDER_PROMOTION
     assert discount.value_type == rule.reward_value_type
     assert discount.value == rule.reward_value
     assert discount.amount_value == (checkout_total * rule.reward_value / 100).amount
@@ -1582,9 +1582,9 @@ def test_create_or_update_discount_from_promotion_rule_not_applies_anymore(
     )
 
     rule = PromotionRule.objects.create(
-        name="Checkout and order promotion rule 1",
+        name="Order promotion rule 1",
         promotion=promotion,
-        checkout_and_order_predicate={
+        order_predicate={
             "total_price": {
                 "range": {
                     "gte": 200,
@@ -1599,7 +1599,7 @@ def test_create_or_update_discount_from_promotion_rule_not_applies_anymore(
     discount = CheckoutDiscount.objects.create(
         checkout=checkout,
         promotion_rule=promotion_rule,
-        type=DiscountType.CHECKOUT_AND_ORDER_PROMOTION,
+        type=DiscountType.ORDER_PROMOTION,
     )
     checkout_info.discounts = [discount]
 

@@ -12716,7 +12716,7 @@ enum OrderDiscountType @doc(category: "Discounts") {
   VOUCHER
   MANUAL
   PROMOTION
-  CHECKOUT_AND_ORDER_PROMOTION
+  ORDER_PROMOTION
 }
 
 type OrderError @doc(category: "Orders") {
@@ -14286,7 +14286,7 @@ type PromotionRule implements Node @doc(category: "Discounts") {
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
-  checkoutAndOrderPredicate: JSON
+  orderPredicate: JSON
 
   """
   The reward type of the promotion rule.
@@ -27467,6 +27467,15 @@ input PromotionRuleInput @doc(category: "Discounts") {
   cataloguePredicate: CataloguePredicateInput
 
   """
+  Defines the conditions on the checkout/draft order level that must be met for the reward to be applied.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  orderPredicate: orderPredicateInput
+
+  """
   Defines the promotion rule reward value type. Must be provided together with reward value.
   """
   rewardValueType: RewardValueTypeEnum
@@ -27475,15 +27484,6 @@ input PromotionRuleInput @doc(category: "Discounts") {
   Defines the discount value. Required when catalogue predicate is provided.
   """
   rewardValue: PositiveDecimal
-
-  """
-  Defines the conditions on the checkout/order level that must be met for the reward to be applied.
-  
-  Added in Saleor 3.19.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  checkoutAndOrderPredicate: CheckoutAndOrderPredicateInput
 
   """
   Defines the reward type of the promotion rule.
@@ -27518,15 +27518,15 @@ input CataloguePredicateInput @doc(category: "Discounts") {
   OR: [CataloguePredicateInput!]
 }
 
-input CheckoutAndOrderPredicateInput @doc(category: "Discounts") {
+input orderPredicateInput @doc(category: "Discounts") {
   """Defines the conditions related to checkout and order objects."""
   discountedObjectPredicate: DiscountedObjectPredicateInput
 
   """List of conditions that must be met."""
-  AND: [CheckoutAndOrderPredicateInput!]
+  AND: [orderPredicateInput!]
 
   """A list of conditions of which at least one must be met."""
-  OR: [CheckoutAndOrderPredicateInput!]
+  OR: [orderPredicateInput!]
 }
 
 input DiscountedObjectPredicateInput @doc(category: "Discounts") {
@@ -27689,6 +27689,15 @@ input PromotionRuleCreateInput {
   cataloguePredicate: CataloguePredicateInput
 
   """
+  Defines the conditions on the checkout/draft order level that must be met for the reward to be applied.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  orderPredicate: orderPredicateInput
+
+  """
   Defines the promotion rule reward value type. Must be provided together with reward value.
   """
   rewardValueType: RewardValueTypeEnum
@@ -27697,15 +27706,6 @@ input PromotionRuleCreateInput {
   Defines the discount value. Required when catalogue predicate is provided.
   """
   rewardValue: PositiveDecimal
-
-  """
-  Defines the conditions on the checkout/order level that must be met for the reward to be applied.
-  
-  Added in Saleor 3.19.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  checkoutAndOrderPredicate: CheckoutAndOrderPredicateInput
 
   """
   Defines the reward type of the promotion rule.
@@ -27782,6 +27782,15 @@ input PromotionRuleUpdateInput {
   cataloguePredicate: CataloguePredicateInput
 
   """
+  Defines the conditions on the checkout/draft order level that must be met for the reward to be applied.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  orderPredicate: orderPredicateInput
+
+  """
   Defines the promotion rule reward value type. Must be provided together with reward value.
   """
   rewardValueType: RewardValueTypeEnum
@@ -27790,15 +27799,6 @@ input PromotionRuleUpdateInput {
   Defines the discount value. Required when catalogue predicate is provided.
   """
   rewardValue: PositiveDecimal
-
-  """
-  Defines the conditions on the checkout/order level that must be met for the reward to be applied.
-  
-  Added in Saleor 3.19.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  checkoutAndOrderPredicate: CheckoutAndOrderPredicateInput
 
   """
   Defines the reward type of the promotion rule.

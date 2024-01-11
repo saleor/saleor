@@ -351,7 +351,7 @@ def create_or_update_discount_objects_from_promotion_for_checkout(
     lines_info: Iterable["CheckoutLineInfo"],
 ):
     create_discount_objects_for_catalogue_promotions(lines_info)
-    create_discount_objects_for_checkout_and_order_promotions(checkout_info, lines_info)
+    create_discount_objects_for_order_promotions(checkout_info, lines_info)
 
 
 def create_discount_objects_for_catalogue_promotions(
@@ -530,19 +530,18 @@ def _update_discount(
         updated_fields.append("reason")
 
 
-def create_discount_objects_for_checkout_and_order_promotions(
+def create_discount_objects_for_order_promotions(
     checkout_info: "CheckoutInfo",
     lines_info: Iterable["CheckoutLineInfo"],
     *,
     save: bool = False,
 ):
-    # The base prices are required for checkoutAndOrder promotion
-    # discount qualification.
+    # The base prices are required for order promotion discount qualification.
     _set_checkout_base_prices(checkout_info, lines_info)
 
     checkout = checkout_info.checkout
 
-    # Discount from checkout and order rules is applied only when the voucher is not set
+    # Discount from order rules is applied only when the voucher is not set
     if checkout.voucher_code:
         _clear_checkout_discount(checkout_info, save)
         return
@@ -597,12 +596,12 @@ def _set_checkout_base_prices(checkout_info, lines_info):
 def _clear_checkout_discount(checkout_info, save):
     CheckoutDiscount.objects.filter(
         checkout=checkout_info.checkout,
-        type=DiscountType.CHECKOUT_AND_ORDER_PROMOTION,
+        type=DiscountType.ORDER_PROMOTION,
     ).delete()
     checkout_info.discounts = [
         discount
         for discount in checkout_info.discounts
-        if discount.type != DiscountType.CHECKOUT_AND_ORDER_PROMOTION
+        if discount.type != DiscountType.ORDER_PROMOTION
     ]
     if not checkout_info.voucher_code:
         checkout_info.checkout.discount_amount = 0
@@ -632,7 +631,7 @@ def _create_or_update_checkout_discount(
     # we need get_or_create probably and transaction
     # Will be resolved in #15178
     checkout_discount = checkout.discounts.filter(
-        type=DiscountType.CHECKOUT_AND_ORDER_PROMOTION
+        type=DiscountType.ORDER_PROMOTION
     ).first()
     translation_language_code = checkout.language_code
     promotion_translation, rule_translation = get_rule_translations(
@@ -660,7 +659,7 @@ def _create_or_update_checkout_discount(
         checkout_discount = CheckoutDiscount.objects.create(
             checkout=checkout,
             promotion_rule=best_rule,
-            type=DiscountType.CHECKOUT_AND_ORDER_PROMOTION,
+            type=DiscountType.ORDER_PROMOTION,
             value_type=best_rule.reward_value_type,
             value=best_rule.reward_value,
             amount_value=best_discount_amount.amount,
@@ -746,7 +745,7 @@ def fetch_promotion_rules_for_checkout(
         PromotionRule.objects.filter(
             Exists(promotions.filter(id=OuterRef("promotion_id")))
         )
-        .exclude(checkout_and_order_predicate={})
+        .exclude(order_predicate={})
         .prefetch_related("channels")
     )
     rule_to_channel_ids_map = _get_rule_to_channel_ids_map(rules)
@@ -759,7 +758,7 @@ def fetch_promotion_rules_for_checkout(
         if checkout_channel_id not in rule_channel_ids:
             continue
         checkouts = filter_qs_by_predicate(
-            rule.checkout_and_order_predicate,
+            rule.order_predicate,
             checkout_qs,
             PredicateObjectType.CHECKOUT,
             currency,

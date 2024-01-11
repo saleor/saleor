@@ -785,7 +785,7 @@ def test_promotion_rule_update_events(
     assert events[0]["ruleId"] == rule_id
 
 
-def test_promotion_rule_update_mix_predicates_invalid_checkout_and_order_predicate(
+def test_promotion_rule_update_mix_predicates_invalid_order_predicate(
     app_api_client,
     permission_manage_discounts,
     promotion,
@@ -793,16 +793,16 @@ def test_promotion_rule_update_mix_predicates_invalid_checkout_and_order_predica
     # given
     rule = promotion.rules.get(name="Percentage promotion rule")
     assert rule.catalogue_predicate
-    assert not rule.checkout_and_order_predicate
+    assert not rule.order_predicate
     rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
 
-    checkout_and_order_predicate = {
+    order_predicate = {
         "discountedObjectPredicate": {"subtotalPrice": {"range": {"gte": 100}}}
     }
 
     variables = {
         "id": rule_id,
-        "input": {"checkoutAndOrderPredicate": checkout_and_order_predicate},
+        "input": {"orderPredicate": order_predicate},
     }
 
     # when
@@ -820,20 +820,20 @@ def test_promotion_rule_update_mix_predicates_invalid_checkout_and_order_predica
     assert not data["promotionRule"]
     assert len(errors) == 1
     assert errors[0]["code"] == PromotionRuleUpdateErrorCode.MIXED_PREDICATES.name
-    assert errors[0]["field"] == "checkoutAndOrderPredicate"
+    assert errors[0]["field"] == "orderPredicate"
 
 
 def test_promotion_rule_update_mix_predicates_invalid_catalogue_predicate(
     app_api_client,
     permission_manage_discounts,
-    promotion_with_checkout_and_order_rule,
+    promotion_with_order_rule,
     product,
 ):
     # given
-    promotion = promotion_with_checkout_and_order_rule
+    promotion = promotion_with_order_rule
     rule = promotion.rules.first()
     assert not rule.catalogue_predicate
-    assert rule.checkout_and_order_predicate
+    assert rule.order_predicate
     rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
 
     catalogue_predicate = {
@@ -872,10 +872,10 @@ def test_promotion_rule_update_mix_predicates_both_predicate_types_given(
     # given
     rule = promotion.rules.get(name="Percentage promotion rule")
     assert rule.catalogue_predicate
-    assert not rule.checkout_and_order_predicate
+    assert not rule.order_predicate
     rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
 
-    checkout_and_order_predicate = {
+    order_predicate = {
         "discountedObjectPredicate": {"subtotalPrice": {"range": {"gte": 100}}}
     }
     catalogue_predicate = {
@@ -885,7 +885,7 @@ def test_promotion_rule_update_mix_predicates_both_predicate_types_given(
     variables = {
         "id": rule_id,
         "input": {
-            "checkoutAndOrderPredicate": checkout_and_order_predicate,
+            "orderPredicate": order_predicate,
             "cataloguePredicate": catalogue_predicate,
         },
     }
@@ -906,7 +906,7 @@ def test_promotion_rule_update_mix_predicates_both_predicate_types_given(
     assert len(errors) == 2
     assert {
         "code": PromotionRuleUpdateErrorCode.MIXED_PREDICATES.name,
-        "field": "checkoutAndOrderPredicate",
+        "field": "orderPredicate",
         "message": ANY,
         "channels": None,
     } in errors
@@ -951,13 +951,13 @@ def test_promotion_rule_update_reward_type_with_catalogue_predicate(
     assert errors[0]["field"] == "rewardType"
 
 
-def test_promotion_rule_update_clear_reward_type_for_checkout_and_order_predicate(
+def test_promotion_rule_update_clear_reward_type_for_order_predicate(
     app_api_client,
     permission_manage_discounts,
-    promotion_with_checkout_and_order_rule,
+    promotion_with_order_rule,
 ):
     # given
-    promotion = promotion_with_checkout_and_order_rule
+    promotion = promotion_with_order_rule
     rule = promotion.rules.first()
     rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
     variables = {
@@ -983,14 +983,14 @@ def test_promotion_rule_update_clear_reward_type_for_checkout_and_order_predicat
     assert errors[0]["field"] == "rewardType"
 
 
-def test_promotion_rule_update_add_invalid_channels_for_checkout_and_order_rule(
+def test_promotion_rule_update_add_invalid_channels_for_order_rule(
     app_api_client,
     permission_manage_discounts,
-    promotion_with_checkout_and_order_rule,
+    promotion_with_order_rule,
     channel_PLN,
 ):
     # given
-    promotion = promotion_with_checkout_and_order_rule
+    promotion = promotion_with_order_rule
     rule = promotion.rules.first()
     rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
     channel_id = graphene.Node.to_global_id("Channel", channel_PLN.pk)

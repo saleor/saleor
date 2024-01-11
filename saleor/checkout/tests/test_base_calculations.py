@@ -888,12 +888,12 @@ def test_base_checkout_total_high_discount_on_shipping(
     assert total == expected_price
 
 
-def test_base_checkout_total_checkout_and_order_discount(
-    checkout_with_item_with_checkout_and_order_discount, shipping_method
+def test_base_checkout_total_order_discount(
+    checkout_with_item_and_order_discount, shipping_method
 ):
     # given
     manager = get_plugins_manager(allow_replica=False)
-    checkout = checkout_with_item_with_checkout_and_order_discount
+    checkout = checkout_with_item_and_order_discount
     channel = checkout.channel
 
     checkout.shipping_method = shipping_method
@@ -908,19 +908,19 @@ def test_base_checkout_total_checkout_and_order_discount(
     channel_listing = variant.channel_listings.get(channel=channel)
     net = variant.get_price(channel_listing)
     shipping_channel_listings = shipping_method.channel_listings.get(channel=channel)
-    # checkout and order discount shouldn't be included
+    # order promotion discount shouldn't be included
     expected_price = (
         net * checkout.lines.first().quantity + shipping_channel_listings.price
     )
     assert total == expected_price
 
 
-def test_checkout_total_checkout_and_order_discount(
-    checkout_with_item_with_checkout_and_order_discount, shipping_method
+def test_checkout_total_order_discount(
+    checkout_with_item_and_order_discount, shipping_method
 ):
     # given
     manager = get_plugins_manager(allow_replica=False)
-    checkout = checkout_with_item_with_checkout_and_order_discount
+    checkout = checkout_with_item_and_order_discount
     channel = checkout.channel
 
     checkout.shipping_method = shipping_method
@@ -935,7 +935,7 @@ def test_checkout_total_checkout_and_order_discount(
     channel_listing = variant.channel_listings.get(channel=channel)
     net = variant.get_price(channel_listing)
     shipping_channel_listings = shipping_method.channel_listings.get(channel=channel)
-    # checkout and order discount should be included
+    # order promotion discount should be included
     expected_price = (
         net * checkout.lines.first().quantity
         + shipping_channel_listings.price

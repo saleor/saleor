@@ -15,7 +15,7 @@ mutation CreatePromotion($input: PromotionCreateInput!) {
       endDate
       description
       rules {
-        checkoutAndOrderPredicate
+        orderPredicate
         name
         rewardType
         rewardValue
