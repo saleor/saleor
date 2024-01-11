@@ -104,6 +104,16 @@ def update_products_discounted_prices_of_promotion_task(promotion_pk: UUID):
 
 
 @app.task
+def mark_promotion_rules_to_recalculate_variants(promotion_pk: UUID):
+    try:
+        promotion = Promotion.objects.get(pk=promotion_pk)
+    except ObjectDoesNotExist:
+        logging.warning(f"Cannot find promotion with id: {promotion_pk}.")
+        return
+    promotion.rules.all().update(variants_dirty=True)
+
+
+@app.task
 def update_products_discounted_prices_for_promotion_task(
     product_ids: Iterable[int],
     start_id: Optional[UUID] = None,
@@ -148,7 +158,7 @@ def update_promotion_rules_mark_products_for_price_recalculation_task(
     product_ids: Iterable[int] = [],
     start_id: Optional[UUID] = None,
 ):
-    """Update PromotionRule and ProductVariant.
+    """Update relations between PromotionRule and ProductVariant.
 
     Mark the Product discounted prices for recalculation when all PromotionRules
     are updated.

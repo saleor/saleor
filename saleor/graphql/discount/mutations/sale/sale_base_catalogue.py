@@ -7,8 +7,8 @@ from django.db.models import Exists, OuterRef
 
 from .....discount.error_codes import DiscountErrorCode
 from .....product import models as product_models
-from .....product.tasks import update_discounted_prices_task
 from .....product.utils import get_products_ids_without_variants
+from .....product.utils.product import mark_products_for_recalculate_discounted_price
 from ....core import ResolveInfo
 from ....core.mutations import BaseMutation
 from ....plugins.dataloaders import get_plugin_manager_promise
@@ -66,7 +66,7 @@ class SaleBaseCatalogueMutation(BaseMutation):
                 product_ids = new_product_ids - previous_product_ids
             else:
                 product_ids = previous_product_ids - new_product_ids
-            cls.call_event(update_discounted_prices_task.delay, list(product_ids))
+            mark_products_for_recalculate_discounted_price(list(product_ids))
 
     @classmethod
     def get_product_ids_for_predicate(cls, predicate: dict) -> set[int]:

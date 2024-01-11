@@ -15,11 +15,11 @@ from ....core.tracing import traced_atomic_transaction
 from ....core.utils import prepare_unique_slug
 from ....core.utils.editorjs import clean_editor_js
 from ....core.utils.validators import get_oembed_data
+from ....discount.utils import get_active_promotion_rules
 from ....permission.enums import ProductPermissions
 from ....product import ProductMediaTypes, models
 from ....product.error_codes import ProductBulkCreateErrorCode
 from ....product.models import CollectionProduct
-from ....product.tasks import update_products_discounted_prices_for_promotion_task
 from ....thumbnail.utils import get_filename_from_url
 from ....warehouse.models import Warehouse
 from ....webhook.event_types import WebhookEventAsyncType
@@ -883,9 +883,7 @@ class ProductBulkCreate(BaseMutation):
         for channel in channels:
             cls.call_event(manager.channel_updated, channel, webhooks=webhooks)
 
-        cls.call_event(
-            update_products_discounted_prices_for_promotion_task.delay, product_ids
-        )
+        get_active_promotion_rules().update(variants_dirty=True)
 
     @classmethod
     @traced_atomic_transaction()

@@ -9,7 +9,7 @@ from .....discount import models
 from .....discount.error_codes import DiscountErrorCode
 from .....discount.models import Promotion
 from .....permission.enums import DiscountPermissions
-from .....product.tasks import update_products_discounted_prices_of_promotion_task
+from .....product.tasks import mark_promotion_rules_to_recalculate_variants
 from .....webhook.event_types import WebhookEventAsyncType
 from ....channel import ChannelContext
 from ....core import ResolveInfo
@@ -130,9 +130,7 @@ class SaleCreate(ModelMutation):
             )
             manager = get_plugin_manager_promise(info.context).get()
             cls.send_sale_notifications(manager, promotion, predicate)
-            cls.call_event(
-                update_products_discounted_prices_of_promotion_task.delay, promotion.pk
-            )
+            mark_promotion_rules_to_recalculate_variants(promotion.pk)
         return response
 
     @classmethod

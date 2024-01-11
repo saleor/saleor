@@ -4,7 +4,7 @@ from django.db.models import Exists, OuterRef, QuerySet
 from .....discount import models
 from .....discount.utils import get_current_products_for_rules
 from .....permission.enums import DiscountPermissions
-from .....product.tasks import update_discounted_prices_task
+from .....product.utils.product import mark_products_for_recalculate_discounted_price
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.utils import get_webhooks_for_event
 from ....core import ResolveInfo
@@ -46,8 +46,7 @@ class PromotionBulkDelete(ModelBulkDeleteMutation):
         webhooks = get_webhooks_for_event(WebhookEventAsyncType.PROMOTION_DELETED)
         for promotion in promotions:
             cls.call_event(manager.promotion_deleted, promotion, webhooks=webhooks)
-
-        cls.call_event(update_discounted_prices_task.delay, list(product_ids))
+        mark_products_for_recalculate_discounted_price(list(product_ids))
 
     @classmethod
     def get_product_ids(cls, qs: QuerySet[models.Promotion]):

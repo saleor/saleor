@@ -10,13 +10,13 @@ from ....attribute import AttributeInputType
 from ....attribute import models as attribute_models
 from ....core.postgres import FlatConcatSearchVector
 from ....core.tracing import traced_atomic_transaction
+from ....discount.utils import get_active_promotion_rules
 from ....order import events as order_events
 from ....order import models as order_models
 from ....order.tasks import recalculate_orders_task
 from ....permission.enums import ProductPermissions
 from ....product import models
 from ....product.search import prepare_product_search_vector_value
-from ....product.tasks import update_products_discounted_prices_for_promotion_task
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
 from ...app.dataloaders import get_app_promise
@@ -124,11 +124,9 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
                     "updated_at",
                 ]
             )
-
-        # Recalculate the "discounted price" for the related products
-        cls.call_event(
-            update_products_discounted_prices_for_promotion_task.delay, product_pks
-        )
+        # Mark PromotionRule variants dirty
+        # This will finally recalculate discounted prices for products.
+        get_active_promotion_rules().update(variants_dirty=True)
 
         return response
 

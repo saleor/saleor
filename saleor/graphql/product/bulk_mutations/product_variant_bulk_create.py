@@ -9,10 +9,10 @@ from graphene.utils.str_converters import to_camel_case
 
 from ....attribute import AttributeType
 from ....core.tracing import traced_atomic_transaction
+from ....discount.utils import get_active_promotion_rules
 from ....permission.enums import ProductPermissions
 from ....product import models
 from ....product.error_codes import ProductVariantBulkErrorCode
-from ....product.tasks import update_products_discounted_prices_for_promotion_task
 from ....warehouse import models as warehouse_models
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
@@ -917,10 +917,9 @@ class ProductVariantBulkCreate(BaseMutation):
 
     @classmethod
     def post_save_actions(cls, info, instances, product):
-        # Recalculate the "discounted price" for the parent product
-        cls.call_event(
-            update_products_discounted_prices_for_promotion_task.delay, [product.pk]
-        )
+        # Mark PromotionRule variants dirty
+        # This will finally recalculate discounted prices for products.
+        get_active_promotion_rules().update(variants_dirty=True)
         product.search_index_dirty = True
         product.save(update_fields=["search_index_dirty"])
 

@@ -8,7 +8,7 @@ from ....discount import models
 from ....discount.error_codes import DiscountErrorCode
 from ....discount.utils import get_current_products_for_rules
 from ....permission.enums import DiscountPermissions
-from ....product.tasks import update_discounted_prices_task
+from ....product.utils.product import mark_products_for_recalculate_discounted_price
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
 from ...core import ResolveInfo
@@ -97,7 +97,7 @@ class SaleBulkDelete(ModelBulkDeleteMutation):
             cls.call_event(
                 manager.sale_deleted, sale, catalogue_info, webhooks=webhooks
             )
-        cls.call_event(update_discounted_prices_task.delay, list(product_ids))
+        mark_products_for_recalculate_discounted_price(list(product_ids))
 
     @classmethod
     def get_sale_and_rules(cls, qs: QuerySet[models.Promotion]):
