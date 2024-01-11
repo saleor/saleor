@@ -292,7 +292,7 @@ def test_promotion_rule_create_missing_predicate(
             "channels": channel_ids,
             "rewardValueType": reward_value_type,
             "rewardValue": reward_value,
-            "predicateType": PredicateTypeEnum.CATALOGUE.name,
+            "predicateType": PredicateTypeEnum.ORDER.name,
         }
     }
 
@@ -305,13 +305,12 @@ def test_promotion_rule_create_missing_predicate(
     errors = data["errors"]
 
     assert not data["promotionRule"]
-    assert len(errors) == 2
-    error_fields = set([error["field"] for error in errors])
-    assert "cataloguePredicate" in error_fields
-    assert "orderPredicate" in error_fields
-    error_codes = set([error["code"] for error in errors])
-    assert len(error_codes) == 1
-    assert PromotionRuleCreateErrorCode.REQUIRED.name in error_codes
+    assert len(errors) == 1
+    assert {
+        "code": PromotionRuleCreateErrorCode.REQUIRED.name,
+        "field": "orderPredicate",
+        "message": ANY,
+    } in errors
     assert promotion.rules.count() == rules_count
 
 
@@ -1076,13 +1075,12 @@ def test_promotion_rule_create_multiple_predicates(
     errors = data["errors"]
 
     assert not data["promotionRule"]
-    assert len(errors) == 2
-    error_fields = set([error["field"] for error in errors])
-    assert "cataloguePredicate" in error_fields
-    assert "orderPredicate" in error_fields
-    error_codes = set([error["code"] for error in errors])
-    assert len(error_codes) == 1
-    assert PromotionRuleCreateErrorCode.MIXED_PREDICATES.name in error_codes
+    assert len(errors) == 1
+    assert {
+        "code": PromotionRuleCreateErrorCode.INVALID.name,
+        "field": "orderPredicate",
+        "message": ANY,
+    } in errors
     assert promotion.rules.count() == rules_count
 
 
@@ -1223,7 +1221,7 @@ def test_promotion_rule_create_missing_reward_type(
             "rewardValueType": reward_value_type,
             "rewardValue": reward_value,
             "orderPredicate": order_predicate,
-            "predicateType": PredicateTypeEnum.CATALOGUE.name,
+            "predicateType": PredicateTypeEnum.ORDER.name,
         }
     }
 

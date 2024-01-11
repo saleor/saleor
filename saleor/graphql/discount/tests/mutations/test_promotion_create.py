@@ -1079,10 +1079,7 @@ def test_promotion_create_mixed_catalogue_and_order_rules(
                     "rewardValueType": reward_value_type_1,
                     "rewardValue": reward_value,
                     "cataloguePredicate": catalogue_predicate,
-<<<<<<< HEAD
-=======
                     "predicateType": PredicateTypeEnum.CATALOGUE.name,
->>>>>>> ada357c43d (Add predicateType to PromotionRuleCreateInput)
                 },
                 {
                     "name": rule_2_name,
@@ -1091,10 +1088,7 @@ def test_promotion_create_mixed_catalogue_and_order_rules(
                     "rewardValueType": reward_value_type_2,
                     "rewardValue": reward_value,
                     "orderPredicate": order_predicate,
-<<<<<<< HEAD
-=======
                     "predicateType": PredicateTypeEnum.ORDER.name,
->>>>>>> ada357c43d (Add predicateType to PromotionRuleCreateInput)
                 },
             ],
         }
@@ -1157,10 +1151,7 @@ def test_promotion_create_mixed_currencies_for_price_based_predicate(
                     "rewardValue": reward_value,
                     "rewardType": reward_type,
                     "orderPredicate": order_predicate,
-<<<<<<< HEAD
-=======
                     "predicateType": PredicateTypeEnum.ORDER.name,
->>>>>>> ada357c43d (Add predicateType to PromotionRuleCreateInput)
                 },
             ],
         }

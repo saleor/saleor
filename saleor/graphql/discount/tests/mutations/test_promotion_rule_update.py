@@ -819,7 +819,7 @@ def test_promotion_rule_update_mix_predicates_invalid_order_predicate(
 
     assert not data["promotionRule"]
     assert len(errors) == 1
-    assert errors[0]["code"] == PromotionRuleUpdateErrorCode.MIXED_PREDICATES.name
+    assert errors[0]["code"] == PromotionRuleUpdateErrorCode.INVALID.name
     assert errors[0]["field"] == "orderPredicate"
 
 
@@ -859,7 +859,7 @@ def test_promotion_rule_update_mix_predicates_invalid_catalogue_predicate(
 
     assert not data["promotionRule"]
     assert len(errors) == 1
-    assert errors[0]["code"] == PromotionRuleUpdateErrorCode.MIXED_PREDICATES.name
+    assert errors[0]["code"] == PromotionRuleUpdateErrorCode.INVALID.name
     assert errors[0]["field"] == "cataloguePredicate"
 
 
@@ -903,16 +903,10 @@ def test_promotion_rule_update_mix_predicates_both_predicate_types_given(
     errors = data["errors"]
 
     assert not data["promotionRule"]
-    assert len(errors) == 2
+    assert len(errors) == 1
     assert {
-        "code": PromotionRuleUpdateErrorCode.MIXED_PREDICATES.name,
+        "code": PromotionRuleUpdateErrorCode.INVALID.name,
         "field": "orderPredicate",
-        "message": ANY,
-        "channels": None,
-    } in errors
-    assert {
-        "code": PromotionRuleUpdateErrorCode.MIXED_PREDICATES.name,
-        "field": "cataloguePredicate",
         "message": ANY,
         "channels": None,
     } in errors

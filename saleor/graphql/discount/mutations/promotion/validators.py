@@ -5,32 +5,32 @@ from django.core.exceptions import ValidationError
 from django.db.models import Q
 from graphene.utils.str_converters import to_camel_case
 
-from .....discount import RewardValueType
+from .....discount import PredicateType, RewardValueType
 from .....discount.models import PromotionRule
 from ....core.validators import validate_price_precision
-from ...utils import PredicateType
 
 if TYPE_CHECKING:
     from decimal import Decimal
 
 
 def clean_promotion_rule(
-    cleaned_input, errors, error_class, index=None, predicate_type=None, instance=None
+    cleaned_input, errors, error_class, index=None, promotion_type=None, instance=None
 ):
     catalogue_predicate = cleaned_input.get("catalogue_predicate")
     order_predicate = cleaned_input.get("order_predicate")
+    predicate_type = cleaned_input.get("predicate_type")
     if instance:
         catalogue_predicate = catalogue_predicate or instance.catalogue_predicate
         order_predicate = order_predicate or instance.order_predicate
+        predicate_type = predicate_type or instance.predicate_type
     invalid_predicates = _clean_predicates(
-        cleaned_input,
         catalogue_predicate,
         order_predicate,
         errors,
         error_class,
         index,
         predicate_type,
-        instance,
+        promotion_type,
     )
     if not invalid_predicates:
         channel_currencies = _get_channel_currencies(cleaned_input, instance)
@@ -61,58 +61,75 @@ def clean_promotion_rule(
 
 
 def _clean_predicates(
-    cleaned_input,
     catalogue_predicate,
     order_predicate,
     errors,
     error_class,
     index,
     predicate_type,
-    instance,
+    promotion_type,
 ):
     """Validate if predicates are provided and if they aren't mixed.
 
     - At least one predicate is required - `catalogue` or `order` predicate.
     - Promotion can have only one predicate type, raise error if there are mixed.
     """
-    if catalogue_predicate is None and order_predicate is None:
-        for field in ["catalogue_predicate", "order_predicate"]:
-            errors[field].append(
+    if predicate_type == PredicateType.CATALOGUE:
+        if catalogue_predicate is None:
+            errors["catalogue_predicate"].append(
                 ValidationError(
                     message=(
-                        "At least one of predicates is required: "
-                        "'cataloguePredicate' or 'orderPredicate'."
+                        "For `catalogue` predicate type, `cataloguePredicate` "
+                        "must be provided."
                     ),
                     code=error_class.REQUIRED.value,
                     params={"index": index} if index is not None else {},
                 )
             )
-        return True
-    if catalogue_predicate and order_predicate:
-        error_fields = ["catalogue_predicate", "order_predicate"]
-        if instance:
-            error_fields = [field for field in error_fields if field in cleaned_input]
-        for field in error_fields:
-            errors[field].append(
+            return True
+        if order_predicate:
+            errors["order_predicate"].append(
                 ValidationError(
                     message=(
-                        "Only one of predicates can be provided: "
-                        "'cataloguePredicate' or 'orderPredicate'."
+                        "`Order` predicate cannot be provided for promotion rule with "
+                        "`catalogue` predicate type."
                     ),
-                    code=error_class.MIXED_PREDICATES.value,
+                    code=error_class.INVALID.value,
                     params={"index": index} if index is not None else {},
                 )
             )
-        return True
-    # the Promotion can have only rules with catalogue or order predicate
-    elif (
-        catalogue_predicate and predicate_type and predicate_type == PredicateType.ORDER
-    ):
+            return True
+    if predicate_type == PredicateType.ORDER:
+        if order_predicate is None:
+            errors["order_predicate"].append(
+                ValidationError(
+                    message=(
+                        "For `order` predicate type, `orderPredicate` "
+                        "must be provided."
+                    ),
+                    code=error_class.REQUIRED.value,
+                    params={"index": index} if index is not None else {},
+                )
+            )
+            return True
+        if catalogue_predicate:
+            errors["catalogue_predicate"].append(
+                ValidationError(
+                    message=(
+                        "`Catalogue` predicate cannot be provided for promotion rule "
+                        "with `order` predicate type."
+                    ),
+                    code=error_class.INVALID.value,
+                    params={"index": index} if index is not None else {},
+                )
+            )
+            return True
+    if catalogue_predicate and promotion_type and promotion_type == PredicateType.ORDER:
         errors["catalogue_predicate"].append(
             ValidationError(
                 message=(
                     "Predicate types can't be mixed. Given promotion already "
-                    "have a rule with 'orderPredicate' defined."
+                    "have a rule with 'order' predicate type defined."
                 ),
                 code=error_class.MIXED_PROMOTION_PREDICATES.value,
                 params={"index": index} if index is not None else {},
@@ -120,13 +137,13 @@ def _clean_predicates(
         )
         return True
     elif (
-        order_predicate and predicate_type and predicate_type == PredicateType.CATALOGUE
+        order_predicate and promotion_type and promotion_type == PredicateType.CATALOGUE
     ):
         errors["order_predicate"].append(
             ValidationError(
                 message=(
                     "Predicate types can't be mixed. Given promotion already "
-                    "have a rule with 'cataloguePredicate' defined."
+                    "have a rule with 'catalogue' predicate type defined."
                 ),
                 code=error_class.MIXED_PROMOTION_PREDICATES.value,
                 params={"index": index} if index is not None else {},

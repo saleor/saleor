@@ -177,27 +177,16 @@ class PromotionCreate(ModelMutation):
     @classmethod
     def check_predicate_types(cls, rules_data: dict) -> Optional[PredicateType]:
         """Validate that all rules have the same predicate types."""
-        catalogue_predicates = False
-        order_predicates = False
         error_message = (
             "Predicate types can't be mixed. All promotion rules must have "
-            "catalogue or orderPredicate defined."
+            "catalogue or order predicate defined."
         )
-        for rule_data in rules_data:
-            if rule_data.get("catalogue_predicate"):
-                if order_predicates:
-                    raise ValidationError(
-                        error_message,
-                        code=PromotionCreateErrorCode.MIXED_PROMOTION_PREDICATES.value,
-                    )
-                catalogue_predicates = True
-            elif rule_data.get("order_predicate"):
-                if catalogue_predicates:
-                    raise ValidationError(
-                        error_message,
-                        code=PromotionCreateErrorCode.MIXED_PROMOTION_PREDICATES.value,
-                    )
-                order_predicates = True
+        predicate_type = {rule_data.get("predicate_type") for rule_data in rules_data}
+        if len(predicate_type) > 1:
+            raise ValidationError(
+                error_message,
+                code=PromotionCreateErrorCode.MIXED_PROMOTION_PREDICATES.value,
+            )
 
         if order_predicates:
             return PredicateType.ORDER

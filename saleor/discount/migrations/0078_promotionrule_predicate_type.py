@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("discount", "0076_update_base_discount_type"),
+        ("discount", "0077_alter_checkoutdiscount_unique_together"),
     ]
 
     operations = [

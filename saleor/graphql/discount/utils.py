@@ -29,11 +29,6 @@ from ..product.filters import (
 PREDICATE_OPERATOR_DATA_T = list[dict[str, Union[list, dict, str, bool]]]
 
 
-class PredicateType(Enum):
-    CATALOGUE = "catalogue"
-    ORDER = "order"
-
-
 class PredicateObjectType(Enum):
     CATALOGUE = "catalogue"
     CHECKOUT = "checkout"
@@ -464,12 +459,3 @@ def create_catalogue_predicate(collection_ids, category_ids, product_ids, varian
         predicate = {}
 
     return predicate
-
-
-def get_predicate_type(rule: Optional[PromotionRule]) -> Optional[PredicateType]:
-    if rule:
-        if rule.catalogue_predicate:
-            return PredicateType.CATALOGUE
-        elif rule.order_predicate:
-            return PredicateType.ORDER
-    return None
