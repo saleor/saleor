@@ -303,16 +303,14 @@ def test_checkout_remove_voucher_code_invalidates_price(
 
 
 def test_checkout_remove_voucher_code_checkout_promotion_discount_applied(
-    api_client, checkout_with_voucher, checkout_and_order_promotion_rule
+    api_client, checkout_with_voucher, order_promotion_rule
 ):
     # given
     checkout = checkout_with_voucher
     reward_value = Decimal("5")
-    checkout_and_order_promotion_rule.reward_value = reward_value
-    checkout_and_order_promotion_rule.reward_value_type = RewardValueType.FIXED
-    checkout_and_order_promotion_rule.save(
-        update_fields=["reward_value", "reward_value_type"]
-    )
+    order_promotion_rule.reward_value = reward_value
+    order_promotion_rule.reward_value_type = RewardValueType.FIXED
+    order_promotion_rule.save(update_fields=["reward_value", "reward_value_type"])
 
     assert checkout.voucher_code is not None
     previous_checkout_last_change = checkout.last_change
