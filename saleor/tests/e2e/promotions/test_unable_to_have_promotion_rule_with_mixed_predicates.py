@@ -54,7 +54,7 @@ def test_unable_to_have_promotion_rule_with_mixed_predicates_CORE_2125(
             "channels": [channel_id],
             "cataloguePredicate": {"collectionPredicate": {"ids": [collection_id]}},
             "orderPredicate": {
-                "discountedObjectPredicate": {"totalPrice": {"eq": "10"}}
+                "discountedObjectPredicate": {"baseTotalPrice": {"eq": "10"}}
             },
             "rewardType": "SUBTOTAL_DISCOUNT",
             "rewardValue": invalid_promotion_reward_value,
@@ -87,7 +87,7 @@ def test_unable_to_have_promotion_rule_with_mixed_predicates_CORE_2125(
             "name": "rule for promotion with checkout and order predicate",
             "channels": [channel_id],
             "orderPredicate": {
-                "discountedObjectPredicate": {"totalPrice": {"eq": "10"}}
+                "discountedObjectPredicate": {"baseTotalPrice": {"eq": "10"}}
             },
             "rewardType": "SUBTOTAL_DISCOUNT",
             "rewardValue": reward_value,

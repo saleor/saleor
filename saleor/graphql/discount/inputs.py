@@ -4,7 +4,7 @@ from ..core.descriptions import ADDED_IN_319, PREVIEW_FEATURE
 from ..core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ..core.scalars import JSON, PositiveDecimal
 from ..core.types import BaseInputObjectType, NonNullList
-from ..core.types.filter_input import DecimalFilterInput
+from ..discount.filters import DiscountedObjectWhereInput
 from ..product.filters import (
     CategoryWhereInput,
     CollectionWhereInput,
@@ -65,21 +65,9 @@ class CataloguePredicateInput(PredicateInputObjectType):
         doc_category = DOC_CATEGORY_DISCOUNTS
 
 
-class DiscountedObjectPredicateInput(PredicateInputObjectType):
-    subtotal_price = graphene.Field(
-        DecimalFilterInput, description="Subtotal price range condition."
-    )
-    total_price = graphene.Field(
-        DecimalFilterInput, description="Total price range condition."
-    )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS
-
-
-class orderPredicateInput(PredicateInputObjectType):
+class OrderPredicateInput(PredicateInputObjectType):
     discounted_object_predicate = graphene.Field(
-        DiscountedObjectPredicateInput,
+        DiscountedObjectWhereInput,
         description="Defines the conditions related to checkout and order objects.",
     )
 
@@ -97,7 +85,7 @@ class PromotionRuleBaseInput(BaseInputObjectType):
         ),
     )
     order_predicate = graphene.Field(
-        orderPredicateInput,
+        OrderPredicateInput,
         description=(
             "Defines the conditions on the checkout/draft order level that must be met "
             "for the reward to be applied." + ADDED_IN_319 + PREVIEW_FEATURE

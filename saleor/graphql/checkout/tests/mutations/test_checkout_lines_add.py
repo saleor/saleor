@@ -287,7 +287,7 @@ def test_add_to_existing_line_catalogue_and_order_discount_applies(
     # create order promotion discount
     rule = promotion_without_rules.rules.create(
         order_predicate={
-            "total_price": {
+            "base_total_price": {
                 "range": {
                     "gte": 20,
                 }
@@ -394,7 +394,7 @@ def test_add_to_existing_line_on_promotion_with_voucher_checkout_promotion_not_a
     # create order promotion discount
     rule = promotion_without_rules.rules.create(
         order_predicate={
-            "total_price": {
+            "base_total_price": {
                 "range": {
                     "gte": 20,
                 }

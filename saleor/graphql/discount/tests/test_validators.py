@@ -69,7 +69,7 @@ def test_clean_predicate_invalid_predicate(predicate):
 def test_clean_predicates_both_catalogue_and_order_provided(product):
     # given
     order_predicate = {
-        "discounted_object_predicate": {"subtotal_price": {"range": {"gte": 100}}}
+        "discounted_object_predicate": {"base_subtotal_price": {"range": {"gte": 100}}}
     }
     catalogue_predicate = {
         "product_predicate": {
@@ -178,7 +178,7 @@ def test_clean_predicates_mixed_promotion_predicates_invalid_order(
 ):
     # given
     order_predicate = {
-        "discounted_object_predicate": {"subtotal_price": {"range": {"gte": 100}}}
+        "discounted_object_predicate": {"base_subtotal_price": {"range": {"gte": 100}}}
     }
     cleaned_input = {
         "order_predicate": order_predicate,
@@ -237,7 +237,7 @@ def test_clean_catalogue_predicate_reward_type_provided():
 def test_clean_order_predicate_missing_reward_type():
     # given
     order_predicate = {
-        "discounted_object_predicate": {"subtotal_price": {"range": {"gte": 100}}}
+        "discounted_object_predicate": {"base_subtotal_price": {"range": {"gte": 100}}}
     }
     cleaned_input = {
         "order_predicate": order_predicate,
@@ -267,7 +267,7 @@ def test_clean_order_predicate_reward_type_in_instance(
     # given
     rule = promotion_with_order_rule.rules.first()
     order_predicate = {
-        "discounted_object_predicate": {"subtotal_price": {"range": {"gte": 100}}}
+        "discounted_object_predicate": {"base_subtotal_price": {"range": {"gte": 100}}}
     }
     cleaned_input = {
         "order_predicate": order_predicate,
@@ -292,7 +292,7 @@ def test_clean_order_predicate_reward_type_in_instance(
 def test_clean_order_predicate_price_based_predicate_mixed_currencies():
     # given
     order_predicate = {
-        "discounted_object_predicate": {"subtotal_price": {"range": {"gte": 100}}}
+        "discounted_object_predicate": {"base_subtotal_price": {"range": {"gte": 100}}}
     }
     cleaned_input = {
         "order_predicate": order_predicate,
@@ -327,7 +327,7 @@ def test_clean_order_mixed_currencies_instance_given_invalid_predicate(
     # given
     rule = promotion_with_order_rule.rules.first()
     order_predicate = {
-        "discounted_object_predicate": {"subtotal_price": {"range": {"gte": 100}}}
+        "discounted_object_predicate": {"base_subtotal_price": {"range": {"gte": 100}}}
     }
     cleaned_input = {
         "order_predicate": order_predicate,
@@ -361,7 +361,7 @@ def test_clean_order_mixed_currencies_instance_given_invalid_channels(
     # given
     rule = promotion_with_order_rule.rules.first()
     order_predicate = {
-        "discountedObjectPredicate": {"subtotalPrice": {"range": {"gte": 100}}}
+        "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 100}}}
     }
     cleaned_input = {
         "add_channels": ["AB", "CD"],
@@ -392,7 +392,7 @@ def test_clean_order_mixed_currencies_instance_given_invalid_channels(
 def test_clean_reward_lack_of_reward_value_type():
     # given
     order_predicate = {
-        "discounted_object_predicate": {"subtotal_price": {"range": {"gte": 100}}}
+        "discounted_object_predicate": {"base_subtotal_price": {"range": {"gte": 100}}}
     }
     cleaned_input = {
         "order_predicate": order_predicate,
@@ -423,7 +423,7 @@ def test_clean_reward_lack_of_reward_value_type():
 def test_clean_reward_no_reward_value():
     # given
     order_predicate = {
-        "discounted_object_predicate": {"subtotal_price": {"range": {"gte": 100}}}
+        "discounted_object_predicate": {"base_subtotal_price": {"range": {"gte": 100}}}
     }
     cleaned_input = {
         "order_predicate": order_predicate,
@@ -452,7 +452,7 @@ def test_clean_reward_no_reward_value():
 def test_clean_reward_lack_of_reward_value_and_reward_value_type():
     # given
     order_predicate = {
-        "discounted_object_predicate": {"subtotal_price": {"range": {"gte": 100}}}
+        "discounted_object_predicate": {"base_subtotal_price": {"range": {"gte": 100}}}
     }
     cleaned_input = {
         "order_predicate": order_predicate,

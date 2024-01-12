@@ -23,14 +23,16 @@ from ..core.filters import (
     ObjectTypeFilter,
     ObjectTypeWhereFilter,
     OperationObjectTypeWhereFilter,
+    WhereFilterSet,
 )
 from ..core.types import (
     DateTimeFilterInput,
     DateTimeRangeInput,
+    FilterInputObjectType,
     IntRangeInput,
     StringFilterInput,
 )
-from ..core.types.filter_input import WhereInputObjectType
+from ..core.types.filter_input import DecimalFilterInput, WhereInputObjectType
 from ..utils.filters import (
     filter_by_id,
     filter_by_ids,
@@ -190,3 +192,25 @@ class PromotionWhereInput(WhereInputObjectType):
     class Meta:
         doc_category = DOC_CATEGORY_DISCOUNTS
         filterset_class = PromotionWhere
+
+
+class DiscountedObjectWhere(WhereFilterSet):
+    base_subtotal_price = OperationObjectTypeWhereFilter(
+        input_class=DecimalFilterInput,
+        method="filter_base_subtotal_price",
+        help_text="Filter by the base subtotal price.",
+    )
+    base_total_price = OperationObjectTypeWhereFilter(
+        input_class=DecimalFilterInput,
+        method="filter_base_total_price",
+        help_text="Filter by the base total price.",
+    )
+
+    class Meta:
+        abstract = True
+
+
+class DiscountedObjectWhereInput(FilterInputObjectType):
+    class Meta:
+        doc_category = DOC_CATEGORY_DISCOUNTS
+        filterset_class = DiscountedObjectWhere

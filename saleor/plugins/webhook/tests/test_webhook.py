@@ -1134,7 +1134,7 @@ def test_checkout_payload_includes_order_promotion_discount(
     rule = promotion_without_rules.rules.create(
         name="Fixed promotion rule",
         order_predicate={
-            "total_price": {
+            "base_total_price": {
                 "range": {
                     "gte": 20,
                 }

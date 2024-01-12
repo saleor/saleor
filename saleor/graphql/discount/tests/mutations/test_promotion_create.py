@@ -320,7 +320,7 @@ def test_promotion_create_with_order_rule(
 
     promotion_name = "test promotion"
     order_predicate = {
-        "discountedObjectPredicate": {"subtotalPrice": {"range": {"gte": 100}}}
+        "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 100}}}
     }
     rule_name = "test promotion rule 1"
     reward_value = Decimal("10")
@@ -1052,7 +1052,7 @@ def test_promotion_create_mixed_catalogue_and_order_rules(
         "productPredicate": {"ids": [graphene.Node.to_global_id("Product", product.id)]}
     }
     order_predicate = {
-        "discountedObjectPredicate": {"subtotalPrice": {"range": {"gte": 100}}}
+        "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 100}}}
     }
     rule_1_name = "test promotion rule 1"
     rule_2_name = "test promotion rule 2"
@@ -1118,7 +1118,7 @@ def test_promotion_create_mixed_currencies_for_price_based_predicate(
 
     promotion_name = "test promotion"
     order_predicate = {
-        "discountedObjectPredicate": {"subtotalPrice": {"range": {"gte": 100}}}
+        "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 100}}}
     }
     rule_name = "test promotion rule 1"
     reward_value = Decimal("10")

@@ -797,7 +797,7 @@ def test_promotion_rule_update_mix_predicates_invalid_order_predicate(
     rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
 
     order_predicate = {
-        "discountedObjectPredicate": {"subtotalPrice": {"range": {"gte": 100}}}
+        "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 100}}}
     }
 
     variables = {
@@ -876,7 +876,7 @@ def test_promotion_rule_update_mix_predicates_both_predicate_types_given(
     rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
 
     order_predicate = {
-        "discountedObjectPredicate": {"subtotalPrice": {"range": {"gte": 100}}}
+        "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 100}}}
     }
     catalogue_predicate = {
         "productPredicate": {"ids": [graphene.Node.to_global_id("Product", product.id)]}

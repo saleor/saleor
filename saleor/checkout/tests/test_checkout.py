@@ -1387,7 +1387,7 @@ def test_recalculate_checkout_discount_with_checkout_discount_voucher_not_applic
     rule = promotion_without_rules.rules.create(
         name="Fixed promotion rule",
         order_predicate={
-            "total_price": {
+            "base_total_price": {
                 "range": {
                     "gte": 20,
                 }

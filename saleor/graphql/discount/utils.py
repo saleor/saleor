@@ -314,7 +314,7 @@ def _handle_checkout_predicate(
     if currency:
         predicate_data["currency"] = currency
 
-    orders = where_filter_qs(
+    checkouts = where_filter_qs(
         Checkout.objects.filter(pk__in=base_qs.values("pk")),
         {},
         CheckoutDiscountedObjectWhere,
@@ -322,9 +322,9 @@ def _handle_checkout_predicate(
         None,
     )
     if operator == Operators.AND:
-        result_qs &= orders
+        result_qs &= checkouts
     else:
-        result_qs |= orders
+        result_qs |= checkouts
     return result_qs
 
 

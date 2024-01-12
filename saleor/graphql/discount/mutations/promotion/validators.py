@@ -203,7 +203,12 @@ def _clean_order_predicate(
 
     price_based_predicate = any(
         field in str(order_predicate)
-        for field in ["subtotal_price", "subtotalPrice", "total_price", "totalPrice"]
+        for field in [
+            "base_subtotal_price",
+            "baseSubtotalPrice",
+            "base_total_price",
+            "baseTotalPrice",
+        ]
     )
     if len(channel_currencies) > 1 and price_based_predicate:
         error_field = "channels"
