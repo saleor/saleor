@@ -63,7 +63,6 @@ class PromotionRuleInput(PromotionRuleBaseInput):
             "\n\nThis field will be required from Saleor 3.20." + ADDED_IN_319
         ),
         required=False,
-        default=PredicateTypeEnum.CATALOGUE,
     )
 
     class Meta:
@@ -166,6 +165,8 @@ class PromotionCreate(ModelMutation):
                 )
 
         for index, rule_data in enumerate(rules_data):
+            if not rule_data.get("predicate_type"):
+                rule_data["predicate_type"] = PredicateTypeEnum.CATALOGUE.value
             if channel_ids := rule_data.get("channels"):
                 channels = cls.clean_channels(info, channel_ids, index, errors)
                 rule_data["channels"] = channels
@@ -181,7 +182,10 @@ class PromotionCreate(ModelMutation):
             "Predicate types can't be mixed. All promotion rules must have "
             "catalogue or order predicate defined."
         )
-        predicate_type = {rule_data.get("predicate_type") for rule_data in rules_data}
+        predicate_type = {
+            rule_data.get("predicate_type", PredicateTypeEnum.CATALOGUE.value)
+            for rule_data in rules_data
+        }
         if len(predicate_type) > 1:
             raise ValidationError(
                 error_message,

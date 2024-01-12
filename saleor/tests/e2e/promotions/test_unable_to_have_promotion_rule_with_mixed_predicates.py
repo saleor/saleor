@@ -70,7 +70,7 @@ def test_unable_to_have_promotion_rule_with_mixed_predicates_CORE_2125(
         "`catalogue` predicate type."
     )
     assert errors[0]["code"] == "INVALID"
-    assert errors[0]["field"] == "checkoutAndOrderPredicate"
+    assert errors[0]["field"] == "orderPredicate"
 
     # Step 2- Create promotion with rule with order predicate
     promotion_name = "Promotion"
