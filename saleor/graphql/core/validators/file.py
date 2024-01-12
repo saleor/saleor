@@ -113,7 +113,7 @@ def _validate_image_format(file, field_name, error_class):
                 )
             }
         )
-    elif format not in allowed_extensions:
+    elif format.lower() not in allowed_extensions:
         raise ValidationError(
             {
                 field_name: ValidationError(
