@@ -746,8 +746,7 @@ def add_voucher_to_checkout(
     checkout_info.voucher = voucher
     checkout_info.voucher_code = voucher_code
 
-    # delete discounts from checkout and order promotions as cannot be mixed
-    # with vouchers
+    # delete discounts from order promotions as cannot be mixed with vouchers
     CheckoutDiscount.objects.filter(
         checkout=checkout_info.checkout,
         type=DiscountType.ORDER_PROMOTION,

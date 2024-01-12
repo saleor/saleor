@@ -1798,7 +1798,7 @@ def test_add_voucher_to_checkout_fail(
     assert checkout_with_item.voucher_code is None
 
 
-def test_add_voucher_to_checkout_clears_checkout_and_order_promotion_discount(
+def test_add_voucher_to_checkout_clears_order_promotion_discount(
     checkout_with_item_and_order_discount, voucher
 ):
     # given

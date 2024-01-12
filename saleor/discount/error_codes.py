@@ -23,6 +23,7 @@ class PromotionCreateErrorCode(Enum):
     MIXED_PREDICATES = "mixed_predicates"
     MIXED_PROMOTION_PREDICATES = "mixed_promotion_predicates"
     MISSING_CHANNELS = "missing_channels"
+    RULES_NUMBER_LIMIT = "rules_number_limit"
 
 
 class PromotionUpdateErrorCode(Enum):
@@ -47,6 +48,7 @@ class PromotionRuleCreateErrorCode(Enum):
     MIXED_PREDICATES = "mixed_predicates"
     MIXED_PROMOTION_PREDICATES = "mixed_promotion_predicates"
     MISSING_CHANNELS = "missing_channels"
+    RULES_NUMBER_LIMIT = "rules_number_limit"
 
 
 class PromotionRuleUpdateErrorCode(Enum):

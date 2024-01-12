@@ -2,6 +2,7 @@ from decimal import Decimal
 from unittest.mock import ANY, patch
 
 import graphene
+from django.test import override_settings
 
 from .....discount import PromotionEvents
 from .....discount.error_codes import PromotionRuleCreateErrorCode
@@ -39,6 +40,8 @@ PROMOTION_RULE_CREATE_MUTATION = """
                 field
                 code
                 message
+                rulesLimit
+                exceedBy
             }
         }
     }
@@ -295,16 +298,12 @@ def test_promotion_rule_create_missing_predicate(
 
     assert not data["promotionRule"]
     assert len(errors) == 2
-    assert {
-        "code": PromotionRuleCreateErrorCode.REQUIRED.name,
-        "field": "cataloguePredicate",
-        "message": ANY,
-    } in errors
-    assert {
-        "code": PromotionRuleCreateErrorCode.REQUIRED.name,
-        "field": "orderPredicate",
-        "message": ANY,
-    } in errors
+    error_fields = set([error["field"] for error in errors])
+    assert "cataloguePredicate" in error_fields
+    assert "orderPredicate" in error_fields
+    error_codes = set([error["code"] for error in errors])
+    assert len(error_codes) == 1
+    assert PromotionRuleCreateErrorCode.REQUIRED.name in error_codes
     assert promotion.rules.count() == rules_count
 
 
@@ -455,11 +454,15 @@ def test_promotion_rule_create_multiple_errors(
             "code": PromotionRuleCreateErrorCode.REQUIRED.name,
             "field": "rewardValue",
             "message": ANY,
+            "rulesLimit": None,
+            "exceedBy": None,
         },
         {
             "code": PromotionRuleCreateErrorCode.REQUIRED.name,
             "field": "rewardValueType",
             "message": ANY,
+            "rulesLimit": None,
+            "exceedBy": None,
         },
     ]
     for error in expected_errors:
@@ -1051,16 +1054,12 @@ def test_promotion_rule_create_multiple_predicates(
 
     assert not data["promotionRule"]
     assert len(errors) == 2
-    assert {
-        "code": PromotionRuleCreateErrorCode.MIXED_PREDICATES.name,
-        "field": "cataloguePredicate",
-        "message": ANY,
-    } in errors
-    assert {
-        "code": PromotionRuleCreateErrorCode.MIXED_PREDICATES.name,
-        "field": "orderPredicate",
-        "message": ANY,
-    } in errors
+    error_fields = set([error["field"] for error in errors])
+    assert "cataloguePredicate" in error_fields
+    assert "orderPredicate" in error_fields
+    error_codes = set([error["code"] for error in errors])
+    assert len(error_codes) == 1
+    assert PromotionRuleCreateErrorCode.MIXED_PREDICATES.name in error_codes
     assert promotion.rules.count() == rules_count
 
 
@@ -1381,4 +1380,64 @@ def test_promotion_rule_create_mixed_currencies_for_price_based_predicate(
         == PromotionRuleCreateErrorCode.MULTIPLE_CURRENCIES_NOT_ALLOWED.name
     )
     assert errors[0]["field"] == "channels"
+    assert promotion.rules.count() == rules_count
+
+
+@override_settings(ORDER_RULES_LIMIT=1)
+def test_promotion_rule_create_exceeds_rules_number_limit(
+    staff_api_client,
+    permission_group_manage_discounts,
+    channel_USD,
+    promotion_without_rules,
+):
+    # given
+    promotion = promotion_without_rules
+    permission_group_manage_discounts.user_set.add(staff_api_client.user)
+
+    reward_value = Decimal("10")
+    reward_value_type = RewardValueTypeEnum.PERCENTAGE.name
+    reward_type = RewardTypeEnum.SUBTOTAL_DISCOUNT.name
+    promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
+    order_predicate = {
+        "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": "100"}}}
+    }
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.pk)
+
+    promotion.rules.create(
+        name="existing promotion rule",
+        promotion=promotion,
+        order_predicate=order_predicate,
+        reward_value_type=reward_value_type,
+        reward_value=reward_value,
+        reward_type=reward_type,
+    )
+
+    rules_count = promotion.rules.count()
+    assert rules_count == 1
+
+    variables = {
+        "input": {
+            "promotion": promotion_id,
+            "channels": [channel_id],
+            "rewardValueType": reward_value_type,
+            "rewardValue": reward_value,
+            "rewardType": reward_type,
+            "orderPredicate": order_predicate,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PROMOTION_RULE_CREATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleCreate"]
+    errors = data["errors"]
+
+    assert not data["promotionRule"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == PromotionRuleCreateErrorCode.RULES_NUMBER_LIMIT.name
+    assert errors[0]["field"] == "orderPredicate"
+    assert errors[0]["rulesLimit"] == 1
+    assert errors[0]["exceedBy"] == 1
     assert promotion.rules.count() == rules_count

@@ -3,6 +3,7 @@ from decimal import Decimal
 from unittest.mock import ANY, patch
 
 import graphene
+from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
 
@@ -43,6 +44,8 @@ PROMOTION_CREATE_MUTATION = """
                 code
                 index
                 message
+                rulesLimit
+                exceedBy
             }
         }
     }
@@ -801,18 +804,12 @@ def test_promotion_create_missing_predicate(
 
     assert not data["promotion"]
     assert len(errors) == 2
-    assert {
-        "code": PromotionCreateErrorCode.REQUIRED.name,
-        "field": "cataloguePredicate",
-        "index": 1,
-        "message": ANY,
-    } in errors
-    assert {
-        "code": PromotionCreateErrorCode.REQUIRED.name,
-        "field": "orderPredicate",
-        "index": 1,
-        "message": ANY,
-    } in errors
+    error_fields = set([error["field"] for error in errors])
+    assert "cataloguePredicate" in error_fields
+    assert "orderPredicate" in error_fields
+    error_codes = set([error["code"] for error in errors])
+    assert len(error_codes) == 1
+    assert PromotionCreateErrorCode.REQUIRED.name in error_codes
 
 
 @freeze_time("2020-03-18 12:00:00")
@@ -942,22 +939,12 @@ def test_promotion_create_missing_reward_value_type(
 
     assert not data["promotion"]
     assert len(errors) == 2
-    expected_errors = [
-        {
-            "code": PromotionCreateErrorCode.REQUIRED.name,
-            "field": "rewardValueType",
-            "index": 0,
-            "message": ANY,
-        },
-        {
-            "code": PromotionCreateErrorCode.REQUIRED.name,
-            "field": "rewardValueType",
-            "index": 1,
-            "message": ANY,
-        },
-    ]
-    for error in expected_errors:
-        assert error in errors
+    error_fields = set([error["field"] for error in errors])
+    assert len(error_fields) == 1
+    assert "rewardValueType" in error_fields
+    error_codes = set([error["code"] for error in errors])
+    assert len(error_codes) == 1
+    assert PromotionCreateErrorCode.REQUIRED.name in error_codes
 
 
 @freeze_time("2020-03-18 12:00:00")
@@ -1218,18 +1205,24 @@ def test_promotion_create_multiple_errors(
             "field": "rewardValue",
             "index": 0,
             "message": ANY,
+            "rulesLimit": None,
+            "exceedBy": None,
         },
         {
             "code": PromotionCreateErrorCode.REQUIRED.name,
             "field": "rewardValueType",
             "index": 0,
             "message": ANY,
+            "rulesLimit": None,
+            "exceedBy": None,
         },
         {
             "code": PromotionCreateErrorCode.GRAPHQL_ERROR.name,
             "field": "channels",
             "index": 0,
             "message": ANY,
+            "rulesLimit": None,
+            "exceedBy": None,
         },
     ]
     for error in expected_errors:
@@ -1394,6 +1387,63 @@ def test_promotion_create_invalid_catalogue_predicate(
     assert errors[0]["code"] == PromotionCreateErrorCode.INVALID.name
     assert errors[0]["field"] == "cataloguePredicate"
     assert errors[0]["index"] == 1
+
+
+@override_settings(ORDER_RULES_LIMIT=1)
+def test_promotion_create_exceeds_rules_number_limit(
+    staff_api_client,
+    permission_group_manage_discounts,
+    channel_USD,
+    product,
+    promotion_with_order_rule,
+):
+    # given
+    permission_group_manage_discounts.user_set.add(staff_api_client.user)
+    start_date = timezone.now() - timedelta(days=30)
+    end_date = timezone.now() + timedelta(days=30)
+
+    promotion_name = "test promotion"
+    order_predicate = {
+        "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 100}}}
+    }
+    rule_name = "test promotion rule 1"
+    reward_value = Decimal("10")
+    reward_value_type = RewardValueTypeEnum.PERCENTAGE.name
+    reward_type = RewardTypeEnum.SUBTOTAL_DISCOUNT.name
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.pk)
+
+    variables = {
+        "input": {
+            "name": promotion_name,
+            "startDate": start_date.isoformat(),
+            "endDate": end_date.isoformat(),
+            "rules": [
+                {
+                    "name": rule_name,
+                    "channels": [channel_id],
+                    "rewardValueType": reward_value_type,
+                    "rewardValue": reward_value,
+                    "rewardType": reward_type,
+                    "orderPredicate": order_predicate,
+                }
+            ],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PROMOTION_CREATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionCreate"]
+    errors = data["errors"]
+
+    assert not data["promotion"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == PromotionCreateErrorCode.RULES_NUMBER_LIMIT.name
+    assert errors[0]["field"] == "rules"
+    assert errors[0]["rulesLimit"] == 1
+    assert errors[0]["exceedBy"] == 1
 
 
 PROMOTION_CREATE_WITH_EVENTS = """

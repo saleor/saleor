@@ -1,9 +1,12 @@
 from typing import TYPE_CHECKING, Union
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 from graphene.utils.str_converters import to_camel_case
 
 from .....discount import RewardValueType
+from .....discount.models import PromotionRule
 from ....core.validators import validate_price_precision
 from ...utils import PredicateType
 
@@ -103,7 +106,7 @@ def _clean_predicates(
         return True
     # the Promotion can have only rules with catalogue or order predicate
     elif (
-        catalogue_predicate and predicate_type and predicate_type == PredicateType.order
+        catalogue_predicate and predicate_type and predicate_type == PredicateType.ORDER
     ):
         errors["catalogue_predicate"].append(
             ValidationError(
@@ -183,7 +186,8 @@ def _clean_order_predicate(
     """Clean and validate order predicate.
 
     - Reward type is required for rule with order predicate.
-    - Price based predicates are allowed only for rules with one currency
+    - Price based predicates are allowed only for rules with one currency.
+    - Rules number with order predicate doesn't exceed the limit.
     """
     if not order_predicate:
         return
@@ -194,7 +198,7 @@ def _clean_order_predicate(
     if not reward_type:
         errors["reward_type"].append(
             ValidationError(
-                message=("The rewardType is required when orderPredicate is provided."),
+                message="The rewardType is required when orderPredicate is provided.",
                 code=error_class.REQUIRED.value,
                 params={"index": index} if index is not None else {},
             )
@@ -231,6 +235,21 @@ def _clean_order_predicate(
     if "order_predicate" not in cleaned_input:
         return
 
+    order_rules_count = PromotionRule.objects.filter(~Q(order_predicate={})).count()
+    rules_limit = settings.ORDER_RULES_LIMIT
+    if order_rules_count >= int(rules_limit):
+        errors["order_predicate"].append(
+            ValidationError(
+                message="Number of rules with orderPredicate has reached the limit.",
+                code=error_class.RULES_NUMBER_LIMIT.value,
+                params={
+                    "rules_limit": rules_limit,
+                    "exceed_by": 1,
+                },
+            )
+        )
+        return
+
     try:
         cleaned_input["order_predicate"] = clean_predicate(
             order_predicate,
@@ -239,6 +258,7 @@ def _clean_order_predicate(
         )
     except ValidationError as error:
         errors["order_predicate"].append(error)
+        return
 
 
 def _clean_reward(

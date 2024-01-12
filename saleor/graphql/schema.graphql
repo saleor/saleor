@@ -27422,6 +27422,12 @@ type PromotionCreateError {
 
   """Index of an input list item that caused the error."""
   index: Int
+
+  """Limit of rules with orderPredicate defined."""
+  rulesLimit: Int
+
+  """Number of rules with orderPredicate defined exceeding the limit."""
+  exceedBy: Int
 }
 
 """An enumeration."""
@@ -27435,6 +27441,7 @@ enum PromotionCreateErrorCode {
   MIXED_PREDICATES
   MIXED_PROMOTION_PREDICATES
   MISSING_CHANNELS
+  RULES_NUMBER_LIMIT
 }
 
 input PromotionCreateInput @doc(category: "Discounts") {
@@ -27661,6 +27668,12 @@ type PromotionRuleCreateError {
 
   """The error code."""
   code: PromotionRuleCreateErrorCode!
+
+  """Limit of rules with orderPredicate defined."""
+  rulesLimit: Int
+
+  """Number of rules with orderPredicate defined exceeding the limit."""
+  exceedBy: Int
 }
 
 """An enumeration."""
@@ -27674,6 +27687,7 @@ enum PromotionRuleCreateErrorCode {
   MIXED_PREDICATES
   MIXED_PROMOTION_PREDICATES
   MISSING_CHANNELS
+  RULES_NUMBER_LIMIT
 }
 
 input PromotionRuleCreateInput {
