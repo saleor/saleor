@@ -1,6 +1,5 @@
 from collections import defaultdict
 from datetime import datetime
-from typing import Optional
 
 import graphene
 import pytz
@@ -11,7 +10,7 @@ from django.db.models import Q
 from graphql.error import GraphQLError
 
 from .....channel import models as channel_models
-from .....discount import events, models
+from .....discount import PredicateType, events, models
 from .....permission.enums import DiscountPermissions
 from .....plugins.manager import PluginsManager
 from .....product.tasks import update_products_discounted_prices_of_promotion_task
@@ -31,7 +30,6 @@ from ....utils import get_nodes
 from ...enums import PredicateTypeEnum, PromotionCreateErrorCode
 from ...inputs import PromotionRuleBaseInput
 from ...types import Promotion
-from ...utils import PredicateType
 from .validators import clean_promotion_rule
 
 
@@ -143,7 +141,8 @@ class PromotionCreate(ModelMutation):
         errors: defaultdict[str, list[ValidationError]],
     ) -> tuple[list, defaultdict[str, list[ValidationError]]]:
         cleaned_rules = []
-        predicate_type = cls.check_predicate_types(rules_data)
+        cls.check_predicate_types(rules_data)
+        predicate_type = rules_data[0].get("predicate_type", PredicateType.CATALOGUE)
         if predicate_type and predicate_type == PredicateType.ORDER:
             rules_limit = settings.ORDER_RULES_LIMIT
             order_rules_count = models.PromotionRule.objects.filter(
@@ -176,7 +175,7 @@ class PromotionCreate(ModelMutation):
         return cleaned_rules, errors
 
     @classmethod
-    def check_predicate_types(cls, rules_data: dict) -> Optional[PredicateType]:
+    def check_predicate_types(cls, rules_data: dict):
         """Validate that all rules have the same predicate types."""
         error_message = (
             "Predicate types can't be mixed. All promotion rules must have "
@@ -191,12 +190,6 @@ class PromotionCreate(ModelMutation):
                 error_message,
                 code=PromotionCreateErrorCode.MIXED_PROMOTION_PREDICATES.value,
             )
-
-        if order_predicates:
-            return PredicateType.ORDER
-        if catalogue_predicates:
-            return PredicateType.CATALOGUE
-        return None
 
     @classmethod
     def clean_channels(

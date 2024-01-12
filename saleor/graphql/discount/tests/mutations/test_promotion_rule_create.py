@@ -310,6 +310,8 @@ def test_promotion_rule_create_missing_predicate(
         "code": PromotionRuleCreateErrorCode.REQUIRED.name,
         "field": "orderPredicate",
         "message": ANY,
+        "rulesLimit": None,
+        "exceedBy": None,
     } in errors
     assert promotion.rules.count() == rules_count
 
@@ -1080,6 +1082,8 @@ def test_promotion_rule_create_multiple_predicates(
         "code": PromotionRuleCreateErrorCode.INVALID.name,
         "field": "orderPredicate",
         "message": ANY,
+        "rulesLimit": None,
+        "exceedBy": None,
     } in errors
     assert promotion.rules.count() == rules_count
 
@@ -1440,6 +1444,7 @@ def test_promotion_rule_create_exceeds_rules_number_limit(
         reward_value_type=reward_value_type,
         reward_value=reward_value,
         reward_type=reward_type,
+        predicate_type=PredicateTypeEnum.ORDER.name,
     )
 
     rules_count = promotion.rules.count()
@@ -1452,6 +1457,7 @@ def test_promotion_rule_create_exceeds_rules_number_limit(
             "rewardValueType": reward_value_type,
             "rewardValue": reward_value,
             "rewardType": reward_type,
+            "predicateType": PredicateTypeEnum.ORDER.name,
             "orderPredicate": order_predicate,
         }
     }

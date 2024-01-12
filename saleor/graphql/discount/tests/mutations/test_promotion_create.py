@@ -821,6 +821,8 @@ def test_promotion_create_missing_predicate(
         "field": "cataloguePredicate",
         "index": 1,
         "message": ANY,
+        "rulesLimit": None,
+        "exceedBy": None,
     } in errors
 
 
@@ -1450,6 +1452,7 @@ def test_promotion_create_exceeds_rules_number_limit(
                     "rewardValueType": reward_value_type,
                     "rewardValue": reward_value,
                     "rewardType": reward_type,
+                    "predicateType": PredicateTypeEnum.ORDER.name,
                     "orderPredicate": order_predicate,
                 }
             ],
