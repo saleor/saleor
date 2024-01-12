@@ -40,6 +40,8 @@ PROMOTION_RULE_CREATE_MUTATION = """
                 field
                 code
                 message
+                rulesLimit
+                exceedBy
             }
         }
     }
@@ -1440,4 +1442,6 @@ def test_promotion_rule_create_exceeds_rules_number_limit(
     assert len(errors) == 1
     assert errors[0]["code"] == PromotionRuleCreateErrorCode.RULES_NUMBER_LIMIT.name
     assert errors[0]["field"] == "checkoutAndOrderPredicate"
+    assert errors[0]["rulesLimit"] == 1
+    assert errors[0]["exceedBy"] == 1
     assert promotion.rules.count() == rules_count

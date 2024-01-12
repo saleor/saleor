@@ -44,6 +44,8 @@ PROMOTION_CREATE_MUTATION = """
                 code
                 index
                 message
+                rulesLimit
+                exceedBy
             }
         }
     }
@@ -1450,6 +1452,8 @@ def test_promotion_create_exceeds_rules_number_limit(
     assert len(errors) == 1
     assert errors[0]["code"] == PromotionCreateErrorCode.RULES_NUMBER_LIMIT.name
     assert errors[0]["field"] == "rules"
+    assert errors[0]["rulesLimit"] == 1
+    assert errors[0]["exceedBy"] == 1
 
 
 PROMOTION_CREATE_WITH_EVENTS = """

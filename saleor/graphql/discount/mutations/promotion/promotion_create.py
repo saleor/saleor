@@ -24,7 +24,7 @@ from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import ModelMutation
 from ....core.scalars import JSON
 from ....core.types import BaseInputObjectType, Error, NonNullList
-from ....core.utils import WebhookEventInfo, raise_validation_error
+from ....core.utils import WebhookEventInfo
 from ....core.validators import validate_end_is_after_start
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ....utils import get_nodes
@@ -39,6 +39,12 @@ class PromotionCreateError(Error):
     code = PromotionCreateErrorCode(description="The error code.", required=True)
     index = graphene.Int(
         description="Index of an input list item that caused the error."
+    )
+    rules_limit = graphene.Int(
+        description="Limit of rules with orderPredicate defined."
+    )
+    exceed_by = graphene.Int(
+        description="Number of rules with orderPredicate defined exceeding the limit."
     )
 
 
@@ -129,17 +135,22 @@ class PromotionCreate(ModelMutation):
         predicate_type = cls.check_predicate_types(rules_data)
         if predicate_type and predicate_type == PredicateType.CHECKOUT_AND_ORDER:
             rules_limit = settings.CHECKOUT_AND_ORDER_RULES_LIMIT
-            checkout_and_order_rules_count = models.PromotionRule.objects.filter(
+            order_rules_count = models.PromotionRule.objects.filter(
                 ~Q(checkout_and_order_predicate={})
             ).count()
-            if checkout_and_order_rules_count + len(rules_data) > int(rules_limit):
-                raise_validation_error(
-                    message=(
-                        f"Number of rules with checkoutAndOrderPredicate has reached "
-                        f"the limit of {rules_limit} rules."
-                    ),
-                    code=PromotionCreateErrorCode.RULES_NUMBER_LIMIT.value,
-                    field="rules",
+            exceed_by = order_rules_count + len(rules_data) - int(rules_limit)
+            if exceed_by > 0:
+                raise ValidationError(
+                    {
+                        "rules": ValidationError(
+                            "Number of rules with orderPredicate has reached the limit",
+                            code=PromotionCreateErrorCode.RULES_NUMBER_LIMIT.value,
+                            params={
+                                "rules_limit": rules_limit,
+                                "exceed_by": exceed_by,
+                            },
+                        )
+                    }
                 )
 
         for index, rule_data in enumerate(rules_data):

@@ -31,6 +31,12 @@ class PromotionRuleCreateInput(PromotionRuleInput):
 
 class PromotionRuleCreateError(Error):
     code = PromotionRuleCreateErrorCode(description="The error code.", required=True)
+    rules_limit = graphene.Int(
+        description="Limit of rules with orderPredicate defined."
+    )
+    exceed_by = graphene.Int(
+        description="Number of rules with orderPredicate defined exceeding the limit."
+    )
 
 
 class PromotionRuleCreate(ModelMutation):

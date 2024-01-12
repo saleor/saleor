@@ -242,11 +242,12 @@ def _clean_order_predicate(
     if checkout_and_order_rules_count >= int(rules_limit):
         errors["checkout_and_order_predicate"].append(
             ValidationError(
-                message=(
-                    f"Number of rules with checkoutAndOrderPredicate has reached "
-                    f"the limit of {rules_limit} rules."
-                ),
+                message="Number of rules with orderPredicate has reached the limit.",
                 code=error_class.RULES_NUMBER_LIMIT.value,
+                params={
+                    "rules_limit": rules_limit,
+                    "exceed_by": 1,
+                },
             )
         )
         return
