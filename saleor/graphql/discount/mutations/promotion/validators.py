@@ -106,7 +106,7 @@ def _clean_predicates(
         return True
     # the Promotion can have only rules with catalogue or order predicate
     elif (
-        catalogue_predicate and predicate_type and predicate_type == PredicateType.order
+        catalogue_predicate and predicate_type and predicate_type == PredicateType.ORDER
     ):
         errors["catalogue_predicate"].append(
             ValidationError(
@@ -235,12 +235,10 @@ def _clean_order_predicate(
     if "order_predicate" not in cleaned_input:
         return
 
-    checkout_and_order_rules_count = PromotionRule.objects.filter(
-        ~Q(checkout_and_order_predicate={})
-    ).count()
-    rules_limit = settings.CHECKOUT_AND_ORDER_RULES_LIMIT
-    if checkout_and_order_rules_count >= int(rules_limit):
-        errors["checkout_and_order_predicate"].append(
+    order_rules_count = PromotionRule.objects.filter(~Q(order_predicate={})).count()
+    rules_limit = settings.ORDER_RULES_LIMIT
+    if order_rules_count >= int(rules_limit):
+        errors["order_predicate"].append(
             ValidationError(
                 message="Number of rules with orderPredicate has reached the limit.",
                 code=error_class.RULES_NUMBER_LIMIT.value,

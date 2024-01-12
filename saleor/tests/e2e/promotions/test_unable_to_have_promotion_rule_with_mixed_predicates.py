@@ -79,12 +79,12 @@ def test_unable_to_have_promotion_rule_with_mixed_predicates_CORE_2125(
     assert errors[1]["code"] == "MIXED_PREDICATES"
     assert errors[1]["field"] == "orderPredicate"
 
-    # Step 2- Create promotion with rule with checkout and order predicate
+    # Step 2- Create promotion with rule with order predicate
     promotion_name = "Promotion"
     reward_value = "20"
     rules = [
         {
-            "name": "rule for promotion with checkout and order predicate",
+            "name": "rule for promotion with order predicate",
             "channels": [channel_id],
             "orderPredicate": {
                 "discountedObjectPredicate": {"baseTotalPrice": {"eq": "10"}}

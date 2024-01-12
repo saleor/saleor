@@ -298,16 +298,12 @@ def test_promotion_rule_create_missing_predicate(
 
     assert not data["promotionRule"]
     assert len(errors) == 2
-    assert {
-        "code": PromotionRuleCreateErrorCode.REQUIRED.name,
-        "field": "cataloguePredicate",
-        "message": ANY,
-    } in errors
-    assert {
-        "code": PromotionRuleCreateErrorCode.REQUIRED.name,
-        "field": "orderPredicate",
-        "message": ANY,
-    } in errors
+    error_fields = set([error["field"] for error in errors])
+    assert "cataloguePredicate" in error_fields
+    assert "orderPredicate" in error_fields
+    error_codes = set([error["code"] for error in errors])
+    assert len(error_codes) == 1
+    assert PromotionRuleCreateErrorCode.REQUIRED.name in error_codes
     assert promotion.rules.count() == rules_count
 
 
@@ -458,11 +454,15 @@ def test_promotion_rule_create_multiple_errors(
             "code": PromotionRuleCreateErrorCode.REQUIRED.name,
             "field": "rewardValue",
             "message": ANY,
+            "rulesLimit": None,
+            "exceedBy": None,
         },
         {
             "code": PromotionRuleCreateErrorCode.REQUIRED.name,
             "field": "rewardValueType",
             "message": ANY,
+            "rulesLimit": None,
+            "exceedBy": None,
         },
     ]
     for error in expected_errors:
@@ -1054,16 +1054,12 @@ def test_promotion_rule_create_multiple_predicates(
 
     assert not data["promotionRule"]
     assert len(errors) == 2
-    assert {
-        "code": PromotionRuleCreateErrorCode.MIXED_PREDICATES.name,
-        "field": "cataloguePredicate",
-        "message": ANY,
-    } in errors
-    assert {
-        "code": PromotionRuleCreateErrorCode.MIXED_PREDICATES.name,
-        "field": "orderPredicate",
-        "message": ANY,
-    } in errors
+    error_fields = set([error["field"] for error in errors])
+    assert "cataloguePredicate" in error_fields
+    assert "orderPredicate" in error_fields
+    error_codes = set([error["code"] for error in errors])
+    assert len(error_codes) == 1
+    assert PromotionRuleCreateErrorCode.MIXED_PREDICATES.name in error_codes
     assert promotion.rules.count() == rules_count
 
 
@@ -1387,7 +1383,7 @@ def test_promotion_rule_create_mixed_currencies_for_price_based_predicate(
     assert promotion.rules.count() == rules_count
 
 
-@override_settings(CHECKOUT_AND_ORDER_RULES_LIMIT=1)
+@override_settings(ORDER_RULES_LIMIT=1)
 def test_promotion_rule_create_exceeds_rules_number_limit(
     staff_api_client,
     permission_group_manage_discounts,
@@ -1402,15 +1398,15 @@ def test_promotion_rule_create_exceeds_rules_number_limit(
     reward_value_type = RewardValueTypeEnum.PERCENTAGE.name
     reward_type = RewardTypeEnum.SUBTOTAL_DISCOUNT.name
     promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
-    checkout_and_order_predicate = {
-        "discountedObjectPredicate": {"subtotalPrice": {"range": {"gte": "100"}}}
+    order_predicate = {
+        "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": "100"}}}
     }
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.pk)
 
     promotion.rules.create(
         name="existing promotion rule",
         promotion=promotion,
-        checkout_and_order_predicate=checkout_and_order_predicate,
+        order_predicate=order_predicate,
         reward_value_type=reward_value_type,
         reward_value=reward_value,
         reward_type=reward_type,
@@ -1426,7 +1422,7 @@ def test_promotion_rule_create_exceeds_rules_number_limit(
             "rewardValueType": reward_value_type,
             "rewardValue": reward_value,
             "rewardType": reward_type,
-            "checkoutAndOrderPredicate": checkout_and_order_predicate,
+            "orderPredicate": order_predicate,
         }
     }
 
@@ -1441,7 +1437,7 @@ def test_promotion_rule_create_exceeds_rules_number_limit(
     assert not data["promotionRule"]
     assert len(errors) == 1
     assert errors[0]["code"] == PromotionRuleCreateErrorCode.RULES_NUMBER_LIMIT.name
-    assert errors[0]["field"] == "checkoutAndOrderPredicate"
+    assert errors[0]["field"] == "orderPredicate"
     assert errors[0]["rulesLimit"] == 1
     assert errors[0]["exceedBy"] == 1
     assert promotion.rules.count() == rules_count

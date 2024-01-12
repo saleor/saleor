@@ -160,7 +160,7 @@ def test_clean_predicates_mixed_promotion_predicates_invalid_catalogue_predicate
         errors,
         PromotionCreateErrorCode,
         None,
-        PredicateType.order,
+        PredicateType.ORDER,
         None,
     )
 

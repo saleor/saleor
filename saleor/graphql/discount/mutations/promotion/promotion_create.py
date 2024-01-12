@@ -133,10 +133,10 @@ class PromotionCreate(ModelMutation):
     ) -> tuple[list, defaultdict[str, list[ValidationError]]]:
         cleaned_rules = []
         predicate_type = cls.check_predicate_types(rules_data)
-        if predicate_type and predicate_type == PredicateType.CHECKOUT_AND_ORDER:
-            rules_limit = settings.CHECKOUT_AND_ORDER_RULES_LIMIT
+        if predicate_type and predicate_type == PredicateType.ORDER:
+            rules_limit = settings.ORDER_RULES_LIMIT
             order_rules_count = models.PromotionRule.objects.filter(
-                ~Q(checkout_and_order_predicate={})
+                ~Q(order_predicate={})
             ).count()
             exceed_by = order_rules_count + len(rules_data) - int(rules_limit)
             if exceed_by > 0:
@@ -187,8 +187,8 @@ class PromotionCreate(ModelMutation):
                     )
                 order_predicates = True
 
-        if checkout_and_order_predicates:
-            return PredicateType.CHECKOUT_AND_ORDER
+        if order_predicates:
+            return PredicateType.ORDER
         if catalogue_predicates:
             return PredicateType.CATALOGUE
         return None
