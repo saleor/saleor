@@ -28,7 +28,6 @@ from ..core.filters import (
 from ..core.types import (
     DateTimeFilterInput,
     DateTimeRangeInput,
-    FilterInputObjectType,
     IntRangeInput,
     StringFilterInput,
 )
@@ -210,7 +209,7 @@ class DiscountedObjectWhere(WhereFilterSet):
         abstract = True
 
 
-class DiscountedObjectWhereInput(FilterInputObjectType):
+class DiscountedObjectWhereInput(WhereInputObjectType):
     class Meta:
         doc_category = DOC_CATEGORY_DISCOUNTS
         filterset_class = DiscountedObjectWhere

@@ -27535,6 +27535,12 @@ input DiscountedObjectWhereInput @doc(category: "Discounts") {
 
   """Filter by the base total price."""
   baseTotalPrice: DecimalFilterInput
+
+  """List of conditions that must be met."""
+  AND: [DiscountedObjectWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [DiscountedObjectWhereInput!]
 }
 
 """
