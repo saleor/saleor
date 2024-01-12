@@ -1395,7 +1395,7 @@ def test_recalculate_checkout_discount_with_checkout_discount_voucher_not_applic
         },
         reward_value_type=RewardValueType.FIXED,
         reward_value=reward_value,
-        reward_type=RewardType.TOTAL_DISCOUNT,
+        reward_type=RewardType.SUBTOTAL_DISCOUNT,
     )
     rule.channels.add(line_info.channel)
 

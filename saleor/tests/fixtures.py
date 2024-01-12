@@ -422,7 +422,7 @@ def checkout_with_item_and_order_discount(checkout_with_item, promotion_without_
         },
         reward_value_type=RewardValueType.FIXED,
         reward_value=reward_value,
-        reward_type=RewardType.TOTAL_DISCOUNT,
+        reward_type=RewardType.SUBTOTAL_DISCOUNT,
     )
     rule.channels.add(channel)
 
