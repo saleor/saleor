@@ -815,13 +815,13 @@ def test_promotion_create_missing_predicate(
     errors = data["errors"]
 
     assert not data["promotion"]
-    assert len(errors) == 2
-    error_fields = set([error["field"] for error in errors])
-    assert "cataloguePredicate" in error_fields
-    assert "orderPredicate" in error_fields
-    error_codes = set([error["code"] for error in errors])
-    assert len(error_codes) == 1
-    assert PromotionCreateErrorCode.REQUIRED.name in error_codes
+    assert len(errors) == 1
+    assert {
+        "code": PromotionCreateErrorCode.REQUIRED.name,
+        "field": "cataloguePredicate",
+        "index": 1,
+        "message": ANY,
+    } in errors
 
 
 @freeze_time("2020-03-18 12:00:00")

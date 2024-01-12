@@ -7,7 +7,7 @@ from django.db.models import Exists, OuterRef
 
 from .....channel.models import Channel
 from .....core.tracing import traced_atomic_transaction
-from .....discount import DiscountValueType
+from .....discount import DiscountValueType, PredicateType
 from .....discount.error_codes import DiscountErrorCode
 from .....discount.models import Promotion, PromotionRule
 from .....permission.enums import DiscountPermissions
@@ -98,6 +98,7 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
                             catalogue_predicate=exemplary_rule.catalogue_predicate,
                             reward_value_type=exemplary_rule.reward_value_type,
                             reward_value=discount_value,
+                            predicate_type=PredicateType.CATALOGUE,
                         ),
                     )
                 )

@@ -5,7 +5,7 @@ import pytz
 from django.core.exceptions import ValidationError
 
 from .....core.tracing import traced_atomic_transaction
-from .....discount import models
+from .....discount import PredicateType, models
 from .....discount.error_codes import DiscountErrorCode
 from .....discount.models import Promotion
 from .....permission.enums import DiscountPermissions
@@ -127,6 +127,7 @@ class SaleCreate(ModelMutation):
                 promotion=promotion,
                 catalogue_predicate=predicate,
                 reward_value_type=input.get("type"),
+                predicate_type=PredicateType.CATALOGUE,
             )
             manager = get_plugin_manager_promise(info.context).get()
             cls.send_sale_notifications(manager, promotion, predicate)
