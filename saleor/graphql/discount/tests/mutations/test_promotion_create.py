@@ -1105,10 +1105,23 @@ def test_promotion_create_mixed_catalogue_and_order_rules(
     errors = data["errors"]
 
     assert not data["promotion"]
-    assert len(errors) == 1
-    assert errors[0]["code"] == PromotionCreateErrorCode.REQUIRED.name
-    assert errors[0]["field"] == "cataloguePredicate"
-    assert errors[0]["index"] == 1
+    assert len(errors) == 2
+    assert {
+        "code": PromotionCreateErrorCode.REQUIRED.name,
+        "field": "cataloguePredicate",
+        "index": 1,
+        "rulesLimit": None,
+        "exceedBy": None,
+        "message": ANY,
+    } in errors
+    assert {
+        "code": PromotionCreateErrorCode.INVALID.name,
+        "field": "orderPredicate",
+        "index": 1,
+        "rulesLimit": None,
+        "exceedBy": None,
+        "message": ANY,
+    } in errors
 
 
 @freeze_time("2020-03-18 12:00:00")

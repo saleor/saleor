@@ -70,8 +70,8 @@ def _clean_predicates(
     - At least one predicate is required - `catalogue` or `order` predicate.
     - Promotion can have only one predicate type, raise error if there are mixed.
     """
+    invalid_predicates = False
     if promotion_type == PromotionType.CATALOGUE:
-        # TODO: we should raise here both errors
         if catalogue_predicate is None:
             errors["catalogue_predicate"].append(
                 ValidationError(
@@ -83,7 +83,7 @@ def _clean_predicates(
                     params={"index": index} if index is not None else {},
                 )
             )
-            return True
+            invalid_predicates = True
         if order_predicate:
             errors["order_predicate"].append(
                 ValidationError(
@@ -95,7 +95,7 @@ def _clean_predicates(
                     params={"index": index} if index is not None else {},
                 )
             )
-            return True
+            invalid_predicates = True
     if promotion_type == PromotionType.ORDER:
         if order_predicate is None:
             errors["order_predicate"].append(
@@ -108,7 +108,7 @@ def _clean_predicates(
                     params={"index": index} if index is not None else {},
                 )
             )
-            return True
+            invalid_predicates = True
         if catalogue_predicate:
             errors["catalogue_predicate"].append(
                 ValidationError(
@@ -120,8 +120,8 @@ def _clean_predicates(
                     params={"index": index} if index is not None else {},
                 )
             )
-            return True
-    return False
+            invalid_predicates = True
+    return invalid_predicates
 
 
 def _clean_catalogue_predicate(
