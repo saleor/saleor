@@ -1081,8 +1081,8 @@ def _create_order_discount(order: "Order", checkout_info: "CheckoutInfo"):
                 translated_name=checkout.translated_discount_name,
                 currency=checkout.currency,
                 amount_value=checkout.discount_amount,
-                # voucher=checkout_info.voucher,
-                # voucher_code=checkout_info.voucher_code,
+                voucher=checkout_info.voucher,
+                voucher_code=checkout_info.voucher_code.code,
             )
 
 

@@ -770,6 +770,9 @@ def test_order_from_checkout_with_voucher(
         order_discount.amount_value
         == (order.undiscounted_total - order.total).gross.amount
     )
+    assert order_discount.type == DiscountType.VOUCHER
+    assert order_discount.voucher == voucher_percentage
+    assert order_discount.voucher_code == code.code
 
     code.refresh_from_db()
     assert code.used == voucher_used_count + 1
@@ -847,6 +850,9 @@ def test_order_from_checkout_with_voucher_apply_once_per_order(
         order_discount.amount_value
         == (order.undiscounted_total - order.total).gross.amount
     )
+    assert order_discount.type == DiscountType.VOUCHER
+    assert order_discount.voucher == voucher_percentage
+    assert order_discount.voucher_code == code.code
 
     code.refresh_from_db()
     assert code.used == voucher_used_count + 1
@@ -911,6 +917,9 @@ def test_order_from_checkout_with_specific_product_voucher(
         order_discount.amount_value
         == (order.undiscounted_total - order.total).gross.amount
     )
+    assert order_discount.type == DiscountType.VOUCHER
+    assert order_discount.voucher == voucher_specific_product_type
+    assert order_discount.voucher_code == code.code
 
     code.refresh_from_db()
     assert code.used == voucher_used_count + 1
