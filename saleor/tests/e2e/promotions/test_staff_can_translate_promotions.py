@@ -37,18 +37,21 @@ def prepare_promotion(
         "blocks": [{"data": {"text": "rule description"}, "type": "paragraph"}],
         "version": "1.0.0",
     }
-    promotion_rule_data = create_promotion_rule(
+    input = {
+        "promotion": promotion_id,
+        "channels": [channel_id],
+        "name": promotion_rule_name,
+        "cataloguePredicate": predicate_input,
+        "rewardValue": discount_value,
+        "rewardValueType": discount_type,
+        "description": rule_description,
+    }
+    promotion_rule = create_promotion_rule(
         e2e_staff_api_client,
-        promotion_id,
-        predicate_input,
-        discount_type,
-        discount_value,
-        promotion_rule_name,
-        channel_id,
-        description=rule_description,
+        input,
     )
-    promotion_rule_id = promotion_rule_data["id"]
-    discount_value = promotion_rule_data["rewardValue"]
+    promotion_rule_id = promotion_rule["id"]
+    discount_value = promotion_rule["rewardValue"]
 
     return promotion_id, promotion_rule_id
 

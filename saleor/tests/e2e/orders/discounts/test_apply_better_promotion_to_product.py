@@ -22,14 +22,17 @@ def prepare_promotion_with_rules(
     promotion_id = promotion["id"]
 
     catalogue_predicate = {"productPredicate": {"ids": [product_id]}}
+    input = {
+        "promotion": promotion_id,
+        "channels": [channel_id],
+        "name": rule_name,
+        "cataloguePredicate": catalogue_predicate,
+        "rewardValue": discount_value,
+        "rewardValueType": discount_type,
+    }
     promotion_rule = create_promotion_rule(
         e2e_staff_api_client,
-        promotion_id,
-        catalogue_predicate,
-        discount_type,
-        discount_value,
-        rule_name,
-        channel_id,
+        input,
     )
     product_predicate = promotion_rule["cataloguePredicate"]["productPredicate"]["ids"]
     assert promotion_rule["channels"][0]["id"] == channel_id

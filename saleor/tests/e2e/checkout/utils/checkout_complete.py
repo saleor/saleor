@@ -78,6 +78,8 @@ mutation CheckoutComplete($checkoutId: ID!) {
         }
       }
       discounts {
+        id
+        name
         type
         value
       }
