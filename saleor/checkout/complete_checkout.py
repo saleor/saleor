@@ -1082,7 +1082,9 @@ def _create_order_discount(order: "Order", checkout_info: "CheckoutInfo"):
                 currency=checkout.currency,
                 amount_value=checkout.discount_amount,
                 voucher=checkout_info.voucher,
-                voucher_code=checkout_info.voucher_code.code,
+                voucher_code=checkout_info.voucher_code.code
+                if checkout_info.voucher_code
+                else None,
             )
 
 
