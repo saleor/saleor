@@ -576,7 +576,7 @@ def _create_order(
         tax_exemption=checkout_info.checkout.tax_exemption,
     )
 
-    _handle_checkout_discount(order, checkout)
+    _create_order_discount(order, checkout_info)
 
     order_lines: list[OrderLine] = []
     order_line_discounts: list[OrderLineDiscount] = []
@@ -1053,21 +1053,37 @@ def _handle_allocations_of_order_lines(
     )
 
 
-def _handle_checkout_discount(order: "Order", checkout: "Checkout"):
+def _create_order_discount(order: "Order", checkout_info: "CheckoutInfo"):
+    checkout = checkout_info.checkout
     if checkout.discount:
-        # store voucher as a fixed value as it this the simplest solution for now.
-        # This will be solved when we refactor the voucher logic to use .discounts
-        # relations
+        checkout_discount = checkout.discounts.first()
+        if checkout_discount and checkout_discount.type == DiscountType.ORDER_PROMOTION:
+            order.discounts.create(
+                type=checkout_discount.type,
+                value_type=checkout_discount.value_type,
+                value=checkout_discount.value,
+                name=checkout_discount.name,
+                translated_name=checkout_discount.translated_name,
+                currency=checkout_discount.currency,
+                amount_value=checkout_discount.amount_value,
+                promotion_rule=checkout_discount.promotion_rule,
+            )
 
-        order.discounts.create(
-            type=DiscountType.VOUCHER,
-            value_type=DiscountValueType.FIXED,
-            value=checkout.discount.amount,
-            name=checkout.discount_name,
-            translated_name=checkout.translated_discount_name,
-            currency=checkout.currency,
-            amount_value=checkout.discount_amount,
-        )
+        if not checkout_discount:
+            # store voucher as a fixed value as it this the simplest solution for now.
+            # This will be solved when we refactor the voucher logic to use .discounts
+            # relations
+            order.discounts.create(
+                type=DiscountType.VOUCHER,
+                value_type=DiscountValueType.FIXED,
+                value=checkout.discount.amount,
+                name=checkout.discount_name,
+                translated_name=checkout.translated_discount_name,
+                currency=checkout.currency,
+                amount_value=checkout.discount_amount,
+                # voucher=checkout_info.voucher,
+                # voucher_code=checkout_info.voucher_code,
+            )
 
 
 def _post_create_order_actions(
@@ -1199,7 +1215,7 @@ def _create_order_from_checkout(
     )
 
     # checkout discount
-    _handle_checkout_discount(order, checkout_info.checkout)
+    _create_order_discount(order, checkout_info)
 
     # lines
     order_lines_info = _create_order_lines_from_checkout_lines(
