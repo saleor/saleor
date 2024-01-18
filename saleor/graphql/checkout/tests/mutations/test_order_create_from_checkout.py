@@ -965,7 +965,7 @@ def test_order_from_checkout_voucher_not_increase_uses_on_preprocess_creation_fa
     assert code.used == 0
 
 
-def test_order_from_checkout_on_promotion(
+def test_order_from_checkout_on_catalogue_promotion(
     app_api_client,
     checkout_with_item_on_promotion,
     permission_handle_checkouts,
@@ -997,7 +997,6 @@ def test_order_from_checkout_on_promotion(
     assert not data["errors"]
 
     order = Order.objects.first()
-
     assert order.status == OrderStatus.UNCONFIRMED
     assert order.origin == OrderOrigin.CHECKOUT
     assert not order.original
@@ -1012,6 +1011,52 @@ def test_order_from_checkout_on_promotion(
     assert (
         discount.amount_value == (order.undiscounted_total - order.total).gross.amount
     )
+    assert not order.discounts.first()
+
+
+def test_order_from_checkout_on_order_promotion(
+    app_api_client,
+    checkout_with_item_and_order_discount,
+    permission_handle_checkouts,
+    permission_manage_checkouts,
+    address,
+    shipping_method,
+):
+    # given
+    checkout = checkout_with_item_and_order_discount
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    variables = {
+        "id": graphene.Node.to_global_id("Checkout", checkout.pk),
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
+        variables,
+        permissions=[permission_handle_checkouts, permission_manage_checkouts],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderCreateFromCheckout"]
+    assert not data["errors"]
+
+    order = Order.objects.first()
+    assert order.status == OrderStatus.UNCONFIRMED
+    assert order.origin == OrderOrigin.CHECKOUT
+    assert not order.original
+
+    order_discount = order.discounts.first()
+    assert order_discount.promotion_rule
+    assert (
+        order_discount.amount_value
+        == (order.undiscounted_total - order.total).gross.amount
+    )
+    assert order_discount.type == DiscountType.ORDER_PROMOTION
 
 
 def test_order_from_checkout_multiple_rules_applied(
