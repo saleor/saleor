@@ -55,6 +55,7 @@ from ...discount.models import (
 )
 from ...giftcard import events as gift_card_events
 from ...giftcard.models import GiftCard, GiftCardTag
+from ...graphql.discount.enums import RewardTypeEnum
 from ...menu.models import Menu, MenuItem
 from ...order import OrderStatus
 from ...order.models import Fulfillment, Order, OrderLine
@@ -828,7 +829,7 @@ def create_fake_order(max_order_lines=5, create_preorder_lines=False):
     return order
 
 
-def create_fake_promotion():
+def create_fake_catalogue_promotion():
     promotion = Promotion.objects.create(
         name=f"Happy {fake.word()} day!",
     )
@@ -859,6 +860,43 @@ def create_fake_promotion():
                                 :2
                             ]
                         ]
+                    }
+                },
+            ),
+        ]
+    )
+    channels = Channel.objects.all()
+    for rule in rules:
+        rule.channels.add(*channels)
+
+    return promotion
+
+
+def create_fake_order_promotion():
+    promotion = Promotion.objects.create(
+        name=f"Happy {fake.word()} day!",
+    )
+    rules = PromotionRule.objects.bulk_create(
+        [
+            PromotionRule(
+                promotion=promotion,
+                reward_value_type=RewardValueType.PERCENTAGE,
+                reward_value=random.choice([10, 20, 30, 40, 50]),
+                reward_type=RewardTypeEnum.SUBTOTAL_DISCOUNT.name,
+                order_predicate={
+                    "discountedObjectPredicate": {
+                        "baseSubtotalPrice": {"range": {"gte": "200"}}
+                    }
+                },
+            ),
+            PromotionRule(
+                promotion=promotion,
+                reward_value_type=RewardValueType.FIXED,
+                reward_value=random.choice([10, 20, 30, 40, 50]),
+                reward_type=RewardTypeEnum.SUBTOTAL_DISCOUNT.name,
+                order_predicate={
+                    "discountedObjectPredicate": {
+                        "baseSubtotalPrice": {"range": {"gte": "100"}}
                     }
                 },
             ),
@@ -973,10 +1011,16 @@ def create_orders(how_many=10):
         yield f"Order: {order}"
 
 
-def create_product_promotions(how_many=5):
+def create_catalogue_promotions(how_many=5):
     for _ in range(how_many):
-        promotion = create_fake_promotion()
+        promotion = create_fake_catalogue_promotion()
         update_products_discounted_prices_of_promotion_task.delay(promotion.pk)
+        yield f"Promotion: {promotion}"
+
+
+def create_order_promotions(how_many=5):
+    for _ in range(how_many):
+        promotion = create_fake_order_promotion()
         yield f"Promotion: {promotion}"
 
 
