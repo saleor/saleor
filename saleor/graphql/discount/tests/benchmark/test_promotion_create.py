@@ -6,7 +6,7 @@ import pytest
 from django.utils import timezone
 
 from ....tests.utils import get_graphql_content
-from ...enums import PredicateTypeEnum, RewardValueTypeEnum
+from ...enums import PromotionTypeEnum, RewardValueTypeEnum
 from ..mutations.test_promotion_create import PROMOTION_CREATE_MUTATION
 
 
@@ -65,6 +65,7 @@ def test_promotion_create(
             "description": description_json,
             "startDate": start_date.isoformat(),
             "endDate": end_date.isoformat(),
+            "type": PromotionTypeEnum.CATALOGUE.name,
             "rules": [
                 {
                     "name": "Rule 1",
@@ -73,7 +74,6 @@ def test_promotion_create(
                     "rewardValueType": RewardValueTypeEnum.FIXED.name,
                     "rewardValue": reward_value,
                     "cataloguePredicate": catalogue_predicate,
-                    "predicateType": PredicateTypeEnum.CATALOGUE.name,
                 },
                 {
                     "name": "Rule 2",
@@ -82,7 +82,6 @@ def test_promotion_create(
                     "rewardValueType": RewardValueTypeEnum.PERCENTAGE.name,
                     "rewardValue": reward_value,
                     "cataloguePredicate": catalogue_predicate,
-                    "predicateType": PredicateTypeEnum.CATALOGUE.name,
                 },
                 {
                     "name": "Rule 3",
@@ -91,7 +90,6 @@ def test_promotion_create(
                     "rewardValueType": RewardValueTypeEnum.FIXED.name,
                     "rewardValue": reward_value,
                     "cataloguePredicate": catalogue_predicate,
-                    "predicateType": PredicateTypeEnum.CATALOGUE.name,
                 },
             ],
         }

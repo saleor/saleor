@@ -45,17 +45,18 @@ def test_product_no_longer_on_promotion_when_promotion_is_removed_CORE_2114(
     discount_value = 5
     discount_type = "FIXED"
     promotion_rule_name = "rule for product"
-    promotion_data = create_promotion(e2e_staff_api_client, promotion_name)
+    promotion_type = "CATALOGUE"
+    promotion_data = create_promotion(
+        e2e_staff_api_client, promotion_name, promotion_type
+    )
     promotion_id = promotion_data["id"]
 
     catalogue_predicate = {"productPredicate": {"ids": [product_id]}}
-    predicate_type = "CATALOGUE"
 
     promotion_rule = create_promotion_rule(
         e2e_staff_api_client,
         promotion_id,
         catalogue_predicate,
-        predicate_type,
         discount_type,
         discount_value,
         promotion_rule_name,

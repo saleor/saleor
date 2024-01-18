@@ -54,9 +54,11 @@ def test_order_promotion_not_applied_when_not_within_time_range_CORE_2110(
     )
 
     # Step 1 - Create promotion lasting for a specific time range
+    promotion_type = "CATALOGUE"
     promotion_data = create_promotion(
         e2e_staff_api_client,
         promotion_name,
+        promotion_type,
         start_date=tomorrow,
         end_date=month_after,
     )
@@ -69,13 +71,11 @@ def test_order_promotion_not_applied_when_not_within_time_range_CORE_2110(
     assert promotion_end_date == month_after.isoformat()
 
     catalogue_predicate = {"productPredicate": {"ids": [product_id]}}
-    predicate_type = "CATALOGUE"
 
     promotion_rule = create_promotion_rule(
         e2e_staff_api_client,
         promotion_id,
         catalogue_predicate,
-        predicate_type,
         discount_type,
         discount_value,
         promotion_rule_name,

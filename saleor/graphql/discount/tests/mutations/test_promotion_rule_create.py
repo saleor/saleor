@@ -8,7 +8,7 @@ from .....discount import PromotionEvents
 from .....discount.error_codes import PromotionRuleCreateErrorCode
 from .....discount.models import PromotionEvent
 from ....tests.utils import assert_no_permission, get_graphql_content
-from ...enums import PredicateTypeEnum, RewardTypeEnum, RewardValueTypeEnum
+from ...enums import RewardTypeEnum, RewardValueTypeEnum
 
 PROMOTION_RULE_CREATE_MUTATION = """
     mutation promotionRuleCreate($input: PromotionRuleCreateInput!) {
@@ -99,7 +99,6 @@ def test_promotion_rule_create_by_staff_user(
     name = "test promotion rule"
     reward_value = Decimal("10")
     reward_value_type = RewardValueTypeEnum.PERCENTAGE.name
-    predicate_type = PredicateTypeEnum.CATALOGUE.name
     promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
     rules_count = promotion.rules.count()
 
@@ -112,7 +111,6 @@ def test_promotion_rule_create_by_staff_user(
             "rewardValueType": reward_value_type,
             "rewardValue": reward_value,
             "cataloguePredicate": catalogue_predicate,
-            "predicateType": predicate_type,
         }
     }
 
@@ -128,7 +126,7 @@ def test_promotion_rule_create_by_staff_user(
     assert rule_data["name"] == name
     assert rule_data["description"] == description_json
     assert {channel["id"] for channel in rule_data["channels"]} == set(channel_ids)
-    assert rule_data["predicateType"] == predicate_type
+    assert rule_data["predicateType"] == promotion.type.upper()
     assert rule_data["cataloguePredicate"] == catalogue_predicate
     assert rule_data["rewardValueType"] == reward_value_type
     assert rule_data["rewardValue"] == reward_value
@@ -200,7 +198,7 @@ def test_promotion_rule_create_by_app(
     assert rule_data["name"] == name
     assert rule_data["description"] == description_json
     assert {channel["id"] for channel in rule_data["channels"]} == set(channel_ids)
-    assert rule_data["predicateType"] == PredicateTypeEnum.CATALOGUE.name
+    assert rule_data["predicateType"] == promotion.type.upper()
     assert rule_data["cataloguePredicate"] == catalogue_predicate
     assert rule_data["rewardValueType"] == reward_value_type
     assert rule_data["rewardValue"] == reward_value
@@ -240,7 +238,6 @@ def test_promotion_rule_create_by_customer(
     name = "test promotion rule"
     reward_value = Decimal("10")
     reward_value_type = RewardValueTypeEnum.FIXED.name
-    predicate_type = PredicateTypeEnum.CATALOGUE.name
     promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
 
     variables = {
@@ -252,7 +249,6 @@ def test_promotion_rule_create_by_customer(
             "rewardValueType": reward_value_type,
             "rewardValue": reward_value,
             "cataloguePredicate": catalogue_predicate,
-            "predicateType": predicate_type,
         }
     }
 
@@ -269,10 +265,11 @@ def test_promotion_rule_create_missing_predicate(
     channel_USD,
     channel_PLN,
     product,
-    promotion,
+    order_promotion_with_rule,
 ):
     # given
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
+    promotion = order_promotion_with_rule
 
     channel_ids = [
         graphene.Node.to_global_id("Channel", channel.pk)
@@ -292,7 +289,6 @@ def test_promotion_rule_create_missing_predicate(
             "channels": channel_ids,
             "rewardValueType": reward_value_type,
             "rewardValue": reward_value,
-            "predicateType": PredicateTypeEnum.ORDER.name,
         }
     }
 
@@ -348,7 +344,6 @@ def test_promotion_rule_create_missing_reward_value(
             "channels": channel_ids,
             "rewardValueType": reward_value_type,
             "cataloguePredicate": catalogue_predicate,
-            "predicateType": PredicateTypeEnum.CATALOGUE.name,
         }
     }
 
@@ -399,7 +394,6 @@ def test_promotion_rule_create_missing_reward_value_type(
             "channels": channel_ids,
             "rewardValue": reward_value,
             "cataloguePredicate": catalogue_predicate,
-            "predicateType": PredicateTypeEnum.CATALOGUE.name,
         }
     }
 
@@ -448,7 +442,6 @@ def test_promotion_rule_create_multiple_errors(
             "description": description_json,
             "channels": channel_ids,
             "cataloguePredicate": catalogue_predicate,
-            "predicateType": PredicateTypeEnum.CATALOGUE.name,
         }
     }
 
@@ -532,7 +525,6 @@ def test_promotion_rule_invalid_catalogue_predicate(
             "rewardValueType": reward_value_type,
             "rewardValue": reward_value,
             "cataloguePredicate": catalogue_predicate,
-            "predicateType": PredicateTypeEnum.CATALOGUE.name,
         }
     }
 
@@ -556,10 +548,10 @@ def test_promotion_rule_invalid_order_predicate(
     permission_group_manage_discounts,
     description_json,
     channel_PLN,
-    promotion_without_rules,
+    order_promotion_without_rules,
 ):
     # given
-    promotion = promotion_without_rules
+    promotion = order_promotion_without_rules
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
 
     channel_ids = [graphene.Node.to_global_id("Channel", channel_PLN.pk)]
@@ -594,7 +586,6 @@ def test_promotion_rule_invalid_order_predicate(
             "rewardValueType": reward_value_type,
             "rewardType": RewardTypeEnum.SUBTOTAL_DISCOUNT.name,
             "rewardValue": reward_value,
-            "predicateType": PredicateTypeEnum.ORDER.name,
             "orderPredicate": order_predicate,
         }
     }
@@ -656,7 +647,6 @@ def test_promotion_rule_create_invalid_price_precision(
             "rewardValueType": reward_value_type,
             "rewardValue": reward_value,
             "cataloguePredicate": catalogue_predicate,
-            "predicateType": PredicateTypeEnum.CATALOGUE.name,
         }
     }
 
@@ -721,7 +711,6 @@ def test_promotion_rule_create_fixed_reward_value_multiple_currencies(
             "rewardValueType": reward_value_type,
             "rewardValue": reward_value,
             "cataloguePredicate": catalogue_predicate,
-            "predicateType": PredicateTypeEnum.CATALOGUE.name,
         }
     }
 
@@ -783,7 +772,6 @@ def test_promotion_rule_create_fixed_reward_no_channels(
             "rewardValueType": reward_value_type,
             "rewardValue": reward_value,
             "cataloguePredicate": catalogue_predicate,
-            "predicateType": PredicateTypeEnum.CATALOGUE.name,
         }
     }
 
@@ -848,7 +836,6 @@ def test_promotion_rule_create_percentage_value_above_100(
             "rewardValueType": reward_value_type,
             "rewardValue": reward_value,
             "cataloguePredicate": catalogue_predicate,
-            "predicateType": PredicateTypeEnum.CATALOGUE.name,
         }
     }
 
@@ -900,7 +887,6 @@ def test_promotion_rule_create_clears_old_sale_id(
     name = "test promotion rule"
     reward_value = Decimal("10")
     reward_value_type = RewardValueTypeEnum.PERCENTAGE.name
-    predicate_type = PredicateTypeEnum.CATALOGUE.name
     promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
     rules_count = promotion.rules.count()
 
@@ -913,7 +899,6 @@ def test_promotion_rule_create_clears_old_sale_id(
             "rewardValueType": reward_value_type,
             "rewardValue": reward_value,
             "cataloguePredicate": catalogue_predicate,
-            "predicateType": predicate_type,
         }
     }
 
@@ -929,7 +914,7 @@ def test_promotion_rule_create_clears_old_sale_id(
     assert rule_data["name"] == name
     assert rule_data["description"] == description_json
     assert {channel["id"] for channel in rule_data["channels"]} == set(channel_ids)
-    assert rule_data["predicateType"] == predicate_type
+    assert rule_data["predicateType"] == promotion.type.upper()
     assert rule_data["cataloguePredicate"] == catalogue_predicate
     assert rule_data["rewardValueType"] == reward_value_type
     assert rule_data["rewardValue"] == reward_value
@@ -972,7 +957,6 @@ def test_promotion_rule_create_events(
             "rewardValueType": reward_value_type,
             "rewardValue": reward_value,
             "cataloguePredicate": catalogue_predicate,
-            "predicateType": PredicateTypeEnum.CATALOGUE.name,
         }
     }
     event_count = PromotionEvent.objects.count()
@@ -1017,7 +1001,6 @@ def test_promotion_rule_create_serializable_decimal_in_predicate(
             "rewardValueType": reward_value_type,
             "rewardValue": reward_value,
             "cataloguePredicate": catalogue_predicate,
-            "predicateType": PredicateTypeEnum.CATALOGUE.name,
         }
     }
 
@@ -1063,7 +1046,6 @@ def test_promotion_rule_create_multiple_predicates(
             "rewardValueType": reward_value_type,
             "rewardValue": reward_value,
             "cataloguePredicate": catalogue_predicate,
-            "predicateType": PredicateTypeEnum.CATALOGUE.name,
             "orderPredicate": order_predicate,
         }
     }
@@ -1097,7 +1079,6 @@ def test_promotion_rule_create_mixed_predicates_order(
     promotion,
 ):
     # given
-    assert promotion.rules.first().catalogue_predicate
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.pk)
     name = "test promotion rule"
@@ -1108,57 +1089,6 @@ def test_promotion_rule_create_mixed_predicates_order(
     order_predicate = {
         "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 100}}}
     }
-    rules_count = promotion.rules.count()
-
-    variables = {
-        "input": {
-            "name": name,
-            "promotion": promotion_id,
-            "description": description_json,
-            "channels": [channel_id],
-            "rewardValueType": reward_value_type,
-            "rewardValue": reward_value,
-            "rewardType": reward_type,
-            "orderPredicate": order_predicate,
-            "predicateType": PredicateTypeEnum.ORDER.name,
-        }
-    }
-
-    # when
-    response = staff_api_client.post_graphql(PROMOTION_RULE_CREATE_MUTATION, variables)
-
-    # then
-    content = get_graphql_content(response)
-    data = content["data"]["promotionRuleCreate"]
-    errors = data["errors"]
-
-    assert not data["promotionRule"]
-    assert len(errors) == 1
-    assert (
-        errors[0]["code"]
-        == PromotionRuleCreateErrorCode.MIXED_PROMOTION_PREDICATES.name
-    )
-    assert errors[0]["field"] == "orderPredicate"
-    assert promotion.rules.count() == rules_count
-
-
-def test_promotion_rule_create_mixed_predicates_catalogue(
-    staff_api_client,
-    permission_group_manage_discounts,
-    description_json,
-    channel_USD,
-    product,
-    promotion_with_order_rule,
-):
-    # given
-    promotion = promotion_with_order_rule
-    assert promotion.rules.first().order_predicate
-    permission_group_manage_discounts.user_set.add(staff_api_client.user)
-    channel_id = graphene.Node.to_global_id("Channel", channel_USD.pk)
-    name = "test promotion rule"
-    reward_value = Decimal("10")
-    reward_value_type = RewardValueTypeEnum.FIXED.name
-    promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
     catalogue_predicate = {
         "productPredicate": {"ids": [graphene.Node.to_global_id("Product", product.id)]}
     }
@@ -1172,8 +1102,9 @@ def test_promotion_rule_create_mixed_predicates_catalogue(
             "channels": [channel_id],
             "rewardValueType": reward_value_type,
             "rewardValue": reward_value,
+            "rewardType": reward_type,
+            "orderPredicate": order_predicate,
             "cataloguePredicate": catalogue_predicate,
-            "predicateType": PredicateTypeEnum.CATALOGUE.name,
         }
     }
 
@@ -1187,10 +1118,59 @@ def test_promotion_rule_create_mixed_predicates_catalogue(
 
     assert not data["promotionRule"]
     assert len(errors) == 1
-    assert (
-        errors[0]["code"]
-        == PromotionRuleCreateErrorCode.MIXED_PROMOTION_PREDICATES.name
-    )
+    assert errors[0]["code"] == PromotionRuleCreateErrorCode.INVALID.name
+    assert errors[0]["field"] == "orderPredicate"
+    assert promotion.rules.count() == rules_count
+
+
+def test_promotion_rule_create_mixed_predicates_catalogue(
+    staff_api_client,
+    permission_group_manage_discounts,
+    description_json,
+    channel_USD,
+    product,
+    order_promotion_without_rules,
+):
+    # given
+    promotion = order_promotion_without_rules
+    permission_group_manage_discounts.user_set.add(staff_api_client.user)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.pk)
+    name = "test promotion rule"
+    reward_value = Decimal("10")
+    reward_value_type = RewardValueTypeEnum.FIXED.name
+    promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
+    catalogue_predicate = {
+        "productPredicate": {"ids": [graphene.Node.to_global_id("Product", product.id)]}
+    }
+    order_predicate = {
+        "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": "100"}}}
+    }
+    rules_count = promotion.rules.count()
+
+    variables = {
+        "input": {
+            "name": name,
+            "promotion": promotion_id,
+            "description": description_json,
+            "channels": [channel_id],
+            "rewardValueType": reward_value_type,
+            "rewardValue": reward_value,
+            "orderPredicate": order_predicate,
+            "cataloguePredicate": catalogue_predicate,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PROMOTION_RULE_CREATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleCreate"]
+    errors = data["errors"]
+
+    assert not data["promotionRule"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == PromotionRuleCreateErrorCode.INVALID.name
     assert errors[0]["field"] == "cataloguePredicate"
     assert promotion.rules.count() == rules_count
 
@@ -1201,10 +1181,10 @@ def test_promotion_rule_create_missing_reward_type(
     description_json,
     channel_USD,
     product,
-    promotion_without_rules,
+    order_promotion_without_rules,
 ):
     # given
-    promotion = promotion_without_rules
+    promotion = order_promotion_without_rules
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.pk)
     name = "test promotion rule"
@@ -1225,7 +1205,6 @@ def test_promotion_rule_create_missing_reward_type(
             "rewardValueType": reward_value_type,
             "rewardValue": reward_value,
             "orderPredicate": order_predicate,
-            "predicateType": PredicateTypeEnum.ORDER.name,
         }
     }
 
@@ -1275,7 +1254,6 @@ def test_promotion_rule_create_reward_type_with_catalogue_predicate(
             "rewardValue": reward_value,
             "rewardType": reward_type,
             "cataloguePredicate": catalogue_predicate,
-            "predicateType": PredicateTypeEnum.CATALOGUE.name,
         }
     }
 
@@ -1305,17 +1283,16 @@ def test_promotion_rule_create_order_predicate(
     permission_group_manage_discounts,
     description_json,
     channel_USD,
-    promotion_without_rules,
+    order_promotion_without_rules,
 ):
     # given
-    promotion = promotion_without_rules
+    promotion = order_promotion_without_rules
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.pk)
     name = "test promotion rule"
     reward_value = Decimal("10")
     reward_value_type = RewardValueTypeEnum.PERCENTAGE.name
     reward_type = RewardTypeEnum.SUBTOTAL_DISCOUNT.name
-    predicate_type = PredicateTypeEnum.ORDER.name
     promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
     order_predicate = {
         "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": "100"}}}
@@ -1333,7 +1310,6 @@ def test_promotion_rule_create_order_predicate(
             "rewardValue": reward_value,
             "rewardType": reward_type,
             "orderPredicate": order_predicate,
-            "predicateType": predicate_type,
         }
     }
 
@@ -1350,7 +1326,7 @@ def test_promotion_rule_create_order_predicate(
     assert rule_data["description"] == description_json
     assert rule_data["channels"][0]["id"] == channel_id
     assert rule_data["orderPredicate"] == order_predicate
-    assert rule_data["predicateType"] == predicate_type
+    assert rule_data["predicateType"] == promotion.type.upper()
     assert rule_data["rewardValueType"] == reward_value_type
     assert rule_data["rewardValue"] == reward_value
     assert rule_data["promotion"]["id"] == promotion_id
@@ -1365,10 +1341,10 @@ def test_promotion_rule_create_mixed_currencies_for_price_based_predicate(
     description_json,
     channel_USD,
     channel_PLN,
-    promotion_without_rules,
+    order_promotion_without_rules,
 ):
     # given
-    promotion = promotion_without_rules
+    promotion = order_promotion_without_rules
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
     name = "test promotion rule"
     reward_value = Decimal("10")
@@ -1395,7 +1371,6 @@ def test_promotion_rule_create_mixed_currencies_for_price_based_predicate(
             "rewardValue": reward_value,
             "rewardType": reward_type,
             "orderPredicate": order_predicate,
-            "predicateType": PredicateTypeEnum.ORDER.name,
         }
     }
 
@@ -1422,10 +1397,10 @@ def test_promotion_rule_create_exceeds_rules_number_limit(
     staff_api_client,
     permission_group_manage_discounts,
     channel_USD,
-    promotion_without_rules,
+    order_promotion_without_rules,
 ):
     # given
-    promotion = promotion_without_rules
+    promotion = order_promotion_without_rules
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
 
     reward_value = Decimal("10")
@@ -1444,7 +1419,6 @@ def test_promotion_rule_create_exceeds_rules_number_limit(
         reward_value_type=reward_value_type,
         reward_value=reward_value,
         reward_type=reward_type,
-        predicate_type=PredicateTypeEnum.ORDER.name,
     )
 
     rules_count = promotion.rules.count()
@@ -1457,7 +1431,6 @@ def test_promotion_rule_create_exceeds_rules_number_limit(
             "rewardValueType": reward_value_type,
             "rewardValue": reward_value,
             "rewardType": reward_type,
-            "predicateType": PredicateTypeEnum.ORDER.name,
             "orderPredicate": order_predicate,
         }
     }

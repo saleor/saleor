@@ -53,8 +53,8 @@ from ..csv.models import ExportEvent, ExportFile
 from ..discount import (
     DiscountType,
     DiscountValueType,
-    PredicateType,
     PromotionEvents,
+    PromotionType,
     RewardType,
     RewardValueType,
     VoucherType,
@@ -5572,6 +5572,7 @@ def dummy_webhook_app_payment_data(dummy_payment_data, payment_app):
 def promotion(channel_USD, product, collection):
     promotion = Promotion.objects.create(
         name="Promotion",
+        type=PromotionType.CATALOGUE,
         description=dummy_editorjs("Test description."),
         end_date=timezone.now() + timedelta(days=30),
     )
@@ -5583,7 +5584,6 @@ def promotion(channel_USD, product, collection):
                 description=dummy_editorjs(
                     "Test description for percentage promotion rule."
                 ),
-                predicate_type=PredicateType.CATALOGUE,
                 catalogue_predicate={
                     "productPredicate": {
                         "ids": [graphene.Node.to_global_id("Product", product.id)]
@@ -5598,7 +5598,6 @@ def promotion(channel_USD, product, collection):
                 description=dummy_editorjs(
                     "Test description for fixes promotion rule."
                 ),
-                predicate_type=PredicateType.CATALOGUE,
                 catalogue_predicate={
                     "collectionPredicate": {
                         "ids": [graphene.Node.to_global_id("Collection", collection.id)]
@@ -5621,17 +5620,30 @@ def promotion_without_rules(db):
         name="Promotion",
         description=dummy_editorjs("Test description."),
         end_date=timezone.now() + timedelta(days=30),
+        type=PromotionType.CATALOGUE,
+    )
+    return promotion
+
+
+@pytest.fixture
+def order_promotion_without_rules(db):
+    promotion = Promotion.objects.create(
+        name="Promotion",
+        description=dummy_editorjs("Test description."),
+        end_date=timezone.now() + timedelta(days=30),
+        type=PromotionType.ORDER,
     )
     return promotion
 
 
 @pytest.fixture
 def promotion_with_single_rule(catalogue_predicate, channel_USD):
-    promotion = Promotion.objects.create(name="Promotion with single rule")
+    promotion = Promotion.objects.create(
+        name="Promotion with single rule", type=PromotionType.CATALOGUE
+    )
     rule = PromotionRule.objects.create(
         name="Sale rule",
         promotion=promotion,
-        predicate_type=PredicateType.CATALOGUE,
         catalogue_predicate=catalogue_predicate,
         reward_value_type=RewardValueType.FIXED,
         reward_value=Decimal(5),
@@ -5641,12 +5653,13 @@ def promotion_with_single_rule(catalogue_predicate, channel_USD):
 
 
 @pytest.fixture
-def promotion_with_order_rule(catalogue_predicate, channel_USD):
-    promotion = Promotion.objects.create(name="Promotion with order rule")
+def order_promotion_with_rule(channel_USD):
+    promotion = Promotion.objects.create(
+        name="Promotion with order rule", type=PromotionType.ORDER
+    )
     rule = PromotionRule.objects.create(
         name="Promotion rule",
         promotion=promotion,
-        predicate_type=PredicateType.ORDER,
         order_predicate={
             "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 100}}}
         },
@@ -5665,18 +5678,21 @@ def promotion_list(channel_USD, product, collection):
         [
             Promotion(
                 name="Promotion 1",
+                type=PromotionType.CATALOGUE,
                 description=dummy_editorjs("Promotion 1 description."),
                 start_date=timezone.now() + timedelta(days=1),
                 end_date=timezone.now() + timedelta(days=10),
             ),
             Promotion(
                 name="Promotion 2",
+                type=PromotionType.CATALOGUE,
                 description=dummy_editorjs("Promotion 2 description."),
                 start_date=timezone.now() + timedelta(days=5),
                 end_date=timezone.now() + timedelta(days=20),
             ),
             Promotion(
                 name="Promotion 3",
+                type=PromotionType.CATALOGUE,
                 description=dummy_editorjs("TePromotion 3 description."),
                 start_date=timezone.now() + timedelta(days=15),
                 end_date=timezone.now() + timedelta(days=30),
@@ -5691,7 +5707,6 @@ def promotion_list(channel_USD, product, collection):
                 description=dummy_editorjs(
                     "Test description for promotion 1 percentage rule."
                 ),
-                predicate_type=PredicateType.CATALOGUE,
                 catalogue_predicate={
                     "productPredicate": {
                         "ids": [graphene.Node.to_global_id("Product", product.id)]
@@ -5720,7 +5735,6 @@ def promotion_list(channel_USD, product, collection):
                 description=dummy_editorjs(
                     "Test description for promotion 2 percentage rule."
                 ),
-                predicate_type=PredicateType.CATALOGUE,
                 catalogue_predicate={
                     "productPredicate": {
                         "ids": [graphene.Node.to_global_id("Product", product.id)]
@@ -5735,7 +5749,6 @@ def promotion_list(channel_USD, product, collection):
                 description=dummy_editorjs(
                     "Test description for promotion 3 fixed rule."
                 ),
-                predicate_type=PredicateType.CATALOGUE,
                 catalogue_predicate={
                     "collectionPredicate": {
                         "ids": [graphene.Node.to_global_id("Collection", collection.id)]
@@ -5758,7 +5771,6 @@ def promotion_rule(channel_USD, promotion, product):
         name="Promotion rule name",
         promotion=promotion,
         description=dummy_editorjs("Test description for percentage promotion rule."),
-        predicate_type=PredicateType.CATALOGUE,
         catalogue_predicate={
             "productPredicate": {
                 "ids": [graphene.Node.to_global_id("Product", product.id)]
@@ -5772,11 +5784,10 @@ def promotion_rule(channel_USD, promotion, product):
 
 
 @pytest.fixture
-def order_promotion_rule(channel_USD, promotion, product):
+def order_promotion_rule(channel_USD, order_promotion_without_rules):
     rule = PromotionRule.objects.create(
         name="Order promotion rule",
-        promotion=promotion,
-        predicate_type=PredicateType.CATALOGUE,
+        promotion=order_promotion_without_rules,
         order_predicate={
             "base_total_price": {
                 "range": {
@@ -5833,13 +5844,12 @@ def catalogue_predicate(product, category, collection, variant):
 
 @pytest.fixture
 def promotion_converted_from_sale(catalogue_predicate, channel_USD):
-    promotion = Promotion.objects.create(name="Sale")
+    promotion = Promotion.objects.create(name="Sale", type=PromotionType.CATALOGUE)
     promotion.assign_old_sale_id()
 
     rule = PromotionRule.objects.create(
         name="Sale rule",
         promotion=promotion,
-        predicate_type=PredicateType.CATALOGUE,
         catalogue_predicate=catalogue_predicate,
         reward_value_type=RewardValueType.FIXED,
         reward_value=Decimal(5),
@@ -5858,7 +5868,6 @@ def promotion_converted_from_sale_with_many_channels(
     rule = PromotionRule.objects.create(
         name="Sale rule 2",
         promotion=promotion,
-        predicate_type=PredicateType.CATALOGUE,
         catalogue_predicate=catalogue_predicate,
         reward_value_type=RewardValueType.FIXED,
         reward_value=Decimal(5),
@@ -5871,12 +5880,13 @@ def promotion_converted_from_sale_with_many_channels(
 
 @pytest.fixture
 def promotion_converted_from_sale_with_empty_predicate(channel_USD):
-    promotion = Promotion.objects.create(name="Sale with empty predicate")
+    promotion = Promotion.objects.create(
+        name="Sale with empty predicate", type=PromotionType.CATALOGUE
+    )
     promotion.assign_old_sale_id()
     rule = PromotionRule.objects.create(
         name="Sale with empty predicate rule",
         promotion=promotion,
-        predicate_type=PredicateType.CATALOGUE,
         catalogue_predicate={},
         reward_value_type=RewardValueType.FIXED,
         reward_value=Decimal(5),

@@ -5,7 +5,7 @@ import pytz
 from django.core.exceptions import ValidationError
 
 from .....core.tracing import traced_atomic_transaction
-from .....discount import PredicateType, models
+from .....discount import PromotionType, models
 from .....discount.error_codes import DiscountErrorCode
 from .....discount.models import Promotion
 from .....permission.enums import DiscountPermissions
@@ -117,17 +117,18 @@ class SaleCreate(ModelMutation):
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         with traced_atomic_transaction():
+            input = data["input"]
+            reward_value_type = input.pop("type", None)
             response = super().perform_mutation(_root, info, **data)
             promotion: Promotion = response.sale.node
             promotion.assign_old_sale_id()
-            input = data["input"]
+            promotion.type = PromotionType.CATALOGUE
             predicate = cls.create_predicate(input)
             models.PromotionRule.objects.create(
                 name="",
                 promotion=promotion,
                 catalogue_predicate=predicate,
-                reward_value_type=input.get("type"),
-                predicate_type=PredicateType.CATALOGUE,
+                reward_value_type=reward_value_type,
             )
             manager = get_plugin_manager_promise(info.context).get()
             cls.send_sale_notifications(manager, promotion, predicate)

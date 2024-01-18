@@ -20,13 +20,19 @@ from ..dataloaders import (
     PromotionEventsByPromotionIdLoader,
     PromotionRulesByPromotionIdLoader,
 )
-from ..enums import PredicateTypeEnum, RewardTypeEnum, RewardValueTypeEnum
+from ..enums import PromotionTypeEnum, RewardTypeEnum, RewardValueTypeEnum
 from .promotion_events import PromotionEvent
 
 
 class Promotion(ModelObjectType[models.Promotion]):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True, description="Name of the promotion.")
+    type = PromotionTypeEnum(
+        description=(
+            "The type of the promotion. Implicate if the discount is applied on "
+            "catalogue or order level."
+        )
+    )
     description = JSON(description="Description of the promotion.")
     start_date = graphene.DateTime(
         required=True, description="Start date of the promotion."
@@ -91,7 +97,7 @@ class PromotionRule(ModelObjectType[models.PromotionRule]):
     reward_value_type = RewardValueTypeEnum(
         description="The type of reward value of the promotion rule."
     )
-    predicate_type = PredicateTypeEnum(
+    predicate_type = PromotionTypeEnum(
         description="The type of the predicate that must be met to apply the reward."
     )
     catalogue_predicate = JSON(
@@ -125,6 +131,17 @@ class PromotionRule(ModelObjectType[models.PromotionRule]):
     @staticmethod
     def resolve_promotion(root: models.PromotionRule, info: ResolveInfo):
         return PromotionByIdLoader(info.context).load(root.promotion_id)
+
+    @staticmethod
+    def resolve_predicate_type(root: models.PromotionRule, info: ResolveInfo):
+        def with_promotion(promotion):
+            return promotion.type
+
+        return (
+            PromotionByIdLoader(info.context)
+            .load(root.promotion_id)
+            .then(with_promotion)
+        )
 
     @staticmethod
     def resolve_channels(root: models.PromotionRule, info: ResolveInfo):

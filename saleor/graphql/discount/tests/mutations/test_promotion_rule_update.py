@@ -826,11 +826,11 @@ def test_promotion_rule_update_mix_predicates_invalid_order_predicate(
 def test_promotion_rule_update_mix_predicates_invalid_catalogue_predicate(
     app_api_client,
     permission_manage_discounts,
-    promotion_with_order_rule,
+    order_promotion_with_rule,
     product,
 ):
     # given
-    promotion = promotion_with_order_rule
+    promotion = order_promotion_with_rule
     rule = promotion.rules.first()
     assert not rule.catalogue_predicate
     assert rule.order_predicate
@@ -948,10 +948,10 @@ def test_promotion_rule_update_reward_type_with_catalogue_predicate(
 def test_promotion_rule_update_clear_reward_type_for_order_predicate(
     app_api_client,
     permission_manage_discounts,
-    promotion_with_order_rule,
+    order_promotion_with_rule,
 ):
     # given
-    promotion = promotion_with_order_rule
+    promotion = order_promotion_with_rule
     rule = promotion.rules.first()
     rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
     variables = {
@@ -980,11 +980,11 @@ def test_promotion_rule_update_clear_reward_type_for_order_predicate(
 def test_promotion_rule_update_add_invalid_channels_for_order_rule(
     app_api_client,
     permission_manage_discounts,
-    promotion_with_order_rule,
+    order_promotion_with_rule,
     channel_PLN,
 ):
     # given
-    promotion = promotion_with_order_rule
+    promotion = order_promotion_with_rule
     rule = promotion.rules.first()
     rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
     channel_id = graphene.Node.to_global_id("Channel", channel_PLN.pk)

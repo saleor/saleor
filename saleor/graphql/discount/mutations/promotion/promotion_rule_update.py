@@ -105,6 +105,7 @@ class PromotionRuleUpdate(ModelMutation):
         errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
         cleaned_input = clean_promotion_rule(
             cleaned_input,
+            instance.promotion.type,
             errors,
             PromotionRuleUpdateErrorCode,
             instance=instance,

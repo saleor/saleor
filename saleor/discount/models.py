@@ -26,8 +26,8 @@ from ..permission.enums import DiscountPermissions
 from . import (
     DiscountType,
     DiscountValueType,
-    PredicateType,
     PromotionEvents,
+    PromotionType,
     RewardType,
     RewardValueType,
     VoucherType,
@@ -312,6 +312,11 @@ PromotionManager = models.Manager.from_queryset(PromotionQueryset)
 class Promotion(ModelWithMetadata):
     id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
     name = models.CharField(max_length=255)
+    type = models.CharField(
+        max_length=255,
+        choices=PromotionType.CHOICES,
+        default=PromotionType.CATALOGUE,
+    )
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
     old_sale_id = models.IntegerField(blank=True, null=True, unique=True)
     start_date = models.DateTimeField(default=timezone.now)
@@ -372,11 +377,6 @@ class PromotionRule(models.Model):
         Promotion, on_delete=models.CASCADE, related_name="rules"
     )
     channels = models.ManyToManyField(Channel)
-    predicate_type = models.CharField(
-        max_length=255,
-        choices=PredicateType.CHOICES,
-        default=PredicateType.CATALOGUE,
-    )
     catalogue_predicate = models.JSONField(
         blank=True, default=dict, encoder=CustomJsonEncoder
     )

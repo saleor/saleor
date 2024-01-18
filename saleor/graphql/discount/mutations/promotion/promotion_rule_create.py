@@ -15,7 +15,7 @@ from ....core.mutations import ModelMutation
 from ....core.types import Error
 from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
-from ...enums import PredicateTypeEnum, PromotionRuleCreateErrorCode
+from ...enums import PromotionRuleCreateErrorCode
 from ...types import PromotionRule
 from ...utils import get_products_for_rule
 from ..utils import clear_promotion_old_sale_id
@@ -67,16 +67,13 @@ class PromotionRuleCreate(ModelMutation):
         errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
 
         promotion = cleaned_input["promotion"]
-        if not cleaned_input.get("predicate_type"):
-            cleaned_input["predicate_type"] = PredicateTypeEnum.CATALOGUE.value
-        rule = promotion.rules.first()
-        predicate_type = rule.predicate_type if rule else None
+        promotion_type = promotion.type
 
         clean_promotion_rule(
             cleaned_input,
+            promotion_type,
             errors,
             PromotionRuleCreateErrorCode,
-            promotion_type=predicate_type,
         )
 
         if errors:

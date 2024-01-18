@@ -14214,6 +14214,11 @@ type Promotion implements Node & ObjectWithMetadata @doc(category: "Discounts") 
   """Name of the promotion."""
   name: String!
 
+  """
+  The type of the promotion. Implicate if the discount is applied on catalogue or order level.
+  """
+  type: PromotionTypeEnum
+
   """Description of the promotion."""
   description: JSON
 
@@ -14240,6 +14245,12 @@ type Promotion implements Node & ObjectWithMetadata @doc(category: "Discounts") 
 
   """The list of events associated with the promotion."""
   events: [PromotionEvent!]
+}
+
+"""An enumeration."""
+enum PromotionTypeEnum @doc(category: "Discounts") {
+  CATALOGUE
+  ORDER
 }
 
 """
@@ -14277,7 +14288,7 @@ type PromotionRule implements Node @doc(category: "Discounts") {
   rewardValueType: RewardValueTypeEnum
 
   """The type of the predicate that must be met to apply the reward."""
-  predicateType: PredicateTypeEnum
+  predicateType: PromotionTypeEnum
 
   """The catalogue predicate that must be met to apply the rule reward."""
   cataloguePredicate: JSON
@@ -14311,12 +14322,6 @@ type PromotionRule implements Node @doc(category: "Discounts") {
 enum RewardValueTypeEnum @doc(category: "Discounts") {
   FIXED
   PERCENTAGE
-}
-
-"""An enumeration."""
-enum PredicateTypeEnum @doc(category: "Discounts") {
-  CATALOGUE
-  ORDER
 }
 
 """An enumeration."""
@@ -27465,6 +27470,17 @@ input PromotionCreateInput @doc(category: "Discounts") {
   """Promotion name."""
   name: String!
 
+  """
+  Defines the promotion type. Implicate the required promotion rules predicate type and whether the promotion rules will give the catalogue or order discount. 
+  
+  The default value is `Catalogue`.
+  
+  This field will be required from Saleor 3.20.
+  
+  Added in Saleor 3.19.
+  """
+  type: PromotionTypeEnum
+
   """List of promotion rules."""
   rules: [PromotionRuleInput!]
 }
@@ -27511,17 +27527,6 @@ input PromotionRuleInput @doc(category: "Discounts") {
 
   """List of channel ids to which the rule should apply to."""
   channels: [ID!]
-
-  """
-  Defines the promotion rule predicate type. Implicate whether the promotion rule will give the catalogue or order discount. The promotion can have only rules with one type of predicate.
-  
-  The default value is `Catalogue`, so defining promotion rule with order predicate require providing a value.
-  
-  This field will be required from Saleor 3.20.
-  
-  Added in Saleor 3.19.
-  """
-  predicateType: PredicateTypeEnum
 }
 
 input CataloguePredicateInput @doc(category: "Discounts") {
@@ -27750,17 +27755,6 @@ input PromotionRuleCreateInput {
 
   """List of channel ids to which the rule should apply to."""
   channels: [ID!]
-
-  """
-  Defines the promotion rule predicate type. Implicate whether the promotion rule will give the catalogue or order discount. The promotion can have only rules with one type of predicate.
-  
-  The default value is `Catalogue`, so defining promotion rule with order predicate require providing a value.
-  
-  This field will be required from Saleor 3.20.
-  
-  Added in Saleor 3.19.
-  """
-  predicateType: PredicateTypeEnum
 
   """The ID of the promotion that rule belongs to."""
   promotion: ID!

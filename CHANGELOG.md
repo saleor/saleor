@@ -8,7 +8,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Breaking changes
 - Drop `OrderBulkCreateInput.voucher` field. Use `OrderBulkCreateInput.voucherCode` instead. - #14553 by @zedzior
-- Add new `predicateType` field to `PromotionRuleCreateInput`, the field will be required from 3.20 - #14696 by @IKarbowiak, @zedzior
+- Add new `type` field to `PromotionCreateInput`, the field will be required from 3.20 - #14696 by @IKarbowiak, @zedzior
 
 ### GraphQL API
 

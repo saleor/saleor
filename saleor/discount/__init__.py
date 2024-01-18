@@ -42,7 +42,7 @@ class VoucherType:
     ]
 
 
-class PredicateType:
+class PromotionType:
     CATALOGUE = "catalogue"
     ORDER = "order"
 

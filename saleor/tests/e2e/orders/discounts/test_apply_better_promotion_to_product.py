@@ -18,16 +18,15 @@ def prepare_promotion_with_rules(
     channel_id,
     product_id,
 ):
-    promotion = create_promotion(e2e_staff_api_client, promotion_name)
+    promotion_type = "CATALOGUE"
+    promotion = create_promotion(e2e_staff_api_client, promotion_name, promotion_type)
     promotion_id = promotion["id"]
 
-    predicate_type = "CATALOGUE"
     catalogue_predicate = {"productPredicate": {"ids": [product_id]}}
     promotion_rule = create_promotion_rule(
         e2e_staff_api_client,
         promotion_id,
         catalogue_predicate,
-        predicate_type,
         discount_type,
         discount_value,
         rule_name,

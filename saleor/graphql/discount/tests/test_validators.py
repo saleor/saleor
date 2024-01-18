@@ -4,7 +4,7 @@ import graphene
 import pytest
 from django.core.exceptions import ValidationError
 
-from ....discount import PredicateType, RewardType, RewardValueType
+from ....discount import PromotionType, RewardType, RewardValueType
 from ..enums import PromotionCreateErrorCode
 from ..mutations.promotion.validators import (
     _clean_catalogue_predicate,
@@ -84,8 +84,7 @@ def test_clean_predicates_invalid_order_predicate(product):
         errors,
         PromotionCreateErrorCode,
         None,
-        PredicateType.CATALOGUE,
-        None,
+        PromotionType.CATALOGUE,
     )
 
     # then
@@ -113,8 +112,7 @@ def test_clean_predicates_invalid_catalogue_predicate(product):
         errors,
         PromotionCreateErrorCode,
         None,
-        PredicateType.ORDER,
-        None,
+        PromotionType.ORDER,
     )
 
     # then
@@ -136,8 +134,7 @@ def test_clean_predicates_missing_catalogue_predicate(product):
         errors,
         PromotionCreateErrorCode,
         None,
-        PredicateType.CATALOGUE,
-        None,
+        PromotionType.CATALOGUE,
     )
 
     # then
@@ -159,8 +156,7 @@ def test_clean_predicates_missing_order_predicate(product):
         errors,
         PromotionCreateErrorCode,
         None,
-        PredicateType.ORDER,
-        None,
+        PromotionType.ORDER,
     )
 
     # then
@@ -187,16 +183,14 @@ def test_clean_predicates_mixed_promotion_predicates_invalid_catalogue_predicate
         errors,
         PromotionCreateErrorCode,
         None,
-        None,
-        PredicateType.ORDER,
+        PromotionType.ORDER,
     )
 
     # then
     assert len(errors) == 1
     assert len(errors["catalogue_predicate"]) == 1
     assert (
-        errors["catalogue_predicate"][0].code
-        == PromotionCreateErrorCode.MIXED_PROMOTION_PREDICATES.value
+        errors["catalogue_predicate"][0].code == PromotionCreateErrorCode.INVALID.value
     )
 
 
@@ -216,17 +210,13 @@ def test_clean_predicates_mixed_promotion_predicates_invalid_order(
         errors,
         PromotionCreateErrorCode,
         None,
-        None,
-        PredicateType.CATALOGUE,
+        PromotionType.CATALOGUE,
     )
 
     # then
     assert len(errors) == 1
     assert len(errors["order_predicate"]) == 1
-    assert (
-        errors["order_predicate"][0].code
-        == PromotionCreateErrorCode.MIXED_PROMOTION_PREDICATES.value
-    )
+    assert errors["order_predicate"][0].code == PromotionCreateErrorCode.INVALID.value
 
 
 def test_clean_catalogue_predicate_reward_type_provided():
@@ -285,10 +275,10 @@ def test_clean_order_predicate_missing_reward_type():
 
 
 def test_clean_order_predicate_reward_type_in_instance(
-    promotion_with_order_rule,
+    order_promotion_with_rule,
 ):
     # given
-    rule = promotion_with_order_rule.rules.first()
+    rule = order_promotion_with_rule.rules.first()
     order_predicate = {
         "discounted_object_predicate": {"base_subtotal_price": {"range": {"gte": 100}}}
     }
@@ -345,10 +335,10 @@ def test_clean_order_predicate_price_based_predicate_mixed_currencies():
 
 
 def test_clean_order_mixed_currencies_instance_given_invalid_predicate(
-    promotion_with_order_rule,
+    order_promotion_with_rule,
 ):
     # given
-    rule = promotion_with_order_rule.rules.first()
+    rule = order_promotion_with_rule.rules.first()
     order_predicate = {
         "discounted_object_predicate": {"base_subtotal_price": {"range": {"gte": 100}}}
     }
@@ -379,10 +369,10 @@ def test_clean_order_mixed_currencies_instance_given_invalid_predicate(
 
 
 def test_clean_order_mixed_currencies_instance_given_invalid_channels(
-    promotion_with_order_rule,
+    order_promotion_with_rule,
 ):
     # given
-    rule = promotion_with_order_rule.rules.first()
+    rule = order_promotion_with_rule.rules.first()
     order_predicate = {
         "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 100}}}
     }

@@ -4,7 +4,7 @@ import graphene
 import pytest
 
 from ....tests.utils import get_graphql_content
-from ...enums import PredicateTypeEnum, RewardValueTypeEnum
+from ...enums import RewardValueTypeEnum
 from ..mutations.test_promotion_rule_create import PROMOTION_RULE_CREATE_MUTATION
 
 
@@ -67,7 +67,6 @@ def test_promotion_rule_create(
             "rewardValueType": RewardValueTypeEnum.PERCENTAGE.name,
             "rewardValue": reward_value,
             "cataloguePredicate": catalogue_predicate,
-            "predicateType": PredicateTypeEnum.CATALOGUE.name,
         }
     }
 

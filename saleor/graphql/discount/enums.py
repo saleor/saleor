@@ -3,8 +3,8 @@ import graphene
 from ...discount import (
     DiscountType,
     DiscountValueType,
-    PredicateType,
     PromotionEvents,
+    PromotionType,
     RewardType,
     RewardValueType,
     VoucherType,
@@ -20,8 +20,8 @@ RewardValueTypeEnum = to_enum(RewardValueType, type_name="RewardValueTypeEnum")
 RewardValueTypeEnum.doc_category = DOC_CATEGORY_DISCOUNTS
 RewardTypeEnum = to_enum(RewardType, type_name="RewardTypeEnum")
 RewardTypeEnum.doc_category = DOC_CATEGORY_DISCOUNTS
-PredicateTypeEnum = to_enum(PredicateType, type_name="PredicateTypeEnum")
-PredicateTypeEnum.doc_category = DOC_CATEGORY_DISCOUNTS
+PromotionTypeEnum = to_enum(PromotionType, type_name="PromotionTypeEnum")
+PromotionTypeEnum.doc_category = DOC_CATEGORY_DISCOUNTS
 PromotionEventsEnum = to_enum(PromotionEvents, type_name="PromotionEventsEnum")
 PromotionEventsEnum.doc_category = DOC_CATEGORY_DISCOUNTS
 

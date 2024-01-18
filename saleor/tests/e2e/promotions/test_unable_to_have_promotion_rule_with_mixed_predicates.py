@@ -47,6 +47,7 @@ def test_unable_to_have_promotion_rule_with_mixed_predicates_CORE_2125(
 
     # Step 1- Create promotion with rule with mixed predicates
     invalid_promotion_name = "Promotion with mixed predicates"
+    invalid_promotion_type = "CATALOGUE"
     invalid_promotion_reward_value = "20"
     invalid_promotion_rules = [
         {
@@ -62,7 +63,10 @@ def test_unable_to_have_promotion_rule_with_mixed_predicates_CORE_2125(
         }
     ]
     data = raw_create_promotion(
-        e2e_staff_api_client, invalid_promotion_name, invalid_promotion_rules
+        e2e_staff_api_client,
+        invalid_promotion_name,
+        invalid_promotion_type,
+        invalid_promotion_rules,
     )
     errors = data["errors"]
     assert errors[0]["message"] == (
@@ -74,6 +78,7 @@ def test_unable_to_have_promotion_rule_with_mixed_predicates_CORE_2125(
 
     # Step 2- Create promotion with rule with order predicate
     promotion_name = "Promotion"
+    promotion_type = "ORDER"
     reward_value = "20"
     rules = [
         {
@@ -85,10 +90,11 @@ def test_unable_to_have_promotion_rule_with_mixed_predicates_CORE_2125(
             "rewardType": "SUBTOTAL_DISCOUNT",
             "rewardValue": reward_value,
             "rewardValueType": "PERCENTAGE",
-            "predicateType": "ORDER",
         }
     ]
-    promotion_data = create_promotion(e2e_staff_api_client, promotion_name, rules)
+    promotion_data = create_promotion(
+        e2e_staff_api_client, promotion_name, promotion_type, rules
+    )
     promotion_rule_id = promotion_data["rules"][0]["id"]
 
     # Step 3 - Check the promotion rule cannot be updated with catalogue predicate

@@ -10,8 +10,8 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AddField(
-            model_name="promotionrule",
-            name="predicate_type",
+            model_name="promotion",
+            name="type",
             field=models.CharField(
                 choices=[("catalogue", "Catalogue"), ("order", "Order")],
                 max_length=255,
@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
             ),
         ),
         migrations.RunSQL(
-            "ALTER TABLE discount_promotionrule ALTER COLUMN predicate_type SET DEFAULT 'catalogue';",
+            "ALTER TABLE discount_promotion ALTER COLUMN type SET DEFAULT 'catalogue';",
             migrations.RunSQL.noop,
         ),
     ]

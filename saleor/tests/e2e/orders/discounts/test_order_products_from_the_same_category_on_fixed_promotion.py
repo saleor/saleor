@@ -94,9 +94,11 @@ def prepare_product(
         variant_price_2,
     )
 
-    promotion_data = create_promotion(e2e_staff_api_client, promotion_name)
+    promotion_type = "CATALOGUE"
+    promotion_data = create_promotion(
+        e2e_staff_api_client, promotion_name, promotion_type
+    )
     promotion_id = promotion_data["id"]
-    predicate_type = "CATALOGUE"
 
     catalogue_predicate = {
         "categoryPredicate": {"ids": category_ids},
@@ -106,7 +108,6 @@ def prepare_product(
         e2e_staff_api_client,
         promotion_id,
         catalogue_predicate,
-        predicate_type,
         discount_type,
         discount_value,
         promotion_rule_name,

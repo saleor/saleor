@@ -38,10 +38,12 @@ def test_checkout_with_fixed_promotion_should_not_result_in_negative_price_CORE_
     ) = prepare_product(e2e_staff_api_client, warehouse_id, channel_id, variant_price=5)
 
     promotion_name = "Promotion Fixed"
+    promotion_type = "CATALOGUE"
 
     promotion_data = create_promotion(
         e2e_staff_api_client,
         promotion_name,
+        promotion_type,
     )
     promotion_id = promotion_data["id"]
 
@@ -51,7 +53,6 @@ def test_checkout_with_fixed_promotion_should_not_result_in_negative_price_CORE_
     discount_value = 10
     discount_type = "FIXED"
     promotion_rule_name = "rule for product"
-    predicate_type = "CATALOGUE"
 
     catalogue_predicate = {"productPredicate": {"ids": [product_id]}}
 
@@ -59,7 +60,6 @@ def test_checkout_with_fixed_promotion_should_not_result_in_negative_price_CORE_
         e2e_staff_api_client,
         promotion_id,
         catalogue_predicate,
-        predicate_type,
         discount_type,
         discount_value,
         promotion_rule_name,

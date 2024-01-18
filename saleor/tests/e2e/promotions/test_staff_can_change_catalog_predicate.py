@@ -27,16 +27,17 @@ def prepare_promotion(
     channel_id=None,
 ):
     promotion_name = "Promotion Test"
-    promotion_data = create_promotion(e2e_staff_api_client, promotion_name)
+    promotion_type = "CATALOGUE"
+    promotion_data = create_promotion(
+        e2e_staff_api_client, promotion_name, promotion_type
+    )
     promotion_id = promotion_data["id"]
 
     predicate_input = {"collectionPredicate": {"ids": collection_ids}}
-    predicate_type = "CATALOGUE"
     promotion_rule_data = create_promotion_rule(
         e2e_staff_api_client,
         promotion_id,
         predicate_input,
-        predicate_type,
         discount_type,
         discount_value,
         promotion_rule_name,
