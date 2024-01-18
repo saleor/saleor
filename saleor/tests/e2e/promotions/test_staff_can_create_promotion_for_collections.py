@@ -100,14 +100,17 @@ def test_create_promotion_for_collection_core_2109(
 
     collection_ids = [collection_id]
     predicate_input = {"collectionPredicate": {"ids": collection_ids}}
+    input = {
+        "promotion": promotion_id,
+        "channels": [channel_id],
+        "name": promotion_rule_name,
+        "cataloguePredicate": predicate_input,
+        "rewardValue": discount_value,
+        "rewardValueType": discount_type,
+    }
     promotion_rule = create_promotion_rule(
         e2e_staff_api_client,
-        promotion_id,
-        predicate_input,
-        discount_type,
-        discount_value,
-        promotion_rule_name,
-        channel_id,
+        input,
     )
 
     collection_predicate = promotion_rule["cataloguePredicate"]["collectionPredicate"]
