@@ -16,7 +16,7 @@ def test_promotion_rule_create(
     permission_group_manage_discounts,
     channel_USD,
     channel_PLN,
-    promotion,
+    catalogue_promotion,
     variant,
     product,
     category,
@@ -57,7 +57,7 @@ def test_promotion_rule_create(
         ]
     }
 
-    promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
+    promotion_id = graphene.Node.to_global_id("Promotion", catalogue_promotion.id)
     variables = {
         "input": {
             "promotion": promotion_id,

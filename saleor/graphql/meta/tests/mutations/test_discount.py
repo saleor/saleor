@@ -153,10 +153,10 @@ def test_add_private_metadata_for_voucher(
 
 
 def test_add_public_metadata_for_promotion(
-    staff_api_client, permission_manage_discounts, promotion
+    staff_api_client, permission_manage_discounts, catalogue_promotion
 ):
     # given
-    promotion_id = graphene.Node.to_global_id("Promotion", promotion.pk)
+    promotion_id = graphene.Node.to_global_id("Promotion", catalogue_promotion.pk)
 
     # when
     response = execute_update_public_metadata_for_item(
@@ -165,14 +165,15 @@ def test_add_public_metadata_for_promotion(
 
     # then
     assert item_contains_proper_public_metadata(
-        response["data"]["updateMetadata"]["item"], promotion, promotion_id
+        response["data"]["updateMetadata"]["item"], catalogue_promotion, promotion_id
     )
 
 
 def test_delete_public_metadata_for_promotion(
-    staff_api_client, permission_manage_discounts, promotion
+    staff_api_client, permission_manage_discounts, catalogue_promotion
 ):
     # given
+    promotion = catalogue_promotion
     promotion.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     promotion.save(update_fields=["metadata"])
     promotion_id = graphene.Node.to_global_id("Promotion", promotion.pk)
@@ -189,9 +190,10 @@ def test_delete_public_metadata_for_promotion(
 
 
 def test_add_private_metadata_for_promotion(
-    staff_api_client, permission_manage_discounts, promotion
+    staff_api_client, permission_manage_discounts, catalogue_promotion
 ):
     # given
+    promotion = catalogue_promotion
     promotion_id = graphene.Node.to_global_id("Promotion", promotion.pk)
 
     # when
@@ -206,9 +208,10 @@ def test_add_private_metadata_for_promotion(
 
 
 def test_delete_private_metadata_for_promotion(
-    staff_api_client, permission_manage_discounts, promotion
+    staff_api_client, permission_manage_discounts, catalogue_promotion
 ):
     # given
+    promotion = catalogue_promotion
     promotion.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
     promotion.save(update_fields=["private_metadata"])
     promotion_id = graphene.Node.to_global_id("Promotion", promotion.pk)

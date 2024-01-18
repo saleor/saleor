@@ -79,9 +79,10 @@ def test_order_lines_create_variants_on_promotion(
     staff_api_client,
     product_list,
     count_queries,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     query = ORDER_LINES_CREATE_MUTATION
     order = order_with_lines
     order.status = OrderStatus.DRAFT

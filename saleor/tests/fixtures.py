@@ -408,12 +408,14 @@ def checkout_with_item_on_promotion(checkout_with_item):
 
 
 @pytest.fixture
-def checkout_with_item_and_order_discount(checkout_with_item, promotion_without_rules):
+def checkout_with_item_and_order_discount(
+    checkout_with_item, catalogue_promotion_without_rules
+):
     channel = checkout_with_item.channel
 
     reward_value = Decimal("5")
 
-    rule = promotion_without_rules.rules.create(
+    rule = catalogue_promotion_without_rules.rules.create(
         order_predicate={
             "base_total_price": {
                 "range": {
@@ -4177,12 +4179,12 @@ def order_line(order, variant):
 
 
 @pytest.fixture
-def order_line_on_promotion(order_line, promotion):
+def order_line_on_promotion(order_line, catalogue_promotion):
     variant = order_line.variant
 
     channel = order_line.order.channel
     reward_value = Decimal("1.0")
-    rule = promotion.rules.first()
+    rule = catalogue_promotion.rules.first()
     variant_channel_listing = variant.channel_listings.get(channel=channel)
 
     variant_channel_listing.discounted_price_amount = (
@@ -5569,7 +5571,7 @@ def dummy_webhook_app_payment_data(dummy_payment_data, payment_app):
 
 
 @pytest.fixture
-def promotion(channel_USD, product, collection):
+def catalogue_promotion(channel_USD, product, collection):
     promotion = Promotion.objects.create(
         name="Promotion",
         type=PromotionType.CATALOGUE,
@@ -5615,7 +5617,7 @@ def promotion(channel_USD, product, collection):
 
 
 @pytest.fixture
-def promotion_without_rules(db):
+def catalogue_promotion_without_rules(db):
     promotion = Promotion.objects.create(
         name="Promotion",
         description=dummy_editorjs("Test description."),
@@ -5637,7 +5639,7 @@ def order_promotion_without_rules(db):
 
 
 @pytest.fixture
-def promotion_with_single_rule(catalogue_predicate, channel_USD):
+def catalogue_promotion_with_single_rule(catalogue_predicate, channel_USD):
     promotion = Promotion.objects.create(
         name="Promotion with single rule", type=PromotionType.CATALOGUE
     )
@@ -5766,10 +5768,10 @@ def promotion_list(channel_USD, product, collection):
 
 
 @pytest.fixture
-def promotion_rule(channel_USD, promotion, product):
+def promotion_rule(channel_USD, catalogue_promotion, product):
     rule = PromotionRule.objects.create(
         name="Promotion rule name",
-        promotion=promotion,
+        promotion=catalogue_promotion,
         description=dummy_editorjs("Test description for percentage promotion rule."),
         catalogue_predicate={
             "productPredicate": {
@@ -5897,7 +5899,8 @@ def promotion_converted_from_sale_with_empty_predicate(channel_USD):
 
 
 @pytest.fixture
-def promotion_events(promotion, staff_user):
+def promotion_events(catalogue_promotion, staff_user):
+    promotion = catalogue_promotion
     rule_id = promotion.rules.first().pk
     events = PromotionEvent.objects.bulk_create(
         [
@@ -6581,10 +6584,10 @@ def shipping_method_translation_fr(shipping_method):
 
 
 @pytest.fixture
-def promotion_translation_fr(promotion):
+def promotion_translation_fr(catalogue_promotion):
     return PromotionTranslation.objects.create(
         language_code="fr",
-        promotion=promotion,
+        promotion=catalogue_promotion,
         name="French promotion name",
         description=dummy_editorjs("French promotion description."),
     )

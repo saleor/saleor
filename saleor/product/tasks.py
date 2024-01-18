@@ -115,6 +115,7 @@ def update_products_discounted_prices_for_promotion_task(
     promotions = Promotion.objects.using(
         settings.DATABASE_CONNECTION_REPLICA_NAME
     ).active()
+    # TODO: add filter for catalogue promotions or queryset method
     kwargs = {"id__gt": start_id} if start_id else {}
     if rule_ids:
         kwargs["id__in"] = rule_ids  # type: ignore[assignment]

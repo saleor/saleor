@@ -63,10 +63,11 @@ def test_promotion_rule_create_by_staff_user(
     product,
     collection,
     category,
-    promotion,
+    catalogue_promotion,
 ):
     # given
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
+    promotion = catalogue_promotion
 
     channel_ids = [
         graphene.Node.to_global_id("Channel", channel.pk)
@@ -146,9 +147,10 @@ def test_promotion_rule_create_by_app(
     channel_PLN,
     collection,
     category,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     channel_ids = [graphene.Node.to_global_id("Channel", channel_PLN.pk)]
     catalogue_predicate = {
         "OR": [
@@ -217,9 +219,10 @@ def test_promotion_rule_create_by_customer(
     channel_USD,
     category,
     collection,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     channel_ids = [graphene.Node.to_global_id("Channel", channel_USD.pk)]
     catalogue_predicate = {
         "OR": [
@@ -319,9 +322,10 @@ def test_promotion_rule_create_missing_reward_value(
     channel_USD,
     channel_PLN,
     product,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
 
     channel_ids = [
@@ -369,9 +373,10 @@ def test_promotion_rule_create_missing_reward_value_type(
     channel_USD,
     channel_PLN,
     product,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
 
     channel_ids = [
@@ -419,9 +424,10 @@ def test_promotion_rule_create_multiple_errors(
     channel_USD,
     channel_PLN,
     product,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
 
     channel_ids = [
@@ -485,9 +491,10 @@ def test_promotion_rule_invalid_catalogue_predicate(
     variant,
     product,
     collection,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
 
     channel_ids = [
@@ -612,9 +619,10 @@ def test_promotion_rule_create_invalid_price_precision(
     channel_USD,
     collection,
     category,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
 
     channel_ids = [graphene.Node.to_global_id("Channel", channel_USD.pk)]
@@ -673,9 +681,10 @@ def test_promotion_rule_create_fixed_reward_value_multiple_currencies(
     channel_PLN,
     collection,
     category,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
 
     channel_ids = [
@@ -738,9 +747,10 @@ def test_promotion_rule_create_fixed_reward_no_channels(
     description_json,
     collection,
     category,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
 
     catalogue_predicate = {
@@ -798,9 +808,10 @@ def test_promotion_rule_create_percentage_value_above_100(
     channel_PLN,
     collection,
     category,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
 
     channel_ids = [
@@ -931,9 +942,10 @@ def test_promotion_rule_create_events(
     permission_group_manage_discounts,
     channel_USD,
     variant,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
     channel_ids = [graphene.Node.to_global_id("Channel", channel_USD.pk)]
     catalogue_predicate = {
@@ -984,9 +996,10 @@ def test_promotion_rule_create_serializable_decimal_in_predicate(
     promotion_rule_created_mock,
     staff_api_client,
     permission_group_manage_discounts,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
     catalogue_predicate = {
         "productPredicate": {"minimalPrice": {"range": {"gte": "25"}}}
@@ -1020,9 +1033,10 @@ def test_promotion_rule_create_multiple_predicates(
     description_json,
     channel_USD,
     product,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.pk)
     name = "test promotion rule"
@@ -1076,9 +1090,10 @@ def test_promotion_rule_create_mixed_predicates_order(
     description_json,
     channel_USD,
     product,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.pk)
     name = "test promotion rule"
@@ -1229,9 +1244,10 @@ def test_promotion_rule_create_reward_type_with_catalogue_predicate(
     description_json,
     channel_USD,
     product,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.pk)
     name = "test promotion rule"

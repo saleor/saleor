@@ -142,7 +142,7 @@ def test_add_to_existing_line_with_sale_when_checkout_has_voucher(
     stock,
     voucher_percentage,
     channel_USD,
-    promotion_without_rules,
+    catalogue_promotion_without_rules,
 ):
     # given
 
@@ -161,7 +161,7 @@ def test_add_to_existing_line_with_sale_when_checkout_has_voucher(
     # prepare promotion with 50% discount
 
     reward_value = Decimal("50.00")
-    rule = promotion_without_rules.rules.create(
+    rule = catalogue_promotion_without_rules.rules.create(
         catalogue_predicate={
             "productPredicate": {
                 "ids": [graphene.Node.to_global_id("Product", variant.product.id)]
@@ -245,7 +245,7 @@ def test_add_to_existing_line_catalogue_and_order_discount_applies(
     checkout_with_item,
     stock,
     channel_USD,
-    promotion_without_rules,
+    catalogue_promotion_without_rules,
 ):
     """Ensure that both catalogue and order discount are applied."""
     # given
@@ -256,7 +256,7 @@ def test_add_to_existing_line_catalogue_and_order_discount_applies(
 
     # prepare catalogue promotion with 50% discount
     reward_value = Decimal("50.00")
-    rule = promotion_without_rules.rules.create(
+    rule = catalogue_promotion_without_rules.rules.create(
         catalogue_predicate={
             "productPredicate": {
                 "ids": [graphene.Node.to_global_id("Product", variant.product.id)]
@@ -285,7 +285,7 @@ def test_add_to_existing_line_catalogue_and_order_discount_applies(
     )
 
     # create order promotion discount
-    rule = promotion_without_rules.rules.create(
+    rule = catalogue_promotion_without_rules.rules.create(
         order_predicate={
             "base_total_price": {
                 "range": {
@@ -344,7 +344,7 @@ def test_add_to_existing_line_on_promotion_with_voucher_checkout_promotion_not_a
     stock,
     voucher_percentage,
     channel_USD,
-    promotion_without_rules,
+    catalogue_promotion_without_rules,
 ):
     """Ensure that order promotion discount is not applied when the voucher is set."""
     # given
@@ -363,7 +363,7 @@ def test_add_to_existing_line_on_promotion_with_voucher_checkout_promotion_not_a
 
     # prepare promotion with 50% discount
     reward_value = Decimal("50.00")
-    rule = promotion_without_rules.rules.create(
+    rule = catalogue_promotion_without_rules.rules.create(
         catalogue_predicate={
             "productPredicate": {
                 "ids": [graphene.Node.to_global_id("Product", variant.product.id)]
@@ -392,7 +392,7 @@ def test_add_to_existing_line_on_promotion_with_voucher_checkout_promotion_not_a
     )
 
     # create order promotion discount
-    rule = promotion_without_rules.rules.create(
+    rule = catalogue_promotion_without_rules.rules.create(
         order_predicate={
             "base_total_price": {
                 "range": {

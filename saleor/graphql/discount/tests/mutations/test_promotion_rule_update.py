@@ -56,10 +56,11 @@ def test_promotion_rule_update_by_staff_user(
     channel_PLN,
     collection,
     category,
-    promotion,
+    catalogue_promotion,
     product_list,
 ):
     # given
+    promotion = catalogue_promotion
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
     rule = promotion.rules.create(
         name="Rule",
@@ -143,10 +144,11 @@ def test_promotion_rule_update_by_app(
     permission_manage_discounts,
     channel_USD,
     channel_PLN,
-    promotion,
+    catalogue_promotion,
     product,
 ):
     # given
+    promotion = catalogue_promotion
     rule = promotion.rules.get(name="Percentage promotion rule")
     rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
 
@@ -198,9 +200,10 @@ def test_promotion_rule_update_by_customer(
     api_client,
     channel_USD,
     channel_PLN,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     rule = promotion.rules.first()
     rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
 
@@ -234,9 +237,10 @@ def test_promotion_rule_update_duplicates_channels_in_add_and_remove_field(
     channel_PLN,
     collection,
     category,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
     rule = promotion.rules.first()
     rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
@@ -309,9 +313,10 @@ def test_promotion_rule_update_invalid_catalogue_predicate(
     channel_PLN,
     collection,
     category,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
     rule = promotion.rules.first()
     rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
@@ -360,9 +365,10 @@ def test_promotion_rule_update_add_channel_with_different_currency_to_fixed_disc
     app_api_client,
     permission_manage_discounts,
     channel_PLN,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     rule = promotion.rules.get(name="Fixed promotion rule")
     rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
 
@@ -402,9 +408,10 @@ def test_promotion_rule_update_remove_last_channel_from_fixed_discount(
     app_api_client,
     permission_manage_discounts,
     channel_USD,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     rule = promotion.rules.get(name="Fixed promotion rule")
     rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
 
@@ -442,9 +449,10 @@ def test_promotion_rule_update_remove_and_add_channel_with_the_same_currency(
     permission_manage_discounts,
     channel_USD,
     other_channel_USD,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     rule = promotion.rules.get(name="Fixed promotion rule")
     rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
 
@@ -480,9 +488,10 @@ def test_promotion_rule_update_change_reward_value_type_to_fixed_multiple_channe
     app_api_client,
     permission_manage_discounts,
     channel_PLN,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     rule = promotion.rules.get(name="Percentage promotion rule")
     rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
 
@@ -521,9 +530,10 @@ def test_promotion_rule_update_change_reward_value_type_to_fixed_multiple_channe
 def test_promotion_rule_update_change_reward_value_type_to_fixed_no_channels(
     app_api_client,
     permission_manage_discounts,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     rule = promotion.rules.get(name="Percentage promotion rule")
     rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
 
@@ -561,9 +571,10 @@ def test_promotion_rule_update_reward_value_invalid_precision(
     permission_manage_discounts,
     channel_USD,
     channel_PLN,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     rule = promotion.rules.get(name="Fixed promotion rule")
     rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
 
@@ -603,9 +614,10 @@ def test_promotion_rule_update_reward_value_invalid_percentage_value(
     permission_manage_discounts,
     channel_USD,
     channel_PLN,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     rule = promotion.rules.get(name="Percentage promotion rule")
     rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
 
@@ -738,9 +750,10 @@ def test_promotion_rule_update_events(
     permission_group_manage_discounts,
     channel_PLN,
     category,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
     rule = promotion.rules.first()
     rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
@@ -788,9 +801,10 @@ def test_promotion_rule_update_events(
 def test_promotion_rule_update_mix_predicates_invalid_order_predicate(
     app_api_client,
     permission_manage_discounts,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     rule = promotion.rules.get(name="Percentage promotion rule")
     assert rule.catalogue_predicate
     assert not rule.order_predicate
@@ -867,9 +881,10 @@ def test_promotion_rule_update_mix_predicates_both_predicate_types_given(
     app_api_client,
     product,
     permission_manage_discounts,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     rule = promotion.rules.get(name="Percentage promotion rule")
     assert rule.catalogue_predicate
     assert not rule.order_predicate
@@ -915,9 +930,10 @@ def test_promotion_rule_update_mix_predicates_both_predicate_types_given(
 def test_promotion_rule_update_reward_type_with_catalogue_predicate(
     app_api_client,
     permission_manage_discounts,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     rule = promotion.rules.get(name="Percentage promotion rule")
     rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
     reward_type = RewardTypeEnum.SUBTOTAL_DISCOUNT.name

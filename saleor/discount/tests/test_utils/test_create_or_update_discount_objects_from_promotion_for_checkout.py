@@ -38,7 +38,7 @@ def test_create_or_update_discount_objects_from_promotion_for_checkout_no_discou
 def test_create_fixed_discount(
     checkout_info,
     checkout_lines_info,
-    promotion_without_rules,
+    catalogue_promotion_without_rules,
     promotion_translation_fr,
 ):
     # given
@@ -46,7 +46,7 @@ def test_create_fixed_discount(
     product_line1 = line_info1.product
 
     reward_value = Decimal("2")
-    rule = promotion_without_rules.rules.create(
+    rule = catalogue_promotion_without_rules.rules.create(
         name="Percentage promotion rule",
         catalogue_predicate={
             "productPredicate": {
@@ -73,7 +73,7 @@ def test_create_fixed_discount(
         VariantPromotionRuleInfo(
             rule=rule,
             variant_listing_promotion_rule=listing_promotion_rule,
-            promotion=promotion_without_rules,
+            promotion=catalogue_promotion_without_rules,
             promotion_translation=promotion_translation_fr,
             rule_translation=None,
         )
@@ -105,7 +105,7 @@ def test_create_fixed_discount(
     assert (
         discount_from_info.name
         == discount_from_db.name
-        == f"{promotion_without_rules.name}: {rule.name}"
+        == f"{catalogue_promotion_without_rules.name}: {rule.name}"
     )
     assert discount_from_info.reason == discount_from_db.reason is None
     assert discount_from_info.promotion_rule == discount_from_db.promotion_rule == rule
@@ -122,14 +122,16 @@ def test_create_fixed_discount(
 
 @freeze_time("2020-12-12 12:00:00")
 def test_create_fixed_discount_multiple_quantity_in_lines(
-    checkout_info, checkout_lines_with_multiple_quantity_info, promotion_without_rules
+    checkout_info,
+    checkout_lines_with_multiple_quantity_info,
+    catalogue_promotion_without_rules,
 ):
     # given
     line_info1 = checkout_lines_with_multiple_quantity_info[0]
     product_line1 = line_info1.product
 
     reward_value = Decimal("2")
-    rule = promotion_without_rules.rules.create(
+    rule = catalogue_promotion_without_rules.rules.create(
         catalogue_predicate={
             "productPredicate": {
                 "ids": [graphene.Node.to_global_id("Product", product_line1.id)]
@@ -157,7 +159,7 @@ def test_create_fixed_discount_multiple_quantity_in_lines(
         VariantPromotionRuleInfo(
             rule=rule,
             variant_listing_promotion_rule=listing_promotion_rule,
-            promotion=promotion_without_rules,
+            promotion=catalogue_promotion_without_rules,
             promotion_translation=None,
             rule_translation=None,
         )
@@ -189,7 +191,9 @@ def test_create_fixed_discount_multiple_quantity_in_lines(
     )
     assert discount_from_info.currency == discount_from_db.currency == "USD"
     assert (
-        discount_from_info.name == discount_from_db.name == promotion_without_rules.name
+        discount_from_info.name
+        == discount_from_db.name
+        == catalogue_promotion_without_rules.name
     )
     assert discount_from_info.reason == discount_from_db.reason is None
     assert discount_from_info.promotion_rule == discount_from_db.promotion_rule == rule
@@ -200,14 +204,16 @@ def test_create_fixed_discount_multiple_quantity_in_lines(
 
 
 def test_create_fixed_discount_multiple_quantity_in_lines_discount_bigger_than_total(
-    checkout_info, checkout_lines_with_multiple_quantity_info, promotion_without_rules
+    checkout_info,
+    checkout_lines_with_multiple_quantity_info,
+    catalogue_promotion_without_rules,
 ):
     # given
     line_info1 = checkout_lines_with_multiple_quantity_info[0]
     product_line1 = line_info1.product
 
     reward_value = Decimal(15)
-    rule = promotion_without_rules.rules.create(
+    rule = catalogue_promotion_without_rules.rules.create(
         name="Percentage promotion rule",
         catalogue_predicate={
             "productPredicate": {
@@ -235,7 +241,7 @@ def test_create_fixed_discount_multiple_quantity_in_lines_discount_bigger_than_t
         VariantPromotionRuleInfo(
             rule=rule,
             variant_listing_promotion_rule=listing_promotion_rule,
-            promotion=promotion_without_rules,
+            promotion=catalogue_promotion_without_rules,
             promotion_translation=None,
             rule_translation=None,
         )
@@ -272,14 +278,14 @@ def test_create_fixed_discount_multiple_quantity_in_lines_discount_bigger_than_t
 
 @freeze_time("2020-12-12 12:00:00")
 def test_create_percentage_discount(
-    checkout_info, checkout_lines_info, promotion_without_rules
+    checkout_info, checkout_lines_info, catalogue_promotion_without_rules
 ):
     # given
     line_info1 = checkout_lines_info[0]
     product_line1 = line_info1.product
 
     reward_value = Decimal("10")
-    rule = promotion_without_rules.rules.create(
+    rule = catalogue_promotion_without_rules.rules.create(
         name="Percentage promotion rule",
         catalogue_predicate={
             "productPredicate": {
@@ -308,7 +314,7 @@ def test_create_percentage_discount(
         VariantPromotionRuleInfo(
             rule=rule,
             variant_listing_promotion_rule=listing_promotion_rule,
-            promotion=promotion_without_rules,
+            promotion=catalogue_promotion_without_rules,
             promotion_translation=None,
             rule_translation=None,
         )
@@ -342,7 +348,7 @@ def test_create_percentage_discount(
     assert (
         discount_from_info.name
         == discount_from_db.name
-        == f"{promotion_without_rules.name}: {rule.name}"
+        == f"{catalogue_promotion_without_rules.name}: {rule.name}"
     )
     assert discount_from_info.reason == discount_from_db.reason is None
     assert discount_from_info.promotion_rule == discount_from_db.promotion_rule == rule
@@ -354,14 +360,16 @@ def test_create_percentage_discount(
 
 @freeze_time("2020-12-12 12:00:00")
 def test_create_percentage_discount_multiple_quantity_in_lines(
-    checkout_info, checkout_lines_with_multiple_quantity_info, promotion_without_rules
+    checkout_info,
+    checkout_lines_with_multiple_quantity_info,
+    catalogue_promotion_without_rules,
 ):
     # given
     line_info1 = checkout_lines_with_multiple_quantity_info[0]
     product_line1 = line_info1.product
 
     reward_value = Decimal("10")
-    rule = promotion_without_rules.rules.create(
+    rule = catalogue_promotion_without_rules.rules.create(
         name="Percentage promotion rule",
         catalogue_predicate={
             "productPredicate": {
@@ -390,7 +398,7 @@ def test_create_percentage_discount_multiple_quantity_in_lines(
         VariantPromotionRuleInfo(
             rule=rule,
             variant_listing_promotion_rule=listing_promotion_rule,
-            promotion=promotion_without_rules,
+            promotion=catalogue_promotion_without_rules,
             promotion_translation=None,
             rule_translation=None,
         )
@@ -423,7 +431,7 @@ def test_create_percentage_discount_multiple_quantity_in_lines(
         == expected_discount_amount
     )
     assert discount_from_info.currency == discount_from_db.currency == "USD"
-    discount_name = f"{promotion_without_rules.name}: {rule.name}"
+    discount_name = f"{catalogue_promotion_without_rules.name}: {rule.name}"
     assert discount_from_info.name == discount_from_db.name == discount_name
     assert discount_from_info.reason == discount_from_db.reason is None
     assert discount_from_info.promotion_rule == discount_from_db.promotion_rule == rule
@@ -434,7 +442,7 @@ def test_create_percentage_discount_multiple_quantity_in_lines(
 
 
 def test_create_discount_multiple_rules_applied(
-    checkout_info, checkout_lines_info, promotion_without_rules
+    checkout_info, checkout_lines_info, catalogue_promotion_without_rules
 ):
     # given
     line_info1 = checkout_lines_info[0]
@@ -446,7 +454,7 @@ def test_create_discount_multiple_rules_applied(
         [
             PromotionRule(
                 name="Percentage promotion rule 1",
-                promotion=promotion_without_rules,
+                promotion=catalogue_promotion_without_rules,
                 reward_value_type=RewardValueType.FIXED,
                 reward_value=reward_value_1,
                 catalogue_predicate={
@@ -457,7 +465,7 @@ def test_create_discount_multiple_rules_applied(
             ),
             PromotionRule(
                 name="Percentage promotion rule 2",
-                promotion=promotion_without_rules,
+                promotion=catalogue_promotion_without_rules,
                 reward_value_type=RewardValueType.PERCENTAGE,
                 reward_value=reward_value_2,
                 catalogue_predicate={
@@ -506,14 +514,14 @@ def test_create_discount_multiple_rules_applied(
         VariantPromotionRuleInfo(
             rule=rule_1,
             variant_listing_promotion_rule=listing_promotion_rule_1,
-            promotion=promotion_without_rules,
+            promotion=catalogue_promotion_without_rules,
             promotion_translation=None,
             rule_translation=None,
         ),
         VariantPromotionRuleInfo(
             rule=rule_2,
             variant_listing_promotion_rule=listing_promotion_rule_2,
-            promotion=promotion_without_rules,
+            promotion=catalogue_promotion_without_rules,
             promotion_translation=None,
             rule_translation=None,
         ),
@@ -555,7 +563,7 @@ def test_create_discount_multiple_rules_applied(
 
 
 def test_two_promotions_applied_to_two_different_lines(
-    checkout_info, checkout_lines_info, promotion_without_rules
+    checkout_info, checkout_lines_info, catalogue_promotion_without_rules
 ):
     # given
     line_info1 = checkout_lines_info[0]
@@ -570,7 +578,7 @@ def test_two_promotions_applied_to_two_different_lines(
         [
             PromotionRule(
                 name="Percentage promotion rule 1",
-                promotion=promotion_without_rules,
+                promotion=catalogue_promotion_without_rules,
                 reward_value_type=RewardValueType.FIXED,
                 reward_value=reward_value_1,
                 catalogue_predicate={
@@ -581,7 +589,7 @@ def test_two_promotions_applied_to_two_different_lines(
             ),
             PromotionRule(
                 name="Percentage promotion rule 2",
-                promotion=promotion_without_rules,
+                promotion=catalogue_promotion_without_rules,
                 reward_value_type=RewardValueType.FIXED,
                 reward_value=reward_value_2,
                 catalogue_predicate={
@@ -630,7 +638,7 @@ def test_two_promotions_applied_to_two_different_lines(
         VariantPromotionRuleInfo(
             rule=rule_1,
             variant_listing_promotion_rule=listing_promotion_rule_1,
-            promotion=promotion_without_rules,
+            promotion=catalogue_promotion_without_rules,
             promotion_translation=None,
             rule_translation=None,
         )
@@ -639,7 +647,7 @@ def test_two_promotions_applied_to_two_different_lines(
         VariantPromotionRuleInfo(
             rule=rule_2,
             variant_listing_promotion_rule=listing_promotion_rule_2,
-            promotion=promotion_without_rules,
+            promotion=catalogue_promotion_without_rules,
             promotion_translation=None,
             rule_translation=None,
         )
@@ -673,7 +681,7 @@ def test_two_promotions_applied_to_two_different_lines(
     assert (
         discount_from_info_1.name
         == discount_from_db_1.name
-        == f"{promotion_without_rules.name}: {rule_1.name}"
+        == f"{catalogue_promotion_without_rules.name}: {rule_1.name}"
     )
     assert discount_from_info_1.reason == discount_from_db_1.reason is None
     assert (
@@ -704,7 +712,7 @@ def test_two_promotions_applied_to_two_different_lines(
     assert (
         discount_from_info_2.name
         == discount_from_db_2.name
-        == f"{promotion_without_rules.name}: {rule_2.name}"
+        == f"{catalogue_promotion_without_rules.name}: {rule_2.name}"
     )
     assert discount_from_info_2.reason == discount_from_db_2.reason is None
     assert (
@@ -716,7 +724,7 @@ def test_two_promotions_applied_to_two_different_lines(
 
 @freeze_time("2020-12-12 12:00:00")
 def test_create_percentage_discount_1_cent_variant_on_10_percentage_discount(
-    checkout_info, checkout_lines_info, promotion_without_rules
+    checkout_info, checkout_lines_info, catalogue_promotion_without_rules
 ):
     # given
     line_info1 = checkout_lines_info[0]
@@ -727,7 +735,7 @@ def test_create_percentage_discount_1_cent_variant_on_10_percentage_discount(
     product_line1 = line_info1.product
 
     reward_value = Decimal("10")
-    rule = promotion_without_rules.rules.create(
+    rule = catalogue_promotion_without_rules.rules.create(
         name="Percentage promotion rule",
         catalogue_predicate={
             "productPredicate": {
@@ -763,7 +771,7 @@ def test_create_percentage_discount_1_cent_variant_on_10_percentage_discount(
         VariantPromotionRuleInfo(
             rule=rule,
             variant_listing_promotion_rule=listing_promotion_rule,
-            promotion=promotion_without_rules,
+            promotion=catalogue_promotion_without_rules,
             promotion_translation=None,
             rule_translation=None,
         )
@@ -797,7 +805,7 @@ def test_create_percentage_discount_1_cent_variant_on_10_percentage_discount(
     assert (
         discount_from_info.name
         == discount_from_db.name
-        == f"{promotion_without_rules.name}: {rule.name}"
+        == f"{catalogue_promotion_without_rules.name}: {rule.name}"
     )
     assert discount_from_info.reason == discount_from_db.reason is None
     assert discount_from_info.promotion_rule == discount_from_db.promotion_rule == rule
@@ -808,14 +816,14 @@ def test_create_percentage_discount_1_cent_variant_on_10_percentage_discount(
 
 
 def test_promotion_not_valid_anymore(
-    checkout_info, checkout_lines_info, promotion_without_rules
+    checkout_info, checkout_lines_info, catalogue_promotion_without_rules
 ):
     # given
     line_info1 = checkout_lines_info[0]
     product_line1 = line_info1.product
 
     reward_value = Decimal("2")
-    rule = promotion_without_rules.rules.create(
+    rule = catalogue_promotion_without_rules.rules.create(
         name="Percentage promotion rule",
         catalogue_predicate={
             "productPredicate": {
@@ -854,7 +862,7 @@ def test_promotion_not_valid_anymore(
 
 
 def test_one_of_promotion_rule_not_valid_anymore_one_updated(
-    checkout_info, checkout_lines_info, promotion_without_rules
+    checkout_info, checkout_lines_info, catalogue_promotion_without_rules
 ):
     # given
     line_info1 = checkout_lines_info[0]
@@ -866,7 +874,7 @@ def test_one_of_promotion_rule_not_valid_anymore_one_updated(
         [
             PromotionRule(
                 name="Percentage promotion rule 1",
-                promotion=promotion_without_rules,
+                promotion=catalogue_promotion_without_rules,
                 reward_value_type=RewardValueType.FIXED,
                 reward_value=reward_value_1,
                 catalogue_predicate={
@@ -877,7 +885,7 @@ def test_one_of_promotion_rule_not_valid_anymore_one_updated(
             ),
             PromotionRule(
                 name="Percentage promotion rule 2",
-                promotion=promotion_without_rules,
+                promotion=catalogue_promotion_without_rules,
                 reward_value_type=RewardValueType.PERCENTAGE,
                 reward_value=reward_value_2,
                 catalogue_predicate={
@@ -934,7 +942,7 @@ def test_one_of_promotion_rule_not_valid_anymore_one_updated(
         VariantPromotionRuleInfo(
             rule=rule_1,
             variant_listing_promotion_rule=listing_promotion_rule_1,
-            promotion=promotion_without_rules,
+            promotion=catalogue_promotion_without_rules,
             promotion_translation=None,
             rule_translation=None,
         )
@@ -964,7 +972,7 @@ def test_one_of_promotion_rule_not_valid_anymore_one_updated(
     assert (
         discount_from_info.name
         == line_discount_1.name
-        == f"{promotion_without_rules.name}: {rule_1.name}"
+        == f"{catalogue_promotion_without_rules.name}: {rule_1.name}"
     )
     assert (
         discount_from_info.amount_value
@@ -979,7 +987,7 @@ def test_one_of_promotion_rule_not_valid_anymore_one_updated(
 def test_create_discount_with_promotion_translation(
     checkout_info,
     checkout_lines_info,
-    promotion_without_rules,
+    catalogue_promotion_without_rules,
     promotion_translation_fr,
 ):
     # given
@@ -987,7 +995,7 @@ def test_create_discount_with_promotion_translation(
     product_line1 = line_info1.product
 
     reward_value = Decimal("2")
-    rule = promotion_without_rules.rules.create(
+    rule = catalogue_promotion_without_rules.rules.create(
         name="Percentage promotion rule",
         catalogue_predicate={
             "productPredicate": {
@@ -1014,7 +1022,7 @@ def test_create_discount_with_promotion_translation(
         VariantPromotionRuleInfo(
             rule=rule,
             variant_listing_promotion_rule=listing_promotion_rule,
-            promotion=promotion_without_rules,
+            promotion=catalogue_promotion_without_rules,
             promotion_translation=promotion_translation_fr,
             rule_translation=None,
         )
@@ -1043,7 +1051,7 @@ def test_create_discount_with_promotion_translation(
 def test_create_discount_with_rule_translation(
     checkout_info,
     checkout_lines_info,
-    promotion_without_rules,
+    catalogue_promotion_without_rules,
     promotion_rule_translation_fr,
 ):
     # given
@@ -1051,7 +1059,7 @@ def test_create_discount_with_rule_translation(
     product_line1 = line_info1.product
 
     reward_value = Decimal("2")
-    rule = promotion_without_rules.rules.create(
+    rule = catalogue_promotion_without_rules.rules.create(
         name="Percentage promotion rule",
         catalogue_predicate={
             "productPredicate": {
@@ -1078,7 +1086,7 @@ def test_create_discount_with_rule_translation(
         VariantPromotionRuleInfo(
             rule=rule,
             variant_listing_promotion_rule=listing_promotion_rule,
-            promotion=promotion_without_rules,
+            promotion=catalogue_promotion_without_rules,
             promotion_translation=None,
             rule_translation=promotion_rule_translation_fr,
         )
@@ -1107,7 +1115,7 @@ def test_create_discount_with_rule_translation(
 def test_create_discount_with_promotion_and_rule_translation(
     checkout_info,
     checkout_lines_info,
-    promotion_without_rules,
+    catalogue_promotion_without_rules,
     promotion_translation_fr,
     promotion_rule_translation_fr,
 ):
@@ -1116,7 +1124,7 @@ def test_create_discount_with_promotion_and_rule_translation(
     product_line1 = line_info1.product
 
     reward_value = Decimal("2")
-    rule = promotion_without_rules.rules.create(
+    rule = catalogue_promotion_without_rules.rules.create(
         name="Percentage promotion rule",
         catalogue_predicate={
             "productPredicate": {
@@ -1143,7 +1151,7 @@ def test_create_discount_with_promotion_and_rule_translation(
         VariantPromotionRuleInfo(
             rule=rule,
             variant_listing_promotion_rule=listing_promotion_rule,
-            promotion=promotion_without_rules,
+            promotion=catalogue_promotion_without_rules,
             promotion_translation=promotion_translation_fr,
             rule_translation=promotion_rule_translation_fr,
         )
@@ -1217,10 +1225,10 @@ def test_create_or_update_discount_objects_from_promotion_no_applicable_rules(
 def test_create_or_update_discount_objects_from_promotion(
     checkout_info,
     checkout_lines_info,
-    promotion_without_rules,
+    catalogue_promotion_without_rules,
 ):
     # given
-    promotion = promotion_without_rules
+    promotion = catalogue_promotion_without_rules
     checkout = checkout_info.checkout
     price = Money("30", checkout_info.checkout.currency)
     checkout.total = TaxedMoney(net=price, gross=price)
@@ -1287,10 +1295,10 @@ def test_create_or_update_discount_objects_from_promotion_best_rule_applies(
     delivery_price_mock,
     checkout_info,
     checkout_lines_info,
-    promotion_without_rules,
+    catalogue_promotion_without_rules,
 ):
     # given
-    promotion = promotion_without_rules
+    promotion = catalogue_promotion_without_rules
     checkout = checkout_info.checkout
 
     delivery_price = Money("10", checkout_info.checkout.currency)
@@ -1385,10 +1393,10 @@ def test_create_or_update_discount_objects_from_promotion_total_price_discount(
     delivery_price_mock,
     checkout_info,
     checkout_lines_info,
-    promotion_without_rules,
+    catalogue_promotion_without_rules,
 ):
     # given
-    promotion = promotion_without_rules
+    promotion = catalogue_promotion_without_rules
     checkout = checkout_info.checkout
 
     delivery_price = Money("10", checkout_info.checkout.currency)
@@ -1446,11 +1454,11 @@ def test_create_or_update_discount_objects_from_promotion_total_price_discount(
 def test_create_or_update_discount_from_promotion_voucher_code_set_checkout_discount(
     checkout_info,
     checkout_lines_info,
-    promotion_without_rules,
+    catalogue_promotion_without_rules,
     voucher,
 ):
     # given
-    promotion = promotion_without_rules
+    promotion = catalogue_promotion_without_rules
     checkout = checkout_info.checkout
     checkout_info.voucher = voucher
     checkout_info.checkout.voucher_code = voucher.code
@@ -1504,11 +1512,11 @@ def test_create_or_update_discount_from_promotion_voucher_code_set_checkout_disc
 def test_create_or_update_discount_from_promotion_checkout_discount_updated(
     checkout_info,
     checkout_lines_info,
-    promotion_without_rules,
+    catalogue_promotion_without_rules,
     promotion_rule,
 ):
     # given
-    promotion = promotion_without_rules
+    promotion = catalogue_promotion_without_rules
     checkout = checkout_info.checkout
 
     checkout_total = base_checkout_total(checkout_info, checkout_lines_info)
@@ -1567,11 +1575,11 @@ def test_create_or_update_discount_from_promotion_checkout_discount_updated(
 def test_create_or_update_discount_from_promotion_rule_not_applies_anymore(
     checkout_info,
     checkout_lines_info,
-    promotion_without_rules,
+    catalogue_promotion_without_rules,
     promotion_rule,
 ):
     # given
-    promotion = promotion_without_rules
+    promotion = catalogue_promotion_without_rules
     checkout = checkout_info.checkout
 
     checkout_total = base_checkout_total(checkout_info, checkout_lines_info)
@@ -1623,10 +1631,10 @@ def test_create_or_update_discount_from_promotion_rule_not_applies_anymore(
 def test_create_discount_objects_for_order_promotions_race_condition(
     checkout_info,
     checkout_lines_info,
-    promotion_without_rules,
+    catalogue_promotion_without_rules,
 ):
     # given
-    promotion = promotion_without_rules
+    promotion = catalogue_promotion_without_rules
     checkout = checkout_info.checkout
     channel = checkout_info.channel
 
@@ -1686,10 +1694,10 @@ def test_create_discount_objects_for_order_promotions_race_condition(
 def test_create_or_update_checkout_discount_race_condition(
     checkout_info,
     checkout_lines_info,
-    promotion_without_rules,
+    catalogue_promotion_without_rules,
 ):
     # given
-    promotion = promotion_without_rules
+    promotion = catalogue_promotion_without_rules
     checkout = checkout_info.checkout
     channel = checkout_info.channel
     currency = channel.currency_code

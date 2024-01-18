@@ -29,10 +29,11 @@ def test_promotion_delete_by_staff_user(
     update_discounted_prices_task_mock,
     staff_api_client,
     permission_group_manage_discounts,
-    promotion,
+    catalogue_promotion,
 ):
     # given
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
+    promotion = catalogue_promotion
     variables = {"id": graphene.Node.to_global_id("Promotion", promotion.id)}
 
     # when
@@ -58,9 +59,10 @@ def test_promotion_delete_by_staff_app(
     update_discounted_prices_task_mock,
     app_api_client,
     permission_manage_discounts,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     variables = {"id": graphene.Node.to_global_id("Promotion", promotion.id)}
 
     # when
@@ -86,10 +88,10 @@ def test_promotion_delete_by_customer(
     promotion_deleted_mock,
     update_discounted_prices_task_mock,
     api_client,
-    promotion,
+    catalogue_promotion,
 ):
     # given
-    variables = {"id": graphene.Node.to_global_id("Promotion", promotion.id)}
+    variables = {"id": graphene.Node.to_global_id("Promotion", catalogue_promotion.id)}
 
     # when
     response = api_client.post_graphql(PROMOTION_DELETE_MUTATION, variables)
