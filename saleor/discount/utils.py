@@ -387,7 +387,7 @@ def create_or_update_discount_objects_from_promotion_for_checkout(
             if not discount_to_update:
                 line_discount = CheckoutLineDiscount(
                     line=line,
-                    type=DiscountType.PROMOTION,
+                    type=DiscountType.CATALOGUE_PROMOTION,
                     value_type=rule.reward_value_type,
                     value=rule.reward_value,
                     amount_value=rule_discount_amount,
