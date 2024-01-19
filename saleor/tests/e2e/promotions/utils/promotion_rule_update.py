@@ -15,6 +15,7 @@ mutation promotionRuleCreate($id: ID!, $input: PromotionRuleUpdateInput!) {
       rewardValueType
       rewardValue
       cataloguePredicate
+      orderPredicate
       channels {
         id
       }

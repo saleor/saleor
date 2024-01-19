@@ -30,17 +30,18 @@ def prepare_promotion(
     )
     promotion_id = promotion_data["id"]
 
-    promotion_rule_data = create_promotion_rule(
-        e2e_staff_api_client,
-        promotion_id,
-        predicate_input,
-        discount_type,
-        discount_value,
-        promotion_rule_name,
-        channel_id,
-    )
-    promotion_rule_id = promotion_rule_data["id"]
-    discount_value = promotion_rule_data["rewardValue"]
+    input = {
+        "promotion": promotion_id,
+        "channels": [channel_id],
+        "name": promotion_rule_name,
+        "cataloguePredicate": predicate_input,
+        "rewardValue": discount_value,
+        "rewardValueType": "PERCENTAGE",
+    }
+
+    promotion_rule = create_promotion_rule(e2e_staff_api_client, input)
+    promotion_rule_id = promotion_rule["id"]
+    discount_value = promotion_rule["rewardValue"]
 
     return promotion_rule_id
 

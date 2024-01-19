@@ -103,15 +103,17 @@ def prepare_product(
     catalogue_predicate = {
         "categoryPredicate": {"ids": category_ids},
     }
-
+    input = {
+        "promotion": promotion_id,
+        "channels": [channel_id],
+        "name": promotion_rule_name,
+        "cataloguePredicate": catalogue_predicate,
+        "rewardValue": discount_value,
+        "rewardValueType": discount_type,
+    }
     promotion_rule = create_promotion_rule(
         e2e_staff_api_client,
-        promotion_id,
-        catalogue_predicate,
-        discount_type,
-        discount_value,
-        promotion_rule_name,
-        channel_id,
+        input,
     )
     category_predicate = promotion_rule["cataloguePredicate"]["categoryPredicate"][
         "ids"
