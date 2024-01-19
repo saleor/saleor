@@ -1,6 +1,5 @@
 from collections import defaultdict
 from datetime import datetime
-from typing import Optional
 
 import graphene
 import pytz
@@ -11,7 +10,7 @@ from django.db.models import Q
 from graphql.error import GraphQLError
 
 from .....channel import models as channel_models
-from .....discount import events, models
+from .....discount import PromotionType, events, models
 from .....permission.enums import DiscountPermissions
 from .....plugins.manager import PluginsManager
 from .....product.tasks import update_products_discounted_prices_of_promotion_task
@@ -19,7 +18,7 @@ from .....webhook.event_types import WebhookEventAsyncType
 from ....app.dataloaders import get_app_promise
 from ....channel.types import Channel
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_317, PREVIEW_FEATURE
+from ....core.descriptions import ADDED_IN_317, ADDED_IN_319, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import ModelMutation
 from ....core.scalars import JSON
@@ -28,10 +27,9 @@ from ....core.utils import WebhookEventInfo
 from ....core.validators import validate_end_is_after_start
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ....utils import get_nodes
-from ...enums import PromotionCreateErrorCode
+from ...enums import PromotionCreateErrorCode, PromotionTypeEnum
 from ...inputs import PromotionRuleBaseInput
 from ...types import Promotion
-from ...utils import PredicateType
 from .validators import clean_promotion_rule
 
 
@@ -70,6 +68,16 @@ class PromotionInput(BaseInputObjectType):
 
 class PromotionCreateInput(PromotionInput):
     name = graphene.String(description="Promotion name.", required=True)
+    type = PromotionTypeEnum(
+        description=(
+            "Defines the promotion type. Implicate the required promotion rules "
+            "predicate type and whether the promotion rules will give the catalogue "
+            "or order discount. "
+            "\n\nThe default value is `Catalogue`."
+            "\n\nThis field will be required from Saleor 3.20." + ADDED_IN_319
+        ),
+        required=False,
+    )
     rules = NonNullList(PromotionRuleInput, description="List of promotion rules.")
 
     class Meta:
@@ -115,8 +123,9 @@ class PromotionCreate(ModelMutation):
             error.code = PromotionCreateErrorCode.INVALID.value
             errors["end_date"].append(error)
 
+        promotion_type = cleaned_input.get("type", PromotionType.CATALOGUE)
         if rules := cleaned_input.get("rules"):
-            cleaned_rules, errors = cls.clean_rules(info, rules, errors)
+            cleaned_rules, errors = cls.clean_rules(info, rules, promotion_type, errors)
             cleaned_input["rules"] = cleaned_rules
 
         if errors:
@@ -129,11 +138,11 @@ class PromotionCreate(ModelMutation):
         cls,
         info: ResolveInfo,
         rules_data: dict,
+        promotion_type: str,
         errors: defaultdict[str, list[ValidationError]],
     ) -> tuple[list, defaultdict[str, list[ValidationError]]]:
         cleaned_rules = []
-        predicate_type = cls.check_predicate_types(rules_data)
-        if predicate_type and predicate_type == PredicateType.ORDER:
+        if promotion_type == PromotionType.ORDER:
             rules_limit = settings.ORDER_RULES_LIMIT
             order_rules_count = models.PromotionRule.objects.filter(
                 ~Q(order_predicate={})
@@ -157,41 +166,12 @@ class PromotionCreate(ModelMutation):
             if channel_ids := rule_data.get("channels"):
                 channels = cls.clean_channels(info, channel_ids, index, errors)
                 rule_data["channels"] = channels
-            clean_promotion_rule(rule_data, errors, PromotionCreateErrorCode, index)
+            clean_promotion_rule(
+                rule_data, promotion_type, errors, PromotionCreateErrorCode, index
+            )
             cleaned_rules.append(rule_data)
 
         return cleaned_rules, errors
-
-    @classmethod
-    def check_predicate_types(cls, rules_data: dict) -> Optional[PredicateType]:
-        """Validate that all rules have the same predicate types."""
-        catalogue_predicates = False
-        order_predicates = False
-        error_message = (
-            "Predicate types can't be mixed. All promotion rules must have "
-            "catalogue or orderPredicate defined."
-        )
-        for rule_data in rules_data:
-            if rule_data.get("catalogue_predicate"):
-                if order_predicates:
-                    raise ValidationError(
-                        error_message,
-                        code=PromotionCreateErrorCode.MIXED_PROMOTION_PREDICATES.value,
-                    )
-                catalogue_predicates = True
-            elif rule_data.get("order_predicate"):
-                if catalogue_predicates:
-                    raise ValidationError(
-                        error_message,
-                        code=PromotionCreateErrorCode.MIXED_PROMOTION_PREDICATES.value,
-                    )
-                order_predicates = True
-
-        if order_predicates:
-            return PredicateType.ORDER
-        if catalogue_predicates:
-            return PredicateType.CATALOGUE
-        return None
 
     @classmethod
     def clean_channels(

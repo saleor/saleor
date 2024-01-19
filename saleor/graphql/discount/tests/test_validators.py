@@ -4,7 +4,7 @@ import graphene
 import pytest
 from django.core.exceptions import ValidationError
 
-from ....discount import RewardType, RewardValueType
+from ....discount import PromotionType, RewardType, RewardValueType
 from ..enums import PromotionCreateErrorCode
 from ..mutations.promotion.validators import (
     _clean_catalogue_predicate,
@@ -14,7 +14,6 @@ from ..mutations.promotion.validators import (
     _clean_reward_value,
     clean_predicate,
 )
-from ..utils import PredicateType
 
 
 def test_clean_predicate(variant, product):
@@ -66,7 +65,7 @@ def test_clean_predicate_invalid_predicate(predicate):
     assert validation_error.value.code == PromotionCreateErrorCode.INVALID.value
 
 
-def test_clean_predicates_both_catalogue_and_order_provided(product):
+def test_clean_predicates_invalid_order_predicate(product):
     # given
     order_predicate = {
         "discounted_object_predicate": {"base_subtotal_price": {"range": {"gte": 100}}}
@@ -76,65 +75,93 @@ def test_clean_predicates_both_catalogue_and_order_provided(product):
             "ids": [graphene.Node.to_global_id("Product", product.id)]
         }
     }
-    cleaned_input = {
-        "catalogue_predicate": catalogue_predicate,
-        "order_predicate": order_predicate,
-    }
     errors = defaultdict(list)
 
     # when
     _clean_predicates(
-        cleaned_input,
         catalogue_predicate,
         order_predicate,
         errors,
         PromotionCreateErrorCode,
         None,
-        None,
-        None,
+        PromotionType.CATALOGUE,
     )
 
     # then
-    assert len(errors) == 2
-    assert len(errors["catalogue_predicate"]) == 1
+    assert len(errors) == 1
     assert len(errors["order_predicate"]) == 1
-    assert (
-        errors["catalogue_predicate"][0].code
-        == PromotionCreateErrorCode.MIXED_PREDICATES.value
-    )
-    assert (
-        errors["order_predicate"][0].code
-        == PromotionCreateErrorCode.MIXED_PREDICATES.value
-    )
+    assert errors["order_predicate"][0].code == PromotionCreateErrorCode.INVALID.value
 
 
-def test_clean_predicates_missing_predicates(product):
+def test_clean_predicates_invalid_catalogue_predicate(product):
     # given
-    cleaned_input = {
-        "catalogue_predicate": None,
-        "order_predicate": None,
+    checkout_and_order_predicate = {
+        "discounted_object_predicate": {"subtotal_price": {"range": {"gte": 100}}}
+    }
+    catalogue_predicate = {
+        "product_predicate": {
+            "ids": [graphene.Node.to_global_id("Product", product.id)]
+        }
     }
     errors = defaultdict(list)
 
     # when
     _clean_predicates(
-        cleaned_input,
+        catalogue_predicate,
+        checkout_and_order_predicate,
+        errors,
+        PromotionCreateErrorCode,
+        None,
+        PromotionType.ORDER,
+    )
+
+    # then
+    assert len(errors) == 1
+    assert len(errors["catalogue_predicate"]) == 1
+    assert (
+        errors["catalogue_predicate"][0].code == PromotionCreateErrorCode.INVALID.value
+    )
+
+
+def test_clean_predicates_missing_catalogue_predicate(product):
+    # given
+    errors = defaultdict(list)
+
+    # when
+    _clean_predicates(
         None,
         None,
         errors,
         PromotionCreateErrorCode,
         None,
-        None,
-        None,
+        PromotionType.CATALOGUE,
     )
 
     # then
-    assert len(errors) == 2
+    assert len(errors) == 1
     assert len(errors["catalogue_predicate"]) == 1
-    assert len(errors["order_predicate"]) == 1
     assert (
         errors["catalogue_predicate"][0].code == PromotionCreateErrorCode.REQUIRED.value
     )
+
+
+def test_clean_predicates_missing_order_predicate(product):
+    # given
+    errors = defaultdict(list)
+
+    # when
+    _clean_predicates(
+        None,
+        None,
+        errors,
+        PromotionCreateErrorCode,
+        None,
+        PromotionType.ORDER,
+    )
+
+    # then
+    assert len(errors) == 1
+    assert len(errors["order_predicate"]) == 1
     assert errors["order_predicate"][0].code == PromotionCreateErrorCode.REQUIRED.value
 
 
@@ -147,29 +174,23 @@ def test_clean_predicates_mixed_promotion_predicates_invalid_catalogue_predicate
             "ids": [graphene.Node.to_global_id("Product", product.id)]
         }
     }
-    cleaned_input = {
-        "catalogue_predicate": catalogue_predicate,
-    }
     errors = defaultdict(list)
 
     # when
     _clean_predicates(
-        cleaned_input,
         catalogue_predicate,
         {},
         errors,
         PromotionCreateErrorCode,
         None,
-        PredicateType.ORDER,
-        None,
+        PromotionType.ORDER,
     )
 
     # then
     assert len(errors) == 1
     assert len(errors["catalogue_predicate"]) == 1
     assert (
-        errors["catalogue_predicate"][0].code
-        == PromotionCreateErrorCode.MIXED_PROMOTION_PREDICATES.value
+        errors["catalogue_predicate"][0].code == PromotionCreateErrorCode.INVALID.value
     )
 
 
@@ -180,30 +201,22 @@ def test_clean_predicates_mixed_promotion_predicates_invalid_order(
     order_predicate = {
         "discounted_object_predicate": {"base_subtotal_price": {"range": {"gte": 100}}}
     }
-    cleaned_input = {
-        "order_predicate": order_predicate,
-    }
     errors = defaultdict(list)
 
     # when
     _clean_predicates(
-        cleaned_input,
         {},
         order_predicate,
         errors,
         PromotionCreateErrorCode,
         None,
-        PredicateType.CATALOGUE,
-        None,
+        PromotionType.CATALOGUE,
     )
 
     # then
     assert len(errors) == 1
     assert len(errors["order_predicate"]) == 1
-    assert (
-        errors["order_predicate"][0].code
-        == PromotionCreateErrorCode.MIXED_PROMOTION_PREDICATES.value
-    )
+    assert errors["order_predicate"][0].code == PromotionCreateErrorCode.INVALID.value
 
 
 def test_clean_catalogue_predicate_reward_type_provided():
@@ -262,10 +275,10 @@ def test_clean_order_predicate_missing_reward_type():
 
 
 def test_clean_order_predicate_reward_type_in_instance(
-    promotion_with_order_rule,
+    order_promotion_with_rule,
 ):
     # given
-    rule = promotion_with_order_rule.rules.first()
+    rule = order_promotion_with_rule.rules.first()
     order_predicate = {
         "discounted_object_predicate": {"base_subtotal_price": {"range": {"gte": 100}}}
     }
@@ -322,10 +335,10 @@ def test_clean_order_predicate_price_based_predicate_mixed_currencies():
 
 
 def test_clean_order_mixed_currencies_instance_given_invalid_predicate(
-    promotion_with_order_rule,
+    order_promotion_with_rule,
 ):
     # given
-    rule = promotion_with_order_rule.rules.first()
+    rule = order_promotion_with_rule.rules.first()
     order_predicate = {
         "discounted_object_predicate": {"base_subtotal_price": {"range": {"gte": 100}}}
     }
@@ -356,10 +369,10 @@ def test_clean_order_mixed_currencies_instance_given_invalid_predicate(
 
 
 def test_clean_order_mixed_currencies_instance_given_invalid_channels(
-    promotion_with_order_rule,
+    order_promotion_with_rule,
 ):
     # given
-    rule = promotion_with_order_rule.rules.first()
+    rule = order_promotion_with_rule.rules.first()
     order_predicate = {
         "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 100}}}
     }

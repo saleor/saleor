@@ -27,8 +27,12 @@ def prepare_promotion(
         "blocks": [{"data": {"text": "promotion description"}, "type": "paragraph"}],
         "version": "1.0.0",
     }
+    promotion_type = "CATALOGUE"
     promotion_data = create_promotion(
-        e2e_staff_api_client, promotion_name, description=promotion_description
+        e2e_staff_api_client,
+        promotion_name,
+        promotion_type,
+        description=promotion_description,
     )
     promotion_id = promotion_data["id"]
 

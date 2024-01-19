@@ -10,10 +10,10 @@ from ...utils import get_variants_to_promotions_map
 
 
 def test_get_variants_to_promotions_map(
-    promotion_without_rules, product, product_with_two_variants, channel_USD
+    catalogue_promotion_without_rules, product, product_with_two_variants, channel_USD
 ):
     # given
-    promotion = promotion_without_rules
+    promotion = catalogue_promotion_without_rules
     variant = product.variants.first()
 
     percentage_reward_value = Decimal("10")
@@ -67,10 +67,10 @@ def test_get_variants_to_promotions_map(
 
 
 def test_get_variants_to_promotions_map_from_different_promotions(
-    promotion_without_rules, product, channel_USD
+    catalogue_promotion_without_rules, product, channel_USD
 ):
     # given
-    promotion = promotion_without_rules
+    promotion = catalogue_promotion_without_rules
     promotion_2 = Promotion.objects.create(
         name="Promotion",
     )
@@ -132,10 +132,10 @@ def test_get_variants_to_promotions_map_no_active_rules(product):
 
 
 def test_get_variants_to_promotions_map_no_matching_rules(
-    product_with_two_variants, variant, promotion_without_rules
+    product_with_two_variants, variant, catalogue_promotion_without_rules
 ):
     # given
-    promotion = promotion_without_rules
+    promotion = catalogue_promotion_without_rules
 
     percentage_reward_value = Decimal("10")
     rule = promotion.rules.create(

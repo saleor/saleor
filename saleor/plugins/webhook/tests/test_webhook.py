@@ -1054,7 +1054,7 @@ def test_checkout_created(
 
 
 def test_checkout_payload_includes_promotions(
-    checkout_with_item, promotion_without_rules
+    checkout_with_item, catalogue_promotion_without_rules
 ):
     # given
     checkout = checkout_with_item
@@ -1066,7 +1066,7 @@ def test_checkout_payload_includes_promotions(
     channel_listing = variant.channel_listings.first()
 
     reward_value = Decimal("5")
-    rule = promotion_without_rules.rules.create(
+    rule = catalogue_promotion_without_rules.rules.create(
         name="Percentage promotion rule",
         catalogue_predicate={
             "productPredicate": {
@@ -1093,7 +1093,7 @@ def test_checkout_payload_includes_promotions(
         VariantPromotionRuleInfo(
             rule=rule,
             variant_listing_promotion_rule=listing_promotion_rule,
-            promotion=promotion_without_rules,
+            promotion=catalogue_promotion_without_rules,
             promotion_translation=None,
             rule_translation=None,
         )
@@ -1119,7 +1119,7 @@ def test_checkout_payload_includes_promotions(
 
 
 def test_checkout_payload_includes_order_promotion_discount(
-    checkout_with_item, promotion_without_rules
+    checkout_with_item, catalogue_promotion_without_rules
 ):
     # given
     checkout = checkout_with_item
@@ -1131,7 +1131,7 @@ def test_checkout_payload_includes_order_promotion_discount(
     channel_listing = variant.channel_listings.first()
 
     reward_value = Decimal("5")
-    rule = promotion_without_rules.rules.create(
+    rule = catalogue_promotion_without_rules.rules.create(
         name="Fixed promotion rule",
         order_predicate={
             "base_total_price": {

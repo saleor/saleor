@@ -21,8 +21,11 @@ def prepare_promotion(e2e_staff_api_client):
     shipping_method_id = shop_data["shipping_method"]["id"]
 
     promotion_name = "Promotion"
+    promotion_type = "ORDER"
 
-    promotion_data = create_promotion(e2e_staff_api_client, promotion_name)
+    promotion_data = create_promotion(
+        e2e_staff_api_client, promotion_name, promotion_type
+    )
 
     promotion_id = promotion_data["id"]
     discount_value = 25

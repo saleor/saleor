@@ -54,9 +54,11 @@ def test_order_promotion_not_applied_when_not_within_time_range_CORE_2110(
     )
 
     # Step 1 - Create promotion lasting for a specific time range
+    promotion_type = "CATALOGUE"
     promotion_data = create_promotion(
         e2e_staff_api_client,
         promotion_name,
+        promotion_type,
         start_date=tomorrow,
         end_date=month_after,
     )

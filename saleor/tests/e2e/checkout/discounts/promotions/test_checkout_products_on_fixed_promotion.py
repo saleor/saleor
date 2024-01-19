@@ -47,8 +47,11 @@ def test_checkout_products_on_fixed_promotion_core_2102(
     discount_value = 5
     discount_type = "FIXED"
     promotion_rule_name = "rule for product"
+    promotion_type = "CATALOGUE"
 
-    promotion_data = create_promotion(e2e_staff_api_client, promotion_name)
+    promotion_data = create_promotion(
+        e2e_staff_api_client, promotion_name, promotion_type
+    )
     promotion_id = promotion_data["id"]
 
     catalogue_predicate = {"productPredicate": {"ids": [product_id]}}

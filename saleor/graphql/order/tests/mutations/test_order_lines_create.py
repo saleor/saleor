@@ -542,7 +542,7 @@ def test_order_lines_create_variant_on_promotion(
     permission_group_manage_orders,
     staff_api_client,
     variant_with_many_stocks,
-    promotion_without_rules,
+    catalogue_promotion_without_rules,
     promotion_translation_fr,
     promotion_rule_translation_fr,
 ):
@@ -556,7 +556,7 @@ def test_order_lines_create_variant_on_promotion(
     variant = variant_with_many_stocks
 
     reward_value = Decimal("5")
-    rule = promotion_without_rules.rules.create(
+    rule = catalogue_promotion_without_rules.rules.create(
         name="Promotion rule",
         catalogue_predicate={
             "productPredicate": {
@@ -580,7 +580,7 @@ def test_order_lines_create_variant_on_promotion(
         currency=order.channel.currency_code,
     )
 
-    promotion_translation_fr.promotion = promotion_without_rules
+    promotion_translation_fr.promotion = catalogue_promotion_without_rules
     promotion_translation_fr.language_code = order.language_code
     promotion_translation_fr.save(update_fields=["promotion", "language_code"])
 
@@ -622,12 +622,12 @@ def test_order_lines_create_variant_on_promotion(
         == variant_channel_listing.price_amount - reward_value
     )
     assert line_data["saleId"] == graphene.Node.to_global_id(
-        "Promotion", promotion_without_rules.id
+        "Promotion", catalogue_promotion_without_rules.id
     )
 
     line = order.lines.get(product_sku=variant.sku)
     assert line.sale_id == graphene.Node.to_global_id(
-        "Promotion", promotion_without_rules.id
+        "Promotion", catalogue_promotion_without_rules.id
     )
     assert line.unit_discount_amount == reward_value
     assert line.unit_discount_value == reward_value
@@ -637,7 +637,7 @@ def test_order_lines_create_variant_on_promotion(
     assert discount.promotion_rule == rule
     assert discount.amount_value == reward_value
     assert discount.type == DiscountType.PROMOTION
-    assert discount.name == f"{promotion_without_rules.name}: {rule.name}"
+    assert discount.name == f"{catalogue_promotion_without_rules.name}: {rule.name}"
     assert (
         discount.translated_name
         == f"{promotion_translation_fr.name}: {promotion_rule_translation_fr.name}"

@@ -126,14 +126,14 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_promotion(
     order_with_lines,
     product,
     anonymous_plugins,
-    promotion_without_rules,
+    catalogue_promotion_without_rules,
 ):
     # given
     order = order_with_lines
     variant = product.variants.first()
 
     reward_value = Decimal("5")
-    rule = promotion_without_rules.rules.create(
+    rule = catalogue_promotion_without_rules.rules.create(
         catalogue_predicate={
             "productPredicate": {
                 "ids": [graphene.Node.to_global_id("Product", variant.product.id)]
@@ -165,7 +165,7 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_promotion(
             VariantPromotionRuleInfo(
                 rule=rule,
                 variant_listing_promotion_rule=listing_rule,
-                promotion=promotion_without_rules,
+                promotion=catalogue_promotion_without_rules,
                 promotion_translation=None,
                 rule_translation=None,
             )
@@ -1388,14 +1388,14 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_promotion_with_custom
     order_with_lines,
     product,
     anonymous_plugins,
-    promotion_without_rules,
+    catalogue_promotion_without_rules,
 ):
     # given
     order = order_with_lines
     variant = product.variants.first()
 
     reward_value = Decimal("5")
-    rule = promotion_without_rules.rules.create(
+    rule = catalogue_promotion_without_rules.rules.create(
         catalogue_predicate={
             "productPredicate": {
                 "ids": [graphene.Node.to_global_id("Product", variant.product.id)]
@@ -1429,7 +1429,7 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_promotion_with_custom
             VariantPromotionRuleInfo(
                 rule=rule,
                 variant_listing_promotion_rule=listing_rule,
-                promotion=promotion_without_rules,
+                promotion=catalogue_promotion_without_rules,
                 promotion_translation=None,
                 rule_translation=None,
             )

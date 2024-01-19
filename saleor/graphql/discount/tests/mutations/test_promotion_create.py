@@ -11,7 +11,7 @@ from .....discount import PromotionEvents
 from .....discount.error_codes import PromotionCreateErrorCode
 from .....discount.models import Promotion, PromotionEvent
 from ....tests.utils import assert_no_permission, get_graphql_content
-from ...enums import RewardTypeEnum, RewardValueTypeEnum
+from ...enums import PromotionTypeEnum, RewardTypeEnum, RewardValueTypeEnum
 
 PROMOTION_CREATE_MUTATION = """
     mutation promotionCreate($input: PromotionCreateInput!) {
@@ -19,6 +19,7 @@ PROMOTION_CREATE_MUTATION = """
             promotion {
                 id
                 name
+                type
                 description
                 startDate
                 endDate
@@ -35,6 +36,7 @@ PROMOTION_CREATE_MUTATION = """
                     }
                     rewardValueType
                     rewardValue
+                    predicateType
                     cataloguePredicate
                     orderPredicate
                 }
@@ -107,6 +109,7 @@ def test_promotion_create_by_staff_user(
     reward_value = Decimal("10")
     reward_value_type_1 = RewardValueTypeEnum.FIXED.name
     reward_value_type_2 = RewardValueTypeEnum.PERCENTAGE.name
+    promotion_type = PromotionTypeEnum.CATALOGUE.name
 
     variables = {
         "input": {
@@ -114,6 +117,7 @@ def test_promotion_create_by_staff_user(
             "description": description_json,
             "startDate": start_date.isoformat(),
             "endDate": end_date.isoformat(),
+            "type": promotion_type,
             "rules": [
                 {
                     "name": rule_1_name,
@@ -145,6 +149,7 @@ def test_promotion_create_by_staff_user(
 
     assert not data["errors"]
     assert promotion_data["name"] == promotion_name
+    assert promotion_data["type"] == promotion_type
     assert promotion_data["description"] == description_json
     assert promotion_data["startDate"] == start_date.isoformat()
     assert promotion_data["endDate"] == end_date.isoformat()
@@ -155,6 +160,7 @@ def test_promotion_create_by_staff_user(
     for rule_data in variables["input"]["rules"]:
         rule_data["orderPredicate"] = {}
         rule_data["promotion"] = {"id": promotion_data["id"]}
+        rule_data["predicateType"] = promotion_type
         rule_data["channels"] = [
             {"id": channel_id} for channel_id in rule_data["channels"]
         ]
@@ -283,6 +289,7 @@ def test_promotion_create_by_customer(
             "description": description_json,
             "startDate": start_date.isoformat(),
             "endDate": end_date.isoformat(),
+            "type": PromotionTypeEnum.CATALOGUE.name,
             "rules": [
                 {
                     "name": "test promotion rule",
@@ -337,6 +344,7 @@ def test_promotion_create_with_order_rule(
             "description": description_json,
             "startDate": start_date.isoformat(),
             "endDate": end_date.isoformat(),
+            "type": PromotionTypeEnum.ORDER.name,
             "rules": [
                 {
                     "name": rule_name,
@@ -407,6 +415,7 @@ def test_promotion_create_fixed_reward_value_multiple_currencies(
             "description": description_json,
             "startDate": start_date.isoformat(),
             "endDate": end_date.isoformat(),
+            "type": PromotionTypeEnum.CATALOGUE.name,
             "rules": [
                 {
                     "name": "test promotion rule",
@@ -475,6 +484,7 @@ def test_promotion_create_invalid_price_precision(
             "description": description_json,
             "startDate": start_date.isoformat(),
             "endDate": end_date.isoformat(),
+            "type": PromotionTypeEnum.CATALOGUE.name,
             "rules": [
                 {
                     "name": "test promotion rule",
@@ -543,6 +553,7 @@ def test_promotion_create_invalid_percentage_value(
             "description": description_json,
             "startDate": start_date.isoformat(),
             "endDate": end_date.isoformat(),
+            "type": PromotionTypeEnum.CATALOGUE.name,
             "rules": [
                 {
                     "name": "test promotion rule",
@@ -678,6 +689,7 @@ def test_promotion_create_start_date_and_end_date_after_current_date(
     reward_value = Decimal("10")
     reward_value_type_1 = RewardValueTypeEnum.FIXED.name
     reward_value_type_2 = RewardValueTypeEnum.PERCENTAGE.name
+    promotion_type = PromotionTypeEnum.CATALOGUE.name
 
     variables = {
         "input": {
@@ -685,6 +697,7 @@ def test_promotion_create_start_date_and_end_date_after_current_date(
             "description": description_json,
             "startDate": start_date.isoformat(),
             "endDate": end_date.isoformat(),
+            "type": promotion_type,
             "rules": [
                 {
                     "name": rule_1_name,
@@ -716,6 +729,7 @@ def test_promotion_create_start_date_and_end_date_after_current_date(
 
     assert not data["errors"]
     assert promotion_data["name"] == promotion_name
+    assert promotion_data["type"] == promotion_type
     assert promotion_data["description"] == description_json
     assert promotion_data["startDate"] == start_date.isoformat()
     assert promotion_data["endDate"] == end_date.isoformat()
@@ -726,6 +740,7 @@ def test_promotion_create_start_date_and_end_date_after_current_date(
     for rule_data in variables["input"]["rules"]:
         rule_data["orderPredicate"] = {}
         rule_data["promotion"] = {"id": promotion_data["id"]}
+        rule_data["predicateType"] = promotion_type
         rule_data["channels"] = [
             {"id": channel_id} for channel_id in rule_data["channels"]
         ]
@@ -774,6 +789,7 @@ def test_promotion_create_missing_predicate(
             "description": description_json,
             "startDate": start_date.isoformat(),
             "endDate": end_date.isoformat(),
+            "type": PromotionTypeEnum.CATALOGUE.name,
             "rules": [
                 {
                     "name": rule_1_name,
@@ -803,13 +819,15 @@ def test_promotion_create_missing_predicate(
     errors = data["errors"]
 
     assert not data["promotion"]
-    assert len(errors) == 2
-    error_fields = set([error["field"] for error in errors])
-    assert "cataloguePredicate" in error_fields
-    assert "orderPredicate" in error_fields
-    error_codes = set([error["code"] for error in errors])
-    assert len(error_codes) == 1
-    assert PromotionCreateErrorCode.REQUIRED.name in error_codes
+    assert len(errors) == 1
+    assert {
+        "code": PromotionCreateErrorCode.REQUIRED.name,
+        "field": "cataloguePredicate",
+        "index": 1,
+        "message": ANY,
+        "rulesLimit": None,
+        "exceedBy": None,
+    } in errors
 
 
 @freeze_time("2020-03-18 12:00:00")
@@ -845,6 +863,7 @@ def test_promotion_create_missing_reward_value(
             "description": description_json,
             "startDate": start_date.isoformat(),
             "endDate": end_date.isoformat(),
+            "type": PromotionTypeEnum.CATALOGUE.name,
             "rules": [
                 {
                     "name": rule_1_name,
@@ -911,6 +930,7 @@ def test_promotion_create_missing_reward_value_type(
             "description": description_json,
             "startDate": start_date.isoformat(),
             "endDate": end_date.isoformat(),
+            "type": PromotionTypeEnum.CATALOGUE.name,
             "rules": [
                 {
                     "name": rule_1_name,
@@ -980,6 +1000,7 @@ def test_promotion_create_invalid_channel_id(
             "description": description_json,
             "startDate": start_date.isoformat(),
             "endDate": end_date.isoformat(),
+            "type": PromotionTypeEnum.CATALOGUE.name,
             "rules": [
                 {
                     "name": rule_1_name,
@@ -1053,6 +1074,7 @@ def test_promotion_create_mixed_catalogue_and_order_rules(
             "description": description_json,
             "startDate": start_date.isoformat(),
             "endDate": end_date.isoformat(),
+            "type": PromotionTypeEnum.CATALOGUE.name,
             "rules": [
                 {
                     "name": rule_1_name,
@@ -1083,10 +1105,23 @@ def test_promotion_create_mixed_catalogue_and_order_rules(
     errors = data["errors"]
 
     assert not data["promotion"]
-    assert len(errors) == 1
-    assert errors[0]["code"] == PromotionCreateErrorCode.MIXED_PROMOTION_PREDICATES.name
-    assert errors[0]["field"] is None
-    assert errors[0]["index"] is None
+    assert len(errors) == 2
+    assert {
+        "code": PromotionCreateErrorCode.REQUIRED.name,
+        "field": "cataloguePredicate",
+        "index": 1,
+        "rulesLimit": None,
+        "exceedBy": None,
+        "message": ANY,
+    } in errors
+    assert {
+        "code": PromotionCreateErrorCode.INVALID.name,
+        "field": "orderPredicate",
+        "index": 1,
+        "rulesLimit": None,
+        "exceedBy": None,
+        "message": ANY,
+    } in errors
 
 
 @freeze_time("2020-03-18 12:00:00")
@@ -1122,6 +1157,7 @@ def test_promotion_create_mixed_currencies_for_price_based_predicate(
             "description": description_json,
             "startDate": start_date.isoformat(),
             "endDate": end_date.isoformat(),
+            "type": PromotionTypeEnum.ORDER.name,
             "rules": [
                 {
                     "name": rule_name,
@@ -1178,6 +1214,7 @@ def test_promotion_create_multiple_errors(
             "description": description_json,
             "startDate": start_date.isoformat(),
             "endDate": end_date.isoformat(),
+            "type": PromotionTypeEnum.CATALOGUE.name,
             "rules": [
                 {
                     "name": "test promotion rule 1",
@@ -1262,6 +1299,7 @@ def test_promotion_create_end_date_before_start_date(
             "description": description_json,
             "startDate": start_date.isoformat(),
             "endDate": end_date.isoformat(),
+            "type": PromotionTypeEnum.CATALOGUE.name,
             "rules": [
                 {
                     "name": rule_1_name,
@@ -1353,6 +1391,7 @@ def test_promotion_create_invalid_catalogue_predicate(
             "description": description_json,
             "startDate": start_date.isoformat(),
             "endDate": end_date.isoformat(),
+            "type": PromotionTypeEnum.CATALOGUE.name,
             "rules": [
                 {
                     "name": rule_1_name,
@@ -1395,7 +1434,7 @@ def test_promotion_create_exceeds_rules_number_limit(
     permission_group_manage_discounts,
     channel_USD,
     product,
-    promotion_with_order_rule,
+    order_promotion_with_rule,
 ):
     # given
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
@@ -1417,6 +1456,7 @@ def test_promotion_create_exceeds_rules_number_limit(
             "name": promotion_name,
             "startDate": start_date.isoformat(),
             "endDate": end_date.isoformat(),
+            "type": PromotionTypeEnum.ORDER.name,
             "rules": [
                 {
                     "name": rule_name,
@@ -1506,6 +1546,7 @@ def test_promotion_create_events_by_staff_user(
     variables = {
         "input": {
             "name": "test promotion",
+            "type": PromotionTypeEnum.CATALOGUE.name,
             "rules": [
                 {
                     "channels": rule_1_channel_ids,
@@ -1578,6 +1619,7 @@ def test_promotion_create_events_by_app(
     variables = {
         "input": {
             "name": "test promotion",
+            "type": PromotionTypeEnum.CATALOGUE.name,
             "rules": [
                 {
                     "channels": rule_1_channel_ids,

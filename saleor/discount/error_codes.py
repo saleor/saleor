@@ -20,8 +20,6 @@ class PromotionCreateErrorCode(Enum):
     INVALID = "invalid"
     MULTIPLE_CURRENCIES_NOT_ALLOWED = "multiple_currencies_not_allowed"
     INVALID_PRECISION = "invalid_precision"
-    MIXED_PREDICATES = "mixed_predicates"
-    MIXED_PROMOTION_PREDICATES = "mixed_promotion_predicates"
     MISSING_CHANNELS = "missing_channels"
     RULES_NUMBER_LIMIT = "rules_number_limit"
 
@@ -45,8 +43,6 @@ class PromotionRuleCreateErrorCode(Enum):
     INVALID = "invalid"
     MULTIPLE_CURRENCIES_NOT_ALLOWED = "multiple_currencies_not_allowed"
     INVALID_PRECISION = "invalid_precision"
-    MIXED_PREDICATES = "mixed_predicates"
-    MIXED_PROMOTION_PREDICATES = "mixed_promotion_predicates"
     MISSING_CHANNELS = "missing_channels"
     RULES_NUMBER_LIMIT = "rules_number_limit"
 
@@ -60,7 +56,6 @@ class PromotionRuleUpdateErrorCode(Enum):
     MISSING_CHANNELS = "missing_channels"
     MULTIPLE_CURRENCIES_NOT_ALLOWED = "multiple_currencies_not_allowed"
     INVALID_PRECISION = "invalid_precision"
-    MIXED_PREDICATES = "mixed_predicates"
 
 
 class PromotionRuleDeleteErrorCode(Enum):

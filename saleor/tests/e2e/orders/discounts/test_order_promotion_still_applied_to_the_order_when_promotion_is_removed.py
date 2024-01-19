@@ -55,7 +55,10 @@ def test_order_promotion_still_applied_to_the_order_when_promotion_is_removed_CO
         e2e_staff_api_client, warehouse_id, channel_id, variant_price=20
     )
 
-    promotion_data = create_promotion(e2e_staff_api_client, promotion_name)
+    promotion_type = "CATALOGUE"
+    promotion_data = create_promotion(
+        e2e_staff_api_client, promotion_name, promotion_type
+    )
     promotion_id = promotion_data["id"]
 
     catalogue_predicate = {"productPredicate": {"ids": [product_id]}}

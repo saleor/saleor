@@ -1284,7 +1284,7 @@ def test_recalculate_checkout_discount_with_sale(
 def test_recalculate_checkout_discount_with_promotion(
     checkout_with_voucher_percentage,
     voucher_percentage,
-    promotion_without_rules,
+    catalogue_promotion_without_rules,
 ):
     # given
     checkout = checkout_with_voucher_percentage
@@ -1300,7 +1300,7 @@ def test_recalculate_checkout_discount_with_promotion(
 
     line_info = lines[0]
     reward_value = Decimal("1")
-    rule = promotion_without_rules.rules.create(
+    rule = catalogue_promotion_without_rules.rules.create(
         name="Percentage promotion rule",
         catalogue_predicate={
             "productPredicate": {
@@ -1339,7 +1339,7 @@ def test_recalculate_checkout_discount_with_promotion(
         VariantPromotionRuleInfo(
             rule=rule,
             variant_listing_promotion_rule=listing_promotion_rule,
-            promotion=promotion_without_rules,
+            promotion=catalogue_promotion_without_rules,
             promotion_translation=None,
             rule_translation=None,
         )
@@ -1369,7 +1369,7 @@ def test_recalculate_checkout_discount_with_promotion(
 def test_recalculate_checkout_discount_with_checkout_discount_voucher_not_applicable(
     checkout_with_voucher_percentage,
     voucher_percentage,
-    promotion_without_rules,
+    catalogue_promotion_without_rules,
 ):
     # given
     checkout = checkout_with_voucher_percentage
@@ -1384,7 +1384,7 @@ def test_recalculate_checkout_discount_with_checkout_discount_voucher_not_applic
 
     line_info = lines[0]
     reward_value = Decimal("1")
-    rule = promotion_without_rules.rules.create(
+    rule = catalogue_promotion_without_rules.rules.create(
         name="Fixed promotion rule",
         order_predicate={
             "base_total_price": {

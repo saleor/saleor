@@ -95,7 +95,10 @@ def test_create_promotion_for_collection_core_2109(
     discount_type = "PERCENTAGE"
     promotion_rule_name = "rule for collections"
 
-    promotion_data = create_promotion(e2e_staff_api_client, promotion_name)
+    promotion_type = "CATALOGUE"
+    promotion_data = create_promotion(
+        e2e_staff_api_client, promotion_name, promotion_type
+    )
     promotion_id = promotion_data["id"]
 
     collection_ids = [collection_id]

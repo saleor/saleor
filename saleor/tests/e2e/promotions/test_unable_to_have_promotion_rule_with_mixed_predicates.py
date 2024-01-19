@@ -47,6 +47,7 @@ def test_unable_to_have_promotion_rule_with_mixed_predicates_CORE_2125(
 
     # Step 1- Create promotion with rule with mixed predicates
     invalid_promotion_name = "Promotion with mixed predicates"
+    invalid_promotion_type = "CATALOGUE"
     invalid_promotion_reward_value = "20"
     invalid_promotion_rules = [
         {
@@ -62,25 +63,22 @@ def test_unable_to_have_promotion_rule_with_mixed_predicates_CORE_2125(
         }
     ]
     data = raw_create_promotion(
-        e2e_staff_api_client, invalid_promotion_name, invalid_promotion_rules
+        e2e_staff_api_client,
+        invalid_promotion_name,
+        invalid_promotion_type,
+        invalid_promotion_rules,
     )
     errors = data["errors"]
-    assert (
-        errors[0]["message"]
-        == "Only one of predicates can be provided: 'cataloguePredicate' or 'orderPredicate'."
+    assert errors[0]["message"] == (
+        "`Order` predicate cannot be provided for promotion rule with "
+        "`catalogue` predicate type."
     )
-    assert errors[0]["code"] == "MIXED_PREDICATES"
-    assert errors[0]["field"] == "cataloguePredicate"
-
-    assert (
-        errors[1]["message"]
-        == "Only one of predicates can be provided: 'cataloguePredicate' or 'orderPredicate'."
-    )
-    assert errors[1]["code"] == "MIXED_PREDICATES"
-    assert errors[1]["field"] == "orderPredicate"
+    assert errors[0]["code"] == "INVALID"
+    assert errors[0]["field"] == "orderPredicate"
 
     # Step 2- Create promotion with rule with order predicate
     promotion_name = "Promotion"
+    promotion_type = "ORDER"
     reward_value = "20"
     rules = [
         {
@@ -94,7 +92,9 @@ def test_unable_to_have_promotion_rule_with_mixed_predicates_CORE_2125(
             "rewardValueType": "PERCENTAGE",
         }
     ]
-    promotion_data = create_promotion(e2e_staff_api_client, promotion_name, rules)
+    promotion_data = create_promotion(
+        e2e_staff_api_client, promotion_name, promotion_type, rules
+    )
     promotion_rule_id = promotion_data["rules"][0]["id"]
 
     # Step 3 - Check the promotion rule cannot be updated with catalogue predicate
@@ -107,7 +107,7 @@ def test_unable_to_have_promotion_rule_with_mixed_predicates_CORE_2125(
     error = data["errors"][0]
     assert (
         error["message"]
-        == "Only one of predicates can be provided: 'cataloguePredicate' or 'orderPredicate'."
+        == "`Catalogue` predicate cannot be provided for promotion rule with `order` predicate type."
     )
-    assert error["code"] == "MIXED_PREDICATES"
+    assert error["code"] == "INVALID"
     assert error["field"] == "cataloguePredicate"

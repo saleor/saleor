@@ -11,6 +11,7 @@ mutation CreatePromotion($input: PromotionCreateInput!) {
     promotion {
       id
       name
+      type
       startDate
       endDate
       description
@@ -45,6 +46,7 @@ mutation CreatePromotion($input: PromotionCreateInput!) {
 def raw_create_promotion(
     staff_api_client,
     promotion_name,
+    promotion_type,
     rules=None,
     start_date=None,
     end_date=None,
@@ -53,6 +55,7 @@ def raw_create_promotion(
     variables = {
         "input": {
             "name": promotion_name,
+            "type": promotion_type,
             "rules": rules,
             "startDate": start_date,
             "endDate": end_date,
@@ -83,6 +86,7 @@ def raw_create_promotion(
 def create_promotion(
     staff_api_client,
     promotion_name,
+    promotion_type,
     rules=None,
     start_date=None,
     end_date=None,
@@ -91,6 +95,7 @@ def create_promotion(
     response = raw_create_promotion(
         staff_api_client,
         promotion_name,
+        promotion_type,
         rules,
         start_date,
         end_date,

@@ -6,7 +6,7 @@ import pytest
 from django.utils import timezone
 
 from ....tests.utils import get_graphql_content
-from ...enums import RewardValueTypeEnum
+from ...enums import PromotionTypeEnum, RewardValueTypeEnum
 from ..mutations.test_promotion_create import PROMOTION_CREATE_MUTATION
 
 
@@ -65,6 +65,7 @@ def test_promotion_create(
             "description": description_json,
             "startDate": start_date.isoformat(),
             "endDate": end_date.isoformat(),
+            "type": PromotionTypeEnum.CATALOGUE.name,
             "rules": [
                 {
                     "name": "Rule 1",

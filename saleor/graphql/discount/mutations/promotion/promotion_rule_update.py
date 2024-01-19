@@ -21,7 +21,7 @@ from ....utils.validators import check_for_duplicates
 from ...enums import PromotionRuleUpdateErrorCode
 from ...inputs import PromotionRuleBaseInput
 from ...types import PromotionRule
-from ...utils import PredicateType, get_products_for_rule
+from ...utils import get_products_for_rule
 from ..utils import clear_promotion_old_sale_id
 from .validators import (
     clean_promotion_rule,
@@ -103,16 +103,11 @@ class PromotionRuleUpdate(ModelMutation):
             raise ValidationError({"addChannels": error, "removeChannels": error})
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
         errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
-        predicate_type = (
-            PredicateType.CATALOGUE
-            if instance.catalogue_predicate
-            else PredicateType.ORDER
-        )
         cleaned_input = clean_promotion_rule(
             cleaned_input,
+            instance.promotion.type,
             errors,
             PromotionRuleUpdateErrorCode,
-            predicate_type=predicate_type,
             instance=instance,
         )
         if errors:

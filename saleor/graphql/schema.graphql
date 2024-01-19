@@ -14214,6 +14214,11 @@ type Promotion implements Node & ObjectWithMetadata @doc(category: "Discounts") 
   """Name of the promotion."""
   name: String!
 
+  """
+  The type of the promotion. Implicate if the discount is applied on catalogue or order level.
+  """
+  type: PromotionTypeEnum
+
   """Description of the promotion."""
   description: JSON
 
@@ -14240,6 +14245,12 @@ type Promotion implements Node & ObjectWithMetadata @doc(category: "Discounts") 
 
   """The list of events associated with the promotion."""
   events: [PromotionEvent!]
+}
+
+"""An enumeration."""
+enum PromotionTypeEnum @doc(category: "Discounts") {
+  CATALOGUE
+  ORDER
 }
 
 """
@@ -14275,6 +14286,9 @@ type PromotionRule implements Node @doc(category: "Discounts") {
 
   """The type of reward value of the promotion rule."""
   rewardValueType: RewardValueTypeEnum
+
+  """The type of the predicate that must be met to apply the reward."""
+  predicateType: PromotionTypeEnum
 
   """The catalogue predicate that must be met to apply the rule reward."""
   cataloguePredicate: JSON
@@ -27437,8 +27451,6 @@ enum PromotionCreateErrorCode {
   INVALID
   MULTIPLE_CURRENCIES_NOT_ALLOWED
   INVALID_PRECISION
-  MIXED_PREDICATES
-  MIXED_PROMOTION_PREDICATES
   MISSING_CHANNELS
   RULES_NUMBER_LIMIT
 }
@@ -27455,6 +27467,17 @@ input PromotionCreateInput @doc(category: "Discounts") {
 
   """Promotion name."""
   name: String!
+
+  """
+  Defines the promotion type. Implicate the required promotion rules predicate type and whether the promotion rules will give the catalogue or order discount. 
+  
+  The default value is `Catalogue`.
+  
+  This field will be required from Saleor 3.20.
+  
+  Added in Saleor 3.19.
+  """
+  type: PromotionTypeEnum
 
   """List of promotion rules."""
   rules: [PromotionRuleInput!]
@@ -27683,8 +27706,6 @@ enum PromotionRuleCreateErrorCode {
   INVALID
   MULTIPLE_CURRENCIES_NOT_ALLOWED
   INVALID_PRECISION
-  MIXED_PREDICATES
-  MIXED_PROMOTION_PREDICATES
   MISSING_CHANNELS
   RULES_NUMBER_LIMIT
 }
@@ -27779,7 +27800,6 @@ enum PromotionRuleUpdateErrorCode {
   MISSING_CHANNELS
   MULTIPLE_CURRENCIES_NOT_ALLOWED
   INVALID_PRECISION
-  MIXED_PREDICATES
 }
 
 input PromotionRuleUpdateInput {

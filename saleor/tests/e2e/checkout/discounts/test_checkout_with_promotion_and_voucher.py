@@ -23,14 +23,16 @@ def prepare_promotion(
     e2e_staff_api_client,
     product_id,
     channel_id,
-    promotion_type,
     promotion_value,
+    promotion_value_type,
 ):
     promotion_name = "test_promotion"
+    promotion_type = "CATALOGUE"
 
     promotion_data = create_promotion(
         e2e_staff_api_client,
         promotion_name,
+        promotion_type,
     )
     promotion_id = promotion_data["id"]
 
@@ -47,7 +49,7 @@ def prepare_promotion(
         "name": promotion_rule_name,
         "cataloguePredicate": catalogue_predicate,
         "rewardValue": promotion_value,
-        "rewardValueType": promotion_type,
+        "rewardValueType": promotion_value_type,
     }
     promotion_rule = create_promotion_rule(
         e2e_staff_api_client,
@@ -106,7 +108,7 @@ def prepare_voucher(
     (
         "variant_price",
         "promotion_value",
-        "promotion_type",
+        "promotion_value_type",
         "expected_promotion_discount",
         "voucher_discount_value",
         "voucher_discount_type",
@@ -127,7 +129,7 @@ def test_checkout_with_promotion_and_voucher_CORE_2107(
     permission_manage_product_types_and_attributes,
     permission_manage_discounts,
     variant_price,
-    promotion_type,
+    promotion_value_type,
     promotion_value,
     expected_promotion_discount,
     voucher_discount_value,
@@ -164,8 +166,8 @@ def test_checkout_with_promotion_and_voucher_CORE_2107(
         e2e_staff_api_client,
         product_id,
         channel_id,
-        promotion_type,
         promotion_value,
+        promotion_value_type,
     )
 
     voucher_discount_value, voucher_code = prepare_voucher(
