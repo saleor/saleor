@@ -142,7 +142,6 @@ class PromotionCreate(ModelMutation):
         errors: defaultdict[str, list[ValidationError]],
     ) -> tuple[list, defaultdict[str, list[ValidationError]]]:
         cleaned_rules = []
-        # cls.check_predicate_types(rules_data)
         if promotion_type == PromotionType.ORDER:
             rules_limit = settings.ORDER_RULES_LIMIT
             order_rules_count = models.PromotionRule.objects.filter(
