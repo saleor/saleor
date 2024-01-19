@@ -5806,6 +5806,25 @@ def order_promotion_rule(channel_USD, order_promotion_without_rules):
 
 
 @pytest.fixture
+def gift_promotion_rule(channel_USD, order_promotion_without_rules, product_list):
+    rule = PromotionRule.objects.create(
+        name="Order promotion rule",
+        promotion=order_promotion_without_rules,
+        order_predicate={
+            "base_total_price": {
+                "range": {
+                    "gte": 20,
+                }
+            }
+        },
+        reward_type=RewardType.GIFT,
+    )
+    rule.channels.add(channel_USD)
+    rule.variants.set([product.variants.first() for product in [product_list[:2]]])
+    return rule
+
+
+@pytest.fixture
 def rule_info(
     promotion_rule,
     promotion_translation_fr,
