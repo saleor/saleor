@@ -1058,16 +1058,10 @@ def _create_order_discount(order: "Order", checkout_info: "CheckoutInfo"):
     if checkout.discount:
         checkout_discount = checkout.discounts.first()
         if checkout_discount and checkout_discount.type == DiscountType.ORDER_PROMOTION:
-            order.discounts.create(
-                type=checkout_discount.type,
-                value_type=checkout_discount.value_type,
-                value=checkout_discount.value,
-                name=checkout_discount.name,
-                translated_name=checkout_discount.translated_name,
-                currency=checkout_discount.currency,
-                amount_value=checkout_discount.amount_value,
-                promotion_rule=checkout_discount.promotion_rule,
-            )
+            discount_data = model_to_dict(checkout_discount)
+            discount_data["promotion_rule"] = checkout_discount.promotion_rule
+            del discount_data["checkout"]
+            order.discounts.create(**discount_data)
 
         if not checkout_discount:
             # store voucher as a fixed value as it this the simplest solution for now.
