@@ -54,11 +54,9 @@ class RewardValueType:
 
 class RewardType:
     SUBTOTAL_DISCOUNT = "subtotal_discount"
-    TOTAL_DISCOUNT = "total_discount"
 
     CHOICES = [
         (SUBTOTAL_DISCOUNT, "subtotal_discount"),
-        (TOTAL_DISCOUNT, "total_discount"),
     ]
 
 

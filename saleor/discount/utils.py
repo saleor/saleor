@@ -546,7 +546,6 @@ def create_discount_objects_for_order_promotions(
         _clear_checkout_discount(checkout_info, save)
         return
     subtotal = checkout.base_subtotal
-    total = checkout.base_total
 
     rules = fetch_promotion_rules_for_checkout(checkout)
     if not rules:
@@ -559,8 +558,6 @@ def create_discount_objects_for_order_promotions(
         price = zero_money(currency_code)
         if rule.reward_type == RewardType.SUBTOTAL_DISCOUNT:
             price = subtotal
-        elif rule.reward_type == RewardType.TOTAL_DISCOUNT:
-            price = total
         discount_amount = price - discount(price)
         rule_with_discount_amount.append((rule, discount_amount))
 

@@ -1380,7 +1380,7 @@ def test_create_or_update_discount_objects_from_promotion_best_rule_applies(
 
 @patch("saleor.discount.utils.base_checkout_delivery_price")
 @patch("saleor.discount.utils.base_checkout_subtotal")
-def test_create_or_update_discount_objects_from_promotion_total_price_discount(
+def test_create_or_update_discount_objects_from_promotion_subtotal_price_discount(
     subtotal_mock,
     delivery_price_mock,
     checkout_info,
@@ -1419,7 +1419,7 @@ def test_create_or_update_discount_objects_from_promotion_total_price_discount(
                 },
                 reward_value_type=RewardValueType.PERCENTAGE,
                 reward_value=Decimal("50"),
-                reward_type=RewardType.TOTAL_DISCOUNT,
+                reward_type=RewardType.SUBTOTAL_DISCOUNT,
             ),
         ]
     )
@@ -1436,11 +1436,7 @@ def test_create_or_update_discount_objects_from_promotion_total_price_discount(
     assert len(checkout_info.discounts) == 1
     assert checkout_info.discounts[0].promotion_rule == rules[0]
     discount = checkout_info.discounts[0]
-    assert (
-        discount.amount_value
-        == checkout.base_total.amount * Decimal("0.5")
-        == (delivery_price + price).amount * Decimal("0.5")
-    )
+    assert discount.amount_value == checkout.base_subtotal.amount * Decimal("0.5")
 
 
 def test_create_or_update_discount_from_promotion_voucher_code_set_checkout_discount(
@@ -1641,7 +1637,7 @@ def test_create_discount_objects_for_order_promotions_race_condition(
         },
         reward_value_type=RewardValueType.FIXED,
         reward_value=reward_value,
-        reward_type=RewardType.TOTAL_DISCOUNT,
+        reward_type=RewardType.SUBTOTAL_DISCOUNT,
     )
     rule.channels.add(channel)
 
@@ -1655,7 +1651,7 @@ def test_create_discount_objects_for_order_promotions_race_condition(
         },
         reward_value_type=RewardValueType.FIXED,
         reward_value=Decimal("1"),
-        reward_type=RewardType.TOTAL_DISCOUNT,
+        reward_type=RewardType.SUBTOTAL_DISCOUNT,
     )
     rule0.channels.add(channel)
 
@@ -1705,7 +1701,7 @@ def test_create_or_update_checkout_discount_race_condition(
         },
         reward_value_type=RewardValueType.FIXED,
         reward_value=reward_value,
-        reward_type=RewardType.TOTAL_DISCOUNT,
+        reward_type=RewardType.SUBTOTAL_DISCOUNT,
     )
     rule.channels.add(channel)
 

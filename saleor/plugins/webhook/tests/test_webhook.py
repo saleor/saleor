@@ -1142,7 +1142,7 @@ def test_checkout_payload_includes_order_promotion_discount(
         },
         reward_value_type=RewardValueType.FIXED,
         reward_value=reward_value,
-        reward_type=RewardType.TOTAL_DISCOUNT,
+        reward_type=RewardType.SUBTOTAL_DISCOUNT,
     )
     rule.channels.add(channel_listing.channel)
 
