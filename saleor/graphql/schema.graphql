@@ -27556,6 +27556,15 @@ input PromotionRuleInput @doc(category: "Discounts") {
   """
   rewardType: RewardTypeEnum
 
+  """
+  Product variant IDs available as a gift to choose.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  gifts: [ID!]
+
   """List of channel ids to which the rule should apply to."""
   channels: [ID!]
 }
@@ -27783,6 +27792,15 @@ input PromotionRuleCreateInput {
   """
   rewardType: RewardTypeEnum
 
+  """
+  Product variant IDs available as a gift to choose.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  gifts: [ID!]
+
   """List of channel ids to which the rule should apply to."""
   channels: [ID!]
 
@@ -27874,6 +27892,15 @@ input PromotionRuleUpdateInput {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   rewardType: RewardTypeEnum
+
+  """
+  Product variant IDs available as a gift to choose.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  gifts: [ID!]
 
   """List of channel ids to add."""
   addChannels: [ID!]

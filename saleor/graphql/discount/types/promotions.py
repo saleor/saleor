@@ -162,6 +162,7 @@ class PromotionRule(ModelObjectType[models.PromotionRule]):
     @staticmethod
     def resolve_gifts(root: models.PromotionRule, _info: ResolveInfo):
         # TODO add dataloader
+        # TODO consider returning ProductVariant objects instead of ids
         return [
             graphene.Node.to_global_id("ProductVariant", gift)
             for gift in root.gifts.all()

@@ -4,9 +4,11 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from graphene.utils.str_converters import to_camel_case
+from graphql.error import GraphQLError
 
-from .....discount import PromotionType, RewardValueType
+from .....discount import PromotionType, RewardType, RewardValueType
 from .....discount.models import PromotionRule
+from ....core.utils import from_global_id_or_error
 from ....core.validators import validate_price_precision
 
 if TYPE_CHECKING:
@@ -247,6 +249,61 @@ def _clean_order_predicate(
     except ValidationError as error:
         errors["order_predicate"].append(error)
         return
+
+    if reward_type == RewardType.GIFT:
+        _clean_gift_rule(cleaned_input, errors, error_class, index)
+
+
+def _clean_gift_rule(cleaned_input, errors, error_class, index):
+    if cleaned_input.get("rewardValue"):
+        errors["reward_value"].append(
+            ValidationError(
+                message=(
+                    "The rewardValue field must be empty "
+                    "when rewardType is set to GIFT."
+                ),
+                code=error_class.INVALID.value,
+                params={"index": index} if index is not None else {},
+            )
+        )
+
+    if cleaned_input.get("rewardValueType"):
+        errors["reward_value_type"].append(
+            ValidationError(
+                message=(
+                    "The rewardValueType field must be empty "
+                    "when rewardType is set to GIFT."
+                ),
+                code=error_class.INVALID.value,
+                params={"index": index} if index is not None else {},
+            )
+        )
+
+    gift_ids = cleaned_input.get("gifts")
+    if not gift_ids:
+        errors["gifts"].append(
+            ValidationError(
+                message="The gifts field is required when rewardType is set to GIFT.",
+                code=error_class.REQUIRED.value,
+                params={"index": index} if index is not None else {},
+            )
+        )
+        return
+
+    for idx, gift_id in enumerate(gift_ids):
+        try:
+            _, id = from_global_id_or_error(gift_id, "ProductVariant")
+        except GraphQLError as e:
+            params = {"gift_index": idx}
+            if index:
+                params.update({"index": index})
+            errors["gifts"].append(
+                ValidationError(
+                    message=e.message,
+                    code=error_class.INVALID.value,
+                    params=params,
+                )
+            )
 
 
 def _clean_reward(

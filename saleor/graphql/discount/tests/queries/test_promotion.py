@@ -54,11 +54,13 @@ def _assert_promotion_data(promotion, content_data):
             "description": rule.description,
             "promotion": {"id": graphene.Node.to_global_id("Promotion", promotion.id)},
             "channels": [{"slug": channel.slug} for channel in rule.channels.all()],
-            "rewardValueType": rule.reward_value_type.upper(),
+            "rewardValueType": rule.reward_value_type.upper()
+            if rule.reward_value_type
+            else None,
             "rewardValue": rule.reward_value,
             "cataloguePredicate": rule.catalogue_predicate,
             "orderPredicate": rule.order_predicate,
-            "rewardType": rule.reward_type,
+            "rewardType": rule.reward_type.upper() if rule.reward_type else None,
             "gifts": [
                 graphene.Node.to_global_id("ProductVariant", gift)
                 for gift in rule.gifts.all()
