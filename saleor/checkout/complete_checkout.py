@@ -26,7 +26,7 @@ from ..core.tracing import traced_atomic_transaction
 from ..core.transactions import transaction_with_commit_on_errors
 from ..core.utils.url import validate_storefront_url
 from ..discount import DiscountType, DiscountValueType
-from ..discount.models import NotApplicable, OrderLineDiscount
+from ..discount.models import CheckoutDiscount, NotApplicable, OrderLineDiscount
 from ..discount.utils import (
     get_sale_id,
     increase_voucher_usage,
@@ -1062,6 +1062,7 @@ def _create_order_discount(order: "Order", checkout_info: "CheckoutInfo"):
     )
 
     if is_promotion_discount:
+        checkout_discount = cast(CheckoutDiscount, checkout_discount)
         discount_data = model_to_dict(checkout_discount)
         discount_data["promotion_rule"] = checkout_discount.promotion_rule
         del discount_data["checkout"]
