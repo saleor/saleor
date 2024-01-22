@@ -1,4 +1,5 @@
-from collections import defaultdict
+import datetime
+from collections import defaultdict, namedtuple
 from collections.abc import Iterable, Iterator
 from decimal import ROUND_HALF_UP, Decimal
 from functools import partial
@@ -12,6 +13,7 @@ from typing import (
 from uuid import UUID
 
 import graphene
+import pytz
 from django.db import transaction
 from django.db.models import Exists, F, OuterRef, QuerySet
 from django.utils import timezone
@@ -23,11 +25,16 @@ from ..checkout.base_calculations import (
     base_checkout_subtotal,
 )
 from ..checkout.models import Checkout
+from ..core.exceptions import InsufficientStock
 from ..core.taxes import zero_money
 from ..core.utils.promo_code import InvalidPromoCode
-from ..discount.models import VoucherCustomer
-from ..product.models import Product, ProductVariant
-from . import DiscountType, PromotionRuleInfo, RewardType
+from ..product.models import (
+    Product,
+    ProductChannelListing,
+    ProductVariant,
+    ProductVariantChannelListing,
+)
+from . import DiscountType, PromotionRuleInfo, RewardType, RewardValueType
 from .interface import VariantPromotionRuleInfo, get_rule_translations
 from .models import (
     CheckoutDiscount,
@@ -38,6 +45,7 @@ from .models import (
     PromotionRule,
     Voucher,
     VoucherCode,
+    VoucherCustomer,
 )
 
 if TYPE_CHECKING:
@@ -47,7 +55,6 @@ if TYPE_CHECKING:
     from ..plugins.manager import PluginsManager
     from ..product.managers import ProductVariantQueryset
     from ..product.models import (
-        ProductVariantChannelListing,
         VariantChannelListingPromotionRule,
     )
 
@@ -536,6 +543,7 @@ def create_discount_objects_for_order_promotions(
     *,
     save: bool = False,
 ):
+    RuleDiscount = namedtuple("RuleDiscount", ["rule", "discount_amount", "variant_id"])
     # The base prices are required for order promotion discount qualification.
     _set_checkout_base_prices(checkout_info, lines_info)
 
@@ -552,16 +560,33 @@ def create_discount_objects_for_order_promotions(
         _clear_checkout_discount(checkout_info, save)
         return
     currency_code = checkout_info.channel.currency_code
-    rule_with_discount_amount = []
+    rule_discounts: list[RuleDiscount] = []
+    gift_rules = [rule for rule in rules if rule.reward_type == RewardType.GIFT]
     for rule in rules:
+        if rule in gift_rules:
+            continue
         discount = rule.get_discount(currency_code)
         price = zero_money(currency_code)
         if rule.reward_type == RewardType.SUBTOTAL_DISCOUNT:
             price = subtotal
-        discount_amount = price - discount(price)
-        rule_with_discount_amount.append((rule, discount_amount))
+        discount_amount = (price - discount(price)).amount
+        rule_discounts.append(RuleDiscount(rule, discount_amount, None))
 
-    best_rule, best_discount_amount = max(rule_with_discount_amount, key=lambda x: x[1])
+    if gift_rules:
+        rule, discounted_price_amount, variant_id = _get_best_gift_reward(
+            gift_rules, checkout_info.channel, checkout_info.get_country()
+        )
+        if rule:
+            rule_discounts.append(
+                RuleDiscount(rule, discounted_price_amount, variant_id)
+            )
+
+    if not rule_discounts:
+        return
+
+    best_rule, best_discount_amount, gift_id = max(
+        rule_discounts, key=lambda x: x.discount_amount
+    )
     promotion = best_rule.promotion
 
     _create_or_update_checkout_discount(
@@ -569,6 +594,7 @@ def create_discount_objects_for_order_promotions(
         checkout_info,
         best_rule,
         best_discount_amount,
+        gift_id,
         currency_code,
         promotion,
         save,
@@ -615,11 +641,85 @@ def _clear_checkout_discount(checkout_info, save):
             )
 
 
+def _get_best_gift_reward(
+    rules: Iterable["PromotionRule"], channel: "Channel", country: str
+) -> tuple[Optional[PromotionRule], Optional[Decimal], Optional[int]]:
+    from ..warehouse.availability import check_stock_quantity_bulk
+
+    rule_ids = [rule.id for rule in rules]
+    PromotionRuleGift = PromotionRule.gifts.through
+    rule_gifts = PromotionRuleGift.objects.filter(promotionrule_id__in=rule_ids)
+    variants = ProductVariant.objects.filter(
+        Exists(
+            rule_gifts.values("productvariant_id").filter(
+                productvariant_id=OuterRef("id")
+            )
+        )
+    )
+    variant_ids_with_insufficient_stock = set()
+    if not variants:
+        return None, None, None
+
+    try:
+        check_stock_quantity_bulk(
+            variants,
+            country,
+            [1] * variants.count(),
+            channel.slug,
+            None,
+        )
+    except InsufficientStock as error:
+        variant_ids_with_insufficient_stock = {
+            item.variant.pk for item in error.items if item.variant
+        }
+
+    available_variant_ids = (
+        set(variants.values_list("id", flat=True)) - variant_ids_with_insufficient_stock
+    )
+
+    if not available_variant_ids:
+        return None, None, None
+
+    # check if variant is available for purchase
+    today = datetime.datetime.now(pytz.UTC)
+    # TODO: use Exists here and exclude to function
+    available_variant_ids = ProductChannelListing.objects.filter(
+        available_for_purchase_at__lte=today,
+        product__variants__id__in=available_variant_ids,
+        channel_id=channel.id,
+    ).values_list("product__variants__id", flat=True)
+    if not available_variant_ids:
+        return None, None, None
+
+    # check variant channel availability
+    available_variant_listings = ProductVariantChannelListing.objects.filter(
+        variant__id__in=available_variant_ids,
+        channel_id=channel.id,
+        price_amount__isnull=False,
+    )
+    if not available_variant_listings:
+        return None, None, None
+
+    discounted_price_amount, top_price_variant_id = max(
+        list(
+            available_variant_listings.values_list(
+                "discounted_price_amount", "variant_id"
+            )
+        ),
+        # sort over a top price
+        key=lambda x: x[0],  # type: ignore
+    )
+    rule_gift = rule_gifts.filter(productvariant_id=top_price_variant_id).first()
+    rule = rule_gift.promotionrule if rule_gift else None
+    return rule, discounted_price_amount, top_price_variant_id
+
+
 def _create_or_update_checkout_discount(
     checkout: "Checkout",
     checkout_info: "CheckoutInfo",
     best_rule: "PromotionRule",
-    best_discount_amount: Money,
+    best_discount_amount: Decimal,
+    gift: Optional[int],
     currency_code: str,
     promotion: "Promotion",
     save: bool,
@@ -635,14 +735,17 @@ def _create_or_update_checkout_discount(
         promotion_translation=promotion_translation,
         rule_translation=rule_translation,
     )
+    # gift rule has empty reward_value and reward_value_type
+    value_type = best_rule.reward_value_type or RewardValueType.FIXED
+    value = best_rule.reward_value or best_discount_amount
     checkout_discount, created = checkout.discounts.get_or_create(
         type=DiscountType.ORDER_PROMOTION,
         defaults={
             "checkout": checkout,
             "promotion_rule": best_rule,
-            "value_type": best_rule.reward_value_type,
-            "value": best_rule.reward_value,
-            "amount_value": best_discount_amount.amount,
+            "value_type": value_type,
+            "value": value,
+            "amount_value": best_discount_amount,
             "currency": currency_code,
             "name": get_discount_name(best_rule, promotion),
             "translated_name": get_discount_translated_name(rule_info),
@@ -657,7 +760,7 @@ def _create_or_update_checkout_discount(
         _update_discount(
             best_rule,
             rule_info,
-            best_discount_amount.amount,
+            best_discount_amount,
             checkout_discount,
             fields_to_update,
         )
@@ -665,7 +768,7 @@ def _create_or_update_checkout_discount(
             checkout_discount.save(update_fields=fields_to_update)
 
     checkout_info.discounts = [checkout_discount]
-    checkout.discount = best_discount_amount
+    checkout.discount_amount = best_discount_amount
     checkout.discount_name = checkout_discount.name
     checkout.translated_discount_name = checkout_discount.translated_name
     if save:
@@ -676,6 +779,8 @@ def _create_or_update_checkout_discount(
                 "translated_discount_name",
             ]
         )
+
+    # TODO: create checkout line with gift - create this line and discount in transaction
 
 
 def get_variants_to_promotions_map(

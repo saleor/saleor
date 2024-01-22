@@ -12735,6 +12735,7 @@ enum OrderDiscountType @doc(category: "Discounts") {
   MANUAL
   PROMOTION
   ORDER_PROMOTION
+  GIFT_PROMOTION
 }
 
 type OrderError @doc(category: "Orders") {
