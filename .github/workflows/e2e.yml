@@ -62,13 +62,6 @@ jobs:
           # Ticket: https://github.com/python-poetry/poetry/issues/7190
           echo "$(poetry env info -p)"/bin >> $GITHUB_PATH
 
-      - uses: actions/cache@v3
-        with:
-          path: ~/.cache/pre-commit
-          key: ${{ runner.os }}-pre-commit-${{ hashFiles('**/.pre-commit-config.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pre-commit-
-
       - name: Run E2E tests
         run: |
           pytest -m "e2e"
