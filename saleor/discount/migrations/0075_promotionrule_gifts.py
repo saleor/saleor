@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
     dependencies = [
         ("product", "0190_merge_20231221_1356"),
-        ("discount", "0078_promotionrule_predicate_type"),
+        ("discount", "0074_auto_20240119_1029"),
     ]
 
     operations = [
