@@ -5824,7 +5824,7 @@ def gift_promotion_rule(channel_USD, order_promotion_without_rules, product_list
         reward_type=RewardType.GIFT,
     )
     rule.channels.add(channel_USD)
-    rule.variants.set([product.variants.first() for product in [product_list[:2]]])
+    rule.gifts.set([product.variants.first() for product in product_list[:2]])
     return rule
 
 
