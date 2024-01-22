@@ -11163,6 +11163,13 @@ type CheckoutLine implements Node & ObjectWithMetadata @doc(category: "Checkout"
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   problems: [CheckoutLineProblem!]
+
+  """
+  Determine if the line is a gift.
+  
+  Added in Saleor 3.19.
+  """
+  isGift: Boolean
 }
 
 """
@@ -12092,6 +12099,13 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Added in Saleor 3.14.
   """
   voucherCode: String
+
+  """
+  Determine if the line is a gift.
+  
+  Added in Saleor 3.19.
+  """
+  isGift: Boolean
 }
 
 """
