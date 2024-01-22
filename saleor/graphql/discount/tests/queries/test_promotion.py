@@ -29,7 +29,10 @@ QUERY_PROMOTION_BY_ID = """
                 rewardValueType
                 rewardValue
                 cataloguePredicate
+                orderPredicate
                 rewardType
+                gifts
+                giftsLimit
             }
         }
     }
@@ -54,7 +57,13 @@ def _assert_promotion_data(promotion, content_data):
             "rewardValueType": rule.reward_value_type.upper(),
             "rewardValue": rule.reward_value,
             "cataloguePredicate": rule.catalogue_predicate,
+            "orderPredicate": rule.order_predicate,
             "rewardType": rule.reward_type,
+            "gifts": [
+                graphene.Node.to_global_id("ProductVariant", gift)
+                for gift in rule.gifts.all()
+            ],
+            "giftsLimit": 1,
         }
         assert rule_data in promotion_data["rules"]
 
@@ -157,6 +166,28 @@ def test_query_promotion_with_complex_rule_2(
     )
 
     variables = {"id": graphene.Node.to_global_id("Promotion", promotion.id)}
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_PROMOTION_BY_ID, variables)
+
+    # then
+    content = get_graphql_content(response)
+    _assert_promotion_data(promotion, content)
+
+
+def test_query_order_promotion_with_gift_rule(
+    order_promotion_without_rules,
+    gift_promotion_rule,
+    staff_api_client,
+    permission_group_manage_discounts,
+):
+    # given
+    promotion = order_promotion_without_rules
+    permission_group_manage_discounts.user_set.add(staff_api_client.user)
+    promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
+    promotion.rules.add(gift_promotion_rule)
+
+    variables = {"id": promotion_id}
 
     # when
     response = staff_api_client.post_graphql(QUERY_PROMOTION_BY_ID, variables)
