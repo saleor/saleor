@@ -10,7 +10,6 @@ on:
       - 'main'
 
 env:
-  BENCH_PATH: ./queries-results.json
   DATABASE_URL: "postgres://saleor:saleor@postgres:5432/saleor"
   SECRET_KEY: ci-test
 
@@ -44,9 +43,9 @@ jobs:
 
       - name: Cache the venv
         id: cached-poetry-dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
-          path: ~/.venv
+          path: ~/.cache/pypoetry/virtualenvs
           key: ${{ runner.os }}-venv-${{ hashFiles('**/poetry.lock') }}
 
       - name: Install dependencies
