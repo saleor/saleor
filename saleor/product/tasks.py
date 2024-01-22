@@ -125,9 +125,9 @@ def update_products_discounted_prices_for_promotion_task(
         PromotionRule.objects.order_by("id")
         .using(settings.DATABASE_CONNECTION_REPLICA_NAME)
         .filter(Exists(promotions.filter(id=OuterRef("promotion_id"))), **kwargs)
-        .exclude(Q(reward_value__isnull=True) | Q(reward_value=0))[
-            :PROMOTION_RULE_BATCH_SIZE
-        ]
+        .exclude(
+            Q(reward_value__isnull=True) | Q(reward_value=0) | Q(catalogue_predicate={})
+        )[:PROMOTION_RULE_BATCH_SIZE]
     )
     if ids := list(rules.values_list("pk", flat=True)):
         qs = PromotionRule.objects.filter(pk__in=ids).exclude(
