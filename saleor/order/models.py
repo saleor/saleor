@@ -549,6 +549,7 @@ class OrderLine(ModelWithMetadata):
     quantity_fulfilled = models.IntegerField(
         validators=[MinValueValidator(0)], default=0
     )
+    is_gift = models.BooleanField(default=False)
 
     currency = models.CharField(
         max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
