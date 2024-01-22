@@ -50,6 +50,21 @@ class TaxConfiguration(ModelObjectType[models.TaxConfiguration]):
         required=True,
         description="List of country-specific exceptions in tax configuration.",
     )
+    tax_app_id = graphene.String(
+        description=(
+            "The tax app id that will be used to calculate the taxes for the given channel. "
+            "Empty value for `TAX_APP` set as `taxCalculationStrategy` means that Saleor will "
+            "iterate over all installed tax apps."
+        ),
+        required=False,
+    )
+    calculated_taxes_required_to_place_order = graphene.Boolean(
+        description=(
+            "Determines if Saleor should allow to place the order without correct "
+            "taxes calculated by the TaxApp."
+        ),
+        required=True,
+    )
 
     class Meta:
         description = "Channel-specific tax configuration." + ADDED_IN_39

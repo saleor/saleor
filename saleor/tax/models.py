@@ -62,6 +62,8 @@ class TaxConfiguration(ModelWithMetadata):
     )
     display_gross_prices = models.BooleanField(default=True)
     prices_entered_with_tax = models.BooleanField(default=True)
+    tax_app_id = models.CharField(blank=True, null=True, max_length=256)
+    calculated_taxes_required_to_place_order = models.BooleanField(default=False)
 
     class Meta:
         ordering = ("pk",)
