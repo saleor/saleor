@@ -1055,31 +1055,38 @@ def _handle_allocations_of_order_lines(
 
 def _create_order_discount(order: "Order", checkout_info: "CheckoutInfo"):
     checkout = checkout_info.checkout
-    if checkout.discount:
-        checkout_discount = checkout.discounts.first()
-        if checkout_discount and checkout_discount.type == DiscountType.ORDER_PROMOTION:
-            discount_data = model_to_dict(checkout_discount)
-            discount_data["promotion_rule"] = checkout_discount.promotion_rule
-            del discount_data["checkout"]
-            order.discounts.create(**discount_data)
+    checkout_discount = checkout.discounts.first()
+    is_voucher_discount = checkout.discount and not checkout_discount
+    is_promotion_discount = (
+        checkout_discount and checkout_discount.type == DiscountType.ORDER_PROMOTION
+    )
 
-        if not checkout_discount:
-            # store voucher as a fixed value as it this the simplest solution for now.
-            # This will be solved when we refactor the voucher logic to use .discounts
-            # relations
-            order.discounts.create(
-                type=DiscountType.VOUCHER,
-                value_type=DiscountValueType.FIXED,
-                value=checkout.discount.amount,
-                name=checkout.discount_name,
-                translated_name=checkout.translated_discount_name,
-                currency=checkout.currency,
-                amount_value=checkout.discount_amount,
-                voucher=checkout_info.voucher,
-                voucher_code=checkout_info.voucher_code.code
-                if checkout_info.voucher_code
-                else None,
-            )
+    if is_promotion_discount:
+        discount_data = model_to_dict(checkout_discount)
+        discount_data["promotion_rule"] = checkout_discount.promotion_rule
+        del discount_data["checkout"]
+        order.discounts.create(**discount_data)
+
+    if is_voucher_discount:
+        # Currently, we don't create `CheckoutDiscount` of type VOUCHER, so if there is
+        # discount on checkout, but not related `CheckoutDiscount`, we assume it is
+        # a voucher discount.
+        # Store voucher as a fixed value as it this the simplest solution for now.
+        # This will be solved when we refactor the voucher logic to use .discounts
+        # relations.
+        order.discounts.create(
+            type=DiscountType.VOUCHER,
+            value_type=DiscountValueType.FIXED,
+            value=checkout.discount.amount,
+            name=checkout.discount_name,
+            translated_name=checkout.translated_discount_name,
+            currency=checkout.currency,
+            amount_value=checkout.discount_amount,
+            voucher=checkout_info.voucher,
+            voucher_code=checkout_info.voucher_code.code
+            if checkout_info.voucher_code
+            else None,
+        )
 
 
 def _post_create_order_actions(
