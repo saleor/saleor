@@ -54,7 +54,6 @@
 - [Features](#features)
 - [Installation](#installation)
 - [Documentation](#documentation)
-- [Demo](#demo)
 - [Contributing](#contributing)
 - [Your feedback](#your-feedback)
 - [License](#license)
@@ -137,9 +136,7 @@ An open-source storefront example built with Next.js App Router, React.js, TypeS
 
 ## Dashboard
 
-For the dashboard go to the [saleor-dashboard](https://github.com/saleor/saleor-dashboard) repository.
-
-[View dashboard demo](https://demo.saleor.io/dashboard/)
+For the dashboard, go to the [saleor-dashboard](https://github.com/saleor/saleor-dashboard) repository.
 
 ## Contributing
 
