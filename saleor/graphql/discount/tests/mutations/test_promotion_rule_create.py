@@ -1483,6 +1483,7 @@ def test_promotion_rule_create_gift_promotion(
     # given
     promotion = order_promotion_without_rules
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
+    rules_count = promotion.rules.count()
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.pk)
     name = "test promotion rule"
     reward_type = RewardTypeEnum.GIFT.name
@@ -1494,8 +1495,6 @@ def test_promotion_rule_create_gift_promotion(
         graphene.Node.to_global_id("ProductVariant", variant.pk)
         for variant in product_variant_list
     ]
-
-    rules_count = promotion.rules.count()
 
     variables = {
         "input": {
@@ -1526,6 +1525,8 @@ def test_promotion_rule_create_gift_promotion(
     assert sorted(rule_data["gifts"]) == sorted(gifts)
     assert promotion.rules.count() == rules_count + 1
     rule = promotion.rules.last()
+    assert all([gift in product_variant_list for gift in rule.gifts.all()])
+    assert rule.reward_type == RewardTypeEnum.GIFT.value
     promotion_rule_created_mock.assert_called_once_with(rule)
 
 

@@ -27486,6 +27486,7 @@ enum PromotionCreateErrorCode {
   INVALID_PRECISION
   MISSING_CHANNELS
   RULES_NUMBER_LIMIT
+  INVALID_GIFT_TYPE
 }
 
 input PromotionCreateInput @doc(category: "Discounts") {

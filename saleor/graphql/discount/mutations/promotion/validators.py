@@ -293,7 +293,10 @@ def _clean_gift_rule(cleaned_input, errors, error_class, index):
         if model_name != "ProductVariant":
             errors["gifts"].append(
                 ValidationError(
-                    message=f"Gift IDs must be a type of ProductVariant, not a {model_name} type.",
+                    message=(
+                        f"Gift IDs must resolve to ProductVariant type, "
+                        f"not to {model_name} type."
+                    ),
                     code=error_class.INVALID_GIFT_TYPE.value,
                     params={"index": index} if index is not None else {},
                 )

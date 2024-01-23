@@ -22,6 +22,7 @@ class PromotionCreateErrorCode(Enum):
     INVALID_PRECISION = "invalid_precision"
     MISSING_CHANNELS = "missing_channels"
     RULES_NUMBER_LIMIT = "rules_number_limit"
+    INVALID_GIFT_TYPE = "invalid_gift_type"
 
 
 class PromotionUpdateErrorCode(Enum):
