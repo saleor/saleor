@@ -260,7 +260,7 @@ class AttributeValueManager(models.Manager):
 
         # add what is left to the list of new records
         self._add_new_records(objects_enumerated, objects_not_in_db, results)
-        # sort results to keep order of attribute values
+        # sort results by index as db record order might be different from sort_order
         results.sort()
         results = [obj for index, obj in results]
 
@@ -305,7 +305,7 @@ class AttributeValueManager(models.Manager):
         # add what is left to the list of new records
         self._add_new_records(objects_enumerated, objects_not_in_db, results)
 
-        # sort results by index
+        # sort results by index as db record order might be different from sort_order
         results.sort()
         results = [obj for index, obj in results]
 
