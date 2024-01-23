@@ -4,11 +4,9 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from graphene.utils.str_converters import to_camel_case
-from graphql.error import GraphQLError
 
 from .....discount import PromotionType, RewardType, RewardValueType
 from .....discount.models import PromotionRule
-from ....core.utils import from_global_id_or_error
 from ....core.validators import validate_price_precision
 
 if TYPE_CHECKING:
@@ -279,8 +277,8 @@ def _clean_gift_rule(cleaned_input, errors, error_class, index):
             )
         )
 
-    gift_ids = cleaned_input.get("gifts")
-    if not gift_ids:
+    gifts = cleaned_input.get("gifts")
+    if not gifts:
         errors["gifts"].append(
             ValidationError(
                 message="The gifts field is required when rewardType is set to GIFT.",
@@ -290,20 +288,17 @@ def _clean_gift_rule(cleaned_input, errors, error_class, index):
         )
         return
 
-    for idx, gift_id in enumerate(gift_ids):
-        try:
-            _, id = from_global_id_or_error(gift_id, "ProductVariant")
-        except GraphQLError as e:
-            params = {"gift_index": idx}
-            if index:
-                params.update({"index": index})
+    for gift in gifts:
+        model_name = gift.__class__.__name__
+        if model_name != "ProductVariant":
             errors["gifts"].append(
                 ValidationError(
-                    message=e.message,
+                    message=f"Gift IDs must be a type of ProductVariant, not a {model_name} type.",
                     code=error_class.INVALID.value,
-                    params=params,
+                    params={"index": index} if index is not None else {},
                 )
             )
+            return
 
 
 def _clean_reward(
@@ -327,7 +322,7 @@ def _clean_reward(
         instance
         and "reward_value" not in cleaned_input
         and "reward_value_type" not in cleaned_input
-    ):
+    ) or cleaned_input.get("reward_type") == RewardType.GIFT:
         return
 
     reward_value = cleaned_input.get("reward_value")

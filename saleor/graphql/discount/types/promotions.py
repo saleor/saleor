@@ -164,7 +164,7 @@ class PromotionRule(ModelObjectType[models.PromotionRule]):
         # TODO add dataloader
         # TODO consider returning ProductVariant objects instead of ids
         return [
-            graphene.Node.to_global_id("ProductVariant", gift)
+            graphene.Node.to_global_id("ProductVariant", gift.pk)
             for gift in root.gifts.all()
         ]
 
