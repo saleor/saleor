@@ -1888,3 +1888,46 @@ def test_create_or_update_checkout_discount_race_condition(
     # then
     discounts = list(checkout_info.checkout.discounts.all())
     assert len(discounts) == 1
+
+
+def test_create_or_update_checkout_discount_gift_reward_race_condition(
+    checkout_info,
+    checkout_lines_info,
+    gift_promotion_rule,
+):
+    # given
+    rule = gift_promotion_rule
+    promotion = gift_promotion_rule.promotion
+    checkout = checkout_info.checkout
+    channel = checkout_info.channel
+    currency = channel.currency_code
+
+    variants = gift_promotion_rule.gifts.all()
+    variant_listings = ProductVariantChannelListing.objects.filter(variant__in=variants)
+    top_price, variant_id = max(
+        variant_listings.values_list("discounted_price_amount", "variant")
+    )
+
+    def call_update(*args, **kwargs):
+        _create_or_update_checkout_discount(
+            checkout,
+            checkout_info,
+            checkout_lines_info,
+            rule,
+            top_price,
+            variant_id,
+            currency,
+            promotion,
+            True,
+        )
+
+    with before_after.before(
+        "saleor.discount.utils.get_rule_translations", call_update
+    ):
+        call_update()
+
+    # then
+    discounts = list(checkout_info.checkout.discounts.all())
+    assert len(discounts) == 1
+    checkout.refresh_from_db()
+    assert checkout.lines.filter(is_gift=True).count() == 1

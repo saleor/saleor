@@ -801,15 +801,22 @@ def _create_or_update_checkout_discount(
 
 
 def _create_gift_line(checkout: "Checkout", variant_id: int):
-    # TODO: transaction with lock?
-    # We need to handle the situation when it was called two times
-    CheckoutLine.objects.create(
-        checkout=checkout,
-        variant_id=variant_id,
-        quantity=1,
-        currency=checkout.currency,
-        is_gift=True,
+    defaults = {
+        "variant_id": variant_id,
+        "quantity": 1,
+        "currency": checkout.currency,
+    }
+    line, created = CheckoutLine.objects.get_or_create(
+        checkout=checkout, is_gift=True, defaults=defaults
     )
+    if not created:
+        fields_to_update = []
+        for field, value in defaults.items():
+            if getattr(line, field) != value:
+                setattr(line, field, value)
+                fields_to_update.append(field)
+        if fields_to_update:
+            line.save(update_fields=fields_to_update)
 
 
 def get_variants_to_promotions_map(
