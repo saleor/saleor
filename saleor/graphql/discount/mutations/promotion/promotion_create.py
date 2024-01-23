@@ -221,9 +221,10 @@ class PromotionCreate(ModelMutation):
         if rules_data := cleaned_data.get("rules"):
             for rule_data in rules_data:
                 channels = rule_data.pop("channels", None)
-                gifts = rule_data.pop("gifts")
+                gifts = rule_data.pop("gifts", None)
                 rule = models.PromotionRule(promotion=instance, **rule_data)
-                rule.gifts.set(gifts)
+                if gifts:
+                    rule.gifts.set(gifts)
                 if channels:
                     rules_with_channels_to_add.append((rule, channels))
                 rules.append(rule)
