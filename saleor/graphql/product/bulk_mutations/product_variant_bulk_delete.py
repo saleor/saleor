@@ -126,7 +126,9 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
             )
 
         # Recalculate the "discounted price" for the related products
-        update_products_discounted_prices_for_promotion_task.delay(product_pks)
+        cls.call_event(
+            update_products_discounted_prices_for_promotion_task.delay, product_pks
+        )
 
         return response
 
