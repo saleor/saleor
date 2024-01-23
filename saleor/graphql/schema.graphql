@@ -27750,6 +27750,7 @@ enum PromotionRuleCreateErrorCode {
   INVALID_PRECISION
   MISSING_CHANNELS
   RULES_NUMBER_LIMIT
+  INVALID_GIFT_TYPE
 }
 
 input PromotionRuleCreateInput {

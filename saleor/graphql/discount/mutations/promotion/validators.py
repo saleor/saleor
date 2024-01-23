@@ -253,7 +253,7 @@ def _clean_order_predicate(
 
 
 def _clean_gift_rule(cleaned_input, errors, error_class, index):
-    if cleaned_input.get("rewardValue"):
+    if cleaned_input.get("reward_value"):
         errors["reward_value"].append(
             ValidationError(
                 message=(
@@ -265,7 +265,7 @@ def _clean_gift_rule(cleaned_input, errors, error_class, index):
             )
         )
 
-    if cleaned_input.get("rewardValueType"):
+    if cleaned_input.get("reward_value_type"):
         errors["reward_value_type"].append(
             ValidationError(
                 message=(
@@ -294,7 +294,7 @@ def _clean_gift_rule(cleaned_input, errors, error_class, index):
             errors["gifts"].append(
                 ValidationError(
                     message=f"Gift IDs must be a type of ProductVariant, not a {model_name} type.",
-                    code=error_class.INVALID.value,
+                    code=error_class.INVALID_GIFT_TYPE.value,
                     params={"index": index} if index is not None else {},
                 )
             )
