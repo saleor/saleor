@@ -9,7 +9,11 @@ from .....discount import RewardValueType
 from .....discount.error_codes import DiscountErrorCode
 from ....tests.utils import get_graphql_content
 from ...enums import DiscountValueTypeEnum
-from ...utils import convert_migrated_sale_predicate_to_catalogue_info
+from ...utils import (
+    convert_migrated_sale_predicate_to_catalogue_info,
+    get_products_for_promotion,
+    get_variants_for_predicate,
+)
 
 SALE_UPDATE_MUTATION = """
     mutation  saleUpdate($id: ID!, $input: SaleInput!) {
@@ -30,11 +34,9 @@ SALE_UPDATE_MUTATION = """
 """
 
 
-@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
 def test_update_sale(
     updated_webhook_mock,
-    update_discounted_prices_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
     catalogue_predicate,
@@ -86,14 +88,16 @@ def test_update_sale(
     updated_webhook_mock.assert_called_once_with(
         promotion, previous_catalogue, current_catalogue
     )
-    update_discounted_prices_task_mock.assert_called_once()
+    variants = get_variants_for_predicate(rule.catalogue_predicate).select_related(
+        "product"
+    )
+    for variant in variants:
+        assert variant.product.discounted_price_dirty is True
 
 
-@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
 def test_update_sale_name(
     updated_webhook_mock,
-    update_discounted_prices_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
     catalogue_predicate,
@@ -134,17 +138,16 @@ def test_update_sale_name(
     updated_webhook_mock.assert_called_once_with(
         promotion, previous_catalogue, current_catalogue
     )
-    update_discounted_prices_task_mock.assert_not_called()
+    for product in get_products_for_promotion(promotion):
+        assert product.discounted_price_dirty is False
 
 
 @freeze_time("2020-03-18 12:00:00")
-@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_toggle")
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
 def test_update_sale_start_date_after_current_date_notification_not_sent(
     updated_webhook_mock,
     sale_toggle_mock,
-    update_discounted_prices_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
     catalogue_predicate,
@@ -187,17 +190,16 @@ def test_update_sale_start_date_after_current_date_notification_not_sent(
         promotion, previous_catalogue, current_catalogue
     )
     sale_toggle_mock.assert_not_called()
-    update_discounted_prices_task_mock.assert_called_once()
+    for product in get_products_for_promotion(promotion):
+        assert product.discounted_price_dirty is True
 
 
 @freeze_time("2020-03-18 12:00:00")
-@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_toggle")
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
 def test_update_sale_start_date_before_current_date_notification_already_sent(
     updated_webhook_mock,
     sale_toggle_mock,
-    update_discounted_prices_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
     catalogue_predicate,
@@ -244,17 +246,16 @@ def test_update_sale_start_date_before_current_date_notification_already_sent(
         promotion, previous_catalogue, current_catalogue
     )
     sale_toggle_mock.assert_not_called()
-    update_discounted_prices_task_mock.assert_called_once()
+    for product in get_products_for_promotion(promotion):
+        assert product.discounted_price_dirty is True
 
 
 @freeze_time("2020-03-18 12:00:00")
-@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_toggle")
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
 def test_update_sale_start_date_before_current_date_notification_sent(
     updated_webhook_mock,
     sale_toggle_mock,
-    update_discounted_prices_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
     catalogue_predicate,
@@ -298,17 +299,16 @@ def test_update_sale_start_date_before_current_date_notification_sent(
     )
 
     sale_toggle_mock.assert_called_once_with(promotion, current_catalogue)
-    update_discounted_prices_task_mock.assert_called_once()
+    for product in get_products_for_promotion(promotion):
+        assert product.discounted_price_dirty is True
 
 
 @freeze_time("2020-03-18 12:00:00")
-@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_toggle")
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
 def test_update_sale_end_date_after_current_date_notification_not_sent(
     updated_webhook_mock,
     sale_toggle_mock,
-    update_discounted_prices_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
     catalogue_predicate,
@@ -352,17 +352,16 @@ def test_update_sale_end_date_after_current_date_notification_not_sent(
         promotion, previous_catalogue, current_catalogue
     )
     sale_toggle_mock.assert_not_called()
-    update_discounted_prices_task_mock.assert_called_once()
+    for product in get_products_for_promotion(promotion):
+        assert product.discounted_price_dirty is True
 
 
 @freeze_time("2020-03-18 12:00:00")
-@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_toggle")
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
 def test_update_sale_end_date_before_current_date_notification_already_sent(
     updated_webhook_mock,
     sale_toggle_mock,
-    update_discounted_prices_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
     catalogue_predicate,
@@ -408,17 +407,16 @@ def test_update_sale_end_date_before_current_date_notification_already_sent(
         promotion, previous_catalogue, current_catalogue
     )
     sale_toggle_mock.assert_called_once_with(promotion, current_catalogue)
-    update_discounted_prices_task_mock.assert_called_once()
+    for product in get_products_for_promotion(promotion):
+        assert product.discounted_price_dirty is True
 
 
 @freeze_time("2020-03-18 12:00:00")
-@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_toggle")
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
 def test_update_sale_end_date_before_current_date_notification_sent(
     updated_webhook_mock,
     sale_toggle_mock,
-    update_discounted_prices_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
     catalogue_predicate,
@@ -462,14 +460,13 @@ def test_update_sale_end_date_before_current_date_notification_sent(
         promotion, previous_catalogue, current_catalogue
     )
     sale_toggle_mock.assert_called_once_with(promotion, current_catalogue)
-    update_discounted_prices_task_mock.assert_called_once()
+    for product in get_products_for_promotion(promotion):
+        assert product.discounted_price_dirty is True
 
 
-@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
 def test_update_sale_categories(
     updated_webhook_mock,
-    update_discounted_prices_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
     catalogue_predicate,
@@ -509,14 +506,13 @@ def test_update_sale_categories(
     updated_webhook_mock.assert_called_once_with(
         promotion, previous_catalogue, current_catalogue
     )
-    update_discounted_prices_task_mock.assert_called_once()
+    for product in get_products_for_promotion(promotion):
+        assert product.discounted_price_dirty is True
 
 
-@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
 def test_update_sale_collections(
     updated_webhook_mock,
-    update_discounted_prices_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
     catalogue_predicate,
@@ -558,14 +554,13 @@ def test_update_sale_collections(
     updated_webhook_mock.assert_called_once_with(
         promotion, previous_catalogue, current_catalogue
     )
-    update_discounted_prices_task_mock.assert_called_once()
+    for product in get_products_for_promotion(promotion):
+        assert product.discounted_price_dirty is True
 
 
-@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
 def test_update_sale_variants(
     updated_webhook_mock,
-    update_discounted_prices_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
     catalogue_predicate,
@@ -607,14 +602,13 @@ def test_update_sale_variants(
     updated_webhook_mock.assert_called_once_with(
         promotion, previous_catalogue, current_catalogue
     )
-    update_discounted_prices_task_mock.assert_called_once()
+    for product in get_products_for_promotion(promotion):
+        assert product.discounted_price_dirty is True
 
 
-@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
 def test_update_sale_products(
     updated_webhook_mock,
-    update_discounted_prices_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
     catalogue_predicate,
@@ -654,17 +648,16 @@ def test_update_sale_products(
     updated_webhook_mock.assert_called_once_with(
         promotion, previous_catalogue, current_catalogue
     )
-    update_discounted_prices_task_mock.assert_called_once()
+    for product in get_products_for_promotion(promotion):
+        assert product.discounted_price_dirty is True
 
 
 @freeze_time("2020-03-18 12:00:00")
-@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_toggle")
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
 def test_update_sale_end_date_before_start_date(
     updated_webhook_mock,
     sale_toggle_mock,
-    update_discounted_prices_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
     permission_manage_discounts,
@@ -696,7 +689,9 @@ def test_update_sale_end_date_before_start_date(
     assert errors[0]["code"] == DiscountErrorCode.INVALID.name
     updated_webhook_mock.assert_not_called()
     sale_toggle_mock.assert_not_called()
-    update_discounted_prices_task_mock.assert_not_called()
+
+    for product in get_products_for_promotion(promotion):
+        assert product.discounted_price_dirty is False
 
 
 @freeze_time("2020-03-18 12:00:00")
@@ -755,13 +750,11 @@ def test_update_sale_with_none_values(
     assert not rule.catalogue_predicate
 
 
-@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_toggle")
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
 def test_update_sale_with_promotion_id(
     updated_webhook_mock,
     sale_toggle_mock,
-    update_discounted_prices_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
     permission_manage_discounts,
@@ -794,7 +787,9 @@ def test_update_sale_with_promotion_id(
     )
     updated_webhook_mock.assert_not_called()
     sale_toggle_mock.assert_not_called()
-    update_discounted_prices_task_mock.assert_not_called()
+
+    for product in get_products_for_promotion(promotion):
+        assert product.discounted_price_dirty is False
 
 
 def test_update_sale_not_found_error(staff_api_client, permission_manage_discounts):

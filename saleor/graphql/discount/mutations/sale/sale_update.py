@@ -185,7 +185,6 @@ class SaleUpdate(ModelMutation):
             current_catalogue,
             previous_end_date,
         )
-
         if any(
             field in input.keys()
             for field in [*CATALOGUE_FIELDS, "start_date", "end_date", "type"]

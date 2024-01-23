@@ -22,11 +22,9 @@ SALE_CATALOGUES_REMOVE_MUTATION = """
 """
 
 
-@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
 def test_sale_remove_catalogues(
     updated_webhook_mock,
-    update_discounted_prices_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
     catalogue_predicate,
@@ -93,14 +91,13 @@ def test_sale_remove_catalogues(
     updated_webhook_mock.assert_called_once_with(
         promotion, previous_catalogue, current_catalogue
     )
-    update_discounted_prices_task_mock.assert_called_once()
+    product.refresh_from_db()
+    assert product.discounted_price_dirty is True
 
 
-@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
 def test_sale_remove_empty_catalogues(
     updated_webhook_mock,
-    update_discounted_prices_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
     catalogue_predicate,
@@ -156,14 +153,13 @@ def test_sale_remove_empty_catalogues(
     assert variant_id in current_catalogue["variants"]
 
     updated_webhook_mock.assert_not_called()
-    update_discounted_prices_task_mock.assert_not_called()
+    product.refresh_from_db()
+    assert product.discounted_price_dirty is False
 
 
-@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
 def test_sale_remove_empty_catalogues_from_sale_with_empty_catalogues(
     updated_webhook_mock,
-    update_discounted_prices_task_mock,
     staff_api_client,
     promotion_converted_from_sale_with_empty_predicate,
     permission_manage_discounts,
@@ -201,14 +197,11 @@ def test_sale_remove_empty_catalogues_from_sale_with_empty_catalogues(
     assert not current_catalogue["variants"]
 
     updated_webhook_mock.assert_not_called()
-    update_discounted_prices_task_mock.assert_not_called()
 
 
-@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
 def test_sale_remove_catalogues_no_product_changes(
     updated_webhook_mock,
-    update_discounted_prices_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
     catalogue_predicate,
@@ -249,7 +242,8 @@ def test_sale_remove_catalogues_no_product_changes(
     updated_webhook_mock.assert_called_once_with(
         promotion, previous_catalogue, current_catalogue
     )
-    update_discounted_prices_task_mock.assert_not_called()
+    variant.product.refresh_from_db()
+    assert variant.product.discounted_price_dirty is False
 
 
 def test_sale_remove_catalogues_with_promotion_id(
