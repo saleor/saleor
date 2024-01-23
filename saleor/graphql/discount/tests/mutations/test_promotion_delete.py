@@ -4,6 +4,7 @@ import graphene
 import pytest
 
 from ....tests.utils import assert_no_permission, get_graphql_content
+from ...utils import get_products_for_promotion
 
 PROMOTION_DELETE_MUTATION = """
     mutation promotionDelete($id: ID!) {
@@ -22,11 +23,9 @@ PROMOTION_DELETE_MUTATION = """
 """
 
 
-@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.promotion_deleted")
 def test_promotion_delete_by_staff_user(
     promotion_deleted_mock,
-    update_discounted_prices_task_mock,
     staff_api_client,
     permission_group_manage_discounts,
     promotion,
@@ -48,14 +47,13 @@ def test_promotion_delete_by_staff_user(
     with pytest.raises(promotion._meta.model.DoesNotExist):
         promotion.refresh_from_db()
 
-    update_discounted_prices_task_mock.assert_called_once()
+    for product in get_products_for_promotion(promotion):
+        assert product.discounted_price_dirty is True
 
 
-@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.promotion_deleted")
 def test_promotion_delete_by_staff_app(
     promotion_deleted_mock,
-    update_discounted_prices_task_mock,
     app_api_client,
     permission_manage_discounts,
     promotion,
@@ -77,14 +75,14 @@ def test_promotion_delete_by_staff_app(
 
     with pytest.raises(promotion._meta.model.DoesNotExist):
         promotion.refresh_from_db()
-    update_discounted_prices_task_mock.assert_called_once()
+
+    for product in get_products_for_promotion(promotion):
+        assert product.discounted_price_dirty is True
 
 
-@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.promotion_deleted")
 def test_promotion_delete_by_customer(
     promotion_deleted_mock,
-    update_discounted_prices_task_mock,
     api_client,
     promotion,
 ):
@@ -98,4 +96,5 @@ def test_promotion_delete_by_customer(
     assert_no_permission(response)
 
     promotion_deleted_mock.assert_not_called()
-    update_discounted_prices_task_mock.assert_not_called()
+    for product in get_products_for_promotion(promotion):
+        assert product.discounted_price_dirty is False
