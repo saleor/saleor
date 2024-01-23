@@ -316,8 +316,9 @@ class ProductVariantCreate(ModelMutation):
                 instance.product.default_variant = instance
                 instance.product.save(update_fields=["default_variant", "updated_at"])
             # Recalculate the "discounted price" for the parent product
-            update_products_discounted_prices_for_promotion_task.delay(
-                [instance.product_id]
+            cls.call_event(
+                update_products_discounted_prices_for_promotion_task.delay,
+                [instance.product_id],
             )
             stocks = cleaned_input.get("stocks")
             if stocks:

@@ -24,16 +24,20 @@ def test_delete_categories(
     mock_update_products_discounted_prices_for_promotion_task,
     categories_tree_with_published_products,
 ):
+    # given
     parent = categories_tree_with_published_products
     child = parent.children.first()
     product_list = [child.products.first(), parent.products.first()]
 
+    # when
     delete_categories([parent.pk], manager=get_plugins_manager(allow_replica=False))
 
     assert not Category.objects.filter(
         id__in=[category.id for category in [parent, child]]
     ).exists()
 
+    # then
+    flush_post_commit_hooks()
     calls = mock_update_products_discounted_prices_for_promotion_task.mock_calls
     assert len(calls) == 1
     call_kwargs = calls[0].kwargs
