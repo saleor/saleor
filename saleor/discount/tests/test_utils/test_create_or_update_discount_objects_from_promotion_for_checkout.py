@@ -1375,7 +1375,9 @@ def test_create_or_update_discount_objects_from_promotion_best_rule_applies(
     )
 
     # then
-    assert checkout_info.checkout.discounts.count() == 1
+    checkout = checkout_info.checkout
+    assert checkout.discounts.count() == 1
+    assert checkout.discount_amount == rules[0].reward_value
     assert len(checkout_info.discounts) == 1
     assert checkout_info.discounts[0].promotion_rule == rules[0]
     discount = checkout_info.discounts[0]
@@ -1477,6 +1479,7 @@ def test_create_gift_discount(
     # then
     checkout = checkout_info.checkout
     assert checkout.discounts.count() == 1
+    assert checkout.discount_amount == 0
     assert len(checkout_info.discounts) == 1
     assert checkout_info.discounts[0].promotion_rule == rule
     discount = checkout_info.discounts[0]
@@ -1582,7 +1585,9 @@ def test_create_or_update_discount_objects_from_promotion_gift_rule_applies(
     )
 
     # then
-    assert checkout_info.checkout.discounts.count() == 1
+    checkout = checkout_info.checkout
+    assert checkout.discounts.count() == 1
+    assert checkout.discount_amount == 0
     assert len(checkout_info.discounts) == 1
     assert checkout_info.discounts[0].promotion_rule == gift_promotion_rule
     discount = checkout_info.discounts[0]

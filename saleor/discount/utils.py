@@ -511,12 +511,16 @@ def _update_discount(
     if discount_to_update.promotion_rule_id != rule.id:
         discount_to_update.promotion_rule_id = rule.id
         updated_fields.append("promotion_rule_id")
-    if discount_to_update.value_type != rule.reward_value_type:
+    # gift rule has empty reward_value_type
+    value_type = rule.reward_value_type or RewardValueType.FIXED
+    if discount_to_update.value_type != value_type:
         discount_to_update.value_type = (
             rule.reward_value_type  # type: ignore[assignment]
         )
         updated_fields.append("value_type")
-    if discount_to_update.value != rule.reward_value:
+    # gift rule has empty reward_value
+    value = rule.reward_value or rule_discount_amount
+    if discount_to_update.value != value:
         discount_to_update.value = rule.reward_value  # type: ignore[assignment]
         updated_fields.append("value")
     if discount_to_update.amount_value != rule_discount_amount:
@@ -583,6 +587,7 @@ def create_discount_objects_for_order_promotions(
             )
 
     if not rule_discounts:
+        _clear_checkout_discount(checkout_info, save)
         return
 
     best_rule, best_discount_amount, gift_id = max(
@@ -619,6 +624,7 @@ def _set_checkout_base_prices(checkout_info, lines_info):
 
 
 def _clear_checkout_discount(checkout_info, save):
+    # TODO: remove gift if exist
     CheckoutDiscount.objects.filter(
         checkout=checkout_info.checkout,
         type=DiscountType.ORDER_PROMOTION,
@@ -767,11 +773,15 @@ def _create_or_update_checkout_discount(
             checkout_discount,
             fields_to_update,
         )
+        # TODO: if the best rule is not gift anymore - delete gift line
         if fields_to_update:
             checkout_discount.save(update_fields=fields_to_update)
 
     checkout_info.discounts = [checkout_discount]
-    checkout.discount_amount = best_discount_amount
+    discount_amount = best_discount_amount
+    if gift:
+        discount_amount = Decimal("0")
+    checkout.discount_amount = discount_amount
     checkout.discount_name = checkout_discount.name
     checkout.translated_discount_name = checkout_discount.translated_name
     if save:
