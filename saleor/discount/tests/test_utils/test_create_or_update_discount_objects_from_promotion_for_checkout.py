@@ -1401,6 +1401,7 @@ def test_create_or_update_discount_objects_from_promotion_subtotal_price_discoun
     # given
     promotion = order_promotion_without_rules
     checkout = checkout_info.checkout
+    lines_count = len(checkout_lines_info)
 
     delivery_price = Money("10", checkout_info.checkout.currency)
     price = Money("30", checkout_info.checkout.currency)
@@ -1448,6 +1449,8 @@ def test_create_or_update_discount_objects_from_promotion_subtotal_price_discoun
     assert checkout_info.discounts[0].promotion_rule == rules[0]
     discount = checkout_info.discounts[0]
     assert discount.amount_value == checkout.base_subtotal.amount * Decimal("0.5")
+    checkout.refresh_from_db()
+    assert checkout.lines.count() == lines_count
 
 
 def test_create_gift_discount(
@@ -1460,7 +1463,11 @@ def test_create_gift_discount(
     promotion = rule.promotion
     variants = rule.gifts.all()
     variant_listings = ProductVariantChannelListing.objects.filter(variant__in=variants)
-    top_price = max(variant_listings.values_list("discounted_price_amount", flat=True))
+    top_price, variant_id = max(
+        variant_listings.values_list("discounted_price_amount", "variant")
+    )
+
+    lines_count = len(checkout_lines_info)
 
     # when
     create_or_update_discount_objects_from_promotion_for_checkout(
@@ -1468,7 +1475,8 @@ def test_create_gift_discount(
     )
 
     # then
-    assert checkout_info.checkout.discounts.count() == 1
+    checkout = checkout_info.checkout
+    assert checkout.discounts.count() == 1
     assert len(checkout_info.discounts) == 1
     assert checkout_info.discounts[0].promotion_rule == rule
     discount = checkout_info.discounts[0]
@@ -1480,6 +1488,10 @@ def test_create_gift_discount(
     assert discount.name == f"{promotion.name}: {rule.name}"
     promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
     assert discount.reason == f"Promotion: {promotion_id}"
+    assert checkout.lines.count() == lines_count + 1
+    gift_line = checkout.lines.filter(is_gift=True).first()
+    assert gift_line
+    assert gift_line.variant_id == variant_id
 
 
 @patch("saleor.discount.utils.base_checkout_delivery_price")
@@ -1854,6 +1866,7 @@ def test_create_or_update_checkout_discount_race_condition(
         _create_or_update_checkout_discount(
             checkout,
             checkout_info,
+            checkout_lines_info,
             rule,
             reward_value,
             None,

@@ -325,7 +325,7 @@ def fetch_checkout_lines(
             return lines_info, unavailable_variant_pks
         if voucher.type == VoucherType.SPECIFIC_PRODUCT or voucher.apply_once_per_order:
             voucher_info = fetch_voucher_info(voucher)
-            apply_voucher_to_checkout_line(voucher_info, checkout, lines_info)
+            apply_voucher_to_checkout_line(voucher_info, lines_info)
     return lines_info, unavailable_variant_pks
 
 
@@ -374,7 +374,6 @@ def _get_product_channel_listing(
 
 def apply_voucher_to_checkout_line(
     voucher_info: "VoucherInfo",
-    checkout: "Checkout",
     lines_info: Iterable[CheckoutLineInfo],
 ):
     """Attach voucher to valid checkout lines info.

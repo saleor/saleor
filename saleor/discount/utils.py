@@ -24,7 +24,8 @@ from ..checkout.base_calculations import (
     base_checkout_delivery_price,
     base_checkout_subtotal,
 )
-from ..checkout.models import Checkout
+from ..checkout.fetch import fetch_checkout_lines
+from ..checkout.models import Checkout, CheckoutLine
 from ..core.exceptions import InsufficientStock
 from ..core.taxes import zero_money
 from ..core.utils.promo_code import InvalidPromoCode
@@ -589,9 +590,10 @@ def create_discount_objects_for_order_promotions(
     )
     promotion = best_rule.promotion
 
-    _create_or_update_checkout_discount(
+    lines_info = _create_or_update_checkout_discount(
         checkout,
         checkout_info,
+        lines_info,
         best_rule,
         best_discount_amount,
         gift_id,
@@ -717,6 +719,7 @@ def _get_best_gift_reward(
 def _create_or_update_checkout_discount(
     checkout: "Checkout",
     checkout_info: "CheckoutInfo",
+    lines_info: Iterable["CheckoutLineInfo"],
     best_rule: "PromotionRule",
     best_discount_amount: Decimal,
     gift: Optional[int],
@@ -780,7 +783,23 @@ def _create_or_update_checkout_discount(
             ]
         )
 
-    # TODO: create checkout line with gift - create this line and discount in transaction
+    if gift:
+        _create_gift_line(checkout, gift)
+        lines_info, _ = fetch_checkout_lines(checkout)
+
+    return lines_info
+
+
+def _create_gift_line(checkout: "Checkout", variant_id: int):
+    # TODO: transaction with lock?
+    # We need to handle the situation when it was called two times
+    CheckoutLine.objects.create(
+        checkout=checkout,
+        variant_id=variant_id,
+        quantity=1,
+        currency=checkout.currency,
+        is_gift=True,
+    )
 
 
 def get_variants_to_promotions_map(

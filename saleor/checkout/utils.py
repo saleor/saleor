@@ -416,6 +416,8 @@ def get_discounted_lines(
         or voucher_info.variant_pks
     ):
         for line_info in lines:
+            if line_info.line.is_gift:
+                continue
             line_variant = line_info.variant
             line_product = line_info.product
             line_category = line_info.product.category
