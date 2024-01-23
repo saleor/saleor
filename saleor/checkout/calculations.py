@@ -246,7 +246,9 @@ def _fetch_checkout_prices_if_expired(
     charge_taxes = get_charge_taxes_for_checkout(checkout_info, lines)
     should_charge_tax = charge_taxes and not checkout.tax_exemption
 
-    create_or_update_discount_objects_from_promotion_for_checkout(checkout_info, lines)
+    lines = create_or_update_discount_objects_from_promotion_for_checkout(
+        checkout_info, lines
+    )
 
     if prices_entered_with_tax:
         # If prices are entered with tax, we need to always calculate it anyway, to

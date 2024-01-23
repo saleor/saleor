@@ -1472,17 +1472,19 @@ def test_create_gift_discount(
     lines_count = len(checkout_lines_info)
 
     # when
-    create_or_update_discount_objects_from_promotion_for_checkout(
+    checkout_lines_info = create_or_update_discount_objects_from_promotion_for_checkout(
         checkout_info, checkout_lines_info
     )
 
     # then
     checkout = checkout_info.checkout
-    assert checkout.discounts.count() == 1
+    assert checkout.discounts.count() == 0
     assert checkout.discount_amount == 0
-    assert len(checkout_info.discounts) == 1
-    assert checkout_info.discounts[0].promotion_rule == rule
-    discount = checkout_info.discounts[0]
+    assert checkout.lines.count() == lines_count + 1
+    gift_line = checkout.lines.filter(is_gift=True).first()
+    assert gift_line
+    assert gift_line.variant_id == variant_id
+    discount = gift_line.discounts.first()
     assert discount.promotion_rule == rule
     assert discount.type == DiscountType.ORDER_PROMOTION
     assert discount.value_type == RewardValueType.FIXED
@@ -1491,10 +1493,8 @@ def test_create_gift_discount(
     assert discount.name == f"{promotion.name}: {rule.name}"
     promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
     assert discount.reason == f"Promotion: {promotion_id}"
-    assert checkout.lines.count() == lines_count + 1
-    gift_line = checkout.lines.filter(is_gift=True).first()
-    assert gift_line
-    assert gift_line.variant_id == variant_id
+
+    assert len(checkout_lines_info) == lines_count + 1
 
 
 @patch("saleor.discount.utils.base_checkout_delivery_price")
@@ -1512,8 +1512,10 @@ def test_create_or_update_discount_objects_from_promotion_gift_rule_applies(
     promotion = gift_promotion_rule.promotion
     variants = gift_promotion_rule.gifts.all()
     variant_listings = ProductVariantChannelListing.objects.filter(variant__in=variants)
-    top_price = max(variant_listings.values_list("discounted_price_amount", flat=True))
-
+    top_price, variant_id = max(
+        variant_listings.values_list("discounted_price_amount", "variant")
+    )
+    lines_count = len(checkout_lines_info)
     delivery_price = Money("10", checkout_info.checkout.currency)
     price = Money("30", checkout_info.checkout.currency)
     checkout.total = TaxedMoney(net=price, gross=price)
@@ -1586,11 +1588,13 @@ def test_create_or_update_discount_objects_from_promotion_gift_rule_applies(
 
     # then
     checkout = checkout_info.checkout
-    assert checkout.discounts.count() == 1
+    assert checkout.discounts.count() == 0
     assert checkout.discount_amount == 0
-    assert len(checkout_info.discounts) == 1
-    assert checkout_info.discounts[0].promotion_rule == gift_promotion_rule
-    discount = checkout_info.discounts[0]
+    assert checkout.lines.count() == lines_count + 1
+    gift_line = checkout.lines.filter(is_gift=True).first()
+    assert gift_line
+    assert gift_line.variant_id == variant_id
+    discount = gift_line.discounts.first()
     assert discount.promotion_rule == gift_promotion_rule
     assert discount.type == DiscountType.ORDER_PROMOTION
     assert discount.value_type == RewardValueType.FIXED
@@ -1927,7 +1931,7 @@ def test_create_or_update_checkout_discount_gift_reward_race_condition(
         call_update()
 
     # then
-    discounts = list(checkout_info.checkout.discounts.all())
-    assert len(discounts) == 1
-    checkout.refresh_from_db()
+    assert checkout_info.checkout.discounts.count() == 0
     assert checkout.lines.filter(is_gift=True).count() == 1
+    line = checkout.lines.filter(is_gift=True).first()
+    assert line.discounts.count() == 1
