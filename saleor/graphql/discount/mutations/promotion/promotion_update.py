@@ -109,7 +109,9 @@ class PromotionUpdate(ModelMutation):
         # update the product undiscounted prices for promotion only when
         # start or end date has changed
         if "start_date" in cleaned_input or "end_date" in cleaned_input:
-            update_products_discounted_prices_of_promotion_task.delay(instance.pk)
+            cls.call_event(
+                update_products_discounted_prices_of_promotion_task.delay, instance.pk
+            )
 
     @classmethod
     def get_toggle_type(cls, instance, clean_input, previous_end_date) -> Optional[str]:
