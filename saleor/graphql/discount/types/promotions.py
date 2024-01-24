@@ -16,6 +16,7 @@ from ...translations.fields import TranslationField
 from ...translations.types import PromotionRuleTranslation, PromotionTranslation
 from ..dataloaders import (
     ChannelsByPromotionRuleIdLoader,
+    GiftsByPromotionRuleIDLoader,
     PromotionByIdLoader,
     PromotionEventsByPromotionIdLoader,
     PromotionRulesByPromotionIdLoader,
@@ -160,13 +161,13 @@ class PromotionRule(ModelObjectType[models.PromotionRule]):
         return ChannelsByPromotionRuleIdLoader(info.context).load(root.id)
 
     @staticmethod
-    def resolve_gifts(root: models.PromotionRule, _info: ResolveInfo):
-        # TODO add dataloader
-        # TODO consider returning ProductVariant objects instead of ids
-        return [
-            graphene.Node.to_global_id("ProductVariant", gift.pk)
-            for gift in root.gifts.all()
-        ]
+    def resolve_gifts(root: models.PromotionRule, info: ResolveInfo):
+        def with_gifts(gifts):
+            return [
+                graphene.Node.to_global_id("ProductVariant", gift.pk) for gift in gifts
+            ]
+
+        return GiftsByPromotionRuleIDLoader(info.context).load(root.id).then(with_gifts)
 
 
 class PromotionCountableConnection(CountableConnection):
