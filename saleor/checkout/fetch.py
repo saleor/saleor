@@ -59,7 +59,7 @@ class CheckoutLineInfo:
         return [
             discount
             for discount in self.discounts
-            if discount.type == DiscountType.PROMOTION
+            if discount.type == DiscountType.CATALOGUE_PROMOTION
         ]
 
 

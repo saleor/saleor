@@ -1049,7 +1049,7 @@ def test_order_from_checkout_multiple_rules_applied(
     )
     CheckoutLineDiscount.objects.create(
         line=line,
-        type=DiscountType.PROMOTION,
+        type=DiscountType.CATALOGUE_PROMOTION,
         value_type=DiscountValueType.PERCENTAGE,
         amount_value=discount_amount_2,
         currency=channel.currency_code,
