@@ -1472,7 +1472,7 @@ def test_create_gift_discount(
     lines_count = len(checkout_lines_info)
 
     # when
-    checkout_lines_info = create_or_update_discount_objects_from_promotion_for_checkout(
+    create_or_update_discount_objects_from_promotion_for_checkout(
         checkout_info, checkout_lines_info
     )
 
@@ -1495,6 +1495,7 @@ def test_create_gift_discount(
     assert discount.reason == f"Promotion: {promotion_id}"
 
     assert len(checkout_lines_info) == lines_count + 1
+    assert checkout_lines_info[-1].discounts == [discount]
 
 
 @patch("saleor.discount.utils.base_checkout_delivery_price")
@@ -1908,9 +1909,7 @@ def test_create_or_update_checkout_discount_gift_reward_race_condition(
 
     variants = gift_promotion_rule.gifts.all()
     variant_listings = ProductVariantChannelListing.objects.filter(variant__in=variants)
-    top_price, variant_id = max(
-        variant_listings.values_list("discounted_price_amount", "variant")
-    )
+    listing = max(list(variant_listings), key=lambda x: x.discounted_price_amount)
 
     def call_update(*args, **kwargs):
         _create_or_update_checkout_discount(
@@ -1918,8 +1917,8 @@ def test_create_or_update_checkout_discount_gift_reward_race_condition(
             checkout_info,
             checkout_lines_info,
             rule,
-            top_price,
-            variant_id,
+            listing.discounted_price_amount,
+            listing,
             currency,
             promotion,
             True,

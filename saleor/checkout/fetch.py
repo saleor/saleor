@@ -678,3 +678,14 @@ def update_checkout_info_delivery_method(
     checkout_info.delivery_method_info = get_delivery_method_info(
         delivery_method, checkout_info.shipping_address
     )
+
+
+def find_checkout_line_info(
+    lines: Iterable["CheckoutLineInfo"],
+    line_id: "UUID",
+) -> "CheckoutLineInfo":
+    """Return checkout line info from lines parameter.
+
+    The return value represents the updated version of checkout_line_info parameter.
+    """
+    return next(line_info for line_info in lines if line_info.line.pk == line_id)
