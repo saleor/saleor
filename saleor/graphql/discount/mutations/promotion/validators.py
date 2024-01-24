@@ -275,7 +275,7 @@ def _clean_gift_rule(cleaned_input, errors, error_class, index, instance):
         )
 
     gifts = cleaned_input.get("gifts")
-    if not gifts and instance:
+    if "gifts" not in cleaned_input and instance:
         gifts = list(instance.gifts.all())
     if not gifts:
         errors["gifts"].append(
