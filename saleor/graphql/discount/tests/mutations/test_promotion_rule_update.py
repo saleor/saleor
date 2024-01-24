@@ -1142,3 +1142,68 @@ def test_promotion_rule_update_gift_promotion_with_reward_value(
     assert len(errors) == 1
     assert errors[0]["code"] == PromotionRuleUpdateErrorCode.INVALID.name
     assert errors[0]["field"] == "rewardValue"
+
+
+def test_promotion_rule_update_gift_promotion_with_reward_value_type(
+    app_api_client,
+    permission_manage_discounts,
+    gift_promotion_rule,
+):
+    # given
+    rule = gift_promotion_rule
+    rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
+    variables = {
+        "id": rule_id,
+        "input": {"rewardValueType": RewardValueTypeEnum.PERCENTAGE.name},
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        PROMOTION_RULE_UPDATE_MUTATION,
+        variables,
+        permissions=(permission_manage_discounts,),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleUpdate"]
+    errors = data["errors"]
+
+    assert not data["promotionRule"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == PromotionRuleUpdateErrorCode.INVALID.name
+    assert errors[0]["field"] == "rewardValueType"
+
+
+def test_promotion_rule_update_gift_promotion_remove_gifts(
+    app_api_client,
+    permission_manage_discounts,
+    gift_promotion_rule,
+    product_list,
+):
+    # given
+    rule = gift_promotion_rule
+    rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
+    variables = {
+        "id": rule_id,
+        "input": {
+            "gifts": [],
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        PROMOTION_RULE_UPDATE_MUTATION,
+        variables,
+        permissions=(permission_manage_discounts,),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleUpdate"]
+    errors = data["errors"]
+
+    assert not data["promotionRule"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == PromotionRuleUpdateErrorCode.REQUIRED.name
+    assert errors[0]["field"] == "gifts"
