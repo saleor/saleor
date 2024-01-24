@@ -243,9 +243,7 @@ class AttributeValueManager(models.Manager):
         objects_not_in_db: List[AttributeValue] = []
 
         # prepare a list that will save order index of attribute values
-        objects_enumerated = [
-            (index, obj_data) for index, obj_data in enumerate(objects_data)
-        ]
+        objects_enumerated = list(enumerate(objects_data))
         query = self._prepare_query_for_bulk_operation(objects_data)
 
         # iterate over all records in db and check if they match any of objects data
@@ -257,6 +255,8 @@ class AttributeValueManager(models.Manager):
                     results.append((index, record))
                     # remove it from objects list, so it won't be added to new records
                     objects_enumerated.remove((index, obj))
+
+                    break
 
         # add what is left to the list of new records
         self._add_new_records(objects_enumerated, objects_not_in_db, results)
@@ -276,9 +276,7 @@ class AttributeValueManager(models.Manager):
         objects_not_in_db: List[AttributeValue] = []
         objects_to_be_updated = []
         update_fields = set()
-        objects_enumerated = [
-            (index, obj_data) for index, obj_data in enumerate(objects_data)
-        ]
+        objects_enumerated = list(enumerate(objects_data))
         query = self._prepare_query_for_bulk_operation(objects_data)
 
         # iterate over all records in db and check if they match any of objects data
