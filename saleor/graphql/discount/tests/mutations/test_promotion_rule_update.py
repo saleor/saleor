@@ -1074,3 +1074,71 @@ def test_promotion_rule_update_gift_promotion(
     assert all([gift in product_variant_list for gift in rule.gifts.all()])
     assert rule.reward_type == RewardTypeEnum.GIFT.value
     assert rule.order_predicate == order_predicate
+
+
+def test_promotion_rule_update_gift_promotion_wrong_gift_instance(
+    app_api_client,
+    permission_manage_discounts,
+    gift_promotion_rule,
+    product_list,
+):
+    # given
+    rule = gift_promotion_rule
+    rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
+    gifts = [
+        graphene.Node.to_global_id("Product", product.pk) for product in product_list
+    ]
+    variables = {
+        "id": rule_id,
+        "input": {
+            "gifts": gifts,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        PROMOTION_RULE_UPDATE_MUTATION,
+        variables,
+        permissions=(permission_manage_discounts,),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleUpdate"]
+    errors = data["errors"]
+
+    assert not data["promotionRule"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == PromotionRuleUpdateErrorCode.INVALID_GIFT_TYPE.name
+    assert errors[0]["field"] == "gifts"
+
+
+def test_promotion_rule_update_gift_promotion_with_reward_value(
+    app_api_client,
+    permission_manage_discounts,
+    gift_promotion_rule,
+):
+    # given
+    rule = gift_promotion_rule
+    rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
+    variables = {
+        "id": rule_id,
+        "input": {"rewardValue": Decimal(100)},
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        PROMOTION_RULE_UPDATE_MUTATION,
+        variables,
+        permissions=(permission_manage_discounts,),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleUpdate"]
+    errors = data["errors"]
+
+    assert not data["promotionRule"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == PromotionRuleUpdateErrorCode.INVALID.name
+    assert errors[0]["field"] == "rewardValue"

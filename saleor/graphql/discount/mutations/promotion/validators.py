@@ -2,7 +2,6 @@ from typing import TYPE_CHECKING, Union
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.db.models import Q
 from graphene.utils.str_converters import to_camel_case
 
 from .....discount import PromotionType, RewardType, RewardValueType
@@ -16,11 +15,12 @@ if TYPE_CHECKING:
 def clean_promotion_rule(
     cleaned_input, promotion_type, errors, error_class, index=None, instance=None
 ):
-    catalogue_predicate = cleaned_input.get("catalogue_predicate")
-    order_predicate = cleaned_input.get("order_predicate")
-    if instance:
-        catalogue_predicate = catalogue_predicate or instance.catalogue_predicate
-        order_predicate = order_predicate or instance.order_predicate
+    catalogue_predicate = get_from_input_or_instance(
+        "catalogue_predicate", cleaned_input, instance
+    )
+    order_predicate = get_from_input_or_instance(
+        "order_predicate", cleaned_input, instance
+    )
     invalid_predicates = _clean_predicates(
         catalogue_predicate,
         order_predicate,
@@ -135,9 +135,7 @@ def _clean_catalogue_predicate(
     if not catalogue_predicate:
         return
 
-    reward_type = cleaned_input.get("reward_type")
-    if instance and "reward_type" not in cleaned_input:
-        reward_type = reward_type or instance.reward_type
+    reward_type = get_from_input_or_instance("reward_type", cleaned_input, instance)
     if reward_type:
         errors["reward_type"].append(
             ValidationError(
@@ -180,9 +178,7 @@ def _clean_order_predicate(
     if not order_predicate:
         return
 
-    reward_type = cleaned_input.get("reward_type")
-    if "reward_type" not in cleaned_input and instance:
-        reward_type = reward_type or instance.reward_type
+    reward_type = get_from_input_or_instance("reward_type", cleaned_input, instance)
     if not reward_type:
         errors["reward_type"].append(
             ValidationError(
@@ -220,10 +216,7 @@ def _clean_order_predicate(
         )
         return
 
-    if "order_predicate" not in cleaned_input:
-        return
-
-    order_rules_count = PromotionRule.objects.filter(~Q(order_predicate={})).count()
+    order_rules_count = PromotionRule.objects.exclude(order_predicate={}).count()
     rules_limit = settings.ORDER_RULES_LIMIT
     if order_rules_count >= int(rules_limit):
         errors["order_predicate"].append(
@@ -249,11 +242,12 @@ def _clean_order_predicate(
         return
 
     if reward_type == RewardType.GIFT:
-        _clean_gift_rule(cleaned_input, errors, error_class, index)
+        _clean_gift_rule(cleaned_input, errors, error_class, index, instance)
 
 
-def _clean_gift_rule(cleaned_input, errors, error_class, index):
-    if cleaned_input.get("reward_value"):
+def _clean_gift_rule(cleaned_input, errors, error_class, index, instance):
+    reward_value = get_from_input_or_instance("reward_value", cleaned_input, instance)
+    if reward_value:
         errors["reward_value"].append(
             ValidationError(
                 message=(
@@ -265,7 +259,10 @@ def _clean_gift_rule(cleaned_input, errors, error_class, index):
             )
         )
 
-    if cleaned_input.get("reward_value_type"):
+    reward_value_type = get_from_input_or_instance(
+        "reward_value_type", cleaned_input, instance
+    )
+    if reward_value_type:
         errors["reward_value_type"].append(
             ValidationError(
                 message=(
@@ -278,6 +275,8 @@ def _clean_gift_rule(cleaned_input, errors, error_class, index):
         )
 
     gifts = cleaned_input.get("gifts")
+    if not gifts and instance:
+        gifts = list(instance.gifts.all())
     if not gifts:
         errors["gifts"].append(
             ValidationError(
@@ -321,24 +320,18 @@ def _clean_reward(
     - Validate price precision for fixed reward value.
     - Check if percentage reward value is not above 100.
     """
+    reward_type = get_from_input_or_instance("reward_type", cleaned_input, instance)
     if (
         instance
         and "reward_value" not in cleaned_input
         and "reward_value_type" not in cleaned_input
-    ) or cleaned_input.get("reward_type") == RewardType.GIFT:
+    ) or reward_type == RewardType.GIFT:
         return
 
-    reward_value = cleaned_input.get("reward_value")
-    reward_value_type = cleaned_input.get("reward_value_type")
-    if instance:
-        reward_value = (
-            reward_value if "reward_value" in cleaned_input else instance.reward_value
-        )
-        reward_value_type = (
-            reward_value_type
-            if "reward_value_type" in cleaned_input
-            else instance.reward_value_type
-        )
+    reward_value = get_from_input_or_instance("reward_value", cleaned_input, instance)
+    reward_value_type = get_from_input_or_instance(
+        "reward_value_type", cleaned_input, instance
+    )
 
     if reward_value_type is None and (catalogue_predicate or order_predicate):
         errors["reward_value_type"].append(
@@ -520,3 +513,10 @@ def clean_percentage_discount_value(
             code=error_code,
             params={"index": index} if index is not None else {},
         )
+
+
+def get_from_input_or_instance(field: str, input: dict, instance: PromotionRule):
+    if field in input:
+        return input[field]
+    if instance:
+        return getattr(instance, field)

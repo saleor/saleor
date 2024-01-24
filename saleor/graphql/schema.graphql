@@ -27853,6 +27853,7 @@ enum PromotionRuleUpdateErrorCode {
   MISSING_CHANNELS
   MULTIPLE_CURRENCIES_NOT_ALLOWED
   INVALID_PRECISION
+  INVALID_GIFT_TYPE
 }
 
 input PromotionRuleUpdateInput {
