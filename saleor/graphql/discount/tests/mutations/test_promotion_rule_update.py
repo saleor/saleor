@@ -33,6 +33,8 @@ PROMOTION_RULE_UPDATE_MUTATION = """
                 rewardValue
                 rewardType
                 cataloguePredicate
+                orderPredicate
+                gifts
             }
             errors {
                 field
@@ -1028,3 +1030,47 @@ def test_promotion_rule_update_add_invalid_channels_for_order_rule(
         == PromotionRuleUpdateErrorCode.MULTIPLE_CURRENCIES_NOT_ALLOWED.name
     )
     assert errors[0]["field"] == "addChannels"
+
+
+def test_promotion_rule_update_gift_promotion(
+    app_api_client,
+    permission_manage_discounts,
+    gift_promotion_rule,
+    product_variant_list,
+):
+    # given
+    rule = gift_promotion_rule
+    rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
+    order_predicate = {
+        "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": "100"}}}
+    }
+    gifts = [
+        graphene.Node.to_global_id("ProductVariant", variant.pk)
+        for variant in product_variant_list
+    ]
+    variables = {
+        "id": rule_id,
+        "input": {
+            "orderPredicate": order_predicate,
+            "gifts": gifts,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        PROMOTION_RULE_UPDATE_MUTATION,
+        variables,
+        permissions=(permission_manage_discounts,),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleUpdate"]
+    assert not data["errors"]
+    rule_data = data["promotionRule"]
+    assert sorted(rule_data["gifts"]) == sorted(gifts)
+    assert rule_data["orderPredicate"] == order_predicate
+    rule.refresh_from_db()
+    assert all([gift in product_variant_list for gift in rule.gifts.all()])
+    assert rule.reward_type == RewardTypeEnum.GIFT.value
+    assert rule.order_predicate == order_predicate
