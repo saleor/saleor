@@ -119,7 +119,7 @@ class PromotionRule(ModelObjectType[models.PromotionRule]):
         + PREVIEW_FEATURE
     )
     translation = TranslationField(PromotionRuleTranslation, type_name="promotion rule")
-    gifts = NonNullList(
+    gift_ids = NonNullList(
         graphene.ID,
         description="Product variant IDs available as a gift to choose."
         + ADDED_IN_319
@@ -161,7 +161,7 @@ class PromotionRule(ModelObjectType[models.PromotionRule]):
         return ChannelsByPromotionRuleIdLoader(info.context).load(root.id)
 
     @staticmethod
-    def resolve_gifts(root: models.PromotionRule, info: ResolveInfo):
+    def resolve_gift_ids(root: models.PromotionRule, info: ResolveInfo):
         def with_gifts(gifts):
             return [
                 graphene.Node.to_global_id("ProductVariant", gift.pk) for gift in gifts

@@ -102,6 +102,7 @@ class PromotionRuleUpdate(ModelMutation):
             error.code = PromotionRuleUpdateErrorCode.DUPLICATED_INPUT_ITEM.value
             raise ValidationError({"addChannels": error, "removeChannels": error})
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
+        cleaned_input["gifts"] = cleaned_input.pop("gift_ids", None)
         errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
         cleaned_input = clean_promotion_rule(
             cleaned_input,

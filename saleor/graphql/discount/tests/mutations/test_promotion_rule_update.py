@@ -34,7 +34,7 @@ PROMOTION_RULE_UPDATE_MUTATION = """
                 rewardType
                 cataloguePredicate
                 orderPredicate
-                gifts
+                giftIds
             }
             errors {
                 field
@@ -1044,7 +1044,7 @@ def test_promotion_rule_update_gift_promotion(
     order_predicate = {
         "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": "100"}}}
     }
-    gifts = [
+    gift_ids = [
         graphene.Node.to_global_id("ProductVariant", variant.pk)
         for variant in product_variant_list
     ]
@@ -1052,7 +1052,7 @@ def test_promotion_rule_update_gift_promotion(
         "id": rule_id,
         "input": {
             "orderPredicate": order_predicate,
-            "gifts": gifts,
+            "giftIds": gift_ids,
         },
     }
 
@@ -1068,7 +1068,7 @@ def test_promotion_rule_update_gift_promotion(
     data = content["data"]["promotionRuleUpdate"]
     assert not data["errors"]
     rule_data = data["promotionRule"]
-    assert sorted(rule_data["gifts"]) == sorted(gifts)
+    assert sorted(rule_data["gifts"]) == sorted(gift_ids)
     assert rule_data["orderPredicate"] == order_predicate
     rule.refresh_from_db()
     assert all([gift in product_variant_list for gift in rule.gifts.all()])
@@ -1085,13 +1085,13 @@ def test_promotion_rule_update_gift_promotion_wrong_gift_instance(
     # given
     rule = gift_promotion_rule
     rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
-    gifts = [
+    gift_ids = [
         graphene.Node.to_global_id("Product", product.pk) for product in product_list
     ]
     variables = {
         "id": rule_id,
         "input": {
-            "gifts": gifts,
+            "giftIds": gift_ids,
         },
     }
 
@@ -1110,7 +1110,7 @@ def test_promotion_rule_update_gift_promotion_wrong_gift_instance(
     assert not data["promotionRule"]
     assert len(errors) == 1
     assert errors[0]["code"] == PromotionRuleUpdateErrorCode.INVALID_GIFT_TYPE.name
-    assert errors[0]["field"] == "gifts"
+    assert errors[0]["field"] == "giftIds"
 
 
 def test_promotion_rule_update_gift_promotion_with_reward_value(
@@ -1187,7 +1187,7 @@ def test_promotion_rule_update_gift_promotion_remove_gifts(
     variables = {
         "id": rule_id,
         "input": {
-            "gifts": [],
+            "giftIds": [],
         },
     }
 
@@ -1206,4 +1206,4 @@ def test_promotion_rule_update_gift_promotion_remove_gifts(
     assert not data["promotionRule"]
     assert len(errors) == 1
     assert errors[0]["code"] == PromotionRuleUpdateErrorCode.REQUIRED.name
-    assert errors[0]["field"] == "gifts"
+    assert errors[0]["field"] == "giftIds"

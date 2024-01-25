@@ -64,6 +64,7 @@ class PromotionRuleCreate(ModelMutation):
         cls, info: ResolveInfo, instance: models.PromotionRule, data: dict, **kwargs
     ):
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
+        cleaned_input["gifts"] = cleaned_input.pop("gift_ids", None)
         errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
 
         promotion = cleaned_input["promotion"]

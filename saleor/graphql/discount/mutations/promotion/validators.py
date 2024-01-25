@@ -278,7 +278,7 @@ def _clean_gift_rule(cleaned_input, errors, error_class, index, instance):
     if "gifts" not in cleaned_input and instance:
         gifts = list(instance.gifts.all())
     if not gifts:
-        errors["gifts"].append(
+        errors["giftIds"].append(
             ValidationError(
                 message="The gifts field is required when rewardType is set to GIFT.",
                 code=error_class.REQUIRED.value,
@@ -290,7 +290,7 @@ def _clean_gift_rule(cleaned_input, errors, error_class, index, instance):
     for gift in gifts:
         model_name = gift.__class__.__name__
         if model_name != "ProductVariant":
-            errors["gifts"].append(
+            errors["giftIds"].append(
                 ValidationError(
                     message=(
                         f"Gift IDs must resolve to ProductVariant type, "

@@ -37,7 +37,7 @@ PROMOTION_RULE_CREATE_MUTATION = """
                 predicateType
                 cataloguePredicate
                 orderPredicate
-                gifts
+                giftIds
             }
             errors {
                 field
@@ -1491,7 +1491,7 @@ def test_promotion_rule_create_gift_promotion(
     order_predicate = {
         "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": "100"}}}
     }
-    gifts = [
+    gift_ids = [
         graphene.Node.to_global_id("ProductVariant", variant.pk)
         for variant in product_variant_list
     ]
@@ -1503,7 +1503,7 @@ def test_promotion_rule_create_gift_promotion(
             "channels": [channel_id],
             "rewardType": reward_type,
             "orderPredicate": order_predicate,
-            "gifts": gifts,
+            "giftIds": gift_ids,
         }
     }
 
@@ -1522,7 +1522,7 @@ def test_promotion_rule_create_gift_promotion(
     assert rule_data["predicateType"] == promotion.type.upper()
     assert rule_data["promotion"]["id"] == promotion_id
     assert rule_data["rewardType"] == reward_type
-    assert sorted(rule_data["gifts"]) == sorted(gifts)
+    assert sorted(rule_data["giftIds"]) == sorted(gift_ids)
     assert promotion.rules.count() == rules_count + 1
     rule = promotion.rules.last()
     assert all([gift in product_variant_list for gift in rule.gifts.all()])
@@ -1548,7 +1548,7 @@ def test_promotion_rule_create_gift_promotion_wrong_gift_instance(
     order_predicate = {
         "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": "100"}}}
     }
-    gifts = [
+    gift_ids = [
         graphene.Node.to_global_id("Product", product.pk) for product in product_list
     ]
 
@@ -1559,7 +1559,7 @@ def test_promotion_rule_create_gift_promotion_wrong_gift_instance(
             "channels": [channel_id],
             "rewardType": reward_type,
             "orderPredicate": order_predicate,
-            "gifts": gifts,
+            "giftIds": gift_ids,
         }
     }
 
@@ -1574,7 +1574,7 @@ def test_promotion_rule_create_gift_promotion_wrong_gift_instance(
     assert not data["promotionRule"]
     assert len(errors) == 1
     assert errors[0]["code"] == PromotionRuleCreateErrorCode.INVALID_GIFT_TYPE.name
-    assert errors[0]["field"] == "gifts"
+    assert errors[0]["field"] == "giftIds"
     assert promotion.rules.count() == rules_count
 
 
@@ -1597,7 +1597,7 @@ def test_promotion_rule_create_gift_promotion_with_reward_value(
     order_predicate = {
         "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": "100"}}}
     }
-    gifts = [
+    gift_ids = [
         graphene.Node.to_global_id("ProductVariant", variant.pk)
         for variant in product_variant_list
     ]
@@ -1610,7 +1610,7 @@ def test_promotion_rule_create_gift_promotion_with_reward_value(
             "rewardType": reward_type,
             "rewardValue": reward_value,
             "orderPredicate": order_predicate,
-            "gifts": gifts,
+            "giftIds": gift_ids,
         }
     }
 
@@ -1648,7 +1648,7 @@ def test_promotion_rule_create_gift_promotion_with_reward_value_type(
     order_predicate = {
         "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": "100"}}}
     }
-    gifts = [
+    gift_ids = [
         graphene.Node.to_global_id("ProductVariant", variant.pk)
         for variant in product_variant_list
     ]
@@ -1661,7 +1661,7 @@ def test_promotion_rule_create_gift_promotion_with_reward_value_type(
             "rewardType": reward_type,
             "rewardValueType": reward_value_type,
             "orderPredicate": order_predicate,
-            "gifts": gifts,
+            "giftIds": gift_ids,
         }
     }
 
@@ -1720,5 +1720,5 @@ def test_promotion_rule_create_gift_promotion_missing_gifts(
     assert not data["promotionRule"]
     assert len(errors) == 1
     assert errors[0]["code"] == PromotionRuleCreateErrorCode.REQUIRED.name
-    assert errors[0]["field"] == "gifts"
+    assert errors[0]["field"] == "giftIds"
     assert promotion.rules.count() == rules_count

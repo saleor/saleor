@@ -40,7 +40,7 @@ PROMOTION_CREATE_MUTATION = """
                     predicateType
                     cataloguePredicate
                     orderPredicate
-                    gifts
+                    giftIds
                 }
             }
             errors {
@@ -166,7 +166,7 @@ def test_promotion_create_by_staff_user(
         rule_data["channels"] = [
             {"id": channel_id} for channel_id in rule_data["channels"]
         ]
-        rule_data["gifts"] = []
+        rule_data["giftIds"] = []
         rule_data["rewardType"] = None
         assert rule_data in promotion_data["rules"]
 
@@ -748,7 +748,7 @@ def test_promotion_create_start_date_and_end_date_after_current_date(
         rule_data["channels"] = [
             {"id": channel_id} for channel_id in rule_data["channels"]
         ]
-        rule_data["gifts"] = []
+        rule_data["giftIds"] = []
         rule_data["rewardType"] = None
         assert rule_data in promotion_data["rules"]
 
@@ -1740,7 +1740,7 @@ def test_promotion_create_gift_promotion(
     rule_name = "test gift promotion rule"
     reward_type = RewardTypeEnum.GIFT.name
     channel_ids = [graphene.Node.to_global_id("Channel", channel_USD.pk)]
-    gifts = [
+    gift_ids = [
         graphene.Node.to_global_id("ProductVariant", variant.pk)
         for variant in product_variant_list
     ]
@@ -1755,7 +1755,7 @@ def test_promotion_create_gift_promotion(
                     "channels": channel_ids,
                     "rewardType": reward_type,
                     "orderPredicate": order_predicate,
-                    "gifts": gifts,
+                    "giftIds": gift_ids,
                 }
             ],
         }
@@ -1775,7 +1775,7 @@ def test_promotion_create_gift_promotion(
     assert rules_data[0]["orderPredicate"] == order_predicate
     assert rules_data[0]["predicateType"] == PromotionTypeEnum.ORDER.name
     assert rules_data[0]["rewardType"] == RewardTypeEnum.GIFT.name
-    assert sorted(rules_data[0]["gifts"]) == sorted(gifts)
+    assert sorted(rules_data[0]["giftIds"]) == sorted(gift_ids)
 
     promotion = Promotion.objects.filter(name=promotion_name).get()
     rules = promotion.rules.all()
@@ -1800,7 +1800,7 @@ def test_promotion_create_gift_promotion_wrong_gift_instance(
     rule_name = "test gift promotion rule"
     reward_type = RewardTypeEnum.GIFT.name
     channel_ids = [graphene.Node.to_global_id("Channel", channel_USD.pk)]
-    gifts = [
+    gift_ids = [
         graphene.Node.to_global_id("Product", product.pk) for product in product_list
     ]
 
@@ -1814,7 +1814,7 @@ def test_promotion_create_gift_promotion_wrong_gift_instance(
                     "channels": channel_ids,
                     "rewardType": reward_type,
                     "orderPredicate": order_predicate,
-                    "gifts": gifts,
+                    "giftIds": gift_ids,
                 }
             ],
         }
@@ -1831,7 +1831,7 @@ def test_promotion_create_gift_promotion_wrong_gift_instance(
     assert not data["promotion"]
     assert len(errors) == 1
     assert errors[0]["code"] == PromotionCreateErrorCode.INVALID_GIFT_TYPE.name
-    assert errors[0]["field"] == "gifts"
+    assert errors[0]["field"] == "giftIds"
     assert errors[0]["index"] == 0
 
 
@@ -1852,7 +1852,7 @@ def test_promotion_create_gift_promotion_with_reward_value(
     reward_type = RewardTypeEnum.GIFT.name
     reward_value = Decimal("10")
     channel_ids = [graphene.Node.to_global_id("Channel", channel_USD.pk)]
-    gifts = [
+    gift_ids = [
         graphene.Node.to_global_id("ProductVariant", variant.pk)
         for variant in product_variant_list
     ]
@@ -1868,7 +1868,7 @@ def test_promotion_create_gift_promotion_with_reward_value(
                     "rewardType": reward_type,
                     "rewardValue": reward_value,
                     "orderPredicate": order_predicate,
-                    "gifts": gifts,
+                    "giftIds": gift_ids,
                 }
             ],
         }
@@ -1906,7 +1906,7 @@ def test_promotion_create_gift_promotion_with_reward_value_type(
     reward_type = RewardTypeEnum.GIFT.name
     reward_value_type = RewardValueTypeEnum.PERCENTAGE.name
     channel_ids = [graphene.Node.to_global_id("Channel", channel_USD.pk)]
-    gifts = [
+    gift_ids = [
         graphene.Node.to_global_id("ProductVariant", variant.pk)
         for variant in product_variant_list
     ]
@@ -1922,7 +1922,7 @@ def test_promotion_create_gift_promotion_with_reward_value_type(
                     "rewardType": reward_type,
                     "rewardValueType": reward_value_type,
                     "orderPredicate": order_predicate,
-                    "gifts": gifts,
+                    "giftIds": gift_ids,
                 }
             ],
         }
@@ -1985,5 +1985,5 @@ def test_promotion_create_gift_promotion_missing_gifts(
     assert not data["promotion"]
     assert len(errors) == 1
     assert errors[0]["code"] == PromotionCreateErrorCode.REQUIRED.name
-    assert errors[0]["field"] == "gifts"
+    assert errors[0]["field"] == "giftIds"
     assert errors[0]["index"] == 0
