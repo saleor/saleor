@@ -1068,7 +1068,7 @@ def test_promotion_rule_update_gift_promotion(
     data = content["data"]["promotionRuleUpdate"]
     assert not data["errors"]
     rule_data = data["promotionRule"]
-    assert sorted(rule_data["gifts"]) == sorted(gift_ids)
+    assert sorted(rule_data["giftIds"]) == sorted(gift_ids)
     assert rule_data["orderPredicate"] == order_predicate
     rule.refresh_from_db()
     assert all([gift in product_variant_list for gift in rule.gifts.all()])
