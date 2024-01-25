@@ -2112,6 +2112,7 @@ def test_query_checkout_lines(
             edges {
                 node {
                     id
+                    isGift
                 }
             }
         }
@@ -2128,6 +2129,8 @@ def test_query_checkout_lines(
         graphene.Node.to_global_id("CheckoutLine", item.pk) for item in checkout
     ]
     assert expected_lines_ids == checkout_lines_ids
+    is_gift_flags = [line["node"]["isGift"] for line in lines]
+    assert all([item is False for item in is_gift_flags])
 
 
 def test_query_checkout_lines_with_meta(
