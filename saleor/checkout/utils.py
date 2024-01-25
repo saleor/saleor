@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Optional, Union, cast
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.db.models import prefetch_related_objects
 from django.utils import timezone
 from prices import Money
@@ -734,23 +735,24 @@ def add_voucher_to_checkout(
     )
 
     checkout.discount = discount
-    checkout.save(
-        update_fields=[
-            "voucher_code",
-            "discount_name",
-            "translated_discount_name",
-            "discount_amount",
-            "last_change",
-        ]
-    )
     checkout_info.voucher = voucher
     checkout_info.voucher_code = voucher_code
 
     # delete discounts from order promotions as cannot be mixed with vouchers
-    CheckoutDiscount.objects.filter(
-        checkout=checkout_info.checkout,
-        type=DiscountType.ORDER_PROMOTION,
-    ).delete()
+    with transaction.atomic():
+        checkout.save(
+            update_fields=[
+                "voucher_code",
+                "discount_name",
+                "translated_discount_name",
+                "discount_amount",
+                "last_change",
+            ]
+        )
+        CheckoutDiscount.objects.filter(
+            checkout=checkout_info.checkout,
+            type=DiscountType.ORDER_PROMOTION,
+        ).delete()
 
 
 def remove_promo_code_from_checkout(
