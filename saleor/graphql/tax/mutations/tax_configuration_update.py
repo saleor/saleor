@@ -1,6 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 
+from ....app.utils import get_active_tax_apps
 from ....permission.enums import CheckoutPermissions
 from ....tax import error_codes, models
 from ...account.enums import CountryCodeEnum
@@ -78,6 +79,13 @@ class TaxConfigurationUpdateInput(BaseInputObjectType):
         CountryCodeEnum,
         description="List of country codes for which to remove the tax configuration.",
     )
+    tax_app_id = graphene.String(
+        description=(
+            "The tax app id that will be used to calculate the taxes for the given channel. "
+            "Empty value when `taxCalculationStrategy` set is to `TAX_APP` "
+            "means that Saleor will iterate over all installed tax apps."
+        ),
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_TAXES
@@ -112,6 +120,7 @@ class TaxConfigurationUpdate(ModelMutation):
 
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
+        cls.clean_tax_app_id(info, data)
         update_countries_configuration = data.get("update_countries_configuration", [])
         update_country_codes = [
             item["country_code"] for item in update_countries_configuration
@@ -132,6 +141,20 @@ class TaxConfigurationUpdate(ModelMutation):
             raise ValidationError(message=message, code=code, params=params)
 
         return super().clean_input(info, instance, data, **kwargs)
+
+    @classmethod
+    def clean_tax_app_id(cls, info: ResolveInfo, data):
+        if app_id := data.get("tax_app_id"):
+            app = cls.get_node_or_error(info, app_id, only_type="App")
+            if app not in list(get_active_tax_apps()):
+                raise ValidationError(
+                    {
+                        "tax_ap_id": ValidationError(
+                            message="Provided taxAppId does not belong to Tax App.",
+                            code=error_codes.TaxConfigurationUpdateErrorCode.INVALID.value,
+                        )
+                    }
+                )
 
     @classmethod
     def update_countries_configuration(cls, instance, countries_configuration):

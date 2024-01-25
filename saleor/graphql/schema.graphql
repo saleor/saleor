@@ -10204,6 +10204,11 @@ type Shop implements ObjectWithMetadata {
   """
   schemaVersion: String!
 
+  """
+  List of tax apps that can be assigned to the channel. The list will be calculated by Saleor based on the apps that are subscribed to webhooks related to tax calculations: CHECKOUT_CALCULATE_TAXES
+  """
+  availableTaxApps: [App!]!
+
   """Include taxes in prices."""
   includeTaxesInPrices: Boolean! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `Channel.taxConfiguration.pricesEnteredWithTax` to determine whether prices are entered with tax.")
 
@@ -20866,6 +20871,11 @@ input TaxConfigurationUpdateInput @doc(category: "Taxes") {
 
   """List of country codes for which to remove the tax configuration."""
   removeCountriesConfiguration: [CountryCode!]
+
+  """
+  The tax app id that will be used to calculate the taxes for the given channel. Empty value when `taxCalculationStrategy` set is to `TAX_APP` means that Saleor will iterate over all installed tax apps.
+  """
+  taxAppId: String
 }
 
 input TaxConfigurationPerCountryInput @doc(category: "Taxes") {
