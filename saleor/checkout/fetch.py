@@ -64,7 +64,7 @@ class CheckoutLineInfo:
         return [
             discount
             for discount in self.discounts
-            if discount.type == DiscountType.PROMOTION
+            if discount.type in [DiscountType.PROMOTION, DiscountType.ORDER_PROMOTION]
         ]
 
 
@@ -246,7 +246,7 @@ def fetch_checkout_lines(
         "variant__channel_listings__channel",
         "variant__channel_listings__variantlistingpromotionrule__promotion_rule__promotion__translations",
         "variant__channel_listings__variantlistingpromotionrule__promotion_rule__translations",
-        "discounts",
+        "discounts__promotion_rule__promotion",
     ]
     if prefetch_variant_attributes:
         prefetch_related_fields.extend(
