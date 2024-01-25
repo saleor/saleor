@@ -72,7 +72,7 @@ def test_variant_discounts_multiple_promotions(product, channel_USD):
     price = variant_channel_listing.price
 
     # when
-    applied_discounts = calculate_discounted_price_for_promotions(
+    applied_rule_id, applied_discount = calculate_discounted_price_for_promotions(
         price=price,
         rules_info_per_variant_and_promotion_id=rules_info_per_promotion_id,
         channel=channel_USD,
@@ -80,11 +80,8 @@ def test_variant_discounts_multiple_promotions(product, channel_USD):
     )
 
     # then
-    assert len(applied_discounts) == 1
-    assert applied_discounts[0] == (
-        rule_high.id,
-        price - rule_high.reward_value / 100 * price,
-    )
+    assert applied_rule_id == rule_high.id
+    assert applied_discount == (price - rule_high.reward_value / 100 * price)
 
 
 def test_variant_discounts_multiple_promotions_and_rules(product, channel_USD):
@@ -167,7 +164,7 @@ def test_variant_discounts_multiple_promotions_and_rules(product, channel_USD):
     price = variant_channel_listing.price
 
     # when
-    applied_discounts = calculate_discounted_price_for_promotions(
+    applied_rule_id, applied_discount = calculate_discounted_price_for_promotions(
         price=price,
         rules_info_per_variant_and_promotion_id=rules_info_per_promotion_id,
         channel=channel_USD,
@@ -175,8 +172,5 @@ def test_variant_discounts_multiple_promotions_and_rules(product, channel_USD):
     )
 
     # then
-    assert len(applied_discounts) == 1
-    assert applied_discounts[0] == (
-        rule_high_1.id,
-        price - rule_high_1.reward_value / 100 * price,
-    )
+    assert applied_rule_id == rule_high_1.id
+    assert applied_discount == (price - rule_high_1.reward_value / 100 * price)

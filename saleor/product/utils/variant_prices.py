@@ -238,7 +238,7 @@ def _get_discounted_variants_prices_for_promotions(
         VariantChannelListingPromotionRule
     ] = []
     for variant_listing in variant_listings:
-        applied_discounts = calculate_discounted_price_for_promotions(
+        applied_discount = calculate_discounted_price_for_promotions(
             price=variant_listing.price,
             rules_info_per_variant_and_promotion_id=(
                 rules_info_per_variant_and_promotion_id
@@ -246,14 +246,16 @@ def _get_discounted_variants_prices_for_promotions(
             channel=channel,
             variant_id=variant_listing.variant_id,
         )
-        rule_ids = []
         discounted_variant_price = variant_listing.price
-        for rule_id, discount in applied_discounts:
-            if discounted_variant_price.amount < discount.amount:
-                discount = discounted_variant_price
-                discounted_variant_price = zero_money(discounted_variant_price.currency)
-            else:
-                discounted_variant_price -= discount
+
+        rule_id = None
+        if applied_discount:
+            rule_id, discount = applied_discount
+            discounted_variant_price -= discount
+            discounted_variant_price = max(
+                discounted_variant_price, zero_money(discounted_variant_price.currency)
+            )
+
             _handle_discount_rule_id(
                 variant_listing,
                 rule_id,
@@ -263,9 +265,6 @@ def _get_discounted_variants_prices_for_promotions(
                 variant_listing_promotion_rule_to_update,
                 variant_listing_promotion_rule_to_create,
             )
-            rule_ids.append(rule_id)
-            if discounted_variant_price.amount == 0:
-                break
 
         if variant_listing.discounted_price != discounted_variant_price:
             variant_listing.discounted_price_amount = discounted_variant_price.amount
@@ -275,7 +274,7 @@ def _get_discounted_variants_prices_for_promotions(
             # anymore
             VariantChannelListingPromotionRule.objects.filter(
                 variant_channel_listing_id=variant_listing.id
-            ).exclude(promotion_rule_id__in=rule_ids).delete()
+            ).exclude(promotion_rule_id=rule_id).delete()
 
         discounted_variants_price.append(discounted_variant_price)
 

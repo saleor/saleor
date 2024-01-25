@@ -2,13 +2,7 @@ from collections import defaultdict
 from collections.abc import Iterable, Iterator
 from decimal import ROUND_HALF_UP, Decimal
 from functools import partial
-from typing import (
-    TYPE_CHECKING,
-    Callable,
-    Optional,
-    Union,
-    cast,
-)
+from typing import TYPE_CHECKING, Callable, Optional, Union, cast
 from uuid import UUID
 
 import graphene
@@ -179,52 +173,49 @@ def calculate_discounted_price_for_promotions(
     ],
     channel: "Channel",
     variant_id: int,
-) -> list[tuple[UUID, Money]]:
+) -> Optional[tuple[UUID, Money]]:
     """Return minimum product's price of all prices with promotions applied."""
-    applied_discounts = []
+    applied_discount = None
     rules_info_per_promotion_id = rules_info_per_variant_and_promotion_id.get(
         variant_id
     )
     if rules_info_per_promotion_id:
-        applied_discounts = get_best_promotion_discount(
+        applied_discount = get_best_promotion_discount(
             price, rules_info_per_promotion_id, channel
         )
-    return applied_discounts
+    return applied_discount
 
 
 def get_best_promotion_discount(
     price: Money,
     rules_info_per_promotion_id: dict[UUID, list[PromotionRuleInfo]],
     channel: "Channel",
-) -> list[tuple[UUID, Money]]:
-    """Return the rules with the discount amounts for the best promotion.
+) -> Optional[tuple[UUID, Money]]:
+    """Return the rule with the discount amount for the best promotion.
 
     The data for the promotion that gives the best saving are returned in the following
     shape:
-    [
-        (rule_id_1, discount_amount_1),
-        (rule_id_2, discount_amount_2),
-    ]
+        (rule_id_1, discount_amount_1)
     """
-    available_discounts = [
-        [
-            (rule_id, discount)
-            for rule_id, discount in get_product_promotion_discounts(
-                rules_info=rules_info,
-                channel=channel,
-            )
-        ]
-        for _, rules_info in rules_info_per_promotion_id.items()
-    ]
-    applied_discounts = max(
-        [
-            [(rule_id, price - discount(price)) for rule_id, discount in discounts]
-            for discounts in available_discounts
-        ],
-        key=lambda x: sum(y[1].amount for y in x),  # sort over a max discount
-    )
+    available_discounts = []
+    for rules_info in rules_info_per_promotion_id.values():
+        for rule_id, discount in get_product_promotion_discounts(
+            rules_info=rules_info,
+            channel=channel,
+        ):
+            available_discounts.append((rule_id, discount))
 
-    return applied_discounts
+    applied_discount = None
+    if available_discounts:
+        applied_discount = max(
+            [
+                (rule_id, price - discount(price))
+                for rule_id, discount in available_discounts
+            ],
+            key=lambda x: x[1].amount,  # sort over a max discount
+        )
+
+    return applied_discount
 
 
 def get_product_promotion_discounts(
