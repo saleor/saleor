@@ -12799,6 +12799,7 @@ enum OrderErrorCode @doc(category: "Orders") {
   INVALID_VOUCHER
   INVALID_VOUCHER_CODE
   NON_EDITABLE_GIFT_LINE_QUANTITY
+  NON_REMOVABLE_GIFT_LINE
 }
 
 """An enumeration."""
