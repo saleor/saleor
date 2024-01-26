@@ -694,13 +694,9 @@ def _get_best_gift_reward(
         return None, None
 
     # check if variant is available for purchase
-    today = datetime.datetime.now(pytz.UTC)
-    # TODO: use Exists here and exclude to function
-    available_variant_ids = ProductChannelListing.objects.filter(
-        available_for_purchase_at__lte=today,
-        product__variants__id__in=available_variant_ids,
-        channel_id=channel.id,
-    ).values_list("product__variants__id", flat=True)
+    available_variant_ids = _get_available_for_purchase_variant_ids(
+        available_variant_ids, channel
+    )
     if not available_variant_ids:
         return None, None
 
@@ -723,6 +719,22 @@ def _get_best_gift_reward(
     rule_gift = rule_gifts.filter(productvariant_id=listing.variant_id).first()
     rule = rule_gift.promotionrule if rule_gift else None
     return rule, listing
+
+
+def _get_available_for_purchase_variant_ids(
+    available_variant_ids: set[int], channel: "Channel"
+):
+    today = datetime.datetime.now(pytz.UTC)
+    variants = ProductVariant.objects.filter(id__in=available_variant_ids)
+    product_listings = ProductChannelListing.objects.filter(
+        Exists(variants.filter(product_id=OuterRef("product_id"))),
+        available_for_purchase_at__lte=today,
+        channel_id=channel.id,
+    )
+    available_variant_ids = ProductVariant.objects.filter(
+        Exists(product_listings.filter(product_id=OuterRef("product_id")))
+    ).values_list("id", flat=True)
+    return set(available_variant_ids)
 
 
 def _create_or_update_checkout_discount(
