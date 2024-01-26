@@ -11129,7 +11129,6 @@ type CheckoutLine implements Node & ObjectWithMetadata @doc(category: "Checkout"
 
   """The quantity of product variant assigned to the checkout line."""
   quantity: Int!
-  isGift: Boolean
 
   """
   The unit price of the checkout line, with taxes and discounts.

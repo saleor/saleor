@@ -214,7 +214,6 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
         required=True,
         description="The quantity of product variant assigned to the checkout line.",
     )
-    is_gift = graphene.Boolean()
     unit_price = BaseField(
         TaxedMoney,
         description="The unit price of the checkout line, with taxes and discounts.",
