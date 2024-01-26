@@ -306,6 +306,16 @@ def handle_webhook_retry(
     When MaxRetriesExceededError is raised the function will end without exception.
     """
     is_success = True
+    log_extra_details = {
+        "webhook": {
+            "id": webhook.id,
+            "target_url": webhook.target_url,
+            "event": delivery.event_type,
+            "execution_mode": "async",
+            "duration": response.duration,
+            "http_status_code": response.response_status_code,
+        },
+    }
     task_logger.info(
         "[Webhook ID: %r] Failed request to %r: %r for event: %r."
         " Delivery attempt id: %r",
@@ -314,6 +324,7 @@ def handle_webhook_retry(
         response.content,
         delivery.event_type,
         delivery_attempt.id,
+        extra=log_extra_details,
     )
     if response.response_status_code and 300 <= response.response_status_code < 500:
         # do not retry for 30x and 40x status codes
@@ -323,6 +334,7 @@ def handle_webhook_retry(
             webhook.target_url,
             response.response_status_code,
             delivery.id,
+            extra=log_extra_details,
         )
         return False
     try:
@@ -339,6 +351,7 @@ def handle_webhook_retry(
             webhook.id,
             webhook.target_url,
             delivery.id,
+            extra=log_extra_details,
         )
     return is_success
 
