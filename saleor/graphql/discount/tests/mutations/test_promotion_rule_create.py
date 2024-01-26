@@ -1503,7 +1503,7 @@ def test_promotion_rule_create_gift_promotion(
             "channels": [channel_id],
             "rewardType": reward_type,
             "orderPredicate": order_predicate,
-            "giftIds": gift_ids,
+            "gifts": gift_ids,
         }
     }
 
@@ -1559,7 +1559,7 @@ def test_promotion_rule_create_gift_promotion_wrong_gift_instance(
             "channels": [channel_id],
             "rewardType": reward_type,
             "orderPredicate": order_predicate,
-            "giftIds": gift_ids,
+            "gifts": gift_ids,
         }
     }
 
@@ -1574,7 +1574,7 @@ def test_promotion_rule_create_gift_promotion_wrong_gift_instance(
     assert not data["promotionRule"]
     assert len(errors) == 1
     assert errors[0]["code"] == PromotionRuleCreateErrorCode.INVALID_GIFT_TYPE.name
-    assert errors[0]["field"] == "giftIds"
+    assert errors[0]["field"] == "gifts"
     assert promotion.rules.count() == rules_count
 
 
@@ -1610,7 +1610,7 @@ def test_promotion_rule_create_gift_promotion_with_reward_value(
             "rewardType": reward_type,
             "rewardValue": reward_value,
             "orderPredicate": order_predicate,
-            "giftIds": gift_ids,
+            "gifts": gift_ids,
         }
     }
 
@@ -1661,7 +1661,7 @@ def test_promotion_rule_create_gift_promotion_with_reward_value_type(
             "rewardType": reward_type,
             "rewardValueType": reward_value_type,
             "orderPredicate": order_predicate,
-            "giftIds": gift_ids,
+            "gifts": gift_ids,
         }
     }
 
@@ -1720,5 +1720,5 @@ def test_promotion_rule_create_gift_promotion_missing_gifts(
     assert not data["promotionRule"]
     assert len(errors) == 1
     assert errors[0]["code"] == PromotionRuleCreateErrorCode.REQUIRED.name
-    assert errors[0]["field"] == "giftIds"
+    assert errors[0]["field"] == "gifts"
     assert promotion.rules.count() == rules_count

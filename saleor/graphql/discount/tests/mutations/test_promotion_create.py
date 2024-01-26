@@ -1755,7 +1755,7 @@ def test_promotion_create_gift_promotion(
                     "channels": channel_ids,
                     "rewardType": reward_type,
                     "orderPredicate": order_predicate,
-                    "giftIds": gift_ids,
+                    "gifts": gift_ids,
                 }
             ],
         }
@@ -1814,7 +1814,7 @@ def test_promotion_create_gift_promotion_wrong_gift_instance(
                     "channels": channel_ids,
                     "rewardType": reward_type,
                     "orderPredicate": order_predicate,
-                    "giftIds": gift_ids,
+                    "gifts": gift_ids,
                 }
             ],
         }
@@ -1831,7 +1831,7 @@ def test_promotion_create_gift_promotion_wrong_gift_instance(
     assert not data["promotion"]
     assert len(errors) == 1
     assert errors[0]["code"] == PromotionCreateErrorCode.INVALID_GIFT_TYPE.name
-    assert errors[0]["field"] == "giftIds"
+    assert errors[0]["field"] == "gifts"
     assert errors[0]["index"] == 0
 
 
@@ -1868,7 +1868,7 @@ def test_promotion_create_gift_promotion_with_reward_value(
                     "rewardType": reward_type,
                     "rewardValue": reward_value,
                     "orderPredicate": order_predicate,
-                    "giftIds": gift_ids,
+                    "gifts": gift_ids,
                 }
             ],
         }
@@ -1922,7 +1922,7 @@ def test_promotion_create_gift_promotion_with_reward_value_type(
                     "rewardType": reward_type,
                     "rewardValueType": reward_value_type,
                     "orderPredicate": order_predicate,
-                    "giftIds": gift_ids,
+                    "gifts": gift_ids,
                 }
             ],
         }
@@ -1985,5 +1985,5 @@ def test_promotion_create_gift_promotion_missing_gifts(
     assert not data["promotion"]
     assert len(errors) == 1
     assert errors[0]["code"] == PromotionCreateErrorCode.REQUIRED.name
-    assert errors[0]["field"] == "giftIds"
+    assert errors[0]["field"] == "gifts"
     assert errors[0]["index"] == 0

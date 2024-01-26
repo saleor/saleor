@@ -1052,7 +1052,7 @@ def test_promotion_rule_update_gift_promotion(
         "id": rule_id,
         "input": {
             "orderPredicate": order_predicate,
-            "giftIds": gift_ids,
+            "gifts": gift_ids,
         },
     }
 
@@ -1091,7 +1091,7 @@ def test_promotion_rule_update_gift_promotion_wrong_gift_instance(
     variables = {
         "id": rule_id,
         "input": {
-            "giftIds": gift_ids,
+            "gifts": gift_ids,
         },
     }
 
@@ -1110,7 +1110,7 @@ def test_promotion_rule_update_gift_promotion_wrong_gift_instance(
     assert not data["promotionRule"]
     assert len(errors) == 1
     assert errors[0]["code"] == PromotionRuleUpdateErrorCode.INVALID_GIFT_TYPE.name
-    assert errors[0]["field"] == "giftIds"
+    assert errors[0]["field"] == "gifts"
 
 
 def test_promotion_rule_update_gift_promotion_with_reward_value(
@@ -1187,7 +1187,7 @@ def test_promotion_rule_update_gift_promotion_remove_gifts(
     variables = {
         "id": rule_id,
         "input": {
-            "giftIds": [],
+            "gifts": [],
         },
     }
 
@@ -1206,4 +1206,4 @@ def test_promotion_rule_update_gift_promotion_remove_gifts(
     assert not data["promotionRule"]
     assert len(errors) == 1
     assert errors[0]["code"] == PromotionRuleUpdateErrorCode.REQUIRED.name
-    assert errors[0]["field"] == "giftIds"
+    assert errors[0]["field"] == "gifts"

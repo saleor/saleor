@@ -166,12 +166,12 @@ class PromotionCreate(ModelMutation):
             if channel_ids := rule_data.get("channels"):
                 channels = cls.clean_channels(info, channel_ids, index, errors)
                 rule_data["channels"] = channels
-            if gift_ids := rule_data.get("gift_ids"):
+            if gift_ids := rule_data.get("gifts"):
                 instances = cls.get_nodes_or_error(
-                    gift_ids, "giftIds", schema=info.schema
+                    gift_ids, "gifts", schema=info.schema
                 )
                 rule_data["gifts"] = instances
-                rule_data.pop("gift_ids", None)
+
             clean_promotion_rule(
                 rule_data, promotion_type, errors, PromotionCreateErrorCode, index
             )
