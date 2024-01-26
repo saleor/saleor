@@ -22,6 +22,7 @@ class PromotionCreateErrorCode(Enum):
     INVALID_PRECISION = "invalid_precision"
     MISSING_CHANNELS = "missing_channels"
     RULES_NUMBER_LIMIT = "rules_number_limit"
+    INVALID_GIFT_TYPE = "invalid_gift_type"
 
 
 class PromotionUpdateErrorCode(Enum):
@@ -45,6 +46,7 @@ class PromotionRuleCreateErrorCode(Enum):
     INVALID_PRECISION = "invalid_precision"
     MISSING_CHANNELS = "missing_channels"
     RULES_NUMBER_LIMIT = "rules_number_limit"
+    INVALID_GIFT_TYPE = "invalid_gift_type"
 
 
 class PromotionRuleUpdateErrorCode(Enum):
@@ -56,6 +58,7 @@ class PromotionRuleUpdateErrorCode(Enum):
     MISSING_CHANNELS = "missing_channels"
     MULTIPLE_CURRENCIES_NOT_ALLOWED = "multiple_currencies_not_allowed"
     INVALID_PRECISION = "invalid_precision"
+    INVALID_GIFT_TYPE = "invalid_gift_type"
 
 
 class PromotionRuleDeleteErrorCode(Enum):

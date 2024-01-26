@@ -166,6 +166,12 @@ class PromotionCreate(ModelMutation):
             if channel_ids := rule_data.get("channels"):
                 channels = cls.clean_channels(info, channel_ids, index, errors)
                 rule_data["channels"] = channels
+            if gift_ids := rule_data.get("gifts"):
+                instances = cls.get_nodes_or_error(
+                    gift_ids, "gifts", schema=info.schema
+                )
+                rule_data["gifts"] = instances
+
             clean_promotion_rule(
                 rule_data, promotion_type, errors, PromotionCreateErrorCode, index
             )
@@ -218,8 +224,12 @@ class PromotionCreate(ModelMutation):
         if rules_data := cleaned_data.get("rules"):
             for rule_data in rules_data:
                 channels = rule_data.pop("channels", None)
+                gifts = rule_data.pop("gifts", None)
                 rule = models.PromotionRule(promotion=instance, **rule_data)
-                rules_with_channels_to_add.append((rule, channels))
+                if gifts:
+                    rule.gifts.set(gifts)
+                if channels:
+                    rules_with_channels_to_add.append((rule, channels))
                 rules.append(rule)
             models.PromotionRule.objects.bulk_create(rules)
 

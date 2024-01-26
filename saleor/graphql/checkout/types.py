@@ -47,6 +47,7 @@ from ..core.descriptions import (
     ADDED_IN_313,
     ADDED_IN_315,
     ADDED_IN_318,
+    ADDED_IN_319,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -254,6 +255,9 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
         description="List of problems with the checkout line."
         + ADDED_IN_315
         + PREVIEW_FEATURE,
+    )
+    is_gift = graphene.Boolean(
+        description="Determine if the line is a gift." + ADDED_IN_319 + PREVIEW_FEATURE,
     )
 
     class Meta:
