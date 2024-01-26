@@ -238,11 +238,16 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
             if line.line_id in gift_line_ids and line.quantity_to_update
         ]
         if gift_lines_with_quantity_to_update:
+            global_ids = [
+                graphene.Node.to_global_id("CheckoutLine", line.line_id)
+                for line in gift_lines_with_quantity_to_update
+            ]
             raise ValidationError(
                 {
                     "quantity": ValidationError(
                         "Quantity of order line marked as gift can't be edited.",
                         code=CheckoutErrorCode.NON_EDITABLE_GIFT_LINE_QUANTITY.value,
+                        params={"lines": global_ids},
                     )
                 }
             )
