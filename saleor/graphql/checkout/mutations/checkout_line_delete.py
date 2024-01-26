@@ -68,7 +68,7 @@ class CheckoutLineDelete(BaseMutation):
 
         if line.is_gift:
             raise_validation_error(
-                message="Checkout line marked as gift can't be deleted",
+                message="Checkout line marked as gift can't be deleted.",
                 field="line_id",
                 code=CheckoutErrorCode.NON_REMOVABLE_GIFT_LINE.value,
             )

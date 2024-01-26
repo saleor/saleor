@@ -140,3 +140,30 @@ def test_with_active_problems_flow(api_client, checkout_with_problems):
 
     # then
     assert not content["data"]["checkoutLinesDelete"]["errors"]
+
+
+def test_checkout_lines_delete_non_removable_gift(user_api_client, checkout_with_items):
+    # given
+    checkout = checkout_with_items
+    gift_line = checkout.lines.first()
+    gift_line.is_gift = True
+    gift_line.save(update_fields=["is_gift"])
+    non_gift_line = checkout.lines.last()
+    gift_line_id = to_global_id_or_none(gift_line)
+    non_gift_line_id = to_global_id_or_none(non_gift_line)
+    lines_list = [gift_line_id, non_gift_line_id]
+
+    variables = {"id": to_global_id_or_none(checkout), "linesIds": lines_list}
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_DELETE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["checkoutLinesDelete"]
+    assert not data["checkout"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "lineIds"
+    assert errors[0]["code"] == CheckoutErrorCode.NON_REMOVABLE_GIFT_LINE.name
+    assert errors[0]["lines"] == [gift_line_id]
