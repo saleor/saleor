@@ -372,26 +372,26 @@ def create_discount_objects_for_catalogue_promotions(
 
     for line_info in lines_info:
         line = line_info.line
-        # TODO: probably we do not need to perform this for is_gift line
 
         # discount_amount based on the difference between discounted_price and price
         discount_amount = _get_discount_amount(line_info.channel_listing, line.quantity)
 
         # get the existing discounts for the line
-        discounts_to_update = line_info.get_promotion_discounts()
+        discounts_to_update = line_info.get_catalogue_discounts()
         rule_id_to_discount = {
             discount.promotion_rule_id: discount for discount in discounts_to_update
         }
 
         # delete all existing discounts if the line is not discounted
-        if not discount_amount:
+        if not discount_amount or line.is_gift:
             ids_to_remove = [discount.id for discount in discounts_to_update]
-            CheckoutLineDiscount.objects.filter(id__in=ids_to_remove).delete()
-            line_info.discounts = [
-                discount
-                for discount in line_info.discounts
-                if discount.id not in ids_to_remove
-            ]
+            if ids_to_remove:
+                CheckoutLineDiscount.objects.filter(id__in=ids_to_remove).delete()
+                line_info.discounts = [
+                    discount
+                    for discount in line_info.discounts
+                    if discount.id not in ids_to_remove
+                ]
             continue
 
         # delete the discount objects that are not valid anymore
@@ -519,14 +519,12 @@ def _update_discount(
     # gift rule has empty reward_value_type
     value_type = rule.reward_value_type or RewardValueType.FIXED
     if discount_to_update.value_type != value_type:
-        discount_to_update.value_type = (
-            rule.reward_value_type  # type: ignore[assignment]
-        )
+        discount_to_update.value_type = value_type
         updated_fields.append("value_type")
     # gift rule has empty reward_value
     value = rule.reward_value or rule_discount_amount
     if discount_to_update.value != value:
-        discount_to_update.value = rule.reward_value  # type: ignore[assignment]
+        discount_to_update.value = value
         updated_fields.append("value")
     if discount_to_update.amount_value != rule_discount_amount:
         discount_to_update.amount_value = rule_discount_amount

@@ -9,7 +9,9 @@ from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
 from ....checkout.base_calculations import base_checkout_total
+from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....discount.interface import VariantPromotionRuleInfo
+from ....plugins.manager import get_plugins_manager
 from ....product.models import (
     ProductVariantChannelListing,
     VariantChannelListingPromotionRule,
@@ -1178,6 +1180,66 @@ def test_create_discount_with_promotion_and_rule_translation(
 
     for checkout_line_info in checkout_lines_info[1:]:
         assert not checkout_line_info.discounts
+
+
+def test_create_or_update_discount_for_gift_promotion_line(
+    checkout_with_item_and_gift_promotion,
+    catalogue_promotion_without_rules,
+):
+    # given
+    checkout = checkout_with_item_and_gift_promotion
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    gift_line_info = [line_info for line_info in lines if line_info.line.is_gift][0]
+    gift_line_discount = gift_line_info.line.discounts.first()
+    gift_product = gift_line_info.line.variant.product
+
+    reward_value = Decimal("2")
+    rule = catalogue_promotion_without_rules.rules.create(
+        catalogue_predicate={
+            "productPredicate": {
+                "ids": [graphene.Node.to_global_id("Product", gift_product.id)]
+            }
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=reward_value,
+    )
+    rule.channels.add(checkout.channel)
+
+    listing = gift_line_info.channel_listing
+    discounted_price = listing.price.amount - reward_value
+    listing.discounted_price_amount = discounted_price
+    listing.save(update_fields=["discounted_price_amount"])
+
+    listing_promotion_rule = VariantChannelListingPromotionRule.objects.create(
+        variant_channel_listing=listing,
+        promotion_rule=rule,
+        discount_amount=reward_value,
+        currency=gift_line_info.channel.currency_code,
+    )
+
+    gift_line_info.rules_info = [
+        VariantPromotionRuleInfo(
+            rule=rule,
+            variant_listing_promotion_rule=listing_promotion_rule,
+            promotion=catalogue_promotion_without_rules,
+            promotion_translation=None,
+            rule_translation=None,
+        )
+    ]
+    gift_line_info.discounts = [gift_line_discount]
+
+    # when
+    create_or_update_discount_objects_from_promotion_for_checkout(checkout_info, lines)
+
+    # then
+    assert len(gift_line_info.discounts) == 1
+    discount_from_info = gift_line_info.discounts[0]
+    assert gift_line_info.line.discounts.count() == 1
+    assert discount_from_info == gift_line_discount
+    assert discount_from_info.line == gift_line_info.line
+    assert discount_from_info.type == DiscountType.ORDER_PROMOTION
 
 
 def test_create_or_update_discount_objects_from_promotion_for_checkout_voucher_set(
