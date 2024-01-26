@@ -63,7 +63,7 @@ def _assert_promotion_data(promotion, content_data):
             "rewardType": rule.reward_type.upper() if rule.reward_type else None,
             "giftIds": [
                 graphene.Node.to_global_id("ProductVariant", gift.pk)
-                for gift in rule.gifts.order_by("id").all()
+                for gift in rule.gifts.order_by("created_at").all()
             ],
             "giftsLimit": 1,
         }
