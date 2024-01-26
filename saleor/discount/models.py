@@ -489,7 +489,6 @@ class BaseDiscount(models.Model):
     voucher_code = models.CharField(
         max_length=255, null=True, blank=True, db_index=False
     )
-    # TODO: add sale_id?
 
     class Meta:
         abstract = True

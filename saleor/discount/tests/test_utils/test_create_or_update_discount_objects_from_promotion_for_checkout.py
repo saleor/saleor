@@ -20,6 +20,7 @@ from ... import DiscountType, RewardType, RewardValueType
 from ...models import CheckoutDiscount, CheckoutLineDiscount, PromotionRule
 from ...utils import (
     _create_or_update_checkout_discount,
+    _get_best_gift_reward,
     create_discount_objects_for_order_promotions,
     create_or_update_discount_objects_from_promotion_for_checkout,
 )
@@ -1996,3 +1997,95 @@ def test_create_or_update_checkout_discount_gift_reward_race_condition(
     assert checkout.lines.filter(is_gift=True).count() == 1
     line = checkout.lines.filter(is_gift=True).first()
     assert line.discounts.count() == 1
+
+
+def test_get_best_gift_reward(
+    gift_promotion_rule, order_promotion_without_rules, channel_USD, product
+):
+    # given
+    gift_rule_2 = PromotionRule.objects.create(
+        name="Order promotion rule",
+        promotion=order_promotion_without_rules,
+        order_predicate={
+            "base_total_price": {
+                "range": {
+                    "gte": 20,
+                }
+            }
+        },
+        reward_type=RewardType.GIFT,
+    )
+    gift_rule_2.channels.add(channel_USD)
+    gift_rule_2_variant = product.variants.first()
+    gift_rule_2.gifts.set([gift_rule_2_variant])
+    price_amount = gift_rule_2_variant.channel_listings.get(
+        channel=channel_USD
+    ).discounted_price_amount
+
+    variants = gift_promotion_rule.gifts.all()
+    variant_listings = ProductVariantChannelListing.objects.filter(variant__in=variants)
+    top_listing = max(list(variant_listings), key=lambda x: x.discounted_price_amount)
+    assert price_amount < top_listing.discounted_price_amount
+
+    rules = [gift_rule_2, gift_promotion_rule]
+    country = "US"
+
+    # when
+    rule, listing = _get_best_gift_reward(rules, channel_USD, country)
+
+    # then
+    assert rule.id == gift_promotion_rule.id
+    assert listing.id == top_listing.id
+
+
+def test_get_best_gift_reward_insufficient_stock(
+    gift_promotion_rule, channel_USD, product
+):
+    # given
+    variant = product.variants.first()
+    variant.stocks.all().delete()
+    gift_promotion_rule.gifts.set([variant])
+
+    rules = [gift_promotion_rule]
+    country = "US"
+
+    # when
+    rule, listing = _get_best_gift_reward(rules, channel_USD, country)
+
+    # then
+    assert rule is None
+    assert listing is None
+
+
+def test_get_best_gift_reward_no_available_for_purchase_variants(
+    gift_promotion_rule, channel_USD
+):
+    # given
+    variants = gift_promotion_rule.gifts.all()
+    ProductVariantChannelListing.objects.filter(variant__in=variants).delete()
+
+    rules = [gift_promotion_rule]
+    country = "US"
+
+    # when
+    rule, listing = _get_best_gift_reward(rules, channel_USD, country)
+
+    # then
+    assert rule is None
+    assert listing is None
+
+
+def test_get_best_gift_reward_no_variants_in_channel(gift_promotion_rule, channel_USD):
+    # given
+    variants = gift_promotion_rule.gifts.all()
+    ProductVariantChannelListing.objects.filter(variant__in=variants).delete()
+
+    rules = [gift_promotion_rule]
+    country = "US"
+
+    # when
+    rule, listing = _get_best_gift_reward(rules, channel_USD, country)
+
+    # then
+    assert rule is None
+    assert listing is None
