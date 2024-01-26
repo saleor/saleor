@@ -28754,6 +28754,7 @@ enum CheckoutErrorCode @doc(category: "Checkout") {
   NO_LINES
   INACTIVE_PAYMENT
   NON_EDITABLE_GIFT_LINE_QUANTITY
+  NON_REMOVABLE_GIFT_LINE
 }
 
 """

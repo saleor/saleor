@@ -3,6 +3,7 @@ from unittest import mock
 import graphene
 
 from .....checkout import base_calculations
+from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.utils import (
     add_variant_to_checkout,
@@ -31,6 +32,7 @@ MUTATION_CHECKOUT_LINE_DELETE = """
             errors {
                 field
                 message
+                code
             }
         }
     }
@@ -175,3 +177,25 @@ def test_with_active_problems_flow(
 
     # then
     assert not content["data"]["checkoutLineDelete"]["errors"]
+
+
+def test_checkout_line_delete_non_removable_gift(user_api_client, checkout_line):
+    # given
+    checkout = checkout_line.checkout
+    line = checkout_line
+    line.is_gift = True
+    line.save(update_fields=["is_gift"])
+    line_id = to_global_id_or_none(line)
+    variables = {"id": to_global_id_or_none(checkout), "lineId": line_id}
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINE_DELETE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["checkoutLineDelete"]
+    assert not data["checkout"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "lineId"
+    assert errors[0]["code"] == CheckoutErrorCode.NON_REMOVABLE_GIFT_LINE.name
