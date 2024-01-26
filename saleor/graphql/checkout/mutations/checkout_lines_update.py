@@ -2,6 +2,7 @@ import graphene
 from django.forms import ValidationError
 
 from ....checkout.error_codes import CheckoutErrorCode
+from ....checkout.fetch import CheckoutLineInfo
 from ....warehouse.reservations import is_reservation_enabled
 from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
@@ -23,6 +24,7 @@ from ...site.dataloaders import get_site_promise
 from ..types import Checkout
 from .checkout_lines_add import CheckoutLinesAdd
 from .utils import (
+    CheckoutLineData,
     check_lines_quantity,
     get_variants_and_total_quantities,
     group_lines_input_data_on_update,
@@ -136,7 +138,7 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
         variants,
         checkout_lines_data,
         checkout_info,
-        lines,
+        lines_info,
         manager,
         replace,
     ):
@@ -158,13 +160,14 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
                     }
                 )
 
+        cls._validate_gift_line(checkout_lines_data, lines_info)
         return super().clean_input(
             info,
             checkout,
             variants,
             checkout_lines_data,
             checkout_info,
-            lines,
+            lines_info,
             manager,
             replace,
         )
@@ -221,3 +224,25 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
     @classmethod
     def _get_grouped_lines_data(cls, lines, existing_lines_info):
         return group_lines_input_data_on_update(lines, existing_lines_info)
+
+    @classmethod
+    def _validate_gift_line(
+        cls, lines_data: list[CheckoutLineData], lines_info: list[CheckoutLineInfo]
+    ):
+        gift_line_ids = [
+            str(line_info.line.id) for line_info in lines_info if line_info.line.is_gift
+        ]
+        gift_lines_with_quantity_to_update = [
+            line
+            for line in lines_data
+            if line.line_id in gift_line_ids and line.quantity_to_update
+        ]
+        if gift_lines_with_quantity_to_update:
+            raise ValidationError(
+                {
+                    "quantity": ValidationError(
+                        "Quantity of order line marked as gift can't be edited.",
+                        code=CheckoutErrorCode.NON_EDITABLE_GIFT_LINE_QUANTITY.value,
+                    )
+                }
+            )

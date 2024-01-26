@@ -389,7 +389,7 @@ def test_invalid_order_when_updating_lines(
     draft_order_update_webhook_mock.assert_not_called()
 
 
-def test_order_line_update_gift(
+def test_order_line_update_quantity_gift(
     order_with_lines,
     staff_api_client,
     permission_group_manage_orders,
@@ -404,7 +404,7 @@ def test_order_line_update_gift(
     line.is_gift = True
     line.save(update_fields=["is_gift"])
     line_id = graphene.Node.to_global_id("OrderLine", line.id)
-    variables = {"lineId": line_id, "quantity": 1}
+    variables = {"lineId": line_id, "quantity": 0}
 
     # when
     response = staff_api_client.post_graphql(query, variables)
