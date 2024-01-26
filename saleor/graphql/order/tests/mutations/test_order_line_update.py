@@ -404,7 +404,7 @@ def test_order_line_update_quantity_gift(
     line.is_gift = True
     line.save(update_fields=["is_gift"])
     line_id = graphene.Node.to_global_id("OrderLine", line.id)
-    variables = {"lineId": line_id, "quantity": 0}
+    variables = {"lineId": line_id, "quantity": 1}
 
     # when
     response = staff_api_client.post_graphql(query, variables)
