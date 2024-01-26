@@ -553,6 +553,14 @@ def handle_webhook_retry(
     When MaxRetriesExceededError is raised the function will end without exception.
     """
     is_success = True
+    log_extra_details = {
+        "webhook": {
+            "id": webhook.id,
+            "target_url": webhook.target_url,
+            "event": delivery.event_type,
+            "execution_mode": "async",
+        },
+    }
     task_logger.info(
         "[Webhook ID: %r] Failed request to %r: %r for event: %r."
         " Delivery attempt id: %r",
@@ -561,6 +569,7 @@ def handle_webhook_retry(
         response_content,
         delivery.event_type,
         delivery_attempt.id,
+        extra=log_extra_details,
     )
     try:
         countdown = celery_task.retry_backoff * (2**celery_task.request.retries)
@@ -577,6 +586,7 @@ def handle_webhook_retry(
             webhook.id,
             webhook.target_url,
             delivery.id,
+            extra=log_extra_details,
         )
     return is_success
 
