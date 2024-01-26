@@ -4,6 +4,7 @@ import graphene
 
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from .....checkout.models import CheckoutLine
 from .....checkout.utils import invalidate_checkout_prices
 from .....plugins.manager import get_plugins_manager
 from ....core.utils import to_global_id_or_none
@@ -167,3 +168,31 @@ def test_checkout_lines_delete_non_removable_gift(user_api_client, checkout_with
     assert errors[0]["field"] == "lineIds"
     assert errors[0]["code"] == CheckoutErrorCode.NON_REMOVABLE_GIFT_LINE.name
     assert errors[0]["lines"] == [gift_line_id]
+
+
+def test_checkout_lines_delete_not_associated_with_checkout(
+    user_api_client, checkout_with_items, checkouts_list, variant
+):
+    # given
+    checkout = checkout_with_items
+    wrong_checkout = checkouts_list[0]
+    line = CheckoutLine.objects.create(
+        checkout=wrong_checkout,
+        variant=variant,
+        quantity=1,
+    )
+    line_id = to_global_id_or_none(line)
+    variables = {"id": to_global_id_or_none(checkout), "linesIds": [line_id]}
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_DELETE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["checkoutLinesDelete"]
+    assert not data["checkout"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "lineId"
+    assert errors[0]["code"] == CheckoutErrorCode.INVALID.name
+    assert errors[0]["lines"] == [line_id]
