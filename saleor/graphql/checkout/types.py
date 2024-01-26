@@ -257,7 +257,7 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
         + PREVIEW_FEATURE,
     )
     is_gift = graphene.Boolean(
-        description="Determine if the line is a gift." + ADDED_IN_319,
+        description="Determine if the line is a gift." + ADDED_IN_319 + PREVIEW_FEATURE,
     )
 
     class Meta:

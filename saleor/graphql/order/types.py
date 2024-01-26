@@ -861,7 +861,7 @@ class OrderLine(ModelObjectType[models.OrderLine]):
         description="Voucher code that was used for this order line." + ADDED_IN_314,
     )
     is_gift = graphene.Boolean(
-        description="Determine if the line is a gift." + ADDED_IN_319,
+        description="Determine if the line is a gift." + ADDED_IN_319 + PREVIEW_FEATURE,
     )
 
     class Meta:

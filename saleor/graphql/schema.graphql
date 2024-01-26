@@ -11168,6 +11168,8 @@ type CheckoutLine implements Node & ObjectWithMetadata @doc(category: "Checkout"
   Determine if the line is a gift.
   
   Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   isGift: Boolean
 }
@@ -12104,6 +12106,8 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Determine if the line is a gift.
   
   Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   isGift: Boolean
 }
