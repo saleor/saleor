@@ -189,6 +189,8 @@ class WebhookEventAsyncType:
     VOUCHER_CREATED = "voucher_created"
     VOUCHER_UPDATED = "voucher_updated"
     VOUCHER_DELETED = "voucher_deleted"
+    VOUCHER_CODES_CREATED = "voucher_codes_created"
+    VOUCHER_CODES_DELETED = "voucher_codes_deleted"
     VOUCHER_METADATA_UPDATED = "voucher_metadata_updated"
     VOUCHER_CODE_EXPORT_COMPLETED = "voucher_code_export_completed"
 
@@ -733,6 +735,14 @@ class WebhookEventAsyncType:
         },
         VOUCHER_DELETED: {
             "name": "Voucher deleted",
+            "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+        },
+        VOUCHER_CODES_CREATED: {
+            "name": "Voucher codes created",
+            "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+        },
+        VOUCHER_CODES_DELETED: {
+            "name": "Voucher codes deleted",
             "permission": DiscountPermissions.MANAGE_DISCOUNTS,
         },
         VOUCHER_METADATA_UPDATED: {

@@ -35,7 +35,11 @@ class VoucherUpdate(VoucherCreate):
             WebhookEventInfo(
                 type=WebhookEventAsyncType.VOUCHER_UPDATED,
                 description="A voucher was updated.",
-            )
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.VOUCHER_CODES_CREATED,
+                description="A voucher code was created.",
+            ),
         ]
 
     @classmethod
@@ -129,6 +133,12 @@ class VoucherUpdate(VoucherCreate):
             models.VoucherCode.objects.bulk_update(codes_to_update, fields=["code"])
 
     @classmethod
-    def post_save_action(cls, info: ResolveInfo, instance, code):
+    def post_save_action(  # type: ignore[override]
+        cls, info: ResolveInfo, instance, codes_instances, cleaned_input
+    ):
         manager = get_plugin_manager_promise(info.context).get()
-        cls.call_event(manager.voucher_updated, instance, code)
+
+        if cleaned_input:
+            cls.call_event(manager.voucher_updated, instance, instance.code)
+        if codes_instances:
+            cls.call_event(manager.voucher_codes_created, codes_instances)

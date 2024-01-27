@@ -34,9 +34,9 @@ class VoucherCodeBulkDelete(BaseMutation):
         error_type_class = VoucherCodeBulkDeleteError
         webhook_events_info = [
             WebhookEventInfo(
-                type=WebhookEventAsyncType.VOUCHER_UPDATED,
-                description="A voucher was updated.",
-            )
+                type=WebhookEventAsyncType.VOUCHER_CODES_DELETED,
+                description="A voucher codes were deleted.",
+            ),
         ]
         doc_category = DOC_CATEGORY_DISCOUNTS
 
@@ -65,10 +65,12 @@ class VoucherCodeBulkDelete(BaseMutation):
         return cleaned_ids
 
     @classmethod
-    def post_save_actions(cls, info, vouchers_code_map):
+    def post_save_actions(cls, info, codes_instances):
         manager = get_plugin_manager_promise(info.context).get()
-        for voucher, code in vouchers_code_map.items():
-            cls.call_event(manager.voucher_updated, voucher, code)
+        cls.call_event(
+            manager.voucher_codes_deleted,
+            codes_instances,
+        )
 
     @classmethod
     @traced_atomic_transaction()
@@ -79,20 +81,21 @@ class VoucherCodeBulkDelete(BaseMutation):
         if errors_list:
             return VoucherCodeBulkDelete(count=0, errors=errors_list)
 
-        queryset = models.VoucherCode.objects.filter(id__in=cleaned_ids).select_related(
-            "voucher"
+        code_instances = models.VoucherCode.objects.filter(
+            id__in=cleaned_ids
+        ).select_related("voucher")
+
+        count = len(code_instances)
+
+        # Copy deleted instance and reassign the original IDs
+        ids_and_codes_tuple = [(code.id, code) for code in code_instances]
+        code_instances.delete()
+
+        for id, code in ids_and_codes_tuple:
+            code.id = id
+
+        cls.post_save_actions(
+            info, [id_and_code[1] for id_and_code in ids_and_codes_tuple]
         )
-
-        count = len(queryset)
-
-        vouchers_code_map = {}
-
-        for code in queryset:
-            if code.voucher not in vouchers_code_map:
-                vouchers_code_map[code.voucher] = code.code
-
-        queryset.delete()
-
-        cls.post_save_actions(info, vouchers_code_map)
 
         return VoucherCodeBulkDelete(count=count)

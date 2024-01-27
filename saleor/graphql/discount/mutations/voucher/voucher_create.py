@@ -120,7 +120,11 @@ class VoucherCreate(ModelMutation):
             WebhookEventInfo(
                 type=WebhookEventAsyncType.VOUCHER_CREATED,
                 description="A voucher was created.",
-            )
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.VOUCHER_CODES_CREATED,
+                description="A voucher codes were created.",
+            ),
         ]
 
     @classmethod
@@ -255,9 +259,18 @@ class VoucherCreate(ModelMutation):
             models.VoucherCode.objects.bulk_create(code_instances)
 
     @classmethod
-    def post_save_action(cls, info: ResolveInfo, instance, code):
+    def post_save_action(  # type: ignore[override]
+        cls, info: ResolveInfo, instance, codes_instances, cleaned_input
+    ):
+        last_code = codes_instances[-1].code if codes_instances else None
         manager = get_plugin_manager_promise(info.context).get()
-        cls.call_event(manager.voucher_created, instance, code)
+
+        if codes_instances:
+            cls.call_event(
+                manager.voucher_codes_created,
+                codes_instances,
+            )
+        cls.call_event(manager.voucher_created, instance, last_code)
 
     @classmethod
     def success_response(cls, instance):
@@ -293,5 +306,5 @@ class VoucherCreate(ModelMutation):
         cls.save(info, voucher_instance, code_instances, has_multiple_codes)
         cls._save_m2m(info, voucher_instance, cleaned_input)
 
-        cls.post_save_action(info, voucher_instance, voucher_instance.code)
+        cls.post_save_action(info, voucher_instance, code_instances, cleaned_input)
         return cls.success_response(voucher_instance)

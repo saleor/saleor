@@ -48,6 +48,7 @@ from .payloads import (
     generate_shipping_method_payload,
     generate_shop_payload,
     generate_staff_payload,
+    generate_voucher_code_payload,
     generate_voucher_created_payload_with_meta,
     generate_voucher_payload,
     generate_warehouse_payload,
@@ -2470,6 +2471,50 @@ def test_voucher_deleted(voucher, subscription_voucher_deleted_webhook):
 
     # then
     expected_payload = generate_voucher_payload(voucher, voucher_global_id)
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_voucher_codes_created(voucher, subscription_voucher_codes_created_webhook):
+    # given
+    webhooks = [subscription_voucher_codes_created_webhook]
+
+    voucher_code = voucher.codes.first()
+
+    event_type = WebhookEventAsyncType.VOUCHER_CODES_CREATED
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, [voucher_code], webhooks
+    )
+
+    # then
+    expected_payload = generate_voucher_code_payload([voucher_code])
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_voucher_codes_deleted(voucher, subscription_voucher_codes_deleted_webhook):
+    # given
+    webhooks = [subscription_voucher_codes_deleted_webhook]
+
+    voucher_code = voucher.codes.first()
+
+    voucher_code_id = voucher_code.id
+    voucher_code.delete()
+    voucher_code.id = voucher_code_id
+
+    event_type = WebhookEventAsyncType.VOUCHER_CODES_DELETED
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, [voucher_code], webhooks
+    )
+
+    # then
+    expected_payload = generate_voucher_code_payload([voucher_code])
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]

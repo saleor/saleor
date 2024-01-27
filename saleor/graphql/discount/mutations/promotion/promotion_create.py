@@ -177,7 +177,8 @@ class PromotionCreate(ModelMutation):
             for rule_data in rules_data:
                 channels = rule_data.pop("channels", None)
                 rule = models.PromotionRule(promotion=instance, **rule_data)
-                rules_with_channels_to_add.append((rule, channels))
+                if channels:
+                    rules_with_channels_to_add.append((rule, channels))
                 rules.append(rule)
             models.PromotionRule.objects.bulk_create(rules)
 

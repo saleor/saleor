@@ -1,5 +1,5 @@
 import json
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 import graphene
 from django.utils.functional import SimpleLazyObject
@@ -92,10 +92,7 @@ def test_update_voucher_trigger_webhook(
         UPDATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
     )
     content = get_graphql_content(response)
-
-    # then
-    assert content["data"]["voucherUpdate"]["voucher"]
-    mocked_webhook_trigger.assert_called_once_with(
+    voucher_updated = call(
         json.dumps(
             {
                 "id": variables["id"],
@@ -115,6 +112,9 @@ def test_update_voucher_trigger_webhook(
         SimpleLazyObject(lambda: staff_api_client.user),
         allow_replica=False,
     )
+    # then
+    assert content["data"]["voucherUpdate"]["voucher"]
+    assert voucher_updated in mocked_webhook_trigger.call_args_list
 
 
 def test_update_voucher_return_error_when_multiple_codes_already_exists(

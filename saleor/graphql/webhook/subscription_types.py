@@ -58,6 +58,7 @@ from ..core.descriptions import (
     ADDED_IN_316,
     ADDED_IN_317,
     ADDED_IN_318,
+    ADDED_IN_319,
     DEPRECATED_IN_3X_EVENT,
     PREVIEW_FEATURE,
 )
@@ -2413,6 +2414,34 @@ class VoucherDeleted(SubscriptionObjectType, VoucherBase):
         description = "Event sent when voucher is deleted." + ADDED_IN_34
 
 
+class VoucherCodeBase(AbstractType):
+    voucher_codes = NonNullList(
+        "saleor.graphql.discount.types.VoucherCode",
+        description="The voucher codes the event relates to.",
+    )
+
+    @staticmethod
+    def resolve_voucher_codes(root, _info: ResolveInfo):
+        _, voucher_codes = root
+        return voucher_codes
+
+
+class VoucherCodesCreated(SubscriptionObjectType, VoucherCodeBase):
+    class Meta:
+        root_type = "VoucherCode"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when new voucher codes were created." + ADDED_IN_319
+
+
+class VoucherCodesDeleted(SubscriptionObjectType, VoucherCodeBase):
+    class Meta:
+        root_type = "VoucherCode"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when voucher codes were deleted." + ADDED_IN_319
+
+
 class VoucherMetadataUpdated(SubscriptionObjectType, VoucherBase):
     class Meta:
         root_type = "Voucher"
@@ -2853,6 +2882,8 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.VOUCHER_CREATED: VoucherCreated,
     WebhookEventAsyncType.VOUCHER_UPDATED: VoucherUpdated,
     WebhookEventAsyncType.VOUCHER_DELETED: VoucherDeleted,
+    WebhookEventAsyncType.VOUCHER_CODES_CREATED: VoucherCodesCreated,
+    WebhookEventAsyncType.VOUCHER_CODES_DELETED: VoucherCodesDeleted,
     WebhookEventAsyncType.VOUCHER_METADATA_UPDATED: VoucherMetadataUpdated,
     WebhookEventAsyncType.VOUCHER_CODE_EXPORT_COMPLETED: VoucherCodeExportCompleted,
     WebhookEventAsyncType.WAREHOUSE_CREATED: WarehouseCreated,

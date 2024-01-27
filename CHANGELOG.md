@@ -24,6 +24,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add JSON serialization immediately after creating observability events to eliminate extra cPickle serialization and deserialization steps - #14992 by @przlada
 
 - Added caching of GraphQL documents for common queries to improve performance - #14843 by @patrys
+- Added `VOUCHER_CODES_CREATED` and `VOUCHER_CODES_DELETED` webhooks events. - #14652 by @SzymJ
+
 
 # 3.18.0
 
@@ -66,6 +68,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Change the Attribute - Product relation to decrease code complexity and make it easier to understand the relations - #13407 by @aniav
 - Change the Attribute - Page relation to decrease code complexity - #13621 by @michal-macioszczyk
 - Added validation for timestamp comparison - #14025 by @ritanjandawn
+
 
 # 3.17.0
 

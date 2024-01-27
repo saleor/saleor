@@ -1,6 +1,6 @@
 import json
 from datetime import timedelta
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 import graphene
 from django.utils import timezone
@@ -244,14 +244,14 @@ def test_create_voucher_return_error_when_code_or_codes_arg_not_in_input(
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_create_voucher_trigger_webhook(
     mocked_webhook_trigger,
-    mocked_get_webhooks_for_event,
+    mocked_get_webhooks_for_voucher_event,
     any_webhook,
     staff_api_client,
     permission_manage_discounts,
     settings,
 ):
     # given
-    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    mocked_get_webhooks_for_voucher_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
 
     start_date = timezone.now() - timedelta(days=365)
@@ -282,9 +282,7 @@ def test_create_voucher_trigger_webhook(
     content = get_graphql_content(response)
     voucher = Voucher.objects.last()
 
-    # then
-    assert content["data"]["voucherCreate"]
-    mocked_webhook_trigger.assert_called_once_with(
+    voucher_created = call(
         json.dumps(
             {
                 "id": graphene.Node.to_global_id("Voucher", voucher.id),
@@ -304,6 +302,30 @@ def test_create_voucher_trigger_webhook(
         SimpleLazyObject(lambda: staff_api_client.user),
         allow_replica=False,
     )
+
+    new_codes = voucher.codes.filter(code__in=[code_1, code_2])
+    codes_created = call(
+        json.dumps(
+            [
+                {
+                    "id": graphene.Node.to_global_id("VoucherCode", code.id),
+                    "code": code.code,
+                }
+                for code in new_codes
+            ],
+            cls=CustomJsonEncoder,
+        ),
+        WebhookEventAsyncType.VOUCHER_CODES_CREATED,
+        [any_webhook],
+        list(new_codes),
+        SimpleLazyObject(lambda: staff_api_client.user),
+    )
+
+    # then
+    assert content["data"]["voucherCreate"]
+    assert mocked_webhook_trigger.call_count == 2
+    assert voucher_created in mocked_webhook_trigger.call_args_list
+    assert codes_created in mocked_webhook_trigger.call_args_list
 
 
 def test_create_voucher_with_empty_code(staff_api_client, permission_manage_discounts):

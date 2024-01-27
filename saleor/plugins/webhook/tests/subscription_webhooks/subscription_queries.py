@@ -554,6 +554,39 @@ VOUCHER_DELETED = (
 """
 )
 
+
+VOUCHER_CODES_CREATED = (
+    fragments.VOUCHER_CODE_DETAILS
+    + """
+    subscription{
+      event{
+        ...on VoucherCodesCreated{
+          voucherCodes{
+            ...VoucherCodeDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+VOUCHER_CODES_DELETED = (
+    fragments.VOUCHER_CODE_DETAILS
+    + """
+    subscription{
+      event{
+        ...on VoucherCodesDeleted{
+          voucherCodes{
+            ...VoucherCodeDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
 VOUCHER_METADATA_UPDATED = (
     fragments.VOUCHER_DETAILS
     + """
