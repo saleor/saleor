@@ -30,7 +30,7 @@ class CheckoutErrorCode(Enum):
     EMAIL_NOT_SET = "email_not_set"
     NO_LINES = "no_lines"
     INACTIVE_PAYMENT = "inactive_payment"
-    NON_EDITABLE_GIFT_LINE_QUANTITY = "non_editable_gift_line_quantity"
+    NON_EDITABLE_GIFT_LINE = "non_editable_gift_line"
     NON_REMOVABLE_GIFT_LINE = "non_removable_gift_line"
 
 

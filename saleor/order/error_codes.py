@@ -36,7 +36,7 @@ class OrderErrorCode(Enum):
     CHANNEL_INACTIVE = "channel_inactive"
     INVALID_VOUCHER = "invalid_voucher"
     INVALID_VOUCHER_CODE = "invalid_voucher_code"
-    NON_EDITABLE_GIFT_LINE_QUANTITY = "non_editable_gift_line_quantity"
+    NON_EDITABLE_GIFT_LINE = "non_editable_gift_line"
     NON_REMOVABLE_GIFT_LINE = "non_removable_gift_line"
 
 

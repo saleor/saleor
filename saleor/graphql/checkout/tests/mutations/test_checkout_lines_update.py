@@ -1179,6 +1179,6 @@ def test_checkout_lines_update_quantity_gift(user_api_client, checkout_with_item
     assert not data["checkout"]
     errors = data["errors"]
     assert len(errors) == 1
-    assert errors[0]["field"] == "quantity"
-    assert errors[0]["code"] == CheckoutErrorCode.NON_EDITABLE_GIFT_LINE_QUANTITY.name
+    assert errors[0]["field"] == "lineId"
+    assert errors[0]["code"] == CheckoutErrorCode.NON_EDITABLE_GIFT_LINE.name
     assert errors[0]["lines"] == [line_id]

@@ -415,5 +415,5 @@ def test_order_line_update_quantity_gift(
     assert not data["orderLine"]
     errors = data["errors"]
     assert len(errors) == 1
-    assert errors[0]["field"] == "quantity"
-    assert errors[0]["code"] == OrderErrorCode.NON_EDITABLE_GIFT_LINE_QUANTITY.name
+    assert errors[0]["field"] == "id"
+    assert errors[0]["code"] == OrderErrorCode.NON_EDITABLE_GIFT_LINE.name
