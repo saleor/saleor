@@ -551,9 +551,6 @@ def create_discount_objects_for_order_promotions(
     *,
     save: bool = False,
 ):
-    RuleDiscount = namedtuple(
-        "RuleDiscount", ["rule", "discount_amount", "gift_listing"]
-    )
     # The base prices are required for order promotion discount qualification.
     _set_checkout_base_prices(checkout_info, lines_info)
 
@@ -563,13 +560,40 @@ def create_discount_objects_for_order_promotions(
     if checkout.voucher_code:
         _clear_checkout_discount(checkout_info, save)
         return lines_info
-    subtotal = checkout.base_subtotal
 
-    rules = fetch_promotion_rules_for_checkout(checkout)
-    if not rules:
+    channel = checkout_info.channel
+    rule_data = get_best_rule_for_checkout(
+        checkout, channel, checkout_info.get_country()
+    )
+    if not rule_data:
         _clear_checkout_discount(checkout_info, save)
         return lines_info
-    currency_code = checkout_info.channel.currency_code
+
+    best_rule, best_discount_amount, gift_listing = rule_data
+
+    _create_or_update_checkout_discount(
+        checkout,
+        checkout_info,
+        lines_info,
+        best_rule,
+        best_discount_amount,
+        gift_listing,
+        channel.currency_code,
+        best_rule.promotion,
+        save,
+    )
+
+
+def get_best_rule_for_checkout(checkout: "Checkout", channel: "Channel", country: str):
+    RuleDiscount = namedtuple(
+        "RuleDiscount", ["rule", "discount_amount", "gift_listing"]
+    )
+    subtotal = checkout.base_subtotal
+    rules = fetch_promotion_rules_for_checkout(checkout)
+    if not rules:
+        return
+
+    currency_code = channel.currency_code
     rule_discounts: list[RuleDiscount] = []
     gift_rules = [rule for rule in rules if rule.reward_type == RewardType.GIFT]
     for rule in rules:
@@ -583,34 +607,19 @@ def create_discount_objects_for_order_promotions(
         rule_discounts.append(RuleDiscount(rule, discount_amount, None))
 
     if gift_rules:
-        rule, gift_listing = _get_best_gift_reward(
-            gift_rules, checkout_info.channel, checkout_info.get_country()
-        )
+        rule, gift_listing = _get_best_gift_reward(gift_rules, channel, country)
         if rule and gift_listing:
             rule_discounts.append(
                 RuleDiscount(rule, gift_listing.discounted_price_amount, gift_listing)
             )
 
     if not rule_discounts:
-        _clear_checkout_discount(checkout_info, save)
-        return lines_info
+        return
 
     best_rule, best_discount_amount, gift_listing = max(
         rule_discounts, key=lambda x: x.discount_amount
     )
-    promotion = best_rule.promotion
-
-    _create_or_update_checkout_discount(
-        checkout,
-        checkout_info,
-        lines_info,
-        best_rule,
-        best_discount_amount,
-        gift_listing,
-        currency_code,
-        promotion,
-        save,
-    )
+    return best_rule, best_discount_amount, gift_listing
 
 
 def _set_checkout_base_prices(checkout_info, lines_info):
@@ -852,7 +861,7 @@ def _handle_gift_reward(
     save: bool,
 ):
     with transaction.atomic():
-        line, line_created = _create_gift_line(checkout, gift_listing.variant_id)
+        line, line_created = create_gift_line(checkout, gift_listing.variant_id)
         line_discount = None
         discount_created = False
         if not line_created:
@@ -911,7 +920,7 @@ def _handle_gift_reward(
         line_info.discounts = [line_discount]
 
 
-def _create_gift_line(checkout: "Checkout", variant_id: int):
+def create_gift_line(checkout: "Checkout", variant_id: int):
     defaults = {
         "variant_id": variant_id,
         "quantity": 1,

@@ -86,6 +86,7 @@ FRAGMENT_CHECKOUT_LINE = (
         fragment CheckoutLine on CheckoutLine {
           id
           quantity
+          isGift
           totalPrice {
             ...Price
           }
@@ -412,7 +413,7 @@ def test_create_checkout_with_reservations(
         }
     }
 
-    with django_assert_num_queries(67):
+    with django_assert_num_queries(68):
         response = api_client.post_graphql(query, variables)
         assert get_graphql_content(response)["data"]["checkoutCreate"]
         assert Checkout.objects.first().lines.count() == 1
@@ -430,10 +431,74 @@ def test_create_checkout_with_reservations(
         }
     }
 
-    with django_assert_num_queries(67):
+    with django_assert_num_queries(68):
         response = api_client.post_graphql(query, variables)
         assert get_graphql_content(response)["data"]["checkoutCreate"]
         assert Checkout.objects.first().lines.count() == 10
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_create_checkout_with_gift_promotion(
+    api_client,
+    graphql_address_data,
+    stock,
+    channel_USD,
+    product_with_default_variant,
+    product_with_single_variant,
+    product_with_two_variants,
+    gift_promotion_rule,
+    count_queries,
+):
+    checkout_counts = Checkout.objects.count()
+    variables = {
+        "checkoutInput": {
+            "channel": channel_USD.slug,
+            "email": "test@example.com",
+            "shippingAddress": graphql_address_data,
+            "lines": [
+                {
+                    "quantity": 1,
+                    "variantId": Node.to_global_id(
+                        "ProductVariant", stock.product_variant.pk
+                    ),
+                },
+                {
+                    "quantity": 2,
+                    "variantId": Node.to_global_id(
+                        "ProductVariant",
+                        product_with_default_variant.variants.first().pk,
+                    ),
+                },
+                {
+                    "quantity": 10,
+                    "variantId": Node.to_global_id(
+                        "ProductVariant",
+                        product_with_single_variant.variants.first().pk,
+                    ),
+                },
+                {
+                    "quantity": 3,
+                    "variantId": Node.to_global_id(
+                        "ProductVariant",
+                        product_with_two_variants.variants.first().pk,
+                    ),
+                },
+                {
+                    "quantity": 2,
+                    "variantId": Node.to_global_id(
+                        "ProductVariant",
+                        product_with_two_variants.variants.last().pk,
+                    ),
+                },
+            ],
+        }
+    }
+    data = get_graphql_content(
+        api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    )
+    assert checkout_counts + 1 == Checkout.objects.count()
+    assert data["data"]["checkoutCreate"]["checkout"]
 
 
 @pytest.mark.django_db
