@@ -9859,6 +9859,11 @@ type TaxConfigurationPerCountry @doc(category: "Taxes") {
   Determines whether displayed prices should include taxes for this country.
   """
   displayGrossPrices: Boolean!
+
+  """
+  The tax app id that will be used to calculate the taxes for the given channel. If not provided, use the value from the channel's tax configuration.
+  """
+  taxAppId: String
 }
 
 type TaxConfigurationCountableConnection @doc(category: "Taxes") {
@@ -20894,6 +20899,11 @@ input TaxConfigurationPerCountryInput @doc(category: "Taxes") {
   Determines whether displayed prices should include taxes for this country.
   """
   displayGrossPrices: Boolean!
+
+  """
+  The tax app id that will be used to calculate the taxes for the given channel. If not provided, use the value from the channel's tax configuration.
+  """
+  taxAppId: String
 }
 
 """

@@ -19,6 +19,11 @@ class Migration(migrations.Migration):
             name="tax_app_id",
             field=models.CharField(blank=True, max_length=256, null=True),
         ),
+        migrations.AddField(
+            model_name="taxconfigurationpercountry",
+            name="tax_app_id",
+            field=models.CharField(blank=True, max_length=256, null=True),
+        ),
         migrations.RunSQL(
             """
             ALTER TABLE tax_taxconfiguration

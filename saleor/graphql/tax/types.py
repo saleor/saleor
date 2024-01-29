@@ -113,6 +113,12 @@ class TaxConfigurationPerCountry(ModelObjectType[models.TaxConfigurationPerCount
         ),
         required=True,
     )
+    tax_app_id = graphene.String(
+        description=(
+            "The tax app id that will be used to calculate the taxes for the given channel. "
+            "If not provided, use the value from the channel's tax configuration."
+        ),
+    )
 
     class Meta:
         description = (

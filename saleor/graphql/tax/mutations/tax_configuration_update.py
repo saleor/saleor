@@ -43,6 +43,12 @@ class TaxConfigurationPerCountryInput(BaseInputObjectType):
         ),
         required=True,
     )
+    tax_app_id = graphene.String(
+        description=(
+            "The tax app id that will be used to calculate the taxes for the given channel. "
+            "If not provided, use the value from the channel's tax configuration."
+        ),
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_TAXES
@@ -144,17 +150,27 @@ class TaxConfigurationUpdate(ModelMutation):
 
     @classmethod
     def clean_tax_app_id(cls, info: ResolveInfo, data):
+        active_tax_apps = list(get_active_tax_apps())
         if app_id := data.get("tax_app_id"):
-            app = cls.get_node_or_error(info, app_id, only_type="App")
-            if app not in list(get_active_tax_apps()):
-                raise ValidationError(
-                    {
-                        "tax_ap_id": ValidationError(
-                            message="Provided taxAppId does not belong to Tax App.",
-                            code=error_codes.TaxConfigurationUpdateErrorCode.INVALID.value,
-                        )
-                    }
-                )
+            cls.__verify_tax_app_id(info, app_id, active_tax_apps)
+
+        update_countries_configuration = data.get("update_countries_configuration", [])
+        for country in update_countries_configuration:
+            if app_id := country.get("tax_app_id"):
+                cls.__verify_tax_app_id(info, app_id, active_tax_apps)
+
+    @classmethod
+    def __verify_tax_app_id(cls, info: ResolveInfo, app_id, active_tax_apps):
+        app = cls.get_node_or_error(info, app_id, only_type="App")
+        if app not in active_tax_apps:
+            raise ValidationError(
+                {
+                    "tax_ap_id": ValidationError(
+                        message="Provided taxAppId does not belong to Tax App.",
+                        code=error_codes.TaxConfigurationUpdateErrorCode.INVALID.value,
+                    )
+                }
+            )
 
     @classmethod
     def update_countries_configuration(cls, instance, countries_configuration):
@@ -172,6 +188,7 @@ class TaxConfigurationUpdate(ModelMutation):
             obj.charge_taxes = data["charge_taxes"]
             obj.display_gross_prices = data["display_gross_prices"]
             obj.tax_calculation_strategy = data.get("tax_calculation_strategy")
+            obj.tax_app_id = data.get("tax_app_id")
             updated_countries.append(obj.country.code)
         models.TaxConfigurationPerCountry.objects.bulk_update(
             to_update,
@@ -179,6 +196,7 @@ class TaxConfigurationUpdate(ModelMutation):
                 "charge_taxes",
                 "display_gross_prices",
                 "tax_calculation_strategy",
+                "tax_app_id",
             ),
         )
 
@@ -190,6 +208,7 @@ class TaxConfigurationUpdate(ModelMutation):
                 charge_taxes=item["charge_taxes"],
                 tax_calculation_strategy=item.get("tax_calculation_strategy"),
                 display_gross_prices=item["display_gross_prices"],
+                tax_app_id=item.get("tax_app_id"),
             )
             for item in countries_configuration
             if item["country_code"] not in updated_countries
