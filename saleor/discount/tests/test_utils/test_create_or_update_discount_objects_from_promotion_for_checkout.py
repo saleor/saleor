@@ -1,3 +1,4 @@
+from datetime import timedelta
 from decimal import Decimal
 from unittest.mock import patch
 
@@ -13,6 +14,7 @@ from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....discount.interface import VariantPromotionRuleInfo
 from ....plugins.manager import get_plugins_manager
 from ....product.models import (
+    ProductChannelListing,
     ProductVariantChannelListing,
     VariantChannelListingPromotionRule,
 )
@@ -1561,6 +1563,59 @@ def test_create_gift_discount(
     assert checkout_lines_info[-1].discounts == [discount]
 
 
+def test_update_gift_discount(
+    checkout_with_item_and_gift_promotion, variant, gift_promotion_rule
+):
+    # given
+    checkout = checkout_with_item_and_gift_promotion
+
+    gift_line = checkout.lines.get(is_gift=True)
+    gift_line.variant = variant
+    gift_line.save(update_fields=["variant"])
+
+    gift_discount = gift_line.discounts.first()
+    gift_discount.value = Decimal("2")
+    gift_discount.save(update_fields=["value"])
+
+    lines_info, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(
+        checkout, lines_info, get_plugins_manager(allow_replica=False)
+    )
+    lines_count = len(lines_info)
+
+    rule = gift_promotion_rule
+    variants = rule.gifts.all()
+    variant_listings = ProductVariantChannelListing.objects.filter(variant__in=variants)
+    top_price, variant_id = max(
+        variant_listings.values_list("discounted_price_amount", "variant")
+    )
+
+    # when
+    create_or_update_discount_objects_from_promotion_for_checkout(
+        checkout_info, lines_info
+    )
+
+    # then
+    checkout = checkout_info.checkout
+    assert checkout.discounts.count() == 0
+    assert checkout.discount_amount == 0
+    assert len(lines_info) == checkout.lines.count() == lines_count
+    gift_line.refresh_from_db()
+    assert gift_line
+    assert gift_line.variant_id == variant_id
+    discount = gift_line.discounts.first()
+    assert discount.promotion_rule == rule
+    assert discount.type == DiscountType.ORDER_PROMOTION
+    assert discount.value_type == RewardValueType.FIXED
+    assert discount.value == top_price
+    assert discount.amount_value == top_price
+    assert discount.name == f"{rule.promotion.name}: {rule.name}"
+    promotion_id = graphene.Node.to_global_id("Promotion", rule.promotion.id)
+    assert discount.reason == f"Promotion: {promotion_id}"
+
+    assert lines_info[-1].discounts == [discount]
+
+
 @patch("saleor.discount.utils.base_checkout_delivery_price")
 @patch("saleor.discount.utils.base_checkout_subtotal")
 def test_create_or_update_discount_objects_from_promotion_gift_rule_applies(
@@ -1665,6 +1720,106 @@ def test_create_or_update_discount_objects_from_promotion_gift_rule_applies(
     assert discount.value == top_price
     assert discount.amount_value == top_price
     assert discount.name == f"{promotion.name}: {gift_promotion_rule.name}"
+    promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
+    assert discount.reason == f"Promotion: {promotion_id}"
+
+
+@patch("saleor.discount.utils.base_checkout_delivery_price")
+@patch("saleor.discount.utils.base_checkout_subtotal")
+def test_create_or_update_discount_objects_from_promotion_gift_line_removed(
+    subtotal_mock,
+    delivery_price_mock,
+    checkout_with_item_and_gift_promotion,
+    gift_promotion_rule,
+):
+    """Ensure that gift line is removed when there is better discount available."""
+    # given
+    checkout = checkout_with_item_and_gift_promotion
+
+    promotion = gift_promotion_rule.promotion
+    variants = gift_promotion_rule.gifts.all()
+    variant_listings = ProductVariantChannelListing.objects.filter(variant__in=variants)
+    top_price, variant_id = max(
+        variant_listings.values_list("discounted_price_amount", "variant")
+    )
+    delivery_price = Money("10", checkout.currency)
+    price = Money("30", checkout.currency)
+    checkout.total = TaxedMoney(net=price, gross=price)
+    checkout.subtotal = TaxedMoney(net=price, gross=price)
+    checkout.save(
+        update_fields=[
+            "total_net_amount",
+            "total_gross_amount",
+            "subtotal_net_amount",
+            "subtotal_gross_amount",
+        ]
+    )
+
+    subtotal_mock.return_value = price
+    delivery_price_mock.return_value = delivery_price
+
+    reward_value_1 = top_price + Decimal("2")
+    reward_value_2 = top_price + Decimal("10")
+    rules = PromotionRule.objects.bulk_create(
+        [
+            PromotionRule(
+                name="Order promotion rule 1",
+                promotion=promotion,
+                order_predicate={
+                    "base_total_price": {
+                        "range": {
+                            "gte": 10,
+                        }
+                    }
+                },
+                reward_value_type=RewardValueType.FIXED,
+                reward_value=reward_value_1,
+                reward_type=RewardType.SUBTOTAL_DISCOUNT,
+            ),
+            PromotionRule(
+                name="Order promotion rule 1",
+                promotion=promotion,
+                order_predicate={
+                    "base_total_price": {
+                        "range": {
+                            "gte": 100,
+                        }
+                    }
+                },
+                reward_value_type=RewardValueType.PERCENTAGE,
+                reward_value=reward_value_2,
+                reward_type=RewardType.SUBTOTAL_DISCOUNT,
+            ),
+        ]
+    )
+    for rule in rules:
+        rule.channels.add(checkout.channel)
+
+    lines_info, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(
+        checkout, lines_info, get_plugins_manager(allow_replica=False)
+    )
+    lines_count = len(lines_info)
+
+    # when
+    create_or_update_discount_objects_from_promotion_for_checkout(
+        checkout_info, lines_info
+    )
+
+    # then
+    checkout = checkout_info.checkout
+    assert checkout.discounts.count() == 1
+    assert checkout.discount_amount == reward_value_1
+    assert len(lines_info) == checkout.lines.count() == lines_count - 1
+    assert not [line_info for line_info in lines_info if line_info.line.is_gift]
+    assert not checkout.lines.filter(is_gift=True).first()
+    discount = checkout.discounts.first()
+    assert discount.promotion_rule == rules[0]
+    assert discount.type == DiscountType.ORDER_PROMOTION
+    assert discount.value_type == RewardValueType.FIXED
+    assert discount.value == reward_value_1
+    assert discount.amount_value == reward_value_1
+    assert discount.name == f"{promotion.name}: {rules[0].name}"
     promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
     assert discount.reason == f"Promotion: {promotion_id}"
 
@@ -2062,7 +2217,11 @@ def test_get_best_gift_reward_no_available_for_purchase_variants(
 ):
     # given
     variants = gift_promotion_rule.gifts.all()
-    ProductVariantChannelListing.objects.filter(variant__in=variants).delete()
+    product_ids = [variant.product_id for variant in variants]
+    ProductChannelListing.objects.filter(product__in=product_ids[:1]).update(
+        available_for_purchase_at=timezone.now() + timedelta(days=1)
+    )
+    ProductChannelListing.objects.filter(product__in=product_ids[1:]).delete()
 
     rules = [gift_promotion_rule]
     country = "US"
