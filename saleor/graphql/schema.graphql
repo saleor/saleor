@@ -5519,7 +5519,7 @@ type Weight {
   """Weight unit."""
   unit: WeightUnitsEnum!
 
-  """Weight value."""
+  """Weight value. Returns a value with maximal three decimal places"""
   value: Float!
 }
 
