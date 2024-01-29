@@ -1,7 +1,7 @@
 import graphene
 from graphene import relay
 
-from ....discount import models
+from ....discount import DiscountValueType, models
 from ....permission.enums import DiscountPermissions
 from ....product.models import Category, Collection, Product, ProductVariant
 from ...channel import ChannelQsContext
@@ -141,7 +141,7 @@ class Sale(ChannelContextTypeWithMetadata, ModelObjectType[models.Promotion]):
     def resolve_type(root: ChannelContext[models.Promotion], info: ResolveInfo):
         def _get_type(rules):
             # We ensure, that old sales have at least one rule associated.
-            return rules[0].reward_value_type
+            return rules[0].reward_value_type or DiscountValueType.FIXED
 
         return (
             PromotionRulesByPromotionIdLoader(info.context)
