@@ -1760,7 +1760,11 @@ def test_promotion_create_without_catalogue_predicate(
     # then
     content = get_graphql_content(response)
     data = content["data"]["promotionCreate"]
-    assert not data["errors"]
-    assert data["promotion"]
-    assert len(data["promotion"]["rules"]) == 1
-    assert data["promotion"]["rules"][0]["cataloguePredicate"] == {}
+    assert not data["promotion"]
+    assert data["errors"]
+    assert len(data["errors"]) == 1
+    error = data["errors"][0]
+    assert error["code"] == PromotionCreateErrorCode.REQUIRED.name
+    assert error["field"] == "cataloguePredicate"
+    assert error["rulesLimit"] is None
+    assert error["exceedBy"] is None
