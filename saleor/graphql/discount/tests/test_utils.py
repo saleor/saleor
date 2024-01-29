@@ -5,6 +5,7 @@ import graphene
 from ....discount import RewardValueType
 from ....discount.models import Promotion, PromotionRule
 from ..utils import (
+    _camel_to_snake_case,
     convert_migrated_sale_predicate_to_catalogue_info,
     get_variants_for_catalogue_predicate,
     get_variants_for_promotion,
@@ -344,3 +345,46 @@ def test_convert_migrated_sale_predicate_to_catalogue_info(
 
     # then
     assert catalogue_info == expected_result
+
+
+def test_camel_to_snake_case():
+    order_predicate = {
+        "AND": [
+            {
+                "discountedObjectPredicate": {
+                    "OR": [
+                        {"userPredicate": {"isStaff": True}},
+                        {"subtotalPrice": {"range": {"gte": 100}}},
+                    ]
+                }
+            },
+            {
+                "discountedLineObjectPredicate": {
+                    "quantity": {"range": {"gte": 3}},
+                    "cataloguePredicate": {
+                        "categoryPredicate": {"name": {"eq": "Shirt"}}
+                    },
+                }
+            },
+        ]
+    }
+    assert _camel_to_snake_case(order_predicate) == {
+        "AND": [
+            {
+                "discounted_object_predicate": {
+                    "OR": [
+                        {"user_predicate": {"is_staff": True}},
+                        {"subtotal_price": {"range": {"gte": 100}}},
+                    ]
+                }
+            },
+            {
+                "discounted_line_object_predicate": {
+                    "quantity": {"range": {"gte": 3}},
+                    "catalogue_predicate": {
+                        "category_predicate": {"name": {"eq": "Shirt"}}
+                    },
+                }
+            },
+        ]
+    }
