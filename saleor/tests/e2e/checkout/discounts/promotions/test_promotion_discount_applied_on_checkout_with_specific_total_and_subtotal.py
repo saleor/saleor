@@ -1,5 +1,9 @@
+from decimal import Decimal
+
 import pytest
 
+from ......checkout.models import Checkout
+from ......discount import DiscountType, RewardValueType
 from ....product.utils.preparing_product import prepare_product
 from ....promotions.utils import create_promotion, create_promotion_rule
 from ....shop.utils.preparing_shop import prepare_default_shop
@@ -32,10 +36,18 @@ def prepare_promotion(e2e_staff_api_client):
     order_predicate_subtotal_value = "79.96"
     order_predicate_total_value = "89.96"
     order_predicate = {
-        "discountedObjectPredicate": {
-            "baseSubtotalPrice": {"eq": order_predicate_subtotal_value},
-            "baseTotalPrice": {"eq": order_predicate_total_value},
-        }
+        "AND": [
+            {
+                "discountedObjectPredicate": {
+                    "baseSubtotalPrice": {"eq": order_predicate_subtotal_value}
+                }
+            },
+            {
+                "discountedObjectPredicate": {
+                    "baseTotalPrice": {"eq": order_predicate_total_value},
+                }
+            },
+        ]
     }
 
     input = {
@@ -113,6 +125,7 @@ def test_promotion_discount_applied_on_checkout_with_specific_total_and_subtotal
         set_default_shipping_address=True,
     )
     checkout_id = data["id"]
+    checkout_db = Checkout.objects.first()
     total = data["totalPrice"]["gross"]["amount"]
     subtotal = data["subtotalPrice"]["gross"]["amount"]
     assert data["billingAddress"] is not None
@@ -122,6 +135,7 @@ def test_promotion_discount_applied_on_checkout_with_specific_total_and_subtotal
     assert data["discount"]["amount"] == 0.00
     assert total != order_predicate_total_value
     assert subtotal != order_predicate_subtotal_value
+    assert not checkout_db.discounts.all()
 
     # Step 2 - Add shipping method
     checkout_data = checkout_delivery_method_update(
@@ -151,6 +165,13 @@ def test_promotion_discount_applied_on_checkout_with_specific_total_and_subtotal
     assert total_gross == discounted_total
     assert undiscounted_total == float(order_predicate_total_value)
     assert undiscounted_subtotal == float(order_predicate_subtotal_value)
+    discounts_db = checkout_db.discounts.all()
+    assert len(discounts_db) == 1
+    discount_db = discounts_db[0]
+    assert discount_db.type == DiscountType.ORDER_PROMOTION.lower()
+    assert discount_db.value == Decimal(discount_value)
+    assert discount_db.value_type == RewardValueType.PERCENTAGE.lower()
+    assert discount_db.amount_value == Decimal(str(discount))
 
     # Step 4 - Create payment
     checkout_dummy_payment_create(e2e_not_logged_api_client, checkout_id, total_gross)

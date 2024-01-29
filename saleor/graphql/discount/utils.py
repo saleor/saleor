@@ -307,7 +307,7 @@ def _handle_checkout_predicate(
     operator,
     currency: Optional[str] = None,
 ):
-    predicate_data = _camel_to_snake_case(predicate_data)
+    predicate_data = _predicate_to_snake_case(predicate_data)
     if predicate := predicate_data.get("discounted_object_predicate"):
         if currency:
             predicate["currency"] = currency
@@ -326,19 +326,19 @@ def _handle_checkout_predicate(
     return result_qs
 
 
-def _camel_to_snake_case(obj: Any) -> Any:
+def _predicate_to_snake_case(obj: Any) -> Any:
     if isinstance(obj, dict):
         data = {}
         for k, v in obj.items():
             if k in ["AND", "OR"]:
-                data[k] = _camel_to_snake_case(v)
-            elif k == "eq":
+                data[k] = _predicate_to_snake_case(v)
+            elif k in ["eq", "oneOf"]:
                 data[k] = v
             else:
-                data[_camel_to_snake_case(k)] = _camel_to_snake_case(v)
+                data[_predicate_to_snake_case(k)] = _predicate_to_snake_case(v)
         return data
     if isinstance(obj, list):
-        return [_camel_to_snake_case(item) for item in obj]
+        return [_predicate_to_snake_case(item) for item in obj]
     if isinstance(obj, str):
         return to_snake_case(obj)
     return obj
