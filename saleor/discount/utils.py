@@ -558,7 +558,7 @@ def create_discount_objects_for_order_promotions(
 
     # Discount from order rules is applied only when the voucher is not set
     if checkout.voucher_code:
-        _clear_checkout_discount(checkout_info, save)
+        _clear_checkout_discount(checkout_info, lines_info, save)
         return lines_info
 
     channel = checkout_info.channel
@@ -566,7 +566,7 @@ def create_discount_objects_for_order_promotions(
         checkout, channel, checkout_info.get_country()
     )
     if not rule_data:
-        _clear_checkout_discount(checkout_info, save)
+        _clear_checkout_discount(checkout_info, lines_info, save)
         return lines_info
 
     best_rule, best_discount_amount, gift_listing = rule_data
@@ -637,8 +637,10 @@ def _set_checkout_base_prices(checkout_info, lines_info):
     checkout.save(update_fields=["base_total_amount", "base_subtotal_amount"])
 
 
-def _clear_checkout_discount(checkout_info, save):
-    # TODO: remove gift if exist - it should also remove CheckoutLineDiscount
+def _clear_checkout_discount(
+    checkout_info: "CheckoutInfo", lines_info: Iterable["CheckoutLineInfo"], save: bool
+):
+    _delete_gift_line(lines_info)
     CheckoutDiscount.objects.filter(
         checkout=checkout_info.checkout,
         type=DiscountType.ORDER_PROMOTION,
