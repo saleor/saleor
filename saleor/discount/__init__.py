@@ -18,6 +18,7 @@ class DiscountValueType:
 class DiscountType:
     SALE = "sale"
     PROMOTION = "promotion"
+    CATALOGUE_PROMOTION = "catalogue_promotion"
     VOUCHER = "voucher"
     MANUAL = "manual"
     CHOICES = [
