@@ -4,7 +4,7 @@ import graphene
 from django.contrib.sites.models import Site
 
 from ....checkout import models as checkout_models
-from ....checkout.utils import add_variants_to_checkout
+from ....checkout.utils import add_variants_to_checkout, apply_gift_reward_if_applicable
 from ....core.exceptions import InsufficientStock
 from ....core.utils.country import get_active_country
 from ....order import models as order_models
@@ -420,6 +420,7 @@ class CheckoutCreateFromOrder(BaseMutation):
                     site=site, user=info.context.user
                 ),
             )
+        apply_gift_reward_if_applicable(checkout)
         return CheckoutCreateFromOrder(
             checkout=checkout, unavailable_variants=variant_errors
         )
