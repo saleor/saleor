@@ -457,13 +457,14 @@ class GiftsByPromotionRuleIDLoader(DataLoader):
 
     def batch_load(self, keys):
         PromotionRuleGift = PromotionRule.gifts.through
-        rule_gifts = PromotionRuleGift.objects.using(
-            self.database_connection_name
-        ).filter(promotionrule_id__in=keys)
+        rule_gifts = (
+            PromotionRuleGift.objects.using(self.database_connection_name)
+            .filter(promotionrule_id__in=keys)
+            .order_by("pk")
+        )
         gifts = (
             ProductVariant.objects.using(self.database_connection_name)
             .filter(Exists(rule_gifts.filter(productvariant_id=OuterRef("id"))))
-            .order_by("created_at")
             .in_bulk()
         )
         rule_to_gifts_map = defaultdict(list)

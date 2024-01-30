@@ -12798,6 +12798,8 @@ enum OrderErrorCode @doc(category: "Orders") {
   CHANNEL_INACTIVE
   INVALID_VOUCHER
   INVALID_VOUCHER_CODE
+  NON_EDITABLE_GIFT_LINE
+  NON_REMOVABLE_GIFT_LINE
 }
 
 """An enumeration."""
@@ -28752,6 +28754,8 @@ enum CheckoutErrorCode @doc(category: "Checkout") {
   EMAIL_NOT_SET
   NO_LINES
   INACTIVE_PAYMENT
+  NON_EDITABLE_GIFT_LINE
+  NON_REMOVABLE_GIFT_LINE
 }
 
 """

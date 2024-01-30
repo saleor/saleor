@@ -57,6 +57,16 @@ class OrderLineUpdate(
                     )
                 }
             )
+        if instance.is_gift:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Order line marked as gift can't be edited.",
+                        code=OrderErrorCode.NON_EDITABLE_GIFT_LINE.value,
+                    )
+                }
+            )
+
         return cleaned_input
 
     @classmethod
