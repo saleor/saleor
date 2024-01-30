@@ -12,7 +12,7 @@ from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
 from .....checkout.utils import (
     calculate_checkout_quantity,
-    invalidate_checkout_prices,
+    invalidate_checkout,
     recalculate_checkout_discount,
 )
 from .....discount import RewardType, RewardValueType
@@ -75,12 +75,11 @@ mutation checkoutLinesAdd($id: ID, $lines: [CheckoutLineInput!]!) {
     wraps=update_checkout_shipping_method_if_invalid,
 )
 @mock.patch(
-    "saleor.graphql.checkout.mutations.checkout_lines_add."
-    "invalidate_checkout_prices",
-    wraps=invalidate_checkout_prices,
+    "saleor.graphql.checkout.mutations.checkout_lines_add.invalidate_checkout",
+    wraps=invalidate_checkout,
 )
 def test_checkout_lines_add(
-    mocked_invalidate_checkout_prices,
+    mocked_invalidate_checkout,
     mocked_update_shipping_method,
     user_api_client,
     checkout_with_item,
@@ -122,7 +121,7 @@ def test_checkout_lines_add(
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.last_change != previous_last_change
-    assert mocked_invalidate_checkout_prices.call_count == 1
+    assert mocked_invalidate_checkout.call_count == 1
 
 
 @mock.patch(
@@ -131,12 +130,11 @@ def test_checkout_lines_add(
     wraps=update_checkout_shipping_method_if_invalid,
 )
 @mock.patch(
-    "saleor.graphql.checkout.mutations.checkout_lines_add."
-    "invalidate_checkout_prices",
-    wraps=invalidate_checkout_prices,
+    "saleor.graphql.checkout.mutations.checkout_lines_add.invalidate_checkout",
+    wraps=invalidate_checkout,
 )
 def test_add_to_existing_line_with_sale_when_checkout_has_voucher(
-    mocked_invalidate_checkout_prices,
+    mocked_invalidate_checkout,
     mocked_update_shipping_method,
     user_api_client,
     checkout_with_item,

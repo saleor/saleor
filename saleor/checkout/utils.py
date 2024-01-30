@@ -67,7 +67,7 @@ if TYPE_CHECKING:
 PRIVATE_META_APP_SHIPPING_ID = "external_app_shipping_id"
 
 
-def invalidate_checkout_prices(
+def invalidate_checkout(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     manager: "PluginsManager",
@@ -76,11 +76,34 @@ def invalidate_checkout_prices(
     save: bool,
 ) -> list[str]:
     """Mark checkout as ready for prices recalculation."""
-    checkout = checkout_info.checkout
-
     if recalculate_discount:
-        create_discount_objects_for_catalogue_promotions(lines)
-        recalculate_checkout_discount(manager, checkout_info, lines)
+        recalculate_checkout_discounts(checkout_info, lines, manager)
+
+    updated_fields = invalidate_checkout_prices(checkout_info, save=save)
+    return updated_fields
+
+
+def recalculate_checkout_discounts(
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
+    manager: "PluginsManager",
+):
+    """Recalculate checkout discounts.
+
+    Update line and checkout discounts from vouchers and promotions.
+    Create or remove gift line if needed.
+    """
+    create_discount_objects_for_catalogue_promotions(lines)
+    recalculate_checkout_discount(manager, checkout_info, lines)
+
+
+def invalidate_checkout_prices(
+    checkout_info: "CheckoutInfo",
+    *,
+    save: bool,
+) -> list[str]:
+    """Mark checkout as ready for prices recalculation."""
+    checkout = checkout_info.checkout
 
     checkout.price_expiration = timezone.now()
     updated_fields = ["price_expiration", "last_change"]

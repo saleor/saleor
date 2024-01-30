@@ -14,7 +14,7 @@ from ....checkout.fetch import (
 from ....checkout.utils import (
     delete_external_shipping_id,
     get_or_create_checkout_metadata,
-    invalidate_checkout_prices,
+    invalidate_checkout,
     is_shipping_required,
     set_external_shipping_id,
 )
@@ -247,7 +247,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             delete_external_shipping_id(checkout=checkout)
         checkout.shipping_method = shipping_method
         checkout.collection_point = collection_point
-        invalidate_prices_updated_fields = invalidate_checkout_prices(
+        invalidate_prices_updated_fields = invalidate_checkout(
             checkout_info, lines, manager, save=False
         )
         checkout.save(
