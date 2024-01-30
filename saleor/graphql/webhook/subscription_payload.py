@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Any, Optional
 
 from celery.utils.log import get_task_logger
@@ -22,6 +23,7 @@ def initialize_request(
     sync_event=False,
     allow_replica=False,
     event_type: Optional[str] = None,
+    request_time: Optional[datetime] = None,
 ) -> SaleorContext:
     """Prepare a request object for webhook subscription.
 
@@ -30,7 +32,6 @@ def initialize_request(
     return: HttpRequest
     """
 
-    request_time = timezone.now()
     request = SaleorContext()
     request.path = "/graphql/"
     request.path_info = "/graphql/"
@@ -43,7 +44,7 @@ def initialize_request(
     setattr(request, "sync_event", sync_event)
     setattr(request, "event_type", event_type)
     request.requestor = requestor
-    request.request_time = request_time
+    request.request_time = request_time or timezone.now()
     request.allow_replica = allow_replica
 
     return request

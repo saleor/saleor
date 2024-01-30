@@ -4,6 +4,7 @@ from typing import cast
 import graphene
 from django.core.exceptions import ValidationError
 from django.db.models import F
+from django.utils import timezone
 from graphene.utils.str_converters import to_camel_case
 
 from ....core.tracing import traced_atomic_transaction
@@ -23,6 +24,11 @@ from ...core.scalars import PositiveDecimal
 from ...core.types import BaseInputObjectType, NonNullList, ProductVariantBulkError
 from ...core.utils import get_duplicated_values
 from ...plugins.dataloaders import get_plugin_manager_promise
+from ...utils import get_user_or_app_from_context
+from ...webhook.subscription_payload import (
+    generate_payload_from_subscription,
+    initialize_request,
+)
 from ..mutations.channels import ProductVariantChannelListingAddInput
 from ..mutations.product.product_create import StockInput, StockUpdateInput
 from ..utils import clean_variant_sku, get_used_variants_attribute_values
@@ -696,7 +702,9 @@ class ProductVariantBulkUpdate(BaseMutation):
         ).delete()
 
     @classmethod
-    def post_save_actions(cls, info, instances, product):
+    def post_save_actions(
+        cls, info, instances, product, webhooks, pre_save_payloads, request_time
+    ):
         manager = get_plugin_manager_promise(info.context).get()
 
         # Recalculate the "discounted price" for the parent product
@@ -704,15 +712,20 @@ class ProductVariantBulkUpdate(BaseMutation):
         product.search_index_dirty = True
         product.save(update_fields=["search_index_dirty"])
 
-        webhooks = get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED)
         for instance in instances:
             cls.call_event(
-                manager.product_variant_updated, instance.node, webhooks=webhooks
+                manager.product_variant_updated,
+                instance.node,
+                webhooks=webhooks,
+                pre_save_payloads=pre_save_payloads,
+                request_time=request_time,
             )
 
     @classmethod
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
+        request_time = timezone.now()
+
         index_error_map: dict = defaultdict(list)
         error_policy = data.get("error_policy", ErrorPolicyEnum.REJECT_EVERYTHING.value)
         product = cast(
@@ -732,6 +745,33 @@ class ProductVariantBulkUpdate(BaseMutation):
             variants_global_id_to_instance_map,
             index_error_map,
         )
+
+        instances = [
+            clean_data["id"]
+            for clean_data in cleaned_inputs_map.values()
+            if clean_data and clean_data.get("id")
+        ]
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED)
+
+        pre_save_payloads = {}
+        for webhook in webhooks:
+            app_request_context = initialize_request(
+                requestor=get_user_or_app_from_context(info.context),
+                sync_event=False,
+                allow_replica=True,
+                event_type=WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED,
+                request_time=request_time,
+            )
+            for instance in instances:
+                instance_payload = generate_payload_from_subscription(
+                    event_type=WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED,
+                    subscribable_object=instance,
+                    subscription_query=webhook.subscription_query,
+                    request=app_request_context,
+                    app=webhook.app,
+                )
+                key = f"{webhook.pk}_{instance.pk}"
+                pre_save_payloads[key] = instance_payload
 
         instances_data_with_errors_list = cls.update_variants(
             info, cleaned_inputs_map, index_error_map
@@ -756,6 +796,8 @@ class ProductVariantBulkUpdate(BaseMutation):
         instances = [
             result.product_variant for result in results if result.product_variant
         ]
-        cls.post_save_actions(info, instances, product)
+        cls.post_save_actions(
+            info, instances, product, webhooks, pre_save_payloads, request_time
+        )
 
         return ProductVariantBulkCreate(count=len(instances), results=results)
