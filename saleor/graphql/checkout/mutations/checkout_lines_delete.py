@@ -1,6 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 
+from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import invalidate_checkout_prices
 from ....webhook.event_types import WebhookEventAsyncType
@@ -47,23 +48,36 @@ class CheckoutLinesDelete(BaseMutation):
         ]
 
     @classmethod
-    def validate_lines(cls, checkout, lines_to_delete):
+    def validate_lines(cls, checkout: Checkout, lines_to_delete_ids: list[str]):
         lines = checkout.lines.all()
         all_lines_ids = [str(line.id) for line in lines]
-        invalid_line_ids = list()
-        for line_to_delete in lines_to_delete:
-            if line_to_delete not in all_lines_ids:
-                line_to_delete = graphene.Node.to_global_id(
-                    "CheckoutLine", line_to_delete
-                )
-                invalid_line_ids.append(line_to_delete)
-
+        gift_line_ids = [str(line.id) for line in lines if line.is_gift]
+        invalid_line_ids = set(lines_to_delete_ids).difference(all_lines_ids)
+        gift_line_to_delete_ids = set(gift_line_ids).intersection(lines_to_delete_ids)
+        invalid_line_global_ids = [
+            graphene.Node.to_global_id("CheckoutLine", pk) for pk in invalid_line_ids
+        ]
+        gift_line_to_delete_global_ids = [
+            graphene.Node.to_global_id("CheckoutLine", pk)
+            for pk in gift_line_to_delete_ids
+        ]
         if invalid_line_ids:
             raise ValidationError(
                 {
                     "line_id": ValidationError(
                         "Provided line_ids aren't part of checkout.",
-                        params={"lines": invalid_line_ids},
+                        params={"lines": invalid_line_global_ids},
+                    )
+                }
+            )
+
+        if gift_line_to_delete_ids:
+            raise ValidationError(
+                {
+                    "line_ids": ValidationError(
+                        "Checkout lines marked as gift can't be deleted.",
+                        params={"lines": gift_line_to_delete_global_ids},
+                        code=CheckoutErrorCode.NON_REMOVABLE_GIFT_LINE.value,
                     )
                 }
             )

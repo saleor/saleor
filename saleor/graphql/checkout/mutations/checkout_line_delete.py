@@ -1,5 +1,6 @@
 import graphene
 
+from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import invalidate_checkout_prices
 from ....webhook.event_types import WebhookEventAsyncType
@@ -9,7 +10,7 @@ from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
-from ...core.utils import WebhookEventInfo
+from ...core.utils import WebhookEventInfo, raise_validation_error
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Checkout, CheckoutLine
 from .utils import get_checkout, update_checkout_shipping_method_if_invalid
@@ -64,6 +65,13 @@ class CheckoutLineDelete(BaseMutation):
         line = cls.get_node_or_error(
             info, line_id, only_type=CheckoutLine, field="line_id"
         )
+
+        if line.is_gift:
+            raise_validation_error(
+                message="Checkout line marked as gift can't be deleted.",
+                field="line_id",
+                code=CheckoutErrorCode.NON_REMOVABLE_GIFT_LINE.value,
+            )
 
         if line and line in checkout.lines.all():
             line.delete()
