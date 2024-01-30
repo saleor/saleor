@@ -5833,11 +5833,7 @@ def gift_promotion_rule(channel_USD, order_promotion_without_rules, product_list
         name="Order promotion rule",
         promotion=order_promotion_without_rules,
         order_predicate={
-            "base_total_price": {
-                "range": {
-                    "gte": 20,
-                }
-            }
+            "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 20}}}
         },
         reward_type=RewardType.GIFT,
     )
