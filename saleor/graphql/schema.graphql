@@ -14578,6 +14578,7 @@ input PromotionWhereInput @doc(category: "Discounts") {
   """Filter promotions by start date."""
   startDate: DateTimeFilterInput
   isOldSale: Boolean
+  type: [PromotionTypeEnum!]
 
   """List of conditions that must be met."""
   AND: [PromotionWhereInput!]

@@ -39,7 +39,12 @@ from ..utils.filters import (
     filter_where_by_string_field,
     filter_where_range_field,
 )
-from .enums import DiscountStatusEnum, DiscountValueTypeEnum, VoucherDiscountType
+from .enums import (
+    DiscountStatusEnum,
+    DiscountValueTypeEnum,
+    PromotionTypeEnum,
+    VoucherDiscountType,
+)
 
 
 def filter_status(
@@ -169,6 +174,7 @@ class PromotionWhere(MetadataWhereFilterBase):
         help_text="Filter promotions by start date.",
     )
     is_old_sale = BooleanWhereFilter(method="filter_is_old_sale")
+    type = ListObjectTypeFilter(input_class=PromotionTypeEnum, method="filter_type")
 
     @staticmethod
     def filter_promotion_name(qs, _, value):
@@ -185,6 +191,12 @@ class PromotionWhere(MetadataWhereFilterBase):
     @staticmethod
     def filter_is_old_sale(qs, _, value):
         return qs.exclude(old_sale_id__isnull=value)
+
+    @staticmethod
+    def filter_type(qs, _, value):
+        if not value:
+            return qs
+        return qs.filter(type__in=value)
 
 
 class PromotionWhereInput(WhereInputObjectType):
