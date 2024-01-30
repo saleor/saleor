@@ -2007,14 +2007,14 @@ def test_update_product_variant_change_attribute_values_ordering(
     assert len(values) == 3
     assert [value["id"] for value in values] == [
         graphene.Node.to_global_id("AttributeValue", val.pk)
-        for val in [attr_value_1, attr_value_2, attr_value_3]
+        for val in [attr_value_2, attr_value_1, attr_value_3]
     ]
     variant.refresh_from_db()
     assert list(
         variant.attributes.first().variantvalueassignment.values_list(
             "value_id", flat=True
         )
-    ) == [attr_value_1.pk, attr_value_2.pk, attr_value_3.pk]
+    ) == [attr_value_2.pk, attr_value_1.pk, attr_value_3.pk]
 
 
 @pytest.mark.parametrize(
