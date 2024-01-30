@@ -25,7 +25,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 - Added caching of GraphQL documents for common queries to improve performance - #14843 by @patrys
 - Added `VOUCHER_CODES_CREATED` and `VOUCHER_CODES_DELETED` webhooks events. - #14652 by @SzymJ
-
+- Update existing lines discount type with zero downtime support  - #15331 by @AjmalPonneth
 
 # 3.18.0
 
