@@ -238,23 +238,27 @@ class AttributeValueManager(models.Manager):
         results = []
         objects_not_in_db: list[AttributeValue] = []
 
+        # prepare a list that will save order index of attribute values
+        objects_enumerated = list(enumerate(objects_data))
         query = self._prepare_query_for_bulk_operation(objects_data)
 
         # iterate over all records in db and check if they match any of objects data
         for record in query.iterator():
             # iterate over all objects data and check if they match any of records in db
-            for obj in objects_data:
+            for index, obj in objects_enumerated:
                 if self._is_correct_record(record, obj):
                     # upon finding existing record add it to results
-                    results.append(record)
-
-                    # remove it from objects data, so it won't be added to new records
-                    objects_data.remove(obj)
+                    results.append((index, record))
+                    # remove it from objects list, so it won't be added to new records
+                    objects_enumerated.remove((index, obj))
 
                     break
 
         # add what is left to the list of new records
-        self._add_new_records(objects_data, objects_not_in_db, results)
+        self._add_new_records(objects_enumerated, objects_not_in_db, results)
+        # sort results by index as db record order might be different from sort_order
+        results.sort()
+        results = [obj for index, obj in results]
 
         if objects_not_in_db:
             self.bulk_create(objects_not_in_db)  # type: ignore[arg-type]
@@ -264,18 +268,17 @@ class AttributeValueManager(models.Manager):
     def bulk_update_or_create(self, objects_data):
         # this method mimics django's queryset.update_or_create method on bulk objects
         # https://docs.djangoproject.com/en/5.0/ref/models/querysets/#update-or-create
-
         results = []
         objects_not_in_db: list[AttributeValue] = []
         objects_to_be_updated = []
         update_fields = set()
-
+        objects_enumerated = list(enumerate(objects_data))
         query = self._prepare_query_for_bulk_operation(objects_data)
 
         # iterate over all records in db and check if they match any of objects data
         for record in query.iterator():
             # iterate over all objects data and check if they match any of records in db
-            for obj in objects_data:
+            for index, obj in objects_enumerated:
                 if self._is_correct_record(record, obj):
                     # upon finding a matching record, update it with defaults
                     for key, value in obj["defaults"].items():
@@ -283,18 +286,22 @@ class AttributeValueManager(models.Manager):
                         update_fields.add(key)
 
                     # add it to results and objects to be updated
-                    results.append(record)
+                    results.append((index, record))
 
                     # add it to objects to be updated, so it can be bulk updated later
                     objects_to_be_updated.append(record)
 
                     # remove it from objects data, so it won't be added to new records
-                    objects_data.remove(obj)
+                    objects_enumerated.remove((index, obj))
 
                     break
 
         # add what is left to the list of new records
-        self._add_new_records(objects_data, objects_not_in_db, results)
+        self._add_new_records(objects_enumerated, objects_not_in_db, results)
+
+        # sort results by index as db record order might be different from sort_order
+        results.sort()
+        results = [obj for index, obj in results]
 
         if objects_not_in_db:
             self.bulk_create(objects_not_in_db)  # type: ignore[arg-type]
@@ -307,8 +314,8 @@ class AttributeValueManager(models.Manager):
 
         return results
 
-    def _add_new_records(self, objects_data, objects_not_in_db, results):
-        for obj in objects_data:
+    def _add_new_records(self, objects_enumerated, objects_not_in_db, results):
+        for index, obj in objects_enumerated:
             # updating object data with defaults as they contain new values
             defaults = obj.pop("defaults")
             obj.update(defaults)
@@ -316,7 +323,7 @@ class AttributeValueManager(models.Manager):
             # add new record to the list of new records, so it can be bulk created later
             record = self.model(**obj)
             objects_not_in_db.append(record)
-            results.append(record)
+            results.append((index, record))
 
 
 class AttributeValue(ModelWithExternalReference):
