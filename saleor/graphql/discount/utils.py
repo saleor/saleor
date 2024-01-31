@@ -329,13 +329,13 @@ def _handle_checkout_predicate(
 def _predicate_to_snake_case(obj: Any) -> Any:
     if isinstance(obj, dict):
         data = {}
-        for k, v in obj.items():
-            if k in ["AND", "OR"]:
-                data[k] = _predicate_to_snake_case(v)
-            elif k in ["eq", "oneOf"]:
-                data[k] = v
+        for key, value in obj.items():
+            if key in ["AND", "OR"]:
+                data[key] = _predicate_to_snake_case(value)
+            elif key in ["eq", "oneOf"]:
+                data[key] = value
             else:
-                data[_predicate_to_snake_case(k)] = _predicate_to_snake_case(v)
+                data[_predicate_to_snake_case(key)] = _predicate_to_snake_case(value)
         return data
     if isinstance(obj, list):
         return [_predicate_to_snake_case(item) for item in obj]
