@@ -768,12 +768,13 @@ def _create_or_update_checkout_discount(
     )
     # gift rule has empty reward_value and reward_value_type
     value_type = best_rule.reward_value_type or RewardValueType.FIXED
-    value = best_rule.reward_value or best_discount_amount
+    amount_value = gift_listing.price_amount if gift_listing else best_discount_amount
+    value = best_rule.reward_value or amount_value
     discount_object_defaults = {
         "promotion_rule": best_rule,
         "value_type": value_type,
         "value": value,
-        "amount_value": best_discount_amount,
+        "amount_value": amount_value,
         "currency": currency_code,
         "name": get_discount_name(best_rule, promotion),
         "translated_name": get_discount_translated_name(rule_info),

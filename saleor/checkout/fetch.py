@@ -281,8 +281,10 @@ def fetch_checkout_lines(
             variant, checkout.channel_id
         )
         translation_language_code = checkout.language_code
-        rules_info = fetch_variant_rules_info(
-            variant_channel_listing, translation_language_code
+        rules_info = (
+            fetch_variant_rules_info(variant_channel_listing, translation_language_code)
+            if not line.is_gift
+            else []
         )
 
         if not skip_recalculation and not _is_variant_valid(

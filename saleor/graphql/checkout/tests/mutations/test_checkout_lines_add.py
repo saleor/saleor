@@ -545,6 +545,10 @@ def test_add_to_existing_line_catalogue_and_gift_reward_applies(
     assert Decimal(undiscounted_unit_price) == top_price
     undiscounted_total_price = gift_line_data["undiscountedTotalPrice"]["amount"]
     assert Decimal(undiscounted_total_price) == top_price
+    unit_price = gift_line_data["unitPrice"]["gross"]["amount"]
+    assert Decimal(unit_price) == Decimal("0")
+    total_price = gift_line_data["totalPrice"]["gross"]["amount"]
+    assert Decimal(total_price) == Decimal("0")
 
     checkout_discount_amount = data["checkout"]["discount"]["amount"]
     # Both catalogue and gift discount are only visible on line level
