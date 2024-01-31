@@ -382,7 +382,7 @@ def create_discount_objects_for_catalogue_promotions(
             discount.promotion_rule_id: discount for discount in discounts_to_update
         }
 
-        # delete all existing discounts if the line is not discounted
+        # delete all existing discounts if the line is not discounted or it is a gift
         if not discount_amount or line.is_gift:
             ids_to_remove = [discount.id for discount in discounts_to_update]
             if ids_to_remove:

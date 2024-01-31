@@ -114,7 +114,7 @@ def invalidate_checkout_prices(
     return updated_fields
 
 
-def apply_gift_reward_if_applicable(checkout: "Checkout"):
+def apply_gift_reward_if_applicable(checkout: "Checkout") -> None:
     """Apply gift reward if applicable on newly created checkout.
 
     This method apply the gift reward if any gift promotion exists and
@@ -129,7 +129,8 @@ def apply_gift_reward_if_applicable(checkout: "Checkout"):
     variant_id_to_discounted_price = {
         variant_id: discounted_price or price
         for variant_id, discounted_price, price in product_models.ProductVariantChannelListing.objects.filter(
-            variant_id__in=variants_id
+            variant_id__in=variants_id,
+            channel_id=checkout.channel_id,
         ).values_list("variant_id", "discounted_price_amount", "price_amount")
     }
     subtotal = Decimal("0")

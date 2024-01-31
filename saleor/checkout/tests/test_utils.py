@@ -4,6 +4,7 @@ import pytest
 from prices import Money, TaxedMoney
 
 from ...tax.calculations import get_taxed_undiscounted_price
+from ..utils import apply_gift_reward_if_applicable
 
 BASE = Money("35.00", "USD")
 
@@ -50,3 +51,36 @@ def test_get_taxed_undiscounted_price(price, tax_rate, prices_entered_with_tax, 
     )
 
     assert result_price == result
+
+
+def test_apply_gift_reward_if_applicable(
+    checkout_with_item, gift_promotion_rule, order_promotion_rule, promotion_rule
+):
+    # given
+    checkout = checkout_with_item
+    lines_count = checkout.lines.count()
+
+    # when
+    apply_gift_reward_if_applicable(checkout)
+
+    # then
+    checkout.refresh_from_db()
+    assert checkout.lines.count() == lines_count + 1
+    gift_line = checkout.lines.filter(is_gift=True).first()
+    assert gift_line
+    assert gift_line.discounts.count() == 1
+
+
+def test_apply_gift_reward_if_applicable_no_gift_promotion_rules(
+    checkout_with_item, order_promotion_rule, promotion_rule
+):
+    # given
+    checkout = checkout_with_item
+    lines_count = checkout.lines.count()
+
+    # when
+    apply_gift_reward_if_applicable(checkout)
+
+    # then
+    checkout.refresh_from_db()
+    assert checkout.lines.count() == lines_count
