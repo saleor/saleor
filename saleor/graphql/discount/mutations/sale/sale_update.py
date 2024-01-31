@@ -172,6 +172,7 @@ class SaleUpdate(ModelMutation):
         previous_product_ids,
     ):
         rule = promotion.rules.first()
+        channel_ids = rule.channels.values_list("id", flat=True)
         current_predicate = rule.catalogue_predicate
         current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
             current_predicate
@@ -197,7 +198,10 @@ class SaleUpdate(ModelMutation):
             )
             update_variants_for_promotion(variants, promotion)
             if product_ids | previous_product_ids:
-                mark_products_for_recalculate_discounted_price(list(product_ids))
+                mark_products_for_recalculate_discounted_price(
+                    list(product_ids),
+                    list(channel_ids),
+                )
 
     @classmethod
     def send_sale_notifications(

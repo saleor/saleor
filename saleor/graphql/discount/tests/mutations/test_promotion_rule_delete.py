@@ -3,6 +3,7 @@ import pytest
 
 from .....discount import PromotionEvents
 from .....discount.models import PromotionEvent
+from .....product.models import ProductChannelListing
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...utils import get_products_for_promotion
 
@@ -43,7 +44,7 @@ def test_promotion_rule_delete_by_staff_user(
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
     rule = promotion.rules.get(name="Percentage promotion rule")
     variables = {"id": graphene.Node.to_global_id("PromotionRule", rule.id)}
-
+    channels_ids = set(rule.channels.values_list("id", flat=True))
     # when
     response = staff_api_client.post_graphql(PROMOTION_RULE_DELETE_MUTATION, variables)
 
@@ -53,9 +54,12 @@ def test_promotion_rule_delete_by_staff_user(
     assert data["promotionRule"]["name"] == rule.name
     with pytest.raises(rule._meta.model.DoesNotExist):
         rule.refresh_from_db()
-    product.refresh_from_db()
 
-    assert product.discounted_price_dirty is True
+    listings = ProductChannelListing.objects.filter(
+        channel__in=channels_ids, product=product
+    )
+    for listing in listings:
+        assert listing.discounted_price_dirty is True
 
 
 def test_promotion_rule_delete_by_staff_app(
@@ -67,6 +71,7 @@ def test_promotion_rule_delete_by_staff_app(
     # given
     rule = promotion.rules.get(name="Percentage promotion rule")
     variables = {"id": graphene.Node.to_global_id("PromotionRule", rule.id)}
+    channels_ids = set(rule.channels.values_list("id", flat=True))
 
     # when
     response = app_api_client.post_graphql(
@@ -76,14 +81,17 @@ def test_promotion_rule_delete_by_staff_app(
     )
 
     # then
-    product.refresh_from_db()
     content = get_graphql_content(response)
     data = content["data"]["promotionRuleDelete"]
     assert data["promotionRule"]["name"] == rule.name
     with pytest.raises(rule._meta.model.DoesNotExist):
         rule.refresh_from_db()
 
-    assert product.discounted_price_dirty is True
+    listings = ProductChannelListing.objects.filter(
+        channel__in=channels_ids, product=product
+    )
+    for listing in listings:
+        assert listing.discounted_price_dirty is True
 
 
 def test_promotion_rule_delete_by_customer(api_client, promotion):
@@ -91,15 +99,18 @@ def test_promotion_rule_delete_by_customer(api_client, promotion):
     rule = promotion.rules.first()
     variables = {"id": graphene.Node.to_global_id("PromotionRule", rule.id)}
     products = get_products_for_promotion(promotion)
+    channels_ids = set(rule.channels.values_list("id", flat=True))
 
     # when
     response = api_client.post_graphql(PROMOTION_RULE_DELETE_MUTATION, variables)
 
     # then
     assert_no_permission(response)
-    for product in products:
-        product.refresh_from_db()
-        assert product.discounted_price_dirty is False
+    listings = ProductChannelListing.objects.filter(
+        channel__in=channels_ids, product__in=products
+    )
+    for listing in listings:
+        assert listing.discounted_price_dirty is False
 
 
 def test_promotion_delete_clears_old_sale_id(
@@ -112,6 +123,7 @@ def test_promotion_delete_clears_old_sale_id(
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
     promotion = promotion_converted_from_sale
     rule = promotion.rules.first()
+    channels_ids = set(rule.channels.values_list("id", flat=True))
 
     assert promotion.old_sale_id
 
@@ -121,7 +133,9 @@ def test_promotion_delete_clears_old_sale_id(
     response = staff_api_client.post_graphql(PROMOTION_RULE_DELETE_MUTATION, variables)
 
     # then
-    product.refresh_from_db()
+    listings = ProductChannelListing.objects.filter(
+        channel__in=channels_ids, product=product
+    )
     content = get_graphql_content(response)
     data = content["data"]["promotionRuleDelete"]
     assert data["promotionRule"]["name"] == rule.name
@@ -130,7 +144,9 @@ def test_promotion_delete_clears_old_sale_id(
 
     promotion.refresh_from_db()
     assert promotion.old_sale_id is None
-    assert product.discounted_price_dirty is True
+
+    for listing in listings:
+        assert listing.discounted_price_dirty is True
 
 
 def test_promotion_rule_delete_events(

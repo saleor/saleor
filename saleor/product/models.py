@@ -207,7 +207,6 @@ class Product(SeoModel, ModelWithMetadata, ModelWithExternalReference):
         null=True,
         on_delete=models.SET_NULL,
     )
-    discounted_price_dirty = models.BooleanField(default=False)
 
     objects = managers.ProductManager()
 
@@ -315,6 +314,7 @@ class ProductChannelListing(PublishableModel):
     discounted_price = MoneyField(
         amount_field="discounted_price_amount", currency_field="currency"
     )
+    discounted_price_dirty = models.BooleanField(default=False)
 
     class Meta:
         unique_together = [["product", "channel"]]
