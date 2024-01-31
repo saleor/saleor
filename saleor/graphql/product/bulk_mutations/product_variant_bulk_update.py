@@ -2,6 +2,7 @@ from collections import defaultdict
 from typing import cast
 
 import graphene
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db.models import F
 from django.utils import timezone
@@ -746,32 +747,10 @@ class ProductVariantBulkUpdate(BaseMutation):
             index_error_map,
         )
 
-        instances = [
-            clean_data["id"]
-            for clean_data in cleaned_inputs_map.values()
-            if clean_data and clean_data.get("id")
-        ]
         webhooks = get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED)
-
-        pre_save_payloads = {}
-        for webhook in webhooks:
-            app_request_context = initialize_request(
-                requestor=get_user_or_app_from_context(info.context),
-                sync_event=False,
-                allow_replica=True,
-                event_type=WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED,
-                request_time=request_time,
-            )
-            for instance in instances:
-                instance_payload = generate_payload_from_subscription(
-                    event_type=WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED,
-                    subscribable_object=instance,
-                    subscription_query=webhook.subscription_query,
-                    request=app_request_context,
-                    app=webhook.app,
-                )
-                key = f"{webhook.pk}_{instance.pk}"
-                pre_save_payloads[key] = instance_payload
+        pre_save_payloads = cls.generate_pre_save_payloads(
+            info, request_time, cleaned_inputs_map, webhooks
+        )
 
         instances_data_with_errors_list = cls.update_variants(
             info, cleaned_inputs_map, index_error_map
@@ -801,3 +780,40 @@ class ProductVariantBulkUpdate(BaseMutation):
         )
 
         return ProductVariantBulkCreate(count=len(instances), results=results)
+
+    @classmethod
+    def generate_pre_save_payloads(
+        cls, info, request_time, cleaned_inputs_map, webhooks
+    ):
+        if not settings.ENABLE_LIMITING_WEBHOOKS_FOR_IDENTICAL_PAYLOADS:
+            return {}
+
+        # Take instances from cleaned_inputs_map to be updated in the mutation.
+        instances = [
+            clean_data["id"]
+            for clean_data in cleaned_inputs_map.values()
+            if clean_data and clean_data.get("id")
+        ]
+
+        pre_save_payloads = {}
+
+        for webhook in webhooks:
+            app_request_context = initialize_request(
+                requestor=get_user_or_app_from_context(info.context),
+                sync_event=False,
+                allow_replica=True,
+                event_type=WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED,
+                request_time=request_time,
+            )
+            for instance in instances:
+                instance_payload = generate_payload_from_subscription(
+                    event_type=WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED,
+                    subscribable_object=instance,
+                    subscription_query=webhook.subscription_query,
+                    request=app_request_context,
+                    app=webhook.app,
+                )
+                key = f"{webhook.pk}_{instance.pk}"
+                pre_save_payloads[key] = instance_payload
+
+        return pre_save_payloads

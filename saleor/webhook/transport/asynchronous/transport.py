@@ -93,7 +93,10 @@ def create_deliveries_for_subscriptions(
             )
             continue
 
-        if pre_save_payloads:
+        if (
+            settings.ENABLE_LIMITING_WEBHOOKS_FOR_IDENTICAL_PAYLOADS
+            and pre_save_payloads
+        ):
             key = f"{webhook.pk}_{subscribable_object.pk}"
             pre_save_payload = pre_save_payloads.get(key)
             if pre_save_payload and pre_save_payload == data:
