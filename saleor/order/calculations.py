@@ -16,6 +16,7 @@ from ..tax.calculations import get_taxed_undiscounted_price
 from ..tax.calculations.order import update_order_prices_with_flat_rates
 from ..tax.utils import (
     get_charge_taxes_for_order,
+    get_tax_app_identifier_for_order,
     get_tax_calculation_strategy_for_order,
     normalize_tax_rate_for_db,
 )
@@ -137,11 +138,18 @@ def _recalculate_prices(
     prices_entered_with_tax = tax_configuration.prices_entered_with_tax
     charge_taxes = get_charge_taxes_for_order(order)
     should_charge_tax = charge_taxes and not order.tax_exemption
+    tax_app_identifier = get_tax_app_identifier_for_order(order)
+
     if prices_entered_with_tax:
         # If prices are entered with tax, we need to always calculate it anyway, to
         # display the tax rate to the user.
         _calculate_and_add_tax(
-            tax_calculation_strategy, order, lines, manager, prices_entered_with_tax
+            tax_calculation_strategy,
+            tax_app_identifier,
+            order,
+            lines,
+            manager,
+            prices_entered_with_tax,
         )
         if not should_charge_tax:
             # If charge_taxes is disabled or order is exempt from taxes, remove the
@@ -154,7 +162,12 @@ def _recalculate_prices(
             # Calculate taxes if charge_taxes is enabled and order is not exempt
             # from taxes.
             _calculate_and_add_tax(
-                tax_calculation_strategy, order, lines, manager, prices_entered_with_tax
+                tax_calculation_strategy,
+                tax_app_identifier,
+                order,
+                lines,
+                manager,
+                prices_entered_with_tax,
             )
         else:
             apply_order_discounts(order, lines, assign_prices=True)
@@ -163,6 +176,7 @@ def _recalculate_prices(
 
 def _calculate_and_add_tax(
     tax_calculation_strategy: str,
+    tax_app_identifier: Optional[str],
     order: "Order",
     lines: Iterable["OrderLine"],
     manager: "PluginsManager",
@@ -172,7 +186,9 @@ def _calculate_and_add_tax(
         # Get the taxes calculated with plugins.
         _recalculate_with_plugins(manager, order, lines, prices_entered_with_tax)
         # Get the taxes calculated with apps and apply to order.
-        tax_data = manager.get_taxes_for_order(order)
+        tax_data = manager.get_taxes_for_order(order, tax_app_identifier)
+        if tax_data is None:
+            raise ValueError("Empty tax data")
         _apply_tax_data(order, lines, tax_data)
         # TODO: If tax data is empty, order level discounts are not propagated
         #  to its lines and not reflected in line total prices.

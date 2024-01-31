@@ -2995,22 +2995,71 @@ class WebhookPlugin(BasePlugin):
             **kwargs,
         )
 
-    def get_taxes_for_checkout(
-        self, checkout_info, lines, previous_value
-    ) -> Optional["TaxData"]:
-        return trigger_all_webhooks_sync(
-            WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
-            lambda: generate_checkout_payload_for_tax_calculation(
-                checkout_info,
-                lines,
-            ),
-            parse_tax_data,
-            checkout_info.checkout,
-            self.requestor,
+    def __run_tax_webhook(
+        self,
+        event_type: str,
+        app_identifier: str,
+        payload: str,
+        subscriptable_object=None,
+    ):
+        app = (
+            App.objects.filter(
+                identifier=app_identifier,
+                is_active=True,
+            )
+            .order_by("created_at")
+            .first()
         )
+        if app is None:
+            return None
+        webhook = get_webhooks_for_event(event_type, app.webhooks.all()).first()
+        if webhook is None:
+            return None
+
+        request_context = initialize_request(
+            self.requestor,
+            event_type in WebhookEventSyncType.ALL,
+            allow_replica=False,
+            event_type=event_type,
+        )
+        response = trigger_webhook_sync(
+            event_type=event_type,
+            webhook=webhook,
+            payload=payload,
+            allow_replica=False,
+            subscribable_object=subscriptable_object,
+            request=request_context,
+        )
+        return parse_tax_data(response)
+
+    def get_taxes_for_checkout(
+        self, checkout_info, lines, app_identifier, previous_value
+    ) -> Optional["TaxData"]:
+        event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
+        if app_identifier:
+            payload = generate_checkout_payload_for_tax_calculation(
+                checkout_info, lines
+            )
+            return self.__run_tax_webhook(
+                event_type,
+                app_identifier,
+                payload,
+                checkout_info.checkout,
+            )
+        else:
+            return trigger_all_webhooks_sync(
+                event_type,
+                lambda: generate_checkout_payload_for_tax_calculation(
+                    checkout_info,
+                    lines,
+                ),
+                parse_tax_data,
+                checkout_info.checkout,
+                self.requestor,
+            )
 
     def get_taxes_for_order(
-        self, order: "Order", previous_value
+        self, order: "Order", app_identifier, previous_value
     ) -> Optional["TaxData"]:
         return trigger_all_webhooks_sync(
             WebhookEventSyncType.ORDER_CALCULATE_TAXES,

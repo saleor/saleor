@@ -20878,7 +20878,7 @@ input TaxConfigurationUpdateInput @doc(category: "Taxes") {
   removeCountriesConfiguration: [CountryCode!]
 
   """
-  The tax app id that will be used to calculate the taxes for the given channel. Empty value when `taxCalculationStrategy` set is to `TAX_APP` means that Saleor will iterate over all installed tax apps.
+  The tax app identifier that will be used to calculate the taxes for the given channel. Empty value when `taxCalculationStrategy` set is to `TAX_APP` means that Saleor will iterate over all installed tax apps.
   """
   taxAppId: String
 }
@@ -20901,7 +20901,7 @@ input TaxConfigurationPerCountryInput @doc(category: "Taxes") {
   displayGrossPrices: Boolean!
 
   """
-  The tax app id that will be used to calculate the taxes for the given channel. If not provided, use the value from the channel's tax configuration.
+  The tax app identifier that will be used to calculate the taxes for the given channel. If not provided, use the value from the channel's tax configuration.
   """
   taxAppId: String
 }

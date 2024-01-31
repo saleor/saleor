@@ -17,6 +17,7 @@ from ..tax import TaxCalculationStrategy
 from ..tax.calculations.checkout import update_checkout_prices_with_flat_rates
 from ..tax.utils import (
     get_charge_taxes_for_checkout,
+    get_tax_app_identifier_for_checkout,
     get_tax_calculation_strategy_for_checkout,
     normalize_tax_rate_for_db,
 )
@@ -210,11 +211,13 @@ def _fetch_checkout_prices_if_expired(
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"] = None,
     force_update: bool = False,
+    need_tax_calculation: bool = False,
 ) -> tuple["CheckoutInfo", Iterable["CheckoutLineInfo"]]:
     """Fetch checkout prices with taxes.
 
     First calculate and apply all checkout prices with taxes separately,
-    then apply tax data as well if we receive one.
+    then apply tax data as well if we receive one. If need_tax_calculation is set
+    to True, we will raise error if we didn't receive tax data.
 
     Prices can be updated only if force_update == True, or if time elapsed from the
     last price update is greater than settings.CHECKOUT_PRICES_TTL.
@@ -231,22 +234,30 @@ def _fetch_checkout_prices_if_expired(
     prices_entered_with_tax = tax_configuration.prices_entered_with_tax
     charge_taxes = get_charge_taxes_for_checkout(checkout_info, lines)
     should_charge_tax = charge_taxes and not checkout.tax_exemption
+    tax_app_identifier = get_tax_app_identifier_for_checkout(checkout_info, lines)
 
     lines = cast(list, lines)
     create_or_update_discount_objects_from_promotion_for_checkout(checkout_info, lines)
 
+    tax_app_responed = True
     if prices_entered_with_tax:
         # If prices are entered with tax, we need to always calculate it anyway, to
         # display the tax rate to the user.
-        _calculate_and_add_tax(
-            tax_calculation_strategy,
-            checkout,
-            manager,
-            checkout_info,
-            lines,
-            prices_entered_with_tax,
-            address,
-        )
+        try:
+            _calculate_and_add_tax(
+                tax_calculation_strategy,
+                tax_app_identifier,
+                checkout,
+                manager,
+                checkout_info,
+                lines,
+                prices_entered_with_tax,
+                address,
+            )
+        except ValueError:
+            if need_tax_calculation:
+                raise ValueError("temp")
+            tax_app_responed = False
 
         if not should_charge_tax:
             # If charge_taxes is disabled or checkout is exempt from taxes, remove the
@@ -258,37 +269,47 @@ def _fetch_checkout_prices_if_expired(
         if should_charge_tax:
             # Calculate taxes if charge_taxes is enabled and checkout is not exempt
             # from taxes.
-            _calculate_and_add_tax(
-                tax_calculation_strategy,
-                checkout,
-                manager,
-                checkout_info,
-                lines,
-                prices_entered_with_tax,
-                address,
-            )
+            try:
+                _calculate_and_add_tax(
+                    tax_calculation_strategy,
+                    tax_app_identifier,
+                    checkout,
+                    manager,
+                    checkout_info,
+                    lines,
+                    prices_entered_with_tax,
+                    address,
+                )
+            except ValueError:
+                if need_tax_calculation:
+                    raise ValueError("temp")
+                tax_app_responed = False
         else:
             # Calculate net prices without taxes.
             _get_checkout_base_prices(checkout, checkout_info, lines)
 
-    checkout.price_expiration = timezone.now() + settings.CHECKOUT_PRICES_TTL
+    checkout_update_fields = [
+        "voucher_code",
+        "total_net_amount",
+        "total_gross_amount",
+        "subtotal_net_amount",
+        "subtotal_gross_amount",
+        "shipping_price_net_amount",
+        "shipping_price_gross_amount",
+        "shipping_tax_rate",
+        "translated_discount_name",
+        "discount_amount",
+        "discount_name",
+        "currency",
+        "last_change",
+    ]
+
+    if tax_app_responed:
+        checkout.price_expiration = timezone.now() + settings.CHECKOUT_PRICES_TTL
+        checkout_update_fields.append("price_expiration")
+
     checkout.save(
-        update_fields=[
-            "voucher_code",
-            "total_net_amount",
-            "total_gross_amount",
-            "subtotal_net_amount",
-            "subtotal_gross_amount",
-            "shipping_price_net_amount",
-            "shipping_price_gross_amount",
-            "shipping_tax_rate",
-            "price_expiration",
-            "translated_discount_name",
-            "discount_amount",
-            "discount_name",
-            "currency",
-            "last_change",
-        ],
+        update_fields=checkout_update_fields,
         using=settings.DATABASE_CONNECTION_DEFAULT_NAME,
     )
     checkout.lines.bulk_update(
@@ -304,6 +325,7 @@ def _fetch_checkout_prices_if_expired(
 
 def _calculate_and_add_tax(
     tax_calculation_strategy: str,
+    tax_app_identifier: Optional[str],
     checkout: "Checkout",
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
@@ -315,7 +337,11 @@ def _calculate_and_add_tax(
         # Call the tax plugins.
         _apply_tax_data_from_plugins(checkout, manager, checkout_info, lines, address)
         # Get the taxes calculated with apps and apply to checkout.
-        tax_data = manager.get_taxes_for_checkout(checkout_info, lines)
+        tax_data = manager.get_taxes_for_checkout(
+            checkout_info, lines, tax_app_identifier
+        )
+        if tax_data is None:
+            raise ValueError("Empty tax data")
         _apply_tax_data(checkout, lines, tax_data)
     else:
         # Get taxes calculated with flat rates and apply to checkout.
@@ -475,6 +501,7 @@ def fetch_checkout_data(
     force_update: bool = False,
     checkout_transactions: Optional[Iterable["TransactionItem"]] = None,
     force_status_update: bool = False,
+    need_tax_calculation: bool = False,
 ):
     """Fetch checkout data.
 
@@ -488,6 +515,7 @@ def fetch_checkout_data(
         lines=lines,
         address=address,
         force_update=force_update,
+        need_tax_calculation=need_tax_calculation,
     )
     current_total_gross = checkout_info.checkout.total.gross
     if current_total_gross != previous_total_gross or force_status_update:

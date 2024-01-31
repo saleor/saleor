@@ -1,6 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 
+from ....app import models as app_models
 from ....app.utils import get_active_tax_apps
 from ....permission.enums import CheckoutPermissions
 from ....tax import error_codes, models
@@ -45,8 +46,9 @@ class TaxConfigurationPerCountryInput(BaseInputObjectType):
     )
     tax_app_id = graphene.String(
         description=(
-            "The tax app id that will be used to calculate the taxes for the given channel. "
-            "If not provided, use the value from the channel's tax configuration."
+            "The tax app identifier that will be used to calculate the taxes for the "
+            "given channel. If not provided, use the value from the channel's tax "
+            "configuration."
         ),
     )
 
@@ -87,8 +89,8 @@ class TaxConfigurationUpdateInput(BaseInputObjectType):
     )
     tax_app_id = graphene.String(
         description=(
-            "The tax app id that will be used to calculate the taxes for the given channel. "
-            "Empty value when `taxCalculationStrategy` set is to `TAX_APP` "
+            "The tax app identifier that will be used to calculate the taxes for the "
+            "given channel. Empty value when `taxCalculationStrategy` set is to `TAX_APP` "
             "means that Saleor will iterate over all installed tax apps."
         ),
     )
@@ -151,17 +153,33 @@ class TaxConfigurationUpdate(ModelMutation):
     @classmethod
     def clean_tax_app_id(cls, info: ResolveInfo, data):
         active_tax_apps = list(get_active_tax_apps())
-        if app_id := data.get("tax_app_id"):
-            cls.__verify_tax_app_id(info, app_id, active_tax_apps)
+        if app_identifier := data.get("tax_app_id"):
+            cls.__verify_tax_app_id(info, app_identifier, active_tax_apps)
 
         update_countries_configuration = data.get("update_countries_configuration", [])
         for country in update_countries_configuration:
-            if app_id := country.get("tax_app_id"):
-                cls.__verify_tax_app_id(info, app_id, active_tax_apps)
+            if app_identifier := country.get("tax_app_id"):
+                cls.__verify_tax_app_id(info, app_identifier, active_tax_apps)
 
     @classmethod
-    def __verify_tax_app_id(cls, info: ResolveInfo, app_id, active_tax_apps):
-        app = cls.get_node_or_error(info, app_id, only_type="App")
+    def __verify_tax_app_id(cls, info: ResolveInfo, app_identifier, active_tax_apps):
+        app = (
+            app_models.App.objects.filter(
+                identifier=app_identifier,
+                is_active=True,
+            )
+            .order_by("created_at")
+            .first()
+        )
+        if app is None:
+            raise ValidationError(
+                {
+                    "tax_ap_id": ValidationError(
+                        message="Provided taxAppId does not exist.",
+                        code=error_codes.TaxConfigurationUpdateErrorCode.NOT_FOUND.value,
+                    )
+                }
+            )
         if app not in active_tax_apps:
             raise ValidationError(
                 {
