@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Optional, Union, cast
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import prefetch_related_objects
+from django.db.models import Exists, OuterRef, prefetch_related_objects
 from django.utils import timezone
 from prices import Money
 
@@ -120,31 +120,15 @@ def apply_gift_reward_if_applicable(checkout: "Checkout") -> None:
     This method apply the gift reward if any gift promotion exists and
     when it's giving the best discount on the current checkout.
     """
-    if not PromotionRule.objects.filter(gifts__isnull=False).exists():
+    PromotionRuleChannel = PromotionRule.channels.through
+    rule_channels = PromotionRuleChannel.objects.filter(channel_id=checkout.channel_id)
+    if not PromotionRule.objects.filter(
+        Exists(rule_channels.filter(promotionrule_id=OuterRef("pk"))),
+        gifts__isnull=False,
+    ).exists():
         return
 
-    variants_id = [line.variant_id for line in checkout.lines.all()]
-
-    # calculate base subtotal and total
-    variant_id_to_discounted_price = {
-        variant_id: discounted_price or price
-        for variant_id, discounted_price, price in product_models.ProductVariantChannelListing.objects.filter(
-            variant_id__in=variants_id,
-            channel_id=checkout.channel_id,
-        ).values_list("variant_id", "discounted_price_amount", "price_amount")
-    }
-    subtotal = Decimal("0")
-    for line in checkout.lines.all():
-        if price_amount := line.price_override:
-            price = price_amount
-        else:
-            price = variant_id_to_discounted_price.get(line.variant_id) or Decimal("0")
-        subtotal += price * line.quantity
-    checkout.base_subtotal = Money(subtotal, checkout.currency)
-    # base total and subtotal is the same, as there is no option to set the
-    # delivery method during checkout creation
-    checkout.base_total = checkout.base_subtotal
-    checkout.save(update_fields=["base_subtotal_amount", "base_total_amount"])
+    _set_newly_created_checkout_base_subtotal_and_total(checkout)
 
     best_rule_data = get_best_rule_for_checkout(
         checkout, checkout.channel, checkout.get_country()
@@ -167,6 +151,32 @@ def apply_gift_reward_if_applicable(checkout: "Checkout") -> None:
             promotion_rule=best_rule,
             currency=checkout.currency,
         )
+
+
+def _set_newly_created_checkout_base_subtotal_and_total(
+    checkout: "Checkout",
+):
+    """Calculate and set base subtotal and total for newly created checkout."""
+    variants_id = [line.variant_id for line in checkout.lines.all()]
+    variant_id_to_discounted_price = {
+        variant_id: discounted_price or price
+        for variant_id, discounted_price, price in product_models.ProductVariantChannelListing.objects.filter(
+            variant_id__in=variants_id,
+            channel_id=checkout.channel_id,
+        ).values_list("variant_id", "discounted_price_amount", "price_amount")
+    }
+    subtotal = Decimal("0")
+    for line in checkout.lines.all():
+        if price_amount := line.price_override:
+            price = price_amount
+        else:
+            price = variant_id_to_discounted_price.get(line.variant_id) or Decimal("0")
+        subtotal += price * line.quantity
+    checkout.base_subtotal = Money(subtotal, checkout.currency)
+    # base total and subtotal is the same, as there is no option to set the
+    # delivery method during checkout creation
+    checkout.base_total = checkout.base_subtotal
+    checkout.save(update_fields=["base_subtotal_amount", "base_total_amount"])
 
 
 def get_user_checkout(

@@ -711,7 +711,7 @@ def _get_best_gift_reward(
 
     # check variant channel availability
     available_variant_listings = ProductVariantChannelListing.objects.filter(
-        variant__id__in=available_variant_ids,
+        variant_id__in=available_variant_ids,
         channel_id=channel.id,
         price_amount__isnull=False,
     )

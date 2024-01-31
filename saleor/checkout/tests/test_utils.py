@@ -84,3 +84,19 @@ def test_apply_gift_reward_if_applicable_no_gift_promotion_rules(
     # then
     checkout.refresh_from_db()
     assert checkout.lines.count() == lines_count
+
+
+def test_apply_gift_reward_if_applicable_no_gift_promotion_rules_for_checkout_channel(
+    checkout_with_item, gift_promotion_rule, order_promotion_rule, promotion_rule
+):
+    # given
+    checkout = checkout_with_item
+    lines_count = checkout.lines.count()
+    gift_promotion_rule.channels.remove(checkout.channel)
+
+    # when
+    apply_gift_reward_if_applicable(checkout)
+
+    # then
+    checkout.refresh_from_db()
+    assert checkout.lines.count() == lines_count
