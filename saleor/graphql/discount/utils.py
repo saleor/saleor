@@ -1,10 +1,11 @@
 from collections import defaultdict
 from copy import deepcopy
 from enum import Enum
-from typing import Optional, Union, cast
+from typing import Any, Optional, Union, cast
 
 import graphene
 from django.db.models import Exists, OuterRef, QuerySet
+from graphene.utils.str_converters import to_snake_case
 
 from ...checkout.models import Checkout
 from ...discount.models import Promotion, PromotionRule
@@ -306,21 +307,41 @@ def _handle_checkout_predicate(
     operator,
     currency: Optional[str] = None,
 ):
-    if currency:
-        predicate_data["currency"] = currency
+    predicate_data = _predicate_to_snake_case(predicate_data)
+    if predicate := predicate_data.get("discounted_object_predicate"):
+        if currency:
+            predicate["currency"] = currency
 
-    checkouts = where_filter_qs(
-        Checkout.objects.filter(pk__in=base_qs.values("pk")),
-        {},
-        CheckoutDiscountedObjectWhere,
-        predicate_data,
-        None,
-    )
-    if operator == Operators.AND:
-        result_qs &= checkouts
-    else:
-        result_qs |= checkouts
+        checkouts = where_filter_qs(
+            Checkout.objects.filter(pk__in=base_qs.values("pk")),
+            {},
+            CheckoutDiscountedObjectWhere,
+            predicate,
+            None,
+        )
+        if operator == Operators.AND:
+            result_qs &= checkouts
+        else:
+            result_qs |= checkouts
     return result_qs
+
+
+def _predicate_to_snake_case(obj: Any) -> Any:
+    if isinstance(obj, dict):
+        data = {}
+        for key, value in obj.items():
+            if key in ["AND", "OR"]:
+                data[key] = _predicate_to_snake_case(value)
+            elif key in ["eq", "oneOf"]:
+                data[key] = value
+            else:
+                data[_predicate_to_snake_case(key)] = _predicate_to_snake_case(value)
+        return data
+    if isinstance(obj, list):
+        return [_predicate_to_snake_case(item) for item in obj]
+    if isinstance(obj, str):
+        return to_snake_case(obj)
+    return obj
 
 
 def convert_migrated_sale_predicate_to_model_ids(

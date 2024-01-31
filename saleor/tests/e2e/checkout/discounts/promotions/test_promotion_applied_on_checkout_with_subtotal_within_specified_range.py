@@ -1,5 +1,9 @@
+from decimal import Decimal
+
 import pytest
 
+from ......checkout.models import Checkout
+from ......discount import DiscountType, RewardValueType
 from ....product.utils.preparing_product import prepare_product
 from ....promotions.utils import (
     create_promotion,
@@ -63,7 +67,7 @@ def test_promotion_applied_on_checkout_with_subtotal_with_specified_gte_range_CO
         warehouse_id,
         promotion_id,
     ) = prepare_promotion(e2e_staff_api_client)
-    discount_value = 25
+    discount_value = 20
 
     order_predicate_subtotal_gte_value = "10"
     order_predicate = {
@@ -106,6 +110,7 @@ def test_promotion_applied_on_checkout_with_subtotal_with_specified_gte_range_CO
         set_default_shipping_address=True,
     )
     checkout_id = data["id"]
+    checkout_db = Checkout.objects.first()
     total = data["totalPrice"]["gross"]["amount"]
     subtotal = data["subtotalPrice"]["gross"]["amount"]
     assert data["billingAddress"] is not None
@@ -114,6 +119,7 @@ def test_promotion_applied_on_checkout_with_subtotal_with_specified_gte_range_CO
     assert data["lines"][0]["variant"]["id"] == product_variant_id
     assert data["discount"]["amount"] == 0.00
     assert subtotal <= order_predicate_subtotal_gte_value
+    assert not checkout_db.discounts.all()
 
     # Step 2 - Update checkout lines so subtotal is within the specified gte range
     lines = [{"variantId": product_variant_id, "quantity": 4}]
@@ -126,9 +132,6 @@ def test_promotion_applied_on_checkout_with_subtotal_with_specified_gte_range_CO
         "undiscountedTotalPrice"
     ]["amount"]
     undiscounted_subtotal = float(undiscounted_subtotal)
-    discounted_subtotal = checkout_lines["checkout"]["lines"][0]["totalPrice"]["gross"][
-        "amount"
-    ]
     unit_price = checkout_lines["checkout"]["lines"][0]["unitPrice"]["gross"]["amount"]
     discount = round((undiscounted_subtotal) * discount_value / 100, 2)
 
@@ -142,6 +145,13 @@ def test_promotion_applied_on_checkout_with_subtotal_with_specified_gte_range_CO
     assert checkout_lines["checkout"]["discount"]["amount"] == discount
     assert total_gross != total
     assert order_predicate_subtotal_gte_value <= undiscounted_subtotal
+    discounts_db = checkout_db.discounts.all()
+    assert len(discounts_db) == 1
+    discount_db = discounts_db[0]
+    assert discount_db.type == DiscountType.ORDER_PROMOTION.lower()
+    assert discount_db.value == discount_value
+    assert discount_db.value_type == RewardValueType.PERCENTAGE.lower()
+    assert discount_db.amount_value == Decimal(str(discount))
 
     # Step 3 - Add shipping method
     checkout_data = checkout_delivery_method_update(
@@ -193,7 +203,7 @@ def test_promotion_applied_on_checkout_with_subtotal_with_specified_lte_range_CO
     order_predicate_subtotal_lte_value = "6"
     order_predicate = {
         "discountedObjectPredicate": {
-            "baseSubtotalPrice": {"range": {"gte": order_predicate_subtotal_lte_value}}
+            "baseSubtotalPrice": {"range": {"lte": order_predicate_subtotal_lte_value}}
         }
     }
 
@@ -231,6 +241,7 @@ def test_promotion_applied_on_checkout_with_subtotal_with_specified_lte_range_CO
         set_default_shipping_address=True,
     )
     checkout_id = data["id"]
+    checkout_db = Checkout.objects.first()
     total = data["totalPrice"]["gross"]["amount"]
     subtotal = data["subtotalPrice"]["gross"]["amount"]
     assert data["billingAddress"] is not None
@@ -239,13 +250,13 @@ def test_promotion_applied_on_checkout_with_subtotal_with_specified_lte_range_CO
     assert data["lines"][0]["variant"]["id"] == product_variant_id
     assert data["discount"]["amount"] == 0.00
     assert subtotal >= order_predicate_subtotal_gte_value
+    assert not checkout_db.discounts.all()
 
     # Step 2 - Update checkout lines so subtotal is within the specified lte range
     lines = [{"variantId": product_variant_id, "quantity": 1}]
     checkout_lines = checkout_lines_update(
         e2e_not_logged_api_client, checkout_id, lines
     )
-    discounted_subtotal = checkout_lines["checkout"]["subtotalPrice"]["gross"]["amount"]
     total_gross = checkout_lines["checkout"]["totalPrice"]["gross"]["amount"]
     undiscounted_subtotal = checkout_lines["checkout"]["lines"][0][
         "undiscountedTotalPrice"
@@ -265,6 +276,13 @@ def test_promotion_applied_on_checkout_with_subtotal_with_specified_lte_range_CO
     assert checkout_lines["checkout"]["discount"]["amount"] == discount_value
     assert total_gross != total
     assert order_predicate_subtotal_gte_value >= undiscounted_subtotal
+    discounts_db = checkout_db.discounts.all()
+    assert len(discounts_db) == 1
+    discount_db = discounts_db[0]
+    assert discount_db.type == DiscountType.ORDER_PROMOTION.lower()
+    assert discount_db.value == discount_value
+    assert discount_db.value_type == RewardValueType.FIXED.lower()
+    assert discount_db.amount_value == discount_value
 
     # Step 3 - Add shipping method
     checkout_data = checkout_delivery_method_update(
