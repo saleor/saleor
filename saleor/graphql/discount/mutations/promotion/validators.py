@@ -465,6 +465,9 @@ def clean_predicate(predicate, error_class, index=None):
     Operators cannot be mixed with other filter inputs. There could be only
     one operator on each level.
     """
+    if not predicate:
+        return {}
+
     if isinstance(predicate, list):
         return [
             clean_predicate(item, error_class, index)

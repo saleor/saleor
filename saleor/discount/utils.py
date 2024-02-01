@@ -748,7 +748,7 @@ def fetch_promotion_rules_for_checkout(
     checkout_channel_id = checkout.channel_id
     currency = checkout.channel.currency_code
     checkout_qs = Checkout.objects.filter(pk=checkout.pk)
-    for rule in list(rules.iterator()):
+    for rule in rules.iterator():
         rule_channel_ids = rule_to_channel_ids_map.get(rule.id, [])
         if checkout_channel_id not in rule_channel_ids:
             continue

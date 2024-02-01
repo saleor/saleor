@@ -508,7 +508,7 @@ def test_product_type_query_by_id_weight_returned_in_default_unit(
     product_data = content["data"]["productType"]
     assert product_data is not None
     assert product_data["name"] == product_type.name
-    assert product_data["weight"]["value"] == 352.73999999999995
+    assert product_data["weight"]["value"] == round(product_type.weight.oz, 3)
     assert product_data["weight"]["unit"] == WeightUnits.OZ.upper()
 
 

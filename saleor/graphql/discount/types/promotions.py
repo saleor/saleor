@@ -31,7 +31,7 @@ class Promotion(ModelObjectType[models.Promotion]):
     type = PromotionTypeEnum(
         description=(
             "The type of the promotion. Implicate if the discount is applied on "
-            "catalogue or order level."
+            "catalogue or order level." + ADDED_IN_319 + PREVIEW_FEATURE
         )
     )
     description = JSON(description="Description of the promotion.")
@@ -92,14 +92,18 @@ class PromotionRule(ModelObjectType[models.PromotionRule]):
     reward_value = PositiveDecimal(
         description=(
             "The reward value of the promotion rule. Defines the discount value "
-            "applied when the rule conditions are met."
+            "applied when the rule conditions are met." + ADDED_IN_319 + PREVIEW_FEATURE
         )
     )
     reward_value_type = RewardValueTypeEnum(
         description="The type of reward value of the promotion rule."
     )
     predicate_type = PromotionTypeEnum(
-        description="The type of the predicate that must be met to apply the reward."
+        description=(
+            "The type of the predicate that must be met to apply the reward."
+            + ADDED_IN_319
+            + PREVIEW_FEATURE
+        )
     )
     catalogue_predicate = JSON(
         description=(

@@ -840,10 +840,22 @@ class AttributeValueBulkTranslateError(BulkError):
 
 class Weight(graphene.ObjectType):
     unit = WeightUnitsEnum(description="Weight unit.", required=True)
-    value = graphene.Float(description="Weight value.", required=True)
+    value = graphene.Float(
+        description="Weight value. Returns a value with maximal three decimal places",
+        required=True,
+    )
 
     class Meta:
         description = "Represents weight value in a specific weight unit."
+
+    @staticmethod
+    def resolve_value(root, _info):
+        # Mass is stored as grams in the DB. It means that even if we provide the
+        # weight with static precision (e.g. 0.77 lb), the value will be converted
+        # to grams. In this case, input like  0.77 lb will be converted to
+        # 349.26583999999997 g. In case of retrieving the weight value in lb, we need
+        # to round the value as we will receive the value like 0.7699999999999999.
+        return round(root.value, 3)
 
 
 class Image(graphene.ObjectType):
