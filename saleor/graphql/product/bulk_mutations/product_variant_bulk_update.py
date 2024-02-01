@@ -17,6 +17,7 @@ from ....warehouse import models as warehouse_models
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
 from ...attribute.utils import AttributeAssignmentMixin
+from ...core.dataloaders import DataLoader
 from ...core.descriptions import ADDED_IN_311, ADDED_IN_312, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.enums import ErrorPolicyEnum
@@ -800,7 +801,7 @@ class ProductVariantBulkUpdate(BaseMutation):
         # Dataloaders are shared between calls to generate_payload_from_subscription to
         # reuse their cache. This avoids unnecessary DB queries when different webhooks
         # need to resolve the same data.
-        dataloaders = {}
+        dataloaders: dict[str, type[DataLoader]] = {}
 
         request = initialize_request(
             requestor=get_user_or_app_from_context(info.context),

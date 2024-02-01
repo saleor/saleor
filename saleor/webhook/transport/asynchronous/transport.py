@@ -14,6 +14,7 @@ from ....core import EventDeliveryStatus
 from ....core.models import EventDelivery, EventPayload
 from ....core.tracing import webhooks_opentracing_trace
 from ....core.utils import get_domain
+from ....graphql.core.dataloaders import DataLoader
 from ....graphql.webhook.subscription_payload import (
     generate_payload_from_subscription,
     initialize_request,
@@ -75,7 +76,7 @@ def create_deliveries_for_subscriptions(
     # Dataloaders are shared between calls to generate_payload_from_subscription to
     # reuse their cache. This avoids unnecessary DB queries when different webhooks
     # need to resolve the same data.
-    dataloaders = {}
+    dataloaders: dict[str, type[DataLoader]] = {}
 
     request = initialize_request(
         requestor,
