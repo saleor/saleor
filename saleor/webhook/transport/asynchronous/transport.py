@@ -72,18 +72,26 @@ def create_deliveries_for_subscriptions(
     event_payloads = []
     event_deliveries = []
 
+    # Dataloaders are shared between calls to generate_payload_from_subscription to
+    # reuse their cache. This avoids unnecessary DB queries when different webhooks
+    # need to resolve the same data.
+    dataloaders = {}
+
+    request = initialize_request(
+        requestor,
+        event_type in WebhookEventSyncType.ALL,
+        event_type=event_type,
+        allow_replica=allow_replica,
+        request_time=request_time,
+        dataloaders=dataloaders,
+    )
+
     for webhook in webhooks:
         data = generate_payload_from_subscription(
             event_type=event_type,
             subscribable_object=subscribable_object,
             subscription_query=webhook.subscription_query,
-            request=initialize_request(
-                requestor,
-                event_type in WebhookEventSyncType.ALL,
-                event_type=event_type,
-                allow_replica=allow_replica,
-                request_time=request_time,
-            ),
+            request=request,
             app=webhook.app,
         )
 

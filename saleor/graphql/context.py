@@ -16,7 +16,8 @@ from .core import SaleorContext
 
 def get_context_value(request: HttpRequest) -> SaleorContext:
     request = cast(SaleorContext, request)
-    request.dataloaders = {}
+    if not hasattr(request, "dataloaders"):
+        request.dataloaders = {}
     request.allow_replica = getattr(request, "allow_replica", True)
     request.request_time = getattr(request, "request_time", timezone.now())
     set_app_on_context(request)

@@ -797,20 +797,27 @@ class ProductVariantBulkUpdate(BaseMutation):
 
         pre_save_payloads = {}
 
+        # Dataloaders are shared between calls to generate_payload_from_subscription to
+        # reuse their cache. This avoids unnecessary DB queries when different webhooks
+        # need to resolve the same data.
+        dataloaders = {}
+
+        request = initialize_request(
+            requestor=get_user_or_app_from_context(info.context),
+            sync_event=False,
+            allow_replica=True,
+            event_type=WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED,
+            request_time=request_time,
+            dataloaders=dataloaders,
+        )
+
         for webhook in webhooks:
-            app_request_context = initialize_request(
-                requestor=get_user_or_app_from_context(info.context),
-                sync_event=False,
-                allow_replica=True,
-                event_type=WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED,
-                request_time=request_time,
-            )
             for instance in instances:
                 instance_payload = generate_payload_from_subscription(
                     event_type=WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED,
                     subscribable_object=instance,
                     subscription_query=webhook.subscription_query,
-                    request=app_request_context,
+                    request=request,
                     app=webhook.app,
                 )
                 key = f"{webhook.pk}_{instance.pk}"

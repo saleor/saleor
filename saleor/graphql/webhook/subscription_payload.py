@@ -24,6 +24,7 @@ def initialize_request(
     allow_replica=False,
     event_type: Optional[str] = None,
     request_time: Optional[datetime] = None,
+    dataloaders: Optional[dict] = None,
 ) -> SaleorContext:
     """Prepare a request object for webhook subscription.
 
@@ -31,8 +32,9 @@ def initialize_request(
 
     return: HttpRequest
     """
-
-    request = SaleorContext()
+    if dataloaders is None:
+        dataloaders = {}
+    request = SaleorContext(dataloaders=dataloaders)
     request.path = "/graphql/"
     request.path_info = "/graphql/"
     request.method = "GET"
