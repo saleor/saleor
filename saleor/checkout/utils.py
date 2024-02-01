@@ -5,8 +5,7 @@ from typing import TYPE_CHECKING, Optional, Union, cast
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
-from django.db.models import Exists, OuterRef, prefetch_related_objects
+from django.db.models import prefetch_related_objects
 from django.utils import timezone
 from prices import Money
 
@@ -19,21 +18,17 @@ from ..core.utils.promo_code import (
     promo_code_is_voucher,
 )
 from ..core.utils.translations import get_translation
-from ..discount import DiscountType, DiscountValueType, VoucherType
+from ..discount import DiscountType, VoucherType
 from ..discount.interface import VoucherInfo, fetch_voucher_info
 from ..discount.models import (
     CheckoutDiscount,
-    CheckoutLineDiscount,
     NotApplicable,
-    PromotionRule,
     Voucher,
     VoucherCode,
 )
 from ..discount.utils import (
     create_discount_objects_for_catalogue_promotions,
     create_discount_objects_for_order_promotions,
-    create_gift_line,
-    get_best_rule_for_checkout,
     get_products_voucher_discount,
     get_voucher_code_instance,
     validate_voucher_for_checkout,
@@ -112,71 +107,6 @@ def invalidate_checkout_prices(
         checkout.save(update_fields=updated_fields)
 
     return updated_fields
-
-
-def apply_gift_reward_if_applicable(checkout: "Checkout") -> None:
-    """Apply gift reward if applicable on newly created checkout.
-
-    This method apply the gift reward if any gift promotion exists and
-    when it's giving the best discount on the current checkout.
-    """
-    PromotionRuleChannel = PromotionRule.channels.through
-    rule_channels = PromotionRuleChannel.objects.filter(channel_id=checkout.channel_id)
-    if not PromotionRule.objects.filter(
-        Exists(rule_channels.filter(promotionrule_id=OuterRef("pk"))),
-        gifts__isnull=False,
-    ).exists():
-        return
-
-    _set_newly_created_checkout_base_subtotal_and_total(checkout)
-
-    best_rule_data = get_best_rule_for_checkout(
-        checkout, checkout.channel, checkout.get_country()
-    )
-    if not best_rule_data:
-        return
-
-    best_rule, best_discount_amount, gift_listing = best_rule_data
-    if not gift_listing:
-        return
-
-    with transaction.atomic():
-        line, _line_created = create_gift_line(checkout, gift_listing.variant_id)
-        CheckoutLineDiscount.objects.create(
-            type=DiscountType.ORDER_PROMOTION,
-            line=line,
-            amount_value=best_discount_amount,
-            value_type=DiscountValueType.FIXED,
-            value=best_discount_amount,
-            promotion_rule=best_rule,
-            currency=checkout.currency,
-        )
-
-
-def _set_newly_created_checkout_base_subtotal_and_total(
-    checkout: "Checkout",
-):
-    """Calculate and set base subtotal and total for newly created checkout."""
-    variants_id = [line.variant_id for line in checkout.lines.all()]
-    variant_id_to_discounted_price = {
-        variant_id: discounted_price or price
-        for variant_id, discounted_price, price in product_models.ProductVariantChannelListing.objects.filter(
-            variant_id__in=variants_id,
-            channel_id=checkout.channel_id,
-        ).values_list("variant_id", "discounted_price_amount", "price_amount")
-    }
-    subtotal = Decimal("0")
-    for line in checkout.lines.all():
-        if price_amount := line.price_override:
-            price = price_amount
-        else:
-            price = variant_id_to_discounted_price.get(line.variant_id) or Decimal("0")
-        subtotal += price * line.quantity
-    checkout.base_subtotal = Money(subtotal, checkout.currency)
-    # base total and subtotal is the same, as there is no option to set the
-    # delivery method during checkout creation
-    checkout.base_total = checkout.base_subtotal
-    checkout.save(update_fields=["base_subtotal_amount", "base_total_amount"])
 
 
 def get_user_checkout(
