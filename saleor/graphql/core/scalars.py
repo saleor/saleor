@@ -163,3 +163,17 @@ class Minute(graphene.Int):
 
 class Day(graphene.Int):
     """The `Day` scalar type represents number of days by integer value."""
+
+
+class PositiveInteger(graphene.Int):
+    """Positive Int custom field.
+
+    Should use in places where int value must be nonnegative (0 or greater).
+    """
+
+    @staticmethod
+    def parse_literal(ast):
+        value = super(PositiveInteger, PositiveInteger).parse_literal(ast)
+        if value and value < 0:
+            return None
+        return value
