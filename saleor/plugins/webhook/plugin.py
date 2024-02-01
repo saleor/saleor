@@ -3061,13 +3061,23 @@ class WebhookPlugin(BasePlugin):
     def get_taxes_for_order(
         self, order: "Order", app_identifier, previous_value
     ) -> Optional["TaxData"]:
-        return trigger_all_webhooks_sync(
-            WebhookEventSyncType.ORDER_CALCULATE_TAXES,
-            lambda: generate_order_payload_for_tax_calculation(order),
-            parse_tax_data,
-            order,
-            self.requestor,
-        )
+        event_type = WebhookEventSyncType.ORDER_CALCULATE_TAXES
+        if app_identifier:
+            payload = generate_order_payload_for_tax_calculation(order)
+            return self.__run_tax_webhook(
+                event_type,
+                app_identifier,
+                payload,
+                order,
+            )
+        else:
+            return trigger_all_webhooks_sync(
+                WebhookEventSyncType.ORDER_CALCULATE_TAXES,
+                lambda: generate_order_payload_for_tax_calculation(order),
+                parse_tax_data,
+                order,
+                self.requestor,
+            )
 
     def get_shipping_methods_for_checkout(
         self, checkout: "Checkout", previous_value: Any

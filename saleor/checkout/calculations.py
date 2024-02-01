@@ -340,7 +340,9 @@ def _calculate_and_add_tax(
         tax_data = manager.get_taxes_for_checkout(
             checkout_info, lines, tax_app_identifier
         )
-        if tax_data is None:
+        # If taxAppId is not configured we will for now allow to finalize process for
+        # backward compatibility.
+        if tax_data is None and tax_app_identifier is not None:
             raise ValueError("Empty tax data")
         _apply_tax_data(checkout, lines, tax_data)
     else:
