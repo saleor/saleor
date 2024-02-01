@@ -386,7 +386,7 @@ def create_discount_objects_for_catalogue_promotions(
         if not discount_amount or line.is_gift:
             ids_to_remove = [discount.id for discount in discounts_to_update]
             if ids_to_remove:
-                CheckoutLineDiscount.objects.filter(id__in=ids_to_remove).delete()
+                line_discount_ids_to_remove.extend(ids_to_remove)
                 line_info.discounts = [
                     discount
                     for discount in line_info.discounts
