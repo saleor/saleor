@@ -21,7 +21,12 @@ from ..core.utils.promo_code import (
 from ..core.utils.translations import get_translation
 from ..discount import DiscountType, VoucherType
 from ..discount.interface import VoucherInfo, fetch_voucher_info
-from ..discount.models import CheckoutDiscount, NotApplicable, Voucher, VoucherCode
+from ..discount.models import (
+    CheckoutDiscount,
+    NotApplicable,
+    Voucher,
+    VoucherCode,
+)
 from ..discount.utils import (
     create_discount_objects_for_catalogue_promotions,
     create_discount_objects_for_order_promotions,
@@ -58,7 +63,7 @@ if TYPE_CHECKING:
 PRIVATE_META_APP_SHIPPING_ID = "external_app_shipping_id"
 
 
-def invalidate_checkout_prices(
+def invalidate_checkout(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     manager: "PluginsManager",
@@ -67,11 +72,34 @@ def invalidate_checkout_prices(
     save: bool,
 ) -> list[str]:
     """Mark checkout as ready for prices recalculation."""
-    checkout = checkout_info.checkout
-
     if recalculate_discount:
-        create_discount_objects_for_catalogue_promotions(lines)
-        recalculate_checkout_discount(manager, checkout_info, lines)
+        recalculate_checkout_discounts(checkout_info, lines, manager)
+
+    updated_fields = invalidate_checkout_prices(checkout_info, save=save)
+    return updated_fields
+
+
+def recalculate_checkout_discounts(
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
+    manager: "PluginsManager",
+):
+    """Recalculate checkout discounts.
+
+    Update line and checkout discounts from vouchers and promotions.
+    Create or remove gift line if needed.
+    """
+    create_discount_objects_for_catalogue_promotions(lines)
+    recalculate_checkout_discount(manager, checkout_info, lines)
+
+
+def invalidate_checkout_prices(
+    checkout_info: "CheckoutInfo",
+    *,
+    save: bool,
+) -> list[str]:
+    """Mark checkout as ready for prices recalculation."""
+    checkout = checkout_info.checkout
 
     checkout.price_expiration = timezone.now()
     updated_fields = ["price_expiration", "last_change"]
@@ -417,6 +445,8 @@ def get_discounted_lines(
         or voucher_info.variant_pks
     ):
         for line_info in lines:
+            if line_info.line.is_gift:
+                continue
             line_variant = line_info.variant
             line_product = line_info.product
             line_category = line_info.product.category

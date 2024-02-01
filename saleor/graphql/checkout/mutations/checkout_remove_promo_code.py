@@ -8,7 +8,7 @@ from ....checkout import models
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import (
-    invalidate_checkout_prices,
+    invalidate_checkout,
     remove_promo_code_from_checkout,
     remove_voucher_from_checkout,
 )
@@ -101,7 +101,7 @@ class CheckoutRemovePromoCode(BaseMutation):
 
         if removed:
             lines, _ = fetch_checkout_lines(checkout)
-            invalidate_checkout_prices(
+            invalidate_checkout(
                 checkout_info,
                 lines,
                 manager,

@@ -942,3 +942,59 @@ def test_checkout_total_order_discount(
         - checkout.discount
     )
     assert total == expected_price
+
+
+def test_base_checkout_total_gift_promotion(
+    checkout_with_item_and_gift_promotion, shipping_method
+):
+    # given
+    manager = get_plugins_manager(allow_replica=False)
+    checkout = checkout_with_item_and_gift_promotion
+    channel = checkout.channel
+
+    checkout.shipping_method = shipping_method
+    checkout_lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, checkout_lines, manager)
+
+    # when
+    total = base_checkout_total(checkout_info, checkout_lines)
+
+    # then
+    variant = checkout.lines.get(is_gift=False).variant
+    channel_listing = variant.channel_listings.get(channel=channel)
+    net = variant.get_price(channel_listing)
+    shipping_channel_listings = shipping_method.channel_listings.get(channel=channel)
+    # the gift line price should not be included, the price should be equal to the sum
+    # of the shipping price and the price of the variants that are not a gift
+    expected_price = (
+        net * checkout.lines.first().quantity + shipping_channel_listings.price
+    )
+    assert total == expected_price
+
+
+def test_checkout_total_gift_promotion(
+    checkout_with_item_and_gift_promotion, shipping_method
+):
+    # given
+    manager = get_plugins_manager(allow_replica=False)
+    checkout = checkout_with_item_and_gift_promotion
+    channel = checkout.channel
+
+    checkout.shipping_method = shipping_method
+    checkout_lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, checkout_lines, manager)
+
+    # when
+    total = checkout_total(checkout_info, checkout_lines)
+
+    # then
+    variant = checkout.lines.first().variant
+    channel_listing = variant.channel_listings.get(channel=channel)
+    net = variant.get_price(channel_listing)
+    shipping_channel_listings = shipping_method.channel_listings.get(channel=channel)
+    # the gift line price should not be included, the price should be equal to the sum
+    # of the shipping price and the price of the variants that are not a gift
+    expected_price = (
+        net * checkout.lines.first().quantity + shipping_channel_listings.price
+    )
+    assert total == expected_price

@@ -4,7 +4,7 @@ from ....checkout import AddressType
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import (
     change_billing_address_in_checkout,
-    invalidate_checkout_prices,
+    invalidate_checkout,
 )
 from ....core.tracing import traced_atomic_transaction
 from ....webhook.event_types import WebhookEventAsyncType
@@ -98,7 +98,7 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
             )
             lines, _ = fetch_checkout_lines(checkout)
             checkout_info = fetch_checkout_info(checkout, lines, manager)
-            invalidate_prices_updated_fields = invalidate_checkout_prices(
+            invalidate_prices_updated_fields = invalidate_checkout(
                 checkout_info,
                 lines,
                 manager,
