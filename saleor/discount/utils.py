@@ -540,17 +540,13 @@ def create_discount_objects_for_order_promotions(
     _set_checkout_base_prices(checkout_info, lines_info)
 
     checkout = checkout_info.checkout
-
-    # Discount from order rules is applied only when the voucher is not set
-    if checkout.voucher_code:
-        _clear_checkout_discount(checkout_info, save)
-        return
-    subtotal = checkout.base_subtotal
-
     rules = fetch_promotion_rules_for_checkout(checkout)
-    if not rules:
+    # Discount from order rules is applied only when the voucher is not set
+    if checkout.voucher_code or not rules:
         _clear_checkout_discount(checkout_info, save)
         return
+
+    subtotal = checkout.base_subtotal
     currency_code = checkout_info.channel.currency_code
     rule_with_discount_amount = []
     for rule in rules:
@@ -591,28 +587,36 @@ def _set_checkout_base_prices(checkout_info, lines_info):
 
 
 def _clear_checkout_discount(checkout_info, save):
-    CheckoutDiscount.objects.filter(
-        checkout=checkout_info.checkout,
-        type=DiscountType.ORDER_PROMOTION,
-    ).delete()
-    checkout_info.discounts = [
-        discount
-        for discount in checkout_info.discounts
-        if discount.type != DiscountType.ORDER_PROMOTION
-    ]
+    if checkout_info.discounts:
+        CheckoutDiscount.objects.filter(
+            checkout=checkout_info.checkout,
+            type=DiscountType.ORDER_PROMOTION,
+        ).delete()
+        checkout_info.discounts = [
+            discount
+            for discount in checkout_info.discounts
+            if discount.type != DiscountType.ORDER_PROMOTION
+        ]
+    checkout = checkout_info.checkout
     if not checkout_info.voucher_code:
-        checkout_info.checkout.discount_amount = 0
-        checkout_info.checkout.discount_name = None
-        checkout_info.checkout.translated_discount_name = None
+        is_update_needed = not (
+            checkout.discount_amount == 0
+            and checkout.discount_name is None
+            and checkout.translated_discount_name is None
+        )
+        if is_update_needed:
+            checkout_info.checkout.discount_amount = 0
+            checkout_info.checkout.discount_name = None
+            checkout_info.checkout.translated_discount_name = None
 
-        if save:
-            checkout_info.checkout.save(
-                update_fields=[
-                    "discount_amount",
-                    "discount_name",
-                    "translated_discount_name",
-                ]
-            )
+            if save and is_update_needed:
+                checkout_info.checkout.save(
+                    update_fields=[
+                        "discount_amount",
+                        "discount_name",
+                        "translated_discount_name",
+                    ]
+                )
 
 
 def _create_or_update_checkout_discount(
