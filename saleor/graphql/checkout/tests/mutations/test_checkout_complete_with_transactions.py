@@ -1910,6 +1910,7 @@ def test_checkout_with_voucher_complete_product_on_sale(
         amount_value=reward_value,
         currency=channel.currency_code,
         promotion_rule=rule,
+        reason=f"Sale: {graphene.Node.to_global_id('Sale', old_sale_id)}",
     )
 
     catalogue_promotion_without_rules.name = ""

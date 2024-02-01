@@ -21,6 +21,7 @@ class DiscountType:
     ORDER_PROMOTION = "order_promotion"
     VOUCHER = "voucher"
     MANUAL = "manual"
+
     CHOICES = [
         (SALE, "Sale"),
         (VOUCHER, "Voucher"),

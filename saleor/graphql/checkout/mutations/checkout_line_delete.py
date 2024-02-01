@@ -2,7 +2,7 @@ import graphene
 
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from ....checkout.utils import invalidate_checkout_prices
+from ....checkout.utils import invalidate_checkout
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
@@ -80,7 +80,7 @@ class CheckoutLineDelete(BaseMutation):
         lines, _ = fetch_checkout_lines(checkout)
         checkout_info = fetch_checkout_info(checkout, lines, manager)
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
-        invalidate_checkout_prices(checkout_info, lines, manager, save=True)
+        invalidate_checkout(checkout_info, lines, manager, save=True)
         cls.call_event(manager.checkout_updated, checkout)
 
         return CheckoutLineDelete(checkout=checkout)

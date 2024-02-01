@@ -5,7 +5,7 @@ import graphene
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import CheckoutLine
-from .....checkout.utils import invalidate_checkout_prices
+from .....checkout.utils import invalidate_checkout
 from .....plugins.manager import get_plugins_manager
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
@@ -41,12 +41,11 @@ MUTATION_CHECKOUT_LINES_DELETE = """
     wraps=update_checkout_shipping_method_if_invalid,
 )
 @mock.patch(
-    "saleor.graphql.checkout.mutations.checkout_lines_delete."
-    "invalidate_checkout_prices",
-    wraps=invalidate_checkout_prices,
+    "saleor.graphql.checkout.mutations.checkout_lines_delete.invalidate_checkout",
+    wraps=invalidate_checkout,
 )
 def test_checkout_lines_delete(
-    mocked_invalidate_checkout_prices,
+    mocked_invalidate_checkout,
     mocked_update_shipping_method,
     user_api_client,
     checkout_with_items,
@@ -77,7 +76,7 @@ def test_checkout_lines_delete(
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.last_change != previous_last_change
-    assert mocked_invalidate_checkout_prices.call_count == 1
+    assert mocked_invalidate_checkout.call_count == 1
 
 
 def test_checkout_lines_delete_invalid_checkout_id(

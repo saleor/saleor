@@ -161,7 +161,6 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader[str, list[CheckoutLineIn
                     ):
                         apply_voucher_to_checkout_line(
                             voucher_info=voucher_info,
-                            checkout=checkout,
                             lines_info=lines_info_map[checkout.pk],
                         )
                 return [lines_info_map[key] for key in keys]

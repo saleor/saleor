@@ -13,7 +13,7 @@ from ....checkout.fetch import (
 )
 from ....checkout.utils import (
     change_shipping_address_in_checkout,
-    invalidate_checkout_prices,
+    invalidate_checkout,
     is_shipping_required,
 )
 from ....core.tracing import traced_atomic_transaction
@@ -196,7 +196,7 @@ class CheckoutShippingAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixi
                 manager,
                 shipping_channel_listings,
             )
-        invalidate_prices_updated_fields = invalidate_checkout_prices(
+        invalidate_prices_updated_fields = invalidate_checkout(
             checkout_info, lines, manager, save=False
         )
         checkout.save(

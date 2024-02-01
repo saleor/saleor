@@ -9,7 +9,7 @@ from .....checkout.utils import (
     add_variant_to_checkout,
     add_voucher_to_checkout,
     calculate_checkout_quantity,
-    invalidate_checkout_prices,
+    invalidate_checkout,
 )
 from .....plugins.manager import get_plugins_manager
 from .....warehouse.models import Reservation
@@ -45,12 +45,11 @@ MUTATION_CHECKOUT_LINE_DELETE = """
     wraps=update_checkout_shipping_method_if_invalid,
 )
 @mock.patch(
-    "saleor.graphql.checkout.mutations.checkout_line_delete."
-    "invalidate_checkout_prices",
-    wraps=invalidate_checkout_prices,
+    "saleor.graphql.checkout.mutations.checkout_line_delete.invalidate_checkout",
+    wraps=invalidate_checkout,
 )
 def test_checkout_line_delete(
-    mocked_invalidate_checkout_prices,
+    mocked_invalidate_checkout,
     mocked_update_shipping_method,
     user_api_client,
     checkout_line_with_reservation_in_many_stocks,
@@ -81,7 +80,7 @@ def test_checkout_line_delete(
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.last_change != previous_last_change
-    assert mocked_invalidate_checkout_prices.call_count == 1
+    assert mocked_invalidate_checkout.call_count == 1
 
 
 def test_checkout_lines_delete_with_not_applicable_voucher(
