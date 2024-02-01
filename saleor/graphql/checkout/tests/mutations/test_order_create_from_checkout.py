@@ -1124,6 +1124,11 @@ def test_order_from_checkout_on_catalogue_and_gift_promotion(
     checkout.save()
 
     # add gift reward
+    gift_promotion_rule.order_predicate = {
+        "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 10}}}
+    }
+    gift_promotion_rule.save(update_fields=["order_predicate"])
+
     variants = gift_promotion_rule.gifts.all()
     variant_listings = ProductVariantChannelListing.objects.filter(variant__in=variants)
     top_price, variant_id = max(
