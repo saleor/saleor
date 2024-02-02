@@ -8,6 +8,7 @@ import pytz
 from django.core.files import File
 from graphql_relay import to_global_id
 
+from ....discount.utils import get_active_promotion_rules
 from ....product.error_codes import CollectionErrorCode, ProductErrorCode
 from ....product.models import Collection, CollectionChannelListing, Product
 from ....product.tests.utils import create_image, create_zip_file_with_image_ext
@@ -1091,13 +1092,9 @@ DELETE_COLLECTION_MUTATION = """
 """
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
 @patch("saleor.plugins.manager.PluginsManager.collection_deleted")
 def test_delete_collection(
     deleted_webhook_mock,
-    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     collection,
     product_list,
@@ -1122,11 +1119,8 @@ def test_delete_collection(
         collection.refresh_from_db()
 
     deleted_webhook_mock.assert_called_once()
-    update_products_discounted_prices_for_promotion_task_mock.assert_called_once()
-    args = set(
-        update_products_discounted_prices_for_promotion_task_mock.call_args.args[0]
-    )
-    assert args == {product.id for product in product_list}
+    for rule in get_active_promotion_rules():
+        assert rule.variants_dirty is True
 
 
 @patch("saleor.core.tasks.delete_from_storage_task.delay")
@@ -1206,11 +1200,7 @@ COLLECTION_ADD_PRODUCTS_MUTATION = """
 """
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
 def test_add_products_to_collection(
-    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     collection,
     product_list,
@@ -1233,11 +1223,8 @@ def test_add_products_to_collection(
     content = get_graphql_content(response)
     data = content["data"]["collectionAddProducts"]["collection"]
     assert data["products"]["totalCount"] == products_before + len(product_ids)
-    update_products_discounted_prices_for_promotion_task_mock.assert_called_once()
-    args = set(
-        update_products_discounted_prices_for_promotion_task_mock.call_args.args[0]
-    )
-    assert args == {product.id for product in product_list}
+    for rule in get_active_promotion_rules():
+        assert rule.variants_dirty is True
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
@@ -1312,11 +1299,7 @@ COLLECTION_REMOVE_PRODUCTS_MUTATION = """
 """
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
 def test_remove_products_from_collection(
-    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     collection,
     product_list,
@@ -1339,11 +1322,8 @@ def test_remove_products_from_collection(
     content = get_graphql_content(response)
     data = content["data"]["collectionRemoveProducts"]["collection"]
     assert data["products"]["totalCount"] == products_before - len(product_ids)
-    update_products_discounted_prices_for_promotion_task_mock.assert_called_once()
-    args = set(
-        update_products_discounted_prices_for_promotion_task_mock.call_args.args[0]
-    )
-    assert args == {product.id for product in product_list}
+    for rule in get_active_promotion_rules():
+        assert rule.variants_dirty is True
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")

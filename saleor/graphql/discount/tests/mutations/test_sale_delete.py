@@ -5,6 +5,7 @@ import pytest
 
 from .....discount.error_codes import DiscountErrorCode
 from .....discount.models import Promotion, PromotionRule
+from .....product.models import ProductChannelListing
 from ....tests.utils import get_graphql_content
 from ...utils import (
     convert_migrated_sale_predicate_to_catalogue_info,
@@ -39,6 +40,9 @@ def test_sale_delete_mutation(
     # given
     query = SALE_DELETE_MUTATION
     promotion = promotion_converted_from_sale
+    channels = (
+        PromotionRule.objects.filter(promotion_id=promotion.id).first().channels.all()
+    )
     previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
         catalogue_predicate
     )
@@ -63,8 +67,12 @@ def test_sale_delete_mutation(
         promotion.refresh_from_db()
 
     deleted_webhook_mock.assert_called_once_with(promotion, previous_catalogue)
-    for variant in variants.select_related("product"):
-        assert variant.product.discounted_price_dirty is True
+
+    for listing in ProductChannelListing.objects.filter(
+        channel__in=channels,
+        product__in=[variant.product for variant in variants.select_related("product")],
+    ):
+        assert listing.discounted_price_dirty is True
 
 
 @patch("saleor.product.tasks.update_discounted_prices_task.delay")

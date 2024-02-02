@@ -18,7 +18,7 @@ from ..plugins.manager import get_plugins_manager
 from ..warehouse.management import deactivate_preorder_for_variant
 from ..webhook.event_types import WebhookEventAsyncType
 from ..webhook.utils import get_webhooks_for_event
-from .models import Product, ProductType, ProductVariant
+from .models import Product, ProductChannelListing, ProductType, ProductVariant
 from .search import update_products_search_vector
 from .utils.product import mark_products_for_recalculate_discounted_price
 from .utils.variant_prices import update_discounted_prices_for_promotion
@@ -190,14 +190,13 @@ def update_promotion_rules_mark_products_for_price_recalculation_task(
 @app.task
 def recalculate_discounted_price_for_products_task():
     """Recalculate discounted price for products."""
-    products_ids = list(
-        Product.objects.filter(discounted_price_dirty=True)
-        .order_by("id")
-        .values_list("id", flat=True)
-    )[:DISCOUNTED_PRODUCT_BATCH]
+    listings = ProductChannelListing.objects.filter(
+        discounted_price_dirty=True
+    ).order_by("id")[:DISCOUNTED_PRODUCT_BATCH]
+    products_ids = set(listings.values_list("product_id", flat=True))
     if products := Product.objects.filter(id__in=products_ids):
         update_discounted_prices_for_promotion(products)
-        products.update(discounted_price_dirty=False)
+        listings.update(discounted_price_dirty=False)
         recalculate_discounted_price_for_products_task.delay()
 
 

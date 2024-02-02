@@ -6,9 +6,9 @@ import graphene
 from .....discount import PromotionEvents
 from .....discount.error_codes import PromotionRuleCreateErrorCode
 from .....discount.models import PromotionEvent
+from .....product.models import ProductChannelListing
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...enums import RewardValueTypeEnum
-from ...utils import get_products_for_promotion
 
 PROMOTION_RULE_CREATE_MUTATION = """
     mutation promotionRuleCreate($input: PromotionRuleCreateInput!) {
@@ -116,6 +116,9 @@ def test_promotion_rule_create_by_staff_user(
     data = content["data"]["promotionRuleCreate"]
     rule_data = data["promotionRule"]
     product.refresh_from_db()
+    listings = ProductChannelListing.objects.filter(
+        channel__in=[channel_USD, channel_PLN], product=product
+    )
 
     assert not data["errors"]
     assert rule_data["name"] == name
@@ -128,7 +131,8 @@ def test_promotion_rule_create_by_staff_user(
     assert promotion.rules.count() == rules_count + 1
     rule = promotion.rules.last()
     promotion_rule_created_mock.assert_called_once_with(rule)
-    assert product.discounted_price_dirty is True
+    for listing in listings:
+        assert listing.discounted_price_dirty is True
 
 
 def test_promotion_rule_create_by_app(
@@ -185,7 +189,6 @@ def test_promotion_rule_create_by_app(
     content = get_graphql_content(response)
     data = content["data"]["promotionRuleCreate"]
     rule_data = data["promotionRule"]
-    product = category.products.first()
 
     assert not data["errors"]
     assert rule_data["name"] == name
@@ -196,7 +199,6 @@ def test_promotion_rule_create_by_app(
     assert rule_data["rewardValue"] == reward_value
     assert rule_data["promotion"]["id"] == promotion_id
     assert promotion.rules.count() == rules_count + 1
-    assert product.discounted_price_dirty is True
 
 
 def test_promotion_rule_create_by_customer(
@@ -243,8 +245,11 @@ def test_promotion_rule_create_by_customer(
     # when
     response = api_client.post_graphql(PROMOTION_RULE_CREATE_MUTATION, variables)
     assert_no_permission(response)
-    for product in get_products_for_promotion(promotion):
-        assert product.discounted_price_dirty is False
+
+    # then
+    product = category.products.first()
+    listing = ProductChannelListing.objects.get(channel=channel_USD, product=product)
+    assert listing.discounted_price_dirty is False
 
 
 def test_promotion_rule_create_missing_catalogue_predicate(
@@ -825,7 +830,9 @@ def test_promotion_rule_create_clears_old_sale_id(
     data = content["data"]["promotionRuleCreate"]
     rule_data = data["promotionRule"]
     product.refresh_from_db()
-
+    listings = ProductChannelListing.objects.filter(
+        channel__in=[channel_USD, channel_PLN], product=product
+    )
     assert not data["errors"]
     assert rule_data["name"] == name
     assert rule_data["description"] == description_json
@@ -835,7 +842,9 @@ def test_promotion_rule_create_clears_old_sale_id(
     assert rule_data["rewardValue"] == reward_value
     assert rule_data["promotion"]["id"] == promotion_id
     assert promotion.rules.count() == rules_count + 1
-    assert product.discounted_price_dirty is True
+
+    for listing in listings:
+        assert listing.discounted_price_dirty is True
 
     promotion.refresh_from_db()
     assert promotion.old_sale_id is None

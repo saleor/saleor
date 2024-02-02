@@ -6,7 +6,7 @@ import graphene
 from .....discount import PromotionEvents, RewardValueType
 from .....discount.error_codes import PromotionRuleUpdateErrorCode
 from .....discount.models import PromotionEvent
-from .....product.models import Product
+from .....product.models import ProductChannelListing
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...enums import RewardValueTypeEnum
 from ...utils import get_variants_for_predicate
@@ -118,7 +118,7 @@ def test_promotion_rule_update_by_staff_user(
     content = get_graphql_content(response)
     data = content["data"]["promotionRuleUpdate"]
     rule_data = data["promotionRule"]
-
+    rule.refresh_from_db()
     assert not data["errors"]
     assert rule_data["name"] == rule.name
     assert rule_data["description"] == rule.description
@@ -130,10 +130,10 @@ def test_promotion_rule_update_by_staff_user(
     assert rule_data["promotion"]["id"] == promotion_id
     assert promotion.rules.count() == rules_count
     promotion_rule_updated_mock.assert_called_once_with(rule)
-    for product in Product.objects.filter(
-        id__in=[product_list[1].id, product_list[2].id]
+    for listing in ProductChannelListing.objects.filter(
+        channel__in=rule.channels.all(), product__in=[product_list[1], product_list[2]]
     ):
-        assert product.discounted_price_dirty is True
+        assert listing.discounted_price_dirty is True
 
 
 def test_promotion_rule_update_by_app(
@@ -177,6 +177,7 @@ def test_promotion_rule_update_by_app(
     content = get_graphql_content(response)
     data = content["data"]["promotionRuleUpdate"]
     rule_data = data["promotionRule"]
+    rule.refresh_from_db()
 
     assert not data["errors"]
     assert rule_data["name"] == rule.name
@@ -188,7 +189,10 @@ def test_promotion_rule_update_by_app(
     assert rule_data["rewardValue"] == reward_value
     assert rule_data["promotion"]["id"] == promotion_id
     assert promotion.rules.count() == rules_count
-    assert product.discounted_price_dirty is True
+    for listing in ProductChannelListing.objects.filter(
+        channel__in=rule.channels.all(), product=product
+    ):
+        assert listing.discounted_price_dirty is True
 
 
 def test_promotion_rule_update_by_customer(
@@ -672,6 +676,7 @@ def test_promotion_rule_update_clears_old_sale_id(
     content = get_graphql_content(response)
     data = content["data"]["promotionRuleUpdate"]
     rule_data = data["promotionRule"]
+    rule.refresh_from_db()
 
     assert not data["errors"]
     assert rule_data["name"] == rule.name
@@ -686,10 +691,10 @@ def test_promotion_rule_update_clears_old_sale_id(
     promotion.refresh_from_db()
     assert promotion.old_sale_id is None
 
-    for product in Product.objects.filter(
-        id__in=[product_list[1].id, product_list[2].id]
+    for listing in ProductChannelListing.objects.filter(
+        channel__in=rule.channels.all(), product__in=[product_list[1], product_list[2]]
     ):
-        assert product.discounted_price_dirty is True
+        assert listing.discounted_price_dirty is True
 
 
 def test_promotion_rule_update_events(

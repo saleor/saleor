@@ -54,7 +54,7 @@ class PromotionRuleDelete(ModelDeleteMutation):
             models.PromotionRule.objects.filter(id=instance.id)
         )
         product_ids = list(products.values_list("id", flat=True))
-
+        channel_ids = list(instance.channels.values_list("id", flat=True))
         db_id = instance.id
         promotion = instance.promotion
         instance.delete()
@@ -66,7 +66,7 @@ class PromotionRuleDelete(ModelDeleteMutation):
         instance.id = db_id
 
         if product_ids:
-            mark_products_for_recalculate_discounted_price(product_ids)
+            mark_products_for_recalculate_discounted_price(product_ids, channel_ids)
 
         app = get_app_promise(info.context).get()
         events.rule_deleted_event(info.context.user, app, [instance])
