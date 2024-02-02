@@ -785,7 +785,7 @@ def add_voucher_to_checkout(
             type=DiscountType.ORDER_PROMOTION,
         ).delete()
         # delete gift line if exists
-        delete_gift_line(lines)
+        delete_gift_line(checkout_info.checkout, lines)
 
 
 def remove_promo_code_from_checkout(

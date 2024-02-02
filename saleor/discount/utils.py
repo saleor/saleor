@@ -640,7 +640,7 @@ def _set_checkout_base_prices(checkout_info, lines_info):
 def _clear_checkout_discount(
     checkout_info: "CheckoutInfo", lines_info: Iterable["CheckoutLineInfo"], save: bool
 ):
-    delete_gift_line(lines_info)
+    delete_gift_line(checkout_info.checkout, lines_info)
     CheckoutDiscount.objects.filter(
         checkout=checkout_info.checkout,
         type=DiscountType.ORDER_PROMOTION,
@@ -842,14 +842,12 @@ def _handle_order_promotion(
             ]
         )
 
-    delete_gift_line(lines_info)
+    delete_gift_line(checkout, lines_info)
 
 
-def delete_gift_line(lines_info: Iterable["CheckoutLineInfo"]):
+def delete_gift_line(checkout: "Checkout", lines_info: Iterable["CheckoutLineInfo"]):
     gift_line_infos = [line for line in lines_info if line.line.is_gift]
-    line_ids_to_delete = [line_info.line.id for line_info in gift_line_infos]
-    if line_ids_to_delete:
-        CheckoutLine.objects.filter(id__in=line_ids_to_delete).delete()
+    CheckoutLine.objects.filter(checkout_id=checkout.pk, is_gift=True).delete()
     for gift_line_info in gift_line_infos:
         lines_info.remove(gift_line_info)  # type: ignore[attr-defined]
 
