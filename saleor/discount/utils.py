@@ -581,9 +581,13 @@ def _set_checkout_base_prices(checkout_info, lines_info):
         checkout_info, lines_info, include_voucher=False
     )
     total = subtotal + shipping_price
-    checkout.base_subtotal = subtotal
-    checkout.base_total = total
-    checkout.save(update_fields=["base_total_amount", "base_subtotal_amount"])
+    is_update_needed = not (
+        checkout.base_subtotal == subtotal and checkout.base_total == total
+    )
+    if is_update_needed:
+        checkout.base_subtotal = subtotal
+        checkout.base_total = total
+        checkout.save(update_fields=["base_total_amount", "base_subtotal_amount"])
 
 
 def _clear_checkout_discount(checkout_info, save):
