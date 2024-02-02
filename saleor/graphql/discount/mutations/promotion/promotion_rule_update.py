@@ -35,6 +35,14 @@ class PromotionRuleUpdateError(Error):
         description="List of channel IDs which causes the error.",
         required=False,
     )
+    gifts_limit = graphene.Int(
+        description="Limit of rules with orderPredicate defined."
+    )
+    gifts_limit_exceed_by = graphene.Int(
+        description=(
+            "Number of gifts defined for this promotion rule exceeding the limit."
+        )
+    )
 
 
 class PromotionRuleUpdateInput(PromotionRuleBaseInput):

@@ -892,3 +892,6 @@ WEBHOOK_SYNC_TIMEOUT = (REQUESTS_CONN_EST_TIMEOUT, 18)
 
 # The max number of rules with order_predicate defined
 ORDER_RULES_LIMIT = os.environ.get("ORDER_RULES_LIMIT", 100)
+
+# The max number of gits assigned to promotion rule
+GIFTS_LIMIT_PER_RULE = os.environ.get("GIFTS_LIMIT_PER_RULE", 500)

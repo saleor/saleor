@@ -41,8 +41,16 @@ class PromotionCreateError(Error):
     rules_limit = graphene.Int(
         description="Limit of rules with orderPredicate defined."
     )
-    exceed_by = graphene.Int(
+    rules_limit_exceed_by = graphene.Int(
         description="Number of rules with orderPredicate defined exceeding the limit."
+    )
+    gifts_limit = graphene.Int(
+        description="Limit of rules with orderPredicate defined."
+    )
+    gifts_limit_exceed_by = graphene.Int(
+        description=(
+            "Number of gifts defined for this promotion rule exceeding the limit."
+        )
     )
 
 
@@ -156,7 +164,7 @@ class PromotionCreate(ModelMutation):
                             code=PromotionCreateErrorCode.RULES_NUMBER_LIMIT.value,
                             params={
                                 "rules_limit": rules_limit,
-                                "exceed_by": exceed_by,
+                                "rules_limit_exceed_by": exceed_by,
                             },
                         )
                     }
