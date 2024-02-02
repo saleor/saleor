@@ -13,6 +13,7 @@ from ...page import models as page_models
 from ...permission.enums import (
     DiscountPermissions,
     PagePermissions,
+    ProductPermissions,
     ShippingPermissions,
 )
 from ...product import models as product_models
@@ -38,8 +39,9 @@ from ..page.dataloaders import (
     SelectedAttributesVisibleInStorefrontPageIdLoader,
 )
 from ..product.dataloaders import (
-    SelectedAttributesByProductIdLoader,
+    SelectedAttributesAllByProductIdLoader,
     SelectedAttributesByProductVariantIdLoader,
+    SelectedAttributesVisibleInStorefrontByProductIdLoader,
 )
 from ..utils import get_user_or_app_from_context
 from .fields import TranslationField
@@ -328,11 +330,23 @@ class ProductTranslatableContent(ModelObjectType[product_models.Product]):
 
     @staticmethod
     def resolve_attribute_values(root: product_models.Product, info):
-        return (
-            SelectedAttributesByProductIdLoader(info.context)
-            .load(root.id)
-            .then(get_translatable_attribute_values)
-        )
+        requestor = get_user_or_app_from_context(info.context)
+        if (
+            requestor
+            and requestor.is_active
+            and requestor.has_perm(ProductPermissions.MANAGE_PRODUCTS)
+        ):
+            return (
+                SelectedAttributesAllByProductIdLoader(info.context)
+                .load(root.id)
+                .then(get_translatable_attribute_values)
+            )
+        else:
+            return (
+                SelectedAttributesVisibleInStorefrontByProductIdLoader(info.context)
+                .load(root.id)
+                .then(get_translatable_attribute_values)
+            )
 
 
 class CollectionTranslation(BaseTranslationType[product_models.CollectionTranslation]):
