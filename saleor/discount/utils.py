@@ -540,9 +540,14 @@ def create_discount_objects_for_order_promotions(
     _set_checkout_base_prices(checkout_info, lines_info)
 
     checkout = checkout_info.checkout
-    rules = fetch_promotion_rules_for_checkout(checkout)
+
     # Discount from order rules is applied only when the voucher is not set
-    if checkout.voucher_code or not rules:
+    if checkout.voucher_code:
+        _clear_checkout_discount(checkout_info, save)
+        return
+
+    rules = fetch_promotion_rules_for_checkout(checkout)
+    if not rules:
         _clear_checkout_discount(checkout_info, save)
         return
 
@@ -609,12 +614,12 @@ def _clear_checkout_discount(checkout_info, save):
             and checkout.translated_discount_name is None
         )
         if is_update_needed:
-            checkout_info.checkout.discount_amount = 0
-            checkout_info.checkout.discount_name = None
-            checkout_info.checkout.translated_discount_name = None
+            checkout.discount_amount = 0
+            checkout.discount_name = None
+            checkout.translated_discount_name = None
 
             if save and is_update_needed:
-                checkout_info.checkout.save(
+                checkout.save(
                     update_fields=[
                         "discount_amount",
                         "discount_name",
