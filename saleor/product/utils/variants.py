@@ -59,7 +59,7 @@ def fetch_variants_for_promotion_rules(
 
     PromotionRuleVariant = PromotionRule.variants.through
     new_rules_variants = []
-    for rule in list(rules.iterator()):
+    for rule in rules.iterator():
         variants = get_variants_for_catalogue_predicate(rule.catalogue_predicate)
         new_rules_variants.extend(
             [
