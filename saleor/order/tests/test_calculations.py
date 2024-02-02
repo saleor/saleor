@@ -8,6 +8,7 @@ from prices import Money, TaxedMoney
 from ...core.prices import quantize_price
 from ...core.taxes import TaxData, TaxError, TaxLineData, zero_taxed_money
 from ...discount import DiscountValueType
+from ...plugins.manager import get_plugins_manager
 from ...tax import TaxCalculationStrategy
 from ...tax.calculations.order import update_order_prices_with_flat_rates
 from .. import OrderStatus, calculations
@@ -362,17 +363,9 @@ def test_recalculate_with_plugins_order_discounts_and_total_undiscounted_price_c
                 price_with_discounts=total_price.price_with_discounts / line.quantity,
             )
         )
-    tax_rates = [line.tax_rate for line in tax_data.lines]
     shipping_tax_rate = 0
 
-    manager = Mock(
-        calculate_order_line_unit=Mock(side_effect=unit_prices),
-        calculate_order_line_total=Mock(side_effect=total_prices),
-        get_order_shipping_tax_rate=Mock(return_value=shipping_tax_rate),
-        get_order_line_tax_rate=Mock(side_effect=tax_rates),
-        calculate_order_shipping=Mock(return_value=zero_taxed_money(currency)),
-        calculate_order_total=Mock(return_value=zero_taxed_money(currency)),
-    )
+    manager = get_plugins_manager(allow_replica=True)
 
     # when
     calculations._recalculate_with_plugins(manager, order, lines, False)
@@ -388,7 +381,7 @@ def test_recalculate_with_plugins_order_discounts_and_total_undiscounted_price_c
     assert order.shipping_tax_rate == shipping_tax_rate
 
 
-def test_update_order_discounts_and_base_undiscounted_total_shipping_price_changed(
+def test_recalculate_prices_total_shipping_price_changed(
     draft_order, order_lines, shipping_method_weight_based
 ):
     """Test that discounts are properly updated when shipping price changes."""
@@ -427,7 +420,9 @@ def test_update_order_discounts_and_base_undiscounted_total_shipping_price_chang
     )
 
     # when
-    calculations._update_order_discounts_and_base_undiscounted_total(order, order_lines)
+    calculations._recalculate_prices(
+        order, get_plugins_manager(allow_replica=True), order_lines
+    )
 
     # then
     order_discount.refresh_from_db()
@@ -437,7 +432,7 @@ def test_update_order_discounts_and_base_undiscounted_total_shipping_price_chang
     assert order_discount.amount == order.undiscounted_total.net
 
 
-def test_update_order_discounts_and_base_undiscounted_total_line_quantity_changed(
+def test_recalculate_prices_line_quantity_changed(
     draft_order, order_lines, shipping_method_weight_based
 ):
     """Test that discounts are properly updated when line quantities change."""
@@ -459,7 +454,9 @@ def test_update_order_discounts_and_base_undiscounted_total_line_quantity_change
     line.save(update_fields=["quantity"])
 
     # when
-    calculations._update_order_discounts_and_base_undiscounted_total(order, order_lines)
+    calculations._recalculate_prices(
+        order, get_plugins_manager(allow_replica=True), order_lines
+    )
 
     # then
     order_discount.refresh_from_db()

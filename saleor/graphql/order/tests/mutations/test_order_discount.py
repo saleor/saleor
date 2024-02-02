@@ -820,6 +820,24 @@ def test_update_order_line_discount(
     data = content["data"]["orderLineDiscountUpdate"]
 
     line_to_discount.refresh_from_db()
+    second_line = order.lines.last()
+    order.refresh_from_db()
+    order_discount = order.discounts.get()
+    order_discount_amount = order_discount.amount
+    base_shipping = order.base_shipping_price
+    discount_applied_to_lines = order_discount_amount - (
+        base_shipping - order.shipping_price.gross
+    )
+    discount_applied_to_discounted_line = (
+        discount_applied_to_lines
+        - (second_line.base_unit_price - second_line.unit_price.gross)
+        * second_line.quantity
+    )
+    assert (
+        discount_applied_to_discounted_line
+        == (line_to_discount.base_unit_price - line_to_discount.unit_price.gross)
+        * line_to_discount.quantity
+    )
 
     errors = data["errors"]
     assert not errors
@@ -830,7 +848,10 @@ def test_update_order_line_discount(
     )
     expected_line_price = discount(line_price_before_discount)
 
-    assert line_to_discount.unit_price == quantize_price(expected_line_price, "USD")
+    assert (
+        line_to_discount.base_unit_price
+        == quantize_price(expected_line_price, "USD").gross
+    )
     unit_discount = line_to_discount.unit_discount
     assert unit_discount == (line_price_before_discount - expected_line_price).gross
 
@@ -1011,7 +1032,7 @@ def test_update_order_line_discount_line_with_discount(
     )
     expected_line_price = discount(line_undiscounted_price)
 
-    assert line_to_discount.unit_price == expected_line_price
+    assert line_to_discount.base_unit_price == expected_line_price.gross
     unit_discount = line_to_discount.unit_discount
     assert unit_discount == (line_undiscounted_price - expected_line_price).gross
 
