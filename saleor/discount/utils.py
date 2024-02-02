@@ -862,21 +862,14 @@ def _handle_gift_reward(
         line, line_created = create_gift_line(checkout, gift_listing.variant_id)
         line_discount = None
         discount_created = False
-        if not line_created:
-            checkout_lines = CheckoutLine.objects.filter(checkout_id=checkout.pk)
-            line_discount = CheckoutLineDiscount.objects.filter(
-                Exists(checkout_lines.filter(id=OuterRef("line_id"))),
-                type=DiscountType.ORDER_PROMOTION,
-            ).first()
-        if not line_discount:
-            (
-                line_discount,
-                discount_created,
-            ) = CheckoutLineDiscount.objects.get_or_create(
-                type=DiscountType.ORDER_PROMOTION,
-                line=line,
-                defaults=discount_object_defaults,
-            )
+        (
+            line_discount,
+            discount_created,
+        ) = CheckoutLineDiscount.objects.get_or_create(
+            type=DiscountType.ORDER_PROMOTION,
+            line=line,
+            defaults=discount_object_defaults,
+        )
 
     if not discount_created:
         fields_to_update = []
