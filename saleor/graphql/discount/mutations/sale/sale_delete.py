@@ -57,6 +57,7 @@ class SaleDelete(ModelDeleteMutation):
         old_sale_id = promotion.old_sale_id
         promotion_id = promotion.id
         rule = promotion.rules.first()
+        channels_ids = rule.channels.values_list("id", flat=True)
         previous_catalogue = cls.get_catalogue_info(rule)
         product_ids = cls.get_product_ids(rule)
         with traced_atomic_transaction():
@@ -68,7 +69,9 @@ class SaleDelete(ModelDeleteMutation):
 
             manager = get_plugin_manager_promise(info.context).get()
             cls.call_event(manager.sale_deleted, promotion, previous_catalogue)
-            mark_products_for_recalculate_discounted_price(list(product_ids))
+            mark_products_for_recalculate_discounted_price(
+                list(product_ids), list(channels_ids)
+            )
 
         return response
 

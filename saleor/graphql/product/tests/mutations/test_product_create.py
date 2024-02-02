@@ -10,6 +10,7 @@ from django.utils.text import slugify
 from freezegun import freeze_time
 
 from .....core.taxes import TaxType
+from .....discount.utils import get_active_promotion_rules
 from .....graphql.core.enums import AttributeErrorCode
 from .....graphql.tests.utils import (
     get_graphql_content,
@@ -86,15 +87,11 @@ CREATE_PRODUCT_MUTATION = """
 """
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
 @patch("saleor.plugins.manager.PluginsManager.product_created")
 def test_create_product(
     created_webhook_mock,
     updated_webhook_mock,
-    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     product_type,
     category,
@@ -189,9 +186,8 @@ def test_create_product(
 
     created_webhook_mock.assert_called_once_with(product)
     updated_webhook_mock.assert_not_called()
-    update_products_discounted_prices_for_promotion_task_mock.assert_called_once_with(
-        [product.id]
-    )
+    for rule in get_active_promotion_rules():
+        assert rule.variants_dirty
 
 
 def test_create_product_without_slug_and_not_allowed_characters_for_slug_in_name(

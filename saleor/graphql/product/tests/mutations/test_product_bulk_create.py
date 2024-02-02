@@ -12,6 +12,7 @@ from .....attribute.tests.model_helpers import (
     get_product_attribute_values,
     get_product_attributes,
 )
+from .....discount.utils import get_active_promotion_rules
 from .....product.error_codes import ProductBulkCreateErrorCode
 from .....product.models import Product
 from .....product.tests.utils import create_image
@@ -83,11 +84,7 @@ PRODUCT_BULK_CREATE_MUTATION = """
 """
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
 def test_product_bulk_create_with_base_data(
-    update_products_discounted_price_task_mock,
     staff_api_client,
     product_type,
     collection,
@@ -157,9 +154,8 @@ def test_product_bulk_create_with_base_data(
         assert product.category == category
         assert product.product_type == product_type
 
-    update_products_discounted_price_task_mock.assert_called_once()
-    args = set(update_products_discounted_price_task_mock.call_args.args[0])
-    assert args == {product.id for product in products}
+    for rule in get_active_promotion_rules():
+        assert rule.variants_dirty is True
 
 
 def test_product_bulk_create_with_base_data_and_collections(

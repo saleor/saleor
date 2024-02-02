@@ -3,6 +3,7 @@ from unittest.mock import patch
 import graphene
 
 from .....discount.error_codes import DiscountErrorCode
+from .....product.models import ProductChannelListing
 from ....tests.utils import get_graphql_content
 from ...utils import convert_migrated_sale_predicate_to_catalogue_info
 
@@ -65,7 +66,8 @@ def test_sale_add_catalogues(
     assert not content["data"]["saleCataloguesAdd"]["errors"]
     assert content["data"]["saleCataloguesAdd"]["sale"]["name"] == promotion.name
     promotion.refresh_from_db()
-    predicate = promotion.rules.first().catalogue_predicate
+    rule = promotion.rules.first()
+    predicate = rule.catalogue_predicate
     current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(predicate)
 
     assert collection_id in current_catalogue["collections"]
@@ -76,8 +78,10 @@ def test_sale_add_catalogues(
     updated_webhook_mock.assert_called_once_with(
         promotion, previous_catalogue, current_catalogue
     )
-    product.refresh_from_db()
-    assert product.discounted_price_dirty is True
+    for listing in ProductChannelListing.objects.filter(
+        channel__in=rule.channels.all(), product=product
+    ):
+        assert listing.discounted_price_dirty is True
 
 
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
@@ -122,7 +126,8 @@ def test_sale_add_catalogues_no_changes_in_catalogue(
     content = get_graphql_content(response)
     assert not content["data"]["saleCataloguesAdd"]["errors"]
     promotion.refresh_from_db()
-    predicate = promotion.rules.first().catalogue_predicate
+    rule = promotion.rules.first()
+    predicate = rule.catalogue_predicate
     current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(predicate)
 
     assert collection_id in current_catalogue["collections"]
@@ -132,8 +137,10 @@ def test_sale_add_catalogues_no_changes_in_catalogue(
     assert current_catalogue == previous_catalogue
 
     updated_webhook_mock.assert_not_called()
-    product.refresh_from_db()
-    assert product.discounted_price_dirty is False
+    for listing in ProductChannelListing.objects.filter(
+        channel__in=rule.channels.all(), product=product
+    ):
+        assert listing.discounted_price_dirty is False
 
 
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
@@ -170,7 +177,8 @@ def test_sale_add_empty_catalogues(
     content = get_graphql_content(response)
     assert not content["data"]["saleCataloguesAdd"]["errors"]
     promotion.refresh_from_db()
-    predicate = promotion.rules.first().catalogue_predicate
+    rule = promotion.rules.first()
+    predicate = rule.catalogue_predicate
     current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(predicate)
 
     assert collection_id in current_catalogue["collections"]
@@ -179,8 +187,10 @@ def test_sale_add_empty_catalogues(
     assert variant_id in current_catalogue["variants"]
 
     updated_webhook_mock.assert_not_called()
-    product.refresh_from_db()
-    assert product.discounted_price_dirty is False
+    for listing in ProductChannelListing.objects.filter(
+        channel__in=rule.channels.all(), product=product
+    ):
+        assert listing.discounted_price_dirty is False
 
 
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
@@ -259,14 +269,17 @@ def test_sale_add_catalogues_no_product_ids_change(
     content = get_graphql_content(response)
     assert not content["data"]["saleCataloguesAdd"]["errors"]
     promotion.refresh_from_db()
-    predicate = promotion.rules.first().catalogue_predicate
+    rule = promotion.rules.first()
+    predicate = rule.catalogue_predicate
     current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(predicate)
 
     updated_webhook_mock.assert_called_once_with(
         promotion, previous_catalogue, current_catalogue
     )
-    product.refresh_from_db()
-    assert product.discounted_price_dirty is False
+    for listing in ProductChannelListing.objects.filter(
+        channel__in=rule.channels.all(), product=product
+    ):
+        assert listing.discounted_price_dirty is False
 
 
 def test_sale_add_catalogues_with_product_without_variants(
@@ -281,6 +294,7 @@ def test_sale_add_catalogues_with_product_without_variants(
     # given
     query = SALE_CATALOGUES_ADD_MUTATION
     promotion = promotion_converted_from_sale
+    rule = promotion.rules.first()
     product.variants.all().delete()
     product_id = graphene.Node.to_global_id("Product", product.id)
     collection_id = graphene.Node.to_global_id("Collection", collection.id)
@@ -306,8 +320,10 @@ def test_sale_add_catalogues_with_product_without_variants(
 
     assert error["code"] == DiscountErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT.name
     assert error["message"] == "Cannot manage products without variants."
-    product.refresh_from_db()
-    assert product.discounted_price_dirty is False
+    for listing in ProductChannelListing.objects.filter(
+        channel__in=rule.channels.all(), product=product
+    ):
+        assert listing.discounted_price_dirty is False
 
 
 def test_sale_add_catalogues_with_promotion_id(
