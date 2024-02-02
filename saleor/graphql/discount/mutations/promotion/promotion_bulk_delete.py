@@ -2,7 +2,7 @@ import graphene
 from django.db.models import Exists, OuterRef, QuerySet
 
 from .....discount import models
-from .....discount.utils import get_current_products_for_rules
+from .....discount.utils import get_channels_for_rules, get_current_products_for_rules
 from .....permission.enums import DiscountPermissions
 from .....product.utils.product import mark_products_for_recalculate_discounted_price
 from .....webhook.event_types import WebhookEventAsyncType
@@ -39,19 +39,21 @@ class PromotionBulkDelete(ModelBulkDeleteMutation):
 
     @classmethod
     def bulk_action(cls, info: ResolveInfo, queryset, /):
-        product_ids = cls.get_product_ids(queryset)
+        product_ids, channel_ids = cls.get_product_and_channel_ids(queryset)
         promotions = [promotion for promotion in queryset]
         queryset.delete()
         manager = get_plugin_manager_promise(info.context).get()
         webhooks = get_webhooks_for_event(WebhookEventAsyncType.PROMOTION_DELETED)
         for promotion in promotions:
             cls.call_event(manager.promotion_deleted, promotion, webhooks=webhooks)
-        mark_products_for_recalculate_discounted_price(list(product_ids))
+        mark_products_for_recalculate_discounted_price(product_ids, channel_ids)
 
     @classmethod
-    def get_product_ids(cls, qs: QuerySet[models.Promotion]):
+    def get_product_and_channel_ids(cls, qs: QuerySet[models.Promotion]):
         rules = models.PromotionRule.objects.filter(
             Exists(qs.filter(id=OuterRef("promotion_id")))
         )
         products = get_current_products_for_rules(rules)
-        return set(products.values_list("id", flat=True))
+        channel_ids = get_channels_for_rules(rules).values_list("id", flat=True)
+
+        return set(products.values_list("id", flat=True)), set(channel_ids)

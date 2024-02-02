@@ -3,6 +3,8 @@ from unittest.mock import patch
 import graphene
 import pytest
 
+from .....discount.utils import get_channels_for_rules
+from .....product.models import ProductChannelListing
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...utils import get_products_for_promotion
 
@@ -34,6 +36,12 @@ def test_promotion_delete_by_staff_user(
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
     promotion = catalogue_promotion
     variables = {"id": graphene.Node.to_global_id("Promotion", promotion.id)}
+    channels_ids = set(
+        get_channels_for_rules(promotion.rules.all()).values_list("id", flat=True)
+    )
+    products_ids = list(
+        get_products_for_promotion(promotion).values_list("id", flat=True)
+    )
 
     # when
     response = staff_api_client.post_graphql(PROMOTION_DELETE_MUTATION, variables)
@@ -48,8 +56,10 @@ def test_promotion_delete_by_staff_user(
     with pytest.raises(promotion._meta.model.DoesNotExist):
         promotion.refresh_from_db()
 
-    for product in get_products_for_promotion(promotion):
-        assert product.discounted_price_dirty is True
+    for listing in ProductChannelListing.objects.filter(
+        channel_id__in=channels_ids, product_id__in=products_ids
+    ):
+        assert listing.discounted_price_dirty is True
 
 
 @patch("saleor.plugins.manager.PluginsManager.promotion_deleted")
@@ -62,6 +72,12 @@ def test_promotion_delete_by_staff_app(
     # given
     promotion = catalogue_promotion
     variables = {"id": graphene.Node.to_global_id("Promotion", promotion.id)}
+    channels_ids = set(
+        get_channels_for_rules(promotion.rules.all()).values_list("id", flat=True)
+    )
+    products_ids = list(
+        get_products_for_promotion(promotion).values_list("id", flat=True)
+    )
 
     # when
     response = app_api_client.post_graphql(
@@ -78,8 +94,10 @@ def test_promotion_delete_by_staff_app(
     with pytest.raises(promotion._meta.model.DoesNotExist):
         promotion.refresh_from_db()
 
-    for product in get_products_for_promotion(promotion):
-        assert product.discounted_price_dirty is True
+    for listing in ProductChannelListing.objects.filter(
+        channel_id__in=channels_ids, product_id__in=products_ids
+    ):
+        assert listing.discounted_price_dirty is True
 
 
 @patch("saleor.plugins.manager.PluginsManager.promotion_deleted")
@@ -89,7 +107,14 @@ def test_promotion_delete_by_customer(
     catalogue_promotion,
 ):
     # given
-    variables = {"id": graphene.Node.to_global_id("Promotion", catalogue_promotion.id)}
+    promotion = catalogue_promotion
+    variables = {"id": graphene.Node.to_global_id("Promotion", promotion.id)}
+    channels_ids = set(
+        get_channels_for_rules(promotion.rules.all()).values_list("id", flat=True)
+    )
+    products_ids = list(
+        get_products_for_promotion(promotion).values_list("id", flat=True)
+    )
 
     # when
     response = api_client.post_graphql(PROMOTION_DELETE_MUTATION, variables)
@@ -98,5 +123,7 @@ def test_promotion_delete_by_customer(
     assert_no_permission(response)
 
     promotion_deleted_mock.assert_not_called()
-    for product in get_products_for_promotion(promotion):
-        assert product.discounted_price_dirty is False
+    for listing in ProductChannelListing.objects.filter(
+        channel_id__in=channels_ids, product_id__in=products_ids
+    ):
+        assert listing.discounted_price_dirty is False

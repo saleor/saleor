@@ -1,5 +1,6 @@
 from unittest.mock import patch
 
+from ...discount.utils import get_active_promotion_rules
 from ...plugins.manager import get_plugins_manager
 from ...tests.utils import flush_post_commit_hooks
 from ..models import Category
@@ -19,9 +20,7 @@ def test_collect_categories_tree_products(categories_tree):
     )
 
 
-@patch("saleor.product.utils.update_products_discounted_prices_for_promotion_task")
 def test_delete_categories(
-    mock_update_products_discounted_prices_for_promotion_task,
     categories_tree_with_published_products,
 ):
     # given
@@ -37,18 +36,15 @@ def test_delete_categories(
     ).exists()
 
     # then
-    flush_post_commit_hooks()
-    calls = mock_update_products_discounted_prices_for_promotion_task.mock_calls
-    assert len(calls) == 1
-    call_kwargs = calls[0].kwargs
-    assert set(call_kwargs["product_ids"]) == {p.pk for p in product_list}
-
     for product in product_list:
         product.refresh_from_db()
         assert not product.category
         for product_channel_listing in product.channel_listings.all():
             assert not product_channel_listing.is_published
             assert not product_channel_listing.published_at
+
+    for rule in get_active_promotion_rules():
+        assert rule.variants_dirty
 
 
 @patch("saleor.product.utils.get_webhooks_for_event")

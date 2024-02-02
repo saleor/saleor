@@ -162,7 +162,8 @@ class PromotionRuleUpdate(ModelMutation):
         product_ids = set(products.values_list("id", flat=True)) | previous_product_ids
         if product_ids:
             mark_products_for_recalculate_discounted_price(
-                list(products.values_list("id", flat=True))
+                list(products.values_list("id", flat=True)),
+                list(instance.channels.values_list("id", flat=True)),
             )
         clear_promotion_old_sale_id(instance.promotion, save=True)
         app = get_app_promise(info.context).get()

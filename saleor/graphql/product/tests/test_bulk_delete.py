@@ -10,6 +10,7 @@ from ....attribute.models import AttributeValue
 from ....attribute.utils import associate_attribute_values_to_instance
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import add_variant_to_checkout, calculate_checkout_quantity
+from ....discount.utils import get_active_promotion_rules
 from ....order import OrderEvents, OrderStatus
 from ....order.models import OrderEvent, OrderLine
 from ....plugins.manager import get_plugins_manager
@@ -260,10 +261,8 @@ def test_delete_categories_with_subcategories_and_products(
     for product_channel_listing in product_channel_listings:
         assert product_channel_listing.is_published is False
         assert not product_channel_listing.published_at
+        assert product_channel_listing.discounted_price_dirty is False
     assert product_channel_listings.count() == 3
-
-    product.refresh_from_db()
-    assert product.discounted_price_dirty is False
 
 
 MUTATION_COLLECTION_BULK_DELETE = """
@@ -307,9 +306,8 @@ def test_delete_collections(
         id__in=[collection.id for collection in collection_list]
     ).exists()
 
-    for product in product_list:
-        product.refresh_from_db()
-        assert product.discounted_price_dirty is False
+    for rule in get_active_promotion_rules():
+        assert rule.variants_dirty
 
 
 def test_delete_collections_with_images(
@@ -1019,9 +1017,8 @@ def test_delete_product_variants_by_sku_task_for_recalculate_product_prices_call
         == content["data"]["productVariantBulkDelete"]["count"]
     )
     mocked_recalculate_orders_task.assert_not_called()
-    for product in product_list:
-        product.refresh_from_db()
-        assert product.discounted_price_dirty is False
+    for rule in get_active_promotion_rules():
+        assert rule.variants_dirty
 
 
 PRODUCT_VARIANT_BULK_DELETE_MUTATION = """
@@ -1138,9 +1135,8 @@ def test_delete_product_variants_task_for_recalculate_product_prices_called(
         == content["data"]["productVariantBulkDelete"]["count"]
     )
     mocked_recalculate_orders_task.assert_not_called()
-    for product in product_list:
-        product.refresh_from_db()
-        assert product.discounted_price_dirty is False
+    for rule in get_active_promotion_rules():
+        assert rule.variants_dirty
 
 
 @patch(

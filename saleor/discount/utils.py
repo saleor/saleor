@@ -1037,6 +1037,21 @@ def get_current_products_for_rules(rules: "QuerySet[PromotionRule]"):
     return Product.objects.filter(Exists(variants.filter(product_id=OuterRef("id"))))
 
 
+def get_channels_for_rules(rules: "QuerySet[PromotionRule]"):
+    """Get currently assigned channels to promotions.
+
+    Collect all channels for are assigned to promotion rules.
+    """
+    PromotionRuleChannel = PromotionRule.channels.through
+    rule_channels = PromotionRuleChannel.objects.filter(
+        Exists(rules.filter(pk=OuterRef("promotionrule_id")))
+    )
+    channels = Channel.objects.filter(
+        Exists(rule_channels.filter(channel_id=OuterRef("id")))
+    )
+    return channels
+
+
 def update_rule_variant_relation(
     rules: QuerySet[PromotionRule], new_rules_variants: list
 ):

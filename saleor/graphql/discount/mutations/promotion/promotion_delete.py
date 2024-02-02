@@ -2,7 +2,7 @@ import graphene
 from django.db import transaction
 
 from .....discount import models
-from .....discount.utils import get_current_products_for_rules
+from .....discount.utils import get_channels_for_rules, get_current_products_for_rules
 from .....graphql.core.mutations import ModelDeleteMutation
 from .....permission.enums import DiscountPermissions
 from .....product.utils.product import mark_products_for_recalculate_discounted_price
@@ -47,16 +47,17 @@ class PromotionDelete(ModelDeleteMutation):
     ):
         instance = cls.get_node_or_error(info, id, only_type=Promotion)
         manager = get_plugin_manager_promise(info.context).get()
+        rules = instance.rules.all()
         product_ids = list(
-            get_current_products_for_rules(instance.rules.all()).values_list(
-                "id", flat=True
-            )
+            get_current_products_for_rules(rules).values_list("id", flat=True)
         )
+        channel_ids = set(get_channels_for_rules(rules).values_list("id", flat=True))
+
         promotion_id = instance.id
 
         with transaction.atomic():
             response = super().perform_mutation(root, info, id=id)
             instance.id = promotion_id
             cls.call_event(manager.promotion_deleted, instance)
-            mark_products_for_recalculate_discounted_price(product_ids)
+            mark_products_for_recalculate_discounted_price(product_ids, channel_ids)
         return response
