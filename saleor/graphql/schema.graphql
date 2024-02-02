@@ -648,7 +648,10 @@ type Query {
   """
   transaction(
     """ID of a transaction."""
-    id: ID!
+    id: ID
+
+    """Token of a transaction."""
+    token: UUID
   ): TransactionItem @doc(category: "Payments")
 
   """Look up a page by ID or slug."""

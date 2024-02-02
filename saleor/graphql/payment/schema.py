@@ -6,6 +6,7 @@ from ..core.connection import create_connection_slice, filter_connection_queryse
 from ..core.descriptions import ADDED_IN_36, PREVIEW_FEATURE
 from ..core.doc_category import DOC_CATEGORY_PAYMENTS
 from ..core.fields import FilterConnectionField, PermissionsField
+from ..core.scalars import UUID
 from ..core.utils import from_global_id_or_error
 from .filters import PaymentFilterInput
 from .mutations import (
@@ -51,7 +52,10 @@ class PaymentQueries(graphene.ObjectType):
         TransactionItem,
         description="Look up a transaction by ID." + ADDED_IN_36 + PREVIEW_FEATURE,
         id=graphene.Argument(
-            graphene.ID, description="ID of a transaction.", required=True
+            graphene.ID, description="ID of a transaction.", required=False
+        ),
+        token=graphene.Argument(
+            UUID, description="Token of a transaction.", required=False
         ),
         permissions=[
             PaymentPermissions.HANDLE_PAYMENTS,
@@ -72,10 +76,13 @@ class PaymentQueries(graphene.ObjectType):
 
     @staticmethod
     def resolve_transaction(_root, info: ResolveInfo, **kwargs):
-        _, id = from_global_id_or_error(kwargs["id"], TransactionItem)
-        if not id:
-            return None
-        return resolve_transaction(info, id)
+        if "id" in kwargs:
+            _, id = from_global_id_or_error(kwargs["id"], TransactionItem)
+            if not id:
+                return None
+            return resolve_transaction(info, id, None)
+        elif "token" in kwargs:
+            return resolve_transaction(info, None, kwargs["token"])
 
 
 class PaymentMutations(graphene.ObjectType):

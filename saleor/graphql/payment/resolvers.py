@@ -28,11 +28,14 @@ def resolve_payments(info):
     return payments.filter(order_id__in=orders.values("id"))
 
 
-def resolve_transaction(info, id):
-    if id.isdigit():
-        query_params = {"id": id, "use_old_id": True}
-    else:
-        query_params = {"token": id}
+def resolve_transaction(info, id, token):
+    if id:
+        if id.isdigit():
+            query_params = {"id": id, "use_old_id": True}
+        else:
+            query_params = {"token": id}
+    elif token:
+        query_params = {"token": token}
     return (
         models.TransactionItem.objects.using(get_database_connection_name(info.context))
         .filter(**query_params)
