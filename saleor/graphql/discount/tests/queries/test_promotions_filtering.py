@@ -298,7 +298,7 @@ def test_query_promotions_filter_type_eq(
     [
         [PromotionTypeEnum.CATALOGUE],
         [PromotionTypeEnum.ORDER],
-        [PromotionTypeEnum.ORDER, PromotionTypeEnum.ORDER],
+        [PromotionTypeEnum.ORDER, PromotionTypeEnum.CATALOGUE],
     ],
 )
 def test_query_promotions_filter_type_one_of(
