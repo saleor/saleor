@@ -14623,7 +14623,7 @@ type Mutation {
     externalUrl: String
 
     """The ID of the transaction."""
-    id: ID!
+    id: ID
 
     """The message related to the event."""
     message: String
@@ -14635,6 +14635,9 @@ type Mutation {
     The time of the event to report. If not provide, the current time will be used.
     """
     time: DateTime
+
+    """The token of the transaction."""
+    token: UUID
 
     """Current status of the event to report."""
     type: TransactionEventTypeEnum!

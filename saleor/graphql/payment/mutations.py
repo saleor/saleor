@@ -1568,7 +1568,11 @@ class TransactionEventReport(ModelMutation):
     class Arguments:
         id = graphene.ID(
             description="The ID of the transaction.",
-            required=True,
+            required=False,
+        )
+        token = UUID(
+            description="The token of the transaction.",
+            required=False,
         )
         psp_reference = graphene.String(
             description="PSP Reference of the event to report.", required=True
@@ -1678,20 +1682,36 @@ class TransactionEventReport(ModelMutation):
         info: ResolveInfo,
         /,
         *,
-        id,
         psp_reference,
         type,
         amount,
+        token=None,
+        id=None,
         time=None,
         external_url=None,
         message=None,
         available_actions=None,
     ):
+        validate_one_of_args_is_in_mutation("id", id, "token", token)
+        if id:
+            transaction = get_transaction_item(id)
+        elif token:
+            transaction = payment_models.TransactionItem.objects.filter(
+                token=token
+            ).first()  # type: ignore
+            if not transaction:
+                raise ValidationError(
+                    {
+                        "token": ValidationError(
+                            "Couldn't find a transaction with provided token.",
+                            code="not_found",
+                        )
+                    }
+                )
+
         user = info.context.user
         app = get_app_promise(info.context).get()
         manager = get_plugin_manager_promise(info.context).get()
-
-        transaction = get_transaction_item(id)
 
         if not check_if_requestor_has_access(
             transaction=transaction, user=user, app=app

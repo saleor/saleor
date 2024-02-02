@@ -99,7 +99,7 @@ def test_transaction_event_report_by_app(
         MUTATION_DATA_FRAGMENT
         + """
     mutation TransactionEventReport(
-        $id: ID!
+        $id: ID
         $type: TransactionEventTypeEnum!
         $amount: PositiveDecimal!
         $pspReference: String!
@@ -110,6 +110,84 @@ def test_transaction_event_report_by_app(
     ) {
         transactionEventReport(
             id: $id
+            type: $type
+            amount: $amount
+            pspReference: $pspReference
+            time: $time
+            externalUrl: $externalUrl
+            message: $message
+            availableActions: $availableActions
+        ) {
+            ...TransactionEventData
+        }
+    }
+    """
+    )
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    response = get_graphql_content(response)
+    transaction_report_data = response["data"]["transactionEventReport"]
+    assert transaction_report_data["alreadyProcessed"] is False
+
+    event = TransactionEvent.objects.filter(
+        type=TransactionEventType.CHARGE_SUCCESS
+    ).first()
+    assert event
+    assert event.psp_reference == psp_reference
+    assert event.type == TransactionEventTypeEnum.CHARGE_SUCCESS.value
+    assert event.amount_value == amount
+    assert event.currency == transaction.currency
+    assert event.created_at == event_time
+    assert event.external_url == external_url
+    assert event.transaction == transaction
+    assert event.app_identifier == app_api_client.app.identifier
+    assert event.app == app_api_client.app
+    assert event.user is None
+
+
+def test_transaction_event_report_by_app_via_token(
+    transaction_item_generator,
+    app_api_client,
+    permission_manage_payments,
+):
+    # given
+    transaction = transaction_item_generator(
+        app=app_api_client.app, authorized_value=Decimal("10")
+    )
+    event_time = timezone.now()
+    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
+    message = "Sucesfull charge"
+    psp_reference = "111-abc"
+    amount = Decimal("11.00")
+    variables = {
+        "token": transaction.token,
+        "type": TransactionEventTypeEnum.CHARGE_SUCCESS.name,
+        "amount": amount,
+        "pspReference": psp_reference,
+        "time": event_time.isoformat(),
+        "externalUrl": external_url,
+        "message": message,
+        "availableActions": [TransactionActionEnum.REFUND.name],
+    }
+    query = (
+        MUTATION_DATA_FRAGMENT
+        + """
+    mutation TransactionEventReport(
+        $token: UUID
+        $type: TransactionEventTypeEnum!
+        $amount: PositiveDecimal!
+        $pspReference: String!
+        $time: DateTime
+        $externalUrl: String
+        $message: String
+        $availableActions: [TransactionActionEnum!]!
+    ) {
+        transactionEventReport(
+            token: $token
             type: $type
             amount: $amount
             pspReference: $pspReference
@@ -177,7 +255,7 @@ def test_transaction_event_report_by_user(
         MUTATION_DATA_FRAGMENT
         + """
     mutation TransactionEventReport(
-        $id: ID!
+        $id: ID
         $type: TransactionEventTypeEnum!
         $amount: PositiveDecimal!
         $pspReference: String!
@@ -250,7 +328,7 @@ def test_transaction_event_report_by_another_user(
         MUTATION_DATA_FRAGMENT
         + """
        mutation TransactionEventReport(
-           $id: ID!
+           $id: ID
            $type: TransactionEventTypeEnum!
            $amount: PositiveDecimal!
            $pspReference: String!
@@ -316,7 +394,7 @@ def test_transaction_event_report_no_permission(
         MUTATION_DATA_FRAGMENT
         + """
     mutation TransactionEventReport(
-        $id: ID!
+        $id: ID
         $type: TransactionEventTypeEnum!
         $amount: PositiveDecimal!
         $pspReference: String!
@@ -368,7 +446,7 @@ def test_transaction_event_report_called_by_non_app_owner(
         MUTATION_DATA_FRAGMENT
         + """
     mutation TransactionEventReport(
-        $id: ID!
+        $id: ID
         $type: TransactionEventTypeEnum!
         $amount: PositiveDecimal!
         $pspReference: String!
@@ -410,7 +488,7 @@ def test_transaction_event_report_called_by_non_user_owner(
         MUTATION_DATA_FRAGMENT
         + """
     mutation TransactionEventReport(
-        $id: ID!
+        $id: ID
         $type: TransactionEventTypeEnum!
         $amount: PositiveDecimal!
         $pspReference: String!
@@ -469,7 +547,7 @@ def test_transaction_event_report_event_already_exists(
         MUTATION_DATA_FRAGMENT
         + """
     mutation TransactionEventReport(
-        $id: ID!
+        $id: ID
         $type: TransactionEventTypeEnum!
         $amount: PositiveDecimal!
         $pspReference: String!
@@ -546,7 +624,7 @@ def test_transaction_event_report_event_already_exists_updates_available_actions
         MUTATION_DATA_FRAGMENT
         + """
     mutation TransactionEventReport(
-        $id: ID!
+        $id: ID
         $type: TransactionEventTypeEnum!
         $amount: PositiveDecimal!
         $pspReference: String!
@@ -627,7 +705,7 @@ def test_event_already_exists_do_not_overwrite_actions_when_not_provided_in_inpu
         MUTATION_DATA_FRAGMENT
         + """
     mutation TransactionEventReport(
-        $id: ID!
+        $id: ID
         $type: TransactionEventTypeEnum!
         $amount: PositiveDecimal!
         $pspReference: String!
@@ -704,7 +782,7 @@ def test_transaction_event_report_incorrect_amount_for_already_existing(
         MUTATION_DATA_FRAGMENT
         + """
     mutation TransactionEventReport(
-        $id: ID!
+        $id: ID
         $type: TransactionEventTypeEnum!
         $amount: PositiveDecimal!
         $pspReference: String!
@@ -783,7 +861,7 @@ def test_transaction_event_report_calls_amount_recalculations(
         MUTATION_DATA_FRAGMENT
         + """
     mutation TransactionEventReport(
-        $id: ID!
+        $id: ID
         $type: TransactionEventTypeEnum!
         $amount: PositiveDecimal!
         $pspReference: String!
@@ -846,7 +924,7 @@ def test_transaction_event_updates_order_total_charged(
         MUTATION_DATA_FRAGMENT
         + """
     mutation TransactionEventReport(
-        $id: ID!
+        $id: ID
         $type: TransactionEventTypeEnum!
         $amount: PositiveDecimal!
         $pspReference: String!
@@ -902,7 +980,7 @@ def test_transaction_event_updates_order_total_authorized(
         MUTATION_DATA_FRAGMENT
         + """
     mutation TransactionEventReport(
-        $id: ID!
+        $id: ID
         $type: TransactionEventTypeEnum!
         $amount: PositiveDecimal!
         $pspReference: String!
@@ -958,7 +1036,7 @@ def test_transaction_event_updates_search_vector(
         MUTATION_DATA_FRAGMENT
         + """
     mutation TransactionEventReport(
-        $id: ID!
+        $id: ID
         $type: TransactionEventTypeEnum!
         $amount: PositiveDecimal!
         $pspReference: String!
@@ -1019,7 +1097,7 @@ def test_transaction_event_report_authorize_event_already_exists(
         MUTATION_DATA_FRAGMENT
         + """
     mutation TransactionEventReport(
-        $id: ID!
+        $id: ID
         $type: TransactionEventTypeEnum!
         $amount: PositiveDecimal!
         $pspReference: String!
@@ -1096,7 +1174,7 @@ def test_transaction_event_updates_checkout_payment_statuses(
         MUTATION_DATA_FRAGMENT
         + """
     mutation TransactionEventReport(
-        $id: ID!
+        $id: ID
         $type: TransactionEventTypeEnum!
         $amount: PositiveDecimal!
         $pspReference: String!
@@ -1158,7 +1236,7 @@ def test_transaction_event_updates_checkout_last_transaction_modified_at(
         MUTATION_DATA_FRAGMENT
         + """
     mutation TransactionEventReport(
-        $id: ID!
+        $id: ID
         $type: TransactionEventTypeEnum!
         $amount: PositiveDecimal!
         $pspReference: String!
@@ -1222,7 +1300,7 @@ def test_transaction_event_updates_checkout_full_paid_with_charged_amount(
         MUTATION_DATA_FRAGMENT
         + """
     mutation TransactionEventReport(
-        $id: ID!
+        $id: ID
         $type: TransactionEventTypeEnum!
         $amount: PositiveDecimal!
         $pspReference: String!
@@ -1286,7 +1364,7 @@ def test_transaction_event_updates_checkout_full_paid_with_pending_charge_amount
         MUTATION_DATA_FRAGMENT
         + """
     mutation TransactionEventReport(
-        $id: ID!
+        $id: ID
         $type: TransactionEventTypeEnum!
         $amount: PositiveDecimal!
         $pspReference: String!
@@ -1344,7 +1422,7 @@ def test_transaction_event_report_with_info_event(
         MUTATION_DATA_FRAGMENT
         + """
      mutation TransactionEventReport(
-         $id: ID!
+         $id: ID
          $type: TransactionEventTypeEnum!
          $amount: PositiveDecimal!
          $pspReference: String!
@@ -1418,7 +1496,7 @@ def test_transaction_event_report_accepts_old_id_for_old_transaction(
         MUTATION_DATA_FRAGMENT
         + """
     mutation TransactionEventReport(
-        $id: ID!
+        $id: ID
         $type: TransactionEventTypeEnum!
         $amount: PositiveDecimal!
         $pspReference: String!
@@ -1499,7 +1577,7 @@ def test_transaction_event_report_doesnt_accept_old_id_for_new_transaction(
         MUTATION_DATA_FRAGMENT
         + """
     mutation TransactionEventReport(
-        $id: ID!
+        $id: ID
         $type: TransactionEventTypeEnum!
         $amount: PositiveDecimal!
         $pspReference: String!
@@ -1566,7 +1644,7 @@ def test_transaction_event_report_for_order_triggers_webhooks_when_fully_paid(
         MUTATION_DATA_FRAGMENT
         + """
     mutation TransactionEventReport(
-        $id: ID!
+        $id: ID
         $type: TransactionEventTypeEnum!
         $amount: PositiveDecimal!
         $pspReference: String!
@@ -1622,7 +1700,7 @@ def test_transaction_event_report_for_order_triggers_webhooks_when_partially_pai
         MUTATION_DATA_FRAGMENT
         + """
     mutation TransactionEventReport(
-        $id: ID!
+        $id: ID
         $type: TransactionEventTypeEnum!
         $amount: PositiveDecimal!
         $pspReference: String!
@@ -1677,7 +1755,7 @@ def test_transaction_event_report_for_order_triggers_webhooks_when_partially_aut
         MUTATION_DATA_FRAGMENT
         + """
     mutation TransactionEventReport(
-        $id: ID!
+        $id: ID
         $type: TransactionEventTypeEnum!
         $amount: PositiveDecimal!
         $pspReference: String!
@@ -1732,7 +1810,7 @@ def test_transaction_event_report_for_order_triggers_webhooks_when_fully_authori
         MUTATION_DATA_FRAGMENT
         + """
     mutation TransactionEventReport(
-        $id: ID!
+        $id: ID
         $type: TransactionEventTypeEnum!
         $amount: PositiveDecimal!
         $pspReference: String!
@@ -1789,7 +1867,7 @@ def test_transaction_event_report_for_order_triggers_webhooks_when_fully_refunde
         MUTATION_DATA_FRAGMENT
         + """
     mutation TransactionEventReport(
-        $id: ID!
+        $id: ID
         $type: TransactionEventTypeEnum!
         $amount: PositiveDecimal!
         $pspReference: String!
@@ -1846,7 +1924,7 @@ def test_transaction_event_report_for_order_triggers_webhooks_when_partially_ref
         MUTATION_DATA_FRAGMENT
         + """
     mutation TransactionEventReport(
-        $id: ID!
+        $id: ID
         $type: TransactionEventTypeEnum!
         $amount: PositiveDecimal!
         $pspReference: String!
@@ -1903,7 +1981,7 @@ def test_transaction_event_report_by_app_assign_app_owner(
         MUTATION_DATA_FRAGMENT
         + """
     mutation TransactionEventReport(
-        $id: ID!
+        $id: ID
         $type: TransactionEventTypeEnum!
         $amount: PositiveDecimal!
         $pspReference: String!
@@ -1974,7 +2052,7 @@ def test_transaction_event_report_converts_void_action_to_cancel(
         MUTATION_DATA_FRAGMENT
         + """
     mutation TransactionEventReport(
-        $id: ID!
+        $id: ID
         $type: TransactionEventTypeEnum!
         $amount: PositiveDecimal!
         $pspReference: String!
@@ -2040,7 +2118,7 @@ def test_transaction_event_report_assign_transaction_psp_reference_if_missing(
         MUTATION_DATA_FRAGMENT
         + """
     mutation TransactionEventReport(
-        $id: ID!
+        $id: ID
         $type: TransactionEventTypeEnum!
         $amount: PositiveDecimal!
         $pspReference: String!
