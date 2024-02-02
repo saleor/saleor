@@ -14578,13 +14578,21 @@ input PromotionWhereInput @doc(category: "Discounts") {
   """Filter promotions by start date."""
   startDate: DateTimeFilterInput
   isOldSale: Boolean
-  type: [PromotionTypeEnum!]
+  type: PromotionTypeEnumFilterInput
 
   """List of conditions that must be met."""
   AND: [PromotionWhereInput!]
 
   """A list of conditions of which at least one must be met."""
   OR: [PromotionWhereInput!]
+}
+
+input PromotionTypeEnumFilterInput @doc(category: "Discounts") {
+  """The value equal to."""
+  eq: PromotionTypeEnum
+
+  """The value included in."""
+  oneOf: [PromotionTypeEnum!]
 }
 
 input PromotionSortingInput @doc(category: "Discounts") {

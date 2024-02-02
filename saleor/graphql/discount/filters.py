@@ -26,12 +26,18 @@ from ..core.filters import (
     WhereFilterSet,
 )
 from ..core.types import (
+    BaseInputObjectType,
     DateTimeFilterInput,
     DateTimeRangeInput,
     IntRangeInput,
+    NonNullList,
     StringFilterInput,
 )
-from ..core.types.filter_input import DecimalFilterInput, WhereInputObjectType
+from ..core.types.filter_input import (
+    DecimalFilterInput,
+    FilterInputDescriptions,
+    WhereInputObjectType,
+)
 from ..utils.filters import (
     filter_by_id,
     filter_by_ids,
@@ -156,6 +162,18 @@ class SaleFilter(MetadataFilterBase):
         fields = ["status", "sale_type", "started", "search"]
 
 
+class PromotionTypeEnumFilterInput(BaseInputObjectType):
+    eq = PromotionTypeEnum(description=FilterInputDescriptions.EQ, required=False)
+    one_of = NonNullList(
+        PromotionTypeEnum,
+        description=FilterInputDescriptions.ONE_OF,
+        required=False,
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_DISCOUNTS
+
+
 class PromotionWhere(MetadataWhereFilterBase):
     ids = GlobalIDMultipleChoiceWhereFilter(method=filter_by_ids("Promotion"))
     name = OperationObjectTypeWhereFilter(
@@ -174,7 +192,9 @@ class PromotionWhere(MetadataWhereFilterBase):
         help_text="Filter promotions by start date.",
     )
     is_old_sale = BooleanWhereFilter(method="filter_is_old_sale")
-    type = ListObjectTypeFilter(input_class=PromotionTypeEnum, method="filter_type")
+    type = OperationObjectTypeWhereFilter(
+        input_class=PromotionTypeEnumFilterInput, method="filter_type"
+    )
 
     @staticmethod
     def filter_promotion_name(qs, _, value):
@@ -194,9 +214,7 @@ class PromotionWhere(MetadataWhereFilterBase):
 
     @staticmethod
     def filter_type(qs, _, value):
-        if not value:
-            return qs
-        return qs.filter(type__in=value)
+        return filter_where_by_string_field(qs, "type", value)
 
 
 class PromotionWhereInput(WhereInputObjectType):
