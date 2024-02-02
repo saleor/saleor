@@ -201,7 +201,9 @@ class PromotionCreate(ModelMutation):
         cls.call_event(manager.promotion_created, instance)
         if has_started:
             cls.send_promotion_started_webhook(manager, instance)
-        update_products_discounted_prices_of_promotion_task.delay(instance.pk)
+        cls.call_event(
+            update_products_discounted_prices_of_promotion_task.delay, instance.pk
+        )
 
     @classmethod
     def has_started(cls, instance: models.Promotion) -> bool:

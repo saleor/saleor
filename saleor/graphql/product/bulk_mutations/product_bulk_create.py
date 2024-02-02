@@ -883,7 +883,9 @@ class ProductBulkCreate(BaseMutation):
         for channel in channels:
             cls.call_event(manager.channel_updated, channel, webhooks=webhooks)
 
-        update_products_discounted_prices_for_promotion_task.delay(product_ids)
+        cls.call_event(
+            update_products_discounted_prices_for_promotion_task.delay, product_ids
+        )
 
     @classmethod
     @traced_atomic_transaction()

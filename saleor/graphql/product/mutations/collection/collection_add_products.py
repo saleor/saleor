@@ -54,8 +54,9 @@ class CollectionAddProducts(BaseMutation):
         with traced_atomic_transaction():
             collection.products.add(*products)
             # Updated the db entries, recalculating discounts of affected products
-            update_products_discounted_prices_for_promotion_task.delay(
-                [pq.pk for pq in products]
+            cls.call_event(
+                update_products_discounted_prices_for_promotion_task.delay,
+                [pq.pk for pq in products],
             )
             for product in products:
                 cls.call_event(manager.product_updated, product)
