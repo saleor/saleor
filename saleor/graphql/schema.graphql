@@ -14561,7 +14561,10 @@ type Mutation {
   """
   transactionUpdate(
     """The ID of the transaction."""
-    id: ID!
+    id: ID
+
+    """The token of the transaction to process."""
+    token: UUID
 
     """Input data required to create a new transaction object."""
     transaction: TransactionUpdateInput
@@ -14589,7 +14592,10 @@ type Mutation {
     amount: PositiveDecimal
 
     """The ID of the transaction."""
-    id: ID!
+    id: ID
+
+    """The token of the transaction."""
+    token: UUID
   ): TransactionRequestAction @doc(category: "Payments")
 
   """
@@ -14695,7 +14701,10 @@ type Mutation {
     data: JSON
 
     """The ID of the transaction to process."""
-    id: ID!
+    id: ID
+
+    """The token of the transaction to process."""
+    token: UUID
   ): TransactionProcess @doc(category: "Payments")
 
   """
