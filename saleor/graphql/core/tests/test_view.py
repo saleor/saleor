@@ -6,7 +6,6 @@ from django.test import override_settings
 from graphql.execution.base import ExecutionResult
 
 from .... import __version__ as saleor_version
-from ....demo.views import EXAMPLE_QUERY
 from ....graphql.utils import INTERNAL_ERROR_MESSAGE
 from ...tests.fixtures import API_PATH
 from ...tests.utils import get_graphql_content, get_graphql_content_from_response
@@ -78,14 +77,14 @@ def test_graphql_view_query_with_invalid_object_type(
     assert content["data"]["order"] is None
 
 
-@pytest.mark.parametrize("playground_on, status", [(True, 200), (False, 405)])
+@pytest.mark.parametrize(("playground_on", "status"), [(True, 200), (False, 405)])
 def test_graphql_view_get_enabled_or_disabled(client, settings, playground_on, status):
     settings.PLAYGROUND_ENABLED = playground_on
     response = client.get(API_PATH)
     assert response.status_code == status
 
 
-@pytest.mark.parametrize("method", ("put", "patch", "delete"))
+@pytest.mark.parametrize("method", ["put", "patch", "delete"])
 def test_graphql_view_not_allowed(method, client):
     func = getattr(client, method)
     response = func(API_PATH)
@@ -140,9 +139,9 @@ def test_query_is_dict(client):
 
 def test_graphql_execution_exception(monkeypatch, api_client):
     def mocked_execute(*args, **kwargs):
-        raise IOError("Spanish inquisition")
+        raise OSError("Spanish inquisition")
 
-    monkeypatch.setattr("graphql.backend.core.execute_and_validate", mocked_execute)
+    monkeypatch.setattr("saleor.graphql.api.execute", mocked_execute)
     response = api_client.post_graphql("{ shop { name }}")
     assert response.status_code == 400
     content = get_graphql_content_from_response(response)
@@ -241,12 +240,6 @@ def test_unexpected_exceptions_are_logged_in_their_own_logger(
     assert graphql_log_handler.messages == [
         "saleor.graphql.errors.unhandled[ERROR].NotImplementedError"
     ]
-
-
-def test_example_query(api_client, product):
-    response = api_client.post_graphql(EXAMPLE_QUERY)
-    content = get_graphql_content(response)
-    assert content["data"]["products"]["edges"][0]["node"]["name"] == product.name
 
 
 @pytest.mark.parametrize(

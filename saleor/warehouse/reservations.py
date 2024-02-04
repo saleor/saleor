@@ -1,6 +1,7 @@
 from collections import defaultdict, namedtuple
+from collections.abc import Iterable
 from datetime import datetime, timedelta
-from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple
+from typing import TYPE_CHECKING, Optional
 
 from django.db.models import F, Sum
 from django.db.models.functions import Coalesce
@@ -116,7 +117,7 @@ def reserve_stocks(
         .values("stock")
         .annotate(quantity_allocated_sum=Sum("quantity_allocated"))
     )
-    quantity_allocation_for_stocks: Dict = defaultdict(int)
+    quantity_allocation_for_stocks: dict = defaultdict(int)
     for allocation in quantity_allocation_list:
         quantity_allocation_for_stocks[allocation["stock"]] += allocation[
             "quantity_allocated_sum"
@@ -132,7 +133,7 @@ def reserve_stocks(
         .values("stock")
         .annotate(quantity_reserved_sum=Sum("quantity_reserved"))
     )
-    quantity_reservation_for_stocks: Dict = defaultdict(int)
+    quantity_reservation_for_stocks: dict = defaultdict(int)
     for reservation in quantity_reservation_list:
         quantity_reservation_for_stocks[reservation["stock"]] += reservation[
             "quantity_reserved_sum"
@@ -145,13 +146,13 @@ def reserve_stocks(
         quantity_allocation_for_stocks,
     )
 
-    variant_to_stocks: Dict[int, List[StockData]] = defaultdict(list)
+    variant_to_stocks: dict[int, list[StockData]] = defaultdict(list)
     for stock_data in stocks:
         variant = stock_data.pop("product_variant")
         variant_to_stocks[variant].append(StockData(**stock_data))
 
-    insufficient_stocks: List[InsufficientStockData] = []
-    reservations: List[Reservation] = []
+    insufficient_stocks: list[InsufficientStockData] = []
+    reservations: list[Reservation] = []
     for line in checkout_lines:
         stock_reservations = variant_to_stocks[line.variant_id]
         insufficient_stocks, reserved_items = _create_stock_reservations(
@@ -177,12 +178,12 @@ def reserve_stocks(
 def _create_stock_reservations(
     line: "CheckoutLine",
     variant: "ProductVariant",
-    stocks: List[StockData],
+    stocks: list[StockData],
     quantity_allocation_for_stocks: dict,
     quantity_reservation_for_stocks: dict,
-    insufficient_stocks: List[InsufficientStockData],
+    insufficient_stocks: list[InsufficientStockData],
     reserved_until: datetime,
-) -> Tuple[List[InsufficientStockData], List[Reservation]]:
+) -> tuple[list[InsufficientStockData], list[Reservation]]:
     quantity = line.quantity
     quantity_reserved = 0
     reservations = []
@@ -271,7 +272,7 @@ def reserve_preorders(
     if not checkout_lines_to_reserve:
         return
 
-    variant_channels: Dict[int, List[ProductVariantChannelListing]] = defaultdict(list)
+    variant_channels: dict[int, list[ProductVariantChannelListing]] = defaultdict(list)
     for channel_listing in all_variants_channel_listings:
         variant_channels[channel_listing.variant_id].append(channel_listing)
 
@@ -283,12 +284,12 @@ def reserve_preorders(
         for variant_id, channel_listings in variant_channels.items()
     }
 
-    listings_reservations: Dict = get_listings_reservations(
+    listings_reservations: dict = get_listings_reservations(
         checkout_lines, all_variants_channel_listings
     )
 
-    insufficient_stocks: List[InsufficientStockData] = []
-    reservations: List[PreorderReservation] = []
+    insufficient_stocks: list[InsufficientStockData] = []
+    reservations: list[PreorderReservation] = []
     for line in checkout_lines_to_reserve:
         insufficient_stocks, reservation = _create_preorder_reservation(
             line,
@@ -318,10 +319,10 @@ def _create_preorder_reservation(
     line: "CheckoutLine",
     variant: "ProductVariant",
     listing: "ProductVariantChannelListing",
-    all_listings: List["ProductVariantChannelListing"],
+    all_listings: list["ProductVariantChannelListing"],
     global_allocations: int,
-    listings_reservations: Dict[int, int],
-    insufficient_stocks: List[InsufficientStockData],
+    listings_reservations: dict[int, int],
+    insufficient_stocks: list[InsufficientStockData],
     reserved_until: datetime,
 ):
     if listing.preorder_quantity_threshold is not None:
@@ -370,7 +371,7 @@ def _create_preorder_reservation(
 
 def get_checkout_lines_to_reserve(
     lines: Iterable["CheckoutLine"],
-    variants_map: Dict[int, "ProductVariant"],
+    variants_map: dict[int, "ProductVariant"],
 ) -> Iterable["CheckoutLine"]:
     """Return checkout lines which can be reserved."""
     valid_lines = []
@@ -400,7 +401,7 @@ def get_reservation_length(site, user) -> Optional[int]:
 def get_listings_reservations(
     checkout_lines: Optional[Iterable["CheckoutLine"]],
     all_variants_channel_listings,
-) -> Dict[int, int]:
+) -> dict[int, int]:
     quantity_reservation_list = (
         PreorderReservation.objects.filter(
             product_variant_channel_listing__in=all_variants_channel_listings,
@@ -411,7 +412,7 @@ def get_listings_reservations(
         .values("product_variant_channel_listing")
         .annotate(quantity_reserved_sum=Sum("quantity_reserved"))
     )
-    listings_reservations: Dict = defaultdict(int)
+    listings_reservations: dict = defaultdict(int)
 
     for reservation in quantity_reservation_list:
         listings_reservations[

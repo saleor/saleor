@@ -6,6 +6,7 @@ from PIL import Image, UnidentifiedImageError
 
 from ....core.http_client import HTTPClient
 from ....thumbnail import MIME_TYPE_TO_PIL_IDENTIFIER
+from ....thumbnail.utils import ProcessedImage
 from ..utils import add_hash_to_file_name
 
 Image.init()
@@ -40,7 +41,7 @@ def validate_image_url(url: str, field_name: str, error_code: str) -> None:
 
     Instead of the whole file, only the headers are fetched.
     """
-    head = HTTPClient.send_request("HEAD", url, timeout=30, allow_redirects=False)
+    head = HTTPClient.send_request("HEAD", url, allow_redirects=False)
     header = head.headers
     content_type = header.get("content-type")
     if content_type is None or not is_supported_image_mimetype(content_type):
@@ -76,6 +77,7 @@ def clean_image_file(cleaned_input, img_field_name, error_class):
     try:
         with Image.open(img_file) as image:
             _validate_image_exif(image, img_field_name, error_class)
+            img_file.seek(0)
     except (SyntaxError, TypeError, UnidentifiedImageError) as e:
         raise ValidationError(
             {
@@ -85,6 +87,14 @@ def clean_image_file(cleaned_input, img_field_name, error_class):
                     code=error_class.INVALID.value,
                 )
             }
+        )
+
+    try:
+        # validate if the image MIME type is supported
+        ProcessedImage.get_image_metadata_from_file(img_file)
+    except ValueError as e:
+        raise ValidationError(
+            {img_field_name: ValidationError(str(e), code=error_class.INVALID.value)}
         )
 
     add_hash_to_file_name(img_file)

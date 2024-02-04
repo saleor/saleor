@@ -219,6 +219,7 @@ def test_sort_values_trigger_webhook(
         [any_webhook],
         color_attribute,
         SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )
 
     def generate_attribute_value_update_call(value):
@@ -237,6 +238,7 @@ def test_sort_values_trigger_webhook(
             [any_webhook],
             value,
             SimpleLazyObject(lambda: staff_api_client.user),
+            allow_replica=False,
         )
 
     attribute_value_1_updated_call = generate_attribute_value_update_call(values[0])

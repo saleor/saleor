@@ -46,6 +46,7 @@ ORDER_LINES_CREATE_MUTATION = """
                 quantity
                 productSku
                 productVariantId
+                saleId
                 unitPrice {
                     gross {
                         amount
@@ -127,7 +128,7 @@ def test_order_lines_create_for_variant_with_many_stocks_with_out_of_stock_webho
     )
 
 
-@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 @patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
@@ -270,7 +271,7 @@ def test_order_lines_create_by_app(
     )
 
 
-@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 @patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
@@ -347,7 +348,7 @@ def test_order_lines_create_with_unavailable_variant(
     draft_order_updated_webhoook_mock.assert_not_called()
 
 
-@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 def test_order_lines_create_when_some_line_has_deleted_product(
     status,
     order_with_lines,
@@ -379,7 +380,7 @@ def test_order_lines_create_when_some_line_has_deleted_product(
     assert data["orderLines"][0]["quantity"] == line.quantity + quantity
 
 
-@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 @patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
 def test_order_lines_create_with_existing_variant(
@@ -424,7 +425,7 @@ def test_order_lines_create_with_existing_variant(
     )
 
 
-@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 @patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
 def test_order_lines_create_with_same_variant_and_force_new_line(
@@ -478,7 +479,7 @@ def test_order_lines_create_with_same_variant_and_force_new_line(
     )
 
 
-@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 @patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
 def test_order_lines_create_when_variant_already_in_multiple_lines(
@@ -530,7 +531,7 @@ def test_order_lines_create_when_variant_already_in_multiple_lines(
     )
 
 
-@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 @patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
 def test_order_lines_create_variant_on_promotion(
@@ -620,6 +621,9 @@ def test_order_lines_create_variant_on_promotion(
         line_data["unitPrice"]["net"]["amount"]
         == variant_channel_listing.price_amount - reward_value
     )
+    assert line_data["saleId"] == graphene.Node.to_global_id(
+        "Promotion", promotion_without_rules.id
+    )
 
     line = order.lines.get(product_sku=variant.sku)
     assert line.sale_id == graphene.Node.to_global_id(
@@ -627,10 +631,7 @@ def test_order_lines_create_variant_on_promotion(
     )
     assert line.unit_discount_amount == reward_value
     assert line.unit_discount_value == reward_value
-    assert (
-        line.unit_discount_reason
-        == f"Promotion rules discounts: {promotion_without_rules.name}: {rule.name}"
-    )
+    assert line.unit_discount_reason == f"Promotion: {line.sale_id}"
     assert line.discounts.count() == 1
     discount = line.discounts.first()
     assert discount.promotion_rule == rule
@@ -643,7 +644,7 @@ def test_order_lines_create_variant_on_promotion(
     )
 
 
-@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 @patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
 def test_order_lines_create_with_product_and_variant_not_assigned_to_channel(
@@ -678,7 +679,7 @@ def test_order_lines_create_with_product_and_variant_not_assigned_to_channel(
     draft_order_updated_webhook_mock.assert_not_called()
 
 
-@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 @patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
 def test_order_lines_create_with_variant_not_assigned_to_channel(
@@ -717,7 +718,7 @@ def test_order_lines_create_with_variant_not_assigned_to_channel(
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
-@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 def test_order_lines_create_without_sku(
     product_variant_out_of_stock_webhook_mock,
     status,
@@ -792,7 +793,7 @@ def test_invalid_order_when_creating_lines(
 
 
 @pytest.mark.parametrize(
-    "status,force_new_line",
+    ("status", "force_new_line"),
     [(OrderStatus.DRAFT, False), (OrderStatus.UNCONFIRMED, True)],
 )
 @patch("saleor.plugins.manager.PluginsManager.draft_order_updated")

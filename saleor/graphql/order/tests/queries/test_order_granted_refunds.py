@@ -442,3 +442,33 @@ def test_order_total_granted_refund_query_by_app(
         total_granted_refund["amount"]
         == first_granted_refund_amount + second_granted_refund_amount
     )
+
+
+def test_order_granted_refunds_query_with_removed_app(
+    staff_user,
+    removed_app,
+    staff_api_client,
+    permission_group_manage_orders,
+    fulfilled_order,
+    shipping_zone,
+):
+    # given
+    order = fulfilled_order
+    first_granted_refund_amount = Decimal("10.00")
+    order.granted_refunds.create(
+        amount_value=first_granted_refund_amount,
+        currency="USD",
+        reason="Test reason",
+        app=removed_app,
+    )
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_QUERY)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    granted_refund = order_data["grantedRefunds"][0]
+    assert granted_refund["app"] is None

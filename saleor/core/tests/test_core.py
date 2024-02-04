@@ -11,9 +11,16 @@ from ...account.models import Address, User
 from ...account.utils import create_superuser
 from ...attribute.models import AttributeValue
 from ...channel.models import Channel
-from ...discount.models import Promotion, PromotionRule, Voucher, VoucherChannelListing
+from ...discount.models import (
+    Promotion,
+    PromotionRule,
+    Voucher,
+    VoucherChannelListing,
+    VoucherCode,
+)
 from ...giftcard.models import GiftCard, GiftCardEvent
 from ...order.models import Order
+from ...payment.models import TransactionItem
 from ...product import ProductTypeKind
 from ...product.models import ProductType
 from ...shipping.models import ShippingZone
@@ -43,7 +50,7 @@ type_schema = {
 
 
 @pytest.mark.parametrize(
-    "ip_address, expected_ip",
+    ("ip_address", "expected_ip"),
     [
         ("83.0.0.1", "83.0.0.1"),
         ("::1", "::1"),
@@ -54,9 +61,6 @@ type_schema = {
     ],
 )
 def test_get_client_ip(ip_address, expected_ip):
-    """Test providing a valid IP in X-Forwarded-For returns the valid IP.
-    Otherwise, if no valid IP were found, returns the requester's IP.
-    """
     expected_ip = expected_ip
     headers = {"HTTP_X_FORWARDED_FOR": ip_address} if ip_address else {}
     request = RequestFactory(**headers).get("/")
@@ -164,6 +168,7 @@ def test_create_vouchers(db):
     for _ in random_data.create_vouchers():
         pass
     assert Voucher.objects.all().count() == voucher_count
+    assert VoucherCode.objects.all().count() == voucher_count
     assert VoucherChannelListing.objects.all().count() == voucher_count * channel_count
 
 
@@ -266,7 +271,7 @@ def test_is_ssl_enabled(enable_ssl, settings):
 
 
 @pytest.mark.parametrize(
-    "public_url, expected",
+    ("public_url", "expected"),
     [("https://api.example.com", True), ("http://api.example.com", False)],
 )
 @pytest.mark.parametrize("enable_ssl", [True, False])
@@ -290,16 +295,13 @@ def test_get_domain_with_public_url(site_settings, settings):
 
 
 def test_delete_sort_order_with_null_value(menu_item):
-    """Ensures there is no error when trying to delete a sortable item,
-    which triggers a shifting of the sort orders--which can be null."""
-
     menu_item.sort_order = None
     menu_item.save(update_fields=["sort_order"])
     menu_item.delete()
 
 
 @pytest.mark.parametrize(
-    "product_name, slug_result",
+    ("product_name", "slug_result"),
     [
         ("Paint", "paint"),
         ("paint", "paint-3"),
@@ -344,11 +346,6 @@ def test_generate_unique_slug_for_slug_with_max_characters_number(category):
     category.slug = result
     with pytest.raises(DataError):
         category.save()
-
-
-def test_generate_unique_slug_non_slugable_value_and_slugable_field(category):
-    with pytest.raises(Exception):
-        generate_unique_slug(category)
 
 
 def test_generate_unique_slug_with_additional_lookup_slug_not_changed(
@@ -418,6 +415,17 @@ def test_cleardb_preserves_data(admin_user, app, site_settings, staff_user):
     app.refresh_from_db()
     site_settings.refresh_from_db()
     staff_user.refresh_from_db()
+
+
+@override_settings(DEBUG=True)
+def test_cleardb_remove_orders_and_transactions(transaction_item):
+    transaction_item.refresh_from_db()
+
+    call_command("cleardb")
+    with pytest.raises(TransactionItem.DoesNotExist):
+        transaction_item.refresh_from_db()
+    with pytest.raises(Order.DoesNotExist):
+        transaction_item.order.refresh_from_db()
 
 
 def test_prepare_unique_attribute_value_slug(color_attribute):

@@ -4,9 +4,10 @@ import hashlib
 import hmac
 import json
 import logging
+from collections.abc import Iterable
 from decimal import Decimal
 from json.decoder import JSONDecodeError
-from typing import Any, Callable, Dict, Iterable, List, Optional, cast
+from typing import Any, Callable, Optional, cast
 from urllib.parse import urlencode, urlparse
 
 import Adyen
@@ -245,7 +246,7 @@ def handle_not_created_order(notification, payment, checkout, kind, manager):
     return None
 
 
-def handle_authorization(notification: Dict[str, Any], gateway_config: GatewayConfig):
+def handle_authorization(notification: dict[str, Any], gateway_config: GatewayConfig):
     """Handle authorization notification.
 
     Handler for processing an authorization notification from Adyen. The notification
@@ -279,7 +280,7 @@ def handle_authorization(notification: Dict[str, Any], gateway_config: GatewayCo
         # We don't know anything about that payment
         return
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     adyen_auto_capture = gateway_config.connection_params["adyen_auto_capture"]
     kind = TransactionKind.AUTH
     if adyen_auto_capture:
@@ -350,7 +351,7 @@ def handle_authorization(notification: Dict[str, Any], gateway_config: GatewayCo
 
 
 def handle_cancellation(
-    notification: Dict[str, Any],
+    notification: dict[str, Any],
     _gateway_config: GatewayConfig,
 ):
     # https://docs.adyen.com/checkout/cancel#cancellation-notifciation
@@ -379,12 +380,12 @@ def handle_cancellation(
         payment, success_msg, failed_msg, new_transaction.is_success
     )
     if payment.order and new_transaction.is_success:
-        manager = get_plugins_manager()
+        manager = get_plugins_manager(allow_replica=False)
         cancel_order(payment.order, None, None, manager)
 
 
 def handle_cancel_or_refund(
-    notification: Dict[str, Any], gateway_config: GatewayConfig
+    notification: dict[str, Any], gateway_config: GatewayConfig
 ):
     # https://docs.adyen.com/checkout/cancel-or-refund#cancel-or-refund-notification
     additional_data = notification.get("additionalData")
@@ -397,7 +398,7 @@ def handle_cancel_or_refund(
         handle_cancellation(notification, gateway_config)
 
 
-def handle_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig):
+def handle_capture(notification: dict[str, Any], _gateway_config: GatewayConfig):
     # https://docs.adyen.com/checkout/capture#capture-notification
     transaction_id = notification.get("pspReference")
     graphql_payment_id = notification.get("merchantReference")
@@ -411,7 +412,7 @@ def handle_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig)
     if not payment:
         return
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     transaction = get_transaction(payment, transaction_id, TransactionKind.CAPTURE)
 
@@ -447,7 +448,7 @@ def handle_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig)
     create_payment_notification_for_order(payment, success_msg, failed_msg, is_success)
 
 
-def handle_failed_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig):
+def handle_failed_capture(notification: dict[str, Any], _gateway_config: GatewayConfig):
     # https://docs.adyen.com/checkout/capture#failed-capture
     transaction_id = notification.get("pspReference")
     payment = get_payment(
@@ -475,7 +476,7 @@ def handle_failed_capture(notification: Dict[str, Any], _gateway_config: Gateway
     create_payment_notification_for_order(payment, msg, None, True)
 
 
-def handle_pending(notification: Dict[str, Any], gateway_config: GatewayConfig):
+def handle_pending(notification: dict[str, Any], gateway_config: GatewayConfig):
     # https://docs.adyen.com/development-resources/webhooks/understand-notifications#
     # event-codes"
     transaction_id = notification.get("pspReference")
@@ -500,7 +501,7 @@ def handle_pending(notification: Dict[str, Any], gateway_config: GatewayConfig):
     )
 
 
-def handle_refund(notification: Dict[str, Any], _gateway_config: GatewayConfig):
+def handle_refund(notification: dict[str, Any], _gateway_config: GatewayConfig):
     # https://docs.adyen.com/checkout/refund#refund-notification
     transaction_id = notification.get("pspReference")
     payment = get_payment(
@@ -533,7 +534,7 @@ def handle_refund(notification: Dict[str, Any], _gateway_config: GatewayConfig):
             None,
             transaction.amount,
             payment,
-            get_plugins_manager(),
+            get_plugins_manager(allow_replica=False),
         )
 
 
@@ -544,7 +545,7 @@ def _get_kind(transaction: Optional[Transaction]) -> str:
     return TransactionKind.CAPTURE
 
 
-def handle_failed_refund(notification: Dict[str, Any], gateway_config: GatewayConfig):
+def handle_failed_refund(notification: dict[str, Any], gateway_config: GatewayConfig):
     # https://docs.adyen.com/checkout/refund#failed-refund
     transaction_id = notification.get("pspReference")
     payment = get_payment(
@@ -610,7 +611,7 @@ def handle_failed_refund(notification: Dict[str, Any], gateway_config: GatewayCo
 
 
 def handle_reversed_refund(
-    notification: Dict[str, Any], _gateway_config: GatewayConfig
+    notification: dict[str, Any], _gateway_config: GatewayConfig
 ):
     # https://docs.adyen.com/checkout/refund#failed-refund
     transaction_id = notification.get("pspReference")
@@ -641,14 +642,14 @@ def handle_reversed_refund(
 
 
 def handle_refund_with_data(
-    notification: Dict[str, Any], gateway_config: GatewayConfig
+    notification: dict[str, Any], gateway_config: GatewayConfig
 ):
     # https://docs.adyen.com/checkout/refund#refund-with-data
     handle_refund(notification, gateway_config)
 
 
 def webhook_not_implemented(
-    notification: Dict[str, Any], gateway_config: GatewayConfig
+    notification: dict[str, Any], gateway_config: GatewayConfig
 ):
     adyen_id = notification.get("pspReference")
     success = notification.get("success", True)
@@ -664,7 +665,7 @@ def webhook_not_implemented(
     create_payment_notification_for_order(payment, msg, None, True)
 
 
-def handle_order_opened(notification: Dict[str, Any], gateway_config: GatewayConfig):
+def handle_order_opened(notification: dict[str, Any], gateway_config: GatewayConfig):
     # From Adyen's documentation:
     # Sent when the first payment for your payment request is a partial payment, and an
     # order has been created.
@@ -674,8 +675,8 @@ def handle_order_opened(notification: Dict[str, Any], gateway_config: GatewayCon
 
 
 def get_or_create_adyen_partial_payments(
-    notification: Dict[str, Any], payment: Payment
-) -> Optional[List[Payment]]:
+    notification: dict[str, Any], payment: Payment
+) -> Optional[list[Payment]]:
     """Store basic data about partial payments created by Adyen.
 
     This is a workaround for not supporting partial payments in Saleor. Adyen can
@@ -795,7 +796,7 @@ def refund_partial_payments(payments, config):
         )
 
 
-def handle_order_closed(notification: Dict[str, Any], gateway_config: GatewayConfig):
+def handle_order_closed(notification: dict[str, Any], gateway_config: GatewayConfig):
     # From Adyen's documentation:
     # The success field informs you of the outcome of the shopper's last payment when
     # paying for an order in partial payments.
@@ -848,7 +849,11 @@ def handle_order_closed(notification: Dict[str, Any], gateway_config: GatewayCon
     order = None
     try:
         order = handle_not_created_order(
-            notification, payment, checkout, kind, get_plugins_manager()
+            notification,
+            payment,
+            checkout,
+            kind,
+            get_plugins_manager(allow_replica=False),
         )
     except Exception as e:
         logger.exception("Exception during order creation", extra={"error": e})
@@ -900,7 +905,7 @@ EVENT_MAP = {
 
 
 def validate_hmac_signature(
-    notification: Dict[str, Any], gateway_config: "GatewayConfig"
+    notification: dict[str, Any], gateway_config: "GatewayConfig"
 ) -> bool:
     hmac_signature: Optional[str] = notification.get("additionalData", {}).get(
         "hmacSignature"
@@ -966,7 +971,7 @@ def validate_auth_user(headers: HttpHeaders, gateway_config: "GatewayConfig") ->
 
 
 def validate_merchant_account(
-    notification: Dict[str, Any], gateway_config: "GatewayConfig"
+    notification: dict[str, Any], gateway_config: "GatewayConfig"
 ):
     merchant_account_code = notification.get("merchantAccountCode")
     return merchant_account_code == gateway_config.connection_params.get(
@@ -1169,7 +1174,7 @@ def handle_api_response(
         gateway_response=gateway_response,
     )
     if is_success and not action_required and not payment.order and checkout:
-        manager = get_plugins_manager()
+        manager = get_plugins_manager(allow_replica=False)
 
         confirm_payment_and_set_back_to_confirm(payment, manager, channel_slug)
         payment.refresh_from_db()  # refresh charge_status

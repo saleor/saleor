@@ -6,6 +6,9 @@ mutation GiftCardCreate($input: GiftCardCreateInput!) {
     giftCard {
       id
       code
+      initialBalance {
+        amount
+      }
     }
     errors {
       code

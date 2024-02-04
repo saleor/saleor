@@ -1,5 +1,3 @@
-from typing import List
-
 from .....payment.models import Payment
 from .....payment.utils import payment_owned_by_user
 from .....permission.models import Permission
@@ -24,7 +22,7 @@ QUERY_PAYMENT_PRIVATE_META = """
 
 
 def execute_query_private_metadata_for_payment(
-    client: ApiClient, payment: Payment, permissions: List[Permission] = None
+    client: ApiClient, payment: Payment, permissions: list[Permission] = None
 ):
     return execute_query(
         QUERY_PAYMENT_PRIVATE_META, client, payment, "Payment", permissions
@@ -106,7 +104,7 @@ QUERY_PAYMENT_PUBLIC_META = """
 
 
 def execute_query_public_metadata_for_payment(
-    client: ApiClient, payment: Payment, permissions: List[Permission] = None
+    client: ApiClient, payment: Payment, permissions: list[Permission] = None
 ):
     return execute_query(
         QUERY_PAYMENT_PUBLIC_META, client, payment, "Payment", permissions

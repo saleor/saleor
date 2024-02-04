@@ -142,6 +142,7 @@ def test_page_type_update_trigger_webhook(
         [any_webhook],
         page_type,
         SimpleLazyObject(lambda: staff_user),
+        allow_replica=False,
     )
 
 

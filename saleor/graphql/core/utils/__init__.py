@@ -2,7 +2,7 @@ import binascii
 import os
 import secrets
 from dataclasses import dataclass
-from typing import List, Literal, Optional, Tuple, Type, Union, overload
+from typing import Literal, Optional, Union, overload
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -47,22 +47,22 @@ def from_global_id_or_error(
     global_id: str,
     only_type: Union[ObjectType, str, None] = None,
     raise_error: Literal[True] = True,
-) -> Tuple[str, str]:
+) -> tuple[str, str]:
     ...
 
 
 @overload
 def from_global_id_or_error(
     global_id: str,
-    only_type: Union[Type[ObjectType], str, None] = None,
+    only_type: Union[type[ObjectType], str, None] = None,
     raise_error: bool = False,
-) -> Union[Tuple[str, str], Tuple[str, None]]:
+) -> Union[tuple[str, str], tuple[str, None]]:
     ...
 
 
 def from_global_id_or_error(
     global_id: str,
-    only_type: Union[Type[ObjectType], str, None] = None,
+    only_type: Union[type[ObjectType], str, None] = None,
     raise_error: bool = False,
 ):
     """Resolve global ID or raise GraphQLError.
@@ -79,18 +79,21 @@ def from_global_id_or_error(
     """
     try:
         type_, id_ = graphene.Node.from_global_id(global_id)
-    except (binascii.Error, UnicodeDecodeError, ValueError):
-        raise GraphQLError(f"Couldn't resolve id: {global_id}.")
-    if type_ == APP_ID_PREFIX:
-        id_ = global_id
-    else:
-        if not validate_if_int_or_uuid(id_):
-            raise GraphQLError(f"Error occurred during ID - {global_id} validation.")
+        if type_ == APP_ID_PREFIX:
+            id_ = global_id
+        else:
+            validate_if_int_or_uuid(id_)
+    except (binascii.Error, UnicodeDecodeError, ValueError, ValidationError):
+        if only_type:
+            raise GraphQLError(f"Invalid ID: {global_id}. Expected: {only_type}.")
+        raise GraphQLError(f"Invalid ID: {global_id}.")
 
     if only_type and str(type_) != str(only_type):
         if not raise_error:
             return type_, None
-        raise GraphQLError(f"Must receive a {only_type} id.")
+        raise GraphQLError(
+            f"Invalid ID: {global_id}. Expected: {only_type}, received: {type_}."
+        )
     return type_, id_
 
 
@@ -151,7 +154,7 @@ CHECKOUT_CALCULATE_TAXES_MESSAGE = (
 )
 
 
-def message_webhook_events(webhook_events: List[WebhookEventInfo]) -> str:
+def message_webhook_events(webhook_events: list[WebhookEventInfo]) -> str:
     description = "\n\nTriggers the following webhook events:"
     for event in webhook_events:
         webhook_type = "async" if event.type in WebhookEventAsyncType.ALL else "sync"

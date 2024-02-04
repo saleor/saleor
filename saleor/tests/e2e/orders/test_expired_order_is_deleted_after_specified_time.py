@@ -5,7 +5,6 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from ....order.tasks import delete_expired_orders_task, expire_orders_task
-from ..channel.utils import update_channel
 from ..checkout.utils import checkout_create, checkout_delivery_method_update
 from ..product.utils.preparing_product import prepare_product
 from ..shop.utils.preparing_shop import prepare_shop
@@ -17,58 +16,54 @@ from .utils import order_create_from_checkout, order_query
 def test_expired_order_is_deleted_after_specified_time_CORE_0216(
     e2e_staff_api_client,
     e2e_app_api_client,
-    permission_manage_products,
-    permission_manage_channels,
+    shop_permissions,
     permission_manage_product_types_and_attributes,
-    permission_manage_shipping,
     permission_manage_orders,
     permission_manage_payments,
     permission_handle_checkouts,
 ):
     # Before
     permissions = [
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_shipping,
-        permission_manage_product_types_and_attributes,
+        *shop_permissions,
         permission_manage_orders,
+        permission_manage_product_types_and_attributes,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
     app_permissions = [
         permission_manage_payments,
         permission_handle_checkouts,
         permission_manage_orders,
-        permission_manage_channels,
+        *shop_permissions,
     ]
     assign_permissions(e2e_app_api_client, app_permissions)
 
     price = 10
 
-    (
-        warehouse_id,
-        channel_id,
-        channel_slug,
-        shipping_method_id,
-    ) = prepare_shop(e2e_staff_api_client)
-
-    expire_order_after_in_minutes = 1
-    delete_expired_order_after_in_days = "1"
-    channel_update_input = {
-        "orderSettings": {
-            "allowUnpaidOrders": True,
-            "automaticallyFulfillNonShippableGiftCard": True,
-            "automaticallyConfirmAllNewOrders": True,
-            "expireOrdersAfter": expire_order_after_in_minutes,
-            "deleteExpiredOrdersAfter": delete_expired_order_after_in_days,
-        }
-    }
-
-    update_channel(
+    shop_data, _tax_config = prepare_shop(
         e2e_staff_api_client,
-        channel_id,
-        channel_update_input,
+        channels=[
+            {
+                "shipping_zones": [
+                    {
+                        "shipping_methods": [{}],
+                    },
+                ],
+                "order_settings": {
+                    "expireOrdersAfter": 1,
+                    "deleteExpiredOrdersAfter": "1",
+                },
+            }
+        ],
+        shop_settings={},
     )
-
+    channel_id = shop_data[0]["id"]
+    channel_slug = shop_data[0]["slug"]
+    warehouse_id = shop_data[0]["warehouse_id"]
+    shipping_method_id = shop_data[0]["shipping_zones"][0]["shipping_methods"][0]["id"]
+    expire_order_after_in_minutes = shop_data[0]["order_settings"]["expireOrdersAfter"]
+    delete_expired_order_after_in_days = shop_data[0]["order_settings"][
+        "deleteExpiredOrdersAfter"
+    ]
     (
         _product_id,
         product_variant_id,
@@ -99,7 +94,6 @@ def test_expired_order_is_deleted_after_specified_time_CORE_0216(
     assert checkout_id is not None
     assert checkout_data["isShippingRequired"] is True
     assert len(checkout_data["shippingMethods"]) == 1
-    shipping_method_id = checkout_data["shippingMethods"][0]["id"]
 
     # Step 2 - Assign shipping method
     checkout_data = checkout_delivery_method_update(

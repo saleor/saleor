@@ -7,10 +7,10 @@ from . import subscription_queries as queries
 
 @pytest.fixture
 def subscription_webhook(webhook_app):
-    def fun(query, event_type, name="Subscription"):
+    def fun(query, event_type, name="Subscription", app=webhook_app):
         webhook = Webhook.objects.create(
             name=name,
-            app=webhook_app,
+            app=app,
             target_url="http://www.example.com/any",
             subscription_query=query,
         )
@@ -1001,6 +1001,20 @@ def subscription_voucher_deleted_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_voucher_codes_created_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.VOUCHER_CODES_CREATED, WebhookEventAsyncType.VOUCHER_CODES_CREATED
+    )
+
+
+@pytest.fixture
+def subscription_voucher_codes_deleted_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.VOUCHER_CODES_DELETED, WebhookEventAsyncType.VOUCHER_CODES_DELETED
+    )
+
+
+@pytest.fixture
 def subscription_voucher_webhook_with_meta(subscription_webhook):
     return subscription_webhook(
         queries.VOUCHER_CREATED_WITH_META,
@@ -1012,6 +1026,14 @@ def subscription_voucher_webhook_with_meta(subscription_webhook):
 def subscription_voucher_metadata_updated_webhook(subscription_webhook):
     return subscription_webhook(
         queries.VOUCHER_METADATA_UPDATED, WebhookEventAsyncType.VOUCHER_METADATA_UPDATED
+    )
+
+
+@pytest.fixture
+def subscription_voucher_code_export_completed_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.VOUCHER_CODE_EXPORT_COMPLETED,
+        WebhookEventAsyncType.VOUCHER_CODE_EXPORT_COMPLETED,
     )
 
 
@@ -1160,4 +1182,46 @@ def subscription_calculate_taxes_for_order(
     return subscription_webhook(
         queries.ORDER_CALCULATE_TAXES,
         WebhookEventSyncType.ORDER_CALCULATE_TAXES,
+    )
+
+
+@pytest.fixture
+def subscription_app_installed_webhook_removed_app(subscription_webhook, removed_app):
+    return subscription_webhook(
+        queries.APP_INSTALLED, WebhookEventAsyncType.APP_INSTALLED, app=removed_app
+    )
+
+
+@pytest.fixture
+def subscription_app_updated_webhook_removed_app(subscription_webhook, removed_app):
+    return subscription_webhook(
+        queries.APP_UPDATED, WebhookEventAsyncType.APP_UPDATED, app=removed_app
+    )
+
+
+@pytest.fixture
+def subscription_app_deleted_webhook_removed_app(subscription_webhook, removed_app):
+    return subscription_webhook(
+        queries.APP_DELETED, WebhookEventAsyncType.APP_DELETED, app=removed_app
+    )
+
+
+@pytest.fixture
+def subscription_app_status_changed_webhook_removed_app(
+    subscription_webhook, removed_app
+):
+    return subscription_webhook(
+        queries.APP_STATUS_CHANGED,
+        WebhookEventAsyncType.APP_STATUS_CHANGED,
+        app=removed_app,
+    )
+
+
+@pytest.fixture
+def subscription_checkout_shipping_filter_and_list_missing_one_in_definition(
+    subscription_webhook,
+):
+    return subscription_webhook(
+        queries.THUMBNAIL_CREATED,
+        WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
     )

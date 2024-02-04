@@ -9,11 +9,13 @@ from prices import Money
 
 from .....checkout import AddressType
 from .....core.taxes import TaxError, zero_taxed_money
-from .....discount.models import VoucherChannelListing
+from .....discount import DiscountType, DiscountValueType
+from .....discount.models import VoucherChannelListing, VoucherCustomer
 from .....order import OrderStatus
 from .....order import events as order_events
 from .....order.error_codes import OrderErrorCode
 from .....order.models import Order, OrderEvent
+from .....payment.model_helpers import get_subtotal
 from .....product.models import ProductVariant
 from .....tax import TaxCalculationStrategy
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -66,8 +68,14 @@ DRAFT_ORDER_CREATE_MUTATION = """
                     voucher {
                         code
                     }
+                    voucherCode
                     customerNote
                     total {
+                        gross {
+                            amount
+                        }
+                    }
+                    subtotal {
                         gross {
                             amount
                         }
@@ -115,7 +123,7 @@ DRAFT_ORDER_CREATE_MUTATION = """
     """
 
 
-def test_draft_order_create(
+def test_draft_order_create_with_voucher(
     staff_api_client,
     permission_group_manage_orders,
     staff_user,
@@ -127,6 +135,7 @@ def test_draft_order_create(
     channel_USD,
     graphql_address_data,
 ):
+    # given
     variant_0 = variant
     query = DRAFT_ORDER_CREATE_MUTATION
     permission_group_manage_orders.user_set.add(staff_api_client.user)
@@ -136,20 +145,27 @@ def test_draft_order_create(
 
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     variant_0_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
+    channel_listing_0 = variant_0.channel_listings.get(channel=channel_USD)
+    variant_0_qty = 2
+
     variant_1 = product_without_shipping.variants.first()
-    variant_1.quantity = 2
-    variant_1.save()
+    variant_1_qty = 1
+    channel_listing_1 = variant_1.channel_listings.get(channel=channel_USD)
+
     variant_1_id = graphene.Node.to_global_id("ProductVariant", variant_1.id)
     discount = "10"
     customer_note = "Test note"
     variant_list = [
-        {"variantId": variant_0_id, "quantity": 2},
-        {"variantId": variant_1_id, "quantity": 1},
+        {"variantId": variant_0_id, "quantity": variant_0_qty},
+        {"variantId": variant_1_id, "quantity": variant_1_qty},
     ]
     shipping_address = graphql_address_data
     shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+
+    voucher_listing = voucher.channel_listings.get(channel=channel_USD)
+
     redirect_url = "https://www.example.com"
     external_reference = "test-ext-ref"
 
@@ -176,6 +192,7 @@ def test_draft_order_create(
     data = content["data"]["draftOrderCreate"]["order"]
     assert data["status"] == OrderStatus.DRAFT.upper()
     assert data["voucher"]["code"] == voucher.code
+    assert data["voucherCode"] == voucher.code
     assert data["customerNote"] == customer_note
     assert data["redirectUrl"] == redirect_url
     assert data["externalReference"] == external_reference
@@ -189,8 +206,24 @@ def test_draft_order_create(
     )
     assert data["billingAddress"]["metadata"] == graphql_address_data["metadata"]
     assert data["shippingAddress"]["metadata"] == graphql_address_data["metadata"]
+    shipping_total = shipping_method.channel_listings.get(
+        channel=channel_USD
+    ).get_total()
+    order_total = (
+        channel_listing_0.discounted_price_amount * variant_0_qty
+        + channel_listing_1.discounted_price_amount * variant_1_qty
+        + shipping_total.amount
+    )
+    assert data["undiscountedTotal"]["gross"]["amount"] == order_total
+    assert (
+        data["total"]["gross"]["amount"] == order_total - voucher_listing.discount_value
+    )
 
     order = Order.objects.first()
+    subtotal = get_subtotal(order.lines.all(), order.currency)
+    assert data["subtotal"]["gross"]["amount"] == subtotal.gross.amount
+
+    assert order.voucher_code == voucher.code
     assert order.user == customer_user
     assert order.shipping_method == shipping_method
     assert order.shipping_method_name == shipping_method.name
@@ -228,6 +261,350 @@ def test_draft_order_create(
     assert event_parameters["lines"][1]["item"] == str(order_lines[1])
     assert event_parameters["lines"][1]["line_pk"] == str(order_lines[1].pk)
     assert event_parameters["lines"][1]["quantity"] == 1
+
+    # Ensure order discount object was properly created
+    assert order.discounts.count() == 1
+    order_discount = order.discounts.first()
+    assert order_discount.voucher == voucher
+    assert order_discount.type == DiscountType.VOUCHER
+    assert order_discount.value_type == DiscountValueType.FIXED
+    assert order_discount.value == voucher_listing.discount_value
+    assert order_discount.amount_value == voucher_listing.discount_value
+
+
+def test_draft_order_create_with_voucher_and_voucher_code(
+    staff_api_client,
+    permission_group_manage_orders,
+    customer_user,
+    product_without_shipping,
+    shipping_method,
+    variant,
+    voucher,
+    channel_USD,
+    graphql_address_data,
+):
+    # given
+    variant_0 = variant
+    query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # Ensure no events were created yet
+    assert not OrderEvent.objects.exists()
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_0_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
+    variant_0_qty = 2
+    variant_1 = product_without_shipping.variants.first()
+    variant_1_qty = 1
+    variant_1.quantity = variant_1_qty
+    variant_1.save()
+
+    variant_1_id = graphene.Node.to_global_id("ProductVariant", variant_1.id)
+    discount = "10"
+    customer_note = "Test note"
+    variant_list = [
+        {"variantId": variant_0_id, "quantity": variant_0_qty},
+        {"variantId": variant_1_id, "quantity": variant_1_qty},
+    ]
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    redirect_url = "https://www.example.com"
+    external_reference = "test-ext-ref"
+
+    variables = {
+        "input": {
+            "user": user_id,
+            "discount": discount,
+            "lines": variant_list,
+            "billingAddress": shipping_address,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "voucher": voucher_id,
+            "voucherCode": voucher.codes.first().code,
+            "customerNote": customer_note,
+            "channelId": channel_id,
+            "redirectUrl": redirect_url,
+            "externalReference": external_reference,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    error = content["data"]["draftOrderCreate"]["errors"][0]
+    assert error["field"] == "voucher"
+    assert error["code"] == OrderErrorCode.INVALID.name
+    assert (
+        error["message"]
+        == "You cannot use both a voucher and a voucher code for the same order. "
+        "Please choose one."
+    )
+
+
+def test_draft_order_create_with_voucher_code(
+    staff_api_client,
+    permission_group_manage_orders,
+    staff_user,
+    customer_user,
+    product_without_shipping,
+    shipping_method,
+    variant,
+    voucher,
+    channel_USD,
+    graphql_address_data,
+):
+    # given
+    variant_0 = variant
+    query = DRAFT_ORDER_CREATE_MUTATION
+    voucher_code = voucher.codes.first()
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # Ensure no events were created yet
+    assert not OrderEvent.objects.exists()
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_0_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
+    channel_listing_0 = variant_0.channel_listings.get(channel=channel_USD)
+    variant_0_qty = 2
+
+    variant_1 = product_without_shipping.variants.first()
+    variant_1_qty = 1
+    channel_listing_1 = variant_1.channel_listings.get(channel=channel_USD)
+
+    variant_1_id = graphene.Node.to_global_id("ProductVariant", variant_1.id)
+    discount = "10"
+    customer_note = "Test note"
+    variant_list = [
+        {"variantId": variant_0_id, "quantity": variant_0_qty},
+        {"variantId": variant_1_id, "quantity": variant_1_qty},
+    ]
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+
+    voucher_listing = voucher.channel_listings.get(channel=channel_USD)
+
+    redirect_url = "https://www.example.com"
+    external_reference = "test-ext-ref"
+
+    variables = {
+        "input": {
+            "user": user_id,
+            "discount": discount,
+            "lines": variant_list,
+            "billingAddress": shipping_address,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "voucherCode": voucher_code.code,
+            "customerNote": customer_note,
+            "channelId": channel_id,
+            "redirectUrl": redirect_url,
+            "externalReference": external_reference,
+        }
+    }
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["draftOrderCreate"]["errors"]
+    stored_metadata = {"public": "public_value"}
+    data = content["data"]["draftOrderCreate"]["order"]
+    assert data["status"] == OrderStatus.DRAFT.upper()
+    assert data["voucher"]["code"] == voucher.code
+    assert data["voucherCode"] == voucher.code
+    assert data["customerNote"] == customer_note
+    assert data["redirectUrl"] == redirect_url
+    assert data["externalReference"] == external_reference
+    assert (
+        data["billingAddress"]["streetAddress1"]
+        == graphql_address_data["streetAddress1"]
+    )
+    assert (
+        data["shippingAddress"]["streetAddress1"]
+        == graphql_address_data["streetAddress1"]
+    )
+    assert data["billingAddress"]["metadata"] == graphql_address_data["metadata"]
+    assert data["shippingAddress"]["metadata"] == graphql_address_data["metadata"]
+    shipping_total = shipping_method.channel_listings.get(
+        channel=channel_USD
+    ).get_total()
+    order_total = (
+        channel_listing_0.discounted_price_amount * variant_0_qty
+        + channel_listing_1.discounted_price_amount * variant_1_qty
+        + shipping_total.amount
+    )
+    assert data["undiscountedTotal"]["gross"]["amount"] == order_total
+    assert (
+        data["total"]["gross"]["amount"] == order_total - voucher_listing.discount_value
+    )
+
+    order = Order.objects.first()
+    subtotal = get_subtotal(order.lines.all(), order.currency)
+    assert data["subtotal"]["gross"]["amount"] == subtotal.gross.amount
+    assert order.voucher_code == voucher.code
+    assert order.user == customer_user
+    assert order.shipping_method == shipping_method
+    assert order.shipping_method_name == shipping_method.name
+    assert order.billing_address
+    assert order.shipping_address
+    assert order.billing_address.metadata == stored_metadata
+    assert order.shipping_address.metadata == stored_metadata
+    assert order.search_vector
+    assert order.external_reference == external_reference
+    assert order.base_shipping_price == shipping_total
+
+    # Ensure the correct event was created
+    created_draft_event = OrderEvent.objects.get(
+        type=order_events.OrderEvents.DRAFT_CREATED
+    )
+    assert created_draft_event.user == staff_user
+    assert created_draft_event.parameters == {}
+
+    # Ensure the order_added_products_event was created properly
+    added_products_event = OrderEvent.objects.get(
+        type=order_events.OrderEvents.ADDED_PRODUCTS
+    )
+    event_parameters = added_products_event.parameters
+    assert event_parameters
+    assert len(event_parameters["lines"]) == 2
+
+    order_lines = list(order.lines.all())
+    assert event_parameters["lines"][0]["item"] == str(order_lines[0])
+    assert event_parameters["lines"][0]["line_pk"] == str(order_lines[0].pk)
+    assert event_parameters["lines"][0]["quantity"] == 2
+
+    assert event_parameters["lines"][1]["item"] == str(order_lines[1])
+    assert event_parameters["lines"][1]["line_pk"] == str(order_lines[1].pk)
+    assert event_parameters["lines"][1]["quantity"] == 1
+
+    # Ensure order discount object was properly created
+    assert order.discounts.count() == 1
+    order_discount = order.discounts.first()
+    assert order_discount.voucher == voucher
+    assert order_discount.type == DiscountType.VOUCHER
+    assert order_discount.value_type == DiscountValueType.FIXED
+    assert order_discount.value == voucher_listing.discount_value
+    assert order_discount.amount_value == voucher_listing.discount_value
+
+
+def test_draft_order_create_percentage_voucher(
+    staff_api_client,
+    permission_group_manage_orders,
+    staff_user,
+    customer_user,
+    shipping_method,
+    variant,
+    voucher_percentage,
+    channel_USD,
+    graphql_address_data,
+):
+    # given
+    query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # Ensure no events were created yet
+    assert not OrderEvent.objects.exists()
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    channel_listing = variant.channel_listings.get(channel=channel_USD)
+    variant_qty = 2
+
+    variant_list = [
+        {"variantId": variant_id, "quantity": variant_qty},
+    ]
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    voucher_listing = voucher_percentage.channel_listings.get(channel=channel_USD)
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher_percentage.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    redirect_url = "https://www.example.com"
+    variables = {
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+            "billingAddress": shipping_address,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "voucher": voucher_id,
+            "channelId": channel_id,
+            "redirectUrl": redirect_url,
+        }
+    }
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["draftOrderCreate"]["errors"]
+    data = content["data"]["draftOrderCreate"]["order"]
+    assert data["status"] == OrderStatus.DRAFT.upper()
+    assert data["voucher"]["code"] == voucher_percentage.code
+    assert data["redirectUrl"] == redirect_url
+    assert (
+        data["billingAddress"]["streetAddress1"]
+        == graphql_address_data["streetAddress1"]
+    )
+    assert (
+        data["shippingAddress"]["streetAddress1"]
+        == graphql_address_data["streetAddress1"]
+    )
+    assert data["billingAddress"]["metadata"] == graphql_address_data["metadata"]
+    assert data["shippingAddress"]["metadata"] == graphql_address_data["metadata"]
+    shipping_total = shipping_method.channel_listings.get(
+        channel=channel_USD
+    ).get_total()
+    subtotal = channel_listing.discounted_price_amount * variant_qty
+    assert (
+        data["undiscountedTotal"]["gross"]["amount"] == subtotal + shipping_total.amount
+    )
+    discount_amount = subtotal * voucher_listing.discount_value / 100
+    assert (
+        data["total"]["gross"]["amount"]
+        == subtotal - discount_amount + shipping_total.amount
+    )
+
+    order = Order.objects.first()
+    subtotal = get_subtotal(order.lines.all(), order.currency)
+    assert data["subtotal"]["gross"]["amount"] == subtotal.gross.amount
+    assert order.user == customer_user
+    assert order.shipping_method == shipping_method
+    assert order.shipping_method_name == shipping_method.name
+    assert order.base_shipping_price == shipping_total
+
+    # Ensure the correct event was created
+    created_draft_event = OrderEvent.objects.get(
+        type=order_events.OrderEvents.DRAFT_CREATED
+    )
+    assert created_draft_event.user == staff_user
+    assert created_draft_event.parameters == {}
+
+    # Ensure the order_added_products_event was created properly
+    added_products_event = OrderEvent.objects.get(
+        type=order_events.OrderEvents.ADDED_PRODUCTS
+    )
+    event_parameters = added_products_event.parameters
+    assert event_parameters
+    assert len(event_parameters["lines"]) == 1
+
+    order_line = order.lines.first()
+    assert event_parameters["lines"][0]["item"] == str(order_line)
+    assert event_parameters["lines"][0]["line_pk"] == str(order_line.pk)
+    assert event_parameters["lines"][0]["quantity"] == variant_qty
+
+    # Ensure order discount object was properly created
+    assert order.discounts.count() == 1
+    order_discount = order.discounts.first()
+    assert order_discount.voucher == voucher_percentage
+    assert order_discount.type == DiscountType.VOUCHER
+    assert order_discount.value_type == DiscountValueType.PERCENTAGE
+    assert order_discount.value == voucher_listing.discount_value
+    assert order_discount.amount_value == discount_amount
 
 
 def test_draft_order_create_by_user_no_channel_access(
@@ -329,6 +706,370 @@ def test_draft_order_create_by_app(
     assert not content["data"]["draftOrderCreate"]["errors"]
     data = content["data"]["draftOrderCreate"]["order"]
     assert data["status"] == OrderStatus.DRAFT.upper()
+
+
+def test_draft_order_create_with_voucher_including_drafts_in_voucher_usage(
+    staff_api_client,
+    permission_group_manage_orders,
+    customer_user,
+    shipping_method,
+    variant,
+    voucher,
+    channel_USD,
+    graphql_address_data,
+):
+    # given
+    query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    channel_USD.include_draft_order_in_voucher_usage = True
+    channel_USD.save(update_fields=["include_draft_order_in_voucher_usage"])
+
+    voucher.apply_once_per_customer = True
+    voucher.usage_limit = 10
+    voucher.save(update_fields=["apply_once_per_customer", "usage_limit"])
+
+    # Ensure no events were created yet
+    assert not OrderEvent.objects.exists()
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    channel_listing = variant.channel_listings.get(channel=channel_USD)
+    variant_qty = 2
+
+    variant_list = [
+        {"variantId": variant_id, "quantity": variant_qty},
+    ]
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    voucher_listing = voucher.channel_listings.get(channel=channel_USD)
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    redirect_url = "https://www.example.com"
+    variables = {
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+            "billingAddress": shipping_address,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "voucher": voucher_id,
+            "channelId": channel_id,
+            "redirectUrl": redirect_url,
+        }
+    }
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["draftOrderCreate"]["errors"]
+    data = content["data"]["draftOrderCreate"]["order"]
+    assert data["status"] == OrderStatus.DRAFT.upper()
+    assert data["voucher"]["code"] == voucher.code
+    shipping_total = shipping_method.channel_listings.get(
+        channel=channel_USD
+    ).get_total()
+    order_total = (
+        channel_listing.discounted_price_amount * variant_qty + shipping_total.amount
+    )
+    assert data["undiscountedTotal"]["gross"]["amount"] == order_total
+    assert (
+        data["total"]["gross"]["amount"] == order_total - voucher_listing.discount_value
+    )
+
+    order = Order.objects.first()
+    subtotal = get_subtotal(order.lines.all(), order.currency)
+    assert data["subtotal"]["gross"]["amount"] == subtotal.gross.amount
+
+    # Ensure order discount object was properly created
+    assert order.discounts.count() == 1
+    order_discount = order.discounts.first()
+    assert order_discount.voucher == voucher
+    assert order_discount.type == DiscountType.VOUCHER
+    assert order_discount.value_type == DiscountValueType.FIXED
+    assert order_discount.value == voucher_listing.discount_value
+    assert order_discount.amount_value == voucher_listing.discount_value
+
+    code = voucher.codes.first()
+    assert code.used == 1
+
+    assert not VoucherCustomer.objects.filter(voucher_code=code).exists()
+
+
+def test_draft_order_create_with_voucher_including_drafts_in_voucher_usage_invalid_code(
+    staff_api_client,
+    permission_group_manage_orders,
+    customer_user,
+    shipping_method,
+    variant,
+    voucher,
+    channel_USD,
+    graphql_address_data,
+):
+    # given
+    query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    channel_USD.include_draft_order_in_voucher_usage = True
+    channel_USD.save(update_fields=["include_draft_order_in_voucher_usage"])
+
+    voucher.single_use = True
+    voucher.save(update_fields=["single_use"])
+
+    code = voucher.codes.first()
+    code.is_active = False
+    code.save(update_fields=["is_active"])
+
+    # Ensure no events were created yet
+    assert not OrderEvent.objects.exists()
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variant_qty = 2
+
+    variant_list = [
+        {"variantId": variant_id, "quantity": variant_qty},
+    ]
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    redirect_url = "https://www.example.com"
+    variables = {
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+            "billingAddress": shipping_address,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "voucher": voucher_id,
+            "channelId": channel_id,
+            "redirectUrl": redirect_url,
+        }
+    }
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+
+    # then
+    content = get_graphql_content(response)
+    error = content["data"]["draftOrderCreate"]["errors"][0]
+    assert error["code"] == OrderErrorCode.INVALID_VOUCHER.name
+    assert error["field"] == "voucher"
+
+
+def test_draft_order_create_with_voucher_code_including_drafts_in_voucher_usage(
+    staff_api_client,
+    permission_group_manage_orders,
+    customer_user,
+    shipping_method,
+    variant,
+    voucher,
+    channel_USD,
+    graphql_address_data,
+):
+    # given
+    query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    channel_USD.include_draft_order_in_voucher_usage = True
+    channel_USD.save(update_fields=["include_draft_order_in_voucher_usage"])
+
+    voucher.apply_once_per_customer = True
+    voucher.usage_limit = 10
+    voucher.save(update_fields=["apply_once_per_customer", "usage_limit"])
+
+    code_instance = voucher.codes.first()
+
+    # Ensure no events were created yet
+    assert not OrderEvent.objects.exists()
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    channel_listing = variant.channel_listings.get(channel=channel_USD)
+    variant_qty = 2
+
+    variant_list = [
+        {"variantId": variant_id, "quantity": variant_qty},
+    ]
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    voucher_listing = voucher.channel_listings.get(channel=channel_USD)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    redirect_url = "https://www.example.com"
+    variables = {
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+            "billingAddress": shipping_address,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "voucherCode": code_instance.code,
+            "channelId": channel_id,
+            "redirectUrl": redirect_url,
+        }
+    }
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["draftOrderCreate"]["errors"]
+    data = content["data"]["draftOrderCreate"]["order"]
+    assert data["status"] == OrderStatus.DRAFT.upper()
+    assert data["voucher"]["code"] == voucher.code
+    shipping_total = shipping_method.channel_listings.get(
+        channel=channel_USD
+    ).get_total()
+    order_total = (
+        channel_listing.discounted_price_amount * variant_qty + shipping_total.amount
+    )
+    assert data["undiscountedTotal"]["gross"]["amount"] == order_total
+    assert (
+        data["total"]["gross"]["amount"] == order_total - voucher_listing.discount_value
+    )
+
+    order = Order.objects.first()
+    subtotal = get_subtotal(order.lines.all(), order.currency)
+    assert data["subtotal"]["gross"]["amount"] == subtotal.gross.amount
+
+    # Ensure order discount object was properly created
+    assert order.discounts.count() == 1
+    order_discount = order.discounts.first()
+    assert order_discount.voucher == voucher
+    assert order_discount.type == DiscountType.VOUCHER
+    assert order_discount.value_type == DiscountValueType.FIXED
+    assert order_discount.value == voucher_listing.discount_value
+    assert order_discount.amount_value == voucher_listing.discount_value
+
+    code = voucher.codes.first()
+    assert code.used == 1
+
+    assert not VoucherCustomer.objects.filter(voucher_code=code).exists()
+
+
+def test_draft_order_create_voucher_code_including_drafts_in_voucher_usage_invalid_code(
+    staff_api_client,
+    permission_group_manage_orders,
+    customer_user,
+    shipping_method,
+    variant,
+    voucher,
+    channel_USD,
+    graphql_address_data,
+):
+    # given
+    query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    channel_USD.include_draft_order_in_voucher_usage = True
+    channel_USD.save(update_fields=["include_draft_order_in_voucher_usage"])
+
+    voucher.single_use = True
+    voucher.save(update_fields=["single_use"])
+
+    code = voucher.codes.first()
+    code.is_active = False
+    code.save(update_fields=["is_active"])
+
+    # Ensure no events were created yet
+    assert not OrderEvent.objects.exists()
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variant_qty = 2
+
+    variant_list = [
+        {"variantId": variant_id, "quantity": variant_qty},
+    ]
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    redirect_url = "https://www.example.com"
+    variables = {
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+            "billingAddress": shipping_address,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "voucherCode": code.code,
+            "channelId": channel_id,
+            "redirectUrl": redirect_url,
+        }
+    }
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+
+    # then
+    content = get_graphql_content(response)
+    error = content["data"]["draftOrderCreate"]["errors"][0]
+    assert error["code"] == OrderErrorCode.INVALID_VOUCHER_CODE.name
+    assert error["field"] == "voucherCode"
+
+
+def test_draft_order_create_voucher_including_drafts_in_voucher_usage_invalid_code(
+    staff_api_client,
+    permission_group_manage_orders,
+    customer_user,
+    shipping_method,
+    variant,
+    voucher,
+    channel_USD,
+    graphql_address_data,
+):
+    # given
+    query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    channel_USD.include_draft_order_in_voucher_usage = True
+    channel_USD.save(update_fields=["include_draft_order_in_voucher_usage"])
+
+    voucher.single_use = True
+    voucher.save(update_fields=["single_use"])
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+
+    code = voucher.codes.first()
+    code.is_active = False
+    code.save(update_fields=["is_active"])
+
+    # Ensure no events were created yet
+    assert not OrderEvent.objects.exists()
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variant_qty = 2
+
+    variant_list = [
+        {"variantId": variant_id, "quantity": variant_qty},
+    ]
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    redirect_url = "https://www.example.com"
+    variables = {
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+            "billingAddress": shipping_address,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "voucher": voucher_id,
+            "channelId": channel_id,
+            "redirectUrl": redirect_url,
+        }
+    }
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+
+    # then
+    content = get_graphql_content(response)
+    error = content["data"]["draftOrderCreate"]["errors"][0]
+    assert error["code"] == OrderErrorCode.INVALID_VOUCHER.name
+    assert error["field"] == "voucher"
 
 
 def test_draft_order_create_with_same_variant_and_force_new_line(
@@ -453,7 +1194,9 @@ def test_draft_order_create_with_inactive_channel(
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     channel_USD.is_active = False
     channel_USD.save()
+
     variant_0_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
+
     variant_1 = product_without_shipping.variants.first()
     variant_1.quantity = 2
     variant_1.save()
@@ -1349,6 +2092,7 @@ def test_draft_order_create_price_recalculation(
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     fake_order = Mock()
     fake_order.total = zero_taxed_money(channel_PLN.currency_code)
+    fake_order.subtotal = zero_taxed_money(channel_PLN.currency_code)
     fake_order.undiscounted_total = zero_taxed_money(channel_PLN.currency_code)
     fake_order.shipping_price = zero_taxed_money(channel_PLN.currency_code)
     fetch_prices_response = Mock(return_value=(fake_order, None))
@@ -1473,7 +2217,7 @@ def test_draft_order_create_with_non_unique_external_reference(
     assert error["message"] == "Order with this External reference already exists."
 
 
-@pytest.mark.parametrize("force_new_line", (True, False))
+@pytest.mark.parametrize("force_new_line", [True, False])
 def test_draft_order_create_with_custom_price_in_order_line(
     force_new_line,
     staff_api_client,

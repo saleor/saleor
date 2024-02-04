@@ -169,6 +169,7 @@ def test_update_shipping_method_trigger_webhook(
         [any_webhook],
         shipping_method,
         SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )
 
 
@@ -453,7 +454,7 @@ def test_update_shipping_method_multiple_errors(
 
 
 @pytest.mark.parametrize(
-    "min_delivery_days, max_delivery_days",
+    ("min_delivery_days", "max_delivery_days"),
     [
         (None, 1),
         (1, None),

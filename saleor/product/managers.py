@@ -1,7 +1,8 @@
 import datetime
-from typing import Union
+from typing import Optional, Union
 
 import pytz
+from django.conf import settings
 from django.contrib.postgres.aggregates import StringAgg
 from django.db import models
 from django.db.models import (
@@ -12,7 +13,6 @@ from django.db.models import (
     Exists,
     ExpressionWrapper,
     F,
-    FilteredRelation,
     OuterRef,
     Q,
     Subquery,
@@ -33,15 +33,20 @@ class ProductsQueryset(models.QuerySet):
         from .models import ProductChannelListing
 
         today = datetime.datetime.now(pytz.UTC)
-        channels = Channel.objects.filter(
-            slug=str(channel_slug), is_active=True
-        ).values("id")
-        channel_listings = ProductChannelListing.objects.filter(
-            Q(published_at__lte=today) | Q(published_at__isnull=True),
-            Exists(channels.filter(pk=OuterRef("channel_id"))),
-            is_published=True,
-        ).values("id")
-        return self.filter(Exists(channel_listings.filter(product_id=OuterRef("pk"))))
+        if channel := (
+            Channel.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+            .filter(slug=str(channel_slug), is_active=True)
+            .first()
+        ):
+            channel_listings = ProductChannelListing.objects.filter(
+                Q(published_at__lte=today) | Q(published_at__isnull=True),
+                channel_id=channel.id,
+                is_published=True,
+            ).values("id")
+            return self.filter(
+                Exists(channel_listings.filter(product_id=OuterRef("pk")))
+            )
+        return self.none()
 
     def not_published(self, channel_slug: str):
         today = datetime.datetime.now(pytz.UTC)
@@ -54,32 +59,39 @@ class ProductsQueryset(models.QuerySet):
     def published_with_variants(self, channel_slug: str):
         from .models import ProductVariant, ProductVariantChannelListing
 
-        published = self.published(channel_slug)
-        channels = Channel.objects.filter(
-            slug=str(channel_slug), is_active=True
-        ).values("id")
-        variant_channel_listings = ProductVariantChannelListing.objects.filter(
-            Exists(channels.filter(pk=OuterRef("channel_id"))),
-            price_amount__isnull=False,
-        ).values("id")
-        variants = ProductVariant.objects.filter(
-            Exists(variant_channel_listings.filter(variant_id=OuterRef("pk")))
-        )
-        return published.filter(Exists(variants.filter(product_id=OuterRef("pk"))))
+        if channel := (
+            Channel.objects.filter(slug=str(channel_slug), is_active=True).first()
+        ):
+            variant_channel_listings = ProductVariantChannelListing.objects.filter(
+                channel_id=channel.id,
+                price_amount__isnull=False,
+            ).values("id")
+            variants = ProductVariant.objects.filter(
+                Exists(variant_channel_listings.filter(variant_id=OuterRef("pk")))
+            )
+            return self.published(channel_slug).filter(
+                Exists(variants.filter(product_id=OuterRef("pk")))
+            )
+        return self.none()
 
-    def visible_to_user(self, requestor: Union["User", "App", None], channel_slug: str):
+    def visible_to_user(
+        self, requestor: Union["User", "App", None], channel_slug: Optional[str]
+    ):
         from .models import ALL_PRODUCTS_PERMISSIONS, ProductChannelListing
 
         if has_one_of_permissions(requestor, ALL_PRODUCTS_PERMISSIONS):
             if channel_slug:
-                channels = Channel.objects.filter(slug=str(channel_slug)).values("id")
-                channel_listings = ProductChannelListing.objects.filter(
-                    Exists(channels.filter(pk=OuterRef("channel_id")))
-                ).values("id")
-                return self.filter(
-                    Exists(channel_listings.filter(product_id=OuterRef("pk")))
-                )
+                if channel := Channel.objects.filter(slug=str(channel_slug)).first():
+                    channel_listings = ProductChannelListing.objects.filter(
+                        channel_id=channel.id
+                    ).values("id")
+                    return self.filter(
+                        Exists(channel_listings.filter(product_id=OuterRef("pk")))
+                    )
+                return self.none()
             return self.all()
+        if not channel_slug:
+            return self.none()
         return self.published_with_variants(channel_slug)
 
     def annotate_publication_info(self, channel_slug: str):
@@ -132,7 +144,11 @@ class ProductsQueryset(models.QuerySet):
                              to sort by.
         :param descending: The sorting direction.
         """
-        from ..attribute.models import AttributeProduct, AttributeValue
+        from ..attribute.models import (
+            AssignedProductAttributeValue,
+            AttributeProduct,
+            AttributeValue,
+        )
 
         qs: models.QuerySet = self
         # If the passed attribute ID is valid, execute the sorting
@@ -144,69 +160,52 @@ class ProductsQueryset(models.QuerySet):
                 concatenated_values=Value(None, output_field=models.CharField()),
             )
 
-        # Retrieve all the products' attribute data IDs (assignments) and
-        # product types that have the given attribute associated to them
-        associated_values = tuple(
-            AttributeProduct.objects.filter(attribute_id=attribute_pk).values_list(
-                "pk", "product_type_id"
-            )
+        qs = qs.annotate(
+            # Implicit `GROUP BY` required for the `StringAgg` aggregation
+            grouped_ids=Count("id"),
+            # String aggregation of the attribute's values to efficiently sort them
+            concatenated_values=Case(
+                # If the product has no association data but has
+                # the given attribute associated to its product type,
+                # then consider the concatenated values as empty (non-null).
+                When(
+                    Exists(
+                        AttributeProduct.objects.filter(
+                            product_type_id=OuterRef("product_type_id"),
+                            attribute_id=attribute_pk,
+                        )
+                    )
+                    & ~Exists(
+                        AssignedProductAttributeValue.objects.filter(
+                            product_id=OuterRef("id"), value__attribute_id=attribute_pk
+                        )
+                    ),
+                    then=Value(""),
+                ),
+                default=StringAgg(
+                    F("attributevalues__value__name"),
+                    filter=Q(attributevalues__value__attribute_id=attribute_pk),
+                    delimiter=",",
+                    ordering=(
+                        [
+                            f"attributevalues__value__{field_name}"
+                            for field_name in AttributeValue._meta.ordering or []
+                        ]
+                    ),
+                ),
+                output_field=models.CharField(),
+            ),
+            concatenated_values_order=Case(
+                # Make the products having no such attribute be last in the sorting
+                When(concatenated_values=None, then=2),
+                # Put the products having an empty attribute value at the bottom of
+                # the other products.
+                When(concatenated_values="", then=1),
+                # Put the products having an attribute value to be always at the top
+                default=0,
+                output_field=models.IntegerField(),
+            ),
         )
-
-        if not associated_values:
-            qs = qs.annotate(
-                concatenated_values_order=Value(
-                    None, output_field=models.IntegerField()
-                ),
-                concatenated_values=Value(None, output_field=models.CharField()),
-            )
-
-        else:
-            attribute_associations, product_types_associated_to_attribute = zip(
-                *associated_values
-            )
-
-            qs = qs.annotate(
-                # Contains to retrieve the attribute data (singular) of each product
-                # Refer to `AttributeProduct`.
-                filtered_attribute=FilteredRelation(
-                    relation_name="attributes",
-                    condition=Q(attributes__assignment_id__in=attribute_associations),
-                ),
-                # Implicit `GROUP BY` required for the `StringAgg` aggregation
-                grouped_ids=Count("id"),
-                # String aggregation of the attribute's values to efficiently sort them
-                concatenated_values=Case(
-                    # If the product has no association data but has
-                    # the given attribute associated to its product type,
-                    # then consider the concatenated values as empty (non-null).
-                    When(
-                        Q(product_type_id__in=product_types_associated_to_attribute)
-                        & Q(filtered_attribute=None),
-                        then=models.Value(""),
-                    ),
-                    default=StringAgg(
-                        F("filtered_attribute__values__name"),
-                        delimiter=",",
-                        ordering=(
-                            [
-                                f"filtered_attribute__values__{field_name}"
-                                for field_name in AttributeValue._meta.ordering or []
-                            ]
-                        ),
-                    ),
-                    output_field=models.CharField(),
-                ),
-                concatenated_values_order=Case(
-                    # Make the products having no such attribute be last in the sorting
-                    When(concatenated_values=None, then=2),
-                    # Put the products having an empty attribute value at the bottom of
-                    # the other products.
-                    When(concatenated_values="", then=1),
-                    # Put the products having an attribute value to be always at the top
-                    default=0,
-                    output_field=models.IntegerField(),
-                ),
-            )
 
         # Sort by concatenated_values_order then
         # Sort each group of products (0, 1, 2, ...) per attribute values
@@ -221,8 +220,6 @@ class ProductsQueryset(models.QuerySet):
 
     def prefetched_for_webhook(self, single_object=True):
         common_fields = (
-            "attributes__values",
-            "attributes__assignment__attribute",
             "media",
             "variants__attributes__values",
             "variants__attributes__assignment__attribute",
@@ -230,6 +227,8 @@ class ProductsQueryset(models.QuerySet):
             "variants__stocks__allocations",
             "variants__channel_listings__channel",
             "channel_listings__channel",
+            "product_type__product_attributes__values",
+            "product_type__attributeproduct",
         )
         if single_object:
             return self.prefetch_related(*common_fields)
@@ -319,13 +318,17 @@ class CollectionsQueryset(models.QuerySet):
             channel_listings__is_published=True,
         )
 
-    def visible_to_user(self, requestor: Union["User", "App", None], channel_slug: str):
+    def visible_to_user(
+        self, requestor: Union["User", "App", None], channel_slug: Optional[str]
+    ):
         from .models import ALL_PRODUCTS_PERMISSIONS
 
         if has_one_of_permissions(requestor, ALL_PRODUCTS_PERMISSIONS):
             if channel_slug:
                 return self.filter(channel_listings__channel__slug=str(channel_slug))
             return self.all()
+        if not channel_slug:
+            return self.none()
         return self.published(channel_slug)
 
 

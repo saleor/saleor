@@ -8,8 +8,9 @@ def get_graphql_content_from_response(response):
 
 
 def get_graphql_content(response, *, ignore_errors: bool = False):
-    """Gets GraphQL content from the response, and optionally checks if it
-    contains any operating-related errors, eg. schema errors or lack of
+    """Extract GraphQL content from the API response.
+
+    Optionally ignore protocol-level errors, eg. schema errors or lack of
     permissions.
     """
     content = get_graphql_content_from_response(response)
@@ -29,9 +30,9 @@ def assert_no_permission(response):
 def assert_negative_positive_decimal_value(response):
     content = get_graphql_content_from_response(response)
     assert "errors" in content, content
-    assert "Value cannot be lower than 0." in content["errors"][0]["message"], content[
-        "errors"
-    ]
+    assert (
+        'Expected type "PositiveDecimal"' in content["errors"][0]["message"]
+    ), content["errors"]
 
 
 def assert_graphql_error_with_message(response, message):

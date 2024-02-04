@@ -29,6 +29,7 @@ from ..payload_schema import (
 from ..payloads import (
     GQL_OPERATION_PLACEHOLDER_SIZE,
     JsonTruncText,
+    concatenate_json_events,
     dump_payload,
     generate_api_call_payload,
     generate_event_delivery_attempt_payload,
@@ -42,7 +43,7 @@ from ..utils import GraphQLOperationResponse
 
 
 @pytest.mark.parametrize(
-    "snake_payload,expected_camel",
+    ("snake_payload", "expected_camel"),
     [
         (
             ApiCallRequest(
@@ -76,6 +77,15 @@ from ..utils import GraphQLOperationResponse
 )
 def test_to_camel_case(snake_payload, expected_camel):
     assert to_camel_case(snake_payload) == expected_camel
+
+
+@pytest.mark.parametrize(
+    "events", [[], [b'{"event": "data"}'], [b'{"event": "data"}' for _ in range(10)]]
+)
+def test_concatenate_json_events_with_one_event(events):
+    payload = json.loads(concatenate_json_events(events))
+    assert isinstance(payload, list)
+    assert len(payload) == len(events)
 
 
 def test_serialize_gql_operation_result(gql_operation_factory):
@@ -214,7 +224,7 @@ def test_serialize_gql_operation_results_when_too_low_bytes_limit(
 
 
 @pytest.mark.parametrize(
-    "headers,expected",
+    ("headers", "expected"),
     [
         ({}, []),
         (None, []),
@@ -253,49 +263,51 @@ def test_generate_api_call_payload(app, rf, gql_operation_factory, site_settings
     payload = generate_api_call_payload(
         request, response, [first_result, second_result], 2048
     )
-    request_id = payload["request"]["id"]
+    request_id = json.loads(payload)["request"]["id"]
 
     assert UUID(request_id, version=4)
-    assert payload == ApiCallPayload(
-        event_type=ObservabilityEventTypes.API_CALL,
-        request=ApiCallRequest(
-            id=request_id,
-            method="POST",
-            url=f"http://{site_settings.site.domain}/graphql",
-            time=request.request_time.timestamp(),
-            content_length=19,
-            headers=[
-                ("Cookie", "***"),
-                ("Content-Length", "19"),
-                ("Content-Type", "application/json"),
-            ],
-        ),
-        app=App(
-            id=graphene.Node.to_global_id("App", app.pk), name="Sample app objects"
-        ),
-        response=ApiCallResponse(
-            headers=[
-                ("Content-Type", "application/json"),
-            ],
-            status_code=200,
-            content_length=20,
-        ),
-        gql_operations=[
-            GraphQLOperation(
-                name=JsonTruncText("FirstQuery", False),
-                operation_type="query",
-                query=JsonTruncText(query_a, False),
-                result=JsonTruncText(pretty_json(result_a), False),
-                result_invalid=False,
+    assert payload == dump_payload(
+        ApiCallPayload(
+            event_type=ObservabilityEventTypes.API_CALL,
+            request=ApiCallRequest(
+                id=request_id,
+                method="POST",
+                url=f"http://{site_settings.site.domain}/graphql",
+                time=request.request_time.timestamp(),
+                headers=[
+                    ("Cookie", "***"),
+                    ("Content-Length", "19"),
+                    ("Content-Type", "application/json"),
+                ],
+                content_length=19,
             ),
-            GraphQLOperation(
-                name=JsonTruncText("SecondQuery", False),
-                operation_type="query",
-                query=JsonTruncText(query_b, False),
-                result=JsonTruncText(pretty_json(result_b), False),
-                result_invalid=False,
+            response=ApiCallResponse(
+                headers=[
+                    ("Content-Type", "application/json"),
+                ],
+                status_code=200,
+                content_length=20,
             ),
-        ],
+            app=App(
+                id=graphene.Node.to_global_id("App", app.pk), name="Sample app objects"
+            ),
+            gql_operations=[
+                GraphQLOperation(
+                    name=JsonTruncText("FirstQuery", False),
+                    operation_type="query",
+                    query=JsonTruncText(query_a, False),
+                    result=JsonTruncText(pretty_json(result_a), False),
+                    result_invalid=False,
+                ),
+                GraphQLOperation(
+                    name=JsonTruncText("SecondQuery", False),
+                    operation_type="query",
+                    query=JsonTruncText(query_b, False),
+                    result=JsonTruncText(pretty_json(result_b), False),
+                    result_invalid=False,
+                ),
+            ],
+        )
     )
 
 
@@ -307,7 +319,7 @@ def test_generate_api_call_payload_request_not_from_app(rf):
     response = JsonResponse({"response": "data"})
     payload = generate_api_call_payload(request, response, [], 1024)
 
-    assert payload["app"] is None
+    assert json.loads(payload)["app"] is None
 
 
 def test_generate_api_call_payload_skip_operations_when_size_limit_too_low(
@@ -324,23 +336,20 @@ def test_generate_api_call_payload_skip_operations_when_size_limit_too_low(
     first_result = gql_operation_factory(query, "FirstQuery", None, result)
     second_result = gql_operation_factory(query, "SecondQuery", None, result)
     payload_without_operations = generate_api_call_payload(request, response, [], 1024)
-    bytes_limit = (
-        len(dump_payload(payload_without_operations))
-        + GQL_OPERATION_PLACEHOLDER_SIZE * 2
-    )
-    operation_trunc_payload = GraphQLOperation(
-        name=JsonTruncText("", True),
-        operation_type="query",
-        query=JsonTruncText("", True),
-        result=JsonTruncText("", True),
-        result_invalid=False,
-    )
+    bytes_limit = len(payload_without_operations) + GQL_OPERATION_PLACEHOLDER_SIZE * 2
+    operation_trunc_payload = {
+        "name": {"text": "", "truncated": True},
+        "operationType": "query",
+        "query": {"text": "", "truncated": True},
+        "result": {"text": "", "truncated": True},
+        "resultInvalid": False,
+    }
 
     payload = generate_api_call_payload(
         request, response, [first_result, second_result], bytes_limit
     )
 
-    assert payload["gql_operations"] == [operation_trunc_payload] * 2
+    assert json.loads(payload)["gqlOperations"] == [operation_trunc_payload] * 2
 
 
 def test_generate_api_call_payload_when_too_low_bytes_limit(app, rf):
@@ -365,43 +374,45 @@ def test_generate_event_delivery_attempt_payload(event_attempt):
 
     payload = generate_event_delivery_attempt_payload(event_attempt, None, 1024)
 
-    assert payload == EventDeliveryAttemptPayload(
-        id=graphene.Node.to_global_id("EventDeliveryAttempt", event_attempt.pk),
-        time=created_at,
-        duration=None,
-        status=EventDeliveryStatus.PENDING,
-        next_retry=None,
-        event_type=ObservabilityEventTypes.EVENT_DELIVERY_ATTEMPT,
-        request=EventDeliveryAttemptRequest(
-            headers=[],
-        ),
-        response=EventDeliveryAttemptResponse(
-            headers=[],
-            content_length=16,
-            status_code=None,
-            body=JsonTruncText("example_response", False),
-        ),
-        event_delivery=EventDelivery(
-            id=graphene.Node.to_global_id("EventDelivery", delivery.pk),
+    assert payload == dump_payload(
+        EventDeliveryAttemptPayload(
+            id=graphene.Node.to_global_id("EventDeliveryAttempt", event_attempt.pk),
+            event_type=ObservabilityEventTypes.EVENT_DELIVERY_ATTEMPT,
+            time=created_at,
+            duration=None,
             status=EventDeliveryStatus.PENDING,
-            event_type=WebhookEventAsyncType.ANY,
-            event_sync=False,
-            payload=EventDeliveryPayload(
-                content_length=32,
-                body=JsonTruncText(
-                    pretty_json(json.loads(delivery.payload.payload)), False
+            next_retry=None,
+            request=EventDeliveryAttemptRequest(
+                headers=[],
+            ),
+            response=EventDeliveryAttemptResponse(
+                headers=[],
+                content_length=16,
+                body=JsonTruncText("example_response", False),
+                status_code=None,
+            ),
+            event_delivery=EventDelivery(
+                id=graphene.Node.to_global_id("EventDelivery", delivery.pk),
+                status=EventDeliveryStatus.PENDING,
+                event_type=WebhookEventAsyncType.ANY,
+                event_sync=False,
+                payload=EventDeliveryPayload(
+                    content_length=32,
+                    body=JsonTruncText(
+                        pretty_json(json.loads(delivery.payload.payload)), False
+                    ),
                 ),
             ),
-        ),
-        webhook=Webhook(
-            id=graphene.Node.to_global_id("Webhook", webhook.pk),
-            name="Simple webhook",
-            target_url="http://www.example.com/test",
-            subscription_query=None,
-        ),
-        app=App(
-            id=graphene.Node.to_global_id("App", app.pk), name="Sample app objects"
-        ),
+            webhook=Webhook(
+                id=graphene.Node.to_global_id("Webhook", webhook.pk),
+                name="Simple webhook",
+                target_url="http://www.example.com/test",
+                subscription_query=None,
+            ),
+            app=App(
+                id=graphene.Node.to_global_id("App", app.pk), name="Sample app objects"
+            ),
+        )
     )
 
 
@@ -417,7 +428,7 @@ def test_generate_event_delivery_attempt_payload_raises_error_when_no_delivery(
     event_attempt,
 ):
     event_attempt.delivery = None
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Can't generate payload."):
         generate_event_delivery_attempt_payload(event_attempt, None, 1024)
 
 
@@ -425,7 +436,7 @@ def test_generate_event_delivery_attempt_payload_raises_error_when_no_payload(
     event_attempt,
 ):
     event_attempt.delivery.payload = None
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Can't generate payload."):
         generate_event_delivery_attempt_payload(event_attempt, None, 1024)
 
 
@@ -437,16 +448,17 @@ def test_generate_event_delivery_attempt_payload_with_next_retry_date(
         event_attempt, next_retry_date, 1024
     )
 
-    assert payload["next_retry"] == next_retry_date
+    assert json.loads(payload)["nextRetry"] == "1914-06-28T10:50:00Z"
 
 
 def test_generate_event_delivery_attempt_payload_with_non_empty_headers(event_attempt):
     headers = {"Content-Length": "19", "Content-Type": "application/json"}
-    headers_list = [("Content-Length", "19"), ("Content-Type", "application/json")]
+    headers_list = [["Content-Length", "19"], ["Content-Type", "application/json"]]
     event_attempt.request_headers = json.dumps(headers)
     event_attempt.response_headers = json.dumps(headers)
 
     payload = generate_event_delivery_attempt_payload(event_attempt, None, 1024)
+    payload = json.loads(payload)
 
     assert payload["request"]["headers"] == headers_list
     assert payload["response"]["headers"] == headers_list
@@ -463,9 +475,10 @@ def test_generate_event_delivery_attempt_payload_with_subscription_query(
     webhook.subscription_query = query
 
     payload = generate_event_delivery_attempt_payload(event_attempt, None, 1024)
+    payload = json.loads(payload)
 
-    assert payload["webhook"]["subscription_query"].text == query
-    assert payload["event_delivery"]["payload"]["body"].text == pretty_json(MASK)
+    assert payload["webhook"]["subscriptionQuery"]["text"] == query
+    assert payload["eventDelivery"]["payload"]["body"]["text"] == pretty_json(MASK)
 
 
 def test_generate_event_delivery_attempt_payload_target_url_obfuscated(
@@ -474,7 +487,6 @@ def test_generate_event_delivery_attempt_payload_target_url_obfuscated(
     webhook.target_url = "http://user:password@example.com/webhooks"
 
     payload = generate_event_delivery_attempt_payload(event_attempt, None, 1024)
+    payload = json.loads(payload)
 
-    assert (
-        payload["webhook"]["target_url"] == f"http://user:{MASK}@example.com/webhooks"
-    )
+    assert payload["webhook"]["targetUrl"] == f"http://user:{MASK}@example.com/webhooks"

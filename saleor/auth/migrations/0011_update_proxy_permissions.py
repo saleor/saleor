@@ -14,13 +14,8 @@ WARNING = """
 """
 
 
-def update_proxy_model_permissions(
-    apps, schema_editor, reverse=False
-):  # noqa: D205, D212, D400, D415
-    """
-    Update the content_type of proxy model permissions to use the ContentType
-    of the proxy model.
-    """
+def update_proxy_model_permissions(apps, schema_editor, reverse=False):  # noqa: D205, D212, D400, D415
+    """Update the content_type of proxy model permissions to use the ContentType of the proxy model."""
     style = color_style()
     Permission = apps.get_model("auth", "Permission")
     ContentType = apps.get_model("contenttypes", "ContentType")
@@ -30,7 +25,7 @@ def update_proxy_model_permissions(
         if not opts.proxy:
             continue
         proxy_default_permissions_codenames = [
-            "%s_%s" % (action, opts.model_name) for action in opts.default_permissions
+            f"{action}_{opts.model_name}" for action in opts.default_permissions
         ]
         permissions_query = Q(codename__in=proxy_default_permissions_codenames)
         for codename, name in opts.permissions:
@@ -51,18 +46,15 @@ def update_proxy_model_permissions(
                     content_type=old_content_type,
                 ).update(content_type=new_content_type)
         except IntegrityError:
-            old = "{}_{}".format(old_content_type.app_label, old_content_type.model)
-            new = "{}_{}".format(new_content_type.app_label, new_content_type.model)
+            old = f"{old_content_type.app_label}_{old_content_type.model}"
+            new = f"{new_content_type.app_label}_{new_content_type.model}"
             sys.stdout.write(
                 style.WARNING(WARNING.format(old=old, new=new, query=permissions_query))
             )
 
 
 def revert_proxy_model_permissions(apps, schema_editor):  # noqa: D205, D212, D400, D415
-    """
-    Update the content_type of proxy model permissions to use the ContentType
-    of the concrete model.
-    """
+    """Update the content_type of proxy model permissions to use the ContentType of the concrete model."""
     update_proxy_model_permissions(apps, schema_editor, reverse=True)
 
 

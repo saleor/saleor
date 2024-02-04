@@ -1,5 +1,4 @@
 from collections import defaultdict
-from typing import Dict, List
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -40,9 +39,9 @@ class PageAttributeAssign(BaseMutation):
     @classmethod
     def clean_attributes(
         cls,
-        errors: Dict["str", List[ValidationError]],
+        errors: dict["str", list[ValidationError]],
         page_type: "page_models.PageType",
-        attr_pks: List[int],
+        attr_pks: list[int],
     ):
         """Ensure the attributes are page attributes and are not already assigned."""
 
@@ -84,7 +83,7 @@ class PageAttributeAssign(BaseMutation):
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, attribute_ids, page_type_id
     ):
-        errors: defaultdict[str, List[ValidationError]] = defaultdict(list)
+        errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
 
         # retrieve the requested page type
         page_type = cls.get_node_or_error(

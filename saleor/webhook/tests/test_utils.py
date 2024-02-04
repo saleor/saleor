@@ -1,5 +1,3 @@
-from typing import Type
-
 import pytest
 
 from ...app.models import App
@@ -117,7 +115,7 @@ def test_get_webhook_for_event_not_returning_any_webhook_for_sync_event_types(
 
 
 @pytest.mark.parametrize(
-    "error,event_type",
+    ("error", "event_type"),
     [
         (
             ApiCallTruncationError,
@@ -130,18 +128,16 @@ def test_get_webhook_for_event_not_returning_any_webhook_for_sync_event_types(
     ],
 )
 def test_truncation_error_extra_fields(
-    error: Type[TruncationError], event_type: ObservabilityEventTypes
+    error: type[TruncationError], event_type: ObservabilityEventTypes
 ):
     operation, bytes_limit, payload_size = "operation_name", 100, 102
     kwargs = dict(extra_kwarg_a="a", extra_kwarg_b="b")
     err = error(operation, bytes_limit, payload_size, **kwargs)
     assert str(err)
     assert err.extra == {
-        **{
-            "observability_event_type": event_type,
-            "operation": operation,
-            "bytes_limit": bytes_limit,
-            "payload_size": payload_size,
-        },
+        "observability_event_type": event_type,
+        "operation": operation,
+        "bytes_limit": bytes_limit,
+        "payload_size": payload_size,
         **kwargs,
     }

@@ -1,14 +1,17 @@
 import graphene
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 
+from ....core.tracing import traced_atomic_transaction
 from ....page import models as page_models
 from ....page.error_codes import PageErrorCode
 from ....permission.enums import PagePermissions
 from ...attribute.mutations import BaseReorderAttributeValuesMutation
+from ...attribute.types import Attribute
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_PAGES
 from ...core.inputs import ReorderInput
 from ...core.types import NonNullList, PageError
+from ...core.utils.reordering import perform_reordering
 from ...page.types import Page
 
 
@@ -40,15 +43,44 @@ class PageReorderAttributeValues(BaseReorderAttributeValuesMutation):
     @classmethod
     def perform_mutation(cls, _root, _info: ResolveInfo, /, **data):
         page_id = data["page_id"]
-        page = cls.perform(page_id, "page", data, "pagevalueassignment", PageErrorCode)
+        page = cls.perform(page_id, "page", data, "attributevalues", PageErrorCode)
         return PageReorderAttributeValues(page=page)
+
+    @classmethod
+    def perform(
+        cls,
+        instance_id: str,
+        instance_type: str,
+        data: dict,
+        assignment_lookup: str,
+        error_code_enum,
+    ):
+        attribute_id = data["attribute_id"]
+        moves = data["moves"]
+
+        instance = cls.get_instance(instance_id)
+        cls.validate_attribute_assignment(
+            instance, instance_type, attribute_id, error_code_enum
+        )
+        values_m2m = getattr(instance, assignment_lookup)
+
+        try:
+            operations = cls.prepare_operations(moves, values_m2m)
+        except ValidationError as error:
+            error.code = error_code_enum.NOT_FOUND.value
+            raise ValidationError({"moves": error})
+
+        with traced_atomic_transaction():
+            perform_reordering(values_m2m, operations)
+
+        return instance
 
     @classmethod
     def get_instance(cls, instance_id: str):
         pk = cls.get_global_id_or_error(instance_id, only_type=Page, field="page_id")
 
         try:
-            page = page_models.Page.objects.prefetch_related("attributes").get(pk=pk)
+            page = page_models.Page.objects.get(pk=pk)
         except ObjectDoesNotExist:
             raise ValidationError(
                 {
@@ -59,3 +91,28 @@ class PageReorderAttributeValues(BaseReorderAttributeValuesMutation):
                 }
             )
         return page
+
+    @classmethod
+    def validate_attribute_assignment(
+        cls, instance, instance_type, attribute_id: str, error_code_enum
+    ):
+        """Validate if this attribute_id is assigned to this page."""
+        attribute_pk = cls.get_global_id_or_error(
+            attribute_id, only_type=Attribute, field="attribute_id"
+        )
+
+        attribute_assignment = instance.page_type.attributepage.filter(
+            attribute_id=attribute_pk
+        ).exists()
+
+        if not attribute_assignment:
+            raise ValidationError(
+                {
+                    "attribute_id": ValidationError(
+                        f"Couldn't resolve to a {instance_type} "
+                        f"attribute: {attribute_id}.",
+                        code=error_code_enum.NOT_FOUND.value,
+                    )
+                }
+            )
+        return attribute_assignment

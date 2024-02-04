@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 
 from ....order import models
+from ....order.utils import update_order_charge_data
 from ....permission.enums import OrderPermissions
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_313, ADDED_IN_315, PREVIEW_FEATURE
@@ -182,7 +183,7 @@ class OrderGrantRefundCreate(BaseMutation):
         input: dict[str, Any],
     ):
         amount = input.get("amount")
-        reason = input.get("reason", "")
+        reason = input.get("reason") or ""
         input_lines = input.get("lines", [])
         grant_refund_for_shipping = input.get("grant_refund_for_shipping", None)
 
@@ -248,5 +249,6 @@ class OrderGrantRefundCreate(BaseMutation):
                 for line in cleaned_input_lines:
                     line.granted_refund = granted_refund
                 models.OrderGrantedRefundLine.objects.bulk_create(cleaned_input_lines)
+            update_order_charge_data(order)
 
         return cls(order=order, granted_refund=granted_refund)

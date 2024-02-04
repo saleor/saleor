@@ -2,13 +2,17 @@ import json
 from decimal import Decimal
 from unittest.mock import Mock, patch
 
+import before_after
 import pytest
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from stripe.stripe_object import StripeObject
 
 from .....checkout.complete_checkout import complete_checkout
+from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....order.actions import order_charged, order_refunded, order_voided
+from .....plugins.manager import get_plugins_manager
+from .....tests.utils import flush_post_commit_hooks
 from .... import ChargeStatus, TransactionKind
 from ....utils import price_to_minor_unit
 from ..consts import (
@@ -157,7 +161,7 @@ def test_handle_successful_payment_intent_when_order_creation_raises_exception(
 
 
 @pytest.mark.parametrize(
-    ["metadata", "called"],
+    ("metadata", "called"),
     [({f"key{i}": f"value{i}" for i in range(5)}, True), ({}, False)],
 )
 @patch(
@@ -584,7 +588,7 @@ def test_handle_authorized_payment_intent_for_processing_order_payment(
 
 
 @pytest.mark.parametrize(
-    ["metadata", "called"], [({"key": "value"}, True), ({}, False)]
+    ("metadata", "called"), [({"key": "value"}, True), ({}, False)]
 )
 @patch(
     "saleor.payment.gateways.stripe.webhooks.complete_checkout", wraps=complete_checkout
@@ -1166,6 +1170,50 @@ def test_handle_refund_already_processed(
     assert payment.captured_amount == payment.total - Decimal("10")
 
 
+@patch("saleor.payment.gateways.stripe.webhooks.stripe.Charge.retrieve")
+def test_handle_refund_missing_refunds(
+    charge_retrieve, stripe_plugin, payment_stripe_for_order, channel_USD
+):
+    # given
+    payment = payment_stripe_for_order
+    payment.captured_amount = payment.total
+    payment.save()
+    payment.transactions.create(
+        is_success=True,
+        action_required=True,
+        kind=TransactionKind.CAPTURE,
+        amount=payment.total,
+        currency=payment.currency,
+        token="ABC",
+        gateway_response={},
+    )
+    plugin = stripe_plugin()
+
+    charge = StripeObject()
+    charge["payment_intent"] = "ABC"
+
+    refund = StripeObject(id="refund_id")
+    refund["amount"] = price_to_minor_unit(payment.total, payment.currency)
+    refund["currency"] = payment.currency
+    refund["last_response"] = None
+
+    charge_retrieve_obj = charge
+    charge_retrieve_obj["refunds"] = StripeObject()
+    charge_retrieve_obj["refunds"]["data"] = [refund]
+
+    charge_retrieve.return_value = charge_retrieve_obj
+
+    # when
+    handle_refund(charge, plugin.config, channel_USD.slug)
+
+    # then
+    payment.refresh_from_db()
+
+    assert payment.charge_status == ChargeStatus.FULLY_REFUNDED
+    assert payment.is_active is False
+    assert payment.captured_amount == Decimal("0")
+
+
 @pytest.mark.parametrize("called", [True, False])
 @patch(
     "saleor.payment.gateways.stripe.webhooks._update_payment_with_new_transaction",
@@ -1271,7 +1319,7 @@ def test_handle_refund_different_checkout_channel_slug(
 
 
 @pytest.mark.parametrize(
-    "webhook_type, fun_to_mock",
+    ("webhook_type", "fun_to_mock"),
     [
         (WEBHOOK_SUCCESS_EVENT, "handle_successful_payment_intent"),
         (WEBHOOK_PROCESSING_EVENT, "handle_processing_payment_intent"),
@@ -1378,29 +1426,35 @@ def test_finalize_checkout_not_created_order_payment_refund(
 
 
 @patch("saleor.payment.gateway.refund")
-def test_finalize_checkout_not_created_checkout_variant_deleted_order_payment_refund(
+def test_finalize_checkout_not_created_checkout_variant_unavailable_order_refund(
     refund_mock,
     stripe_plugin,
     channel_USD,
     payment_stripe_for_checkout,
     stripe_payment_intent,
 ):
+    # given
     stripe_plugin()
     checkout = payment_stripe_for_checkout.checkout
 
-    checkout.lines.first().delete()
+    line = checkout.lines.first()
+    line.variant.channel_listings.all().delete()
+
     checkout.price_expiration = timezone.now()
     checkout.save(update_fields=["price_expiration"])
 
-    _finalize_checkout(
-        checkout,
-        payment_stripe_for_checkout,
-        stripe_payment_intent,
-        TransactionKind.CAPTURE,
-        payment_stripe_for_checkout.total,
-        payment_stripe_for_checkout.currency,
-    )
+    # when
+    with pytest.raises(ValidationError):
+        _finalize_checkout(
+            checkout,
+            payment_stripe_for_checkout,
+            stripe_payment_intent,
+            TransactionKind.CAPTURE,
+            payment_stripe_for_checkout.total,
+            payment_stripe_for_checkout.currency,
+        )
 
+    # then
     payment_stripe_for_checkout.refresh_from_db()
 
     assert not payment_stripe_for_checkout.order
@@ -1437,29 +1491,35 @@ def test_finalize_checkout_not_created_order_payment_void(
 
 
 @patch("saleor.payment.gateway.void")
-def test_finalize_checkout_not_created_checkout_variant_deleted_order_payment_void(
+def test_finalize_checkout_not_created_checkout_variant_unavailable_order_payment_void(
     void_mock,
     stripe_plugin,
     channel_USD,
     payment_stripe_for_checkout,
     stripe_payment_intent,
 ):
+    # given
     stripe_plugin()
     checkout = payment_stripe_for_checkout.checkout
 
-    checkout.lines.first().delete()
+    line = checkout.lines.first()
+    line.variant.channel_listings.all().delete()
+
     checkout.price_expiration = timezone.now()
     checkout.save(update_fields=["price_expiration"])
 
-    _finalize_checkout(
-        checkout,
-        payment_stripe_for_checkout,
-        stripe_payment_intent,
-        TransactionKind.AUTH,
-        payment_stripe_for_checkout.total,
-        payment_stripe_for_checkout.currency,
-    )
+    # when
+    with pytest.raises(ValidationError):
+        _finalize_checkout(
+            checkout,
+            payment_stripe_for_checkout,
+            stripe_payment_intent,
+            TransactionKind.AUTH,
+            payment_stripe_for_checkout.total,
+            payment_stripe_for_checkout.currency,
+        )
 
+    # then
     payment_stripe_for_checkout.refresh_from_db()
 
     assert not payment_stripe_for_checkout.order
@@ -1495,3 +1555,78 @@ def test_update_payment_method_details_from_intent_payment_info_exists(
     assert payment.cc_exp_year == 2030
     assert payment.cc_exp_month == 3
     assert payment.payment_method_type == "card"
+
+
+@patch("saleor.payment.gateways.stripe.plugin.retrieve_payment_intent")
+@patch(
+    "saleor.payment.gateways.stripe.webhooks.complete_checkout", wraps=complete_checkout
+)
+@patch("saleor.payment.gateways.stripe.webhooks.update_payment_method")
+def test_handle_successful_payment_intent_for_checkout_when_already_processing_checkout(
+    _wrapped_update_payment_method,
+    wrapped_checkout_complete,
+    mocked_retrieve_payment_intent,
+    payment_stripe_for_checkout,
+    checkout_with_items,
+    stripe_plugin,
+    channel_USD,
+):
+    # given
+    plugin = stripe_plugin()
+    manager = get_plugins_manager(allow_replica=False)
+    payment = payment_stripe_for_checkout
+    payment.to_confirm = True
+    payment.save()
+    payment.transactions.create(
+        is_success=True,
+        action_required=True,
+        kind=TransactionKind.ACTION_TO_CONFIRM,
+        amount=payment.total,
+        currency=payment.currency,
+        token="ABC",
+        gateway_response={},
+    )
+    payment_intent = StripeObject(id="ABC", last_response={})
+    payment_intent["amount_received"] = price_to_minor_unit(
+        payment.total, payment.currency
+    )
+    payment_intent["setup_future_usage"] = None
+    payment_intent["currency"] = payment.currency
+    payment_intent["amount"] = payment.total * 100
+    payment_intent["status"] = SUCCESS_STATUS
+    payment_intent["payment_method"] = StripeObject()
+    mocked_retrieve_payment_intent.return_value = (payment_intent, None)
+
+    lines_info, _ = fetch_checkout_lines(checkout_with_items)
+    checkout_info = fetch_checkout_info(checkout_with_items, lines_info, manager)
+
+    # when
+    def call_webhook_notification(*args, **kwargs):
+        flush_post_commit_hooks()
+        handle_successful_payment_intent(
+            payment_intent, plugin.config, channel_USD.slug
+        )
+
+    with before_after.after(
+        "saleor.checkout.complete_checkout._process_payment",
+        call_webhook_notification,
+    ):
+        complete_checkout(
+            manager,
+            checkout_info,
+            lines_info,
+            {},
+            False,
+            None,
+            None,
+        )
+
+    # then
+    payment.refresh_from_db()
+    assert payment.captured_amount == payment.total
+
+    assert wrapped_checkout_complete.called
+    assert payment.checkout_id is None
+    assert payment.order
+    transaction = payment.transactions.get(kind=TransactionKind.CAPTURE)
+    assert transaction.token == payment_intent.id

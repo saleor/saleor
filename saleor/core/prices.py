@@ -1,5 +1,6 @@
+from collections.abc import Iterable
 from decimal import Decimal
-from typing import TYPE_CHECKING, Iterable, TypeVar
+from typing import TYPE_CHECKING, TypeVar
 
 from babel.numbers import get_currency_precision
 from prices import Money, TaxedMoney, TaxedMoneyRange

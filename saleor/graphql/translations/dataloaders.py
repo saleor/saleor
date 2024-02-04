@@ -105,14 +105,6 @@ class ProductVariantTranslationByIdAndLanguageCodeLoader(
     relation_name = "product_variant_id"
 
 
-class SaleTranslationByIdAndLanguageCodeLoader(
-    BaseTranslationByIdAndLanguageCodeLoader
-):
-    context_key = "sale_translation_by_id_and_language_code"
-    model = discount_models.SaleTranslation
-    relation_name = "sale_id"
-
-
 class ShippingMethodTranslationByIdAndLanguageCodeLoader(
     BaseTranslationByIdAndLanguageCodeLoader
 ):

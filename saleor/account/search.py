@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 from django.db.models import Q, Value, prefetch_related_objects
 
@@ -64,7 +64,7 @@ def generate_address_search_document_value(address: "Address"):
 
 def generate_address_search_vector_value(
     address: "Address", weight: str = "A"
-) -> List[NoValidationSearchVector]:
+) -> list[NoValidationSearchVector]:
     search_vectors = [
         NoValidationSearchVector(
             Value(address.first_name),

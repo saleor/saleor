@@ -145,7 +145,7 @@ def test_query_warehouse_with_filters_by_id(
 
 
 @pytest.mark.parametrize(
-    "graphql_filter, db_filter", [("true", True), ("false", False)]
+    ("graphql_filter", "db_filter"), [("true", True), ("false", False)]
 )
 def test_query_warehouse_with_filters_by_is_private(
     staff_api_client,
@@ -172,7 +172,7 @@ def test_query_warehouse_with_filters_by_is_private(
 
 
 @pytest.mark.parametrize(
-    "db_option, graphql_option",
+    ("db_option", "graphql_option"),
     [
         (WarehouseClickAndCollectOption.DISABLED, "DISABLED"),
         (WarehouseClickAndCollectOption.ALL_WAREHOUSES, "ALL"),
@@ -287,7 +287,7 @@ def test_query_warehouses_with_filters_by_channels_no_warehouse_returned(
 
 
 @pytest.mark.parametrize(
-    "filter_by, pages_count",
+    ("filter_by", "pages_count"),
     [
         ({"slugs": ["warehouse1", "warehouse2"]}, 2),
         ({"slugs": []}, 2),

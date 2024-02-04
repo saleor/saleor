@@ -5,7 +5,6 @@ from typing import Optional
 import graphene
 from django.conf import settings
 from graphene.relay import Connection, is_node
-from graphql import GraphQLError
 
 from ...permission.utils import message_one_of_permissions_required
 from ..decorators import one_of_permissions_required
@@ -25,7 +24,7 @@ class BaseField(graphene.Field):
         self.doc_category = kwargs.pop("doc_category", None)
         self.webhook_events_info = kwargs.pop("webhook_events_info", None)
 
-        super(BaseField, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         if self.webhook_events_info and auto_webhook_events_info_message:
             description = self.description or ""
@@ -50,7 +49,7 @@ class PermissionsField(BaseField):
             f"{self.permissions}"
         )
 
-        super(PermissionsField, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         if auto_permission_message and self.permissions:
             permissions_msg = message_one_of_permissions_required(self.permissions)
             description = self.description or ""
@@ -60,7 +59,7 @@ class PermissionsField(BaseField):
         resolver = self.resolver or parent_resolver
         if self.permissions:
             resolver = one_of_permissions_required(self.permissions)(resolver)
-        resolver = super(PermissionsField, self).get_resolver(resolver)
+        resolver = super().get_resolver(resolver)
         return resolver
 
 
@@ -110,7 +109,7 @@ class ConnectionField(PermissionsField):
 
     @property
     def type(self):
-        type = super(ConnectionField, self).type
+        type = super().type
         connection_type = type
         if isinstance(type, graphene.NonNull):
             connection_type = type.of_type
@@ -164,4 +163,4 @@ class JSONString(graphene.JSONString):
         try:
             return graphene.JSONString.parse_literal(node)
         except JSONDecodeError:
-            raise GraphQLError(f"{str(node.value)[:20]}... is not a valid JSONString")
+            return None

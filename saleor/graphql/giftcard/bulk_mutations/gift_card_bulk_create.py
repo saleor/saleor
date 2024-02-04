@@ -1,4 +1,4 @@
-from typing import Iterable
+from collections.abc import Iterable
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -11,6 +11,7 @@ from ....giftcard import events, models
 from ....giftcard.error_codes import GiftCardErrorCode
 from ....permission.enums import GiftcardPermissions
 from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.utils import get_webhooks_for_event
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_31
@@ -91,9 +92,8 @@ class GiftCardBulkCreate(BaseMutation):
         instances = cls.create_instances(input, info)
         if tags:
             cls.assign_gift_card_tags(instances, tags)
-        manager = get_plugin_manager_promise(info.context).get()
         transaction.on_commit(
-            lambda: cls.call_gift_card_created_on_plugins(instances, manager)
+            lambda: cls.call_gift_card_created_on_plugins(instances, info.context)
         )
         return cls(count=len(instances), gift_cards=instances)
 
@@ -172,7 +172,9 @@ class GiftCardBulkCreate(BaseMutation):
         for tag_instance in tags_instances.iterator():
             tag_instance.gift_cards.set(instances)
 
-    @staticmethod
-    def call_gift_card_created_on_plugins(instances, manager):
+    @classmethod
+    def call_gift_card_created_on_plugins(cls, instances, context):
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.GIFT_CARD_CREATED)
+        manager = get_plugin_manager_promise(context).get()
         for instance in instances:
-            manager.gift_card_created(instance)
+            cls.call_event(manager.gift_card_created, instance, webhooks=webhooks)

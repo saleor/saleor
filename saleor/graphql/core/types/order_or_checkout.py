@@ -24,7 +24,7 @@ class OrderOrCheckoutBase(graphene.Union):
             return checkout_types.Checkout
         if isinstance(instance, Order):
             return order_types.Order
-        return super(OrderOrCheckoutBase, cls).resolve_type(instance, info)
+        return super().resolve_type(instance, info)
 
 
 class OrderOrCheckout(OrderOrCheckoutBase):

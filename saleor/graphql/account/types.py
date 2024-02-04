@@ -1,6 +1,6 @@
 import uuid
 from functools import partial
-from typing import List, Optional, cast
+from typing import Optional, cast
 
 import graphene
 from django.contrib.auth import get_user_model
@@ -29,6 +29,7 @@ from ..checkout.dataloaders import CheckoutByUserAndChannelLoader, CheckoutByUse
 from ..checkout.types import Checkout, CheckoutCountableConnection
 from ..core import ResolveInfo
 from ..core.connection import CountableConnection, create_connection_slice
+from ..core.context import get_database_connection_name
 from ..core.descriptions import (
     ADDED_IN_38,
     ADDED_IN_310,
@@ -185,7 +186,7 @@ class Address(ModelObjectType[models.Address]):
         return False
 
     @staticmethod
-    def __resolve_references(roots: List["Address"], info: ResolveInfo):
+    def __resolve_references(roots: list["Address"], info: ResolveInfo):
         from .resolvers import resolve_addresses
 
         app = get_app_promise(info.context).get()
@@ -287,11 +288,11 @@ class UserPermission(Permission):
 
     @staticmethod
     @traced_resolver
-    def resolve_source_permission_groups(root: Permission, _info: ResolveInfo, user_id):
+    def resolve_source_permission_groups(root: Permission, info: ResolveInfo, user_id):
         _type, user_id = from_global_id_or_error(user_id, only_type="User")
-        groups = models.Group.objects.filter(
-            user__pk=user_id, permissions__name=root.name
-        )
+        groups = models.Group.objects.using(
+            get_database_connection_name(info.context)
+        ).filter(user__pk=user_id, permissions__name=root.name)
         return groups
 
 
@@ -455,7 +456,7 @@ class User(ModelObjectType[models.User]):
 
     @staticmethod
     def resolve_addresses(root: models.User, _info: ResolveInfo):
-        return root.addresses.annotate_default(root).all()  # type: ignore[attr-defined] # mypy does not properly recognize the related manager # noqa: E501
+        return root.addresses.annotate_default(root).all()
 
     @staticmethod
     def resolve_checkout(root: models.User, _info: ResolveInfo):
@@ -542,8 +543,8 @@ class User(ModelObjectType[models.User]):
         return resolve_permissions(root)
 
     @staticmethod
-    def resolve_permission_groups(root: models.User, _info: ResolveInfo):
-        return root.groups.all()
+    def resolve_permission_groups(root: models.User, info: ResolveInfo):
+        return root.groups.using(get_database_connection_name(info.context)).all()
 
     @staticmethod
     def resolve_editable_groups(root: models.User, _info: ResolveInfo):
@@ -661,7 +662,7 @@ class User(ModelObjectType[models.User]):
         return LanguageCodeEnum[str_to_enum(root.language_code)]
 
     @staticmethod
-    def __resolve_references(roots: List["User"], info: ResolveInfo):
+    def __resolve_references(roots: list["User"], info: ResolveInfo):
         from .resolvers import resolve_users
 
         ids = set()
@@ -866,7 +867,9 @@ class StaffNotificationRecipient(graphene.ObjectType):
     @staticmethod
     def get_node(info: ResolveInfo, id):
         try:
-            return models.StaffNotificationRecipient.objects.get(pk=id)
+            return models.StaffNotificationRecipient.objects.using(
+                get_database_connection_name(info.context)
+            ).get(pk=id)
         except models.StaffNotificationRecipient.DoesNotExist:
             return None
 
@@ -924,7 +927,7 @@ class Group(ModelObjectType[models.Group]):
 
     @staticmethod
     def resolve_users(root: models.Group, _info: ResolveInfo):
-        return root.user_set.all()
+        return root.user_set.all()  # type: ignore[attr-defined]
 
     @staticmethod
     def resolve_permissions(root: models.Group, _info: ResolveInfo):
@@ -945,7 +948,7 @@ class Group(ModelObjectType[models.Group]):
         return AccessibleChannelsByGroupIdLoader(info.context).load(root.id)
 
     @staticmethod
-    def __resolve_references(roots: List["Group"], info: ResolveInfo):
+    def __resolve_references(roots: list["Group"], info: ResolveInfo):
         from .resolvers import resolve_permission_groups
 
         requestor = get_user_or_app_from_context(info.context)

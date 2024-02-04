@@ -265,7 +265,7 @@ def test_fulfillment_approve_gift_cards_created(
                 warehouse_pk=stock_2.warehouse.pk,
             ),
         ],
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
     )
 
     query = APPROVE_FULFILLMENT_MUTATION
@@ -477,8 +477,6 @@ def test_fulfillment_approve_order_unpaid(
 def test_fulfillment_approve_preorder(
     staff_api_client, fulfillment, permission_group_manage_orders, site_settings
 ):
-    """Fulfillment with WAITING_FOR_APPROVAL status can not be fulfilled
-    if it contains variant in preorder."""
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     site_settings.fulfillment_auto_approve = False
     site_settings.save(update_fields=["fulfillment_auto_approve"])

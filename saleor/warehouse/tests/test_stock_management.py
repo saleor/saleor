@@ -32,7 +32,10 @@ def test_allocate_stocks(order_line, stock, channel_USD):
     line_data = OrderLineInfo(line=order_line, variant=order_line.variant, quantity=50)
 
     allocate_stocks(
-        [line_data], COUNTRY_CODE, channel_USD, manager=get_plugins_manager()
+        [line_data],
+        COUNTRY_CODE,
+        channel_USD,
+        manager=get_plugins_manager(allow_replica=False),
     )
 
     stock.refresh_from_db()
@@ -72,7 +75,7 @@ def test_allocate_stocks_multiple_lines_the_highest_stock_strategy(
         [line_data_1, line_data_2],
         COUNTRY_CODE,
         channel_USD,
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
     )
 
     stock.refresh_from_db()
@@ -93,7 +96,10 @@ def test_allocate_stock_many_stocks_the_highest_stock_strategy(
 
     line_data = OrderLineInfo(line=order_line, variant=order_line.variant, quantity=5)
     allocate_stocks(
-        [line_data], COUNTRY_CODE, channel_USD, manager=get_plugins_manager()
+        [line_data],
+        COUNTRY_CODE,
+        channel_USD,
+        manager=get_plugins_manager(allow_replica=False),
     )
 
     allocations = Allocation.objects.filter(order_line=order_line, stock__in=stocks)
@@ -104,8 +110,12 @@ def test_allocate_stock_many_stocks_the_highest_stock_strategy(
 def test_allocate_stocks_the_highest_stock_strategy_with_collection_point(
     order_line, variant_with_many_stocks, channel_USD, warehouse_for_cc
 ):
-    """Ensure that when the collection point is set as delivery method,
-    the stock will be allocate in this warehouse."""
+    """Test that collection points take precedence during stock allocation.
+
+    Ensure that when the collection point is set as delivery method,
+    the stock will be allocated in this warehouse even if strategy is set
+    to follow the highest stock quantity.
+    """
     variant = variant_with_many_stocks
 
     quantity = 5
@@ -121,7 +131,7 @@ def test_allocate_stocks_the_highest_stock_strategy_with_collection_point(
         [line_data],
         COUNTRY_CODE,
         channel_USD,
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
         collection_point_pk=warehouse_for_cc.pk,
     )
 
@@ -158,7 +168,10 @@ def test_allocate_stock_many_stocks_prioritize_sorting_order_strategy(
 
     # when
     allocate_stocks(
-        [line_data], COUNTRY_CODE, channel_USD, manager=get_plugins_manager()
+        [line_data],
+        COUNTRY_CODE,
+        channel_USD,
+        manager=get_plugins_manager(allow_replica=False),
     )
 
     # then
@@ -182,8 +195,12 @@ def test_allocate_stock_many_stocks_prioritize_sorting_order_strategy(
 def test_allocate_stock_prioritize_sorting_order_strategy_with_collection_point(
     order_line, variant_with_many_stocks, channel_USD, warehouse_for_cc
 ):
-    """Ensure that when the collection point is set as delivery method,
-    the stock will be allocate in this warehouse."""
+    """Test that collection points take precedence during stock allocation.
+
+    Ensure that when the collection point is set as delivery method,
+    the stock will be allocated in this warehouse even if strategy is set
+    to follow the warehouse sorting order.
+    """
     # given
     channel_USD.allocation_strategy = AllocationStrategy.PRIORITIZE_SORTING_ORDER
     channel_USD.save(update_fields=["allocation_strategy"])
@@ -215,7 +232,7 @@ def test_allocate_stock_prioritize_sorting_order_strategy_with_collection_point(
         [line_data],
         COUNTRY_CODE,
         channel_USD,
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
         collection_point_pk=warehouse_for_cc.pk,
     )
 
@@ -240,7 +257,7 @@ def test_allocate_stock_with_reservations_the_highest_stock_strategy(
         [line_data],
         COUNTRY_CODE,
         channel_USD,
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
         check_reservations=True,
     )
 
@@ -286,7 +303,7 @@ def test_allocate_stock_with_reservations_prioritize_sorting_order_strategy(
         [line_data],
         COUNTRY_CODE,
         channel_USD,
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
         check_reservations=True,
     )
 
@@ -316,7 +333,7 @@ def test_allocate_stock_insufficient_stock_due_to_reservations(
             [line_data],
             COUNTRY_CODE,
             channel_USD,
-            manager=get_plugins_manager(),
+            manager=get_plugins_manager(allow_replica=False),
             check_reservations=True,
         )
 
@@ -342,7 +359,10 @@ def test_allocate_stock_many_stocks_partially_allocated(
 
     # when
     allocate_stocks(
-        [line_data], COUNTRY_CODE, channel_USD, manager=get_plugins_manager()
+        [line_data],
+        COUNTRY_CODE,
+        channel_USD,
+        manager=get_plugins_manager(allow_replica=False),
     )
 
     # then
@@ -368,7 +388,10 @@ def test_allocate_stock_partially_allocated_insufficient_stocks(
     line_data = OrderLineInfo(line=order_line, variant=order_line.variant, quantity=6)
     with pytest.raises(InsufficientStock):
         allocate_stocks(
-            [line_data], COUNTRY_CODE, channel_USD, manager=get_plugins_manager()
+            [line_data],
+            COUNTRY_CODE,
+            channel_USD,
+            manager=get_plugins_manager(allow_replica=False),
         )
 
     assert not Allocation.objects.filter(
@@ -385,7 +408,10 @@ def test_allocate_stocks_no_channel_shipping_zones(order_line, stock, channel_US
     line_data = OrderLineInfo(line=order_line, variant=order_line.variant, quantity=50)
     with pytest.raises(InsufficientStock):
         allocate_stocks(
-            [line_data], COUNTRY_CODE, channel_USD, manager=get_plugins_manager()
+            [line_data],
+            COUNTRY_CODE,
+            channel_USD,
+            manager=get_plugins_manager(allow_replica=False),
         )
 
 
@@ -398,7 +424,10 @@ def test_allocate_stock_insufficient_stocks(
     line_data = OrderLineInfo(line=order_line, variant=order_line.variant, quantity=10)
     with pytest.raises(InsufficientStock):
         allocate_stocks(
-            [line_data], COUNTRY_CODE, channel_USD, manager=get_plugins_manager()
+            [line_data],
+            COUNTRY_CODE,
+            channel_USD,
+            manager=get_plugins_manager(allow_replica=False),
         )
 
     assert not Allocation.objects.filter(
@@ -436,7 +465,7 @@ def test_allocate_stock_insufficient_stocks_for_multiple_lines(
             [line_data_1, line_data_2],
             COUNTRY_CODE,
             channel_USD,
-            manager=get_plugins_manager(),
+            manager=get_plugins_manager(allow_replica=False),
         )
 
     assert set(item.variant for item in exc._excinfo[1].items) == {variant, variant_2}
@@ -460,7 +489,7 @@ def test_deallocate_stock(allocation):
                 line=allocation.order_line, quantity=80, variant=stock.product_variant
             )
         ],
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
     )
 
     stock.refresh_from_db()
@@ -483,7 +512,7 @@ def test_deallocate_stock_when_quantity_less_than_zero(allocation):
                 line=allocation.order_line, quantity=80, variant=stock.product_variant
             )
         ],
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
     )
 
     stock.refresh_from_db()
@@ -506,7 +535,7 @@ def test_deallocate_stock_partially(allocation):
                 line=allocation.order_line, quantity=50, variant=stock.product_variant
             )
         ],
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
     )
 
     stock.refresh_from_db()
@@ -523,7 +552,7 @@ def test_deallocate_stock_many_allocations(
 
     deallocate_stock(
         [OrderLineInfo(line=order_line, quantity=3, variant=order_line.variant)],
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
     )
 
     allocations = order_line.allocations.all()
@@ -538,7 +567,7 @@ def test_deallocate_stock_many_allocations_partially(
 
     deallocate_stock(
         [OrderLineInfo(line=order_line, quantity=1, variant=order_line.variant)],
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
     )
 
     allocations = order_line.allocations.all()
@@ -594,7 +623,7 @@ def test_increase_stock_with_new_allocation(order_line, stock):
     assert allocation.quantity_allocated == 50
 
 
-@pytest.mark.parametrize("quantity", (19, 20))
+@pytest.mark.parametrize("quantity", [19, 20])
 def test_increase_allocations(quantity, allocation):
     order_line = allocation.order_line
     order_line_info = OrderLineInfo(
@@ -612,7 +641,9 @@ def test_increase_allocations(quantity, allocation):
     allocation.save(update_fields=["quantity_allocated"])
 
     increase_allocations(
-        [order_line_info], order_line.order.channel, manager=get_plugins_manager()
+        [order_line_info],
+        order_line.order.channel,
+        manager=get_plugins_manager(allow_replica=False),
     )
 
     stock.refresh_from_db()
@@ -646,7 +677,7 @@ def test_increase_allocation_insufficient_stock(allocation):
         increase_allocations(
             [order_line_info],
             order_line.order.channel,
-            manager=get_plugins_manager(),
+            manager=get_plugins_manager(allow_replica=False),
         )
 
     stock.refresh_from_db()
@@ -694,7 +725,7 @@ def test_decrease_stock(allocation):
                 warehouse_pk=warehouse_pk,
             )
         ],
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
     )
 
     stock.refresh_from_db()
@@ -704,7 +735,7 @@ def test_decrease_stock(allocation):
     assert allocation.quantity_allocated == 30
 
 
-@pytest.mark.parametrize("quantity, expected_allocated", ((50, 30), (200, 0)))
+@pytest.mark.parametrize(("quantity", "expected_allocated"), [(50, 30), (200, 0)])
 def test_decrease_stock_without_stock_update(quantity, expected_allocated, allocation):
     stock = allocation.stock
     stock.quantity = 100
@@ -723,7 +754,7 @@ def test_decrease_stock_without_stock_update(quantity, expected_allocated, alloc
                 warehouse_pk=warehouse_pk,
             )
         ],
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
         update_stocks=False,
     )
 
@@ -764,7 +795,7 @@ def test_decrease_stock_multiple_lines(allocations):
                 warehouse_pk=warehouse_pk_2,
             ),
         ],
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
     )
 
     stock.refresh_from_db()
@@ -774,8 +805,11 @@ def test_decrease_stock_multiple_lines(allocations):
 
 
 def test_decrease_stock_multiple_lines_deallocate_stock_raises_error(order_with_lines):
-    """Ensure that when some of the lines raise an error during the deallocation
-    quantity allocated value for all allocation will be updated."""
+    """Test that stock deallocations are immune to errors.
+
+    Ensure that when some of the lines raise an error during the deallocation
+    quantity allocated value for all allocation will be updated.
+    """
 
     # given
     order_line_1 = order_with_lines.lines.first()
@@ -825,7 +859,7 @@ def test_decrease_stock_multiple_lines_deallocate_stock_raises_error(order_with_
                 warehouse_pk=warehouse_pk_2,
             ),
         ],
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
     )
 
     # then
@@ -859,7 +893,7 @@ def test_decrease_stock_partially(allocation):
                 warehouse_pk=warehouse_pk,
             )
         ],
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
     )
 
     stock.refresh_from_db()
@@ -884,7 +918,7 @@ def test_decrease_stock_many_allocations(
                 warehouse_pk=warehouse_pk,
             )
         ],
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
     )
 
     assert allocations[0].quantity_allocated == 0
@@ -909,7 +943,7 @@ def test_decrease_stock_many_allocations_partially(
                 warehouse_pk=warehouse_pk,
             )
         ],
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
     )
 
     assert allocations[0].quantity_allocated == 0
@@ -938,7 +972,7 @@ def test_decrease_stock_more_then_allocated(
                 warehouse_pk=warehouse_pk,
             )
         ],
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
     )
 
     allocations = order_line.allocations.all()
@@ -969,7 +1003,7 @@ def test_decrease_stock_insufficient_stock(allocation):
                     warehouse_pk=warehouse_pk,
                 )
             ],
-            manager=get_plugins_manager(),
+            manager=get_plugins_manager(allow_replica=False),
         )
 
     stock.refresh_from_db()
@@ -983,7 +1017,7 @@ def test_deallocate_stock_for_order(order_line_with_allocation_in_many_stocks):
     order_line = order_line_with_allocation_in_many_stocks
     order = order_line.order
 
-    deallocate_stock_for_order(order, manager=get_plugins_manager())
+    deallocate_stock_for_order(order, manager=get_plugins_manager(allow_replica=False))
 
     allocations = order_line.allocations.all()
     assert (
@@ -1052,7 +1086,7 @@ def test_decrease_stock_with_out_of_stock_webhook_triggered(
                 warehouse_pk=warehouse_pk,
             )
         ],
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
     )
 
     flush_post_commit_hooks()

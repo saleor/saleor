@@ -3,7 +3,7 @@ from enum import Enum
 
 class PaymentError(Exception):
     def __init__(self, message, code=None):
-        super(PaymentError, self).__init__(message, code)
+        super().__init__(message, code)
         self.message = message
         self.code = code
 
@@ -12,6 +12,10 @@ class PaymentError(Exception):
 
 
 class GatewayError(IOError):
+    pass
+
+
+class TransactionItemIdempotencyUniqueError(Exception):
     pass
 
 

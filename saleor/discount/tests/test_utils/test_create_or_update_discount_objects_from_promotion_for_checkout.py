@@ -94,7 +94,6 @@ def test_create_fixed_discount(
     assert discount_from_info.reason == discount_from_db.reason is None
     assert discount_from_info.promotion_rule == discount_from_db.promotion_rule == rule
     assert discount_from_info.voucher == discount_from_db.voucher is None
-    assert discount_from_info.sale == discount_from_db.sale is None
     assert (
         discount_from_info.translated_name
         == discount_from_db.translated_name
@@ -179,7 +178,6 @@ def test_create_fixed_discount_multiple_quantity_in_lines(
     assert discount_from_info.reason == discount_from_db.reason is None
     assert discount_from_info.promotion_rule == discount_from_db.promotion_rule == rule
     assert discount_from_info.voucher == discount_from_db.voucher is None
-    assert discount_from_info.sale == discount_from_db.sale is None
 
     for checkout_line_info in checkout_lines_with_multiple_quantity_info[1:]:
         assert not checkout_line_info.discounts
@@ -329,7 +327,6 @@ def test_create_percentage_discount(checkout_lines_info, promotion_without_rules
     assert discount_from_info.reason == discount_from_db.reason is None
     assert discount_from_info.promotion_rule == discount_from_db.promotion_rule == rule
     assert discount_from_info.voucher == discount_from_db.voucher is None
-    assert discount_from_info.sale == discount_from_db.sale is None
 
     for checkout_line_info in checkout_lines_info[1:]:
         assert not checkout_line_info.discounts
@@ -411,7 +408,6 @@ def test_create_percentage_discount_multiple_quantity_in_lines(
     assert discount_from_info.reason == discount_from_db.reason is None
     assert discount_from_info.promotion_rule == discount_from_db.promotion_rule == rule
     assert discount_from_info.voucher == discount_from_db.voucher is None
-    assert discount_from_info.sale == discount_from_db.sale is None
 
     for checkout_line_info in checkout_lines_with_multiple_quantity_info[1:]:
         assert not checkout_line_info.discounts
@@ -780,7 +776,6 @@ def test_create_percentage_discount_1_cent_variant_on_10_percentage_discount(
     assert discount_from_info.reason == discount_from_db.reason is None
     assert discount_from_info.promotion_rule == discount_from_db.promotion_rule == rule
     assert discount_from_info.voucher == discount_from_db.voucher is None
-    assert discount_from_info.sale == discount_from_db.sale is None
 
     for checkout_line_info in checkout_lines_info[1:]:
         assert not checkout_line_info.discounts

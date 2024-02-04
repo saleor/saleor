@@ -1,6 +1,5 @@
 from collections import OrderedDict
 from dataclasses import dataclass
-from typing import Dict, List, Tuple
 
 from django.db import transaction
 from django.db.models import F, QuerySet
@@ -21,7 +20,7 @@ class FinalSortOrder:
 
 
 class Reordering:
-    def __init__(self, qs: QuerySet, operations: Dict[int, int], field: str):
+    def __init__(self, qs: QuerySet, operations: dict[int, int], field: str):
         self.qs = qs
         self.operations = operations
         self.field = field
@@ -29,11 +28,11 @@ class Reordering:
         # Will contain the original data, before sorting
         # This will be useful to look for the sort orders that
         # actually were changed
-        self.old_sort_map: Dict[int, str] = {}
+        self.old_sort_map: dict[int, str] = {}
 
         # Will contain the list of keys kept
         # in correct order in accordance to their sort order
-        self.ordered_pks: List[int] = []
+        self.ordered_pks: list[int] = []
 
     @cached_property
     def ordered_node_map(self):
@@ -58,7 +57,7 @@ class Reordering:
 
         return ordering_map
 
-    def calculate_new_sort_order(self, pk, move) -> Tuple[int, int, int]:
+    def calculate_new_sort_order(self, pk, move) -> tuple[int, int, int]:
         """Return the proper sort order for the current operation.
 
         Allows to properly move the node in a given direction with by amount.
@@ -151,7 +150,7 @@ class Reordering:
         self.commit()
 
 
-def perform_reordering(qs: QuerySet, operations: Dict[int, int], field: str = "moves"):
+def perform_reordering(qs: QuerySet, operations: dict[int, int], field: str = "moves"):
     """Perform reordering over given operations on a queryset.
 
     This utility takes a set of operations containing a node

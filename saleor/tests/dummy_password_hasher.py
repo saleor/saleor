@@ -4,15 +4,17 @@ from django.contrib.auth.hashers import BasePasswordHasher
 
 
 class DummyHasher(BasePasswordHasher):
-    """Dummy password hasher used only for unit tests purpose. Overwriting
-    default Django password hasher significantly reduces the time of tests
-    execution."""
+    """Dummy password hasher used only for unit tests purpose.
+
+    Overwriting default Django password hasher significantly reduces the time
+    of test execution.
+    """
 
     algorithm = "dummy"
 
     def encode(self, password, *args):
         assert password is not None
-        return "%s$%s" % (self.algorithm, password)
+        return f"{self.algorithm}${password}"
 
     def verify(self, password, encoded):
         algorithm, dummy_password = encoded.split("$")

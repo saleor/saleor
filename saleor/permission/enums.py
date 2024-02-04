@@ -1,5 +1,5 @@
+from collections.abc import Iterable
 from enum import Enum
-from typing import Iterable, List
 
 from django.db.models import QuerySet
 
@@ -130,7 +130,7 @@ def get_permissions_enum_dict():
     }
 
 
-def get_permissions_from_names(names: List[str]):
+def get_permissions_from_names(names: list[str]):
     """Convert list of permission names - ['MANAGE_ORDERS'] to Permission db objects."""
     permissions = get_permissions_enum_dict()
     return get_permissions([permissions[name].value for name in names])
@@ -159,7 +159,7 @@ def get_permissions(permissions=None):
     return get_permissions_from_codenames(codenames)
 
 
-def get_permissions_from_codenames(permission_codenames: List[str]) -> QuerySet:
+def get_permissions_from_codenames(permission_codenames: list[str]) -> QuerySet:
     return (
         Permission.objects.filter(codename__in=permission_codenames)
         .prefetch_related("content_type")

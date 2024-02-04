@@ -21,7 +21,7 @@ class OrderSettingsUpdateInput(BaseInputObjectType):
     automatically_fulfill_non_shippable_gift_card = graphene.Boolean(
         required=False,
         description="When enabled, all non-shippable gift card orders "
-        "will be fulfilled automatically. By defualt set to True.",
+        "will be fulfilled automatically. By default set to True.",
     )
 
     class Meta:
@@ -85,8 +85,5 @@ class OrderSettingsUpdate(BaseMutation):
                 channel.automatically_fulfill_non_shippable_gift_card
             ),
             mark_as_paid_strategy=channel.order_mark_as_paid_strategy,
-            default_transaction_flow_strategy=(
-                channel.default_transaction_flow_strategy
-            ),
         )
         return OrderSettingsUpdate(order_settings=order_settings)

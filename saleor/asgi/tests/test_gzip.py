@@ -1,5 +1,4 @@
 import gzip
-from typing import List
 
 from asgiref.typing import (
     ASGI3Application,
@@ -34,7 +33,7 @@ def build_scope(origin: str, encodings: bytes) -> HTTPScope:
     }
 
 
-async def run_app(app: ASGI3Application, scope: HTTPScope) -> List[dict]:
+async def run_app(app: ASGI3Application, scope: HTTPScope) -> list[dict]:
     events = []
 
     async def send(event) -> None:

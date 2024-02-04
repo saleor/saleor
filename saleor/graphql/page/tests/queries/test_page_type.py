@@ -159,7 +159,7 @@ def test_staff_query_page_type_by_invalid_id(staff_api_client, page_type):
     response = staff_api_client.post_graphql(PAGE_TYPE_QUERY, variables)
     content = get_graphql_content_from_response(response)
     assert len(content["errors"]) == 1
-    assert content["errors"][0]["message"] == f"Couldn't resolve id: {id}."
+    assert content["errors"][0]["message"] == f"Invalid ID: {id}. Expected: PageType."
     assert content["data"]["pageType"] is None
 
 

@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import List, Optional
+from typing import Optional
 
 import graphene
 from graphene import relay
@@ -20,6 +20,7 @@ from ...core.connection import (
     create_connection_slice,
     filter_connection_queryset,
 )
+from ...core.context import get_database_connection_name
 from ...core.descriptions import (
     ADDED_IN_314,
     DEPRECATED_IN_3X_FIELD,
@@ -141,8 +142,8 @@ class Collection(ChannelContextTypeWithMetadata[models.Collection]):
         search = kwargs.get("search")
 
         requestor = get_user_or_app_from_context(info.context)
-        qs = root.node.products.visible_to_user(  # type: ignore[attr-defined] # mypy does not properly resolve the related manager # noqa: E501
-            requestor, root.channel_slug
+        qs = root.node.products.visible_to_user(requestor, root.channel_slug).using(
+            get_database_connection_name(info.context)
         )
 
         if search:
@@ -168,7 +169,7 @@ class Collection(ChannelContextTypeWithMetadata[models.Collection]):
         return description if description is not None else {}
 
     @staticmethod
-    def __resolve_references(roots: List["Collection"], info: ResolveInfo):
+    def __resolve_references(roots: list["Collection"], info: ResolveInfo):
         from ..resolvers import resolve_collections
 
         channels = defaultdict(set)

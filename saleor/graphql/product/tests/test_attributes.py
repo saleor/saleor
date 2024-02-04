@@ -5,10 +5,15 @@ import pytest
 
 from ....attribute import AttributeInputType, AttributeType
 from ....attribute.models import (
+    AssignedProductAttributeValue,
     Attribute,
     AttributeProduct,
     AttributeValue,
     AttributeVariant,
+)
+from ....attribute.tests.model_helpers import (
+    get_product_attribute_values,
+    get_product_attributes,
 )
 from ....attribute.utils import associate_attribute_values_to_instance
 from ....product import ProductTypeKind
@@ -51,7 +56,7 @@ QUERY_PRODUCT_AND_VARIANTS_ATTRIBUTES = """
 """
 
 
-@pytest.mark.parametrize("is_staff", (False, True))
+@pytest.mark.parametrize("is_staff", [False, True])
 def test_resolve_attributes_with_hidden(
     user_api_client,
     staff_api_client,
@@ -62,9 +67,7 @@ def test_resolve_attributes_with_hidden(
     permission_manage_products,
     channel_USD,
 ):
-    """Ensure non-staff users don't see hidden attributes, and staff users having
-    the 'manage product' permission can.
-    """
+    """Test that only staff users can see hidden attributes."""
     variables = {"channel": channel_USD.slug}
     query = QUERY_PRODUCT_AND_VARIANTS_ATTRIBUTES
     api_client = user_api_client
@@ -74,7 +77,7 @@ def test_resolve_attributes_with_hidden(
     product_attribute = color_attribute
     variant_attribute = size_attribute
 
-    expected_product_attribute_count = product.attributes.count() - 1
+    expected_product_attribute_count = get_product_attributes(product).count() - 1
     expected_variant_attribute_count = variant.attributes.count() - 1
 
     if is_staff:
@@ -104,11 +107,12 @@ def test_resolve_attribute_values(user_api_client, product, staff_user, channel_
 
     variant = product.variants.first()
 
-    assert product.attributes.count() == 1
+    assert get_product_attributes(product).count() == 1
     assert variant.attributes.count() == 1
 
+    attribute = get_product_attributes(product).first()
     product_attribute_values = list(
-        product.attributes.first().values.values_list("slug", flat=True)
+        get_product_attribute_values(product, attribute).values_list("slug", flat=True)
     )
     variant_attribute_values = list(
         variant.attributes.first().values.values_list("slug", flat=True)
@@ -144,10 +148,7 @@ def test_resolve_attribute_values(user_api_client, product, staff_user, channel_
 def test_resolve_attribute_values_non_assigned_to_node(
     user_api_client, product, staff_user, channel_USD
 ):
-    """Ensure the attribute values are properly resolved when an attribute is part
-    of the product type but not of the node (product/variant), thus no values should be
-    resolved.
-    """
+    """Test that excessive attributes are not listed even if present."""
     variables = {"channel": channel_USD.slug}
     query = QUERY_PRODUCT_AND_VARIANTS_ATTRIBUTES
     api_client = user_api_client
@@ -178,10 +179,16 @@ def test_resolve_attribute_values_non_assigned_to_node(
         attribute=unassigned_product_attribute, product_type=product_type, sort_order=0
     )
     AttributeVariant.objects.create(
-        attribute=unassigned_variant_attribute, product_type=product_type, sort_order=0
+        attribute=unassigned_variant_attribute,
+        product_type=product_type,
+        sort_order=0,
     )
 
-    assert product.attributes.count() == 1
+    # All attributes assigned for the same product type should be returned
+    assert get_product_attributes(product).count() == 2
+
+    # no additional values should be added
+    assert product.attributevalues.count() == 1
     assert variant.attributes.count() == 1
 
     product = get_graphql_content(api_client.post_graphql(query, variables))["data"][
@@ -204,14 +211,12 @@ def test_resolve_attribute_values_non_assigned_to_node(
 def test_resolve_assigned_attribute_without_values(
     api_client, product_type, product, channel_USD
 ):
-    """Ensure the attributes assigned to a product type are resolved even if
-    the product doesn't provide any value for it or is not directly associated to it.
-    """
+    """Test that all attributes are listed even if values are missing."""
     # Retrieve the product's variant
     variant = product.variants.get()
 
     # Remove all attributes and values from the product and its variant
-    product.attributesrelated.clear()
+    AssignedProductAttributeValue.objects.filter(product_id=product.pk).delete()
     variant.attributesrelated.clear()
 
     # Retrieve the product and variant's attributes
@@ -389,10 +394,6 @@ def test_assign_variant_attribute_to_product_type_with_disabled_variants(
     product_type_without_variant,
     color_attribute_without_values,
 ):
-    """The assignAttribute mutation should raise an error when trying
-    to add an attribute as a variant attribute when
-    the product type doesn't support variants"""
-
     product_type = product_type_without_variant
     attribute = color_attribute_without_values
     staff_api_client.user.user_permissions.add(
@@ -457,10 +458,6 @@ def test_assign_variant_attribute_having_multiselect_input_type_with_variant_sel
     product_type,
     size_attribute,
 ):
-    """The assignAttribute mutation should raise an error when trying
-    to use an attribute as a variant attribute when
-    the attribute's input type doesn't support variants"""
-
     attribute = size_attribute
     attribute.input_type = AttributeInputType.MULTISELECT
     attribute.save(update_fields=["input_type"])
@@ -531,13 +528,13 @@ def test_assign_product_attribute_having_variant_selection(
 
 
 @pytest.mark.parametrize(
-    "product_type_attribute_type, gql_attribute_type",
-    (
+    ("product_type_attribute_type", "gql_attribute_type"),
+    [
         (ProductAttributeType.PRODUCT, ProductAttributeType.VARIANT),
         (ProductAttributeType.VARIANT, ProductAttributeType.PRODUCT),
         (ProductAttributeType.PRODUCT, ProductAttributeType.PRODUCT),
         (ProductAttributeType.VARIANT, ProductAttributeType.VARIANT),
-    ),
+    ],
 )
 def test_assign_attribute_to_product_type_having_already_that_attribute(
     staff_api_client,
@@ -546,9 +543,6 @@ def test_assign_attribute_to_product_type_having_already_that_attribute(
     product_type_attribute_type,
     gql_attribute_type,
 ):
-    """The assignAttribute mutation should raise an error when trying
-    to add an attribute already contained in the product type."""
-
     product_type = ProductType.objects.create(name="Type", kind=ProductTypeKind.NORMAL)
     attribute = color_attribute_without_values
     staff_api_client.user.user_permissions.add(
@@ -613,14 +607,11 @@ PRODUCT_ASSIGN_ATTR_UPDATE_QUERY = """
 """
 
 
-def test_assignment_attribute_update_not_assigned_attribute_should_raise_an_errors(
+def test_assignment_attribute_update_not_assigned_attribute_should_raise_an_error(
     staff_api_client,
     permission_manage_product_types_and_attributes,
     color_attribute_without_values,
 ):
-    """The productAttributeAssignmentUpdate mutation should raise an error when trying
-    to modify unassigned variant attribute."""
-
     product_type = ProductType.objects.create(name="Type", kind=ProductTypeKind.NORMAL)
     attribute = color_attribute_without_values
     staff_api_client.user.user_permissions.add(
@@ -667,9 +658,6 @@ def test_assignment_attribute_update_assigned_to_product_should_raise_an_error(
     permission_manage_product_types_and_attributes,
     color_attribute_without_values,
 ):
-    """The productAttributeAssignmentUpdate mutation should raise an error when trying
-    to modify assigned to product attribute."""
-
     product_type = ProductType.objects.create(name="Type", kind=ProductTypeKind.NORMAL)
     attribute = color_attribute_without_values
     staff_api_client.user.user_permissions.add(
@@ -711,9 +699,6 @@ def test_assignment_attrib_update_assigned_with_duplicates_type_should_raise_an_
     permission_manage_product_types_and_attributes,
     color_attribute_without_values,
 ):
-    """The productAttributeAssignmentUpdate mutation should raise an error when
-    to modify operations with duplicated attribute ids."""
-
     product_type = ProductType.objects.create(name="Type", kind=ProductTypeKind.NORMAL)
     attribute = color_attribute_without_values
 
@@ -763,9 +748,6 @@ def test_assignment_attribute_update_assigned_unsupported_type_should_raise_an_e
     permission_manage_product_types_and_attributes,
     color_attribute_without_values,
 ):
-    """The productAttributeAssignmentUpdate mutation should raise an error when trying
-    to modify unsupported variant attribute."""
-
     product_type = ProductType.objects.create(name="Type", kind=ProductTypeKind.NORMAL)
     attribute = color_attribute_without_values
     attribute.input_type = AttributeInputType.MULTISELECT
@@ -817,9 +799,6 @@ def test_assignment_attribute_update_assigned_should_modify_variant_selection(
     size_attribute,
     color_attribute_without_values,
 ):
-    """The productAttributeAssignmentUpdate mutation should modify
-    variant selection when validation successful."""
-
     product_type = ProductType.objects.create(name="Type", kind=ProductTypeKind.NORMAL)
     attribute_1 = color_attribute_without_values
     attribute_2 = size_attribute
@@ -866,9 +845,6 @@ def test_assignment_attrib_update_assigned_should_modify_variant_selection_from_
     size_attribute,
     color_attribute_without_values,
 ):
-    """The productAttributeAssignmentUpdate mutation should modify
-    variant selection from external app when validation successful."""
-
     product_type = ProductType.objects.create(name="Type", kind=ProductTypeKind.NORMAL)
     attribute_1 = color_attribute_without_values
     attribute_2 = size_attribute
@@ -1093,9 +1069,6 @@ def test_unassign_attributes_not_in_product_type(
     permission_manage_product_types_and_attributes,
     color_attribute_without_values,
 ):
-    """The unAssignAttribute mutation should not raise any error when trying
-    to remove an attribute that is not/no longer in the product type."""
-
     staff_api_client.user.user_permissions.add(
         permission_manage_product_types_and_attributes
     )
@@ -1251,11 +1224,11 @@ def test_sort_attributes_within_product_type_invalid_id(
 
 
 @pytest.mark.parametrize(
-    "attribute_type, relation_field, backref_field",
-    (
+    ("attribute_type", "relation_field", "backref_field"),
+    [
         ("VARIANT", "variant_attributes", "attributevariant"),
         ("PRODUCT", "product_attributes", "attributeproduct"),
-    ),
+    ],
 )
 def test_sort_attributes_within_product_type(
     staff_api_client,
@@ -1364,6 +1337,7 @@ def test_sort_product_attribute_values(
     staff_api_client.user.user_permissions.add(permission_manage_products)
 
     product_type = product.product_type
+
     product_type.product_attributes.clear()
     product_type.product_attributes.add(product_type_page_reference_attribute)
 

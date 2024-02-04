@@ -1,7 +1,11 @@
 from datetime import datetime
 from unittest.mock import patch
 
-from .....attribute.models import Attribute, AttributeValue
+from .....attribute.models import (
+    Attribute,
+    AttributeValue,
+)
+from .....attribute.tests.model_helpers import get_product_attributes
 from .....attribute.utils import associate_attribute_values_to_instance
 from .....product.models import Product, ProductMedia, ProductVariant, VariantMedia
 from .....tests.utils import dummy_editorjs
@@ -186,8 +190,7 @@ def test_prepare_products_relations_data(
         ProductExportFields.HEADERS_TO_FIELDS_MAPPING["product_many_to_many"].values()
     )
     attribute_ids = [
-        str(attr.assignment.attribute.pk)
-        for attr in product_with_image.attributes.all()
+        str(attr.pk) for attr in get_product_attributes(product_with_image)
     ]
     channel_ids = [str(channel_PLN.pk), str(channel_USD.pk)]
 
@@ -209,6 +212,7 @@ def test_prepare_products_relations_data(
     expected_result = add_product_attribute_data_to_expected_data(
         expected_result, product_with_image, attribute_ids, pk
     )
+
     expected_result = add_channel_to_expected_product_data(
         expected_result, product_with_image, channel_ids, pk
     )
@@ -250,8 +254,7 @@ def test_prepare_products_relations_data_only_attributes_ids(
     qs = Product.objects.all()
     fields = {"name"}
     attribute_ids = [
-        str(attr.assignment.attribute.pk)
-        for attr in product_with_image.attributes.all()
+        str(attr.pk) for attr in get_product_attributes(product_with_image)
     ]
     channel_ids = []
 
@@ -291,29 +294,6 @@ def test_prepare_products_relations_data_only_channel_ids(
     )
 
     assert result == expected_result
-
-
-def test_prepare_products_relations_data_attribute_without_values(
-    product,
-    channel_USD,
-    channel_PLN,
-):
-    # given
-    pk = product.pk
-
-    attribute_product = product.attributes.first()
-    attribute_product.values.clear()
-    attribute = attribute_product.assignment.attribute
-
-    qs = Product.objects.all()
-    fields = {"name"}
-    attribute_ids = [str(attribute.pk)]
-
-    # when
-    result = prepare_products_relations_data(qs, fields, attribute_ids, [])
-
-    # then
-    assert result == {pk: {f"{attribute.slug} (product attribute)": ""}}
 
 
 @patch("saleor.csv.utils.products_data.prepare_variants_relations_data")

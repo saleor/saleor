@@ -3,7 +3,7 @@ from unittest import mock
 import graphene
 import pytest
 
-from .....discount.models import Voucher, VoucherChannelListing
+from .....discount.models import Voucher, VoucherChannelListing, VoucherCode
 from ....tests.utils import get_graphql_content
 
 
@@ -11,9 +11,17 @@ from ....tests.utils import get_graphql_content
 def voucher_list(channel_USD):
     [voucher_1, voucher_2, voucher_3] = Voucher.objects.bulk_create(
         [
-            Voucher(code="voucher-1"),
-            Voucher(code="voucher-2"),
-            Voucher(code="voucher-3"),
+            Voucher(),
+            Voucher(),
+            Voucher(),
+        ]
+    )
+
+    VoucherCode.objects.bulk_create(
+        [
+            VoucherCode(code="voucher-1", voucher=voucher_1),
+            VoucherCode(code="voucher-2", voucher=voucher_1),
+            VoucherCode(code="voucher-3", voucher=voucher_2),
         ]
     )
     VoucherChannelListing.objects.bulk_create(
@@ -70,7 +78,7 @@ def test_delete_vouchers(staff_api_client, voucher_list, permission_manage_disco
     ).exists()
 
 
-@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.graphql.discount.mutations.bulk_mutations.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_delete_vouchers_trigger_webhook(
     mocked_webhook_trigger,

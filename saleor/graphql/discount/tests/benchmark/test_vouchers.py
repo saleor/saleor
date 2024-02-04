@@ -1,6 +1,6 @@
 import pytest
 
-from .....discount.models import Voucher, VoucherChannelListing
+from .....discount.models import Voucher, VoucherChannelListing, VoucherCode
 from ....tests.utils import get_graphql_content
 
 
@@ -8,9 +8,16 @@ from ....tests.utils import get_graphql_content
 def vouchers_list(channel_USD, channel_PLN):
     vouchers = Voucher.objects.bulk_create(
         [
-            Voucher(name="Voucher1", code="Voucher1"),
-            Voucher(name="Voucher2", code="Voucher2"),
-            Voucher(name="Voucher3", code="Voucher3"),
+            Voucher(name="Voucher1"),
+            Voucher(name="Voucher2"),
+            Voucher(name="Voucher3"),
+        ]
+    )
+    VoucherCode.objects.bulk_create(
+        [
+            VoucherCode(code="Voucher1", voucher=vouchers[0]),
+            VoucherCode(code="Voucher2", voucher=vouchers[1]),
+            VoucherCode(code="Voucher3", voucher=vouchers[2]),
         ]
     )
     values = [15, 5, 25]

@@ -92,10 +92,12 @@ def filter_status(qs, _, value):
 
 def filter_metadata(qs, _, value):
     for metadata_item in value:
-        if metadata_item.value:
-            qs = qs.filter(metadata__contains={metadata_item.key: metadata_item.value})
+        metadata_value = metadata_item.get("value")
+        metadata_key = metadata_item.get("key")
+        if metadata_value:
+            qs = qs.filter(metadata__contains={metadata_key: metadata_value})
         else:
-            qs = qs.filter(metadata__has_key=metadata_item.key)
+            qs = qs.filter(metadata__has_key=metadata_key)
     return qs
 
 
@@ -154,7 +156,7 @@ class GlobalIDFilter(Filter):
         _id = None
         if value is not None:
             _, _id = from_global_id(value)
-        return super(GlobalIDFilter, self).filter(qs, _id)
+        return super().filter(qs, _id)
 
 
 class GlobalIDMultipleChoiceField(MultipleChoiceField):
@@ -177,7 +179,7 @@ class GlobalIDMultipleChoiceFilter(MultipleChoiceFilter):
 
     def filter(self, qs, value):
         gids = [from_global_id(v)[1] for v in value]
-        return super(GlobalIDMultipleChoiceFilter, self).filter(qs, gids)
+        return super().filter(qs, gids)
 
 
 class WhereFilterSet(django_filters.FilterSet):
@@ -204,11 +206,7 @@ class WhereFilterSet(django_filters.FilterSet):
             queryset = self.filters[name].filter(queryset, value)
             assert isinstance(
                 queryset, models.QuerySet
-            ), "Expected '%s.%s' to return a QuerySet, but got a %s instead." % (
-                type(self).__name__,
-                name,
-                type(queryset).__name__,
-            )
+            ), f"Expected '{type(self).__name__}.{name}' to return a QuerySet, but got a {type(queryset).__name__} instead."
         return queryset
 
 
@@ -245,7 +243,7 @@ class WhereFilter(Filter):
     def filter(self, qs, value):
         if self.distinct:
             qs = qs.distinct()
-        lookup = "%s__%s" % (self.field_name, self.lookup_expr)
+        lookup = f"{self.field_name}__{self.lookup_expr}"
         qs = self.get_method(qs)(**{lookup: value})
         return qs
 
@@ -305,7 +303,7 @@ class GlobalIDMultipleChoiceWhereFilter(MultipleChoiceFilter, WhereFilter):
 
     def filter(self, qs, value):
         gids = [from_global_id(v)[1] for v in value]
-        return super(GlobalIDMultipleChoiceWhereFilter, self).filter(qs, gids)
+        return super().filter(qs, gids)
 
 
 class GlobalIDWhereFilter(WhereFilter):

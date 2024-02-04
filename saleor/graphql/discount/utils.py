@@ -1,13 +1,14 @@
 from collections import defaultdict
 from copy import deepcopy
 from enum import Enum
-from typing import DefaultDict, Dict, List, Optional, Set, Union, cast
+from typing import Optional, Union, cast
 
 import graphene
 from django.db.models import Exists, OuterRef, QuerySet
 from graphene.utils.str_converters import to_camel_case
 
 from ...discount.models import Promotion, PromotionRule
+from ...discount.utils import update_rule_variant_relation
 from ...product.managers import ProductsQueryset, ProductVariantQueryset
 from ...product.models import (
     Category,
@@ -24,7 +25,7 @@ from ..product.filters import (
     ProductWhere,
 )
 
-PREDICATE_OPERATOR_DATA_T = List[Dict[str, Union[list, dict, str, bool]]]
+PREDICATE_OPERATOR_DATA_T = list[dict[str, Union[list, dict, str, bool]]]
 
 
 class Operators(Enum):
@@ -33,7 +34,7 @@ class Operators(Enum):
 
 
 # TODO: move to validators in promotion dir
-def clean_predicate(predicate: Union[Dict[str, Union[dict, list]], list]):
+def clean_predicate(predicate: Union[dict[str, Union[dict, list]], list]):
     """Convert camel cases keys into snake case."""
     if isinstance(predicate, list):
         return [
@@ -48,28 +49,54 @@ def clean_predicate(predicate: Union[Dict[str, Union[dict, list]], list]):
     }
 
 
-def get_products_for_promotion(promotion: Promotion) -> ProductsQueryset:
+def get_products_for_promotion(
+    promotion: Promotion, *, update_rule_variants=False
+) -> ProductsQueryset:
     """Get products that are included in the promotion based on catalogue predicate."""
-    variants = get_variants_for_promotion(promotion)
+    variants = get_variants_for_promotion(
+        promotion, update_rule_variants=update_rule_variants
+    )
     return Product.objects.filter(Exists(variants.filter(product_id=OuterRef("id"))))
 
 
-def get_products_for_rule(rule: PromotionRule) -> ProductsQueryset:
+def get_products_for_rule(
+    rule: PromotionRule, *, update_rule_variants=False
+) -> ProductsQueryset:
     """Get products that are included in the rule based on catalogue predicate."""
     variants = get_variants_for_predicate(deepcopy(rule.catalogue_predicate))
+    if update_rule_variants:
+        rule.variants.set(variants)
     return Product.objects.filter(Exists(variants.filter(product_id=OuterRef("id"))))
 
 
-def get_variants_for_promotion(promotion: Promotion) -> ProductVariantQueryset:
+def get_variants_for_promotion(
+    promotion: Promotion, *, update_rule_variants=False
+) -> ProductVariantQueryset:
     """Get variants that are included in the promotion based on catalogue predicate."""
     queryset = ProductVariant.objects.none()
-    for rule in promotion.rules.iterator():
-        queryset |= get_variants_for_predicate(rule.catalogue_predicate)
+    promotion_rule_variants = []
+    PromotionRuleVariant = PromotionRule.variants.through
+    rules = promotion.rules.all()
+    for rule in rules:
+        variants = get_variants_for_predicate(rule.catalogue_predicate)
+        queryset |= variants
+        if update_rule_variants:
+            promotion_rule_variants.extend(
+                [
+                    PromotionRuleVariant(
+                        promotionrule_id=rule.pk, productvariant_id=variant.pk
+                    )
+                    for variant in variants
+                ]
+            )
+    if promotion_rule_variants:
+        update_rule_variant_relation(rules, promotion_rule_variants)
+
     return queryset
 
 
 def _handle_product_predicate(
-    predicate_data: Dict[str, Union[dict, list]]
+    predicate_data: dict[str, Union[dict, list]],
 ) -> ProductVariantQueryset:
     product_qs = where_filter_qs(
         Product.objects.all(), {}, ProductWhere, predicate_data, None
@@ -80,7 +107,7 @@ def _handle_product_predicate(
 
 
 def _handle_variant_predicate(
-    predicate_data: Dict[str, Union[dict, list]]
+    predicate_data: dict[str, Union[dict, list]],
 ) -> ProductVariantQueryset:
     return where_filter_qs(
         ProductVariant.objects.all(), {}, ProductVariantWhere, predicate_data, None
@@ -88,7 +115,7 @@ def _handle_variant_predicate(
 
 
 def _handle_collection_predicate(
-    predicate_data: Dict[str, Union[dict, list]]
+    predicate_data: dict[str, Union[dict, list]],
 ) -> ProductVariantQueryset:
     collection_qs = where_filter_qs(
         Collection.objects.all(), {}, CollectionWhere, predicate_data, None
@@ -105,7 +132,7 @@ def _handle_collection_predicate(
 
 
 def _handle_category_predicate(
-    predicate_data: Dict[str, Union[dict, list]]
+    predicate_data: dict[str, Union[dict, list]],
 ) -> ProductVariantQueryset:
     category_qs = where_filter_qs(
         Category.objects.all(), {}, CategoryWhere, predicate_data, None
@@ -135,8 +162,8 @@ def get_variants_for_predicate(
 
     if queryset is None:
         queryset = ProductVariant.objects.all()
-    and_data: Optional[List[dict]] = predicate.pop("AND", None)
-    or_data: Optional[List[dict]] = predicate.pop("OR", None)
+    and_data: Optional[list[dict]] = predicate.pop("AND", None)
+    or_data: Optional[list[dict]] = predicate.pop("OR", None)
 
     if and_data:
         queryset = _handle_and_data(queryset, and_data)
@@ -176,18 +203,18 @@ def _handle_or_data(
     return queryset
 
 
-def contains_filter_operator(input: Dict[str, Union[dict, str, list, bool]]) -> bool:
+def contains_filter_operator(input: dict[str, Union[dict, str, list, bool]]) -> bool:
     return any([operator in input for operator in ["AND", "OR", "NOT"]])
 
 
 def _handle_catalogue_predicate(
     queryset: ProductVariantQueryset,
-    predicate_data: Dict[str, Union[dict, str, list, bool]],
+    predicate_data: dict[str, Union[dict, str, list, bool]],
     operator,
 ) -> ProductVariantQueryset:
     for field, handle_method in PREDICATE_TO_HANDLE_METHOD.items():
         if field_data := predicate_data.get(field):
-            field_data = cast(Dict[str, Union[dict, list]], field_data)
+            field_data = cast(dict[str, Union[dict, list]], field_data)
             if operator == Operators.AND:
                 queryset &= handle_method(field_data)
             else:
@@ -197,7 +224,7 @@ def _handle_catalogue_predicate(
 
 def convert_migrated_sale_predicate_to_model_ids(
     catalogue_predicate,
-) -> Optional[Dict[str, List[int]]]:
+) -> Optional[dict[str, list[int]]]:
     """Convert global ids from catalogue predicate of Promotion created from old sale.
 
     All migrated sales have related PromotionRule with "OR" catalogue predicate. This
@@ -225,7 +252,7 @@ def convert_migrated_sale_predicate_to_model_ids(
     return None
 
 
-CatalogueInfo = DefaultDict[str, Set[Union[int, str]]]
+CatalogueInfo = defaultdict[str, set[Union[int, str]]]
 PREDICATE_TO_CATALOGUE_INFO_MAP = {
     "collectionPredicate": "collections",
     "categoryPredicate": "categories",
@@ -295,14 +322,6 @@ def get_categories_from_predicate(catalogue_predicate) -> QuerySet:
     ).all()
 
 
-def get_product_ids_for_predicate(predicate: dict) -> set[int]:
-    variants = get_variants_for_predicate(predicate)
-    products = Product.objects.filter(
-        Exists(variants.filter(product_id=OuterRef("id")))
-    )
-    return set(products.values_list("id", flat=True))
-
-
 def merge_catalogues_info(
     catalogue_1: CatalogueInfo, catalogue_2: CatalogueInfo
 ) -> CatalogueInfo:
@@ -323,3 +342,19 @@ def subtract_catalogues_info(
     new_catalogue["products"] -= catalogue_2.get("products", set())
     new_catalogue["variants"] -= catalogue_2.get("variants", set())
     return new_catalogue
+
+
+def create_catalogue_predicate(collection_ids, category_ids, product_ids, variant_ids):
+    predicate: dict[str, list] = {"OR": []}
+    if collection_ids:
+        predicate["OR"].append({"collectionPredicate": {"ids": collection_ids}})
+    if category_ids:
+        predicate["OR"].append({"categoryPredicate": {"ids": category_ids}})
+    if product_ids:
+        predicate["OR"].append({"productPredicate": {"ids": product_ids}})
+    if variant_ids:
+        predicate["OR"].append({"variantPredicate": {"ids": variant_ids}})
+    if not predicate.get("OR"):
+        predicate = {}
+
+    return predicate

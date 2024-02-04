@@ -66,13 +66,13 @@ query ($size: Int, $format: IconThumbnailFormatEnum) {
 
 @pytest.mark.parametrize(
     "format",
-    (
+    [
         None,
         IconThumbnailFormat.WEBP,
         IconThumbnailFormat.ORIGINAL,
-    ),
+    ],
 )
-@pytest.mark.parametrize("thumbnail_exists", (True, False))
+@pytest.mark.parametrize("thumbnail_exists", [True, False])
 def test_apps_installations_query_logo_thumbnail_with_size_and_format_url_returned(
     thumbnail_exists,
     format,
@@ -117,11 +117,11 @@ def test_apps_installations_query_logo_thumbnail_with_size_and_format_url_return
 
 @pytest.mark.parametrize(
     "format",
-    (
+    [
         None,
         IconThumbnailFormat.WEBP,
         IconThumbnailFormat.ORIGINAL,
-    ),
+    ],
 )
 def test_apps_installations_query_logo_thumbnail_original_image_url_returned(
     format,

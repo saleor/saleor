@@ -5,6 +5,7 @@ import graphene
 import pytest
 from django.utils.dateparse import parse_datetime
 
+from .....attribute.tests.model_helpers import get_product_attributes
 from .....core.postgres import FlatConcatSearchVector
 from .....product.models import (
     Product,
@@ -1190,7 +1191,7 @@ def test_products_with_variants_query_as_app(
         }
     """
     product = product_with_multiple_values_attributes
-    attribute = product.attributes.first().attribute
+    attribute = get_product_attributes(product).first()
     attribute.visible_in_storefront = False
     attribute.save()
     second_product = product
@@ -1226,7 +1227,7 @@ PRODUCT_SEARCH_QUERY = """
 
 
 @pytest.mark.parametrize(
-    "search, indexes",
+    ("search", "indexes"),
     [
         ("small", [2]),
         ("big", [0, 1]),

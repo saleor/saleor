@@ -41,7 +41,7 @@ mutation OrderDiscountAdd($orderId: ID!, $input: OrderDiscountCommonInput!){
 
 
 @pytest.mark.parametrize(
-    "value,value_type",
+    ("value", "value_type"),
     [
         (Decimal("2222222"), DiscountValueTypeEnum.FIXED.name),
         (Decimal("101"), DiscountValueTypeEnum.PERCENTAGE.name),
@@ -50,34 +50,41 @@ mutation OrderDiscountAdd($orderId: ID!, $input: OrderDiscountCommonInput!){
 def test_add_order_discount_incorrect_values(
     value, value_type, draft_order, staff_api_client, permission_group_manage_orders
 ):
+    # given
     variables = {
         "orderId": graphene.Node.to_global_id("Order", draft_order.pk),
         "input": {"valueType": value_type, "value": value},
     }
     permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # when
     response = staff_api_client.post_graphql(ORDER_DISCOUNT_ADD, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["orderDiscountAdd"]
-
     errors = data["errors"]
-
     error = data["errors"][0]
     assert error["field"] == "value"
     assert error["code"] == OrderErrorCode.INVALID.name
-
     assert len(errors) == 1
 
 
 def test_add_fixed_order_discount_order_is_not_draft(
     order_with_lines, staff_api_client, permission_group_manage_orders
 ):
+    # given
     value = Decimal("10")
     variables = {
         "orderId": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "input": {"valueType": DiscountValueTypeEnum.FIXED.name, "value": value},
     }
     permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # when
     response = staff_api_client.post_graphql(ORDER_DISCOUNT_ADD, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["orderDiscountAdd"]
 
@@ -88,10 +95,11 @@ def test_add_fixed_order_discount_order_is_not_draft(
     assert error["code"] == OrderErrorCode.CANNOT_DISCOUNT.name
 
 
-@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 def test_add_fixed_order_discount_to_order(
     status, draft_order, staff_api_client, permission_group_manage_orders
 ):
+    # given
     order = draft_order
     order.status = status
     order.save(update_fields=["status"])
@@ -102,13 +110,16 @@ def test_add_fixed_order_discount_to_order(
         "input": {"valueType": DiscountValueTypeEnum.FIXED.name, "value": value},
     }
     permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # when
     response = staff_api_client.post_graphql(ORDER_DISCOUNT_ADD, variables)
     content = get_graphql_content(response)
+
+    # then
     data = content["data"]["orderDiscountAdd"]
 
     order.refresh_from_db()
     expected_net = total_before_order_discount.net.amount - value
-
     errors = data["errors"]
     assert len(errors) == 0
 
@@ -135,7 +146,7 @@ def test_add_fixed_order_discount_to_order(
     assert discount_data["amount_value"] == str(order_discount.amount.amount)
 
 
-@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 def test_add_percentage_order_discount_to_order(
     status, draft_order, staff_api_client, permission_group_manage_orders
 ):
@@ -168,7 +179,7 @@ def test_add_percentage_order_discount_to_order(
     errors = data["errors"]
     assert len(errors) == 0
 
-    # Use `net` values in comparison due to that fixture have taxes incluted in
+    # Use `net` values in comparison due to that fixture have taxes included in
     # prices but after recalculation taxes are removed because in tests we
     # don't use any tax app.
     assert expected_net_total == order.total.net
@@ -295,7 +306,7 @@ mutation OrderDiscountUpdate($discountId: ID!, $input: OrderDiscountCommonInput!
 """
 
 
-@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 def test_update_percentage_order_discount_to_order(
     status,
     draft_order_with_fixed_discount_order,
@@ -358,7 +369,7 @@ def test_update_percentage_order_discount_to_order(
 
 
 @patch("saleor.order.calculations.PluginsManager.calculate_order_shipping")
-@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 def test_update_fixed_order_discount_to_order(
     mocked_function,
     status,
@@ -449,7 +460,7 @@ def test_update_order_discount_order_is_not_draft(
 
 
 @pytest.mark.parametrize(
-    "value,value_type",
+    ("value", "value_type"),
     [
         (Decimal("2222222"), DiscountValueTypeEnum.FIXED.name),
         (Decimal("101"), DiscountValueTypeEnum.PERCENTAGE.name),
@@ -484,7 +495,7 @@ def test_update_order_discount_incorrect_values(
     assert error["code"] == OrderErrorCode.INVALID.name
 
 
-def test_update_order_discount__by_user_no_channel_access(
+def test_update_order_discount_by_user_no_channel_access(
     draft_order_with_fixed_discount_order,
     staff_api_client,
     permission_group_all_perms_channel_USD_only,
@@ -598,7 +609,7 @@ mutation OrderDiscountDelete($discountId: ID!){
 """
 
 
-@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 def test_delete_order_discount_from_order(
     status,
     draft_order_with_fixed_discount_order,
@@ -765,7 +776,7 @@ mutation OrderLineDiscountUpdate($input: OrderDiscountCommonInput!, $orderLineId
 """
 
 
-@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 def test_update_order_line_discount(
     status,
     draft_order_with_fixed_discount_order,
@@ -925,7 +936,7 @@ def test_update_order_line_discount_by_app(
     assert discount_data["amount_value"] == str(unit_discount.amount)
 
 
-@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 def test_update_order_line_discount_line_with_discount(
     status,
     draft_order_with_fixed_discount_order,
@@ -1074,7 +1085,7 @@ mutation OrderLineDiscountRemove($orderLineId: ID!){
 """
 
 
-@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 @patch("saleor.plugins.manager.PluginsManager.calculate_order_line_unit")
 @patch("saleor.plugins.manager.PluginsManager.calculate_order_line_total")
 def test_delete_discount_from_order_line(

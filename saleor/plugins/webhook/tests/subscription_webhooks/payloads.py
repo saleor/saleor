@@ -23,17 +23,15 @@ def generate_account_events_payload(customer_user):
 def generate_account_requested_events_payload(customer_user, channel, new_email=None):
     payload = {
         **generate_customer_payload(customer_user),
-        **{
-            "token": "token",
-            "redirectUrl": "http://www.mirumee.com?token=token",
-            "channel": {
-                "slug": channel.slug,
-                "id": graphene.Node.to_global_id("Channel", channel.id),
-            }
-            if channel
-            else None,
-            "shop": {"domain": {"host": "mirumee.com", "url": "http://mirumee.com/"}},
-        },
+        "token": "token",
+        "redirectUrl": "http://www.mirumee.com?token=token",
+        "channel": {
+            "slug": channel.slug,
+            "id": graphene.Node.to_global_id("Channel", channel.id),
+        }
+        if channel
+        else None,
+        "shop": {"domain": {"host": "mirumee.com", "url": "http://mirumee.com/"}},
     }
     if new_email:
         payload["newEmail"] = new_email
@@ -119,6 +117,8 @@ def generate_fulfillment_payload(fulfillment, add_notify_customer_field=False):
     payload = {
         "fulfillment": {
             "id": fulfillment_id,
+            "shippingRefundedAmount": None,
+            "totalRefundedAmount": None,
             "fulfillmentOrder": fulfillment.fulfillment_order,
             "trackingNumber": fulfillment.tracking_number,
             "status": fulfillment.status.upper(),
@@ -408,6 +408,22 @@ def generate_voucher_payload(voucher, voucher_global_id):
                 "code": voucher.code,
                 "usageLimit": voucher.usage_limit,
             }
+        }
+    )
+
+
+def generate_voucher_code_payload(voucher_codes):
+    return json.dumps(
+        {
+            "voucherCodes": [
+                {
+                    "id": graphene.Node.to_global_id("VoucherCode", code.id),
+                    "code": code.code,
+                    "used": code.used,
+                    "isActive": code.is_active,
+                }
+                for code in voucher_codes
+            ]
         }
     )
 

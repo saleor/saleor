@@ -1,8 +1,9 @@
 import logging
+from collections.abc import Iterable
 from dataclasses import asdict
 from decimal import Decimal
 from functools import partial
-from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, Optional, Union
 from urllib.parse import urljoin
 
 import opentracing
@@ -17,7 +18,13 @@ from ...checkout.fetch import fetch_checkout_lines
 from ...core.taxes import TaxError, TaxType, zero_taxed_money
 from ...order.interface import OrderTaxedPricesData
 from ...product.models import ProductType
-from ...tax.utils import get_charge_taxes_for_checkout, get_charge_taxes_for_order
+from ...tax import TaxCalculationStrategy
+from ...tax.utils import (
+    get_charge_taxes_for_checkout,
+    get_charge_taxes_for_order,
+    get_tax_calculation_strategy_for_checkout,
+    get_tax_calculation_strategy_for_order,
+)
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 from ..error_codes import PluginErrorCode
 from . import (
@@ -239,7 +246,7 @@ class AvataxPlugin(BasePlugin):
         self,
         checkout_info: "CheckoutInfo",
         currency: str,
-        lines: List[Dict],
+        lines: list[dict],
         shipping_price: Money,
     ) -> TaxedMoney:
         discount_amount = Decimal(0.0)
@@ -310,6 +317,10 @@ class AvataxPlugin(BasePlugin):
         if self._skip_plugin(previous_value):
             return previous_value
 
+        tax_strategy = get_tax_calculation_strategy_for_checkout(checkout_info, lines)
+        if tax_strategy == TaxCalculationStrategy.FLAT_RATES:
+            return previous_value
+
         data = generate_request_data_from_checkout(
             checkout_info,
             lines,
@@ -346,6 +357,10 @@ class AvataxPlugin(BasePlugin):
     def order_confirmed(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
             return previous_value
+        tax_strategy = get_tax_calculation_strategy_for_order(order)
+        if tax_strategy == TaxCalculationStrategy.FLAT_RATES:
+            return previous_value
+
         request_data = get_order_request_data(order, self.config)
         if not request_data:
             return previous_value
@@ -393,7 +408,7 @@ class AvataxPlugin(BasePlugin):
 
     @staticmethod
     def _calculate_checkout_line_total_price(
-        taxes_data: Dict[str, Any],
+        taxes_data: dict[str, Any],
         item_code: str,
         prices_entered_with_tax: Callable[[], bool],
         # base_value should be provided as SimpleLazyObject
@@ -455,7 +470,7 @@ class AvataxPlugin(BasePlugin):
 
     @staticmethod
     def _calculate_order_line_total_price(
-        taxes_data: Dict[str, Any],
+        taxes_data: dict[str, Any],
         item_code: str,
         prices_entered_with_tax: Callable[[], bool],
         base_value: OrderTaxedPricesData,
@@ -634,7 +649,7 @@ class AvataxPlugin(BasePlugin):
             zero_taxed_money(currency),
         )
 
-    def get_tax_rate_type_choices(self, previous_value: Any) -> List[TaxType]:
+    def get_tax_rate_type_choices(self, previous_value: Any) -> list[TaxType]:
         if not self.active:
             return previous_value
         return [
@@ -733,7 +748,7 @@ class AvataxPlugin(BasePlugin):
 
     @staticmethod
     def _get_unit_tax_rate(
-        response: Dict[str, Any],
+        response: dict[str, Any],
         item_code: str,
         base_rate: Decimal,
     ):
@@ -754,7 +769,7 @@ class AvataxPlugin(BasePlugin):
 
     @staticmethod
     def _get_shipping_tax_rate(
-        response: Dict[str, Any],
+        response: dict[str, Any],
         base_rate: Decimal,
     ):
         if response is None:

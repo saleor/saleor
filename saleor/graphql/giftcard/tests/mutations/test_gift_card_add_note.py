@@ -122,10 +122,10 @@ def test_gift_card_add_note_as_app(
 
 @pytest.mark.parametrize(
     "message",
-    (
+    [
         "",
         "   ",
-    ),
+    ],
 )
 def test_gift_card_add_note_fail_on_empty_message(
     message,
@@ -256,4 +256,5 @@ def test_gift_card_add_note_trigger_webhook(
         [any_webhook],
         gift_card,
         SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )

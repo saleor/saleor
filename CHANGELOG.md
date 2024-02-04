@@ -2,7 +2,76 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/saleor/saleor/releases) page.
 
-# 3.17.0 [Unreleased]
+# 3.19.0 [Unreleased]
+
+### Highlights
+
+### Breaking changes
+- Drop `OrderBulkCreateInput.voucher` field. Use `OrderBulkCreateInput.voucherCode` instead. - #14553 by @zedzior
+
+### GraphQL API
+
+- Add taxes to undiscounted prices - #14095 by @jakubkuc
+- Mark as deprecated: `ordersTotal`, `reportProductSales` and `homepageEvents` - #14806 by @8r2y5
+- Add `identifier` field to App graphql object. Identifier field is the same as Manifest.id field (explicit ID set by the app).
+
+### Saleor Apps
+
+### Other changes
+- Add missing descriptions to order module - #14845 by @DevilsAutumn
+- Unify how undiscounted prices are handled in orders and checkouts - #14780 by @jakubkuc
+- Drop demo - #14835 by @fowczarek
+- Add JSON serialization immediately after creating observability events to eliminate extra cPickle serialization and deserialization steps - #14992 by @przlada
+
+- Added caching of GraphQL documents for common queries to improve performance - #14843 by @patrys
+- Added `VOUCHER_CODES_CREATED` and `VOUCHER_CODES_DELETED` webhooks events. - #14652 by @SzymJ
+- Fix transaction create mutation's psp_reference max length issue - #12696 by @ssuraliya
+
+
+# 3.18.0
+
+### Highlights
+
+- Allow including draft orders in voucher usage. The new `includeDraftOrderInVoucherUsage` flag allows defining if vouchers used in draft orders should be counted into voucher usage. - #14288 by @zedzior, @IKarbowiak, @michal-macioszczyk
+  - Add `includeDraftOrderInVoucherUsage` to `OrderSettings`
+  - Add `includeDraftOrderInVoucherUsage` to `OrderSettingsInput`
+
+### Breaking changes
+
+- Optimize the number of queries in bulk mutations when calling webhooks. This change affects only users of open-source Saleor, who have their custom plugin implementations. To adjust to this change, the `webhooks` parameter should be added to any of the affected methods. Affected methods:
+  - `attribute_updated`
+  - `attribute_deleted`
+  - `attribute_value_deleted`
+  - `promotion_deleted`
+  - `staff_deleted`
+- Saleor will no longer reattempt delivery for webhooks that return non-transient HTTP errors (400, 404, etc.) or redirects - #14566 by @patrys
+- Feature preview breaking changes:
+  - Drop `defaultTransactionFlowStrategy` from `OrderSettings` type. Use `PaymentSettings.defaultTransactionFlowStrategy` instead. Drop `defaultTransactionFlowStrategy` from `OrderSettingsInput` type. Use `PaymentSettingsInput.defaultTransactionFlowStrategy` instead. - #14671 by @korycins
+
+### GraphQL API
+
+- Allow add multiple codes per voucher - #14123 by @SzymJ, @IKarbowiak, @michal-macioszczyk, @zedzior
+  - Add `VoucherInput.addCodes` to `voucherCreate` and `voucherUpdate` mutations.
+  - Add the `Voucher.singleUse` flag.
+  - Deprecate `OrderBulkCreateInput.voucher`.
+  - Deprecate `VoucherInput.code` in `voucherCreate` and `voucherUpdate` mutations.
+  - Add `exportVoucherCodes` mutation.
+  - Add `voucherCodeBulkDelete` mutation.
+  - Adjust voucher usage calculations.
+- Improved GraphQL ID validation messages - #14447 by @patrys
+- Add `voucher` to `checkout` query - #14512 by @zedzior
+- Fix draft order voucher assignment - #14336 by @IKarbowiak
+
+### Other changes
+
+- Add transaction items deletion to the `cleardb` command. - #14198 by @jakubkuc
+- `requirements.txt` and `requirements_dev.txt` were dropped in favor of only supporting `poetry` - #14611 by @patrys
+- Change the Attribute - Product relation to decrease code complexity and make it easier to understand the relations - #13407 by @aniav
+- Change the Attribute - Page relation to decrease code complexity - #13621 by @michal-macioszczyk
+- Added validation for timestamp comparison - #14025 by @ritanjandawn
+
+
+# 3.17.0
 
 ### Highlights
 
@@ -78,7 +147,41 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Breaking changes
 
+- Deprecate `external_url` on `Invoice` GraphQL type in favour of `url`. No matter if the invoice is stored on Saleor or is a link to an external invoice it will get returned in the `url` field.
+- Optimize number of queries in bulk mutations when calling Webhooks. This change affects only users of open-source Saleor, who have their own custom plugin implementations. To adjust to this change, the `webhooks` parameter should be added to any of the affected method. Affected methods:
+  - `channel_updated`
+  - `category_deleted`
+  - `gift_card_created`
+  - `gift_card_deleted`
+  - `gift_card_status_changed`
+  - `menu_deleted`
+  - `menu_item_deleted`
+  - `order_updated`
+  - `order_cancelled`
+  - `customer_updated`
+  - `customer_deleted`
+  - `customer_metadata_updated`
+  - `collection_deleted`
+  - `product_created`
+  - `product_updated`
+  - `product_deleted`
+  - `product_variant_created`
+  - `product_variant_updated`
+  - `product_variant_deleted`
+  - `product_variant_out_of_stock`
+  - `product_variant_back_in_stock`
+  - `product_variant_stock_updated`
+  - `shipping_price_deleted`
+  - `shipping_zone_deleted`
+  - `voucher_deleted`
+
 ### GraphQL API
+
+- **Feature preview change**:
+  - Order bulk create allow to import archive orders - #14177 by @kadewu
+    - `orderBulkCreate` now will attempt to create order with `IGNORE_FAILED` policy even if:
+      - `User` cannot be resolved and `email` wasn't provided.
+      - `Variant` wasn't provided but `product_name` was provided.
 
 ### Saleor Apps
 
@@ -87,6 +190,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix thumbnail redirects sometimes failing with an unsafe redirect warning - #14023 by @patrys
 - New environment variable `PUBLIC_URL` to define URL on which Saleor is hosted (e.g., https://api.example.com/). Takes precedence over `ENABLE_SSL` and `Shop.domain` for URL generation - #13841 by @przlada
 - Add a new `updatedAt` field and a filter for product categories. - #13825 by @rafiwts
+- Made the triggering frequency of update-search Celery beat tasks customizable (settable using `BEAT_UPDATE_SEARCH_FREQUENCY`) - #14152 by @NyanKiyoshi
 
 # 3.16.0
 
@@ -306,8 +410,7 @@ Shipping methods can be removed by the user after it has been assigned to a chec
 - Add missing descriptions to payment module - #13546 by @devilsautumn
 - Fix `NOTIFY_USER` allow to create webhook with only one event - #13584 by @Air-t
 - Add Index for 'Created' field of the Order Model - #13682 by @ritanjandawn
-- Fix transaction create mutation's psp_reference max length issue - #12696 by @ssuraliya
-
+- Add missing descriptions to giftcard module - #14847 by @devilsautumn
 
 # 3.14.0
 

@@ -25,7 +25,8 @@ from ...utils.common import prepare_address_request_data
 
 
 @pytest.mark.parametrize(
-    "country_code, shopper_locale", [("JP", "ja_JP"), ("ZZ", "en_US"), ("US", "en_US")]
+    ("country_code", "shopper_locale"),
+    [("JP", "ja_JP"), ("ZZ", "en_US"), ("US", "en_US")],
 )
 def test_get_shopper_locale_value(country_code, shopper_locale, settings):
     # when
@@ -676,7 +677,7 @@ def test_request_data_for_payment_append_checkout_details(
 
 
 @pytest.mark.parametrize(
-    "value, currency, expected_result",
+    ("value", "currency", "expected_result"),
     [
         (Decimal(1000), "EUR", Decimal(10)),
         (Decimal(1), "PLN", Decimal("0.01")),
@@ -692,7 +693,7 @@ def test_from_adyen_price(value, currency, expected_result):
 
 
 @pytest.mark.parametrize(
-    "value, currency, expected_result",
+    ("value", "currency", "expected_result"),
     [
         (Decimal(10), "EUR", "1000"),
         (Decimal(1), "PLN", "100"),
@@ -707,13 +708,19 @@ def test_to_adyen_price(value, currency, expected_result):
     assert result == expected_result
 
 
-def test_request_data_for_gateway_config(checkout_with_item, address):
+def test_request_data_for_gateway_config(
+    checkout_with_item, address, address_other_country
+):
     # given
-    checkout_with_item.billing_address = address
+    checkout_with_item.shipping_address = address
+    checkout_with_item.billing_address = address_other_country
+    assert address.country.code != address_other_country.country.code
+
     merchant_account = "test_account"
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines_info, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines_info, manager)
+
     # when
     response_config = request_data_for_gateway_config(
         checkout_info, lines_info, merchant_account
@@ -722,7 +729,7 @@ def test_request_data_for_gateway_config(checkout_with_item, address):
     # then
     assert response_config == {
         "merchantAccount": merchant_account,
-        "countryCode": checkout_with_item.billing_address.country,
+        "countryCode": checkout_with_item.shipping_address.country,
         "channel": "web",
         "amount": {"currency": "USD", "value": "3000"},
     }
@@ -731,7 +738,7 @@ def test_request_data_for_gateway_config(checkout_with_item, address):
 def test_request_data_for_gateway_config_no_country(checkout, address, settings):
     # given
     merchant_account = "test_account"
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines_info, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines_info, manager)
 

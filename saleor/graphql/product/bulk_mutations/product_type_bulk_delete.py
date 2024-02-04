@@ -1,6 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 from django.db.models import Q
+from django.db.models.expressions import Exists, OuterRef
 
 from ....attribute import AttributeInputType
 from ....attribute import models as attribute_models
@@ -43,10 +44,16 @@ class ProductTypeBulkDelete(ModelBulkDeleteMutation):
 
     @staticmethod
     def delete_assigned_attribute_values(instance_pks):
+        attributes = attribute_models.Attribute.objects.filter(
+            input_type__in=AttributeInputType.TYPES_WITH_UNIQUE_VALUES
+        )
+        assigned_values = attribute_models.AssignedProductAttributeValue.objects.filter(
+            product__product_type_id__in=instance_pks
+        )
         attribute_models.AttributeValue.objects.filter(
-            Q(attribute__input_type__in=AttributeInputType.TYPES_WITH_UNIQUE_VALUES)
-            & (
-                Q(productassignments__assignment__product_type_id__in=instance_pks)
+            Exists(attributes.filter(id=OuterRef("attribute_id"))),
+            (
+                Q(Exists(assigned_values.filter(value_id=OuterRef("id"))))
                 | Q(variantassignments__assignment__product_type_id__in=instance_pks)
-            )
+            ),
         ).delete()

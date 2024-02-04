@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Dict, List, Tuple, cast
+from typing import cast
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -80,11 +80,11 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
         cls,
         promotion: Promotion,
         exemplary_rule: PromotionRule,
-        add_channels: List[Dict],
+        add_channels: list[dict],
     ):
         channel_id_rule_map = cls.get_channe_id_to_rule_map(promotion)
-        rules_to_create: List[Tuple[Channel, PromotionRule]] = []
-        rules_to_update: List[Tuple[Channel, PromotionRule]] = []
+        rules_to_create: list[tuple[Channel, PromotionRule]] = []
+        rules_to_update: list[tuple[Channel, PromotionRule]] = []
         for add_channel in add_channels:
             channel = add_channel["channel"]
             discount_value = add_channel["discount_value"]
@@ -147,7 +147,7 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
         }
 
     @classmethod
-    def remove_channels(cls, promotion: Promotion, remove_channels: List[int]):
+    def remove_channels(cls, promotion: Promotion, remove_channels: list[int]):
         rules = promotion.rules.all()
         PromotionRuleChannel = PromotionRule.channels.through
         rule_channel = PromotionRuleChannel.objects.filter(
@@ -170,7 +170,7 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
         cls,
         cleaned_channels,
         sale_type,
-        errors: defaultdict[str, List[ValidationError]],
+        errors: defaultdict[str, list[ValidationError]],
         error_code,
     ):
         channels_with_invalid_value_precision = []
@@ -218,12 +218,14 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
         _info: ResolveInfo,
         promotion: Promotion,
         rule: PromotionRule,
-        cleaned_input: Dict,
+        cleaned_input: dict,
     ):
         with traced_atomic_transaction():
             cls.add_channels(promotion, rule, cleaned_input.get("add_channels", []))
             cls.remove_channels(promotion, cleaned_input.get("remove_channels", []))
-            update_products_discounted_prices_of_promotion_task.delay(promotion.pk)
+            cls.call_event(
+                update_products_discounted_prices_of_promotion_task.delay, promotion.pk
+            )
 
     @classmethod
     def get_instance(cls, id):
@@ -246,7 +248,7 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
         rule = cast(PromotionRule, rule)
         sale_type = rule.reward_value_type
 
-        errors: defaultdict[str, List[ValidationError]] = defaultdict(list)
+        errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
         cleaned_channels = cls.clean_channels(
             info, input, errors, DiscountErrorCode.DUPLICATED_INPUT_ITEM.value
         )

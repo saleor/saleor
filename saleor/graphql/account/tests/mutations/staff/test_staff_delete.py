@@ -95,6 +95,7 @@ def test_staff_delete_trigger_webhook(
         [any_webhook],
         staff_user,
         SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )
 
 
@@ -142,10 +143,6 @@ def test_staff_delete_out_of_scope_user(
     permission_manage_staff,
     permission_manage_products,
 ):
-    """Ensure staff user cannot delete users even when some of user permissions are
-    out of requestor scope.
-    Ensure superuser pass restrictions.
-    """
     query = STAFF_DELETE_MUTATION
     staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
     staff_user.user_permissions.add(permission_manage_products)
@@ -180,9 +177,6 @@ def test_staff_delete_left_not_manageable_permissions(
     permission_manage_users,
     permission_manage_orders,
 ):
-    """Ensure staff user can't and superuser can delete staff user when some of
-    permissions will be not manageable.
-    """
     query = STAFF_DELETE_MUTATION
     groups = Group.objects.bulk_create(
         [

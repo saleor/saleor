@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Optional, Set, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models import Q, Value
@@ -53,8 +53,8 @@ def get_user_permissions(user: "User") -> "QuerySet":
 
 
 def get_out_of_scope_permissions(
-    requestor: Union["User", "App", None], permissions: List[str]
-) -> List[str]:
+    requestor: Union["User", "App", None], permissions: list[str]
+) -> list[str]:
     """Return permissions that the requestor hasn't got."""
     missing_permissions = []
     for perm in permissions:
@@ -63,7 +63,7 @@ def get_out_of_scope_permissions(
     return missing_permissions
 
 
-def get_out_of_scope_users(root_user: "User", users: List["User"]):
+def get_out_of_scope_users(root_user: "User", users: list["User"]):
     """Return users whose permission scope is wider than the given user."""
     out_of_scope_users = []
     for user in users:
@@ -108,11 +108,11 @@ def can_manage_app(requestor: Union["User", "App", None], app: "App") -> bool:
 def get_group_permission_codes(group: Group) -> "QuerySet":
     """Return group permissions in the format '<app label>.<permission codename>'."""
     return group.permissions.annotate(
-        formated_codename=Concat("content_type__app_label", Value("."), "codename")
-    ).values_list("formated_codename", flat=True)
+        formatted_codename=Concat("content_type__app_label", Value("."), "codename")
+    ).values_list("formatted_codename", flat=True)  # type: ignore[misc]
 
 
-def get_groups_which_user_can_manage(user: "User") -> List[Group]:
+def get_groups_which_user_can_manage(user: "User") -> list[Group]:
     """Return groups which user can manage."""
     if not user.is_staff:
         return []
@@ -122,7 +122,7 @@ def get_groups_which_user_can_manage(user: "User") -> List[Group]:
 
     groups = Group.objects.all().annotate(group_perms=ArrayAgg("permissions"))
 
-    editable_groups: List[Group] = []
+    editable_groups: list[Group] = []
     for group in groups.iterator():
         out_of_scope_permissions = set(group.group_perms) - user_permission_pks
         out_of_scope_permissions.discard(None)
@@ -132,7 +132,7 @@ def get_groups_which_user_can_manage(user: "User") -> List[Group]:
     return editable_groups
 
 
-def get_not_manageable_permissions_when_deactivate_or_remove_users(users: List["User"]):
+def get_not_manageable_permissions_when_deactivate_or_remove_users(users: list["User"]):
     """Return permissions that cannot be managed after deactivating or removing users.
 
     After removing or deactivating users, for each user permission which he can manage,
@@ -177,7 +177,7 @@ def get_not_manageable_permissions_when_deactivate_or_remove_users(users: List["
 
 
 def get_not_manageable_permissions_after_removing_perms_from_group(
-    group: Group, permissions: List["str"]
+    group: Group, permissions: list["str"]
 ):
     """Return permissions that cannot be managed after removing permissions from group.
 
@@ -192,14 +192,14 @@ def get_not_manageable_permissions_after_removing_perms_from_group(
 
 
 def get_not_manageable_permissions_after_removing_users_from_group(
-    group: Group, users: List["User"]
+    group: Group, users: list["User"]
 ):
     """Return permissions that cannot be managed after removing users from group.
 
     After removing users from group, for each permission, there should be at least
     one staff member who can manage it (has both “manage staff” and this permission).
     """
-    group_users = group.user_set.all()
+    group_users = group.user_set.all()  # type: ignore[attr-defined]
     group_permissions = group.permissions.values_list("codename", flat=True)
     # if group has manage_staff permission and some users will stay in group
     # given users can me removed (permissions will be manageable)
@@ -236,7 +236,7 @@ def get_not_manageable_permissions_after_group_deleting(group):
 
 def get_not_manageable_permissions(
     groups_data: dict,
-    not_manageable_permissions: Set[str],
+    not_manageable_permissions: set[str],
 ):
     # get users from groups with manage staff and look for not_manageable_permissions
     # if any of not_manageable_permissions is found it is removed from set
@@ -302,7 +302,7 @@ def get_group_to_permissions_and_users_mapping():
 
 def get_users_and_look_for_permissions_in_groups_with_manage_staff(
     groups_data: dict,
-    permissions_to_find: Set[str],
+    permissions_to_find: set[str],
 ):
     """Search for permissions in groups with manage staff and return their users.
 
@@ -312,7 +312,7 @@ def get_users_and_look_for_permissions_in_groups_with_manage_staff(
         permissions_to_find: searched permissions
 
     """
-    users_with_manage_staff: Set[int] = set()
+    users_with_manage_staff: set[int] = set()
     for data in groups_data.values():
         permissions = data["permissions"]
         users = data["users"]
@@ -330,8 +330,8 @@ def get_users_and_look_for_permissions_in_groups_with_manage_staff(
 
 def look_for_permission_in_users_with_manage_staff(
     groups_data: dict,
-    users_to_check: Set[int],
-    permissions_to_find: Set[str],
+    users_to_check: set[int],
+    permissions_to_find: set[str],
 ):
     """Search for permissions in user with manage staff groups.
 

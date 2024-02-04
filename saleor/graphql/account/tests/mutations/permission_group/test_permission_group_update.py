@@ -195,6 +195,7 @@ def test_permission_group_update_mutation_trigger_webhook(
         [any_webhook],
         group1,
         SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )
 
 
@@ -778,9 +779,6 @@ def test_permission_group_update_mutation_with_name_which_exists(
     staff_user,
     staff_api_client,
 ):
-    """Ensure mutation failed where updating name with value which already is a name of
-    different group.
-    """
     staff_user.groups.add(permission_group_manage_staff, permission_group_manage_users)
     group = permission_group_manage_users
     old_group_name = group.name
@@ -877,10 +875,6 @@ def test_permission_group_update_mutation_user_cannot_manage_group(
     superuser_api_client,
     permission_group_manage_apps,
 ):
-    """Ensure that update mutation failed when user try to update group for which
-    he doesn't have permission.
-    Ensure superuser pass restrictions.
-    """
     staff_user.groups.add(permission_group_manage_apps)
     group = permission_group_manage_users
     query = PERMISSION_GROUP_UPDATE_MUTATION
@@ -932,10 +926,6 @@ def test_permission_group_update_mutation_user_in_list_to_add_and_remove(
     permission_group_manage_users,
     permission_group_manage_apps,
 ):
-    """Ensure update mutation failed when user IDs are in both lists for adding
-    and removing. Ensure mutation contains list of user IDs which cause
-    the problem.
-    """
     staff_user = staff_users[0]
     staff_user.groups.add(permission_group_manage_users, permission_group_manage_apps)
     group = permission_group_manage_users
@@ -975,10 +965,6 @@ def test_permission_group_update_mutation_permissions_in_list_to_add_and_remove(
     permission_group_manage_apps,
     permission_group_manage_orders,
 ):
-    """Ensure update mutation failed when permission items are in both lists for
-    adding and removing. Ensure mutation contains list of permissions which cause
-    the problem.
-    """
     staff_user.groups.add(
         permission_group_manage_users,
         permission_group_manage_apps,
@@ -1021,10 +1007,6 @@ def test_permission_group_update_mutation_permissions_and_users_duplicated(
     permission_group_manage_apps,
     permission_group_manage_orders,
 ):
-    """Ensure updating mutations with the same permission and users in list for
-    adding and removing failed. Mutation should failed. Error should contains list of
-    users IDs and permissions that are duplicated.
-    """
     staff_user = staff_users[0]
     staff_user.groups.add(
         permission_group_manage_users,
@@ -1079,10 +1061,6 @@ def test_permission_group_update_mutation_user_add_customer_user(
     permission_group_manage_apps,
     customer_user,
 ):
-    """Ensure update mutation with customer user in field for adding users failed.
-    Ensure error contains list with user IDs which cause the problem.
-    Ensure it also fail for superuser.
-    """
     staff_user.groups.add(permission_group_manage_users, permission_group_manage_apps)
     group = permission_group_manage_users
     query = PERMISSION_GROUP_UPDATE_MUTATION
@@ -1136,10 +1114,6 @@ def test_permission_group_update_mutation_lack_of_permission(
     permission_group_manage_apps,
     permission_manage_orders,
 ):
-    """Ensure update mutation failed when user trying to add permission which
-    he doesn't have.
-    Ensure superuser pass the restrictions.
-    """
     staff_user.groups.add(permission_group_manage_users, permission_group_manage_apps)
     group = permission_group_manage_users
     query = PERMISSION_GROUP_UPDATE_MUTATION
@@ -1199,11 +1173,6 @@ def test_permission_group_update_mutation_out_of_scope_users(
     permission_manage_orders,
     permission_manage_products,
 ):
-    """Ensure user can assign and cannot unasign users whose permission scope
-    is wider than requestor scope.
-    Ensure superuser pass restrictions.
-    """
-
     staff_user = staff_users[0]
     staff_user3 = User.objects.create_user(
         email="staff3_test@example.com",
@@ -1282,10 +1251,6 @@ def test_permission_group_update_mutation_duplicated_channels(
     channel_USD,
     channel_JPY,
 ):
-    """Ensure update mutation failed when channel IDs are in both lists for adding
-    and removing. Ensure mutation contains list of channel IDs which cause
-    the problem.
-    """
     # given
     staff_user.groups.add(
         permission_group_manage_users,
@@ -1341,12 +1306,6 @@ def test_permission_group_update_mutation_multiple_errors(
     permission_group_manage_apps,
     permission_manage_orders,
 ):
-    """Ensure update mutation failed with all validation errors when input data
-    is incorrent:
-        - adding permission which user hasn't (OUT_OF_SCOPE_PERMISSION)
-        - adding customer user (ASSIGN_NON_STAFF_MEMBER)
-    """
-
     staff_user.groups.add(permission_group_manage_apps, permission_group_manage_users)
     group = permission_group_manage_users
     query = PERMISSION_GROUP_UPDATE_MUTATION
@@ -1378,27 +1337,30 @@ def test_permission_group_update_mutation_multiple_errors(
     assert len(errors) == 3
     expected_errors = [
         {
+            "channels": None,
             "code": "OUT_OF_SCOPE_PERMISSION",
             "field": "addPermissions",
-            "permissions": [OrderPermissions.MANAGE_ORDERS.codename],
+            "permissions": [OrderPermissions.MANAGE_ORDERS.name],
             "users": None,
         },
         {
+            "channels": None,
             "code": "ASSIGN_NON_STAFF_MEMBER",
             "field": "addUsers",
             "permissions": None,
-            "users": user_ids[1],
+            "users": [user_ids[1]],
         },
         {
+            "channels": None,
             "code": "LEFT_NOT_MANAGEABLE_PERMISSION",
             "field": "removeUsers",
-            "permissions": None,
-            "users": user_ids[0],
+            "permissions": [AccountPermissions.MANAGE_USERS.name],
+            "users": None,
         },
     ]
     for error in errors:
         error.pop("message")
-        error in expected_errors
+        assert error in expected_errors
     assert data["group"] is None
 
 
@@ -1411,8 +1373,6 @@ def test_permission_group_update_mutation_remove_all_users_manageable_perms(
     permission_manage_users,
     staff_api_client,
 ):
-    """Ensure that user can remove group users if there is other source of all group
-    permissions."""
     staff_user, staff_user1, staff_user2 = staff_users
 
     groups = Group.objects.bulk_create(
@@ -1463,10 +1423,6 @@ def test_permission_group_update_mutation_remove_all_group_users_not_manageable_
     staff_api_client,
     superuser_api_client,
 ):
-    """Ensure that user cannot remove group users if there is no other source of some
-    of group permission.
-    Ensure superuser pass restrictions.
-    """
     staff_user, staff_user1, staff_user2 = staff_users
 
     groups = Group.objects.bulk_create(
@@ -1531,9 +1487,6 @@ def test_permission_group_update_mutation_remove_group_users_add_with_manage_stu
     permission_manage_users,
     staff_api_client,
 ):
-    """Ensure that user can remove all group users when adding somebody with
-    manage staff permission.
-    """
     staff_user, staff_user1, staff_user2 = staff_users
 
     groups = Group.objects.bulk_create(
@@ -1578,9 +1531,6 @@ def test_group_update_mutation_remove_some_users_from_group_with_manage_staff(
     permission_manage_staff,
     staff_api_client,
 ):
-    """Ensure that user can remove some of user group if group has manage
-    staff permission.
-    """
     staff_user, staff_user1, staff_user2 = staff_users
     group = permission_group_manage_users
     staff_user.groups.add(permission_group_manage_users, permission_group_manage_staff)
@@ -1616,10 +1566,6 @@ def test_group_update_mutation_remove_some_users_from_group_user_with_manage_stu
     staff_api_client,
     permission_manage_orders,
 ):
-    """Ensure that user can remove some of user group from group without manage staff
-    permission but some of the group member has manage staff permission from
-    another source.
-    """
     staff_user, staff_user1, staff_user2 = staff_users
 
     groups = Group.objects.bulk_create(
@@ -1662,8 +1608,6 @@ def test_permission_group_update_mutation_remove_user_with_manage_staff(
     permission_manage_orders,
     staff_api_client,
 ):
-    """Ensure user cannot remove users with manage staff permission from group if some
-    permission will be no more manageable."""
     staff_user, staff_user1, staff_user2 = staff_users
 
     groups = Group.objects.bulk_create(
@@ -1713,9 +1657,6 @@ def test_permission_group_update_mutation_remove_user_with_manage_staff_add_user
     permission_manage_orders,
     staff_api_client,
 ):
-    """Ensure user can remove users with manage staff if user with manage staff
-    will be added.
-    """
     staff_user, staff_user1, staff_user2 = staff_users
 
     groups = Group.objects.bulk_create(

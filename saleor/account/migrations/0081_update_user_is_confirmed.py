@@ -1,7 +1,7 @@
 from django.db import migrations, transaction
 from django.db.models import QuerySet
-from ..models import User
 
+from ..models import User
 
 # Batch size of 5000 is about ~8MB of memory usage
 BATCH_SIZE = 5000

@@ -200,6 +200,7 @@ def test_create_shipping_method_trigger_webhook(
         [any_webhook],
         shipping_method,
         SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )
 
 
@@ -426,8 +427,8 @@ WEIGHT_BASED_SHIPPING_MUTATION = """
 
 
 @pytest.mark.parametrize(
-    "min_weight, max_weight, expected_min_weight, expected_max_weight",
-    (
+    ("min_weight", "max_weight", "expected_min_weight", "expected_max_weight"),
+    [
         (
             10.32,
             15.64,
@@ -435,7 +436,7 @@ WEIGHT_BASED_SHIPPING_MUTATION = """
             {"value": 15.64, "unit": WeightUnitsEnum.KG.name},
         ),
         (10.92, None, {"value": 10.92, "unit": WeightUnitsEnum.KG.name}, None),
-    ),
+    ],
 )
 def test_create_weight_based_shipping_method(
     shipping_zone,

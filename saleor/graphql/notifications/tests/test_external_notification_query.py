@@ -49,7 +49,9 @@ query_test_invalid_data = [
 ]
 
 
-@pytest.mark.parametrize("variables, status_code, message", query_test_invalid_data)
+@pytest.mark.parametrize(
+    ("variables", "status_code", "message"), query_test_invalid_data
+)
 def test_external_notification_trigger_query_with_invalid_data(
     variables,
     status_code,

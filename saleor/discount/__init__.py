@@ -1,10 +1,8 @@
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Dict, List, Set, Union
-
-from django.db.models import QuerySet
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .models import PromotionRule, Sale, SaleChannelListing
+    from .models import PromotionRule
 
 
 class DiscountValueType:
@@ -74,18 +72,6 @@ class PromotionEvents:
 
 
 @dataclass
-class DiscountInfo:
-    sale: "Sale"
-    channel_listings: Dict[str, "SaleChannelListing"]
-    product_ids: Union[List[int], Set[int]]
-    category_ids: Union[List[int], Set[int]]
-    collection_ids: Union[List[int], Set[int]]
-    variants_ids: Union[List[int], Set[int]]
-
-
-@dataclass
 class PromotionRuleInfo:
     rule: "PromotionRule"
-    variant_ids: List[int]
-    variants: QuerySet
-    channel_ids: List[int]
+    channel_ids: list[int]

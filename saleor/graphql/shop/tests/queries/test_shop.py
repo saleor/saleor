@@ -55,13 +55,13 @@ def test_query_countries(user_api_client):
 
 
 @pytest.mark.parametrize(
-    "language_code, expected_value",
-    (
+    ("language_code", "expected_value"),
+    [
         ("", "Afghanistan"),
         ("(languageCode: EN)", "Afghanistan"),
         ("(languageCode: PL)", "Afganistan"),
         ("(languageCode: DE)", "Afghanistan"),
-    ),
+    ],
 )
 def test_query_countries_with_translation(
     language_code, expected_value, user_api_client
@@ -556,7 +556,9 @@ AVAILABLE_PAYMENT_GATEWAYS_QUERY = """
 """
 
 
-def test_query_available_payment_gateways(user_api_client, sample_gateway, channel_USD):
+def test_query_available_payment_gateways(
+    user_api_client, _sample_gateway, channel_USD
+):
     # given
     query = AVAILABLE_PAYMENT_GATEWAYS_QUERY
 
@@ -577,7 +579,7 @@ def test_query_available_payment_gateways(user_api_client, sample_gateway, chann
 
 
 def test_query_available_payment_gateways_specified_currency_USD(
-    user_api_client, sample_gateway, channel_USD
+    user_api_client, _sample_gateway, channel_USD
 ):
     # given
     query = AVAILABLE_PAYMENT_GATEWAYS_QUERY
@@ -599,7 +601,7 @@ def test_query_available_payment_gateways_specified_currency_USD(
 
 
 def test_query_available_payment_gateways_specified_currency_EUR(
-    user_api_client, sample_gateway, channel_USD
+    user_api_client, _sample_gateway, channel_USD
 ):
     # given
     query = AVAILABLE_PAYMENT_GATEWAYS_QUERY

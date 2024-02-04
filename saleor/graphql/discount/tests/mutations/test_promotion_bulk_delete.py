@@ -77,11 +77,9 @@ def test_delete_promotions_by_app(
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.promotion_deleted")
-@mock.patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
+@mock.patch("saleor.product.tasks.update_discounted_prices_task.delay")
 def test_delete_promotions_trigger_webhooks(
-    update_products_discounted_prices_for_promotion_task,
+    update_discounted_prices_task,
     deleted_webhook_mock,
     staff_api_client,
     promotion_list,
@@ -103,5 +101,5 @@ def test_delete_promotions_trigger_webhooks(
     )
 
     # then
-    update_products_discounted_prices_for_promotion_task.called_once()
+    update_discounted_prices_task.called_once()
     assert deleted_webhook_mock.call_count == len(promotion_list)

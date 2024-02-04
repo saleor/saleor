@@ -8,7 +8,7 @@ import pytz
 from django.conf import settings
 from django.contrib.postgres.indexes import BTreeIndex, GinIndex
 from django.db import connection, models
-from django.db.models import F, JSONField, Q
+from django.db.models import Exists, JSONField, OuterRef, Q, Subquery, Sum
 from django.utils import timezone
 from django_countries.fields import CountryField
 from django_prices.models import MoneyField
@@ -52,21 +52,38 @@ class NotApplicable(ValueError):
 
 class VoucherQueryset(models.QuerySet["Voucher"]):
     def active(self, date):
+        subquery = (
+            VoucherCode.objects.filter(voucher_id=OuterRef("pk"))
+            .annotate(total_used=Sum("used"))
+            .values("total_used")[:1]
+        )
         return self.filter(
-            Q(usage_limit__isnull=True) | Q(used__lt=F("usage_limit")),
+            Q(usage_limit__isnull=True) | Q(usage_limit__gt=Subquery(subquery)),
             Q(end_date__isnull=True) | Q(end_date__gte=date),
             start_date__lte=date,
         )
 
     def active_in_channel(self, date, channel_slug: str):
+        channels = Channel.objects.filter(
+            slug=str(channel_slug), is_active=True
+        ).values("id")
+        channel_listings = VoucherChannelListing.objects.filter(
+            Exists(channels.filter(pk=OuterRef("channel_id"))),
+        ).values("id")
+
         return self.active(date).filter(
-            channel_listings__channel__slug=channel_slug,
-            channel_listings__channel__is_active=True,
+            Exists(channel_listings.filter(voucher_id=OuterRef("pk")))
         )
 
     def expired(self, date):
+        subquery = (
+            VoucherCode.objects.filter(voucher_id=OuterRef("pk"))
+            .annotate(total_used=Sum("used"))
+            .values("total_used")[:1]
+        )
         return self.filter(
-            Q(used__gte=F("usage_limit")) | Q(end_date__lt=date), start_date__lt=date
+            Q(usage_limit__lte=Subquery(subquery)) | Q(end_date__lt=date),
+            start_date__lt=date,
         )
 
 
@@ -78,15 +95,14 @@ class Voucher(ModelWithMetadata):
         max_length=20, choices=VoucherType.CHOICES, default=VoucherType.ENTIRE_ORDER
     )
     name = models.CharField(max_length=255, null=True, blank=True)
-    code = models.CharField(max_length=255, unique=True, db_index=True)
     usage_limit = models.PositiveIntegerField(null=True, blank=True)
-    used = models.PositiveIntegerField(default=0, editable=False)
     start_date = models.DateTimeField(default=timezone.now)
     end_date = models.DateTimeField(null=True, blank=True)
     # this field indicates if discount should be applied per order or
     # individually to every item
     apply_once_per_order = models.BooleanField(default=False)
     apply_once_per_customer = models.BooleanField(default=False)
+    single_use = models.BooleanField(default=False)
 
     only_for_staff = models.BooleanField(default=False)
 
@@ -107,7 +123,13 @@ class Voucher(ModelWithMetadata):
     objects = VoucherManager()
 
     class Meta:
-        ordering = ("code",)
+        ordering = ("name", "pk")
+
+    @property
+    def code(self):
+        # this function should be removed after field `code` will be deprecated
+        code_instance = self.codes.last()
+        return code_instance.code if code_instance else None
 
     def get_discount(self, channel: Channel):
         """Return proper discount amount for given channel.
@@ -165,8 +187,10 @@ class Voucher(ModelWithMetadata):
             )
 
     def validate_once_per_customer(self, customer_email):
+        voucher_codes = self.codes.all()
         voucher_customer = VoucherCustomer.objects.filter(
-            voucher=self, customer_email=customer_email
+            Exists(voucher_codes.filter(id=OuterRef("voucher_code_id"))),
+            customer_email=customer_email,
         )
         if voucher_customer:
             msg = "This offer is valid only once per customer."
@@ -179,6 +203,21 @@ class Voucher(ModelWithMetadata):
         if not customer or not customer.is_staff:
             msg = "This offer is valid only for staff customers."
             raise NotApplicable(msg)
+
+
+class VoucherCode(models.Model):
+    id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
+    code = models.CharField(max_length=255, unique=True, db_index=True)
+    used = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    voucher = models.ForeignKey(
+        Voucher, related_name="codes", on_delete=models.CASCADE, db_index=False
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [BTreeIndex(fields=["voucher"], name="vouchercode_voucher_idx")]
+        ordering = ("-created_at", "code")
 
 
 class VoucherChannelListing(models.Model):
@@ -218,28 +257,20 @@ class VoucherChannelListing(models.Model):
 
 
 class VoucherCustomer(models.Model):
-    voucher = models.ForeignKey(
-        Voucher, related_name="customers", on_delete=models.CASCADE
+    voucher_code = models.ForeignKey(
+        VoucherCode,
+        related_name="customers",
+        on_delete=models.CASCADE,
+        db_index=False,
     )
     customer_email = models.EmailField()
 
     class Meta:
-        ordering = ("voucher", "customer_email", "pk")
-        unique_together = (("voucher", "customer_email"),)
-
-
-class SaleQueryset(models.QuerySet["Sale"]):
-    def active(self, date=None):
-        if date is None:
-            date = timezone.now()
-        return self.filter(
-            Q(end_date__isnull=True) | Q(end_date__gte=date), start_date__lte=date
-        )
-
-    def expired(self, date=None):
-        if date is None:
-            date = timezone.now()
-        return self.filter(end_date__lt=date, start_date__lt=date)
+        indexes = [
+            BTreeIndex(fields=["voucher_code"], name="vouchercustomer_voucher_code_idx")
+        ]
+        ordering = ("voucher_code", "customer_email", "pk")
+        unique_together = (("voucher_code", "customer_email"),)
 
 
 class VoucherTranslation(Translation):
@@ -254,113 +285,6 @@ class VoucherTranslation(Translation):
 
     def get_translated_object_id(self):
         return "Voucher", self.voucher_id
-
-    def get_translated_keys(self):
-        return {"name": self.name}
-
-
-SaleManager = models.Manager.from_queryset(SaleQueryset)
-
-
-class Sale(ModelWithMetadata):
-    name = models.CharField(max_length=255)
-    type = models.CharField(
-        max_length=10,
-        choices=DiscountValueType.CHOICES,
-        default=DiscountValueType.FIXED,
-    )
-    categories = models.ManyToManyField("product.Category", blank=True)
-    collections = models.ManyToManyField("product.Collection", blank=True)
-    products = models.ManyToManyField("product.Product", blank=True)
-    variants = models.ManyToManyField("product.ProductVariant", blank=True)
-    start_date = models.DateTimeField(default=timezone.now)
-    end_date = models.DateTimeField(null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
-    updated_at = models.DateTimeField(auto_now=True, db_index=True)
-
-    notification_sent_datetime = models.DateTimeField(null=True, blank=True)
-
-    objects = SaleManager()
-
-    class Meta:
-        ordering = ("name", "pk")
-        app_label = "discount"
-        permissions = (
-            (
-                DiscountPermissions.MANAGE_DISCOUNTS.codename,
-                "Manage sales and vouchers.",
-            ),
-        )
-
-    def __repr__(self):
-        return f"Sale(name={str(self.name)}, type={self.get_type_display()})"
-
-    def __str__(self):
-        return self.name
-
-    def get_discount(self, sale_channel_listing):
-        if not sale_channel_listing:
-            raise NotApplicable("This sale is not assigned to this channel.")
-        if self.type == DiscountValueType.FIXED:
-            discount_amount = Money(
-                sale_channel_listing.discount_value, sale_channel_listing.currency
-            )
-            return partial(fixed_discount, discount=discount_amount)
-        if self.type == DiscountValueType.PERCENTAGE:
-            return partial(
-                percentage_discount,
-                percentage=sale_channel_listing.discount_value,
-                rounding=ROUND_HALF_UP,
-            )
-        raise NotImplementedError("Unknown discount type")
-
-    def is_active(self, date=None):
-        if date is None:
-            date = datetime.now(pytz.utc)
-        return (not self.end_date or self.end_date >= date) and self.start_date <= date
-
-
-class SaleChannelListing(models.Model):
-    sale = models.ForeignKey(
-        Sale,
-        null=False,
-        blank=False,
-        related_name="channel_listings",
-        on_delete=models.CASCADE,
-    )
-    channel = models.ForeignKey(
-        Channel,
-        null=False,
-        blank=False,
-        related_name="sale_listings",
-        on_delete=models.CASCADE,
-    )
-    discount_value = models.DecimalField(
-        max_digits=settings.DEFAULT_MAX_DIGITS,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=Decimal("0.0"),
-    )
-    currency = models.CharField(
-        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
-    )
-
-    class Meta:
-        unique_together = [["sale", "channel"]]
-        ordering = ("pk",)
-
-
-class SaleTranslation(Translation):
-    name = models.CharField(max_length=255, null=True, blank=True)
-    sale = models.ForeignKey(
-        Sale, related_name="translations", on_delete=models.CASCADE
-    )
-
-    class Meta:
-        ordering = ("language_code", "name", "pk")
-        unique_together = (("language_code", "sale"),)
-
-    def get_translated_object_id(self):
-        return "Sale", self.sale_id
 
     def get_translated_keys(self):
         return {"name": self.name}
@@ -397,6 +321,16 @@ class Promotion(ModelWithMetadata):
 
     class Meta:
         ordering = ("name", "pk")
+        permissions = (
+            (
+                DiscountPermissions.MANAGE_DISCOUNTS.codename,
+                "Manage promotions and vouchers.",
+            ),
+        )
+        indexes = [
+            BTreeIndex(fields=["start_date"], name="start_date_idx"),
+            BTreeIndex(fields=["end_date"], name="end_date_idx"),
+        ]
 
     def is_active(self, date=None):
         if date is None:
@@ -436,7 +370,10 @@ class PromotionRule(models.Model):
         Promotion, on_delete=models.CASCADE, related_name="rules"
     )
     channels = models.ManyToManyField(Channel)
-    catalogue_predicate = models.JSONField(blank=True, default=dict)
+    catalogue_predicate = models.JSONField(
+        blank=True, default=dict, encoder=CustomJsonEncoder
+    )
+    variants = models.ManyToManyField("product.ProductVariant", blank=True)
     reward_value_type = models.CharField(
         max_length=255, choices=RewardValueType.CHOICES, blank=True, null=True
     )
@@ -522,9 +459,6 @@ class BaseDiscount(models.Model):
     name = models.CharField(max_length=255, null=True, blank=True)
     translated_name = models.CharField(max_length=255, null=True, blank=True)
     reason = models.TextField(blank=True, null=True)
-    sale = models.ForeignKey(
-        Sale, related_name="+", blank=True, null=True, on_delete=models.SET_NULL
-    )
     promotion_rule = models.ForeignKey(
         PromotionRule,
         related_name="+",
@@ -535,6 +469,9 @@ class BaseDiscount(models.Model):
     )
     voucher = models.ForeignKey(
         Voucher, related_name="+", blank=True, null=True, on_delete=models.SET_NULL
+    )
+    voucher_code = models.CharField(
+        max_length=255, null=True, blank=True, db_index=False
     )
 
     class Meta:
@@ -558,6 +495,7 @@ class OrderDiscount(BaseDiscount):
             ),
             # Orders searching index
             GinIndex(fields=["name", "translated_name"]),
+            GinIndex(fields=["voucher_code"], name="orderdiscount_voucher_code_idx"),
         ]
         ordering = ("created_at", "id")
 
@@ -575,7 +513,8 @@ class OrderLineDiscount(BaseDiscount):
         indexes = [
             BTreeIndex(
                 fields=["promotion_rule"], name="orderlinedisc_promotion_rule_idx"
-            )
+            ),
+            GinIndex(fields=["voucher_code"], name="orderlinedisc_voucher_code_idx"),
         ]
         ordering = ("created_at", "id")
 
@@ -593,7 +532,8 @@ class CheckoutLineDiscount(BaseDiscount):
         indexes = [
             BTreeIndex(
                 fields=["promotion_rule"], name="checklinedisc_promotion_rule_idx"
-            )
+            ),
+            GinIndex(fields=["voucher_code"], name="checklinedisc_voucher_code_idx"),
         ]
         ordering = ("created_at", "id")
 

@@ -1,11 +1,11 @@
 from collections import defaultdict
-from typing import List
 
 from django.core.exceptions import ValidationError
 
 from ....account import models
 from ....permission.enums import AccountPermissions
 from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.utils import get_webhooks_for_event
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.types import StaffError
@@ -51,7 +51,7 @@ class StaffBulkDelete(StaffDeleteMixin, UserBulkDelete):
 
     @classmethod
     def clean_instances(cls, info: ResolveInfo, users):
-        errors: defaultdict[str, List[ValidationError]] = defaultdict(list)
+        errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
 
         requestor = info.context.user
         cls.check_if_users_can_be_deleted(info, users, "ids", errors)
@@ -66,5 +66,6 @@ class StaffBulkDelete(StaffDeleteMixin, UserBulkDelete):
         instances = list(queryset)
         queryset.delete()
         manager = get_plugin_manager_promise(info.context).get()
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.STAFF_DELETED)
         for instance in instances:
-            manager.staff_deleted(instance)
+            cls.call_event(manager.staff_deleted, instance, webhooks=webhooks)

@@ -193,7 +193,7 @@ def test_create_invoice_no_billing_address(
 
 
 @pytest.mark.parametrize(
-    "status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED, OrderStatus.EXPIRED)
+    "status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED, OrderStatus.EXPIRED]
 )
 def test_create_invoice_invalid_order_status(
     status, staff_api_client, permission_group_manage_orders, order

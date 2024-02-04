@@ -1,8 +1,9 @@
 from decimal import Decimal
+from unittest.mock import patch
 
 import graphene
 import pytest
-from mock import patch
+from freezegun import freeze_time
 
 from .....checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from .....checkout.calculations import fetch_checkout_data
@@ -351,7 +352,7 @@ def test_transaction_create_for_checkout_by_app(
 
 
 @pytest.mark.parametrize(
-    "amount_field_name, amount_db_field",
+    ("amount_field_name", "amount_db_field"),
     [
         ("amountAuthorized", "authorized_value"),
         ("amountCharged", "charged_value"),
@@ -538,7 +539,7 @@ def test_transaction_create_missing_permission_by_app(order_with_lines, app_api_
 
 
 @pytest.mark.parametrize(
-    "amount_field_name, amount_db_field",
+    ("amount_field_name", "amount_db_field"),
     [
         ("amountAuthorized", "authorized_value"),
         ("amountCharged", "charged_value"),
@@ -1049,7 +1050,7 @@ def test_transaction_create_for_checkout_fully_paid(
 
 
 @pytest.mark.parametrize(
-    "amount_field_name, amount_db_field",
+    ("amount_field_name", "amount_db_field"),
     [
         ("amountAuthorized", "authorized_value"),
         ("amountCharged", "charged_value"),
@@ -1237,7 +1238,7 @@ def test_transaction_create_missing_permission_by_staff(
 
 
 @pytest.mark.parametrize(
-    "amount_field_name, amount_db_field",
+    ("amount_field_name", "amount_db_field"),
     [
         ("amountAuthorized", "authorized_value"),
         ("amountCharged", "charged_value"),
@@ -1867,6 +1868,39 @@ def test_transaction_create_for_order_triggers_webhook_when_partially_refunded(
     mock_order_refunded.assert_called_once_with(order_with_lines)
 
 
+@freeze_time("2018-05-31 12:00:01")
+def test_transaction_create_for_checkout_updates_last_transaction_modified_at(
+    checkout_with_items, permission_manage_payments, app_api_client
+):
+    # given
+    assert checkout_with_items.last_transaction_modified_at is None
+    psp_reference = "PSP reference - 123"
+    authorized_value = Decimal("10")
+
+    variables = {
+        "id": graphene.Node.to_global_id("Checkout", checkout_with_items.pk),
+        "transaction": {
+            "pspReference": psp_reference,
+            "amountAuthorized": {
+                "amount": authorized_value,
+                "currency": "USD",
+            },
+        },
+    }
+
+    # when
+    app_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    checkout_with_items.refresh_from_db()
+    transaction = checkout_with_items.payment_transactions.first()
+
+    assert checkout_with_items.last_transaction_modified_at == transaction.modified_at
+
+      
+      
 def test_transaction_create_psp_reference_length_exceed(
     order_with_lines, permission_manage_payments, app_api_client
 ):

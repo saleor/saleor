@@ -13,12 +13,15 @@ mutation CheckoutComplete($checkoutId: ID!) {
       status
       paymentStatus
       isPaid
-      user {
-        email
-      }
       isShippingRequired
       total {
         gross {
+          amount
+        }
+        net {
+          amount
+        }
+        tax {
           amount
         }
       }
@@ -35,6 +38,7 @@ mutation CheckoutComplete($checkoutId: ID!) {
       deliveryMethod {
         ... on ShippingMethod {
           id
+          name
           price {
             amount
           }
@@ -45,6 +49,12 @@ mutation CheckoutComplete($checkoutId: ID!) {
       }
       shippingPrice {
         gross {
+          amount
+        }
+        net {
+          amount
+        }
+        tax {
           amount
         }
       }

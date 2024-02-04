@@ -1,3 +1,4 @@
+import uuid
 from decimal import Decimal
 from typing import TYPE_CHECKING, Optional, cast
 
@@ -75,7 +76,7 @@ class TransactionRequestAction(BaseMutation):
             )
             request_cancelation_action(
                 **action_kwargs,
-                cancel_value=action_value,
+                cancel_value=None,
                 request_event=request_event,
                 action=action,
             )
@@ -126,6 +127,7 @@ class TransactionRequestAction(BaseMutation):
             user=user,
             app=app,
             app_identifier=app.identifier if app else None,
+            idempotency_key=str(uuid.uuid4()),
         )
 
     @classmethod

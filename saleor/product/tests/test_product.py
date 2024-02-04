@@ -218,7 +218,7 @@ def test_clean_product_attributes_boolean_filter_input(boolean_attribute):
 
 
 @pytest.mark.parametrize(
-    "price, discounted_price",
+    ("price", "discounted_price"),
     [
         (Decimal("10.00"), Decimal("8.00")),
         (Decimal("10.00"), None),
@@ -363,9 +363,7 @@ def test_get_price_overridden_price_with_discount(
 
 
 def test_digital_product_view(client, digital_content_url):
-    """Ensure a user (anonymous or not) can download a non-expired digital good
-    using its associated token and that all associated events
-    are correctly generated."""
+    """Ensure a non-expired digital good can be downloaded and results in an event."""
 
     url = digital_content_url.get_absolute_url()
     response = client.get(url)
@@ -381,7 +379,7 @@ def test_digital_product_view(client, digital_content_url):
 
 
 @pytest.mark.parametrize(
-    "is_user_null, is_line_null", ((False, False), (False, True), (True, True))
+    ("is_user_null", "is_line_null"), [(False, False), (False, True), (True, True)]
 )
 def test_digital_product_increment_download(
     client,
@@ -390,8 +388,7 @@ def test_digital_product_increment_download(
     is_user_null,
     is_line_null,
 ):
-    """Ensure downloading a digital good is possible without it
-    being associated to an order line/user."""
+    """Ensure a digital good can be downloaded without it belonging to an order or user."""
 
     expected_user = customer_user
 
@@ -459,7 +456,8 @@ def test_digital_product_view_url_expired(client, digital_content):
 
 
 @pytest.mark.parametrize(
-    "price, cost", [(Money("0", "USD"), Money("1", "USD")), (Money("2", "USD"), None)]
+    ("price", "cost"),
+    [(Money("0", "USD"), Money("1", "USD")), (Money("2", "USD"), None)],
 )
 def test_costs_get_margin_for_variant_channel_listing(
     variant, price, cost, channel_USD

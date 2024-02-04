@@ -10,7 +10,7 @@ from ...payment import models
 from ...payment.interface import PaymentMethodData
 from ...permission.enums import OrderPermissions
 from ..account.dataloaders import UserByUserIdLoader
-from ..app.dataloaders import AppByIdLoader, AppsByAppIdentifierLoader
+from ..app.dataloaders import ActiveAppsByAppIdentifierLoader, AppByIdLoader
 from ..checkout.dataloaders import CheckoutByTokenLoader
 from ..core import ResolveInfo
 from ..core.connection import CountableConnection
@@ -19,6 +19,7 @@ from ..core.descriptions import (
     ADDED_IN_34,
     ADDED_IN_36,
     ADDED_IN_313,
+    ADDED_IN_314,
     ADDED_IN_315,
     PREVIEW_FEATURE,
 )
@@ -49,7 +50,7 @@ from .enums import (
 class Transaction(ModelObjectType[models.Transaction]):
     id = graphene.GlobalID(required=True, description="ID of the transaction.")
     created = graphene.DateTime(
-        required=True, description="Date and time which transaction was created."
+        required=True, description="Date and time at which transaction was created."
     )
     payment = graphene.Field(
         lambda: Payment,
@@ -200,6 +201,13 @@ class Payment(ModelObjectType[models.Payment]):
     credit_card = graphene.Field(
         CreditCard, description="The details of the card used for this payment."
     )
+    partial = graphene.Boolean(
+        required=True,
+        description="Informs whether this is a partial payment." + ADDED_IN_314,
+    )
+    psp_reference = graphene.String(
+        required=False, description="PSP reference of the payment." + ADDED_IN_314
+    )
 
     class Meta:
         description = "Represents a payment of a given type."
@@ -335,6 +343,11 @@ class TransactionEvent(ModelObjectType[models.TransactionEvent]):
         description=("User or App that created the transaction event." + ADDED_IN_313),
     )
 
+    idempotency_key = graphene.String(
+        description="Idempotency key assigned to the event." + ADDED_IN_314,
+        required=False,
+    )
+
     class Meta:
         description = "Represents transaction's event."
         interfaces = [relay.Node]
@@ -362,20 +375,33 @@ class TransactionEvent(ModelObjectType[models.TransactionEvent]):
         This covers a case when a third-party app was re-installed, but we're still able
         to determine which one is the owner of the transaction.
         """
+
+        def get_first_app_by_identifier(apps):
+            if apps:
+                return apps[0]
+            return None
+
+        def get_active_app(app):
+            if app and app.is_active and not app.removed_at:
+                return app
+
+            if root.app_identifier:
+                return (
+                    ActiveAppsByAppIdentifierLoader(info.context)
+                    .load(root.app_identifier)
+                    .then(get_first_app_by_identifier)
+                )
+
         if root.app_id:
-            return AppByIdLoader(info.context).load(root.app_id)
+            return AppByIdLoader(info.context).load(root.app_id).then(get_active_app)
+
         if root.app_identifier:
-
-            def get_first_app(apps):
-                if apps:
-                    return apps[0]
-                return None
-
             return (
-                AppsByAppIdentifierLoader(info.context)
+                ActiveAppsByAppIdentifierLoader(info.context)
                 .load(root.app_identifier)
-                .then(get_first_app)
+                .then(get_first_app_by_identifier)
             )
+
         if root.user_id:
             return UserByUserIdLoader(info.context).load(root.user_id)
         return None
@@ -458,6 +484,10 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
         "saleor.graphql.order.types.Order",
         description="The related order." + ADDED_IN_36,
     )
+    checkout = graphene.Field(
+        "saleor.graphql.checkout.types.Checkout",
+        description="The related checkout." + ADDED_IN_314,
+    )
     events = NonNullList(
         TransactionEvent, required=True, description="List of all transaction's events."
     )
@@ -527,6 +557,12 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
         return OrderByIdLoader(info.context).load(root.order_id)
 
     @staticmethod
+    def resolve_checkout(root: models.TransactionItem, info):
+        if not root.checkout_id:
+            return
+        return CheckoutByTokenLoader(info.context).load(root.checkout_id)
+
+    @staticmethod
     def resolve_events(root: models.TransactionItem, info):
         return TransactionEventByTransactionIdLoader(info.context).load(root.id)
 
@@ -541,20 +577,32 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
         to determine which one is the owner of the transaction.
         """
 
+        def get_first_app_by_identifier(apps):
+            if apps:
+                return apps[0]
+            return None
+
+        def get_active_app(app):
+            if app and app.is_active and not app.removed_at:
+                return app
+
+            if root.app_identifier:
+                return (
+                    ActiveAppsByAppIdentifierLoader(info.context)
+                    .load(root.app_identifier)
+                    .then(get_first_app_by_identifier)
+                )
+
         if root.app_id:
-            return AppByIdLoader(info.context).load(root.app_id)
+            return AppByIdLoader(info.context).load(root.app_id).then(get_active_app)
+
         if root.app_identifier:
-
-            def get_first_app(apps):
-                if apps:
-                    return apps[0]
-                return None
-
             return (
-                AppsByAppIdentifierLoader(info.context)
+                ActiveAppsByAppIdentifierLoader(info.context)
                 .load(root.app_identifier)
-                .then(get_first_app)
+                .then(get_first_app_by_identifier)
             )
+
         if root.user_id:
             return UserByUserIdLoader(info.context).load(root.user_id)
         return None

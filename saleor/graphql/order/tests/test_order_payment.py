@@ -10,8 +10,8 @@ from ..mutations.utils import try_payment_action
 
 
 @pytest.mark.parametrize(
-    "requires_amount, mutation_name",
-    ((True, "orderRefund"), (False, "orderVoid"), (True, "orderCapture")),
+    ("requires_amount", "mutation_name"),
+    [(True, "orderRefund"), (False, "orderVoid"), (True, "orderCapture")],
 )
 def test_clean_payment_without_payment_associated_to_order(
     staff_api_client,
@@ -24,19 +24,16 @@ def test_clean_payment_without_payment_associated_to_order(
     assert not OrderEvent.objects.exists()
 
     additional_arguments = ", amount: 2" if requires_amount else ""
-    query = """
-        mutation %(mutationName)s($id: ID!) {
-          %(mutationName)s(id: $id %(args)s) {
-            errors {
+    query = f"""
+        mutation {mutation_name}($id: ID!) {{
+          {mutation_name}(id: $id {additional_arguments}) {{
+            errors {{
               field
               message
-            }
-          }
-        }
-    """ % {
-        "mutationName": mutation_name,
-        "args": additional_arguments,
-    }
+            }}
+          }}
+        }}
+    """
 
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}

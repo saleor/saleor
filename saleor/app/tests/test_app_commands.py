@@ -2,6 +2,7 @@ from unittest.mock import ANY, Mock, call
 
 import pytest
 from django.core.management import call_command
+from django.forms import ValidationError
 from requests_hardened import HTTPSession
 
 from ... import schema_version
@@ -87,7 +88,6 @@ def test_creates_app_from_manifest_sends_token(monkeypatch, app_manifest):
             "Saleor-Schema-Version": schema_version,
         },
         json={"auth_token": ANY},
-        timeout=ANY,
         allow_redirects=False,
     )
 
@@ -96,7 +96,7 @@ def test_creates_app_from_manifest_sends_token(monkeypatch, app_manifest):
 def test_creates_app_from_manifest_installation_failed():
     manifest_url = "http://localhost:3000/manifest-wrong"
 
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError, match="Incorrect format."):
         call_command("install_app", manifest_url)
 
     app_job = AppInstallation.objects.get()
@@ -155,6 +155,5 @@ def test_sends_data_to_target_url(monkeypatch):
             "Saleor-Schema-Version": schema_version,
         },
         json={"auth_token": ANY},
-        timeout=ANY,
         allow_redirects=False,
     )

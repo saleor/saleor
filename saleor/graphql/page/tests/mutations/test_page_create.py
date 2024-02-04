@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from functools import partial
 from unittest import mock
+from unittest.mock import ANY
 
 import graphene
 import pytz
@@ -8,7 +9,6 @@ from django.conf import settings
 from django.utils.functional import SimpleLazyObject
 from django.utils.text import slugify
 from freezegun import freeze_time
-from mock import ANY
 
 from .....page.error_codes import PageErrorCode
 from .....page.models import Page, PageType
@@ -223,6 +223,7 @@ def test_page_create_trigger_page_webhook(
         page,
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
+        allow_replica=False,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial

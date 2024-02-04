@@ -122,7 +122,7 @@ def test_voucher_add_catalogues_trigger_webhook(
             {
                 "id": variables["id"],
                 "name": voucher.name,
-                "code": voucher.code,
+                "code": voucher.codes.first().code,
                 "meta": generate_meta(
                     requestor_data=generate_requestor(
                         SimpleLazyObject(lambda: staff_api_client.user)
@@ -135,6 +135,7 @@ def test_voucher_add_catalogues_trigger_webhook(
         [any_webhook],
         voucher,
         SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )
 
 

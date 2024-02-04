@@ -5,7 +5,7 @@ from ...manager import get_plugins_manager
 from ..plugin import OpenIDConnectPlugin
 
 
-@pytest.fixture()
+@pytest.fixture
 def plugin_configuration():
     def fun(
         client_id=None,
@@ -63,7 +63,7 @@ def openid_plugin(settings, plugin_configuration):
         default_group_name_for_new_staff_users="OpenID test group",
     ):
         settings.PLUGINS = ["saleor.plugins.openid_connect.plugin.OpenIDConnectPlugin"]
-        manager = get_plugins_manager()
+        manager = get_plugins_manager(allow_replica=False)
         manager.save_plugin_configuration(
             OpenIDConnectPlugin.PLUGIN_ID,
             None,
@@ -85,7 +85,7 @@ def openid_plugin(settings, plugin_configuration):
                 ),
             },
         )
-        manager = get_plugins_manager()
+        manager = get_plugins_manager(allow_replica=False)
         return manager.all_plugins[0]
 
     return fun
@@ -123,7 +123,7 @@ def user_info_response():
     }
 
 
-@pytest.fixture()
+@pytest.fixture
 def id_payload():
     return {
         "given_name": "Saleor",
@@ -143,7 +143,7 @@ def id_payload():
     }
 
 
-@pytest.fixture()
+@pytest.fixture
 def id_token(id_payload):
     private_key = """-----BEGIN RSA PRIVATE KEY-----
 MIIEogIBAAKCAQEAnzyis1ZjfNB0bBgKFMSvvkTtwlvBsaJq7S5wA+kzeVOVpVWw

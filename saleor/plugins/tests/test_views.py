@@ -9,7 +9,7 @@ from .sample_plugins import (
 
 
 @pytest.mark.parametrize(
-    "plugin_id, plugin_path, status_code",
+    ("plugin_id", "plugin_path", "status_code"),
     [
         (PluginSample.PLUGIN_ID, "/webhook/paid", 200),
         (PluginInactive.PLUGIN_ID, "/webhook/paid", 404),
@@ -29,7 +29,7 @@ def test_plugin_webhook_view(
 
 
 @pytest.mark.parametrize(
-    "plugin_id, plugin_path, status_code",
+    ("plugin_id", "plugin_path", "status_code"),
     [
         (PluginSample.PLUGIN_ID, "/webhook/paid", 200),
         (ChannelPluginSample.PLUGIN_ID, "/webhook/paid", 200),
@@ -53,7 +53,7 @@ def test_plugin_per_channel_webhook_view(
 
 
 @pytest.mark.parametrize(
-    "plugin_id, plugin_path, status_code",
+    ("plugin_id", "plugin_path", "status_code"),
     [
         (PluginSample.PLUGIN_ID, "/webhook/paid", 200),
         (PluginInactive.PLUGIN_ID, "/webhook/paid", 404),

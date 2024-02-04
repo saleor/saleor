@@ -60,7 +60,7 @@ def test_voucher_query(
 ):
     query = VOUCHERS_QUERY
     voucher.products.add(product)
-
+    code = voucher.codes.first()
     response = staff_api_client.post_graphql(
         query, permissions=[permission_manage_discounts, permission_manage_products]
     )
@@ -70,12 +70,12 @@ def test_voucher_query(
 
     assert data["type"] == voucher.type.upper()
     assert data["name"] == voucher.name
-    assert data["code"] == voucher.code
+    assert data["code"] == code.code
     assert data["usageLimit"] == voucher.usage_limit
     assert data["products"]["edges"][0]["node"]["name"] == product.name
 
     assert data["applyOncePerCustomer"] == voucher.apply_once_per_customer
-    assert data["used"] == voucher.used
+    assert data["used"] == code.used
     assert data["startDate"] == voucher.start_date.isoformat()
     assert data["discountValueType"] == voucher.discount_value_type.upper()
     assert data["countries"] == [
@@ -90,6 +90,36 @@ def test_voucher_query(
     } in data["channelListings"]
 
 
+def test_voucher_query_no_codes(
+    staff_api_client,
+    voucher,
+    product,
+    permission_manage_discounts,
+    permission_manage_products,
+):
+    query = VOUCHERS_QUERY
+    voucher.products.add(product)
+    voucher.codes.all().delete()
+    # This simulates edge case when we don't have any codes assigned to voucher
+    assert len(voucher.codes.all()) == 0
+
+    response = staff_api_client.post_graphql(
+        query, permissions=[permission_manage_discounts, permission_manage_products]
+    )
+
+    content = get_graphql_content(response)
+    data = content["data"]["vouchers"]["edges"][0]["node"]
+
+    assert data["type"] == voucher.type.upper()
+    assert data["name"] == voucher.name
+    assert data["code"] is None
+    # check if used function is calculated properly even if we don't have code assigned
+    # to voucher
+    assert data["used"] == 0
+    assert data["usageLimit"] == voucher.usage_limit
+    assert data["products"]["edges"][0]["node"]["name"] == product.name
+
+
 def test_voucher_query_with_channel_slug(
     staff_api_client,
     voucher_with_many_channels_and_countries,
@@ -99,6 +129,7 @@ def test_voucher_query_with_channel_slug(
 ):
     voucher = voucher_with_many_channels_and_countries
     voucher.products.add(product)
+    code = voucher.codes.first()
 
     query = VOUCHERS_QUERY
     variables = {"channel": channel_USD.slug}
@@ -111,11 +142,11 @@ def test_voucher_query_with_channel_slug(
 
     assert data["type"] == voucher.type.upper()
     assert data["name"] == voucher.name
-    assert data["code"] == voucher.code
+    assert data["code"] == code.code
     assert data["products"]["edges"][0]["node"]["name"] == product.name
     assert data["usageLimit"] == voucher.usage_limit
     assert data["applyOncePerCustomer"] == voucher.apply_once_per_customer
-    assert data["used"] == voucher.used
+    assert data["used"] == code.used
     assert data["startDate"] == voucher.start_date.isoformat()
     assert data["discountValueType"] == voucher.discount_value_type.upper()
     assert data["countries"] == [

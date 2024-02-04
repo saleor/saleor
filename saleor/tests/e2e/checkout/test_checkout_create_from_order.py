@@ -2,7 +2,7 @@ import pytest
 
 from ..orders.utils import draft_order_create, order_lines_create
 from ..product.utils.preparing_product import prepare_product
-from ..shop.utils.preparing_shop import prepare_shop
+from ..shop.utils.preparing_shop import prepare_default_shop
 from ..utils import assign_permissions
 from .utils import checkout_create_from_order
 
@@ -10,18 +10,14 @@ from .utils import checkout_create_from_order
 @pytest.mark.e2e
 def test_checkout_create_from_order_core_0104(
     e2e_staff_api_client,
-    permission_manage_products,
-    permission_manage_channels,
     permission_manage_product_types_and_attributes,
-    permission_manage_shipping,
     permission_manage_orders,
     permission_manage_checkouts,
+    shop_permissions,
 ):
     # Before
     permissions = [
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_shipping,
+        *shop_permissions,
         permission_manage_product_types_and_attributes,
         permission_manage_orders,
         permission_manage_checkouts,
@@ -30,12 +26,9 @@ def test_checkout_create_from_order_core_0104(
 
     price = 10
 
-    (
-        warehouse_id,
-        channel_id,
-        _channel_slug,
-        _shipping_method_id,
-    ) = prepare_shop(e2e_staff_api_client)
+    shop_data = prepare_default_shop(e2e_staff_api_client)
+    channel_id = shop_data["channel"]["id"]
+    warehouse_id = shop_data["warehouse"]["id"]
 
     (
         _product_id,
@@ -48,7 +41,7 @@ def test_checkout_create_from_order_core_0104(
         price,
     )
 
-    # Step 1 - Create checkout from order
+    # Step 1 - Create order
     channel_id = {"channelId": channel_id}
     data = draft_order_create(
         e2e_staff_api_client,
@@ -72,6 +65,7 @@ def test_checkout_create_from_order_core_0104(
     order_product_variant_id = order_data["order"]["lines"][0]["variant"]
     order_product_quantity = order_data["order"]["lines"][0]["quantity"]
 
+    # Step 2 - Create checkout from order
     checkout_data = checkout_create_from_order(
         e2e_staff_api_client,
         order_id,

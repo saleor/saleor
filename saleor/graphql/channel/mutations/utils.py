@@ -3,7 +3,8 @@ from typing import Optional
 
 from django.core.exceptions import ValidationError
 
-from saleor.graphql.core.enums import ChannelErrorCode
+from ....channel.models import Channel
+from ...core.enums import ChannelErrorCode
 
 DELETE_EXPIRED_ORDERS_MAX_DAYS = 120
 
@@ -40,23 +41,23 @@ def clean_delete_expired_orders_after(delete_expired_orders_after: int) -> timed
     return timedelta(days=delete_expired_orders_after)
 
 
-def clean_input_order_settings(order_settings: dict, cleaned_input: dict):
-    automatically_confirm_all_new_orders = order_settings.get(
-        "automatically_confirm_all_new_orders"
-    )
-    if automatically_confirm_all_new_orders is not None:
-        cleaned_input[
-            "automatically_confirm_all_new_orders"
-        ] = automatically_confirm_all_new_orders
+def clean_input_order_settings(
+    order_settings: dict, cleaned_input: dict, instance: Channel
+):
+    channel_settings = [
+        "automatically_confirm_all_new_orders",
+        "automatically_fulfill_non_shippable_gift_card",
+        "allow_unpaid_orders",
+        "include_draft_order_in_voucher_usage",
+    ]
 
-    automatically_fulfill_non_shippable_gift_card = order_settings.get(
-        "automatically_fulfill_non_shippable_gift_card"
-    )
-    if automatically_fulfill_non_shippable_gift_card is not None:
-        cleaned_input[
-            "automatically_fulfill_non_shippable_gift_card"
-        ] = automatically_fulfill_non_shippable_gift_card
-    if mark_as_paid_strategy := order_settings.get("mark_as_paid_strategy"):
+    for field in channel_settings:
+        if (value := order_settings.get(field)) is not None:
+            cleaned_input[field] = value
+
+    if (
+        mark_as_paid_strategy := order_settings.get("mark_as_paid_strategy")
+    ) is not None:
         cleaned_input["order_mark_as_paid_strategy"] = mark_as_paid_strategy
 
     if "expire_orders_after" in order_settings:
@@ -71,16 +72,9 @@ def clean_input_order_settings(order_settings: dict, cleaned_input: dict):
             "delete_expired_orders_after"
         ] = clean_delete_expired_orders_after(delete_expired_orders_after)
 
-    if default_transaction_strategy := order_settings.get(
-        "default_transaction_flow_strategy"
-    ):
-        cleaned_input[
-            "default_transaction_flow_strategy"
-        ] = default_transaction_strategy
-
-    allow_unpaid_orders = order_settings.get("allow_unpaid_orders")
-    if allow_unpaid_orders is not None:
-        cleaned_input["allow_unpaid_orders"] = allow_unpaid_orders
+    cleaned_input[
+        "prev_include_draft_order_in_voucher_usage"
+    ] = instance.include_draft_order_in_voucher_usage
 
 
 def clean_input_checkout_settings(checkout_settings: dict, cleaned_input: dict):

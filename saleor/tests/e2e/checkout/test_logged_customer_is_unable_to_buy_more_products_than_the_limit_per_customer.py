@@ -8,18 +8,16 @@ from ..product.utils import (
     create_product_variant,
     create_product_variant_channel_listing,
 )
-from ..shop.utils.preparing_shop import prepare_shop
+from ..shop.utils.preparing_shop import prepare_default_shop
 from ..utils import assign_permissions
 from .utils import checkout_create, checkout_lines_update
 
 
 def prepare_product_with_limit(e2e_staff_api_client):
-    (
-        warehouse_id,
-        channel_id,
-        channel_slug,
-        _shipping_method_id,
-    ) = prepare_shop(e2e_staff_api_client)
+    shop_data = prepare_default_shop(e2e_staff_api_client)
+    channel_id = shop_data["channel"]["id"]
+    channel_slug = shop_data["channel"]["slug"]
+    warehouse_id = shop_data["warehouse"]["id"]
 
     product_type_data = create_product_type(
         e2e_staff_api_client,
@@ -79,16 +77,12 @@ def prepare_product_with_limit(e2e_staff_api_client):
 def test_checkout_with_product_quantity_exceeding_the_limit_per_customer_core_0110(
     e2e_staff_api_client,
     e2e_logged_api_client,
-    permission_manage_products,
-    permission_manage_channels,
-    permission_manage_shipping,
+    shop_permissions,
     permission_manage_product_types_and_attributes,
 ):
     # Before
     permissions = [
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_shipping,
+        *shop_permissions,
         permission_manage_product_types_and_attributes,
     ]
     assign_permissions(e2e_staff_api_client, permissions)

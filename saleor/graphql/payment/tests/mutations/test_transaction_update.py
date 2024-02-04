@@ -1,8 +1,9 @@
 from decimal import Decimal
+from unittest.mock import patch
 
 import graphene
 import pytest
-from mock import patch
+from freezegun import freeze_time
 
 from .....checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from .....checkout.calculations import fetch_checkout_data
@@ -361,7 +362,7 @@ def test_transaction_update_available_actions_by_app(
 
 
 @pytest.mark.parametrize(
-    "field_name, response_field, db_field_name, value",
+    ("field_name", "response_field", "db_field_name", "value"),
     [
         ("amountAuthorized", "authorizedAmount", "authorized_value", Decimal("12")),
         ("amountCharged", "chargedAmount", "charged_value", Decimal("13")),
@@ -818,7 +819,7 @@ def test_transaction_update_for_order_missing_permission_by_app(
 
 
 @pytest.mark.parametrize(
-    "amount_field_name, amount_db_field",
+    ("amount_field_name", "amount_db_field"),
     [
         ("amountAuthorized", "authorized_value"),
         ("amountCharged", "charged_value"),
@@ -1268,7 +1269,7 @@ def test_transaction_update_available_actions_by_staff(
 
 
 @pytest.mark.parametrize(
-    "field_name, response_field, db_field_name, value",
+    ("field_name", "response_field", "db_field_name", "value"),
     [
         ("amountAuthorized", "authorizedAmount", "authorized_value", Decimal("12")),
         ("amountCharged", "chargedAmount", "charged_value", Decimal("13")),
@@ -1681,7 +1682,7 @@ def test_transaction_update_for_order_missing_permission_by_staff(
 
 
 @pytest.mark.parametrize(
-    "amount_field_name, amount_db_field",
+    ("amount_field_name", "amount_db_field"),
     [
         ("amountAuthorized", "authorized_value"),
         ("amountCharged", "charged_value"),
@@ -2097,8 +2098,16 @@ def test_transaction_update_creates_calculation_event(
 
 
 @pytest.mark.parametrize(
-    "field_name, response_field, db_field_name, value, current_authorized_value, "
-    "current_charged_value, current_canceled_value, current_refunded_value,",
+    (
+        "field_name",
+        "response_field",
+        "db_field_name",
+        "value",
+        "current_authorized_value",
+        "current_charged_value",
+        "current_canceled_value",
+        "current_refunded_value",
+    ),
     [
         (
             "amountAuthorized",
@@ -2245,16 +2254,6 @@ def test_transaction_update_creates_calculation_event(
             "canceledAmount",
             "canceled_value",
             Decimal("0"),
-            Decimal("1"),
-            Decimal("2"),
-            Decimal("3"),
-            Decimal("4"),
-        ),
-        (
-            "amountCanceled",
-            "canceledAmount",
-            "canceled_value",
-            Decimal("1"),
             Decimal("1"),
             Decimal("2"),
             Decimal("3"),
@@ -2790,6 +2789,59 @@ def test_transaction_update_by_app_assign_app_owner(
     assert transaction.app_identifier == app_api_client.app.identifier
     assert transaction.app == app_api_client.app
     assert transaction.user is None
+
+    
+@freeze_time("2018-05-31 12:00:01")
+def test_transaction_update_for_checkout_updates_last_transaction_modified_at(
+    checkout_with_items,
+    permission_manage_payments,
+    app_api_client,
+    transaction_item_generator,
+    app,
+):
+    # given
+    current_authorized_value = Decimal("1")
+    current_charged_value = Decimal("2")
+    transaction = transaction_item_generator(
+        checkout_id=checkout_with_items.pk,
+        app=app,
+        authorized_value=current_authorized_value,
+        charged_value=current_charged_value,
+    )
+    with freeze_time("2000-05-31 12:00:01"):
+        transaction.save(update_fields=["modified_at"])
+    previous_modified_at = transaction.modified_at
+    checkout_with_items.last_transaction_modified_at = previous_modified_at
+    checkout_with_items.save()
+
+    authorized_value = Decimal("12")
+    charged_value = Decimal("13")
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "transaction": {
+            "amountAuthorized": {
+                "amount": authorized_value,
+                "currency": "USD",
+            },
+            "amountCharged": {
+                "amount": charged_value,
+                "currency": "USD",
+            },
+        },
+    }
+
+    # when
+    app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    checkout_with_items.refresh_from_db()
+    transaction.refresh_from_db()
+
+    assert checkout_with_items.last_transaction_modified_at != previous_modified_at
+    assert checkout_with_items.last_transaction_modified_at == transaction.modified_at
 
 
 def test_transaction_update_psp_reference_length_exceed(

@@ -37,7 +37,7 @@ def test_trigger_webhooks_async(
     webhook_type = WebhookEventAsyncType.ORDER_CREATED
     webhooks, payload = Webhook.objects.all(), {"example": "payload"}
 
-    trigger_webhooks_async(payload, webhook_type, webhooks, order)
+    trigger_webhooks_async(payload, webhook_type, webhooks, order, allow_replica=False)
 
     deliveries = EventDelivery.objects.all()
     assert deliveries.count() == 2
@@ -62,7 +62,7 @@ def test_trigger_webhooks_async_no_subscription_webhooks(
     webhook_type = WebhookEventAsyncType.ORDER_UPDATED
     webhooks = Webhook.objects.all()
     data = {"regular_webhook": "data"}
-    trigger_webhooks_async(data, webhook_type, webhooks, order)
+    trigger_webhooks_async(data, webhook_type, webhooks, order, allow_replica=False)
     mocked_create_deliveries_for_subscriptions.assert_not_called()
 
 
@@ -79,6 +79,7 @@ def test_trigger_webhook_sync_with_subscription(
         WebhookEventSyncType.PAYMENT_AUTHORIZE,
         data,
         payment_app.webhooks.first(),
+        False,
         payment,
     )
     event_delivery = EventDelivery.objects.first()
@@ -131,7 +132,7 @@ def test_trigger_webhook_sync_with_subscription_within_mutation_use_default_db(
 @mock.patch(
     "saleor.webhook.transport.asynchronous.transport.generate_payload_from_subscription"
 )
-def test_trigger_webhook_async_with_subscription_use_replica_db(
+def test_trigger_webhook_async_with_subscription_use_main_db(
     mocked_generate_payload,
     mocked_get_webhooks_for_event,
     mocked_request,
@@ -168,4 +169,4 @@ def test_trigger_webhook_async_with_subscription_use_replica_db(
 
     # then
     mocked_generate_payload.assert_called_once()
-    assert mocked_generate_payload.call_args[1]["request"].allow_replica
+    assert not mocked_generate_payload.call_args[1]["request"].allow_replica

@@ -6,6 +6,7 @@ from django.db import transaction
 from graphql import GraphQLError
 
 from ....order import models
+from ....order.utils import update_order_charge_data
 from ....permission.enums import OrderPermissions
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_313, ADDED_IN_315, PREVIEW_FEATURE
@@ -125,13 +126,13 @@ class OrderGrantRefundUpdate(BaseMutation):
     @classmethod
     def validate_input(cls, input: dict[str, Any]):
         amount = input.get("amount")
-        reason = input.get("reason", "")
+        reason = input.get("reason")
         input_lines = input.get("add_lines", [])
         remove_lines = input.get("remove_lines", [])
         grant_refund_for_shipping = input.get("grant_refund_for_shipping", False)
         if (
-            not amount
-            and not reason
+            amount is None
+            and reason is None
             and not input_lines
             and not grant_refund_for_shipping
             and not remove_lines
@@ -333,4 +334,5 @@ class OrderGrantRefundUpdate(BaseMutation):
 
         cleaned_input = cls.clean_input(granted_refund, input)
         cls.process_update_for_granted_refund(order, granted_refund, cleaned_input)
+        update_order_charge_data(order)
         return cls(order=order, granted_refund=granted_refund)

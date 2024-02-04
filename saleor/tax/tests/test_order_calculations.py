@@ -8,8 +8,10 @@ from ...core.prices import quantize_price
 from ...core.taxes import zero_money, zero_taxed_money
 from ...discount import DiscountType, DiscountValueType
 from ...order import OrderStatus
+from ...order.base_calculations import apply_order_discounts
 from ...order.calculations import fetch_order_prices_if_expired
 from ...order.utils import get_order_country
+from ...payment.model_helpers import get_subtotal
 from ...plugins.manager import get_plugins_manager
 from .. import TaxCalculationStrategy
 from ..calculations.order import (
@@ -67,6 +69,7 @@ def test_calculations_calculate_order_undiscounted_total(
         name=voucher_shipping_type.code,
         currency=order.currency,
         amount_value=Decimal(5.0),
+        voucher=voucher_shipping_type,
     )
 
     # when
@@ -140,7 +143,7 @@ def test_calculations_calculate_order_total_default_country_rate(order_with_line
     )
 
 
-def test_calculations_calculate_order_total_voucher(order_with_lines):
+def test_calculations_calculate_order_total_voucher(order_with_lines, voucher):
     # given
     order = order_with_lines
     prices_entered_with_tax = True
@@ -156,6 +159,7 @@ def test_calculations_calculate_order_total_voucher(order_with_lines):
         translated_name="VoucherPL",
         currency=order.currency,
         amount_value=10,
+        voucher=voucher,
     )
 
     # when
@@ -163,7 +167,7 @@ def test_calculations_calculate_order_total_voucher(order_with_lines):
 
     # then
     assert order.total == TaxedMoney(
-        net=Money("56.92", "USD"), gross=Money("70.01", "USD")
+        net=Money("56.91", "USD"), gross=Money("70.00", "USD")
     )
 
 
@@ -189,7 +193,7 @@ def test_calculations_calculate_order_total_with_manual_discount(order_with_line
 
     # then
     assert order.total == TaxedMoney(
-        net=Money("56.92", "USD"), gross=Money("70.01", "USD")
+        net=Money("56.91", "USD"), gross=Money("70.00", "USD")
     )
 
 
@@ -243,7 +247,7 @@ def test_calculations_calculate_order_total_with_discount_for_subtotal_and_shipp
 
     # then
     assert order.total == TaxedMoney(
-        net=Money("3.13", "USD"), gross=Money("5.00", "USD")
+        net=Money("4.06", "USD"), gross=Money("5.01", "USD")
     )
 
 
@@ -274,7 +278,7 @@ def test_calculations_calculate_order_total_with_discount_for_more_than_order_to
 
 
 def test_calculations_calculate_order_total_with_manual_discount_and_voucher(
-    order_with_lines,
+    order_with_lines, voucher
 ):
     # given
     order = order_with_lines
@@ -299,6 +303,7 @@ def test_calculations_calculate_order_total_with_manual_discount_and_voucher(
         translated_name="VoucherPL",
         currency=order.currency,
         amount_value=10,
+        voucher=voucher,
     )
 
     # when
@@ -379,6 +384,7 @@ def test_calculate_order_shipping_voucher_on_shipping(
         name=voucher_shipping_type.code,
         currency=currency,
         amount_value=discount_amount,
+        voucher=voucher_shipping_type,
     )
     channel = order.channel
     shipping_channel_listings = method.channel_listings.get(channel=channel)
@@ -428,6 +434,7 @@ def test_calculate_order_shipping_free_shipping_voucher(
         name=voucher_shipping_type.code,
         currency=currency,
         amount_value=shipping_price.amount,
+        voucher=voucher_shipping_type,
     )
 
     # when
@@ -454,7 +461,6 @@ def test_update_taxes_for_order_lines(order_with_lines):
     )
 
     # then
-
     for line in lines:
         assert line.unit_price == TaxedMoney(
             net=quantize_price(line.base_unit_price / Decimal("1.23"), currency),
@@ -479,21 +485,12 @@ def test_update_taxes_for_order_lines_voucher_on_entire_order(
     currency = order.currency
     prices_entered_with_tax = True
     _enable_flat_rates(order, prices_entered_with_tax)
-    lines = order.lines.all()
     country_code = get_order_country(order)
 
     order.voucher = voucher
     lines = list(order.lines.all())
     total_amount = sum([line.base_unit_price.amount * line.quantity for line in lines])
-    order.undiscounted_total_gross_amount = total_amount
-    order.undiscounted_total_net_amount = total_amount
-    order.save(
-        update_fields=[
-            "voucher",
-            "undiscounted_total_gross_amount",
-            "undiscounted_total_net_amount",
-        ]
-    )
+    order.save(update_fields=["voucher"])
 
     order_discount_amount = Decimal("5.0")
     order.discounts.create(
@@ -503,9 +500,11 @@ def test_update_taxes_for_order_lines_voucher_on_entire_order(
         name=voucher.code,
         currency=currency,
         amount_value=order_discount_amount,
+        voucher=voucher,
     )
 
     # when
+    apply_order_discounts(order, lines)
     lines, _ = update_taxes_for_order_lines(
         order, lines, country_code, Decimal(23), prices_entered_with_tax
     )
@@ -516,10 +515,9 @@ def test_update_taxes_for_order_lines_voucher_on_entire_order(
         discount_amount = quantize_price(
             total_line_price.amount / total_amount * order_discount_amount, currency
         )
-        unit_gross = quantize_price(
-            (total_line_price - Money(discount_amount, currency)) / line.quantity,
-            currency,
-        )
+        unit_gross = (
+            total_line_price - Money(discount_amount, currency)
+        ) / line.quantity
         assert line.unit_price == TaxedMoney(
             net=quantize_price(unit_gross / Decimal("1.23"), currency),
             gross=quantize_price(unit_gross, currency),
@@ -575,6 +573,7 @@ def test_update_taxes_for_order_lines_voucher_on_shipping(
         name=voucher_shipping_type.code,
         currency=currency,
         amount_value=order_discount_amount,
+        voucher=voucher_shipping_type,
     )
 
     # when
@@ -686,7 +685,7 @@ def test_use_default_country_rate_when_no_tax_class_was_set_before(
     order_with_lines,
 ):
     # given
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     order = order_with_lines
     country = get_order_country(order)
     TaxClassCountryRate.objects.create(country=country, rate=20)
@@ -736,3 +735,5 @@ def test_use_default_country_rate_when_no_tax_class_was_set_before(
     assert order.shipping_tax_rate == Decimal("0.20")
     assert not order.shipping_tax_class
     assert not order.shipping_tax_class_name
+
+    assert order.subtotal == get_subtotal(order.lines.all(), order.currency)

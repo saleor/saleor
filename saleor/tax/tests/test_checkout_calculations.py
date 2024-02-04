@@ -26,7 +26,7 @@ def _enable_flat_rates(checkout, prices_entered_with_tax):
 
 
 @pytest.mark.parametrize(
-    "expected_net, expected_gross, voucher_amount, prices_entered_with_tax",
+    ("expected_net", "expected_gross", "voucher_amount", "prices_entered_with_tax"),
     [
         ("40.00", "49.20", "0.0", False),
         ("30.08", "37.00", "3.0", True),
@@ -58,7 +58,7 @@ def test_calculate_checkout_total(
     product.tax_class.country_rates.update_or_create(country=address.country, rate=23)
 
     lines, _ = fetch_checkout_lines(checkout)
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     # when
@@ -73,7 +73,7 @@ def test_calculate_checkout_total(
 
 
 @pytest.mark.parametrize(
-    "expected_net, expected_gross, voucher_amount, prices_entered_with_tax",
+    ("expected_net", "expected_gross", "voucher_amount", "prices_entered_with_tax"),
     [
         ("20.33", "25.00", "0.0", True),
         ("20.00", "24.60", "5.0", False),
@@ -84,7 +84,6 @@ def test_calculate_checkout_total_with_sale(
     address,
     shipping_zone,
     voucher,
-    discount_info,
     expected_net,
     expected_gross,
     voucher_amount,
@@ -107,7 +106,7 @@ def test_calculate_checkout_total_with_sale(
     product.tax_class.country_rates.update_or_create(country=address.country, rate=23)
 
     lines, _ = fetch_checkout_lines(checkout)
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     # when
@@ -143,7 +142,7 @@ def test_calculate_checkout_total_no_tax_rates(
     TaxClassCountryRate.objects.all().delete()
 
     lines, _ = fetch_checkout_lines(checkout)
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     # when
@@ -176,7 +175,7 @@ def test_calculate_checkout_total_default_tax_rate_for_country(
     TaxClassCountryRate.objects.create(country=address.country, rate=23)
 
     lines, _ = fetch_checkout_lines(checkout)
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     # when
@@ -191,7 +190,7 @@ def test_calculate_checkout_total_default_tax_rate_for_country(
 
 
 @pytest.mark.parametrize(
-    "expected_net, expected_gross, voucher_amount, prices_entered_with_tax",
+    ("expected_net", "expected_gross", "voucher_amount", "prices_entered_with_tax"),
     [
         ("40.00", "49.20", "0.0", False),
         ("30.08", "37.00", "3.0", True),
@@ -211,7 +210,7 @@ def test_calculate_checkout_total_with_shipping_voucher(
     checkout = checkout_with_item
     _enable_flat_rates(checkout, prices_entered_with_tax)
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout.shipping_address = address
     checkout.save()
     voucher_amount = Money(voucher_amount, "USD")
@@ -240,7 +239,7 @@ def test_calculate_checkout_total_with_shipping_voucher(
 
 
 @pytest.mark.parametrize(
-    "expected_net, expected_gross, voucher_amount, prices_entered_with_tax",
+    ("expected_net", "expected_gross", "voucher_amount", "prices_entered_with_tax"),
     [
         ("20.33", "25.00", "0.0", True),
         ("20.00", "24.60", "5.0", False),
@@ -250,7 +249,6 @@ def test_calculate_checkout_total_with_shipping_voucher_and_sale(
     checkout_with_item_on_promotion,
     address,
     shipping_zone,
-    discount_info,
     voucher_shipping_type,
     expected_net,
     expected_gross,
@@ -261,7 +259,7 @@ def test_calculate_checkout_total_with_shipping_voucher_and_sale(
     checkout = checkout_with_item_on_promotion
     _enable_flat_rates(checkout, prices_entered_with_tax)
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout.shipping_address = address
     checkout.save()
     voucher_amount = Money(voucher_amount, "USD")
@@ -294,7 +292,7 @@ def test_calculate_checkout_total_with_shipping_voucher_and_sale(
 
 
 @pytest.mark.parametrize(
-    "expected_net, expected_gross, prices_entered_with_tax",
+    ("expected_net", "expected_gross", "prices_entered_with_tax"),
     [
         ("40.65", "50.00", True),
         ("50.00", "61.50", False),
@@ -321,7 +319,7 @@ def test_calculate_checkout_subtotal(
     checkout.shipping_method = shipping_zone.shipping_methods.get()
     checkout.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout, [], manager)
     add_variant_to_checkout(checkout_info, variant, 2)
     lines, _ = fetch_checkout_lines(checkout)
@@ -360,7 +358,7 @@ def test_calculate_checkout_subtotal_with_promotion_prices_entered_with_tax(
     checkout.shipping_method = shipping_zone.shipping_methods.get()
     checkout.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout, [], manager)
     add_variant_to_checkout(checkout_info, variant, 2)
     lines, _ = fetch_checkout_lines(checkout)
@@ -405,7 +403,7 @@ def test_calculate_checkout_subtotal_with_promotion_prices_not_entered_with_tax(
     checkout.shipping_method = shipping_zone.shipping_methods.get()
     checkout.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout, [], manager)
     add_variant_to_checkout(checkout_info, variant, 2)
     lines, _ = fetch_checkout_lines(checkout)
@@ -432,7 +430,7 @@ def test_calculate_checkout_subtotal_with_promotion_prices_not_entered_with_tax(
 
 
 def test_calculate_checkout_line_total(checkout_with_item, shipping_zone, address):
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout = checkout_with_item
 
     rate = Decimal(23)
@@ -471,7 +469,7 @@ def test_calculate_checkout_line_total_voucher_on_entire_order(
 ):
     # given
     checkout = checkout_with_item
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     rate = Decimal(23)
     prices_entered_with_tax = True
@@ -521,7 +519,7 @@ def test_calculate_checkout_line_total_with_voucher_one_line(
 ):
     # given
     checkout = checkout_with_item
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     line = checkout_with_item.lines.first()
 
     rate = Decimal(23)
@@ -573,7 +571,7 @@ def test_calculate_checkout_line_total_with_voucher_multiple_lines(
     checkout_with_item, shipping_zone, address, voucher, product_list
 ):
     # given
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout = checkout_with_item
 
     rate = Decimal(23)
@@ -643,7 +641,7 @@ def test_calculate_checkout_line_total_with_voucher_multiple_lines_last_line(
     checkout_with_item, shipping_zone, address, voucher, product_list
 ):
     # given
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout = checkout_with_item
 
     rate = Decimal(23)
@@ -723,7 +721,7 @@ def test_calculate_checkout_line_total_with_shipping_voucher(
     voucher_shipping_type,
 ):
     # given
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     checkout = checkout_with_item
 
     rate = Decimal(23)
@@ -773,12 +771,11 @@ def test_calculate_checkout_line_total_with_shipping_voucher(
 def test_calculate_checkout_shipping(
     checkout_with_item,
     shipping_zone,
-    discount_info,
     address,
 ):
     # given
     checkout = checkout_with_item
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     rate = Decimal(23)
     prices_entered_with_tax = True
     _enable_flat_rates(checkout, prices_entered_with_tax)
@@ -806,13 +803,12 @@ def test_calculate_checkout_shipping(
 
 def test_calculate_checkout_shipping_no_shipping_price(
     checkout_with_item,
-    discount_info,
     address,
     warehouse_for_cc,
 ):
     # given
     checkout = checkout_with_item
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     rate = Decimal(23)
     prices_entered_with_tax = True
     _enable_flat_rates(checkout, prices_entered_with_tax)
@@ -839,13 +835,12 @@ def test_calculate_checkout_shipping_no_shipping_price(
 def test_calculate_checkout_shipping_voucher_on_shipping(
     checkout_with_item,
     shipping_zone,
-    discount_info,
     address,
     voucher_shipping_type,
 ):
     # given
     checkout = checkout_with_item
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     rate = Decimal(23)
     prices_entered_with_tax = True
     _enable_flat_rates(checkout, prices_entered_with_tax)
@@ -884,13 +879,12 @@ def test_calculate_checkout_shipping_voucher_on_shipping(
 def test_calculate_checkout_shipping_free_shipping_voucher(
     checkout_with_item,
     shipping_zone,
-    discount_info,
     address,
     voucher_shipping_type,
 ):
     # given
     checkout = checkout_with_item
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     rate = Decimal(23)
     prices_entered_with_tax = True
     _enable_flat_rates(checkout, prices_entered_with_tax)
@@ -923,13 +917,12 @@ def test_calculate_checkout_shipping_free_shipping_voucher(
 def test_calculate_checkout_shipping_free_entire_order_voucher(
     checkout_with_item,
     shipping_zone,
-    discount_info,
     address,
     voucher,
 ):
     # given
     checkout = checkout_with_item
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     rate = Decimal(23)
     prices_entered_with_tax = True
     _enable_flat_rates(checkout, prices_entered_with_tax)

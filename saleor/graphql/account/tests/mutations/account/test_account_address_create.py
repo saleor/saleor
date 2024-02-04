@@ -94,7 +94,8 @@ def test_customer_create_address_trigger_webhook(
             WebhookEventAsyncType.ADDRESS_CREATED,
             user_api_client.user,
             any_webhook,
-        )
+        ),
+        allow_replica=False,
     )
 
 
@@ -145,8 +146,6 @@ def test_customer_create_default_address(user_api_client, graphql_address_data):
 def test_customer_create_address_the_oldest_address_is_deleted(
     user_api_client, graphql_address_data, address
 ):
-    """Ensure that when mew address it added to user with max amount of addressess,
-    the oldest address will be removed."""
     user = user_api_client.user
     same_address = Address.objects.create(**address.as_data())
     user.addresses.set([address, same_address])

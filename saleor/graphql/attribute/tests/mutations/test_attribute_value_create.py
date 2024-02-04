@@ -155,6 +155,7 @@ def test_create_attribute_value_trigger_webhooks(
         [any_webhook],
         color_attribute,
         SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )
 
     attribute_value_created_call = mock.call(
@@ -172,6 +173,7 @@ def test_create_attribute_value_trigger_webhooks(
         [any_webhook],
         attribute_value,
         SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )
 
     # then
@@ -188,8 +190,6 @@ def test_create_attribute_value_with_the_same_name_as_different_attribute_value(
     color_attribute,
     permission_manage_products,
 ):
-    """Ensure the attribute value with the same slug as value of different attribute
-    can be created."""
     # given
     attribute = attribute_without_values
     query = CREATE_ATTRIBUTE_VALUE_MUTATION
@@ -324,7 +324,7 @@ def test_create_swatch_attribute_value_with_value_and_file(
 
 
 @pytest.mark.parametrize(
-    "field, value",
+    ("field", "value"),
     [
         ("fileUrl", "http://mirumee.com/test_media/test_file.jpeg"),
         ("contentType", "jpeg"),

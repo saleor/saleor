@@ -16,7 +16,7 @@ def test_authorize_success(payment_dummy):
     txn = gateway.authorize(
         payment=payment_dummy,
         token="Fake",
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
         channel_slug=payment_dummy.order.channel.slug,
     )
     assert txn.is_success
@@ -27,7 +27,7 @@ def test_authorize_success(payment_dummy):
 
 
 @pytest.mark.parametrize(
-    "is_active, charge_status",
+    ("is_active", "charge_status"),
     [
         (False, ChargeStatus.NOT_CHARGED),
         (False, ChargeStatus.PARTIALLY_CHARGED),
@@ -46,27 +46,23 @@ def test_authorize_failed(is_active, charge_status, payment_dummy):
     payment.charge_status = charge_status
     payment.save()
     with pytest.raises(PaymentError):
-        txn = gateway.authorize(
+        gateway.authorize(
             payment=payment,
             token="Fake",
-            manager=get_plugins_manager(),
+            manager=get_plugins_manager(allow_replica=False),
             channel_slug=payment.order.channel.slug,
         )
-        assert txn is None
 
 
 def test_authorize_gateway_error(payment_dummy, monkeypatch):
     monkeypatch.setattr("saleor.payment.gateways.dummy.dummy_success", lambda: False)
     with pytest.raises(PaymentError):
-        txn = gateway.authorize(
+        gateway.authorize(
             payment=payment_dummy,
             token="Fake",
-            manager=get_plugins_manager(),
+            manager=get_plugins_manager(allow_replica=False),
             channel_slug=payment_dummy.order.channel.slug,
         )
-        assert txn.kind == TransactionKind.AUTH
-        assert not txn.is_success
-        assert txn.payment == payment_dummy
 
 
 def test_void_success(payment_txn_preauth):
@@ -74,7 +70,7 @@ def test_void_success(payment_txn_preauth):
     assert payment_txn_preauth.charge_status == ChargeStatus.NOT_CHARGED
     txn = gateway.void(
         payment=payment_txn_preauth,
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
         channel_slug=payment_txn_preauth.order.channel.slug,
     )
     assert txn.is_success
@@ -86,7 +82,7 @@ def test_void_success(payment_txn_preauth):
 
 
 @pytest.mark.parametrize(
-    "is_active, charge_status",
+    ("is_active", "charge_status"),
     [
         (False, ChargeStatus.NOT_CHARGED),
         (False, ChargeStatus.PARTIALLY_CHARGED),
@@ -105,35 +101,31 @@ def test_void_failed(is_active, charge_status, payment_dummy):
     payment.charge_status = charge_status
     payment.save()
     with pytest.raises(PaymentError):
-        txn = gateway.void(
+        gateway.void(
             payment=payment,
-            manager=get_plugins_manager(),
+            manager=get_plugins_manager(allow_replica=False),
             channel_slug=payment.order.channel.slug,
         )
-        assert txn is None
 
 
 def test_void_gateway_error(payment_txn_preauth, monkeypatch):
     monkeypatch.setattr("saleor.payment.gateways.dummy.dummy_success", lambda: False)
     with pytest.raises(PaymentError):
-        txn = gateway.void(
+        gateway.void(
             payment=payment_txn_preauth,
-            manager=get_plugins_manager(),
+            manager=get_plugins_manager(allow_replica=False),
             channel_slug=payment_txn_preauth.order.channel.slug,
         )
-        assert txn.kind == TransactionKind.VOID
-        assert not txn.is_success
-        assert txn.payment == payment_txn_preauth
 
 
 @pytest.mark.parametrize(
-    "amount, charge_status",
+    ("amount", "charge_status"),
     [("98.40", ChargeStatus.FULLY_CHARGED), (70, ChargeStatus.PARTIALLY_CHARGED)],
 )
 def test_capture_success(amount, charge_status, payment_txn_preauth):
     txn = gateway.capture(
         payment=payment_txn_preauth,
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
         amount=Decimal(amount),
         channel_slug=payment_txn_preauth.order.channel.slug,
     )
@@ -145,7 +137,7 @@ def test_capture_success(amount, charge_status, payment_txn_preauth):
 
 
 @pytest.mark.parametrize(
-    "amount, captured_amount, charge_status, is_active",
+    ("amount", "captured_amount", "charge_status", "is_active"),
     [
         (80, 0, ChargeStatus.NOT_CHARGED, False),
         (120, 0, ChargeStatus.NOT_CHARGED, True),
@@ -163,33 +155,32 @@ def test_capture_failed(
     payment.charge_status = charge_status
     payment.save()
     with pytest.raises(PaymentError):
-        txn = gateway.capture(
+        gateway.capture(
             payment=payment,
-            manager=get_plugins_manager(),
+            manager=get_plugins_manager(allow_replica=False),
             amount=amount,
             channel_slug=payment.order.channel.slug,
         )
-        assert txn is None
 
 
 def test_capture_gateway_error(payment_txn_preauth, monkeypatch):
     monkeypatch.setattr("saleor.payment.gateways.dummy.dummy_success", lambda: False)
     with pytest.raises(PaymentError):
-        txn = gateway.capture(
+        gateway.capture(
             payment=payment_txn_preauth,
-            manager=get_plugins_manager(),
+            manager=get_plugins_manager(allow_replica=False),
             amount=80,
             channel_slug=payment_txn_preauth.order.channel.slug,
         )
-        assert txn.kind == TransactionKind.CAPTURE
-        assert not txn.is_success
-        assert txn.payment == payment_txn_preauth
 
 
 @pytest.mark.parametrize(
     (
-        "initial_captured_amount, refund_amount, final_captured_amount, "
-        "final_charge_status, active_after"
+        "initial_captured_amount",
+        "refund_amount",
+        "final_captured_amount",
+        "final_charge_status",
+        "active_after",
     ),
     [
         (80, 80, 0, ChargeStatus.FULLY_REFUNDED, False),
@@ -210,7 +201,7 @@ def test_refund_success(
     payment.save()
     txn = gateway.refund(
         payment=payment,
-        manager=get_plugins_manager(),
+        manager=get_plugins_manager(allow_replica=False),
         amount=Decimal(refund_amount),
         channel_slug=payment.order.channel.slug,
     )
@@ -225,7 +216,7 @@ def test_refund_success(
 
 
 @pytest.mark.parametrize(
-    "initial_captured_amount, refund_amount, initial_charge_status",
+    ("initial_captured_amount", "refund_amount", "initial_charge_status"),
     [
         (0, 10, ChargeStatus.NOT_CHARGED),
         (10, 20, ChargeStatus.PARTIALLY_CHARGED),
@@ -242,13 +233,12 @@ def test_refund_failed(
     payment.captured_amount = Decimal(initial_captured_amount)
     payment.save()
     with pytest.raises(PaymentError):
-        txn = gateway.refund(
+        gateway.refund(
             payment=payment,
-            manager=get_plugins_manager(),
+            manager=get_plugins_manager(allow_replica=False),
             amount=Decimal(refund_amount),
             channel_slug=payment.order.channel.slug,
         )
-        assert txn is None
 
 
 def test_refund_gateway_error(payment_txn_captured, monkeypatch):
@@ -260,7 +250,7 @@ def test_refund_gateway_error(payment_txn_captured, monkeypatch):
     with pytest.raises(PaymentError):
         gateway.refund(
             payment=payment,
-            manager=get_plugins_manager(),
+            manager=get_plugins_manager(allow_replica=False),
             amount=Decimal("80.00"),
             channel_slug=payment.order.channel.slug,
         )

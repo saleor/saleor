@@ -55,14 +55,14 @@ QUERY_APPS_WITH_FILTER = """
 
 
 @pytest.mark.parametrize(
-    "app_filter, count",
-    (
+    ("app_filter", "count"),
+    [
         ({"search": "Sample"}, 1),
         ({"isActive": False}, 1),
         ({}, 2),
         ({"type": AppTypeEnum.THIRDPARTY.name}, 1),
         ({"type": AppTypeEnum.LOCAL.name}, 1),
-    ),
+    ],
 )
 def test_apps_query(
     staff_api_client,
@@ -160,6 +160,26 @@ def test_apps_query_no_permission(
     assert_no_permission(response)
 
 
+def test_apps_query_marked_as_removed(
+    staff_api_client, permission_manage_apps, app, removed_app
+):
+    # given
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_APPS_WITH_FILTER,
+        {},
+        permissions=[permission_manage_apps],
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    apps_data = content["data"]["apps"]["edges"]
+    assert apps_data[0]["node"]["name"] == app.name
+    assert len(apps_data) == 1
+
+
 QUERY_APPS_WITH_SORT = """
     query ($sort_by: AppSortingInput!) {
         apps(first:5, sortBy: $sort_by) {
@@ -174,7 +194,7 @@ QUERY_APPS_WITH_SORT = """
 
 
 @pytest.mark.parametrize(
-    "apps_sort, result_order",
+    ("apps_sort", "result_order"),
     [
         ({"field": "NAME", "direction": "ASC"}, ["facebook", "google"]),
         ({"field": "NAME", "direction": "DESC"}, ["google", "facebook"]),

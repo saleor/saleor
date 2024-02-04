@@ -11,6 +11,7 @@ from ...core.mutations import ModelMutation
 from ...core.types import AppError, BaseInputObjectType
 from ...utils import get_user_or_app_from_context, requestor_is_superuser
 from ..types import AppToken
+from ..utils import validate_app_is_not_removed
 
 
 class AppTokenInput(BaseInputObjectType):
@@ -58,6 +59,7 @@ class AppTokenCreate(ModelMutation):
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
         app = cleaned_input.get("app")
+        validate_app_is_not_removed(app, data.get("app"), "app")
         requestor = get_user_or_app_from_context(info.context)
         if not requestor_is_superuser(requestor) and not can_manage_app(requestor, app):
             msg = "You can't manage this app."

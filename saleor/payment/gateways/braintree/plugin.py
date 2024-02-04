@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 from saleor.plugins.base_plugin import BasePlugin, ConfigurationTypeField
 
@@ -148,7 +148,7 @@ class BraintreeGatewayPlugin(BasePlugin):
 
     def list_payment_sources(
         self, customer_id: str, previous_value
-    ) -> List["CustomerSource"]:
+    ) -> list["CustomerSource"]:
         if not self.active:
             return previous_value
         sources = list_client_sources(self._get_gateway_config(), customer_id)

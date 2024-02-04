@@ -1405,8 +1405,6 @@ def test_order_fulfill_preorder_waiting_fulfillment(
     warehouse,
     site_settings,
 ):
-    """If fulfillment_auto_approve is set to False,
-    it's possible to fulfill lines to WAITING_FOR_APPROVAL status."""
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     site_settings.fulfillment_auto_approve = False
     site_settings.save(update_fields=["fulfillment_auto_approve"])

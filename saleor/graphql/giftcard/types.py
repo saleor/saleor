@@ -65,7 +65,9 @@ class GiftCardEventBalance(BaseObjectType):
 
 
 class GiftCardEvent(ModelObjectType[models.GiftCardEvent]):
-    id = graphene.GlobalID(required=True)
+    id = graphene.GlobalID(
+        required=True, description="ID of the event associated with a gift card."
+    )
     date = graphene.types.datetime.DateTime(
         description="Date when event happened at in ISO 8601 format."
     )
@@ -215,8 +217,12 @@ class GiftCardEvent(ModelObjectType[models.GiftCardEvent]):
 
 
 class GiftCardTag(ModelObjectType[models.GiftCardTag]):
-    id = graphene.GlobalID(required=True)
-    name = graphene.String(required=True)
+    id = graphene.GlobalID(
+        required=True, description="ID of the tag associated with a gift card."
+    )
+    name = graphene.String(
+        required=True, description="Name of the tag associated with a gift card."
+    )
 
     class Meta:
         description = "The gift card tag." + ADDED_IN_31
@@ -225,7 +231,7 @@ class GiftCardTag(ModelObjectType[models.GiftCardTag]):
 
 
 class GiftCard(ModelObjectType[models.GiftCard]):
-    id = graphene.GlobalID(required=True)
+    id = graphene.GlobalID(required=True, description="ID of the gift card.")
     display_code = graphene.String(
         description="Code in format which allows displaying in a user interface.",
         required=True,
@@ -245,7 +251,9 @@ class GiftCard(ModelObjectType[models.GiftCard]):
         ),
         required=True,
     )
-    created = graphene.DateTime(required=True)
+    created = graphene.DateTime(
+        required=True, description="Date and time when gift card was created."
+    )
     created_by = graphene.Field(
         "saleor.graphql.account.types.User",
         description=("The user who bought or issued a gift card." + ADDED_IN_31),
@@ -272,8 +280,10 @@ class GiftCard(ModelObjectType[models.GiftCard]):
         ),
         deprecation_reason=DEPRECATED_IN_3X_FIELD,
     )
-    last_used_on = graphene.DateTime()
-    expiry_date = Date()
+    last_used_on = graphene.DateTime(
+        description="Date and time when gift card was last used."
+    )
+    expiry_date = Date(description="Expiry date of the gift card.")
     app = graphene.Field(
         App,
         description=(

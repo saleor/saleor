@@ -57,7 +57,7 @@ SORT_EXPORT_FILES_QUERY = """
 
 
 @pytest.mark.parametrize(
-    "status_filter, count",
+    ("status_filter", "count"),
     [
         ({"status": JobStatus.SUCCESS.upper()}, 2),
         ({"status": JobStatus.PENDING.upper()}, 2),
@@ -87,7 +87,7 @@ def test_filter_export_files_by_status(
 
 
 @pytest.mark.parametrize(
-    "created_at_filter, count",
+    ("created_at_filter", "count"),
     [
         ({"createdAt": {"gte": "2019-04-10T00:00:00+00:00"}}, 3),
         ({"createdAt": {"lte": "2019-04-10T00:00:00+00:00"}}, 2),
@@ -116,7 +116,7 @@ def test_filter_export_files_by_created_at_date(
 
 
 @pytest.mark.parametrize(
-    "ended_at_filter, count",
+    ("ended_at_filter", "count"),
     [
         ({"updatedAt": {"gte": "2019-04-18T00:00:00+00:00"}}, 3),
         ({"updatedAt": {"lte": "2019-04-18T00:00:00+00:00"}}, 2),

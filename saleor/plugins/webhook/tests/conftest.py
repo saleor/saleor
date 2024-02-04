@@ -1,6 +1,5 @@
 import uuid
 from decimal import Decimal
-from typing import List
 
 import pytest
 from measurement.measures import Weight
@@ -18,15 +17,15 @@ from ....webhook.models import Webhook, WebhookEvent
 def webhook_plugin(settings):
     def factory() -> WebhookPlugin:
         settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
-        manager = get_plugins_manager()
+        manager = get_plugins_manager(allow_replica=False)
         return manager.global_plugins[0]
 
     return factory
 
 
-@pytest.fixture()
+@pytest.fixture
 def available_shipping_methods_factory():
-    def factory(num_methods=1) -> List[ShippingMethodData]:
+    def factory(num_methods=1) -> list[ShippingMethodData]:
         methods = []
         for i in range(num_methods):
             methods.append(

@@ -1,5 +1,5 @@
 import copy
-from datetime import timedelta
+from datetime import datetime, timedelta
 from decimal import Decimal
 from unittest.mock import patch
 
@@ -31,7 +31,7 @@ from .....payment import TransactionEventType
 from .....payment.models import TransactionEvent, TransactionItem
 from .....warehouse.models import Stock
 from ....core.enums import ErrorPolicyEnum
-from ....discount.enums import DiscountValueTypeEnum
+from ....discount.enums import DiscountValueTypeEnum, OrderDiscountTypeEnum
 from ....payment.enums import TransactionActionEnum
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...bulk_mutations.order_bulk_create import MAX_NOTE_LENGTH, MINUTES_DIFF
@@ -246,16 +246,26 @@ ORDER_BULK_CREATE = """
                         url
                     }
                     discounts {
+                        type
                         valueType
                         value
                         reason
                     }
+                    voucher {
+                        id
+                        code
+                    }
+                    voucherCode
                 }
                 errors {
                     path
                     message
                     code
                 }
+            }
+            errors {
+                message
+                code
             }
         }
     }
@@ -396,13 +406,13 @@ def order_bulk_input(
         "invoices": [invoice],
         "discounts": [discount],
         "giftCards": ["never_expiry"],
-        "voucher": "mirumee",
+        "voucherCode": "mirumee",
         "metadata": [{"key": "md key", "value": "md value"}],
         "privateMetadata": [{"key": "pmd key", "value": "pmd value"}],
     }
 
 
-@pytest.fixture()
+@pytest.fixture
 def order_bulk_input_with_multiple_order_lines_and_fulfillments(
     order_bulk_input,
     product_variant_list,
@@ -484,6 +494,7 @@ def test_order_bulk_create(
     graphql_address_data,
     shipping_method_channel_PLN,
     variant,
+    voucher,
 ):
     # given
     orders_count = Order.objects.count()
@@ -496,6 +507,7 @@ def test_order_bulk_create(
     transaction_events_count = TransactionEvent.objects.count()
     invoice_count = Invoice.objects.count()
     discount_count = OrderDiscount.objects.count()
+    voucher_code = "mirumee"
 
     order = order_bulk_input
     order["externalReference"] = "ext-ref-1"
@@ -544,6 +556,9 @@ def test_order_bulk_create(
     assert order["metadata"][0]["value"] == "md value"
     assert order["privateMetadata"][0]["key"] == "pmd key"
     assert order["privateMetadata"][0]["value"] == "pmd value"
+    assert order["voucher"]["id"] == graphene.Node.to_global_id("Voucher", voucher.id)
+    assert order["voucher"]["code"] == voucher_code
+    assert order["voucherCode"] == voucher_code
     db_order = Order.objects.get()
     assert db_order.external_reference == "ext-ref-1"
     assert db_order.channel.slug == channel_PLN.slug
@@ -573,7 +588,8 @@ def test_order_bulk_create(
     assert db_order.display_gross_prices
     assert db_order.currency == "PLN"
     assert db_order.gift_cards.first().code == "never_expiry"
-    assert db_order.voucher.code == "mirumee"
+    assert db_order.voucher.code == voucher_code
+    assert db_order.voucher_code == voucher_code
     assert db_order.metadata["md key"] == "md value"
     assert db_order.private_metadata["pmd key"] == "pmd value"
     assert db_order.total_authorized_amount == Decimal("10")
@@ -716,16 +732,20 @@ def test_order_bulk_create(
     db_invoice = Invoice.objects.get()
     assert db_invoice.number == "01/12/2020/TEST"
     assert db_invoice.external_url == "http://www.example.com"
+    assert db_invoice.url == "http://www.example.com"
     assert db_invoice.private_metadata["pmd key"] == "pmd value"
     assert db_invoice.metadata["md key"] == "md value"
     assert db_invoice.order_id == db_order.id
     assert db_invoice.status == JobStatus.SUCCESS
 
+    assert len(order["discounts"]) == 1
     discount = order["discounts"][0]
+    assert discount["type"] == OrderDiscountTypeEnum.MANUAL.name
     assert discount["valueType"] == DiscountValueTypeEnum.FIXED.name
     assert discount["value"] == 10
     assert discount["reason"] == "birthday"
     db_discount = OrderDiscount.objects.get()
+    assert db_discount.type == OrderDiscountTypeEnum.MANUAL.value
     assert db_discount.value_type == DiscountValueTypeEnum.FIXED.value
     assert db_discount.value == 10
     assert db_discount.reason == "birthday"
@@ -841,6 +861,120 @@ def test_order_bulk_create_multiple_lines(
     assert db_order.total_net_amount == 150
 
     assert OrderLine.objects.count() == lines_count + 2
+
+
+def test_order_bulk_create_line_without_variant(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    lines_count = OrderLine.objects.count()
+
+    order = order_bulk_input
+    order["lines"][0]["variantId"] = None
+    order["lines"][0]["variantName"] = None
+    order["fulfillments"][0]["lines"][0]["variantId"] = None
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+        "errorPolicy": ErrorPolicyEnum.IGNORE_FAILED.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 1
+    assert len(content["data"]["orderBulkCreate"]["results"][0]["errors"]) == 2
+
+    order = content["data"]["orderBulkCreate"]["results"][0]["order"]
+
+    line_1 = order["lines"][0]
+    assert line_1["unitPrice"]["gross"]["amount"] == Decimal(120 / 5)
+    assert line_1["unitPrice"]["net"]["amount"] == Decimal(100 / 5)
+
+    db_lines = OrderLine.objects.all()
+    db_line_1 = db_lines[0]
+    assert db_line_1.unit_price.gross.amount == Decimal(120 / 5)
+    assert db_line_1.unit_price.net.amount == Decimal(100 / 5)
+
+    assert order["total"]["gross"]["amount"] == 120
+    assert order["total"]["net"]["amount"] == 100
+    db_order = Order.objects.get()
+    assert db_order.total_gross_amount == 120
+    assert db_order.total_net_amount == 100
+
+    error0 = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
+    assert error0["message"] == (
+        "One of [variant_id, variant_external_reference, variant_sku] arguments"
+        " must be provided to resolve ProductVariant instance."
+    )
+    assert error0["code"] == OrderBulkCreateErrorCode.REQUIRED.name
+    assert error0["path"] == "lines.0"
+
+    error1 = content["data"]["orderBulkCreate"]["results"][0]["errors"][1]
+    assert error1["message"] == (
+        "One of [variant_id, variant_external_reference, variant_sku] arguments"
+        " must be provided to resolve ProductVariant instance."
+    )
+    assert error1["code"] == OrderBulkCreateErrorCode.REQUIRED.name
+    assert error1["path"] == "fulfillments.0.lines.0"
+
+    assert OrderLine.objects.count() == lines_count + 1
+
+
+def test_order_bulk_create_line_without_variant_and_product_name_fails(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+
+    order = order_bulk_input
+    order["lines"][0]["variantId"] = None
+    order["lines"][0]["productName"] = None
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+        "errorPolicy": ErrorPolicyEnum.IGNORE_FAILED.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 0
+    assert len(content["data"]["orderBulkCreate"]["results"][0]["errors"]) == 2
+
+    error0 = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
+    assert error0["message"] == (
+        "One of [variant_id, variant_external_reference, variant_sku] arguments"
+        " must be provided to resolve ProductVariant instance."
+    )
+    assert error0["code"] == OrderBulkCreateErrorCode.REQUIRED.name
+    assert error0["path"] == "lines.0"
+
+    error1 = content["data"]["orderBulkCreate"]["results"][0]["errors"][1]
+    assert error1["message"] == (
+        "Order line input must contain product name when no variant provided."
+    )
+    assert error1["code"] == OrderBulkCreateErrorCode.REQUIRED.name
+    assert error1["path"] == "lines.0"
 
 
 def test_order_bulk_create_multiple_notes(
@@ -1788,7 +1922,7 @@ def test_order_bulk_create_update_stocks_missing_stocks(
 
 
 @pytest.mark.parametrize(
-    "error_policy,expected_order_count",
+    ("error_policy", "expected_order_count"),
     [
         (ErrorPolicyEnum.REJECT_EVERYTHING.name, 0),
         (ErrorPolicyEnum.REJECT_FAILED_ROWS.name, 1),
@@ -1876,6 +2010,43 @@ def test_order_bulk_create_error_order_future_date(
     assert error["message"] == "Order input contains future date."
     assert error["path"] == "created_at"
     assert error["code"] == OrderBulkCreateErrorCode.FUTURE_DATE.name
+
+    assert Order.objects.count() == orders_count
+
+
+def test_order_bulk_create_invalid_date_format(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    orders_count = Order.objects.count()
+
+    order = order_bulk_input
+    current_time = datetime.now() + timedelta(minutes=MINUTES_DIFF + 1)
+    order["createdAt"] = current_time.strftime("%Y-%m-%dT%H:%M:%S")
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    error = content["data"]["orderBulkCreate"]["errors"][0]
+    assert (
+        error["message"] == "Input 'date' must be timezone-aware. "
+        "Expected format: 'YYYY-MM-DD HH:MM:SS TZ'."
+    )
+    assert error["code"] == OrderBulkCreateErrorCode.INVALID.name
 
     assert Order.objects.count() == orders_count
 
@@ -2424,6 +2595,44 @@ def test_order_bulk_create_error_get_instance_with_no_keys(
     assert Order.objects.count() == orders_count
 
 
+def test_order_bulk_create_no_user_input_provided_ignore_failed_policy(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    order = order_bulk_input
+    order["user"]["id"] = None
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {
+        "orders": [order],
+        "errorPolicy": ErrorPolicyEnum.IGNORE_FAILED.name,
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 1
+    assert content["data"]["orderBulkCreate"]["results"][0]["order"]
+    error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
+    assert (
+        error["message"] == "One of [id, email, external_reference] arguments"
+        " must be provided to resolve User instance."
+    )
+    assert error["path"] == "user"
+    assert error["code"] == OrderBulkCreateErrorCode.REQUIRED.name
+    db_order = Order.objects.get()
+    assert not db_order.user
+
+
 def test_order_bulk_create_error_invalid_quantity(
     staff_api_client,
     permission_manage_orders,
@@ -2463,8 +2672,16 @@ def test_order_bulk_create_error_invalid_quantity(
 
 
 @pytest.mark.parametrize(
-    "quantity,total_net,total_gross,undiscounted_net,undiscounted_gross,message,code,"
-    "field",
+    (
+        "quantity",
+        "total_net",
+        "total_gross",
+        "undiscounted_net",
+        "undiscounted_gross",
+        "message",
+        "code",
+        "field",
+    ),
     [
         (
             -5,
@@ -2927,7 +3144,7 @@ def test_order_bulk_create_error_invoice_invalid_url(
 
 
 @pytest.mark.parametrize(
-    "value_type,message",
+    ("value_type", "message"),
     [
         (
             DiscountValueTypeEnum.FIXED.name,
@@ -3013,7 +3230,7 @@ def test_order_bulk_create_user_not_found_but_user_email_provided(
 
 
 @pytest.mark.parametrize(
-    "status,fulfillment_quantity,is_invalid",
+    ("status", "fulfillment_quantity", "is_invalid"),
     [
         (OrderStatusEnum.FULFILLED, 5, False),
         (OrderStatusEnum.UNFULFILLED, 0, False),
@@ -3115,7 +3332,7 @@ def test_order_bulk_create_error_path_fulfillments(
     # then
     assert content["data"]["orderBulkCreate"]["count"] == 0
     error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
-    assert error["message"] == "Couldn't resolve id: dummy."
+    assert error["message"] == "Invalid ID: dummy. Expected: Warehouse."
     assert error["path"] == "fulfillments.1.lines.2.warehouse"
     assert error["code"] == OrderBulkCreateErrorCode.INVALID.name
 
@@ -3452,7 +3669,7 @@ def test_order_bulk_create_error_negative_order_line_index(
 
 
 @pytest.mark.parametrize(
-    "status,order_quantity,fulfillment_quantity",
+    ("status", "order_quantity", "fulfillment_quantity"),
     [
         (OrderStatusEnum.PARTIALLY_FULFILLED.name, 5, 0),
         (OrderStatusEnum.PARTIALLY_FULFILLED.name, 5, 5),

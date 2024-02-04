@@ -5,7 +5,7 @@ import re
 from dataclasses import asdict, dataclass
 from decimal import Decimal, InvalidOperation
 from email.headerregistry import Address
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Callable, Optional
 
 import dateutil.parser
 import html2text
@@ -150,7 +150,7 @@ def get_product_image_thumbnail(this, size: int, image_data):
 
 def compare(this, val1, compare_operator, val2):
     """Compare two values based on the provided operator."""
-    operators: Dict[str, Callable[[Any, Any], Any]] = {
+    operators: dict[str, Callable[[Any, Any], Any]] = {
         "==": operator.eq,
         "!=": operator.ne,
         "<": operator.lt,
@@ -314,7 +314,7 @@ def validate_default_email_configuration(
 
 def validate_format_of_provided_templates(
     plugin_configuration: "PluginConfiguration",
-    email_templates_data: List[Dict],
+    email_templates_data: list[dict],
 ):
     """Make sure that the templates provided by the user have the correct structure."""
     configuration = plugin_configuration.configuration
@@ -323,7 +323,7 @@ def validate_format_of_provided_templates(
     if not plugin_configuration.active:
         return
     compiler = pybars.Compiler()
-    errors: Dict[str, ValidationError] = {}
+    errors: dict[str, ValidationError] = {}
     for email_data in email_templates_data:
         field: str = email_data["name"]
         template_str = email_data.get("value")

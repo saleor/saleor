@@ -1,17 +1,18 @@
 import json
 from functools import partial
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 import graphene
 import pytest
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
-from mock import ANY
 
+from ....attribute.tests.model_helpers import (
+    get_product_attribute_values,
+    get_product_attributes,
+)
 from ....attribute.utils import associate_attribute_values_to_instance
 from ....discount.error_codes import DiscountErrorCode
-from ....discount.models import Promotion
-from ....discount.tests.sale_converter import convert_sales_to_promotions
 from ....permission.models import Permission
 from ....tests.utils import dummy_editorjs
 from ....webhook.event_types import WebhookEventAsyncType
@@ -879,6 +880,7 @@ def test_product_create_translation(
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
+        allow_replica=False,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -1035,6 +1037,7 @@ def test_product_update_translation(
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
+        allow_replica=False,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -1100,6 +1103,7 @@ def test_product_variant_create_translation(
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
+        allow_replica=False,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -1161,6 +1165,7 @@ def test_product_variant_update_translation(
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
+        allow_replica=False,
     )
 
 
@@ -1248,6 +1253,7 @@ def test_collection_create_translation(
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
+        allow_replica=False,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -1347,6 +1353,7 @@ def test_collection_update_translation(
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
+        allow_replica=False,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -1425,6 +1432,7 @@ def test_category_create_translation(
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
+        allow_replica=False,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -1522,6 +1530,7 @@ def test_category_update_translation(
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
+        allow_replica=False,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -1580,6 +1589,7 @@ def test_voucher_create_translation(
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
+        allow_replica=False,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -1639,6 +1649,7 @@ def test_voucher_update_translation(
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
+        allow_replica=False,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -1708,6 +1719,7 @@ def test_sale_create_translation(
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
+        allow_replica=False,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -1716,15 +1728,15 @@ def test_sale_create_translation(
 
 def test_sale_create_translation_by_translatable_content_id(
     staff_api_client,
-    sale,
+    promotion_converted_from_sale,
     permission_manage_translations,
 ):
     # given
+    promotion = promotion_converted_from_sale
     translatable_content_id = graphene.Node.to_global_id(
-        "SaleTranslatableContent", sale.id
+        "SaleTranslatableContent", promotion.old_sale_id
     )
     variables = {"saleId": translatable_content_id}
-    convert_sales_to_promotions()
 
     # when
     response = staff_api_client.post_graphql(
@@ -1747,7 +1759,7 @@ def test_sale_update_translation(
     mocked_get_webhooks_for_event,
     any_webhook,
     staff_api_client,
-    sale,
+    promotion_converted_from_sale,
     permission_manage_translations,
     settings,
 ):
@@ -1755,13 +1767,11 @@ def test_sale_update_translation(
     mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
 
-    translation = sale.translations.create(language_code="pl", name="Sale")
+    promotion = promotion_converted_from_sale
+    translation = promotion.translations.create(language_code="pl", name="Sale")
+    sale_id = graphene.Node.to_global_id("Sale", promotion.old_sale_id)
 
-    sale_id = graphene.Node.to_global_id("Sale", sale.id)
     variables = {"saleId": sale_id}
-    convert_sales_to_promotions()
-
-    translation = Promotion.objects.first().translations.get(language_code="pl")
 
     # when
     response = staff_api_client.post_graphql(
@@ -1784,6 +1794,7 @@ def test_sale_update_translation(
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
+        allow_replica=False,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -1871,6 +1882,7 @@ def test_page_create_translation(
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
+        allow_replica=False,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -1964,6 +1976,7 @@ def test_page_update_translation(
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
+        allow_replica=False,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -2024,6 +2037,7 @@ def test_attribute_create_translation(
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
+        allow_replica=False,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -2084,6 +2098,7 @@ def test_attribute_update_translation(
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
+        allow_replica=False,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -2151,6 +2166,7 @@ def test_attribute_value_create_translation(
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
+        allow_replica=False,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -2163,8 +2179,9 @@ def test_rich_text_attribute_value_create_translation(
     permission_manage_translations,
 ):
     # given
-    assigned_attribute = product_with_rich_text_attribute[0].attributes.first()
-    attribute_value = assigned_attribute.attribute.values.first()
+    product = product_with_rich_text_attribute[0]
+    assigned_attribute = get_product_attributes(product).first()
+    attribute_value = get_product_attribute_values(product, assigned_attribute).first()
     attribute_value_id = graphene.Node.to_global_id(
         "AttributeValue", attribute_value.id
     )
@@ -2280,6 +2297,7 @@ def test_attribute_value_update_translation(
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
+        allow_replica=False,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -2294,8 +2312,9 @@ def test_rich_text_attribute_value_update_translation_only_rich_text(
     # given
     base_text = "Base Text"
     rich_text = dummy_editorjs(base_text)
-    assigned_attribute = product_with_rich_text_attribute[0].attributes.first()
-    attribute_value = assigned_attribute.attribute.values.first()
+    product = product_with_rich_text_attribute[0]
+    assigned_attribute = get_product_attributes(product).first()
+    attribute_value = get_product_attribute_values(product, assigned_attribute).first()
     attribute_value.translations.create(
         language_code="pl", name=base_text, rich_text=rich_text
     )
@@ -2330,8 +2349,9 @@ def test_rich_text_attribute_value_update_translation_only_rich_text_long_text(
     # given
     base_text = "Base Text"
     rich_text = dummy_editorjs(base_text)
-    assigned_attribute = product_with_rich_text_attribute[0].attributes.first()
-    attribute_value = assigned_attribute.attribute.values.first()
+    product = product_with_rich_text_attribute[0]
+    assigned_attribute = get_product_attributes(product).first()
+    attribute_value = get_product_attribute_values(product, assigned_attribute).first()
     attribute_value.translations.create(
         language_code="pl", name=base_text, rich_text=rich_text
     )
@@ -2368,8 +2388,9 @@ def test_rich_text_attribute_value_update_translation_only_rich_text_name_set_ma
     # given
     base_text = "Base Text"
     rich_text = dummy_editorjs(base_text)
-    assigned_attribute = product_with_rich_text_attribute[0].attributes.first()
-    attribute_value = assigned_attribute.attribute.values.first()
+    product = product_with_rich_text_attribute[0]
+    assigned_attribute = get_product_attributes(product).first()
+    attribute_value = get_product_attribute_values(product, assigned_attribute).first()
     attribute_value.translations.create(
         language_code="pl", name=base_text, rich_text=rich_text
     )
@@ -2405,8 +2426,9 @@ def test_rich_text_attribute_value_update_translation_only_rich_text_empty_name(
     # given
     base_text = "Base Text"
     rich_text = dummy_editorjs(base_text)
-    assigned_attribute = product_with_rich_text_attribute[0].attributes.first()
-    attribute_value = assigned_attribute.attribute.values.first()
+    product = product_with_rich_text_attribute[0]
+    assigned_attribute = get_product_attributes(product).first()
+    attribute_value = get_product_attribute_values(product, assigned_attribute).first()
     attribute_value.translations.create(
         language_code="pl", name=base_text, rich_text=rich_text
     )
@@ -2441,8 +2463,9 @@ def test_rich_text_attribute_value_update_translation_only_rich_text_name_null(
     # given
     base_text = "Base Text"
     rich_text = dummy_editorjs(base_text)
-    assigned_attribute = product_with_rich_text_attribute[0].attributes.first()
-    attribute_value = assigned_attribute.attribute.values.first()
+    product = product_with_rich_text_attribute[0]
+    assigned_attribute = get_product_attributes(product).first()
+    attribute_value = get_product_attribute_values(product, assigned_attribute).first()
     attribute_value.translations.create(
         language_code="pl", name=base_text, rich_text=rich_text
     )
@@ -2735,6 +2758,7 @@ def test_shipping_method_create_translation(
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
+        allow_replica=False,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -2821,6 +2845,7 @@ def test_shipping_method_update_translation(
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
+        allow_replica=False,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -2884,6 +2909,7 @@ def test_menu_item_update_translation(
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
+        allow_replica=False,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -2953,6 +2979,7 @@ def test_shop_create_translation(
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
+        allow_replica=False,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -3017,6 +3044,7 @@ def test_shop_update_translation(
         translation,
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
+        allow_replica=False,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -3046,7 +3074,7 @@ def test_shop_translation_validates_values_lengths(
 
 
 @pytest.mark.parametrize(
-    "kind, expected_typename",
+    ("kind", "expected_typename"),
     [
         (TranslatableKinds.PRODUCT, "ProductTranslatableContent"),
         (TranslatableKinds.COLLECTION, "CollectionTranslatableContent"),
@@ -3435,7 +3463,7 @@ QUERY_TRANSLATION_PAGE = """
 
 
 @pytest.mark.parametrize(
-    "is_published, perm_codenames",
+    ("is_published", "perm_codenames"),
     [
         (True, ["manage_translations"]),
         (False, ["manage_translations"]),
@@ -3489,7 +3517,7 @@ QUERY_TRANSLATION_SHIPPING_METHOD = """
 
 
 @pytest.mark.parametrize(
-    "perm_codenames, return_shipping_method",
+    ("perm_codenames", "return_shipping_method"),
     [
         (["manage_translations"], False),
         (["manage_translations", "manage_shipping"], True),
@@ -3542,15 +3570,14 @@ QUERY_TRANSLATION_SALE = """
 
 def test_translation_query_sale(
     staff_api_client,
-    sale,
-    sale_translation_fr,
+    promotion_converted_from_sale,
+    promotion_converted_from_sale_translation_fr,
     permission_manage_discounts,
     permission_manage_translations,
 ):
     # given
-    convert_sales_to_promotions()
-    promotion = Promotion.objects.first()
-    promotion_transaltion = promotion.translations.first()
+    promotion = promotion_converted_from_sale
+    promotion_translation = promotion.translations.first()
     sale_id = graphene.Node.to_global_id("Sale", promotion.old_sale_id)
 
     variables = {
@@ -3570,7 +3597,7 @@ def test_translation_query_sale(
     content = get_graphql_content(response, ignore_errors=True)
     data = content["data"]["translation"]
     assert data["name"] == promotion.name
-    assert data["translation"]["name"] == promotion_transaltion.name
+    assert data["translation"]["name"] == promotion_translation.name
 
 
 QUERY_TRANSLATION_VOUCHER = """
@@ -3592,7 +3619,7 @@ QUERY_TRANSLATION_VOUCHER = """
 
 
 @pytest.mark.parametrize(
-    "perm_codenames, return_voucher",
+    ("perm_codenames", "return_voucher"),
     [
         (["manage_translations"], False),
         (["manage_translations", "manage_discounts"], True),
@@ -3696,8 +3723,7 @@ def test_product_and_attribute_translation(user_api_client, product, channel_USD
     product.translations.create(
         language_code="pl", name="Produkt", description=description
     )
-    assigned_attribute = product.attributes.first()
-    attribute = assigned_attribute.attribute
+    attribute = get_product_attributes(product).first()
     attribute.translations.create(language_code="pl", name="Kolor")
 
     query = """
@@ -3785,8 +3811,9 @@ def test_product_attribute_value_rich_text_translation(
 ):
     # given
     rich_text = dummy_editorjs("Test_dummy_data")
-    assigned_attribute = product_with_rich_text_attribute[0].attributes.first()
-    attribute_value = assigned_attribute.attribute.values.first()
+    product = product_with_rich_text_attribute[0]
+    assigned_attribute = get_product_attributes(product).first()
+    attribute_value = get_product_attribute_values(product, assigned_attribute).first()
     attribute_value.translations.create(language_code="pl", rich_text=rich_text)
 
     product_id = graphene.Node.to_global_id(

@@ -14,7 +14,7 @@ jobs:
       - uses: rlespinasse/github-slug-action@e4699e49fcf890a3172a02c56ba78d867dbb9fd5
 
       - name: Build and push
-        uses: kciter/aws-ecr-action@deed28ca73d748eba97d98847f903a3a77e702ad
+        uses: kciter/aws-ecr-action@79255b7c5aa03dbf6d7c46cff2bfd049874cd98d # v4
         with:
           access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

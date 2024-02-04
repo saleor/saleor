@@ -316,9 +316,6 @@ def test_account_event_customer_deleted_event_resolves_properly(
 def test_account_invalid_or_deleted_order_line_return_null(
     staff_api_client, permission_manage_users, customer_user, order_line
 ):
-    """Ensure getting an order line does return null if it is no longer existing,
-    despite the fact it *shouldn't* happen in production."""
-
     # Prepare test
     staff_api_client.user.user_permissions.add(permission_manage_users)
 
@@ -401,3 +398,26 @@ def test_account_event_staff_user_assigned_email_to_customer_event_resolves_prop
     )
 
     assert expected_data == received_data
+
+
+def test_account_event_created_by_removed_app(
+    staff_api_client,
+    customer_user,
+    permission_manage_users,
+    permission_manage_apps,
+    removed_app,
+):
+    # given
+    account_events.customer_account_activated_event(
+        staff_user=customer_user, app=removed_app, account_id=7
+    )
+
+    # then
+    received_data = _get_event_from_graphql(
+        staff_api_client,
+        customer_user,
+        (permission_manage_users, permission_manage_apps),
+    )
+
+    # when
+    assert received_data["app"] is None

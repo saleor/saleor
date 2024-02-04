@@ -1,4 +1,5 @@
 import graphene
+from django.db.models.expressions import Exists, OuterRef
 
 from ....attribute import AttributeInputType
 from ....attribute import models as attribute_models
@@ -36,7 +37,14 @@ class PageDelete(ModelDeleteMutation):
 
     @staticmethod
     def delete_assigned_attribute_values(instance):
+        assigned_values = attribute_models.AssignedPageAttributeValue.objects.filter(
+            page_id=instance.pk
+        )
+        attributes = attribute_models.Attribute.objects.filter(
+            input_type__in=AttributeInputType.TYPES_WITH_UNIQUE_VALUES
+        )
+
         attribute_models.AttributeValue.objects.filter(
-            pageassignments__page_id=instance.id,
-            attribute__input_type__in=AttributeInputType.TYPES_WITH_UNIQUE_VALUES,
+            Exists(assigned_values.filter(value_id=OuterRef("id"))),
+            Exists(attributes.filter(id=OuterRef("attribute_id"))),
         ).delete()

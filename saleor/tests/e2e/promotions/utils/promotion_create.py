@@ -14,6 +14,15 @@ mutation CreatePromotion($input: PromotionCreateInput!) {
       startDate
       endDate
       description
+      createdAt
+      metadata {
+        key
+        value
+      }
+      privateMetadata {
+        key
+        value
+      }
     }
   }
 }

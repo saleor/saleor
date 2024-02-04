@@ -86,7 +86,10 @@ def test_category_query_invalid_id(user_api_client, product, channel_USD):
     response = user_api_client.post_graphql(QUERY_CATEGORY, variables)
     content = get_graphql_content_from_response(response)
     assert len(content["errors"]) == 1
-    assert content["errors"][0]["message"] == f"Couldn't resolve id: {category_id}."
+    assert (
+        content["errors"][0]["message"]
+        == f"Invalid ID: {category_id}. Expected: Category."
+    )
     assert content["data"]["category"] is None
 
 
@@ -525,17 +528,18 @@ def test_category_create_trigger_webhook(
         [any_webhook],
         category,
         SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )
 
 
 @pytest.mark.parametrize(
-    "input_slug, expected_slug",
-    (
+    ("input_slug", "expected_slug"),
+    [
         ("test-slug", "test-slug"),
         (None, "test-category"),
         ("", "test-category"),
         ("わたし-わ-にっぽん-です", "わたし-わ-にっぽん-です"),
-    ),
+    ],
 )
 def test_create_category_with_given_slug(
     staff_api_client, permission_manage_products, input_slug, expected_slug
@@ -789,6 +793,7 @@ def test_category_update_trigger_webhook(
         [any_webhook],
         category,
         SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )
 
 
@@ -1016,7 +1021,7 @@ UPDATE_CATEGORY_SLUG_MUTATION = """
 
 
 @pytest.mark.parametrize(
-    "input_slug, expected_slug, error_message",
+    ("input_slug", "expected_slug", "error_message"),
     [
         ("test-slug", "test-slug", None),
         ("", "", "Slug value cannot be blank."),
@@ -1080,7 +1085,7 @@ def test_update_category_slug_exists(
 
 
 @pytest.mark.parametrize(
-    "input_slug, expected_slug, input_name, error_message, error_field",
+    ("input_slug", "expected_slug", "input_name", "error_message", "error_field"),
     [
         ("test-slug", "test-slug", "New name", None, None),
         ("", "", "New name", "Slug value cannot be blank.", "slug"),
@@ -1207,7 +1212,7 @@ def test_category_delete_mutation(
 
 
 @freeze_time("2022-05-12 12:00:00")
-@patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@patch("saleor.product.utils.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_category_delete_trigger_webhook(
     mocked_webhook_trigger,
@@ -1247,6 +1252,7 @@ def test_category_delete_trigger_webhook(
         [any_webhook],
         category,
         SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )
 
 
@@ -1735,7 +1741,7 @@ QUERY_CATEGORIES_WITH_SORT = """
 
 
 @pytest.mark.parametrize(
-    "category_sort, result_order",
+    ("category_sort", "result_order"),
     [
         (
             {"field": "NAME", "direction": "ASC"},
@@ -1815,7 +1821,7 @@ def test_categories_query_with_sort(
 
 
 @pytest.mark.parametrize(
-    "category_filter, count",
+    ("category_filter", "count"),
     [
         ({"search": "slug_"}, 4),
         ({"search": "Category1"}, 1),

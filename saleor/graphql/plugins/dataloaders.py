@@ -32,15 +32,18 @@ class PluginManagerByRequestorDataloader(DataLoader):
 
     def batch_load(self, keys):
         allow_replica = getattr(self.context, "allow_replica", True)
-        return [get_plugins_manager(lambda: key, allow_replica) for key in keys]
+        return [get_plugins_manager(allow_replica, lambda: user) for user in keys]
 
 
 class AnonymousPluginManagerLoader(DataLoader):
     context_key = "anonymous_plugin_manager"
 
     def batch_load(self, keys):
+        # When modify this code, modify also code
+        # in `saleor.core.auth_backend.PluginBackend.authenticate`
+
         allow_replica = getattr(self.context, "allow_replica", True)
-        return [get_plugins_manager(None, allow_replica) for key in keys]
+        return [get_plugins_manager(allow_replica, None) for key in keys]
 
 
 def plugin_manager_promise(context: SaleorContext, app) -> Promise[PluginsManager]:
@@ -52,9 +55,8 @@ def plugin_manager_promise(context: SaleorContext, app) -> Promise[PluginsManage
 
 
 def get_plugin_manager_promise(context: SaleorContext) -> Promise[PluginsManager]:
-    return get_app_promise(context).then(
-        partial(plugin_manager_promise, context)  # type: ignore[arg-type] # mypy incorrectly assumes the return type to be a promise of a promise # noqa: E501
-    )
+    app = get_app_promise(context).get()
+    return plugin_manager_promise(context, app)
 
 
 def plugin_manager_promise_callback(func):

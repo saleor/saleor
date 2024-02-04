@@ -4,9 +4,7 @@ from ....webhook.transport.asynchronous.transport import trigger_webhooks_async
 
 
 def test_rejects_private_ips(webhook, monkeypatch):
-    """
-    Ensure non-public IP addresses are rejected in HTTP calls in the webhook plugin.
-    """
+    """Ensure private IP addresses are rejected by webhooks."""
 
     # Enable IP filter
     monkeypatch.setattr(HTTPClient.config, "ip_filter_enable", True)
@@ -20,7 +18,9 @@ def test_rejects_private_ips(webhook, monkeypatch):
     ), "should not have any pre-existing attempts"
 
     # Trigger the webhook
-    trigger_webhooks_async(data="", event_type="test", webhooks=[webhook])
+    trigger_webhooks_async(
+        data="", event_type="test", webhooks=[webhook], allow_replica=False
+    )
 
     # Should have rejected the ip address used in all attempts.
     statuses = list(EventDeliveryAttempt.objects.values_list("status", "response"))

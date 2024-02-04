@@ -6,11 +6,12 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from enum import Enum
 from time import time
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Optional
 from urllib.parse import unquote, urlparse, urlunparse
 
 import boto3
 from botocore.exceptions import ClientError
+from celery import Task
 from celery.exceptions import MaxRetriesExceededError, Retry
 from celery.utils.log import get_task_logger
 from django.conf import settings
@@ -31,6 +32,7 @@ from ...core.models import (
 from ...core.taxes import TaxData, TaxLineData
 from ...core.utils import build_absolute_uri
 from ...core.utils.events import call_event
+from ...payment import PaymentError
 from ...payment.interface import (
     GatewayResponse,
     PaymentData,
@@ -38,11 +40,15 @@ from ...payment.interface import (
     PaymentMethodInfo,
     TransactionActionData,
 )
-from ...payment.utils import create_failed_transaction_event
+from ...payment.utils import (
+    create_failed_transaction_event,
+    recalculate_refundable_for_checkout,
+)
 from ...webhook.utils import get_webhooks_for_event
 from .. import observability
 from ..const import APP_ID_PREFIX
 from ..event_types import WebhookEventSyncType
+from ..models import Webhook
 from . import signature_for_payload
 
 logger = logging.getLogger(__name__)
@@ -70,8 +76,8 @@ class PaymentAppData:
 @dataclass
 class WebhookResponse:
     content: str
-    request_headers: Optional[Dict] = None
-    response_headers: Optional[Dict] = None
+    request_headers: Optional[dict] = None
+    response_headers: Optional[dict] = None
     response_status_code: Optional[int] = None
     status: str = EventDeliveryStatus.SUCCESS
     duration: float = 0.0
@@ -101,7 +107,7 @@ def send_webhook_using_http(
     signature,
     event_type,
     timeout=settings.WEBHOOK_TIMEOUT,
-    custom_headers: Optional[Dict[str, str]] = None,
+    custom_headers: Optional[dict[str, str]] = None,
 ) -> WebhookResponse:
     """Send a webhook request using http / https protocol.
 
@@ -167,14 +173,16 @@ def send_webhook_using_http(
         response_status_code=response.status_code,
         duration=response.elapsed.total_seconds(),
         status=(
-            EventDeliveryStatus.SUCCESS if response.ok else EventDeliveryStatus.FAILED
+            EventDeliveryStatus.SUCCESS
+            if 200 <= response.status_code < 300
+            else EventDeliveryStatus.FAILED
         ),
     )
 
 
 def send_webhook_using_aws_sqs(
     target_url, message, domain, signature, event_type, **kwargs
-):
+) -> WebhookResponse:
     parts = urlparse(target_url)
     region = "us-east-1"
     hostname_parts = parts.hostname.split(".")
@@ -223,7 +231,7 @@ def send_webhook_using_aws_sqs(
         message_kwargs["MessageGroupId"] = domain
     with catch_duration_time() as duration:
         try:
-            response = client.send_message(**message_kwargs)
+            response = json.dumps(client.send_message(**message_kwargs))
         except (ClientError,) as e:
             return WebhookResponse(
                 content=str(e), status=EventDeliveryStatus.FAILED, duration=duration()
@@ -263,9 +271,9 @@ def send_webhook_using_scheme_method(
     custom_headers=None,
 ) -> WebhookResponse:
     parts = urlparse(target_url)
-    message = data.encode("utf-8")
+    message = data if isinstance(data, bytes) else data.encode("utf-8")
     signature = signature_for_payload(message, secret)
-    scheme_matrix: Dict[WebhookSchemes, Callable] = {
+    scheme_matrix: dict[WebhookSchemes, Callable] = {
         WebhookSchemes.HTTP: send_webhook_using_http,
         WebhookSchemes.HTTPS: send_webhook_using_http,
         WebhookSchemes.AWS_SQS: send_webhook_using_aws_sqs,
@@ -282,11 +290,15 @@ def send_webhook_using_scheme_method(
             event_type,
             custom_headers=custom_headers,
         )
-    raise ValueError("Unknown webhook scheme: %r" % (parts.scheme,))
+    raise ValueError(f"Unknown webhook scheme: {parts.scheme!r}")
 
 
 def handle_webhook_retry(
-    celery_task, webhook, response_content, delivery, delivery_attempt
+    celery_task: Task,
+    webhook: Webhook,
+    response: WebhookResponse,
+    delivery: EventDelivery,
+    delivery_attempt: EventDeliveryAttempt,
 ) -> bool:
     """Handle celery retry for webhook requests.
 
@@ -294,15 +306,37 @@ def handle_webhook_retry(
     When MaxRetriesExceededError is raised the function will end without exception.
     """
     is_success = True
+    log_extra_details = {
+        "webhook": {
+            "id": webhook.id,
+            "target_url": webhook.target_url,
+            "event": delivery.event_type,
+            "execution_mode": "async",
+            "duration": response.duration,
+            "http_status_code": response.response_status_code,
+        },
+    }
     task_logger.info(
         "[Webhook ID: %r] Failed request to %r: %r for event: %r."
         " Delivery attempt id: %r",
         webhook.id,
         webhook.target_url,
-        response_content,
+        response.content,
         delivery.event_type,
         delivery_attempt.id,
+        extra=log_extra_details,
     )
+    if response.response_status_code and 300 <= response.response_status_code < 500:
+        # do not retry for 30x and 40x status codes
+        task_logger.info(
+            "[Webhook ID: %r] Failed request to %r: received HTTP %d. Delivery ID: %r",
+            webhook.id,
+            webhook.target_url,
+            response.response_status_code,
+            delivery.id,
+            extra=log_extra_details,
+        )
+        return False
     try:
         countdown = celery_task.retry_backoff * (2**celery_task.request.retries)
         celery_task.retry(countdown=countdown, **celery_task.retry_kwargs)
@@ -313,11 +347,11 @@ def handle_webhook_retry(
     except MaxRetriesExceededError:
         is_success = False
         task_logger.info(
-            "[Webhook ID: %r] Failed request to %r: exceeded retry limit."
-            "Delivery id: %r",
+            "[Webhook ID: %r] Failed request to %r: exceeded retry limit. Delivery ID: %r",
             webhook.id,
             webhook.target_url,
             delivery.id,
+            extra=log_extra_details,
         )
     return is_success
 
@@ -404,13 +438,6 @@ def trigger_transaction_request(
         handle_transaction_request_task,
     )
 
-    if not transaction_data.event:
-        logger.warning(
-            "The transaction request for transaction: %s doesn't have a "
-            "proper REQUEST event.",
-            transaction_data.transaction.id,
-        )
-        return None
     if not transaction_data.transaction_app_owner:
         create_failed_transaction_event(
             transaction_data.event,
@@ -418,6 +445,9 @@ def trigger_transaction_request(
                 "Cannot process the action as the given transaction is not "
                 "attached to any app."
             ),
+        )
+        recalculate_refundable_for_checkout(
+            transaction_data.transaction, transaction_data.event
         )
         return None
     webhook = get_webhooks_for_event(
@@ -428,18 +458,28 @@ def trigger_transaction_request(
             transaction_data.event,
             cause="Cannot find a webhook that can process the action.",
         )
+        recalculate_refundable_for_checkout(
+            transaction_data.transaction, transaction_data.event
+        )
         return None
 
     if webhook.subscription_query:
-        delivery = create_delivery_for_subscription_sync_event(
-            event_type=event_type,
-            subscribable_object=transaction_data,
-            webhook=webhook,
-        )
+        delivery = None
+        try:
+            delivery = create_delivery_for_subscription_sync_event(
+                event_type=event_type,
+                subscribable_object=transaction_data,
+                webhook=webhook,
+            )
+        except PaymentError as e:
+            logger.warning("Failed to create delivery for subscription webhook: %s", e)
         if not delivery:
             create_failed_transaction_event(
                 transaction_data.event,
                 cause="Cannot generate a payload for the action.",
+            )
+            recalculate_refundable_for_checkout(
+                transaction_data.transaction, transaction_data.event
             )
             return None
     else:
@@ -578,6 +618,7 @@ def get_current_tax_app() -> Optional[App]:
     """Return currently used tax app or None, if there aren't any."""
     return (
         App.objects.order_by("pk")
+        .filter(removed_at__isnull=True)
         .for_event_type(WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES)
         .for_event_type(WebhookEventSyncType.ORDER_CALCULATE_TAXES)
         .last()
@@ -599,8 +640,8 @@ def to_payment_app_id(app: "App", external_id: str) -> "str":
 
 def parse_list_payment_gateways_response(
     response_data: Any, app: "App"
-) -> List["PaymentGateway"]:
-    gateways: List[PaymentGateway] = []
+) -> list["PaymentGateway"]:
+    gateways: list[PaymentGateway] = []
     if not isinstance(response_data, list):
         return gateways
 

@@ -1,17 +1,27 @@
 from saleor.graphql.tests.utils import get_graphql_content
 
 ORDER_QUERY = """
-query OrderDetails($id:ID!) {
-  order(id:$id) {
+query OrderDetails($id: ID!) {
+  order(id: $id) {
     availableShippingMethods {
       id
       active
     }
     paymentStatus
     isPaid
+    payments {
+      id
+      gateway
+      paymentMethodType
+      chargeStatus
+      token
+    }
+    events {
+        type
+      }
     channel {
-        id
-        name
+      id
+      name
     }
     updatedAt
     fulfillments {
@@ -44,10 +54,11 @@ query OrderDetails($id:ID!) {
     statusDisplay
     status
     transactions {
-        id
+      id
     }
   }
 }
+
 """
 
 

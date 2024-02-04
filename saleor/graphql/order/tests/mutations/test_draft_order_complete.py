@@ -6,10 +6,12 @@ import pytz
 from django.db.models import Sum
 
 from .....core.taxes import zero_taxed_money
+from .....discount.models import VoucherCustomer
 from .....order import OrderOrigin, OrderStatus
 from .....order import events as order_events
 from .....order.error_codes import OrderErrorCode
 from .....order.models import OrderEvent
+from .....payment.model_helpers import get_subtotal
 from .....plugins.base_plugin import ExcludedShippingMethod
 from .....product.models import ProductVariant
 from .....warehouse.models import Allocation, PreorderAllocation, Stock
@@ -25,11 +27,31 @@ DRAFT_ORDER_COMPLETE_MUTATION = """
                 code
                 message
                 variants
+                orderLines
             }
             order {
                 status
                 origin
                 paymentStatus
+                voucher {
+                    code
+                }
+                voucherCode
+                total {
+                    net {
+                        amount
+                    }
+                }
+                subtotal {
+                    net {
+                        amount
+                    }
+                }
+                undiscountedTotal {
+                    net {
+                        amount
+                    }
+                }
             }
         }
     }
@@ -44,6 +66,7 @@ def test_draft_order_complete(
     staff_user,
     draft_order,
 ):
+    # given
     order = draft_order
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
@@ -55,7 +78,11 @@ def test_draft_order_complete(
 
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
+
+    # when
     response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["draftOrderComplete"]["order"]
     order.refresh_from_db()
@@ -138,6 +165,148 @@ def test_draft_order_complete_by_app(
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+def test_draft_order_complete_with_voucher(
+    product_variant_out_of_stock_webhook_mock,
+    staff_api_client,
+    permission_group_manage_orders,
+    staff_user,
+    draft_order,
+    voucher,
+):
+    # given
+    order = draft_order
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # Ensure no events were created
+    assert not OrderEvent.objects.exists()
+
+    # Ensure no allocation were created
+    assert not Allocation.objects.filter(order_line__order=order).exists()
+
+    order.voucher = voucher
+    code_instance = voucher.codes.first()
+    order.voucher_code = code_instance.code
+    order.should_refresh_prices = True
+    order.save(update_fields=["voucher", "voucher_code", "should_refresh_prices"])
+
+    voucher_listing = voucher.channel_listings.get(channel=order.channel)
+    discount_value = voucher_listing.discount_value
+    order_total = order.total_net_amount
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+
+    # when
+    response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderComplete"]["order"]
+    order.refresh_from_db()
+    assert data["status"] == order.status.upper()
+    assert data["origin"] == OrderOrigin.DRAFT.upper()
+    assert data["voucherCode"] == code_instance.code
+    assert data["voucher"]["code"] == voucher.code
+    assert data["undiscountedTotal"]["net"]["amount"] == order_total
+    assert data["total"]["net"]["amount"] == order_total - discount_value
+    assert (
+        data["total"]["net"]["amount"] == order_total - voucher_listing.discount_value
+    )
+    subtotal = get_subtotal(order.lines.all(), order.currency)
+    assert data["subtotal"]["net"]["amount"] == subtotal.gross.amount
+    assert order.search_vector
+
+    lines = order.lines.all()
+    for line in lines:
+        allocation = line.allocations.get()
+        assert allocation.quantity_allocated == line.quantity_unfulfilled
+
+    # TODO: ensure entire order discount is propagated to order lines:
+    #  https://github.com/saleor/saleor/issues/14880
+    # lines_undiscounted_total = sum(
+    #     line.undiscounted_total_price_net_amount for line in lines
+    # )
+    # lines_total = sum(line.total_price_net_amount for line in lines)
+    # assert lines_undiscounted_total == lines_total + discount_value
+
+    # ensure there are only 2 events with correct types
+    event_params = {
+        "user": staff_user,
+        "type__in": [
+            order_events.OrderEvents.PLACED_FROM_DRAFT,
+            order_events.OrderEvents.CONFIRMED,
+        ],
+        "parameters": {},
+    }
+    matching_events = OrderEvent.objects.filter(**event_params)
+    assert matching_events.count() == 2
+    assert matching_events[0].type != matching_events[1].type
+    assert not OrderEvent.objects.exclude(**event_params).exists()
+    product_variant_out_of_stock_webhook_mock.assert_called_once_with(
+        Stock.objects.last()
+    )
+    assert not VoucherCustomer.objects.filter(
+        voucher_code=code_instance, customer_email=order.get_customer_email()
+    ).exists()
+
+
+def test_draft_order_complete_with_invalid_voucher(
+    staff_api_client,
+    permission_group_manage_orders,
+    staff_user,
+    draft_order_with_voucher,
+):
+    # given
+    order = draft_order_with_voucher
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order.voucher.channel_listings.all().delete()
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+
+    # when
+    response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderComplete"]
+    assert not data["order"]
+    assert data["errors"][0]["code"] == OrderErrorCode.INVALID_VOUCHER.name
+    assert data["errors"][0]["field"] == "voucher"
+
+
+def test_draft_order_complete_with_voucher_once_per_customer(
+    staff_api_client,
+    permission_group_manage_orders,
+    staff_user,
+    draft_order_with_voucher,
+):
+    # given
+    order = draft_order_with_voucher
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    order.voucher.apply_once_per_customer = True
+    order.voucher.save(update_fields=["apply_once_per_customer"])
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+    code_instance = order.voucher.codes.first()
+    assert not VoucherCustomer.objects.filter(
+        voucher_code=code_instance, customer_email=order.get_customer_email()
+    ).exists()
+    # when
+    response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderComplete"]["order"]
+    assert data["voucherCode"] == code_instance.code
+    assert data["voucher"]["code"] == order.voucher.code
+    assert VoucherCustomer.objects.filter(
+        voucher_code=code_instance, customer_email=order.get_customer_email()
+    ).exists()
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
 def test_draft_order_complete_0_total(
     product_variant_out_of_stock_webhook_mock,
     staff_api_client,
@@ -145,6 +314,7 @@ def test_draft_order_complete_0_total(
     staff_user,
     draft_order,
 ):
+    # given
     """Ensure the payment status is FULLY_CHARGED when the total order price is 0."""
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order
@@ -168,7 +338,11 @@ def test_draft_order_complete_0_total(
 
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
+
+    # when
     response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["draftOrderComplete"]["order"]
     order.refresh_from_db()
@@ -208,6 +382,7 @@ def test_draft_order_complete_without_sku(
     staff_user,
     draft_order,
 ):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     ProductVariant.objects.update(sku=None)
     draft_order.lines.update(product_sku=None)
@@ -222,7 +397,11 @@ def test_draft_order_complete_without_sku(
 
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
+
+    # when
     response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["draftOrderComplete"]["order"]
     order.refresh_from_db()
@@ -258,6 +437,7 @@ def test_draft_order_complete_with_out_of_stock_webhook(
     permission_group_manage_orders,
     draft_order,
 ):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order
     first_line = order.lines.first()
@@ -268,8 +448,11 @@ def test_draft_order_complete_with_out_of_stock_webhook(
     assert not Allocation.objects.filter(order_line__order=order).exists()
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
+
+    # when
     staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
 
+    # then
     total_stock = Stock.objects.aggregate(Sum("quantity"))["quantity__sum"]
     total_allocation = Allocation.objects.filter(order_line__order=order).aggregate(
         Sum("quantity_allocated")
@@ -285,6 +468,7 @@ def test_draft_order_from_reissue_complete(
     staff_user,
     draft_order,
 ):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order
     order.origin = OrderOrigin.REISSUE
@@ -298,7 +482,11 @@ def test_draft_order_from_reissue_complete(
 
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
+
+    # when
     response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["draftOrderComplete"]["order"]
     order.refresh_from_db()
@@ -330,6 +518,7 @@ def test_draft_order_complete_with_inactive_channel(
     staff_user,
     draft_order,
 ):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order
     channel = order.channel
@@ -338,7 +527,11 @@ def test_draft_order_complete_with_inactive_channel(
 
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
+
+    # when
     response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["draftOrderComplete"]
     assert data["errors"][0]["code"] == OrderErrorCode.CHANNEL_INACTIVE.name
@@ -351,6 +544,7 @@ def test_draft_order_complete_with_unavailable_variant(
     staff_user,
     draft_order,
 ):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order
     variant = order.lines.first().variant
@@ -360,7 +554,11 @@ def test_draft_order_complete_with_unavailable_variant(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
 
     variables = {"id": order_id}
+
+    # when
     response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["draftOrderComplete"]
     assert data["errors"][0]["code"] == OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.name
@@ -374,6 +572,7 @@ def test_draft_order_complete_channel_without_shipping_zones(
     staff_user,
     draft_order,
 ):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order
     order.channel.shipping_zones.clear()
@@ -386,7 +585,11 @@ def test_draft_order_complete_channel_without_shipping_zones(
 
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
+
+    # when
     response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["draftOrderComplete"]
 
@@ -546,6 +749,7 @@ def test_draft_order_complete_with_not_excluded_shipping_method(
 def test_draft_order_complete_out_of_stock_variant(
     staff_api_client, permission_group_manage_orders, staff_user, draft_order
 ):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order
 
@@ -559,15 +763,19 @@ def test_draft_order_complete_out_of_stock_variant(
 
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
+
+    # when
     response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
     content = get_graphql_content(response)
     error = content["data"]["draftOrderComplete"]["errors"][0]
     order.refresh_from_db()
+
+    # then
     assert order.status == OrderStatus.DRAFT
     assert order.origin == OrderOrigin.DRAFT
-
     assert error["field"] == "lines"
     assert error["code"] == OrderErrorCode.INSUFFICIENT_STOCK.name
+    assert error["orderLines"] == [graphene.Node.to_global_id("OrderLine", line_1.id)]
 
 
 def test_draft_order_complete_existing_user_email_updates_user_field(

@@ -69,7 +69,7 @@ class CheckoutEmailUpdate(BaseMutation):
         checkout_id=None,
         email,
         id=None,
-        token=None
+        token=None,
     ):
         cls.clean_email(email)
 

@@ -7,6 +7,14 @@ mutation OrderMarkAsPaid($id: ID!, $transactionReference: String) {
         id
         isPaid
         paymentStatus
+        payments {
+            id
+            gateway
+            paymentMethodType
+        transactions {
+            kind
+        }
+      }
         paymentStatusDisplay
         status
         statusDisplay

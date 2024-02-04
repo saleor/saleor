@@ -635,7 +635,7 @@ type Query {
     Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
     """
     last: Int
-  ): ProductVariantCountableConnection @doc(category: "Products")
+  ): ProductVariantCountableConnection @doc(category: "Products") @deprecated(reason: "This field will be removed in Saleor 4.0.")
 
   """
   Look up a payment by ID.
@@ -773,7 +773,7 @@ type Query {
     Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
     """
     last: Int
-  ): OrderEventCountableConnection @doc(category: "Orders")
+  ): OrderEventCountableConnection @doc(category: "Orders") @deprecated(reason: "This field will be removed in Saleor 4.0.")
 
   """Look up an order by ID or external reference."""
   order(
@@ -860,7 +860,7 @@ type Query {
 
     """Slug of a channel for which the data should be returned."""
     channel: String
-  ): TaxedMoney @doc(category: "Orders")
+  ): TaxedMoney @doc(category: "Orders") @deprecated(reason: "This field will be removed in Saleor 4.0.")
 
   """Look up an order by token."""
   orderByToken(
@@ -2124,7 +2124,9 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """A product variant is updated."""
   PRODUCT_VARIANT_UPDATED
 
-  """A product variant is deleted."""
+  """
+  A product variant is deleted. Warning: this event will not be executed when parent product has been deleted. Check PRODUCT_DELETED.
+  """
   PRODUCT_VARIANT_DELETED
 
   """
@@ -2267,6 +2269,8 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
 
   """A voucher is deleted."""
   VOUCHER_DELETED
+  VOUCHER_CODES_CREATED
+  VOUCHER_CODES_DELETED
 
   """
   A voucher metadata is updated.
@@ -2274,6 +2278,13 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   Added in Saleor 3.8.
   """
   VOUCHER_METADATA_UPDATED
+
+  """
+  A voucher code export is completed.
+  
+  Added in Saleor 3.18.
+  """
+  VOUCHER_CODE_EXPORT_COMPLETED
 
   """An observability event is created."""
   OBSERVABILITY
@@ -2839,7 +2850,9 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """A product variant is updated."""
   PRODUCT_VARIANT_UPDATED
 
-  """A product variant is deleted."""
+  """
+  A product variant is deleted. Warning: this event will not be executed when parent product has been deleted. Check PRODUCT_DELETED.
+  """
   PRODUCT_VARIANT_DELETED
 
   """
@@ -2982,6 +2995,8 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
 
   """A voucher is deleted."""
   VOUCHER_DELETED
+  VOUCHER_CODES_CREATED
+  VOUCHER_CODES_DELETED
 
   """
   A voucher metadata is updated.
@@ -2989,6 +3004,13 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   Added in Saleor 3.8.
   """
   VOUCHER_METADATA_UPDATED
+
+  """
+  A voucher code export is completed.
+  
+  Added in Saleor 3.18.
+  """
+  VOUCHER_CODE_EXPORT_COMPLETED
 
   """An observability event is created."""
   OBSERVABILITY
@@ -3050,6 +3072,13 @@ type App implements Node & ObjectWithMetadata @doc(category: "Apps") {
   Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
+
+  """
+  Canonical app ID from the manifest
+  
+  Added in Saleor 3.19.
+  """
+  identifier: String
 
   """List of the app's permissions."""
   permissions: [Permission!]
@@ -3679,7 +3708,10 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   VOUCHER_CREATED
   VOUCHER_UPDATED
   VOUCHER_DELETED
+  VOUCHER_CODES_CREATED
+  VOUCHER_CODES_DELETED
   VOUCHER_METADATA_UPDATED
+  VOUCHER_CODE_EXPORT_COMPLETED
   OBSERVABILITY
   THUMBNAIL_CREATED
   SHOP_METADATA_UPDATED
@@ -5487,7 +5519,7 @@ type Weight {
   """Weight unit."""
   unit: WeightUnitsEnum!
 
-  """Weight value."""
+  """Weight value. Returns a value with maximal three decimal places"""
   value: Float!
 }
 
@@ -5558,15 +5590,6 @@ type OrderSettings {
   markAsPaidStrategy: MarkAsPaidStrategyEnum!
 
   """
-  Determine the transaction flow strategy to be used. Include the selected option in the payload sent to the payment app, as a requested action for the transaction.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.This preview feature field will be removed in Saleor 3.17. Use `PaymentSettings.defaultTransactionFlowStrategy` instead.
-  """
-  defaultTransactionFlowStrategy: TransactionFlowStrategyEnum!
-
-  """
   The time in days after expired orders will be deleted.
   
   Added in Saleor 3.14.
@@ -5583,6 +5606,15 @@ type OrderSettings {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   allowUnpaidOrders: Boolean!
+
+  """
+  Determine if voucher applied on draft order should be count toward voucher usage.
+  
+  Added in Saleor 3.18.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  includeDraftOrderInVoucherUsage: Boolean!
 }
 
 """
@@ -5602,17 +5634,6 @@ Determine the mark as paid strategy for the channel.
 enum MarkAsPaidStrategyEnum @doc(category: "Channels") {
   TRANSACTION_FLOW
   PAYMENT_FLOW
-}
-
-"""
-Determine the transaction flow strategy.
-
-    AUTHORIZATION - the processed transaction should be only authorized
-    CHARGE - the processed transaction should be charged.
-"""
-enum TransactionFlowStrategyEnum @doc(category: "Payments") {
-  AUTHORIZATION
-  CHARGE
 }
 
 """The `Day` scalar type represents number of days by integer value."""
@@ -5644,6 +5665,17 @@ type PaymentSettings {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   defaultTransactionFlowStrategy: TransactionFlowStrategyEnum!
+}
+
+"""
+Determine the transaction flow strategy.
+
+    AUTHORIZATION - the processed transaction should be only authorized
+    CHARGE - the processed transaction should be charged.
+"""
+enum TransactionFlowStrategyEnum @doc(category: "Payments") {
+  AUTHORIZATION
+  CHARGE
 }
 
 """Represents shipping method postal code rule."""
@@ -7926,7 +7958,7 @@ type ProductPricingInfo @doc(category: "Products") {
   discountLocalCurrency: TaxedMoney @deprecated(reason: "This field will be removed in Saleor 4.0. Always returns `null`.")
 
   """
-  Determines whether this product's price displayed in a storefront should include taxes.
+  Determines whether displayed prices should include taxes.
   
   Added in Saleor 3.9.
   """
@@ -8316,7 +8348,7 @@ type TranslatableItemEdge {
   cursor: String!
 }
 
-union TranslatableItem = ProductTranslatableContent | CollectionTranslatableContent | CategoryTranslatableContent | AttributeTranslatableContent | AttributeValueTranslatableContent | ProductVariantTranslatableContent | PageTranslatableContent | ShippingMethodTranslatableContent | SaleTranslatableContent | VoucherTranslatableContent | MenuItemTranslatableContent | PromotionTranslatableContent | PromotionRuleTranslatableContent
+union TranslatableItem = ProductTranslatableContent | CollectionTranslatableContent | CategoryTranslatableContent | AttributeTranslatableContent | AttributeValueTranslatableContent | ProductVariantTranslatableContent | PageTranslatableContent | ShippingMethodTranslatableContent | VoucherTranslatableContent | MenuItemTranslatableContent | PromotionTranslatableContent | PromotionRuleTranslatableContent | SaleTranslatableContent
 
 """
 Represents product's original translatable fields and related translations.
@@ -8816,282 +8848,6 @@ type ShippingMethodTranslatableContent implements Node @doc(category: "Shipping"
 }
 
 """
-Represents sale's original translatable fields and related translations.
-
-DEPRECATED: this type will be removed in Saleor 4.0. Use `PromotionTranslatableContent` instead.
-"""
-type SaleTranslatableContent implements Node @doc(category: "Discounts") {
-  """The ID of the sale translatable content."""
-  id: ID!
-
-  """Name of the sale to translate."""
-  name: String!
-
-  """Returns translated sale fields for the given language code."""
-  translation(
-    """A language code to return the translation for sale."""
-    languageCode: LanguageCodeEnum!
-  ): SaleTranslation
-
-  """
-  Sales allow creating discounts for categories, collections or products and are visible to all the customers.
-  
-  Requires one of the following permissions: MANAGE_DISCOUNTS.
-  """
-  sale: Sale @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
-}
-
-"""
-Represents sale translations.
-
-DEPRECATED: this type will be removed in Saleor 4.0. Use `PromotionTranslation` instead.
-"""
-type SaleTranslation implements Node @doc(category: "Discounts") {
-  """The ID of the sale translation."""
-  id: ID!
-
-  """Translation language."""
-  language: LanguageDisplay!
-
-  """Translated name of sale."""
-  name: String
-}
-
-"""
-Sales allow creating discounts for categories, collections or products and are visible to all the customers.
-
-DEPRECATED: this type will be removed in Saleor 4.0. Use `Promotion` type instead.
-"""
-type Sale implements Node & ObjectWithMetadata @doc(category: "Discounts") {
-  """The ID of the sale."""
-  id: ID!
-
-  """List of private metadata items. Requires staff permissions to access."""
-  privateMetadata: [MetadataItem!]!
-
-  """
-  A single key from private metadata. Requires staff permissions to access.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
-  """
-  privateMetafield(key: String!): String
-
-  """
-  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
-  """
-  privateMetafields(keys: [String!]): Metadata
-
-  """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem!]!
-
-  """
-  A single key from public metadata.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
-  """
-  metafield(key: String!): String
-
-  """
-  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
-  """
-  metafields(keys: [String!]): Metadata
-
-  """The name of the sale."""
-  name: String!
-
-  """Type of the sale, fixed or percentage."""
-  type: SaleType!
-
-  """The start date and time of the sale."""
-  startDate: DateTime!
-
-  """The end date and time of the sale."""
-  endDate: DateTime
-
-  """The date and time when the sale was created."""
-  created: DateTime!
-
-  """The date and time when the sale was updated."""
-  updatedAt: DateTime!
-
-  """List of categories this sale applies to."""
-  categories(
-    """Return the elements in the list that come before the specified cursor."""
-    before: String
-
-    """Return the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    first: Int
-
-    """
-    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    last: Int
-  ): CategoryCountableConnection
-
-  """
-  List of collections this sale applies to.
-  
-  Requires one of the following permissions: MANAGE_DISCOUNTS.
-  """
-  collections(
-    """Return the elements in the list that come before the specified cursor."""
-    before: String
-
-    """Return the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    first: Int
-
-    """
-    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    last: Int
-  ): CollectionCountableConnection
-
-  """
-  List of products this sale applies to.
-  
-  Requires one of the following permissions: MANAGE_DISCOUNTS.
-  """
-  products(
-    """Return the elements in the list that come before the specified cursor."""
-    before: String
-
-    """Return the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    first: Int
-
-    """
-    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    last: Int
-  ): ProductCountableConnection
-
-  """
-  List of product variants this sale applies to.
-  
-  Added in Saleor 3.1.
-  
-  Requires one of the following permissions: MANAGE_DISCOUNTS.
-  """
-  variants(
-    """Return the elements in the list that come before the specified cursor."""
-    before: String
-
-    """Return the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    first: Int
-
-    """
-    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    last: Int
-  ): ProductVariantCountableConnection
-
-  """Returns translated sale fields for the given language code."""
-  translation(
-    """A language code to return the translation for sale."""
-    languageCode: LanguageCodeEnum!
-  ): SaleTranslation
-
-  """
-  List of channels available for the sale.
-  
-  Requires one of the following permissions: MANAGE_DISCOUNTS.
-  """
-  channelListings: [SaleChannelListing!]
-
-  """Sale value."""
-  discountValue: Float
-
-  """Currency code for sale."""
-  currency: String
-}
-
-enum SaleType @doc(category: "Discounts") {
-  FIXED
-  PERCENTAGE
-}
-
-"""Represents a connection to a list of collections."""
-type CollectionCountableConnection @doc(category: "Products") {
-  """Pagination data for this connection."""
-  pageInfo: PageInfo!
-  edges: [CollectionCountableEdge!]!
-
-  """A total count of items in the collection."""
-  totalCount: Int
-}
-
-type CollectionCountableEdge @doc(category: "Products") {
-  """The item at the end of the edge."""
-  node: Collection!
-
-  """A cursor for use in pagination."""
-  cursor: String!
-}
-
-type ProductVariantCountableConnection @doc(category: "Products") {
-  """Pagination data for this connection."""
-  pageInfo: PageInfo!
-  edges: [ProductVariantCountableEdge!]!
-
-  """A total count of items in the collection."""
-  totalCount: Int
-}
-
-type ProductVariantCountableEdge @doc(category: "Products") {
-  """The item at the end of the edge."""
-  node: ProductVariant!
-
-  """A cursor for use in pagination."""
-  cursor: String!
-}
-
-"""
-Represents sale channel listing.
-
-DEPRECATED: this type will be removed in Saleor 4.0. Use `PromotionRule` type instead.
-"""
-type SaleChannelListing implements Node @doc(category: "Discounts") {
-  """The ID of the channel listing."""
-  id: ID!
-
-  """The channel in which the sale is available."""
-  channel: Channel!
-
-  """The value of the discount applied to the sale in the channel."""
-  discountValue: Float!
-
-  """The currency in which the discount value is specified."""
-  currency: String!
-}
-
-"""
 Represents voucher's original translatable fields and related translations.
 """
 type VoucherTranslatableContent implements Node @doc(category: "Discounts") {
@@ -9175,8 +8931,31 @@ type Voucher implements Node & ObjectWithMetadata @doc(category: "Discounts") {
   """The name of the voucher."""
   name: String
 
-  """The code of the voucher."""
-  code: String!
+  """
+  List of codes available for this voucher.
+  
+  Added in Saleor 3.18.
+  """
+  codes(
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): VoucherCodeCountableConnection
+
+  """The code of the voucher.This field will be removed in Saleor 4.0."""
+  code: String
 
   """The number of times a voucher can be used."""
   usageLimit: Int
@@ -9199,6 +8978,15 @@ type Voucher implements Node & ObjectWithMetadata @doc(category: "Discounts") {
   Determine if the voucher usage should be limited to one use per customer.
   """
   applyOncePerCustomer: Boolean!
+
+  """
+  Determine if the voucher codes can be used once or multiple times.
+  
+  Added in Saleor 3.18.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  singleUse: Boolean!
 
   """Determine if the voucher is available only for staff members."""
   onlyForStaff: Boolean!
@@ -9326,6 +9114,82 @@ type Voucher implements Node & ObjectWithMetadata @doc(category: "Discounts") {
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   """
   channelListings: [VoucherChannelListing!]
+}
+
+type VoucherCodeCountableConnection @doc(category: "Discounts") {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [VoucherCodeCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type VoucherCodeCountableEdge @doc(category: "Discounts") {
+  """The item at the end of the edge."""
+  node: VoucherCode!
+
+  """A cursor for use in pagination."""
+  cursor: String!
+}
+
+"""
+Represents voucher code.
+
+Added in Saleor 3.18.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type VoucherCode {
+  """The ID of the voucher code."""
+  id: ID!
+
+  """Code to use the voucher."""
+  code: String
+
+  """Number of times a code has been used."""
+  used: Int
+
+  """Whether a code is active or not."""
+  isActive: Boolean
+
+  """Date time of code creation."""
+  createdAt: DateTime!
+}
+
+"""Represents a connection to a list of collections."""
+type CollectionCountableConnection @doc(category: "Products") {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [CollectionCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type CollectionCountableEdge @doc(category: "Products") {
+  """The item at the end of the edge."""
+  node: Collection!
+
+  """A cursor for use in pagination."""
+  cursor: String!
+}
+
+type ProductVariantCountableConnection @doc(category: "Products") {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [ProductVariantCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type ProductVariantCountableEdge @doc(category: "Products") {
+  """The item at the end of the edge."""
+  node: ProductVariant!
+
+  """A cursor for use in pagination."""
+  cursor: String!
 }
 
 enum DiscountValueTypeEnum @doc(category: "Discounts") {
@@ -9627,6 +9491,247 @@ type PromotionRuleTranslation implements Node @doc(category: "Discounts") {
   description: JSONString
 }
 
+"""
+Represents sale's original translatable fields and related translations.
+
+DEPRECATED: this type will be removed in Saleor 4.0. Use `PromotionTranslatableContent` instead.
+"""
+type SaleTranslatableContent implements Node @doc(category: "Discounts") {
+  """The ID of the sale translatable content."""
+  id: ID!
+
+  """Name of the sale to translate."""
+  name: String!
+
+  """Returns translated sale fields for the given language code."""
+  translation(
+    """A language code to return the translation for sale."""
+    languageCode: LanguageCodeEnum!
+  ): SaleTranslation
+
+  """
+  Sales allow creating discounts for categories, collections or products and are visible to all the customers.
+  
+  Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
+  sale: Sale @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
+}
+
+"""
+Represents sale translations.
+
+DEPRECATED: this type will be removed in Saleor 4.0. Use `PromotionTranslation` instead.
+"""
+type SaleTranslation implements Node @doc(category: "Discounts") {
+  """The ID of the sale translation."""
+  id: ID!
+
+  """Translation language."""
+  language: LanguageDisplay!
+
+  """Translated name of sale."""
+  name: String
+}
+
+"""
+Sales allow creating discounts for categories, collections or products and are visible to all the customers.
+
+DEPRECATED: this type will be removed in Saleor 4.0. Use `Promotion` type instead.
+"""
+type Sale implements Node & ObjectWithMetadata @doc(category: "Discounts") {
+  """The ID of the sale."""
+  id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  """
+  metafields(keys: [String!]): Metadata
+
+  """The name of the sale."""
+  name: String!
+
+  """Type of the sale, fixed or percentage."""
+  type: SaleType!
+
+  """The start date and time of the sale."""
+  startDate: DateTime!
+
+  """The end date and time of the sale."""
+  endDate: DateTime
+
+  """The date and time when the sale was created."""
+  created: DateTime!
+
+  """The date and time when the sale was updated."""
+  updatedAt: DateTime!
+
+  """List of categories this sale applies to."""
+  categories(
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): CategoryCountableConnection
+
+  """
+  List of collections this sale applies to.
+  
+  Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
+  collections(
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): CollectionCountableConnection
+
+  """
+  List of products this sale applies to.
+  
+  Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
+  products(
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): ProductCountableConnection
+
+  """
+  List of product variants this sale applies to.
+  
+  Added in Saleor 3.1.
+  
+  Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
+  variants(
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): ProductVariantCountableConnection
+
+  """Returns translated sale fields for the given language code."""
+  translation(
+    """A language code to return the translation for sale."""
+    languageCode: LanguageCodeEnum!
+  ): SaleTranslation
+
+  """
+  List of channels available for the sale.
+  
+  Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
+  channelListings: [SaleChannelListing!]
+
+  """Sale value."""
+  discountValue: Float
+
+  """Currency code for sale."""
+  currency: String
+}
+
+enum SaleType @doc(category: "Discounts") {
+  FIXED
+  PERCENTAGE
+}
+
+"""
+Represents sale channel listing.
+
+DEPRECATED: this type will be removed in Saleor 4.0. Use `PromotionRule` type instead.
+"""
+type SaleChannelListing implements Node @doc(category: "Discounts") {
+  """The ID of the channel listing."""
+  id: ID!
+
+  """The channel in which the sale is available."""
+  channel: Channel!
+
+  """The value of the discount applied to the sale in the channel."""
+  discountValue: Float!
+
+  """The currency in which the discount value is specified."""
+  currency: String!
+}
+
 enum TranslatableKinds {
   ATTRIBUTE
   ATTRIBUTE_VALUE
@@ -9701,9 +9806,7 @@ type TaxConfiguration implements Node & ObjectWithMetadata @doc(category: "Taxes
   """
   taxCalculationStrategy: TaxCalculationStrategy
 
-  """
-  Determines whether prices displayed in a storefront should include taxes.
-  """
+  """Determines whether displayed prices should include taxes."""
   displayGrossPrices: Boolean!
 
   """Determines whether prices are entered with the tax included."""
@@ -9736,7 +9839,7 @@ type TaxConfigurationPerCountry @doc(category: "Taxes") {
   taxCalculationStrategy: TaxCalculationStrategy
 
   """
-  Determines whether prices displayed in a storefront should include taxes for this country.
+  Determines whether displayed prices should include taxes for this country.
   """
   displayGrossPrices: Boolean!
 }
@@ -10136,7 +10239,7 @@ input CountryFilterInput {
   attachedToShippingZones: Boolean
 }
 
-"""Represents shop's domain."""
+"""Represents API domain."""
 type Domain {
   """The host name of the domain."""
   host: String!
@@ -10144,7 +10247,7 @@ type Domain {
   """Inform if SSL is enabled."""
   sslEnabled: Boolean!
 
-  """Shop's absolute URL."""
+  """The absolute URL of the API."""
   url: String!
 }
 
@@ -10515,6 +10618,15 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   """
   translatedDiscountName: String
 
+  """
+  The voucher assigned to the checkout.
+  
+  Added in Saleor 3.18.
+  
+  Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
+  voucher: Voucher
+
   """The code of voucher assigned to the checkout."""
   voucherCode: String
 
@@ -10654,7 +10766,7 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   transactions: [TransactionItem!]
 
   """
-  Determines whether checkout prices should include taxes when displayed in a storefront.
+  Determines whether displayed prices should include taxes.
   
   Added in Saleor 3.9.
   """
@@ -10710,6 +10822,7 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
 A gift card is a prepaid electronic payment card accepted in stores. They can be used during checkout by providing a valid gift card codes.
 """
 type GiftCard implements Node & ObjectWithMetadata @doc(category: "Gift cards") {
+  """ID of the gift card."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -10762,6 +10875,8 @@ type GiftCard implements Node & ObjectWithMetadata @doc(category: "Gift cards") 
   Requires one of the following permissions: MANAGE_GIFT_CARD, OWNER.
   """
   code: String!
+
+  """Date and time when gift card was created."""
   created: DateTime!
 
   """
@@ -10793,7 +10908,11 @@ type GiftCard implements Node & ObjectWithMetadata @doc(category: "Gift cards") 
   Added in Saleor 3.1.
   """
   usedByEmail: String @deprecated(reason: "This field will be removed in Saleor 4.0.")
+
+  """Date and time when gift card was last used."""
   lastUsedOn: DateTime
+
+  """Expiry date of the gift card."""
   expiryDate: Date
 
   """
@@ -10859,6 +10978,7 @@ History log of the gift card.
 Added in Saleor 3.1.
 """
 type GiftCardEvent implements Node @doc(category: "Gift cards") {
+  """ID of the event associated with a gift card."""
   id: ID!
 
   """Date when event happened at in ISO 8601 format."""
@@ -10946,7 +11066,10 @@ The gift card tag.
 Added in Saleor 3.1.
 """
 type GiftCardTag implements Node @doc(category: "Gift cards") {
+  """ID of the tag associated with a gift card."""
   id: ID!
+
+  """Name of the tag associated with a gift card."""
   name: String!
 }
 
@@ -11220,6 +11343,13 @@ type TransactionItem implements Node & ObjectWithMetadata @doc(category: "Paymen
   """
   order: Order
 
+  """
+  The related checkout.
+  
+  Added in Saleor 3.14.
+  """
+  checkout: Checkout
+
   """List of all transaction's events."""
   events: [TransactionEvent!]!
 
@@ -11254,6 +11384,7 @@ enum TransactionActionEnum @doc(category: "Payments") {
 
 """Represents an order in the shop."""
 type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
+  """ID of the order."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -11293,8 +11424,14 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
+
+  """Date and time when the order was created."""
   created: DateTime!
+
+  """Date and time when the order was created."""
   updatedAt: DateTime!
+
+  """Status of the order."""
   status: OrderStatus!
 
   """
@@ -11316,8 +11453,16 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Shipping address. The full data can be access for orders created in Saleor 3.2 and later, for other orders requires one of the following permissions: MANAGE_ORDERS, OWNER.
   """
   shippingAddress: Address
+
+  """Method used for shipping."""
   shippingMethodName: String
+
+  """
+  Name of the collection point where the order should be picked up by the customer.
+  """
   collectionPointName: String
+
+  """Channel through which the order was placed."""
   channel: Channel!
 
   """List of shipments for the order."""
@@ -11443,12 +11588,27 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   """
   shippingTaxClassPrivateMetadata: [MetadataItem!]!
   token: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `id` instead.")
+
+  """Voucher linked to the order."""
   voucher: Voucher
+
+  """
+  Voucher code that was used for Order.
+  
+  Added in Saleor 3.18.
+  """
+  voucherCode: String
 
   """List of user gift cards."""
   giftCards: [GiftCard!]!
+
+  """Additional information provided by the customer about the order."""
   customerNote: String!
+
+  """Weight of the order."""
   weight: Weight!
+
+  """URL to which user should be redirected after order is placed."""
   redirectUrl: String
 
   """The sum of line prices not including shipping."""
@@ -11527,7 +11687,7 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   errors: [OrderError!]!
 
   """
-  Determines whether checkout prices should include taxes when displayed in a storefront.
+  Determines whether displayed prices should include taxes.
   
   Added in Saleor 3.9.
   """
@@ -11649,6 +11809,7 @@ enum OrderStatus @doc(category: "Orders") {
 
 """Represents order fulfillment."""
 type Fulfillment implements Node & ObjectWithMetadata @doc(category: "Orders") {
+  """ID of the fulfillment."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -11688,9 +11849,17 @@ type Fulfillment implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
+
+  """Sequence in which the fulfillments were created for an order."""
   fulfillmentOrder: Int!
+
+  """Status of fulfillment."""
   status: FulfillmentStatus!
+
+  """Fulfillment tracking number."""
   trackingNumber: String!
+
+  """Date and time when fulfillment was created."""
   created: DateTime!
 
   """List of lines for the fulfillment."""
@@ -11701,6 +11870,20 @@ type Fulfillment implements Node & ObjectWithMetadata @doc(category: "Orders") {
 
   """Warehouse from fulfillment was fulfilled."""
   warehouse: Warehouse
+
+  """
+  Amount of refunded shipping price.
+  
+  Added in Saleor 3.14.
+  """
+  shippingRefundedAmount: Money
+
+  """
+  Total refunded amount assigned to this fulfillment.
+  
+  Added in Saleor 3.14.
+  """
+  totalRefundedAmount: Money
 }
 
 """An enumeration."""
@@ -11716,13 +11899,19 @@ enum FulfillmentStatus @doc(category: "Orders") {
 
 """Represents line of the fulfillment."""
 type FulfillmentLine implements Node @doc(category: "Orders") {
+  """ID of the fulfillment line."""
   id: ID!
+
+  """The number of items included in the fulfillment line."""
   quantity: Int!
+
+  """The order line to which the fulfillment line is related."""
   orderLine: OrderLine
 }
 
 """Represents order line of particular order."""
 type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
+  """ID of the order line."""
   id: ID!
 
   """
@@ -11770,14 +11959,32 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Added in Saleor 3.5.
   """
   metafields(keys: [String!]): Metadata
+
+  """Name of the product in order line."""
   productName: String!
+
+  """Name of the variant of product in order line."""
   variantName: String!
+
+  """SKU of the product variant."""
   productSku: String
+
+  """The ID of the product variant."""
   productVariantId: String
+
+  """Whether the product variant requires shipping."""
   isShippingRequired: Boolean!
+
+  """Number of variant items ordered."""
   quantity: Int!
+
+  """Number of variant items fulfilled."""
   quantityFulfilled: Int!
+
+  """Reason for any discounts applied on a product in the order."""
   unitDiscountReason: String
+
+  """Rate of tax applied on product variant."""
   taxRate: Float!
   digitalContentUrl: DigitalContentUrl
   thumbnail(
@@ -11833,6 +12040,13 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
   allocations: [Allocation!]
 
   """
+  Denormalized sale ID, set when order line is created for a product variant that is on sale.
+  
+  Added in Saleor 3.14.
+  """
+  saleId: ID
+
+  """
   A quantity of items remaining to be fulfilled.
   
   Added in Saleor 3.1.
@@ -11871,6 +12085,13 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Added in Saleor 3.9.
   """
   taxClassPrivateMetadata: [MetadataItem!]!
+
+  """
+  Voucher code that was used for this order line.
+  
+  Added in Saleor 3.14.
+  """
+  voucherCode: String
 }
 
 """
@@ -11973,9 +12194,11 @@ type Invoice implements ObjectWithMetadata & Job & Node @doc(category: "Orders")
   number: String
 
   """URL to view an invoice."""
-  externalUrl: String
+  externalUrl: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use `url` field.This field will be removed in 4.0")
 
-  """URL to download an invoice."""
+  """
+  URL to view/download an invoice. This can be an internal URL if the Invoicing Plugin was used or an external URL if it has been provided.
+  """
   url: String
 
   """
@@ -12190,6 +12413,20 @@ type Payment implements Node & ObjectWithMetadata @doc(category: "Payments") {
 
   """The details of the card used for this payment."""
   creditCard: CreditCard
+
+  """
+  Informs whether this is a partial payment.
+  
+  Added in Saleor 3.14.
+  """
+  partial: Boolean!
+
+  """
+  PSP reference of the payment.
+  
+  Added in Saleor 3.14.
+  """
+  pspReference: String
 }
 
 """An object representing a single payment."""
@@ -12197,7 +12434,7 @@ type Transaction implements Node @doc(category: "Payments") {
   """ID of the transaction."""
   id: ID!
 
-  """Date and time which transaction was created."""
+  """Date and time at which transaction was created."""
   created: DateTime!
 
   """Determines the payment associated with a transaction."""
@@ -12255,6 +12492,7 @@ type CreditCard @doc(category: "Payments") {
 
 """History log of the order."""
 type OrderEvent implements Node @doc(category: "Orders") {
+  """ID of the event associated with an order."""
   id: ID!
 
   """Date when event happened at in ISO 8601 format."""
@@ -12539,6 +12777,8 @@ enum OrderErrorCode @doc(category: "Orders") {
   DUPLICATED_INPUT_ITEM
   NOT_AVAILABLE_IN_CHANNEL
   CHANNEL_INACTIVE
+  INVALID_VOUCHER
+  INVALID_VOUCHER_CODE
 }
 
 """An enumeration."""
@@ -12665,6 +12905,13 @@ type TransactionEvent implements Node @doc(category: "Payments") {
   Added in Saleor 3.13.
   """
   createdBy: UserOrApp
+
+  """
+  Idempotency key assigned to the event.
+  
+  Added in Saleor 3.14.
+  """
+  idempotencyKey: String
 }
 
 """
@@ -13874,8 +14121,19 @@ input VoucherSortingInput @doc(category: "Discounts") {
 }
 
 enum VoucherSortField {
-  """Sort vouchers by code."""
+  """
+  Sort vouchers by code.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
   CODE
+
+  """
+  Sort vouchers by name.
+  
+  Added in Saleor 3.18.
+  """
+  NAME
 
   """Sort vouchers by start date."""
   START_DATE
@@ -15050,13 +15308,16 @@ type Mutation {
   ): TaxExemptionManage @doc(category: "Taxes")
 
   """
-  Updates stocks for a given variant and warehouse.
+  Updates stocks for a given variant and warehouse. Variant and warehouse selectors have to be the same for all stock inputs. Is not allowed to use 'variantId' in one input and 'variantExternalReference' in another.
   
   Added in Saleor 3.13.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
+  
+  Triggers the following webhook events:
+  - PRODUCT_VARIANT_STOCK_UPDATED (async): A product variant stock details were updated.
   """
   stockBulkUpdate(
     """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
@@ -15064,7 +15325,7 @@ type Mutation {
 
     """Input list of stocks to update."""
     stocks: [StockBulkUpdateInput!]!
-  ): StockBulkUpdate @doc(category: "Products")
+  ): StockBulkUpdate @doc(category: "Products") @webhookEventsInfo(asyncEvents: [PRODUCT_VARIANT_STOCK_UPDATED], syncEvents: [])
 
   """
   Creates a new staff notification recipient. 
@@ -16337,7 +16598,7 @@ type Mutation {
   """
   transactionInitialize(
     """
-    The expected action called for the transaction. By default, the `channel.defaultTransactionFlowStrategy` will be used. The field can be used only by app that has `HANDLE_PAYMENTS` permission.
+    The expected action called for the transaction. By default, the `channel.paymentSettings.defaultTransactionFlowStrategy` will be used.The field can be used only by app that has `HANDLE_PAYMENTS` permission.
     """
     action: TransactionFlowStrategyEnum
 
@@ -16355,6 +16616,13 @@ type Mutation {
 
     """The ID of the checkout or order."""
     id: ID!
+
+    """
+    The idempotency key assigned to the action. It will be passed to the payment app to discover potential duplicate actions. If not provided, the default one will be generated. If empty string provided, INVALID error code will be raised.
+    
+    Added in Saleor 3.14.
+    """
+    idempotencyKey: String
 
     """Payment gateway used to initialize the transaction."""
     paymentGateway: PaymentGatewayToInitialize!
@@ -17915,11 +18183,12 @@ type Mutation {
   
   Triggers the following webhook events:
   - VOUCHER_CREATED (async): A voucher was created.
+  - VOUCHER_CODES_CREATED (async): A voucher codes were created.
   """
   voucherCreate(
     """Fields required to create a voucher."""
     input: VoucherInput!
-  ): VoucherCreate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_CREATED], syncEvents: [])
+  ): VoucherCreate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_CREATED, VOUCHER_CODES_CREATED], syncEvents: [])
 
   """
   Deletes a voucher. 
@@ -17954,6 +18223,7 @@ type Mutation {
   
   Triggers the following webhook events:
   - VOUCHER_UPDATED (async): A voucher was updated.
+  - VOUCHER_CODES_CREATED (async): A voucher code was created.
   """
   voucherUpdate(
     """ID of a voucher to update."""
@@ -17961,7 +18231,7 @@ type Mutation {
 
     """Fields required to update a voucher."""
     input: VoucherInput!
-  ): VoucherUpdate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED], syncEvents: [])
+  ): VoucherUpdate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED, VOUCHER_CODES_CREATED], syncEvents: [])
 
   """
   Adds products, categories, collections to a voucher. 
@@ -18028,6 +18298,21 @@ type Mutation {
   ): VoucherChannelListingUpdate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED], syncEvents: [])
 
   """
+  Deletes voucher codes.
+  
+  Added in Saleor 3.18. 
+  
+  Requires one of the following permissions: MANAGE_DISCOUNTS.
+  
+  Triggers the following webhook events:
+  - VOUCHER_CODES_DELETED (async): A voucher codes were deleted.
+  """
+  voucherCodeBulkDelete(
+    """List of voucher codes IDs to delete."""
+    ids: [ID!]!
+  ): VoucherCodeBulkDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_CODES_DELETED], syncEvents: [])
+
+  """
   Export products to csv file. 
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
@@ -18056,6 +18341,23 @@ type Mutation {
     """Fields required to export gift cards data."""
     input: ExportGiftCardsInput!
   ): ExportGiftCards @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, GIFT_CARD_EXPORT_COMPLETED], syncEvents: [])
+
+  """
+  Export voucher codes to csv/xlsx file.
+  
+  Added in Saleor 3.18.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_DISCOUNTS.
+  
+  Triggers the following webhook events:
+  - VOUCHER_CODE_EXPORT_COMPLETED (async): A notification for the exported file.
+  """
+  exportVoucherCodes(
+    """Fields required to export voucher codes."""
+    input: ExportVoucherCodesInput!
+  ): ExportVoucherCodes @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_CODE_EXPORT_COMPLETED], syncEvents: [])
 
   """
   Upload a file. This mutation must be sent as a `multipart` request. More detailed specs of the upload format can be found here: https://github.com/jaydenseric/graphql-multipart-request-spec 
@@ -20390,9 +20692,7 @@ input TaxConfigurationUpdateInput @doc(category: "Taxes") {
   """
   taxCalculationStrategy: TaxCalculationStrategy
 
-  """
-  Determines whether prices displayed in a storefront should include taxes.
-  """
+  """Determines whether displayed prices should include taxes."""
   displayGrossPrices: Boolean
 
   """Determines whether prices are entered with the tax included."""
@@ -20420,7 +20720,7 @@ input TaxConfigurationPerCountryInput @doc(category: "Taxes") {
   taxCalculationStrategy: TaxCalculationStrategy
 
   """
-  Determines whether prices displayed in a storefront should include taxes for this country.
+  Determines whether displayed prices should include taxes for this country.
   """
   displayGrossPrices: Boolean!
 }
@@ -20540,15 +20840,18 @@ enum TaxExemptionManageErrorCode @doc(category: "Taxes") {
 }
 
 """
-Updates stocks for a given variant and warehouse.
+Updates stocks for a given variant and warehouse. Variant and warehouse selectors have to be the same for all stock inputs. Is not allowed to use 'variantId' in one input and 'variantExternalReference' in another.
 
 Added in Saleor 3.13.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
+
+Triggers the following webhook events:
+- PRODUCT_VARIANT_STOCK_UPDATED (async): A product variant stock details were updated.
 """
-type StockBulkUpdate @doc(category: "Products") {
+type StockBulkUpdate @doc(category: "Products") @webhookEventsInfo(asyncEvents: [PRODUCT_VARIANT_STOCK_UPDATED], syncEvents: []) {
   """Returns how many objects were updated."""
   count: Int!
 
@@ -20938,7 +21241,7 @@ input OrderSettingsUpdateInput @doc(category: "Orders") {
   automaticallyConfirmAllNewOrders: Boolean
 
   """
-  When enabled, all non-shippable gift card orders will be fulfilled automatically. By defualt set to True.
+  When enabled, all non-shippable gift card orders will be fulfilled automatically. By default set to True.
   """
   automaticallyFulfillNonShippableGiftCard: Boolean
 }
@@ -23168,6 +23471,7 @@ enum ProductVariantBulkErrorCode @doc(category: "Products") {
   REQUIRED
   UNIQUE
   PRODUCT_NOT_ASSIGNED_TO_CHANNEL
+  STOCK_ALREADY_EXISTS
 }
 
 type BulkProductError @doc(category: "Products") {
@@ -24210,6 +24514,7 @@ enum TransactionInitializeErrorCode @doc(category: "Payments") {
   GRAPHQL_ERROR
   INVALID
   NOT_FOUND
+  UNIQUE
 }
 
 """
@@ -24829,6 +25134,13 @@ input DraftOrderCreateInput @doc(category: "Orders") {
   """ID of the voucher associated with the order."""
   voucher: ID
 
+  """
+  A code of the voucher associated with the order.
+  
+  Added in Saleor 3.18.
+  """
+  voucherCode: String
+
   """A note from a customer. Visible by customers in the order summary."""
   customerNote: String
 
@@ -24942,6 +25254,13 @@ input DraftOrderInput @doc(category: "Orders") {
 
   """ID of the voucher associated with the order."""
   voucher: ID
+
+  """
+  A code of the voucher associated with the order.
+  
+  Added in Saleor 3.18.
+  """
+  voucherCode: String
 
   """A note from a customer. Visible by customers in the order summary."""
   customerNote: String
@@ -25897,9 +26216,7 @@ input OrderBulkCreateInput @doc(category: "Orders") {
   """Order language code."""
   languageCode: LanguageCodeEnum!
 
-  """
-  Determines whether checkout prices should include taxes, when displayed in a storefront.
-  """
+  """Determines whether displayed prices should include taxes."""
   displayGrossPrices: Boolean
 
   """Weight of the order in kg."""
@@ -25919,8 +26236,12 @@ input OrderBulkCreateInput @doc(category: "Orders") {
   """List of gift card codes associated with the order."""
   giftCards: [String!]
 
-  """Code of a voucher associated with the order."""
-  voucher: String
+  """
+  Code of a voucher associated with the order.
+  
+  Added in Saleor 3.18.
+  """
+  voucherCode: String
 
   """List of discounts."""
   discounts: [OrderDiscountCommonInput!]
@@ -27376,7 +27697,7 @@ input PromotionRuleUpdateInput {
   """
   rewardValue: PositiveDecimal
 
-  """List of channel ids to remove."""
+  """List of channel ids to add."""
   addChannels: [ID!]
 
   """List of channel ids to remove."""
@@ -27500,6 +27821,13 @@ type DiscountError @doc(category: "Discounts") {
 
   """List of channels IDs which causes the error."""
   channels: [ID!]
+
+  """
+  List of voucher codes which causes the error.
+  
+  Added in Saleor 3.18.
+  """
+  voucherCodes: [String!]
 }
 
 """An enumeration."""
@@ -27512,6 +27840,7 @@ enum DiscountErrorCode @doc(category: "Discounts") {
   UNIQUE
   CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT
   DUPLICATED_INPUT_ITEM
+  VOUCHER_ALREADY_USED
 }
 
 """
@@ -27707,8 +28036,9 @@ Requires one of the following permissions: MANAGE_DISCOUNTS.
 
 Triggers the following webhook events:
 - VOUCHER_CREATED (async): A voucher was created.
+- VOUCHER_CODES_CREATED (async): A voucher codes were created.
 """
-type VoucherCreate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_CREATED], syncEvents: []) {
+type VoucherCreate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_CREATED, VOUCHER_CODES_CREATED], syncEvents: []) {
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [DiscountError!]!
   voucher: Voucher
@@ -27721,8 +28051,19 @@ input VoucherInput @doc(category: "Discounts") {
   """Voucher name."""
   name: String
 
-  """Code to use the voucher."""
+  """
+  Code to use the voucher. This field will be removed in Saleor 4.0. Use `addCodes` instead.
+  """
   code: String
+
+  """
+  List of codes to add.
+  
+  Added in Saleor 3.18.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  addCodes: [String!]
 
   """Start date of the voucher in ISO 8601 format."""
   startDate: DateTime
@@ -27764,6 +28105,17 @@ input VoucherInput @doc(category: "Discounts") {
   """Voucher can be used only by staff user."""
   onlyForStaff: Boolean
 
+  """
+  When set to 'True', each voucher code can be used only once; otherwise, codes can be used multiple times depending on `usageLimit`.
+  
+  The option can only be changed if none of the voucher codes have been used.
+  
+  Added in Saleor 3.18.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  singleUse: Boolean
+
   """Limit number of times this voucher can be used in total."""
   usageLimit: Int
 }
@@ -27804,8 +28156,9 @@ Requires one of the following permissions: MANAGE_DISCOUNTS.
 
 Triggers the following webhook events:
 - VOUCHER_UPDATED (async): A voucher was updated.
+- VOUCHER_CODES_CREATED (async): A voucher code was created.
 """
-type VoucherUpdate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED], syncEvents: []) {
+type VoucherUpdate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED, VOUCHER_CODES_CREATED], syncEvents: []) {
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [DiscountError!]!
   voucher: Voucher
@@ -27884,6 +28237,45 @@ input VoucherChannelListingAddInput @doc(category: "Discounts") {
 
   """Min purchase amount required to apply the voucher."""
   minAmountSpent: PositiveDecimal
+}
+
+"""
+Deletes voucher codes.
+
+Added in Saleor 3.18. 
+
+Requires one of the following permissions: MANAGE_DISCOUNTS.
+
+Triggers the following webhook events:
+- VOUCHER_CODES_DELETED (async): A voucher codes were deleted.
+"""
+type VoucherCodeBulkDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_CODES_DELETED], syncEvents: []) {
+  """Returns how many codes were deleted."""
+  count: Int!
+  errors: [VoucherCodeBulkDeleteError!]!
+}
+
+type VoucherCodeBulkDeleteError @doc(category: "Discounts") {
+  """
+  Path to field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  path: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: VoucherCodeBulkDeleteErrorCode!
+
+  """List of voucher codes which causes the error."""
+  voucherCodes: [ID!]
+}
+
+"""An enumeration."""
+enum VoucherCodeBulkDeleteErrorCode @doc(category: "Discounts") {
+  GRAPHQL_ERROR
+  NOT_FOUND
+  INVALID
 }
 
 """
@@ -28015,6 +28407,39 @@ input ExportGiftCardsInput @doc(category: "Gift cards") {
   filter: GiftCardFilterInput
 
   """List of gift cards IDs to export."""
+  ids: [ID!]
+
+  """Type of exported file."""
+  fileType: FileTypesEnum!
+}
+
+"""
+Export voucher codes to csv/xlsx file.
+
+Added in Saleor 3.18.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_DISCOUNTS.
+
+Triggers the following webhook events:
+- VOUCHER_CODE_EXPORT_COMPLETED (async): A notification for the exported file.
+"""
+type ExportVoucherCodes @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_CODE_EXPORT_COMPLETED], syncEvents: []) {
+  """
+  The newly created export file job which is responsible for export data.
+  """
+  exportFile: ExportFile
+  errors: [ExportError!]!
+}
+
+input ExportVoucherCodesInput @doc(category: "Discounts") {
+  """
+  The ID of the voucher. If provided, exports all codes belonging to the voucher.
+  """
+  voucherId: ID
+
+  """List of voucher code IDs to export."""
   ids: [ID!]
 
   """Type of exported file."""
@@ -28809,17 +29234,6 @@ input OrderSettingsInput @doc(category: "Orders") {
   markAsPaidStrategy: MarkAsPaidStrategyEnum
 
   """
-  Determine the transaction flow strategy to be used. Include the selected option in the payload sent to the payment app, as a requested action for the transaction.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  
-  DEPRECATED: this preview feature field will be removed in Saleor 3.17. Use `PaymentSettingsInput.defaultTransactionFlowStrategy` instead.
-  """
-  defaultTransactionFlowStrategy: TransactionFlowStrategyEnum
-
-  """
   Determine if it is possible to place unpaid order by calling `checkoutComplete` mutation.
   
   Added in Saleor 3.15.
@@ -28827,6 +29241,17 @@ input OrderSettingsInput @doc(category: "Orders") {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   allowUnpaidOrders: Boolean
+
+  """
+  Specify whether a coupon applied to draft orders will count toward voucher usage.
+  
+  Warning:  when switching this setting from `false` to `true`, the vouchers will be disconnected from all draft orders.
+  
+  Added in Saleor 3.18.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  includeDraftOrderInVoucherUsage: Boolean
 }
 
 input CheckoutSettingsInput @doc(category: "Checkout") {
@@ -34333,7 +34758,7 @@ type TranslationCreated implements Event @doc(category: "Miscellaneous") {
   translation: TranslationTypes
 }
 
-union TranslationTypes = ProductTranslation | CollectionTranslation | CategoryTranslation | AttributeTranslation | AttributeValueTranslation | ProductVariantTranslation | PageTranslation | ShippingMethodTranslation | SaleTranslation | VoucherTranslation | MenuItemTranslation | PromotionTranslation | PromotionRuleTranslation
+union TranslationTypes = ProductTranslation | CollectionTranslation | CategoryTranslation | AttributeTranslation | AttributeValueTranslation | ProductVariantTranslation | PageTranslation | ShippingMethodTranslation | VoucherTranslation | MenuItemTranslation | PromotionTranslation | PromotionRuleTranslation | SaleTranslation
 
 """
 Event sent when translation is updated.
@@ -34433,6 +34858,50 @@ type VoucherDeleted implements Event @doc(category: "Discounts") {
 }
 
 """
+Event sent when new voucher codes were created.
+
+Added in Saleor 3.19.
+"""
+type VoucherCodesCreated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The voucher codes the event relates to."""
+  voucherCodes: [VoucherCode!]
+}
+
+"""
+Event sent when voucher codes were deleted.
+
+Added in Saleor 3.19.
+"""
+type VoucherCodesDeleted implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The voucher codes the event relates to."""
+  voucherCodes: [VoucherCode!]
+}
+
+"""
 Event sent when voucher metadata is updated.
 
 Added in Saleor 3.8.
@@ -34455,6 +34924,28 @@ type VoucherMetadataUpdated implements Event @doc(category: "Discounts") {
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): Voucher
+}
+
+"""
+Event sent when voucher code export is completed.
+
+Added in Saleor 3.18.
+"""
+type VoucherCodeExportCompleted implements Event @doc(category: "Discounts") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The export file for voucher codes."""
+  export: ExportFile
 }
 
 """
@@ -35093,6 +35584,13 @@ type TransactionInitializeSession implements Event @doc(category: "Payments") {
 
   """Action to proceed for the transaction"""
   action: TransactionProcessAction!
+
+  """
+  Idempotency key assigned to the transaction initialize.
+  
+  Added in Saleor 3.14.
+  """
+  idempotencyKey: String!
 }
 
 type TransactionProcessAction @doc(category: "Payments") {

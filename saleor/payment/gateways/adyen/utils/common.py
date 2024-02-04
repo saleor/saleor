@@ -1,7 +1,8 @@
 import json
 import logging
+from collections.abc import Iterable
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Optional
+from typing import TYPE_CHECKING, Any, Callable, Optional
 
 import Adyen
 import opentracing
@@ -40,7 +41,10 @@ logger = logging.getLogger(__name__)
 FAILED_STATUSES = ["refused", "error", "cancelled"]
 PENDING_STATUSES = ["pending", "received"]
 AUTH_STATUS = "authorised"
-HTTP_TIMEOUT = 20  # in seconds
+
+# we'd like shorter timeout than default 30s for Adyen client,
+# library doesn't allow to set connection establ. timeout
+HTTP_TIMEOUT = 20
 
 
 def initialize_adyen_client(config: GatewayConfig) -> Adyen.Adyen:
@@ -78,7 +82,7 @@ def get_tax_percentage_in_adyen_format(total_gross, total_net):
 
 
 def api_call(
-    request_data: Optional[Dict[str, Any]], method: Callable, **kwargs
+    request_data: Optional[dict[str, Any]], method: Callable, **kwargs
 ) -> Adyen.Adyen:
     try:
         return method(request_data, **kwargs)
@@ -136,7 +140,7 @@ def request_data_for_payment(
     return_url: str,
     merchant_account: str,
     native_3d_secure: bool,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     payment_data = payment_information.data or {}
 
     if not payment_data.pop("is_valid", True):
@@ -261,7 +265,7 @@ def append_checkout_details(payment_information: "PaymentData", payment_data: di
     if not checkout:
         raise PaymentError("Unable to calculate products for klarna.")
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     currency = payment_information.currency
@@ -336,10 +340,10 @@ def request_data_for_gateway_config(
     checkout_info: "CheckoutInfo",
     lines: Optional[Iterable[CheckoutLineInfo]],
     merchant_account,
-) -> Dict[str, Any]:
-    manager = get_plugins_manager()
+) -> dict[str, Any]:
+    manager = get_plugins_manager(allow_replica=False)
     checkout = checkout_info.checkout
-    address = checkout_info.billing_address or checkout_info.shipping_address
+    address = checkout_info.shipping_address or checkout_info.billing_address
     lines = lines or []
     total = checkout_total(
         manager=manager,
@@ -371,7 +375,7 @@ def request_for_payment_refund(
     graphql_payment_id: str,
     merchant_account: str,
     token: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     return {
         "merchantAccount": merchant_account,
         "modificationAmount": {
@@ -385,7 +389,7 @@ def request_for_payment_refund(
 
 def request_for_payment_capture(
     payment_information: "PaymentData", merchant_account: str, token: str
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     return {
         "merchantAccount": merchant_account,
         "modificationAmount": {
@@ -496,7 +500,7 @@ def get_request_data_for_check_payment(data: dict, merchant_account: str) -> dic
     amount_input = data["card"].get("money")
     security_code = data["card"].get("cvc")
 
-    request_data: Dict[str, Any] = {
+    request_data: dict[str, Any] = {
         "merchantAccount": merchant_account,
         "paymentMethod": {
             "type": data["method"],

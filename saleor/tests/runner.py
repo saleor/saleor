@@ -1,4 +1,4 @@
-class PytestTestRunner(object):
+class PytestTestRunner:
     """Runs pytest to discover and run tests."""
 
     def __init__(self, verbosity=1, failfast=False, keepdb=True, **kwargs):

@@ -25,3 +25,7 @@ I want to merge this change because...
 - [ ] Database queries are optimized and the number of queries is constant
 - [ ] Database migrations are either absent or optimized for zero downtime
 - [ ] The changes are covered by test cases
+- [ ] All new fields/inputs/mutations have proper labels added (`ADDED_IN_X`, `PREVIEW_FEATURE`, etc.)
+- [ ] All migrations have proper dependencies
+- [ ] All indexes are added concurrently in migrations
+- [ ] All RunSql and RunPython migrations have revert option defined

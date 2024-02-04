@@ -1,6 +1,7 @@
 import json
 import logging
-from typing import TYPE_CHECKING, Any, List, Sequence
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 
 from celery import group
@@ -41,8 +42,8 @@ task_logger = get_task_logger(__name__)
 
 
 def create_deliveries_for_subscriptions(
-    event_type, subscribable_object, webhooks, requestor=None
-) -> List[EventDelivery]:
+    event_type, subscribable_object, webhooks, requestor=None, allow_replica=False
+) -> list[EventDelivery]:
     """Create a list of event deliveries with payloads based on subscription query.
 
     It uses a subscription query, defined for webhook to explicitly determine
@@ -53,6 +54,7 @@ def create_deliveries_for_subscriptions(
     :param webhooks: sequence of async webhooks.
     :param requestor: used in subscription webhooks to generate meta data for payload.
     :return: List of event deliveries to send via webhook tasks.
+    :param allow_replica: use replica database.
     """
     if event_type not in WEBHOOK_TYPES_MAP:
         logger.info(
@@ -71,6 +73,7 @@ def create_deliveries_for_subscriptions(
                 requestor,
                 event_type in WebhookEventSyncType.ALL,
                 event_type=event_type,
+                allow_replica=allow_replica,
             ),
             app=webhook.app,
         )
@@ -105,7 +108,7 @@ def create_event_delivery_list_for_webhooks(
     webhooks: Sequence["Webhook"],
     event_payload: "EventPayload",
     event_type: str,
-) -> List[EventDelivery]:
+) -> list[EventDelivery]:
     event_deliveries = EventDelivery.objects.bulk_create(
         [
             EventDelivery(
@@ -127,6 +130,7 @@ def trigger_webhooks_async(
     subscribable_object=None,
     requestor=None,
     legacy_data_generator=None,
+    allow_replica=False,
 ):
     """Trigger async webhooks - both regular and subscription.
 
@@ -135,8 +139,9 @@ def trigger_webhooks_async(
         `legacy_data_generator` function is used to generate the payload when needed.
     :param event_type: used in both webhook types as event type.
     :param webhooks: used in both webhook types, queryset of async webhooks.
+    :param allow_replica: use a replica database.
     :param subscribable_object: subscribable object used in subscription webhooks.
-    :param requestor: used in subscription webhooks to generate meta data for payload.
+    :param requestor: used in subscription webhooks to generate mžeta data for payload.
     :param legacy_data_generator: used to generate payload for regular webhooks.
     """
     regular_webhooks, subscription_webhooks = group_webhooks_by_subscription(webhooks)
@@ -162,6 +167,7 @@ def trigger_webhooks_async(
                 subscribable_object=subscribable_object,
                 webhooks=subscription_webhooks,
                 requestor=requestor,
+                allow_replica=allow_replica,
             )
         )
 
@@ -202,7 +208,7 @@ def send_webhook_request_async(self, event_delivery_id):
 
         attempt_update(attempt, response)
         if response.status == EventDeliveryStatus.FAILED:
-            handle_webhook_retry(self, webhook, response.content, delivery, attempt)
+            handle_webhook_retry(self, webhook, response, delivery, attempt)
             delivery_status = EventDeliveryStatus.FAILED
         elif response.status == EventDeliveryStatus.SUCCESS:
             task_logger.info(
@@ -221,7 +227,7 @@ def send_webhook_request_async(self, event_delivery_id):
     clear_successful_delivery(delivery)
 
 
-def send_observability_events(webhooks: List[WebhookData], events: List[Any]):
+def send_observability_events(webhooks: list[WebhookData], events: list[bytes]):
     event_type = WebhookEventAsyncType.OBSERVABILITY
     for webhook in webhooks:
         scheme = urlparse(webhook.target_url).scheme.lower()
@@ -239,7 +245,7 @@ def send_observability_events(webhooks: List[WebhookData], events: List[Any]):
                         webhook.saleor_domain,
                         webhook.secret_key,
                         event_type,
-                        observability.dump_payload(event),
+                        event,
                     )
                     if response.status == EventDeliveryStatus.FAILED:
                         failed += 1
@@ -249,7 +255,7 @@ def send_observability_events(webhooks: List[WebhookData], events: List[Any]):
                     webhook.saleor_domain,
                     webhook.secret_key,
                     event_type,
-                    observability.dump_payload(events),
+                    observability.concatenate_json_events(events),
                 )
                 if response.status == EventDeliveryStatus.FAILED:
                     failed = len(events)

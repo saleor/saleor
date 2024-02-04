@@ -1639,10 +1639,9 @@ def test_update_product_variant_with_current_file_attribute(
     assert len(variant_data["attributes"]) == 1
     assert variant_data["attributes"][0]["attribute"]["slug"] == file_attribute.slug
     assert len(variant_data["attributes"][0]["values"]) == 1
-    assert (
-        variant_data["attributes"][0]["values"][0]["slug"]
-        == f"{slugify(second_value)}-2"
-    )
+    assert variant_data["attributes"][0]["values"][0][
+        "slug"
+    ] == f"{slugify(second_value)}-2"
 
 
 def test_update_product_variant_with_duplicated_file_attribute(
@@ -2009,11 +2008,11 @@ def test_update_product_variant_change_attribute_values_ordering(
 
 
 @pytest.mark.parametrize(
-    "values, message, code",
-    (
+    ("values", "message", "code"),
+    [
         (["one", "two"], "Attribute must take only one value.", "INVALID"),
         (["   "], "Attribute values cannot be blank.", "REQUIRED"),
-    ),
+    ],
 )
 def test_update_product_variant_requires_values(
     staff_api_client,
@@ -2249,8 +2248,7 @@ def test_update_product_variant_can_not_turn_off_preorder(
     permission_manage_products,
     preorder_variant_global_threshold,
 ):
-    """Passing None with `preorder` field can not turn off preorder,
-    it could be done only with ProductVariantPreorderDeactivate mutation."""
+    """Test that preorder cannot be disabled through updating the `preorder` field directly."""
     variant = preorder_variant_global_threshold
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     sku = "test sku"

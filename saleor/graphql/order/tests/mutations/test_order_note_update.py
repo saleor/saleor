@@ -129,10 +129,10 @@ def test_order_note_update_as_app(
 
 @pytest.mark.parametrize(
     "message",
-    (
+    [
         "",
         "   ",
-    ),
+    ],
 )
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
 def test_order_note_update_fail_on_empty_message(

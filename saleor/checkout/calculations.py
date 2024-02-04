@@ -1,5 +1,6 @@
+from collections.abc import Iterable
 from decimal import Decimal
-from typing import TYPE_CHECKING, Iterable, Optional, Tuple
+from typing import TYPE_CHECKING, Optional
 
 from django.conf import settings
 from django.utils import timezone
@@ -223,7 +224,7 @@ def _fetch_checkout_prices_if_expired(
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"] = None,
     force_update: bool = False,
-) -> Tuple["CheckoutInfo", Iterable["CheckoutLineInfo"]]:
+) -> tuple["CheckoutInfo", Iterable["CheckoutLineInfo"]]:
     """Fetch checkout prices with taxes.
 
     First calculate and apply all checkout prices with taxes separately,
@@ -506,6 +507,7 @@ def fetch_checkout_data(
         update_checkout_payment_statuses(
             checkout=checkout_info.checkout,
             checkout_total_gross=current_total_gross,
+            checkout_has_lines=bool(lines),
             checkout_transactions=checkout_transactions,
         )
 

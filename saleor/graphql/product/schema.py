@@ -8,7 +8,12 @@ from ..channel import ChannelContext, ChannelQsContext
 from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
-from ..core.descriptions import ADDED_IN_310, ADDED_IN_314, PREVIEW_FEATURE
+from ..core.descriptions import (
+    ADDED_IN_310,
+    ADDED_IN_314,
+    DEPRECATED_IN_3X_FIELD,
+    PREVIEW_FEATURE,
+)
 from ..core.doc_category import DOC_CATEGORY_PRODUCTS
 from ..core.enums import ReportingPeriod
 from ..core.fields import (
@@ -331,6 +336,7 @@ class ProductQueries(graphene.ObjectType):
             ProductPermissions.MANAGE_PRODUCTS,
         ],
         doc_category=DOC_CATEGORY_PRODUCTS,
+        deprecation_reason=DEPRECATED_IN_3X_FIELD,
     )
 
     @staticmethod
@@ -391,9 +397,9 @@ class ProductQueries(graphene.ObjectType):
         return create_connection_slice(qs, info, kwargs, CollectionCountableConnection)
 
     @staticmethod
-    def resolve_digital_content(_root, _info: ResolveInfo, *, id):
+    def resolve_digital_content(_root, info: ResolveInfo, *, id):
         _, id = from_global_id_or_error(id, DigitalContent)
-        return resolve_digital_content_by_id(id)
+        return resolve_digital_content_by_id(info, id)
 
     @staticmethod
     def resolve_digital_contents(_root, info: ResolveInfo, **kwargs):
@@ -458,9 +464,9 @@ class ProductQueries(graphene.ObjectType):
         return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
 
     @staticmethod
-    def resolve_product_type(_root, _info: ResolveInfo, *, id):
+    def resolve_product_type(_root, info: ResolveInfo, *, id):
         _, id = from_global_id_or_error(id, ProductType)
-        return resolve_product_type_by_id(id)
+        return resolve_product_type_by_id(info, id)
 
     @staticmethod
     def resolve_product_types(_root, info: ResolveInfo, **kwargs):
@@ -530,7 +536,7 @@ class ProductQueries(graphene.ObjectType):
     def resolve_report_product_sales(
         _root, info: ResolveInfo, *, period, channel, **kwargs
     ):
-        qs = resolve_report_product_sales(period, channel_slug=channel)
+        qs = resolve_report_product_sales(info, period, channel_slug=channel)
         kwargs["channel"] = qs.channel_slug
         return create_connection_slice(
             qs, info, kwargs, ProductVariantCountableConnection

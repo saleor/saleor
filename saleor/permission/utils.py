@@ -1,4 +1,5 @@
-from typing import TYPE_CHECKING, Iterable, Union
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, Union
 
 from .auth_filters import AuthorizationFilters, resolve_authorization_filter_fn
 from .enums import AccountPermissions, BasePermissionEnum

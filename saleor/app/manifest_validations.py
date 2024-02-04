@@ -1,6 +1,7 @@
 import logging
 from collections import defaultdict
-from typing import Dict, Iterable, List, Optional
+from collections.abc import Iterable
+from typing import Optional
 
 from django.core.exceptions import ValidationError
 from django.db.models import Value
@@ -25,7 +26,7 @@ from .validators import AppURLValidator, brand_validator
 
 logger = logging.getLogger(__name__)
 
-T_ERRORS = Dict[str, List[ValidationError]]
+T_ERRORS = dict[str, list[ValidationError]]
 
 
 class RequiredSaleorVersionSpec(NpmSpec):
@@ -88,8 +89,8 @@ def clean_manifest_url(manifest_url):
 
 
 def clean_permissions(
-    required_permissions: List[str], saleor_permissions: Iterable[Permission]
-) -> List[Permission]:
+    required_permissions: list[str], saleor_permissions: Iterable[Permission]
+) -> list[Permission]:
     missing_permissions = []
     all_permissions = {perm[0]: perm[1] for perm in get_permissions_enum_list()}
     for perm in required_permissions:
@@ -139,7 +140,7 @@ def clean_manifest_data(manifest_data, raise_for_saleor_version=False):
         errors["brand"].append(e)
 
     saleor_permissions = get_permissions().annotate(
-        formated_codename=Concat("content_type__app_label", Value("."), "codename")
+        formatted_codename=Concat("content_type__app_label", Value("."), "codename")
     )
     try:
         app_permissions = clean_permissions(
@@ -338,7 +339,7 @@ def clean_required_saleor_version(
     required_version,
     raise_for_saleor_version: bool,
     saleor_version=__version__,
-) -> Optional[Dict]:
+) -> Optional[dict]:
     if not required_version:
         return None
     try:

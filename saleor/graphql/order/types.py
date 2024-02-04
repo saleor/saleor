@@ -1,6 +1,6 @@
 import logging
 from decimal import Decimal
-from typing import List, Optional
+from typing import Optional
 from uuid import UUID
 
 import graphene
@@ -73,7 +73,9 @@ from ..core.descriptions import (
     ADDED_IN_310,
     ADDED_IN_311,
     ADDED_IN_313,
+    ADDED_IN_314,
     ADDED_IN_315,
+    ADDED_IN_318,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -184,14 +186,27 @@ def get_order_discount_event(discount_obj: dict):
     )
 
 
-def get_payment_status_for_order(order):
-    status = ChargeStatus.NOT_CHARGED
+def get_payment_status_for_order(
+    order, granted_refunds: list[models.OrderGrantedRefund]
+):
+    zero_price = zero_money(order.currency)
+    total_granted = sum(
+        [granted_refund.amount for granted_refund in granted_refunds],
+        zero_price,
+    )
     charged_money = order.total_charged
+    current_order_total = quantize_price(
+        order.total.gross - total_granted, order.currency
+    )
 
-    if charged_money >= order.total.gross:
+    if charged_money == zero_price and current_order_total <= zero_price:
         status = ChargeStatus.FULLY_CHARGED
-    elif charged_money and charged_money < order.total.gross:
+    elif charged_money >= current_order_total:
+        status = ChargeStatus.FULLY_CHARGED
+    elif charged_money < current_order_total and charged_money > zero_price:
         status = ChargeStatus.PARTIALLY_CHARGED
+    else:
+        status = ChargeStatus.NOT_CHARGED
     return status
 
 
@@ -332,7 +347,9 @@ class OrderEventOrderLineObject(BaseObjectType):
 
 
 class OrderEvent(ModelObjectType[models.OrderEvent]):
-    id = graphene.GlobalID(required=True)
+    id = graphene.GlobalID(
+        required=True, description="ID of the event associated with an order."
+    )
     date = graphene.types.datetime.DateTime(
         description="Date when event happened at in ISO 8601 format."
     )
@@ -588,9 +605,15 @@ class OrderEventCountableConnection(CountableConnection):
 
 
 class FulfillmentLine(ModelObjectType[models.FulfillmentLine]):
-    id = graphene.GlobalID(required=True)
-    quantity = graphene.Int(required=True)
-    order_line = graphene.Field(lambda: OrderLine)
+    id = graphene.GlobalID(required=True, description="ID of the fulfillment line.")
+    quantity = graphene.Int(
+        required=True,
+        description="The number of items included in the fulfillment line.",
+    )
+    order_line = graphene.Field(
+        lambda: OrderLine,
+        description="The order line to which the fulfillment line is related.",
+    )
 
     class Meta:
         description = "Represents line of the fulfillment."
@@ -603,11 +626,18 @@ class FulfillmentLine(ModelObjectType[models.FulfillmentLine]):
 
 
 class Fulfillment(ModelObjectType[models.Fulfillment]):
-    id = graphene.GlobalID(required=True)
-    fulfillment_order = graphene.Int(required=True)
-    status = FulfillmentStatusEnum(required=True)
-    tracking_number = graphene.String(required=True)
-    created = graphene.DateTime(required=True)
+    id = graphene.GlobalID(required=True, description="ID of the fulfillment.")
+    fulfillment_order = graphene.Int(
+        required=True,
+        description="Sequence in which the fulfillments were created for an order.",
+    )
+    status = FulfillmentStatusEnum(required=True, description="Status of fulfillment.")
+    tracking_number = graphene.String(
+        required=True, description="Fulfillment tracking number."
+    )
+    created = graphene.DateTime(
+        required=True, description="Date and time when fulfillment was created."
+    )
     lines = NonNullList(
         FulfillmentLine, description="List of lines for the fulfillment."
     )
@@ -616,6 +646,17 @@ class Fulfillment(ModelObjectType[models.Fulfillment]):
         Warehouse,
         required=False,
         description="Warehouse from fulfillment was fulfilled.",
+    )
+    shipping_refunded_amount = graphene.Field(
+        Money,
+        description="Amount of refunded shipping price." + ADDED_IN_314,
+        required=False,
+    )
+    total_refunded_amount = graphene.Field(
+        Money,
+        description="Total refunded amount assigned to this fulfillment."
+        + ADDED_IN_314,
+        required=False,
     )
 
     class Meta:
@@ -640,7 +681,7 @@ class Fulfillment(ModelObjectType[models.Fulfillment]):
         def _resolve_stock_warehouse(stock: Stock):
             return WarehouseByIdLoader(info.context).load(stock.warehouse_id)
 
-        def _resolve_stock(fulfillment_lines: List[models.FulfillmentLine]):
+        def _resolve_stock(fulfillment_lines: list[models.FulfillmentLine]):
             try:
                 line = fulfillment_lines[0]
             except IndexError:
@@ -659,18 +700,60 @@ class Fulfillment(ModelObjectType[models.Fulfillment]):
             .then(_resolve_stock)
         )
 
+    @staticmethod
+    def resolve_shipping_refunded_amount(root: models.Fulfillment, info):
+        if root.shipping_refund_amount is None:
+            return None
+
+        def _resolve_shipping_refund(order):
+            return prices.Money(root.shipping_refund_amount, currency=order.currency)
+
+        return (
+            OrderByIdLoader(info.context)
+            .load(root.order_id)
+            .then(_resolve_shipping_refund)
+        )
+
+    @staticmethod
+    def resolve_total_refunded_amount(root: models.Fulfillment, info):
+        if root.total_refund_amount is None:
+            return None
+
+        def _resolve_total_refund_amount(order):
+            return prices.Money(root.total_refund_amount, currency=order.currency)
+
+        return (
+            OrderByIdLoader(info.context)
+            .load(root.order_id)
+            .then(_resolve_total_refund_amount)
+        )
+
 
 class OrderLine(ModelObjectType[models.OrderLine]):
-    id = graphene.GlobalID(required=True)
-    product_name = graphene.String(required=True)
-    variant_name = graphene.String(required=True)
-    product_sku = graphene.String()
-    product_variant_id = graphene.String()
-    is_shipping_required = graphene.Boolean(required=True)
-    quantity = graphene.Int(required=True)
-    quantity_fulfilled = graphene.Int(required=True)
-    unit_discount_reason = graphene.String()
-    tax_rate = graphene.Float(required=True)
+    id = graphene.GlobalID(required=True, description="ID of the order line.")
+    product_name = graphene.String(
+        required=True, description="Name of the product in order line."
+    )
+    variant_name = graphene.String(
+        required=True, description="Name of the variant of product in order line."
+    )
+    product_sku = graphene.String(description="SKU of the product variant.")
+    product_variant_id = graphene.String(description="The ID of the product variant.")
+    is_shipping_required = graphene.Boolean(
+        required=True, description="Whether the product variant requires shipping."
+    )
+    quantity = graphene.Int(
+        required=True, description="Number of variant items ordered."
+    )
+    quantity_fulfilled = graphene.Int(
+        required=True, description="Number of variant items fulfilled."
+    )
+    unit_discount_reason = graphene.String(
+        description="Reason for any discounts applied on a product in the order."
+    )
+    tax_rate = graphene.Float(
+        required=True, description="Rate of tax applied on product variant."
+    )
     digital_content_url = graphene.Field(DigitalContentUrl)
     thumbnail = ThumbnailField()
     unit_price = graphene.Field(
@@ -728,6 +811,13 @@ class OrderLine(ModelObjectType[models.OrderLine]):
             OrderPermissions.MANAGE_ORDERS,
         ],
     )
+    sale_id = graphene.ID(
+        required=False,
+        description=(
+            "Denormalized sale ID, set when order line is created for a product "
+            "variant that is on sale." + ADDED_IN_314
+        ),
+    )
     quantity_to_fulfill = graphene.Int(
         required=True,
         description="A quantity of items remaining to be fulfilled." + ADDED_IN_31,
@@ -764,6 +854,10 @@ class OrderLine(ModelObjectType[models.OrderLine]):
             "Denormalized private metadata of the tax class. Requires staff "
             "permissions to access." + ADDED_IN_39
         ),
+    )
+    voucher_code = graphene.String(
+        required=False,
+        description="Voucher code that was used for this order line." + ADDED_IN_314,
     )
 
     class Meta:
@@ -988,10 +1082,14 @@ class OrderLine(ModelObjectType[models.OrderLine]):
 
 @federated_entity("id")
 class Order(ModelObjectType[models.Order]):
-    id = graphene.GlobalID(required=True)
-    created = graphene.DateTime(required=True)
-    updated_at = graphene.DateTime(required=True)
-    status = OrderStatusEnum(required=True)
+    id = graphene.GlobalID(required=True, description="ID of the order.")
+    created = graphene.DateTime(
+        required=True, description="Date and time when the order was created."
+    )
+    updated_at = graphene.DateTime(
+        required=True, description="Date and time when the order was created."
+    )
+    status = OrderStatusEnum(required=True, description="Status of the order.")
     user = graphene.Field(
         User,
         description=(
@@ -1026,9 +1124,15 @@ class Order(ModelObjectType[models.Order]):
             f"{AuthorizationFilters.OWNER.name}."
         ),
     )
-    shipping_method_name = graphene.String()
-    collection_point_name = graphene.String()
-    channel = graphene.Field(Channel, required=True)
+    shipping_method_name = graphene.String(description="Method used for shipping.")
+    collection_point_name = graphene.String(
+        description="Name of the collection point where the order should be picked up by the customer."
+    )
+    channel = graphene.Field(
+        Channel,
+        required=True,
+        description="Channel through which the order was placed.",
+    )
     fulfillments = NonNullList(
         Fulfillment, required=True, description="List of shipments for the order."
     )
@@ -1165,14 +1269,22 @@ class Order(ModelObjectType[models.Order]):
         required=True,
         deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `id` instead."),
     )
-    voucher = graphene.Field(Voucher)
+    voucher = graphene.Field(Voucher, description="Voucher linked to the order.")
+    voucher_code = graphene.String(
+        required=False,
+        description="Voucher code that was used for Order." + ADDED_IN_318,
+    )
     gift_cards = NonNullList(
         GiftCard, description="List of user gift cards.", required=True
     )
-    customerNote = graphene.Boolean(required=True)
-    customer_note = graphene.String(required=True)
-    weight = graphene.Field(Weight, required=True)
-    redirect_url = graphene.String()
+    customer_note = graphene.String(
+        required=True,
+        description="Additional information provided by the customer about the order.",
+    )
+    weight = graphene.Field(Weight, required=True, description="Weight of the order.")
+    redirect_url = graphene.String(
+        description="URL to which user should be redirected after order is placed."
+    )
     subtotal = graphene.Field(
         TaxedMoney,
         description="The sum of line prices not including shipping.",
@@ -1276,8 +1388,7 @@ class Order(ModelObjectType[models.Order]):
     )
     display_gross_prices = graphene.Boolean(
         description=(
-            "Determines whether checkout prices should include taxes when displayed "
-            "in a storefront." + ADDED_IN_39
+            "Determines whether displayed prices should include taxes." + ADDED_IN_39
         ),
         required=True,
     )
@@ -1690,7 +1801,7 @@ class Order(ModelObjectType[models.Order]):
     @traced_resolver
     def resolve_payment_status(root: models.Order, info):
         def _resolve_payment_status(data):
-            transactions, payments, fulfillments = data
+            transactions, payments, fulfillments, granted_refunds = data
 
             total_fulfillment_refund = sum(
                 [
@@ -1706,7 +1817,7 @@ class Order(ModelObjectType[models.Order]):
                 return ChargeStatus.FULLY_REFUNDED
 
             if transactions:
-                return get_payment_status_for_order(root)
+                return get_payment_status_for_order(root, granted_refunds)
             last_payment = get_last_payment(payments)
             if not last_payment:
                 if root.total.gross.amount == 0:
@@ -1717,16 +1828,17 @@ class Order(ModelObjectType[models.Order]):
         transactions = TransactionItemsByOrderIDLoader(info.context).load(root.id)
         payments = PaymentsByOrderIdLoader(info.context).load(root.id)
         fulfillments = FulfillmentsByOrderIdLoader(info.context).load(root.id)
-        return Promise.all([transactions, payments, fulfillments]).then(
-            _resolve_payment_status
-        )
+        granted_refunds = OrderGrantedRefundsByOrderIdLoader(info.context).load(root.id)
+        return Promise.all(
+            [transactions, payments, fulfillments, granted_refunds]
+        ).then(_resolve_payment_status)
 
     @staticmethod
     def resolve_payment_status_display(root: models.Order, info):
         def _resolve_payment_status(data):
-            transactions, payments = data
+            transactions, payments, granted_refunds = data
             if transactions:
-                status = get_payment_status_for_order(root)
+                status = get_payment_status_for_order(root, granted_refunds)
                 return dict(ChargeStatus.CHOICES).get(status)
             last_payment = get_last_payment(payments)
             if not last_payment:
@@ -1737,7 +1849,10 @@ class Order(ModelObjectType[models.Order]):
 
         transactions = TransactionItemsByOrderIDLoader(info.context).load(root.id)
         payments = PaymentsByOrderIdLoader(info.context).load(root.id)
-        return Promise.all([transactions, payments]).then(_resolve_payment_status)
+        granted_refunds = OrderGrantedRefundsByOrderIdLoader(info.context).load(root.id)
+        return Promise.all([transactions, payments, granted_refunds]).then(
+            _resolve_payment_status
+        )
 
     @staticmethod
     def resolve_payments(root: models.Order, info):
@@ -1944,6 +2059,12 @@ class Order(ModelObjectType[models.Order]):
         channel = ChannelByIdLoader(info.context).load(root.channel_id)
 
         return Promise.all([voucher, channel]).then(wrap_voucher_with_channel_context)
+
+    @staticmethod
+    def resolve_voucher_code(root: models.Order, info):
+        if not root.voucher_code:
+            return None
+        return root.voucher_code
 
     @staticmethod
     def resolve_language_code_enum(root: models.Order, _info):
@@ -2182,7 +2303,7 @@ class Order(ModelObjectType[models.Order]):
         return None
 
     @staticmethod
-    def __resolve_references(roots: List["Order"], info):
+    def __resolve_references(roots: list["Order"], info):
         requestor = get_user_or_app_from_context(info.context)
         requestor_has_access_to_all = has_one_of_permissions(
             requestor, [OrderPermissions.MANAGE_ORDERS]

@@ -1,7 +1,7 @@
 from decimal import Decimal
 from operator import attrgetter
 from re import match
-from typing import TYPE_CHECKING, List, Optional, cast
+from typing import TYPE_CHECKING, Optional, cast
 from uuid import uuid4
 
 from django.conf import settings
@@ -302,9 +302,27 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
     total_charged = MoneyField(
         amount_field="total_charged_amount", currency_field="currency"
     )
+    subtotal_net_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal(0),
+    )
+    subtotal_gross_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal(0),
+    )
+    subtotal = TaxedMoneyField(
+        net_amount_field="subtotal_net_amount",
+        gross_amount_field="subtotal_gross_amount",
+    )
 
     voucher = models.ForeignKey(
         Voucher, blank=True, null=True, related_name="+", on_delete=models.SET_NULL
+    )
+
+    voucher_code = models.CharField(
+        max_length=255, null=True, blank=True, db_index=False
     )
     gift_cards = models.ManyToManyField(GiftCard, blank=True, related_name="orders")
     display_gross_prices = models.BooleanField(default=True)
@@ -348,6 +366,11 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
                 opclasses=["gin_trgm_ops"],
             ),
             models.Index(fields=["created_at"], name="idx_order_created_at"),
+            GinIndex(fields=["voucher_code"], name="order_voucher_code_idx"),
+            GinIndex(
+                fields=["user_email", "user_id"],
+                name="order_user_email_user_id_idx",
+            ),
         ]
 
     def is_fully_paid(self):
@@ -363,16 +386,16 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
         return self.user_email
 
     def __repr__(self):
-        return "<Order #%r>" % (self.id,)
+        return f"<Order #{self.id!r}>"
 
     def __str__(self):
-        return "#%d" % (self.id,)
+        return f"#{self.id}"
 
     def get_last_payment(self) -> Optional[Payment]:
         # Skipping a partial payment is a temporary workaround for storing a basic data
         # about partial payment from Adyen plugin. This is something that will removed
         # in 3.1 by introducing a partial payments feature.
-        payments: List[Payment] = [
+        payments: list[Payment] = [
             payment for payment in self.payments.all() if not payment.partial
         ]
         return max(payments, default=None, key=attrgetter("pk"))
@@ -399,11 +422,11 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
             .exists()
         )
 
-    def is_shipping_required(self):
-        return any(line.is_shipping_required for line in self.lines.all())
-
     def get_subtotal(self):
         return get_subtotal(self.lines.all(), self.currency)
+
+    def is_shipping_required(self):
+        return any(line.is_shipping_required for line in self.lines.all())
 
     def get_total_quantity(self):
         return sum([line.quantity for line in self.lines.all()])

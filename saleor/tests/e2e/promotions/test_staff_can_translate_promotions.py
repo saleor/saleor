@@ -9,7 +9,7 @@ from ..promotions.utils import (
     translate_promotion,
     translate_promotion_rule,
 )
-from ..shop.utils.preparing_shop import prepare_shop
+from ..shop.utils.preparing_shop import prepare_default_shop
 from ..translations.utils import get_translations
 from ..utils import assign_permissions
 
@@ -56,24 +56,23 @@ def prepare_promotion(
 @pytest.mark.e2e
 def test_staff_translate_promotions_core_2119(
     e2e_staff_api_client,
-    permission_manage_products,
-    permission_manage_channels,
+    shop_permissions,
     permission_manage_product_types_and_attributes,
     permission_manage_discounts,
-    permission_manage_shipping,
     permission_manage_translations,
 ):
     # Before
     permissions = [
-        permission_manage_products,
-        permission_manage_channels,
+        *shop_permissions,
         permission_manage_product_types_and_attributes,
         permission_manage_discounts,
-        permission_manage_shipping,
         permission_manage_translations,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
-    warehouse_id, channel_id, _channel_slug, _ = prepare_shop(e2e_staff_api_client)
+
+    shop_data = prepare_default_shop(e2e_staff_api_client)
+    channel_id = shop_data["channel"]["id"]
+    warehouse_id = shop_data["warehouse"]["id"]
 
     product_id, _product_variant_id, _ = prepare_product(
         e2e_staff_api_client, warehouse_id, channel_id, "37.99"

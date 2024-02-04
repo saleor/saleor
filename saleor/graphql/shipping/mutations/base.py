@@ -1,5 +1,4 @@
 from collections import defaultdict
-from typing import Dict, List
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -27,7 +26,7 @@ from ..types import ShippingMethodPostalCodeRule, ShippingMethodType
 class ShippingZoneMixin:
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
-        errors: defaultdict[str, List[ValidationError]] = defaultdict(list)
+        errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
         cls.check_duplicates(
             errors, data, "add_warehouses", "remove_warehouses", "warehouses"
         )
@@ -82,7 +81,7 @@ class ShippingZoneMixin:
         if add_channels := cleaned_input.get("add_channels"):
             add_channel_ids = {channel.id for channel in add_channels}
 
-        ChannelWarehouse = channel_models.Channel.warehouses.through  # type: ignore[attr-defined] # raw access to the through model # noqa: E501
+        ChannelWarehouse = channel_models.Channel.warehouses.through
         channel_warehouses = ChannelWarehouse.objects.filter(
             warehouse_id__in=warehouse_ids
         )
@@ -225,8 +224,8 @@ class ShippingZoneMixin:
         Remove all shipping zone to warehouse relations that will not have common
         channel after removing given channels from the shipping zone.
         """
-        WarehouseShippingZone = models.ShippingZone.warehouses.through  # type: ignore[attr-defined] # raw access to the through model # noqa: E501
-        ChannelWarehouse = channel_models.Channel.warehouses.through  # type: ignore[attr-defined] # raw access to the through model # noqa: E501
+        WarehouseShippingZone = models.ShippingZone.warehouses.through
+        ChannelWarehouse = channel_models.Channel.warehouses.through
         ShippingZoneChannel = models.ShippingZone.channels.through
 
         warehouse_shipping_zones = WarehouseShippingZone.objects.filter(
@@ -286,7 +285,7 @@ class ShippingPriceMixin:
         cleaned_input = super().clean_input(  # type: ignore[misc] # mixin
             info, instance, data, **kwargs
         )
-        errors: Dict[str, ValidationError] = {}
+        errors: dict[str, ValidationError] = {}
         cls.clean_weight(cleaned_input, errors)
         if (
             "minimum_delivery_days" in cleaned_input

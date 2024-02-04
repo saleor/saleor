@@ -554,6 +554,39 @@ VOUCHER_DELETED = (
 """
 )
 
+
+VOUCHER_CODES_CREATED = (
+    fragments.VOUCHER_CODE_DETAILS
+    + """
+    subscription{
+      event{
+        ...on VoucherCodesCreated{
+          voucherCodes{
+            ...VoucherCodeDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+VOUCHER_CODES_DELETED = (
+    fragments.VOUCHER_CODE_DETAILS
+    + """
+    subscription{
+      event{
+        ...on VoucherCodesDeleted{
+          voucherCodes{
+            ...VoucherCodeDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
 VOUCHER_METADATA_UPDATED = (
     fragments.VOUCHER_DETAILS
     + """
@@ -562,6 +595,22 @@ VOUCHER_METADATA_UPDATED = (
         ...on VoucherMetadataUpdated{
           voucher{
             ...VoucherDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+VOUCHER_CODE_EXPORT_COMPLETED = (
+    fragments.VOUCHER_CODE_EXPORT_DETAILS
+    + """
+    subscription{
+      event{
+        ...on VoucherCodeExportCompleted{
+          export{
+            ...VoucherCodeExportDetails
           }
         }
       }
@@ -2634,6 +2683,25 @@ ORDER_CALCULATE_TAXES = """
                 }
               }
             }
+          }
+        }
+      }
+    }
+"""
+
+CHECKOUT_SHIPPING_LIST_AND_FILTER = """
+    subscription {
+      event {
+        ... on CheckoutFilterShippingMethods {
+          __typename
+          checkout {
+            id
+          }
+        }
+        ... on ShippingListMethodsForCheckout {
+          __typename
+          checkout {
+            id
           }
         }
       }

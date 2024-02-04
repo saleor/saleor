@@ -1,7 +1,8 @@
 from collections import defaultdict
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from decimal import Decimal
-from typing import Dict, Iterable, List, Optional, cast
+from typing import Optional, cast
 
 from . import TransactionEventType
 from .models import TransactionEvent, TransactionItem
@@ -46,17 +47,17 @@ AUTHORIZATION_EVENTS = [
 
 @dataclass
 class ActionEventMap:
-    without_psp_reference: List[TransactionEvent]
-    authorization: Dict[PSPReference, AuthorizationEvents] = field(
+    without_psp_reference: list[TransactionEvent]
+    authorization: dict[PSPReference, AuthorizationEvents] = field(
         default_factory=lambda: defaultdict(AuthorizationEvents)
     )
-    charge: Dict[PSPReference, ChargeEvents] = field(
+    charge: dict[PSPReference, ChargeEvents] = field(
         default_factory=lambda: defaultdict(ChargeEvents)
     )
-    refund: Dict[PSPReference, RefundEvents] = field(
+    refund: dict[PSPReference, RefundEvents] = field(
         default_factory=lambda: defaultdict(RefundEvents)
     )
-    cancel: Dict[PSPReference, CancelEvents] = field(
+    cancel: dict[PSPReference, CancelEvents] = field(
         default_factory=lambda: defaultdict(CancelEvents)
     )
 
@@ -211,8 +212,8 @@ def _recalculate_cancel_amounts(
     )
 
 
-def _get_authorize_events(events: Iterable[TransactionEvent]) -> List[TransactionEvent]:
-    authorize_events: List[TransactionEvent] = [
+def _get_authorize_events(events: Iterable[TransactionEvent]) -> list[TransactionEvent]:
+    authorize_events: list[TransactionEvent] = [
         event for event in events if event.type in AUTHORIZATION_EVENTS
     ]
     auth_adjustment_event: Optional[TransactionEvent] = next(
@@ -233,7 +234,7 @@ def _get_authorize_events(events: Iterable[TransactionEvent]) -> List[Transactio
 
 
 def _handle_events_without_psp_reference(
-    transaction: TransactionItem, events: List[TransactionEvent]
+    transaction: TransactionItem, events: list[TransactionEvent]
 ):
     """Calculate the amounts for event without psp reference.
 
@@ -265,7 +266,7 @@ def _handle_events_without_psp_reference(
 def _initilize_action_map(events: Iterable[TransactionEvent]) -> ActionEventMap:
     event_map = ActionEventMap(without_psp_reference=[])
     authorize_events = _get_authorize_events(events)
-    events_without_authorize: List[TransactionEvent] = [
+    events_without_authorize: list[TransactionEvent] = [
         event for event in events if event.type not in AUTHORIZATION_EVENTS
     ]
 
@@ -394,5 +395,6 @@ def recalculate_transaction_amounts(transaction: TransactionItem, save: bool = T
                 "charge_pending_value",
                 "refund_pending_value",
                 "cancel_pending_value",
+                "modified_at",
             ]
         )

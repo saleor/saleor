@@ -1,14 +1,11 @@
 import json
+from collections.abc import Iterable
 from decimal import Decimal, InvalidOperation
 from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
-    Dict,
-    Iterable,
-    List,
     Optional,
-    Tuple,
     Union,
 )
 
@@ -33,7 +30,7 @@ from ..utils.sorting import sort_queryset_for_connection
 if TYPE_CHECKING:
     from ..core import ResolveInfo
 
-ConnectionArguments = Dict[str, Any]
+ConnectionArguments = dict[str, Any]
 
 EPSILON = Decimal("0.000001")
 FILTERS_NAME = "_FILTERS_NAME"
@@ -49,7 +46,7 @@ def to_global_cursor(values):
     return base64(json.dumps(values))
 
 
-def from_global_cursor(cursor) -> List[str]:
+def from_global_cursor(cursor) -> list[str]:
     values = unbase64(cursor)
     return json.loads(values)
 
@@ -67,7 +64,7 @@ def get_field_value(instance: DjangoModel, field_name: str):
 
 
 def _prepare_filter_by_rank_expression(
-    cursor: List[str],
+    cursor: list[str],
     sorting_direction: str,
     coerce_id: Callable[[str], Any],
 ) -> Q:
@@ -94,11 +91,11 @@ def _prepare_filter_by_rank_expression(
 def _prepare_filter_expression(
     field_name: str,
     index: int,
-    cursor: List[str],
-    sorting_fields: List[str],
+    cursor: list[str],
+    sorting_fields: list[str],
     sorting_direction: str,
-) -> Tuple[Q, Dict[str, Union[str, bool]]]:
-    field_expression: Dict[str, Union[str, bool]] = {}
+) -> tuple[Q, dict[str, Union[str, bool]]]:
+    field_expression: dict[str, Union[str, bool]] = {}
     extra_expression = Q()
     for cursor_id, cursor_value in enumerate(cursor[:index]):
         field_expression[sorting_fields[cursor_id]] = cursor_value
@@ -115,8 +112,8 @@ def _prepare_filter_expression(
 
 
 def _prepare_filter(
-    cursor: List[str],
-    sorting_fields: List[str],
+    cursor: list[str],
+    sorting_fields: list[str],
     sorting_direction: str,
     coerce_id: Callable[[str], Any],
 ) -> Q:
@@ -577,7 +574,7 @@ def where_filter_qs(iterable, args, filterset_class, filter_input, request):
     return queryset
 
 
-def contains_filter_operator(input: Dict[str, Union[dict, str]]):
+def contains_filter_operator(input: dict[str, Union[dict, str]]):
     return any([operator in input for operator in ["AND", "OR", "NOT"]])
 
 

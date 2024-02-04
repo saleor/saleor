@@ -30,6 +30,7 @@ from ..descriptions import (
     ADDED_IN_36,
     ADDED_IN_312,
     ADDED_IN_314,
+    ADDED_IN_318,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -91,6 +92,7 @@ from ..enums import (
     TransactionUpdateErrorCode,
     TranslationErrorCode,
     UploadErrorCode,
+    VoucherCodeBulkDeleteErrorCode,
     WarehouseErrorCode,
     WebhookDryRunErrorCode,
     WebhookErrorCode,
@@ -116,7 +118,7 @@ class NonNullList(graphene.List):
 
     def __init__(self, of_type, *args, **kwargs):
         of_type = graphene.NonNull(of_type)
-        super(NonNullList, self).__init__(of_type, *args, **kwargs)
+        super().__init__(of_type, *args, **kwargs)
 
 
 class CountryDisplay(graphene.ObjectType):
@@ -295,6 +297,23 @@ class DiscountError(ProductWithoutVariantError):
     channels = NonNullList(
         graphene.ID,
         description="List of channels IDs which causes the error.",
+        required=False,
+    )
+    voucher_codes = NonNullList(
+        graphene.String,
+        description="List of voucher codes which causes the error." + ADDED_IN_318,
+        required=False,
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_DISCOUNTS
+
+
+class VoucherCodeBulkDeleteError(BulkError):
+    code = VoucherCodeBulkDeleteErrorCode(description="The error code.", required=True)
+    voucher_codes = NonNullList(
+        graphene.ID,
+        description="List of voucher codes which causes the error.",
         required=False,
     )
 
@@ -821,10 +840,22 @@ class AttributeValueBulkTranslateError(BulkError):
 
 class Weight(graphene.ObjectType):
     unit = WeightUnitsEnum(description="Weight unit.", required=True)
-    value = graphene.Float(description="Weight value.", required=True)
+    value = graphene.Float(
+        description="Weight value. Returns a value with maximal three decimal places",
+        required=True,
+    )
 
     class Meta:
         description = "Represents weight value in a specific weight unit."
+
+    @staticmethod
+    def resolve_value(root, _info):
+        # Mass is stored as grams in the DB. It means that even if we provide the
+        # weight with static precision (e.g. 0.77 lb), the value will be converted
+        # to grams. In this case, input like  0.77 lb will be converted to
+        # 349.26583999999997 g. In case of retrieving the weight value in lb, we need
+        # to round the value as we will receive the value like 0.7699999999999999.
+        return round(root.value, 3)
 
 
 class Image(graphene.ObjectType):

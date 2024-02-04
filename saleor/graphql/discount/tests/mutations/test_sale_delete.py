@@ -5,10 +5,8 @@ import pytest
 
 from .....discount.error_codes import DiscountErrorCode
 from .....discount.models import Promotion, PromotionRule
-from .....discount.tests.sale_converter import convert_sales_to_promotions
-from .....discount.utils import fetch_catalogue_info
 from ....tests.utils import get_graphql_content
-from ...mutations.utils import convert_catalogue_info_to_global_ids
+from ...utils import convert_migrated_sale_predicate_to_catalogue_info
 
 SALE_DELETE_MUTATION = """
     mutation DeleteSale($id: ID!) {
@@ -27,29 +25,23 @@ SALE_DELETE_MUTATION = """
 """
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
+@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_deleted")
 def test_sale_delete_mutation(
     deleted_webhook_mock,
-    update_products_discounted_prices_for_promotion_task_mock,
+    update_discounted_prices_task_mock,
     staff_api_client,
-    sale,
+    promotion_converted_from_sale,
+    catalogue_predicate,
     permission_manage_discounts,
 ):
     # given
     query = SALE_DELETE_MUTATION
-    variables = {"id": graphene.Node.to_global_id("Sale", sale.id)}
-    previous_catalogue = convert_catalogue_info_to_global_ids(
-        fetch_catalogue_info(sale)
+    promotion = promotion_converted_from_sale
+    previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
+        catalogue_predicate
     )
-    convert_sales_to_promotions()
-
-    promotion = Promotion.objects.get(old_sale_id=sale.id)
-    assert promotion
-    rules = promotion.rules.all()
-    assert len(rules) == 1
+    variables = {"id": graphene.Node.to_global_id("Sale", promotion.old_sale_id)}
 
     # when
     response = staff_api_client.post_graphql(
@@ -60,33 +52,30 @@ def test_sale_delete_mutation(
     content = get_graphql_content(response)
     assert not content["data"]["saleDelete"]["errors"]
     data = content["data"]["saleDelete"]["sale"]
-    assert data["name"] == sale.name
-    assert data["id"] == graphene.Node.to_global_id("Sale", sale.id)
+    assert data["name"] == promotion.name
+    assert data["id"] == graphene.Node.to_global_id("Sale", promotion.old_sale_id)
 
     assert not Promotion.objects.filter(id=promotion.id).first()
-    assert not PromotionRule.objects.filter(id=rules[0].id).first()
+    assert not PromotionRule.objects.filter(promotion_id=promotion.id).first()
     with pytest.raises(promotion._meta.model.DoesNotExist):
         promotion.refresh_from_db()
 
     deleted_webhook_mock.assert_called_once_with(promotion, previous_catalogue)
-    update_products_discounted_prices_for_promotion_task_mock.assert_called_once()
+    update_discounted_prices_task_mock.assert_called_once()
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
+@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_deleted")
 def test_sale_delete_mutation_with_promotion_id(
     deleted_webhook_mock,
-    update_products_discounted_prices_for_promotion_task_mock,
+    update_discounted_prices_task_mock,
     staff_api_client,
-    sale,
+    promotion_converted_from_sale,
     permission_manage_discounts,
 ):
     # given
     query = SALE_DELETE_MUTATION
-    convert_sales_to_promotions()
-    promotion = Promotion.objects.get(old_sale_id=sale.id)
+    promotion = promotion_converted_from_sale
     variables = {"id": graphene.Node.to_global_id("Promotion", promotion.id)}
 
     # when
@@ -107,7 +96,7 @@ def test_sale_delete_mutation_with_promotion_id(
     )
 
     deleted_webhook_mock.assert_not_called()
-    update_products_discounted_prices_for_promotion_task_mock.assert_not_called()
+    update_discounted_prices_task_mock.assert_not_called()
 
 
 def test_sale_delete_not_found_error(staff_api_client, permission_manage_discounts):

@@ -165,6 +165,7 @@ def test_permission_group_create_mutation_trigger_webhook(
         [any_webhook],
         group,
         SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )
 
 
@@ -311,9 +312,6 @@ def test_permission_group_create_mutation_lack_of_permission(
     permission_group_manage_orders,
     permission_group_all_perms_all_channels,
 ):
-    """Ensue staff user can't create group with wider scope of permissions.
-    Ensure that superuser pass restrictions.
-    """
     staff_user.groups.add(permission_group_manage_orders)
     query = PERMISSION_GROUP_CREATE_MUTATION
     name = "New permission group"
@@ -411,12 +409,6 @@ def test_permission_group_create_mutation_add_customer_user(
     permission_group_manage_apps,
     permission_group_all_perms_all_channels,
 ):
-    """Ensure creating permission group with customer user in input field for adding
-    users failed. Mutations should failed. Error should contains list of wrong users
-    IDs.
-    Ensure this mutation also fail for superuser.
-    """
-
     second_customer = User.objects.create(
         email="second_customer@test.com", password="test"
     )
@@ -522,10 +514,6 @@ def test_permission_group_create_mutation_requestor_does_not_have_all_users_perm
     staff_api_client,
     permission_group_manage_apps,
 ):
-    """Ensure user can create group with user whose permission scope
-    is wider than requestor scope.
-    """
-
     staff_user = staff_users[0]
     staff_user.groups.add(permission_group_manage_apps)
     permission_group_manage_users.user_set.add(staff_users[1])
@@ -613,8 +601,6 @@ def test_permission_group_create_mutation_not_restricted_channels(
     channel_PLN,
     channel_USD,
 ):
-    """Ensure that creating permission group with restrictedAccessToChannels se to
-    False won't assign any channels to the group."""
     # given
     permission_group_no_perms_all_channels.user_set.add(staff_api_client.user)
     query = PERMISSION_GROUP_CREATE_MUTATION
@@ -652,8 +638,6 @@ def test_permission_group_create_mutation_not_restricted_channels_no_access(
     channel_PLN,
     channel_USD,
 ):
-    """Ensure that user with restricted channel access is not able to create a group
-    with not restricted channel access."""
     # given
     permission_group_all_perms_channel_USD_only.user_set.add(staff_api_client.user)
     query = PERMISSION_GROUP_CREATE_MUTATION

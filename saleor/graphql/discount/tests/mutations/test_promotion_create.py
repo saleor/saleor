@@ -1184,6 +1184,52 @@ def test_promotion_create_invalid_catalogue_predicate(
     assert errors[0]["index"] == 1
 
 
+@patch("saleor.product.tasks.update_products_discounted_prices_of_promotion_task.delay")
+@patch("saleor.plugins.manager.PluginsManager.promotion_started")
+@patch("saleor.plugins.manager.PluginsManager.promotion_created")
+def test_promotion_create_rules_without_channels_and_percentage_reward(
+    promotion_created_mock,
+    promotion_started_mock,
+    update_products_discounted_prices_of_promotion_task_mock,
+    staff_api_client,
+    permission_group_manage_discounts,
+    variant,
+):
+    # given
+    permission_group_manage_discounts.user_set.add(staff_api_client.user)
+    start_date = timezone.now() - timedelta(days=30)
+    end_date = timezone.now() + timedelta(days=30)
+    catalogue_predicate = {
+        "variantPredicate": {
+            "ids": [graphene.Node.to_global_id("ProductVariant", variant.id)]
+        }
+    }
+    variables = {
+        "input": {
+            "name": "test promotion",
+            "startDate": start_date.isoformat(),
+            "endDate": end_date.isoformat(),
+            "rules": [
+                {
+                    "name": "test promotion rule 1",
+                    "rewardValueType": RewardValueTypeEnum.PERCENTAGE.name,
+                    "rewardValue": Decimal("10"),
+                    "cataloguePredicate": catalogue_predicate,
+                }
+            ],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PROMOTION_CREATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionCreate"]
+    assert not data["errors"]
+    assert data["promotion"]["rules"]
+
+
 PROMOTION_CREATE_WITH_EVENTS = """
     mutation promotionCreate($input: PromotionCreateInput!) {
         promotionCreate(input: $input) {
@@ -1362,3 +1408,53 @@ def test_promotion_create_events_by_app(
     rule_ids = [event["ruleId"] for event in events if event.get("ruleId")]
     rules = data["promotion"]["rules"]
     assert all([rule["id"] in rule_ids for rule in rules])
+
+
+def test_promotion_create_without_catalogue_predicate(
+    staff_api_client,
+    permission_manage_discounts,
+    description_json,
+    channel_USD,
+    channel_PLN,
+    variant,
+    product,
+):
+    # given
+    start_date = timezone.now() - timedelta(days=30)
+    end_date = timezone.now() + timedelta(days=30)
+    channel_ids = [
+        graphene.Node.to_global_id("Channel", channel.pk)
+        for channel in [channel_USD, channel_PLN]
+    ]
+    promotion_name = "test promotion"
+    variables = {
+        "input": {
+            "name": promotion_name,
+            "description": description_json,
+            "startDate": start_date.isoformat(),
+            "endDate": end_date.isoformat(),
+            "rules": [
+                {
+                    "name": "test promotion rule",
+                    "description": description_json,
+                    "channels": channel_ids,
+                    "rewardValueType": RewardValueTypeEnum.PERCENTAGE.name,
+                    "rewardValue": Decimal("50"),
+                    "cataloguePredicate": None,
+                }
+            ],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PROMOTION_CREATE_MUTATION, variables, permissions=(permission_manage_discounts,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionCreate"]
+    assert not data["errors"]
+    assert data["promotion"]
+    assert len(data["promotion"]["rules"]) == 1
+    assert data["promotion"]["rules"][0]["cataloguePredicate"] == {}

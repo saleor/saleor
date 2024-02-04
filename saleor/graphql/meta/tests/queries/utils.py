@@ -1,5 +1,3 @@
-from typing import List
-
 import graphene
 from django.http import HttpResponse
 
@@ -22,7 +20,7 @@ def execute_query(
     client: ApiClient,
     model: ModelWithMetadata,
     model_name: str,
-    permissions: List[Permission] = None,
+    permissions: list[Permission] = None,
 ):
     return client.post_graphql(
         query_str,

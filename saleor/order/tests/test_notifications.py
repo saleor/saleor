@@ -7,6 +7,10 @@ from django.core.files import File
 from measurement.measures import Weight
 from prices import Money, fixed_discount
 
+from ...attribute.tests.model_helpers import (
+    get_product_attribute_values,
+    get_product_attributes,
+)
 from ...core.notify_events import NotifyEventType
 from ...core.prices import quantize_price
 from ...core.tests.utils import get_site_context_payload
@@ -15,6 +19,7 @@ from ...graphql.core.utils import to_global_id_or_none
 from ...graphql.order.utils import OrderLineData
 from ...order import notifications
 from ...order.fetch import fetch_order_info
+from ...payment.model_helpers import get_subtotal
 from ...plugins.manager import get_plugins_manager
 from ...product.models import DigitalContentUrl
 from ...thumbnail import THUMBNAIL_SIZES
@@ -96,20 +101,21 @@ def test_get_custom_order_payload(order, site_settings):
 
 
 def test_get_order_line_payload(order_line):
-    order_line.variant.product.weight = Weight(kg=5)
-    order_line.variant.product.save()
+    product = order_line.variant.product
+    product.weight = Weight(kg=5)
+    product.save()
 
     payload = get_order_line_payload(order_line)
 
-    attributes = order_line.variant.product.attributes.all()
+    attributes = get_product_attributes(product)
     expected_attributes_payload = []
     for attr in attributes:
         expected_attributes_payload.append(
             {
                 "assignment": {
                     "attribute": {
-                        "slug": attr.assignment.attribute.slug,
-                        "name": attr.assignment.attribute.name,
+                        "slug": attr.slug,
+                        "name": attr.name,
                     }
                 },
                 "values": [
@@ -119,7 +125,7 @@ def test_get_order_line_payload(order_line):
                         "slug": value.slug,
                         "file_url": value.file_url,
                     }
-                    for value in attr.values.all()
+                    for value in get_product_attribute_values(product, attr)
                 ],
             }
         )
@@ -209,9 +215,10 @@ def test_get_address_payload(address):
 def test_get_default_order_payload(order_line):
     order_line.refresh_from_db()
     order = order_line.order
+    order.subtotal = get_subtotal(order.lines.all(), order.currency)
     order_line_payload = get_order_line_payload(order_line)
     redirect_url = "http://redirect.com/path"
-    subtotal = order.get_subtotal()
+    subtotal = order.subtotal
     order.total = subtotal + order.shipping_price
     tax = order.total_gross_amount - order.total_net_amount
 
@@ -311,7 +318,7 @@ def test_get_default_fulfillment_payload(fulfillment, digital_content, site_sett
 
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
 def test_send_email_payment_confirmation(mocked_notify, site_settings, payment_dummy):
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     order = payment_dummy.order
     order_info = fetch_order_info(order)
     expected_payload = {
@@ -337,7 +344,7 @@ def test_send_email_payment_confirmation(mocked_notify, site_settings, payment_d
 
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
 def test_send_email_order_confirmation(mocked_notify, order, site_settings):
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     redirect_url = "https://www.example.com"
     order_info = fetch_order_info(order)
 
@@ -359,7 +366,7 @@ def test_send_email_order_confirmation(mocked_notify, order, site_settings):
 def test_send_email_order_confirmation_for_cc(
     mocked_notify, order_with_lines_for_cc, site_settings, warehouse_for_cc
 ):
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     redirect_url = "https://www.example.com"
     order_info = fetch_order_info(order_with_lines_for_cc)
 
@@ -484,7 +491,7 @@ def test_send_fulfillment_confirmation_by_user(
     fulfillment = fulfilled_order.fulfillments.first()
     fulfillment.tracking_number = "https://www.example.com"
     fulfillment.save()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     notifications.send_fulfillment_confirmation_to_customer(
         order=fulfilled_order,
@@ -511,7 +518,7 @@ def test_send_fulfillment_confirmation_by_app(
     fulfillment = fulfilled_order.fulfillments.first()
     fulfillment.tracking_number = "https://www.example.com"
     fulfillment.save()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     notifications.send_fulfillment_confirmation_to_customer(
         order=fulfilled_order,
@@ -536,7 +543,7 @@ def test_send_fulfillment_update(mocked_notify, fulfilled_order, site_settings):
     fulfillment = fulfilled_order.fulfillments.first()
     fulfillment.tracking_number = "https://www.example.com"
     fulfillment.save()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     notifications.send_fulfillment_update(
         order=fulfilled_order, fulfillment=fulfillment, manager=manager
@@ -556,7 +563,7 @@ def test_send_email_order_canceled_by_user(
     mocked_notify, order, site_settings, staff_user
 ):
     # given
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     # when
     notifications.send_order_canceled_confirmation(order, staff_user, None, manager)
@@ -579,7 +586,7 @@ def test_send_email_order_canceled_by_user(
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
 def test_send_email_order_canceled_by_app(mocked_notify, order, site_settings, app):
     # given
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
 
     # when
     notifications.send_order_canceled_confirmation(order, None, app, manager)
@@ -604,7 +611,7 @@ def test_send_email_order_refunded_by_user(
     mocked_notify, order, site_settings, staff_user
 ):
     # given
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     amount = order.total.gross.amount
 
     # when
@@ -633,7 +640,7 @@ def test_send_email_order_refunded_by_user(
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
 def test_send_email_order_refunded_by_app(mocked_notify, order, site_settings, app):
     # given
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     amount = order.total.gross.amount
 
     # when

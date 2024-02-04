@@ -3,11 +3,7 @@ from unittest.mock import patch
 import graphene
 
 from .....discount.error_codes import DiscountErrorCode
-from .....discount.models import Promotion
-from .....discount.tests.sale_converter import convert_sales_to_promotions
-from .....discount.utils import fetch_catalogue_info
 from ....tests.utils import get_graphql_content
-from ...mutations.utils import convert_catalogue_info_to_global_ids
 from ...utils import convert_migrated_sale_predicate_to_catalogue_info
 
 SALE_CATALOGUES_ADD_MUTATION = """
@@ -26,15 +22,13 @@ SALE_CATALOGUES_ADD_MUTATION = """
 """
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
+@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
 def test_sale_add_catalogues(
     updated_webhook_mock,
-    update_products_discounted_prices_for_promotion_task_mock,
+    update_discounted_prices_task_mock,
     staff_api_client,
-    new_sale,
+    promotion_converted_from_sale_with_empty_predicate,
     category,
     product,
     collection,
@@ -42,11 +36,9 @@ def test_sale_add_catalogues(
     permission_manage_discounts,
 ):
     # given
-    sale = new_sale
     query = SALE_CATALOGUES_ADD_MUTATION
-    previous_catalogue = convert_catalogue_info_to_global_ids(
-        fetch_catalogue_info(sale)
-    )
+    promotion = promotion_converted_from_sale_with_empty_predicate
+    previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info({})
     product_id = graphene.Node.to_global_id("Product", product.id)
     collection_id = graphene.Node.to_global_id("Collection", collection.id)
     category_id = graphene.Node.to_global_id("Category", category.id)
@@ -54,10 +46,9 @@ def test_sale_add_catalogues(
         graphene.Node.to_global_id("ProductVariant", variant.id)
         for variant in product_variant_list
     ]
-    convert_sales_to_promotions()
 
     variables = {
-        "id": graphene.Node.to_global_id("Sale", sale.id),
+        "id": graphene.Node.to_global_id("Sale", promotion.old_sale_id),
         "input": {
             "products": [product_id],
             "collections": [collection_id],
@@ -74,8 +65,8 @@ def test_sale_add_catalogues(
     # then
     content = get_graphql_content(response)
     assert not content["data"]["saleCataloguesAdd"]["errors"]
-    assert content["data"]["saleCataloguesAdd"]["sale"]["name"] == sale.name
-    promotion = Promotion.objects.get(old_sale_id=sale.id)
+    assert content["data"]["saleCataloguesAdd"]["sale"]["name"] == promotion.name
+    promotion.refresh_from_db()
     predicate = promotion.rules.first().catalogue_predicate
     current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(predicate)
 
@@ -87,18 +78,17 @@ def test_sale_add_catalogues(
     updated_webhook_mock.assert_called_once_with(
         promotion, previous_catalogue, current_catalogue
     )
-    update_products_discounted_prices_for_promotion_task_mock.assert_called_once()
+    update_discounted_prices_task_mock.assert_called_once()
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
+@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
 def test_sale_add_catalogues_no_changes_in_catalogue(
     updated_webhook_mock,
-    update_products_discounted_prices_for_promotion_task_mock,
+    update_discounted_prices_task_mock,
     staff_api_client,
-    sale,
+    promotion_converted_from_sale,
+    catalogue_predicate,
     collection,
     category,
     product,
@@ -107,17 +97,17 @@ def test_sale_add_catalogues_no_changes_in_catalogue(
 ):
     # given
     query = SALE_CATALOGUES_ADD_MUTATION
-    previous_catalogue = convert_catalogue_info_to_global_ids(
-        fetch_catalogue_info(sale)
+    promotion = promotion_converted_from_sale
+    previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
+        catalogue_predicate
     )
     collection_id = graphene.Node.to_global_id("Collection", collection.id)
     category_id = graphene.Node.to_global_id("Category", category.id)
     product_id = graphene.Node.to_global_id("Product", product.id)
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
-    convert_sales_to_promotions()
 
     variables = {
-        "id": graphene.Node.to_global_id("Sale", sale.id),
+        "id": graphene.Node.to_global_id("Sale", promotion.old_sale_id),
         "input": {
             "collections": [collection_id],
             "categories": [category_id],
@@ -134,7 +124,7 @@ def test_sale_add_catalogues_no_changes_in_catalogue(
     # then
     content = get_graphql_content(response)
     assert not content["data"]["saleCataloguesAdd"]["errors"]
-    promotion = Promotion.objects.get(old_sale_id=sale.id)
+    promotion.refresh_from_db()
     predicate = promotion.rules.first().catalogue_predicate
     current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(predicate)
 
@@ -145,33 +135,33 @@ def test_sale_add_catalogues_no_changes_in_catalogue(
     assert current_catalogue == previous_catalogue
 
     updated_webhook_mock.assert_not_called()
-    update_products_discounted_prices_for_promotion_task_mock.assert_not_called()
+    update_discounted_prices_task_mock.assert_not_called()
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
+@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
 def test_sale_add_empty_catalogues(
     updated_webhook_mock,
-    update_products_discounted_prices_for_promotion_task_mock,
+    update_discounted_prices_task_mock,
     staff_api_client,
-    sale,
+    promotion_converted_from_sale,
+    catalogue_predicate,
+    collection,
+    category,
+    product,
+    variant,
     permission_manage_discounts,
 ):
     # given
     query = SALE_CATALOGUES_ADD_MUTATION
+    promotion = promotion_converted_from_sale
+    collection_id = graphene.Node.to_global_id("Collection", collection.id)
+    category_id = graphene.Node.to_global_id("Category", category.id)
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
 
-    product_id = graphene.Node.to_global_id("Product", sale.products.first().id)
-    collection_id = graphene.Node.to_global_id(
-        "Collection", sale.collections.first().id
-    )
-    category_id = graphene.Node.to_global_id("Category", sale.categories.first().id)
-    variant_id = graphene.Node.to_global_id("ProductVariant", sale.variants.first().id)
-
-    convert_sales_to_promotions()
     variables = {
-        "id": graphene.Node.to_global_id("Sale", sale.id),
+        "id": graphene.Node.to_global_id("Sale", promotion.old_sale_id),
         "input": {"products": [], "collections": [], "categories": [], "variants": []},
     }
 
@@ -183,7 +173,7 @@ def test_sale_add_empty_catalogues(
     # then
     content = get_graphql_content(response)
     assert not content["data"]["saleCataloguesAdd"]["errors"]
-    promotion = Promotion.objects.get(old_sale_id=sale.id)
+    promotion.refresh_from_db()
     predicate = promotion.rules.first().catalogue_predicate
     current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(predicate)
 
@@ -193,25 +183,24 @@ def test_sale_add_empty_catalogues(
     assert variant_id in current_catalogue["variants"]
 
     updated_webhook_mock.assert_not_called()
-    update_products_discounted_prices_for_promotion_task_mock.assert_not_called()
+    update_discounted_prices_task_mock.assert_not_called()
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
+@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
 def test_sale_add_empty_catalogues_to_sale_with_empty_catalogues(
     updated_webhook_mock,
-    update_products_discounted_prices_for_promotion_task_mock,
+    update_discounted_prices_task_mock,
     staff_api_client,
-    new_sale,
+    promotion_converted_from_sale_with_empty_predicate,
     permission_manage_discounts,
 ):
     # given
     query = SALE_CATALOGUES_ADD_MUTATION
-    convert_sales_to_promotions()
+    promotion = promotion_converted_from_sale_with_empty_predicate
+
     variables = {
-        "id": graphene.Node.to_global_id("Sale", new_sale.id),
+        "id": graphene.Node.to_global_id("Sale", promotion.old_sale_id),
         "input": {"products": [], "collections": [], "categories": [], "variants": []},
     }
 
@@ -223,7 +212,7 @@ def test_sale_add_empty_catalogues_to_sale_with_empty_catalogues(
     # then
     content = get_graphql_content(response)
     assert not content["data"]["saleCataloguesAdd"]["errors"]
-    promotion = Promotion.objects.get(old_sale_id=new_sale.id)
+    promotion.refresh_from_db()
     predicate = promotion.rules.first().catalogue_predicate
     current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(predicate)
 
@@ -233,39 +222,37 @@ def test_sale_add_empty_catalogues_to_sale_with_empty_catalogues(
     assert not current_catalogue["variants"]
 
     updated_webhook_mock.assert_not_called()
-    update_products_discounted_prices_for_promotion_task_mock.assert_not_called()
+    update_discounted_prices_task_mock.assert_not_called()
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
+@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
 def test_sale_add_catalogues_no_product_ids_change(
     updated_webhook_mock,
-    update_products_discounted_prices_for_promotion_task_mock,
+    update_discounted_prices_task_mock,
     staff_api_client,
-    sale,
+    promotion_converted_from_sale,
+    catalogue_predicate,
+    product,
     product_variant_list,
     permission_manage_discounts,
 ):
     # given
     query = SALE_CATALOGUES_ADD_MUTATION
-    previous_catalogue = convert_catalogue_info_to_global_ids(
-        fetch_catalogue_info(sale)
+    promotion = promotion_converted_from_sale
+    previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
+        catalogue_predicate
     )
     variant_ids = [
         graphene.Node.to_global_id("ProductVariant", variant.id)
         for variant in product_variant_list
     ]
 
-    product = sale.products.first()
     for variant in product_variant_list:
         assert variant.product == product
 
-    convert_sales_to_promotions()
-
     variables = {
-        "id": graphene.Node.to_global_id("Sale", sale.id),
+        "id": graphene.Node.to_global_id("Sale", promotion.old_sale_id),
         "input": {
             "variants": variant_ids,
         },
@@ -279,23 +266,22 @@ def test_sale_add_catalogues_no_product_ids_change(
     # then
     content = get_graphql_content(response)
     assert not content["data"]["saleCataloguesAdd"]["errors"]
-    promotion = Promotion.objects.get(old_sale_id=sale.id)
+    promotion.refresh_from_db()
     predicate = promotion.rules.first().catalogue_predicate
     current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(predicate)
 
     updated_webhook_mock.assert_called_once_with(
         promotion, previous_catalogue, current_catalogue
     )
-    update_products_discounted_prices_for_promotion_task_mock.assert_not_called()
+    update_discounted_prices_task_mock.assert_not_called()
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
+@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 def test_sale_add_catalogues_with_product_without_variants(
-    update_products_discounted_prices_for_promotion_task_mock,
+    update_discounted_prices_task_mock,
     staff_api_client,
-    sale,
+    promotion_converted_from_sale,
+    catalogue_predicate,
     category,
     product,
     collection,
@@ -303,14 +289,14 @@ def test_sale_add_catalogues_with_product_without_variants(
 ):
     # given
     query = SALE_CATALOGUES_ADD_MUTATION
+    promotion = promotion_converted_from_sale
     product.variants.all().delete()
     product_id = graphene.Node.to_global_id("Product", product.id)
     collection_id = graphene.Node.to_global_id("Collection", collection.id)
     category_id = graphene.Node.to_global_id("Category", category.id)
-    convert_sales_to_promotions()
 
     variables = {
-        "id": graphene.Node.to_global_id("Sale", sale.id),
+        "id": graphene.Node.to_global_id("Sale", promotion.old_sale_id),
         "input": {
             "products": [product_id],
             "collections": [collection_id],
@@ -329,21 +315,19 @@ def test_sale_add_catalogues_with_product_without_variants(
 
     assert error["code"] == DiscountErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT.name
     assert error["message"] == "Cannot manage products without variants."
-    update_products_discounted_prices_for_promotion_task_mock.assert_not_called()
+    update_discounted_prices_task_mock.assert_not_called()
 
 
 def test_sale_add_catalogues_with_promotion_id(
     staff_api_client,
-    sale,
+    promotion_converted_from_sale,
     product,
     permission_manage_discounts,
 ):
     # given
     query = SALE_CATALOGUES_ADD_MUTATION
+    promotion = promotion_converted_from_sale
     product_id = graphene.Node.to_global_id("Product", product.id)
-    convert_sales_to_promotions()
-
-    promotion = Promotion.objects.get(old_sale_id=sale.id)
 
     variables = {
         "id": graphene.Node.to_global_id("Promotion", promotion.id),

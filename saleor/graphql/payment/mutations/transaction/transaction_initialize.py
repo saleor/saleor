@@ -1,3 +1,4 @@
+import uuid
 from typing import Optional
 
 import graphene
@@ -6,12 +7,18 @@ from django.core.exceptions import ValidationError
 from .....app.models import App
 from .....channel.models import Channel
 from .....core.exceptions import PermissionDenied
+from .....payment import TransactionItemIdempotencyUniqueError
 from .....payment.interface import PaymentGatewayData
 from .....payment.utils import handle_transaction_initialize_session
 from .....permission.enums import PaymentPermissions
 from ....app.dataloaders import get_app_promise
 from ....channel.enums import TransactionFlowStrategyEnum
-from ....core.descriptions import ADDED_IN_313, ADDED_IN_316, PREVIEW_FEATURE
+from ....core.descriptions import (
+    ADDED_IN_313,
+    ADDED_IN_314,
+    ADDED_IN_316,
+    PREVIEW_FEATURE,
+)
 from ....core.doc_category import DOC_CATEGORY_PAYMENTS
 from ....core.enums import TransactionInitializeErrorCode
 from ....core.scalars import JSON, PositiveDecimal
@@ -48,12 +55,21 @@ class TransactionInitialize(TransactionSessionBase):
                 "transactions that are already processed will be send."
             ),
         )
+        idempotency_key = graphene.String(
+            description=(
+                "The idempotency key assigned to the action. It will be passed to the "
+                "payment app to discover potential duplicate actions. If not provided, "
+                "the default one will be generated. If empty string provided, INVALID "
+                "error code will be raised." + ADDED_IN_314
+            )
+        )
         action = graphene.Argument(
             TransactionFlowStrategyEnum,
             description=(
                 "The expected action called for the transaction. By default, the "
-                "`channel.defaultTransactionFlowStrategy` will be used. The field "
-                "can be used only by app that has `HANDLE_PAYMENTS` permission."
+                "`channel.paymentSettings.defaultTransactionFlowStrategy` will be used."
+                "The field can be used only by app that has `HANDLE_PAYMENTS` "
+                "permission."
             ),
         )
         customer_ip_address = graphene.String(
@@ -93,7 +109,11 @@ class TransactionInitialize(TransactionSessionBase):
 
     @classmethod
     def clean_app_from_payment_gateway(cls, payment_gateway: PaymentGatewayData) -> App:
-        app = App.objects.filter(identifier=payment_gateway.app_identifier).first()
+        app = App.objects.filter(
+            identifier=payment_gateway.app_identifier,
+            removed_at__isnull=True,
+            is_active=True,
+        ).first()
         if not app:
             raise ValidationError(
                 {
@@ -106,6 +126,21 @@ class TransactionInitialize(TransactionSessionBase):
         return app
 
     @classmethod
+    def clean_idempotency_key(cls, idempotency_key: Optional[str]):
+        if not idempotency_key and isinstance(idempotency_key, str):
+            raise ValidationError(
+                {
+                    "idempotency_key": ValidationError(
+                        message="Cannot be provided as an empty string.",
+                        code=TransactionInitializeErrorCode.INVALID.value,
+                    )
+                }
+            )
+        if not idempotency_key:
+            idempotency_key = str(uuid.uuid4())
+        return idempotency_key
+
+    @classmethod
     def perform_mutation(
         cls,
         root,
@@ -115,7 +150,8 @@ class TransactionInitialize(TransactionSessionBase):
         payment_gateway,
         amount=None,
         action=None,
-        customer_ip_address=None
+        customer_ip_address=None,
+        idempotency_key=None,
     ):
         manager = get_plugin_manager_promise(info.context).get()
         payment_gateway_data = PaymentGatewayData(
@@ -128,6 +164,7 @@ class TransactionInitialize(TransactionSessionBase):
             TransactionInitializeErrorCode.NOT_FOUND.value,
             manager=manager,
         )
+        idempotency_key = cls.clean_idempotency_key(idempotency_key)
         action = cls.clean_action(info, action, source_object.channel)
         customer_ip_address = clean_customer_ip_address(
             info,
@@ -140,13 +177,27 @@ class TransactionInitialize(TransactionSessionBase):
             amount,
         )
         app = cls.clean_app_from_payment_gateway(payment_gateway_data)
-        transaction, event, data = handle_transaction_initialize_session(
-            source_object=source_object,
-            payment_gateway_data=payment_gateway_data,
-            amount=amount,
-            action=action,
-            customer_ip_address=customer_ip_address,
-            app=app,
-            manager=manager,
-        )
+        try:
+            transaction, event, data = handle_transaction_initialize_session(
+                source_object=source_object,
+                payment_gateway_data=payment_gateway_data,
+                amount=amount,
+                action=action,
+                customer_ip_address=customer_ip_address,
+                app=app,
+                manager=manager,
+                idempotency_key=idempotency_key,
+            )
+        except TransactionItemIdempotencyUniqueError:
+            raise ValidationError(
+                {
+                    "idempotency_key": ValidationError(
+                        message=(
+                            "Different transaction with provided idempotency key "
+                            "already exists."
+                        ),
+                        code=TransactionInitializeErrorCode.UNIQUE.value,
+                    )
+                }
+            )
         return cls(transaction=transaction, transaction_event=event, data=data)

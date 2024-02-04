@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import Optional
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -140,10 +140,10 @@ class MenuItemMove(BaseMutation):
         cls,
         info: ResolveInfo,
         menu: models.Menu,
-        move_operations: List[MenuItemMoveInput],
-    ) -> List[_MenuMoveOperation]:
+        move_operations: list[MenuItemMoveInput],
+    ) -> list[_MenuMoveOperation]:
         operations = []
-        item_to_current_parent: Dict[int, Optional[models.MenuItem]] = {}
+        item_to_current_parent: dict[int, Optional[models.MenuItem]] = {}
         for move in move_operations:
             cls.clean_move(move)
             operation = cls.get_operation(info, item_to_current_parent, menu, move)
@@ -176,7 +176,7 @@ class MenuItemMove(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         menu: str = data["menu"]
-        moves: List[MenuItemMoveInput] = data["moves"]
+        moves: list[MenuItemMoveInput] = data["moves"]
         qs = models.Menu.objects.prefetch_related("items")
         menu = cls.get_node_or_error(info, menu, only_type=Menu, field="menu", qs=qs)
 

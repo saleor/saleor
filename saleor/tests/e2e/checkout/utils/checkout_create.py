@@ -19,15 +19,37 @@ mutation CreateCheckout($input: CheckoutCreateInput!) {
       channel {
         slug
       }
-      isShippingRequired
       totalPrice {
         gross {
           amount
         }
+        net {
+          amount
+        }
+        tax {
+          amount
+        }
       }
+      created
       isShippingRequired
+      billingAddress {
+        country {
+          code
+        }
+      }
+      shippingAddress {
+        country {
+          code
+        }
+      }
       shippingMethods {
         id
+        name
+        price {
+          amount
+          currency
+        }
+        maximumDeliveryDays
       }
       deliveryMethod {
         ... on ShippingMethod {
@@ -65,9 +87,15 @@ mutation CreateCheckout($input: CheckoutCreateInput!) {
           gross {
             amount
           }
+          tax {
+            amount
+          }
         }
         undiscountedUnitPrice {
           amount
+        }
+        variant {
+          id
         }
       }
     }

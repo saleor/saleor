@@ -1,8 +1,7 @@
 import graphene
-import pytest
 
 from .....attribute import AttributeType
-from .....attribute.models import Attribute
+from .....attribute.models import AssignedProductAttributeValue, Attribute
 from .....attribute.utils import associate_attribute_values_to_instance
 from ....tests.utils import get_graphql_content
 
@@ -56,38 +55,24 @@ def test_sort_attributes_by_default_sorting(api_client):
     assert attributes[1]["node"]["slug"] == "b"
 
 
-@pytest.mark.parametrize("is_variant", (True, False))
-def test_attributes_of_products_are_sorted(
-    user_api_client, product, color_attribute, is_variant, channel_USD
+def test_attributes_of_products_are_sorted_on_variant(
+    user_api_client, product, color_attribute, channel_USD
 ):
     """Ensures the attributes of products and variants are sorted."""
 
     variant = product.variants.first()
 
-    if is_variant:
-        query = """
-            query($id: ID!, $channel: String) {
-              productVariant(id: $id, channel: $channel) {
-                attributes {
-                  attribute {
-                    id
-                  }
+    query = """
+        query($id: ID!, $channel: String) {
+            productVariant(id: $id, channel: $channel) {
+            attributes {
+                attribute {
+                id
                 }
-              }
             }
-        """
-    else:
-        query = """
-            query($id: ID!, $channel: String) {
-              product(id: $id, channel: $channel) {
-                attributes {
-                  attribute {
-                    id
-                  }
-                }
-              }
             }
-        """
+        }
+    """
 
     # Create a dummy attribute with a higher ID
     # This will allow us to make sure it is always the last attribute
@@ -95,36 +80,25 @@ def test_attributes_of_products_are_sorted(
     other_attribute = Attribute.objects.create(name="Other", slug="other")
 
     # Add the attribute to the product type
-    if is_variant:
-        product.product_type.variant_attributes.set([color_attribute, other_attribute])
-    else:
-        product.product_type.product_attributes.set([color_attribute, other_attribute])
+    product.product_type.variant_attributes.set([color_attribute, other_attribute])
 
     # Retrieve the M2M object for the attribute vs the product type
-    if is_variant:
-        m2m_rel_other_attr = other_attribute.attributevariant.last()
-    else:
-        m2m_rel_other_attr = other_attribute.attributeproduct.last()
+    m2m_rel_other_attr = other_attribute.attributevariant.last()
 
     # Push the last attribute to the top and let the others to None
     m2m_rel_other_attr.sort_order = 0
     m2m_rel_other_attr.save(update_fields=["sort_order"])
 
     # Assign attributes to the product
-    node = variant if is_variant else product  # type: Union[Product, ProductVariant]
-    node.attributesrelated.clear()
     associate_attribute_values_to_instance(
-        node, color_attribute, color_attribute.values.first()
+        variant, color_attribute, color_attribute.values.first()
     )
 
     # Sort the database attributes by their sort order and ID (when None)
     expected_order = [other_attribute.pk, color_attribute.pk]
 
     # Make the node ID
-    if is_variant:
-        node_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
-    else:
-        node_id = graphene.Node.to_global_id("Product", product.pk)
+    node_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
     # Retrieve the attributes
     data = get_graphql_content(
@@ -132,7 +106,67 @@ def test_attributes_of_products_are_sorted(
             query, {"id": node_id, "channel": channel_USD.slug}
         )
     )["data"]
-    attributes = data["productVariant" if is_variant else "product"]["attributes"]
+    attributes = data["productVariant"]["attributes"]
+    actual_order = [
+        int(graphene.Node.from_global_id(attr["attribute"]["id"])[1])
+        for attr in attributes
+    ]
+
+    # Compare the received data against our expectations
+    assert actual_order == expected_order
+
+
+def test_attributes_of_products_are_sorted_on_product(
+    user_api_client, product, color_attribute, channel_USD
+):
+    """Ensures the attributes of products and variants are sorted."""
+
+    query = """
+        query($id: ID!, $channel: String) {
+            product(id: $id, channel: $channel) {
+            attributes {
+                attribute {
+                id
+                }
+            }
+            }
+        }
+    """
+
+    # Create a dummy attribute with a higher ID
+    # This will allow us to make sure it is always the last attribute
+    # when sorted by ID. Thus, we are sure the query is actually passing the test.
+    other_attribute = Attribute.objects.create(name="Other", slug="other")
+
+    # Add the attribute to the product type
+    product.product_type.product_attributes.set([color_attribute, other_attribute])
+
+    # Retrieve the M2M object for the attribute vs the product type
+    m2m_rel_other_attr = other_attribute.attributeproduct.last()
+
+    # Push the last attribute to the top and set the others to None
+    m2m_rel_other_attr.sort_order = 0
+    m2m_rel_other_attr.save(update_fields=["sort_order"])
+
+    # Assign attributes to the product
+    AssignedProductAttributeValue.objects.filter(product_id=product.pk).delete()
+    associate_attribute_values_to_instance(
+        product, color_attribute, color_attribute.values.first()
+    )
+
+    # Sort the database attributes by their sort order and ID (when None)
+    expected_order = [other_attribute.pk, color_attribute.pk]
+
+    # Make the node ID
+    node_id = graphene.Node.to_global_id("Product", product.pk)
+
+    # Retrieve the attributes
+    data = get_graphql_content(
+        user_api_client.post_graphql(
+            query, {"id": node_id, "channel": channel_USD.slug}
+        )
+    )["data"]
+    attributes = data["product"]["attributes"]
     actual_order = [
         int(graphene.Node.from_global_id(attr["attribute"]["id"])[1])
         for attr in attributes

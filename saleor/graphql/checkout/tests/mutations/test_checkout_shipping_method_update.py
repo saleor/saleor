@@ -38,7 +38,7 @@ MUTATION_UPDATE_SHIPPING_METHOD = """
 
 
 # TODO: Deprecated
-@pytest.mark.parametrize("is_valid_shipping_method", (True, False))
+@pytest.mark.parametrize("is_valid_shipping_method", [True, False])
 @patch(
     "saleor.graphql.checkout.mutations.checkout_shipping_method_update."
     "clean_delivery_method"
@@ -70,7 +70,7 @@ def test_checkout_shipping_method_update(
     data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
     checkout.refresh_from_db()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     checkout_info.delivery_method_info = get_delivery_method_info(

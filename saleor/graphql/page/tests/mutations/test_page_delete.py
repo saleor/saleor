@@ -1,11 +1,11 @@
 from functools import partial
 from unittest import mock
+from unittest.mock import ANY
 
 import graphene
 import pytest
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
-from mock import ANY
 
 from .....attribute.models import AttributeValue
 from .....attribute.utils import associate_attribute_values_to_instance
@@ -71,6 +71,7 @@ def test_page_delete_trigger_webhook(
         page,
         SimpleLazyObject(lambda: staff_api_client.user),
         legacy_data_generator=ANY,
+        allow_replica=False,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial

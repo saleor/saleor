@@ -1,8 +1,10 @@
 import logging
+from collections.abc import Iterable
 from decimal import Decimal
-from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple
+from typing import TYPE_CHECKING, Optional
 
 import requests
+from django.conf import settings
 from django.utils import timezone
 from posuto import Posuto
 from requests.auth import HTTPBasicAuth
@@ -54,7 +56,7 @@ def _request(
         response = HTTPClient.send_request(
             method,
             get_url(config, path),
-            timeout=REQUEST_TIMEOUT,
+            timeout=(settings.REQUESTS_CONN_EST_TIMEOUT, REQUEST_TIMEOUT),
             json=json or {},
             auth=HTTPBasicAuth(config.merchant_code, config.sp_code),
             headers={"X-NP-Terminal-Id": config.terminal_id},
@@ -143,7 +145,7 @@ def _get_goods_name(line: PaymentLineData, config: "ApiConfig") -> str:
 def _get_voucher_and_shipping_goods(
     config: "ApiConfig",
     payment_information: PaymentData,
-) -> List[dict]:
+) -> list[dict]:
     """Convert voucher and shipping amount into NP Atobarai goods lines."""
     goods_lines = []
     voucher_amount = payment_information.lines_data.voucher_amount
@@ -176,7 +178,7 @@ def get_goods_with_refunds(
     config: "ApiConfig",
     payment: Payment,
     payment_information: PaymentData,
-) -> Tuple[List[dict], Decimal]:
+) -> tuple[list[dict], Decimal]:
     """Combine PaymentLinesData and RefundData into NP Atobarai's goods list.
 
     Used for payment updates.
@@ -232,7 +234,7 @@ def get_goods_with_refunds(
     return goods_lines, billed_amount
 
 
-def get_goods(config: "ApiConfig", payment_information: PaymentData) -> List[dict]:
+def get_goods(config: "ApiConfig", payment_information: PaymentData) -> list[dict]:
     """Convert PaymentLinesData into NP Atobarai's goods list.
 
     Used for initial payment registration only.
@@ -256,7 +258,7 @@ def register(
     config: "ApiConfig",
     payment_information: "PaymentData",
     billed_amount: Optional[int] = None,
-    goods: Optional[List[dict]] = None,
+    goods: Optional[list[dict]] = None,
 ) -> NPResponse:
     if billed_amount is None:
         billed_amount = format_price(

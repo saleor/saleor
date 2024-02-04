@@ -132,7 +132,7 @@ def test_checkout_shipping_address_with_metadata_update(
     assert checkout.shipping_address.postal_code == shipping_address["postalCode"]
     assert checkout.shipping_address.country == shipping_address["country"]
     assert checkout.shipping_address.city == shipping_address["city"].upper()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
@@ -156,7 +156,9 @@ def test_checkout_shipping_address_update_changes_checkout_country(
     variant = variant_with_many_stocks_different_shipping_zones
     checkout = Checkout.objects.create(channel=channel_USD, currency="USD")
     checkout.set_country("PL", commit=True)
-    checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(
+        checkout, [], get_plugins_manager(allow_replica=False)
+    )
     add_variant_to_checkout(checkout_info, variant, 1)
     assert checkout.shipping_address is None
     previous_last_change = checkout.last_change
@@ -189,7 +191,7 @@ def test_checkout_shipping_address_update_changes_checkout_country(
     assert checkout.shipping_address.postal_code == shipping_address["postalCode"]
     assert checkout.shipping_address.country == shipping_address["country"]
     assert checkout.shipping_address.city == shipping_address["city"].upper()
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
@@ -213,7 +215,9 @@ def test_checkout_shipping_address_update_insufficient_stocks(
     variant = variant_with_many_stocks_different_shipping_zones
     checkout = Checkout.objects.create(channel=channel_USD, currency="USD")
     checkout.set_country("PL", commit=True)
-    checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(
+        checkout, [], get_plugins_manager(allow_replica=False)
+    )
     add_variant_to_checkout(checkout_info, variant, 1)
     Stock.objects.filter(
         warehouse__shipping_zones__countries__contains="US", product_variant=variant
@@ -261,7 +265,9 @@ def test_checkout_shipping_address_update_doesnt_raise_error(
     Stock.objects.filter(product_variant=variant_b).update(quantity=1)
     checkout = Checkout.objects.create(channel=channel_USD, currency="USD")
     checkout.set_country("PL", commit=True)
-    checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(
+        checkout, [], get_plugins_manager(allow_replica=False)
+    )
     add_variant_to_checkout(checkout_info, variant_b, 1)
     add_variant_to_checkout(checkout_info, variant_a, 4)
     assert checkout.shipping_address is None
@@ -300,7 +306,9 @@ def test_checkout_shipping_address_update_with_reserved_stocks(
     variant = variant_with_many_stocks_different_shipping_zones
     checkout = Checkout.objects.create(channel=channel_USD, currency="USD")
     checkout.set_country("PL", commit=True)
-    checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(
+        checkout, [], get_plugins_manager(allow_replica=False)
+    )
     add_variant_to_checkout(checkout_info, variant, 2)
     assert checkout.shipping_address is None
 
@@ -351,7 +359,9 @@ def test_checkout_shipping_address_update_against_reserved_stocks(
     variant = variant_with_many_stocks_different_shipping_zones
     checkout = Checkout.objects.create(channel=channel_USD, currency="USD")
     checkout.set_country("PL", commit=True)
-    checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(
+        checkout, [], get_plugins_manager(allow_replica=False)
+    )
     add_variant_to_checkout(checkout_info, variant, 2)
     Stock.objects.filter(
         warehouse__shipping_zones__countries__contains="US", product_variant=variant
@@ -927,13 +937,14 @@ def test_checkout_shipping_address_update_with_not_applicable_voucher(
     assert checkout_with_item.shipping_address.country == address_other_country.country
 
     voucher = voucher_shipping_type
+    code = voucher.codes.first()
     assert voucher.countries[0].code == address_other_country.country
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
-    add_voucher_to_checkout(manager, checkout_info, lines, voucher)
-    assert checkout_with_item.voucher_code == voucher.code
+    add_voucher_to_checkout(manager, checkout_info, lines, voucher, code)
+    assert checkout_with_item.voucher_code == code.code
 
     new_address = graphql_address_data
     variables = {

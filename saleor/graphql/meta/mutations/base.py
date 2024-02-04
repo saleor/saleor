@@ -1,5 +1,3 @@
-from typing import List
-
 import graphene
 from django.core.exceptions import ValidationError
 from graphql.error.base import GraphQLError
@@ -117,7 +115,7 @@ class BaseMetadataMutation(BaseMutation):
             )
 
     @classmethod
-    def validate_metadata_keys(cls, metadata_list: List[dict]):
+    def validate_metadata_keys(cls, metadata_list: list[dict]):
         if metadata_contains_empty_key(metadata_list):
             raise ValidationError(
                 {
@@ -263,7 +261,6 @@ class BaseMetadataMutation(BaseMutation):
             [
                 isinstance(instance, Model)
                 for Model in [
-                    discount_models.Sale,
                     discount_models.Voucher,
                     menu_models.Menu,
                     menu_models.MenuItem,
@@ -282,4 +279,4 @@ class BaseMetadataMutation(BaseMutation):
         if isinstance(instance, Promotion) and instance.old_sale_id:
             instance = ChannelContext(node=instance, channel_slug=None)
 
-        return cls(**{"item": instance, "errors": []})
+        return cls(item=instance, errors=[])

@@ -32,7 +32,7 @@ PAYMENT_METHOD_CARD_3D_SECURE = "pm_card_threeDSecure2Required"
 RECORD = False
 
 
-@pytest.fixture()
+@pytest.fixture
 def gateway_config():
     return GatewayConfig(
         gateway_name="stripe",
@@ -52,7 +52,7 @@ def gateway_config():
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def sandbox_gateway_config(gateway_config):
     if RECORD:
         connection_params = {
@@ -63,7 +63,7 @@ def sandbox_gateway_config(gateway_config):
     return gateway_config
 
 
-@pytest.fixture()
+@pytest.fixture
 def stripe_payment(payment_dummy):
     payment_dummy.total = TRANSACTION_AMOUNT
     payment_dummy.currency = TRANSACTION_CURRENCY
@@ -162,7 +162,7 @@ def test_authorize_with_customer_id(payment_dummy, sandbox_gateway_config):
     assert response.is_success
 
 
-@pytest.fixture()
+@pytest.fixture
 def stripe_authorized_payment(stripe_payment):
     stripe_payment.charge_status = ChargeStatus.NOT_CHARGED
     stripe_payment.save(update_fields=["charge_status"])
@@ -224,7 +224,7 @@ def test_capture_error_response(stripe_payment, sandbox_gateway_config):
     assert response.currency == stripe_payment.currency
 
 
-@pytest.fixture()
+@pytest.fixture
 def stripe_paid_payment(stripe_payment):
     stripe_payment.charge_status = ChargeStatus.FULLY_CHARGED
     stripe_payment.save(update_fields=["charge_status"])

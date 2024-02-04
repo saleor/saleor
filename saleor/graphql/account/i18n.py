@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Optional
 
 from django.core.exceptions import ValidationError
 
@@ -73,7 +73,7 @@ class I18nMixin:
     def attach_params_to_address_form_errors(
         cls,
         address_form,
-        params: Dict[str, str],
+        params: dict[str, str],
         values_check=True,
         required_check=True,
     ):
@@ -109,7 +109,7 @@ class I18nMixin:
         info=None,
         format_check=True,
         required_check=True,
-        enable_normalization=True
+        enable_normalization=True,
     ):
         if address_data.get("country") is None:
             params = {"address_type": address_type} if address_type else {}

@@ -6,6 +6,7 @@ from unittest import mock
 import pytest
 from django.conf import settings
 from django.contrib.sites.models import Site
+from django.utils import timezone
 from requests import RequestException, TooManyRedirects
 from requests_hardened import HTTPSession
 
@@ -23,6 +24,7 @@ from ....webhook.transport.synchronous.transport import (
     trigger_webhook_sync,
 )
 from ....webhook.transport.utils import (
+    from_payment_app_id,
     parse_list_payment_gateways_response,
     parse_payment_action_response,
     to_payment_app_id,
@@ -33,6 +35,18 @@ from .utils import generate_request_headers
 @pytest.fixture
 def payment_invalid_app(payment_dummy):
     app = App.objects.create(name="Dummy app", is_active=True)
+    gateway_id = "credit-card"
+    gateway = to_payment_app_id(app, gateway_id)
+    payment_dummy.gateway = gateway
+    payment_dummy.save()
+    return payment_dummy
+
+
+@pytest.fixture
+def payment_removed_app(payment_dummy):
+    app = App.objects.create(
+        name="Dummy app", is_active=True, removed_at=timezone.now()
+    )
     gateway_id = "credit-card"
     gateway = to_payment_app_id(app, gateway_id)
     payment_dummy.gateway = gateway
@@ -56,7 +70,7 @@ def webhook_data():
 def test_trigger_webhook_sync(mock_request, payment_app):
     data = '{"key": "value"}'
     trigger_webhook_sync(
-        WebhookEventSyncType.PAYMENT_CAPTURE, data, payment_app.webhooks.first()
+        WebhookEventSyncType.PAYMENT_CAPTURE, data, payment_app.webhooks.first(), False
     )
     event_delivery = EventDelivery.objects.first()
     mock_request.assert_called_once_with(event_delivery)
@@ -80,6 +94,7 @@ def test_trigger_webhook_sync_with_subscription(
         WebhookEventSyncType.PAYMENT_CAPTURE,
         data,
         payment_app.webhooks.first(),
+        False,
         payment,
     )
     mock_request.assert_called_once_with(fake_delivery)
@@ -250,17 +265,17 @@ def test_send_webhook_request_with_proper_timeout(mock_post, event_delivery, app
 
 
 def test_send_webhook_request_sync_invalid_scheme(webhook, app):
-    with pytest.raises(ValueError):
-        target_url = "gcpubsub://cloud.google.com/projects/saleor/topics/test"
-        event_payload = EventPayload.objects.create(payload="fake_content")
-        webhook.target_url = target_url
-        webhook.save()
-        delivery = EventDelivery.objects.create(
-            status="pending",
-            event_type=WebhookEventAsyncType.ANY,
-            payload=event_payload,
-            webhook=webhook,
-        )
+    target_url = "gcpubsub://cloud.google.com/projects/saleor/topics/test"
+    event_payload = EventPayload.objects.create(payload="fake_content")
+    webhook.target_url = target_url
+    webhook.save()
+    delivery = EventDelivery.objects.create(
+        status="pending",
+        event_type=WebhookEventAsyncType.ANY,
+        payload=event_payload,
+        webhook=webhook,
+    )
+    with pytest.raises(ValueError, match="Unknown webhook scheme"):
         send_webhook_request_sync(delivery)
 
 
@@ -447,15 +462,15 @@ def test_get_payment_gateways_for_checkout(
 
 
 @pytest.mark.parametrize(
-    "txn_kind, plugin_func_name",
-    (
+    ("txn_kind", "plugin_func_name"),
+    [
         (TransactionKind.AUTH, "authorize_payment"),
         (TransactionKind.CAPTURE, "capture_payment"),
         (TransactionKind.REFUND, "refund_payment"),
         (TransactionKind.VOID, "void_payment"),
         (TransactionKind.CONFIRM, "confirm_payment"),
         (TransactionKind.CAPTURE, "process_payment"),
-    ),
+    ],
 )
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_run_payment_webhook(
@@ -483,6 +498,42 @@ def test_run_payment_webhook(
 def test_run_payment_webhook_invalid_app(payment_invalid_app, webhook_plugin):
     plugin = webhook_plugin()
     payment_information = create_payment_information(payment_invalid_app, "token")
+    with pytest.raises(PaymentError):
+        plugin._WebhookPlugin__run_payment_webhook(
+            WebhookEventSyncType.PAYMENT_AUTHORIZE,
+            TransactionKind.AUTH,
+            payment_information,
+            None,
+        )
+
+
+def test_run_payment_webhook_removed_app_by_id(payment_removed_app, webhook_plugin):
+    # given
+    plugin = webhook_plugin()
+    payment_information = create_payment_information(payment_removed_app, "token")
+
+    # when
+    with pytest.raises(PaymentError):
+        plugin._WebhookPlugin__run_payment_webhook(
+            WebhookEventSyncType.PAYMENT_AUTHORIZE,
+            TransactionKind.AUTH,
+            payment_information,
+            None,
+        )
+
+
+def test_run_payment_webhook_removed_app_by_app_identifier(
+    payment, payment_app, webhook_plugin
+):
+    # given
+    payment_app.removed_at = timezone.now()
+    payment_app.save(update_fields=["removed_at"])
+    plugin = webhook_plugin()
+    payment_information = create_payment_information(payment, "token")
+    payment_data = from_payment_app_id(payment_information.gateway)
+    assert payment_data.app_identifier == payment_app.identifier
+
+    # when
     with pytest.raises(PaymentError):
         plugin._WebhookPlugin__run_payment_webhook(
             WebhookEventSyncType.PAYMENT_AUTHORIZE,

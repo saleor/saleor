@@ -1,4 +1,5 @@
-from typing import Iterable, Set, Tuple, Union
+from collections.abc import Iterable
+from typing import Union, cast
 from uuid import uuid4
 
 from django.contrib.auth.hashers import make_password
@@ -39,6 +40,7 @@ class App(ModelWithMetadata):
     name = models.CharField(max_length=60)
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
+    removed_at = models.DateTimeField(blank=True, null=True)
     type = models.CharField(
         choices=AppType.CHOICES, default=AppType.LOCAL, max_length=60
     )
@@ -83,7 +85,7 @@ class App(ModelWithMetadata):
     def __str__(self):
         return self.name
 
-    def get_permissions(self) -> Set[str]:
+    def get_permissions(self) -> set[str]:
         """Return the permissions of the app."""
         if not self.is_active:
             return set()
@@ -126,7 +128,7 @@ class AppTokenManager(models.Manager["AppToken"]):
         app_token.save()
         return app_token, auth_token
 
-    def create_with_token(self, *args, **kwargs) -> Tuple["AppToken", str]:
+    def create_with_token(self, *args, **kwargs) -> tuple["AppToken", str]:
         # As `create` is waiting to be fixed, I'm using this proper method from future
         # to get both AppToken and auth_token.
         return self.create(*args, **kwargs)
@@ -179,7 +181,8 @@ class AppInstallation(Job):
 
     def set_message(self, message: str, truncate=True):
         if truncate:
-            max_length = self._meta.get_field("message").max_length
+            message_field = cast(models.Field, self._meta.get_field("message"))
+            max_length = message_field.max_length
             if max_length is None:
                 raise ValueError("Cannot truncate message without max_length")
             message = Truncator(message).chars(max_length)

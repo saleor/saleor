@@ -190,6 +190,12 @@ fragment FulfillmentDetails on Fulfillment {
   fulfillmentOrder
   trackingNumber
   status
+  shippingRefundedAmount{
+    amount
+  }
+  totalRefundedAmount{
+    amount
+  }
   lines {
     id
     quantity
@@ -433,6 +439,28 @@ fragment VoucherDetails on Voucher{
 """
 
 
+VOUCHER_CODE_DETAILS = """
+fragment VoucherCodeDetails on VoucherCode{
+  id
+  code
+  used
+  isActive
+}
+"""
+
+
+VOUCHER_CODE_EXPORT_DETAILS = """
+fragment VoucherCodeExportDetails on ExportFile {
+  id
+  createdAt
+  updatedAt
+  status
+  url
+  message
+}
+"""
+
+
 MENU_DETAILS = """
     fragment MenuDetails on Menu{
         id
@@ -515,6 +543,17 @@ fragment TransactionFragment on TransactionItem {
   pspReference
   order {
     id
+  }
+  checkout {
+    id
+    channel {
+      slug
+    }
+    totalPrice {
+      gross {
+        amount
+      }
+    }
   }
 }
 """

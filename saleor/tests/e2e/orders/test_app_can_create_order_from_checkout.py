@@ -2,7 +2,7 @@ import pytest
 
 from ..checkout.utils import checkout_create, checkout_delivery_method_update
 from ..product.utils.preparing_product import prepare_product
-from ..shop.utils.preparing_shop import prepare_shop
+from ..shop.utils.preparing_shop import prepare_default_shop
 from ..utils import assign_permissions
 from .utils import order_create_from_checkout
 
@@ -11,19 +11,15 @@ from .utils import order_create_from_checkout
 def test_app_can_create_order_from_checkout_CORE_0215(
     e2e_staff_api_client,
     e2e_app_api_client,
-    permission_manage_products,
-    permission_manage_channels,
+    shop_permissions,
     permission_manage_product_types_and_attributes,
-    permission_manage_shipping,
     permission_manage_orders,
     permission_manage_payments,
     permission_handle_checkouts,
 ):
     # Before
     permissions = [
-        permission_manage_products,
-        permission_manage_channels,
-        permission_manage_shipping,
+        *shop_permissions,
         permission_manage_product_types_and_attributes,
         permission_manage_orders,
     ]
@@ -32,18 +28,17 @@ def test_app_can_create_order_from_checkout_CORE_0215(
         permission_manage_payments,
         permission_handle_checkouts,
         permission_manage_orders,
-        permission_manage_channels,
+        *shop_permissions,
     ]
     assign_permissions(e2e_app_api_client, app_permissions)
 
     price = 10
 
-    (
-        warehouse_id,
-        channel_id,
-        channel_slug,
-        shipping_method_id,
-    ) = prepare_shop(e2e_staff_api_client)
+    shop_data = prepare_default_shop(e2e_staff_api_client)
+    channel_id = shop_data["channel"]["id"]
+    channel_slug = shop_data["channel"]["slug"]
+    warehouse_id = shop_data["warehouse"]["id"]
+    shipping_method_id = shop_data["shipping_method"]["id"]
 
     (
         _product_id,
@@ -75,7 +70,6 @@ def test_app_can_create_order_from_checkout_CORE_0215(
     assert checkout_id is not None
     assert checkout_data["isShippingRequired"] is True
     assert len(checkout_data["shippingMethods"]) == 1
-    shipping_method_id = checkout_data["shippingMethods"][0]["id"]
 
     # Step 2 - Assign shipping method
     checkout_data = checkout_delivery_method_update(

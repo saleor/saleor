@@ -100,11 +100,11 @@ def test_order_from_checkout_with_inactive_channel(
 
 
 @pytest.mark.integration
-@patch("saleor.order.calculations._recalculate_order_prices")
+@patch("saleor.order.calculations._recalculate_with_plugins")
 @patch("saleor.plugins.manager.PluginsManager.order_confirmed")
 def test_order_from_checkout(
     order_confirmed_mock,
-    _recalculate_order_prices_mock,
+    recalculate_with_plugins_mock,
     app_api_client,
     permission_handle_checkouts,
     site_settings,
@@ -140,7 +140,7 @@ def test_order_from_checkout(
     checkout_line_metadata = checkout_line.metadata
     checkout_line_private_metadata = checkout_line.private_metadata
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
@@ -205,7 +205,7 @@ def test_order_from_checkout(
     )
 
     order_confirmed_mock.assert_called_once_with(order)
-    _recalculate_order_prices_mock.assert_not_called()
+    recalculate_with_plugins_mock.assert_not_called()
 
 
 def test_order_from_checkout_with_transaction(
@@ -252,7 +252,7 @@ def test_order_from_checkout_with_transaction(
 
 
 @pytest.mark.parametrize(
-    "auto_confirm, order_status",
+    ("auto_confirm", "order_status"),
     [(True, OrderStatus.UNFULFILLED), (False, OrderStatus.UNCONFIRMED)],
 )
 def test_order_from_checkout_auto_confirm_flag(
@@ -323,7 +323,7 @@ def test_order_from_checkout_with_metadata(
     metadata_key = "md key"
     metadata_value = "md value"
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
@@ -361,11 +361,11 @@ def test_order_from_checkout_with_metadata(
     assert order.total.gross == total.gross
     assert order.metadata == {
         **checkout.metadata_storage.metadata,
-        **{metadata_key: metadata_value},
+        metadata_key: metadata_value,
     }
     assert order.private_metadata == {
         **checkout.metadata_storage.private_metadata,
-        **{metadata_key: metadata_value},
+        metadata_key: metadata_value,
     }
     order_confirmed_mock.assert_called_once_with(order)
 
@@ -393,7 +393,7 @@ def test_order_from_checkout_with_metadata_checkout_without_metadata(
     metadata_key = "md key"
     metadata_value = "md value"
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
@@ -434,11 +434,11 @@ def test_order_from_checkout_with_metadata_checkout_without_metadata(
     assert order.total.gross == total.gross
     assert order.metadata == {
         **checkout.metadata_storage.metadata,
-        **{metadata_key: metadata_value},
+        metadata_key: metadata_value,
     }
     assert order.private_metadata == {
         **checkout.metadata_storage.private_metadata,
-        **{metadata_key: metadata_value},
+        metadata_key: metadata_value,
     }
     order_confirmed_mock.assert_called_once_with(order)
 
@@ -495,7 +495,7 @@ def test_order_from_checkout_gift_card_bought(
     checkout.save()
     checkout.metadata_storage.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
@@ -677,11 +677,11 @@ def test_order_from_checkout_with_variant_without_price(
     assert errors[0]["variants"] == [variant_id]
 
 
-@patch("saleor.order.calculations._recalculate_order_prices")
+@patch("saleor.order.calculations._recalculate_with_plugins")
 @patch("saleor.plugins.manager.PluginsManager.order_confirmed")
 def test_order_from_checkout_requires_confirmation(
     order_confirmed_mock,
-    _recalculate_order_prices_mock,
+    recalculate_with_plugins_mock,
     app_api_client,
     permission_handle_checkouts,
     site_settings,
@@ -707,7 +707,7 @@ def test_order_from_checkout_requires_confirmation(
     order = Order.objects.get(pk=order_id)
     assert order.is_unconfirmed()
     order_confirmed_mock.assert_not_called()
-    _recalculate_order_prices_mock.assert_not_called()
+    recalculate_with_plugins_mock.assert_not_called()
 
 
 @pytest.mark.integration
@@ -719,7 +719,8 @@ def test_order_from_checkout_with_voucher(
     address,
     shipping_method,
 ):
-    voucher_used_count = voucher_percentage.used
+    code = voucher_percentage.codes.first()
+    voucher_used_count = code.used
     voucher_percentage.usage_limit = voucher_used_count + 1
     voucher_percentage.save(update_fields=["usage_limit"])
 
@@ -770,8 +771,8 @@ def test_order_from_checkout_with_voucher(
         == (order.undiscounted_total - order.total).gross.amount
     )
 
-    voucher_percentage.refresh_from_db()
-    assert voucher_percentage.used == voucher_used_count + 1
+    code.refresh_from_db()
+    assert code.used == voucher_used_count + 1
 
 
 @pytest.mark.integration
@@ -783,10 +784,11 @@ def test_order_from_checkout_with_voucher_apply_once_per_order(
     address,
     shipping_method,
 ):
-    voucher_used_count = voucher_percentage.used
+    code = voucher_percentage.codes.first()
+    voucher_used_count = code.used
     voucher_percentage.usage_limit = voucher_used_count + 1
     voucher_percentage.apply_once_per_order = True
-    voucher_percentage.save(update_fields=["usage_limit", "apply_once_per_order"])
+    voucher_percentage.save(update_fields=["apply_once_per_order", "usage_limit"])
 
     checkout = checkout_with_voucher_percentage
 
@@ -846,8 +848,8 @@ def test_order_from_checkout_with_voucher_apply_once_per_order(
         == (order.undiscounted_total - order.total).gross.amount
     )
 
-    voucher_percentage.refresh_from_db()
-    assert voucher_percentage.used == voucher_used_count + 1
+    code.refresh_from_db()
+    assert code.used == voucher_used_count + 1
 
 
 @pytest.mark.integration
@@ -859,7 +861,8 @@ def test_order_from_checkout_with_specific_product_voucher(
     address,
     shipping_method,
 ):
-    voucher_used_count = voucher_specific_product_type.used
+    code = voucher_specific_product_type.codes.first()
+    voucher_used_count = code.used
     voucher_specific_product_type.usage_limit = voucher_used_count + 1
     voucher_specific_product_type.save(update_fields=["usage_limit"])
 
@@ -909,8 +912,8 @@ def test_order_from_checkout_with_specific_product_voucher(
         == (order.undiscounted_total - order.total).gross.amount
     )
 
-    voucher_specific_product_type.refresh_from_db()
-    assert voucher_specific_product_type.used == voucher_used_count + 1
+    code.refresh_from_db()
+    assert code.used == voucher_used_count + 1
 
 
 @patch.object(PluginsManager, "preprocess_order_creation")
@@ -925,9 +928,11 @@ def test_order_from_checkout_voucher_not_increase_uses_on_preprocess_creation_fa
     shipping_method,
 ):
     mocked_preprocess_order_creation.side_effect = TaxError("tax error!")
-    voucher_percentage.used = 0
+    code = voucher_percentage.codes.first()
+    code.used = 0
     voucher_percentage.usage_limit = 1
-    voucher_percentage.save(update_fields=["used", "usage_limit"])
+    voucher_percentage.save(update_fields=["usage_limit"])
+    code.save(update_fields=["used"])
 
     checkout = checkout_with_voucher_percentage
     checkout.shipping_address = address
@@ -947,8 +952,8 @@ def test_order_from_checkout_voucher_not_increase_uses_on_preprocess_creation_fa
 
     assert data["errors"][0]["code"] == OrderCreateFromCheckoutErrorCode.TAX_ERROR.name
 
-    voucher_percentage.refresh_from_db()
-    assert voucher_percentage.used == 0
+    code.refresh_from_db()
+    assert code.used == 0
 
 
 def test_order_from_checkout_on_promotion(
@@ -1108,7 +1113,7 @@ def test_order_from_checkout_without_inventory_tracking(
     checkout_line_quantity = checkout_line.quantity
     checkout_line_variant = checkout_line.variant
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.checkout_total(
@@ -1383,7 +1388,7 @@ def test_order_from_checkout_0_total_value(
 
     checkout.refresh_from_db()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.checkout_total(
@@ -1596,7 +1601,7 @@ def test_order_from_checkout_raises_invalid_shipping_method_when_warehouse_disab
     warehouse_for_cc.click_and_collect_option = WarehouseClickAndCollectOption.DISABLED
     warehouse_for_cc.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
@@ -1638,7 +1643,7 @@ def test_order_from_draft_create_with_preorder_variant(
 
     variants_and_quantities = {line.variant_id: line.quantity for line in checkout}
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
@@ -1726,7 +1731,7 @@ def test_order_from_draft_create_click_collect_preorder_fails_for_disabled_wareh
     warehouse_for_cc.click_and_collect_option = WarehouseClickAndCollectOption.DISABLED
     warehouse_for_cc.save()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
@@ -1998,7 +2003,7 @@ def test_order_from_draft_create_0_total_value_from_voucher(
 
     checkout.refresh_from_db()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
@@ -2059,7 +2064,7 @@ def test_order_from_draft_create_0_total_value_from_giftcard(
 
     checkout.refresh_from_db()
 
-    manager = get_plugins_manager()
+    manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(

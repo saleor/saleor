@@ -138,6 +138,7 @@ def test_page_type_create_trigger_webhook(
         [any_webhook],
         page_type,
         SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )
 
 

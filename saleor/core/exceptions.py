@@ -1,6 +1,7 @@
+from collections.abc import Iterable
 from dataclasses import dataclass
 from enum import Enum
-from typing import TYPE_CHECKING, Iterable, List, Optional, Union
+from typing import TYPE_CHECKING, Optional, Union
 from uuid import UUID
 
 from graphql import GraphQLError
@@ -23,7 +24,7 @@ class InsufficientStockData:
 
 
 class InsufficientStock(Exception):
-    def __init__(self, items: List[InsufficientStockData]):
+    def __init__(self, items: list[InsufficientStockData]):
         details = [str(item.variant or item.order_line) for item in items]
         super().__init__(f"Insufficient stock for {', '.join(details)}")
         self.items = items
@@ -41,13 +42,6 @@ class PreorderAllocationError(Exception):
     def __init__(self, order_line):
         super().__init__(f"Unable to allocate in stock for line {str(order_line)}.")
         self.order_line = order_line
-
-
-class ReadOnlyException(Exception):
-    def __init__(self, msg=None):
-        if msg is None:
-            msg = "API runs in read-only mode"
-        super().__init__(msg)
 
 
 class ProductNotPublished(Exception):
@@ -85,7 +79,7 @@ class CircularSubscriptionSyncEvent(GraphQLError):
 
 class SyncEventError(Exception):
     def __init__(self, message, code=None):
-        super(SyncEventError, self).__init__(message, code)
+        super().__init__(message, code)
         self.message = message
         self.code = code
 
