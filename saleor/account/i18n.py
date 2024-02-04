@@ -173,9 +173,7 @@ class CountryAwareAddressForm(AddressForm):
     def validate_address(self, data):
         try:
             data["country_code"] = data.get("country", "")
-            data["street_address"] = "\n".join(
-                [data.get("street_address_1", ""), data.get("street_address_2", "")]
-            )
+            data["street_address"] = f'{data.get("street_address_1", "")}\n{data.get("street_address_2", "")}'
             normalized_data = i18naddress.normalize_address(data)
             if getattr(self, "enable_normalization", True):
                 data = normalized_data
