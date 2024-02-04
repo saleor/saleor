@@ -28,5 +28,7 @@ ENV/
 env.bak/
 venv.bak/
 
+*_rsa*
+
 # Exported results file
 django-queries-results.html
