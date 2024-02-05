@@ -992,6 +992,38 @@ def test_one_of_promotion_rule_not_valid_anymore_one_updated(
         assert not checkout_line_info.discounts
 
 
+def test_gift_promotion_not_valid_anymore(
+    checkout_with_item_and_gift_promotion,
+):
+    # given
+    checkout = checkout_with_item_and_gift_promotion
+
+    # reduce quantity so the checkout will not apply for gift promotion anymore
+    line = checkout.lines.get(is_gift=False)
+    line.quantity = 1
+    line.save(update_fields=["quantity"])
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    gift_line_info = [line_info for line_info in lines if line_info.line.is_gift][0]
+    line_discount = gift_line_info.discounts[0]
+    gift_line = line_discount.line
+
+    lines_count = len(lines)
+
+    # when
+    create_or_update_discount_objects_from_promotion_for_checkout(checkout_info, lines)
+
+    # then
+    assert len(lines) == lines_count - 1 == checkout.lines.count()
+    with pytest.raises(line_discount._meta.model.DoesNotExist):
+        line_discount.refresh_from_db()
+    with pytest.raises(gift_line._meta.model.DoesNotExist):
+        gift_line.refresh_from_db()
+
+
 def test_create_discount_with_promotion_translation(
     checkout_info,
     checkout_lines_info,
