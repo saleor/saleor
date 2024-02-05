@@ -27502,7 +27502,13 @@ type PromotionCreateError {
   rulesLimit: Int
 
   """Number of rules with orderPredicate defined exceeding the limit."""
-  exceedBy: Int
+  rulesLimitExceedBy: Int
+
+  """Limit of gifts assigned to promotion rule."""
+  giftsLimit: Int
+
+  """Number of gifts defined for this promotion rule exceeding the limit."""
+  giftsLimitExceedBy: Int
 }
 
 """An enumeration."""
@@ -27515,6 +27521,7 @@ enum PromotionCreateErrorCode {
   INVALID_PRECISION
   MISSING_CHANNELS
   RULES_NUMBER_LIMIT
+  GIFTS_NUMBER_LIMIT
   INVALID_GIFT_TYPE
 }
 
@@ -27767,7 +27774,13 @@ type PromotionRuleCreateError {
   rulesLimit: Int
 
   """Number of rules with orderPredicate defined exceeding the limit."""
-  exceedBy: Int
+  rulesLimitExceedBy: Int
+
+  """Limit of gifts assigned to promotion rule."""
+  giftsLimit: Int
+
+  """Number of gifts defined for this promotion rule exceeding the limit."""
+  giftsLimitExceedBy: Int
 }
 
 """An enumeration."""
@@ -27780,6 +27793,7 @@ enum PromotionRuleCreateErrorCode {
   INVALID_PRECISION
   MISSING_CHANNELS
   RULES_NUMBER_LIMIT
+  GIFTS_NUMBER_LIMIT
   INVALID_GIFT_TYPE
 }
 
@@ -27870,6 +27884,12 @@ type PromotionRuleUpdateError {
 
   """List of channel IDs which causes the error."""
   channels: [ID!]
+
+  """Limit of gifts assigned to promotion rule."""
+  giftsLimit: Int
+
+  """Number of gifts defined for this promotion rule exceeding the limit."""
+  giftsLimitExceedBy: Int
 }
 
 """An enumeration."""
@@ -27883,6 +27903,7 @@ enum PromotionRuleUpdateErrorCode {
   MULTIPLE_CURRENCIES_NOT_ALLOWED
   INVALID_PRECISION
   INVALID_GIFT_TYPE
+  GIFTS_NUMBER_LIMIT
 }
 
 input PromotionRuleUpdateInput {
