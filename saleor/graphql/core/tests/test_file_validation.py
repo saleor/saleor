@@ -288,3 +288,16 @@ def test_clean_image_file_invalid_image_mime_type(from_buffer_mock):
     # then
     error_msg = f"Unsupported image MIME type: {invalid_mime_type}"
     assert error_msg in exc.value.args[0][field].message
+
+
+def test_clean_image_file_with_captialized_extension():
+    # given
+    img_data = BytesIO()
+    image = Image.new("RGB", size=(1, 1))
+    image.save(img_data, format="JPEG")
+    field = "image"
+
+    img = SimpleUploadedFile("product.JPG", img_data.getvalue(), "image/jpeg")
+
+    # when & then
+    clean_image_file({field: img}, field, ProductErrorCode)
