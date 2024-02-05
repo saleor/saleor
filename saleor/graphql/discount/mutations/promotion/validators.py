@@ -59,24 +59,20 @@ def clean_promotion_rule(
 
 
 def _clean_gifts(cleaned_input, instance, errors, error_class, index):
-    """Check if assigned gifts extends the gift limit."""
+    """Check if assigned gifts exceed the gift limit."""
     if "gifts" not in cleaned_input:
         return
 
-    gifts = {gift.id for gift in cleaned_input["gifts"]}
-    if instance:
-        # instance is provided only for PromotionRuleUpdate mutation
-        # so the gifts will be fetched once
-        gifts |= {gift.id for gift in instance.gifts.all()}
+    gifts_count = len(cleaned_input["gifts"])
     gift_limit = int(settings.GIFTS_LIMIT_PER_RULE)
-    if len(gifts) > gift_limit:
+    if gifts_count > gift_limit:
         errors["gifts"].append(
             ValidationError(
                 message="Number of gifts has reached the limit.",
                 code=error_class.GIFTS_NUMBER_LIMIT.value,
                 params={
                     "gifts_limit": settings.GIFTS_LIMIT_PER_RULE,
-                    "gifts_limit_exceed_by": len(gifts) - gift_limit,
+                    "gifts_limit_exceed_by": gifts_count - gift_limit,
                     "index": index,
                 },
             )

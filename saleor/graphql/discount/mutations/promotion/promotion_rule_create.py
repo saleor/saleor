@@ -37,9 +37,7 @@ class PromotionRuleCreateError(Error):
     rules_limit_exceed_by = graphene.Int(
         description="Number of rules with orderPredicate defined exceeding the limit."
     )
-    gifts_limit = graphene.Int(
-        description="Limit of rules with orderPredicate defined."
-    )
+    gifts_limit = graphene.Int(description="Limit of gifts assigned to promotion rule.")
     gifts_limit_exceed_by = graphene.Int(
         description=(
             "Number of gifts defined for this promotion rule exceeding the limit."

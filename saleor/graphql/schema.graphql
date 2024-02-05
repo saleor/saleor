@@ -27495,7 +27495,7 @@ type PromotionCreateError {
   """Number of rules with orderPredicate defined exceeding the limit."""
   rulesLimitExceedBy: Int
 
-  """Limit of rules with orderPredicate defined."""
+  """Limit of gifts assigned to promotion rule."""
   giftsLimit: Int
 
   """Number of gifts defined for this promotion rule exceeding the limit."""
@@ -27767,7 +27767,7 @@ type PromotionRuleCreateError {
   """Number of rules with orderPredicate defined exceeding the limit."""
   rulesLimitExceedBy: Int
 
-  """Limit of rules with orderPredicate defined."""
+  """Limit of gifts assigned to promotion rule."""
   giftsLimit: Int
 
   """Number of gifts defined for this promotion rule exceeding the limit."""
@@ -27876,7 +27876,7 @@ type PromotionRuleUpdateError {
   """List of channel IDs which causes the error."""
   channels: [ID!]
 
-  """Limit of rules with orderPredicate defined."""
+  """Limit of gifts assigned to promotion rule."""
   giftsLimit: Int
 
   """Number of gifts defined for this promotion rule exceeding the limit."""

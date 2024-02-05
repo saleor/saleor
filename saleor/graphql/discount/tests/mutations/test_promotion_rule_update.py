@@ -1233,10 +1233,6 @@ def test_promotion_rule_update_exceeds_gifts_number_limit(
         graphene.Node.to_global_id("ProductVariant", variant.pk)
         for variant in product_variant_list
     ]
-    current_gift_ids = [
-        graphene.Node.to_global_id("ProductVariant", variant.pk)
-        for variant in rule.gifts.all()
-    ]
     variables = {
         "id": rule_id,
         "input": {
@@ -1252,7 +1248,6 @@ def test_promotion_rule_update_exceeds_gifts_number_limit(
     )
 
     # then
-    gift_ids = set(gift_ids) | set(current_gift_ids)
     content = get_graphql_content(response)
     data = content["data"]["promotionRuleUpdate"]
     errors = data["errors"]
