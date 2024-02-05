@@ -24,6 +24,9 @@ MUTATION_CHECKOUT_REMOVE_PROMO_CODE = """
             checkout {
                 token
                 voucherCode
+                lines {
+                    id
+                }
                 discount {
                     amount
                 }
@@ -302,7 +305,7 @@ def test_checkout_remove_voucher_code_invalidates_price(
     assert data["checkout"]["totalPrice"]["gross"]["amount"] == expected_total
 
 
-def test_checkout_remove_voucher_code_checkout_promotion_discount_applied(
+def test_checkout_remove_voucher_code_order_promotion_discount_applied(
     api_client, checkout_with_voucher, order_promotion_rule
 ):
     # given
@@ -333,6 +336,40 @@ def test_checkout_remove_voucher_code_checkout_promotion_discount_applied(
     assert checkout.discount_amount == reward_value
     assert checkout.last_change != previous_checkout_last_change
     assert checkout.discounts.count() == 1
+
+
+def test_checkout_remove_voucher_code_gift_reward_applied(
+    api_client, checkout_with_voucher, gift_promotion_rule
+):
+    # given
+    checkout = checkout_with_voucher
+
+    assert checkout.voucher_code is not None
+    previous_checkout_last_change = checkout.last_change
+
+    lines_count = checkout.lines.count()
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "promoCode": checkout.voucher_code,
+    }
+
+    # when
+    data = _mutate_checkout_remove_promo_code(api_client, variables)
+
+    # then
+    checkout.refresh_from_db()
+    assert not data["errors"]
+    assert data["checkout"]["token"] == str(checkout.token)
+    assert data["checkout"]["voucherCode"] is None
+    assert data["checkout"]["discount"]["amount"] == 0
+    assert checkout.voucher_code is None
+    assert not checkout.discount_amount
+    assert checkout.last_change != previous_checkout_last_change
+    assert not checkout.discounts.all()
+    assert checkout.lines.count() == lines_count + 1 == len(data["checkout"]["lines"])
+    gift_line = checkout.lines.get(is_gift=True)
+    assert gift_line.discounts.count() == 1
 
 
 def test_with_active_problems_flow(

@@ -30,6 +30,7 @@ from ..discount.models import (
 from ..discount.utils import (
     create_discount_objects_for_catalogue_promotions,
     create_discount_objects_for_order_promotions,
+    delete_gift_line,
     get_products_voucher_discount,
     get_voucher_code_instance,
     validate_voucher_for_checkout,
@@ -783,6 +784,8 @@ def add_voucher_to_checkout(
             checkout=checkout_info.checkout,
             type=DiscountType.ORDER_PROMOTION,
         ).delete()
+        # delete gift line if exists
+        delete_gift_line(checkout_info.checkout, lines)
 
 
 def remove_promo_code_from_checkout(

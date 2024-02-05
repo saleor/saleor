@@ -1123,13 +1123,18 @@ def test_order_from_checkout_on_catalogue_and_gift_promotion(
     checkout.billing_address = address
     checkout.save()
 
-    # add gift reward
+    gift_promotion_rule.order_predicate = {
+        "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 10}}}
+    }
+    gift_promotion_rule.save(update_fields=["order_predicate"])
+
     variants = gift_promotion_rule.gifts.all()
     variant_listings = ProductVariantChannelListing.objects.filter(variant__in=variants)
     top_price, variant_id = max(
         variant_listings.values_list("discounted_price_amount", "variant")
     )
 
+    # add gift reward
     gift_line = CheckoutLine.objects.create(
         checkout=checkout,
         quantity=1,
@@ -1137,7 +1142,6 @@ def test_order_from_checkout_on_catalogue_and_gift_promotion(
         is_gift=True,
         currency="USD",
     )
-
     CheckoutLineDiscount.objects.create(
         line=gift_line,
         promotion_rule=gift_promotion_rule,
