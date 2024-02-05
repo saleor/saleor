@@ -2790,7 +2790,7 @@ def test_transaction_update_by_app_assign_app_owner(
     assert transaction.app == app_api_client.app
     assert transaction.user is None
 
-
+    
 @freeze_time("2018-05-31 12:00:01")
 def test_transaction_update_for_checkout_updates_last_transaction_modified_at(
     checkout_with_items,
@@ -2842,3 +2842,32 @@ def test_transaction_update_for_checkout_updates_last_transaction_modified_at(
 
     assert checkout_with_items.last_transaction_modified_at != previous_modified_at
     assert checkout_with_items.last_transaction_modified_at == transaction.modified_at
+
+
+def test_transaction_update_psp_reference_length_exceed(
+    transaction_item_created_by_app, permission_manage_payments, app_api_client
+):
+    # given
+    transaction = transaction_item_created_by_app
+
+    psp_reference = "a" * 513
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "transaction": {
+            "pspReference": psp_reference,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["transactionUpdate"]
+    assert data["errors"][0]["field"] == "transaction"
+    assert (
+        data["errors"][0]["code"] == TransactionUpdateErrorCode.INVALID.name
+    )

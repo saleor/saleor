@@ -418,6 +418,32 @@ def test_parse_transaction_action_data_with_missing_mandatory_event_fields():
     # then
     assert parsed_data is None
 
+def test_parse_transaction_action_data_with_psp_reference_max_length_exceed():    
+    # given
+    expected_psp_reference = "a" * 513
+    event_amount = 12.00
+    event_type = TransactionEventType.CHARGE_SUCCESS
+    event_time = "2022-11-18T13:25:58.169685+00:00"
+    event_url = "http://localhost:3000/event/ref123"
+    event_cause = "No cause"
+
+    response_data = {
+        "pspReference": expected_psp_reference,
+        "amount": event_amount,
+        "result": event_type.upper(),
+        "time": event_time,
+        "externalUrl": event_url,
+        "message": event_cause,
+    }
+
+    # when
+    parsed_data, error_msg = parse_transaction_action_data(
+        response_data, TransactionEventType.CHARGE_REQUEST
+    )
+    # then
+    assert parsed_data is None
+    assert isinstance(error_msg, str)
+
 
 def test_create_failed_transaction_event(transaction_item_generator):
     # given
