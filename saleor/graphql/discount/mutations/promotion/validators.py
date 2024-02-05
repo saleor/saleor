@@ -21,6 +21,7 @@ def clean_promotion_rule(
     order_predicate = get_from_input_or_instance(
         "order_predicate", cleaned_input, instance
     )
+    _clean_gifts(cleaned_input, instance, errors, error_class, index)
     invalid_predicates = _clean_predicates(
         catalogue_predicate,
         order_predicate,
@@ -55,6 +56,27 @@ def clean_promotion_rule(
         )
 
     return cleaned_input
+
+
+def _clean_gifts(cleaned_input, instance, errors, error_class, index):
+    """Check if assigned gifts exceed the gift limit."""
+    if "gifts" not in cleaned_input:
+        return
+
+    gifts_count = len(cleaned_input["gifts"])
+    gift_limit = int(settings.GIFTS_LIMIT_PER_RULE)
+    if gifts_count > gift_limit:
+        errors["gifts"].append(
+            ValidationError(
+                message="Number of gifts has reached the limit.",
+                code=error_class.GIFTS_NUMBER_LIMIT.value,
+                params={
+                    "gifts_limit": settings.GIFTS_LIMIT_PER_RULE,
+                    "gifts_limit_exceed_by": gifts_count - gift_limit,
+                    "index": index,
+                },
+            )
+        )
 
 
 def _clean_predicates(
@@ -225,7 +247,7 @@ def _clean_order_predicate(
                 code=error_class.RULES_NUMBER_LIMIT.value,
                 params={
                     "rules_limit": rules_limit,
-                    "exceed_by": 1,
+                    "rules_limit_exceed_by": 1,
                 },
             )
         )
