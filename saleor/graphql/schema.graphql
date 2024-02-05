@@ -10106,7 +10106,7 @@ type TransactionItem implements Node & ObjectWithMetadata @doc(category: "Paymen
   metafields(keys: [String!]): Metadata
 
   """The transaction token."""
-  token: UUID
+  token: UUID!
   createdAt: DateTime!
   modifiedAt: DateTime!
 

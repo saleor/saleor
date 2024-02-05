@@ -402,7 +402,7 @@ class TransactionEvent(ModelObjectType[models.TransactionEvent]):
 
 class TransactionItem(ModelObjectType[models.TransactionItem]):
     token = graphene.Field(
-        UUIDScalar, description="The transaction token.", required=False
+        UUIDScalar, description="The transaction token.", required=True
     )
     created_at = graphene.DateTime(required=True)
     modified_at = graphene.DateTime(required=True)
