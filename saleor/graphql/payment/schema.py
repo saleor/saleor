@@ -76,13 +76,15 @@ class PaymentQueries(graphene.ObjectType):
 
     @staticmethod
     def resolve_transaction(_root, info: ResolveInfo, **kwargs):
-        if "id" in kwargs:
-            _, id = from_global_id_or_error(kwargs["id"], TransactionItem)
-            if not id:
-                return None
-            return resolve_transaction(info, id, None)
-        elif "token" in kwargs:
-            return resolve_transaction(info, None, kwargs["token"])
+        id = kwargs.get("id")
+        token = kwargs.get("token")
+        if id is None and token is None:
+            return None
+        # If token is provided we ignore the id input.
+        if token:
+            return resolve_transaction(info, token)
+        _, id = from_global_id_or_error(id, TransactionItem)  # type: ignore[arg-type]
+        return resolve_transaction(info, id)
 
 
 class PaymentMutations(graphene.ObjectType):
