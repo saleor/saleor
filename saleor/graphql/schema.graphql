@@ -10104,6 +10104,9 @@ type TransactionItem implements Node & ObjectWithMetadata @doc(category: "Paymen
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
+
+  """The transaction token."""
+  token: UUID
   createdAt: DateTime!
   modifiedAt: DateTime!
 
@@ -14563,10 +14566,14 @@ type Mutation {
   Requires the following permissions: OWNER and HANDLE_PAYMENTS for apps, HANDLE_PAYMENTS for staff users. Staff user cannot update a transaction that is owned by the app.
   """
   transactionUpdate(
-    """The ID of the transaction."""
+    """The ID of the transaction. One of field id or token is required."""
     id: ID
 
-    """The token of the transaction to process."""
+    """
+    The token of the transaction. One of field id or token is required.
+    
+    Added in Saleor 3.14.
+    """
     token: UUID
 
     """Input data required to create a new transaction object."""
@@ -14594,10 +14601,14 @@ type Mutation {
     """
     amount: PositiveDecimal
 
-    """The ID of the transaction."""
+    """The ID of the transaction. One of field id or token is required."""
     id: ID
 
-    """The token of the transaction."""
+    """
+    The token of the transaction. One of field id or token is required.
+    
+    Added in Saleor 3.14.
+    """
     token: UUID
   ): TransactionRequestAction @doc(category: "Payments")
 
@@ -14622,7 +14633,7 @@ type Mutation {
     """
     externalUrl: String
 
-    """The ID of the transaction."""
+    """The ID of the transaction. One of field id or token is required."""
     id: ID
 
     """The message related to the event."""
@@ -14636,7 +14647,11 @@ type Mutation {
     """
     time: DateTime
 
-    """The token of the transaction."""
+    """
+    The token of the transaction. One of field id or token is required.
+    
+    Added in Saleor 3.14.
+    """
     token: UUID
 
     """Current status of the event to report."""
@@ -14706,10 +14721,16 @@ type Mutation {
     """The data that will be passed to the payment gateway."""
     data: JSON
 
-    """The ID of the transaction to process."""
+    """
+    The ID of the transaction to process. One of field id or token is required.
+    """
     id: ID
 
-    """The token of the transaction to process."""
+    """
+    The token of the transaction to process. One of field id or token is required.
+    
+    Added in Saleor 3.14.
+    """
     token: UUID
   ): TransactionProcess @doc(category: "Payments")
 

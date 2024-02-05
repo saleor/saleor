@@ -89,6 +89,7 @@ mutation TransactionProcess(
     data
     transaction {
       id
+      token
       authorizedAmount {
         currency
         amount
@@ -471,6 +472,9 @@ def test_for_checkout_with_data_via_token(
         charged_value=expected_amount,
         data=expected_data,
         returned_data=expected_response["data"],
+    )
+    assert content["data"]["transactionProcess"]["transaction"]["token"] == str(
+        transaction_item.token
     )
     assert checkout.charge_status == CheckoutChargeStatus.PARTIAL
     assert checkout.authorize_status == CheckoutAuthorizeStatus.PARTIAL

@@ -24,6 +24,7 @@ from ..core.descriptions import (
 )
 from ..core.doc_category import DOC_CATEGORY_PAYMENTS
 from ..core.fields import JSONString, PermissionsField
+from ..core.scalars import UUID as UUIDScalar
 from ..core.tracing import traced_resolver
 from ..core.types import BaseObjectType, ModelObjectType, Money, NonNullList
 from ..meta.permissions import public_payment_permissions
@@ -400,6 +401,9 @@ class TransactionEvent(ModelObjectType[models.TransactionEvent]):
 
 
 class TransactionItem(ModelObjectType[models.TransactionItem]):
+    token = graphene.Field(
+        UUIDScalar, description="The transaction token.", required=False
+    )
     created_at = graphene.DateTime(required=True)
     modified_at = graphene.DateTime(required=True)
     actions = NonNullList(
@@ -531,6 +535,10 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
 
     @staticmethod
     def resolve_id(root: models.TransactionItem, _info: ResolveInfo):
+        return root.token
+
+    @staticmethod
+    def resolve_token(root: models.TransactionItem, _info):
         return root.token
 
     @staticmethod

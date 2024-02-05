@@ -1157,11 +1157,16 @@ class TransactionUpdate(TransactionCreate):
 
     class Arguments:
         id = graphene.ID(
-            description="The ID of the transaction.",
+            description=(
+                "The ID of the transaction. One of field id or token is required."
+            ),
             required=False,
         )
         token = UUID(
-            description="The token of the transaction to process.",
+            description=(
+                "The token of the transaction. One of field id or token is required."
+            )
+            + ADDED_IN_314,
             required=False,
         )
         transaction = TransactionUpdateInput(
@@ -1390,11 +1395,16 @@ class TransactionRequestAction(BaseMutation):
 
     class Arguments:
         id = graphene.ID(
-            description="The ID of the transaction.",
+            description=(
+                "The ID of the transaction. One of field id or token is required."
+            ),
             required=False,
         )
         token = UUID(
-            description="The token of the transaction.",
+            description=(
+                "The token of the transaction. One of field id or token is required."
+            )
+            + ADDED_IN_314,
             required=False,
         )
         action_type = graphene.Argument(
@@ -1567,11 +1577,16 @@ class TransactionEventReport(ModelMutation):
 
     class Arguments:
         id = graphene.ID(
-            description="The ID of the transaction.",
+            description=(
+                "The ID of the transaction. One of field id or token is required."
+            ),
             required=False,
         )
         token = UUID(
-            description="The token of the transaction.",
+            description=(
+                "The token of the transaction. One of field id or token is required."
+            )
+            + ADDED_IN_314,
             required=False,
         )
         psp_reference = graphene.String(
@@ -2234,11 +2249,18 @@ class TransactionProcess(BaseMutation):
 
     class Arguments:
         id = graphene.ID(
-            description="The ID of the transaction to process.",
+            description=(
+                "The ID of the transaction to process. "
+                "One of field id or token is required."
+            ),
             required=False,
         )
         token = UUID(
-            description="The token of the transaction to process.",
+            description=(
+                "The token of the transaction to process. "
+                "One of field id or token is required."
+            )
+            + ADDED_IN_314,
             required=False,
         )
         data = graphene.Argument(
