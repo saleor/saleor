@@ -725,7 +725,7 @@ def get_variants_to_promotions_map(
     rule_to_channel_ids_map = _get_rule_to_channel_ids_map(rules)
     rules_in_bulk = rules.in_bulk()
 
-    for promotion_rule_variant in list(promotion_rule_variants.iterator()):
+    for promotion_rule_variant in promotion_rule_variants.iterator():
         rule_id = promotion_rule_variant.promotionrule_id
         rule = rules_in_bulk.get(rule_id)
         # there is no rule when it is a part of inactive promotion
@@ -749,22 +749,22 @@ def fetch_promotion_rules_for_checkout(
 
     applicable_rules = []
     promotions = Promotion.objects.active()
+    checkout_channel_id = checkout.channel_id
+    PromotionRuleChannels = PromotionRule.channels.through.objects.filter(
+        channel_id=checkout_channel_id
+    )
     rules = (
         PromotionRule.objects.filter(
-            Exists(promotions.filter(id=OuterRef("promotion_id")))
+            Exists(promotions.filter(id=OuterRef("promotion_id"))),
+            Exists(PromotionRuleChannels.filter(promotionrule_id=OuterRef("id"))),
         )
         .exclude(order_predicate={})
         .prefetch_related("channels")
     )
-    rule_to_channel_ids_map = _get_rule_to_channel_ids_map(rules)
 
-    checkout_channel_id = checkout.channel_id
     currency = checkout.channel.currency_code
     checkout_qs = Checkout.objects.filter(pk=checkout.pk)
     for rule in rules.iterator():
-        rule_channel_ids = rule_to_channel_ids_map.get(rule.id, [])
-        if checkout_channel_id not in rule_channel_ids:
-            continue
         checkouts = filter_qs_by_predicate(
             rule.order_predicate,
             checkout_qs,
