@@ -535,6 +535,7 @@ def test_create_checkout_order_discount_applies(
         response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
 
     # then
+    assert Checkout.objects.get().discounts.exists()
     content = get_graphql_content(response)
     data = content["data"]["checkoutCreate"]
     assert not data["errors"]
@@ -574,6 +575,7 @@ def test_create_checkout_gift_discount_applies(
         response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
 
     # then
+    # assert Checkout.objects.get().discounts.exists()
     content = get_graphql_content(response)
     data = content["data"]["checkoutCreate"]
     assert not data["errors"]
