@@ -14,6 +14,7 @@ from ..validators import validate_possible_number
 
 @pytest.mark.parametrize("country", ["CN", "PL", "US", "IE"])
 def test_address_form_for_country(country):
+    # given
     data = {
         "first_name": "John",
         "last_name": "Doe",
@@ -21,11 +22,13 @@ def test_address_form_for_country(country):
         "phone": "123456789",
     }
 
+    # when
     form = forms.get_address_form(data, country_code=country)
     errors = form.errors
     rules = i18naddress.get_validation_rules({"country_code": country})
     required = rules.required_fields
 
+    # then
     if "street_address" in required:
         assert "street_address_1" in errors
     else:
@@ -49,18 +52,23 @@ def test_address_form_for_country(country):
 
 
 def test_address_form_postal_code_validation():
+    # given
     data = {
         "first_name": "John",
         "last_name": "Doe",
         "country": "PL",
         "postal_code": "XXX",
     }
+
+    # when
     form = forms.get_address_form(data, country_code="PL")
     errors = form.errors
+    # then
     assert "postal_code" in errors
 
 
 def test_address_form_long_street_address_validation():
+    # given
     data = {
         "city": "test",
         "city_area": "test",
@@ -79,8 +87,12 @@ def test_address_form_long_street_address_validation():
             "in culpa qui officia deserunt mollit anim id est laborum"
         ),
     }
+
+    # when
     form = forms.get_address_form(data, country_code="US")
     errors = form.errors
+
+    # then
     assert "street_address_1" in errors
 
 
