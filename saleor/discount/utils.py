@@ -846,10 +846,10 @@ def _handle_order_promotion(
 
 
 def delete_gift_line(checkout: "Checkout", lines_info: Iterable["CheckoutLineInfo"]):
-    gift_line_infos = [line for line in lines_info if line.line.is_gift]
-    CheckoutLine.objects.filter(checkout_id=checkout.pk, is_gift=True).delete()
-    for gift_line_info in gift_line_infos:
-        lines_info.remove(gift_line_info)  # type: ignore[attr-defined]
+    if gift_line_infos := [line for line in lines_info if line.line.is_gift]:
+        CheckoutLine.objects.filter(checkout_id=checkout.pk, is_gift=True).delete()
+        for gift_line_info in gift_line_infos:
+            lines_info.remove(gift_line_info)  # type: ignore[attr-defined]
 
 
 def _handle_gift_reward(
