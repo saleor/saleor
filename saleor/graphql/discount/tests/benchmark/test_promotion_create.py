@@ -6,8 +6,25 @@ import pytest
 from django.utils import timezone
 
 from ....tests.utils import get_graphql_content
-from ...enums import PromotionTypeEnum, RewardValueTypeEnum
-from ..mutations.test_promotion_create import PROMOTION_CREATE_MUTATION
+from ...enums import PromotionTypeEnum, RewardTypeEnum, RewardValueTypeEnum
+
+PROMOTION_CREATE_MUTATION = """
+    mutation promotionCreate($input: PromotionCreateInput!) {
+        promotionCreate(input: $input) {
+            promotion {
+                id
+                rules {
+                    id
+                }
+            }
+            errors {
+                field
+                code
+                message
+            }
+        }
+    }
+"""
 
 
 @pytest.mark.django_db
@@ -106,3 +123,50 @@ def test_promotion_create(
     # then
     data = content["data"]["promotionCreate"]
     assert data["promotion"]
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_promotion_create_gift_promotion(
+    staff_api_client,
+    permission_group_manage_discounts,
+    channel_USD,
+    product_variant_list,
+    count_queries,
+    django_assert_num_queries,
+):
+    # given
+    permission_group_manage_discounts.user_set.add(staff_api_client.user)
+    order_predicate = {
+        "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": "100"}}}
+    }
+    channel_ids = [graphene.Node.to_global_id("Channel", channel_USD.pk)]
+    gift_ids = [
+        graphene.Node.to_global_id("ProductVariant", variant.pk)
+        for variant in product_variant_list
+    ]
+
+    variables = {
+        "input": {
+            "name": "test gift promotion",
+            "type": PromotionTypeEnum.ORDER.name,
+            "rules": [
+                {
+                    "name": "test gift promotion rule",
+                    "channels": channel_ids,
+                    "rewardType": RewardTypeEnum.GIFT.name,
+                    "orderPredicate": order_predicate,
+                    "gifts": gift_ids,
+                }
+            ],
+        }
+    }
+
+    # when
+    with django_assert_num_queries(25):
+        response = staff_api_client.post_graphql(PROMOTION_CREATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionCreate"]
+    assert not data["errors"]
