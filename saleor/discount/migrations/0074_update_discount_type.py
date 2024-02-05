@@ -6,7 +6,7 @@ from ..tasks import set_discount_type_to_promotion_catalogue_task
 
 
 def update_order_line_discount_type(_apps, _schema_editor):
-    def on_migrations_complete():
+    def on_migrations_complete(**_kwargs):
         set_discount_type_to_promotion_catalogue_task.delay()
 
     sender = registry.get_app_config("discount")
