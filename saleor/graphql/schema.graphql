@@ -27584,6 +27584,9 @@ input PromotionRuleInput @doc(category: "Discounts") {
   """
   rewardType: RewardTypeEnum
 
+  """List of channel ids to which the rule should apply to."""
+  channels: [ID!]
+
   """
   Product variant IDs available as a gift to choose.
   
@@ -27592,9 +27595,6 @@ input PromotionRuleInput @doc(category: "Discounts") {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   gifts: [ID!]
-
-  """List of channel ids to which the rule should apply to."""
-  channels: [ID!]
 }
 
 input CataloguePredicateInput @doc(category: "Discounts") {
@@ -27828,6 +27828,9 @@ input PromotionRuleCreateInput {
   """
   rewardType: RewardTypeEnum
 
+  """List of channel ids to which the rule should apply to."""
+  channels: [ID!]
+
   """
   Product variant IDs available as a gift to choose.
   
@@ -27836,9 +27839,6 @@ input PromotionRuleCreateInput {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   gifts: [ID!]
-
-  """List of channel ids to which the rule should apply to."""
-  channels: [ID!]
 
   """The ID of the promotion that rule belongs to."""
   promotion: ID!
@@ -27937,20 +27937,29 @@ input PromotionRuleUpdateInput {
   """
   rewardType: RewardTypeEnum
 
-  """
-  Product variant IDs available as a gift to choose.
-  
-  Added in Saleor 3.19.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  gifts: [ID!]
-
   """List of channel ids to add."""
   addChannels: [ID!]
 
   """List of channel ids to remove."""
   removeChannels: [ID!]
+
+  """
+  List of variant IDs available as a gift to add.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  addGifts: [ID!]
+
+  """
+  List of variant IDs available as a gift to remove.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  removeGifts: [ID!]
 }
 
 """

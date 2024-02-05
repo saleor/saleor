@@ -57,6 +57,12 @@ class PromotionRuleInput(PromotionRuleBaseInput):
         graphene.ID,
         description="List of channel ids to which the rule should apply to.",
     )
+    gifts = NonNullList(
+        graphene.ID,
+        description="Product variant IDs available as a gift to choose."
+        + ADDED_IN_319
+        + PREVIEW_FEATURE,
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_DISCOUNTS
