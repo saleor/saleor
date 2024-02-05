@@ -82,7 +82,7 @@ class PaymentQueries(graphene.ObjectType):
             return None
         # If token is provided we ignore the id input.
         if token:
-            return resolve_transaction(info, token)
+            return resolve_transaction(info, str(token))
         _, id = from_global_id_or_error(id, TransactionItem)  # type: ignore[arg-type]
         return resolve_transaction(info, id)
 
