@@ -5,20 +5,20 @@ from uuid import UUID
 
 from django.db.models import prefetch_related_objects
 
-from ..discount import DiscountType
+from ..discount.interface import fetch_variant_rules_info
 
 if TYPE_CHECKING:
-    from ..discount.interface import VariantPromotionRuleInfo
-    from ..discount.models import Voucher
-    from ..tax.models import TaxClass
     from ..channel.models import Channel
-    from ..discount.models import OrderLineDiscount
+    from ..discount import DiscountType
+    from ..discount.interface import VariantPromotionRuleInfo
+    from ..discount.models import OrderLineDiscount, Voucher
     from ..payment.models import Payment
     from ..product.models import (
         DigitalContent,
         ProductVariant,
         ProductVariantChannelListing,
     )
+    from ..tax.models import TaxClass
     from .models import Order, OrderLine
 
 
@@ -105,28 +105,56 @@ class DraftOrderLineInfo:
         ]
 
 
-def fetch_draft_order_lines(
-    order: "Order", lines: list[Optional["OrderLine"]]
+def fetch_draft_order_lines_info(
+    order: "Order", lines: Optional[Iterable["OrderLine"]]
 ) -> list[DraftOrderLineInfo]:
+
+    def get_variant_channel_listing(variant: "ProductVariant", channel_id: int):
+        variant_channel_listing = None
+        for channel_listing in variant.channel_listings.all():
+            if channel_listing.channel_id == channel_id:
+                variant_channel_listing = channel_listing
+        return variant_channel_listing
+
+    prefetch_related_fields = [
+        "variant__product__product_type",
+        # check if needed
+        # "variant__channel_listings__channel"
+        # "variant__product__product_type__tax_class__country_rates",
+        # "variant__product__channel_listings__channel",
+        "variant__product__tax_class__country_rates",
+        "variant__channel_listings__variantlistingpromotionrule__promotion_rule__promotion__translations",
+        "variant__channel_listings__variantlistingpromotionrule__promotion_rule__translations",
+        "discounts__promotion_rule__promotion",
+    ]
+
     if lines is None:
-        lines = list(order.lines.select_related("variant__product__product_type"))
+        lines = list(order.lines.prefetch_related(*prefetch_related_fields))
     else:
-        prefetch_related_objects(lines, "variant__product__product_type")
-    lines = order.lines.prefetch_related("")
+        prefetch_related_objects(lines, *prefetch_related_fields)
     lines_info = []
+    channel = order.channel
     for line in lines:
-        is_digital = line.is_digital
         variant = line.variant
+        variant_channel_listing = get_variant_channel_listing(variant, channel.id)
+        rules_info = (
+            fetch_variant_rules_info(variant_channel_listing, order.language_code)
+            if not line.is_gift
+            else []
+        )
         lines_info.append(
-            OrderLineInfo(
+            DraftOrderLineInfo(
                 line=line,
-                quantity=line.quantity,
-                is_digital=is_digital,
                 variant=variant,
-                digital_content=variant.digital_content
-                if is_digital and variant
-                else None,
+                channel_listing=variant_channel_listing,
+                # product=
+                # product_type=
+                # collections=
+                discounts=list(line.discounts.all()),
+                rules_info=rules_info,
+                channel=channel,
+                tax_class=variant.product.tax_class,
+                voucher=None,
             )
         )
-
     return lines_info

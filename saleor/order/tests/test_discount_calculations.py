@@ -5,7 +5,7 @@ from prices import Money, TaxedMoney
 
 from ...core.prices import quantize_price
 from ...core.taxes import zero_money
-from ...discount import DiscountType, DiscountValueType
+from ...discount import DiscountType, DiscountValueType, RewardType, RewardValueType
 from ...order.base_calculations import (
     apply_order_discounts,
     apply_subtotal_discount_to_order_lines,
@@ -13,6 +13,8 @@ from ...order.base_calculations import (
     base_order_total,
 )
 from ...order.interface import OrderTaxedPricesData
+from .. import OrderStatus
+from ..calculations import fetch_order_prices_if_expired
 
 
 def test_base_order_total(order_with_lines):
@@ -683,3 +685,65 @@ def test_apply_subtotal_discount_to_order_lines_order_with_single_line(
         )
         == line.total_price_net
     )
+
+
+def test_zedzior(
+    plugins_manager,
+    order_with_lines,
+    order_promotion_without_rules,
+    channel_USD,
+    product_variant_list,
+):
+    # given
+    order = order_with_lines
+    promotion = order_promotion_without_rules
+    rule_total = promotion.rules.create(
+        name="Subtotal gte 10 fixed 5 rule",
+        order_predicate={
+            "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 10}}}
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=Decimal(5),
+        reward_type=RewardType.SUBTOTAL_DISCOUNT,
+    )
+    rule_gift = promotion.rules.create(
+        name="Subtotal gte 10 gift rule",
+        order_predicate={
+            "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 10}}}
+        },
+        reward_type=RewardType.GIFT,
+    )
+    rule_total.channels.add(channel_USD)
+    rule_gift.channels.add(channel_USD)
+    rule_gift.gifts.set([variant for variant in product_variant_list[:2]])
+
+    currency = order.currency
+    order.total = TaxedMoney(net=zero_money(currency), gross=zero_money(currency))
+    order.subtotal = TaxedMoney(net=zero_money(currency), gross=zero_money(currency))
+    order.undiscounted_total = TaxedMoney(
+        net=zero_money(currency), gross=zero_money(currency)
+    )
+    order.status = OrderStatus.DRAFT
+    order.save()
+
+    for line in order.lines.all():
+        line.unit_price = TaxedMoney(
+            net=zero_money(currency), gross=zero_money(currency)
+        )
+        line.undiscounted_unit_price = TaxedMoney(
+            net=zero_money(currency), gross=zero_money(currency)
+        )
+        line.total_price = TaxedMoney(
+            net=zero_money(currency), gross=zero_money(currency)
+        )
+        line.undiscounted_total_price = TaxedMoney(
+            net=zero_money(currency), gross=zero_money(currency)
+        )
+        line.undiscounted_base_unit_price_amount = Decimal(0)
+        line.save()
+
+    # when
+    fetch_order_prices_if_expired(order, plugins_manager, None, True)
+
+    # then
+    order_with_lines.refresh_from_db()

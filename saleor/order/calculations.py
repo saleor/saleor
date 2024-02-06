@@ -9,6 +9,7 @@ from prices import Money, TaxedMoney
 from ..core.prices import quantize_price
 from ..core.taxes import TaxData, TaxError, zero_taxed_money
 from ..discount import DiscountType
+from ..discount.utils import create_or_update_discount_objects_from_promotion_for_order
 from ..payment.model_helpers import get_subtotal
 from ..plugins.manager import PluginsManager
 from ..tax import TaxCalculationStrategy
@@ -21,6 +22,7 @@ from ..tax.utils import (
 )
 from . import ORDER_EDITABLE_STATUS
 from .base_calculations import apply_order_discounts, base_order_line_total
+from .fetch import DraftOrderLineInfo, fetch_draft_order_lines_info
 from .interface import OrderTaxedPricesData
 from .models import Order, OrderLine
 
@@ -44,17 +46,14 @@ def fetch_order_prices_if_expired(
     if not force_update and not order.should_refresh_prices:
         return order, lines
 
-    # prepare DraftOrderLineInfo
-    if lines is None:
-        lines = list(order.lines.select_related("variant__product__product_type"))
-    else:
-        prefetch_related_objects(lines, "variant__product__product_type")
-
+    lines_info: list[DraftOrderLineInfo] = fetch_draft_order_lines_info(order, lines)
     order.should_refresh_prices = False
 
     # reuse discount utils
-    create_or_update_discount_objects_from_promotion_for_order(order, lines)
-    _update_order_discount_for_voucher(order)
+    create_or_update_discount_objects_from_promotion_for_order(order, lines_info)
+    # _update_order_discount_for_voucher(order)
+
+    lines = [line_info.line for line_info in lines_info]
     _recalculate_prices(order, manager, lines)
 
     order.subtotal = get_subtotal(lines, order.currency)
