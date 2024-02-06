@@ -260,15 +260,6 @@ def apply_subtotal_discount_to_order_lines(
         assign_order_line_prices(line, total_price)
 
 
-def apply_subtotal_discount_to_order_line(line: "OrderLine", discount: Money):
-    """Calculate order line prices after applying order level discount."""
-    currency = discount.currency
-    # This price includes line level discounts, but not entire order ones.
-    base_line_total = base_order_line_total(line).price_with_discounts.net
-    total_price = max(base_line_total - discount, zero_money(currency))
-    assign_order_line_prices(line, total_price)
-
-
 def assign_order_line_prices(line: "OrderLine", total_price: Money):
     currency = total_price.currency
     line.total_price_net = quantize_price(total_price, currency)
