@@ -1,4 +1,5 @@
 import graphene
+import pytest
 
 from .....attribute.models import AttributeValue
 from .....attribute.tests.model_helpers import (
@@ -22,6 +23,7 @@ PAGE_QUERY = """
             contentJson
             attributes {
                 attribute {
+                    id
                     slug
                 }
                 values {
@@ -313,3 +315,115 @@ def test_get_page_with_sorted_attribute_values(
     assert [value["id"] for value in values] == [
         graphene.Node.to_global_id("AttributeValue", val.pk) for val in attr_values
     ]
+
+
+def test_page_attribute_not_visible_in_storefront_for_customer_is_not_returned(
+    user_api_client, page
+):
+    # given
+    attribute = page.page_type.page_attributes.first()
+    attribute.visible_in_storefront = False
+    attribute.save(update_fields=["visible_in_storefront"])
+    visible_attrs_count = page.page_type.page_attributes.filter(
+        visible_in_storefront=True
+    ).count()
+
+    # when
+    variables = {
+        "id": graphene.Node.to_global_id("Page", page.pk),
+    }
+    response = user_api_client.post_graphql(
+        PAGE_QUERY,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert len(content["data"]["page"]["attributes"]) == visible_attrs_count
+    attr_data = {}
+    for attr in content["data"]["page"]["attributes"]:
+        if attr["attribute"]["id"] == graphene.Node.to_global_id(
+            "Attribute", attribute.pk
+        ):
+            attr_data = attr
+            attr_data.pop("values", None)
+            break
+
+    assert attr_data == {}
+
+
+def test_page_attribute_visible_in_storefront_for_customer_is_returned(
+    user_api_client, page
+):
+    # given
+    attribute = page.page_type.page_attributes.first()
+    attribute.visible_in_storefront = True
+    attribute.save(update_fields=["visible_in_storefront"])
+
+    # when
+    variables = {
+        "id": graphene.Node.to_global_id("Page", page.pk),
+    }
+    response = user_api_client.post_graphql(
+        PAGE_QUERY,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    attr_data = {}
+    for attr in content["data"]["page"]["attributes"]:
+        if attr["attribute"]["id"] == graphene.Node.to_global_id(
+            "Attribute", attribute.pk
+        ):
+            attr_data = attr
+            attr_data.pop("values", None)
+            break
+
+    assert attr_data == {
+        "attribute": {
+            "id": graphene.Node.to_global_id("Attribute", attribute.pk),
+            "slug": attribute.slug,
+        }
+    }
+
+
+@pytest.mark.parametrize("visible_in_storefront", [False, True])
+def test_page_attribute_visible_in_storefront_for_staff_is_always_returned(
+    visible_in_storefront,
+    staff_api_client,
+    page,
+    permission_manage_pages,
+):
+    # given
+    attribute = page.page_type.page_attributes.first()
+    attribute.visible_in_storefront = visible_in_storefront
+    attribute.save(update_fields=["visible_in_storefront"])
+
+    # when
+    variables = {
+        "id": graphene.Node.to_global_id("Page", page.pk),
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_pages)
+    response = staff_api_client.post_graphql(
+        PAGE_QUERY,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    attr_data = {}
+    for attr in content["data"]["page"]["attributes"]:
+        if attr["attribute"]["id"] == graphene.Node.to_global_id(
+            "Attribute", attribute.pk
+        ):
+            attr_data = attr
+            attr_data.pop("values", None)
+            break
+
+    assert attr_data == {
+        "attribute": {
+            "id": graphene.Node.to_global_id("Attribute", attribute.pk),
+            "slug": attribute.slug,
+        }
+    }
