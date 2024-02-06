@@ -2,7 +2,7 @@ from unittest import mock
 
 import pytest
 
-from .....checkout.utils import invalidate_checkout_prices
+from .....checkout.utils import invalidate_checkout
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
 
@@ -143,11 +143,11 @@ def test_checkout_billing_address_update_by_id_without_street_address_2(
 
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_billing_address_update."
-    "invalidate_checkout_prices",
-    wraps=invalidate_checkout_prices,
+    "invalidate_checkout",
+    wraps=invalidate_checkout,
 )
 def test_checkout_billing_address_update(
-    mocked_invalidate_checkout_prices,
+    mocked_invalidate_checkout,
     user_api_client,
     checkout_with_item,
     graphql_address_data,
@@ -197,7 +197,7 @@ def test_checkout_billing_address_update(
     assert checkout.billing_address.country == billing_address["country"]
     assert checkout.billing_address.city == billing_address["city"].upper()
     assert checkout.last_change != previous_last_change
-    assert mocked_invalidate_checkout_prices.call_count == 1
+    assert mocked_invalidate_checkout.call_count == 1
 
 
 @pytest.mark.parametrize(

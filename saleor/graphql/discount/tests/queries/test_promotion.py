@@ -3,7 +3,7 @@ from decimal import Decimal
 
 import graphene
 
-from .....discount import PromotionEvents, RewardValueType
+from .....discount import PromotionEvents, RewardType, RewardValueType
 from .....tests.utils import dummy_editorjs
 from ....tests.utils import assert_no_permission, get_graphql_content
 
@@ -29,6 +29,7 @@ QUERY_PROMOTION_BY_ID = """
                 rewardValueType
                 rewardValue
                 cataloguePredicate
+                orderPredicate
                 rewardType
             }
         }
@@ -51,10 +52,13 @@ def _assert_promotion_data(promotion, content_data):
             "description": rule.description,
             "promotion": {"id": graphene.Node.to_global_id("Promotion", promotion.id)},
             "channels": [{"slug": channel.slug} for channel in rule.channels.all()],
-            "rewardValueType": rule.reward_value_type.upper(),
+            "rewardValueType": rule.reward_value_type.upper()
+            if rule.reward_value_type
+            else None,
             "rewardValue": rule.reward_value,
             "cataloguePredicate": rule.catalogue_predicate,
-            "rewardType": rule.reward_type,
+            "orderPredicate": rule.order_predicate,
+            "rewardType": rule.reward_type.upper() if rule.reward_type else None,
         }
         assert rule_data in promotion_data["rules"]
 
@@ -164,6 +168,49 @@ def test_query_promotion_with_complex_rule_2(
     # then
     content = get_graphql_content(response)
     _assert_promotion_data(promotion, content)
+
+
+def test_query_order_promotion_with_gift_rule(
+    order_promotion_without_rules,
+    gift_promotion_rule,
+    staff_api_client,
+    permission_group_manage_discounts,
+):
+    # given
+    query = """
+        query Promotion($id: ID!) {
+            promotion(id: $id) {
+                id
+                rules {
+                    rewardType
+                    giftIds
+                    giftsLimit
+                }
+            }
+        }
+    """
+    promotion = order_promotion_without_rules
+    permission_group_manage_discounts.user_set.add(staff_api_client.user)
+    promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
+    promotion.rules.add(gift_promotion_rule)
+
+    variables = {"id": promotion_id}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    rule = content["data"]["promotion"]["rules"][0]
+    rule_db = promotion.rules.first()
+    assert set(rule["giftIds"]) == set(
+        [
+            graphene.Node.to_global_id("ProductVariant", gift.pk)
+            for gift in rule_db.gifts.all()
+        ]
+    )
+    assert rule["giftsLimit"] == 1
+    assert rule["rewardType"] == RewardType.GIFT.upper()
 
 
 def test_query_promotion_translation(

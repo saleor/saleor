@@ -2,10 +2,9 @@ from typing import TYPE_CHECKING, Union
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.db.models import Q
 from graphene.utils.str_converters import to_camel_case
 
-from .....discount import PromotionType, RewardValueType
+from .....discount import PromotionType, RewardType, RewardValueType
 from .....discount.models import PromotionRule
 from ....core.validators import validate_price_precision
 
@@ -16,11 +15,13 @@ if TYPE_CHECKING:
 def clean_promotion_rule(
     cleaned_input, promotion_type, errors, error_class, index=None, instance=None
 ):
-    catalogue_predicate = cleaned_input.get("catalogue_predicate")
-    order_predicate = cleaned_input.get("order_predicate")
-    if instance:
-        catalogue_predicate = catalogue_predicate or instance.catalogue_predicate
-        order_predicate = order_predicate or instance.order_predicate
+    catalogue_predicate = get_from_input_or_instance(
+        "catalogue_predicate", cleaned_input, instance
+    )
+    order_predicate = get_from_input_or_instance(
+        "order_predicate", cleaned_input, instance
+    )
+    _clean_gifts(cleaned_input, instance, errors, error_class, index)
     invalid_predicates = _clean_predicates(
         catalogue_predicate,
         order_predicate,
@@ -55,6 +56,27 @@ def clean_promotion_rule(
         )
 
     return cleaned_input
+
+
+def _clean_gifts(cleaned_input, instance, errors, error_class, index):
+    """Check if assigned gifts exceed the gift limit."""
+    if "gifts" not in cleaned_input:
+        return
+
+    gifts_count = len(cleaned_input["gifts"])
+    gift_limit = int(settings.GIFTS_LIMIT_PER_RULE)
+    if gifts_count > gift_limit:
+        errors["gifts"].append(
+            ValidationError(
+                message="Number of gifts has reached the limit.",
+                code=error_class.GIFTS_NUMBER_LIMIT.value,
+                params={
+                    "gifts_limit": settings.GIFTS_LIMIT_PER_RULE,
+                    "gifts_limit_exceed_by": gifts_count - gift_limit,
+                    "index": index,
+                },
+            )
+        )
 
 
 def _clean_predicates(
@@ -135,9 +157,7 @@ def _clean_catalogue_predicate(
     if not catalogue_predicate:
         return
 
-    reward_type = cleaned_input.get("reward_type")
-    if instance and "reward_type" not in cleaned_input:
-        reward_type = reward_type or instance.reward_type
+    reward_type = get_from_input_or_instance("reward_type", cleaned_input, instance)
     if reward_type:
         errors["reward_type"].append(
             ValidationError(
@@ -180,9 +200,7 @@ def _clean_order_predicate(
     if not order_predicate:
         return
 
-    reward_type = cleaned_input.get("reward_type")
-    if "reward_type" not in cleaned_input and instance:
-        reward_type = reward_type or instance.reward_type
+    reward_type = get_from_input_or_instance("reward_type", cleaned_input, instance)
     if not reward_type:
         errors["reward_type"].append(
             ValidationError(
@@ -220,10 +238,7 @@ def _clean_order_predicate(
         )
         return
 
-    if "order_predicate" not in cleaned_input:
-        return
-
-    order_rules_count = PromotionRule.objects.filter(~Q(order_predicate={})).count()
+    order_rules_count = PromotionRule.objects.exclude(order_predicate={}).count()
     rules_limit = settings.ORDER_RULES_LIMIT
     if order_rules_count >= int(rules_limit):
         errors["order_predicate"].append(
@@ -232,7 +247,7 @@ def _clean_order_predicate(
                 code=error_class.RULES_NUMBER_LIMIT.value,
                 params={
                     "rules_limit": rules_limit,
-                    "exceed_by": 1,
+                    "rules_limit_exceed_by": 1,
                 },
             )
         )
@@ -247,6 +262,67 @@ def _clean_order_predicate(
     except ValidationError as error:
         errors["order_predicate"].append(error)
         return
+
+    if reward_type == RewardType.GIFT:
+        _clean_gift_rule(cleaned_input, errors, error_class, index, instance)
+
+
+def _clean_gift_rule(cleaned_input, errors, error_class, index, instance):
+    reward_value = get_from_input_or_instance("reward_value", cleaned_input, instance)
+    if reward_value:
+        errors["reward_value"].append(
+            ValidationError(
+                message=(
+                    "The rewardValue field must be empty "
+                    "when rewardType is set to GIFT."
+                ),
+                code=error_class.INVALID.value,
+                params={"index": index} if index is not None else {},
+            )
+        )
+
+    reward_value_type = get_from_input_or_instance(
+        "reward_value_type", cleaned_input, instance
+    )
+    if reward_value_type:
+        errors["reward_value_type"].append(
+            ValidationError(
+                message=(
+                    "The rewardValueType field must be empty "
+                    "when rewardType is set to GIFT."
+                ),
+                code=error_class.INVALID.value,
+                params={"index": index} if index is not None else {},
+            )
+        )
+
+    gifts = cleaned_input.get("gifts")
+    if "gifts" not in cleaned_input and instance:
+        gifts = list(instance.gifts.all())
+    if not gifts:
+        errors["gifts"].append(
+            ValidationError(
+                message="The gifts field is required when rewardType is set to GIFT.",
+                code=error_class.REQUIRED.value,
+                params={"index": index} if index is not None else {},
+            )
+        )
+        return
+
+    for gift in gifts:
+        model_name = gift.__class__.__name__
+        if model_name != "ProductVariant":
+            errors["gifts"].append(
+                ValidationError(
+                    message=(
+                        f"Gift IDs must resolve to ProductVariant type, "
+                        f"not to {model_name} type."
+                    ),
+                    code=error_class.INVALID_GIFT_TYPE.value,
+                    params={"index": index} if index is not None else {},
+                )
+            )
+            return
 
 
 def _clean_reward(
@@ -266,24 +342,18 @@ def _clean_reward(
     - Validate price precision for fixed reward value.
     - Check if percentage reward value is not above 100.
     """
+    reward_type = get_from_input_or_instance("reward_type", cleaned_input, instance)
     if (
         instance
         and "reward_value" not in cleaned_input
         and "reward_value_type" not in cleaned_input
-    ):
+    ) or reward_type == RewardType.GIFT:
         return
 
-    reward_value = cleaned_input.get("reward_value")
-    reward_value_type = cleaned_input.get("reward_value_type")
-    if instance:
-        reward_value = (
-            reward_value if "reward_value" in cleaned_input else instance.reward_value
-        )
-        reward_value_type = (
-            reward_value_type
-            if "reward_value_type" in cleaned_input
-            else instance.reward_value_type
-        )
+    reward_value = get_from_input_or_instance("reward_value", cleaned_input, instance)
+    reward_value_type = get_from_input_or_instance(
+        "reward_value_type", cleaned_input, instance
+    )
 
     if reward_value_type is None and (catalogue_predicate or order_predicate):
         errors["reward_value_type"].append(
@@ -468,3 +538,10 @@ def clean_percentage_discount_value(
             code=error_code,
             params={"index": index} if index is not None else {},
         )
+
+
+def get_from_input_or_instance(field: str, input: dict, instance: PromotionRule):
+    if field in input:
+        return input[field]
+    if instance:
+        return getattr(instance, field)

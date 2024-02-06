@@ -441,6 +441,36 @@ def checkout_with_item_and_order_discount(
 
 
 @pytest.fixture
+def checkout_with_item_and_gift_promotion(checkout_with_item, gift_promotion_rule):
+    channel = checkout_with_item.channel
+    variants = gift_promotion_rule.gifts.all()
+    variant_listings = ProductVariantChannelListing.objects.filter(variant__in=variants)
+    top_price, variant_id = max(
+        variant_listings.values_list("discounted_price_amount", "variant")
+    )
+
+    line = CheckoutLine.objects.create(
+        checkout=checkout_with_item,
+        quantity=1,
+        variant_id=variant_id,
+        is_gift=True,
+        currency="USD",
+    )
+
+    CheckoutLineDiscount.objects.create(
+        line=line,
+        promotion_rule=gift_promotion_rule,
+        type=DiscountType.ORDER_PROMOTION,
+        value_type=RewardValueType.FIXED,
+        value=top_price,
+        amount_value=top_price,
+        currency=channel.currency_code,
+    )
+
+    return checkout_with_item
+
+
+@pytest.fixture
 def checkout_with_item_and_transaction_item(checkout_with_item):
     TransactionItem.objects.create(
         name="Credit card",
@@ -5794,6 +5824,21 @@ def order_promotion_rule(channel_USD, order_promotion_without_rules):
         reward_type=RewardType.SUBTOTAL_DISCOUNT,
     )
     rule.channels.add(channel_USD)
+    return rule
+
+
+@pytest.fixture
+def gift_promotion_rule(channel_USD, order_promotion_without_rules, product_list):
+    rule = PromotionRule.objects.create(
+        name="Order promotion rule",
+        promotion=order_promotion_without_rules,
+        order_predicate={
+            "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 20}}}
+        },
+        reward_type=RewardType.GIFT,
+    )
+    rule.channels.add(channel_USD)
+    rule.gifts.set([product.variants.first() for product in product_list[:2]])
     return rule
 
 

@@ -287,6 +287,7 @@ class CheckoutLine(ModelWithMetadata):
         "product.ProductVariant", related_name="+", on_delete=models.CASCADE
     )
     quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    is_gift = models.BooleanField(default=False)
     price_override = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,

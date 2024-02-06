@@ -396,6 +396,9 @@ class PromotionRule(models.Model):
     reward_type = models.CharField(
         max_length=255, choices=RewardType.CHOICES, blank=True, null=True
     )
+    gifts = models.ManyToManyField(
+        "product.ProductVariant", blank=True, related_name="+"
+    )
     old_channel_listing_id = models.IntegerField(blank=True, null=True, unique=True)
 
     class Meta:
