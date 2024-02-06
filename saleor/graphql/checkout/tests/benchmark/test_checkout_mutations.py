@@ -503,19 +503,20 @@ def test_create_checkout_with_gift_promotion(
 
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
-def test_create_checkout_order_discount_applies(
+def test_create_checkout_with_order_promotion(
     user_api_client,
     order_promotion_with_rule,
     channel_USD,
+    stock,
+    product_with_default_variant,
+    product_with_single_variant,
+    product_with_two_variants,
     graphql_address_data,
     django_assert_num_queries,
     count_queries,
     variant_with_many_stocks,
 ):
     # given
-    variant_id = to_global_id_or_none(variant_with_many_stocks)
-    Stock.objects.update(quantity=100)
-
     variables = {
         "checkoutInput": {
             "channel": channel_USD.slug,
@@ -523,59 +524,49 @@ def test_create_checkout_order_discount_applies(
             "shippingAddress": graphql_address_data,
             "lines": [
                 {
-                    "quantity": 15,
-                    "variantId": variant_id,
+                    "quantity": 10,
+                    "variantId": Node.to_global_id(
+                        "ProductVariant", stock.product_variant.pk
+                    ),
+                },
+                {
+                    "quantity": 2,
+                    "variantId": Node.to_global_id(
+                        "ProductVariant",
+                        product_with_default_variant.variants.first().pk,
+                    ),
+                },
+                {
+                    "quantity": 10,
+                    "variantId": Node.to_global_id(
+                        "ProductVariant",
+                        product_with_single_variant.variants.first().pk,
+                    ),
+                },
+                {
+                    "quantity": 3,
+                    "variantId": Node.to_global_id(
+                        "ProductVariant",
+                        product_with_two_variants.variants.first().pk,
+                    ),
+                },
+                {
+                    "quantity": 2,
+                    "variantId": Node.to_global_id(
+                        "ProductVariant",
+                        product_with_two_variants.variants.last().pk,
+                    ),
                 },
             ],
         }
     }
 
     # when
-    with django_assert_num_queries(77):
+    with django_assert_num_queries(89):
         response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
 
     # then
     assert Checkout.objects.get().discounts.exists()
-    content = get_graphql_content(response)
-    data = content["data"]["checkoutCreate"]
-    assert not data["errors"]
-
-
-@pytest.mark.django_db
-@pytest.mark.count_queries(autouse=False)
-def test_create_checkout_gift_discount_applies(
-    user_api_client,
-    gift_promotion_rule,
-    channel_USD,
-    graphql_address_data,
-    django_assert_num_queries,
-    count_queries,
-    variant_with_many_stocks,
-):
-    # given
-    variant_id = to_global_id_or_none(variant_with_many_stocks)
-    Stock.objects.update(quantity=100)
-
-    variables = {
-        "checkoutInput": {
-            "channel": channel_USD.slug,
-            "email": "test@example.com",
-            "shippingAddress": graphql_address_data,
-            "lines": [
-                {
-                    "quantity": 15,
-                    "variantId": variant_id,
-                },
-            ],
-        }
-    }
-
-    # when
-    with django_assert_num_queries(109):
-        response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
-
-    # then
-    # assert Checkout.objects.get().discounts.exists()
     content = get_graphql_content(response)
     data = content["data"]["checkoutCreate"]
     assert not data["errors"]
@@ -1172,7 +1163,7 @@ def test_add_checkout_lines_gift_discount_applies(
         response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
 
     # then
-    # assert checkout.discounts.exists()
+    assert checkout.lines.count() == 2
     content = get_graphql_content(response)
     data = content["data"]["checkoutLinesAdd"]
     assert not data["errors"]

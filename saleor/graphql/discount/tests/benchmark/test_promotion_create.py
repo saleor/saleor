@@ -127,7 +127,7 @@ def test_promotion_create(
 
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
-def test_promotion_create_gift_promotion(
+def test_promotion_create_order_promotion(
     staff_api_client,
     permission_group_manage_discounts,
     channel_USD,
@@ -137,13 +137,23 @@ def test_promotion_create_gift_promotion(
 ):
     # given
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
-    order_predicate = {
+    order_predicate_0 = {
+        "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": "10"}}}
+    }
+    order_predicate_1 = {
+        "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": "50"}}}
+    }
+    order_predicate_2 = {
         "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": "100"}}}
     }
     channel_ids = [graphene.Node.to_global_id("Channel", channel_USD.pk)]
-    gift_ids = [
+    gift_ids_1 = [
         graphene.Node.to_global_id("ProductVariant", variant.pk)
-        for variant in product_variant_list
+        for variant in product_variant_list[:2]
+    ]
+    gift_ids_2 = [
+        graphene.Node.to_global_id("ProductVariant", variant.pk)
+        for variant in product_variant_list[2:]
     ]
 
     variables = {
@@ -152,18 +162,41 @@ def test_promotion_create_gift_promotion(
             "type": PromotionTypeEnum.ORDER.name,
             "rules": [
                 {
-                    "name": "test gift promotion rule",
+                    "name": "test order promotion rule 1",
+                    "channels": channel_ids,
+                    "rewardType": RewardTypeEnum.SUBTOTAL_DISCOUNT.name,
+                    "rewardValueType": RewardValueTypeEnum.FIXED.name,
+                    "rewardValue": Decimal("1"),
+                    "orderPredicate": order_predicate_0,
+                },
+                {
+                    "name": "test order promotion rule 2",
+                    "channels": channel_ids,
+                    "rewardType": RewardTypeEnum.SUBTOTAL_DISCOUNT.name,
+                    "rewardValueType": RewardValueTypeEnum.PERCENTAGE.name,
+                    "rewardValue": Decimal("10"),
+                    "orderPredicate": order_predicate_0,
+                },
+                {
+                    "name": "test gift promotion rule 1",
                     "channels": channel_ids,
                     "rewardType": RewardTypeEnum.GIFT.name,
-                    "orderPredicate": order_predicate,
-                    "gifts": gift_ids,
-                }
+                    "orderPredicate": order_predicate_1,
+                    "gifts": gift_ids_1,
+                },
+                {
+                    "name": "test gift promotion rule 2",
+                    "channels": channel_ids,
+                    "rewardType": RewardTypeEnum.GIFT.name,
+                    "orderPredicate": order_predicate_2,
+                    "gifts": gift_ids_2,
+                },
             ],
         }
     }
 
     # when
-    with django_assert_num_queries(25):
+    with django_assert_num_queries(40):
         response = staff_api_client.post_graphql(PROMOTION_CREATE_MUTATION, variables)
 
     # then
