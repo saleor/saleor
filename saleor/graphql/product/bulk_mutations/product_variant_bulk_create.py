@@ -918,7 +918,9 @@ class ProductVariantBulkCreate(BaseMutation):
     @classmethod
     def post_save_actions(cls, info, instances, product):
         # Recalculate the "discounted price" for the parent product
-        update_products_discounted_prices_for_promotion_task.delay([product.pk])
+        cls.call_event(
+            update_products_discounted_prices_for_promotion_task.delay, [product.pk]
+        )
         product.search_index_dirty = True
         product.save(update_fields=["search_index_dirty"])
 

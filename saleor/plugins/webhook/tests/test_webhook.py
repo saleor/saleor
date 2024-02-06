@@ -1134,9 +1134,11 @@ def test_checkout_payload_includes_order_promotion_discount(
     rule = catalogue_promotion_without_rules.rules.create(
         name="Fixed promotion rule",
         order_predicate={
-            "base_total_price": {
-                "range": {
-                    "gte": 20,
+            "discountedObjectPredicate": {
+                "baseTotalPrice": {
+                    "range": {
+                        "gte": 20,
+                    }
                 }
             }
         },

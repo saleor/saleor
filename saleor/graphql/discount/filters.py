@@ -26,12 +26,18 @@ from ..core.filters import (
     WhereFilterSet,
 )
 from ..core.types import (
+    BaseInputObjectType,
     DateTimeFilterInput,
     DateTimeRangeInput,
     IntRangeInput,
+    NonNullList,
     StringFilterInput,
 )
-from ..core.types.filter_input import DecimalFilterInput, WhereInputObjectType
+from ..core.types.filter_input import (
+    DecimalFilterInput,
+    FilterInputDescriptions,
+    WhereInputObjectType,
+)
 from ..utils.filters import (
     filter_by_id,
     filter_by_ids,
@@ -39,7 +45,12 @@ from ..utils.filters import (
     filter_where_by_string_field,
     filter_where_range_field,
 )
-from .enums import DiscountStatusEnum, DiscountValueTypeEnum, VoucherDiscountType
+from .enums import (
+    DiscountStatusEnum,
+    DiscountValueTypeEnum,
+    PromotionTypeEnum,
+    VoucherDiscountType,
+)
 
 
 def filter_status(
@@ -151,6 +162,18 @@ class SaleFilter(MetadataFilterBase):
         fields = ["status", "sale_type", "started", "search"]
 
 
+class PromotionTypeEnumFilterInput(BaseInputObjectType):
+    eq = PromotionTypeEnum(description=FilterInputDescriptions.EQ, required=False)
+    one_of = NonNullList(
+        PromotionTypeEnum,
+        description=FilterInputDescriptions.ONE_OF,
+        required=False,
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_DISCOUNTS
+
+
 class PromotionWhere(MetadataWhereFilterBase):
     ids = GlobalIDMultipleChoiceWhereFilter(method=filter_by_ids("Promotion"))
     name = OperationObjectTypeWhereFilter(
@@ -169,6 +192,9 @@ class PromotionWhere(MetadataWhereFilterBase):
         help_text="Filter promotions by start date.",
     )
     is_old_sale = BooleanWhereFilter(method="filter_is_old_sale")
+    type = OperationObjectTypeWhereFilter(
+        input_class=PromotionTypeEnumFilterInput, method="filter_type"
+    )
 
     @staticmethod
     def filter_promotion_name(qs, _, value):
@@ -185,6 +211,10 @@ class PromotionWhere(MetadataWhereFilterBase):
     @staticmethod
     def filter_is_old_sale(qs, _, value):
         return qs.exclude(old_sale_id__isnull=value)
+
+    @staticmethod
+    def filter_type(qs, _, value):
+        return filter_where_by_string_field(qs, "type", value)
 
 
 class PromotionWhereInput(WhereInputObjectType):

@@ -5,6 +5,7 @@ import graphene
 from ....discount import RewardValueType
 from ....discount.models import Promotion, PromotionRule
 from ..utils import (
+    _predicate_to_snake_case,
     convert_migrated_sale_predicate_to_catalogue_info,
     get_variants_for_catalogue_predicate,
     get_variants_for_promotion,
@@ -344,3 +345,80 @@ def test_convert_migrated_sale_predicate_to_catalogue_info(
 
     # then
     assert catalogue_info == expected_result
+
+
+def test_predicate_to_snake_case():
+    order_predicate = {
+        "AND": [
+            {
+                "discountedObjectPredicate": {
+                    "OR": [
+                        {
+                            "discountedObjectPredicate": {
+                                "userPredicate": {"isStaff": True}
+                            }
+                        },
+                        {
+                            "discountedObjectPredicate": {
+                                "subtotalPrice": {"range": {"gte": 100}}
+                            }
+                        },
+                    ]
+                }
+            },
+            {
+                "discountedLineObjectPredicate": {
+                    "OR": [
+                        {
+                            "discountedLineObjectPredicate": {
+                                "quantityAvailable": {"range": {"gte": 3}}
+                            }
+                        },
+                        {"discountedLineObjectPredicate": {"name": {"eq": "Shirt"}}},
+                        {
+                            "discountedLineObjectPredicate": {
+                                "mainTitle": {"oneOf": [1, "ABC", "Yo"]}
+                            }
+                        },
+                    ]
+                }
+            },
+        ]
+    }
+    assert _predicate_to_snake_case(order_predicate) == {
+        "AND": [
+            {
+                "discounted_object_predicate": {
+                    "OR": [
+                        {
+                            "discounted_object_predicate": {
+                                "user_predicate": {"is_staff": True}
+                            }
+                        },
+                        {
+                            "discounted_object_predicate": {
+                                "subtotal_price": {"range": {"gte": 100}}
+                            }
+                        },
+                    ]
+                }
+            },
+            {
+                "discounted_line_object_predicate": {
+                    "OR": [
+                        {
+                            "discounted_line_object_predicate": {
+                                "quantity_available": {"range": {"gte": 3}}
+                            }
+                        },
+                        {"discounted_line_object_predicate": {"name": {"eq": "Shirt"}}},
+                        {
+                            "discounted_line_object_predicate": {
+                                "main_title": {"oneOf": [1, "ABC", "Yo"]}
+                            }
+                        },
+                    ]
+                }
+            },
+        ]
+    }

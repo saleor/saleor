@@ -132,7 +132,9 @@ class SaleCreate(ModelMutation):
             )
             manager = get_plugin_manager_promise(info.context).get()
             cls.send_sale_notifications(manager, promotion, predicate)
-            update_products_discounted_prices_of_promotion_task.delay(promotion.pk)
+            cls.call_event(
+                update_products_discounted_prices_of_promotion_task.delay, promotion.pk
+            )
         return response
 
     @classmethod

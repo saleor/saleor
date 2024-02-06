@@ -219,13 +219,13 @@ class PromotionCreate(ModelMutation):
             for rule_data in rules_data:
                 channels = rule_data.pop("channels", None)
                 rule = models.PromotionRule(promotion=instance, **rule_data)
-                rules_with_channels_to_add.append((rule, channels))
+                if channels:
+                    rules_with_channels_to_add.append((rule, channels))
                 rules.append(rule)
             models.PromotionRule.objects.bulk_create(rules)
 
         for rule, channels in rules_with_channels_to_add:
-            if channels:
-                rule.channels.set(channels)
+            rule.channels.set(channels)
 
         return rules
 
@@ -242,7 +242,9 @@ class PromotionCreate(ModelMutation):
         cls.call_event(manager.promotion_created, instance)
         if has_started:
             cls.send_promotion_started_webhook(manager, instance)
-        update_products_discounted_prices_of_promotion_task.delay(instance.pk)
+        cls.call_event(
+            update_products_discounted_prices_of_promotion_task.delay, instance.pk
+        )
 
     @classmethod
     def has_started(cls, instance: models.Promotion) -> bool:

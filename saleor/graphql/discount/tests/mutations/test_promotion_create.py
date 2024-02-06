@@ -1714,3 +1714,57 @@ def test_promotion_create_events_by_app(
     rule_ids = [event["ruleId"] for event in events if event.get("ruleId")]
     rules = data["promotion"]["rules"]
     assert all([rule["id"] in rule_ids for rule in rules])
+
+
+def test_promotion_create_without_catalogue_predicate(
+    staff_api_client,
+    permission_manage_discounts,
+    description_json,
+    channel_USD,
+    channel_PLN,
+    variant,
+    product,
+):
+    # given
+    start_date = timezone.now() - timedelta(days=30)
+    end_date = timezone.now() + timedelta(days=30)
+    channel_ids = [
+        graphene.Node.to_global_id("Channel", channel.pk)
+        for channel in [channel_USD, channel_PLN]
+    ]
+    promotion_name = "test promotion"
+    variables = {
+        "input": {
+            "name": promotion_name,
+            "description": description_json,
+            "startDate": start_date.isoformat(),
+            "endDate": end_date.isoformat(),
+            "rules": [
+                {
+                    "name": "test promotion rule",
+                    "description": description_json,
+                    "channels": channel_ids,
+                    "rewardValueType": RewardValueTypeEnum.PERCENTAGE.name,
+                    "rewardValue": Decimal("50"),
+                    "cataloguePredicate": None,
+                }
+            ],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PROMOTION_CREATE_MUTATION, variables, permissions=(permission_manage_discounts,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionCreate"]
+    assert not data["promotion"]
+    assert data["errors"]
+    assert len(data["errors"]) == 1
+    error = data["errors"][0]
+    assert error["code"] == PromotionCreateErrorCode.REQUIRED.name
+    assert error["field"] == "cataloguePredicate"
+    assert error["rulesLimit"] is None
+    assert error["exceedBy"] is None

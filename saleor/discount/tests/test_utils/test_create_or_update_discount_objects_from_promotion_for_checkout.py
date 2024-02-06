@@ -1248,9 +1248,11 @@ def test_create_or_update_discount_objects_from_promotion(
                 name="Order promotion rule 1",
                 promotion=promotion,
                 order_predicate={
-                    "base_total_price": {
-                        "range": {
-                            "gte": 10,
+                    "discountedObjectPredicate": {
+                        "baseTotalPrice": {
+                            "range": {
+                                "gte": 10,
+                            }
                         }
                     }
                 },
@@ -1262,9 +1264,11 @@ def test_create_or_update_discount_objects_from_promotion(
                 name="Order promotion rule 2",
                 promotion=promotion,
                 order_predicate={
-                    "base_total_price": {
-                        "range": {
-                            "gte": 20,
+                    "discountedObjectPredicate": {
+                        "baseTotalPrice": {
+                            "range": {
+                                "gte": 20,
+                            }
                         }
                     }
                 },
@@ -1323,9 +1327,11 @@ def test_create_or_update_discount_objects_from_promotion_best_rule_applies(
                 name="Order promotion rule 1",
                 promotion=promotion,
                 order_predicate={
-                    "base_total_price": {
-                        "range": {
-                            "gte": 10,
+                    "discountedObjectPredicate": {
+                        "baseTotalPrice": {
+                            "range": {
+                                "gte": 10,
+                            }
                         }
                     }
                 },
@@ -1337,9 +1343,11 @@ def test_create_or_update_discount_objects_from_promotion_best_rule_applies(
                 name="Order promotion rule 2",
                 promotion=promotion,
                 order_predicate={
-                    "base_subtotal_price": {
-                        "range": {
-                            "gte": 20,
+                    "discountedObjectPredicate": {
+                        "baseTotalPrice": {
+                            "range": {
+                                "gte": 20,
+                            }
                         }
                     }
                 },
@@ -1351,9 +1359,11 @@ def test_create_or_update_discount_objects_from_promotion_best_rule_applies(
                 name="Order promotion rule 1",
                 promotion=promotion,
                 order_predicate={
-                    "base_total_price": {
-                        "range": {
-                            "gte": 100,
+                    "discountedObjectPredicate": {
+                        "baseTotalPrice": {
+                            "range": {
+                                "gte": 100,
+                            }
                         }
                     }
                 },
@@ -1419,9 +1429,11 @@ def test_create_or_update_discount_objects_from_promotion_subtotal_price_discoun
                 name="Order promotion rule 2",
                 promotion=promotion,
                 order_predicate={
-                    "base_total_price": {
-                        "range": {
-                            "gte": 20,
+                    "discountedObjectPredicate": {
+                        "baseTotalPrice": {
+                            "range": {
+                                "gte": 20,
+                            }
                         }
                     }
                 },
@@ -1475,9 +1487,11 @@ def test_create_or_update_discount_from_promotion_voucher_code_set_checkout_disc
         name="Order promotion rule 1",
         promotion=promotion,
         order_predicate={
-            "base_total_price": {
-                "range": {
-                    "gte": 10,
+            "discountedObjectPredicate": {
+                "baseTotalPrice": {
+                    "range": {
+                        "gte": 10,
+                    }
                 }
             }
         },
@@ -1531,9 +1545,11 @@ def test_create_or_update_discount_from_promotion_checkout_discount_updated(
         name="Order promotion rule 1",
         promotion=promotion,
         order_predicate={
-            "base_total_price": {
-                "range": {
-                    "gte": 10,
+            "discountedObjectPredicate": {
+                "baseTotalPrice": {
+                    "range": {
+                        "gte": 10,
+                    }
                 }
             }
         },
@@ -1594,9 +1610,11 @@ def test_create_or_update_discount_from_promotion_rule_not_applies_anymore(
         name="Order promotion rule 1",
         promotion=promotion,
         order_predicate={
-            "base_total_price": {
-                "range": {
-                    "gte": 200,
+            "discountedObjectPredicate": {
+                "baseTotalPrice": {
+                    "range": {
+                        "gte": 200,
+                    }
                 }
             }
         },
