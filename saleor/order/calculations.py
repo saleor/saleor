@@ -44,6 +44,7 @@ def fetch_order_prices_if_expired(
     if not force_update and not order.should_refresh_prices:
         return order, lines
 
+    # prepare DraftOrderLineInfo
     if lines is None:
         lines = list(order.lines.select_related("variant__product__product_type"))
     else:
@@ -51,6 +52,8 @@ def fetch_order_prices_if_expired(
 
     order.should_refresh_prices = False
 
+    # reuse discount utils
+    create_or_update_discount_objects_from_promotion_for_order(order, lines)
     _update_order_discount_for_voucher(order)
     _recalculate_prices(order, manager, lines)
 
@@ -90,6 +93,7 @@ def fetch_order_prices_if_expired(
 
 def _update_order_discount_for_voucher(order: Order):
     """Create or delete OrderDiscount instances."""
+    # TODO: do zaorania
     if not order.voucher_id:
         order.discounts.filter(type=DiscountType.VOUCHER).delete()
 

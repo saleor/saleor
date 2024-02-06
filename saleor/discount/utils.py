@@ -356,6 +356,14 @@ def create_or_update_discount_objects_from_promotion_for_checkout(
     create_discount_objects_for_order_promotions(checkout_info, lines_info)
 
 
+def create_or_update_discount_objects_from_promotion_for_order(
+    order: "Order",
+    lines_info: Iterable["DraftOrderLineInfo"],
+):
+    create_discount_objects_for_catalogue_promotions(lines_info)
+    create_discount_objects_for_order_promotions(order, lines_info)
+
+
 def create_discount_objects_for_catalogue_promotions(
     lines_info: Iterable["CheckoutLineInfo"],
 ):
