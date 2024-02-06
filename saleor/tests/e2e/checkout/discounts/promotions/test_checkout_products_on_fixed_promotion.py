@@ -71,6 +71,7 @@ def test_checkout_products_on_fixed_promotion_core_2102(
     product_predicate = promotion_rule["cataloguePredicate"]["productPredicate"]["ids"]
     assert promotion_rule["channels"][0]["id"] == channel_id
     assert product_predicate[0] == product_id
+    breakpoint()
 
     # Step 1 - checkoutCreate for product on promotion
     lines = [

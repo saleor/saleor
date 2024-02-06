@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+import graphene
 import pytest
 from prices import Money, TaxedMoney
 
@@ -13,6 +14,7 @@ from ...order.base_calculations import (
     base_order_total,
 )
 from ...order.interface import OrderTaxedPricesData
+from ...product.models import VariantChannelListingPromotionRule
 from .. import OrderStatus
 from ..calculations import fetch_order_prices_if_expired
 
@@ -691,13 +693,15 @@ def test_zedzior(
     plugins_manager,
     order_with_lines,
     order_promotion_without_rules,
+    catalogue_promotion_without_rules,
     channel_USD,
     product_variant_list,
 ):
     # given
     order = order_with_lines
-    promotion = order_promotion_without_rules
-    rule_total = promotion.rules.create(
+    # prepare order promotions
+    order_promotion = order_promotion_without_rules
+    rule_total = order_promotion.rules.create(
         name="Subtotal gte 10 fixed 5 rule",
         order_predicate={
             "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 10}}}
@@ -706,7 +710,7 @@ def test_zedzior(
         reward_value=Decimal(5),
         reward_type=RewardType.SUBTOTAL_DISCOUNT,
     )
-    rule_gift = promotion.rules.create(
+    rule_gift = order_promotion.rules.create(
         name="Subtotal gte 10 gift rule",
         order_predicate={
             "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 10}}}
@@ -717,7 +721,55 @@ def test_zedzior(
     rule_gift.channels.add(channel_USD)
     rule_gift.gifts.set([variant for variant in product_variant_list[:2]])
 
+    # prepare catalogue promotions
+    catalogue_promotion = catalogue_promotion_without_rules
+    assert order.lines.count() == 2
+    variant_1 = order.lines.first().variant
+    rule_catalogue_1 = catalogue_promotion.rules.create(
+        name="Catalogue rule fixed 3",
+        catalogue_predicate={
+            "variantPredicate": {
+                "ids": [graphene.Node.to_global_id("ProductVariant", variant_1.id)]
+            }
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=Decimal(3),
+    )
+    variant_2 = order.lines.last().variant
+    rule_catalogue_2 = catalogue_promotion.rules.create(
+        name="Catalogue rule percentage 15",
+        catalogue_predicate={
+            "variantPredicate": {
+                "ids": [graphene.Node.to_global_id("ProductVariant", variant_2.id)]
+            }
+        },
+        reward_value_type=RewardValueType.PERCENTAGE,
+        reward_value=Decimal(20),
+    )
+    rule_catalogue_1.channels.add(channel_USD)
+    rule_catalogue_2.channels.add(channel_USD)
+
+    listing_1 = variant_1.channel_listings.first()
+    listing_1.discounted_price_amount = Decimal(7)
+    listing_2 = variant_2.channel_listings.first()
+    listing_2.discounted_price_amount = Decimal(16)
+    listing_1.save(update_fields=["discounted_price_amount"])
+    listing_2.save(update_fields=["discounted_price_amount"])
+
     currency = order.currency
+    VariantChannelListingPromotionRule.objects.create(
+        variant_channel_listing=listing_1,
+        promotion_rule=rule_catalogue_1,
+        discount_amount=Decimal(3),
+        currency=currency,
+    )
+    VariantChannelListingPromotionRule.objects.create(
+        variant_channel_listing=listing_2,
+        promotion_rule=rule_catalogue_2,
+        discount_amount=Decimal(4),
+        currency=currency,
+    )
+
     order.total = TaxedMoney(net=zero_money(currency), gross=zero_money(currency))
     order.subtotal = TaxedMoney(net=zero_money(currency), gross=zero_money(currency))
     order.undiscounted_total = TaxedMoney(
@@ -746,4 +798,14 @@ def test_zedzior(
     fetch_order_prices_if_expired(order, plugins_manager, None, True)
 
     # then
-    order_with_lines.refresh_from_db()
+    order.refresh_from_db()
+    line_1 = order.lines.filter(variant=variant_1).first()
+    line_2 = order.lines.filter(variant=variant_2).first()
+    assert line_1.discounts.count() == 1
+    catalogue_discount_1 = line_1.discounts.first()
+    assert catalogue_discount_1.type == DiscountType.PROMOTION
+    assert catalogue_discount_1.amount_value == 3 * Decimal(3)
+    assert line_2.discounts.count() == 1
+    catalogue_discount_2 = line_2.discounts.first()
+    assert catalogue_discount_2.type == DiscountType.PROMOTION
+    assert catalogue_discount_2.amount_value == 2 * Decimal(4)

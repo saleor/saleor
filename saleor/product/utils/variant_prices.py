@@ -1,6 +1,5 @@
 from collections import defaultdict
 from decimal import Decimal
-from typing import cast
 from uuid import UUID
 
 from django.db import transaction
@@ -247,8 +246,9 @@ def _get_discounted_variants_prices_for_promotions(
 
         rule_id = None
         if applied_discount:
-            rule_id = cast(UUID, applied_discount[0])
-            discount = cast(Money, applied_discount[1])
+            # rule_id = cast(UUID, applied_discount[0])
+            # discount = cast(Money, applied_discount[1])
+            rule_id, discount = applied_discount
             discounted_variant_price -= discount
             discounted_variant_price = max(
                 discounted_variant_price, zero_money(discounted_variant_price.currency)

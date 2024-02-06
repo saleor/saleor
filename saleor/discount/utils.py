@@ -23,6 +23,7 @@ from ..checkout.models import Checkout, CheckoutLine
 from ..core.exceptions import InsufficientStock
 from ..core.taxes import zero_money
 from ..core.utils.promo_code import InvalidPromoCode
+from ..order.fetch import DraftOrderLineInfo
 from ..product.models import (
     Product,
     ProductChannelListing,
@@ -36,6 +37,8 @@ from .models import (
     CheckoutLineDiscount,
     DiscountValueType,
     NotApplicable,
+    OrderDiscount,
+    OrderLineDiscount,
     Promotion,
     PromotionRule,
     Voucher,
@@ -352,6 +355,7 @@ def create_or_update_discount_objects_from_promotion_for_checkout(
     checkout_info: "CheckoutInfo",
     lines_info: Iterable["CheckoutLineInfo"],
 ):
+    breakpoint()
     create_discount_objects_for_catalogue_promotions(lines_info)
     create_discount_objects_for_order_promotions(checkout_info, lines_info)
 
@@ -361,16 +365,25 @@ def create_or_update_discount_objects_from_promotion_for_order(
     lines_info: Iterable["DraftOrderLineInfo"],
 ):
     create_discount_objects_for_catalogue_promotions(lines_info)
-    create_discount_objects_for_order_promotions(order, lines_info)
+    # create_discount_objects_for_order_promotions(order, lines_info)
 
 
 def create_discount_objects_for_catalogue_promotions(
-    lines_info: Iterable["CheckoutLineInfo"],
+    lines_info: Union[Iterable["CheckoutLineInfo"], Iterable["DraftOrderLineInfo"]],
 ):
     line_discounts_to_create = []
     line_discounts_to_update = []
     line_discount_ids_to_remove = []
     updated_fields: list[str] = []
+
+    if not lines_info:
+        return
+
+    LineDiscount = (
+        CheckoutLineDiscount
+        if isinstance(lines_info[0], CheckoutLineInfo)
+        else OrderLineDiscount
+    )
 
     for line_info in lines_info:
         line = line_info.line
@@ -384,7 +397,7 @@ def create_discount_objects_for_catalogue_promotions(
             discount.promotion_rule_id: discount for discount in discounts_to_update
         }
 
-        # delete all existing discounts if the line is not discounted or it is a gift
+        # delete all existing discounts if the line is not discounted, or it is a gift
         if not discount_amount or line.is_gift:
             ids_to_remove = [discount.id for discount in discounts_to_update]
             if ids_to_remove:
@@ -414,7 +427,7 @@ def create_discount_objects_for_catalogue_promotions(
             discount_name = get_discount_name(rule, rule_info.promotion)
             translated_name = get_discount_translated_name(rule_info)
             if not discount_to_update:
-                line_discount = CheckoutLineDiscount(
+                line_discount = LineDiscount(
                     line=line,
                     type=DiscountType.PROMOTION,
                     value_type=rule.reward_value_type,
@@ -440,13 +453,11 @@ def create_discount_objects_for_catalogue_promotions(
                 line_discounts_to_update.append(discount_to_update)
 
     if line_discounts_to_create:
-        CheckoutLineDiscount.objects.bulk_create(line_discounts_to_create)
+        LineDiscount.objects.bulk_create(line_discounts_to_create)
     if line_discounts_to_update and updated_fields:
-        CheckoutLineDiscount.objects.bulk_update(
-            line_discounts_to_update, updated_fields
-        )
+        LineDiscount.objects.bulk_update(line_discounts_to_update, updated_fields)
     if line_discount_ids_to_remove:
-        CheckoutLineDiscount.objects.filter(id__in=line_discount_ids_to_remove).delete()
+        LineDiscount.objects.filter(id__in=line_discount_ids_to_remove).delete()
 
 
 def _get_discount_amount(
@@ -468,8 +479,8 @@ def _get_discount_amount(
 
 def _get_discounts_that_are_not_valid_anymore(
     rules_info: list["VariantPromotionRuleInfo"],
-    rule_id_to_discount: dict[int, "CheckoutLineDiscount"],
-    line_info: "CheckoutLineInfo",
+    rule_id_to_discount: dict[int, Union["CheckoutLineDiscount", "OrderLineDiscount"]],
+    line_info: Union["CheckoutLineInfo", "DraftOrderLineInfo"],
 ):
     discount_ids = []
     rule_ids = {rule_info.rule.id for rule_info in rules_info}
@@ -512,7 +523,9 @@ def _update_discount(
     rule: "PromotionRule",
     rule_info: "VariantPromotionRuleInfo",
     rule_discount_amount: Decimal,
-    discount_to_update: Union["CheckoutLineDiscount", "CheckoutDiscount"],
+    discount_to_update: Union[
+        "CheckoutLineDiscount", "CheckoutDiscount", "OrderLineDiscount", "OrderDiscount"
+    ],
     updated_fields: list[str],
 ):
     if discount_to_update.promotion_rule_id != rule.id:
@@ -587,6 +600,7 @@ def create_discount_objects_for_order_promotions(
 
 
 def get_best_rule_for_checkout(checkout: "Checkout", channel: "Channel", country: str):
+    # zedzior zreplikuj get_best_rule_for_order
     RuleDiscount = namedtuple(
         "RuleDiscount", ["rule", "discount_amount", "gift_listing"]
     )
@@ -594,7 +608,7 @@ def get_best_rule_for_checkout(checkout: "Checkout", channel: "Channel", country
     rules = fetch_promotion_rules_for_checkout(checkout)
     if not rules:
         return
-
+    # zedzior wydziel osobna funkcje
     currency_code = channel.currency_code
     rule_discounts: list[RuleDiscount] = []
     gift_rules = [rule for rule in rules if rule.reward_type == RewardType.GIFT]
@@ -991,6 +1005,7 @@ def get_variants_to_promotions_map(
 def fetch_promotion_rules_for_checkout(
     checkout: Checkout,
 ):
+    # zedzior replika dla order
     from ..graphql.discount.utils import PredicateObjectType, filter_qs_by_predicate
 
     applicable_rules = []
