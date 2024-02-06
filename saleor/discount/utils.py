@@ -732,14 +732,10 @@ def fetch_promotion_rules_for_checkout(
     PromotionRuleChannels = PromotionRule.channels.through.objects.filter(
         channel_id=checkout_channel_id
     )
-    rules = (
-        PromotionRule.objects.filter(
-            Exists(promotions.filter(id=OuterRef("promotion_id"))),
-            Exists(PromotionRuleChannels.filter(promotionrule_id=OuterRef("id"))),
-        )
-        .exclude(order_predicate={})
-        .prefetch_related("channels")
-    )
+    rules = PromotionRule.objects.filter(
+        Exists(promotions.filter(id=OuterRef("promotion_id"))),
+        Exists(PromotionRuleChannels.filter(promotionrule_id=OuterRef("id"))),
+    ).exclude(order_predicate={})
 
     currency = checkout.channel.currency_code
     checkout_qs = Checkout.objects.filter(pk=checkout.pk)
