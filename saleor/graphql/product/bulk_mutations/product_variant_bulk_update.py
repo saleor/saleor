@@ -2,7 +2,6 @@ from collections import defaultdict
 from typing import cast
 
 import graphene
-from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db.models import F
 from django.utils import timezone
@@ -17,7 +16,6 @@ from ....warehouse import models as warehouse_models
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
 from ...attribute.utils import AttributeAssignmentMixin
-from ...core.dataloaders import DataLoader
 from ...core.descriptions import ADDED_IN_311, ADDED_IN_312, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.enums import ErrorPolicyEnum
@@ -27,10 +25,7 @@ from ...core.types import BaseInputObjectType, NonNullList, ProductVariantBulkEr
 from ...core.utils import get_duplicated_values
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils import get_user_or_app_from_context
-from ...webhook.subscription_payload import (
-    generate_payload_from_subscription,
-    initialize_request,
-)
+from ...webhook.subscription_payload import generate_pre_save_payloads
 from ..mutations.channels import ProductVariantChannelListingAddInput
 from ..mutations.product.product_create import StockInput, StockUpdateInput
 from ..utils import clean_variant_sku, get_used_variants_attribute_values
@@ -786,9 +781,6 @@ class ProductVariantBulkUpdate(BaseMutation):
     def generate_pre_save_payloads(
         cls, info, request_time, cleaned_inputs_map, webhooks
     ):
-        if not settings.ENABLE_LIMITING_WEBHOOKS_FOR_IDENTICAL_PAYLOADS:
-            return {}
-
         # Take instances from cleaned_inputs_map to be updated in the mutation.
         instances = [
             clean_data["id"]
@@ -796,32 +788,14 @@ class ProductVariantBulkUpdate(BaseMutation):
             if clean_data and clean_data.get("id")
         ]
 
-        pre_save_payloads = {}
+        requestor = get_user_or_app_from_context(info.context)
+        event_type = WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED
 
-        # Dataloaders are shared between calls to generate_payload_from_subscription to
-        # reuse their cache. This avoids unnecessary DB queries when different webhooks
-        # need to resolve the same data.
-        dataloaders: dict[str, type[DataLoader]] = {}
-
-        request = initialize_request(
-            requestor=get_user_or_app_from_context(info.context),
-            sync_event=False,
-            allow_replica=True,
-            event_type=WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED,
+        pre_save_payloads = generate_pre_save_payloads(
+            webhooks=webhooks,
+            instances=instances,
+            event_type=event_type,
+            requestor=requestor,
             request_time=request_time,
-            dataloaders=dataloaders,
         )
-
-        for webhook in webhooks:
-            for instance in instances:
-                instance_payload = generate_payload_from_subscription(
-                    event_type=WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED,
-                    subscribable_object=instance,
-                    subscription_query=webhook.subscription_query,
-                    request=request,
-                    app=webhook.app,
-                )
-                key = f"{webhook.pk}_{instance.pk}"
-                pre_save_payloads[key] = instance_payload
-
         return pre_save_payloads

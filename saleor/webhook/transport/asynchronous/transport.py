@@ -17,6 +17,7 @@ from ....core.utils import get_domain
 from ....graphql.core.dataloaders import DataLoader
 from ....graphql.webhook.subscription_payload import (
     generate_payload_from_subscription,
+    get_pre_save_payload_key,
     initialize_request,
 )
 from ....graphql.webhook.subscription_types import WEBHOOK_TYPES_MAP
@@ -106,7 +107,7 @@ def create_deliveries_for_subscriptions(
             settings.ENABLE_LIMITING_WEBHOOKS_FOR_IDENTICAL_PAYLOADS
             and pre_save_payloads
         ):
-            key = f"{webhook.pk}_{subscribable_object.pk}"
+            key = get_pre_save_payload_key(webhook, subscribable_object)
             pre_save_payload = pre_save_payloads.get(key)
             if pre_save_payload and pre_save_payload == data:
                 logger.info("Skipping webhook: %s - no data changes.", event_type)

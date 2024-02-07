@@ -66,6 +66,7 @@ def test_query_published_page(user_api_client, page):
 
     expected_attributes = []
     for attr in page_type.page_attributes.all():
+        attr_id = graphene.Node.to_global_id("Attribute", attr.pk)
         values = (
             [
                 {
@@ -78,7 +79,9 @@ def test_query_published_page(user_api_client, page):
             if attr.slug == page_attr.slug
             else []
         )
-        expected_attributes.append({"attribute": {"slug": attr.slug}, "values": values})
+        expected_attributes.append(
+            {"attribute": {"id": attr_id, "slug": attr.slug}, "values": values}
+        )
 
     for attr_data in page_data["attributes"]:
         assert attr_data in expected_attributes
