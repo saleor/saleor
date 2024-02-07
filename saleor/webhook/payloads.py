@@ -835,7 +835,7 @@ def generate_product_variant_payload(
     requestor: Optional["RequestorOrLazyObject"] = None,
     with_meta: bool = True,
 ):
-    product_variants = ProductVariant.objects.prefetched_for_webhook().get(
+    product_variants = ProductVariant.objects.prefetched_for_webhook().filter(
         pk__in=[variant.pk for variant in product_variants]
     )
     extra_dict_data = {
@@ -1129,15 +1129,7 @@ def generate_sample_payload(event_name: str) -> Optional[dict]:
         user = generate_fake_user()
         payload = generate_customer_payload(user)
     elif event_name == WebhookEventAsyncType.PRODUCT_CREATED:
-        product = _get_sample_object(
-            Product.objects.prefetch_related(
-                "category",
-                "collections",
-                "variants",
-                "attributevalues__value",
-                "product_type__attributeproduct__attribute",
-            )
-        )
+        product = _get_sample_object(Product.objects.filter())
         payload = generate_product_payload(product) if product else None
     elif event_name in checkout_events:
         checkout = _get_sample_object(
