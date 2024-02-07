@@ -48,7 +48,7 @@ class ProductVariantReorder(BaseMutation):
         pk = cls.get_global_id_or_error(product_id, only_type=Product)
 
         try:
-            product = models.Product.objects.prefetched_for_webhook().get(pk=pk)
+            product = models.Product.objects.get(pk=pk)
         except ObjectDoesNotExist:
             raise ValidationError(
                 {
@@ -59,7 +59,7 @@ class ProductVariantReorder(BaseMutation):
                 }
             )
 
-        variants_m2m = product.variants
+        variants_m2m = product.variants.all()
         operations = {}
 
         for move_info in moves:
@@ -84,5 +84,5 @@ class ProductVariantReorder(BaseMutation):
             perform_reordering(variants_m2m, operations)
             product.save(update_fields=["updated_at"])
             cls.call_event(manager.product_updated, product)
-            product = ChannelContext(node=product, channel_slug=None)
-        return ProductVariantReorder(product=product)
+            context = ChannelContext(node=product, channel_slug=None)
+        return ProductVariantReorder(product=context)
