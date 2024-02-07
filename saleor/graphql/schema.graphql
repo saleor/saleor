@@ -647,8 +647,15 @@ type Query {
   Requires one of the following permissions: HANDLE_PAYMENTS.
   """
   transaction(
-    """ID of a transaction."""
-    id: ID!
+    """
+    ID of a transaction. Either it or token is required to fetch the transaction data.
+    """
+    id: ID
+
+    """
+    Token of a transaction. Either it or ID is required to fetch the transaction data.
+    """
+    token: UUID
   ): TransactionItem @doc(category: "Payments")
 
   """Look up a page by ID or slug."""
@@ -10101,6 +10108,13 @@ type TransactionItem implements Node & ObjectWithMetadata @doc(category: "Paymen
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
+
+  """
+  The transaction token.
+  
+  Added in Saleor 3.14.
+  """
+  token: UUID!
   createdAt: DateTime!
   modifiedAt: DateTime!
 
@@ -14560,8 +14574,15 @@ type Mutation {
   Requires the following permissions: OWNER and HANDLE_PAYMENTS for apps, HANDLE_PAYMENTS for staff users. Staff user cannot update a transaction that is owned by the app.
   """
   transactionUpdate(
-    """The ID of the transaction."""
-    id: ID!
+    """The ID of the transaction. One of field id or token is required."""
+    id: ID
+
+    """
+    The token of the transaction. One of field id or token is required.
+    
+    Added in Saleor 3.14.
+    """
+    token: UUID
 
     """Input data required to create a new transaction object."""
     transaction: TransactionUpdateInput
@@ -14588,8 +14609,15 @@ type Mutation {
     """
     amount: PositiveDecimal
 
-    """The ID of the transaction."""
-    id: ID!
+    """The ID of the transaction. One of field id or token is required."""
+    id: ID
+
+    """
+    The token of the transaction. One of field id or token is required.
+    
+    Added in Saleor 3.14.
+    """
+    token: UUID
   ): TransactionRequestAction @doc(category: "Payments")
 
   """
@@ -14613,8 +14641,8 @@ type Mutation {
     """
     externalUrl: String
 
-    """The ID of the transaction."""
-    id: ID!
+    """The ID of the transaction. One of field id or token is required."""
+    id: ID
 
     """The message related to the event."""
     message: String
@@ -14626,6 +14654,13 @@ type Mutation {
     The time of the event to report. If not provide, the current time will be used.
     """
     time: DateTime
+
+    """
+    The token of the transaction. One of field id or token is required.
+    
+    Added in Saleor 3.14.
+    """
+    token: UUID
 
     """Current status of the event to report."""
     type: TransactionEventTypeEnum!
@@ -14694,8 +14729,17 @@ type Mutation {
     """The data that will be passed to the payment gateway."""
     data: JSON
 
-    """The ID of the transaction to process."""
-    id: ID!
+    """
+    The ID of the transaction to process. One of field id or token is required.
+    """
+    id: ID
+
+    """
+    The token of the transaction to process. One of field id or token is required.
+    
+    Added in Saleor 3.14.
+    """
+    token: UUID
   ): TransactionProcess @doc(category: "Payments")
 
   """

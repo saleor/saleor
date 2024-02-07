@@ -103,6 +103,7 @@ from ..core.scalars import JSON, UUID, PositiveDecimal
 from ..core.types import BaseInputObjectType, BaseObjectType
 from ..core.types import common as common_types
 from ..core.utils import from_global_id_or_error
+from ..core.validators import validate_one_of_args_is_in_mutation
 from ..meta.mutations import MetadataInput
 from ..plugins.dataloaders import get_plugin_manager_promise
 from ..utils import get_user_or_app_from_context
@@ -1124,16 +1125,19 @@ class TransactionCreate(BaseMutation):
         return TransactionCreate(transaction=new_transaction)
 
 
-def get_transaction_item(id: str) -> payment_models.TransactionItem:
-    """Get transaction based on global ID.
+def get_transaction_item(id, token) -> payment_models.TransactionItem:
+    """Get transaction based on token or global ID.
 
     The transactions created before 3.13 were using the `id` field as a graphql ID.
     From 3.13, the `token` is used as a graphql ID. All transactionItems created
     before 3.13 will use an `int` id as an identification.
     """
-    _, db_id = from_global_id_or_error(
-        global_id=id, only_type=TransactionItem, raise_error=True
-    )
+    if token:
+        db_id = str(token)
+    else:
+        _, db_id = from_global_id_or_error(
+            global_id=id, only_type=TransactionItem, raise_error=True
+        )
     if db_id.isdigit():
         query_params = {"id": db_id, "use_old_id": True}
     else:
@@ -1156,8 +1160,17 @@ class TransactionUpdate(TransactionCreate):
 
     class Arguments:
         id = graphene.ID(
-            description="The ID of the transaction.",
-            required=True,
+            description=(
+                "The ID of the transaction. One of field id or token is required."
+            ),
+            required=False,
+        )
+        token = UUID(
+            description=(
+                "The token of the transaction. One of field id or token is required."
+            )
+            + ADDED_IN_314,
+            required=False,
         )
         transaction = TransactionUpdateInput(
             description="Input data required to create a new transaction object.",
@@ -1290,19 +1303,21 @@ class TransactionUpdate(TransactionCreate):
             transaction_data["app_identifier"] = app.identifier
 
     @classmethod
-    def perform_mutation(  # type: ignore[override]
+    def perform_mutation(
         cls,
         _root,
         info: ResolveInfo,
         /,
         *,
-        id: str,
+        token=None,
+        id=None,
         transaction=None,
         transaction_event=None,
     ):
-        app = get_app_promise(info.context).get()
+        validate_one_of_args_is_in_mutation("id", id, "token", token)
+        instance = get_transaction_item(id, token)
         user = info.context.user
-        instance = get_transaction_item(id)
+        app = get_app_promise(info.context).get()
         manager = get_plugin_manager_promise(info.context).get()
 
         cls.check_can_update(
@@ -1369,8 +1384,17 @@ class TransactionRequestAction(BaseMutation):
 
     class Arguments:
         id = graphene.ID(
-            description="The ID of the transaction.",
-            required=True,
+            description=(
+                "The ID of the transaction. One of field id or token is required."
+            ),
+            required=False,
+        )
+        token = UUID(
+            description=(
+                "The token of the transaction. One of field id or token is required."
+            )
+            + ADDED_IN_314,
+            required=False,
         )
         action_type = graphene.Argument(
             TransactionActionEnum,
@@ -1475,10 +1499,12 @@ class TransactionRequestAction(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, root, info: ResolveInfo, /, **data):
-        id = data["id"]
+        id = data.get("id")
+        token = data.get("token")
         action_type = data["action_type"]
         action_value = data.get("amount")
-        transaction = get_transaction_item(id)
+        validate_one_of_args_is_in_mutation("id", id, "token", token)
+        transaction = get_transaction_item(id, token)
         if transaction.order_id:
             order = cast(Order, transaction.order)
             channel = order.channel
@@ -1526,8 +1552,17 @@ class TransactionEventReport(ModelMutation):
 
     class Arguments:
         id = graphene.ID(
-            description="The ID of the transaction.",
-            required=True,
+            description=(
+                "The ID of the transaction. One of field id or token is required."
+            ),
+            required=False,
+        )
+        token = UUID(
+            description=(
+                "The token of the transaction. One of field id or token is required."
+            )
+            + ADDED_IN_314,
+            required=False,
         )
         psp_reference = graphene.String(
             description="PSP Reference of the event to report.", required=True
@@ -1637,20 +1672,21 @@ class TransactionEventReport(ModelMutation):
         info: ResolveInfo,
         /,
         *,
-        id,
         psp_reference,
         type,
         amount,
+        token=None,
+        id=None,
         time=None,
         external_url=None,
         message=None,
         available_actions=None,
     ):
+        validate_one_of_args_is_in_mutation("id", id, "token", token)
+        transaction = get_transaction_item(id, token)
         user = info.context.user
         app = get_app_promise(info.context).get()
         manager = get_plugin_manager_promise(info.context).get()
-
-        transaction = get_transaction_item(id)
 
         if not check_if_requestor_has_access(
             transaction=transaction, user=user, app=app
@@ -2173,8 +2209,19 @@ class TransactionProcess(BaseMutation):
 
     class Arguments:
         id = graphene.ID(
-            description="The ID of the transaction to process.",
-            required=True,
+            description=(
+                "The ID of the transaction to process. "
+                "One of field id or token is required."
+            ),
+            required=False,
+        )
+        token = UUID(
+            description=(
+                "The token of the transaction to process. "
+                "One of field id or token is required."
+            )
+            + ADDED_IN_314,
+            required=False,
         )
         data = graphene.Argument(
             JSON, description="The data that will be passed to the payment gateway."
@@ -2284,11 +2331,9 @@ class TransactionProcess(BaseMutation):
         return app
 
     @classmethod
-    def perform_mutation(cls, root, info, *, id, data=None):
-        transaction_item = cls.get_node_or_error(
-            info, id, only_type="TransactionItem", field="token"
-        )
-        transaction_item = cast(payment_models.TransactionItem, transaction_item)
+    def perform_mutation(cls, root, info, *, token=None, id=None, data=None):
+        validate_one_of_args_is_in_mutation("id", id, "token", token)
+        transaction_item = get_transaction_item(id, token)
         events = transaction_item.events.all()
         if processed_event := cls.get_already_processed_event(events):
             return cls(
