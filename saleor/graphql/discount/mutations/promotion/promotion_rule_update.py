@@ -11,7 +11,7 @@ from .....product.tasks import update_discounted_prices_task
 from .....webhook.event_types import WebhookEventAsyncType
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_317, PREVIEW_FEATURE
+from ....core.descriptions import ADDED_IN_317, ADDED_IN_319, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import ModelMutation
 from ....core.types import Error, NonNullList
@@ -51,6 +51,22 @@ class PromotionRuleUpdateInput(PromotionRuleBaseInput):
     remove_channels = NonNullList(
         graphene.ID,
         description="List of channel ids to remove.",
+    )
+    add_gifts = NonNullList(
+        graphene.ID,
+        description=(
+            "List of variant IDs available as a gift to add."
+            + ADDED_IN_319
+            + PREVIEW_FEATURE
+        ),
+    )
+    remove_gifts = NonNullList(
+        graphene.ID,
+        description=(
+            "List of variant IDs available as a gift to remove."
+            + ADDED_IN_319
+            + PREVIEW_FEATURE
+        ),
     )
 
 
@@ -107,6 +123,13 @@ class PromotionRuleUpdate(ModelMutation):
         if error:
             error.code = PromotionRuleUpdateErrorCode.DUPLICATED_INPUT_ITEM.value
             raise ValidationError({"addChannels": error, "removeChannels": error})
+        error = check_for_duplicates(
+            data, "add_gifts", "remove_gifts", error_class_field="gifts"
+        )
+        if error:
+            error.code = PromotionRuleUpdateErrorCode.DUPLICATED_INPUT_ITEM.value
+            raise ValidationError({"addGifts": error, "removeGifts": error})
+
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
         errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
         cleaned_input = clean_promotion_rule(
@@ -128,6 +151,10 @@ class PromotionRuleUpdate(ModelMutation):
                 instance.channels.remove(*remove_channels)
             if add_channels := cleaned_data.get("add_channels"):
                 instance.channels.add(*add_channels)
+            if remove_gifts := cleaned_data.get("remove_gifts"):
+                instance.gifts.remove(*remove_gifts)
+            if add_gifts := cleaned_data.get("add_gifts"):
+                instance.gifts.add(*add_gifts)
 
     @classmethod
     def post_save_actions(cls, info: ResolveInfo, instance, previous_product_ids):

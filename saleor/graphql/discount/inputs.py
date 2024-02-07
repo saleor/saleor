@@ -107,9 +107,3 @@ class PromotionRuleBaseInput(BaseInputObjectType):
         + ADDED_IN_319
         + PREVIEW_FEATURE
     )
-    gifts = NonNullList(
-        graphene.ID,
-        description="Product variant IDs available as a gift to choose."
-        + ADDED_IN_319
-        + PREVIEW_FEATURE,
-    )

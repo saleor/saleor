@@ -1057,11 +1057,15 @@ def test_promotion_rule_update_gift_promotion(
         graphene.Node.to_global_id("ProductVariant", variant.pk)
         for variant in product_variant_list
     ]
+    current_gift_ids = [
+        graphene.Node.to_global_id("ProductVariant", variant.pk)
+        for variant in rule.gifts.all()
+    ]
     variables = {
         "id": rule_id,
         "input": {
             "orderPredicate": order_predicate,
-            "gifts": gift_ids,
+            "addGifts": gift_ids,
         },
     }
 
@@ -1073,6 +1077,7 @@ def test_promotion_rule_update_gift_promotion(
     )
 
     # then
+    gift_ids = set(gift_ids) | set(current_gift_ids)
     content = get_graphql_content(response)
     data = content["data"]["promotionRuleUpdate"]
     assert not data["errors"]
@@ -1080,7 +1085,6 @@ def test_promotion_rule_update_gift_promotion(
     assert sorted(rule_data["giftIds"]) == sorted(gift_ids)
     assert rule_data["orderPredicate"] == order_predicate
     rule.refresh_from_db()
-    assert all([gift in product_variant_list for gift in rule.gifts.all()])
     assert rule.reward_type == RewardTypeEnum.GIFT.value
     assert rule.order_predicate == order_predicate
 
@@ -1100,7 +1104,7 @@ def test_promotion_rule_update_gift_promotion_wrong_gift_instance(
     variables = {
         "id": rule_id,
         "input": {
-            "gifts": gift_ids,
+            "addGifts": gift_ids,
         },
     }
 
@@ -1119,7 +1123,7 @@ def test_promotion_rule_update_gift_promotion_wrong_gift_instance(
     assert not data["promotionRule"]
     assert len(errors) == 1
     assert errors[0]["code"] == PromotionRuleUpdateErrorCode.INVALID_GIFT_TYPE.name
-    assert errors[0]["field"] == "gifts"
+    assert errors[0]["field"] == "addGifts"
 
 
 def test_promotion_rule_update_gift_promotion_with_reward_value(
@@ -1193,10 +1197,14 @@ def test_promotion_rule_update_gift_promotion_remove_gifts(
     # given
     rule = gift_promotion_rule
     rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
+    gift_ids = [
+        graphene.Node.to_global_id("ProductVariant", gift.id)
+        for gift in gift_promotion_rule.gifts.all()
+    ]
     variables = {
         "id": rule_id,
         "input": {
-            "gifts": [],
+            "removeGifts": gift_ids,
         },
     }
 
@@ -1233,10 +1241,14 @@ def test_promotion_rule_update_exceeds_gifts_number_limit(
         graphene.Node.to_global_id("ProductVariant", variant.pk)
         for variant in product_variant_list
     ]
+    current_gift_ids = [
+        graphene.Node.to_global_id("ProductVariant", variant.pk)
+        for variant in rule.gifts.all()
+    ]
     variables = {
         "id": rule_id,
         "input": {
-            "gifts": gift_ids,
+            "addGifts": gift_ids,
         },
     }
 
@@ -1248,6 +1260,7 @@ def test_promotion_rule_update_exceeds_gifts_number_limit(
     )
 
     # then
+    gift_ids = set(gift_ids) | set(current_gift_ids)
     content = get_graphql_content(response)
     data = content["data"]["promotionRuleUpdate"]
     errors = data["errors"]
