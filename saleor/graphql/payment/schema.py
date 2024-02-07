@@ -52,10 +52,20 @@ class PaymentQueries(graphene.ObjectType):
         TransactionItem,
         description="Look up a transaction by ID." + ADDED_IN_36 + PREVIEW_FEATURE,
         id=graphene.Argument(
-            graphene.ID, description="ID of a transaction.", required=False
+            graphene.ID,
+            description=(
+                "ID of a transaction. Either it or token is required "
+                "to fetch the transaction data."
+            ),
+            required=False,
         ),
         token=graphene.Argument(
-            UUID, description="Token of a transaction.", required=False
+            UUID,
+            description=(
+                "Token of a transaction. Either it or ID is required "
+                "to fetch the transaction data."
+            ),
+            required=False,
         ),
         permissions=[
             PaymentPermissions.HANDLE_PAYMENTS,

@@ -647,10 +647,14 @@ type Query {
   Requires one of the following permissions: HANDLE_PAYMENTS.
   """
   transaction(
-    """ID of a transaction."""
+    """
+    ID of a transaction. Either it or token is required to fetch the transaction data.
+    """
     id: ID
 
-    """Token of a transaction."""
+    """
+    Token of a transaction. Either it or ID is required to fetch the transaction data.
+    """
     token: UUID
   ): TransactionItem @doc(category: "Payments")
 
@@ -10105,7 +10109,11 @@ type TransactionItem implements Node & ObjectWithMetadata @doc(category: "Paymen
   """
   metafields(keys: [String!]): Metadata
 
-  """The transaction token."""
+  """
+  The transaction token.
+  
+  Added in Saleor 3.14.
+  """
   token: UUID!
   createdAt: DateTime!
   modifiedAt: DateTime!

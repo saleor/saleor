@@ -402,7 +402,7 @@ class TransactionEvent(ModelObjectType[models.TransactionEvent]):
 
 class TransactionItem(ModelObjectType[models.TransactionItem]):
     token = graphene.Field(
-        UUIDScalar, description="The transaction token.", required=True
+        UUIDScalar, description="The transaction token." + ADDED_IN_314, required=True
     )
     created_at = graphene.DateTime(required=True)
     modified_at = graphene.DateTime(required=True)
@@ -535,10 +535,6 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
 
     @staticmethod
     def resolve_id(root: models.TransactionItem, _info: ResolveInfo):
-        return root.token
-
-    @staticmethod
-    def resolve_token(root: models.TransactionItem, _info):
         return root.token
 
     @staticmethod
