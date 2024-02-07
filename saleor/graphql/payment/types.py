@@ -26,6 +26,7 @@ from ..core.descriptions import (
 from ..core.doc_category import DOC_CATEGORY_PAYMENTS
 from ..core.fields import JSONString, PermissionsField
 from ..core.scalars import JSON
+from ..core.scalars import UUID as UUIDScalar
 from ..core.tracing import traced_resolver
 from ..core.types import BaseObjectType, ModelObjectType, Money, NonNullList
 from ..meta.permissions import public_payment_permissions
@@ -408,6 +409,9 @@ class TransactionEvent(ModelObjectType[models.TransactionEvent]):
 
 
 class TransactionItem(ModelObjectType[models.TransactionItem]):
+    token = graphene.Field(
+        UUIDScalar, description="The transaction token." + ADDED_IN_314, required=True
+    )
     created_at = graphene.DateTime(
         required=True,
         description="Date and time at which payment transaction was created.",
