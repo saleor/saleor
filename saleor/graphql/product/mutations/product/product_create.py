@@ -219,10 +219,9 @@ class ProductCreate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, _cleaned_input):
-        product = models.Product.objects.prefetched_for_webhook().get(pk=instance.pk)
         update_products_discounted_prices_for_promotion_task.delay([instance.id])
         manager = get_plugin_manager_promise(info.context).get()
-        cls.call_event(manager.product_created, product)
+        cls.call_event(manager.product_created, instance)
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):

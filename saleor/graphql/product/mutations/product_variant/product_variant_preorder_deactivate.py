@@ -41,7 +41,7 @@ class ProductVariantPreorderDeactivate(BaseMutation):
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, id
     ):
-        qs = models.ProductVariant.objects.prefetched_for_webhook()
+        qs = models.ProductVariant.objects.filter()
         variant = cls.get_node_or_error(
             info, id, field="id", only_type=ProductVariant, qs=qs
         )

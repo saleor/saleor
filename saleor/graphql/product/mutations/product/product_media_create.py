@@ -102,7 +102,7 @@ class ProductMediaCreate(BaseMutation):
             input["product"],
             field="product",
             only_type=Product,
-            qs=models.Product.objects.prefetched_for_webhook(),
+            qs=models.Product.objects.filter(),
         )
 
         alt = input.get("alt", "")

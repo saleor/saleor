@@ -355,7 +355,6 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
         with traced_atomic_transaction():
             cls.update_channels(product, cleaned_input.get("update_channels", []))
             cls.remove_channels(product, cleaned_input.get("remove_channels", []))
-            product = ProductModel.objects.prefetched_for_webhook().get(pk=product.pk)
             update_discounted_prices_task.delay([product.id])
             manager = get_plugin_manager_promise(info.context).get()
             cls.call_event(manager.product_updated, product)
@@ -551,7 +550,7 @@ class ProductVariantChannelListingUpdate(BaseMutation):
     ):
         validate_one_of_args_is_in_mutation("sku", sku, "id", id)
 
-        qs = ProductVariantModel.objects.prefetched_for_webhook()
+        qs = ProductVariantModel.objects.filter()
         if id:
             variant = cls.get_node_or_error(
                 info, id, only_type=ProductVariant, field="id", qs=qs

@@ -40,9 +40,7 @@ class ProductVariantTranslate(BaseTranslateMutation):
     ):
         node_id = cls.clean_node_id(id)[0]
         variant_pk = cls.get_global_id_or_error(node_id, only_type=ProductVariant)
-        variant = product_models.ProductVariant.objects.prefetched_for_webhook().get(
-            pk=variant_pk
-        )
+        variant = product_models.ProductVariant.objects.get(pk=variant_pk)
         cls.validate_input(input)
         manager = get_plugin_manager_promise(info.context).get()
         with traced_atomic_transaction():

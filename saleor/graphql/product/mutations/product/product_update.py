@@ -48,10 +48,9 @@ class ProductUpdate(ProductCreate, ModelWithExtRefMutation):
         return attributes
 
     @classmethod
-    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
-        product = models.Product.objects.prefetched_for_webhook().get(pk=instance.pk)
+    def post_save_action(cls, info: ResolveInfo, product, cleaned_input):
         if "category" in cleaned_input or "collections" in cleaned_input:
-            update_products_discounted_prices_for_promotion_task.delay([instance.id])
+            update_products_discounted_prices_for_promotion_task.delay([product.id])
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.product_updated, product)
 

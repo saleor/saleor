@@ -45,7 +45,7 @@ class ProductMediaReorder(BaseMutation):
             product_id,
             field="product_id",
             only_type=Product,
-            qs=models.Product.objects.prefetched_for_webhook(),
+            qs=models.Product.objects.filter(),
         )
 
         if len(media_ids) != product.media.count():
