@@ -122,6 +122,7 @@ def checkout_with_items_and_shipping_info(checkout_with_items_and_shipping):
         tax_configuration=channel.tax_configuration,
         valid_pick_up_points=[],
         all_shipping_methods=[],
+        discounts=[],
     )
     return checkout_info
 

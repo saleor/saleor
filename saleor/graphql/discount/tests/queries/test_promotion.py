@@ -29,6 +29,7 @@ QUERY_PROMOTION_BY_ID = """
                 rewardValueType
                 rewardValue
                 cataloguePredicate
+                rewardType
             }
         }
     }
@@ -53,14 +54,16 @@ def _assert_promotion_data(promotion, content_data):
             "rewardValueType": rule.reward_value_type.upper(),
             "rewardValue": rule.reward_value,
             "cataloguePredicate": rule.catalogue_predicate,
+            "rewardType": rule.reward_type,
         }
         assert rule_data in promotion_data["rules"]
 
 
 def test_query_promotion_by_id_by_staff_user(
-    promotion, staff_api_client, permission_group_manage_discounts
+    catalogue_promotion, staff_api_client, permission_group_manage_discounts
 ):
     # given
+    promotion = catalogue_promotion
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
     promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
 
@@ -75,9 +78,10 @@ def test_query_promotion_by_id_by_staff_user(
 
 
 def test_query_promotion_by_id_by_app(
-    promotion, app_api_client, permission_manage_discounts
+    catalogue_promotion, app_api_client, permission_manage_discounts
 ):
     # given
+    promotion = catalogue_promotion
     app_api_client.app.permissions.add(permission_manage_discounts)
     promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
     variables = {"id": promotion_id}
@@ -90,8 +94,9 @@ def test_query_promotion_by_id_by_app(
     _assert_promotion_data(promotion, content)
 
 
-def test_query_promotion_by_id_by_customer(promotion, api_client):
+def test_query_promotion_by_id_by_customer(catalogue_promotion, api_client):
     # given
+    promotion = catalogue_promotion
     variables = {"id": graphene.Node.to_global_id("Promotion", promotion.id)}
 
     # when
@@ -102,9 +107,10 @@ def test_query_promotion_by_id_by_customer(promotion, api_client):
 
 
 def test_query_promotion_without_rules_by_id(
-    promotion, staff_api_client, permission_group_manage_discounts
+    catalogue_promotion, staff_api_client, permission_group_manage_discounts
 ):
     # given
+    promotion = catalogue_promotion
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
     promotion.rules.all().delete()
 
@@ -119,7 +125,7 @@ def test_query_promotion_without_rules_by_id(
 
 
 def test_query_promotion_with_complex_rule_2(
-    promotion,
+    catalogue_promotion,
     staff_api_client,
     permission_group_manage_discounts,
     product,
@@ -127,6 +133,7 @@ def test_query_promotion_with_complex_rule_2(
     category,
 ):
     # given
+    promotion = catalogue_promotion
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
     promotion.rules.all().delete()
     catalogue_predicate = {
@@ -160,7 +167,10 @@ def test_query_promotion_with_complex_rule_2(
 
 
 def test_query_promotion_translation(
-    staff_api_client, promotion, promotion_translation_fr, permission_manage_discounts
+    staff_api_client,
+    catalogue_promotion,
+    promotion_translation_fr,
+    permission_manage_discounts,
 ):
     # given
     query = """
@@ -177,7 +187,7 @@ def test_query_promotion_translation(
         }
     """
 
-    promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
+    promotion_id = graphene.Node.to_global_id("Promotion", catalogue_promotion.id)
 
     # when
     response = staff_api_client.post_graphql(
@@ -199,7 +209,7 @@ def test_query_promotion_translation(
 
 def test_query_promotion_rule_translation(
     staff_api_client,
-    promotion,
+    catalogue_promotion,
     promotion_rule_translation_fr,
     permission_manage_discounts,
 ):
@@ -221,7 +231,7 @@ def test_query_promotion_rule_translation(
         }
     """
 
-    promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
+    promotion_id = graphene.Node.to_global_id("Promotion", catalogue_promotion.id)
 
     # when
     response = staff_api_client.post_graphql(

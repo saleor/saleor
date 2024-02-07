@@ -12,7 +12,7 @@ class SaleSortField(BaseEnum):
     START_DATE = ["start_date", "name", "pk"]
     END_DATE = ["end_date", "name", "pk"]
     VALUE = ["value", "name", "pk"]
-    TYPE = ["type", "name", "pk"]
+    TYPE = ["value_type", "name", "pk"]
     CREATED_AT = ["created_at", "name", "pk"]
     LAST_MODIFIED_AT = ["updated_at", "name", "pk"]
 
@@ -43,7 +43,7 @@ class SaleSortField(BaseEnum):
 
     @staticmethod
     def qs_with_type(queryset: QuerySet, **kwargs) -> QuerySet:
-        return queryset.annotate(type=F("rules__reward_value_type"))
+        return queryset.annotate(value_type=F("rules__reward_value_type"))
 
 
 class SaleSortingInput(ChannelSortInputObjectType):

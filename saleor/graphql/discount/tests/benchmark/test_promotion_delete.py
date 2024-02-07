@@ -10,14 +10,14 @@ from ..mutations.test_promotion_delete import PROMOTION_DELETE_MUTATION
 def test_promotion_delete(
     staff_api_client,
     permission_group_manage_discounts,
-    promotion,
+    catalogue_promotion,
     count_queries,
 ):
     # given
     staff_api_client.user.groups.add(permission_group_manage_discounts)
 
     variables = {
-        "id": graphene.Node.to_global_id("Promotion", promotion.id),
+        "id": graphene.Node.to_global_id("Promotion", catalogue_promotion.id),
     }
 
     # when

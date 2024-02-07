@@ -20,6 +20,8 @@ class PromotionCreateErrorCode(Enum):
     INVALID = "invalid"
     MULTIPLE_CURRENCIES_NOT_ALLOWED = "multiple_currencies_not_allowed"
     INVALID_PRECISION = "invalid_precision"
+    MISSING_CHANNELS = "missing_channels"
+    RULES_NUMBER_LIMIT = "rules_number_limit"
 
 
 class PromotionUpdateErrorCode(Enum):
@@ -41,12 +43,15 @@ class PromotionRuleCreateErrorCode(Enum):
     INVALID = "invalid"
     MULTIPLE_CURRENCIES_NOT_ALLOWED = "multiple_currencies_not_allowed"
     INVALID_PRECISION = "invalid_precision"
+    MISSING_CHANNELS = "missing_channels"
+    RULES_NUMBER_LIMIT = "rules_number_limit"
 
 
 class PromotionRuleUpdateErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     NOT_FOUND = "not_found"
     INVALID = "invalid"
+    REQUIRED = "required"
     DUPLICATED_INPUT_ITEM = "duplicated_input_item"
     MISSING_CHANNELS = "missing_channels"
     MULTIPLE_CURRENCIES_NOT_ALLOWED = "multiple_currencies_not_allowed"

@@ -237,10 +237,13 @@ def test_serialize_checkout_lines_with_promotion(checkout_with_item_on_promotion
     checkout = checkout_with_item_on_promotion
     channel = checkout.channel
     checkout_lines, _ = fetch_checkout_lines(checkout, prefetch_variant_attributes=True)
-
+    manager = get_plugins_manager(allow_replica=False)
+    checkout_info = fetch_checkout_info(checkout, checkout_lines, manager)
     variant = checkout_lines[0].variant
 
-    create_or_update_discount_objects_from_promotion_for_checkout(checkout_lines)
+    create_or_update_discount_objects_from_promotion_for_checkout(
+        checkout_info, checkout_lines
+    )
 
     # when
     checkout_lines_data = serialize_checkout_lines(checkout)
@@ -353,7 +356,7 @@ def test_serialize_checkout_lines_for_tax_calculation_with_promotion(
     lines, _ = fetch_checkout_lines(checkout)
     manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    create_or_update_discount_objects_from_promotion_for_checkout(lines)
+    create_or_update_discount_objects_from_promotion_for_checkout(checkout_info, lines)
 
     tax_configuration = checkout_info.tax_configuration
     tax_configuration.country_exceptions.all().delete()
@@ -400,3 +403,50 @@ def test_serialize_checkout_lines_for_tax_calculation_with_promotion(
         assert unit_price < undiscounted_unit_price
 
     assert len(checkout_lines_data) == len(list(lines))
+
+
+def test_serialize_checkout_lines_for_tax_calculation_with_order_discount(
+    checkout_with_item_and_order_discount, product
+):
+    # given
+    checkout = checkout_with_item_and_order_discount
+
+    lines, _ = fetch_checkout_lines(checkout)
+    manager = get_plugins_manager(allow_replica=False)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    tax_configuration = checkout_info.tax_configuration
+    tax_configuration.country_exceptions.all().delete()
+
+    # when
+    checkout_lines_data = serialize_checkout_lines_for_tax_calculation(
+        checkout_info, lines
+    )
+
+    # then
+    line_info = lines[0]
+    line = line_info.line
+    variant = line.variant
+    product = variant.product
+
+    unit_price = variant.get_price(
+        channel_listing=line_info.channel_listing,
+    )
+    total_price_amount = (unit_price * line.quantity).amount
+
+    line_data = checkout_lines_data[0]
+    # the line data shouldn't include order promotin discount
+    assert line_data == {
+        "id": graphene.Node.to_global_id("CheckoutLine", line.pk),
+        "sku": variant.sku,
+        "quantity": line.quantity,
+        "charge_taxes": tax_configuration.charge_taxes,
+        "full_name": variant.display_product(),
+        "product_name": product.name,
+        "variant_name": variant.name,
+        "variant_id": graphene.Node.to_global_id("ProductVariant", variant.pk),
+        "product_metadata": product.metadata,
+        "product_type_metadata": product.product_type.metadata,
+        "unit_amount": unit_price.amount,
+        "total_amount": total_price_amount,
+    }

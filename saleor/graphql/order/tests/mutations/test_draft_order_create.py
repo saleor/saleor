@@ -2296,12 +2296,12 @@ def test_draft_order_create_product_on_promotion(
     customer_user,
     shipping_method,
     variant,
-    promotion,
+    catalogue_promotion,
     channel_USD,
     graphql_address_data,
 ):
     # given
-    variant = variant
+    promotion = catalogue_promotion
     query = DRAFT_ORDER_CREATE_MUTATION
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
@@ -2422,12 +2422,12 @@ def test_draft_order_create_product_on_promotion_flat_taxes(
     customer_user,
     shipping_method,
     variant,
-    promotion,
+    catalogue_promotion,
     channel_USD,
     graphql_address_data,
 ):
     # given
-    variant = variant
+    promotion = catalogue_promotion
     query = DRAFT_ORDER_CREATE_MUTATION
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 

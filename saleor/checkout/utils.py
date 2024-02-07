@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Optional, Union, cast
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.db.models import prefetch_related_objects
 from django.utils import timezone
 from prices import Money
@@ -18,11 +19,12 @@ from ..core.utils.promo_code import (
     promo_code_is_voucher,
 )
 from ..core.utils.translations import get_translation
-from ..discount import VoucherType
+from ..discount import DiscountType, VoucherType
 from ..discount.interface import VoucherInfo, fetch_voucher_info
-from ..discount.models import NotApplicable, Voucher, VoucherCode
+from ..discount.models import CheckoutDiscount, NotApplicable, Voucher, VoucherCode
 from ..discount.utils import (
-    create_or_update_discount_objects_from_promotion_for_checkout,
+    create_discount_objects_for_catalogue_promotions,
+    create_discount_objects_for_order_promotions,
     get_products_voucher_discount,
     get_voucher_code_instance,
     validate_voucher_for_checkout,
@@ -68,7 +70,7 @@ def invalidate_checkout_prices(
     checkout = checkout_info.checkout
 
     if recalculate_discount:
-        create_or_update_discount_objects_from_promotion_for_checkout(lines)
+        create_discount_objects_for_catalogue_promotions(lines)
         recalculate_checkout_discount(manager, checkout_info, lines)
 
     checkout.price_expiration = timezone.now()
@@ -645,6 +647,8 @@ def recalculate_checkout_discount(
     else:
         remove_voucher_from_checkout(checkout)
 
+    create_discount_objects_for_order_promotions(checkout_info, lines, save=True)
+
 
 def add_promo_code_to_checkout(
     manager: PluginsManager,
@@ -731,17 +735,24 @@ def add_voucher_to_checkout(
     )
 
     checkout.discount = discount
-    checkout.save(
-        update_fields=[
-            "voucher_code",
-            "discount_name",
-            "translated_discount_name",
-            "discount_amount",
-            "last_change",
-        ]
-    )
     checkout_info.voucher = voucher
     checkout_info.voucher_code = voucher_code
+
+    # delete discounts from order promotions as cannot be mixed with vouchers
+    with transaction.atomic():
+        checkout.save(
+            update_fields=[
+                "voucher_code",
+                "discount_name",
+                "translated_discount_name",
+                "discount_amount",
+                "last_change",
+            ]
+        )
+        CheckoutDiscount.objects.filter(
+            checkout=checkout_info.checkout,
+            type=DiscountType.ORDER_PROMOTION,
+        ).delete()
 
 
 def remove_promo_code_from_checkout(

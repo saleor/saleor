@@ -47,12 +47,13 @@ def test_promotion_create_translation(
     mocked_get_webhooks_for_event,
     any_webhook,
     staff_api_client,
-    promotion,
+    catalogue_promotion,
     permission_manage_translations,
     settings,
     description_json,
 ):
     # given
+    promotion = catalogue_promotion
     mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
@@ -98,11 +99,12 @@ def test_promotion_create_translation(
 
 def test_promotion_update_translation(
     staff_api_client,
-    promotion,
+    catalogue_promotion,
     promotion_translation_fr,
     permission_manage_translations,
 ):
     # given
+    promotion = catalogue_promotion
     assert promotion.translations.first().name == "French promotion name"
     promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
     updated_name = "Updated French promotion name."
@@ -135,9 +137,10 @@ def test_promotion_update_translation(
 
 def test_promotion_create_translation_no_permission(
     staff_api_client,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
 
     variables = {
@@ -160,10 +163,11 @@ def test_promotion_create_translation_no_permission(
 
 def test_promotion_create_translation_by_translatable_content_id(
     staff_api_client,
-    promotion,
+    catalogue_promotion,
     permission_manage_translations,
 ):
     # given
+    promotion = catalogue_promotion
     translatable_content_id = graphene.Node.to_global_id(
         "PromotionTranslatableContent", promotion.id
     )

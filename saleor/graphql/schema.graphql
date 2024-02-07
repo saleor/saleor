@@ -12716,6 +12716,7 @@ enum OrderDiscountType @doc(category: "Discounts") {
   VOUCHER
   MANUAL
   PROMOTION
+  ORDER_PROMOTION
 }
 
 type OrderError @doc(category: "Orders") {
@@ -14213,6 +14214,15 @@ type Promotion implements Node & ObjectWithMetadata @doc(category: "Discounts") 
   """Name of the promotion."""
   name: String!
 
+  """
+  The type of the promotion. Implicate if the discount is applied on catalogue or order level.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  type: PromotionTypeEnum
+
   """Description of the promotion."""
   description: JSON
 
@@ -14241,6 +14251,12 @@ type Promotion implements Node & ObjectWithMetadata @doc(category: "Discounts") 
   events: [PromotionEvent!]
 }
 
+"""An enumeration."""
+enum PromotionTypeEnum @doc(category: "Discounts") {
+  CATALOGUE
+  ORDER
+}
+
 """
 Represents the promotion rule that specifies the conditions that must be met to apply the promotion discount.
 
@@ -14267,16 +14283,47 @@ type PromotionRule implements Node @doc(category: "Discounts") {
   """
   channels: [Channel!]
 
+  """
+  The reward value of the promotion rule. Defines the discount value applied when the rule conditions are met.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  rewardValue: PositiveDecimal
+
   """The type of reward value of the promotion rule."""
   rewardValueType: RewardValueTypeEnum
+
+  """
+  The type of the predicate that must be met to apply the reward.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  predicateType: PromotionTypeEnum
 
   """The catalogue predicate that must be met to apply the rule reward."""
   cataloguePredicate: JSON
 
   """
-  The reward value of the promotion rule. Defines the discount value applied when the rule conditions are met.
+  The checkout/order predicate that must be met to apply the rule reward.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
-  rewardValue: PositiveDecimal
+  orderPredicate: JSON
+
+  """
+  The reward type of the promotion rule.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  rewardType: RewardTypeEnum
 
   """Returns translated promotion rule fields for the given language code."""
   translation(
@@ -14289,6 +14336,11 @@ type PromotionRule implements Node @doc(category: "Discounts") {
 enum RewardValueTypeEnum @doc(category: "Discounts") {
   FIXED
   PERCENTAGE
+}
+
+"""An enumeration."""
+enum RewardTypeEnum @doc(category: "Discounts") {
+  SUBTOTAL_DISCOUNT
 }
 
 union PromotionEvent = PromotionCreatedEvent | PromotionUpdatedEvent | PromotionStartedEvent | PromotionEndedEvent | PromotionRuleCreatedEvent | PromotionRuleUpdatedEvent | PromotionRuleDeletedEvent
@@ -14540,12 +14592,21 @@ input PromotionWhereInput @doc(category: "Discounts") {
   """Filter promotions by start date."""
   startDate: DateTimeFilterInput
   isOldSale: Boolean
+  type: PromotionTypeEnumFilterInput
 
   """List of conditions that must be met."""
   AND: [PromotionWhereInput!]
 
   """A list of conditions of which at least one must be met."""
   OR: [PromotionWhereInput!]
+}
+
+input PromotionTypeEnumFilterInput @doc(category: "Discounts") {
+  """The value equal to."""
+  eq: PromotionTypeEnum
+
+  """The value included in."""
+  oneOf: [PromotionTypeEnum!]
 }
 
 input PromotionSortingInput @doc(category: "Discounts") {
@@ -27397,6 +27458,12 @@ type PromotionCreateError {
 
   """Index of an input list item that caused the error."""
   index: Int
+
+  """Limit of rules with orderPredicate defined."""
+  rulesLimit: Int
+
+  """Number of rules with orderPredicate defined exceeding the limit."""
+  exceedBy: Int
 }
 
 """An enumeration."""
@@ -27407,6 +27474,8 @@ enum PromotionCreateErrorCode {
   INVALID
   MULTIPLE_CURRENCIES_NOT_ALLOWED
   INVALID_PRECISION
+  MISSING_CHANNELS
+  RULES_NUMBER_LIMIT
 }
 
 input PromotionCreateInput @doc(category: "Discounts") {
@@ -27421,6 +27490,17 @@ input PromotionCreateInput @doc(category: "Discounts") {
 
   """Promotion name."""
   name: String!
+
+  """
+  Defines the promotion type. Implicate the required promotion rules predicate type and whether the promotion rules will give the catalogue or order discount. 
+  
+  The default value is `Catalogue`.
+  
+  This field will be required from Saleor 3.20.
+  
+  Added in Saleor 3.19.
+  """
+  type: PromotionTypeEnum
 
   """List of promotion rules."""
   rules: [PromotionRuleInput!]
@@ -27439,6 +27519,15 @@ input PromotionRuleInput @doc(category: "Discounts") {
   cataloguePredicate: CataloguePredicateInput
 
   """
+  Defines the conditions on the checkout/draft order level that must be met for the reward to be applied.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  orderPredicate: OrderPredicateInput
+
+  """
   Defines the promotion rule reward value type. Must be provided together with reward value.
   """
   rewardValueType: RewardValueTypeEnum
@@ -27447,6 +27536,15 @@ input PromotionRuleInput @doc(category: "Discounts") {
   Defines the discount value. Required when catalogue predicate is provided.
   """
   rewardValue: PositiveDecimal
+
+  """
+  Defines the reward type of the promotion rule.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  rewardType: RewardTypeEnum
 
   """List of channel ids to which the rule should apply to."""
   channels: [ID!]
@@ -27470,6 +27568,31 @@ input CataloguePredicateInput @doc(category: "Discounts") {
 
   """A list of conditions of which at least one must be met."""
   OR: [CataloguePredicateInput!]
+}
+
+input OrderPredicateInput @doc(category: "Discounts") {
+  """Defines the conditions related to checkout and order objects."""
+  discountedObjectPredicate: DiscountedObjectWhereInput
+
+  """List of conditions that must be met."""
+  AND: [OrderPredicateInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [OrderPredicateInput!]
+}
+
+input DiscountedObjectWhereInput @doc(category: "Discounts") {
+  """Filter by the base subtotal price."""
+  baseSubtotalPrice: DecimalFilterInput
+
+  """Filter by the base total price."""
+  baseTotalPrice: DecimalFilterInput
+
+  """List of conditions that must be met."""
+  AND: [DiscountedObjectWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [DiscountedObjectWhereInput!]
 }
 
 """
@@ -27590,6 +27713,12 @@ type PromotionRuleCreateError {
 
   """The error code."""
   code: PromotionRuleCreateErrorCode!
+
+  """Limit of rules with orderPredicate defined."""
+  rulesLimit: Int
+
+  """Number of rules with orderPredicate defined exceeding the limit."""
+  exceedBy: Int
 }
 
 """An enumeration."""
@@ -27600,6 +27729,8 @@ enum PromotionRuleCreateErrorCode {
   INVALID
   MULTIPLE_CURRENCIES_NOT_ALLOWED
   INVALID_PRECISION
+  MISSING_CHANNELS
+  RULES_NUMBER_LIMIT
 }
 
 input PromotionRuleCreateInput {
@@ -27615,6 +27746,15 @@ input PromotionRuleCreateInput {
   cataloguePredicate: CataloguePredicateInput
 
   """
+  Defines the conditions on the checkout/draft order level that must be met for the reward to be applied.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  orderPredicate: OrderPredicateInput
+
+  """
   Defines the promotion rule reward value type. Must be provided together with reward value.
   """
   rewardValueType: RewardValueTypeEnum
@@ -27623,6 +27763,15 @@ input PromotionRuleCreateInput {
   Defines the discount value. Required when catalogue predicate is provided.
   """
   rewardValue: PositiveDecimal
+
+  """
+  Defines the reward type of the promotion rule.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  rewardType: RewardTypeEnum
 
   """List of channel ids to which the rule should apply to."""
   channels: [ID!]
@@ -27669,6 +27818,7 @@ enum PromotionRuleUpdateErrorCode {
   GRAPHQL_ERROR
   NOT_FOUND
   INVALID
+  REQUIRED
   DUPLICATED_INPUT_ITEM
   MISSING_CHANNELS
   MULTIPLE_CURRENCIES_NOT_ALLOWED
@@ -27688,6 +27838,15 @@ input PromotionRuleUpdateInput {
   cataloguePredicate: CataloguePredicateInput
 
   """
+  Defines the conditions on the checkout/draft order level that must be met for the reward to be applied.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  orderPredicate: OrderPredicateInput
+
+  """
   Defines the promotion rule reward value type. Must be provided together with reward value.
   """
   rewardValueType: RewardValueTypeEnum
@@ -27696,6 +27855,15 @@ input PromotionRuleUpdateInput {
   Defines the discount value. Required when catalogue predicate is provided.
   """
   rewardValue: PositiveDecimal
+
+  """
+  Defines the reward type of the promotion rule.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  rewardType: RewardTypeEnum
 
   """List of channel ids to add."""
   addChannels: [ID!]

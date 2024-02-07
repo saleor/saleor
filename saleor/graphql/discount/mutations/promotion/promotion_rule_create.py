@@ -31,6 +31,12 @@ class PromotionRuleCreateInput(PromotionRuleInput):
 
 class PromotionRuleCreateError(Error):
     code = PromotionRuleCreateErrorCode(description="The error code.", required=True)
+    rules_limit = graphene.Int(
+        description="Limit of rules with orderPredicate defined."
+    )
+    exceed_by = graphene.Int(
+        description="Number of rules with orderPredicate defined exceeding the limit."
+    )
 
 
 class PromotionRuleCreate(ModelMutation):
@@ -60,7 +66,15 @@ class PromotionRuleCreate(ModelMutation):
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
         errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
 
-        clean_promotion_rule(cleaned_input, errors, PromotionRuleCreateErrorCode)
+        promotion = cleaned_input["promotion"]
+        promotion_type = promotion.type
+
+        clean_promotion_rule(
+            cleaned_input,
+            promotion_type,
+            errors,
+            PromotionRuleCreateErrorCode,
+        )
 
         if errors:
             raise ValidationError(errors)

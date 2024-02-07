@@ -398,7 +398,7 @@ class PluginsManager(PaymentInterface):
             checkout_line_info,
             checkout_info.channel,
         )
-        # apply entire order discount
+        # apply entire order discount or discount from order promotion
         default_value = base_calculations.apply_checkout_discount_on_checkout_line(
             checkout_info,
             lines,
@@ -466,7 +466,7 @@ class PluginsManager(PaymentInterface):
             default_value * quantity,
         )
         default_taxed_value = TaxedMoney(
-            net=total_value / quantity, gross=default_value
+            net=total_value / quantity, gross=total_value / quantity
         )
         unit_price = self.__run_method_on_plugins(
             "calculate_checkout_line_unit_price",

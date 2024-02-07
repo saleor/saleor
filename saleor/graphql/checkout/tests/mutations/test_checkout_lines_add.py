@@ -15,7 +15,7 @@ from .....checkout.utils import (
     invalidate_checkout_prices,
     recalculate_checkout_discount,
 )
-from .....discount import RewardValueType
+from .....discount import RewardType, RewardValueType
 from .....plugins.manager import get_plugins_manager
 from .....product.models import ProductChannelListing
 from .....warehouse import WarehouseClickAndCollectOption
@@ -142,7 +142,7 @@ def test_add_to_existing_line_with_sale_when_checkout_has_voucher(
     stock,
     voucher_percentage,
     channel_USD,
-    promotion_without_rules,
+    catalogue_promotion_without_rules,
 ):
     # given
 
@@ -161,7 +161,7 @@ def test_add_to_existing_line_with_sale_when_checkout_has_voucher(
     # prepare promotion with 50% discount
 
     reward_value = Decimal("50.00")
-    rule = promotion_without_rules.rules.create(
+    rule = catalogue_promotion_without_rules.rules.create(
         catalogue_predicate={
             "productPredicate": {
                 "ids": [graphene.Node.to_global_id("Product", variant.product.id)]
@@ -225,6 +225,214 @@ def test_add_to_existing_line_with_sale_when_checkout_has_voucher(
         line.total_price_net_amount
         == expected_unit_price_after_all_discount * line.quantity
     )
+    unit_price = data["checkout"]["lines"][0]["unitPrice"]["gross"]["amount"]
+    assert Decimal(unit_price) == expected_unit_price_after_all_discount
+    total_price = data["checkout"]["lines"][0]["totalPrice"]["gross"]["amount"]
+    assert (
+        Decimal(total_price) == expected_unit_price_after_all_discount * line.quantity
+    )
+    checkout_discount_amount = data["checkout"]["discount"]["amount"]
+    # unit price is 50 USD, (after applying sale), then 50% voucher gives us a
+    # unit_price equal to 25 USD. The discount amount is 25 USD * quantity
+    assert (
+        Decimal(checkout_discount_amount)
+        == expected_discount_per_single_item * line.quantity
+    )
+
+
+def test_add_to_existing_line_catalogue_and_order_discount_applies(
+    user_api_client,
+    checkout_with_item,
+    stock,
+    channel_USD,
+    catalogue_promotion_without_rules,
+):
+    """Ensure that both catalogue and order discount are applied."""
+    # given
+    checkout = checkout_with_item
+    variant_unit_price = Decimal(100)
+    line = checkout.lines.first()
+    variant = line.variant
+
+    # prepare catalogue promotion with 50% discount
+    reward_value = Decimal("50.00")
+    rule = catalogue_promotion_without_rules.rules.create(
+        catalogue_predicate={
+            "productPredicate": {
+                "ids": [graphene.Node.to_global_id("Product", variant.product.id)]
+            }
+        },
+        reward_value_type=RewardValueType.PERCENTAGE,
+        reward_value=reward_value,
+    )
+    rule.channels.add(channel_USD)
+
+    variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
+
+    variant_channel_listing.price_amount = variant_unit_price
+    discount_amount = variant_unit_price * reward_value / 100
+    variant_channel_listing.discounted_price_amount = (
+        variant_channel_listing.price_amount - discount_amount
+    )
+    variant_channel_listing.save(
+        update_fields=["discounted_price_amount", "price_amount"]
+    )
+
+    variant_channel_listing.variantlistingpromotionrule.create(
+        promotion_rule=rule,
+        discount_amount=discount_amount,
+        currency=channel_USD.currency_code,
+    )
+
+    # create order promotion discount
+    rule = catalogue_promotion_without_rules.rules.create(
+        order_predicate={
+            "discountedObjectPredicate": {
+                "baseTotalPrice": {
+                    "range": {
+                        "gte": 20,
+                    }
+                }
+            }
+        },
+        reward_value_type=RewardValueType.PERCENTAGE,
+        reward_value=Decimal("50"),
+        reward_type=RewardType.SUBTOTAL_DISCOUNT,
+    )
+    rule.channels.add(channel_USD)
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", line.variant_id)
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [{"variantId": variant_id, "quantity": 1}],
+        "channelSlug": checkout.channel.slug,
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+
+    # then
+    line.refresh_from_db()
+    checkout.refresh_from_db()
+
+    variant_listing = variant.channel_listings.get(channel=checkout.channel)
+    base_unit_price = variant_listing.price_amount
+    discounted_unit_price = base_unit_price * Decimal("0.5")
+    # catalogue promotion 50% then order promotion 50%
+    expected_unit_price_after_all_discount = discounted_unit_price * Decimal("0.5")
+
+    expected_total_price = expected_unit_price_after_all_discount * line.quantity
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLinesAdd"]
+    assert not data["errors"]
+
+    unit_price = data["checkout"]["lines"][0]["unitPrice"]["gross"]["amount"]
+    assert Decimal(unit_price) == expected_unit_price_after_all_discount
+    total_price = data["checkout"]["lines"][0]["totalPrice"]["gross"]["amount"]
+    assert Decimal(total_price) == expected_total_price
+    checkout_discount_amount = data["checkout"]["discount"]["amount"]
+    discount_amount = (
+        Decimal(discounted_unit_price) - expected_unit_price_after_all_discount
+    ) * line.quantity
+    assert Decimal(checkout_discount_amount) == discount_amount
+    assert checkout.discounts.count() == 1
+
+
+def test_add_to_existing_line_on_promotion_with_voucher_checkout_promotion_not_applies(
+    user_api_client,
+    checkout_with_item,
+    stock,
+    voucher_percentage,
+    channel_USD,
+    catalogue_promotion_without_rules,
+):
+    """Ensure that order promotion discount is not applied when the voucher is set."""
+    # given
+
+    # prepare voucher with 50% discount
+    voucher_percentage_value = 50
+    voucher_percentage.channel_listings.update(discount_value=voucher_percentage_value)
+
+    checkout = checkout_with_item
+    checkout.voucher_code = voucher_percentage.code
+    checkout.save()
+
+    variant_unit_price = Decimal(100)
+    line = checkout.lines.first()
+    variant = line.variant
+
+    # prepare promotion with 50% discount
+    reward_value = Decimal("50.00")
+    rule = catalogue_promotion_without_rules.rules.create(
+        catalogue_predicate={
+            "productPredicate": {
+                "ids": [graphene.Node.to_global_id("Product", variant.product.id)]
+            }
+        },
+        reward_value_type=RewardValueType.PERCENTAGE,
+        reward_value=reward_value,
+    )
+    rule.channels.add(channel_USD)
+
+    variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
+
+    variant_channel_listing.price_amount = variant_unit_price
+    discount_amount = variant_unit_price * reward_value / 100
+    variant_channel_listing.discounted_price_amount = (
+        variant_channel_listing.price_amount - discount_amount
+    )
+    variant_channel_listing.save(
+        update_fields=["discounted_price_amount", "price_amount"]
+    )
+
+    variant_channel_listing.variantlistingpromotionrule.create(
+        promotion_rule=rule,
+        discount_amount=discount_amount,
+        currency=channel_USD.currency_code,
+    )
+
+    # create order promotion discount
+    rule = catalogue_promotion_without_rules.rules.create(
+        order_predicate={
+            "discountedObjectPredicate": {
+                "baseTotalPrice": {
+                    "range": {
+                        "gte": 20,
+                    }
+                }
+            }
+        },
+        reward_value_type=RewardValueType.PERCENTAGE,
+        reward_value=Decimal("50"),
+        reward_type=RewardType.SUBTOTAL_DISCOUNT,
+    )
+    rule.channels.add(channel_USD)
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", line.variant_id)
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [{"variantId": variant_id, "quantity": 1}],
+        "channelSlug": checkout.channel.slug,
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLinesAdd"]
+    assert not data["errors"]
+
+    line.refresh_from_db()
+    checkout.refresh_from_db()
+    assert not checkout.discounts.all()
+
+    # unit_price: 100, sale 50% then voucher 50% = 25
+    expected_unit_price_after_all_discount = Decimal(25)
+    expected_discount_per_single_item = Decimal(25)
     unit_price = data["checkout"]["lines"][0]["unitPrice"]["gross"]["amount"]
     assert Decimal(unit_price) == expected_unit_price_after_all_discount
     total_price = data["checkout"]["lines"][0]["totalPrice"]["gross"]["amount"]
@@ -722,6 +930,94 @@ def test_checkout_lines_add_existing_variant_override_previous_custom_price(
     line = checkout.lines.last()
     assert line.quantity == 10
     assert line.price_override == price
+
+
+def test_checkout_lines_add_custom_price_and_order_fixed_discount(
+    app_api_client,
+    checkout_with_item_and_order_discount,
+    permission_handle_checkouts,
+):
+    # given
+    checkout = checkout_with_item_and_order_discount
+    line = checkout.lines.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", line.variant.pk)
+    price = Decimal("13.11")
+    discount_amount = checkout.discount_amount
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [{"variantId": variant_id, "quantity": 1, "price": price}],
+        "channelSlug": checkout.channel.slug,
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_CHECKOUT_LINES_ADD,
+        variables,
+        permissions=[permission_handle_checkouts],
+    )
+
+    # then
+    checkout.refresh_from_db()
+    line = checkout.lines.last()
+    total_price = price * line.quantity
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLinesAdd"]
+    assert not data["errors"]
+    assert data["checkout"]["discount"]["amount"] == discount_amount
+    assert line.price_override == price
+    assert checkout.discount_amount == discount_amount
+    assert checkout.subtotal.gross.amount == total_price - discount_amount
+    assert checkout.total.gross.amount == total_price - discount_amount
+
+
+def test_checkout_lines_add_custom_price_and_order_percentage_discount(
+    app_api_client,
+    checkout_with_item_and_order_discount,
+    permission_handle_checkouts,
+):
+    # given
+    checkout = checkout_with_item_and_order_discount
+    checkout_discount = checkout.discounts.first()
+    rule = checkout_discount.promotion_rule
+    rule.reward_value = 50
+    rule.reward_value_type = RewardValueType.PERCENTAGE
+    rule.save(update_fields=["reward_value", "reward_value_type"])
+
+    line = checkout.lines.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", line.variant.pk)
+    price = Decimal("13.11")
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [{"variantId": variant_id, "quantity": 7, "price": price}],
+        "channelSlug": checkout.channel.slug,
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_CHECKOUT_LINES_ADD,
+        variables,
+        permissions=[permission_handle_checkouts],
+    )
+
+    # then
+    checkout.refresh_from_db()
+    line = checkout.lines.last()
+    total_price = price * line.quantity
+    discount_amount = total_price * Decimal("0.5")
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLinesAdd"]
+    assert not data["errors"]
+    assert Decimal(str(data["checkout"]["discount"]["amount"])) == Decimal(
+        discount_amount
+    )
+    assert line.price_override == price
+    assert checkout.discount_amount == discount_amount
+    assert checkout.subtotal.gross.amount == total_price - discount_amount
+    assert checkout.total.gross.amount == total_price - discount_amount
 
 
 def test_checkout_lines_add_custom_price_app_no_perm(app_api_client, checkout, stock):

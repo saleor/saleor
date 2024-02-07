@@ -302,7 +302,7 @@ def test_get_price_overridden_price_with_discount(
     product_type,
     category,
     channel_USD,
-    promotion_without_rules,
+    catalogue_promotion_without_rules,
 ):
     # given
     product = models.Product.objects.create(
@@ -324,7 +324,7 @@ def test_get_price_overridden_price_with_discount(
     rule_1, rule_2 = PromotionRule.objects.bulk_create(
         [
             PromotionRule(
-                promotion=promotion_without_rules,
+                promotion=catalogue_promotion_without_rules,
                 catalogue_predicate={
                     "productPredicate": {
                         "ids": [
@@ -336,7 +336,7 @@ def test_get_price_overridden_price_with_discount(
                 reward_value=reward_value_1,
             ),
             PromotionRule(
-                promotion=promotion_without_rules,
+                promotion=catalogue_promotion_without_rules,
                 catalogue_predicate={
                     "variantPredicate": {
                         "ids": [

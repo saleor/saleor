@@ -3103,7 +3103,7 @@ def test_translations_query(
     product,
     published_collection,
     voucher,
-    promotion,
+    catalogue_promotion,
     shipping_method,
     page,
     menu_item,
@@ -4243,11 +4243,12 @@ QUERY_TRANSLATION_PROMOTION = """
 
 def test_translation_query_promotion(
     staff_api_client,
-    promotion,
+    catalogue_promotion,
     promotion_translation_fr,
     permission_manage_translations,
 ):
     # given
+    promotion = catalogue_promotion
     promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
 
     variables = {

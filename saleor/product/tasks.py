@@ -12,6 +12,7 @@ from django.utils import timezone
 from ..attribute.models import Attribute
 from ..celeryconf import app
 from ..core.exceptions import PreorderAllocationError
+from ..discount import PromotionType
 from ..discount.models import Promotion, PromotionRule
 from ..discount.utils import get_current_products_for_rules
 from ..plugins.manager import get_plugins_manager
@@ -112,9 +113,11 @@ def update_products_discounted_prices_for_promotion_task(
     Firstly the promotion rule variants are recalculated, then the products discounted
     prices are calculated.
     """
-    promotions = Promotion.objects.using(
-        settings.DATABASE_CONNECTION_REPLICA_NAME
-    ).active()
+    promotions = (
+        Promotion.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .active()
+        .filter(type=PromotionType.CATALOGUE)
+    )
     kwargs = {"id__gt": start_id} if start_id else {}
     if rule_ids:
         kwargs["id__in"] = rule_ids  # type: ignore[assignment]
@@ -122,9 +125,9 @@ def update_products_discounted_prices_for_promotion_task(
         PromotionRule.objects.order_by("id")
         .using(settings.DATABASE_CONNECTION_REPLICA_NAME)
         .filter(Exists(promotions.filter(id=OuterRef("promotion_id"))), **kwargs)
-        .exclude(Q(reward_value__isnull=True) | Q(reward_value=0))[
-            :PROMOTION_RULE_BATCH_SIZE
-        ]
+        .exclude(
+            Q(reward_value__isnull=True) | Q(reward_value=0) | Q(catalogue_predicate={})
+        )[:PROMOTION_RULE_BATCH_SIZE]
     )
     if ids := list(rules.values_list("pk", flat=True)):
         qs = PromotionRule.objects.filter(pk__in=ids).exclude(

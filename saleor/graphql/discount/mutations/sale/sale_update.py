@@ -31,7 +31,7 @@ from ...utils import (
     convert_migrated_sale_predicate_to_catalogue_info,
     create_catalogue_predicate,
     get_products_for_rule,
-    get_variants_for_predicate,
+    get_variants_for_catalogue_predicate,
 )
 from ..utils import update_variants_for_promotion
 from .sale_create import SaleInput
@@ -190,7 +190,7 @@ class SaleUpdate(ModelMutation):
             field in input.keys()
             for field in [*CATALOGUE_FIELDS, "start_date", "end_date", "type"]
         ):
-            variants = get_variants_for_predicate(current_predicate)
+            variants = get_variants_for_catalogue_predicate(current_predicate)
             product_ids = set(
                 product_models.Product.objects.filter(
                     Exists(variants.filter(product_id=OuterRef("id")))

@@ -4,6 +4,8 @@ from ...discount import (
     DiscountType,
     DiscountValueType,
     PromotionEvents,
+    PromotionType,
+    RewardType,
     RewardValueType,
     VoucherType,
     error_codes,
@@ -16,6 +18,10 @@ OrderDiscountTypeEnum = to_enum(DiscountType, type_name="OrderDiscountType")
 OrderDiscountTypeEnum.doc_category = DOC_CATEGORY_DISCOUNTS
 RewardValueTypeEnum = to_enum(RewardValueType, type_name="RewardValueTypeEnum")
 RewardValueTypeEnum.doc_category = DOC_CATEGORY_DISCOUNTS
+RewardTypeEnum = to_enum(RewardType, type_name="RewardTypeEnum")
+RewardTypeEnum.doc_category = DOC_CATEGORY_DISCOUNTS
+PromotionTypeEnum = to_enum(PromotionType, type_name="PromotionTypeEnum")
+PromotionTypeEnum.doc_category = DOC_CATEGORY_DISCOUNTS
 PromotionEventsEnum = to_enum(PromotionEvents, type_name="PromotionEventsEnum")
 PromotionEventsEnum.doc_category = DOC_CATEGORY_DISCOUNTS
 

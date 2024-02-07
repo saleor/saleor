@@ -18,6 +18,7 @@ class DiscountValueType:
 class DiscountType:
     SALE = "sale"
     PROMOTION = "promotion"
+    ORDER_PROMOTION = "order_promotion"
     VOUCHER = "voucher"
     MANUAL = "manual"
     CHOICES = [
@@ -25,6 +26,7 @@ class DiscountType:
         (VOUCHER, "Voucher"),
         (MANUAL, "Manual"),
         (PROMOTION, "Promotion"),
+        (ORDER_PROMOTION, "Order promotion"),
     ]
 
 
@@ -40,6 +42,16 @@ class VoucherType:
     ]
 
 
+class PromotionType:
+    CATALOGUE = "catalogue"
+    ORDER = "order"
+
+    CHOICES = [
+        (CATALOGUE, "Catalogue"),
+        (ORDER, "Order"),
+    ]
+
+
 class RewardValueType:
     FIXED = "fixed"
     PERCENTAGE = "percentage"
@@ -47,6 +59,14 @@ class RewardValueType:
     CHOICES = [
         (FIXED, "fixed"),
         (PERCENTAGE, "%"),
+    ]
+
+
+class RewardType:
+    SUBTOTAL_DISCOUNT = "subtotal_discount"
+
+    CHOICES = [
+        (SUBTOTAL_DISCOUNT, "subtotal_discount"),
     ]
 
 

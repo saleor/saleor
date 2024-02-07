@@ -1469,6 +1469,9 @@ QUERY_CHECKOUT_PRICES = """
         checkout(id: $id) {
            displayGrossPrices
            token
+           discount {
+                amount
+           }
            totalPrice {
                 currency
                 gross {
@@ -1755,6 +1758,57 @@ def test_checkout_prices_with_promotion(
         data["lines"][0]["undiscountedTotalPrice"]["amount"] == undiscounted_total_price
     )
     assert line_total_price.gross.amount < undiscounted_total_price
+
+
+def test_checkout_prices_with_order_promotion(
+    user_api_client, checkout_with_item_and_order_discount
+):
+    # given
+    query = QUERY_CHECKOUT_PRICES
+    checkout = checkout_with_item_and_order_discount
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    # then
+    assert data["token"] == str(checkout.token)
+    assert len(data["lines"]) == checkout.lines.count()
+
+    line = checkout.lines.first()
+    variant = line.variant
+    variant_listing = variant.channel_listings.get(channel=checkout.channel)
+    unit_price = variant.get_price(variant_listing)
+    subtotal_price = unit_price * line.quantity
+    shipping_price = base_calculations.base_checkout_delivery_price(
+        checkout_info, lines
+    )
+    total_price = subtotal_price + shipping_price
+    discount_amount = checkout.discounts.first().amount_value
+
+    assert data["discount"]["amount"] == checkout.discount_amount
+    assert data["totalPrice"]["gross"]["amount"] == (
+        total_price.amount - discount_amount
+    )
+    assert data["subtotalPrice"]["gross"]["amount"] == (
+        subtotal_price.amount - discount_amount
+    )
+    assert str(data["lines"][0]["unitPrice"]["gross"]["amount"]) == str(
+        round((subtotal_price.amount - discount_amount) / line.quantity, 2)
+    )
+    assert (
+        data["lines"][0]["totalPrice"]["gross"]["amount"]
+        == subtotal_price.amount - discount_amount
+    )
+
+    assert data["lines"][0]["undiscountedUnitPrice"]["amount"] == unit_price.amount
+    assert data["lines"][0]["undiscountedTotalPrice"]["amount"] == subtotal_price.amount
 
 
 def test_checkout_display_gross_prices_use_default(user_api_client, checkout_with_item):
