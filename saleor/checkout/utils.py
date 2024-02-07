@@ -29,7 +29,7 @@ from ..discount.models import (
 )
 from ..discount.utils import (
     create_discount_objects_for_catalogue_promotions,
-    create_discount_objects_for_order_promotions,
+    create_checkout_discount_objects_for_order_promotions,
     delete_gift_line,
     get_products_voucher_discount,
     get_voucher_code_instance,
@@ -678,7 +678,9 @@ def recalculate_checkout_discount(
     else:
         remove_voucher_from_checkout(checkout)
 
-    create_discount_objects_for_order_promotions(checkout_info, lines, save=True)
+    create_checkout_discount_objects_for_order_promotions(
+        checkout_info, lines, save=True
+    )
 
 
 def add_promo_code_to_checkout(

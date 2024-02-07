@@ -30,7 +30,11 @@ from ....checkout.utils import (
 from ....core.exceptions import InsufficientStock, PermissionDenied
 from ....discount import DiscountType, DiscountValueType
 from ....discount.models import CheckoutLineDiscount, PromotionRule
-from ....discount.utils import create_gift_line, get_best_rule_for_checkout
+from ....discount.utils import (
+    create_gift_line,
+    fetch_promotion_rules_for_checkout,
+    get_best_rule,
+)
 from ....permission.enums import CheckoutPermissions
 from ....product import models as product_models
 from ....product.models import ProductChannelListing, ProductVariant
@@ -524,9 +528,9 @@ def apply_gift_reward_if_applicable_on_checkout_creation(checkout: "Checkout") -
         return
 
     _set_checkout_base_subtotal_and_total_on_checkout_creation(checkout)
-
-    best_rule_data = get_best_rule_for_checkout(
-        checkout, checkout.channel, checkout.get_country()
+    rules = fetch_promotion_rules_for_checkout(checkout)
+    best_rule_data = get_best_rule(
+        rules, checkout.channel, checkout.get_country(), checkout.base_subtotal
     )
     if not best_rule_data:
         return

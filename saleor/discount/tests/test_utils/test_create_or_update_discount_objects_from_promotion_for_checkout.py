@@ -23,7 +23,7 @@ from ...models import CheckoutDiscount, CheckoutLineDiscount, PromotionRule
 from ...utils import (
     _create_or_update_checkout_discount,
     _get_best_gift_reward,
-    create_discount_objects_for_order_promotions,
+    create_checkout_discount_objects_for_order_promotions,
     create_or_update_discount_objects_from_promotion_for_checkout,
 )
 
@@ -2106,7 +2106,9 @@ def test_create_discount_objects_for_order_promotions_race_condition(
         "saleor.discount.utils._create_or_update_checkout_discount",
         call_before_creating_discount_object,
     ):
-        create_discount_objects_for_order_promotions(checkout_info, checkout_lines_info)
+        create_checkout_discount_objects_for_order_promotions(
+            checkout_info, checkout_lines_info
+        )
 
     # then
     discounts = list(checkout_info.checkout.discounts.all())

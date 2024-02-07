@@ -355,9 +355,8 @@ def create_or_update_discount_objects_from_promotion_for_checkout(
     checkout_info: "CheckoutInfo",
     lines_info: Iterable["CheckoutLineInfo"],
 ):
-    breakpoint()
     create_discount_objects_for_catalogue_promotions(lines_info)
-    create_discount_objects_for_order_promotions(checkout_info, lines_info)
+    create_checkout_discount_objects_for_order_promotions(checkout_info, lines_info)
 
 
 def create_or_update_discount_objects_from_promotion_for_order(
@@ -365,7 +364,7 @@ def create_or_update_discount_objects_from_promotion_for_order(
     lines_info: Iterable["DraftOrderLineInfo"],
 ):
     create_discount_objects_for_catalogue_promotions(lines_info)
-    # create_discount_objects_for_order_promotions(order, lines_info)
+    create_checkout_discount_objects_for_order_promotions(order, lines_info)
 
 
 def create_discount_objects_for_catalogue_promotions(
@@ -560,7 +559,7 @@ def _update_discount(
         updated_fields.append("reason")
 
 
-def create_discount_objects_for_order_promotions(
+def create_checkout_discount_objects_for_order_promotions(
     checkout_info: "CheckoutInfo",
     lines_info: Iterable["CheckoutLineInfo"],
     *,
@@ -577,8 +576,12 @@ def create_discount_objects_for_order_promotions(
         return lines_info
 
     channel = checkout_info.channel
-    rule_data = get_best_rule_for_checkout(
-        checkout, channel, checkout_info.get_country()
+    rules = fetch_promotion_rules_for_checkout(checkout)
+    rule_data = get_best_rule(
+        rules=rules,
+        channel=channel,
+        country=checkout_info.get_country(),
+        subtotal=checkout.base_subtotal,
     )
     if not rule_data:
         _clear_checkout_discount(checkout_info, lines_info, save)
@@ -599,16 +602,49 @@ def create_discount_objects_for_order_promotions(
     )
 
 
-def get_best_rule_for_checkout(checkout: "Checkout", channel: "Channel", country: str):
-    # zedzior zreplikuj get_best_rule_for_order
+def create_order_discount_objects_for_order_promotions(
+    order: "Order",
+    lines_info: Iterable["DraftOrderLineInfo"],
+    *,
+    save: bool = False,
+):
+    # The base prices are required for order promotion discount qualification.
+    _set_order_base_prices(order, lines_info)
+
+    # Discount from order rules is applied only when the voucher is not set
+    if order.voucher_code:
+        _clear_order_discount(order, lines_info, save)
+        return lines_info
+
+    rule_data = get_best_rule(checkout, channel, checkout_info.get_country())
+    if not rule_data:
+        _clear_checkout_discount(checkout_info, lines_info, save)
+        return lines_info
+
+    best_rule, best_discount_amount, gift_listing = rule_data
+
+    _create_or_update_checkout_discount(
+        checkout,
+        checkout_info,
+        lines_info,
+        best_rule,
+        best_discount_amount,
+        gift_listing,
+        channel.currency_code,
+        best_rule.promotion,
+        save,
+    )
+
+
+def get_best_rule(
+    rules: Iterable["PromotionRule"],
+    channel: "Channel",
+    country: str,
+    subtotal: Money,
+) -> Optional[tuple[PromotionRule, Decimal, ProductVariantChannelListing]]:
     RuleDiscount = namedtuple(
         "RuleDiscount", ["rule", "discount_amount", "gift_listing"]
     )
-    subtotal = checkout.base_subtotal
-    rules = fetch_promotion_rules_for_checkout(checkout)
-    if not rules:
-        return
-    # zedzior wydziel osobna funkcje
     currency_code = channel.currency_code
     rule_discounts: list[RuleDiscount] = []
     gift_rules = [rule for rule in rules if rule.reward_type == RewardType.GIFT]
