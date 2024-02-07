@@ -33,9 +33,7 @@ class ProductMediaDelete(BaseMutation):
         media_id = media_obj.id
         media_obj.delete()
         media_obj.id = media_id
-        product = models.Product.objects.prefetched_for_webhook().get(
-            pk=media_obj.product_id
-        )
+        product = models.Product.objects.get(pk=media_obj.product_id)
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.product_updated, product)
         cls.call_event(manager.product_media_deleted, media_obj)

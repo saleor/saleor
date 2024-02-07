@@ -37,8 +37,9 @@ from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..order.utils import get_order_country
 from ..page.models import Page
 from ..payment import ChargeStatus
+from ..payment.models import Payment, TransactionItem
 from ..product import ProductMediaTypes
-from ..product.models import Collection, Product, ProductMedia
+from ..product.models import Collection, Product, ProductMedia, ProductVariant
 from ..shipping.interface import ShippingMethodData
 from ..tax.models import TaxClassCountryRate
 from ..tax.utils import get_charge_taxes_for_order
@@ -53,12 +54,6 @@ from .serializers import (
     serialize_product_attributes,
     serialize_variant_attributes,
 )
-
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from ..product.models import ProductVariant
-
-from ..payment.models import Payment, TransactionItem
 
 if TYPE_CHECKING:
     from ..discount.models import Promotion
@@ -713,6 +708,7 @@ def _get_charge_taxes_for_product(product: "Product") -> bool:
 def generate_product_payload(
     product: "Product", requestor: Optional["RequestorOrLazyObject"] = None
 ):
+    product = Product.objects.prefetched_for_webhook().get(pk=product.pk)
     serializer = PayloadSerializer(
         extra_model_fields={"ProductVariant": ("quantity", "quantity_allocated")}
     )
@@ -839,6 +835,9 @@ def generate_product_variant_payload(
     requestor: Optional["RequestorOrLazyObject"] = None,
     with_meta: bool = True,
 ):
+    product_variants = ProductVariant.objects.prefetched_for_webhook().get(
+        pk__in=[variant.pk for variant in product_variants]
+    )
     extra_dict_data = {
         "id": lambda v: v.get_global_id(),
         "attributes": lambda v: serialize_variant_attributes(v),

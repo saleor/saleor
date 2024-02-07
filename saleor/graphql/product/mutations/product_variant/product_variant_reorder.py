@@ -48,7 +48,7 @@ class ProductVariantReorder(BaseMutation):
         pk = cls.get_global_id_or_error(product_id, only_type=Product)
 
         try:
-            product = models.Product.objects.prefetched_for_webhook().get(pk=pk)
+            product = models.Product.objects.get(pk=pk)
         except ObjectDoesNotExist:
             raise ValidationError(
                 {
