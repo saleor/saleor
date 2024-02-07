@@ -364,7 +364,7 @@ def create_or_update_discount_objects_from_promotion_for_order(
     lines_info: Iterable["DraftOrderLineInfo"],
 ):
     create_discount_objects_for_catalogue_promotions(lines_info)
-    create_checkout_discount_objects_for_order_promotions(order, lines_info)
+    create_order_discount_objects_for_order_promotions(order, lines_info)
 
 
 def create_discount_objects_for_catalogue_promotions(
@@ -576,7 +576,7 @@ def create_checkout_discount_objects_for_order_promotions(
         return lines_info
 
     channel = checkout_info.channel
-    rules = fetch_promotion_rules_for_checkout(checkout)
+    rules = fetch_promotion_rules_for_checkout_or_order(checkout)
     rule_data = get_best_rule(
         rules=rules,
         channel=channel,
@@ -616,9 +616,16 @@ def create_order_discount_objects_for_order_promotions(
         _clear_order_discount(order, lines_info, save)
         return lines_info
 
-    rule_data = get_best_rule(checkout, channel, checkout_info.get_country())
+    channel = order.channel
+    rules = fetch_promotion_rules_for_checkout_or_order(order)
+    rule_data = get_best_rule(
+        rules=rules,
+        channel=channel,
+        country=order.get_country(),
+        subtotal=order.base_subtotal,
+    )
     if not rule_data:
-        _clear_checkout_discount(checkout_info, lines_info, save)
+        _clear_order_discount(checkout_info, lines_info, save)
         return lines_info
 
     best_rule, best_discount_amount, gift_listing = rule_data
@@ -687,6 +694,19 @@ def _set_checkout_base_prices(checkout_info, lines_info):
     checkout.base_subtotal = subtotal
     checkout.base_total = total
     checkout.save(update_fields=["base_total_amount", "base_subtotal_amount"])
+
+
+def _set_order_base_prices(order: "Order", lines_info: Iterable["DraftOrderLineInfo"]):
+    """Set base order prices that includes only catalogue discounts."""
+    from ..order.base_calculations import base_order_subtotal
+
+    lines = [line_info.line for line_info in lines_info]
+    subtotal = base_order_subtotal(order, lines)
+    shipping_price = order.base_shipping_price
+    total = subtotal + shipping_price
+    order.base_subtotal = subtotal
+    order.base_total = total
+    order.save(update_fields=["base_total_amount", "base_subtotal_amount"])
 
 
 def _clear_checkout_discount(
@@ -915,8 +935,6 @@ def _handle_gift_reward(
 ):
     with transaction.atomic():
         line, line_created = create_gift_line(checkout, gift_listing.variant_id)
-        line_discount = None
-        discount_created = False
         (
             line_discount,
             discount_created,
@@ -1038,10 +1056,7 @@ def get_variants_to_promotions_map(
     return rules_info_per_variant_and_promotion_id
 
 
-def fetch_promotion_rules_for_checkout(
-    checkout: Checkout,
-):
-    # zedzior replika dla order
+def fetch_promotion_rules_for_checkout_or_order(object: Union["Checkout", "Order"]):
     from ..graphql.discount.utils import PredicateObjectType, filter_qs_by_predicate
 
     applicable_rules = []
@@ -1055,20 +1070,21 @@ def fetch_promotion_rules_for_checkout(
     )
     rule_to_channel_ids_map = _get_rule_to_channel_ids_map(rules)
 
-    checkout_channel_id = checkout.channel_id
-    currency = checkout.channel.currency_code
-    checkout_qs = Checkout.objects.filter(pk=checkout.pk)
+    CheckoutOrOrder = Checkout if isinstance(object, Checkout) else Order
+    channel_id = object.channel_id
+    currency = object.channel.currency_code
+    qs = CheckoutOrOrder.objects.filter(pk=object.pk)
     for rule in rules.iterator():
         rule_channel_ids = rule_to_channel_ids_map.get(rule.id, [])
-        if checkout_channel_id not in rule_channel_ids:
+        if channel_id not in rule_channel_ids:
             continue
-        checkouts = filter_qs_by_predicate(
+        objects = filter_qs_by_predicate(
             rule.order_predicate,
-            checkout_qs,
+            qs,
             PredicateObjectType.CHECKOUT,
             currency,
         )
-        if checkouts.exists():
+        if objects.exists():
             applicable_rules.append(rule)
 
     return applicable_rules

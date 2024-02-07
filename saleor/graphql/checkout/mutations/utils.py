@@ -32,7 +32,7 @@ from ....discount import DiscountType, DiscountValueType
 from ....discount.models import CheckoutLineDiscount, PromotionRule
 from ....discount.utils import (
     create_gift_line,
-    fetch_promotion_rules_for_checkout,
+    fetch_promotion_rules_for_checkout_or_order,
     get_best_rule,
 )
 from ....permission.enums import CheckoutPermissions
@@ -424,6 +424,7 @@ def group_lines_input_data_on_update(
         variant_id = cast(str, line.get("variant_id"))
         line_id = cast(str, line.get("line_id"))
 
+        line_db_id, variant_db_id = None, None
         if line_id:
             _, line_db_id = graphene.Node.from_global_id(line_id)
 
@@ -513,7 +514,7 @@ def find_variant_id_when_line_parameter_used(
     return str(line_info[0].line.variant_id)
 
 
-def apply_gift_reward_if_applicable_on_checkout_creation(checkout: "Checkout") -> None:
+def apply_gift_reward_if_applicable_on_checkout_creation(checkout: "models.Checkout") -> None:
     """Apply gift reward if applicable on newly created checkout.
 
     This method apply the gift reward if any gift promotion exists and
@@ -528,7 +529,7 @@ def apply_gift_reward_if_applicable_on_checkout_creation(checkout: "Checkout") -
         return
 
     _set_checkout_base_subtotal_and_total_on_checkout_creation(checkout)
-    rules = fetch_promotion_rules_for_checkout(checkout)
+    rules = fetch_promotion_rules_for_checkout_or_order(checkout)
     best_rule_data = get_best_rule(
         rules, checkout.channel, checkout.get_country(), checkout.base_subtotal
     )
@@ -553,7 +554,7 @@ def apply_gift_reward_if_applicable_on_checkout_creation(checkout: "Checkout") -
 
 
 def _set_checkout_base_subtotal_and_total_on_checkout_creation(
-    checkout: "Checkout",
+    checkout: "models.Checkout",
 ):
     """Calculate and set base subtotal and total for newly created checkout."""
     variants_id = [line.variant_id for line in checkout.lines.all()]
