@@ -316,7 +316,9 @@ def test_update_page_with_file_attribute_new_value_is_not_created(
         "Attribute", page_file_attribute.pk
     )
     existing_value = page_file_attribute.values.first()
-    associate_attribute_values_to_instance(page, page_file_attribute, existing_value)
+    associate_attribute_values_to_instance(
+        page, {page_file_attribute.pk: [existing_value]}
+    )
 
     page_id = graphene.Node.to_global_id("Page", page.id)
     domain = site_settings.site.domain
@@ -469,7 +471,7 @@ def test_update_page_with_page_reference_attribute_existing_value(
         reference_page=ref_page,
     )
     associate_attribute_values_to_instance(
-        page, page_type_page_reference_attribute, attr_value
+        page, {page_type_page_reference_attribute.pk: [attr_value]}
     )
 
     values_count = page_type_page_reference_attribute.values.count()
@@ -751,7 +753,7 @@ def test_update_page_with_product_reference_attribute_existing_value(
         reference_product=product,
     )
     associate_attribute_values_to_instance(
-        page, page_type_product_reference_attribute, attr_value
+        page, {page_type_product_reference_attribute.pk: [attr_value]}
     )
 
     values_count = page_type_product_reference_attribute.values.count()
@@ -871,7 +873,7 @@ def test_update_page_with_variant_reference_attribute_existing_value(
         reference_variant=variant,
     )
     associate_attribute_values_to_instance(
-        page, page_type_variant_reference_attribute, attr_value
+        page, {page_type_variant_reference_attribute.pk: [attr_value]}
     )
 
     values_count = page_type_variant_reference_attribute.values.count()
@@ -1090,10 +1092,13 @@ def test_update_page_change_attribute_values_ordering(
 
     associate_attribute_values_to_instance(
         page,
-        page_type_product_reference_attribute,
-        attr_value_3,
-        attr_value_2,
-        attr_value_1,
+        {
+            page_type_product_reference_attribute.pk: [
+                attr_value_3,
+                attr_value_2,
+                attr_value_1,
+            ]
+        },
     )
 
     attribute = get_page_attributes(page).first()

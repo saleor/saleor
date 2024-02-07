@@ -534,9 +534,12 @@ def test_get_variant_by_id_with_variant_selection_filter(
     )
 
     _associate_attribute_to_instance(
-        variant, file_attribute_with_file_input_type_without_values
+        variant,
+        {
+            file_attribute_with_file_input_type_without_values.pk: [],
+            size_attribute.pk: [],
+        },
     )
-    _associate_attribute_to_instance(variant, size_attribute)
 
     # when
     response = staff_api_client.post_graphql(
@@ -592,7 +595,7 @@ def test_get_variant_with_sorted_attribute_values(
 
     attr_values = [attr_value_2, attr_value_1, attr_value_3]
     associate_attribute_values_to_instance(
-        variant, product_type_product_reference_attribute, *attr_values
+        variant, {product_type_product_reference_attribute.pk: attr_values}
     )
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
