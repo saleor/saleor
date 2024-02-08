@@ -3,6 +3,7 @@ import datetime
 from collections import defaultdict, namedtuple
 from collections.abc import Iterable, Iterator
 from decimal import ROUND_HALF_UP, Decimal
+from enum import Enum
 from functools import partial
 from typing import TYPE_CHECKING, Callable, Optional, Union, cast
 from uuid import UUID
@@ -19,7 +20,7 @@ from ..checkout.base_calculations import (
     base_checkout_delivery_price,
     base_checkout_subtotal,
 )
-from ..checkout.fetch import CheckoutLineInfo, find_checkout_line_info
+from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo, find_checkout_line_info
 from ..checkout.models import Checkout, CheckoutLine
 from ..core.exceptions import InsufficientStock
 from ..core.taxes import zero_money
@@ -50,7 +51,6 @@ from .models import (
 
 if TYPE_CHECKING:
     from ..account.models import User
-    from ..checkout.fetch import CheckoutInfo
     from ..plugins.manager import PluginsManager
     from ..product.managers import ProductVariantQueryset
     from ..product.models import (
@@ -61,15 +61,39 @@ CatalogueInfo = defaultdict[str, set[Union[int, str]]]
 CATALOGUE_FIELDS = ["categories", "collections", "products", "variants"]
 
 
-@dataclass
-class CheckoutOrOrder:
-    instance: Union["Checkout", "Order"]
-    instance_info: Optional["CheckoutInfo"]
-    lines_info: Union[list["CheckoutLineInfo"], list["DraftOrderLineInfo"]]
+class CheckoutOrOrderType(Enum):
+    ORDER = "order"
+    CHECKOUT = "checkout"
 
-    @property
-    def lines(self):
-        return [line_info.line for line_info in self.lines_info]
+
+@dataclass
+class CheckoutOrOrderModels:
+    type: CheckoutOrOrderType
+    model: Union[type[Checkout], type[Order]]
+    line_model: Union[type[CheckoutLine], type[OrderLine]]
+    discount_model: Union[type[CheckoutDiscount], type[OrderDiscount]]
+    discount_line_model: Union[type[CheckoutLineDiscount], type[OrderLineDiscount]]
+
+
+def get_checkout_or_order_models(
+    instance: Union[Checkout, Order],
+) -> CheckoutOrOrderModels:
+    if isinstance(instance, Checkout):
+        return CheckoutOrOrderModels(
+            type=CheckoutOrOrderType.CHECKOUT,
+            model=Checkout,
+            line_model=CheckoutLine,
+            discount_model=CheckoutDiscount,
+            discount_line_model=CheckoutLineDiscount,
+        )
+    else:
+        return CheckoutOrOrderModels(
+            type=CheckoutOrOrderType.ORDER,
+            model=Order,
+            line_model=OrderLine,
+            discount_model=OrderDiscount,
+            discount_line_model=OrderLineDiscount,
+        )
 
 
 def increase_voucher_usage(
@@ -375,12 +399,14 @@ def create_or_update_discount_objects_from_promotion_for_order(
     order: "Order",
     lines_info: Iterable["DraftOrderLineInfo"],
 ):
-    create_discount_objects_for_catalogue_promotions(lines_info)
+    models = get_checkout_or_order_models(order)
+    create_discount_objects_for_catalogue_promotions(lines_info, models)
     create_order_discount_objects_for_order_promotions(order, lines_info)
 
 
 def create_discount_objects_for_catalogue_promotions(
     lines_info: Union[Iterable["CheckoutLineInfo"], Iterable["DraftOrderLineInfo"]],
+    models: CheckoutOrOrderModels,
 ):
     line_discounts_to_create = []
     line_discounts_to_update = []
@@ -389,12 +415,6 @@ def create_discount_objects_for_catalogue_promotions(
 
     if not lines_info:
         return
-
-    LineDiscount = (
-        CheckoutLineDiscount
-        if isinstance(lines_info[0], CheckoutLineInfo)
-        else OrderLineDiscount
-    )
 
     for line_info in lines_info:
         line = line_info.line
@@ -438,7 +458,7 @@ def create_discount_objects_for_catalogue_promotions(
             discount_name = get_discount_name(rule, rule_info.promotion)
             translated_name = get_discount_translated_name(rule_info)
             if not discount_to_update:
-                line_discount = LineDiscount(
+                line_discount = models.discount_line_model(
                     line=line,
                     type=DiscountType.PROMOTION,
                     value_type=rule.reward_value_type,
@@ -464,11 +484,15 @@ def create_discount_objects_for_catalogue_promotions(
                 line_discounts_to_update.append(discount_to_update)
 
     if line_discounts_to_create:
-        LineDiscount.objects.bulk_create(line_discounts_to_create)
+        models.discount_line_model.objects.bulk_create(line_discounts_to_create)
     if line_discounts_to_update and updated_fields:
-        LineDiscount.objects.bulk_update(line_discounts_to_update, updated_fields)
+        models.discount_line_model.objects.bulk_update(
+            line_discounts_to_update, updated_fields
+        )
     if line_discount_ids_to_remove:
-        LineDiscount.objects.filter(id__in=line_discount_ids_to_remove).delete()
+        models.discount_line_model.objects.filter(
+            id__in=line_discount_ids_to_remove
+        ).delete()
 
 
 def _get_discount_amount(
