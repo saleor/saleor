@@ -25,12 +25,13 @@ from .....permission.auth_filters import AuthorizationFilters
 from .....permission.enums import PaymentPermissions
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_313, PREVIEW_FEATURE
+from ....core.descriptions import ADDED_IN_313, ADDED_IN_314, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_PAYMENTS
 from ....core.enums import TransactionEventReportErrorCode
 from ....core.mutations import ModelMutation
-from ....core.scalars import PositiveDecimal
+from ....core.scalars import UUID, PositiveDecimal
 from ....core.types import common as common_types
+from ....core.validators import validate_one_of_args_is_in_mutation
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import TransactionActionEnum, TransactionEventTypeEnum
 from ...types import TransactionEvent, TransactionItem
@@ -55,8 +56,17 @@ class TransactionEventReport(ModelMutation):
 
     class Arguments:
         id = graphene.ID(
-            description="The ID of the transaction.",
-            required=True,
+            description=(
+                "The ID of the transaction. One of field id or token is required."
+            ),
+            required=False,
+        )
+        token = UUID(
+            description=(
+                "The token of the transaction. One of field id or token is required."
+            )
+            + ADDED_IN_314,
+            required=False,
         )
         psp_reference = graphene.String(
             description="PSP Reference of the event to report.", required=True
@@ -162,20 +172,21 @@ class TransactionEventReport(ModelMutation):
         info: ResolveInfo,
         /,
         *,
-        id,
         psp_reference,
         type,
         amount,
+        token=None,
+        id=None,
         time=None,
         external_url=None,
         message=None,
         available_actions=None,
     ):
+        validate_one_of_args_is_in_mutation("id", id, "token", token)
+        transaction = get_transaction_item(id, token)
         user = info.context.user
         app = get_app_promise(info.context).get()
         manager = get_plugin_manager_promise(info.context).get()
-
-        transaction = get_transaction_item(id)
 
         if not check_if_requestor_has_access(
             transaction=transaction, user=user, app=app
