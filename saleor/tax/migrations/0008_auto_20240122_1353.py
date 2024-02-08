@@ -11,11 +11,6 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name="taxconfiguration",
-            name="calculated_taxes_required_to_place_order",
-            field=models.BooleanField(default=False),
-        ),
-        migrations.AddField(
-            model_name="taxconfiguration",
             name="tax_app_id",
             field=models.CharField(blank=True, max_length=256, null=True),
         ),
@@ -23,13 +18,5 @@ class Migration(migrations.Migration):
             model_name="taxconfigurationpercountry",
             name="tax_app_id",
             field=models.CharField(blank=True, max_length=256, null=True),
-        ),
-        migrations.RunSQL(
-            """
-            ALTER TABLE tax_taxconfiguration
-            ALTER COLUMN calculated_taxes_required_to_place_order
-            SET DEFAULT true;
-            """,
-            reverse_sql=migrations.RunSQL.noop,
         ),
     ]

@@ -9826,11 +9826,6 @@ type TaxConfiguration implements Node & ObjectWithMetadata @doc(category: "Taxes
   The tax app id that will be used to calculate the taxes for the given channel. Empty value for `TAX_APP` set as `taxCalculationStrategy` means that Saleor will iterate over all installed tax apps.
   """
   taxAppId: String
-
-  """
-  Determines if Saleor should allow to place the order without correct taxes calculated by the TaxApp.
-  """
-  calculatedTaxesRequiredToPlaceOrder: Boolean!
 }
 
 enum TaxCalculationStrategy @doc(category: "Taxes") {

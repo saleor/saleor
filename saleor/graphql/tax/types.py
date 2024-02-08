@@ -58,13 +58,6 @@ class TaxConfiguration(ModelObjectType[models.TaxConfiguration]):
         ),
         required=False,
     )
-    calculated_taxes_required_to_place_order = graphene.Boolean(
-        description=(
-            "Determines if Saleor should allow to place the order without correct "
-            "taxes calculated by the TaxApp."
-        ),
-        required=True,
-    )
 
     class Meta:
         description = "Channel-specific tax configuration." + ADDED_IN_39
