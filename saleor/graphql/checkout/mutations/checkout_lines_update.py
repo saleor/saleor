@@ -232,10 +232,9 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
         existing_gift_ids = [
             str(line_info.line.id) for line_info in lines_info if line_info.line.is_gift
         ]
-        gift_lines_to_update = [
+        if gift_lines_to_update := [
             line for line in lines_input if line.line_id in existing_gift_ids
-        ]
-        if gift_lines_to_update:
+        ]:
             global_ids = [
                 graphene.Node.to_global_id("CheckoutLine", line.line_id)
                 for line in gift_lines_to_update

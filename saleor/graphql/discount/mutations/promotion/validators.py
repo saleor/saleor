@@ -68,16 +68,14 @@ def _get_gift_ids(cleaned_input, instance):
         return
 
     if "gifts" in cleaned_input:
-        gift_ids = {gift.id for gift in cleaned_input["gifts"]}
+        return {gift.id for gift in cleaned_input["gifts"]}
     else:
         # this part is only for PromotionRuleUpdate mutation
         # so the gifts will be fetched once
-        gift_ids = (
-            {gift.id for gift in instance.gifts.all()}
-            | {gift.id for gift in cleaned_input.get("add_gifts", [])}
-        ) - {gift.id for gift in cleaned_input.get("remove_gifts", [])}
-
-    return gift_ids
+        current_gift_ids = {gift.id for gift in instance.gifts.all()}
+        add_gift_ids = {gift.id for gift in cleaned_input.get("add_gifts", [])}
+        remove_gift_ids = {gift.id for gift in cleaned_input.get("remove_gifts", [])}
+        return (current_gift_ids | add_gift_ids) - remove_gift_ids
 
 
 def _clean_gifts(gift_ids, errors, error_class, index):
