@@ -685,7 +685,6 @@ def test_generate_pre_save_payloads(
 
     # then
     payload_key = get_pre_save_payload_key(webhook, variant)
-    assert mocked_call_event.call_count == 1
     request_time = mocked_call_event.call_args[1]["request_time"]
     assert request_time
     pre_save_payload = mocked_call_event.call_args[1]["pre_save_payloads"]

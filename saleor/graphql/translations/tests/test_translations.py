@@ -3943,7 +3943,7 @@ def test_product_attribute_not_visible_in_storefront_translation_not_returned_no
     attribute_value = plain_text_attribute.values.first()
 
     associate_attribute_values_to_instance(
-        product, plain_text_attribute, attribute_value
+        product, {plain_text_attribute.pk: [attribute_value]}
     )
 
     text = "Test attribute translation"
@@ -3983,7 +3983,7 @@ def test_product_attribute_not_visible_in_storefront_translation_returned_with_p
     attribute_value = plain_text_attribute.values.first()
 
     associate_attribute_values_to_instance(
-        product, plain_text_attribute, attribute_value
+        product, {plain_text_attribute.pk: [attribute_value]}
     )
 
     text = "Test attribute translation"
@@ -4320,7 +4320,7 @@ def test_page_attribute_not_visible_in_storefront_translation_not_returned_no_pa
     attribute_value = plain_text_attribute_page_type.values.first()
 
     associate_attribute_values_to_instance(
-        page, plain_text_attribute_page_type, attribute_value
+        page, {plain_text_attribute_page_type.pk: [attribute_value]}
     )
 
     text = "Test attribute translation"
@@ -4360,7 +4360,7 @@ def test_page_attribute_not_visible_in_storefront_translation_returned_with_page
     attribute_value = plain_text_attribute_page_type.values.first()
 
     associate_attribute_values_to_instance(
-        page, plain_text_attribute_page_type, attribute_value
+        page, {plain_text_attribute_page_type.pk: [attribute_value]}
     )
 
     text = "Test attribute translation"
