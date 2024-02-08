@@ -198,7 +198,6 @@ class TransactionProcess(BaseMutation):
         source_object = cls.get_source_object(transaction_item)
         app = cls.clean_payment_app(transaction_item)
         app_identifier = app.identifier
-        app_identifier = cast(str, app_identifier)
         action = cls.get_action(request_event, source_object.channel)
         customer_ip_address = clean_customer_ip_address(
             info,
