@@ -12,8 +12,31 @@ from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 TRANSACTION_REQUEST_REFUND_FOR_GRANTED_REFUND = """
-mutation TransactionRequestRefundForGrantedRefund($id: ID!, $grantedRefundID: ID!) {
+mutation TransactionRequestRefundForGrantedRefund($id: ID, $grantedRefundID: ID!) {
   transactionRequestRefundForGrantedRefund(id: $id, grantedRefundId: $grantedRefundID) {
+    transaction {
+      id
+      events {
+        type
+        amount {
+          amount
+        }
+      }
+    }
+    errors {
+      field
+      message
+      code
+    }
+  }
+}
+"""
+
+TRANSACTION_REQUEST_REFUND_FOR_GRANTED_REFUND_BY_TOKEN = """
+mutation TransactionRequestRefundForGrantedRefund($token: UUID, $grantedRefundID: ID!) {
+  transactionRequestRefundForGrantedRefund(
+    token: $token, grantedRefundId: $grantedRefundID
+  ) {
     transaction {
       id
       events {
@@ -284,6 +307,70 @@ def test_triggers_refund_request_for_app(
     # when
     response = app_api_client.post_graphql(
         TRANSACTION_REQUEST_REFUND_FOR_GRANTED_REFUND,
+        variables,
+    )
+
+    get_graphql_content(response)
+
+    request_event = TransactionEvent.objects.filter(
+        type=TransactionEventType.REFUND_REQUEST,
+    ).first()
+    assert request_event
+    assert mocked_is_active.called
+    mocked_payment_action_request.assert_called_once_with(
+        TransactionActionData(
+            transaction=transaction_item,
+            action_type=TransactionAction.REFUND,
+            action_value=expected_refund_amount,
+            event=request_event,
+            transaction_app_owner=app,
+            granted_refund=granted_refund,
+        ),
+        order_with_lines.channel.slug,
+    )
+
+    assert TransactionEvent.objects.get(
+        transaction=transaction_item,
+        type=TransactionEventType.REFUND_REQUEST,
+        amount_value=expected_refund_amount,
+    )
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.transaction_refund_requested")
+def test_triggers_refund_request_for_app_via_token(
+    mocked_payment_action_request,
+    mocked_is_active,
+    app_api_client,
+    order_with_lines,
+    permission_manage_payments,
+    transaction_item_generator,
+    app,
+):
+    # given
+    app.permissions.set([permission_manage_payments])
+    webhook = app.webhooks.create(
+        name="Request", is_active=True, target_url="http://localhost:8000/endpoint/"
+    )
+    webhook.events.create(event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED)
+    transaction_item = transaction_item_generator(
+        order_id=order_with_lines.pk,
+        charged_value=order_with_lines.total_gross.amount,
+        app=app,
+    )
+    expected_refund_amount = Decimal("10.00")
+    granted_refund = order_with_lines.granted_refunds.create(
+        amount_value=expected_refund_amount
+    )
+
+    variables = {
+        "token": transaction_item.token,
+        "grantedRefundID": to_global_id_or_none(granted_refund),
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        TRANSACTION_REQUEST_REFUND_FOR_GRANTED_REFUND_BY_TOKEN,
         variables,
     )
 
