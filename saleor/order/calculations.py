@@ -2,6 +2,7 @@ from collections.abc import Iterable
 from decimal import Decimal
 from typing import Optional
 
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import prefetch_related_objects
 from prices import Money, TaxedMoney
@@ -27,6 +28,7 @@ from .base_calculations import (
     undiscounted_order_total,
     update_order_discount_amounts,
 )
+from .error_codes import OrderErrorCode
 from .interface import OrderTaxedPricesData
 from .models import Order, OrderLine
 
@@ -36,6 +38,7 @@ def fetch_order_prices_if_expired(
     manager: PluginsManager,
     lines: Optional[Iterable[OrderLine]] = None,
     force_update: bool = False,
+    need_tax_calculation: bool = False,
 ) -> tuple[Order, Optional[Iterable[OrderLine]]]:
     """Fetch order prices with taxes.
 
@@ -58,7 +61,7 @@ def fetch_order_prices_if_expired(
     order.should_refresh_prices = False
 
     _update_order_discount_for_voucher(order)
-    _recalculate_prices(order, manager, lines)
+    _recalculate_prices(order, manager, lines, need_tax_calculation)
 
     order.subtotal = get_subtotal(lines, order.currency)
     with transaction.atomic(savepoint=False):
@@ -155,7 +158,11 @@ def _recalculate_prices(
             )
         except ValueError:
             if need_tax_calculation:
-                raise ValueError("temp")
+                raise ValidationError(
+                    "Configured Tax App didn't responded.",
+                    code=OrderErrorCode.TAX_ERROR.value,
+                )
+            order.should_refresh_prices = True
 
         if not should_charge_tax:
             # If charge_taxes is disabled or order is exempt from taxes, remove the
@@ -178,7 +185,11 @@ def _recalculate_prices(
                 )
             except ValueError:
                 if need_tax_calculation:
-                    raise ValueError("temp")
+                    raise ValidationError(
+                        "Configured Tax App didn't responded.",
+                        code=OrderErrorCode.TAX_ERROR.value,
+                    )
+                order.should_refresh_prices = True
         else:
             apply_order_discounts(order, lines, assign_prices=True)
             _remove_tax(order, lines)

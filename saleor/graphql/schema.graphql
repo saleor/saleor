@@ -30489,6 +30489,9 @@ input AppInput @doc(category: "Apps") {
   """Name of the app."""
   name: String
 
+  """Canonical app ID"""
+  identifier: String
+
   """List of permission code names to assign to this app."""
   permissions: [PermissionEnum!]
 }

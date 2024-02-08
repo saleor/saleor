@@ -17,6 +17,7 @@ from ..utils import ensure_can_manage_permissions
 
 class AppInput(BaseInputObjectType):
     name = graphene.String(description="Name of the app.")
+    identifier = graphene.String(description="Canonical app ID")
     permissions = NonNullList(
         PermissionEnum,
         description="List of permission code names to assign to this app.",
@@ -85,7 +86,8 @@ class AppCreate(ModelMutation):
     @classmethod
     def save(cls, info, instance, cleaned_input):
         instance.save()
-        instance.identifier = graphene.Node.to_global_id("App", instance.pk)
-        instance.save()
+        if not instance.identifier:
+            instance.identifier = graphene.Node.to_global_id("App", instance.pk)
+            instance.save()
         _, auth_token = instance.tokens.create(name="Default")
         return auth_token

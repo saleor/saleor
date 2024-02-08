@@ -3,7 +3,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("app", "0028_set_app_identifier"),
+        ("app", "0028_set_identifier"),
     ]
 
     operations = [

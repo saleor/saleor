@@ -3007,7 +3007,7 @@ class WebhookPlugin(BasePlugin):
                 identifier=app_identifier,
                 is_active=True,
             )
-            .order_by("created_at")
+            .order_by("-created_at")
             .first()
         )
         if app is None:
