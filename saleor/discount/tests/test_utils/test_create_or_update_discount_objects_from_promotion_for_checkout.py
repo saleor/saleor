@@ -21,10 +21,11 @@ from ....product.models import (
 from ... import DiscountType, RewardType, RewardValueType
 from ...models import CheckoutDiscount, CheckoutLineDiscount, PromotionRule
 from ...utils import (
-    _create_or_update_checkout_discount,
+    _create_or_update_order_discount,
     _get_best_gift_reward,
     create_checkout_discount_objects_for_order_promotions,
     create_or_update_discount_objects_from_promotion_for_checkout,
+    get_checkout_or_order_models,
 )
 
 
@@ -2102,12 +2103,13 @@ def test_create_discount_objects_for_order_promotions_race_condition(
             currency=channel.currency_code,
         )
 
+    models = get_checkout_or_order_models(checkout)
     with before_after.before(
-        "saleor.discount.utils._create_or_update_checkout_discount",
+        "saleor.discount.utils._create_or_update_order_discount",
         call_before_creating_discount_object,
     ):
         create_checkout_discount_objects_for_order_promotions(
-            checkout_info, checkout_lines_info
+            checkout_info, checkout_lines_info, models
         )
 
     # then
@@ -2116,7 +2118,7 @@ def test_create_discount_objects_for_order_promotions_race_condition(
     assert discounts[0].amount_value == reward_value
 
 
-def test_create_or_update_checkout_discount_race_condition(
+def test_create_or_update_order_discount_race_condition(
     checkout_info,
     checkout_lines_info,
     catalogue_promotion_without_rules,
@@ -2142,16 +2144,19 @@ def test_create_or_update_checkout_discount_race_condition(
     )
     rule.channels.add(channel)
 
+    models = get_checkout_or_order_models(checkout)
+
     def call_update(*args, **kwargs):
-        _create_or_update_checkout_discount(
+        _create_or_update_order_discount(
             checkout,
-            checkout_info,
             checkout_lines_info,
             rule,
             reward_value,
             None,
             currency,
             promotion,
+            models,
+            checkout_info,
             True,
         )
 
@@ -2165,7 +2170,7 @@ def test_create_or_update_checkout_discount_race_condition(
     assert len(discounts) == 1
 
 
-def test_create_or_update_checkout_discount_gift_reward_race_condition(
+def test_create_or_update_order_discount_gift_reward_race_condition(
     checkout_info,
     checkout_lines_info,
     gift_promotion_rule,
@@ -2181,16 +2186,19 @@ def test_create_or_update_checkout_discount_gift_reward_race_condition(
     variant_listings = ProductVariantChannelListing.objects.filter(variant__in=variants)
     listing = max(list(variant_listings), key=lambda x: x.discounted_price_amount)
 
+    models = get_checkout_or_order_models(checkout)
+
     def call_update(*args, **kwargs):
-        _create_or_update_checkout_discount(
+        _create_or_update_order_discount(
             checkout,
-            checkout_info,
             checkout_lines_info,
             rule,
             listing.discounted_price_amount,
             listing,
             currency,
             promotion,
+            models,
+            checkout_info,
             True,
         )
 
