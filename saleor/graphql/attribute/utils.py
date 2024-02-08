@@ -405,6 +405,7 @@ class AttributeAssignmentMixin:
             AttributeInputType.RICH_TEXT: cls._pre_save_rich_text_values,
         }
         clean_assignment = []
+        attr_val_map = defaultdict(list)
 
         for attribute, attr_values in cleaned_input:
             is_handled_by_values_field = (
@@ -422,11 +423,12 @@ class AttributeAssignmentMixin:
                 pre_save_func = pre_save_methods_mapping[attribute.input_type]
                 attribute_values = pre_save_func(instance, attribute, attr_values)
 
-            associate_attribute_values_to_instance(
-                instance, attribute, *attribute_values
-            )
             if not attribute_values:
                 clean_assignment.append(attribute.pk)
+            else:
+                attr_val_map[attribute.pk].extend(attribute_values)
+
+        associate_attribute_values_to_instance(instance, attr_val_map)
 
         # drop attribute assignment model when values are unassigned from instance
         if clean_assignment:
@@ -813,6 +815,9 @@ class PageAttributeAssignmentMixin(AttributeAssignmentMixin):
             AttributeInputType.RICH_TEXT: cls._pre_save_rich_text_values,
         }
 
+        clean_assignment = []
+        attr_val_map = defaultdict(list)
+
         for attribute, attr_values in cleaned_input:
             is_handled_by_values_field = (
                 attr_values.values
@@ -829,9 +834,20 @@ class PageAttributeAssignmentMixin(AttributeAssignmentMixin):
                 pre_save_func = pre_save_methods_mapping[attribute.input_type]
                 attribute_values = pre_save_func(instance, attribute, attr_values)
 
-            associate_attribute_values_to_instance(
-                instance, attribute, *attribute_values
+            if not attribute_values:
+                clean_assignment.append(attribute.pk)
+            else:
+                attr_val_map[attribute.pk].extend(attribute_values)
+
+        associate_attribute_values_to_instance(instance, attr_val_map)
+        if clean_assignment:
+            values = attribute_models.AttributeValue.objects.filter(
+                attribute_id__in=clean_assignment
             )
+            attribute_models.AssignedPageAttributeValue.objects.filter(
+                Exists(values.filter(id=OuterRef("value_id"))),
+                page_id=instance.pk,
+            ).delete()
 
 
 class ProductAttributeAssignmentMixin(AttributeAssignmentMixin):
@@ -883,6 +899,9 @@ class ProductAttributeAssignmentMixin(AttributeAssignmentMixin):
             AttributeInputType.RICH_TEXT: cls._pre_save_rich_text_values,
         }
 
+        clean_assignment = []
+        attr_val_map = defaultdict(list)
+
         for attribute, attr_values in cleaned_input:
             is_handled_by_values_field = (
                 attr_values.values
@@ -899,9 +918,20 @@ class ProductAttributeAssignmentMixin(AttributeAssignmentMixin):
                 pre_save_func = pre_save_methods_mapping[attribute.input_type]
                 attribute_values = pre_save_func(instance, attribute, attr_values)
 
-            associate_attribute_values_to_instance(
-                instance, attribute, *attribute_values
+            if not attribute_values:
+                clean_assignment.append(attribute.pk)
+            else:
+                attr_val_map[attribute.pk].extend(attribute_values)
+
+        associate_attribute_values_to_instance(instance, attr_val_map)
+        if clean_assignment:
+            values = attribute_models.AttributeValue.objects.filter(
+                attribute_id__in=clean_assignment
             )
+            attribute_models.AssignedProductAttributeValue.objects.filter(
+                Exists(values.filter(id=OuterRef("value_id"))),
+                product_id=instance.pk,
+            ).delete()
 
 
 def prepare_attribute_values(attribute: attribute_models.Attribute, values: list[str]):

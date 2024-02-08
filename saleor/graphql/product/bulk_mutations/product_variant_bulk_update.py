@@ -705,7 +705,9 @@ class ProductVariantBulkUpdate(BaseMutation):
         manager = get_plugin_manager_promise(info.context).get()
 
         # Recalculate the "discounted price" for the parent product
-        update_products_discounted_prices_for_promotion_task.delay([product.pk])
+        cls.call_event(
+            update_products_discounted_prices_for_promotion_task.delay, [product.pk]
+        )
         product.search_index_dirty = True
         product.save(update_fields=["search_index_dirty"])
 

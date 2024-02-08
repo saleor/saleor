@@ -65,8 +65,9 @@ def delete_categories(categories_ids: list[Union[str, int]], manager):
     for product in products:
         call_event(manager.product_updated, product, webhooks=webhooks)
 
-    update_products_discounted_prices_for_promotion_task.delay(
-        product_ids=[product.id for product in products]
+    call_event(
+        update_products_discounted_prices_for_promotion_task.delay,
+        product_ids=[product.id for product in products],
     )
 
 
