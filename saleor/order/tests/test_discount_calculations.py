@@ -809,3 +809,10 @@ def test_zedzior(
     catalogue_discount_2 = line_2.discounts.first()
     assert catalogue_discount_2.type == DiscountType.PROMOTION
     assert catalogue_discount_2.amount_value == 2 * Decimal(4)
+
+    assert order.discounts.count() == 1
+    order_discount = order.discounts.first()
+    assert order_discount
+    gift_discount = [line for line in order.lines.all() if line.is_gift]
+    assert not gift_discount
+    # assert order_discount.amount_value == Decimal(5)

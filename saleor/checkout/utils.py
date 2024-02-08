@@ -28,8 +28,8 @@ from ..discount.models import (
     VoucherCode,
 )
 from ..discount.utils import (
-    create_discount_objects_for_catalogue_promotions,
     create_checkout_discount_objects_for_order_promotions,
+    create_discount_objects_for_catalogue_promotions,
     delete_gift_line,
     get_products_voucher_discount,
     get_voucher_code_instance,
