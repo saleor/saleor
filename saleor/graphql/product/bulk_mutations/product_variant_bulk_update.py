@@ -8,10 +8,11 @@ from django.utils import timezone
 from graphene.utils.str_converters import to_camel_case
 
 from ....core.tracing import traced_atomic_transaction
-from ....discount.utils import get_active_promotion_rules
+from ....discount.utils import mark_active_promotion_rules_as_dirty
 from ....permission.enums import ProductPermissions
 from ....product import models
 from ....product.error_codes import ProductErrorCode, ProductVariantBulkErrorCode
+from ....product.utils.product import mark_products_as_dirty
 from ....warehouse import models as warehouse_models
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
@@ -700,14 +701,22 @@ class ProductVariantBulkUpdate(BaseMutation):
 
     @classmethod
     def post_save_actions(
-        cls, info, instances, product, webhooks, pre_save_payloads, request_time
+        cls,
+        info,
+        instances,
+        product,
+        pre_save_payloads, request_time,
+        channel_ids_to_update,
+        channel_ids_to_add_or_remove,
     ):
         manager = get_plugin_manager_promise(info.context).get()
 
-        # Mark PromotionRule variants dirty
-        # This will finally recalculate discounted prices for products.
-        rules = get_active_promotion_rules()
-        rules.update(variants_dirty=True)
+        if channel_ids_to_update:
+            mark_products_as_dirty(
+                {channel_id: {product.id} for channel_id in channel_ids_to_update}
+            )
+        if channel_ids_to_add_or_remove:
+            mark_active_promotion_rules_as_dirty(channel_ids_to_add_or_remove)
 
         product.search_index_dirty = True
         product.save(update_fields=["search_index_dirty"])
@@ -720,6 +729,43 @@ class ProductVariantBulkUpdate(BaseMutation):
                 pre_save_payloads=pre_save_payloads,
                 request_time=request_time,
             )
+
+    @classmethod
+    def _get_impacted_channels(cls, cleaned_inputs_map):
+        channel_ids_to_update = set()
+        channel_ids_to_add_or_remove = set()
+        channel_listing_ids_to_remove = set()
+        for cleaned_input in cleaned_inputs_map.values():
+            if not cleaned_input:
+                continue
+            if not cleaned_input.get("channel_listings"):
+                continue
+            if created_channels := cleaned_input["channel_listings"].get("create"):
+                channel_ids_to_add_or_remove.update(
+                    [channel["channel"].id for channel in created_channels]
+                )
+            if updated_channels := cleaned_input["channel_listings"].get("update"):
+                channel_ids_to_update.update(
+                    [
+                        channel["channel_listings"].channel_id
+                        for channel in updated_channels
+                    ]
+                )
+
+            if removed_channel_listings := cleaned_input["channel_listings"].get(
+                "remove"
+            ):
+                channel_listing_ids_to_remove.update(removed_channel_listings)
+
+        if channel_listing_ids_to_remove:
+            channel_ids_to_add_or_remove.update(
+                list(
+                    models.ProductVariantChannelListing.objects.filter(
+                        id__in=channel_listing_ids_to_remove
+                    ).values_list("channel_id", flat=True)
+                )
+            )
+        return channel_ids_to_update, channel_ids_to_add_or_remove
 
     @classmethod
     @traced_atomic_transaction()
@@ -745,6 +791,10 @@ class ProductVariantBulkUpdate(BaseMutation):
             variants_global_id_to_instance_map,
             index_error_map,
         )
+        (
+            channel_ids_to_update,
+            channel_ids_to_add_or_remove,
+        ) = cls._get_impacted_channels(cleaned_inputs_map)
 
         webhooks = get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED)
         pre_save_payloads = cls.generate_pre_save_payloads(
@@ -775,7 +825,12 @@ class ProductVariantBulkUpdate(BaseMutation):
             result.product_variant for result in results if result.product_variant
         ]
         cls.post_save_actions(
-            info, instances, product, webhooks, pre_save_payloads, request_time
+            info,
+            instances,
+            product,
+            pre_save_payloads, request_time,
+            channel_ids_to_update,
+            channel_ids_to_add_or_remove,
         )
 
         return ProductVariantBulkCreate(count=len(instances), results=results)

@@ -7,7 +7,7 @@ from django.utils.text import slugify
 from .....attribute import AttributeInputType
 from .....attribute import models as attribute_models
 from .....core.tracing import traced_atomic_transaction
-from .....discount.utils import get_active_promotion_rules
+from .....discount.utils import mark_active_promotion_rules_as_dirty
 from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.error_codes import ProductErrorCode
@@ -324,9 +324,6 @@ class ProductVariantCreate(ModelMutation):
             if not instance.product.default_variant:
                 instance.product.default_variant = instance
                 instance.product.save(update_fields=["default_variant", "updated_at"])
-            # Mark PromotionRule variants dirty
-            # This will finally recalculate discounted prices for products.
-            get_active_promotion_rules().update(variants_dirty=True)
             stocks = cleaned_input.get("stocks")
             if stocks:
                 cls.create_variant_stocks(instance, stocks)
@@ -346,6 +343,14 @@ class ProductVariantCreate(ModelMutation):
                 else manager.product_variant_updated
             )
             cls.call_event(event_to_call, instance)
+
+    @classmethod
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
+        channel_ids = models.ProductChannelListing.objects.filter(
+            product_id=instance.product_id
+        ).values_list("channel_id", flat=True)
+        # This will recalculate discounted prices for products.
+        mark_active_promotion_rules_as_dirty(channel_ids)
 
     @classmethod
     def create_variant_stocks(cls, variant, stocks):

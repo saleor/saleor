@@ -9,7 +9,7 @@ from graphene.utils.str_converters import to_camel_case
 
 from ....attribute import AttributeType
 from ....core.tracing import traced_atomic_transaction
-from ....discount.utils import get_active_promotion_rules
+from ....discount.utils import mark_active_promotion_rules_as_dirty
 from ....permission.enums import ProductPermissions
 from ....product import models
 from ....product.error_codes import ProductVariantBulkErrorCode
@@ -917,9 +917,13 @@ class ProductVariantBulkCreate(BaseMutation):
 
     @classmethod
     def post_save_actions(cls, info, instances, product):
-        # Mark PromotionRule variants dirty
+        variant_ids = set([instance.node.id for instance in instances])
+        channel_ids = models.ProductVariantChannelListing.objects.filter(
+            variant_id__in=variant_ids
+        ).values_list("channel_id", flat=True)
         # This will finally recalculate discounted prices for products.
-        get_active_promotion_rules().update(variants_dirty=True)
+        cls.call_event(mark_active_promotion_rules_as_dirty, channel_ids)
+
         product.search_index_dirty = True
         product.save(update_fields=["search_index_dirty"])
 

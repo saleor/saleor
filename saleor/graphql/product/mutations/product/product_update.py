@@ -1,7 +1,7 @@
 import graphene
 
 from .....attribute import models as attribute_models
-from .....discount.utils import get_active_promotion_rules
+from .....discount.utils import mark_active_promotion_rules_as_dirty
 from .....permission.enums import ProductPermissions
 from .....product import models
 from ....attribute.utils import AttrValuesInput, ProductAttributeAssignmentMixin
@@ -49,9 +49,13 @@ class ProductUpdate(ProductCreate, ModelWithExtRefMutation):
 
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
-        product = models.Product.objects.prefetched_for_webhook().get(pk=instance.pk)
+        product = models.Product.objects.prefetched_for_webhook(single_object=True).get(
+            pk=instance.pk
+        )
         if "category" in cleaned_input or "collections" in cleaned_input:
-            get_active_promotion_rules().update(variants_dirty=True)
+            listings = product.channel_listings.all()
+            channel_ids = [listing.channel_id for listing in listings]
+            mark_active_promotion_rules_as_dirty(channel_ids)
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.product_updated, product)
 

@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 
 from .....discount import events, models
 from .....permission.enums import DiscountPermissions
-from .....product.utils.product import mark_products_for_recalculate_discounted_price
+from .....product.utils.product import mark_products_as_dirty
 from .....webhook.event_types import WebhookEventAsyncType
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
@@ -89,10 +89,13 @@ class PromotionRuleCreate(ModelMutation):
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
         products = get_products_for_rule(instance, update_rule_variants=True)
-        if products:
-            mark_products_for_recalculate_discounted_price(
-                list(products.values_list("id", flat=True)),
-                list(instance.channels.values_list("id", flat=True)),
+        product_ids = set(products.values_list("id", flat=True))
+        if product_ids:
+            mark_products_as_dirty(
+                {
+                    channel_id: product_ids
+                    for channel_id in instance.channels.values_list("id", flat=True)
+                }
             )
         clear_promotion_old_sale_id(instance.promotion, save=True)
         app = get_app_promise(info.context).get()
