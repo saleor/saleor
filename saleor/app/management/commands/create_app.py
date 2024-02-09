@@ -1,6 +1,7 @@
 import json
 from typing import Any, Dict, Optional
 
+import graphene
 from django.contrib.sites.models import Site
 from django.core.management import BaseCommand, CommandError
 from django.core.management.base import CommandParser
@@ -20,6 +21,12 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser: CommandParser) -> None:
         parser.add_argument("name", type=str)
+        parser.add_argument(
+            "--identifier",
+            dest="identifier",
+            default="",
+            help="Canonical app ID.",
+        )
         parser.add_argument(
             "--permission",
             action="append",
@@ -67,9 +74,13 @@ class Command(BaseCommand):
         name = options["name"]
         is_active = options["activate"]
         target_url = options["target_url"]
+        identifier = options["identifier"]
         permissions = list(set(options["permissions"]))
         permissions = clean_permissions(permissions)
-        app = App.objects.create(name=name, is_active=is_active)
+        app = App.objects.create(name=name, is_active=is_active, identifier=identifier)
+        if not identifier:
+            app.identifier = graphene.Node.to_global_id("App", app.pk)
+            app.save()
         app.permissions.set(permissions)
         _, auth_token = app.tokens.create()  # type: ignore[call-arg] # method of a related manager # noqa: E501
         data = {
