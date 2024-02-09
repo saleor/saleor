@@ -4,7 +4,6 @@ from django.core.exceptions import ValidationError
 from .....attribute import models as attribute_models
 from .....core.tracing import traced_atomic_transaction
 from .....core.utils.editorjs import clean_editor_js
-from .....discount.utils import get_active_promotion_rules
 from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.error_codes import ProductErrorCode
@@ -220,7 +219,6 @@ class ProductCreate(ModelMutation):
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, _cleaned_input):
         product = models.Product.objects.prefetched_for_webhook().get(pk=instance.pk)
-        get_active_promotion_rules().update(variants_dirty=True)
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.product_created, product)
 

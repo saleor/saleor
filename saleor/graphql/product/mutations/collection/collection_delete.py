@@ -1,6 +1,6 @@
 import graphene
 
-from .....discount.utils import get_active_promotion_rules
+from .....discount.utils import mark_active_promotion_rules_as_dirty
 from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.tasks import collection_product_updated_task
@@ -46,8 +46,14 @@ class CollectionDelete(ModelDeleteMutation):
 
         for ids_batch in cls.batch_product_ids(product_ids):
             collection_product_updated_task.delay(ids_batch)
-        rules = get_active_promotion_rules()
-        rules.update(variants_dirty=True)
+
+        if product_ids:
+            channel_ids = set(
+                models.ProductChannelListing.objects.filter(
+                    product_id__in=product_ids
+                ).values_list("channel_id", flat=True)
+            )
+            mark_active_promotion_rules_as_dirty(channel_ids)
 
         return CollectionDelete(
             collection=ChannelContext(node=result.collection, channel_slug=None)

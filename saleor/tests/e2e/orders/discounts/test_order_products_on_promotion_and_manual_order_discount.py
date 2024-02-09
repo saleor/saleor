@@ -1,5 +1,6 @@
 import pytest
 
+from .....product.tasks import recalculate_discounted_price_for_products_task
 from ... import DEFAULT_ADDRESS
 from ...product.utils.preparing_product import prepare_product
 from ...promotions.utils import create_promotion, create_promotion_rule
@@ -74,6 +75,10 @@ def test_order_products_on_promotion_and_manual_order_discount_CORE_2108(
     product_predicate = promotion_rule["cataloguePredicate"]["productPredicate"]["ids"]
     assert promotion_rule["channels"][0]["id"] == result_channel_id
     assert product_predicate[0] == product_id
+
+    # prices are updated in the background, we need to force it to retrieve the correct
+    # ones
+    recalculate_discounted_price_for_products_task()
 
     # Step 1 - Create a draft order for a product with fixed promotion
     input = {

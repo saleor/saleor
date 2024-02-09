@@ -9,6 +9,7 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from ...order.models import Order
+from ...product.models import ProductChannelListing, ProductVariant
 from .. import DiscountType, RewardValueType
 from ..models import OrderDiscount, OrderLineDiscount, Promotion, PromotionRule
 from ..tasks import (
@@ -18,6 +19,7 @@ from ..tasks import (
     fetch_promotion_variants_and_product_ids,
     handle_promotion_toggle,
 )
+from ..utils import mark_promotion_rules_as_dirty
 
 
 def test_fetch_promotion_variants_and_product_ids(
@@ -58,7 +60,8 @@ def test_fetch_promotion_variants_and_product_ids(
 @freeze_time("2020-03-18 12:00:00")
 @patch("saleor.discount.tasks.clear_promotion_rule_variants_task.delay")
 @patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+    "saleor.discount.tasks.mark_promotion_rules_as_dirty",
+    wraps=mark_promotion_rules_as_dirty,
 )
 @patch("saleor.plugins.manager.PluginsManager.sale_toggle")
 @patch("saleor.plugins.manager.PluginsManager.promotion_ended")
@@ -67,7 +70,7 @@ def test_handle_promotion_toggle(
     promotion_started_mock,
     promotion_ended_mock,
     sale_toggle_mock,
-    mock_update_products_discounted_prices_for_promotion_task,
+    mock_mark_promotion_rules_as_dirty,
     mock_clear_promotion_rule_variants_task,
     product_list,
 ):
@@ -181,18 +184,11 @@ def test_handle_promotion_toggle(
         promotions[index].refresh_from_db()
         assert promotions[index].last_notification_scheduled_at == now
 
-    mock_update_products_discounted_prices_for_promotion_task.assert_called_once()
-    args, kwargs = mock_update_products_discounted_prices_for_promotion_task.call_args
-    # get ids of instances assigned to promotions that toggle
-    assert {product_id for product_id in args[0]} == {
-        product_list[0].id,
-        product_list[2].id,
-    }
+    assert PromotionRule.objects.filter(variants_dirty=True).count() == 2
 
-    assert {rule_id for rule_id in kwargs["rule_ids"]} == {
-        rules[0].id,
-        rules[2].id,
-    }
+    mock_mark_promotion_rules_as_dirty.assert_called_once_with(
+        set([promotions[index].id for index in indexes_of_toggle_sales])
+    )
 
     mock_clear_promotion_rule_variants_task.assert_called_once()
 
@@ -220,6 +216,48 @@ def test_clear_promotion_rule_variants_task(promotion_list):
         PromotionRuleVariant.objects.count()
         == rule_variants_count - expired_rule_variants_count
     )
+
+
+def test_clear_promotion_rule_variants_task_marks_products_as_dirty(promotion_list):
+    # given
+    expired_promotion = promotion_list[-1]
+    expired_promotion.start_date = timezone.now() - timedelta(days=5)
+    expired_promotion.end_date = timezone.now() - timedelta(days=1)
+    expired_promotion.save(update_fields=["start_date", "end_date"])
+
+    PromotionRuleVariant = PromotionRule.variants.through
+    expired_rules = PromotionRule.objects.filter(promotion_id=expired_promotion.id)
+    assert not ProductChannelListing.objects.filter(discounted_price_dirty=True)
+
+    # when
+    clear_promotion_rule_variants_task()
+
+    # then
+    rule_variants = PromotionRuleVariant.objects.filter(
+        Exists(expired_rules.filter(pk=OuterRef("promotionrule_id")))
+    )
+    variant_to_product_qs = ProductVariant.objects.filter(
+        Exists(rule_variants.filter(productvariant_id=OuterRef("id")))
+    ).values_list("id", "product_id")
+    assert not ProductChannelListing.objects.filter(
+        product_id__in=[product_id for _, product_id in variant_to_product_qs],
+        discounted_price_dirty=False,
+    )
+
+
+def test_set_promotion_rule_variants_task(promotion_list):
+    # given
+    Promotion.objects.update(start_date=timezone.now() - timedelta(days=5))
+    PromotionRuleVariant = PromotionRule.variants.through
+    PromotionRuleVariant.objects.all().delete()
+
+    # when
+    set_promotion_rule_variants_task()
+
+    # then
+    assert set(
+        PromotionRuleVariant.objects.values_list("promotionrule_id", flat=True)
+    ) == set(PromotionRule.objects.values_list("id", flat=True))
 
 
 def test_decrease_voucher_code_usage_task_multiple_use(

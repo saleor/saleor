@@ -1,5 +1,6 @@
 import pytest
 
+from .....product.tasks import recalculate_discounted_price_for_products_task
 from ...product.utils.preparing_product import prepare_product
 from ...sales.utils import create_sale, create_sale_channel_listing, sale_catalogues_add
 from ...shop.utils.preparing_shop import prepare_shop
@@ -158,6 +159,10 @@ def test_checkout_calculate_discount_for_sale_and_voucher_1014(
         voucher_discount_type,
         voucher_discount_value,
     )
+
+    # prices are updated in the background, we need to force it to retrieve the correct
+    # ones
+    recalculate_discounted_price_for_products_task()
 
     # Step 1 - Create checkout for product on sale
     lines = [

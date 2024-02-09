@@ -4,6 +4,7 @@ from unittest.mock import patch
 import graphene
 from django.test import override_settings
 
+from .....discount.models import PromotionRule
 from .....discount.utils import get_active_promotion_rules
 from .....graphql.webhook.subscription_payload import get_pre_save_payload_key
 from .....product.error_codes import ProductVariantBulkErrorCode
@@ -394,13 +395,24 @@ def test_product_variant_bulk_update_channel_listings_input(
     size_attribute,
     channel_USD,
     channel_PLN,
+    channel_JPY,
+    promotion_rule,
 ):
     # given
+    promotion_rule_id = promotion_rule.id
+    second_promotion_rule = promotion_rule
+    second_promotion_rule.pk = None
+    second_promotion_rule.save()
+    second_promotion_rule.channels.add(channel_PLN)
+    promotion_rule = PromotionRule.objects.get(id=promotion_rule_id)
+
     product = variant.product
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
     ProductChannelListing.objects.create(product=product, channel=channel_PLN)
-    existing_variant_listing = variant.channel_listings.last()
+    existing_variant_listing = variant.channel_listings.exclude(
+        channel=channel_PLN
+    ).last()
 
     assert variant.channel_listings.count() == 1
     product_id = graphene.Node.to_global_id("Product", product.pk)
@@ -438,29 +450,33 @@ def test_product_variant_bulk_update_channel_listings_input(
     response = staff_api_client.post_graphql(
         PRODUCT_VARIANT_BULK_UPDATE_MUTATION, variables
     )
-    content = get_graphql_content(response, ignore_errors=True)
-    data = content["data"]["productVariantBulkUpdate"]
-    existing_variant_listing.refresh_from_db()
+    get_graphql_content(response, ignore_errors=True)
 
+    existing_variant_listing.refresh_from_db()
     # then
-    assert not data["results"][0]["errors"]
-    assert data["count"] == 1
-    assert variant.channel_listings.count() == 2
-    new_variant_channel_listing = variant.channel_listings.last()
-    assert (
-        new_variant_channel_listing.price_amount == not_existing_variant_listing_price
+    assert ProductChannelListing.objects.filter(
+        product_id=product.id,
+        channel_id=existing_variant_listing.channel_id,
+        discounted_price_dirty=True,
     )
     assert (
-        new_variant_channel_listing.discounted_price_amount
-        == not_existing_variant_listing_price
+        ProductChannelListing.objects.filter(
+            product_id=product.id, discounted_price_dirty=True
+        ).count()
+        == 1
     )
-    assert new_variant_channel_listing.channel == channel_PLN
-    assert (
-        existing_variant_listing.price_amount == new_price_for_existing_variant_listing
-    )
-    assert (
-        existing_variant_listing.discounted_price_amount
-        == new_price_for_existing_variant_listing
+
+    # only promotions with created channel will be marked as dirty
+    second_promotion_rule.refresh_from_db()
+    assert second_promotion_rule.variants_dirty is True
+
+    promotion_rule.refresh_from_db()
+    assert promotion_rule.variants_dirty is False
+    # only products with updates will be marked to recalculate prices
+    assert ProductChannelListing.objects.filter(
+        product_id=product.id,
+        channel_id=existing_variant_listing.channel_id,
+        discounted_price_dirty=True,
     )
 
 

@@ -1,5 +1,6 @@
 import pytest
 
+from ......product.tasks import recalculate_discounted_price_for_products_task
 from ....product.utils.preparing_product import prepare_product
 from ....promotions.utils import create_promotion, create_promotion_rule
 from ....shop.utils.preparing_shop import prepare_shop
@@ -70,6 +71,10 @@ def test_checkout_products_on_fixed_promotion_core_2102(
     product_predicate = promotion_rule["cataloguePredicate"]["productPredicate"]["ids"]
     assert promotion_rule["channels"][0]["id"] == channel_id
     assert product_predicate[0] == product_id
+
+    # prices are updated in the background, we need to force it to retrieve the correct
+    # ones
+    recalculate_discounted_price_for_products_task()
 
     # Step 1 - checkoutCreate for product on promotion
     lines = [

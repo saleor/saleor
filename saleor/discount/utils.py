@@ -2,13 +2,7 @@ from collections import defaultdict
 from collections.abc import Iterable, Iterator
 from decimal import ROUND_HALF_UP, Decimal
 from functools import partial
-from typing import (
-    TYPE_CHECKING,
-    Callable,
-    Optional,
-    Union,
-    cast,
-)
+from typing import TYPE_CHECKING, Callable, Optional, Union, cast
 from uuid import UUID
 
 import graphene
@@ -570,6 +564,43 @@ def _get_rule_to_channel_ids_map(rules: QuerySet):
     return rule_to_channel_ids_map
 
 
+def get_channel_to_products_map_from_rules(
+    rules: "QuerySet[PromotionRule]",
+) -> dict[int, set[int]]:
+    """Build map of channel ids to product ids based on promotion rules relations.
+
+    The function returns the dictionary of channel_id to product_ids. Channels are
+    aggregated from the input promotion rules. Returned product ids are ID of the
+    product which has a variant assigned to the promotion rule.
+    """
+    PromotionRuleVariant = PromotionRule.variants.through
+    rule_variants = PromotionRuleVariant.objects.filter(
+        Exists(rules.filter(pk=OuterRef("promotionrule_id")))
+    )
+    variant_to_product_qs = ProductVariant.objects.filter(
+        Exists(rule_variants.filter(productvariant_id=OuterRef("id")))
+    ).values_list("id", "product_id")
+    variant_to_product_map = {}
+    for variant_id, product_id in variant_to_product_qs:
+        variant_to_product_map[variant_id] = product_id
+
+    PromotionRuleChannel = PromotionRule.channels.through
+    rule_channels = PromotionRuleChannel.objects.filter(
+        Exists(rules.filter(pk=OuterRef("promotionrule_id")))
+    ).values_list("promotionrule_id", "channel_id")
+    rule_to_channels_map = defaultdict(set)
+    for rule_id, channel_id in rule_channels:
+        rule_to_channels_map[rule_id].add(channel_id)
+
+    channel_to_products_map = defaultdict(set)
+    for rule_variant in rule_variants:
+        channel_ids = rule_to_channels_map[rule_variant.promotionrule_id]
+        for channel_id in channel_ids:
+            product_id = variant_to_product_map[rule_variant.productvariant_id]
+            channel_to_products_map[channel_id].add(product_id)
+    return channel_to_products_map
+
+
 def get_current_products_for_rules(rules: "QuerySet[PromotionRule]"):
     """Get currently assigned products to promotions.
 
@@ -658,3 +689,35 @@ def get_active_promotion_rules(
     if allow_replica:
         rules = rules.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
     return rules
+
+
+def mark_active_promotion_rules_as_dirty(channel_ids: Iterable[int]):
+    """Force promotion rule to recalculate.
+
+    The rules which are marked as dirty, will be recalculated in backgorund.
+    Products related to these rules will be recalculated as well.
+    """
+
+    if not channel_ids:
+        return
+
+    rules = get_active_promotion_rules()
+    PromotionRuleChannel = PromotionRule.channels.through
+    promotion_rules = PromotionRuleChannel.objects.filter(channel_id__in=channel_ids)
+    rules = rules.filter(
+        Exists(promotion_rules.filter(promotionrule_id=OuterRef("id")))
+    )
+    rules.update(variants_dirty=True)
+
+
+def mark_promotion_rules_as_dirty(promotion_pks: Iterable[UUID]):
+    """Mark rules for promotions as dirty.
+
+    The rules which are marked as dirty, will be recalculated in backgorund.
+    Products related to these rules will be recalculated as well.
+    """
+    if not promotion_pks:
+        return
+    PromotionRule.objects.filter(promotion_id__in=promotion_pks).update(
+        variants_dirty=True
+    )
