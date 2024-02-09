@@ -7437,92 +7437,182 @@
   {
     "model": "attribute.assignedproductattributevalue",
     "pk": 193,
-    "fields": { "sort_order": 0, "value": 138, "assignment": 37 }
+    "fields": {
+        "sort_order": 0,
+        "value": 138,
+        "assignment": 37,
+        "product": 126
+    }
   },
   {
-    "model": "attribute.assignedproductattributevalue",
-    "pk": 194,
-    "fields": { "sort_order": 0, "value": 105, "assignment": 38 }
+      "model": "attribute.assignedproductattributevalue",
+      "pk": 194,
+      "fields": {
+          "sort_order": 0,
+          "value": 105,
+          "assignment": 38,
+          "product": 131
+      }
   },
   {
-    "model": "attribute.assignedproductattributevalue",
-    "pk": 195,
-    "fields": { "sort_order": 0, "value": 107, "assignment": 39 }
+      "model": "attribute.assignedproductattributevalue",
+      "pk": 195,
+      "fields": {
+          "sort_order": 0,
+          "value": 107,
+          "assignment": 39,
+          "product": 132
+      }
   },
   {
-    "model": "attribute.assignedproductattributevalue",
-    "pk": 196,
-    "fields": { "sort_order": 0, "value": 105, "assignment": 40 }
+      "model": "attribute.assignedproductattributevalue",
+      "pk": 196,
+      "fields": {
+          "sort_order": 0,
+          "value": 105,
+          "assignment": 40,
+          "product": 133
+      }
   },
   {
-    "model": "attribute.assignedproductattributevalue",
-    "pk": 197,
-    "fields": { "sort_order": 0, "value": 105, "assignment": 41 }
+      "model": "attribute.assignedproductattributevalue",
+      "pk": 197,
+      "fields": {
+          "sort_order": 0,
+          "value": 105,
+          "assignment": 41,
+          "product": 134
+      }
   },
   {
-    "model": "attribute.assignedproductattributevalue",
-    "pk": 198,
-    "fields": { "sort_order": 0, "value": 106, "assignment": 42 }
+      "model": "attribute.assignedproductattributevalue",
+      "pk": 198,
+      "fields": {
+          "sort_order": 0,
+          "value": 106,
+          "assignment": 42,
+          "product": 135
+      }
   },
   {
-    "model": "attribute.assignedproductattributevalue",
-    "pk": 199,
-    "fields": { "sort_order": 0, "value": 105, "assignment": 43 }
+      "model": "attribute.assignedproductattributevalue",
+      "pk": 199,
+      "fields": {
+          "sort_order": 0,
+          "value": 105,
+          "assignment": 43,
+          "product": 136
+      }
   },
   {
-    "model": "attribute.assignedproductattributevalue",
-    "pk": 200,
-    "fields": { "sort_order": 0, "value": 105, "assignment": 44 }
+      "model": "attribute.assignedproductattributevalue",
+      "pk": 200,
+      "fields": {
+          "sort_order": 0,
+          "value": 105,
+          "assignment": 44,
+          "product": 137
+      }
   },
   {
-    "model": "attribute.assignedproductattributevalue",
-    "pk": 201,
-    "fields": { "sort_order": 0, "value": 105, "assignment": 45 }
+      "model": "attribute.assignedproductattributevalue",
+      "pk": 201,
+      "fields": {
+          "sort_order": 0,
+          "value": 105,
+          "assignment": 45,
+          "product": 138
+      }
   },
   {
-    "model": "attribute.assignedproductattributevalue",
-    "pk": 204,
-    "fields": { "sort_order": 0, "value": 105, "assignment": 48 }
+      "model": "attribute.assignedproductattributevalue",
+      "pk": 204,
+      "fields": {
+          "sort_order": 0,
+          "value": 105,
+          "assignment": 48,
+          "product": 141
+      }
   },
   {
-    "model": "attribute.assignedproductattributevalue",
-    "pk": 206,
-    "fields": { "sort_order": 0, "value": 140, "assignment": 50 }
+      "model": "attribute.assignedproductattributevalue",
+      "pk": 206,
+      "fields": {
+          "sort_order": 0,
+          "value": 140,
+          "assignment": 50,
+          "product": 143
+      }
   },
   {
-    "model": "attribute.assignedproductattributevalue",
-    "pk": 207,
-    "fields": { "sort_order": 0, "value": 141, "assignment": 51 }
+      "model": "attribute.assignedproductattributevalue",
+      "pk": 207,
+      "fields": {
+          "sort_order": 0,
+          "value": 141,
+          "assignment": 51,
+          "product": 146
+      }
   },
   {
-    "model": "attribute.assignedproductattributevalue",
-    "pk": 208,
-    "fields": { "sort_order": 0, "value": 141, "assignment": 52 }
+      "model": "attribute.assignedproductattributevalue",
+      "pk": 208,
+      "fields": {
+          "sort_order": 0,
+          "value": 141,
+          "assignment": 52,
+          "product": 147
+      }
   },
   {
-    "model": "attribute.assignedproductattributevalue",
-    "pk": 210,
-    "fields": { "sort_order": 0, "value": 129, "assignment": 54 }
+      "model": "attribute.assignedproductattributevalue",
+      "pk": 210,
+      "fields": {
+          "sort_order": 0,
+          "value": 129,
+          "assignment": 54,
+          "product": 152
+      }
   },
   {
-    "model": "attribute.assignedproductattributevalue",
-    "pk": 211,
-    "fields": { "sort_order": 0, "value": 123, "assignment": 55 }
+      "model": "attribute.assignedproductattributevalue",
+      "pk": 211,
+      "fields": {
+          "sort_order": 0,
+          "value": 123,
+          "assignment": 55,
+          "product": 153
+      }
   },
   {
-    "model": "attribute.assignedproductattributevalue",
-    "pk": 212,
-    "fields": { "sort_order": 0, "value": 122, "assignment": 56 }
+      "model": "attribute.assignedproductattributevalue",
+      "pk": 212,
+      "fields": {
+          "sort_order": 0,
+          "value": 122,
+          "assignment": 56,
+          "product": 154
+      }
   },
   {
-    "model": "attribute.assignedproductattributevalue",
-    "pk": 213,
-    "fields": { "sort_order": 0, "value": 124, "assignment": 57 }
+      "model": "attribute.assignedproductattributevalue",
+      "pk": 213,
+      "fields": {
+          "sort_order": 0,
+          "value": 124,
+          "assignment": 57,
+          "product": 155
+      }
   },
   {
-    "model": "attribute.assignedproductattributevalue",
-    "pk": 214,
-    "fields": { "sort_order": 0, "value": 105, "assignment": 58 }
+      "model": "attribute.assignedproductattributevalue",
+      "pk": 214,
+      "fields": {
+          "sort_order": 0,
+          "value": 105,
+          "assignment": 58,
+          "product": 161
+      }
   },
   {
     "model": "attribute.assignedproductattribute",

@@ -376,6 +376,7 @@ def assign_attribute_values_to_products(values):
         defaults = dict(value["fields"])
         defaults["value_id"] = defaults.pop("value")
         defaults["assignment_id"] = defaults.pop("assignment")
+        defaults["product_id"] = defaults.pop("product")
         AssignedProductAttributeValue.objects.update_or_create(pk=pk, defaults=defaults)
 
 
