@@ -110,7 +110,12 @@ def create_deliveries_for_subscriptions(
             key = get_pre_save_payload_key(webhook, subscribable_object)
             pre_save_payload = pre_save_payloads.get(key)
             if pre_save_payload and pre_save_payload == data:
-                logger.info("Skipping webhook: %s - no data changes.", event_type)
+                logger.info(
+                    "[Webhook ID:%r] No data changes for event %r, skip delivery to %r",
+                    webhook.id,
+                    event_type,
+                    webhook.target_url,
+                )
                 continue
 
         event_payload = EventPayload(payload=json.dumps({**data}))
