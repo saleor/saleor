@@ -68,7 +68,7 @@ def get_event_payload(event):
 def generate_payload_from_subscription(
     event_type: str,
     subscribable_object,
-    subscription_query: Optional[str],
+    subscription_query: str,
     request: SaleorContext,
     app: Optional[App] = None,
 ) -> Optional[dict[str, Any]]:
@@ -92,7 +92,7 @@ def generate_payload_from_subscription(
     from ..context import get_context_value
 
     graphql_backend = get_default_backend()
-    ast = parse(subscription_query)  # type: ignore
+    ast = parse(subscription_query)
     document = graphql_backend.document_from_string(
         schema,
         ast,
@@ -165,6 +165,9 @@ def generate_pre_save_payloads(
     )
 
     for webhook in webhooks:
+        if not webhook.subscription_query:
+            continue
+
         for instance in instances:
             instance_payload = generate_payload_from_subscription(
                 event_type=event_type,
