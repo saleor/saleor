@@ -23,6 +23,7 @@ from ..core.descriptions import (
     ADDED_IN_35,
     ADDED_IN_314,
     ADDED_IN_315,
+    ADDED_IN_319,
     DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_INPUT,
 )
@@ -352,7 +353,7 @@ class Shop(graphene.ObjectType):
             "List of tax apps that can be assigned to the channel. "
             "The list will be calculated by Saleor based on the apps "
             "that are subscribed to webhooks related to tax calculations: "
-            "CHECKOUT_CALCULATE_TAXES"
+            "CHECKOUT_CALCULATE_TAXES" + ADDED_IN_319
         ),
         required=True,
     )

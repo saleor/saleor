@@ -7,7 +7,7 @@ from ....permission.enums import CheckoutPermissions
 from ....tax import error_codes, models
 from ...account.enums import CountryCodeEnum
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_39
+from ...core.descriptions import ADDED_IN_39, ADDED_IN_319
 from ...core.doc_category import DOC_CATEGORY_TAXES
 from ...core.mutations import ModelMutation
 from ...core.types import BaseInputObjectType, Error, NonNullList
@@ -48,7 +48,7 @@ class TaxConfigurationPerCountryInput(BaseInputObjectType):
         description=(
             "The tax app identifier that will be used to calculate the taxes for the "
             "given channel. If not provided, use the value from the channel's tax "
-            "configuration."
+            "configuration." + ADDED_IN_319
         ),
     )
 
@@ -91,7 +91,7 @@ class TaxConfigurationUpdateInput(BaseInputObjectType):
         description=(
             "The tax app identifier that will be used to calculate the taxes for the "
             "given channel. Empty value when `taxCalculationStrategy` set is to `TAX_APP` "
-            "means that Saleor will iterate over all installed tax apps."
+            "means that Saleor will iterate over all installed tax apps." + ADDED_IN_319
         ),
     )
 
@@ -159,36 +159,36 @@ class TaxConfigurationUpdate(ModelMutation):
         update_countries_configuration = data.get("update_countries_configuration", [])
         for country in update_countries_configuration:
             if app_identifier := country.get("tax_app_id"):
-                cls.__verify_tax_app_id(info, app_identifier, active_tax_apps)
+                cls.__verify_tax_app_id(
+                    info, app_identifier, active_tax_apps, [country["country_code"]]
+                )
 
     @classmethod
-    def __verify_tax_app_id(cls, info: ResolveInfo, app_identifier, active_tax_apps):
+    def __verify_tax_app_id(
+        cls,
+        info: ResolveInfo,
+        app_identifier,
+        active_tax_apps,
+        country_codes=[],
+    ):
         app = (
             app_models.App.objects.filter(
                 identifier=app_identifier,
                 is_active=True,
             )
-            .order_by("created_at")
+            .order_by("-created_at")
             .first()
         )
         if app is None:
-            raise ValidationError(
-                {
-                    "tax_ap_id": ValidationError(
-                        message="Provided taxAppId does not exist.",
-                        code=error_codes.TaxConfigurationUpdateErrorCode.NOT_FOUND.value,
-                    )
-                }
-            )
+            message = "Provided taxAppId does not exist."
+            code = error_codes.TaxConfigurationUpdateErrorCode.NOT_FOUND.value
+            params = {"country_codes": country_codes}
+            raise ValidationError(message=message, code=code, params=params)
         if app not in active_tax_apps:
-            raise ValidationError(
-                {
-                    "tax_ap_id": ValidationError(
-                        message="Provided taxAppId does not belong to Tax App.",
-                        code=error_codes.TaxConfigurationUpdateErrorCode.INVALID.value,
-                    )
-                }
-            )
+            message = "Provided taxAppId does not belong to Tax App."
+            code = error_codes.TaxConfigurationUpdateErrorCode.INVALID.value
+            params = {"country_codes": country_codes}
+            raise ValidationError(message=message, code=code, params=params)
 
     @classmethod
     def update_countries_configuration(cls, instance, countries_configuration):

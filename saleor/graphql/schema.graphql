@@ -9823,7 +9823,9 @@ type TaxConfiguration implements Node & ObjectWithMetadata @doc(category: "Taxes
   countries: [TaxConfigurationPerCountry!]!
 
   """
-  The tax app id that will be used to calculate the taxes for the given channel. Empty value for `TAX_APP` set as `taxCalculationStrategy` means that Saleor will iterate over all installed tax apps.
+  The tax app id that will be used to calculate the taxes for the given channel. Empty value for `TAX_APP` set as `taxCalculationStrategy` means that Saleor will iterate over all installed tax apps. If multiple tax apps exist with provided tax app id use the `App` with newest `created` date.
+  
+  Added in Saleor 3.19.
   """
   taxAppId: String
 }
@@ -9857,6 +9859,8 @@ type TaxConfigurationPerCountry @doc(category: "Taxes") {
 
   """
   The tax app id that will be used to calculate the taxes for the given channel. If not provided, use the value from the channel's tax configuration.
+  
+  Added in Saleor 3.19.
   """
   taxAppId: String
 }
@@ -10206,6 +10210,8 @@ type Shop implements ObjectWithMetadata {
 
   """
   List of tax apps that can be assigned to the channel. The list will be calculated by Saleor based on the apps that are subscribed to webhooks related to tax calculations: CHECKOUT_CALCULATE_TAXES
+  
+  Added in Saleor 3.19.
   """
   availableTaxApps: [App!]!
 
@@ -20874,6 +20880,8 @@ input TaxConfigurationUpdateInput @doc(category: "Taxes") {
 
   """
   The tax app identifier that will be used to calculate the taxes for the given channel. Empty value when `taxCalculationStrategy` set is to `TAX_APP` means that Saleor will iterate over all installed tax apps.
+  
+  Added in Saleor 3.19.
   """
   taxAppId: String
 }
@@ -20897,6 +20905,8 @@ input TaxConfigurationPerCountryInput @doc(category: "Taxes") {
 
   """
   The tax app identifier that will be used to calculate the taxes for the given channel. If not provided, use the value from the channel's tax configuration.
+  
+  Added in Saleor 3.19.
   """
   taxAppId: String
 }
