@@ -32,6 +32,13 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fixed validation for streetAddress1 or streetAddress2 are too long - #13973 by sonbui00
 - Clear db leftovers after attribute refactor - #15372 by @IKarbowiak
 
+- Added possibility to break checkout/draft order completion: #15292 by @kadewu
+  - Added new field `Shop.availableTaxApps`.
+  - Added new input `taxAppId` for `TaxConfigurationUpdateInput` and `TaxConfigurationPerCountryInput`.
+  - Added new field `taxAppId` in `TaxConfiguration` and `TaxConfigurationPerCountry`.
+  - Added new input `AppInput.identifier`.
+  - Added new parameter `identifier` for `create_app` command.
+  - When `taxAppId` is provided for `TaxConfiguration` do not allow to finalize `checkoutComplete` or `draftOrderComplete` mutations if Tax App doesn't respond.
 
 # 3.18.0
 
