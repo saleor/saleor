@@ -1,11 +1,19 @@
-from dataclasses import dataclass
 import datetime
 from collections import defaultdict, namedtuple
 from collections.abc import Iterable, Iterator
+from dataclasses import dataclass
 from decimal import ROUND_HALF_UP, Decimal
 from enum import Enum
 from functools import partial
-from typing import TYPE_CHECKING, Callable, Optional, Union, cast
+from typing import (
+    TYPE_CHECKING,
+    Callable,
+    Generic,
+    Optional,
+    TypeVar,
+    Union,
+    cast,
+)
 from uuid import UUID
 
 import graphene
@@ -20,7 +28,7 @@ from ..checkout.base_calculations import (
     base_checkout_delivery_price,
     base_checkout_subtotal,
 )
-from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo, find_checkout_line_info
+from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
 from ..checkout.models import Checkout, CheckoutLine
 from ..core.exceptions import InsufficientStock
 from ..core.taxes import zero_money
@@ -51,15 +59,26 @@ from .models import (
 
 if TYPE_CHECKING:
     from ..account.models import User
+    from ..graphql.discount.utils import PredicateObjectType
     from ..plugins.manager import PluginsManager
     from ..product.managers import ProductVariantQueryset
     from ..product.models import (
         VariantChannelListingPromotionRule,
     )
-    from ..graphql.discount.utils import PredicateObjectType
 
 CatalogueInfo = defaultdict[str, set[Union[int, str]]]
 CATALOGUE_FIELDS = ["categories", "collections", "products", "variants"]
+T_Model = TypeVar("T_Model", bound=type[Union[Checkout, Order]])
+T_LineModel = TypeVar("T_LineModel", bound=type[Union[CheckoutLine, OrderLine]])
+T_DiscountModel = TypeVar(
+    "T_DiscountModel", bound=type[Union[CheckoutDiscount, OrderDiscount]]
+)
+T_LineDiscountModel = TypeVar(
+    "T_LineDiscountModel", bound=type[Union[CheckoutLineDiscount, OrderLineDiscount]]
+)
+T_LineInfo = TypeVar(
+    "T_LineInfo", bound=type[Union[CheckoutLineInfo, DraftOrderLineInfo]]
+)
 
 
 class CheckoutOrOrderType(Enum):
@@ -68,14 +87,16 @@ class CheckoutOrOrderType(Enum):
 
 
 @dataclass
-class CheckoutOrOrderHelper:
+class CheckoutOrOrderHelper(
+    Generic[T_Model, T_LineModel, T_DiscountModel, T_LineDiscountModel, T_LineInfo]
+):
     type: CheckoutOrOrderType
     predicate_type: "PredicateObjectType"
-    model: Union[type[Checkout], type[Order]]
-    line_model: Union[type[CheckoutLine], type[OrderLine]]
-    discount_model: Union[type[CheckoutDiscount], type[OrderDiscount]]
-    discount_line_model: Union[type[CheckoutLineDiscount], type[OrderLineDiscount]]
-    line_info: Union[type[CheckoutLineInfo], type[DraftOrderLineInfo]]
+    model: T_Model
+    line_model: T_LineModel
+    discount_model: T_DiscountModel
+    discount_line_model: T_LineDiscountModel
+    line_info: T_LineInfo
 
 
 def get_checkout_or_order_models(
@@ -445,7 +466,7 @@ def create_discount_objects_for_catalogue_promotions(
             ids_to_remove = [discount.id for discount in discounts_to_update]
             if ids_to_remove:
                 line_discount_ids_to_remove.extend(ids_to_remove)
-                line_info.discounts = [
+                line_info.discounts = [  # type: ignore[assignment]
                     discount
                     for discount in line_info.discounts
                     if discount.id not in ids_to_remove
@@ -534,7 +555,7 @@ def _get_discounts_that_are_not_valid_anymore(
     for rule_id, discount in rule_id_to_discount.items():
         if rule_id not in rule_ids:
             discount_ids.append(discount.id)
-            line_info.discounts.remove(discount)
+            line_info.discounts.remove(discount)  # type: ignore[arg-type]  # got "Union[CheckoutLineDiscount, OrderLineDiscount]"; expected "CheckoutLineDiscount"
     return discount_ids
 
 
@@ -652,12 +673,52 @@ def create_checkout_discount_objects_for_order_promotions(
     )
 
 
+def create_order_discount_objects_for_order_promotions(
+    order: "Order",
+    lines_info: Iterable["DraftOrderLineInfo"],
+    models: CheckoutOrOrderHelper,
+):
+    from ..order.base_calculations import base_order_subtotal
+
+    # # The base prices are required for order promotion discount qualification.
+    _set_order_base_prices(order, lines_info)
+
+    # Discount from order rules is applied only when the voucher is not set
+    if order.voucher_code:
+        _clear_order_discount(order, lines_info)
+        return lines_info
+
+    lines = [line_info.line for line_info in lines_info]
+    subtotal = base_order_subtotal(order, lines)
+    channel = order.channel
+    rules = fetch_promotion_rules_for_checkout_or_order(order, models)
+    rule_data = get_best_rule(
+        rules=rules,
+        channel=channel,
+        country=order.get_country(),
+        subtotal=subtotal,
+    )
+    if not rule_data:
+        _clear_order_discount(order, lines_info)
+        return lines_info
+
+    best_rule, best_discount_amount, gift_listing = rule_data
+
+    _create_or_update_order_discount(
+        order,
+        lines_info,
+        best_rule,
+        best_discount_amount,
+        gift_listing,
+        channel.currency_code,
+        best_rule.promotion,
+        models,
+    )
+
+
 def get_best_rule(
-    rules: Iterable["PromotionRule"],
-    channel: "Channel",
-    country: str,
-    subtotal: Money,
-) -> Optional[tuple[PromotionRule, Decimal, ProductVariantChannelListing]]:
+    rules: Iterable["PromotionRule"], channel: "Channel", country: str, subtotal: Money
+):
     RuleDiscount = namedtuple(
         "RuleDiscount", ["rule", "discount_amount", "gift_listing"]
     )
@@ -675,14 +736,18 @@ def get_best_rule(
         rule_discounts.append(RuleDiscount(rule, discount_amount, None))
 
     if gift_rules:
-        rule, gift_listing = _get_best_gift_reward(gift_rules, channel, country)
-        if rule and gift_listing:
+        best_gift_rule, gift_listing = _get_best_gift_reward(
+            gift_rules, channel, country
+        )
+        if best_gift_rule and gift_listing:
             rule_discounts.append(
-                RuleDiscount(rule, gift_listing.discounted_price_amount, gift_listing)
+                RuleDiscount(
+                    best_gift_rule, gift_listing.discounted_price_amount, gift_listing
+                )
             )
 
     if not rule_discounts:
-        return
+        return None
 
     best_rule, best_discount_amount, gift_listing = max(
         rule_discounts, key=lambda x: x.discount_amount
@@ -703,6 +768,26 @@ def _set_checkout_base_prices(checkout_info, lines_info):
     checkout.base_subtotal = subtotal
     checkout.base_total = total
     checkout.save(update_fields=["base_total_amount", "base_subtotal_amount"])
+
+
+def _set_order_base_prices(order: Order, lines_info: Iterable[DraftOrderLineInfo]):
+    """Set base order prices that includes only catalogue discounts."""
+    from ..order.base_calculations import base_order_subtotal
+
+    lines = [line_info.line for line_info in lines_info]
+    subtotal = base_order_subtotal(order, lines)
+    shipping_price = order.base_shipping_price
+    total = subtotal + shipping_price
+    order.subtotal = TaxedMoney(net=subtotal, gross=subtotal)
+    order.total = TaxedMoney(net=total, gross=total)
+    order.save(
+        update_fields=[
+            "subtotal_net_amount",
+            "subtotal_gross_amount",
+            "total_net_amount",
+            "total_gross_amount",
+        ]
+    )
 
 
 def _clear_checkout_discount(
@@ -731,6 +816,14 @@ def _clear_checkout_discount(
                     "translated_discount_name",
                 ]
             )
+
+
+def _clear_order_discount(
+    order_or_checkout: Union[Checkout, Order],
+    lines_info: Iterable[DraftOrderLineInfo],
+):
+    delete_gift_line(order_or_checkout, lines_info)
+    order_or_checkout.discounts.filter(type=DiscountType.ORDER_PROMOTION).delete()
 
 
 def _get_best_gift_reward(
@@ -814,191 +907,209 @@ def _get_available_for_purchase_variant_ids(
     return set(available_variant_ids)
 
 
-# def _create_or_update_checkout_discount(
-#     checkout: "Checkout",
-#     checkout_info: "CheckoutInfo",
-#     lines_info: Iterable["CheckoutLineInfo"],
-#     best_rule: "PromotionRule",
-#     best_discount_amount: Decimal,
-#     gift_listing: Optional[ProductVariantChannelListing],
-#     currency_code: str,
-#     promotion: "Promotion",
-#     save: bool,
-# ):
-#     translation_language_code = checkout.language_code
-#     promotion_translation, rule_translation = get_rule_translations(
-#         promotion, best_rule, translation_language_code
-#     )
-#     rule_info = VariantPromotionRuleInfo(
-#         rule=best_rule,
-#         variant_listing_promotion_rule=None,
-#         promotion=promotion,
-#         promotion_translation=promotion_translation,
-#         rule_translation=rule_translation,
-#     )
-#     # gift rule has empty reward_value and reward_value_type
-#     value_type = best_rule.reward_value_type or RewardValueType.FIXED
-#     amount_value = gift_listing.price_amount if gift_listing else best_discount_amount
-#     value = best_rule.reward_value or amount_value
-#     discount_object_defaults = {
-#         "promotion_rule": best_rule,
-#         "value_type": value_type,
-#         "value": value,
-#         "amount_value": amount_value,
-#         "currency": currency_code,
-#         "name": get_discount_name(best_rule, promotion),
-#         "translated_name": get_discount_translated_name(rule_info),
-#         "reason": prepare_promotion_discount_reason(promotion, get_sale_id(promotion)),
-#     }
-#     if gift_listing:
-#         _handle_gift_reward(
-#             checkout,
-#             checkout_info,
-#             lines_info,
-#             gift_listing,
-#             discount_object_defaults,
-#             rule_info,
-#             save,
-#         )
-#     else:
-#         _handle_order_promotion(
-#             checkout,
-#             checkout_info,
-#             lines_info,
-#             discount_object_defaults,
-#             rule_info,
-#             save,
-#         )
-#
-#
-# def _handle_order_promotion(
-#     checkout: "Checkout",
-#     checkout_info: "CheckoutInfo",
-#     lines_info: Iterable["CheckoutLineInfo"],
-#     discount_object_defaults: dict,
-#     rule_info: VariantPromotionRuleInfo,
-#     save: bool,
-# ):
-#     discount_object, created = checkout.discounts.get_or_create(
-#         type=DiscountType.ORDER_PROMOTION,
-#         defaults=discount_object_defaults,
-#     )
-#     discount_amount = discount_object_defaults["amount_value"]
-#
-#     if not created:
-#         fields_to_update: list[str] = []
-#         _update_discount(
-#             discount_object_defaults["promotion_rule"],
-#             rule_info,
-#             discount_amount,
-#             discount_object,
-#             fields_to_update,
-#         )
-#         if fields_to_update:
-#             discount_object.save(update_fields=fields_to_update)
-#
-#     checkout_info.discounts = [discount_object]
-#     checkout.discount_amount = discount_amount
-#     checkout.discount_name = discount_object.name
-#     checkout.translated_discount_name = discount_object.translated_name
-#     if save:
-#         checkout.save(
-#             update_fields=[
-#                 "discount_amount",
-#                 "discount_name",
-#                 "translated_discount_name",
-#             ]
-#         )
-#
-#     delete_gift_line(checkout, lines_info)
+def _create_or_update_order_discount(
+    order_or_checkout: Union[Checkout, Order],
+    lines_info: Union[Iterable[CheckoutLineInfo], Iterable[DraftOrderLineInfo]],
+    best_rule: "PromotionRule",
+    best_discount_amount: Decimal,
+    gift_listing: Optional[ProductVariantChannelListing],
+    currency_code: str,
+    promotion: "Promotion",
+    models: CheckoutOrOrderHelper,
+    checkout_info: Optional["CheckoutInfo"] = None,
+    save: bool = False,
+):
+    translation_language_code = order_or_checkout.language_code
+    promotion_translation, rule_translation = get_rule_translations(
+        promotion, best_rule, translation_language_code
+    )
+    rule_info = VariantPromotionRuleInfo(
+        rule=best_rule,
+        variant_listing_promotion_rule=None,
+        promotion=promotion,
+        promotion_translation=promotion_translation,
+        rule_translation=rule_translation,
+    )
+    # gift rule has empty reward_value and reward_value_type
+    value_type = best_rule.reward_value_type or RewardValueType.FIXED
+    amount_value = gift_listing.price_amount if gift_listing else best_discount_amount
+    value = best_rule.reward_value or amount_value
+    discount_object_defaults = {
+        "promotion_rule": best_rule,
+        "value_type": value_type,
+        "value": value,
+        "amount_value": amount_value,
+        "currency": currency_code,
+        "name": get_discount_name(best_rule, promotion),
+        "translated_name": get_discount_translated_name(rule_info),
+        "reason": prepare_promotion_discount_reason(promotion, get_sale_id(promotion)),
+    }
+    if gift_listing:
+        _handle_gift_reward(
+            order_or_checkout,
+            lines_info,
+            gift_listing,
+            discount_object_defaults,
+            rule_info,
+            models,
+            checkout_info,
+            save,
+        )
+    else:
+        _handle_order_promotion(
+            order_or_checkout,
+            lines_info,
+            discount_object_defaults,
+            rule_info,
+            checkout_info,
+            save,
+        )
 
 
-# def delete_gift_line(checkout: "Checkout", lines_info: Iterable["CheckoutLineInfo"]):
-#     if gift_line_infos := [line for line in lines_info if line.line.is_gift]:
-#         CheckoutLine.objects.filter(checkout_id=checkout.pk, is_gift=True).delete()
-#         for gift_line_info in gift_line_infos:
-#             lines_info.remove(gift_line_info)  # type: ignore[attr-defined]
+def _handle_order_promotion(
+    order_or_checkout: Union[Checkout, Order],
+    lines_info: Iterable[Union[CheckoutLineInfo, DraftOrderLineInfo]],
+    discount_object_defaults: dict,
+    rule_info: VariantPromotionRuleInfo,
+    checkout_info: Optional[CheckoutInfo] = None,
+    save: bool = False,
+):
+    discount_object, created = order_or_checkout.discounts.get_or_create(
+        type=DiscountType.ORDER_PROMOTION,
+        defaults=discount_object_defaults,
+    )
+    discount_amount = discount_object_defaults["amount_value"]
+
+    if not created:
+        fields_to_update: list[str] = []
+        _update_discount(
+            discount_object_defaults["promotion_rule"],
+            rule_info,
+            discount_amount,
+            discount_object,
+            fields_to_update,
+        )
+        if fields_to_update:
+            discount_object.save(update_fields=fields_to_update)
+
+    if checkout_info:
+        discount_object = cast(CheckoutDiscount, discount_object)
+        checkout_info.discounts = [discount_object]
+        checkout = checkout_info.checkout
+        checkout.discount_amount = discount_amount
+        checkout.discount_name = discount_object.name
+        checkout.translated_discount_name = discount_object.translated_name
+        if save:
+            checkout.save(
+                update_fields=[
+                    "discount_amount",
+                    "discount_name",
+                    "translated_discount_name",
+                ]
+            )
+
+    delete_gift_line(order_or_checkout, lines_info)
 
 
-# def _handle_gift_reward(
-#     checkout: "Checkout",
-#     checkout_info: "CheckoutInfo",
-#     lines_info: Iterable["CheckoutLineInfo"],
-#     gift_listing: ProductVariantChannelListing,
-#     discount_object_defaults: dict,
-#     rule_info: VariantPromotionRuleInfo,
-#     save: bool,
-# ):
-#     with transaction.atomic():
-#         line, line_created = create_gift_line(checkout, gift_listing.variant_id)
-#         (
-#             line_discount,
-#             discount_created,
-#         ) = CheckoutLineDiscount.objects.get_or_create(
-#             type=DiscountType.ORDER_PROMOTION,
-#             line=line,
-#             defaults=discount_object_defaults,
-#         )
-#
-#     if not discount_created:
-#         fields_to_update = []
-#         if line_discount.line_id != line.id:
-#             line_discount.line = line
-#             fields_to_update.append("line_id")
-#         _update_discount(
-#             discount_object_defaults["promotion_rule"],
-#             rule_info,
-#             discount_object_defaults["amount_value"],
-#             line_discount,
-#             fields_to_update,
-#         )
-#         if fields_to_update:
-#             line_discount.save(update_fields=fields_to_update)
-#
-#     checkout_info.discounts = []
-#     checkout.discount_amount = Decimal("0")
-#     if save:
-#         checkout.save(update_fields=["discount_amount"])
-#
-#     if line_created:
-#         variant = gift_listing.variant
-#         gift_line_info = CheckoutLineInfo(
-#             line=line,
-#             variant=variant,
-#             channel_listing=gift_listing,
-#             product=variant.product,
-#             product_type=variant.product.product_type,
-#             collections=[],
-#             discounts=[line_discount],
-#             rules_info=[rule_info],
-#             channel=checkout_info.channel,
-#         )
-#         lines_info.append(gift_line_info)  # type: ignore[attr-defined]
-#     else:
-#         line_info = find_checkout_line_info(lines_info, line.id)
-#         line_info.line = line
-#         line_info.discounts = [line_discount]
+def delete_gift_line(
+    order_or_checkout: Union[Checkout, Order],
+    lines_info: Iterable[Union["CheckoutLineInfo", "DraftOrderLineInfo"]],
+):
+    if gift_line_infos := [line for line in lines_info if line.line.is_gift]:
+        order_or_checkout.lines.filter(is_gift=True).delete()  # type: ignore[misc]
+        for gift_line_info in gift_line_infos:
+            lines_info.remove(gift_line_info)  # type: ignore[attr-defined]
 
 
-# def create_gift_line(checkout: "Checkout", variant_id: int):
-#     defaults = {
-#         "variant_id": variant_id,
-#         "quantity": 1,
-#         "currency": checkout.currency,
-#     }
-#     line, created = CheckoutLine.objects.get_or_create(
-#         checkout=checkout, is_gift=True, defaults=defaults
-#     )
-#     if not created:
-#         fields_to_update = []
-#         for field, value in defaults.items():
-#             if getattr(line, field) != value:
-#                 setattr(line, field, value)
-#                 fields_to_update.append(field)
-#         if fields_to_update:
-#             line.save(update_fields=fields_to_update)
-#
-#     return line, created
+def _handle_gift_reward(
+    order_or_checkout: Union[Checkout, Order],
+    lines_info: Iterable[Union[CheckoutLineInfo, DraftOrderLineInfo]],
+    gift_listing: ProductVariantChannelListing,
+    discount_object_defaults: dict,
+    rule_info: VariantPromotionRuleInfo,
+    models: CheckoutOrOrderHelper,
+    checkout_info: Optional[CheckoutInfo] = None,
+    save: bool = False,
+):
+    with transaction.atomic():
+        line, line_created = create_gift_line(
+            order_or_checkout, gift_listing.variant_id
+        )
+        (
+            line_discount,
+            discount_created,
+        ) = models.discount_line_model.objects.get_or_create(
+            type=DiscountType.ORDER_PROMOTION,
+            line=line,
+            defaults=discount_object_defaults,
+        )
+
+    if not discount_created:
+        fields_to_update = []
+        if line_discount.line_id != line.id:
+            line_discount.line = line
+            fields_to_update.append("line_id")
+        _update_discount(
+            discount_object_defaults["promotion_rule"],
+            rule_info,
+            discount_object_defaults["amount_value"],
+            line_discount,
+            fields_to_update,
+        )
+        if fields_to_update:
+            line_discount.save(update_fields=fields_to_update)
+
+    if checkout_info:
+        checkout_info.discounts = []
+        checkout_info.checkout.discount_amount = Decimal("0")
+        if save:
+            checkout_info.checkout.save(update_fields=["discount_amount"])
+
+    if line_created:
+        variant = gift_listing.variant
+        gift_line_info = models.line_info(
+            line=line,
+            variant=variant,
+            channel_listing=gift_listing,
+            product=variant.product,
+            product_type=variant.product.product_type,
+            collections=[],
+            discounts=[line_discount],
+            rules_info=[rule_info],
+            channel=order_or_checkout.channel,
+        )
+        lines_info.append(gift_line_info)  # type: ignore[attr-defined]
+    else:
+        line_info = next(
+            line_info for line_info in lines_info if line_info.line.pk == line.id
+        )
+        line_info.line = line
+        line_info.discounts = [line_discount]
+
+
+def create_gift_line(order_or_checkout: Union[Checkout, Order], variant_id: int):
+    defaults = {
+        "variant_id": variant_id,
+        "quantity": 1,
+        "currency": order_or_checkout.currency,
+    }
+    line, created = order_or_checkout.lines.get_or_create(
+        is_gift=True, defaults=defaults
+    )
+    # # TODO zedzior check performance
+    # line, created = OrderLine.objects.get_or_create(
+    #     order=order, is_gift=True, defaults=defaults
+    # )
+    if not created:
+        fields_to_update = []
+        for field, value in defaults.items():
+            if getattr(line, field) != value:
+                setattr(line, field, value)
+                fields_to_update.append(field)
+        if fields_to_update:
+            line.save(update_fields=fields_to_update)
+
+    return line, created
 
 
 def get_variants_to_promotions_map(
@@ -1056,7 +1167,7 @@ def fetch_promotion_rules_for_checkout_or_order(
     instance: Union["Checkout", "Order"],
     models: CheckoutOrOrderHelper,
 ):
-    from ..graphql.discount.utils import PredicateObjectType, filter_qs_by_predicate
+    from ..graphql.discount.utils import filter_qs_by_predicate
 
     applicable_rules = []
     promotions = Promotion.objects.active()
@@ -1156,278 +1267,3 @@ def update_rule_variant_relation(
         PromotionRuleVariant.objects.bulk_create(
             rules_variants_to_add, ignore_conflicts=True
         )
-
-
-def create_order_discount_objects_for_order_promotions(
-    order: "Order",
-    lines_info: Iterable["DraftOrderLineInfo"],
-    models: CheckoutOrOrderHelper,
-):
-    from ..order.base_calculations import base_order_subtotal
-
-    # # The base prices are required for order promotion discount qualification.
-    _set_order_base_prices(order, lines_info)
-
-    # Discount from order rules is applied only when the voucher is not set
-    if order.voucher_code:
-        _clear_order_discount(order, lines_info)
-        return lines_info
-
-    lines = [line_info.line for line_info in lines_info]
-    subtotal = base_order_subtotal(order, lines)
-    channel = order.channel
-    rules = fetch_promotion_rules_for_checkout_or_order(order, models)
-    rule_data = get_best_rule(
-        rules=rules,
-        channel=channel,
-        country=order.get_country(),
-        subtotal=subtotal,
-    )
-    if not rule_data:
-        _clear_order_discount(order, lines_info)
-        return lines_info
-
-    best_rule, best_discount_amount, gift_listing = rule_data
-
-    _create_or_update_order_discount(
-        order,
-        lines_info,
-        best_rule,
-        best_discount_amount,
-        gift_listing,
-        channel.currency_code,
-        best_rule.promotion,
-        models,
-    )
-
-
-def _create_or_update_order_discount(
-    order_or_checkout: Union[Checkout, Order],
-    lines_info: Union[Iterable[CheckoutLineInfo], Iterable[DraftOrderLineInfo]],
-    best_rule: "PromotionRule",
-    best_discount_amount: Decimal,
-    gift_listing: Optional[ProductVariantChannelListing],
-    currency_code: str,
-    promotion: "Promotion",
-    models: CheckoutOrOrderHelper,
-    checkout_info: Optional["CheckoutInfo"] = None,
-    save: bool = False,
-):
-    translation_language_code = order_or_checkout.language_code
-    promotion_translation, rule_translation = get_rule_translations(
-        promotion, best_rule, translation_language_code
-    )
-    rule_info = VariantPromotionRuleInfo(
-        rule=best_rule,
-        variant_listing_promotion_rule=None,
-        promotion=promotion,
-        promotion_translation=promotion_translation,
-        rule_translation=rule_translation,
-    )
-    # gift rule has empty reward_value and reward_value_type
-    value_type = best_rule.reward_value_type or RewardValueType.FIXED
-    amount_value = gift_listing.price_amount if gift_listing else best_discount_amount
-    value = best_rule.reward_value or amount_value
-    discount_object_defaults = {
-        "promotion_rule": best_rule,
-        "value_type": value_type,
-        "value": value,
-        "amount_value": amount_value,
-        "currency": currency_code,
-        "name": get_discount_name(best_rule, promotion),
-        "translated_name": get_discount_translated_name(rule_info),
-        "reason": prepare_promotion_discount_reason(promotion, get_sale_id(promotion)),
-    }
-    if gift_listing:
-        _handle_gift_reward_for_order(
-            order_or_checkout,
-            lines_info,
-            gift_listing,
-            discount_object_defaults,
-            rule_info,
-            models,
-            checkout_info,
-            save,
-        )
-    else:
-        _handle_order_promotion_for_order(
-            order_or_checkout,
-            lines_info,
-            discount_object_defaults,
-            rule_info,
-            checkout_info,
-            save,
-        )
-
-
-def _handle_order_promotion_for_order(
-    order_or_checkout: Union[Checkout, Order],
-    lines_info: Iterable["DraftOrderLineInfo"],
-    discount_object_defaults: dict,
-    rule_info: VariantPromotionRuleInfo,
-    checkout_info: Optional[CheckoutInfo] = None,
-    save: bool = False,
-):
-    discount_object, created = order_or_checkout.discounts.get_or_create(
-        type=DiscountType.ORDER_PROMOTION,
-        defaults=discount_object_defaults,
-    )
-    discount_amount = discount_object_defaults["amount_value"]
-
-    if not created:
-        fields_to_update: list[str] = []
-        _update_discount(
-            discount_object_defaults["promotion_rule"],
-            rule_info,
-            discount_amount,
-            discount_object,
-            fields_to_update,
-        )
-        if fields_to_update:
-            discount_object.save(update_fields=fields_to_update)
-
-    if checkout_info:
-        checkout_info.discounts = [discount_object]
-        checkout = checkout_info.checkout
-        checkout.discount_amount = discount_amount
-        checkout.discount_name = discount_object.name
-        checkout.translated_discount_name = discount_object.translated_name
-        if save:
-            checkout.save(
-                update_fields=[
-                    "discount_amount",
-                    "discount_name",
-                    "translated_discount_name",
-                ]
-            )
-
-    delete_gift_line(order_or_checkout, lines_info)
-
-
-def delete_gift_line(
-    order_or_checkout: Union[Checkout, Order],
-    lines_info: Iterable["DraftOrderLineInfo"],
-):
-    if gift_line_infos := [line for line in lines_info if line.line.is_gift]:
-        order_or_checkout.lines.filter(is_gift=True).delete()
-        for gift_line_info in gift_line_infos:
-            lines_info.remove(gift_line_info)  # type: ignore[attr-defined]
-
-
-def _handle_gift_reward_for_order(
-    order_or_checkout: Union[Checkout, Order],
-    lines_info: Iterable["DraftOrderLineInfo"],
-    gift_listing: ProductVariantChannelListing,
-    discount_object_defaults: dict,
-    rule_info: VariantPromotionRuleInfo,
-    models: CheckoutOrOrderHelper,
-    checkout_info: Optional[CheckoutInfo] = None,
-    save: bool = False,
-):
-    with transaction.atomic():
-        line, line_created = create_gift_line(
-            order_or_checkout, gift_listing.variant_id
-        )
-        (
-            line_discount,
-            discount_created,
-        ) = models.discount_line_model.objects.get_or_create(
-            type=DiscountType.ORDER_PROMOTION,
-            line=line,
-            defaults=discount_object_defaults,
-        )
-
-    if not discount_created:
-        fields_to_update = []
-        if line_discount.line_id != line.id:
-            line_discount.line = line
-            fields_to_update.append("line_id")
-        _update_discount(
-            discount_object_defaults["promotion_rule"],
-            rule_info,
-            discount_object_defaults["amount_value"],
-            line_discount,
-            fields_to_update,
-        )
-        if fields_to_update:
-            line_discount.save(update_fields=fields_to_update)
-
-    if checkout_info:
-        checkout_info.discounts = []
-        checkout_info.checkout.discount_amount = Decimal("0")
-        if save:
-            checkout_info.checkout.save(update_fields=["discount_amount"])
-
-    if line_created:
-        variant = gift_listing.variant
-        gift_line_info = models.line_info(
-            line=line,
-            variant=variant,
-            channel_listing=gift_listing,
-            product=variant.product,
-            product_type=variant.product.product_type,
-            collections=[],
-            discounts=[line_discount],
-            rules_info=[rule_info],
-            channel=order_or_checkout.channel,
-        )
-        lines_info.append(gift_line_info)  # type: ignore[attr-defined]
-    else:
-        line_info = next(
-            line_info for line_info in lines_info if line_info.line.pk == line.id
-        )
-        line_info.line = line
-        line_info.discounts = [line_discount]
-
-
-def create_gift_line(order_or_checkout: Union[Checkout, Order], variant_id: int):
-    defaults = {
-        "variant_id": variant_id,
-        "quantity": 1,
-        "currency": order_or_checkout.currency,
-    }
-    line, created = order_or_checkout.lines.get_or_create(
-        is_gift=True, defaults=defaults
-    )
-    # # TODO zedzior check performance
-    # line, created = OrderLine.objects.get_or_create(
-    #     order=order, is_gift=True, defaults=defaults
-    # )
-    if not created:
-        fields_to_update = []
-        for field, value in defaults.items():
-            if getattr(line, field) != value:
-                setattr(line, field, value)
-                fields_to_update.append(field)
-        if fields_to_update:
-            line.save(update_fields=fields_to_update)
-
-    return line, created
-
-
-def _set_order_base_prices(order: "Order", lines_info: Iterable["DraftOrderLineInfo"]):
-    """Set base order prices that includes only catalogue discounts."""
-    from ..order.base_calculations import base_order_subtotal
-
-    lines = [line_info.line for line_info in lines_info]
-    subtotal = base_order_subtotal(order, lines)
-    shipping_price = order.base_shipping_price
-    total = subtotal + shipping_price
-    order.subtotal = TaxedMoney(net=subtotal, gross=subtotal)
-    order.total = TaxedMoney(net=total, gross=total)
-    order.save(
-        update_fields=[
-            "subtotal_net_amount",
-            "subtotal_gross_amount",
-            "total_net_amount",
-            "total_gross_amount",
-        ]
-    )
-
-
-def _clear_order_discount(
-    order_or_checkout: Union[Checkout, Order],
-    lines_info: Iterable["DraftOrderLineInfo"],
-):
-    delete_gift_line(order_or_checkout, lines_info)
-    order_or_checkout.discounts.filter(type=DiscountType.ORDER_PROMOTION).delete()

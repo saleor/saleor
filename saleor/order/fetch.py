@@ -1,25 +1,25 @@
 from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Optional
+from typing import Optional, cast
 from uuid import UUID
 
 from django.db.models import prefetch_related_objects
 
-from ..discount.interface import fetch_variant_rules_info
-
-if TYPE_CHECKING:
-    from ..channel.models import Channel
-    from ..discount import DiscountType
-    from ..discount.interface import VariantPromotionRuleInfo
-    from ..discount.models import OrderLineDiscount, Voucher
-    from ..payment.models import Payment
-    from ..product.models import (
-        DigitalContent,
-        ProductVariant,
-        ProductVariantChannelListing,
-    )
-    from ..tax.models import TaxClass
-    from .models import Order, OrderLine
+from ..channel.models import Channel
+from ..discount import DiscountType
+from ..discount.interface import VariantPromotionRuleInfo, fetch_variant_rules_info
+from ..discount.models import OrderLineDiscount, Voucher
+from ..payment.models import Payment
+from ..product.models import (
+    DigitalContent,
+    # Product,
+    # ProductType,
+    # Collection,
+    ProductVariant,
+    ProductVariantChannelListing,
+)
+from ..tax.models import TaxClass
+from .models import Order, OrderLine
 
 
 @dataclass
@@ -108,7 +108,6 @@ class DraftOrderLineInfo:
 def fetch_draft_order_lines_info(
     order: "Order", lines: Optional[Iterable["OrderLine"]]
 ) -> list[DraftOrderLineInfo]:
-
     def get_variant_channel_listing(variant: "ProductVariant", channel_id: int):
         variant_channel_listing = None
         for channel_listing in variant.channel_listings.all():
@@ -117,12 +116,12 @@ def fetch_draft_order_lines_info(
         return variant_channel_listing
 
     prefetch_related_fields = [
-        "variant__product__product_type",
-        # check if needed
-        # "variant__channel_listings__channel"
-        # "variant__product__product_type__tax_class__country_rates",
-        # "variant__product__channel_listings__channel",
+        # TODO zedzior check if all are needed
+        "variant__product__collections",
+        "variant__product__channel_listings__channel",
+        "variant__product__product_type__tax_class__country_rates",
         "variant__product__tax_class__country_rates",
+        "variant__channel_listings__channel",
         "variant__channel_listings__variantlistingpromotionrule__promotion_rule__promotion__translations",
         "variant__channel_listings__variantlistingpromotionrule__promotion_rule__translations",
         "discounts__promotion_rule__promotion",
@@ -135,7 +134,7 @@ def fetch_draft_order_lines_info(
     lines_info = []
     channel = order.channel
     for line in lines:
-        variant = line.variant
+        variant = cast(ProductVariant, line.variant)
         variant_channel_listing = get_variant_channel_listing(variant, channel.id)
         rules_info = (
             fetch_variant_rules_info(variant_channel_listing, order.language_code)
