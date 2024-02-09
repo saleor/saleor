@@ -1,5 +1,4 @@
 from django.conf import settings
-from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.db.models.expressions import Exists, OuterRef
 
@@ -11,35 +10,32 @@ from .models import App
 
 
 def get_active_tax_apps():
-    app_label, codename = CheckoutPermissions.HANDLE_TAXES.value.split(".")
+    _, codename = CheckoutPermissions.HANDLE_TAXES.value.split(".")
 
-    permissions = Permission.objects.filter(
-        Q(codename=codename)
-        & Q(
-            Exists(
-                ContentType.objects.filter(
-                    app_label=app_label, pk=OuterRef("content_type_id")
-                )
-            )
-        )
-    )
+    permissions = Permission.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).filter(codename=codename, app=OuterRef("pk"))
 
-    order_taxes_event = WebhookEvent.objects.filter(
+    order_taxes_event = WebhookEvent.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).filter(
         event_type=WebhookEventSyncType.ORDER_CALCULATE_TAXES, webhook_id=OuterRef("pk")
     )
 
-    checkout_taxes_event = WebhookEvent.objects.filter(
+    checkout_taxes_event = WebhookEvent.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).filter(
         event_type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
         webhook_id=OuterRef("pk"),
     )
 
-    webhook_order_taxes_event = Webhook.objects.filter(
-        Q(app_id=OuterRef("pk")) & Q(Exists(order_taxes_event))
-    )
+    webhook_order_taxes_event = Webhook.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).filter(Q(app_id=OuterRef("pk")) & Q(Exists(order_taxes_event)))
 
-    webhook_checkout_taxes_event = Webhook.objects.filter(
-        Q(app_id=OuterRef("pk")) & Q(Exists(checkout_taxes_event))
-    )
+    webhook_checkout_taxes_event = Webhook.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).filter(Q(app_id=OuterRef("pk")) & Q(Exists(checkout_taxes_event)))
 
     return App.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME).filter(
         Q(is_active=True)
