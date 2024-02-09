@@ -231,6 +231,7 @@ def _create_line_for_order(
         checkout_info=checkout_info,
         lines=lines,
         checkout_line_info=checkout_line_info,
+        need_tax_calculation=True,
     )
     # unit price after applying all discounts - sales and vouchers
     unit_price = calculations.checkout_line_unit_price(
@@ -238,12 +239,14 @@ def _create_line_for_order(
         checkout_info=checkout_info,
         lines=lines,
         checkout_line_info=checkout_line_info,
+        need_tax_calculation=True,
     )
     tax_rate = calculations.checkout_line_tax_rate(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
         checkout_line_info=checkout_line_info,
+        need_tax_calculation=True,
     )
     # unit price before applying discounts
     undiscounted_unit_price = get_taxed_undiscounted_price(
@@ -455,12 +458,14 @@ def _prepare_order_data(
         checkout_info=checkout_info,
         lines=lines,
         address=address,
+        need_tax_calculation=True,
     )
     shipping_tax_rate = calculations.checkout_shipping_tax_rate(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
         address=address,
+        need_tax_calculation=True,
     )
     order_data.update(
         _process_shipping_data_for_order(
@@ -513,6 +518,7 @@ def _prepare_order_data(
             checkout_info=checkout_info,
             lines=lines,
             address=address,
+            need_tax_calculation=True,
         )
         + shipping_total
         - checkout.discount
@@ -872,7 +878,7 @@ def complete_checkout_pre_payment_part(
     if site_settings is None:
         site_settings = Site.objects.get_current().settings
 
-    fetch_checkout_data(checkout_info, manager, lines)
+    fetch_checkout_data(checkout_info, manager, lines, need_tax_calculation=True)
 
     checkout = checkout_info.checkout
     channel_slug = checkout_info.channel.slug
@@ -1171,12 +1177,14 @@ def _create_order_from_checkout(
         checkout_info=checkout_info,
         lines=checkout_lines_info,
         address=address,
+        need_tax_calculation=True,
     )
     shipping_tax_rate = calculations.checkout_shipping_tax_rate(
         manager=manager,
         checkout_info=checkout_info,
         lines=checkout_lines_info,
         address=address,
+        need_tax_calculation=True,
     )
 
     # status

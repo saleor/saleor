@@ -39,6 +39,7 @@ def checkout_shipping_price(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
+    need_tax_calculation: bool = False,
 ) -> "TaxedMoney":
     """Return checkout shipping price.
 
@@ -50,6 +51,7 @@ def checkout_shipping_price(
         manager=manager,
         lines=lines,
         address=address,
+        need_tax_calculation=need_tax_calculation,
     )
     return quantize_price(checkout_info.checkout.shipping_price, currency)
 
@@ -60,6 +62,7 @@ def checkout_shipping_tax_rate(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
+    need_tax_calculation: bool = False,
 ) -> Decimal:
     """Return checkout shipping tax rate.
 
@@ -70,6 +73,7 @@ def checkout_shipping_tax_rate(
         manager=manager,
         lines=lines,
         address=address,
+        need_tax_calculation=need_tax_calculation,
     )
     return checkout_info.checkout.shipping_tax_rate
 
@@ -80,6 +84,7 @@ def checkout_subtotal(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
+    need_tax_calculation: bool = False,
 ) -> "TaxedMoney":
     """Return the total cost of all the checkout lines, taxes included.
 
@@ -91,6 +96,7 @@ def checkout_subtotal(
         manager=manager,
         lines=lines,
         address=address,
+        need_tax_calculation=need_tax_calculation,
     )
     return quantize_price(checkout_info.checkout.subtotal, currency)
 
@@ -120,6 +126,7 @@ def checkout_total(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
+    need_tax_calculation: bool = False,
 ) -> "TaxedMoney":
     """Return the total cost of the checkout.
 
@@ -134,6 +141,7 @@ def checkout_total(
         manager=manager,
         lines=lines,
         address=address,
+        need_tax_calculation=need_tax_calculation,
     )
     return quantize_price(checkout_info.checkout.total, currency)
 
@@ -144,6 +152,7 @@ def checkout_line_total(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
+    need_tax_calculation: bool = False,
 ) -> TaxedMoney:
     """Return the total price of provided line, taxes included.
 
@@ -156,6 +165,7 @@ def checkout_line_total(
         manager=manager,
         lines=lines,
         address=address,
+        need_tax_calculation=need_tax_calculation,
     )
     checkout_line = find_checkout_line_info(lines, checkout_line_info.line.id).line
     return quantize_price(checkout_line.total_price, currency)
@@ -167,6 +177,7 @@ def checkout_line_unit_price(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
+    need_tax_calculation: bool = False,
 ) -> TaxedMoney:
     """Return the unit price of provided line, taxes included.
 
@@ -179,6 +190,7 @@ def checkout_line_unit_price(
         manager=manager,
         lines=lines,
         address=address,
+        need_tax_calculation=need_tax_calculation,
     )
     checkout_line = find_checkout_line_info(lines, checkout_line_info.line.id).line
     unit_price = checkout_line.total_price / checkout_line.quantity
@@ -191,6 +203,7 @@ def checkout_line_tax_rate(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
+    need_tax_calculation: bool = False,
 ) -> Decimal:
     """Return the tax rate of provided line.
 
@@ -202,6 +215,7 @@ def checkout_line_tax_rate(
         manager=manager,
         lines=lines,
         address=address,
+        need_tax_calculation=need_tax_calculation,
     )
     checkout_line_info = find_checkout_line_info(lines, checkout_line_info.line.id)
     return checkout_line_info.line.tax_rate
