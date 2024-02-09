@@ -7,7 +7,7 @@ from django.db.models import Exists, OuterRef
 from .....attribute import AttributeInputType
 from .....attribute import models as attribute_models
 from .....core.tracing import traced_atomic_transaction
-from .....discount.utils import get_active_promotion_rules
+from .....discount.utils import mark_active_promotion_rules_as_dirty
 from .....order import events as order_events
 from .....order import models as order_models
 from .....order.tasks import recalculate_orders_task
@@ -50,9 +50,6 @@ class ProductVariantDelete(ModelDeleteMutation, ModelWithExtRefMutation):
 
     @classmethod
     def success_response(cls, instance):
-        # Mark PromotionRule variants dirty
-        # This will finally recalculate discounted prices for products.
-        get_active_promotion_rules().update(variants_dirty=True)
         product = models.Product.objects.get(id=instance.product_id)
         product.search_index_dirty = True
         product.save(update_fields=["search_index_dirty"])
@@ -112,6 +109,9 @@ class ProductVariantDelete(ModelDeleteMutation, ModelWithExtRefMutation):
                 "channel_listings", "attributes__values", "variant_media"
             )
         ).get(id=instance.id)
+        channel_ids = set(
+            variant.channel_listings.all().values_list("channel_id", flat=True)
+        )
         with traced_atomic_transaction():
             cls.delete_assigned_attribute_values(variant)
             cls.delete_product_channel_listings_without_available_variants(variant)
@@ -137,6 +137,9 @@ class ProductVariantDelete(ModelDeleteMutation, ModelWithExtRefMutation):
             if order_pks:
                 recalculate_orders_task.delay(list(order_pks))
             cls.call_event(manager.product_variant_deleted, variant)
+
+        # This will finally recalculate discounted prices for products.
+        mark_active_promotion_rules_as_dirty(channel_ids)
 
         return response
 

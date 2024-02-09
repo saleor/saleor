@@ -10,7 +10,7 @@ from ....attribute import AttributeInputType
 from ....attribute import models as attribute_models
 from ....core.postgres import FlatConcatSearchVector
 from ....core.tracing import traced_atomic_transaction
-from ....discount.utils import get_active_promotion_rules
+from ....discount.utils import mark_active_promotion_rules_as_dirty
 from ....order import events as order_events
 from ....order import models as order_models
 from ....order.tasks import recalculate_orders_task
@@ -52,6 +52,22 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
         error_type_field = "product_errors"
 
     @classmethod
+    def post_save_actions(cls, info, variants):
+        impacted_channels = set()
+        for variant in variants:
+            channel_ids = [
+                listing.channel_id for listing in variant.channel_listings.all()
+            ]
+            impacted_channels.update(channel_ids)
+        # This will finally recalculate discounted prices for products.
+        mark_active_promotion_rules_as_dirty(impacted_channels)
+
+        manager = get_plugin_manager_promise(info.context).get()
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_VARIANT_DELETED)
+        for variant in variants:
+            cls.call_event(manager.product_variant_deleted, variant, webhooks=webhooks)
+
+    @classmethod
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info: ResolveInfo, /, ids=None, skus=None, **data):
         validate_one_of_args_is_in_mutation("skus", skus, "ids", ids)
@@ -87,10 +103,6 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
         cls.delete_assigned_attribute_values(pks)
         cls.delete_product_channel_listings_without_available_variants(product_pks, pks)
         response = super().perform_mutation(_root, info, ids=ids, **data)
-        manager = get_plugin_manager_promise(info.context).get()
-        webhooks = get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_VARIANT_DELETED)
-        for variant in variants:
-            cls.call_event(manager.product_variant_deleted, variant, webhooks=webhooks)
 
         # delete order lines for deleted variants
         order_models.OrderLine.objects.filter(
@@ -124,10 +136,8 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
                     "updated_at",
                 ]
             )
-        # Mark PromotionRule variants dirty
-        # This will finally recalculate discounted prices for products.
-        get_active_promotion_rules().update(variants_dirty=True)
 
+        cls.post_save_actions(info, variants)
         return response
 
     @staticmethod

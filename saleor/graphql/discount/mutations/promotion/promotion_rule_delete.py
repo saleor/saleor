@@ -1,10 +1,12 @@
 import graphene
 
 from .....discount import events, models
-from .....discount.utils import get_current_products_for_rules
+from .....discount.utils import (
+    get_channel_to_products_map_from_rules,
+)
 from .....graphql.core.mutations import ModelDeleteMutation
 from .....permission.enums import DiscountPermissions
-from .....product.utils.product import mark_products_for_recalculate_discounted_price
+from .....product.utils.product import mark_products_as_dirty
 from .....webhook.event_types import WebhookEventAsyncType
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
@@ -49,12 +51,9 @@ class PromotionRuleDelete(ModelDeleteMutation):
         """Perform a mutation that deletes a model instance."""
         instance = cls.get_instance(info, external_reference=external_reference, id=id)
         cls.clean_instance(info, instance)
-
-        products = get_current_products_for_rules(
+        channel_to_products_map = get_channel_to_products_map_from_rules(
             models.PromotionRule.objects.filter(id=instance.id)
         )
-        product_ids = list(products.values_list("id", flat=True))
-        channel_ids = list(instance.channels.values_list("id", flat=True))
         db_id = instance.id
         promotion = instance.promotion
         instance.delete()
@@ -65,8 +64,8 @@ class PromotionRuleDelete(ModelDeleteMutation):
         # ID so that the success response contains ID of the deleted object.
         instance.id = db_id
 
-        if product_ids:
-            mark_products_for_recalculate_discounted_price(product_ids, channel_ids)
+        if channel_to_products_map:
+            mark_products_as_dirty(channel_to_products_map)
 
         app = get_app_promise(info.context).get()
         events.rule_deleted_event(info.context.user, app, [instance])

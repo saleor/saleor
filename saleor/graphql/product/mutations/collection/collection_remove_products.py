@@ -1,6 +1,6 @@
 import graphene
 
-from .....discount.utils import get_active_promotion_rules
+from .....discount.utils import mark_active_promotion_rules_as_dirty
 from .....permission.enums import ProductPermissions
 from .....product import models
 from ....channel import ChannelContext
@@ -49,9 +49,13 @@ class CollectionRemoveProducts(BaseMutation):
         manager = get_plugin_manager_promise(info.context).get()
         for product in products:
             cls.call_event(manager.product_updated, product)
-        # Mark PromotionRule variants dirty
-        # This will finally recalculate discounted prices for products.
-        get_active_promotion_rules().update(variants_dirty=True)
+
+        if products:
+            channel_ids = models.ProductChannelListing.objects.filter(
+                product__in=products
+            ).values_list("channel_id", flat=True)
+            # This will finally recalculate discounted prices for products.
+            mark_active_promotion_rules_as_dirty(channel_ids)
 
         return CollectionRemoveProducts(
             collection=ChannelContext(node=collection, channel_slug=None)

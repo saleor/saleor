@@ -627,10 +627,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "saleor.payment.tasks.transaction_release_funds_for_checkout_task",
         "schedule": timedelta(minutes=10),
     },
-    "update-promotion-rules-and-mark-products-for-price-recalculation": {
+    "recalculate-promotion-rules": {
         "task": (
             "saleor.product.tasks"
-            ".update_promotion_rules_mark_products_for_price_recalculation_task"
+            ".update_variant_relations_for_active_promotion_rules_task"
         ),
         "schedule": timedelta(seconds=10),
     },

@@ -5,7 +5,7 @@ from django.db import transaction
 from .....discount import RewardValueType, events, models
 from .....discount.utils import get_current_products_for_rules
 from .....permission.enums import DiscountPermissions
-from .....product.utils.product import mark_products_for_recalculate_discounted_price
+from .....product.utils.product import mark_products_as_dirty
 from .....webhook.event_types import WebhookEventAsyncType
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
@@ -84,10 +84,14 @@ class PromotionRuleUpdate(ModelMutation):
             models.PromotionRule.objects.filter(id=instance.id)
         )
         previous_product_ids = set(previous_products.values_list("id", flat=True))
+        removed_channel_ids = [
+            channel.id for channel in cleaned_input.get("remove_channels", [])
+        ]
+
         cls.clean_instance(info, instance)
         cls.save(info, instance, cleaned_input)
         cls._save_m2m(info, instance, cleaned_input)
-        cls.post_save_actions(info, instance, previous_product_ids)
+        cls.post_save_actions(info, instance, previous_product_ids, removed_channel_ids)
 
         return cls.success_response(instance)
 
@@ -196,13 +200,17 @@ class PromotionRuleUpdate(ModelMutation):
                 instance.channels.add(*add_channels)
 
     @classmethod
-    def post_save_actions(cls, info: ResolveInfo, instance, previous_product_ids):
+    def post_save_actions(
+        cls, info: ResolveInfo, instance, previous_product_ids, removed_channel_ids
+    ):
         products = get_products_for_rule(instance, update_rule_variants=True)
         product_ids = set(products.values_list("id", flat=True)) | previous_product_ids
+        channel_ids_to_update = (
+            list(instance.channels.values_list("id", flat=True)) + removed_channel_ids
+        )
         if product_ids:
-            mark_products_for_recalculate_discounted_price(
-                list(products.values_list("id", flat=True)),
-                list(instance.channels.values_list("id", flat=True)),
+            mark_products_as_dirty(
+                {channel_id: product_ids for channel_id in channel_ids_to_update}
             )
         clear_promotion_old_sale_id(instance.promotion, save=True)
         app = get_app_promise(info.context).get()

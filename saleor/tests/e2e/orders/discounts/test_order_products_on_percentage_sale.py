@@ -1,5 +1,6 @@
 import pytest
 
+from .....product.tasks import recalculate_discounted_price_for_products_task
 from ... import DEFAULT_ADDRESS
 from ...product.utils.preparing_product import prepare_product
 from ...sales.utils import create_sale, create_sale_channel_listing, sale_catalogues_add
@@ -88,6 +89,10 @@ def test_order_products_on_percentage_sale_CORE_1003(
         sale_discount_type="PERCENTAGE",
         sale_discount_value=30,
     )
+
+    # prices are updated in the background, we need to force it to retrieve the correct
+    # ones
+    recalculate_discounted_price_for_products_task()
 
     # Step 1 - Create a draft order
     input = {

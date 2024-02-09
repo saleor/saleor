@@ -6,9 +6,9 @@ from django.db.models import Exists, OuterRef, QuerySet
 
 from ....discount import models
 from ....discount.error_codes import DiscountErrorCode
-from ....discount.utils import get_current_products_for_rules
+from ....discount.utils import get_channel_to_products_map_from_rules
 from ....permission.enums import DiscountPermissions
-from ....product.utils.product import mark_products_for_recalculate_discounted_price
+from ....product.utils.product import mark_products_as_dirty
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
 from ...core import ResolveInfo
@@ -87,7 +87,7 @@ class SaleBulkDelete(ModelBulkDeleteMutation):
             (sale, cls.get_catalogue_info(sale_id_to_rule.get(sale.id)))
             for sale in queryset
         ]
-        product_ids = cls.get_product_ids_for_promotions(queryset)
+        channel_to_products_map = cls.get_channel_to_products_map(queryset)
 
         queryset.delete()
 
@@ -97,7 +97,8 @@ class SaleBulkDelete(ModelBulkDeleteMutation):
             cls.call_event(
                 manager.sale_deleted, sale, catalogue_info, webhooks=webhooks
             )
-        mark_products_for_recalculate_discounted_price(list(product_ids))
+        if channel_to_products_map:
+            mark_products_as_dirty(channel_to_products_map)
 
     @classmethod
     def get_sale_and_rules(cls, qs: QuerySet[models.Promotion]):
@@ -114,11 +115,11 @@ class SaleBulkDelete(ModelBulkDeleteMutation):
         )
 
     @classmethod
-    def get_product_ids_for_promotions(cls, qs: QuerySet[models.Promotion]):
+    def get_channel_to_products_map(cls, qs: QuerySet[models.Promotion]):
         rules = models.PromotionRule.objects.filter(
             Exists(qs.filter(id=OuterRef("promotion_id")))
         )
-        return set(get_current_products_for_rules(rules).values_list("id", flat=True))
+        return get_channel_to_products_map_from_rules(rules)
 
 
 class VoucherBulkDelete(ModelBulkDeleteMutation):
