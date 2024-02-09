@@ -472,6 +472,48 @@ def test_calculate_checkout_subtotal_with_order_promotion(
     )
 
 
+def test_calculate_checkout_subtotal_with_gift_promotion(
+    checkout_with_item_and_gift_promotion,
+    address,
+    shipping_zone,
+    stock,
+):
+    # given
+    checkout = checkout_with_item_and_gift_promotion
+    prices_entered_with_tax = True
+    _enable_flat_rates(checkout, prices_entered_with_tax)
+
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_zone.shipping_methods.get()
+    checkout.save()
+
+    manager = get_plugins_manager(allow_replica=False)
+    checkout_info = fetch_checkout_info(checkout, [], manager)
+    lines, _ = fetch_checkout_lines(checkout)
+
+    # when
+    update_checkout_prices_with_flat_rates(
+        checkout,
+        checkout_info,
+        lines,
+        prices_entered_with_tax,
+        address,
+    )
+
+    # then
+    subtotal = Decimal("0.00")
+    for line_info in lines:
+        if line_info.line.is_gift:
+            continue
+        subtotal += (
+            line_info.channel_listing.discounted_price_amount * line_info.line.quantity
+        )
+    assert checkout.subtotal == TaxedMoney(
+        net=Money(round(subtotal / Decimal("1.23"), 2), "USD"),
+        gross=Money(subtotal, "USD"),
+    )
+
+
 def test_calculate_checkout_line_total(checkout_with_item, shipping_zone, address):
     manager = get_plugins_manager(allow_replica=False)
     checkout = checkout_with_item
@@ -857,6 +899,44 @@ def test_calculate_checkout_line_total_discount_from_order_promotion(
         ),
         gross=total_price - rule_reward,
     )
+
+
+def test_calculate_checkout_line_total_discount_for_gift_line(
+    checkout_with_item_and_gift_promotion, shipping_zone, address
+):
+    # given
+    manager = get_plugins_manager(allow_replica=False)
+    checkout = checkout_with_item_and_gift_promotion
+
+    rate = Decimal(23)
+    prices_entered_with_tax = True
+    _enable_flat_rates(checkout, prices_entered_with_tax)
+
+    line = checkout.lines.get(is_gift=True)
+    assert line.quantity == 1
+
+    method = shipping_zone.shipping_methods.get()
+    checkout.shipping_address = address
+    checkout.shipping_method_name = method.name
+    checkout.shipping_method = method
+    checkout.save()
+
+    variant = line.variant
+    product = variant.product
+    product.tax_class.country_rates.update_or_create(country=address.country, rate=rate)
+
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    checkout_line_info = [line_info for line_info in lines if line_info.line.is_gift][0]
+    create_discount_objects_for_order_promotions(checkout_info, lines)
+
+    # when
+    line_price = calculate_checkout_line_total(
+        checkout_info, lines, checkout_line_info, rate, prices_entered_with_tax
+    )
+
+    # then
+    assert line_price == zero_taxed_money(checkout.currency)
 
 
 def test_calculate_checkout_shipping(

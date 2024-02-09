@@ -50,6 +50,7 @@ def calculate_base_line_total_price(
     The price includes catalogue promotions, specific product and applied once per order
     voucher discounts.
     The price does not include order promotions and the entire order vouchers.
+    When the line is gift reward, the price is zero.
     """
     variant = line_info.variant
     currency = line_info.channel_listing.currency

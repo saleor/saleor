@@ -30,7 +30,6 @@ from ..discount.models import CheckoutDiscount, NotApplicable, OrderLineDiscount
 from ..discount.utils import (
     get_sale_id,
     increase_voucher_usage,
-    prepare_promotion_discount_reason,
     release_voucher_code_usage,
 )
 from ..graphql.checkout.utils import (
@@ -292,6 +291,7 @@ def _create_line_for_order(
         is_gift_card=variant.is_gift_card(),
         quantity=quantity,
         variant=variant,
+        is_gift=checkout_line.is_gift,
         unit_price=unit_price,  # money field not supported by mypy_django_plugin
         undiscounted_unit_price=undiscounted_unit_price,  # money field not supported by mypy_django_plugin # noqa: E501
         undiscounted_total_price=undiscounted_total_price,  # money field not supported by mypy_django_plugin # noqa: E501
@@ -310,15 +310,12 @@ def _create_line_for_order(
 
     line_discounts = _create_order_line_discounts(checkout_line_info, line)
     if line_discounts:
-        # Currently only one promotion can be applied on the single line.
-        # This is temporary solution until the discount API is implemented.
-        # Ultimately, this info should be taken from the orderLineDiscount instances.
-
-        promotion = checkout_line_info.rules_info[0].promotion
-        sale_id = get_sale_id(promotion)
-        line.sale_id = sale_id
-        promotion_discount_reason = prepare_promotion_discount_reason(
-            promotion, sale_id
+        # We might have catalogue and gift predicate promotion so there might be more
+        # than one sale_id.
+        # The sale_id will be set only for the catalogue discount if exists.
+        line.sale_id = _get_sale_id(line_discounts)
+        promotion_discount_reason = " & ".join(
+            [discount.reason for discount in line_discounts if discount.reason]
         )
         unit_discount_reason = (
             f"{unit_discount_reason} & {promotion_discount_reason}"
@@ -353,6 +350,13 @@ def _create_order_line_discounts(
         discount_data["line_id"] = order_line.pk
         line_discounts.append(OrderLineDiscount(**discount_data))
     return line_discounts
+
+
+def _get_sale_id(line_discounts: list[OrderLineDiscount]):
+    for discount in line_discounts:
+        if discount.type == DiscountType.PROMOTION:
+            if rule := discount.promotion_rule:
+                return get_sale_id(rule.promotion)
 
 
 def _create_lines_for_order(
@@ -473,7 +477,10 @@ def _prepare_order_data(
     )
     undiscounted_total = (
         sum(
-            [line.line.undiscounted_total_price for line in order_data["lines"]],
+            [
+                line_data.line.undiscounted_total_price
+                for line_data in order_data["lines"]
+            ],
             start=zero_taxed_money(taxed_total.currency),
         )
         + shipping_total
@@ -1233,7 +1240,7 @@ def _create_order_from_checkout(
     # update undiscounted order total
     undiscounted_total = (
         sum(
-            [line.line.undiscounted_total_price for line in order_lines_info],
+            [line_info.line.undiscounted_total_price for line_info in order_lines_info],
             start=zero_taxed_money(taxed_total.currency),
         )
         + shipping_total

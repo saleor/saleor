@@ -6,7 +6,7 @@ from ....checkout.fetch import (
     fetch_checkout_lines,
     update_delivery_method_lists_for_checkout_info,
 )
-from ....checkout.utils import add_variants_to_checkout, invalidate_checkout_prices
+from ....checkout.utils import add_variants_to_checkout, invalidate_checkout
 from ....warehouse.reservations import get_reservation_length, is_reservation_enabled
 from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
@@ -213,7 +213,7 @@ class CheckoutLinesAdd(BaseMutation):
         )
 
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
-        invalidate_checkout_prices(checkout_info, lines, manager, save=True)
+        invalidate_checkout(checkout_info, lines, manager, save=True)
         cls.call_event(manager.checkout_updated, checkout)
 
         return CheckoutLinesAdd(checkout=checkout)

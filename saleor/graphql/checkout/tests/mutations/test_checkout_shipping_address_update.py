@@ -11,7 +11,7 @@ from .....checkout.models import Checkout
 from .....checkout.utils import (
     add_variant_to_checkout,
     add_voucher_to_checkout,
-    invalidate_checkout_prices,
+    invalidate_checkout,
 )
 from .....plugins.base_plugin import ExcludedShippingMethod
 from .....plugins.manager import get_plugins_manager
@@ -91,11 +91,11 @@ MUTATION_CHECKOUT_SHIPPING_ADDRESS_WITH_METADATA_UPDATE = """
 )
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_shipping_address_update."
-    "invalidate_checkout_prices",
-    wraps=invalidate_checkout_prices,
+    "invalidate_checkout",
+    wraps=invalidate_checkout,
 )
 def test_checkout_shipping_address_with_metadata_update(
-    mocked_invalidate_checkout_prices,
+    mocked_invalidate_checkout,
     mocked_update_shipping_method,
     user_api_client,
     checkout_with_item,
@@ -137,7 +137,7 @@ def test_checkout_shipping_address_with_metadata_update(
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.last_change != previous_last_change
-    assert mocked_invalidate_checkout_prices.call_count == 1
+    assert mocked_invalidate_checkout.call_count == 1
 
 
 @mock.patch(

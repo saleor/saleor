@@ -8,6 +8,7 @@ from ....discount import PromotionType, RewardType, RewardValueType
 from ..enums import PromotionCreateErrorCode
 from ..mutations.promotion.validators import (
     _clean_catalogue_predicate,
+    _clean_gift_rule,
     _clean_order_predicate,
     _clean_predicates,
     _clean_reward,
@@ -262,6 +263,7 @@ def test_clean_order_predicate_missing_reward_type():
         cleaned_input,
         order_predicate,
         {},
+        set(),
         errors,
         PromotionCreateErrorCode,
         None,
@@ -292,6 +294,7 @@ def test_clean_order_predicate_reward_type_in_instance(
         cleaned_input,
         order_predicate,
         {},
+        set(),
         errors,
         PromotionCreateErrorCode,
         None,
@@ -319,6 +322,7 @@ def test_clean_order_predicate_price_based_predicate_mixed_currencies():
         cleaned_input,
         order_predicate,
         currencies,
+        set(),
         errors,
         PromotionCreateErrorCode,
         None,
@@ -353,6 +357,7 @@ def test_clean_order_mixed_currencies_instance_given_invalid_predicate(
         cleaned_input,
         order_predicate,
         currencies,
+        set(),
         errors,
         PromotionCreateErrorCode,
         None,
@@ -387,6 +392,7 @@ def test_clean_order_mixed_currencies_instance_given_invalid_channels(
         cleaned_input,
         order_predicate,
         currencies,
+        set(),
         errors,
         PromotionCreateErrorCode,
         None,
@@ -586,3 +592,78 @@ def test_clean_reward_value_multiple_currencies_error_not_raised_for_percentage_
 
     # then
     assert not errors
+
+
+def test_clean_gift_rule(product_variant_list):
+    # given
+    cleaned_input = {
+        "reward_type": RewardType.GIFT,
+        "reward_value": None,
+        "reward_value_type": None,
+    }
+    gift_ids = [
+        graphene.Node.to_global_id("ProductVariant", variant.id)
+        for variant in product_variant_list
+    ]
+    errors = defaultdict(list)
+
+    # when
+    _clean_gift_rule(
+        cleaned_input, gift_ids, errors, PromotionCreateErrorCode, None, None
+    )
+
+    # then
+    assert not errors
+
+
+@pytest.mark.parametrize("index", [None, 1, 0])
+def test_clean_gift_rule_no_gifts(index):
+    # given
+    cleaned_input = {
+        "reward_type": RewardType.GIFT,
+        "reward_value": None,
+        "reward_value_type": None,
+    }
+    gift_ids = []
+    errors = defaultdict(list)
+    index = 1
+
+    # when
+    _clean_gift_rule(
+        cleaned_input, gift_ids, errors, PromotionCreateErrorCode, index, None
+    )
+
+    # then
+    assert len(errors) == 1
+    assert len(errors["gifts"]) == 1
+    assert errors["gifts"][0].code == PromotionCreateErrorCode.REQUIRED.value
+    assert errors["gifts"][0].params["index"] == index
+
+
+@pytest.mark.parametrize("field", ["gifts", "add_gifts", "remove_gifts"])
+def test_clean_gift_rule_invalid_gift_type(field, product_variant_list):
+    # given
+    gift_ids = [
+        graphene.Node.to_global_id("Product", variant.id)
+        for variant in product_variant_list
+    ]
+    cleaned_input = {
+        "reward_type": RewardType.GIFT,
+        "reward_value": None,
+        "reward_value_type": None,
+        field: gift_ids,
+    }
+
+    errors = defaultdict(list)
+    index = 1
+
+    # when
+    _clean_gift_rule(
+        cleaned_input, gift_ids, errors, PromotionCreateErrorCode, index, None
+    )
+
+    # then
+    assert len(errors) == 1
+    assert len(errors[field]) == 1
+    assert errors[field][0].code == PromotionCreateErrorCode.INVALID_GIFT_TYPE.value
+    assert errors[field][0].params["index"] == index

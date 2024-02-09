@@ -18,6 +18,7 @@ from ...discount.models import (
     VoucherChannelListing,
     VoucherCode,
 )
+from ...product.models import ProductVariant
 from ..channel.dataloaders import ChannelBySlugLoader
 from ..core.dataloaders import DataLoader
 
@@ -449,3 +450,26 @@ class PredicateByPromotionIdLoader(DataLoader):
             .load_many(keys)
             .then(with_rules)
         )
+
+
+class GiftsByPromotionRuleIDLoader(DataLoader):
+    context_key = "gifts_by_promotion_rule"
+
+    def batch_load(self, keys):
+        PromotionRuleGift = PromotionRule.gifts.through
+        rule_gifts = (
+            PromotionRuleGift.objects.using(self.database_connection_name)
+            .filter(promotionrule_id__in=keys)
+            .order_by("pk")
+        )
+        gifts = (
+            ProductVariant.objects.using(self.database_connection_name)
+            .filter(Exists(rule_gifts.filter(productvariant_id=OuterRef("id"))))
+            .in_bulk()
+        )
+        rule_to_gifts_map = defaultdict(list)
+        for rule_id, variant_id in rule_gifts.values_list(
+            "promotionrule_id", "productvariant_id"
+        ):
+            rule_to_gifts_map[rule_id].append(gifts.get(variant_id))
+        return [rule_to_gifts_map.get(rule_id, []) for rule_id in keys]

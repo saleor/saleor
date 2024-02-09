@@ -5,6 +5,8 @@ All notable, unreleased changes to this project will be documented in this file.
 # 3.19.0 [Unreleased]
 
 ### Highlights
+- Introduce `order` promotion rules that allow applying discounts during checkout calculations when the checkout meets certain conditions. - #14696 by @IKarbowiak, @zedzior
+- Introduce gift reward as `order` promotion rule reward - #15259 by @zedzior, @IKarbowiak
 
 ### Breaking changes
 - Drop `OrderBulkCreateInput.voucher` field. Use `OrderBulkCreateInput.voucherCode` instead. - #14553 by @zedzior
@@ -16,7 +18,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add taxes to undiscounted prices - #14095 by @jakubkuc
 - Mark as deprecated: `ordersTotal`, `reportProductSales` and `homepageEvents` - #14806 by @8r2y5
 - Add `identifier` field to App graphql object. Identifier field is the same as Manifest.id field (explicit ID set by the app).
-- Introduce `checkoutAndOrder` promotion rules that allow applying discounts during checkout calculations when the checkout meets certain conditions. - #14696 by @IKarbowiak, @zedzior
 
 ### Saleor Apps
 

@@ -1,3 +1,4 @@
+from decimal import Decimal
 from unittest.mock import ANY, sentinel
 
 import graphene
@@ -435,7 +436,7 @@ def test_serialize_checkout_lines_for_tax_calculation_with_order_discount(
     total_price_amount = (unit_price * line.quantity).amount
 
     line_data = checkout_lines_data[0]
-    # the line data shouldn't include order promotin discount
+    # the line data shouldn't include order promotion discount
     assert line_data == {
         "id": graphene.Node.to_global_id("CheckoutLine", line.pk),
         "sku": variant.sku,
@@ -449,4 +450,77 @@ def test_serialize_checkout_lines_for_tax_calculation_with_order_discount(
         "product_type_metadata": product.product_type.metadata,
         "unit_amount": unit_price.amount,
         "total_amount": total_price_amount,
+    }
+
+
+def test_serialize_checkout_lines_for_tax_calculation_with_gift_promotion(
+    checkout_with_item_and_gift_promotion, product
+):
+    # given
+    checkout = checkout_with_item_and_gift_promotion
+
+    lines, _ = fetch_checkout_lines(checkout)
+    manager = get_plugins_manager(allow_replica=False)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    tax_configuration = checkout_info.tax_configuration
+    tax_configuration.country_exceptions.all().delete()
+
+    # when
+    checkout_lines_data = serialize_checkout_lines_for_tax_calculation(
+        checkout_info, lines
+    )
+
+    # then
+    line_info = [line_info for line_info in lines if not line_info.line.is_gift][0]
+    line = line_info.line
+    line_id = graphene.Node.to_global_id("CheckoutLine", line.pk)
+    variant = line.variant
+    product = variant.product
+
+    unit_price = variant.get_price(
+        channel_listing=line_info.channel_listing,
+    )
+    total_price_amount = (unit_price * line.quantity).amount
+
+    line_data = [
+        line_data for line_data in checkout_lines_data if line_data["id"] == line_id
+    ][0]
+    assert line_data == {
+        "id": line_id,
+        "sku": variant.sku,
+        "quantity": line.quantity,
+        "charge_taxes": tax_configuration.charge_taxes,
+        "full_name": variant.display_product(),
+        "product_name": product.name,
+        "variant_name": variant.name,
+        "variant_id": graphene.Node.to_global_id("ProductVariant", variant.pk),
+        "product_metadata": product.metadata,
+        "product_type_metadata": product.product_type.metadata,
+        "unit_amount": unit_price.amount,
+        "total_amount": total_price_amount,
+    }
+    gift_info = [line_info for line_info in lines if line_info.line.is_gift][0]
+    gift_line = gift_info.line
+    gift_line_id = graphene.Node.to_global_id("CheckoutLine", gift_info.line.pk)
+    gift_line_data = [
+        line_data
+        for line_data in checkout_lines_data
+        if line_data["id"] == gift_line_id
+    ][0]
+    assert gift_line_data == {
+        "id": gift_line_id,
+        "sku": gift_line.variant.sku,
+        "quantity": 1,
+        "charge_taxes": tax_configuration.charge_taxes,
+        "full_name": gift_line.variant.display_product(),
+        "product_name": gift_line.variant.product.name,
+        "variant_name": gift_line.variant.name,
+        "variant_id": graphene.Node.to_global_id(
+            "ProductVariant", gift_line.variant.pk
+        ),
+        "product_metadata": gift_line.variant.product.metadata,
+        "product_type_metadata": gift_line.variant.product.product_type.metadata,
+        "unit_amount": Decimal("0.00"),
+        "total_amount": Decimal("0.00"),
     }

@@ -11170,6 +11170,15 @@ type CheckoutLine implements Node & ObjectWithMetadata @doc(category: "Checkout"
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   problems: [CheckoutLineProblem!]
+
+  """
+  Determine if the line is a gift.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  isGift: Boolean
 }
 
 """
@@ -12106,6 +12115,15 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Added in Saleor 3.14.
   """
   voucherCode: String
+
+  """
+  Determine if the line is a gift.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  isGift: Boolean
 }
 
 """
@@ -12794,6 +12812,8 @@ enum OrderErrorCode @doc(category: "Orders") {
   CHANNEL_INACTIVE
   INVALID_VOUCHER
   INVALID_VOUCHER_CODE
+  NON_EDITABLE_GIFT_LINE
+  NON_REMOVABLE_GIFT_LINE
 }
 
 """An enumeration."""
@@ -14344,6 +14364,24 @@ type PromotionRule implements Node @doc(category: "Discounts") {
     """A language code to return the translation for promotion rule."""
     languageCode: LanguageCodeEnum!
   ): PromotionRuleTranslation
+
+  """
+  Product variant IDs available as a gift to choose.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  giftIds: [ID!]
+
+  """
+  Defines the maximum number of gifts to choose from the gifts list.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  giftsLimit: Int
 }
 
 """An enumeration."""
@@ -14355,6 +14393,7 @@ enum RewardValueTypeEnum @doc(category: "Discounts") {
 """An enumeration."""
 enum RewardTypeEnum @doc(category: "Discounts") {
   SUBTOTAL_DISCOUNT
+  GIFT
 }
 
 union PromotionEvent = PromotionCreatedEvent | PromotionUpdatedEvent | PromotionStartedEvent | PromotionEndedEvent | PromotionRuleCreatedEvent | PromotionRuleUpdatedEvent | PromotionRuleDeletedEvent
@@ -27514,7 +27553,13 @@ type PromotionCreateError {
   rulesLimit: Int
 
   """Number of rules with orderPredicate defined exceeding the limit."""
-  exceedBy: Int
+  rulesLimitExceedBy: Int
+
+  """Limit of gifts assigned to promotion rule."""
+  giftsLimit: Int
+
+  """Number of gifts defined for this promotion rule exceeding the limit."""
+  giftsLimitExceedBy: Int
 }
 
 """An enumeration."""
@@ -27527,6 +27572,8 @@ enum PromotionCreateErrorCode {
   INVALID_PRECISION
   MISSING_CHANNELS
   RULES_NUMBER_LIMIT
+  GIFTS_NUMBER_LIMIT
+  INVALID_GIFT_TYPE
 }
 
 input PromotionCreateInput @doc(category: "Discounts") {
@@ -27599,6 +27646,15 @@ input PromotionRuleInput @doc(category: "Discounts") {
 
   """List of channel ids to which the rule should apply to."""
   channels: [ID!]
+
+  """
+  Product variant IDs available as a gift to choose.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  gifts: [ID!]
 }
 
 input CataloguePredicateInput @doc(category: "Discounts") {
@@ -27769,7 +27825,13 @@ type PromotionRuleCreateError {
   rulesLimit: Int
 
   """Number of rules with orderPredicate defined exceeding the limit."""
-  exceedBy: Int
+  rulesLimitExceedBy: Int
+
+  """Limit of gifts assigned to promotion rule."""
+  giftsLimit: Int
+
+  """Number of gifts defined for this promotion rule exceeding the limit."""
+  giftsLimitExceedBy: Int
 }
 
 """An enumeration."""
@@ -27782,6 +27844,8 @@ enum PromotionRuleCreateErrorCode {
   INVALID_PRECISION
   MISSING_CHANNELS
   RULES_NUMBER_LIMIT
+  GIFTS_NUMBER_LIMIT
+  INVALID_GIFT_TYPE
 }
 
 input PromotionRuleCreateInput {
@@ -27827,6 +27891,15 @@ input PromotionRuleCreateInput {
   """List of channel ids to which the rule should apply to."""
   channels: [ID!]
 
+  """
+  Product variant IDs available as a gift to choose.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  gifts: [ID!]
+
   """The ID of the promotion that rule belongs to."""
   promotion: ID!
 }
@@ -27862,6 +27935,12 @@ type PromotionRuleUpdateError {
 
   """List of channel IDs which causes the error."""
   channels: [ID!]
+
+  """Limit of gifts assigned to promotion rule."""
+  giftsLimit: Int
+
+  """Number of gifts defined for this promotion rule exceeding the limit."""
+  giftsLimitExceedBy: Int
 }
 
 """An enumeration."""
@@ -27874,6 +27953,8 @@ enum PromotionRuleUpdateErrorCode {
   MISSING_CHANNELS
   MULTIPLE_CURRENCIES_NOT_ALLOWED
   INVALID_PRECISION
+  INVALID_GIFT_TYPE
+  GIFTS_NUMBER_LIMIT
 }
 
 input PromotionRuleUpdateInput {
@@ -27921,6 +28002,24 @@ input PromotionRuleUpdateInput {
 
   """List of channel ids to remove."""
   removeChannels: [ID!]
+
+  """
+  List of variant IDs available as a gift to add.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  addGifts: [ID!]
+
+  """
+  List of variant IDs available as a gift to remove.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  removeGifts: [ID!]
 }
 
 """
@@ -28759,6 +28858,8 @@ enum CheckoutErrorCode @doc(category: "Checkout") {
   EMAIL_NOT_SET
   NO_LINES
   INACTIVE_PAYMENT
+  NON_EDITABLE_GIFT_LINE
+  NON_REMOVABLE_GIFT_LINE
 }
 
 """
