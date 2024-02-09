@@ -25,7 +25,22 @@ class Migration(migrations.Migration):
 
                     DROP TABLE attribute_assignedproductattribute;
                     """,
-                    reverse_sql=migrations.RunSQL.noop,
+                    reverse_sql="""
+                    ALTER TABLE attribute_assignedproductattributevalue
+                    ADD COLUMN assignment_id int;
+
+                    ALTER TABLE attribute_assignedproductattributevalue
+                    ALTER COLUMN product_id DROP NOT NULL;
+
+                    ALTER TABLE attribute_assignedproductattributevalue
+                    DROP CONSTRAINT IF EXISTS attribute_assignedproduc_value_id_product_id_6f6deb31_uniq;
+
+                    CREATE TABLE attribute_assignedproductattribute (
+                        id serial NOT NULL PRIMARY KEY,
+                        assignment_id integer,
+                        product_id integer
+                    );
+                    """,
                 ),
                 migrations.RunSQL(
                     """
@@ -41,7 +56,22 @@ class Migration(migrations.Migration):
 
                     DROP TABLE attribute_assignedpageattribute;
                     """,
-                    reverse_sql=migrations.RunSQL.noop,
+                    reverse_sql="""
+                    ALTER TABLE attribute_assignedpageattributevalue
+                    ADD COLUMN assignment_id int;
+
+                    ALTER TABLE attribute_assignedpageattributevalue
+                    ALTER COLUMN page_id DROP NOT NULL;
+
+                    ALTER TABLE attribute_assignedpageattributevalue
+                    DROP CONSTRAINT IF EXISTS attribute_assignedpageat_value_id_page_id_851cd501_uniq;
+
+                    CREATE TABLE attribute_assignedpageattribute (
+                        id serial NOT NULL PRIMARY KEY,
+                        assignment_id integer,
+                        page_id integer
+                    );
+                    """,
                 ),
             ],
         ),
