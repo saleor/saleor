@@ -26,7 +26,10 @@ class Command(BaseCommand):
             "--identifier",
             dest="identifier",
             default="",
-            help="Canonical app ID.",
+            help=(
+                "Canonical app ID. If not provided, "
+                "the identifier will be generated based on app.id."
+            ),
         )
         parser.add_argument(
             "--permission",
