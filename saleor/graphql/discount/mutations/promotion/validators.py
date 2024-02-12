@@ -68,7 +68,8 @@ def _get_gift_ids(cleaned_input, instance):
         return
 
     if "gifts" in cleaned_input:
-        return {gift.id for gift in cleaned_input["gifts"]}
+        gifts = cleaned_input["gifts"] or []
+        return {gift.id for gift in gifts}
     else:
         # this part is only for PromotionRuleUpdate mutation
         # so the gifts will be fetched once
