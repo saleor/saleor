@@ -158,7 +158,7 @@ extend_exclude = ["conftest\\.py", ".*/conftest\\.py", ".*/tests/.*"]
   DEP004 = ["debug_toolbar", "graphiql_debug_toolbar"]
 
 [tool.ruff]
-lint.extend-select = ["D", "I", "ISC001", "ISC002", "PIE", "PT", "T20", "UP"]
+lint.extend-select = ["D", "I", "ISC002", "PIE", "PT", "T20", "UP"]
 lint.ignore = ["D100", "D101", "D102", "D103", "D104", "D105", "D106", "D107", "D202", "D203", "D206", "D213", "D407", "PT019"]
 target-version = "py39"
 
