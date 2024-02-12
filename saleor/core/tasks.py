@@ -1,4 +1,3 @@
-import datetime
 import logging
 
 from botocore.exceptions import ClientError
