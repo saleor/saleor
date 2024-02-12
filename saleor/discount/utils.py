@@ -901,7 +901,7 @@ def _get_available_for_purchase_variant_ids(
         available_for_purchase_at__lte=today,
         channel_id=channel.id,
     )
-    available_variant_ids = ProductVariant.objects.filter(
+    available_variant_ids = variants.filter(
         Exists(product_listings.filter(product_id=OuterRef("product_id")))
     ).values_list("id", flat=True)
     return set(available_variant_ids)
@@ -1087,12 +1087,29 @@ def _handle_gift_reward(
         line_info.discounts = [line_discount]
 
 
+def _get_defaults_for_line(order_or_checkout: Union[Checkout, Order], variant_id: int):
+    if isinstance(order_or_checkout, Checkout):
+        return {
+            "variant_id": variant_id,
+            "quantity": 1,
+            "currency": order_or_checkout.currency,
+        }
+    else:
+        return {
+            "variant_id": variant_id,
+            "quantity": 1,
+            "currency": order_or_checkout.currency,
+            "unit_price_net_amount": 0,
+            "unit_price_gross_amount": 0,
+            "total_price_net_amount": 0,
+            "total_price_gross_amount": 0,
+            "is_shipping_required": True,
+            "is_gift_card": False,
+        }
+
+
 def create_gift_line(order_or_checkout: Union[Checkout, Order], variant_id: int):
-    defaults = {
-        "variant_id": variant_id,
-        "quantity": 1,
-        "currency": order_or_checkout.currency,
-    }
+    defaults = _get_defaults_for_line(order_or_checkout, variant_id)
     line, created = order_or_checkout.lines.get_or_create(
         is_gift=True, defaults=defaults
     )

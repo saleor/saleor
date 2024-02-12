@@ -11,10 +11,10 @@ from ..discount.interface import VariantPromotionRuleInfo, fetch_variant_rules_i
 from ..discount.models import OrderLineDiscount, Voucher
 from ..payment.models import Payment
 from ..product.models import (
+    Collection,
     DigitalContent,
-    # Product,
-    # ProductType,
-    # Collection,
+    Product,
+    ProductType,
     ProductVariant,
     ProductVariantChannelListing,
 )
@@ -81,9 +81,9 @@ class DraftOrderLineInfo:
     line: "OrderLine"
     variant: "ProductVariant"
     channel_listing: "ProductVariantChannelListing"
-    # product: "Product"
-    # product_type: "ProductType"
-    # collections: list["Collection"]
+    product: "Product"
+    product_type: "ProductType"
+    collections: list["Collection"]
     discounts: list["OrderLineDiscount"]
     rules_info: list["VariantPromotionRuleInfo"]
     channel: "Channel"
@@ -146,9 +146,9 @@ def fetch_draft_order_lines_info(
                 line=line,
                 variant=variant,
                 channel_listing=variant_channel_listing,
-                # product=
-                # product_type=
-                # collections=
+                product=variant.product,
+                product_type=variant.product.product_type,
+                collections=list(variant.product.collections.all()),
                 discounts=list(line.discounts.all()),
                 rules_info=rules_info,
                 channel=channel,

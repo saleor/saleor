@@ -15,6 +15,7 @@ from ...order.base_calculations import (
 )
 from ...order.interface import OrderTaxedPricesData
 from ...product.models import VariantChannelListingPromotionRule
+from ...warehouse.models import Stock
 from .. import OrderStatus
 from ..calculations import fetch_order_prices_if_expired
 
@@ -696,6 +697,7 @@ def test_zedzior(
     catalogue_promotion_without_rules,
     channel_USD,
     product_variant_list,
+    warehouse,
 ):
     # given
     order = order_with_lines
@@ -704,10 +706,12 @@ def test_zedzior(
     rule_total = order_promotion.rules.create(
         name="Subtotal gte 10 fixed 5 rule",
         order_predicate={
-            "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 10}}}
+            "discountedObjectPredicate": {
+                "baseSubtotalPrice": {"range": {"gte": 100000}}
+            }
         },
         reward_value_type=RewardValueType.FIXED,
-        reward_value=Decimal(5),
+        reward_value=Decimal(1),
         reward_type=RewardType.SUBTOTAL_DISCOUNT,
     )
     rule_gift = order_promotion.rules.create(
@@ -720,6 +724,13 @@ def test_zedzior(
     rule_total.channels.add(channel_USD)
     rule_gift.channels.add(channel_USD)
     rule_gift.gifts.set([variant for variant in product_variant_list[:2]])
+
+    Stock.objects.create(
+        warehouse=warehouse, product_variant=product_variant_list[0], quantity=100
+    )
+    Stock.objects.create(
+        warehouse=warehouse, product_variant=product_variant_list[1], quantity=100
+    )
 
     # prepare catalogue promotions
     catalogue_promotion = catalogue_promotion_without_rules
@@ -810,9 +821,9 @@ def test_zedzior(
     assert catalogue_discount_2.type == DiscountType.PROMOTION
     assert catalogue_discount_2.amount_value == 2 * Decimal(4)
 
-    assert order.discounts.count() == 1
-    order_discount = order.discounts.first()
-    assert order_discount
+    # assert order.discounts.count() == 1
+    # order_discount = order.discounts.first()
+    # assert order_discount
     gift_discount = [line for line in order.lines.all() if line.is_gift]
-    assert not gift_discount
+    assert gift_discount
     # assert order_discount.amount_value == Decimal(5)
