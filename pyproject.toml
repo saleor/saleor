@@ -106,7 +106,7 @@ documentation = "https://docs.saleor.io/"
 
   [tool.poetry.group.dev.dependencies]
   before_after = "^1.0.1"
-  coverage = "^7.2"
+  coverage = "^7.4"
   deptry = "^0.12.0"
   django-debug-toolbar = "^4.0"
   django-debug-toolbar-request-history = "^0"
