@@ -15,7 +15,7 @@ console_command = '/code/manage.py shell'
 [env]
   AWS_STORAGE_BUCKET_NAME = 'saleor'
   AWS_MEDIA_BUCKET_NAME = 'saleor'
-  AWS_S3_ENDPOINT_URL = 'http://my-minio.internal:9000'
+  AWS_S3_ENDPOINT_URL = 'https://saleor-minio-nginx.fly.dev'
   AWS_S3_USE_SSL = "True"
   AWS_QUERYSTRING_AUTH = "True"
   AWS_S3_FILE_OVERWRITE = "False"
