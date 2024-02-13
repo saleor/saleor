@@ -1,6 +1,7 @@
 from django.urls import reverse
 
 from ...context import set_app_on_context
+from ..context import SaleorContext
 
 
 def test_app_middleware_accepts_app_requests(app, rf):
@@ -42,3 +43,14 @@ def test_app_middleware_skips_when_token_length_is_different_than_30(
 
     # then
     assert not request.app
+
+
+def test_saleor_context_init_dataloaders():
+    # given
+    dataloaders = {}
+
+    # when
+    context = SaleorContext(dataloaders=dataloaders)
+
+    # then
+    assert context.dataloaders is dataloaders

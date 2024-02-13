@@ -892,3 +892,11 @@ COMMON_REQUESTS_TIMEOUT = (REQUESTS_CONN_EST_TIMEOUT, 18)
 
 WEBHOOK_TIMEOUT = (REQUESTS_CONN_EST_TIMEOUT, 18)
 WEBHOOK_SYNC_TIMEOUT = (REQUESTS_CONN_EST_TIMEOUT, 18)
+
+# Whether to enable the comparison of pre-save and post-save webhook payloads in
+# mutations, in order to limit sending webhooks where the payload has not changed as
+# a result of the mutation. Note: this works only for subscriptions webhooks; legacy
+# payloads are not supported.
+ENABLE_LIMITING_WEBHOOKS_FOR_IDENTICAL_PAYLOADS = get_bool_from_env(
+    "ENABLE_LIMITING_WEBHOOKS_FOR_IDENTICAL_PAYLOADS", False
+)

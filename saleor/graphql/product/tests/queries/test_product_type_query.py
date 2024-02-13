@@ -593,3 +593,211 @@ def test_product_type_tax_class_query_by_staff(staff_api_client, product_type):
     assert data["productType"]
     assert data["productType"]["id"]
     assert data["productType"]["taxClass"]["id"]
+
+
+QUERY_PRODUCT_TYPE_ATTRIBUTES = """
+    query ProductType($id: ID!) {
+        productType(id: $id) {
+            id
+            productAttributes {
+                id
+                slug
+            }
+            variantAttributes {
+                id
+                slug
+            }
+            assignedVariantAttributes {
+                attribute {
+                    id
+                    slug
+                }
+            }
+        }
+    }
+"""
+
+
+def test_product_type_attribute_not_visible_in_storefront_for_customer_is_not_returned(
+    user_api_client, product_type
+):
+    # given
+    prod_attribute = product_type.product_attributes.first()
+    prod_attribute.visible_in_storefront = False
+    prod_attribute.save(update_fields=["visible_in_storefront"])
+    visible_prod_attrs_count = product_type.product_attributes.filter(
+        visible_in_storefront=True
+    ).count()
+
+    variant_attribute = product_type.variant_attributes.first()
+    variant_attribute.visible_in_storefront = False
+    variant_attribute.save(update_fields=["visible_in_storefront"])
+    visible_variant_attrs_count = product_type.variant_attributes.filter(
+        visible_in_storefront=True
+    ).count()
+
+    # when
+    variables = {
+        "id": graphene.Node.to_global_id("ProductType", product_type.pk),
+    }
+    response = user_api_client.post_graphql(
+        QUERY_PRODUCT_TYPE_ATTRIBUTES,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert (
+        len(content["data"]["productType"]["productAttributes"])
+        == visible_prod_attrs_count
+    )
+    assert (
+        len(content["data"]["productType"]["variantAttributes"])
+        == visible_variant_attrs_count
+    )
+    assert (
+        len(content["data"]["productType"]["assignedVariantAttributes"])
+        == visible_variant_attrs_count
+    )
+
+    prod_attr_data = {
+        "id": graphene.Node.to_global_id("Attribute", prod_attribute.pk),
+        "slug": prod_attribute.slug,
+    }
+    assert prod_attr_data not in content["data"]["productType"]["productAttributes"]
+
+    variant_attr_data = {
+        "id": graphene.Node.to_global_id("Attribute", variant_attribute.pk),
+        "slug": variant_attribute.slug,
+    }
+    assert variant_attr_data not in content["data"]["productType"]["variantAttributes"]
+
+    assert {"attribute": variant_attr_data} not in content["data"]["productType"][
+        "assignedVariantAttributes"
+    ]
+
+
+def test_product_type_attribute_visible_in_storefront_for_customer_is_returned(
+    user_api_client, product_type
+):
+    # given
+    prod_attribute = product_type.product_attributes.first()
+    prod_attribute.visible_in_storefront = True
+    prod_attribute.save(update_fields=["visible_in_storefront"])
+    visible_prod_attrs_count = product_type.product_attributes.filter(
+        visible_in_storefront=True
+    ).count()
+
+    variant_attribute = product_type.variant_attributes.first()
+    variant_attribute.visible_in_storefront = True
+    variant_attribute.save(update_fields=["visible_in_storefront"])
+    visible_variant_attrs_count = product_type.variant_attributes.filter(
+        visible_in_storefront=True
+    ).count()
+
+    # when
+    variables = {
+        "id": graphene.Node.to_global_id("ProductType", product_type.pk),
+    }
+    response = user_api_client.post_graphql(
+        QUERY_PRODUCT_TYPE_ATTRIBUTES,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert (
+        len(content["data"]["productType"]["productAttributes"])
+        == visible_prod_attrs_count
+    )
+    assert (
+        len(content["data"]["productType"]["variantAttributes"])
+        == visible_variant_attrs_count
+    )
+    assert (
+        len(content["data"]["productType"]["assignedVariantAttributes"])
+        == visible_variant_attrs_count
+    )
+
+    prod_attr_data = {
+        "id": graphene.Node.to_global_id("Attribute", prod_attribute.pk),
+        "slug": prod_attribute.slug,
+    }
+    assert prod_attr_data in content["data"]["productType"]["productAttributes"]
+
+    variant_attr_data = {
+        "id": graphene.Node.to_global_id("Attribute", variant_attribute.pk),
+        "slug": variant_attribute.slug,
+    }
+    assert variant_attr_data in content["data"]["productType"]["variantAttributes"]
+
+    assert {"attribute": variant_attr_data} in content["data"]["productType"][
+        "assignedVariantAttributes"
+    ]
+
+
+@pytest.mark.parametrize("visible_in_storefront", [False, True])
+def test_product_type_attribute_visible_in_storefront_for_staff_is_always_returned(
+    visible_in_storefront,
+    staff_api_client,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    prod_attribute = product_type.product_attributes.first()
+    prod_attribute.visible_in_storefront = visible_in_storefront
+    prod_attribute.save(update_fields=["visible_in_storefront"])
+    visible_prod_attrs_count = product_type.product_attributes.filter(
+        visible_in_storefront=visible_in_storefront
+    ).count()
+
+    variant_attribute = product_type.variant_attributes.first()
+    variant_attribute.visible_in_storefront = visible_in_storefront
+    variant_attribute.save(update_fields=["visible_in_storefront"])
+    visible_variant_attrs_count = product_type.variant_attributes.filter(
+        visible_in_storefront=visible_in_storefront
+    ).count()
+
+    # when
+    variables = {
+        "id": graphene.Node.to_global_id("ProductType", product_type.pk),
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCT_TYPE_ATTRIBUTES,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert (
+        len(content["data"]["productType"]["productAttributes"])
+        == visible_prod_attrs_count
+    )
+    assert (
+        len(content["data"]["productType"]["variantAttributes"])
+        == visible_variant_attrs_count
+    )
+    assert (
+        len(content["data"]["productType"]["assignedVariantAttributes"])
+        == visible_variant_attrs_count
+    )
+
+    prod_attr_data = {
+        "id": graphene.Node.to_global_id("Attribute", prod_attribute.pk),
+        "slug": prod_attribute.slug,
+    }
+    assert prod_attr_data in content["data"]["productType"]["productAttributes"]
+
+    variant_attr_data = {
+        "id": graphene.Node.to_global_id("Attribute", variant_attribute.pk),
+        "slug": variant_attribute.slug,
+    }
+    assert variant_attr_data in content["data"]["productType"]["variantAttributes"]
+
+    assert {"attribute": variant_attr_data} in content["data"]["productType"][
+        "assignedVariantAttributes"
+    ]
