@@ -108,13 +108,6 @@ class DraftOrderLineInfo:
 def fetch_draft_order_lines_info(
     order: "Order", lines: Optional[Iterable["OrderLine"]] = None
 ) -> list[DraftOrderLineInfo]:
-    def get_variant_channel_listing(variant: "ProductVariant", channel_id: int):
-        variant_channel_listing = None
-        for channel_listing in variant.channel_listings.all():
-            if channel_listing.channel_id == channel_id:
-                variant_channel_listing = channel_listing
-        return variant_channel_listing
-
     prefetch_related_fields = [
         # TODO zedzior check if all are needed
         "variant__product__collections",
@@ -135,7 +128,9 @@ def fetch_draft_order_lines_info(
     channel = order.channel
     for line in lines:
         variant = cast(ProductVariant, line.variant)
-        variant_channel_listing = get_variant_channel_listing(variant, channel.id)
+        variant_channel_listing = ProductVariantChannelListing.objects.get(
+            channel=channel, variant=variant
+        )
         rules_info = (
             fetch_variant_rules_info(variant_channel_listing, order.language_code)
             if not line.is_gift

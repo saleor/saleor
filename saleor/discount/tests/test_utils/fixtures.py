@@ -8,7 +8,6 @@ from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....core.taxes import zero_money
 from ....discount import RewardType, RewardValueType
 from ....order import OrderStatus
-from ....order.fetch import fetch_draft_order_lines_info
 from ....plugins.manager import get_plugins_manager
 from ....product.models import VariantChannelListingPromotionRule
 from ....warehouse.models import Stock
@@ -154,9 +153,3 @@ def draft_order_and_promotions(
         line.save()
 
     return order, rule_catalogue, rule_total, rule_gift
-
-
-@pytest.fixture
-def draft_order_lines_info(draft_order_and_promotions):
-    order, _, _, _ = draft_order_and_promotions
-    return fetch_draft_order_lines_info(order)

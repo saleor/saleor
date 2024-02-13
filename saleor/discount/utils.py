@@ -422,7 +422,6 @@ def create_or_update_discount_objects_from_promotion_for_checkout(
     lines_info: Iterable["CheckoutLineInfo"],
 ):
     models = get_checkout_or_order_models(checkout_info.checkout)
-    breakpoint()
     create_discount_objects_for_catalogue_promotions(lines_info, models)
     create_checkout_discount_objects_for_order_promotions(
         checkout_info, lines_info, models
@@ -451,6 +450,7 @@ def create_discount_objects_for_catalogue_promotions(
         return
 
     for line_info in lines_info:
+        breakpoint()
         line = line_info.line
 
         # discount_amount based on the difference between discounted_price and price
