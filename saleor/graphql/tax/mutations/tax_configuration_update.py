@@ -1,7 +1,6 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....app import models as app_models
 from ....app.utils import get_active_tax_apps
 from ....permission.enums import CheckoutPermissions
 from ....tax import error_codes, models
@@ -155,7 +154,17 @@ class TaxConfigurationUpdate(ModelMutation):
 
     @classmethod
     def clean_tax_app_id(cls, info: ResolveInfo, data):
-        active_tax_apps = list(get_active_tax_apps())
+        identifiers = []
+        if app_identifier := data.get("tax_app_id"):
+            identifiers.append(app_identifier)
+
+        update_countries_configuration = data.get("update_countries_configuration", [])
+        for country in update_countries_configuration:
+            if app_identifier := country.get("tax_app_id"):
+                identifiers.append(app_identifier)
+
+        active_tax_apps = list(get_active_tax_apps(identifiers))
+
         if app_identifier := data.get("tax_app_id"):
             cls.__verify_tax_app_id(info, app_identifier, active_tax_apps)
 
@@ -174,22 +183,10 @@ class TaxConfigurationUpdate(ModelMutation):
         active_tax_apps,
         country_codes=[],
     ):
-        app = (
-            app_models.App.objects.filter(
-                identifier=app_identifier,
-                is_active=True,
-            )
-            .order_by("-created_at")
-            .first()
-        )
-        if app is None:
-            message = "Provided taxAppId does not exist."
+        identifiers = [app.identifier for app in active_tax_apps]
+        if app_identifier not in identifiers:
+            message = "Did not found Tax App with provided taxAppId."
             code = error_codes.TaxConfigurationUpdateErrorCode.NOT_FOUND.value
-            params = {"country_codes": country_codes}
-            raise ValidationError(message=message, code=code, params=params)
-        if app not in active_tax_apps:
-            message = "Provided taxAppId does not belong to Tax App."
-            code = error_codes.TaxConfigurationUpdateErrorCode.INVALID.value
             params = {"country_codes": country_codes}
             raise ValidationError(message=message, code=code, params=params)
 

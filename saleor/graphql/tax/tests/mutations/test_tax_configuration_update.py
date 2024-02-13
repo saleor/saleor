@@ -360,8 +360,8 @@ def test_tax_configuration_update_tax_app_id_with_no_tax_app(
     content = get_graphql_content(response)
     errors = content["data"]["taxConfigurationUpdate"]["errors"]
     assert errors
-    assert errors[0]["message"] == "Provided taxAppId does not belong to Tax App."
-    assert errors[0]["code"] == TaxConfigurationUpdateErrorCode.INVALID.name
+    assert errors[0]["message"] == "Did not found Tax App with provided taxAppId."
+    assert errors[0]["code"] == TaxConfigurationUpdateErrorCode.NOT_FOUND.name
 
 
 def test_tax_configuration_update_tax_app_id_with_non_existent_app(
@@ -385,5 +385,5 @@ def test_tax_configuration_update_tax_app_id_with_non_existent_app(
     content = get_graphql_content(response)
     errors = content["data"]["taxConfigurationUpdate"]["errors"]
     assert errors
-    assert errors[0]["message"] == "Provided taxAppId does not exist."
+    assert errors[0]["message"] == "Did not found Tax App with provided taxAppId."
     assert errors[0]["code"] == TaxConfigurationUpdateErrorCode.NOT_FOUND.name

@@ -51,4 +51,4 @@ def test_get_active_tax_app_only_one_webhook(tax_app_factory):  # noqa: F811
     tax_apps = get_active_tax_apps()
 
     # then
-    assert len(tax_apps) == 0
+    assert len(tax_apps) == 1

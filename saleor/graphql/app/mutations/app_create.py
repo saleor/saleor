@@ -3,6 +3,7 @@ import graphene
 from ....app import models
 from ....permission.enums import AppPermission, get_permissions
 from ....webhook.event_types import WebhookEventAsyncType
+from ...core.descriptions import ADDED_IN_319
 from ...core.doc_category import DOC_CATEGORY_APPS
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelMutation
@@ -20,7 +21,7 @@ class AppInput(BaseInputObjectType):
     identifier = graphene.String(
         description=(
             "Canonical app ID. If not provided, "
-            "the identifier will be generated based on app.id."
+            "the identifier will be generated based on app.id." + ADDED_IN_319
         )
     )
     permissions = NonNullList(

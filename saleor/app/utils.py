@@ -1,45 +1,20 @@
-from django.conf import settings
-from django.db.models import Q
-from django.db.models.expressions import Exists, OuterRef
+from typing import Optional
 
-from ..permission.enums import CheckoutPermissions
-from ..permission.models import Permission
 from ..webhook.event_types import WebhookEventSyncType
-from ..webhook.models import Webhook, WebhookEvent
-from .models import App
+from ..webhook.utils import get_webhooks_for_event
 
 
-def get_active_tax_apps():
-    _, codename = CheckoutPermissions.HANDLE_TAXES.value.split(".")
-
-    permissions = Permission.objects.using(
-        settings.DATABASE_CONNECTION_REPLICA_NAME
-    ).filter(codename=codename, app=OuterRef("pk"))
-
-    order_taxes_event = WebhookEvent.objects.using(
-        settings.DATABASE_CONNECTION_REPLICA_NAME
-    ).filter(
-        event_type=WebhookEventSyncType.ORDER_CALCULATE_TAXES, webhook_id=OuterRef("pk")
-    )
-
-    checkout_taxes_event = WebhookEvent.objects.using(
-        settings.DATABASE_CONNECTION_REPLICA_NAME
-    ).filter(
+def get_active_tax_apps(identifiers: Optional[list[str]] = None):
+    checkout_webhooks = get_webhooks_for_event(
         event_type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
-        webhook_id=OuterRef("pk"),
+        apps_identifier=identifiers,
+    )
+    order_webhooks = get_webhooks_for_event(
+        event_type=WebhookEventSyncType.ORDER_CALCULATE_TAXES,
+        apps_identifier=identifiers,
     )
 
-    webhook_order_taxes_event = Webhook.objects.using(
-        settings.DATABASE_CONNECTION_REPLICA_NAME
-    ).filter(Q(app_id=OuterRef("pk")) & Q(Exists(order_taxes_event)))
+    checkout_apps = {webhook.app for webhook in checkout_webhooks}
+    order_apps = {webhook.app for webhook in order_webhooks}
 
-    webhook_checkout_taxes_event = Webhook.objects.using(
-        settings.DATABASE_CONNECTION_REPLICA_NAME
-    ).filter(Q(app_id=OuterRef("pk")) & Q(Exists(checkout_taxes_event)))
-
-    return App.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME).filter(
-        Q(is_active=True)
-        & Q(Exists(webhook_order_taxes_event))
-        & Q(Exists(webhook_checkout_taxes_event))
-        & Q(Exists(permissions))
-    )
+    return checkout_apps.union(order_apps)
