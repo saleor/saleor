@@ -1,5 +1,5 @@
 from datetime import datetime
-from decimal import ROUND_HALF_UP, Decimal
+from decimal import Decimal
 from unittest.mock import patch
 
 import before_after
@@ -183,25 +183,12 @@ def test_update_discounted_price_for_promotion_discount_multiple_applicable_rule
     update_discounted_prices_for_promotion(Product.objects.filter(id__in=[product.id]))
 
     # then
-    percentage_reward_value = (
-        (variant_price * (percentage_reward_value / 100))
-        .quantize(rounding=ROUND_HALF_UP)
-        .amount
-    )
-    expected_price_amount = round(
-        variant_price.amount - reward_value - percentage_reward_value, 2
-    )
+    expected_price_amount = round(variant_price.amount - reward_value, 2)
     product_channel_listing.refresh_from_db()
     variant_channel_listing.refresh_from_db()
     assert product_channel_listing.discounted_price_amount == expected_price_amount
     assert variant_channel_listing.discounted_price_amount == expected_price_amount
-    assert variant_channel_listing.promotion_rules.count() == 2
-    assert (
-        variant_channel_listing.variantlistingpromotionrule.get(
-            promotion_rule_id=rule_1.id
-        ).discount_amount
-        == percentage_reward_value
-    )
+    assert variant_channel_listing.promotion_rules.count() == 1
     assert (
         variant_channel_listing.variantlistingpromotionrule.get(
             promotion_rule_id=rule_2.id

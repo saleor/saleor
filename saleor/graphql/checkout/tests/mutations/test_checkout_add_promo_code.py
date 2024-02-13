@@ -31,6 +31,9 @@ MUTATION_CHECKOUT_ADD_PROMO_CODE = """
                 id
                 token
                 voucherCode
+                lines {
+                    id
+                }
                 discount {
                     amount
                 }
@@ -793,6 +796,64 @@ def test_checkout_add_category_code_checkout_on_promotion(
     assert checkout.voucher_code == voucher.code
     assert checkout.discount_amount == voucher_discount
     assert checkout.subtotal < subtotal_discounted
+
+
+def test_checkout_add_voucher_code_checkout_on_order_promotion_discount(
+    api_client, checkout_with_item_and_order_discount, voucher
+):
+    # given
+    checkout = checkout_with_item_and_order_discount
+    checkout_discount = checkout.discounts.first()
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "promoCode": voucher.code,
+    }
+
+    # when
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    # then
+    assert not data["errors"]
+    assert data["checkout"]["token"] == str(checkout.token)
+    assert data["checkout"]["voucherCode"] == voucher.code
+    checkout.refresh_from_db()
+    assert not checkout.discounts.all()
+    assert checkout.discount_amount
+    assert checkout.discount_name == voucher.name
+    with pytest.raises(checkout_discount._meta.model.DoesNotExist):
+        checkout_discount.refresh_from_db()
+
+
+def test_checkout_add_voucher_code_checkout_with_gift_reward(
+    api_client, checkout_with_item_and_gift_promotion, voucher
+):
+    # given
+    checkout = checkout_with_item_and_gift_promotion
+    gift_line = checkout.lines.get(is_gift=True)
+    line_discount = gift_line.discounts.first()
+
+    lines_count = checkout.lines.count()
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "promoCode": voucher.code,
+    }
+
+    # when
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    # then
+    assert not data["errors"]
+    assert data["checkout"]["token"] == str(checkout.token)
+    assert data["checkout"]["voucherCode"] == voucher.code
+    checkout.refresh_from_db()
+    assert checkout.lines.count() == lines_count - 1 == len(data["checkout"]["lines"])
+    assert checkout.discount_amount
+    assert checkout.discount_name == voucher.name
+    with pytest.raises(line_discount._meta.model.DoesNotExist):
+        line_discount.refresh_from_db()
+    with pytest.raises(gift_line._meta.model.DoesNotExist):
+        gift_line.refresh_from_db()
 
 
 def test_checkout_add_variant_voucher_code_apply_once_per_order(

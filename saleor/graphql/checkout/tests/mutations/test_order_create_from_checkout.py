@@ -12,7 +12,7 @@ from prices import Money
 from .....checkout import calculations
 from .....checkout.error_codes import OrderCreateFromCheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from .....checkout.models import Checkout
+from .....checkout.models import Checkout, CheckoutLine
 from .....core.taxes import TaxError, zero_money, zero_taxed_money
 from .....discount import DiscountType, DiscountValueType, RewardValueType
 from .....discount.models import CheckoutLineDiscount, Promotion
@@ -21,6 +21,7 @@ from .....giftcard.models import GiftCard, GiftCardEvent
 from .....order import OrderOrigin, OrderStatus
 from .....order.models import Fulfillment, Order
 from .....plugins.manager import PluginsManager, get_plugins_manager
+from .....product.models import ProductVariantChannelListing
 from .....tests.utils import flush_post_commit_hooks
 from .....warehouse.models import Reservation, Stock, WarehouseClickAndCollectOption
 from .....warehouse.tests.utils import get_available_quantity_for_stock
@@ -770,6 +771,9 @@ def test_order_from_checkout_with_voucher(
         order_discount.amount_value
         == (order.undiscounted_total - order.total).gross.amount
     )
+    assert order_discount.type == DiscountType.VOUCHER
+    assert order_discount.voucher == voucher_percentage
+    assert order_discount.voucher_code == code.code
 
     code.refresh_from_db()
     assert code.used == voucher_used_count + 1
@@ -847,6 +851,9 @@ def test_order_from_checkout_with_voucher_apply_once_per_order(
         order_discount.amount_value
         == (order.undiscounted_total - order.total).gross.amount
     )
+    assert order_discount.type == DiscountType.VOUCHER
+    assert order_discount.voucher == voucher_percentage
+    assert order_discount.voucher_code == code.code
 
     code.refresh_from_db()
     assert code.used == voucher_used_count + 1
@@ -911,6 +918,9 @@ def test_order_from_checkout_with_specific_product_voucher(
         order_discount.amount_value
         == (order.undiscounted_total - order.total).gross.amount
     )
+    assert order_discount.type == DiscountType.VOUCHER
+    assert order_discount.voucher == voucher_specific_product_type
+    assert order_discount.voucher_code == code.code
 
     code.refresh_from_db()
     assert code.used == voucher_used_count + 1
@@ -956,7 +966,7 @@ def test_order_from_checkout_voucher_not_increase_uses_on_preprocess_creation_fa
     assert code.used == 0
 
 
-def test_order_from_checkout_on_promotion(
+def test_order_from_checkout_on_catalogue_promotion(
     app_api_client,
     checkout_with_item_on_promotion,
     permission_handle_checkouts,
@@ -988,7 +998,6 @@ def test_order_from_checkout_on_promotion(
     assert not data["errors"]
 
     order = Order.objects.first()
-
     assert order.status == OrderStatus.UNCONFIRMED
     assert order.origin == OrderOrigin.CHECKOUT
     assert not order.original
@@ -1003,6 +1012,189 @@ def test_order_from_checkout_on_promotion(
     assert (
         discount.amount_value == (order.undiscounted_total - order.total).gross.amount
     )
+    assert not order.discounts.first()
+
+
+def test_order_from_checkout_on_order_promotion(
+    app_api_client,
+    checkout_with_item_and_order_discount,
+    permission_handle_checkouts,
+    permission_manage_checkouts,
+    address,
+    shipping_method,
+):
+    # given
+    checkout = checkout_with_item_and_order_discount
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    variables = {
+        "id": graphene.Node.to_global_id("Checkout", checkout.pk),
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
+        variables,
+        permissions=[permission_handle_checkouts, permission_manage_checkouts],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderCreateFromCheckout"]
+    assert not data["errors"]
+
+    order = Order.objects.first()
+    assert order.status == OrderStatus.UNCONFIRMED
+    assert order.origin == OrderOrigin.CHECKOUT
+    assert not order.original
+
+    order_discount = order.discounts.first()
+    assert order_discount.promotion_rule
+    assert (
+        order_discount.amount_value
+        == (order.undiscounted_total - order.total).gross.amount
+    )
+    assert order_discount.type == DiscountType.ORDER_PROMOTION
+
+
+def test_order_from_checkout_on_gift_promotion(
+    app_api_client,
+    checkout_with_item_and_gift_promotion,
+    gift_promotion_rule,
+    permission_handle_checkouts,
+    permission_manage_checkouts,
+    address,
+    shipping_method,
+):
+    # given
+    checkout = checkout_with_item_and_gift_promotion
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+    line_count = checkout.lines.count()
+
+    variables = {
+        "id": graphene.Node.to_global_id("Checkout", checkout.pk),
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
+        variables,
+        permissions=[permission_handle_checkouts, permission_manage_checkouts],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderCreateFromCheckout"]
+    assert not data["errors"]
+
+    order = Order.objects.first()
+    assert order.status == OrderStatus.UNCONFIRMED
+    assert order.origin == OrderOrigin.CHECKOUT
+    assert not order.original
+
+    assert not order.discounts.all()
+    assert order.lines.count() == line_count
+    gift_line = order.lines.get(is_gift=True)
+    assert gift_line.discounts.count() == 1
+    line_discount = gift_line.discounts.first()
+    assert line_discount.promotion_rule == gift_promotion_rule
+    assert line_discount.type == DiscountType.ORDER_PROMOTION
+
+
+def test_order_from_checkout_on_catalogue_and_gift_promotion(
+    app_api_client,
+    checkout_with_item_on_promotion,
+    gift_promotion_rule,
+    permission_handle_checkouts,
+    permission_manage_checkouts,
+    address,
+    shipping_method,
+):
+    # given
+    checkout = checkout_with_item_on_promotion
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    gift_promotion_rule.order_predicate = {
+        "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 10}}}
+    }
+    gift_promotion_rule.save(update_fields=["order_predicate"])
+
+    variants = gift_promotion_rule.gifts.all()
+    variant_listings = ProductVariantChannelListing.objects.filter(variant__in=variants)
+    top_price, variant_id = max(
+        variant_listings.values_list("discounted_price_amount", "variant")
+    )
+
+    # add gift reward
+    gift_line = CheckoutLine.objects.create(
+        checkout=checkout,
+        quantity=1,
+        variant_id=variant_id,
+        is_gift=True,
+        currency="USD",
+    )
+    CheckoutLineDiscount.objects.create(
+        line=gift_line,
+        promotion_rule=gift_promotion_rule,
+        type=DiscountType.ORDER_PROMOTION,
+        value_type=RewardValueType.FIXED,
+        value=top_price,
+        amount_value=top_price,
+        currency=checkout.channel.currency_code,
+    )
+
+    line_count = checkout.lines.count()
+
+    variables = {
+        "id": graphene.Node.to_global_id("Checkout", checkout.pk),
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
+        variables,
+        permissions=[permission_handle_checkouts, permission_manage_checkouts],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderCreateFromCheckout"]
+    assert not data["errors"]
+
+    order = Order.objects.first()
+    assert order.status == OrderStatus.UNCONFIRMED
+    assert order.origin == OrderOrigin.CHECKOUT
+    assert not order.original
+
+    assert not order.discounts.all()
+    assert order.lines.count() == line_count
+    gift_line = order.lines.get(is_gift=True)
+
+    assert gift_line.discounts.count() == 1
+    gift_line_discount = gift_line.discounts.first()
+    assert gift_line_discount.promotion_rule == gift_promotion_rule
+    assert gift_line_discount.type == DiscountType.ORDER_PROMOTION
+
+    line = order.lines.get(is_gift=False)
+    assert line.sale_id
+    assert line.unit_discount_reason
+    assert line.discounts.count() == 1
+    line_discount = line.discounts.first()
+    assert line_discount.promotion_rule
+    assert line_discount.type == DiscountType.PROMOTION
+
+    assert (
+        order.undiscounted_total - order.total
+    ).gross.amount == top_price + line_discount.amount_value
 
 
 def test_order_from_checkout_multiple_rules_applied(

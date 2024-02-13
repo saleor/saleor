@@ -31,7 +31,7 @@ from ....payment.interface import (
 )
 from ....plugins.manager import get_plugins_manager
 from ....plugins.tests.sample_plugins import ActiveDummyPaymentGateway
-from ....product.models import ProductVariant
+from ....product.models import ProductVariant, ProductVariantChannelListing
 from ....shipping.models import ShippingMethodTranslation
 from ....shipping.utils import convert_to_shipping_method_data
 from ....tests.utils import dummy_editorjs
@@ -1469,6 +1469,9 @@ QUERY_CHECKOUT_PRICES = """
         checkout(id: $id) {
            displayGrossPrices
            token
+           discount {
+                amount
+           }
            totalPrice {
                 currency
                 gross {
@@ -1482,6 +1485,10 @@ QUERY_CHECKOUT_PRICES = """
                 }
             }
            lines {
+                isGift
+                variant {
+                    id
+                }
                 unitPrice {
                     gross {
                         amount
@@ -1755,6 +1762,119 @@ def test_checkout_prices_with_promotion(
         data["lines"][0]["undiscountedTotalPrice"]["amount"] == undiscounted_total_price
     )
     assert line_total_price.gross.amount < undiscounted_total_price
+
+
+def test_checkout_prices_with_order_promotion(
+    user_api_client, checkout_with_item_and_order_discount
+):
+    # given
+    query = QUERY_CHECKOUT_PRICES
+    checkout = checkout_with_item_and_order_discount
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    # then
+    assert data["token"] == str(checkout.token)
+    assert len(data["lines"]) == checkout.lines.count()
+
+    line = checkout.lines.first()
+    variant = line.variant
+    variant_listing = variant.channel_listings.get(channel=checkout.channel)
+    unit_price = variant.get_price(variant_listing)
+    subtotal_price = unit_price * line.quantity
+    shipping_price = base_calculations.base_checkout_delivery_price(
+        checkout_info, lines
+    )
+    total_price = subtotal_price + shipping_price
+    discount_amount = checkout.discounts.first().amount_value
+
+    assert data["discount"]["amount"] == checkout.discount_amount
+    assert data["totalPrice"]["gross"]["amount"] == (
+        total_price.amount - discount_amount
+    )
+    assert data["subtotalPrice"]["gross"]["amount"] == (
+        subtotal_price.amount - discount_amount
+    )
+    assert str(data["lines"][0]["unitPrice"]["gross"]["amount"]) == str(
+        round((subtotal_price.amount - discount_amount) / line.quantity, 2)
+    )
+    assert (
+        data["lines"][0]["totalPrice"]["gross"]["amount"]
+        == subtotal_price.amount - discount_amount
+    )
+
+    assert data["lines"][0]["undiscountedUnitPrice"]["amount"] == unit_price.amount
+    assert data["lines"][0]["undiscountedTotalPrice"]["amount"] == subtotal_price.amount
+
+
+def test_checkout_prices_with_gift_promotion(
+    user_api_client, checkout_with_item_and_gift_promotion, gift_promotion_rule
+):
+    # given
+    query = QUERY_CHECKOUT_PRICES
+    checkout = checkout_with_item_and_gift_promotion
+    variants = gift_promotion_rule.gifts.all()
+    variant_listings = ProductVariantChannelListing.objects.filter(variant__in=variants)
+    top_price, variant_id = max(
+        variant_listings.values_list("discounted_price_amount", "variant")
+    )
+
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    # then
+    assert data["token"] == str(checkout.token)
+    assert len(data["lines"]) == checkout.lines.count()
+
+    line = checkout.lines.get(is_gift=False)
+    variant = line.variant
+    variant_listing = variant.channel_listings.get(channel=checkout.channel)
+    unit_price = variant.get_price(variant_listing)
+    subtotal_price = unit_price * line.quantity
+    shipping_price = base_calculations.base_checkout_delivery_price(
+        checkout_info, lines
+    )
+    total_price = subtotal_price + shipping_price
+
+    assert data["discount"]["amount"] == 0
+    assert data["totalPrice"]["gross"]["amount"] == (total_price.amount)
+    assert data["subtotalPrice"]["gross"]["amount"] == (subtotal_price.amount)
+    line_data = [
+        line_data for line_data in data["lines"] if line_data["isGift"] is False
+    ][0]
+    assert line_data["unitPrice"]["gross"]["amount"] == (
+        round((subtotal_price.amount) / line.quantity, 2)
+    )
+    assert line_data["totalPrice"]["gross"]["amount"] == subtotal_price.amount
+
+    assert line_data["undiscountedUnitPrice"]["amount"] == unit_price.amount
+    assert line_data["undiscountedTotalPrice"]["amount"] == subtotal_price.amount
+    gift_line = [
+        line_data for line_data in data["lines"] if line_data["isGift"] is True
+    ][0]
+    assert gift_line["unitPrice"]["gross"]["amount"] == 0
+    assert gift_line["totalPrice"]["gross"]["amount"] == 0
+    assert gift_line["undiscountedUnitPrice"]["amount"] == top_price
+    assert gift_line["undiscountedTotalPrice"]["amount"] == top_price
+    assert gift_line["variant"]["id"] == graphene.Node.to_global_id(
+        "ProductVariant", variant_id
+    )
 
 
 def test_checkout_display_gross_prices_use_default(user_api_client, checkout_with_item):
@@ -2058,6 +2178,7 @@ def test_query_checkout_lines(
             edges {
                 node {
                     id
+                    isGift
                 }
             }
         }
@@ -2074,6 +2195,8 @@ def test_query_checkout_lines(
         graphene.Node.to_global_id("CheckoutLine", item.pk) for item in checkout
     ]
     assert expected_lines_ids == checkout_lines_ids
+    is_gift_flags = [line["node"]["isGift"] for line in lines]
+    assert all([item is False for item in is_gift_flags])
 
 
 def test_query_checkout_lines_with_meta(

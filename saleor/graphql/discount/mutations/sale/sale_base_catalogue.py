@@ -14,7 +14,10 @@ from ....core.mutations import BaseMutation
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ....product.types import Category, Collection, Product, ProductVariant
 from ...types import Sale
-from ...utils import convert_catalogue_info_into_predicate, get_variants_for_predicate
+from ...utils import (
+    convert_catalogue_info_into_predicate,
+    get_variants_for_catalogue_predicate,
+)
 from ..utils import update_variants_for_promotion
 from ..voucher.voucher_add_catalogues import CatalogueInput
 
@@ -52,7 +55,7 @@ class SaleBaseCatalogueMutation(BaseMutation):
         previous_predicate = convert_catalogue_info_into_predicate(previous_catalogue)
         new_predicate = convert_catalogue_info_into_predicate(new_catalogue)
         previous_product_ids = cls.get_product_ids_for_predicate(previous_predicate)
-        new_variants = get_variants_for_predicate(new_predicate)
+        new_variants = get_variants_for_catalogue_predicate(new_predicate)
         new_product_ids = set(
             product_models.Product.objects.filter(
                 Exists(new_variants.filter(product_id=OuterRef("id")))
@@ -78,7 +81,7 @@ class SaleBaseCatalogueMutation(BaseMutation):
 
     @classmethod
     def get_product_ids_for_predicate(cls, predicate: dict) -> set[int]:
-        variants = get_variants_for_predicate(predicate)
+        variants = get_variants_for_catalogue_predicate(predicate)
         products = product_models.Product.objects.filter(
             Exists(variants.filter(product_id=OuterRef("id")))
         )

@@ -61,7 +61,7 @@ class CollectionAddProducts(BaseMutation):
                 product_id__in=[product.id for product in products]
             ).values_list("channel_id", flat=True)
             # This will finally recalculate discounted prices for products.
-            mark_active_promotion_rules_as_dirty(channel_ids)
+            cls.call_event(mark_active_promotion_rules_as_dirty, channel_ids)
 
         return CollectionAddProducts(
             collection=ChannelContext(node=collection, channel_slug=None)

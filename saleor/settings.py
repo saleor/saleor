@@ -648,6 +648,9 @@ CELERY_BEAT_MAX_LOOP_INTERVAL = 300  # 5 minutes
 EVENT_PAYLOAD_DELETE_PERIOD = timedelta(
     seconds=parse(os.environ.get("EVENT_PAYLOAD_DELETE_PERIOD", "14 days"))
 )
+EVENT_PAYLOAD_DELETE_TASK_TIME_LIMIT = timedelta(
+    seconds=parse(os.environ.get("EVENT_PAYLOAD_DELETE_TASK_TIME_LIMIT", "1 hour"))
+)
 # Time between marking app "to remove" and removing the app from the database.
 # App is not visible for the user after removing, but it still exists in the database.
 # Saleor needs time to process sending `APP_DELETED` webhook and possible retrying,
@@ -900,3 +903,9 @@ COMMON_REQUESTS_TIMEOUT = (REQUESTS_CONN_EST_TIMEOUT, 18)
 
 WEBHOOK_TIMEOUT = (REQUESTS_CONN_EST_TIMEOUT, 18)
 WEBHOOK_SYNC_TIMEOUT = (REQUESTS_CONN_EST_TIMEOUT, 18)
+
+# The max number of rules with order_predicate defined
+ORDER_RULES_LIMIT = os.environ.get("ORDER_RULES_LIMIT", 100)
+
+# The max number of gits assigned to promotion rule
+GIFTS_LIMIT_PER_RULE = os.environ.get("GIFTS_LIMIT_PER_RULE", 500)

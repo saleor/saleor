@@ -6,7 +6,7 @@ from ....permission.auth_filters import AuthorizationFilters
 from ...channel.types import Channel
 from ...core import ResolveInfo
 from ...core.connection import CountableConnection
-from ...core.descriptions import ADDED_IN_317, PREVIEW_FEATURE
+from ...core.descriptions import ADDED_IN_317, ADDED_IN_319, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.fields import PermissionsField
 from ...core.scalars import JSON, PositiveDecimal
@@ -16,17 +16,24 @@ from ...translations.fields import TranslationField
 from ...translations.types import PromotionRuleTranslation, PromotionTranslation
 from ..dataloaders import (
     ChannelsByPromotionRuleIdLoader,
+    GiftsByPromotionRuleIDLoader,
     PromotionByIdLoader,
     PromotionEventsByPromotionIdLoader,
     PromotionRulesByPromotionIdLoader,
 )
-from ..enums import RewardValueTypeEnum
+from ..enums import PromotionTypeEnum, RewardTypeEnum, RewardValueTypeEnum
 from .promotion_events import PromotionEvent
 
 
 class Promotion(ModelObjectType[models.Promotion]):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True, description="Name of the promotion.")
+    type = PromotionTypeEnum(
+        description=(
+            "The type of the promotion. Implicate if the discount is applied on "
+            "catalogue or order level." + ADDED_IN_319 + PREVIEW_FEATURE
+        )
+    )
     description = JSON(description="Description of the promotion.")
     start_date = graphene.DateTime(
         required=True, description="Start date of the promotion."
@@ -82,21 +89,52 @@ class PromotionRule(ModelObjectType[models.PromotionRule]):
             AuthorizationFilters.AUTHENTICATED_STAFF_USER,
         ],
     )
+    reward_value = PositiveDecimal(
+        description=(
+            "The reward value of the promotion rule. Defines the discount value "
+            "applied when the rule conditions are met." + ADDED_IN_319 + PREVIEW_FEATURE
+        )
+    )
     reward_value_type = RewardValueTypeEnum(
         description="The type of reward value of the promotion rule."
+    )
+    predicate_type = PromotionTypeEnum(
+        description=(
+            "The type of the predicate that must be met to apply the reward."
+            + ADDED_IN_319
+            + PREVIEW_FEATURE
+        )
     )
     catalogue_predicate = JSON(
         description=(
             "The catalogue predicate that must be met to apply the rule reward."
         ),
     )
-    reward_value = PositiveDecimal(
+    order_predicate = JSON(
         description=(
-            "The reward value of the promotion rule. Defines the discount value "
-            "applied when the rule conditions are met."
-        )
+            "The checkout/order predicate that must be met to apply the rule reward."
+            + ADDED_IN_319
+            + PREVIEW_FEATURE
+        ),
+    )
+    reward_type = RewardTypeEnum(
+        description="The reward type of the promotion rule."
+        + ADDED_IN_319
+        + PREVIEW_FEATURE
     )
     translation = TranslationField(PromotionRuleTranslation, type_name="promotion rule")
+    gift_ids = NonNullList(
+        graphene.ID,
+        description="Product variant IDs available as a gift to choose."
+        + ADDED_IN_319
+        + PREVIEW_FEATURE,
+    )
+    gifts_limit = graphene.Int(
+        default_value=1,
+        description="Defines the maximum number of gifts to choose from the gifts list."
+        + ADDED_IN_319
+        + PREVIEW_FEATURE,
+    )
 
     class Meta:
         description = (
@@ -112,8 +150,28 @@ class PromotionRule(ModelObjectType[models.PromotionRule]):
         return PromotionByIdLoader(info.context).load(root.promotion_id)
 
     @staticmethod
+    def resolve_predicate_type(root: models.PromotionRule, info: ResolveInfo):
+        def with_promotion(promotion):
+            return promotion.type
+
+        return (
+            PromotionByIdLoader(info.context)
+            .load(root.promotion_id)
+            .then(with_promotion)
+        )
+
+    @staticmethod
     def resolve_channels(root: models.PromotionRule, info: ResolveInfo):
         return ChannelsByPromotionRuleIdLoader(info.context).load(root.id)
+
+    @staticmethod
+    def resolve_gift_ids(root: models.PromotionRule, info: ResolveInfo):
+        def with_gifts(gifts):
+            return [
+                graphene.Node.to_global_id("ProductVariant", gift.pk) for gift in gifts
+            ]
+
+        return GiftsByPromotionRuleIDLoader(info.context).load(root.id).then(with_gifts)
 
 
 class PromotionCountableConnection(CountableConnection):

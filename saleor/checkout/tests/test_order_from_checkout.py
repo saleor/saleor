@@ -909,7 +909,7 @@ def test_create_order_product_on_promotion(
     customer_user,
     shipping_method,
     app,
-    promotion_without_rules,
+    catalogue_promotion_without_rules,
 ):
     # given
     checkout = checkout_with_item_on_promotion

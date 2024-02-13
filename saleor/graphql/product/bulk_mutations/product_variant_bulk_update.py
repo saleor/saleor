@@ -708,11 +708,14 @@ class ProductVariantBulkUpdate(BaseMutation):
         manager = get_plugin_manager_promise(info.context).get()
 
         if channel_ids_to_update:
-            mark_products_as_dirty(
-                {channel_id: {product.id} for channel_id in channel_ids_to_update}
+            cls.call_event(
+                mark_products_as_dirty,
+                {channel_id: {product.id} for channel_id in channel_ids_to_update},
             )
         if channel_ids_to_add_or_remove:
-            mark_active_promotion_rules_as_dirty(channel_ids_to_add_or_remove)
+            cls.call_event(
+                mark_active_promotion_rules_as_dirty, channel_ids_to_add_or_remove
+            )
 
         product.search_index_dirty = True
         product.save(update_fields=["search_index_dirty"])

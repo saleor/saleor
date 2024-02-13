@@ -26,13 +26,13 @@ from ....account.notifications import (
     send_account_confirmation,
 )
 from ....app.models import App
-from ....checkout.fetch import fetch_checkout_lines
+from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....core import EventDeliveryStatus
 from ....core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ....core.notification.utils import get_site_context
 from ....core.notify_events import NotifyEventType
 from ....core.utils.url import prepare_url
-from ....discount import RewardValueType
+from ....discount import RewardType, RewardValueType
 from ....discount.interface import VariantPromotionRuleInfo
 from ....discount.utils import (
     create_or_update_discount_objects_from_promotion_for_checkout,
@@ -1054,17 +1054,19 @@ def test_checkout_created(
 
 
 def test_checkout_payload_includes_promotions(
-    checkout_with_item, promotion_without_rules
+    checkout_with_item, catalogue_promotion_without_rules
 ):
     # given
     checkout = checkout_with_item
     checkout_lines, _ = fetch_checkout_lines(checkout, prefetch_variant_attributes=True)
+    manager = get_plugins_manager(allow_replica=False)
+    checkout_info = fetch_checkout_info(checkout, checkout_lines, manager)
 
     variant = checkout_lines[0].variant
     channel_listing = variant.channel_listings.first()
 
     reward_value = Decimal("5")
-    rule = promotion_without_rules.rules.create(
+    rule = catalogue_promotion_without_rules.rules.create(
         name="Percentage promotion rule",
         catalogue_predicate={
             "productPredicate": {
@@ -1091,13 +1093,15 @@ def test_checkout_payload_includes_promotions(
         VariantPromotionRuleInfo(
             rule=rule,
             variant_listing_promotion_rule=listing_promotion_rule,
-            promotion=promotion_without_rules,
+            promotion=catalogue_promotion_without_rules,
             promotion_translation=None,
             rule_translation=None,
         )
     ]
 
-    create_or_update_discount_objects_from_promotion_for_checkout(checkout_lines)
+    create_or_update_discount_objects_from_promotion_for_checkout(
+        checkout_info, checkout_lines
+    )
 
     variant_price_with_sale = variant.get_price(
         channel_listing=channel_listing,
@@ -1112,6 +1116,59 @@ def test_checkout_payload_includes_promotions(
     # then
     assert variant_price_without_sale > variant_price_with_sale
     assert Decimal(data[0]["lines"][0]["base_price"]) == variant_price_with_sale.amount
+
+
+def test_checkout_payload_includes_order_promotion_discount(
+    checkout_with_item, catalogue_promotion_without_rules
+):
+    # given
+    checkout = checkout_with_item
+    checkout_lines, _ = fetch_checkout_lines(checkout, prefetch_variant_attributes=True)
+    manager = get_plugins_manager(allow_replica=False)
+    checkout_info = fetch_checkout_info(checkout, checkout_lines, manager)
+
+    variant = checkout_lines[0].variant
+    channel_listing = variant.channel_listings.first()
+
+    reward_value = Decimal("5")
+    rule = catalogue_promotion_without_rules.rules.create(
+        name="Fixed promotion rule",
+        order_predicate={
+            "discountedObjectPredicate": {
+                "baseTotalPrice": {
+                    "range": {
+                        "gte": 20,
+                    }
+                }
+            }
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=reward_value,
+        reward_type=RewardType.SUBTOTAL_DISCOUNT,
+    )
+    rule.channels.add(channel_listing.channel)
+
+    create_or_update_discount_objects_from_promotion_for_checkout(
+        checkout_info, checkout_lines
+    )
+    checkout.save(
+        update_fields=[
+            "discount_amount",
+            "discount_name",
+            "translated_discount_name",
+        ]
+    )
+
+    # when
+    data = json.loads(generate_checkout_payload(checkout))
+
+    # then
+    variant_price = variant.get_price(
+        channel_listing=channel_listing,
+    )
+    assert Decimal(data[0]["discount_amount"]) == reward_value
+    assert data[0]["discount_name"] == checkout.discount_name
+    assert Decimal(data[0]["lines"][0]["base_price"]) == variant_price.amount
 
 
 @freeze_time("1914-06-28 10:50")

@@ -27,6 +27,8 @@ from . import (
     DiscountType,
     DiscountValueType,
     PromotionEvents,
+    PromotionType,
+    RewardType,
     RewardValueType,
     VoucherType,
 )
@@ -310,6 +312,11 @@ PromotionManager = models.Manager.from_queryset(PromotionQueryset)
 class Promotion(ModelWithMetadata):
     id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
     name = models.CharField(max_length=255)
+    type = models.CharField(
+        max_length=255,
+        choices=PromotionType.CHOICES,
+        default=PromotionType.CATALOGUE,
+    )
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
     old_sale_id = models.IntegerField(blank=True, null=True, unique=True)
     start_date = models.DateTimeField(default=timezone.now)
@@ -373,6 +380,9 @@ class PromotionRule(models.Model):
     catalogue_predicate = models.JSONField(
         blank=True, default=dict, encoder=CustomJsonEncoder
     )
+    order_predicate = models.JSONField(
+        blank=True, default=dict, encoder=CustomJsonEncoder
+    )
     variants = models.ManyToManyField("product.ProductVariant", blank=True)
     reward_value_type = models.CharField(
         max_length=255, choices=RewardValueType.CHOICES, blank=True, null=True
@@ -382,6 +392,12 @@ class PromotionRule(models.Model):
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         null=True,
         blank=True,
+    )
+    reward_type = models.CharField(
+        max_length=255, choices=RewardType.CHOICES, blank=True, null=True
+    )
+    gifts = models.ManyToManyField(
+        "product.ProductVariant", blank=True, related_name="+"
     )
     old_channel_listing_id = models.IntegerField(blank=True, null=True, unique=True)
     variants_dirty = models.BooleanField(default=False)
@@ -434,7 +450,7 @@ class BaseDiscount(models.Model):
     id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     type = models.CharField(
-        max_length=10,
+        max_length=64,
         choices=DiscountType.CHOICES,
         default=DiscountType.MANUAL,
     )
@@ -518,6 +534,26 @@ class OrderLineDiscount(BaseDiscount):
             GinIndex(fields=["voucher_code"], name="orderlinedisc_voucher_code_idx"),
         ]
         ordering = ("created_at", "id")
+
+
+class CheckoutDiscount(BaseDiscount):
+    checkout = models.ForeignKey(
+        "checkout.Checkout",
+        related_name="discounts",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+    )
+
+    class Meta:
+        indexes = [
+            BTreeIndex(fields=["promotion_rule"], name="checkoutdiscount_rule_idx"),
+            # Orders searching index
+            GinIndex(fields=["name", "translated_name"]),
+            GinIndex(fields=["voucher_code"], name="checkoutdiscount_voucher_idx"),
+        ]
+        ordering = ("created_at", "id")
+        unique_together = ("checkout_id", "promotion_rule_id")
 
 
 class CheckoutLineDiscount(BaseDiscount):

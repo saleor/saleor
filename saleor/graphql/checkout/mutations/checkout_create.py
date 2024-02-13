@@ -35,6 +35,7 @@ from ...product.types import ProductVariant
 from ...site.dataloaders import get_site_promise
 from ..types import Checkout
 from .utils import (
+    apply_gift_reward_if_applicable_on_checkout_creation,
     check_lines_quantity,
     check_permissions_for_custom_prices,
     get_variants_and_total_quantities,
@@ -388,5 +389,6 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         response = super().perform_mutation(_root, info, input=input)
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.checkout_created, response.checkout)
+        apply_gift_reward_if_applicable_on_checkout_creation(response.checkout)
         response.created = True
         return response

@@ -2,14 +2,15 @@ from decimal import Decimal
 from unittest.mock import ANY, patch
 
 import graphene
+from django.test import override_settings
 
 from .....discount import PromotionEvents, RewardValueType
 from .....discount.error_codes import PromotionRuleUpdateErrorCode
 from .....discount.models import PromotionEvent
 from .....product.models import ProductChannelListing
 from ....tests.utils import assert_no_permission, get_graphql_content
-from ...enums import RewardValueTypeEnum
-from ...utils import get_variants_for_predicate
+from ...enums import RewardTypeEnum, RewardValueTypeEnum
+from ...utils import get_variants_for_catalogue_predicate
 
 PROMOTION_RULE_UPDATE_MUTATION = """
     mutation promotionRuleUpdate($id: ID!, $input: PromotionRuleUpdateInput!) {
@@ -33,13 +34,18 @@ PROMOTION_RULE_UPDATE_MUTATION = """
                 }
                 rewardValueType
                 rewardValue
+                rewardType
                 cataloguePredicate
+                orderPredicate
+                giftIds
             }
             errors {
                 field
                 code
                 message
                 channels
+                giftsLimit
+                giftsLimitExceedBy
             }
         }
     }
@@ -55,10 +61,11 @@ def test_promotion_rule_update_by_staff_user(
     channel_PLN,
     collection,
     category,
-    promotion,
+    catalogue_promotion,
     product_list,
 ):
     # given
+    promotion = catalogue_promotion
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
     rule = promotion.rules.create(
         name="Rule",
@@ -119,6 +126,7 @@ def test_promotion_rule_update_by_staff_user(
     data = content["data"]["promotionRuleUpdate"]
     rule_data = data["promotionRule"]
     rule.refresh_from_db()
+
     assert not data["errors"]
     assert rule_data["name"] == rule.name
     assert rule_data["description"] == rule.description
@@ -141,10 +149,11 @@ def test_promotion_rule_update_by_app(
     permission_manage_discounts,
     channel_USD,
     channel_PLN,
-    promotion,
+    catalogue_promotion,
     product,
 ):
     # given
+    promotion = catalogue_promotion
     rule = promotion.rules.get(name="Percentage promotion rule")
     rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
 
@@ -199,9 +208,10 @@ def test_promotion_rule_update_by_customer(
     api_client,
     channel_USD,
     channel_PLN,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     rule = promotion.rules.first()
     rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
 
@@ -225,7 +235,7 @@ def test_promotion_rule_update_by_customer(
 
     # then
     assert_no_permission(response)
-    for variant in get_variants_for_predicate(rule.catalogue_predicate):
+    for variant in get_variants_for_catalogue_predicate(rule.catalogue_predicate):
         assert variant.product.discounted_price_dirty is True
 
 
@@ -236,9 +246,10 @@ def test_promotion_rule_update_duplicates_channels_in_add_and_remove_field(
     channel_PLN,
     collection,
     category,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
     rule = promotion.rules.first()
     rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
@@ -292,12 +303,16 @@ def test_promotion_rule_update_duplicates_channels_in_add_and_remove_field(
             "field": "addChannels",
             "message": ANY,
             "channels": [graphene.Node.to_global_id("Channel", channel_PLN.pk)],
+            "giftsLimit": None,
+            "giftsLimitExceedBy": None,
         },
         {
             "code": PromotionRuleUpdateErrorCode.DUPLICATED_INPUT_ITEM.name,
             "field": "removeChannels",
             "message": ANY,
             "channels": [graphene.Node.to_global_id("Channel", channel_PLN.pk)],
+            "giftsLimit": None,
+            "giftsLimitExceedBy": None,
         },
     ]
     for error in expected_errors:
@@ -311,9 +326,10 @@ def test_promotion_rule_update_invalid_catalogue_predicate(
     channel_PLN,
     collection,
     category,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
     rule = promotion.rules.first()
     rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
@@ -362,9 +378,10 @@ def test_promotion_rule_update_add_channel_with_different_currency_to_fixed_disc
     app_api_client,
     permission_manage_discounts,
     channel_PLN,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     rule = promotion.rules.get(name="Fixed promotion rule")
     rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
 
@@ -404,9 +421,10 @@ def test_promotion_rule_update_remove_last_channel_from_fixed_discount(
     app_api_client,
     permission_manage_discounts,
     channel_USD,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     rule = promotion.rules.get(name="Fixed promotion rule")
     rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
 
@@ -444,9 +462,10 @@ def test_promotion_rule_update_remove_and_add_channel_with_the_same_currency(
     permission_manage_discounts,
     channel_USD,
     other_channel_USD,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     rule = promotion.rules.get(name="Fixed promotion rule")
     rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
 
@@ -482,9 +501,10 @@ def test_promotion_rule_update_change_reward_value_type_to_fixed_multiple_channe
     app_api_client,
     permission_manage_discounts,
     channel_PLN,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     rule = promotion.rules.get(name="Percentage promotion rule")
     rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
 
@@ -523,9 +543,10 @@ def test_promotion_rule_update_change_reward_value_type_to_fixed_multiple_channe
 def test_promotion_rule_update_change_reward_value_type_to_fixed_no_channels(
     app_api_client,
     permission_manage_discounts,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     rule = promotion.rules.get(name="Percentage promotion rule")
     rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
 
@@ -563,9 +584,10 @@ def test_promotion_rule_update_reward_value_invalid_precision(
     permission_manage_discounts,
     channel_USD,
     channel_PLN,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     rule = promotion.rules.get(name="Fixed promotion rule")
     rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
 
@@ -605,9 +627,10 @@ def test_promotion_rule_update_reward_value_invalid_percentage_value(
     permission_manage_discounts,
     channel_USD,
     channel_PLN,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     rule = promotion.rules.get(name="Percentage promotion rule")
     rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
 
@@ -741,9 +764,10 @@ def test_promotion_rule_update_events(
     permission_group_manage_discounts,
     channel_PLN,
     category,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
     rule = promotion.rules.first()
     rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
@@ -786,3 +810,469 @@ def test_promotion_rule_update_events(
     assert PromotionEvents.RULE_UPDATED.upper() == events[0]["type"]
 
     assert events[0]["ruleId"] == rule_id
+
+
+def test_promotion_rule_update_mix_predicates_invalid_order_predicate(
+    app_api_client,
+    permission_manage_discounts,
+    catalogue_promotion,
+):
+    # given
+    promotion = catalogue_promotion
+    rule = promotion.rules.get(name="Percentage promotion rule")
+    assert rule.catalogue_predicate
+    assert not rule.order_predicate
+    rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
+
+    order_predicate = {
+        "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 100}}}
+    }
+
+    variables = {
+        "id": rule_id,
+        "input": {"orderPredicate": order_predicate},
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        PROMOTION_RULE_UPDATE_MUTATION,
+        variables,
+        permissions=(permission_manage_discounts,),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleUpdate"]
+    errors = data["errors"]
+
+    assert not data["promotionRule"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == PromotionRuleUpdateErrorCode.INVALID.name
+    assert errors[0]["field"] == "orderPredicate"
+
+
+def test_promotion_rule_update_mix_predicates_invalid_catalogue_predicate(
+    app_api_client,
+    permission_manage_discounts,
+    order_promotion_with_rule,
+    product,
+):
+    # given
+    promotion = order_promotion_with_rule
+    rule = promotion.rules.first()
+    assert not rule.catalogue_predicate
+    assert rule.order_predicate
+    rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
+
+    catalogue_predicate = {
+        "productPredicate": {"ids": [graphene.Node.to_global_id("Product", product.id)]}
+    }
+
+    variables = {
+        "id": rule_id,
+        "input": {"cataloguePredicate": catalogue_predicate},
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        PROMOTION_RULE_UPDATE_MUTATION,
+        variables,
+        permissions=(permission_manage_discounts,),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleUpdate"]
+    errors = data["errors"]
+
+    assert not data["promotionRule"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == PromotionRuleUpdateErrorCode.INVALID.name
+    assert errors[0]["field"] == "cataloguePredicate"
+
+
+def test_promotion_rule_update_mix_predicates_both_predicate_types_given(
+    app_api_client,
+    product,
+    permission_manage_discounts,
+    catalogue_promotion,
+):
+    # given
+    promotion = catalogue_promotion
+    rule = promotion.rules.get(name="Percentage promotion rule")
+    assert rule.catalogue_predicate
+    assert not rule.order_predicate
+    rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
+
+    order_predicate = {
+        "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 100}}}
+    }
+    catalogue_predicate = {
+        "productPredicate": {"ids": [graphene.Node.to_global_id("Product", product.id)]}
+    }
+
+    variables = {
+        "id": rule_id,
+        "input": {
+            "orderPredicate": order_predicate,
+            "cataloguePredicate": catalogue_predicate,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        PROMOTION_RULE_UPDATE_MUTATION,
+        variables,
+        permissions=(permission_manage_discounts,),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleUpdate"]
+    errors = data["errors"]
+
+    assert not data["promotionRule"]
+    assert len(errors) == 1
+    assert {
+        "code": PromotionRuleUpdateErrorCode.INVALID.name,
+        "field": "orderPredicate",
+        "message": ANY,
+        "channels": None,
+        "giftsLimit": None,
+        "giftsLimitExceedBy": None,
+    } in errors
+
+
+def test_promotion_rule_update_reward_type_with_catalogue_predicate(
+    app_api_client,
+    permission_manage_discounts,
+    catalogue_promotion,
+):
+    # given
+    promotion = catalogue_promotion
+    rule = promotion.rules.get(name="Percentage promotion rule")
+    rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
+    reward_type = RewardTypeEnum.SUBTOTAL_DISCOUNT.name
+
+    variables = {
+        "id": rule_id,
+        "input": {"rewardType": reward_type},
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        PROMOTION_RULE_UPDATE_MUTATION,
+        variables,
+        permissions=(permission_manage_discounts,),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleUpdate"]
+    errors = data["errors"]
+
+    assert not data["promotionRule"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == PromotionRuleUpdateErrorCode.INVALID.name
+    assert errors[0]["field"] == "rewardType"
+
+
+def test_promotion_rule_update_clear_reward_type_for_order_predicate(
+    app_api_client,
+    permission_manage_discounts,
+    order_promotion_with_rule,
+):
+    # given
+    promotion = order_promotion_with_rule
+    rule = promotion.rules.first()
+    rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
+    variables = {
+        "id": rule_id,
+        "input": {"rewardType": None},
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        PROMOTION_RULE_UPDATE_MUTATION,
+        variables,
+        permissions=(permission_manage_discounts,),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleUpdate"]
+    errors = data["errors"]
+
+    assert not data["promotionRule"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == PromotionRuleUpdateErrorCode.REQUIRED.name
+    assert errors[0]["field"] == "rewardType"
+
+
+def test_promotion_rule_update_add_invalid_channels_for_order_rule(
+    app_api_client,
+    permission_manage_discounts,
+    order_promotion_with_rule,
+    channel_PLN,
+):
+    # given
+    promotion = order_promotion_with_rule
+    rule = promotion.rules.first()
+    rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_PLN.pk)
+    variables = {
+        "id": rule_id,
+        "input": {"addChannels": [channel_id]},
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        PROMOTION_RULE_UPDATE_MUTATION,
+        variables,
+        permissions=(permission_manage_discounts,),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleUpdate"]
+    errors = data["errors"]
+
+    assert not data["promotionRule"]
+    assert len(errors) == 1
+    assert (
+        errors[0]["code"]
+        == PromotionRuleUpdateErrorCode.MULTIPLE_CURRENCIES_NOT_ALLOWED.name
+    )
+    assert errors[0]["field"] == "addChannels"
+
+
+def test_promotion_rule_update_gift_promotion(
+    app_api_client,
+    permission_manage_discounts,
+    gift_promotion_rule,
+    product_variant_list,
+):
+    # given
+    rule = gift_promotion_rule
+    rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
+    order_predicate = {
+        "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": "100"}}}
+    }
+    gift_ids = [
+        graphene.Node.to_global_id("ProductVariant", variant.pk)
+        for variant in product_variant_list
+    ]
+    current_gift_ids = [
+        graphene.Node.to_global_id("ProductVariant", variant.pk)
+        for variant in rule.gifts.all()
+    ]
+    variables = {
+        "id": rule_id,
+        "input": {
+            "orderPredicate": order_predicate,
+            "addGifts": gift_ids,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        PROMOTION_RULE_UPDATE_MUTATION,
+        variables,
+        permissions=(permission_manage_discounts,),
+    )
+
+    # then
+    gift_ids = set(gift_ids) | set(current_gift_ids)
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleUpdate"]
+    assert not data["errors"]
+    rule_data = data["promotionRule"]
+    assert sorted(rule_data["giftIds"]) == sorted(gift_ids)
+    assert rule_data["orderPredicate"] == order_predicate
+    rule.refresh_from_db()
+    assert rule.reward_type == RewardTypeEnum.GIFT.value
+    assert rule.order_predicate == order_predicate
+
+
+def test_promotion_rule_update_gift_promotion_wrong_gift_instance(
+    app_api_client,
+    permission_manage_discounts,
+    gift_promotion_rule,
+    product_list,
+):
+    # given
+    rule = gift_promotion_rule
+    rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
+    gift_ids = [
+        graphene.Node.to_global_id("Product", product.pk) for product in product_list
+    ]
+    variables = {
+        "id": rule_id,
+        "input": {
+            "addGifts": gift_ids,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        PROMOTION_RULE_UPDATE_MUTATION,
+        variables,
+        permissions=(permission_manage_discounts,),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleUpdate"]
+    errors = data["errors"]
+
+    assert not data["promotionRule"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == PromotionRuleUpdateErrorCode.INVALID_GIFT_TYPE.name
+    assert errors[0]["field"] == "addGifts"
+
+
+def test_promotion_rule_update_gift_promotion_with_reward_value(
+    app_api_client,
+    permission_manage_discounts,
+    gift_promotion_rule,
+):
+    # given
+    rule = gift_promotion_rule
+    rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
+    variables = {
+        "id": rule_id,
+        "input": {"rewardValue": Decimal(100)},
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        PROMOTION_RULE_UPDATE_MUTATION,
+        variables,
+        permissions=(permission_manage_discounts,),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleUpdate"]
+    errors = data["errors"]
+
+    assert not data["promotionRule"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == PromotionRuleUpdateErrorCode.INVALID.name
+    assert errors[0]["field"] == "rewardValue"
+
+
+def test_promotion_rule_update_gift_promotion_with_reward_value_type(
+    app_api_client,
+    permission_manage_discounts,
+    gift_promotion_rule,
+):
+    # given
+    rule = gift_promotion_rule
+    rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
+    variables = {
+        "id": rule_id,
+        "input": {"rewardValueType": RewardValueTypeEnum.PERCENTAGE.name},
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        PROMOTION_RULE_UPDATE_MUTATION,
+        variables,
+        permissions=(permission_manage_discounts,),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleUpdate"]
+    errors = data["errors"]
+
+    assert not data["promotionRule"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == PromotionRuleUpdateErrorCode.INVALID.name
+    assert errors[0]["field"] == "rewardValueType"
+
+
+def test_promotion_rule_update_gift_promotion_remove_gifts(
+    app_api_client,
+    permission_manage_discounts,
+    gift_promotion_rule,
+    product_list,
+):
+    # given
+    rule = gift_promotion_rule
+    rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
+    gift_ids = [
+        graphene.Node.to_global_id("ProductVariant", gift.id)
+        for gift in gift_promotion_rule.gifts.all()
+    ]
+    variables = {
+        "id": rule_id,
+        "input": {
+            "removeGifts": gift_ids,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        PROMOTION_RULE_UPDATE_MUTATION,
+        variables,
+        permissions=(permission_manage_discounts,),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleUpdate"]
+    errors = data["errors"]
+
+    assert not data["promotionRule"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == PromotionRuleUpdateErrorCode.REQUIRED.name
+    assert errors[0]["field"] == "gifts"
+
+
+@override_settings(GIFTS_LIMIT_PER_RULE=1)
+def test_promotion_rule_update_exceeds_gifts_number_limit(
+    app_api_client,
+    permission_manage_discounts,
+    gift_promotion_rule,
+    product_variant_list,
+):
+    # given
+    gift_limit = 1
+    rule = gift_promotion_rule
+    rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
+    gift_ids = [
+        graphene.Node.to_global_id("ProductVariant", variant.pk)
+        for variant in product_variant_list
+    ]
+    current_gift_ids = [
+        graphene.Node.to_global_id("ProductVariant", variant.pk)
+        for variant in rule.gifts.all()
+    ]
+    variables = {
+        "id": rule_id,
+        "input": {
+            "addGifts": gift_ids,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        PROMOTION_RULE_UPDATE_MUTATION,
+        variables,
+        permissions=(permission_manage_discounts,),
+    )
+
+    # then
+    gift_ids = set(gift_ids) | set(current_gift_ids)
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleUpdate"]
+    errors = data["errors"]
+
+    assert not data["promotionRule"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == PromotionRuleUpdateErrorCode.GIFTS_NUMBER_LIMIT.name
+    assert errors[0]["field"] == "gifts"
+    assert errors[0]["giftsLimit"] == gift_limit
+    assert errors[0]["giftsLimitExceedBy"] == len(gift_ids) - gift_limit

@@ -22,10 +22,10 @@ def test_mark_active_promotion_rules_as_dirty_with_empty_channel_list(
 
 
 def test_mark_active_promotion_rules_as_dirty_with_single_channel(
-    promotion, channel_PLN
+    catalogue_promotion, channel_PLN
 ):
     # given
-    rules = promotion.rules.all()
+    rules = catalogue_promotion.rules.all()
     first_rule = rules.first()
 
     first_rule.channels.add(channel_PLN)
@@ -41,7 +41,7 @@ def test_mark_active_promotion_rules_as_dirty_with_single_channel(
 
 
 def test_mark_active_promotion_rules_as_dirty_with_multiple_channels(
-    product, promotion, channel_PLN, channel_JPY, channel_USD
+    product, catalogue_promotion, channel_PLN, channel_JPY, channel_USD
 ):
     # given
     second_promotion = Promotion.objects.create(
@@ -63,7 +63,7 @@ def test_mark_active_promotion_rules_as_dirty_with_multiple_channels(
 
     rule_for_second_promotion.channels.add(channel_JPY)
 
-    rules = promotion.rules.all()
+    rules = catalogue_promotion.rules.all()
     first_rule = rules.first()
 
     first_rule.channels.set([channel_PLN, channel_JPY])
@@ -89,7 +89,7 @@ def test_mark_active_promotion_rules_as_dirty_with_multiple_channels(
 
 
 def test_mark_active_promotion_rules_as_dirty_with_multiple_promotions_and_channels(
-    product, promotion, channel_PLN, channel_JPY, channel_USD
+    product, catalogue_promotion, channel_PLN, channel_JPY, channel_USD
 ):
     # given
     second_promotion = Promotion.objects.create(
@@ -111,7 +111,7 @@ def test_mark_active_promotion_rules_as_dirty_with_multiple_promotions_and_chann
 
     rule_for_second_promotion.channels.add(channel_PLN, channel_JPY)
 
-    rules = promotion.rules.all()
+    rules = catalogue_promotion.rules.all()
     first_rule = rules.first()
 
     first_rule.channels.set([channel_PLN, channel_JPY])

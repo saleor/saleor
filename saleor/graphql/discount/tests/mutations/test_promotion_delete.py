@@ -30,10 +30,11 @@ def test_promotion_delete_by_staff_user(
     promotion_deleted_mock,
     staff_api_client,
     permission_group_manage_discounts,
-    promotion,
+    catalogue_promotion,
 ):
     # given
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
+    promotion = catalogue_promotion
     variables = {"id": graphene.Node.to_global_id("Promotion", promotion.id)}
     channels_ids = set(
         get_channels_for_rules(promotion.rules.all()).values_list("id", flat=True)
@@ -66,9 +67,10 @@ def test_promotion_delete_by_staff_app(
     promotion_deleted_mock,
     app_api_client,
     permission_manage_discounts,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     variables = {"id": graphene.Node.to_global_id("Promotion", promotion.id)}
     channels_ids = set(
         get_channels_for_rules(promotion.rules.all()).values_list("id", flat=True)
@@ -102,9 +104,10 @@ def test_promotion_delete_by_staff_app(
 def test_promotion_delete_by_customer(
     promotion_deleted_mock,
     api_client,
-    promotion,
+    catalogue_promotion,
 ):
     # given
+    promotion = catalogue_promotion
     variables = {"id": graphene.Node.to_global_id("Promotion", promotion.id)}
     channels_ids = set(
         get_channels_for_rules(promotion.rules.all()).values_list("id", flat=True)

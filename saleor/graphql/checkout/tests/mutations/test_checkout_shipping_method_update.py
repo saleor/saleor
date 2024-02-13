@@ -11,7 +11,7 @@ from .....checkout.fetch import (
     fetch_checkout_lines,
     get_delivery_method_info,
 )
-from .....checkout.utils import PRIVATE_META_APP_SHIPPING_ID, invalidate_checkout_prices
+from .....checkout.utils import PRIVATE_META_APP_SHIPPING_ID, invalidate_checkout
 from .....plugins.base_plugin import ExcludedShippingMethod
 from .....plugins.manager import get_plugins_manager
 from .....shipping import models as shipping_models
@@ -45,11 +45,11 @@ MUTATION_UPDATE_SHIPPING_METHOD = """
 )
 @patch(
     "saleor.graphql.checkout.mutations.checkout_shipping_method_update."
-    "invalidate_checkout_prices",
-    wraps=invalidate_checkout_prices,
+    "invalidate_checkout",
+    wraps=invalidate_checkout,
 )
 def test_checkout_shipping_method_update(
-    mocked_invalidate_checkout_prices,
+    mocked_invalidate_checkout,
     mock_clean_shipping,
     staff_api_client,
     shipping_method,
@@ -92,7 +92,7 @@ def test_checkout_shipping_method_update(
         assert data["checkout"]["token"] == str(checkout.token)
         assert checkout.shipping_method == shipping_method
         assert checkout.last_change != previous_last_change
-        assert mocked_invalidate_checkout_prices.call_count == 1
+        assert mocked_invalidate_checkout.call_count == 1
     else:
         assert len(errors) == 1
         assert errors[0]["field"] == "shippingMethod"

@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.models import Checkout
-from ....checkout.utils import invalidate_checkout_prices
+from ....checkout.utils import invalidate_checkout
 from ....graphql.core.mutations import BaseMutation
 from ....order import ORDER_EDITABLE_STATUS
 from ....order.models import Order
@@ -75,12 +75,12 @@ class TaxExemptionManage(BaseMutation):
         return obj
 
     @classmethod
-    def _invalidate_checkout_prices(cls, info: ResolveInfo, checkout):
+    def _invalidate_checkout(cls, info: ResolveInfo, checkout):
         manager = get_plugin_manager_promise(info.context).get()
 
         checkout_info = fetch_checkout_info(checkout, [], manager)
         lines_info, _ = fetch_checkout_lines(checkout)
-        invalidate_checkout_prices(
+        invalidate_checkout(
             checkout_info,
             lines_info,
             manager,
@@ -94,7 +94,7 @@ class TaxExemptionManage(BaseMutation):
         obj.tax_exemption = data["tax_exemption"]
 
         if isinstance(obj, Checkout):
-            cls._invalidate_checkout_prices(info, obj)
+            cls._invalidate_checkout(info, obj)
             obj.save(update_fields=["tax_exemption", "price_expiration", "last_change"])
 
         if isinstance(obj, Order):

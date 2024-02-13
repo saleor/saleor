@@ -27,10 +27,10 @@ documentation = "https://docs.saleor.io/"
   boto3 = "^1.28"
   botocore = "^1.31"
   braintree = ">=4.2,<4.25"
-  cryptography = "^41.0.6"
+  cryptography = "^42.0.1"
   dj-database-url = "^2"
   dj-email-url = "^1"
-  django = {version = "^3.2.22", extras = ["bcrypt"]}
+  django = {version = "^3.2.24", extras = ["bcrypt"]}
   django-cache-url = "^3.1.2"
   django-celery-beat = "^2.2.1"
   django-countries = "^7.2"
@@ -131,7 +131,7 @@ documentation = "https://docs.saleor.io/"
   pytest-socket = "^0.6.0"
   pytest-xdist = "^3.0.2"
   pywatchman = "^1.4.1"
-  ruff = "^0.1.3"
+  ruff = "^0.2.1"
   semgrep = ">=1.34.0"
   types-certifi = "^2021.10.8"
   types-freezegun = "^1.1.7"
@@ -158,13 +158,13 @@ extend_exclude = ["conftest\\.py", ".*/conftest\\.py", ".*/tests/.*"]
   DEP004 = ["debug_toolbar", "graphiql_debug_toolbar"]
 
 [tool.ruff]
-extend-select = ["D", "I", "ISC001", "ISC002", "PIE", "PT", "T20", "UP"]
-ignore = ["D100", "D101", "D102", "D103", "D104", "D105", "D106", "D107", "D202", "D203", "D206", "D213", "D407", "PT019"]
+lint.extend-select = ["D", "I", "ISC002", "PIE", "PT", "T20", "UP"]
+lint.ignore = ["D100", "D101", "D102", "D103", "D104", "D105", "D106", "D107", "D202", "D203", "D206", "D213", "D407", "PT019"]
 target-version = "py39"
 
-  [tool.ruff.flake8-pytest-style]
+  [tool.ruff.lint.flake8-pytest-style]
   fixture-parentheses = false
   mark-parentheses = false
 
-  [tool.ruff.isort]
+  [tool.ruff.lint.isort]
   known-first-party = ["saleor"]

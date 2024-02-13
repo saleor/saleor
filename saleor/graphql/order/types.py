@@ -76,6 +76,7 @@ from ..core.descriptions import (
     ADDED_IN_314,
     ADDED_IN_315,
     ADDED_IN_318,
+    ADDED_IN_319,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -858,6 +859,9 @@ class OrderLine(ModelObjectType[models.OrderLine]):
     voucher_code = graphene.String(
         required=False,
         description="Voucher code that was used for this order line." + ADDED_IN_314,
+    )
+    is_gift = graphene.Boolean(
+        description="Determine if the line is a gift." + ADDED_IN_319 + PREVIEW_FEATURE,
     )
 
     class Meta:

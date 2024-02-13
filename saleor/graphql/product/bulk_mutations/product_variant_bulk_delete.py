@@ -60,7 +60,7 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
             ]
             impacted_channels.update(channel_ids)
         # This will finally recalculate discounted prices for products.
-        mark_active_promotion_rules_as_dirty(impacted_channels)
+        cls.call_event(mark_active_promotion_rules_as_dirty, impacted_channels)
 
         manager = get_plugin_manager_promise(info.context).get()
         webhooks = get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_VARIANT_DELETED)

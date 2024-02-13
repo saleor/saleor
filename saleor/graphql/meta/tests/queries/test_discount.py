@@ -379,8 +379,11 @@ QUERY_PROMOTION_PUBLIC_META = """
 """
 
 
-def test_query_public_meta_for_promotion_as_anonymous_user(api_client, promotion):
+def test_query_public_meta_for_promotion_as_anonymous_user(
+    api_client, catalogue_promotion
+):
     # given
+    promotion = catalogue_promotion
     promotion.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     promotion.save(update_fields=["metadata"])
     variables = {
@@ -394,8 +397,11 @@ def test_query_public_meta_for_promotion_as_anonymous_user(api_client, promotion
     assert_no_permission(response)
 
 
-def test_query_public_meta_for_promotion_as_customer(user_api_client, promotion):
+def test_query_public_meta_for_promotion_as_customer(
+    user_api_client, catalogue_promotion
+):
     # given
+    promotion = catalogue_promotion
     promotion.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     promotion.save(update_fields=["metadata"])
     variables = {
@@ -410,9 +416,10 @@ def test_query_public_meta_for_promotion_as_customer(user_api_client, promotion)
 
 
 def test_query_public_meta_for_promotion_as_staff(
-    staff_api_client, promotion, permission_manage_discounts
+    staff_api_client, catalogue_promotion, permission_manage_discounts
 ):
     # given
+    promotion = catalogue_promotion
     promotion.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     promotion.save(update_fields=["metadata"])
     variables = {"id": graphene.Node.to_global_id("Promotion", promotion.pk)}
@@ -433,9 +440,10 @@ def test_query_public_meta_for_promotion_as_staff(
 
 
 def test_query_public_meta_for_promotion_as_app(
-    app_api_client, promotion, permission_manage_discounts
+    app_api_client, catalogue_promotion, permission_manage_discounts
 ):
     # given
+    promotion = catalogue_promotion
     promotion.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     promotion.save(update_fields=["metadata"])
     variables = {"id": graphene.Node.to_global_id("Promotion", promotion.pk)}
@@ -467,10 +475,12 @@ QUERY_PROMOTION_PRIVATE_META = """
 """
 
 
-def test_query_private_meta_for_promotion_as_anonymous_user(api_client, promotion):
+def test_query_private_meta_for_promotion_as_anonymous_user(
+    api_client, catalogue_promotion
+):
     # given
     variables = {
-        "id": graphene.Node.to_global_id("Promotion", promotion.pk),
+        "id": graphene.Node.to_global_id("Promotion", catalogue_promotion.pk),
     }
 
     # when
@@ -480,10 +490,12 @@ def test_query_private_meta_for_promotion_as_anonymous_user(api_client, promotio
     assert_no_permission(response)
 
 
-def test_query_private_meta_for_promotion_as_customer(user_api_client, promotion):
+def test_query_private_meta_for_promotion_as_customer(
+    user_api_client, catalogue_promotion
+):
     # given
     variables = {
-        "id": graphene.Node.to_global_id("Promotion", promotion.pk),
+        "id": graphene.Node.to_global_id("Promotion", catalogue_promotion.pk),
     }
 
     # when
@@ -494,9 +506,10 @@ def test_query_private_meta_for_promotion_as_customer(user_api_client, promotion
 
 
 def test_query_private_meta_for_promotion_as_staff(
-    staff_api_client, promotion, permission_manage_discounts
+    staff_api_client, catalogue_promotion, permission_manage_discounts
 ):
     # given
+    promotion = catalogue_promotion
     promotion.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
     promotion.save(update_fields=["private_metadata"])
     variables = {"id": graphene.Node.to_global_id("Promotion", promotion.pk)}
@@ -517,9 +530,10 @@ def test_query_private_meta_for_promotion_as_staff(
 
 
 def test_query_private_meta_for_promotion_as_app(
-    app_api_client, promotion, permission_manage_discounts
+    app_api_client, catalogue_promotion, permission_manage_discounts
 ):
     # given
+    promotion = catalogue_promotion
     promotion.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
     promotion.save(update_fields=["private_metadata"])
     variables = {

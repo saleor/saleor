@@ -37,10 +37,11 @@ PROMOTION_RULE_DELETE_MUTATION = """
 def test_promotion_rule_delete_by_staff_user(
     staff_api_client,
     permission_group_manage_discounts,
-    promotion,
+    catalogue_promotion,
     product,
 ):
     # given
+    promotion = catalogue_promotion
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
     rule = promotion.rules.get(name="Percentage promotion rule")
     variables = {"id": graphene.Node.to_global_id("PromotionRule", rule.id)}
@@ -65,10 +66,11 @@ def test_promotion_rule_delete_by_staff_user(
 def test_promotion_rule_delete_by_staff_app(
     app_api_client,
     permission_manage_discounts,
-    promotion,
+    catalogue_promotion,
     product,
 ):
     # given
+    promotion = catalogue_promotion
     rule = promotion.rules.get(name="Percentage promotion rule")
     variables = {"id": graphene.Node.to_global_id("PromotionRule", rule.id)}
     channels_ids = set(rule.channels.values_list("id", flat=True))
@@ -94,8 +96,9 @@ def test_promotion_rule_delete_by_staff_app(
         assert listing.discounted_price_dirty is True
 
 
-def test_promotion_rule_delete_by_customer(api_client, promotion):
+def test_promotion_rule_delete_by_customer(api_client, catalogue_promotion):
     # given
+    promotion = catalogue_promotion
     rule = promotion.rules.first()
     variables = {"id": graphene.Node.to_global_id("PromotionRule", rule.id)}
     products = get_products_for_promotion(promotion)
@@ -150,11 +153,11 @@ def test_promotion_delete_clears_old_sale_id(
 
 
 def test_promotion_rule_delete_events(
-    staff_api_client, permission_group_manage_discounts, promotion
+    staff_api_client, permission_group_manage_discounts, catalogue_promotion
 ):
     # given
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
-    rule = promotion.rules.first()
+    rule = catalogue_promotion.rules.first()
     rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
     variables = {"id": rule_id}
     event_count = PromotionEvent.objects.count()

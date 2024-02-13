@@ -1,6 +1,6 @@
 from collections.abc import Iterable
 from decimal import Decimal
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, cast
 
 from django.conf import settings
 from django.utils import timezone
@@ -20,6 +20,7 @@ from ..tax.utils import (
     get_tax_calculation_strategy_for_checkout,
     normalize_tax_rate_for_db,
 )
+from .fetch import find_checkout_line_info
 from .models import Checkout
 from .payment_utils import update_checkout_payment_statuses
 
@@ -134,21 +135,6 @@ def checkout_total(
     return quantize_price(checkout_info.checkout.total, currency)
 
 
-def _find_checkout_line_info(
-    lines: Iterable["CheckoutLineInfo"],
-    checkout_line_info: "CheckoutLineInfo",
-) -> "CheckoutLineInfo":
-    """Return checkout line info from lines parameter.
-
-    The return value represents the updated version of checkout_line_info parameter.
-    """
-    return next(
-        line_info
-        for line_info in lines
-        if line_info.line.pk == checkout_line_info.line.pk
-    )
-
-
 def checkout_line_total(
     *,
     manager: "PluginsManager",
@@ -168,7 +154,7 @@ def checkout_line_total(
         lines=lines,
         address=address,
     )
-    checkout_line = _find_checkout_line_info(lines, checkout_line_info).line
+    checkout_line = find_checkout_line_info(lines, checkout_line_info.line.id).line
     return quantize_price(checkout_line.total_price, currency)
 
 
@@ -191,7 +177,7 @@ def checkout_line_unit_price(
         lines=lines,
         address=address,
     )
-    checkout_line = _find_checkout_line_info(lines, checkout_line_info).line
+    checkout_line = find_checkout_line_info(lines, checkout_line_info.line.id).line
     unit_price = checkout_line.total_price / checkout_line.quantity
     return quantize_price(unit_price, currency)
 
@@ -214,7 +200,7 @@ def checkout_line_tax_rate(
         lines=lines,
         address=address,
     )
-    checkout_line_info = _find_checkout_line_info(lines, checkout_line_info)
+    checkout_line_info = find_checkout_line_info(lines, checkout_line_info.line.id)
     return checkout_line_info.line.tax_rate
 
 
@@ -246,7 +232,8 @@ def _fetch_checkout_prices_if_expired(
     charge_taxes = get_charge_taxes_for_checkout(checkout_info, lines)
     should_charge_tax = charge_taxes and not checkout.tax_exemption
 
-    create_or_update_discount_objects_from_promotion_for_checkout(lines)
+    lines = cast(list, lines)
+    create_or_update_discount_objects_from_promotion_for_checkout(checkout_info, lines)
 
     if prices_entered_with_tax:
         # If prices are entered with tax, we need to always calculate it anyway, to

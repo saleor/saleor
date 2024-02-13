@@ -21,8 +21,9 @@ def test_mark_promotion_rules_as_dirty_with_empty_list_as_input(
     assert not mocked_promotion_rule_filter.called
 
 
-def test_mark_promotion_rules_as_dirty_single_promotion(promotion, product):
+def test_mark_promotion_rules_as_dirty_single_promotion(catalogue_promotion, product):
     # given
+    promotion = catalogue_promotion
     second_promotion = Promotion.objects.create(
         name="Promotion",
         end_date=datetime.now(tz=pytz.UTC) + timedelta(days=30),
@@ -56,8 +57,9 @@ def test_mark_promotion_rules_as_dirty_single_promotion(promotion, product):
     )
 
 
-def test_mark_promotion_rules_as_dirty_multiple_promotion(promotion, product):
+def test_mark_promotion_rules_as_dirty_multiple_promotion(catalogue_promotion, product):
     # given
+    promotion = catalogue_promotion
     second_promotion = Promotion.objects.create(
         name="Promotion",
         end_date=datetime.now(tz=pytz.UTC) + timedelta(days=30),

@@ -6,14 +6,14 @@ from ....product.models import ProductVariant
 from ....product.utils.variants import fetch_variants_for_promotion_rules
 from ... import PromotionRuleInfo, RewardValueType
 from ...models import Promotion, PromotionRule
-from ...utils import get_variants_to_promotions_map
+from ...utils import get_variants_to_promotion_rules_map
 
 
 def test_get_variants_to_promotions_map(
-    promotion_without_rules, product, product_with_two_variants, channel_USD
+    catalogue_promotion_without_rules, product, product_with_two_variants, channel_USD
 ):
     # given
-    promotion = promotion_without_rules
+    promotion = catalogue_promotion_without_rules
     variant = product.variants.first()
 
     percentage_reward_value = Decimal("10")
@@ -48,29 +48,25 @@ def test_get_variants_to_promotions_map(
     variants = ProductVariant.objects.all()
 
     # when
-    rules_info_per_variant_and_promotion_id = get_variants_to_promotions_map(variants)
+    rules_info_per_variant = get_variants_to_promotion_rules_map(variants)
 
     # then
-    assert len(rules_info_per_variant_and_promotion_id) == 3
-    assert rules_info_per_variant_and_promotion_id[variant.id] == {
-        promotion.id: [
-            PromotionRuleInfo(rule=rule_1, channel_ids=[channel_USD.id]),
-        ]
-    }
+    assert len(rules_info_per_variant) == 3
+    assert rules_info_per_variant[variant.id] == [
+        PromotionRuleInfo(rule=rule_1, channel_ids=[channel_USD.id]),
+    ]
 
     for variant in product_with_two_variants.variants.all():
-        assert rules_info_per_variant_and_promotion_id[variant.id] == {
-            promotion.id: [
-                PromotionRuleInfo(rule=rule_2, channel_ids=[channel_USD.id]),
-            ]
-        }
+        assert rules_info_per_variant[variant.id] == [
+            PromotionRuleInfo(rule=rule_2, channel_ids=[channel_USD.id]),
+        ]
 
 
 def test_get_variants_to_promotions_map_from_different_promotions(
-    promotion_without_rules, product, channel_USD
+    catalogue_promotion_without_rules, product, channel_USD
 ):
     # given
-    promotion = promotion_without_rules
+    promotion = catalogue_promotion_without_rules
     promotion_2 = Promotion.objects.create(
         name="Promotion",
     )
@@ -106,17 +102,17 @@ def test_get_variants_to_promotions_map_from_different_promotions(
     variants = ProductVariant.objects.all()
 
     # when
-    rules_info_per_variant_and_promotion_id = get_variants_to_promotions_map(variants)
+    rules_info_per_variant = get_variants_to_promotion_rules_map(variants)
 
     # then
-    assert len(rules_info_per_variant_and_promotion_id) == 1
-    assert len(rules_info_per_variant_and_promotion_id[variant.id]) == 2
-    assert rules_info_per_variant_and_promotion_id[variant.id][promotion.id] == [
-        PromotionRuleInfo(rule=rule_1, channel_ids=[channel_USD.id])
+    assert len(rules_info_per_variant) == 1
+    assert len(rules_info_per_variant[variant.id]) == 2
+    expected_rules = [
+        PromotionRuleInfo(rule=rule_1, channel_ids=[channel_USD.id]),
+        PromotionRuleInfo(rule=rule_2, channel_ids=[channel_USD.id]),
     ]
-    assert rules_info_per_variant_and_promotion_id[variant.id][promotion_2.id] == [
-        PromotionRuleInfo(rule=rule_2, channel_ids=[channel_USD.id])
-    ]
+    for rule in rules_info_per_variant[variant.id]:
+        assert rule in expected_rules
 
 
 def test_get_variants_to_promotions_map_no_active_rules(product):
@@ -125,17 +121,17 @@ def test_get_variants_to_promotions_map_no_active_rules(product):
     fetch_variants_for_promotion_rules(PromotionRule.objects.all())
 
     # when
-    rules_per_promotion = get_variants_to_promotions_map(variants)
+    rules_info_per_variant = get_variants_to_promotion_rules_map(variants)
 
     # then
-    assert not rules_per_promotion
+    assert not rules_info_per_variant
 
 
 def test_get_variants_to_promotions_map_no_matching_rules(
-    product_with_two_variants, variant, promotion_without_rules
+    product_with_two_variants, variant, catalogue_promotion_without_rules
 ):
     # given
-    promotion = promotion_without_rules
+    promotion = catalogue_promotion_without_rules
 
     percentage_reward_value = Decimal("10")
     rule = promotion.rules.create(
@@ -155,7 +151,7 @@ def test_get_variants_to_promotions_map_no_matching_rules(
     variants = ProductVariant.objects.filter(id=variant.id)
 
     # when
-    rules_per_promotion = get_variants_to_promotions_map(variants)
+    rules_info_per_variant = get_variants_to_promotion_rules_map(variants)
 
     # then
-    assert not rules_per_promotion
+    assert not rules_info_per_variant

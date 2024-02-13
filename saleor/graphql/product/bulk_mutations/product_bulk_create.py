@@ -881,7 +881,7 @@ class ProductBulkCreate(BaseMutation):
 
         if products:
             channel_ids = set([channel.id for channel in channels])
-            mark_active_promotion_rules_as_dirty(channel_ids)
+            cls.call_event(mark_active_promotion_rules_as_dirty, channel_ids)
 
     @classmethod
     @traced_atomic_transaction()
