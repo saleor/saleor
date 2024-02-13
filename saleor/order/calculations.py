@@ -8,7 +8,7 @@ from django.db.models import prefetch_related_objects
 from prices import Money, TaxedMoney
 
 from ..core.prices import quantize_price
-from ..core.taxes import TaxData, TaxError, zero_taxed_money
+from ..core.taxes import EmptyTaxData, TaxData, TaxError, zero_taxed_money
 from ..discount import DiscountType
 from ..payment.model_helpers import get_subtotal
 from ..plugins.manager import PluginsManager
@@ -156,7 +156,7 @@ def _recalculate_prices(
                 manager,
                 prices_entered_with_tax,
             )
-        except ValueError:
+        except EmptyTaxData:
             if need_tax_calculation:
                 raise ValidationError(
                     "Configured Tax App didn't responded.",
@@ -183,7 +183,7 @@ def _recalculate_prices(
                     manager,
                     prices_entered_with_tax,
                 )
-            except ValueError:
+            except EmptyTaxData:
                 if need_tax_calculation:
                     raise ValidationError(
                         "Configured Tax App didn't responded.",
@@ -211,7 +211,7 @@ def _calculate_and_add_tax(
         # If taxAppId is not configured we will for now allow to finalize process for
         # backward compatibility.
         if tax_data is None and tax_app_identifier is not None:
-            raise ValueError("Empty tax data")
+            raise EmptyTaxData("Empty tax data")
         _apply_tax_data(order, lines, tax_data)
         # TODO: If tax data is empty, order level discounts are not propagated
         #  to its lines and not reflected in line total prices.

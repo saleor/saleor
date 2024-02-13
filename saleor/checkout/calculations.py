@@ -9,7 +9,7 @@ from prices import Money, TaxedMoney
 
 from ..checkout import base_calculations
 from ..core.prices import quantize_price
-from ..core.taxes import TaxData, zero_money, zero_taxed_money
+from ..core.taxes import EmptyTaxData, TaxData, zero_money, zero_taxed_money
 from ..discount.utils import (
     create_or_update_discount_objects_from_promotion_for_checkout,
 )
@@ -270,7 +270,7 @@ def _fetch_checkout_prices_if_expired(
                 prices_entered_with_tax,
                 address,
             )
-        except ValueError:
+        except EmptyTaxData:
             if need_tax_calculation:
                 raise ValidationError(
                     "Configured Tax App didn't responded.",
@@ -299,7 +299,7 @@ def _fetch_checkout_prices_if_expired(
                     prices_entered_with_tax,
                     address,
                 )
-            except ValueError:
+            except EmptyTaxData:
                 if need_tax_calculation:
                     raise ValidationError(
                         "Configured Tax App didn't responded.",
@@ -365,7 +365,7 @@ def _calculate_and_add_tax(
         # If taxAppId is not configured we will for now allow to finalize process for
         # backward compatibility.
         if tax_data is None and tax_app_identifier is not None:
-            raise ValueError("Empty tax data")
+            raise EmptyTaxData("Empty tax data")
         _apply_tax_data(checkout, lines, tax_data)
     else:
         # Get taxes calculated with flat rates and apply to checkout.

@@ -47,8 +47,8 @@ class TaxConfigurationPerCountryInput(BaseInputObjectType):
     tax_app_id = graphene.String(
         description=(
             "The tax app identifier that will be used to calculate the taxes for the "
-            "given channel. If not provided, use the value from the channel's tax "
-            "configuration." + ADDED_IN_319
+            "given channel and country. If not provided, use the value from the channel's "
+            "tax configuration." + ADDED_IN_319
         ),
     )
 

@@ -9858,7 +9858,7 @@ type TaxConfigurationPerCountry @doc(category: "Taxes") {
   displayGrossPrices: Boolean!
 
   """
-  The tax app id that will be used to calculate the taxes for the given channel. If not provided, use the value from the channel's tax configuration.
+  The tax app id that will be used to calculate the taxes for the given channel and country. If not provided, use the value from the channel's tax configuration.
   
   Added in Saleor 3.19.
   """
@@ -10212,6 +10212,8 @@ type Shop implements ObjectWithMetadata {
   List of tax apps that can be assigned to the channel. The list will be calculated by Saleor based on the apps that are subscribed to webhooks related to tax calculations: CHECKOUT_CALCULATE_TAXES
   
   Added in Saleor 3.19.
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, MANAGE_APPS.
   """
   availableTaxApps: [App!]!
 
@@ -20904,7 +20906,7 @@ input TaxConfigurationPerCountryInput @doc(category: "Taxes") {
   displayGrossPrices: Boolean!
 
   """
-  The tax app identifier that will be used to calculate the taxes for the given channel. If not provided, use the value from the channel's tax configuration.
+  The tax app identifier that will be used to calculate the taxes for the given channel and country. If not provided, use the value from the channel's tax configuration.
   
   Added in Saleor 3.19.
   """
@@ -30494,7 +30496,9 @@ input AppInput @doc(category: "Apps") {
   """Name of the app."""
   name: String
 
-  """Canonical app ID"""
+  """
+  Canonical app ID. If not provided, the identifier will be generated based on app.id.
+  """
   identifier: String
 
   """List of permission code names to assign to this app."""

@@ -12,7 +12,7 @@ from ...channel import models as channel_models
 from ...core.models import ModelWithMetadata
 from ...core.utils import build_absolute_uri, get_domain, is_ssl_enabled
 from ...permission.auth_filters import AuthorizationFilters
-from ...permission.enums import SitePermissions, get_permissions
+from ...permission.enums import AppPermission, SitePermissions, get_permissions
 from ...site import models as site_models
 from ..account.types import Address, AddressInput, StaffNotificationRecipient
 from ..app.types import App
@@ -347,8 +347,8 @@ class Shop(graphene.ObjectType):
         description="Minor Saleor API version." + ADDED_IN_35,
         required=True,
     )
-    available_tax_apps = NonNullList(
-        App,
+    available_tax_apps = PermissionsField(
+        NonNullList(App),
         description=(
             "List of tax apps that can be assigned to the channel. "
             "The list will be calculated by Saleor based on the apps "
@@ -356,6 +356,10 @@ class Shop(graphene.ObjectType):
             "CHECKOUT_CALCULATE_TAXES" + ADDED_IN_319
         ),
         required=True,
+        permissions=[
+            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+            AppPermission.MANAGE_APPS,
+        ],
     )
 
     # deprecated

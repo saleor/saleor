@@ -73,7 +73,7 @@ def test_app_create_mutation(
     assert default_token
     assert default_token[-4:] == app.tokens.get().token_last_4
     assert app.uuid is not None
-    assert app.identifier == graphene.Node.to_global_id("App", app.pk)
+    assert app.identifier == "test.test"
 
 
 def test_app_create_no_identifier_mutation(

@@ -82,7 +82,7 @@ class Command(BaseCommand):
         app = App.objects.create(name=name, is_active=is_active, identifier=identifier)
         if not identifier:
             app.identifier = graphene.Node.to_global_id("App", app.pk)
-            app.save()
+            app.save(update_fields=["identifier"])
         app.permissions.set(permissions)
         _, auth_token = app.tokens.create()  # type: ignore[call-arg] # method of a related manager # noqa: E501
         data = {
