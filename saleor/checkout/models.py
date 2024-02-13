@@ -197,6 +197,7 @@ class Checkout(models.Model):
     )
 
     tax_exemption = models.BooleanField(default=False)
+    tax_error = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         ordering = ("-last_change", "pk")

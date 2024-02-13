@@ -255,7 +255,7 @@ def _fetch_checkout_prices_if_expired(
     lines = cast(list, lines)
     create_or_update_discount_objects_from_promotion_for_checkout(checkout_info, lines)
 
-    tax_app_responed = True
+    checkout.tax_error = None
     if prices_entered_with_tax:
         # If prices are entered with tax, we need to always calculate it anyway, to
         # display the tax rate to the user.
@@ -270,13 +270,8 @@ def _fetch_checkout_prices_if_expired(
                 prices_entered_with_tax,
                 address,
             )
-        except EmptyTaxData:
-            if need_tax_calculation:
-                raise ValidationError(
-                    "Configured Tax App didn't responded.",
-                    code=CheckoutErrorCode.TAX_ERROR.value,
-                )
-            tax_app_responed = False
+        except EmptyTaxData as e:
+            checkout.tax_error = str(e)
 
         if not should_charge_tax:
             # If charge_taxes is disabled or checkout is exempt from taxes, remove the
@@ -299,16 +294,20 @@ def _fetch_checkout_prices_if_expired(
                     prices_entered_with_tax,
                     address,
                 )
-            except EmptyTaxData:
-                if need_tax_calculation:
-                    raise ValidationError(
-                        "Configured Tax App didn't responded.",
-                        code=CheckoutErrorCode.TAX_ERROR.value,
-                    )
-                tax_app_responed = False
+            except EmptyTaxData as e:
+                checkout.tax_error = str(e)
         else:
             # Calculate net prices without taxes.
             _get_checkout_base_prices(checkout, checkout_info, lines)
+
+    # raise an error if recorded tax_error and taxes are needed for process completion
+    if checkout.tax_error and need_tax_calculation:
+        checkout.save(update_fields=["tax_error"])
+
+        raise ValidationError(
+            "Configured Tax App didn't responded.",
+            code=CheckoutErrorCode.TAX_ERROR.value,
+        )
 
     checkout_update_fields = [
         "voucher_code",
@@ -324,11 +323,11 @@ def _fetch_checkout_prices_if_expired(
         "discount_name",
         "currency",
         "last_change",
+        "price_expiration",
+        "tax_error",
     ]
 
-    if tax_app_responed:
-        checkout.price_expiration = timezone.now() + settings.CHECKOUT_PRICES_TTL
-        checkout_update_fields.append("price_expiration")
+    checkout.price_expiration = timezone.now() + settings.CHECKOUT_PRICES_TTL
 
     checkout.save(
         update_fields=checkout_update_fields,
@@ -365,7 +364,7 @@ def _calculate_and_add_tax(
         # If taxAppId is not configured we will for now allow to finalize process for
         # backward compatibility.
         if tax_data is None and tax_app_identifier is not None:
-            raise EmptyTaxData("Empty tax data")
+            raise EmptyTaxData("Empty tax data.")
         _apply_tax_data(checkout, lines, tax_data)
     else:
         # Get taxes calculated with flat rates and apply to checkout.
@@ -531,6 +530,9 @@ def fetch_checkout_data(
 
     This function refreshes prices if they have expired. If the checkout total has
     changed as a result, it will update the payment statuses accordingly.
+
+    need_tax_calculation: Set to true if fetching data should fail when received tax data
+    is invalid. Otherwise will only collect error message to checkout.tax_error field.
     """
     previous_total_gross = checkout_info.checkout.total.gross
     checkout_info, lines = _fetch_checkout_prices_if_expired(

@@ -1414,7 +1414,15 @@ def complete_checkout(
     private_metadata_list: Optional[list] = None,
 ) -> tuple[Optional[Order], bool, dict]:
     transactions = checkout_info.checkout.payment_transactions.all()
-    fetch_checkout_data(checkout_info, manager, lines, need_tax_calculation=True)
+
+    force_update = checkout_info.checkout.tax_error is not None
+    fetch_checkout_data(
+        checkout_info,
+        manager,
+        lines,
+        force_update=force_update,
+        need_tax_calculation=True,
+    )
 
     # When checkout is zero, we don't need any transaction to cover the checkout total.
     # We check if checkout is zero, and we also check what flow for marking an order as

@@ -144,6 +144,7 @@ def _recalculate_prices(
     should_charge_tax = charge_taxes and not order.tax_exemption
     tax_app_identifier = get_tax_app_identifier_for_order(order)
 
+    order.tax_error = None
     if prices_entered_with_tax:
         # If prices are entered with tax, we need to always calculate it anyway, to
         # display the tax rate to the user.
@@ -156,13 +157,8 @@ def _recalculate_prices(
                 manager,
                 prices_entered_with_tax,
             )
-        except EmptyTaxData:
-            if need_tax_calculation:
-                raise ValidationError(
-                    "Configured Tax App didn't responded.",
-                    code=OrderErrorCode.TAX_ERROR.value,
-                )
-            order.should_refresh_prices = True
+        except EmptyTaxData as e:
+            order.tax_error = str(e)
 
         if not should_charge_tax:
             # If charge_taxes is disabled or order is exempt from taxes, remove the
@@ -183,16 +179,20 @@ def _recalculate_prices(
                     manager,
                     prices_entered_with_tax,
                 )
-            except EmptyTaxData:
-                if need_tax_calculation:
-                    raise ValidationError(
-                        "Configured Tax App didn't responded.",
-                        code=OrderErrorCode.TAX_ERROR.value,
-                    )
-                order.should_refresh_prices = True
+            except EmptyTaxData as e:
+                order.tax_error = str(e)
         else:
             apply_order_discounts(order, lines, assign_prices=True)
             _remove_tax(order, lines)
+
+    # raise an error if recorded tax_error and taxes are needed for process completion
+    if order.tax_error and need_tax_calculation:
+        order.save(update_fields=["tax_error"])
+
+        raise ValidationError(
+            "Configured Tax App didn't responded.",
+            code=OrderErrorCode.TAX_ERROR.value,
+        )
 
 
 def _calculate_and_add_tax(

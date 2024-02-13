@@ -403,8 +403,9 @@ def test_checkout_complete_fails_with_invalid_tax_app(
     mock_request.return_value = tax_data_response
 
     checkout = checkout_without_shipping_required
-    checkout.billing_address = address
     checkout.price_expiration = timezone.now()
+
+    checkout.billing_address = address
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
     checkout.metadata_storage.store_value_in_private_metadata(
         items={"accepted": "false"}
@@ -432,7 +433,7 @@ def test_checkout_complete_fails_with_invalid_tax_app(
     assert not EventDelivery.objects.exists()
 
     checkout.refresh_from_db()
-    assert checkout.price_expiration == timezone.now()
+    assert checkout.tax_error == "Empty tax data."
 
 
 @freeze_time()
@@ -483,3 +484,59 @@ def test_checkout_complete_calls_correct_tax_app(
 
     checkout.refresh_from_db()
     assert checkout.price_expiration == timezone.now() + settings.CHECKOUT_PRICES_TTL
+    assert checkout.tax_error is None
+
+
+@freeze_time()
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+def test_checkout_complete_calls_correct_force_tax_calculation_when_tax_error_was_saved(
+    mock_request,
+    user_api_client,
+    checkout_without_shipping_required,
+    channel_USD,
+    address,
+    tax_app,
+    tax_data_response,  # noqa: F811
+    settings,
+):
+    # given
+    mock_request.return_value = tax_data_response
+
+    checkout = checkout_without_shipping_required
+    checkout.billing_address = address
+    checkout.price_expiration = (
+        timezone.now() + settings.CHECKOUT_PRICES_TTL + timezone.timedelta(hours=1)
+    )
+    checkout.tax_error = "Test error."
+
+    checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
+    checkout.metadata_storage.store_value_in_private_metadata(
+        items={"accepted": "false"}
+    )
+    checkout.metadata_storage.save()
+    checkout.save()
+
+    tax_app.identifier = "test_app"
+    tax_app.save()
+    channel_USD.tax_configuration.tax_app_id = "test_app"
+    channel_USD.tax_configuration.save()
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "redirectUrl": "https://www.example.com",
+    }
+
+    # when
+    user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    delivery = EventDelivery.objects.get()
+    assert delivery.status == EventDeliveryStatus.PENDING
+    assert delivery.event_type == WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
+    assert delivery.webhook.app == tax_app
+    mock_request.assert_called_once_with(delivery)
+
+    checkout.refresh_from_db()
+    assert checkout.price_expiration == timezone.now() + settings.CHECKOUT_PRICES_TTL
+    assert checkout.tax_error is None
