@@ -14,6 +14,22 @@ TRANSACTION_BATCH_SIZE = 1000
 
 
 @celeryconf.app.task
+def set_identifier_for_local_apps_task_with_none_global_id():
+    none_global_id = graphene.Node.to_global_id("App", None)
+    apps = App.objects.filter(identifier=none_global_id)[:APP_BATCH_SIZE]
+    if apps:
+        app_ids = []
+        for app in apps:
+            app.identifier = graphene.Node.to_global_id("App", app.pk)
+            app_ids.append(app.pk)
+        App.objects.bulk_update(apps, ["identifier"])
+
+        set_identifier_for_local_apps_task.delay()
+        set_local_app_identifier_in_transaction_item_task.delay(app_ids)
+        set_local_app_identifier_in_transaction_event_task.delay(app_ids)
+
+
+@celeryconf.app.task
 def set_identifier_for_local_apps_task():
     apps = App.objects.filter(identifier__isnull=True)[:APP_BATCH_SIZE]
     if apps:
