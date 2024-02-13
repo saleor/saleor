@@ -2,12 +2,13 @@ from collections.abc import Iterable
 from decimal import Decimal
 from typing import Optional
 
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import prefetch_related_objects
 from prices import Money, TaxedMoney
 
 from ..core.prices import quantize_price
-from ..core.taxes import TaxData, TaxError, zero_taxed_money
+from ..core.taxes import EmptyTaxData, TaxData, TaxError, zero_taxed_money
 from ..discount import DiscountType
 from ..payment.model_helpers import get_subtotal
 from ..plugins.manager import PluginsManager
@@ -16,6 +17,7 @@ from ..tax.calculations import get_taxed_undiscounted_price
 from ..tax.calculations.order import update_order_prices_with_flat_rates
 from ..tax.utils import (
     get_charge_taxes_for_order,
+    get_tax_app_identifier_for_order,
     get_tax_calculation_strategy_for_order,
     normalize_tax_rate_for_db,
 )
@@ -26,6 +28,7 @@ from .base_calculations import (
     undiscounted_order_total,
     update_order_discount_amounts,
 )
+from .error_codes import OrderErrorCode
 from .interface import OrderTaxedPricesData
 from .models import Order, OrderLine
 
@@ -35,6 +38,7 @@ def fetch_order_prices_if_expired(
     manager: PluginsManager,
     lines: Optional[Iterable[OrderLine]] = None,
     force_update: bool = False,
+    need_tax_calculation: bool = False,
 ) -> tuple[Order, Optional[Iterable[OrderLine]]]:
     """Fetch order prices with taxes.
 
@@ -57,7 +61,7 @@ def fetch_order_prices_if_expired(
     order.should_refresh_prices = False
 
     _update_order_discount_for_voucher(order)
-    _recalculate_prices(order, manager, lines)
+    _recalculate_prices(order, manager, lines, need_tax_calculation)
 
     order.subtotal = get_subtotal(lines, order.currency)
     with transaction.atomic(savepoint=False):
@@ -130,6 +134,7 @@ def _recalculate_prices(
     order: Order,
     manager: PluginsManager,
     lines: Iterable[OrderLine],
+    need_tax_calculation: bool = False,
 ):
     """Calculate prices after handling order level discounts and taxes."""
     tax_configuration = order.channel.tax_configuration
@@ -137,12 +142,24 @@ def _recalculate_prices(
     prices_entered_with_tax = tax_configuration.prices_entered_with_tax
     charge_taxes = get_charge_taxes_for_order(order)
     should_charge_tax = charge_taxes and not order.tax_exemption
+    tax_app_identifier = get_tax_app_identifier_for_order(order)
+
+    order.tax_error = None
     if prices_entered_with_tax:
         # If prices are entered with tax, we need to always calculate it anyway, to
         # display the tax rate to the user.
-        _calculate_and_add_tax(
-            tax_calculation_strategy, order, lines, manager, prices_entered_with_tax
-        )
+        try:
+            _calculate_and_add_tax(
+                tax_calculation_strategy,
+                tax_app_identifier,
+                order,
+                lines,
+                manager,
+                prices_entered_with_tax,
+            )
+        except EmptyTaxData as e:
+            order.tax_error = str(e)
+
         if not should_charge_tax:
             # If charge_taxes is disabled or order is exempt from taxes, remove the
             # tax from the original gross prices.
@@ -153,16 +170,33 @@ def _recalculate_prices(
         if should_charge_tax:
             # Calculate taxes if charge_taxes is enabled and order is not exempt
             # from taxes.
-            _calculate_and_add_tax(
-                tax_calculation_strategy, order, lines, manager, prices_entered_with_tax
-            )
+            try:
+                _calculate_and_add_tax(
+                    tax_calculation_strategy,
+                    tax_app_identifier,
+                    order,
+                    lines,
+                    manager,
+                    prices_entered_with_tax,
+                )
+            except EmptyTaxData as e:
+                order.tax_error = str(e)
         else:
             apply_order_discounts(order, lines, assign_prices=True)
             _remove_tax(order, lines)
 
+    order.save(update_fields=["tax_error"])
+    # raise an error if recorded tax_error and taxes are needed for process completion
+    if order.tax_error and need_tax_calculation:
+        raise ValidationError(
+            "Configured Tax App didn't responded.",
+            code=OrderErrorCode.TAX_ERROR.value,
+        )
+
 
 def _calculate_and_add_tax(
     tax_calculation_strategy: str,
+    tax_app_identifier: Optional[str],
     order: "Order",
     lines: Iterable["OrderLine"],
     manager: "PluginsManager",
@@ -172,7 +206,11 @@ def _calculate_and_add_tax(
         # Get the taxes calculated with plugins.
         _recalculate_with_plugins(manager, order, lines, prices_entered_with_tax)
         # Get the taxes calculated with apps and apply to order.
-        tax_data = manager.get_taxes_for_order(order)
+        tax_data = manager.get_taxes_for_order(order, tax_app_identifier)
+        # If taxAppId is not configured we will for now allow to finalize process for
+        # backward compatibility.
+        if tax_data is None and tax_app_identifier is not None:
+            raise EmptyTaxData("Empty tax data.")
         _apply_tax_data(order, lines, tax_data)
         # TODO: If tax data is empty, order level discounts are not propagated
         #  to its lines and not reflected in line total prices.
