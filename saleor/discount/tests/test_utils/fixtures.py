@@ -8,6 +8,7 @@ from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....core.taxes import zero_money
 from ....discount import RewardType, RewardValueType
 from ....order import OrderStatus
+from ....order.fetch import fetch_draft_order_lines_info
 from ....plugins.manager import get_plugins_manager
 from ....product.models import VariantChannelListingPromotionRule
 from ....warehouse.models import Stock
@@ -71,16 +72,18 @@ def draft_order_and_promotions(
 ):
     # given
     order = order_with_lines
+    line_1 = order.lines.get(quantity=3)
+    line_2 = order.lines.get(quantity=2)
 
     # prepare catalogue promotions
     catalogue_promotion = catalogue_promotion_without_rules
-    variant_1 = order.lines.first().variant
-    variant_2 = order.lines.last().variant
+    variant_1 = line_1.variant
+    variant_2 = line_2.variant
     rule_catalogue = catalogue_promotion.rules.create(
-        name="Catalogue rule fixed 3",
+        name="Catalogue rule fixed",
         catalogue_predicate={
             "variantPredicate": {
-                "ids": [graphene.Node.to_global_id("ProductVariant", variant_1.id)]
+                "ids": [graphene.Node.to_global_id("ProductVariant", variant_2.id)]
             }
         },
         reward_value_type=RewardValueType.FIXED,
@@ -88,8 +91,8 @@ def draft_order_and_promotions(
     )
     rule_catalogue.channels.add(channel_USD)
 
-    listing = variant_1.channel_listings.first()
-    listing.discounted_price_amount = Decimal(7)
+    listing = variant_2.channel_listings.first()
+    listing.discounted_price_amount = Decimal(17)
     listing.save(update_fields=["discounted_price_amount"])
 
     currency = order.currency
@@ -103,19 +106,19 @@ def draft_order_and_promotions(
     # prepare order promotion - subtotal
     order_promotion = order_promotion_without_rules
     rule_total = order_promotion.rules.create(
-        name="Subtotal gte 10 fixed 5 rule",
+        name="Fixed subtotal rule",
         order_predicate={
             "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 10}}}
         },
         reward_value_type=RewardValueType.FIXED,
-        reward_value=Decimal(1),
+        reward_value=Decimal(25),
         reward_type=RewardType.SUBTOTAL_DISCOUNT,
     )
     rule_total.channels.add(channel_USD)
 
     # prepare order promotion - gift
     rule_gift = order_promotion.rules.create(
-        name="Subtotal gte 10 gift rule",
+        name="Gift subtotal rule",
         order_predicate={
             "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 10}}}
         },
@@ -151,3 +154,9 @@ def draft_order_and_promotions(
         line.save()
 
     return order, rule_catalogue, rule_total, rule_gift
+
+
+@pytest.fixture
+def draft_order_lines_info(draft_order_and_promotions):
+    order, _, _, _ = draft_order_and_promotions
+    return fetch_draft_order_lines_info(order)

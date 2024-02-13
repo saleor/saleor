@@ -50,6 +50,7 @@ def fetch_order_prices_if_expired(
     lines_info: list[DraftOrderLineInfo] = fetch_draft_order_lines_info(order, lines)
     order.should_refresh_prices = False
     create_or_update_discount_objects_from_promotion_for_order(order, lines_info)
+    # TODO zedzior sprawdz czy lines_info sie nie przyda
     _update_order_discount_for_voucher(order)
 
     lines = [line_info.line for line_info in lines_info]

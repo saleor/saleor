@@ -106,7 +106,7 @@ class DraftOrderLineInfo:
 
 
 def fetch_draft_order_lines_info(
-    order: "Order", lines: Optional[Iterable["OrderLine"]]
+    order: "Order", lines: Optional[Iterable["OrderLine"]] = None
 ) -> list[DraftOrderLineInfo]:
     def get_variant_channel_listing(variant: "ProductVariant", channel_id: int):
         variant_channel_listing = None
