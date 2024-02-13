@@ -7,6 +7,7 @@ from functools import partial
 from typing import (
     TYPE_CHECKING,
     Any,
+    Callable,
     Final,
     Optional,
     Union,
@@ -2999,7 +3000,7 @@ class WebhookPlugin(BasePlugin):
         self,
         event_type: str,
         app_identifier: str,
-        payload: str,
+        payload_gen: Callable,
         subscriptable_object=None,
     ):
         app = (
@@ -3011,9 +3012,13 @@ class WebhookPlugin(BasePlugin):
             .first()
         )
         if app is None:
+            logger.warning("Configured tax app doesn't exists.")
             return None
-        webhook = get_webhooks_for_event(event_type, app.webhooks.all()).first()
+        webhook = get_webhooks_for_event(event_type, apps_ids=[app.id]).first()
         if webhook is None:
+            logger.warning(
+                "Configured tax app's webhook for checkout taxes doesn't exists."
+            )
             return None
 
         request_context = initialize_request(
@@ -3025,7 +3030,7 @@ class WebhookPlugin(BasePlugin):
         response = trigger_webhook_sync(
             event_type=event_type,
             webhook=webhook,
-            payload=payload,
+            payload=payload_gen(),
             allow_replica=False,
             subscribable_object=subscriptable_object,
             request=request_context,
@@ -3037,13 +3042,12 @@ class WebhookPlugin(BasePlugin):
     ) -> Optional["TaxData"]:
         event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
         if app_identifier:
-            payload = generate_checkout_payload_for_tax_calculation(
-                checkout_info, lines
-            )
             return self.__run_tax_webhook(
                 event_type,
                 app_identifier,
-                payload,
+                lambda: generate_checkout_payload_for_tax_calculation(
+                    checkout_info, lines
+                ),
                 checkout_info.checkout,
             )
         else:
