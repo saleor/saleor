@@ -706,9 +706,7 @@ def test_zedzior(
     rule_total = order_promotion.rules.create(
         name="Subtotal gte 10 fixed 5 rule",
         order_predicate={
-            "discountedObjectPredicate": {
-                "baseSubtotalPrice": {"range": {"gte": 100000}}
-            }
+            "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 10}}}
         },
         reward_value_type=RewardValueType.FIXED,
         reward_value=Decimal(1),
