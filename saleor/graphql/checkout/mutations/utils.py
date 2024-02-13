@@ -535,14 +535,15 @@ def apply_gift_reward_if_applicable_on_checkout_creation(checkout: "Checkout") -
     if not gift_listing:
         return
 
+    amount_value = gift_listing.price_amount
     with transaction.atomic():
         line, _line_created = create_gift_line(checkout, gift_listing.variant_id)
         CheckoutLineDiscount.objects.create(
             type=DiscountType.ORDER_PROMOTION,
             line=line,
-            amount_value=best_discount_amount,
+            amount_value=amount_value,
             value_type=DiscountValueType.FIXED,
-            value=best_discount_amount,
+            value=amount_value,
             promotion_rule=best_rule,
             currency=checkout.currency,
         )
