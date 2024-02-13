@@ -3067,11 +3067,10 @@ class WebhookPlugin(BasePlugin):
     ) -> Optional["TaxData"]:
         event_type = WebhookEventSyncType.ORDER_CALCULATE_TAXES
         if app_identifier:
-            payload = generate_order_payload_for_tax_calculation(order)
             return self.__run_tax_webhook(
                 event_type,
                 app_identifier,
-                payload,
+                lambda: generate_order_payload_for_tax_calculation(order),
                 order,
             )
         else:

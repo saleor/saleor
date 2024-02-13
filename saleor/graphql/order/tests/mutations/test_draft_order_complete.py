@@ -1051,6 +1051,52 @@ def test_draft_order_complete_fails_with_invalid_tax_app(
 
     order.refresh_from_db()
     assert order.should_refresh_prices
+    assert order.tax_error == "Empty tax data."
+
+
+@freeze_time()
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+def test_draft_order_complete_force_tax_calculation_when_tax_error_was_saved(
+    mock_request,
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    channel_USD,
+    tax_app,
+    tax_data_response,  # noqa: F811
+):
+    # given
+    mock_request.return_value = tax_data_response
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    order = draft_order
+    order.should_refresh_prices = False
+    order.tax_error = "Test error."
+    order.save()
+
+    tax_app.identifier = "test_app"
+    tax_app.save()
+    channel_USD.tax_configuration.tax_app_id = "test_app"
+    channel_USD.tax_configuration.save()
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+
+    # when
+    response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
+    get_graphql_content(response)
+
+    # then
+    delivery = EventDelivery.objects.get()
+    assert delivery.status == EventDeliveryStatus.PENDING
+    assert delivery.event_type == WebhookEventSyncType.ORDER_CALCULATE_TAXES
+    assert delivery.webhook.app == tax_app
+    mock_request.assert_called_once_with(delivery)
+
+    order.refresh_from_db()
+    assert not order.should_refresh_prices
+    assert not order.tax_error
 
 
 @freeze_time()
@@ -1094,3 +1140,4 @@ def test_draft_order_complete_calls_correct_tax_app(
 
     order.refresh_from_db()
     assert not order.should_refresh_prices
+    assert not order.tax_error

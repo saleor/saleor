@@ -185,10 +185,9 @@ def _recalculate_prices(
             apply_order_discounts(order, lines, assign_prices=True)
             _remove_tax(order, lines)
 
+    order.save(update_fields=["tax_error"])
     # raise an error if recorded tax_error and taxes are needed for process completion
     if order.tax_error and need_tax_calculation:
-        order.save(update_fields=["tax_error"])
-
         raise ValidationError(
             "Configured Tax App didn't responded.",
             code=OrderErrorCode.TAX_ERROR.value,
@@ -211,7 +210,7 @@ def _calculate_and_add_tax(
         # If taxAppId is not configured we will for now allow to finalize process for
         # backward compatibility.
         if tax_data is None and tax_app_identifier is not None:
-            raise EmptyTaxData("Empty tax data")
+            raise EmptyTaxData("Empty tax data.")
         _apply_tax_data(order, lines, tax_data)
         # TODO: If tax data is empty, order level discounts are not propagated
         #  to its lines and not reflected in line total prices.
