@@ -30,6 +30,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Added caching of GraphQL documents for common queries to improve performance - #14843 by @patrys
 - Added `VOUCHER_CODES_CREATED` and `VOUCHER_CODES_DELETED` webhooks events. - #14652 by @SzymJ
 - Fixed validation for streetAddress1 or streetAddress2 are too long - #13973 by sonbui00
+- Clear db leftovers after attribute refactor - #15372 by @IKarbowiak
 
 
 # 3.18.0
