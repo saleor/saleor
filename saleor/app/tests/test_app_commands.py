@@ -119,6 +119,7 @@ def test_creates_app_object():
     assert app.uuid is not None
     assert app.identifier == graphene.Node.to_global_id("App", app.id)
 
+
 def test_app_has_all_required_permissions():
     name = "SA name"
     expected_permission = get_permissions(
