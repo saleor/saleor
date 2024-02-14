@@ -698,7 +698,6 @@ def create_order_discount_objects_for_order_promotions(
         country=order.get_country(),
         subtotal=subtotal,
     )
-
     if not rule_data:
         _clear_order_discount(order, lines_info)
         return lines_info
