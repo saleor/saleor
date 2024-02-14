@@ -234,6 +234,12 @@ def test_checkout_create_from_order_with_gift_reward(
     _assert_checkout_lines(
         order_lines_map, checkout_lines, checkout_lines_from_response_map
     )
+    assert gift_line.discounts.count() == 1
+    discount = gift_line.discounts.first()
+    gift_variant_listing = gift_line.variant.channel_listings.get(
+        channel=checkout.channel
+    )
+    assert discount.amount_value == gift_variant_listing.price_amount
 
 
 def test_checkout_create_from_order_when_order_not_found(

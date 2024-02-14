@@ -63,6 +63,7 @@ def sort_queryset(
         queryset: queryset to be sorted
         reversed: if True, sorting direction will be reversed
         sort_by: dictionary with sorting field and direction
+
     """
     sorting_direction = sort_by.direction
     if reversed:

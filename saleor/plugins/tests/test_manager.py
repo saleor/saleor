@@ -562,8 +562,9 @@ def test_manager_get_taxes_for_checkout(
     lines, _ = fetch_checkout_lines(checkout)
     manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
+    app_identifier = None
     assert PluginsManager(plugins=plugins).get_taxes_for_checkout(
-        checkout_info, lines
+        checkout_info, lines, app_identifier
     ) == expected_tax_data(checkout)
 
 
@@ -579,8 +580,9 @@ def test_manager_get_taxes_for_order(
     plugins,
     expected_tax_data,
 ):
+    app_identifier = None
     assert PluginsManager(plugins=plugins).get_taxes_for_order(
-        order
+        order, app_identifier
     ) == expected_tax_data(order)
 
 

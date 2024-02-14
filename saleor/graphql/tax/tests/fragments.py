@@ -17,7 +17,9 @@ TAX_CONFIGURATION_FRAGMENT = """
       chargeTaxes
       taxCalculationStrategy
       displayGrossPrices
+      taxAppId
     }
+    taxAppId
     metadata {
       key
       value

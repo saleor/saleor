@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, cast
+from typing import Optional
 
 import graphene
 from django.core.cache import cache
@@ -116,7 +116,7 @@ def get_payment_method_from_response(
             app.id,
         )
         return None
-    app_identifier = cast(str, app.identifier)
+    app_identifier = app.identifier
     credit_card_info = payment_method.get("creditCardInfo")
     name = payment_method.get("name")
     return PaymentMethodData(

@@ -637,6 +637,9 @@ CELERY_BEAT_MAX_LOOP_INTERVAL = 300  # 5 minutes
 EVENT_PAYLOAD_DELETE_PERIOD = timedelta(
     seconds=parse(os.environ.get("EVENT_PAYLOAD_DELETE_PERIOD", "14 days"))
 )
+EVENT_PAYLOAD_DELETE_TASK_TIME_LIMIT = timedelta(
+    seconds=parse(os.environ.get("EVENT_PAYLOAD_DELETE_TASK_TIME_LIMIT", "1 hour"))
+)
 # Time between marking app "to remove" and removing the app from the database.
 # App is not visible for the user after removing, but it still exists in the database.
 # Saleor needs time to process sending `APP_DELETED` webhook and possible retrying,

@@ -99,7 +99,10 @@ class DraftOrderComplete(BaseMutation):
             qs=models.Order.objects.prefetch_related("lines__variant"),
         )
         cls.check_channel_permissions(info, [order.channel_id])
-        order, _ = fetch_order_prices_if_expired(order, manager)
+        force_update = order.tax_error is not None
+        order, _ = fetch_order_prices_if_expired(
+            order, manager, force_update=force_update, need_tax_calculation=True
+        )
         cls.validate_order(order)
 
         country = get_order_country(order)

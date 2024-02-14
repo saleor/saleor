@@ -7,13 +7,15 @@ from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 
 from ... import __version__, schema_version
 from ...account import models as account_models
+from ...app.utils import get_active_tax_apps
 from ...channel import models as channel_models
 from ...core.models import ModelWithMetadata
 from ...core.utils import build_absolute_uri, get_domain, is_ssl_enabled
 from ...permission.auth_filters import AuthorizationFilters
-from ...permission.enums import SitePermissions, get_permissions
+from ...permission.enums import AppPermission, SitePermissions, get_permissions
 from ...site import models as site_models
 from ..account.types import Address, AddressInput, StaffNotificationRecipient
+from ..app.types import App
 from ..core import ResolveInfo
 from ..core.context import get_database_connection_name
 from ..core.descriptions import (
@@ -21,6 +23,7 @@ from ..core.descriptions import (
     ADDED_IN_35,
     ADDED_IN_314,
     ADDED_IN_315,
+    ADDED_IN_319,
     DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_INPUT,
 )
@@ -344,6 +347,20 @@ class Shop(graphene.ObjectType):
         description="Minor Saleor API version." + ADDED_IN_35,
         required=True,
     )
+    available_tax_apps = PermissionsField(
+        NonNullList(App),
+        description=(
+            "List of tax apps that can be assigned to the channel. "
+            "The list will be calculated by Saleor based on the apps "
+            "that are subscribed to webhooks related to tax calculations: "
+            "CHECKOUT_CALCULATE_TAXES" + ADDED_IN_319
+        ),
+        required=True,
+        permissions=[
+            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+            AppPermission.MANAGE_APPS,
+        ],
+    )
 
     # deprecated
     include_taxes_in_prices = graphene.Boolean(
@@ -590,6 +607,10 @@ class Shop(graphene.ObjectType):
     @staticmethod
     def resolve_schema_version(_, _info):
         return schema_version
+
+    @staticmethod
+    def resolve_available_tax_apps(_, _info):
+        return get_active_tax_apps()
 
     # deprecated
 
