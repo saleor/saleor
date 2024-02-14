@@ -450,7 +450,6 @@ def create_discount_objects_for_catalogue_promotions(
         return
 
     for line_info in lines_info:
-        breakpoint()
         line = line_info.line
 
         # discount_amount based on the difference between discounted_price and price
