@@ -31,6 +31,7 @@ from ....order import OrderStatus
 from ....product import ProductTypeKind
 from ....product.models import Product, ProductType
 from ....product.utils.variant_prices import update_discounted_prices_for_promotion
+from ....product.utils.variants import fetch_variants_for_promotion_rules
 from ....shipping.utils import convert_to_shipping_method_data
 from ....tax import TaxCalculationStrategy
 from ....tax.models import TaxClass
@@ -763,10 +764,7 @@ def test_calculate_order_line_total(
     order_line.save()
 
     total = manager.calculate_order_line_total(
-        order_line.order,
-        order_line,
-        variant,
-        product,
+        order_line.order, order_line, variant, product, list(order.lines.all())
     ).price_with_discounts
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(net=Money("24.39", "USD"), gross=Money("30.00", "USD"))
@@ -824,10 +822,7 @@ def test_calculate_order_line_without_sku_total(
     order_line.save()
 
     total = manager.calculate_order_line_total(
-        order_line.order,
-        order_line,
-        variant,
-        product,
+        order_line.order, order_line, variant, product, list(order.lines.all())
     ).price_with_discounts
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(net=Money("24.39", "USD"), gross=Money("30.00", "USD"))
@@ -889,10 +884,7 @@ def test_calculate_order_line_total_with_discount(
 
     # when
     total_price_data = manager.calculate_order_line_total(
-        order_line.order,
-        order_line,
-        variant,
-        product,
+        order_line.order, order_line, variant, product, list(order.lines.all())
     )
 
     # then
@@ -960,6 +952,7 @@ def test_calculate_order_line_total_entire_order_voucher(
 
     order = order_line.order
     order.discounts.create(
+        voucher=voucher,
         type=DiscountType.VOUCHER,
         value_type=DiscountValueType.FIXED,
         value=Decimal("10.0"),
@@ -983,10 +976,7 @@ def test_calculate_order_line_total_entire_order_voucher(
 
     # when
     total = manager.calculate_order_line_total(
-        order_line.order,
-        order_line,
-        variant,
-        product,
+        order_line.order, order_line, variant, product, list(order.lines.all())
     ).price_with_discounts
 
     # then
@@ -1075,10 +1065,7 @@ def test_calculate_order_line_total_shipping_voucher(
 
     # when
     total = manager.calculate_order_line_total(
-        order_line.order,
-        order_line,
-        variant,
-        product,
+        order_line.order, order_line, variant, product, list(order.lines.all())
     ).price_with_discounts
 
     # then
@@ -1127,10 +1114,7 @@ def test_calculate_order_line_total_order_not_valid(
     order_line.save()
 
     total = manager.calculate_order_line_total(
-        order_line.order,
-        order_line,
-        variant,
-        product,
+        order_line.order, order_line, variant, product, list(order.lines.all())
     ).price_with_discounts
     total = quantize_price(total, total.currency)
     assert total == expected_total_price
@@ -1177,9 +1161,7 @@ def test_calculate_order_shipping_order_not_valid(
     )
 
     # when
-    shipping_price = manager.calculate_order_shipping(
-        order,
-    )
+    shipping_price = manager.calculate_order_shipping(order, list(order.lines.all()))
 
     # then
     shipping_price = quantize_price(shipping_price, shipping_price.currency)
@@ -2229,6 +2211,7 @@ def test_calculate_checkout_subtotal_with_promotion(
     ]
     rule.save(update_fields=["catalogue_predicate"])
 
+    fetch_variants_for_promotion_rules(PromotionRule.objects.all())
     update_discounted_prices_for_promotion(Product.objects.all())
 
     lines, _ = fetch_checkout_lines(checkout)
@@ -2426,7 +2409,7 @@ def test_calculate_order_shipping(
     site_settings.company_address = address
     site_settings.save()
 
-    price = manager.calculate_order_shipping(order)
+    price = manager.calculate_order_shipping(order, list(order.lines.all()))
     price = quantize_price(price, price.currency)
     assert price == TaxedMoney(net=Money("8.13", "USD"), gross=Money("10.00", "USD"))
 
@@ -2522,7 +2505,7 @@ def test_calculate_order_shipping_entire_order_voucher(
     site_settings.save()
 
     # when
-    price = manager.calculate_order_shipping(order)
+    price = manager.calculate_order_shipping(order, list(order.lines.all()))
 
     # then
     price = quantize_price(price, price.currency)
@@ -2581,7 +2564,7 @@ def test_calculate_order_shipping_free_shipping_voucher(
     site_settings.save()
 
     # when
-    price = manager.calculate_order_shipping(order)
+    price = manager.calculate_order_shipping(order, list(order.lines.all()))
 
     # then
     price = quantize_price(price, price.currency)
@@ -2639,7 +2622,7 @@ def test_calculate_order_shipping_voucher_on_shipping(
     site_settings.save()
 
     # when
-    price = manager.calculate_order_shipping(order)
+    price = manager.calculate_order_shipping(order, list(order.lines.all()))
 
     # then
     price = quantize_price(price, price.currency)
@@ -2667,7 +2650,7 @@ def test_calculate_order_shipping_zero_shipping_amount(
     site_settings.company_address = address
     site_settings.save()
 
-    price = manager.calculate_order_shipping(order)
+    price = manager.calculate_order_shipping(order, list(order.lines.all()))
     price = quantize_price(price, price.currency)
     assert price == TaxedMoney(net=Money("0.00", "USD"), gross=Money("0.00", "USD"))
 
@@ -2690,7 +2673,7 @@ def test_calculate_order_shipping_base_shipping_price_0(
     site_settings.company_address = address
     site_settings.save()
 
-    price = manager.calculate_order_shipping(order)
+    price = manager.calculate_order_shipping(order, list(order.lines.all()))
     price = quantize_price(price, price.currency)
     assert price == zero_taxed_money(order.currency)
 
@@ -2715,7 +2698,7 @@ def test_calculate_order_shipping_not_shippable_order(
     site_settings.save(update_fields=["company_address"])
 
     # when
-    price = manager.calculate_order_shipping(order)
+    price = manager.calculate_order_shipping(order, list(order.lines.all()))
 
     # then
     price = quantize_price(price, price.currency)
@@ -2752,7 +2735,11 @@ def test_calculate_order_line_unit(
     site_settings.save()
 
     line_price_data = manager.calculate_order_line_unit(
-        order, order_line, order_line.variant, order_line.variant.product
+        order,
+        order_line,
+        order_line.variant,
+        order_line.variant.product,
+        list(order.lines.all()),
     )
 
     assert line_price_data.undiscounted_price == TaxedMoney(
@@ -2795,7 +2782,11 @@ def test_calculate_order_line_unit_in_JPY(
     site_settings.save()
 
     line_price_data = manager.calculate_order_line_unit(
-        order, order_line_JPY, order_line_JPY.variant, order_line_JPY.variant.product
+        order,
+        order_line_JPY,
+        order_line_JPY.variant,
+        order_line_JPY.variant.product,
+        list(order.lines.all()),
     )
 
     assert line_price_data.undiscounted_price == TaxedMoney(
@@ -2839,7 +2830,11 @@ def test_calculate_order_line_unit_with_discount(
 
     # when
     line_price_data = manager.calculate_order_line_unit(
-        order, order_line, order_line.variant, order_line.variant.product
+        order,
+        order_line,
+        order_line.variant,
+        order_line.variant.product,
+        list(order.lines.all()),
     )
 
     # then

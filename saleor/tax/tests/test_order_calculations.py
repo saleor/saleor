@@ -161,6 +161,7 @@ def test_calculations_calculate_order_total_voucher(order_with_lines, voucher):
         amount_value=10,
         voucher=voucher,
     )
+    apply_order_discounts(order_with_lines, lines)
 
     # when
     update_order_prices_with_flat_rates(order, lines, prices_entered_with_tax)
@@ -187,6 +188,7 @@ def test_calculations_calculate_order_total_with_manual_discount(order_with_line
         currency=order.currency,
         amount_value=10,
     )
+    apply_order_discounts(order_with_lines, lines)
 
     # when
     update_order_prices_with_flat_rates(order, lines, prices_entered_with_tax)
@@ -241,6 +243,7 @@ def test_calculations_calculate_order_total_with_discount_for_subtotal_and_shipp
         currency=order.currency,
         amount_value=75,
     )
+    apply_order_discounts(order_with_lines, lines)
 
     # when
     update_order_prices_with_flat_rates(order, lines, prices_entered_with_tax)
@@ -305,6 +308,7 @@ def test_calculations_calculate_order_total_with_manual_discount_and_voucher(
         amount_value=10,
         voucher=voucher,
     )
+    apply_order_discounts(order_with_lines, lines)
 
     # when
     update_order_prices_with_flat_rates(order, lines, prices_entered_with_tax)
@@ -328,6 +332,8 @@ def test_calculate_order_shipping(order_line, shipping_zone):
     order.shipping_method = method
     order.base_shipping_price = method.channel_listings.get(channel=order.channel).price
     order.save()
+
+    apply_order_discounts(order, lines)
 
     # when
     update_order_prices_with_flat_rates(order, lines, prices_entered_with_tax)
@@ -389,6 +395,8 @@ def test_calculate_order_shipping_voucher_on_shipping(
     channel = order.channel
     shipping_channel_listings = method.channel_listings.get(channel=channel)
     shipping_price = shipping_channel_listings.price
+
+    apply_order_discounts(order, lines)
 
     # when
     update_order_prices_with_flat_rates(order, lines, prices_entered_with_tax)
@@ -657,6 +665,7 @@ def test_use_original_tax_rate_when_tax_class_is_removed_from_order_line(
     _enable_flat_rates(order, prices_entered_with_tax)
     lines = order.lines.all()
     update_order_prices_with_flat_rates(order, lines, prices_entered_with_tax)
+    apply_order_discounts(order_with_lines, lines)
 
     # when
     for line in lines:

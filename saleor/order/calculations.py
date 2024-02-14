@@ -22,12 +22,7 @@ from ..tax.utils import (
     normalize_tax_rate_for_db,
 )
 from . import ORDER_EDITABLE_STATUS
-from .base_calculations import (
-    apply_order_discounts,
-    base_order_line_total,
-    undiscounted_order_total,
-    update_order_discount_amounts,
-)
+from .base_calculations import apply_order_discounts, base_order_line_total
 from .error_codes import OrderErrorCode
 from .interface import OrderTaxedPricesData
 from .models import Order, OrderLine
@@ -145,6 +140,9 @@ def _recalculate_prices(
     tax_app_identifier = get_tax_app_identifier_for_order(order)
 
     order.tax_error = None
+
+    # propagate the order level discount on the prices without taxes.
+    apply_order_discounts(order, lines, assign_prices=True)
     if prices_entered_with_tax:
         # If prices are entered with tax, we need to always calculate it anyway, to
         # display the tax rate to the user.
@@ -182,7 +180,6 @@ def _recalculate_prices(
             except EmptyTaxData as e:
                 order.tax_error = str(e)
         else:
-            apply_order_discounts(order, lines, assign_prices=True)
             _remove_tax(order, lines)
 
     order.save(update_fields=["tax_error"])
@@ -212,9 +209,6 @@ def _calculate_and_add_tax(
         if tax_data is None and tax_app_identifier is not None:
             raise EmptyTaxData("Empty tax data.")
         _apply_tax_data(order, lines, tax_data)
-        # TODO: If tax data is empty, order level discounts are not propagated
-        #  to its lines and not reflected in line total prices.
-        #  https://github.com/saleor/saleor/issues/14880
     else:
         # Get taxes calculated with flat rates and apply to order.
         update_order_prices_with_flat_rates(order, lines, prices_entered_with_tax)
@@ -230,7 +224,6 @@ def _recalculate_with_plugins(
 
     Does not throw TaxError.
     """
-    _update_order_discounts_and_base_undiscounted_total(order, lines)
     undiscounted_subtotal = zero_taxed_money(order.currency)
     for line in lines:
         variant = line.variant
@@ -239,11 +232,13 @@ def _recalculate_with_plugins(
         product = variant.product
 
         try:
-            line_unit = manager.calculate_order_line_unit(order, line, variant, product)
+            line_unit = manager.calculate_order_line_unit(
+                order, line, variant, product, lines
+            )
             line.unit_price = line_unit.price_with_discounts
 
             line_total = manager.calculate_order_line_total(
-                order, line, variant, product
+                order, line, variant, product, lines
             )
             undiscounted_subtotal += line_total.undiscounted_price
             line.total_price = line_total.price_with_discounts
@@ -269,7 +264,7 @@ def _recalculate_with_plugins(
             pass
 
     try:
-        order.shipping_price = manager.calculate_order_shipping(order)
+        order.shipping_price = manager.calculate_order_shipping(order, lines)
         order.shipping_tax_rate = manager.get_order_shipping_tax_rate(
             order, order.shipping_price
         )
@@ -299,20 +294,6 @@ def _get_undiscounted_price(
             prices_entered_with_tax,
         )
     return line_price.undiscounted_price
-
-
-def _update_order_discounts_and_base_undiscounted_total(
-    order: Order, lines: Iterable[OrderLine]
-):
-    """Update order discounts and order undiscounted_total price.
-
-    Entire order vouchers and staff order discounts are recalculated and updated.
-    """
-    update_order_discount_amounts(order, lines)
-    undiscounted_total = undiscounted_order_total(order, lines)
-    order.undiscounted_total = TaxedMoney(
-        net=undiscounted_total, gross=undiscounted_total
-    )
 
 
 def _apply_tax_data(
