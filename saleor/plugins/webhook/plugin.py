@@ -1691,7 +1691,11 @@ class WebhookPlugin(BasePlugin):
             )
 
     def product_variant_updated(
-        self, product_variant: "ProductVariant", previous_value: Any, webhooks=None
+        self,
+        product_variant: "ProductVariant",
+        previous_value: Any,
+        webhooks=None,
+        **kwargs,
     ) -> Any:
         if not self.active:
             return previous_value
@@ -1707,6 +1711,7 @@ class WebhookPlugin(BasePlugin):
                 product_variant,
                 self.requestor,
                 legacy_data_generator=product_variant_data_generator,
+                **kwargs,
             )
 
     def product_variant_deleted(

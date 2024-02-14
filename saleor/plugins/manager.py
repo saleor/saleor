@@ -710,10 +710,16 @@ class PluginsManager(PaymentInterface):
             "product_variant_created", default_value, product_variant, webhooks=webhooks
         )
 
-    def product_variant_updated(self, product_variant: "ProductVariant", webhooks=None):
+    def product_variant_updated(
+        self, product_variant: "ProductVariant", webhooks=None, **kwargs
+    ):
         default_value = None
         return self.__run_method_on_plugins(
-            "product_variant_updated", default_value, product_variant, webhooks=webhooks
+            "product_variant_updated",
+            default_value,
+            product_variant,
+            webhooks=webhooks,
+            **kwargs,
         )
 
     def product_variant_deleted(self, product_variant: "ProductVariant", webhooks=None):

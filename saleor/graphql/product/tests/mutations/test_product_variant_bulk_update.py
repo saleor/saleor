@@ -1,10 +1,15 @@
+from unittest import mock
 from unittest.mock import patch
 
 import graphene
+from django.test import override_settings
 
+from .....graphql.webhook.subscription_payload import get_pre_save_payload_key
 from .....product.error_codes import ProductVariantBulkErrorCode
 from .....product.models import ProductChannelListing
 from .....tests.utils import flush_post_commit_hooks
+from .....webhook.event_types import WebhookEventAsyncType
+from .....webhook.models import Webhook
 from ....tests.utils import get_graphql_content
 
 PRODUCT_VARIANT_BULK_UPDATE_MUTATION = """
@@ -634,3 +639,54 @@ def test_product_variant_bulk_update_when_variant_not_exists(
     assert error["path"] == "id"
     assert error["field"] == "id"
     assert error["code"] == ProductVariantBulkErrorCode.INVALID.name
+
+
+@override_settings(ENABLE_LIMITING_WEBHOOKS_FOR_IDENTICAL_PAYLOADS=True)
+@mock.patch(
+    "saleor.graphql.product.bulk_mutations.product_variant_bulk_update.ProductVariantBulkUpdate.call_event"
+)
+def test_generate_pre_save_payloads(
+    mocked_call_event,
+    staff_api_client,
+    variant,
+    permission_manage_products,
+    webhook_app,
+):
+    # given
+    SUBSCRIPTION_QUERY = """
+        subscription {
+            event {
+                issuedAt
+                ... on ProductVariantUpdated {
+                    productVariant {
+                        name
+                    }
+                }
+            }
+        }
+    """
+    webhook = Webhook.objects.create(
+        name="Webhook",
+        app=webhook_app,
+        subscription_query=SUBSCRIPTION_QUERY,
+    )
+    event_type = WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED
+    webhook.events.create(event_type=event_type)
+
+    product_id = graphene.Node.to_global_id("Product", variant.product.pk)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    variants = [{"id": variant_id, "sku": "NewSku"}]
+    variables = {"productId": product_id, "variants": variants}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    staff_api_client.post_graphql(PRODUCT_VARIANT_BULK_UPDATE_MUTATION, variables)
+    flush_post_commit_hooks()
+
+    # then
+    payload_key = get_pre_save_payload_key(webhook, variant)
+    request_time = mocked_call_event.call_args[1]["request_time"]
+    assert request_time
+    pre_save_payload = mocked_call_event.call_args[1]["pre_save_payloads"]
+    assert payload_key in pre_save_payload
+    assert request_time.isoformat() == pre_save_payload[payload_key]["issuedAt"]

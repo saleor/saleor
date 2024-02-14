@@ -127,17 +127,20 @@ from ..dataloaders import (
     ImagesByProductVariantIdLoader,
     MediaByProductIdLoader,
     MediaByProductVariantIdLoader,
-    ProductAttributesByProductTypeIdLoader,
+    ProductAttributesAllByProductTypeIdLoader,
+    ProductAttributesVisibleInStorefrontByProductTypeIdLoader,
     ProductByIdLoader,
     ProductChannelListingByProductIdAndChannelSlugLoader,
     ProductChannelListingByProductIdLoader,
     ProductTypeByIdLoader,
     ProductVariantByIdLoader,
     ProductVariantsByProductIdLoader,
-    SelectedAttributesByProductIdLoader,
+    SelectedAttributesAllByProductIdLoader,
     SelectedAttributesByProductVariantIdLoader,
+    SelectedAttributesVisibleInStorefrontByProductIdLoader,
     ThumbnailByProductMediaIdSizeAndFormatLoader,
-    VariantAttributesByProductTypeIdLoader,
+    VariantAttributesAllByProductTypeIdLoader,
+    VariantAttributesVisibleInStorefrontByProductTypeIdLoader,
     VariantChannelListingByVariantIdAndChannelSlugLoader,
     VariantChannelListingByVariantIdLoader,
     VariantsChannelListingByProductIdAndChannelSlugLoader,
@@ -1277,15 +1280,39 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
                 None,
             )
 
-        return (
-            SelectedAttributesByProductIdLoader(info.context)
-            .load(root.node.id)
-            .then(get_selected_attribute_by_slug)
-        )
+        requestor = get_user_or_app_from_context(info.context)
+        if (
+            requestor
+            and requestor.is_active
+            and requestor.has_perm(ProductPermissions.MANAGE_PRODUCTS)
+        ):
+            return (
+                SelectedAttributesAllByProductIdLoader(info.context)
+                .load(root.node.id)
+                .then(get_selected_attribute_by_slug)
+            )
+        else:
+            return (
+                SelectedAttributesVisibleInStorefrontByProductIdLoader(info.context)
+                .load(root.node.id)
+                .then(get_selected_attribute_by_slug)
+            )
 
     @staticmethod
     def resolve_attributes(root: ChannelContext[models.Product], info):
-        return SelectedAttributesByProductIdLoader(info.context).load(root.node.id)
+        requestor = get_user_or_app_from_context(info.context)
+        if (
+            requestor
+            and requestor.is_active
+            and requestor.has_perm(ProductPermissions.MANAGE_PRODUCTS)
+        ):
+            return SelectedAttributesAllByProductIdLoader(info.context).load(
+                root.node.id
+            )
+        else:
+            return SelectedAttributesVisibleInStorefrontByProductIdLoader(
+                info.context
+            ).load(root.node.id)
 
     @staticmethod
     def resolve_media_by_id(root: ChannelContext[models.Product], info, *, id):
@@ -1694,11 +1721,23 @@ class ProductType(ModelObjectType[models.ProductType]):
         def unpack_attributes(attributes):
             return [attr for attr, *_ in attributes]
 
-        return (
-            ProductAttributesByProductTypeIdLoader(info.context)
-            .load(root.pk)
-            .then(unpack_attributes)
-        )
+        requestor = get_user_or_app_from_context(info.context)
+        if (
+            requestor
+            and requestor.is_active
+            and requestor.has_perm(ProductPermissions.MANAGE_PRODUCTS)
+        ):
+            return (
+                ProductAttributesAllByProductTypeIdLoader(info.context)
+                .load(root.pk)
+                .then(unpack_attributes)
+            )
+        else:
+            return (
+                ProductAttributesVisibleInStorefrontByProductTypeIdLoader(info.context)
+                .load(root.pk)
+                .then(unpack_attributes)
+            )
 
     @staticmethod
     @traced_resolver
@@ -1719,11 +1758,23 @@ class ProductType(ModelObjectType[models.ProductType]):
                 if (attr, variant_selection) not in variant_selection_attrs
             ]
 
-        return (
-            VariantAttributesByProductTypeIdLoader(info.context)
-            .load(root.pk)
-            .then(apply_variant_selection_filter)
-        )
+        requestor = get_user_or_app_from_context(info.context)
+        if (
+            requestor
+            and requestor.is_active
+            and requestor.has_perm(ProductPermissions.MANAGE_PRODUCTS)
+        ):
+            return (
+                VariantAttributesAllByProductTypeIdLoader(info.context)
+                .load(root.pk)
+                .then(apply_variant_selection_filter)
+            )
+        else:
+            return (
+                VariantAttributesVisibleInStorefrontByProductTypeIdLoader(info.context)
+                .load(root.pk)
+                .then(apply_variant_selection_filter)
+            )
 
     @staticmethod
     @traced_resolver
@@ -1750,11 +1801,23 @@ class ProductType(ModelObjectType[models.ProductType]):
                 if (attr, variant_selection) not in variant_selection_attrs
             ]
 
-        return (
-            VariantAttributesByProductTypeIdLoader(info.context)
-            .load(root.pk)
-            .then(apply_variant_selection_filter)
-        )
+        requestor = get_user_or_app_from_context(info.context)
+        if (
+            requestor
+            and requestor.is_active
+            and requestor.has_perm(ProductPermissions.MANAGE_PRODUCTS)
+        ):
+            return (
+                VariantAttributesAllByProductTypeIdLoader(info.context)
+                .load(root.pk)
+                .then(apply_variant_selection_filter)
+            )
+        else:
+            return (
+                VariantAttributesVisibleInStorefrontByProductTypeIdLoader(info.context)
+                .load(root.pk)
+                .then(apply_variant_selection_filter)
+            )
 
     @staticmethod
     def resolve_products(root: models.ProductType, info, *, channel=None, **kwargs):
