@@ -1,3 +1,6 @@
+# PLUGINS ARE DEPRECATED
+# Learn more how to extend Saleor https://docs.saleor.io/docs/3.x/developer/extending/overview
+
 from collections import defaultdict
 from collections.abc import Iterable
 from copy import copy
