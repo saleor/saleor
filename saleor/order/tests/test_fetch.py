@@ -51,6 +51,7 @@ def test_fetch_draft_order_lines_info(draft_order_and_promotions):
     assert line_info_1.tax_class == product_1.tax_class
     assert line_info_1.voucher is None
     assert line_info_1.rules_info == []
+    assert line_info_1.should_refresh_discounts is False
 
     variant_2 = line_2.variant
     product_2 = variant_2.product
@@ -74,3 +75,4 @@ def test_fetch_draft_order_lines_info(draft_order_and_promotions):
     assert rule_info_2.promotion == rule_catalogue.promotion
     assert rule_info_2.promotion_translation.name == promotion_translation
     assert rule_info_2.rule_translation.name == rule_translation
+    assert line_info_2.should_refresh_discounts is False

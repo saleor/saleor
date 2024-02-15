@@ -19,7 +19,7 @@ from uuid import UUID
 import graphene
 import pytz
 from django.db import transaction
-from django.db.models import Exists, F, OuterRef, QuerySet
+from django.db.models import Exists, F, OuterRef, QuerySet, prefetch_related_objects
 from django.utils import timezone
 from prices import Money, TaxedMoney, fixed_discount, percentage_discount
 
@@ -432,9 +432,42 @@ def create_or_update_discount_objects_from_promotion_for_order(
     order: "Order",
     lines_info: Iterable["DraftOrderLineInfo"],
 ):
+    # TODO zedzior sprawdz checkoutowe flow czy nie trzbea poodswiezac
     models = get_checkout_or_order_models(order)
     create_discount_objects_for_catalogue_promotions(lines_info, models)
+    _update_order_line_prefetched_discounts(lines_info)
+    _update_order_line_base_unit_prices(lines_info)
+
     create_order_discount_objects_for_order_promotions(order, lines_info, models)
+    # if order promotion is type of gift, discount is associated with line, not order
+    _update_order_line_prefetched_discounts(lines_info)
+
+
+def _update_order_line_prefetched_discounts(lines_info: Iterable[DraftOrderLineInfo]):
+    modified_lines_info = [
+        line_info for line_info in lines_info if line_info.should_refresh_discounts
+    ]
+    for line_info in modified_lines_info:
+        line_info.line._prefetched_objects_cache.pop(  # type: ignore[attr-defined] # noqa: E501
+            "discounts", None
+        )
+    modified_lines = [line_info.line for line_info in modified_lines_info]
+    prefetch_related_objects(modified_lines, "discounts__promotion_rule__promotion")
+    for line_info in modified_lines_info:
+        line_info.discounts = list(line_info.line.discounts.all())
+
+
+def _update_order_line_base_unit_prices(lines_info: Iterable[DraftOrderLineInfo]):
+    modified_lines = [
+        line_info.line for line_info in lines_info if line_info.should_refresh_discounts
+    ]
+    for line in modified_lines:
+        base_unit_price = line.undiscounted_base_unit_price_amount
+        for discount in line.discounts.all():
+            unit_discount = discount.amount_value / line.quantity
+            base_unit_price -= unit_discount
+        line.base_unit_price_amount = max(base_unit_price, Decimal(0))
+    OrderLine.objects.bulk_update(modified_lines, ["base_unit_price_amount"])
 
 
 def create_discount_objects_for_catalogue_promotions(
@@ -471,6 +504,7 @@ def create_discount_objects_for_catalogue_promotions(
                     for discount in line_info.discounts
                     if discount.id not in ids_to_remove
                 ]
+                _invalidate_order_line_discounts(line_info)
             continue
 
         # delete the discount objects that are not valid anymore
@@ -513,8 +547,8 @@ def create_discount_objects_for_catalogue_promotions(
                     discount_to_update,
                     updated_fields,
                 )
-
                 line_discounts_to_update.append(discount_to_update)
+            _invalidate_order_line_discounts(line_info)
 
     if line_discounts_to_create:
         models.discount_line_model.objects.bulk_create(line_discounts_to_create)
@@ -556,6 +590,7 @@ def _get_discounts_that_are_not_valid_anymore(
         if rule_id not in rule_ids:
             discount_ids.append(discount.id)
             line_info.discounts.remove(discount)  # type: ignore[arg-type]  # got "Union[CheckoutLineDiscount, OrderLineDiscount]"; expected "CheckoutLineDiscount"
+            _invalidate_order_line_discounts(line_info)
     return discount_ids
 
 
@@ -626,6 +661,13 @@ def _update_discount(
     if discount_to_update.reason != reason:
         discount_to_update.reason = reason
         updated_fields.append("reason")
+
+
+def _invalidate_order_line_discounts(
+    line_info: Union["CheckoutLineInfo", "DraftOrderLineInfo"],
+):
+    if isinstance(line_info, DraftOrderLineInfo):
+        line_info.should_refresh_discounts = True
 
 
 def create_checkout_discount_objects_for_order_promotions(

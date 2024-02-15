@@ -89,6 +89,7 @@ class DraftOrderLineInfo:
     channel: "Channel"
     tax_class: Optional["TaxClass"] = None
     voucher: Optional["Voucher"] = None
+    should_refresh_discounts = False
 
     def get_promotion_discounts(self) -> list["OrderLineDiscount"]:
         return [
@@ -124,6 +125,7 @@ def fetch_draft_order_lines_info(
         lines = list(order.lines.prefetch_related(*prefetch_related_fields))
     else:
         prefetch_related_objects(lines, *prefetch_related_fields)
+
     lines_info = []
     channel = order.channel
     for line in lines:
@@ -148,7 +150,6 @@ def fetch_draft_order_lines_info(
                 rules_info=rules_info,
                 channel=channel,
                 tax_class=variant.product.tax_class,
-                voucher=None,
             )
         )
     return lines_info

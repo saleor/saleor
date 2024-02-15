@@ -68,6 +68,9 @@ def test_create_catalogue_discount_fixed(
     assert discount.currency == channel.currency_code
     assert discount.name == f"{promotion.name}: {rule.name}"
 
+    line = [line_info.line for line_info in lines_info if line_info.line == line_1][0]
+    assert line.base_unit_price_amount == Decimal(7)
+
 
 def test_create_catalogue_discount_percentage(
     order_with_lines,
@@ -123,6 +126,9 @@ def test_create_catalogue_discount_percentage(
     assert discount.amount_value == discount_amount * line_1.quantity == Decimal(15)
     assert discount.currency == channel.currency_code
     assert discount.name == f"{promotion.name}: {rule.name}"
+
+    line = [line_info.line for line_info in lines_info if line_info.line == line_1][0]
+    assert line.base_unit_price_amount == Decimal(5)
 
 
 def test_create_order_discount_subtotal_fixed(
@@ -422,6 +428,9 @@ def test_update_catalogue_discount(
     assert discount.amount_value == reward_value * line.quantity == Decimal(18)
     assert discount.currency == channel.currency_code
     assert discount.name == f"{promotion.name}: {rule.name}"
+
+    line = [line_info.line for line_info in lines_info if line_info.line == line][0]
+    assert line.base_unit_price_amount == Decimal(4)
 
 
 def test_update_order_discount_subtotal(

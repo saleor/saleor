@@ -1,12 +1,11 @@
 from decimal import Decimal
 
-import graphene
 import pytest
 from prices import Money, TaxedMoney
 
 from ...core.prices import quantize_price
 from ...core.taxes import zero_money
-from ...discount import DiscountType, DiscountValueType, RewardType, RewardValueType
+from ...discount import DiscountType, DiscountValueType
 from ...order.base_calculations import (
     apply_order_discounts,
     apply_subtotal_discount_to_order_lines,
@@ -14,10 +13,6 @@ from ...order.base_calculations import (
     base_order_total,
 )
 from ...order.interface import OrderTaxedPricesData
-from ...product.models import VariantChannelListingPromotionRule
-from ...warehouse.models import Stock
-from .. import OrderStatus
-from ..calculations import fetch_order_prices_if_expired
 
 
 def test_base_order_total(order_with_lines):
@@ -688,140 +683,3 @@ def test_apply_subtotal_discount_to_order_lines_order_with_single_line(
         )
         == line.total_price_net
     )
-
-
-def test_zedzior(
-    plugins_manager,
-    order_with_lines,
-    order_promotion_without_rules,
-    catalogue_promotion_without_rules,
-    channel_USD,
-    product_variant_list,
-    warehouse,
-):
-    # given
-    order = order_with_lines
-    # prepare order promotions
-    order_promotion = order_promotion_without_rules
-    rule_total = order_promotion.rules.create(
-        name="Subtotal gte 10 fixed 5 rule",
-        order_predicate={
-            "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 10}}}
-        },
-        reward_value_type=RewardValueType.FIXED,
-        reward_value=Decimal(1),
-        reward_type=RewardType.SUBTOTAL_DISCOUNT,
-    )
-    rule_gift = order_promotion.rules.create(
-        name="Subtotal gte 10 gift rule",
-        order_predicate={
-            "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 10}}}
-        },
-        reward_type=RewardType.GIFT,
-    )
-    rule_total.channels.add(channel_USD)
-    rule_gift.channels.add(channel_USD)
-    rule_gift.gifts.set([variant for variant in product_variant_list[:2]])
-
-    Stock.objects.create(
-        warehouse=warehouse, product_variant=product_variant_list[0], quantity=100
-    )
-    Stock.objects.create(
-        warehouse=warehouse, product_variant=product_variant_list[1], quantity=100
-    )
-
-    # prepare catalogue promotions
-    catalogue_promotion = catalogue_promotion_without_rules
-    assert order.lines.count() == 2
-    variant_1 = order.lines.first().variant
-    rule_catalogue_1 = catalogue_promotion.rules.create(
-        name="Catalogue rule fixed 3",
-        catalogue_predicate={
-            "variantPredicate": {
-                "ids": [graphene.Node.to_global_id("ProductVariant", variant_1.id)]
-            }
-        },
-        reward_value_type=RewardValueType.FIXED,
-        reward_value=Decimal(3),
-    )
-    variant_2 = order.lines.last().variant
-    rule_catalogue_2 = catalogue_promotion.rules.create(
-        name="Catalogue rule percentage 15",
-        catalogue_predicate={
-            "variantPredicate": {
-                "ids": [graphene.Node.to_global_id("ProductVariant", variant_2.id)]
-            }
-        },
-        reward_value_type=RewardValueType.PERCENTAGE,
-        reward_value=Decimal(20),
-    )
-    rule_catalogue_1.channels.add(channel_USD)
-    rule_catalogue_2.channels.add(channel_USD)
-
-    listing_1 = variant_1.channel_listings.first()
-    listing_1.discounted_price_amount = Decimal(7)
-    listing_2 = variant_2.channel_listings.first()
-    listing_2.discounted_price_amount = Decimal(16)
-    listing_1.save(update_fields=["discounted_price_amount"])
-    listing_2.save(update_fields=["discounted_price_amount"])
-
-    currency = order.currency
-    VariantChannelListingPromotionRule.objects.create(
-        variant_channel_listing=listing_1,
-        promotion_rule=rule_catalogue_1,
-        discount_amount=Decimal(3),
-        currency=currency,
-    )
-    VariantChannelListingPromotionRule.objects.create(
-        variant_channel_listing=listing_2,
-        promotion_rule=rule_catalogue_2,
-        discount_amount=Decimal(4),
-        currency=currency,
-    )
-
-    order.total = TaxedMoney(net=zero_money(currency), gross=zero_money(currency))
-    order.subtotal = TaxedMoney(net=zero_money(currency), gross=zero_money(currency))
-    order.undiscounted_total = TaxedMoney(
-        net=zero_money(currency), gross=zero_money(currency)
-    )
-    order.status = OrderStatus.DRAFT
-    order.save()
-
-    for line in order.lines.all():
-        line.unit_price = TaxedMoney(
-            net=zero_money(currency), gross=zero_money(currency)
-        )
-        line.undiscounted_unit_price = TaxedMoney(
-            net=zero_money(currency), gross=zero_money(currency)
-        )
-        line.total_price = TaxedMoney(
-            net=zero_money(currency), gross=zero_money(currency)
-        )
-        line.undiscounted_total_price = TaxedMoney(
-            net=zero_money(currency), gross=zero_money(currency)
-        )
-        line.undiscounted_base_unit_price_amount = Decimal(0)
-        line.save()
-
-    # when
-    fetch_order_prices_if_expired(order, plugins_manager, None, True)
-
-    # then
-    order.refresh_from_db()
-    line_1 = order.lines.filter(variant=variant_1).first()
-    line_2 = order.lines.filter(variant=variant_2).first()
-    assert line_1.discounts.count() == 1
-    catalogue_discount_1 = line_1.discounts.first()
-    assert catalogue_discount_1.type == DiscountType.PROMOTION
-    assert catalogue_discount_1.amount_value == 3 * Decimal(3)
-    assert line_2.discounts.count() == 1
-    catalogue_discount_2 = line_2.discounts.first()
-    assert catalogue_discount_2.type == DiscountType.PROMOTION
-    assert catalogue_discount_2.amount_value == 2 * Decimal(4)
-
-    # assert order.discounts.count() == 1
-    # order_discount = order.discounts.first()
-    # assert order_discount
-    gift_discount = [line for line in order.lines.all() if line.is_gift]
-    assert gift_discount
-    # assert order_discount.amount_value == Decimal(5)

@@ -7,7 +7,8 @@ from prices import Money, TaxedMoney
 
 from ...core.prices import quantize_price
 from ...core.taxes import TaxData, TaxError, TaxLineData, zero_taxed_money
-from ...discount import DiscountValueType
+from ...discount import DiscountType, DiscountValueType
+from ...discount.models import OrderDiscount, OrderLineDiscount, Promotion
 from ...plugins.manager import get_plugins_manager
 from ...tax import TaxCalculationStrategy
 from ...tax.calculations.order import update_order_prices_with_flat_rates
@@ -1141,3 +1142,79 @@ def test_order_undiscounted_total(mocked_fetch_order_prices_if_expired):
     assert undiscounted_total == quantize_price(
         expected_undiscounted_total, order.currency
     )
+
+
+def test_fetch_order_prices_catalogue_discount_flat_rates(
+    order_with_lines_and_catalogue_promotion,
+    plugins_manager,
+):
+    # given
+    OrderLineDiscount.objects.all().delete()
+    order = order_with_lines_and_catalogue_promotion
+    channel = order.channel
+    promotion = Promotion.objects.get()
+    rule = promotion.rules.get()
+
+    tc = order.channel.tax_configuration
+    tc.country_exceptions.all().delete()
+    tc.prices_entered_with_tax = False
+    tc.tax_calculation_strategy = TaxCalculationStrategy.FLAT_RATES
+    tc.save()
+
+    # when
+    orer, lines = calculations.fetch_order_prices_if_expired(
+        order, plugins_manager, None, True
+    )
+
+    # then
+    assert OrderLineDiscount.objects.count() == 1
+    assert not OrderDiscount.objects.exists()
+    line_1 = [line for line in lines if line.quantity == 3][0]
+    line_2 = [line for line in lines if line.quantity == 2][0]
+    discount = line_1.discounts.get()
+
+    variant_1 = line_1.variant
+    variant_1_listing = variant_1.channel_listings.get(channel=channel)
+    variant_1_unit_price = variant_1_listing.discounted_price_amount
+    variant_1_undiscounted_unit_price = variant_1_listing.price_amount
+    assert variant_1_undiscounted_unit_price - variant_1_unit_price == rule.reward_value
+    assert rule.reward_value == Decimal(3)
+
+    assert line_1.undiscounted_total_price_net_amount == Decimal("30.00")
+    assert line_1.undiscounted_total_price_gross_amount == Decimal("36.90")
+    assert line_1.total_price_net_amount == Decimal("21.00")
+    assert line_1.total_price_gross_amount == Decimal("25.83")
+    assert line_1.base_unit_price_amount == Decimal("7.00")
+    assert line_1.unit_price_net_amount == Decimal("7.00")
+    assert line_1.unit_price_gross_amount == Decimal("8.61")
+
+    assert line_2.undiscounted_total_price_net_amount == Decimal("40.00")
+    assert line_2.undiscounted_total_price_gross_amount == Decimal("49.20")
+    assert line_2.total_price_net_amount == Decimal("40.00")
+    assert line_2.total_price_gross_amount == Decimal("49.20")
+    assert line_2.base_unit_price_amount == Decimal("20.00")
+    assert line_2.unit_price_net_amount == Decimal("20.00")
+    assert line_2.unit_price_gross_amount == Decimal("24.60")
+
+    assert order.shipping_price_net_amount == Decimal("10.00")
+    assert order.shipping_price_gross_amount == Decimal("12.30")
+    assert order.undiscounted_total_net_amount == Decimal("80.00")
+    # TODO zedzior fix it
+    # assert order.undiscounted_total_gross_amount == Decimal("98.40")
+    assert order.total_net_amount == Decimal("71.00")
+    assert order.total_gross_amount == Decimal("87.33")
+    assert order.subtotal_net_amount == Decimal("61.00")
+    assert order.subtotal_gross_amount == Decimal("75.03")
+
+    assert discount.amount_value == Decimal("9.00")
+    assert discount.value == Decimal("3.00")
+    assert discount.value_type == DiscountValueType.FIXED
+    assert discount.type == DiscountType.PROMOTION
+    # TODO zedzior ogarnij reason
+    assert discount.reason is None
+
+    # TODO zedzior sprawdz czy te pola sa dalej potrzebne, jesli tak to napraw
+    # assert line_1.discount_amount
+    # assert line_1.discount_reason
+    # assert line_1.discount_type
+    # assert line_1.discount_value
