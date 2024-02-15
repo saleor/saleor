@@ -115,7 +115,11 @@ def test_create_fixed_discount(
         == discount_from_db.name
         == f"{catalogue_promotion_without_rules.name}: {rule.name}"
     )
-    assert discount_from_info.reason == discount_from_db.reason is None
+    assert (
+        discount_from_info.reason
+        == discount_from_db.reason
+        == f"Promotion: {graphene.Node.to_global_id('Promotion', catalogue_promotion_without_rules.id)}"
+    )
     assert discount_from_info.promotion_rule == discount_from_db.promotion_rule == rule
     assert discount_from_info.voucher == discount_from_db.voucher is None
     assert (
@@ -203,7 +207,11 @@ def test_create_fixed_discount_multiple_quantity_in_lines(
         == discount_from_db.name
         == catalogue_promotion_without_rules.name
     )
-    assert discount_from_info.reason == discount_from_db.reason is None
+    assert (
+        discount_from_info.reason
+        == discount_from_db.reason
+        == f"Promotion: {graphene.Node.to_global_id('Promotion', catalogue_promotion_without_rules.id)}"
+    )
     assert discount_from_info.promotion_rule == discount_from_db.promotion_rule == rule
     assert discount_from_info.voucher == discount_from_db.voucher is None
 
@@ -358,7 +366,11 @@ def test_create_percentage_discount(
         == discount_from_db.name
         == f"{catalogue_promotion_without_rules.name}: {rule.name}"
     )
-    assert discount_from_info.reason == discount_from_db.reason is None
+    assert (
+        discount_from_info.reason
+        == discount_from_db.reason
+        == f"Promotion: {graphene.Node.to_global_id('Promotion', catalogue_promotion_without_rules.id)}"
+    )
     assert discount_from_info.promotion_rule == discount_from_db.promotion_rule == rule
     assert discount_from_info.voucher == discount_from_db.voucher is None
 
@@ -441,7 +453,11 @@ def test_create_percentage_discount_multiple_quantity_in_lines(
     assert discount_from_info.currency == discount_from_db.currency == "USD"
     discount_name = f"{catalogue_promotion_without_rules.name}: {rule.name}"
     assert discount_from_info.name == discount_from_db.name == discount_name
-    assert discount_from_info.reason == discount_from_db.reason is None
+    assert (
+        discount_from_info.reason
+        == discount_from_db.reason
+        == f"Promotion: {graphene.Node.to_global_id('Promotion', catalogue_promotion_without_rules.id)}"
+    )
     assert discount_from_info.promotion_rule == discount_from_db.promotion_rule == rule
     assert discount_from_info.voucher == discount_from_db.voucher is None
 
@@ -691,7 +707,11 @@ def test_two_promotions_applied_to_two_different_lines(
         == discount_from_db_1.name
         == f"{catalogue_promotion_without_rules.name}: {rule_1.name}"
     )
-    assert discount_from_info_1.reason == discount_from_db_1.reason is None
+    assert (
+        discount_from_info_1.reason
+        == discount_from_db_1.reason
+        == f"Promotion: {graphene.Node.to_global_id('Promotion', catalogue_promotion_without_rules.id)}"
+    )
     assert (
         discount_from_info_1.promotion_rule
         == discount_from_db_1.promotion_rule
@@ -722,7 +742,11 @@ def test_two_promotions_applied_to_two_different_lines(
         == discount_from_db_2.name
         == f"{catalogue_promotion_without_rules.name}: {rule_2.name}"
     )
-    assert discount_from_info_2.reason == discount_from_db_2.reason is None
+    assert (
+        discount_from_info_2.reason
+        == discount_from_db_2.reason
+        == f"Promotion: {graphene.Node.to_global_id('Promotion', catalogue_promotion_without_rules.id)}"
+    )
     assert (
         discount_from_info_2.promotion_rule
         == discount_from_db_2.promotion_rule
@@ -815,7 +839,11 @@ def test_create_percentage_discount_1_cent_variant_on_10_percentage_discount(
         == discount_from_db.name
         == f"{catalogue_promotion_without_rules.name}: {rule.name}"
     )
-    assert discount_from_info.reason == discount_from_db.reason is None
+    assert (
+        discount_from_info.reason
+        == discount_from_db.reason
+        == f"Promotion: {graphene.Node.to_global_id('Promotion', catalogue_promotion_without_rules.id)}"
+    )
     assert discount_from_info.promotion_rule == discount_from_db.promotion_rule == rule
     assert discount_from_info.voucher == discount_from_db.voucher is None
 
@@ -968,7 +996,7 @@ def test_one_of_promotion_rule_not_valid_anymore_one_updated(
         line_discount_2.refresh_from_db()
 
     discount_from_info = line_info1.discounts[0]
-    line_discount_1.refresh_from_db()
+    line_discount_1 = CheckoutLineDiscount.objects.get(line_id=line_info1.line.pk)
     assert discount_from_info.line == line_discount_1.line == line_info1.line
     assert discount_from_info.type == line_discount_1.type == DiscountType.PROMOTION
     assert (
