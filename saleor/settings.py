@@ -99,8 +99,17 @@ DATABASE_CONNECTION_DEFAULT_NAME = "default"
 # This variable should be set to `replica`
 DATABASE_CONNECTION_REPLICA_NAME = "replica"
 
+# Alias for the writer database connection which is the same as the default one, but it
+# is preferred to use in code as a more explicit way to indicate that the connection is
+# used for writing to the database.
+DATABASE_CONNECTION_WRITER_NAME = "writer"
+
 DATABASES = {
     DATABASE_CONNECTION_DEFAULT_NAME: dj_database_url.config(
+        default="postgres://saleor:saleor@localhost:5432/saleor",
+        conn_max_age=DB_CONN_MAX_AGE,
+    ),
+    DATABASE_CONNECTION_WRITER_NAME: dj_database_url.config(
         default="postgres://saleor:saleor@localhost:5432/saleor",
         conn_max_age=DB_CONN_MAX_AGE,
     ),
