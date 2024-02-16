@@ -29,6 +29,7 @@ from ....utils import get_nodes
 from ...enums import PromotionCreateErrorCode, PromotionTypeEnum
 from ...inputs import PromotionRuleBaseInput
 from ...types import Promotion
+from ..utils import promotion_rule_should_be_marked_with_dirty_variants
 from .validators import clean_promotion_rule
 
 
@@ -237,7 +238,9 @@ class PromotionCreate(ModelMutation):
                 channels = rule_data.pop("channels", None)
                 gifts = rule_data.pop("gifts", None)
                 rule = models.PromotionRule(promotion=instance, **rule_data)
-                if instance.type == PromotionType.CATALOGUE:
+                if promotion_rule_should_be_marked_with_dirty_variants(
+                    rule, instance.type, channels
+                ):
                     rule.variants_dirty = True
                 if gifts:
                     rule.gifts.set(gifts)

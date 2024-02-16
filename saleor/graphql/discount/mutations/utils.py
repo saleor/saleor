@@ -3,6 +3,7 @@ from collections import defaultdict
 import graphene
 from django.db.models import QuerySet
 
+from ....discount import PromotionType
 from ....discount.models import Promotion, PromotionRule
 from ....discount.utils import CatalogueInfo, update_rule_variant_relation
 from ....product.models import ProductVariant
@@ -52,3 +53,26 @@ def update_variants_for_promotion(
             ]
         )
     update_rule_variant_relation(rules, promotion_rule_variants)
+
+
+def promotion_rule_should_be_marked_with_dirty_variants(
+    rule: PromotionRule, promotion_type: str, channels: list
+):
+    """Check if the promotion rule should be marked as the one with dirty variants.
+
+    There are no need to always mark rule as dirty. First, we should validate that
+    the rule has all details required to calculate the discount.
+    Keep in mind that in case of update applied on rule, this function should not be
+    called, previous version of rule could have an impact on products.
+    """
+    if promotion_type != PromotionType.CATALOGUE:
+        return False
+    if rule.reward_value is None:
+        return False
+    if rule.reward_value <= 0:
+        return False
+    if rule.catalogue_predicate == {}:
+        return False
+    if not channels:
+        return False
+    return True

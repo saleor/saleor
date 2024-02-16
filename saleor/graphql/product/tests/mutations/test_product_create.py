@@ -1085,11 +1085,7 @@ def test_create_product_no_category_id(
     assert data["product"]["category"] is None
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
 def test_create_product_with_negative_weight(
-    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     product_type,
     category,
@@ -1118,7 +1114,6 @@ def test_create_product_with_negative_weight(
     error = data["errors"][0]
     assert error["field"] == "weight"
     assert error["code"] == ProductErrorCode.INVALID.name
-    update_products_discounted_prices_for_promotion_task_mock.assert_not_called()
 
 
 def test_create_product_with_unicode_in_slug_and_name(

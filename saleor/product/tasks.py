@@ -178,16 +178,21 @@ def update_products_discounted_prices_for_promotion_task(
 @app.task
 def recalculate_discounted_price_for_products_task():
     """Recalculate discounted price for products."""
-    listings = ProductChannelListing.objects.filter(
-        discounted_price_dirty=True
-    ).order_by("id")[:DISCOUNTED_PRODUCT_BATCH]
+    listings = (
+        ProductChannelListing.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(discounted_price_dirty=True)
+        .order_by("id")[:DISCOUNTED_PRODUCT_BATCH]
+    )
     listing_details = listings.values_list(
         "id",
         "product_id",
     )
     products_ids = set([product_id for _, product_id in listing_details])
     listing_ids = set([listing_id for listing_id, _ in listing_details])
-    if products := Product.objects.filter(id__in=products_ids):
+    if products_ids:
+        products = Product.objects.using(
+            settings.DATABASE_CONNECTION_REPLICA_NAME
+        ).filter(id__in=products_ids)
         update_discounted_prices_for_promotion(products, only_dirty_products=True)
         ProductChannelListing.objects.filter(id__in=listing_ids).update(
             discounted_price_dirty=False

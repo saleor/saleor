@@ -454,30 +454,13 @@ def test_product_variant_bulk_update_channel_listings_input(
 
     existing_variant_listing.refresh_from_db()
     # then
-    assert ProductChannelListing.objects.filter(
-        product_id=product.id,
-        channel_id=existing_variant_listing.channel_id,
-        discounted_price_dirty=True,
-    )
-    assert (
-        ProductChannelListing.objects.filter(
-            product_id=product.id, discounted_price_dirty=True
-        ).count()
-        == 1
-    )
 
     # only promotions with created channel will be marked as dirty
     second_promotion_rule.refresh_from_db()
     assert second_promotion_rule.variants_dirty is True
 
     promotion_rule.refresh_from_db()
-    assert promotion_rule.variants_dirty is False
-    # only products with updates will be marked to recalculate prices
-    assert ProductChannelListing.objects.filter(
-        product_id=product.id,
-        channel_id=existing_variant_listing.channel_id,
-        discounted_price_dirty=True,
-    )
+    assert promotion_rule.variants_dirty is True
 
 
 def test_product_variant_bulk_update_and_remove_channel_listings(

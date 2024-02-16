@@ -52,10 +52,10 @@ class ProductUpdate(ProductCreate, ModelWithExtRefMutation):
         product = models.Product.objects.prefetched_for_webhook(single_object=True).get(
             pk=instance.pk
         )
-        if "category" in cleaned_input or "collections" in cleaned_input:
-            listings = product.channel_listings.all()
-            channel_ids = [listing.channel_id for listing in listings]
-            cls.call_event(mark_active_promotion_rules_as_dirty, channel_ids)
+        listings = product.channel_listings.all()
+        channel_ids = [listing.channel_id for listing in listings]
+        cls.call_event(mark_active_promotion_rules_as_dirty, channel_ids)
+
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.product_updated, product)
 

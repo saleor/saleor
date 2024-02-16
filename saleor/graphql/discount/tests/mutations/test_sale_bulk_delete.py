@@ -7,6 +7,7 @@ import pytest
 from .....discount import RewardValueType
 from .....discount.error_codes import DiscountErrorCode
 from .....discount.models import Promotion, PromotionRule
+from .....product.models import ProductChannelListing, ProductVariant
 from ....tests.utils import get_graphql_content
 
 
@@ -75,11 +76,7 @@ SALE_BULK_DELETE_MUTATION = """
 
 @mock.patch("saleor.graphql.discount.mutations.bulk_mutations.get_webhooks_for_event")
 @mock.patch("saleor.plugins.manager.PluginsManager.sale_deleted")
-@mock.patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
 def test_delete_sales(
-    update_products_discounted_prices_for_promotion_task,
     deleted_webhook_mock,
     mocked_get_webhooks_for_event,
     staff_api_client,
@@ -89,6 +86,18 @@ def test_delete_sales(
     settings,
 ):
     # given
+    rules_to_delete = PromotionRule.objects.filter(
+        promotion_id__in=[
+            promotion.id for promotion in promotion_converted_from_sale_list
+        ]
+    )
+    variant_ids = PromotionRule.variants.through.objects.filter(
+        promotionrule_id__in=rules_to_delete
+    ).values_list("productvariant_id", flat=True)
+    product_ids = ProductVariant.objects.filter(id__in=variant_ids).values_list(
+        "product_id", flat=True
+    )
+
     promotion_list = promotion_converted_from_sale_list
     mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
@@ -111,7 +120,11 @@ def test_delete_sales(
     assert not Promotion.objects.filter(
         id__in=[promotion.id for promotion in promotion_list]
     ).exists()
-    update_products_discounted_prices_for_promotion_task.called_once()
+
+    assert not ProductChannelListing.objects.filter(
+        product_id__in=product_ids, discounted_price_dirty=False
+    ).exists()
+
     assert deleted_webhook_mock.call_count == len(promotion_list)
 
 
@@ -211,11 +224,7 @@ def test_delete_sales_with_variants_triggers_webhook(
 
 @mock.patch("saleor.graphql.discount.mutations.bulk_mutations.get_webhooks_for_event")
 @mock.patch("saleor.plugins.manager.PluginsManager.sale_deleted")
-@mock.patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
 def test_delete_sales_with_promotion_ids(
-    update_products_discounted_prices_for_promotion_task,
     deleted_webhook_mock,
     mocked_get_webhooks_for_event,
     staff_api_client,
@@ -225,6 +234,18 @@ def test_delete_sales_with_promotion_ids(
     settings,
 ):
     # given
+    rules_to_delete = PromotionRule.objects.filter(
+        promotion_id__in=[
+            promotion.id for promotion in promotion_converted_from_sale_list
+        ]
+    )
+    variant_ids = PromotionRule.variants.through.objects.filter(
+        promotionrule_id__in=rules_to_delete
+    ).values_list("productvariant_id", flat=True)
+    product_ids = ProductVariant.objects.filter(id__in=variant_ids).values_list(
+        "product_id", flat=True
+    )
+
     mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     variables = {
@@ -249,4 +270,6 @@ def test_delete_sales_with_promotion_ids(
     assert errors[0]["code"] == DiscountErrorCode.INVALID.name
 
     deleted_webhook_mock.assert_not_called()
-    update_products_discounted_prices_for_promotion_task.assert_not_called()
+    assert not ProductChannelListing.objects.filter(
+        product_id__in=product_ids, discounted_price_dirty=True
+    ).exists()

@@ -2000,15 +2000,12 @@ def test_product_variant_bulk_create_without_sku(
     assert ProductVariant.objects.filter(sku__isnull=True).count() == 2
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
 def test_product_variant_bulk_create_many_errors(
-    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     product,
     size_attribute,
     permission_manage_products,
+    catalogue_promotion,
 ):
     # given
     product_variant_count = ProductVariant.objects.count()
@@ -2068,7 +2065,7 @@ def test_product_variant_bulk_create_many_errors(
         "channels": None,
     }
     assert product_variant_count == ProductVariant.objects.count()
-    update_products_discounted_prices_for_promotion_task_mock.assert_not_called()
+    assert not catalogue_promotion.rules.filter(variants_dirty=True).exists()
 
 
 def test_product_variant_bulk_create_many_errors_with_ignore_failed(
