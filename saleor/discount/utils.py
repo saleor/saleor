@@ -737,7 +737,7 @@ def _get_available_for_purchase_variant_ids(
         available_for_purchase_at__lte=today,
         channel_id=channel.id,
     )
-    available_variant_ids = ProductVariant.objects.filter(
+    available_variant_ids = variants.filter(
         Exists(product_listings.filter(product_id=OuterRef("product_id")))
     ).values_list("id", flat=True)
     return set(available_variant_ids)

@@ -240,7 +240,7 @@ def test_manager_calculates_order_shipping(order_with_lines, plugins, shipping_a
     expected_shipping_price = Money(shipping_amount, currency)
 
     taxed_shipping_price = PluginsManager(plugins=plugins).calculate_order_shipping(
-        order_with_lines
+        order_with_lines, order_with_lines.lines.all()
     )
     assert (
         TaxedMoney(expected_shipping_price, expected_shipping_price)
@@ -295,7 +295,11 @@ def test_manager_calculates_order_line_total(order_line, plugins):
     taxed_total = (
         PluginsManager(plugins=plugins)
         .calculate_order_line_total(
-            order_line.order, order_line, order_line.variant, order_line.variant.product
+            order_line.order,
+            order_line,
+            order_line.variant,
+            order_line.variant.product,
+            [order_line],
         )
         .price_with_discounts
     )
@@ -505,11 +509,12 @@ def test_manager_calculates_checkout_line_unit_price(
 def test_manager_calculates_order_line(order_line, plugins, amount):
     variant = order_line.variant
     currency = order_line.unit_price.currency
+    order = order_line.order
     expected_price = Money(amount, currency)
     unit_price = (
         PluginsManager(plugins=plugins)
         .calculate_order_line_unit(
-            order_line.order, order_line, variant, variant.product
+            order_line.order, order_line, variant, variant.product, order.lines.all()
         )
         .price_with_discounts
     )
@@ -557,8 +562,9 @@ def test_manager_get_taxes_for_checkout(
     lines, _ = fetch_checkout_lines(checkout)
     manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
+    app_identifier = None
     assert PluginsManager(plugins=plugins).get_taxes_for_checkout(
-        checkout_info, lines
+        checkout_info, lines, app_identifier
     ) == expected_tax_data(checkout)
 
 
@@ -574,8 +580,9 @@ def test_manager_get_taxes_for_order(
     plugins,
     expected_tax_data,
 ):
+    app_identifier = None
     assert PluginsManager(plugins=plugins).get_taxes_for_order(
-        order
+        order, app_identifier
     ) == expected_tax_data(order)
 
 

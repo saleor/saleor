@@ -3,12 +3,13 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Optional, cast
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.utils import timezone
 from prices import Money, TaxedMoney
 
 from ..checkout import base_calculations
 from ..core.prices import quantize_price
-from ..core.taxes import TaxData, zero_money, zero_taxed_money
+from ..core.taxes import EmptyTaxData, TaxData, zero_money, zero_taxed_money
 from ..discount.utils import (
     create_or_update_discount_objects_from_promotion_for_checkout,
 )
@@ -17,9 +18,11 @@ from ..tax import TaxCalculationStrategy
 from ..tax.calculations.checkout import update_checkout_prices_with_flat_rates
 from ..tax.utils import (
     get_charge_taxes_for_checkout,
+    get_tax_app_identifier_for_checkout,
     get_tax_calculation_strategy_for_checkout,
     normalize_tax_rate_for_db,
 )
+from .error_codes import CheckoutErrorCode
 from .fetch import find_checkout_line_info
 from .models import Checkout
 from .payment_utils import update_checkout_payment_statuses
@@ -36,6 +39,7 @@ def checkout_shipping_price(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
+    need_tax_calculation: bool = False,
 ) -> "TaxedMoney":
     """Return checkout shipping price.
 
@@ -47,6 +51,7 @@ def checkout_shipping_price(
         manager=manager,
         lines=lines,
         address=address,
+        need_tax_calculation=need_tax_calculation,
     )
     return quantize_price(checkout_info.checkout.shipping_price, currency)
 
@@ -57,6 +62,7 @@ def checkout_shipping_tax_rate(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
+    need_tax_calculation: bool = False,
 ) -> Decimal:
     """Return checkout shipping tax rate.
 
@@ -67,6 +73,7 @@ def checkout_shipping_tax_rate(
         manager=manager,
         lines=lines,
         address=address,
+        need_tax_calculation=need_tax_calculation,
     )
     return checkout_info.checkout.shipping_tax_rate
 
@@ -77,6 +84,7 @@ def checkout_subtotal(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
+    need_tax_calculation: bool = False,
 ) -> "TaxedMoney":
     """Return the total cost of all the checkout lines, taxes included.
 
@@ -88,6 +96,7 @@ def checkout_subtotal(
         manager=manager,
         lines=lines,
         address=address,
+        need_tax_calculation=need_tax_calculation,
     )
     return quantize_price(checkout_info.checkout.subtotal, currency)
 
@@ -117,6 +126,7 @@ def checkout_total(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
+    need_tax_calculation: bool = False,
 ) -> "TaxedMoney":
     """Return the total cost of the checkout.
 
@@ -131,6 +141,7 @@ def checkout_total(
         manager=manager,
         lines=lines,
         address=address,
+        need_tax_calculation=need_tax_calculation,
     )
     return quantize_price(checkout_info.checkout.total, currency)
 
@@ -141,6 +152,7 @@ def checkout_line_total(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
+    need_tax_calculation: bool = False,
 ) -> TaxedMoney:
     """Return the total price of provided line, taxes included.
 
@@ -153,6 +165,7 @@ def checkout_line_total(
         manager=manager,
         lines=lines,
         address=address,
+        need_tax_calculation=need_tax_calculation,
     )
     checkout_line = find_checkout_line_info(lines, checkout_line_info.line.id).line
     return quantize_price(checkout_line.total_price, currency)
@@ -164,6 +177,7 @@ def checkout_line_unit_price(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
+    need_tax_calculation: bool = False,
 ) -> TaxedMoney:
     """Return the unit price of provided line, taxes included.
 
@@ -176,6 +190,7 @@ def checkout_line_unit_price(
         manager=manager,
         lines=lines,
         address=address,
+        need_tax_calculation=need_tax_calculation,
     )
     checkout_line = find_checkout_line_info(lines, checkout_line_info.line.id).line
     unit_price = checkout_line.total_price / checkout_line.quantity
@@ -188,6 +203,7 @@ def checkout_line_tax_rate(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
+    need_tax_calculation: bool = False,
 ) -> Decimal:
     """Return the tax rate of provided line.
 
@@ -199,6 +215,7 @@ def checkout_line_tax_rate(
         manager=manager,
         lines=lines,
         address=address,
+        need_tax_calculation=need_tax_calculation,
     )
     checkout_line_info = find_checkout_line_info(lines, checkout_line_info.line.id)
     return checkout_line_info.line.tax_rate
@@ -210,11 +227,13 @@ def _fetch_checkout_prices_if_expired(
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"] = None,
     force_update: bool = False,
+    need_tax_calculation: bool = False,
 ) -> tuple["CheckoutInfo", Iterable["CheckoutLineInfo"]]:
     """Fetch checkout prices with taxes.
 
     First calculate and apply all checkout prices with taxes separately,
-    then apply tax data as well if we receive one.
+    then apply tax data as well if we receive one. If need_tax_calculation is set
+    to True, we will raise error if we didn't receive tax data.
 
     Prices can be updated only if force_update == True, or if time elapsed from the
     last price update is greater than settings.CHECKOUT_PRICES_TTL.
@@ -231,22 +250,28 @@ def _fetch_checkout_prices_if_expired(
     prices_entered_with_tax = tax_configuration.prices_entered_with_tax
     charge_taxes = get_charge_taxes_for_checkout(checkout_info, lines)
     should_charge_tax = charge_taxes and not checkout.tax_exemption
+    tax_app_identifier = get_tax_app_identifier_for_checkout(checkout_info, lines)
 
     lines = cast(list, lines)
     create_or_update_discount_objects_from_promotion_for_checkout(checkout_info, lines)
 
+    checkout.tax_error = None
     if prices_entered_with_tax:
         # If prices are entered with tax, we need to always calculate it anyway, to
         # display the tax rate to the user.
-        _calculate_and_add_tax(
-            tax_calculation_strategy,
-            checkout,
-            manager,
-            checkout_info,
-            lines,
-            prices_entered_with_tax,
-            address,
-        )
+        try:
+            _calculate_and_add_tax(
+                tax_calculation_strategy,
+                tax_app_identifier,
+                checkout,
+                manager,
+                checkout_info,
+                lines,
+                prices_entered_with_tax,
+                address,
+            )
+        except EmptyTaxData as e:
+            checkout.tax_error = str(e)
 
         if not should_charge_tax:
             # If charge_taxes is disabled or checkout is exempt from taxes, remove the
@@ -258,37 +283,54 @@ def _fetch_checkout_prices_if_expired(
         if should_charge_tax:
             # Calculate taxes if charge_taxes is enabled and checkout is not exempt
             # from taxes.
-            _calculate_and_add_tax(
-                tax_calculation_strategy,
-                checkout,
-                manager,
-                checkout_info,
-                lines,
-                prices_entered_with_tax,
-                address,
-            )
+            try:
+                _calculate_and_add_tax(
+                    tax_calculation_strategy,
+                    tax_app_identifier,
+                    checkout,
+                    manager,
+                    checkout_info,
+                    lines,
+                    prices_entered_with_tax,
+                    address,
+                )
+            except EmptyTaxData as e:
+                checkout.tax_error = str(e)
         else:
             # Calculate net prices without taxes.
             _get_checkout_base_prices(checkout, checkout_info, lines)
 
+    # raise an error if recorded tax_error and taxes are needed for process completion
+    if checkout.tax_error and need_tax_calculation:
+        checkout.save(update_fields=["tax_error"])
+
+        raise ValidationError(
+            "Configured Tax App didn't responded.",
+            code=CheckoutErrorCode.TAX_ERROR.value,
+        )
+
+    checkout_update_fields = [
+        "voucher_code",
+        "total_net_amount",
+        "total_gross_amount",
+        "subtotal_net_amount",
+        "subtotal_gross_amount",
+        "shipping_price_net_amount",
+        "shipping_price_gross_amount",
+        "shipping_tax_rate",
+        "translated_discount_name",
+        "discount_amount",
+        "discount_name",
+        "currency",
+        "last_change",
+        "price_expiration",
+        "tax_error",
+    ]
+
     checkout.price_expiration = timezone.now() + settings.CHECKOUT_PRICES_TTL
+
     checkout.save(
-        update_fields=[
-            "voucher_code",
-            "total_net_amount",
-            "total_gross_amount",
-            "subtotal_net_amount",
-            "subtotal_gross_amount",
-            "shipping_price_net_amount",
-            "shipping_price_gross_amount",
-            "shipping_tax_rate",
-            "price_expiration",
-            "translated_discount_name",
-            "discount_amount",
-            "discount_name",
-            "currency",
-            "last_change",
-        ],
+        update_fields=checkout_update_fields,
         using=settings.DATABASE_CONNECTION_DEFAULT_NAME,
     )
     checkout.lines.bulk_update(
@@ -304,6 +346,7 @@ def _fetch_checkout_prices_if_expired(
 
 def _calculate_and_add_tax(
     tax_calculation_strategy: str,
+    tax_app_identifier: Optional[str],
     checkout: "Checkout",
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
@@ -315,7 +358,13 @@ def _calculate_and_add_tax(
         # Call the tax plugins.
         _apply_tax_data_from_plugins(checkout, manager, checkout_info, lines, address)
         # Get the taxes calculated with apps and apply to checkout.
-        tax_data = manager.get_taxes_for_checkout(checkout_info, lines)
+        tax_data = manager.get_taxes_for_checkout(
+            checkout_info, lines, tax_app_identifier
+        )
+        # If taxAppId is not configured we will for now allow to finalize process for
+        # backward compatibility.
+        if tax_data is None and tax_app_identifier is not None:
+            raise EmptyTaxData("Empty tax data.")
         _apply_tax_data(checkout, lines, tax_data)
     else:
         # Get taxes calculated with flat rates and apply to checkout.
@@ -475,11 +524,15 @@ def fetch_checkout_data(
     force_update: bool = False,
     checkout_transactions: Optional[Iterable["TransactionItem"]] = None,
     force_status_update: bool = False,
+    need_tax_calculation: bool = False,
 ):
     """Fetch checkout data.
 
     This function refreshes prices if they have expired. If the checkout total has
     changed as a result, it will update the payment statuses accordingly.
+
+    need_tax_calculation: Set to true if fetching data should fail when received tax data
+    is invalid. Otherwise will only collect error message to checkout.tax_error field.
     """
     previous_total_gross = checkout_info.checkout.total.gross
     checkout_info, lines = _fetch_checkout_prices_if_expired(
@@ -488,6 +541,7 @@ def fetch_checkout_data(
         lines=lines,
         address=address,
         force_update=force_update,
+        need_tax_calculation=need_tax_calculation,
     )
     current_total_gross = checkout_info.checkout.total.gross
     if current_total_gross != previous_total_gross or force_status_update:

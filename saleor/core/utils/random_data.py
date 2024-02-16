@@ -606,10 +606,10 @@ def create_order_lines(order, how_many=10):
     for line in lines:
         variant = cast(ProductVariant, line.variant)
         unit_price_data = manager.calculate_order_line_unit(
-            order, line, variant, variant.product
+            order, line, variant, variant.product, lines
         )
         total_price_data = manager.calculate_order_line_total(
-            order, line, variant, variant.product
+            order, line, variant, variant.product, lines
         )
         line.unit_price = unit_price_data.price_with_discounts
         line.total_price = total_price_data.price_with_discounts
@@ -660,10 +660,10 @@ def create_order_lines_with_preorder(order, how_many=1):
     for line in lines:
         variant = cast(ProductVariant, line.variant)
         unit_price_data = manager.calculate_order_line_unit(
-            order, line, variant, variant.product
+            order, line, variant, variant.product, lines
         )
         total_price_data = manager.calculate_order_line_total(
-            order, line, variant, variant.product
+            order, line, variant, variant.product, lines
         )
         line.unit_price = unit_price_data.price_with_discounts
         line.total_price = total_price_data.price_with_discounts
