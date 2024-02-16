@@ -10,7 +10,6 @@ from ..models import ProductChannelListing, ProductVariantChannelListing
 from ..tasks import (
     _get_preorder_variants_to_clean,
     recalculate_discounted_price_for_products_task,
-    update_products_discounted_prices_for_promotion_task,
     update_products_search_vector_task,
     update_variant_relations_for_active_promotion_rules_task,
     update_variants_names,
@@ -246,7 +245,7 @@ def test_update_products_search_vector_task_with_static_number_of_queries(
 
 @pytest.mark.slow
 @pytest.mark.limit_memory("50 MB")
-def test_mem_usage_update_products_discounted_prices(lots_of_products_with_variants):
-    update_products_discounted_prices_for_promotion_task(
-        lots_of_products_with_variants.values_list("pk", flat=True)
-    )
+def test_mem_usage_recalculate_discounted_price_for_products_task(
+    lots_of_products_with_variants,
+):
+    recalculate_discounted_price_for_products_task()

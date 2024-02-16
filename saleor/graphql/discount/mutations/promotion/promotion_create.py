@@ -27,6 +27,7 @@ from ....utils import get_nodes
 from ...enums import PromotionCreateErrorCode
 from ...inputs import PromotionRuleBaseInput
 from ...types import Promotion
+from ..utils import promotion_rule_should_be_marked_with_dirty_variants
 from .validators import clean_promotion_rule
 
 
@@ -175,10 +176,13 @@ class PromotionCreate(ModelMutation):
         if rules_data := cleaned_data.get("rules"):
             for rule_data in rules_data:
                 channels = rule_data.pop("channels", None)
-                rule = models.PromotionRule(
-                    promotion=instance, variants_dirty=True, **rule_data
-                )
-                rules_with_channels_to_add.append((rule, channels))
+                rule = models.PromotionRule(promotion=instance, **rule_data)
+                if promotion_rule_should_be_marked_with_dirty_variants(
+                    rule, instance.type, channels
+                ):
+                    rule.variants_dirty = True
+                if channels:
+                    rules_with_channels_to_add.append((rule, channels))
                 rules.append(rule)
             models.PromotionRule.objects.bulk_create(rules)
 

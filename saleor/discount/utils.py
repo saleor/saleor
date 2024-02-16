@@ -522,15 +522,17 @@ def get_variants_to_promotions_map(
 
     promotions = Promotion.objects.active()
     PromotionRuleVariant = PromotionRule.variants.through
-    promotion_rule_variants = PromotionRuleVariant.objects.filter(
-        Exists(variant_qs.filter(id=OuterRef("productvariant_id")))
-    )
+    promotion_rule_variants = PromotionRuleVariant.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).filter(Exists(variant_qs.filter(id=OuterRef("productvariant_id"))))
 
     # fetch rules only for active promotions
-    rules = PromotionRule.objects.filter(
+    rules = PromotionRule.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).filter(
         Exists(promotions.filter(id=OuterRef("promotion_id"))),
         Exists(promotion_rule_variants.filter(promotionrule_id=OuterRef("pk"))),
-    ).prefetch_related("channels")
+    )
     rule_to_channel_ids_map = _get_rule_to_channel_ids_map(rules)
     rules_in_bulk = rules.in_bulk()
 
@@ -554,9 +556,9 @@ def get_variants_to_promotions_map(
 def _get_rule_to_channel_ids_map(rules: QuerySet):
     rule_to_channel_ids_map = defaultdict(list)
     PromotionRuleChannel = PromotionRule.channels.through
-    promotion_rule_channels = PromotionRuleChannel.objects.filter(
-        Exists(rules.filter(id=OuterRef("promotionrule_id")))
-    )
+    promotion_rule_channels = PromotionRuleChannel.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).filter(Exists(rules.filter(id=OuterRef("promotionrule_id"))))
     for promotion_rule_channel in promotion_rule_channels:
         rule_id = promotion_rule_channel.promotionrule_id
         channel_id = promotion_rule_channel.channel_id

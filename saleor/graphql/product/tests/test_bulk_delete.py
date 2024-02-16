@@ -74,6 +74,38 @@ def test_delete_categories(
     ).exists()
 
 
+def test_delete_categories_invalidate_active_promotion_rules(
+    staff_api_client,
+    category_list,
+    product_list,
+    permission_manage_products,
+    catalogue_promotion,
+):
+    # given
+    for product, category in zip(product_list, category_list):
+        product.category = category
+
+    Product.objects.bulk_update(product_list, ["category"])
+
+    variables = {
+        "ids": [
+            graphene.Node.to_global_id("Category", category.id)
+            for category in category_list
+        ]
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_CATEGORY_BULK_DELETE,
+        variables,
+        permissions=[permission_manage_products],
+    )
+
+    # then
+    get_graphql_content(response)
+    assert not catalogue_promotion.rules.filter(variants_dirty=True).exists()
+
+
 @patch("saleor.product.utils.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_delete_categories_trigger_webhook(
@@ -1139,15 +1171,12 @@ def test_delete_product_variants_task_for_recalculate_product_prices_called(
         assert rule.variants_dirty
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
 def test_delete_product_variants_invalid_object_typed_of_given_ids(
-    update_products_discounted_price_task_mock,
     staff_api_client,
     product_variant_list,
     permission_manage_products,
     staff_user,
+    catalogue_promotion,
 ):
     query = PRODUCT_VARIANT_BULK_DELETE_MUTATION
     staff_user.user_permissions.add(permission_manage_products)
@@ -1166,7 +1195,7 @@ def test_delete_product_variants_invalid_object_typed_of_given_ids(
     assert errors[0]["code"] == ProductErrorCode.GRAPHQL_ERROR.name
     assert errors[0]["field"] == "ids"
     assert data["count"] == 0
-    update_products_discounted_price_task_mock.assert_not_called()
+    assert not catalogue_promotion.rules.filter(variants_dirty=True).exists()
 
 
 def test_delete_product_variants_removes_checkout_lines(
