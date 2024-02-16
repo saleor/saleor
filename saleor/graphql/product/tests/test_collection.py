@@ -743,6 +743,63 @@ def test_update_collection(
     updated_webhook_mock.assert_called_once()
 
 
+def test_update_collection_metadata_marks_prices_to_recalculate(
+    staff_api_client,
+    collection,
+    permission_manage_products,
+    catalogue_promotion,
+    product,
+):
+    # given
+    query = """
+        mutation updateCollection(
+            $id: ID!,
+            $metadata: [MetadataInput!]
+            ) {
+
+            collectionUpdate(
+                id: $id, input: {
+                    metadata: $metadata,
+                }) {
+
+                collection {
+                    name
+                    slug
+                    description
+                    metadata {
+                        key
+                        value
+                    }
+                    privateMetadata {
+                        key
+                        value
+                    }
+                }
+            }
+        }
+    """
+    metadata_key = "md key"
+    metadata_value = "md value"
+
+    collection.products.set([product])
+
+    variables = {
+        "id": to_global_id("Collection", collection.id),
+        "metadata": [{"key": metadata_key, "value": metadata_value}],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    get_graphql_content(response)
+
+    collection.refresh_from_db()
+
+    # then
+    assert not catalogue_promotion.rules.filter(variants_dirty=False).exists()
+
+
 MUTATION_UPDATE_COLLECTION_WITH_BACKGROUND_IMAGE = """
     mutation updateCollection($name: String!, $slug: String!, $id: ID!,
             $backgroundImage: Upload, $backgroundImageAlt: String) {

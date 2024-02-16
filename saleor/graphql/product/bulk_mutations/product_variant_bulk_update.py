@@ -11,7 +11,6 @@ from ....discount.utils import mark_active_promotion_rules_as_dirty
 from ....permission.enums import ProductPermissions
 from ....product import models
 from ....product.error_codes import ProductErrorCode, ProductVariantBulkErrorCode
-from ....product.utils.product import mark_products_as_dirty
 from ....warehouse import models as warehouse_models
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
@@ -697,26 +696,11 @@ class ProductVariantBulkUpdate(BaseMutation):
         ).delete()
 
     @classmethod
-    def post_save_actions(
-        cls,
-        info,
-        instances,
-        product,
-        channel_ids_to_update,
-        channel_ids_to_add_or_remove,
-    ):
+    def post_save_actions(cls, info, instances, product, impacted_channel_ids):
+        if impacted_channel_ids:
+            cls.call_event(mark_active_promotion_rules_as_dirty, impacted_channel_ids)
+
         manager = get_plugin_manager_promise(info.context).get()
-
-        if channel_ids_to_update:
-            cls.call_event(
-                mark_products_as_dirty,
-                {channel_id: {product.id} for channel_id in channel_ids_to_update},
-            )
-        if channel_ids_to_add_or_remove:
-            cls.call_event(
-                mark_active_promotion_rules_as_dirty, channel_ids_to_add_or_remove
-            )
-
         product.search_index_dirty = True
         product.save(update_fields=["search_index_dirty"])
 
@@ -728,8 +712,7 @@ class ProductVariantBulkUpdate(BaseMutation):
 
     @classmethod
     def _get_impacted_channels(cls, cleaned_inputs_map):
-        channel_ids_to_update = set()
-        channel_ids_to_add_or_remove = set()
+        impacted_channel_ids = set()
         channel_listing_ids_to_remove = set()
         for cleaned_input in cleaned_inputs_map.values():
             if not cleaned_input:
@@ -737,11 +720,11 @@ class ProductVariantBulkUpdate(BaseMutation):
             if not cleaned_input.get("channel_listings"):
                 continue
             if created_channels := cleaned_input["channel_listings"].get("create"):
-                channel_ids_to_add_or_remove.update(
+                impacted_channel_ids.update(
                     [channel["channel"].id for channel in created_channels]
                 )
             if updated_channels := cleaned_input["channel_listings"].get("update"):
-                channel_ids_to_update.update(
+                impacted_channel_ids.update(
                     [
                         channel["channel_listings"].channel_id
                         for channel in updated_channels
@@ -754,14 +737,14 @@ class ProductVariantBulkUpdate(BaseMutation):
                 channel_listing_ids_to_remove.update(removed_channel_listings)
 
         if channel_listing_ids_to_remove:
-            channel_ids_to_add_or_remove.update(
+            impacted_channel_ids.update(
                 list(
                     models.ProductVariantChannelListing.objects.filter(
                         id__in=channel_listing_ids_to_remove
                     ).values_list("channel_id", flat=True)
                 )
             )
-        return channel_ids_to_update, channel_ids_to_add_or_remove
+        return impacted_channel_ids
 
     @classmethod
     @traced_atomic_transaction()
@@ -785,10 +768,7 @@ class ProductVariantBulkUpdate(BaseMutation):
             variants_global_id_to_instance_map,
             index_error_map,
         )
-        (
-            channel_ids_to_update,
-            channel_ids_to_add_or_remove,
-        ) = cls._get_impacted_channels(cleaned_inputs_map)
+        impacted_channel_ids = cls._get_impacted_channels(cleaned_inputs_map)
 
         instances_data_with_errors_list = cls.update_variants(
             info, cleaned_inputs_map, index_error_map
@@ -813,12 +793,6 @@ class ProductVariantBulkUpdate(BaseMutation):
         instances = [
             result.product_variant for result in results if result.product_variant
         ]
-        cls.post_save_actions(
-            info,
-            instances,
-            product,
-            channel_ids_to_update,
-            channel_ids_to_add_or_remove,
-        )
+        cls.post_save_actions(info, instances, product, impacted_channel_ids)
 
         return ProductVariantBulkCreate(count=len(instances), results=results)

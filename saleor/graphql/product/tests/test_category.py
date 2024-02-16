@@ -696,6 +696,36 @@ def test_category_update_mutation(
     assert category.private_metadata == {metadata_key: metadata_value, **old_meta}
 
 
+def test_category_update_mutation_marks_prices_to_recalculate(
+    staff_api_client, category, permission_manage_products, catalogue_promotion, product
+):
+    # given
+    product.category = category
+    product.save()
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    metadata_key = "md key"
+    metadata_value = "md value"
+
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    variables = {
+        "id": category_id,
+        "name": "Updated name",
+        "slug": "slug",
+        "metadata": [{"key": metadata_key, "value": metadata_value}],
+    }
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_CATEGORY_UPDATE_MUTATION,
+        variables,
+    )
+
+    # then
+    get_graphql_content(response)
+    assert not catalogue_promotion.rules.filter(variants_dirty=False).exists()
+
+
 @freeze_time("2023-09-01 12:00:00")
 def test_category_update_mutation_with_update_at_field(
     monkeypatch, staff_api_client, category, permission_manage_products, media_root

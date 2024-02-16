@@ -53,4 +53,4 @@ class CollectionBulkDelete(ModelBulkDeleteMutation):
                 Exists(collection_products.filter(product_id=OuterRef("product_id")))
             ).values_list("channel_id", flat=True)
         )
-        mark_active_promotion_rules_as_dirty(channel_ids)
+        cls.call_event(mark_active_promotion_rules_as_dirty, channel_ids)

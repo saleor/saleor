@@ -918,9 +918,11 @@ class ProductVariantBulkCreate(BaseMutation):
     @classmethod
     def post_save_actions(cls, info, instances, product):
         variant_ids = set([instance.node.id for instance in instances])
-        channel_ids = models.ProductVariantChannelListing.objects.filter(
-            variant_id__in=variant_ids
-        ).values_list("channel_id", flat=True)
+        channel_ids = set(
+            models.ProductVariantChannelListing.objects.filter(
+                variant_id__in=variant_ids
+            ).values_list("channel_id", flat=True)
+        )
         # This will finally recalculate discounted prices for products.
         cls.call_event(mark_active_promotion_rules_as_dirty, channel_ids)
 

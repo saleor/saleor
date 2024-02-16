@@ -1304,11 +1304,7 @@ def test_promotion_rule_create_reward_type_with_catalogue_predicate(
 
 
 @patch("saleor.plugins.manager.PluginsManager.promotion_rule_created")
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
 def test_promotion_rule_create_order_predicate(
-    update_products_discounted_prices_for_promotion_task_mock,
     promotion_rule_created_mock,
     staff_api_client,
     permission_group_manage_discounts,
@@ -1364,6 +1360,7 @@ def test_promotion_rule_create_order_predicate(
     assert rule_data["promotion"]["id"] == promotion_id
     assert promotion.rules.count() == rules_count + 1
     rule = promotion.rules.last()
+    assert not rule.variants_dirty
     promotion_rule_created_mock.assert_called_once_with(rule)
 
 
