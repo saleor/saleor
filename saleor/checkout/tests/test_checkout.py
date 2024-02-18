@@ -1410,7 +1410,7 @@ def test_recalculate_checkout_discount_with_checkout_discount_voucher_not_applic
     assert not checkout.voucher_code
 
 
-def test_recalculate_checkout_discount_with_checkout_discount_voucher_added(
+def test_recalculate_checkout_discount_with_order_discount_voucher_added(
     checkout_with_item_and_order_discount,
     voucher_percentage,
 ):
@@ -1444,6 +1444,49 @@ def test_recalculate_checkout_discount_with_checkout_discount_voucher_added(
     assert not checkout.discounts.all()
     with pytest.raises(checkout_discount._meta.model.DoesNotExist):
         checkout_discount.refresh_from_db()
+
+
+def test_recalculate_checkout_discount_with_gift_reward_voucher_added(
+    checkout_with_item_and_gift_promotion,
+    voucher_percentage,
+):
+    # given
+    checkout = checkout_with_item_and_gift_promotion
+    gift_line = checkout.lines.get(is_gift=True)
+    line_discount = gift_line.discounts.first()
+
+    assert checkout.voucher_code is None
+    channel = checkout.channel
+    discount_value = voucher_percentage.channel_listings.get(
+        channel=channel
+    ).discount_value
+    checkout.voucher_code = voucher_percentage.code
+    checkout.save(update_fields=["voucher_code"])
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    lines_count = len(lines)
+
+    # when
+    recalculate_checkout_discount(manager, checkout_info, lines)
+
+    # then
+    line_info = [line_info for line_info in lines if not line_info.line.is_gift][0]
+    total_price = (
+        line_info.variant.get_price(line_info.channel_listing) * line_info.line.quantity
+    )
+
+    checkout.refresh_from_db()
+    assert checkout.discount_amount == total_price.amount * discount_value / 100
+    assert checkout.discount_name == voucher_percentage.name
+    assert checkout.voucher_code
+    assert not checkout.discounts.all()
+    assert len(lines) == lines_count - 1 == checkout.lines.count()
+    with pytest.raises(line_discount._meta.model.DoesNotExist):
+        line_discount.refresh_from_db()
+    with pytest.raises(gift_line._meta.model.DoesNotExist):
+        gift_line.refresh_from_db()
 
 
 def test_recalculate_checkout_discount_voucher_not_applicable(
@@ -1821,6 +1864,31 @@ def test_add_voucher_to_checkout_clears_order_promotion_discount(
     assert not checkout.discounts.all()
     with pytest.raises(checkout_discount._meta.model.DoesNotExist):
         checkout_discount.refresh_from_db()
+
+
+def test_add_voucher_to_checkout_clears_gift_reward(
+    checkout_with_item_and_gift_promotion, voucher
+):
+    # given
+    checkout = checkout_with_item_and_gift_promotion
+    gift_line = checkout.lines.get(is_gift=True)
+    line_discount = gift_line.discounts.first()
+    assert checkout.voucher_code is None
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    # when
+    add_voucher_to_checkout(
+        manager, checkout_info, lines, voucher, voucher.codes.first()
+    )
+
+    # then
+    assert checkout.voucher_code == voucher.code
+    with pytest.raises(line_discount._meta.model.DoesNotExist):
+        line_discount.refresh_from_db()
+    with pytest.raises(gift_line._meta.model.DoesNotExist):
+        gift_line.refresh_from_db()
 
 
 def test_get_last_active_payment(checkout_with_payments):

@@ -77,6 +77,7 @@ def test_order_line_query(
                                 value
                             }
                             taxRate
+                            isGift
                         }
                     }
                 }
@@ -161,6 +162,7 @@ def test_order_line_query(
         first_order_data_line["taxClassPrivateMetadata"][0]["value"]
         == list(line_tax_class.private_metadata.values())[0]
     )
+    assert first_order_data_line["isGift"] is False
 
 
 def test_denormalized_tax_class_in_orderline_query(

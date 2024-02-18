@@ -338,6 +338,7 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
     # this field is used only for draft/unconfirmed orders
     should_refresh_prices = models.BooleanField(default=True)
     tax_exemption = models.BooleanField(default=False)
+    tax_error = models.CharField(max_length=255, null=True, blank=True)
 
     objects = OrderManager()
 
@@ -549,6 +550,7 @@ class OrderLine(ModelWithMetadata):
     quantity_fulfilled = models.IntegerField(
         validators=[MinValueValidator(0)], default=0
     )
+    is_gift = models.BooleanField(default=False)
 
     currency = models.CharField(
         max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,

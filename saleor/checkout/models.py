@@ -197,6 +197,7 @@ class Checkout(models.Model):
     )
 
     tax_exemption = models.BooleanField(default=False)
+    tax_error = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         ordering = ("-last_change", "pk")
@@ -287,6 +288,7 @@ class CheckoutLine(ModelWithMetadata):
         "product.ProductVariant", related_name="+", on_delete=models.CASCADE
     )
     quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    is_gift = models.BooleanField(default=False)
     price_override = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,

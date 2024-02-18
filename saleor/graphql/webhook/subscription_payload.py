@@ -1,17 +1,23 @@
-from typing import Any, Optional
+from collections.abc import Iterable
+from datetime import datetime
+from typing import Any, Optional, Union
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
+from django.db import models
 from django.utils import timezone
 from django.utils.functional import SimpleLazyObject
 from graphql import get_default_backend, parse
 from graphql.error import GraphQLError
 from promise import Promise
 
+from ...account.models import User
 from ...app.models import App
 from ...core.exceptions import PermissionDenied
 from ...core.utils import get_domain
+from ...webhook.models import Webhook
 from ..core import SaleorContext
+from ..core.dataloaders import DataLoader
 from ..utils import format_error
 
 logger = get_task_logger(__name__)
@@ -22,6 +28,8 @@ def initialize_request(
     sync_event=False,
     allow_replica=False,
     event_type: Optional[str] = None,
+    request_time: Optional[datetime] = None,
+    dataloaders: Optional[dict] = None,
 ) -> SaleorContext:
     """Prepare a request object for webhook subscription.
 
@@ -29,9 +37,9 @@ def initialize_request(
 
     return: HttpRequest
     """
-
-    request_time = timezone.now()
-    request = SaleorContext()
+    if dataloaders is None:
+        dataloaders = {}
+    request = SaleorContext(dataloaders=dataloaders)
     request.path = "/graphql/"
     request.path_info = "/graphql/"
     request.method = "GET"
@@ -43,7 +51,7 @@ def initialize_request(
     setattr(request, "sync_event", sync_event)
     setattr(request, "event_type", event_type)
     request.requestor = requestor
-    request.request_time = request_time
+    request.request_time = request_time or timezone.now()
     request.allow_replica = allow_replica
 
     return request
@@ -60,7 +68,7 @@ def get_event_payload(event):
 def generate_payload_from_subscription(
     event_type: str,
     subscribable_object,
-    subscription_query: Optional[str],
+    subscription_query: str,
     request: SaleorContext,
     app: Optional[App] = None,
 ) -> Optional[dict[str, Any]]:
@@ -84,7 +92,7 @@ def generate_payload_from_subscription(
     from ..context import get_context_value
 
     graphql_backend = get_default_backend()
-    ast = parse(subscription_query)  # type: ignore
+    ast = parse(subscription_query)
     document = graphql_backend.document_from_string(
         schema,
         ast,
@@ -124,3 +132,51 @@ def generate_payload_from_subscription(
         ]
 
     return event_payload
+
+
+def get_pre_save_payload_key(webhook, instance):
+    return f"{webhook.pk}_{instance.pk}"
+
+
+def generate_pre_save_payloads(
+    webhooks: Iterable[Webhook],
+    instances: Iterable[models.Model],
+    event_type: str,
+    requestor: Union[User, App, None],
+    request_time: datetime,
+):
+    if not settings.ENABLE_LIMITING_WEBHOOKS_FOR_IDENTICAL_PAYLOADS:
+        return {}
+
+    pre_save_payloads = {}
+
+    # Dataloaders are shared between calls to generate_payload_from_subscription to
+    # reuse their cache. This avoids unnecessary DB queries when different webhooks
+    # need to resolve the same data.
+    dataloaders: dict[str, type[DataLoader]] = {}
+
+    request = initialize_request(
+        requestor=requestor,
+        sync_event=False,
+        allow_replica=True,
+        event_type=event_type,
+        request_time=request_time,
+        dataloaders=dataloaders,
+    )
+
+    for webhook in webhooks:
+        if not webhook.subscription_query:
+            continue
+
+        for instance in instances:
+            instance_payload = generate_payload_from_subscription(
+                event_type=event_type,
+                subscribable_object=instance,
+                subscription_query=webhook.subscription_query,
+                request=request,
+                app=webhook.app,
+            )
+            key = get_pre_save_payload_key(webhook, instance)
+            pre_save_payloads[key] = instance_payload
+
+    return pre_save_payloads

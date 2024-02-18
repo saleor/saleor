@@ -26,7 +26,7 @@ def test_to_payment_app_id_app_identifier_used(app):
 
 def test_to_payment_app_id_app_id_used(app):
     # given
-    app.identifier = None
+    app.identifier = ""
     app.save(update_fields=["identifier"])
 
     gateway_id = "example-gateway"
@@ -92,7 +92,7 @@ def test_parse_list_payment_gateways_response_app_identifier(app):
 
 def test_parse_list_payment_gateways_response_app_id(app):
     # given
-    app.identifier = None
+    app.identifier = ""
     app.save(update_fields=["identifier"])
 
     response_data = [

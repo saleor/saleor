@@ -33,9 +33,6 @@ def update_order_prices_with_flat_rates(
         default_country_rate_obj.rate if default_country_rate_obj else Decimal(0)
     )
 
-    # Apply order level discounts
-    base_calculations.apply_order_discounts(order, lines)
-
     # Calculate order line taxes.
     _, undiscounted_subtotal = update_taxes_for_order_lines(
         order, lines, country_code, default_tax_rate, prices_entered_with_tax

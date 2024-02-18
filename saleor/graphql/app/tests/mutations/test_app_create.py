@@ -15,9 +15,9 @@ from ....tests.utils import assert_no_permission, get_graphql_content
 
 APP_CREATE_MUTATION = """
     mutation AppCreate(
-        $name: String, $permissions: [PermissionEnum!]){
+        $name: String, $permissions: [PermissionEnum!], $identifier: String){
         appCreate(input:
-            {name: $name, permissions: $permissions})
+            {name: $name, permissions: $permissions, identifier: $identifier})
         {
             authToken
             app{
@@ -31,6 +31,7 @@ APP_CREATE_MUTATION = """
                 tokens{
                     authToken
                 }
+                identifier
             }
             errors{
                 field
@@ -55,6 +56,7 @@ def test_app_create_mutation(
     variables = {
         "name": "New integration",
         "permissions": [PermissionEnum.MANAGE_PRODUCTS.name],
+        "identifier": "test.test",
     }
     response = staff_api_client.post_graphql(
         query, variables=variables, permissions=(permission_manage_apps,)
@@ -66,10 +68,46 @@ def test_app_create_mutation(
     app = App.objects.get()
     assert app_data["isActive"] == app.is_active
     assert app_data["name"] == app.name
+    assert app_data["identifier"] == app.identifier
     assert list(app.permissions.all()) == [permission_manage_products]
     assert default_token
     assert default_token[-4:] == app.tokens.get().token_last_4
     assert app.uuid is not None
+    assert app.identifier == "test.test"
+
+
+def test_app_create_no_identifier_mutation(
+    permission_manage_apps,
+    permission_manage_products,
+    staff_api_client,
+    staff_user,
+):
+    # given
+    query = APP_CREATE_MUTATION
+    staff_user.user_permissions.add(permission_manage_products)
+
+    variables = {
+        "name": "New integration",
+        "permissions": [PermissionEnum.MANAGE_PRODUCTS.name],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables=variables, permissions=(permission_manage_apps,)
+    )
+    content = get_graphql_content(response)
+
+    # then
+    app_data = content["data"]["appCreate"]["app"]
+    default_token = content["data"]["appCreate"]["authToken"]
+    app = App.objects.get()
+    assert app_data["isActive"] == app.is_active
+    assert app_data["name"] == app.name
+    assert list(app.permissions.all()) == [permission_manage_products]
+    assert default_token
+    assert default_token[-4:] == app.tokens.get().token_last_4
+    assert app.uuid is not None
+    assert app.identifier == graphene.Node.to_global_id("App", app.pk)
 
 
 @freeze_time("2022-05-12 12:00:00")

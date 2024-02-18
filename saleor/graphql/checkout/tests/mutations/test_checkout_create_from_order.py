@@ -5,6 +5,7 @@ import pytz
 
 from .....checkout.error_codes import CheckoutCreateFromOrderUnavailableVariantErrorCode
 from .....checkout.models import Checkout
+from .....product.models import ProductVariantChannelListing
 from .....warehouse.models import Stock
 from ....tests.utils import get_graphql_content
 from ...enums import CheckoutCreateFromOrderErrorCode
@@ -26,6 +27,7 @@ mutation CheckoutCreateFromOrder($id: ID!) {
     checkout{
       id
       lines{
+        isGift
         quantity
         variant{
           id
@@ -183,6 +185,61 @@ def test_checkout_create_from_anonymous_order_and_logged_in_user(
     _assert_checkout_lines(
         order_lines_map, checkout_lines, checkout_lines_from_response_map
     )
+
+
+def test_checkout_create_from_order_with_gift_reward(
+    user_api_client, order_with_lines, gift_promotion_rule
+):
+    # given
+    order_with_lines.user = user_api_client.user
+    order_with_lines.save()
+
+    order_lines_count = order_with_lines.lines.count()
+
+    Stock.objects.update(quantity=10)
+
+    variables = {"id": graphene.Node.to_global_id("Order", order_with_lines.pk)}
+    # when
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_CREATE_FROM_ORDER, variables
+    )
+
+    # then
+    variants = gift_promotion_rule.gifts.all()
+    variant_listings = ProductVariantChannelListing.objects.filter(variant__in=variants)
+    top_price, variant_id = max(
+        variant_listings.values_list("discounted_price_amount", "variant")
+    )
+    order_lines_map = {line.variant.pk: line for line in order_with_lines.lines.all()}
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutCreateFromOrder"]
+    checkout = Checkout.objects.get()
+    checkout_lines = checkout.lines.all()
+    gift_line = checkout_lines.filter(is_gift=True).first()
+    order_lines_map[variant_id] = gift_line
+    assert checkout.user == order_with_lines.user
+    assert checkout.email == order_with_lines.user_email
+    checkout_lines_from_response = data["checkout"]["lines"]
+    assert (
+        len(checkout_lines_from_response)
+        == checkout_lines.count()
+        == order_lines_count + 1
+    )
+    checkout_lines_from_response_map = {
+        line["variant"]["id"]: line for line in checkout_lines_from_response
+    }
+    assert not data["unavailableVariants"]
+    assert data["checkout"]["id"] == graphene.Node.to_global_id("Checkout", checkout.pk)
+    _assert_checkout_lines(
+        order_lines_map, checkout_lines, checkout_lines_from_response_map
+    )
+    assert gift_line.discounts.count() == 1
+    discount = gift_line.discounts.first()
+    gift_variant_listing = gift_line.variant.channel_listings.get(
+        channel=checkout.channel
+    )
+    assert discount.amount_value == gift_variant_listing.price_amount
 
 
 def test_checkout_create_from_order_when_order_not_found(

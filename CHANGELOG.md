@@ -5,6 +5,9 @@ All notable, unreleased changes to this project will be documented in this file.
 # 3.19.0 [Unreleased]
 
 ### Highlights
+- Introduce `order` promotion rules that allow applying discounts during checkout calculations when the checkout meets certain conditions. - #14696 by @IKarbowiak, @zedzior
+- Introduce gift reward as `order` promotion rule reward - #15259 by @zedzior, @IKarbowiak
+- New environment variable `EVENT_PAYLOAD_DELETE_TASK_TIME_LIMIT` to control time limit of `delete_event_payloads_task` - #15396 by @wcislo-saleor
 
 ### Breaking changes
 - Drop `OrderBulkCreateInput.voucher` field. Use `OrderBulkCreateInput.voucherCode` instead. - #14553 by @zedzior
@@ -16,7 +19,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add taxes to undiscounted prices - #14095 by @jakubkuc
 - Mark as deprecated: `ordersTotal`, `reportProductSales` and `homepageEvents` - #14806 by @8r2y5
 - Add `identifier` field to App graphql object. Identifier field is the same as Manifest.id field (explicit ID set by the app).
-- Introduce `checkoutAndOrder` promotion rules that allow applying discounts during checkout calculations when the checkout meets certain conditions. - #14696 by @IKarbowiak, @zedzior
 
 ### Saleor Apps
 
@@ -30,6 +32,15 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fixed validation for streetAddress1 or streetAddress2 are too long - #13973 by sonbui00
 - Remove `prefetched_for_webhook` to legacy payload generators - #15369 by @AjmalPonneth
 
+- Clear db leftovers after attribute refactor - #15372 by @IKarbowiak
+
+- Added possibility to break checkout/draft order completion: #15292 by @kadewu
+  - Added new field `Shop.availableTaxApps`.
+  - Added new input `taxAppId` for `TaxConfigurationUpdateInput` and `TaxConfigurationPerCountryInput`.
+  - Added new field `taxAppId` in `TaxConfiguration` and `TaxConfigurationPerCountry`.
+  - Added new input `AppInput.identifier`.
+  - Added new parameter `identifier` for `create_app` command.
+  - When `taxAppId` is provided for `TaxConfiguration` do not allow to finalize `checkoutComplete` or `draftOrderComplete` mutations if Tax App doesn't respond.
 
 # 3.18.0
 

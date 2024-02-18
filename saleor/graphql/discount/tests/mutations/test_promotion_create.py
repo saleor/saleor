@@ -36,9 +36,11 @@ PROMOTION_CREATE_MUTATION = """
                     }
                     rewardValueType
                     rewardValue
+                    rewardType
                     predicateType
                     cataloguePredicate
                     orderPredicate
+                    giftIds
                 }
             }
             errors {
@@ -47,7 +49,9 @@ PROMOTION_CREATE_MUTATION = """
                 index
                 message
                 rulesLimit
-                exceedBy
+                rulesLimitExceedBy
+                giftsLimit
+                giftsLimitExceedBy
             }
         }
     }
@@ -164,6 +168,8 @@ def test_promotion_create_by_staff_user(
         rule_data["channels"] = [
             {"id": channel_id} for channel_id in rule_data["channels"]
         ]
+        rule_data["giftIds"] = []
+        rule_data["rewardType"] = None
         assert rule_data in promotion_data["rules"]
 
     promotion = Promotion.objects.filter(name=promotion_name).get()
@@ -744,6 +750,8 @@ def test_promotion_create_start_date_and_end_date_after_current_date(
         rule_data["channels"] = [
             {"id": channel_id} for channel_id in rule_data["channels"]
         ]
+        rule_data["giftIds"] = []
+        rule_data["rewardType"] = None
         assert rule_data in promotion_data["rules"]
 
     promotion = Promotion.objects.filter(name=promotion_name).get()
@@ -826,7 +834,9 @@ def test_promotion_create_missing_predicate(
         "index": 1,
         "message": ANY,
         "rulesLimit": None,
-        "exceedBy": None,
+        "rulesLimitExceedBy": None,
+        "giftsLimit": None,
+        "giftsLimitExceedBy": None,
     } in errors
 
 
@@ -1111,7 +1121,9 @@ def test_promotion_create_mixed_catalogue_and_order_rules(
         "field": "cataloguePredicate",
         "index": 1,
         "rulesLimit": None,
-        "exceedBy": None,
+        "rulesLimitExceedBy": None,
+        "giftsLimit": None,
+        "giftsLimitExceedBy": None,
         "message": ANY,
     } in errors
     assert {
@@ -1119,7 +1131,9 @@ def test_promotion_create_mixed_catalogue_and_order_rules(
         "field": "orderPredicate",
         "index": 1,
         "rulesLimit": None,
-        "exceedBy": None,
+        "rulesLimitExceedBy": None,
+        "giftsLimit": None,
+        "giftsLimitExceedBy": None,
         "message": ANY,
     } in errors
 
@@ -1243,7 +1257,9 @@ def test_promotion_create_multiple_errors(
             "index": 0,
             "message": ANY,
             "rulesLimit": None,
-            "exceedBy": None,
+            "rulesLimitExceedBy": None,
+            "giftsLimit": None,
+            "giftsLimitExceedBy": None,
         },
         {
             "code": PromotionCreateErrorCode.REQUIRED.name,
@@ -1251,7 +1267,9 @@ def test_promotion_create_multiple_errors(
             "index": 0,
             "message": ANY,
             "rulesLimit": None,
-            "exceedBy": None,
+            "rulesLimitExceedBy": None,
+            "giftsLimit": None,
+            "giftsLimitExceedBy": None,
         },
         {
             "code": PromotionCreateErrorCode.GRAPHQL_ERROR.name,
@@ -1259,7 +1277,9 @@ def test_promotion_create_multiple_errors(
             "index": 0,
             "message": ANY,
             "rulesLimit": None,
-            "exceedBy": None,
+            "rulesLimitExceedBy": None,
+            "giftsLimit": None,
+            "giftsLimitExceedBy": None,
         },
     ]
     for error in expected_errors:
@@ -1483,7 +1503,69 @@ def test_promotion_create_exceeds_rules_number_limit(
     assert errors[0]["code"] == PromotionCreateErrorCode.RULES_NUMBER_LIMIT.name
     assert errors[0]["field"] == "rules"
     assert errors[0]["rulesLimit"] == 1
-    assert errors[0]["exceedBy"] == 1
+    assert errors[0]["rulesLimitExceedBy"] == 1
+    assert errors[0]["giftsLimit"] is None
+    assert errors[0]["giftsLimitExceedBy"] is None
+
+
+@override_settings(GIFTS_LIMIT_PER_RULE=1)
+def test_promotion_create_exceeds_gifts_number_limit(
+    staff_api_client,
+    permission_group_manage_discounts,
+    channel_USD,
+    product_variant_list,
+):
+    # given
+    gift_limit = 1
+    permission_group_manage_discounts.user_set.add(staff_api_client.user)
+    start_date = timezone.now() - timedelta(days=30)
+    end_date = timezone.now() + timedelta(days=30)
+
+    promotion_name = "test promotion"
+    order_predicate = {
+        "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 100}}}
+    }
+    rule_name = "test promotion rule 1"
+    reward_type = RewardTypeEnum.GIFT.name
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.pk)
+    gift_ids = [
+        graphene.Node.to_global_id("ProductVariant", variant.pk)
+        for variant in product_variant_list
+    ]
+
+    variables = {
+        "input": {
+            "name": promotion_name,
+            "startDate": start_date.isoformat(),
+            "endDate": end_date.isoformat(),
+            "type": PromotionTypeEnum.ORDER.name,
+            "rules": [
+                {
+                    "name": rule_name,
+                    "channels": [channel_id],
+                    "rewardType": reward_type,
+                    "orderPredicate": order_predicate,
+                    "gifts": gift_ids,
+                }
+            ],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PROMOTION_CREATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionCreate"]
+    errors = data["errors"]
+
+    assert not data["promotion"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == PromotionCreateErrorCode.GIFTS_NUMBER_LIMIT.name
+    assert errors[0]["field"] == "gifts"
+    assert errors[0]["index"] == 0
+    assert errors[0]["giftsLimit"] == gift_limit
+    assert errors[0]["giftsLimitExceedBy"] == len(gift_ids) - gift_limit
 
 
 @patch("saleor.product.tasks.update_products_discounted_prices_of_promotion_task.delay")
@@ -1716,6 +1798,273 @@ def test_promotion_create_events_by_app(
     assert all([rule["id"] in rule_ids for rule in rules])
 
 
+@patch("saleor.product.tasks.update_products_discounted_prices_of_promotion_task.delay")
+def test_promotion_create_gift_promotion(
+    _,
+    staff_api_client,
+    permission_group_manage_discounts,
+    channel_USD,
+    channel_PLN,
+    product_variant_list,
+):
+    # given
+    permission_group_manage_discounts.user_set.add(staff_api_client.user)
+    promotion_name = "test gift promotion"
+    order_predicate = {
+        "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": "100"}}}
+    }
+    rule_name = "test gift promotion rule"
+    reward_type = RewardTypeEnum.GIFT.name
+    channel_ids = [graphene.Node.to_global_id("Channel", channel_USD.pk)]
+    gift_ids = [
+        graphene.Node.to_global_id("ProductVariant", variant.pk)
+        for variant in product_variant_list
+    ]
+
+    variables = {
+        "input": {
+            "name": promotion_name,
+            "type": PromotionTypeEnum.ORDER.name,
+            "rules": [
+                {
+                    "name": rule_name,
+                    "channels": channel_ids,
+                    "rewardType": reward_type,
+                    "orderPredicate": order_predicate,
+                    "gifts": gift_ids,
+                }
+            ],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PROMOTION_CREATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionCreate"]
+    assert not data["errors"]
+
+    assert data["promotion"]["type"] == PromotionTypeEnum.ORDER.name
+    rules_data = data["promotion"]["rules"]
+    assert len(rules_data) == 1
+    assert rules_data[0]["orderPredicate"] == order_predicate
+    assert rules_data[0]["predicateType"] == PromotionTypeEnum.ORDER.name
+    assert rules_data[0]["rewardType"] == RewardTypeEnum.GIFT.name
+    assert sorted(rules_data[0]["giftIds"]) == sorted(gift_ids)
+
+    promotion = Promotion.objects.filter(name=promotion_name).get()
+    rules = promotion.rules.all()
+    assert len(rules) == 1
+    assert all([gift in product_variant_list for gift in rules[0].gifts.all()])
+    assert rules[0].reward_type == RewardTypeEnum.GIFT.value
+
+
+def test_promotion_create_gift_promotion_wrong_gift_instance(
+    staff_api_client,
+    permission_group_manage_discounts,
+    channel_USD,
+    channel_PLN,
+    product_list,
+):
+    # given
+    permission_group_manage_discounts.user_set.add(staff_api_client.user)
+    promotion_name = "test gift promotion"
+    order_predicate = {
+        "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": "100"}}}
+    }
+    rule_name = "test gift promotion rule"
+    reward_type = RewardTypeEnum.GIFT.name
+    channel_ids = [graphene.Node.to_global_id("Channel", channel_USD.pk)]
+    gift_ids = [
+        graphene.Node.to_global_id("Product", product.pk) for product in product_list
+    ]
+
+    variables = {
+        "input": {
+            "name": promotion_name,
+            "type": PromotionTypeEnum.ORDER.name,
+            "rules": [
+                {
+                    "name": rule_name,
+                    "channels": channel_ids,
+                    "rewardType": reward_type,
+                    "orderPredicate": order_predicate,
+                    "gifts": gift_ids,
+                }
+            ],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PROMOTION_CREATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionCreate"]
+    errors = data["errors"]
+
+    assert not data["promotion"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == PromotionCreateErrorCode.INVALID_GIFT_TYPE.name
+    assert errors[0]["field"] == "gifts"
+    assert errors[0]["index"] == 0
+
+
+def test_promotion_create_gift_promotion_with_reward_value(
+    staff_api_client,
+    permission_group_manage_discounts,
+    channel_USD,
+    channel_PLN,
+    product_variant_list,
+):
+    # given
+    permission_group_manage_discounts.user_set.add(staff_api_client.user)
+    promotion_name = "test gift promotion"
+    order_predicate = {
+        "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": "100"}}}
+    }
+    rule_name = "test gift promotion rule"
+    reward_type = RewardTypeEnum.GIFT.name
+    reward_value = Decimal("10")
+    channel_ids = [graphene.Node.to_global_id("Channel", channel_USD.pk)]
+    gift_ids = [
+        graphene.Node.to_global_id("ProductVariant", variant.pk)
+        for variant in product_variant_list
+    ]
+
+    variables = {
+        "input": {
+            "name": promotion_name,
+            "type": PromotionTypeEnum.ORDER.name,
+            "rules": [
+                {
+                    "name": rule_name,
+                    "channels": channel_ids,
+                    "rewardType": reward_type,
+                    "rewardValue": reward_value,
+                    "orderPredicate": order_predicate,
+                    "gifts": gift_ids,
+                }
+            ],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PROMOTION_CREATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionCreate"]
+    errors = data["errors"]
+
+    assert not data["promotion"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == PromotionCreateErrorCode.INVALID.name
+    assert errors[0]["field"] == "rewardValue"
+    assert errors[0]["index"] == 0
+
+
+def test_promotion_create_gift_promotion_with_reward_value_type(
+    staff_api_client,
+    permission_group_manage_discounts,
+    channel_USD,
+    channel_PLN,
+    product_variant_list,
+):
+    # given
+    permission_group_manage_discounts.user_set.add(staff_api_client.user)
+    promotion_name = "test gift promotion"
+    order_predicate = {
+        "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": "100"}}}
+    }
+    rule_name = "test gift promotion rule"
+    reward_type = RewardTypeEnum.GIFT.name
+    reward_value_type = RewardValueTypeEnum.PERCENTAGE.name
+    channel_ids = [graphene.Node.to_global_id("Channel", channel_USD.pk)]
+    gift_ids = [
+        graphene.Node.to_global_id("ProductVariant", variant.pk)
+        for variant in product_variant_list
+    ]
+
+    variables = {
+        "input": {
+            "name": promotion_name,
+            "type": PromotionTypeEnum.ORDER.name,
+            "rules": [
+                {
+                    "name": rule_name,
+                    "channels": channel_ids,
+                    "rewardType": reward_type,
+                    "rewardValueType": reward_value_type,
+                    "orderPredicate": order_predicate,
+                    "gifts": gift_ids,
+                }
+            ],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PROMOTION_CREATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionCreate"]
+    errors = data["errors"]
+
+    assert not data["promotion"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == PromotionCreateErrorCode.INVALID.name
+    assert errors[0]["field"] == "rewardValueType"
+    assert errors[0]["index"] == 0
+
+
+def test_promotion_create_gift_promotion_missing_gifts(
+    staff_api_client,
+    permission_group_manage_discounts,
+    channel_USD,
+    channel_PLN,
+):
+    # given
+    permission_group_manage_discounts.user_set.add(staff_api_client.user)
+    promotion_name = "test gift promotion"
+    order_predicate = {
+        "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": "100"}}}
+    }
+    rule_name = "test gift promotion rule"
+    reward_type = RewardTypeEnum.GIFT.name
+    channel_ids = [graphene.Node.to_global_id("Channel", channel_USD.pk)]
+
+    variables = {
+        "input": {
+            "name": promotion_name,
+            "type": PromotionTypeEnum.ORDER.name,
+            "rules": [
+                {
+                    "name": rule_name,
+                    "channels": channel_ids,
+                    "rewardType": reward_type,
+                    "orderPredicate": order_predicate,
+                }
+            ],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PROMOTION_CREATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionCreate"]
+    errors = data["errors"]
+
+    assert not data["promotion"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == PromotionCreateErrorCode.REQUIRED.name
+    assert errors[0]["field"] == "gifts"
+    assert errors[0]["index"] == 0
+
+
 def test_promotion_create_without_catalogue_predicate(
     staff_api_client,
     permission_manage_discounts,
@@ -1767,4 +2116,6 @@ def test_promotion_create_without_catalogue_predicate(
     assert error["code"] == PromotionCreateErrorCode.REQUIRED.name
     assert error["field"] == "cataloguePredicate"
     assert error["rulesLimit"] is None
-    assert error["exceedBy"] is None
+    assert error["rulesLimitExceedBy"] is None
+    assert error["giftsLimit"] is None
+    assert error["giftsLimitExceedBy"] is None

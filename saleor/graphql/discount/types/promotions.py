@@ -16,6 +16,7 @@ from ...translations.fields import TranslationField
 from ...translations.types import PromotionRuleTranslation, PromotionTranslation
 from ..dataloaders import (
     ChannelsByPromotionRuleIdLoader,
+    GiftsByPromotionRuleIDLoader,
     PromotionByIdLoader,
     PromotionEventsByPromotionIdLoader,
     PromotionRulesByPromotionIdLoader,
@@ -122,6 +123,18 @@ class PromotionRule(ModelObjectType[models.PromotionRule]):
         + PREVIEW_FEATURE
     )
     translation = TranslationField(PromotionRuleTranslation, type_name="promotion rule")
+    gift_ids = NonNullList(
+        graphene.ID,
+        description="Product variant IDs available as a gift to choose."
+        + ADDED_IN_319
+        + PREVIEW_FEATURE,
+    )
+    gifts_limit = graphene.Int(
+        default_value=1,
+        description="Defines the maximum number of gifts to choose from the gifts list."
+        + ADDED_IN_319
+        + PREVIEW_FEATURE,
+    )
 
     class Meta:
         description = (
@@ -150,6 +163,15 @@ class PromotionRule(ModelObjectType[models.PromotionRule]):
     @staticmethod
     def resolve_channels(root: models.PromotionRule, info: ResolveInfo):
         return ChannelsByPromotionRuleIdLoader(info.context).load(root.id)
+
+    @staticmethod
+    def resolve_gift_ids(root: models.PromotionRule, info: ResolveInfo):
+        def with_gifts(gifts):
+            return [
+                graphene.Node.to_global_id("ProductVariant", gift.pk) for gift in gifts
+            ]
+
+        return GiftsByPromotionRuleIDLoader(info.context).load(root.id).then(with_gifts)
 
 
 class PromotionCountableConnection(CountableConnection):

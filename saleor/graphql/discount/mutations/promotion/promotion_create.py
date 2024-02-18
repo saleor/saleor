@@ -41,8 +41,14 @@ class PromotionCreateError(Error):
     rules_limit = graphene.Int(
         description="Limit of rules with orderPredicate defined."
     )
-    exceed_by = graphene.Int(
+    rules_limit_exceed_by = graphene.Int(
         description="Number of rules with orderPredicate defined exceeding the limit."
+    )
+    gifts_limit = graphene.Int(description="Limit of gifts assigned to promotion rule.")
+    gifts_limit_exceed_by = graphene.Int(
+        description=(
+            "Number of gifts defined for this promotion rule exceeding the limit."
+        )
     )
 
 
@@ -50,6 +56,12 @@ class PromotionRuleInput(PromotionRuleBaseInput):
     channels = NonNullList(
         graphene.ID,
         description="List of channel ids to which the rule should apply to.",
+    )
+    gifts = NonNullList(
+        graphene.ID,
+        description="Product variant IDs available as a gift to choose."
+        + ADDED_IN_319
+        + PREVIEW_FEATURE,
     )
 
     class Meta:
@@ -156,7 +168,7 @@ class PromotionCreate(ModelMutation):
                             code=PromotionCreateErrorCode.RULES_NUMBER_LIMIT.value,
                             params={
                                 "rules_limit": rules_limit,
-                                "exceed_by": exceed_by,
+                                "rules_limit_exceed_by": exceed_by,
                             },
                         )
                     }
@@ -166,6 +178,12 @@ class PromotionCreate(ModelMutation):
             if channel_ids := rule_data.get("channels"):
                 channels = cls.clean_channels(info, channel_ids, index, errors)
                 rule_data["channels"] = channels
+            if gift_ids := rule_data.get("gifts"):
+                instances = cls.get_nodes_or_error(
+                    gift_ids, "gifts", schema=info.schema
+                )
+                rule_data["gifts"] = instances
+
             clean_promotion_rule(
                 rule_data, promotion_type, errors, PromotionCreateErrorCode, index
             )
@@ -218,7 +236,10 @@ class PromotionCreate(ModelMutation):
         if rules_data := cleaned_data.get("rules"):
             for rule_data in rules_data:
                 channels = rule_data.pop("channels", None)
+                gifts = rule_data.pop("gifts", None)
                 rule = models.PromotionRule(promotion=instance, **rule_data)
+                if gifts:
+                    rule.gifts.set(gifts)
                 if channels:
                     rules_with_channels_to_add.append((rule, channels))
                 rules.append(rule)

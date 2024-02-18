@@ -6,6 +6,7 @@ from django.db.models import Sum
 
 from .....order import OrderStatus
 from .....order import events as order_events
+from .....order.error_codes import OrderErrorCode
 from .....order.models import OrderEvent
 from .....warehouse.models import Stock
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -17,6 +18,7 @@ ORDER_LINE_DELETE_MUTATION = """
             errors {
                 field
                 message
+                code
             }
             orderLine {
                 id
@@ -232,3 +234,31 @@ def test_draft_order_properly_recalculate_total_after_shipping_product_removed(
     assert data["order"]["total"]["net"]["amount"] == float(
         line.total_price_net_amount
     ) + float(order.shipping_price_net_amount)
+
+
+def test_order_line_delete_non_removable_gift(
+    draft_order,
+    permission_group_manage_orders,
+    staff_api_client,
+):
+    # given
+    query = ORDER_LINE_DELETE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = draft_order
+    line = order.lines.first()
+    line.is_gift = True
+    line.save(update_fields=["is_gift"])
+    line_id = graphene.Node.to_global_id("OrderLine", line.id)
+    variables = {"id": line_id}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["orderLineDelete"]
+    assert not data["orderLine"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "id"
+    assert errors[0]["code"] == OrderErrorCode.NON_REMOVABLE_GIFT_LINE.name

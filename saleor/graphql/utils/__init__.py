@@ -177,6 +177,7 @@ def format_permissions_for_display(permissions):
 
     Arguments:
         permissions: queryset with permissions
+
     """
     permissions_data = permissions.annotate(
         formatted_codename=Concat("content_type__app_label", Value("."), "codename")

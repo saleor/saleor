@@ -28,6 +28,7 @@ MUTATION_CHECKOUT_CREATE = """
           quantity
           lines {
             quantity
+            isGift
           }
         }
         errors {
@@ -583,6 +584,49 @@ def test_checkout_create_with_custom_price(
     assert checkout_line.variant == variant
     assert checkout_line.quantity == 1
     assert checkout_line.price_override == price
+
+
+def test_checkout_create_with_gift_reward(
+    api_client, stock, channel_USD, gift_promotion_rule
+):
+    # given
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    test_email = "test@example.com"
+    quantity = 5
+
+    variables = {
+        "checkoutInput": {
+            "channel": channel_USD.slug,
+            "lines": [{"quantity": quantity, "variantId": variant_id}],
+            "email": test_email,
+        }
+    }
+    assert not Checkout.objects.exists()
+
+    # when
+    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    content = get_graphql_content(response)["data"]["checkoutCreate"]
+
+    # then
+    new_checkout = Checkout.objects.first()
+    assert new_checkout is not None
+    checkout_data = content["checkout"]
+    assert checkout_data["token"] == str(new_checkout.token)
+    assert new_checkout.lines.count() == len(checkout_data["lines"]) == 2
+    checkout_line_data = [
+        line for line in checkout_data["lines"] if line["isGift"] is False
+    ][0]
+    assert checkout_line_data["quantity"] == quantity
+    gift_line_data = [
+        line for line in checkout_data["lines"] if line["isGift"] is True
+    ][0]
+    assert gift_line_data["quantity"] == 1
+    gift_line = new_checkout.lines.get(is_gift=True)
+    assert gift_line.discounts.count() == 1
+    discount = gift_line.discounts.first()
+    gift_variant_listing = gift_line.variant.channel_listings.get(channel=channel_USD)
+    assert discount.amount_value == gift_variant_listing.price_amount
 
 
 def test_checkout_create_with_metadata_in_line(
