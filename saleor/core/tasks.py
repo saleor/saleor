@@ -1,3 +1,4 @@
+import datetime
 import logging
 
 from botocore.exceptions import ClientError
@@ -29,6 +30,12 @@ def delete_event_payloads_task(expiration_date=None):
         expiration_date
         or timezone.now() + settings.EVENT_PAYLOAD_DELETE_TASK_TIME_LIMIT
     )
+
+    # Fix for kombu not deserializing string back to datetime object.
+    # https://github.com/celery/kombu/pull/1515
+    if isinstance(expiration_date, str):
+        expiration_date = datetime.datetime.fromisoformat(expiration_date)
+
     delete_period = timezone.now() - settings.EVENT_PAYLOAD_DELETE_PERIOD
     valid_deliveries = EventDelivery.objects.filter(created_at__gt=delete_period)
     payloads_to_delete = EventPayload.objects.filter(
