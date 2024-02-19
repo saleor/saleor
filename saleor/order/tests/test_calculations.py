@@ -9,7 +9,11 @@ from prices import Money, TaxedMoney
 from ...core.prices import quantize_price
 from ...core.taxes import TaxData, TaxError, TaxLineData, zero_taxed_money
 from ...discount import DiscountType, DiscountValueType
-from ...discount.models import OrderDiscount, OrderLineDiscount, Promotion
+from ...discount.models import (
+    OrderDiscount,
+    OrderLineDiscount,
+    PromotionRule,
+)
 from ...plugins.manager import get_plugins_manager
 from ...tax import TaxCalculationStrategy
 from ...tax.calculations.order import update_order_prices_with_flat_rates
@@ -1157,8 +1161,8 @@ def test_fetch_order_prices_catalogue_discount_flat_rates(
 
     order = order_with_lines_and_catalogue_promotion
     channel = order.channel
-    promotion = Promotion.objects.get()
-    rule = promotion.rules.get()
+    rule = PromotionRule.objects.get()
+    promotion_id = graphene.Node.to_global_id("Promotion", rule.promotion_id)
 
     tc = channel.tax_configuration
     tc.country_exceptions.all().delete()
@@ -1215,9 +1219,7 @@ def test_fetch_order_prices_catalogue_discount_flat_rates(
     assert discount.value == Decimal("3.00")
     assert discount.value_type == DiscountValueType.FIXED
     assert discount.type == DiscountType.PROMOTION
-    # TODO zedzior ogarnij reason
-    # promotion_id = graphene.Node.to_global_id("Promotion", rule.promotion_id)
-    # assert discount.reason == f"Promotion: {promotion_id}"
+    assert discount.reason == f"Promotion: {promotion_id}"
 
     # TODO zedzior sprawdz czy te pola sa dalej potrzebne, jesli tak to napraw
     # assert line_1.discount_amount
@@ -1237,8 +1239,7 @@ def test_fetch_order_prices_order_discount_flat_rates(
         OrderDiscount.objects.all().delete()
 
     order = order_with_lines_and_order_promotion
-    promotion = Promotion.objects.get()
-    rule = promotion.rules.get()
+    rule = PromotionRule.objects.get()
     promotion_id = graphene.Node.to_global_id("Promotion", rule.promotion_id)
 
     tc = order.channel.tax_configuration
@@ -1303,8 +1304,7 @@ def test_fetch_order_prices_gift_discount_flat_rates(
         OrderLineDiscount.objects.all().delete()
 
     order = order_with_lines_and_gift_promotion
-    promotion = Promotion.objects.get()
-    rule = promotion.rules.get()
+    rule = PromotionRule.objects.get()
     promotion_id = graphene.Node.to_global_id("Promotion", rule.promotion_id)
 
     tc = order.channel.tax_configuration
@@ -1431,8 +1431,7 @@ def test_fetch_order_prices_catalogue_and_order_discounts_flat_rates(
     assert catalogue_discount.value == Decimal("3.00")
     assert catalogue_discount.value_type == DiscountValueType.FIXED
     assert catalogue_discount.type == DiscountType.PROMOTION
-    # TODO zedzior ogarnij reason
-    # assert catalogue_discount.reason == f"Promotion: {catalogue_promotion_id}"
+    assert catalogue_discount.reason == f"Promotion: {catalogue_promotion_id}"
 
     assert line_2.undiscounted_total_price_net_amount == Decimal("40.00")
     assert line_2.undiscounted_total_price_gross_amount == Decimal("49.20")

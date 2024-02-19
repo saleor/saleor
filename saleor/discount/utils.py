@@ -524,6 +524,7 @@ def create_discount_objects_for_catalogue_promotions(
             )
             discount_name = get_discount_name(rule, rule_info.promotion)
             translated_name = get_discount_translated_name(rule_info)
+            reason = _get_discount_reason(rule)
             if not discount_to_update:
                 line_discount = models.discount_line_model(
                     line=line,
@@ -534,7 +535,7 @@ def create_discount_objects_for_catalogue_promotions(
                     currency=line.currency,
                     name=discount_name,
                     translated_name=translated_name,
-                    reason=None,
+                    reason=reason,
                     promotion_rule=rule,
                 )
                 line_discounts_to_create.append(line_discount)
@@ -608,6 +609,13 @@ def get_discount_name(rule: "PromotionRule", promotion: "Promotion"):
     if promotion.name and rule.name:
         return f"{promotion.name}: {rule.name}"
     return rule.name or promotion.name
+
+
+def _get_discount_reason(rule: PromotionRule):
+    promotion = rule.promotion
+    if promotion.old_sale_id:
+        return f"Sale: {graphene.Node.to_global_id('Sale', promotion.old_sale_id)}"
+    return f"Promotion: {graphene.Node.to_global_id('Promotion', promotion.id)}"
 
 
 def get_discount_translated_name(rule_info: "VariantPromotionRuleInfo"):

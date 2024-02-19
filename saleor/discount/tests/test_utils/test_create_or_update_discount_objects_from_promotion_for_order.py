@@ -79,6 +79,7 @@ def test_create_catalogue_discount_percentage(
     # given
     order = order_with_lines
     promotion = catalogue_promotion_without_rules
+    promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
     channel = order.channel
     line_1 = order.lines.get(quantity=3)
 
@@ -126,6 +127,7 @@ def test_create_catalogue_discount_percentage(
     assert discount.amount_value == discount_amount * line_1.quantity == Decimal(15)
     assert discount.currency == channel.currency_code
     assert discount.name == f"{promotion.name}: {rule.name}"
+    assert discount.reason == f"Promotion: {promotion_id}"
 
     line = [line_info.line for line_info in lines_info if line_info.line == line_1][0]
     assert line.base_unit_price_amount == Decimal(5)
@@ -138,6 +140,7 @@ def test_create_order_discount_subtotal_fixed(
     order = order_with_lines
     channel = order.channel
     promotion = order_promotion_without_rules
+    promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
     reward_value = Decimal(25)
     rule = promotion.rules.create(
         name="Fixed subtotal rule",
@@ -167,6 +170,7 @@ def test_create_order_discount_subtotal_fixed(
     assert discount.amount_value == reward_value == Decimal(25)
     assert discount.currency == channel.currency_code
     assert discount.name == f"{promotion.name}: {rule.name}"
+    assert discount.reason == f"Promotion: {promotion_id}"
 
 
 def test_create_order_discount_subtotal_percentage(
@@ -176,6 +180,7 @@ def test_create_order_discount_subtotal_percentage(
     order = order_with_lines
     channel = order.channel
     promotion = order_promotion_without_rules
+    promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
     reward_value = Decimal(50)
     rule = promotion.rules.create(
         name="Percentage subtotal rule",
@@ -205,6 +210,7 @@ def test_create_order_discount_subtotal_percentage(
     assert discount.amount_value == Decimal(35)
     assert discount.currency == channel.currency_code
     assert discount.name == f"{promotion.name}: {rule.name}"
+    assert discount.reason == f"Promotion: {promotion_id}"
 
 
 def test_create_order_discount_gift(
@@ -215,6 +221,7 @@ def test_create_order_discount_gift(
     variant = variant_with_many_stocks
     channel = order.channel
     promotion = order_promotion_without_rules
+    promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
     rule = promotion.rules.create(
         name="Gift subtotal rule",
         order_predicate={
@@ -248,6 +255,7 @@ def test_create_order_discount_gift(
     assert discount.amount_value == Decimal(10)
     assert discount.currency == channel.currency_code
     assert discount.name == f"{promotion.name}: {rule.name}"
+    assert discount.reason == f"Promotion: {promotion_id}"
 
     assert gift_line.quantity == 1
     assert gift_line.variant == variant
