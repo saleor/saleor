@@ -53,7 +53,6 @@ def fetch_order_prices_if_expired(
 
     # TODO zedzior sprawdz czy lines_info sie nie przyda
     _update_order_discount_for_voucher(order)
-
     lines = [line_info.line for line_info in lines_info]
 
     _recalculate_prices(order, manager, lines)

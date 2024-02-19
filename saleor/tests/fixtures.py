@@ -4944,7 +4944,7 @@ def order_with_lines_and_catalogue_promotion(
 
     line.discounts.create(
         type=DiscountType.PROMOTION,
-        value_type=DiscountValueType.FIXED,
+        value_type=RewardValueType.FIXED,
         value=reward_value,
         amount_value=reward_value * line.quantity,
         currency=order.currency,
@@ -4955,7 +4955,9 @@ def order_with_lines_and_catalogue_promotion(
 
 @pytest.fixture
 def order_with_lines_and_order_promotion(
-    order_with_lines, channel_USD, order_promotion_without_rules, order_promotion_rule
+    order_with_lines,
+    channel_USD,
+    order_promotion_without_rules,
 ):
     order = order_with_lines
     promotion = order_promotion_without_rules
