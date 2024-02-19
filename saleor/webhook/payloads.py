@@ -1129,7 +1129,7 @@ def generate_sample_payload(event_name: str) -> Optional[dict]:
         user = generate_fake_user()
         payload = generate_customer_payload(user)
     elif event_name == WebhookEventAsyncType.PRODUCT_CREATED:
-        product = _get_sample_object(Product.objects.filter())
+        product = _get_sample_object(Product.objects.all())
         payload = generate_product_payload(product) if product else None
     elif event_name in checkout_events:
         checkout = _get_sample_object(

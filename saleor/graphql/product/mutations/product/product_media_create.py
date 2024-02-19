@@ -102,7 +102,7 @@ class ProductMediaCreate(BaseMutation):
             input["product"],
             field="product",
             only_type=Product,
-            qs=models.Product.objects.filter(),
+            qs=models.Product.objects.all(),
         )
 
         alt = input.get("alt", "")
