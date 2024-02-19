@@ -37,6 +37,12 @@ def wrap_connection(connection: BaseDatabaseWrapper):
 class DbAliasLogger(CursorWrapper):
     def _add_logger(self, method, sql, params):
         alias = self.db.alias
+
+        # Get logger settings.
+        log_settings = getattr(settings, "DB_ALIAS_LOGGER", {})
+        settings_log_replica = log_settings.get("LOG_REPLICA", False)
+        settings_log_writer = log_settings.get("LOG_WRITER", True)
+
         if alias == settings.DATABASE_CONNECTION_DEFAULT_NAME:
             msg_db_alias = color_style().NOTICE(f"[db:{alias}]")
             msg = (
@@ -45,14 +51,14 @@ class DbAliasLogger(CursorWrapper):
                 f"{settings.DATABASE_CONNECTION_WRITER_NAME}"
             )
             logger.warning("%s: %s; %s", msg_db_alias, sql, msg)
-        elif alias == settings.DATABASE_CONNECTION_WRITER_NAME:
+        elif settings_log_writer and alias == settings.DATABASE_CONNECTION_WRITER_NAME:
             msg_db_alias = color_style().WARNING(f"[db:{alias}]")
             logger.info("%s: %s", msg_db_alias, sql)
-        elif alias == settings.DATABASE_CONNECTION_REPLICA_NAME:
+        elif (
+            settings_log_replica and alias == settings.DATABASE_CONNECTION_REPLICA_NAME
+        ):
             msg_db_alias = color_style().SUCCESS(f"[db:{alias}]")
             logger.info("%s: %s", msg_db_alias, sql)
-        else:
-            logger.info("[db:%s]: %s", alias, sql)
         return method(sql, params)
 
     def execute(self, sql, params=None):

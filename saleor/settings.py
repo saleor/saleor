@@ -240,6 +240,15 @@ MIDDLEWARE = [
     "saleor.core.middleware.jwt_refresh_token_middleware",
 ]
 
+# Database alias logger middleware
+if DEBUG:
+    MIDDLEWARE.append("saleor.core.db.connection.db_alias_logger_middleware")
+
+    DB_ALIAS_LOGGER = {
+        "LOG_REPLICA": False,
+        "LOG_WRITER": True,
+    }
+
 INSTALLED_APPS = [
     # External apps that need to go before django's
     "storages",
