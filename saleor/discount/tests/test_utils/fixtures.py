@@ -136,20 +136,4 @@ def draft_order_and_promotions(
     order.status = OrderStatus.DRAFT
     order.save()
 
-    for line in order.lines.all():
-        line.unit_price = TaxedMoney(
-            net=zero_money(currency), gross=zero_money(currency)
-        )
-        line.undiscounted_unit_price = TaxedMoney(
-            net=zero_money(currency), gross=zero_money(currency)
-        )
-        line.total_price = TaxedMoney(
-            net=zero_money(currency), gross=zero_money(currency)
-        )
-        line.undiscounted_total_price = TaxedMoney(
-            net=zero_money(currency), gross=zero_money(currency)
-        )
-        line.undiscounted_base_unit_price_amount = Decimal(0)
-        line.save()
-
     return order, rule_catalogue, rule_total, rule_gift

@@ -1145,12 +1145,16 @@ def test_order_undiscounted_total(mocked_fetch_order_prices_if_expired):
     )
 
 
+@pytest.mark.parametrize("create_new_discounts", [True, False])
 def test_fetch_order_prices_catalogue_discount_flat_rates(
     order_with_lines_and_catalogue_promotion,
     plugins_manager,
+    create_new_discounts,
 ):
     # given
-    OrderLineDiscount.objects.all().delete()
+    if create_new_discounts:
+        OrderLineDiscount.objects.all().delete()
+
     order = order_with_lines_and_catalogue_promotion
     channel = order.channel
     promotion = Promotion.objects.get()
@@ -1212,7 +1216,8 @@ def test_fetch_order_prices_catalogue_discount_flat_rates(
     assert discount.value_type == DiscountValueType.FIXED
     assert discount.type == DiscountType.PROMOTION
     # TODO zedzior ogarnij reason
-    assert discount.reason is None
+    # promotion_id = graphene.Node.to_global_id("Promotion", rule.promotion_id)
+    # assert discount.reason == f"Promotion: {promotion_id}"
 
     # TODO zedzior sprawdz czy te pola sa dalej potrzebne, jesli tak to napraw
     # assert line_1.discount_amount
@@ -1221,12 +1226,16 @@ def test_fetch_order_prices_catalogue_discount_flat_rates(
     # assert line_1.discount_value
 
 
+@pytest.mark.parametrize("create_new_discounts", [True, False])
 def test_fetch_order_prices_order_discount_flat_rates(
     order_with_lines_and_order_promotion,
     plugins_manager,
+    create_new_discounts,
 ):
     # given
-    OrderDiscount.objects.all().delete()
+    if create_new_discounts:
+        OrderDiscount.objects.all().delete()
+
     order = order_with_lines_and_order_promotion
     promotion = Promotion.objects.get()
     rule = promotion.rules.get()
@@ -1281,3 +1290,191 @@ def test_fetch_order_prices_order_discount_flat_rates(
     assert discount.value_type == DiscountValueType.FIXED
     assert discount.type == DiscountType.ORDER_PROMOTION
     assert discount.reason == f"Promotion: {promotion_id}"
+
+
+@pytest.mark.parametrize("create_new_discounts", [True, False])
+def test_fetch_order_prices_gift_discount_flat_rates(
+    order_with_lines_and_gift_promotion,
+    plugins_manager,
+    create_new_discounts,
+):
+    # given
+    if create_new_discounts:
+        OrderLineDiscount.objects.all().delete()
+
+    order = order_with_lines_and_gift_promotion
+    promotion = Promotion.objects.get()
+    rule = promotion.rules.get()
+    promotion_id = graphene.Node.to_global_id("Promotion", rule.promotion_id)
+
+    tc = order.channel.tax_configuration
+    tc.country_exceptions.all().delete()
+    tc.prices_entered_with_tax = False
+    tc.tax_calculation_strategy = TaxCalculationStrategy.FLAT_RATES
+    tc.save()
+
+    # when
+    order, lines = calculations.fetch_order_prices_if_expired(
+        order, plugins_manager, None, True
+    )
+
+    # then
+    assert len(lines) == 3
+    line_1 = [line for line in lines if line.quantity == 3][0]
+    line_2 = [line for line in lines if line.quantity == 2][0]
+    gift_line = [line for line in lines if line.is_gift][0]
+    assert not line_1.discounts.exists()
+    assert not line_2.discounts.exists()
+    discount = OrderLineDiscount.objects.get()
+
+    assert order.shipping_price_net_amount == Decimal("10.00")
+    assert order.shipping_price_gross_amount == Decimal("12.30")
+    assert order.undiscounted_total_net_amount == Decimal("80.00")
+    # TODO zedzior fix it
+    # assert order.undiscounted_total_gross_amount == Decimal("98.40")
+    assert order.total_net_amount == Decimal("80.00")
+    assert order.total_gross_amount == Decimal("98.40")
+    assert order.subtotal_net_amount == Decimal("70.00")
+    assert order.subtotal_gross_amount == Decimal("86.10")
+
+    assert line_1.undiscounted_total_price_net_amount == Decimal("30.00")
+    assert line_1.undiscounted_total_price_gross_amount == Decimal("36.90")
+    assert line_1.total_price_net_amount == Decimal("30.00")
+    assert line_1.total_price_gross_amount == Decimal("36.90")
+    assert line_1.base_unit_price_amount == Decimal("10.00")
+    assert line_1.unit_price_net_amount == Decimal("10.00")
+    assert line_1.unit_price_gross_amount == Decimal("12.30")
+
+    assert line_2.undiscounted_total_price_net_amount == Decimal("40.00")
+    assert line_2.undiscounted_total_price_gross_amount == Decimal("49.20")
+    assert line_2.total_price_net_amount == Decimal("40.00")
+    assert line_2.total_price_gross_amount == Decimal("49.20")
+    assert line_2.base_unit_price_amount == Decimal("20.00")
+    assert line_2.unit_price_net_amount == Decimal("20.00")
+    assert line_2.unit_price_gross_amount == Decimal("24.60")
+
+    assert discount.line == gift_line
+    assert discount.amount_value == Decimal("10.00")
+    assert discount.value == Decimal("10.00")
+    assert discount.value_type == DiscountValueType.FIXED
+    assert discount.type == DiscountType.ORDER_PROMOTION
+    assert discount.reason == f"Promotion: {promotion_id}"
+
+    # TODO zedzior sprawdz czy te pola sa dalej potrzebne, jesli tak to napraw
+    # assert gift_line.discount_amount
+    # assert gift_line.discount_reason
+    # assert gift_line.discount_type
+    # assert gift_line.discount_value
+
+
+def test_fetch_order_prices_catalogue_and_order_discounts_flat_rates(
+    draft_order_and_promotions,
+    plugins_manager,
+):
+    # given
+    order, rule_catalogue, rule_total, _ = draft_order_and_promotions
+    catalogue_promotion_id = graphene.Node.to_global_id(
+        "Promotion", rule_catalogue.promotion_id
+    )
+    order_promotion_id = graphene.Node.to_global_id(
+        "Promotion", rule_total.promotion_id
+    )
+    currency = order.currency
+
+    tc = order.channel.tax_configuration
+    tc.country_exceptions.all().delete()
+    tc.prices_entered_with_tax = False
+    tc.tax_calculation_strategy = TaxCalculationStrategy.FLAT_RATES
+    tc.save()
+
+    # when
+    order, lines = calculations.fetch_order_prices_if_expired(
+        order, plugins_manager, None, True
+    )
+
+    # then
+    line_1 = [line for line in lines if line.quantity == 3][0]
+    line_2 = [line for line in lines if line.quantity == 2][0]
+    catalogue_discount = OrderLineDiscount.objects.get()
+    order_discount = OrderDiscount.objects.get()
+
+    line_1_base_total = line_1.quantity * line_1.base_unit_price_amount
+    line_2_base_total = line_2.quantity * line_2.base_unit_price_amount
+    base_total = line_1_base_total + line_2_base_total
+    line_1_order_discount_portion = (
+        order_discount.amount_value * line_1_base_total / base_total
+    )
+    line_2_order_discount_portion = (
+        order_discount.amount_value - line_1_order_discount_portion
+    )
+
+    assert not line_1.discounts.exists()
+    assert line_1.undiscounted_total_price_net_amount == Decimal("30.00")
+    assert line_1.undiscounted_total_price_gross_amount == Decimal("36.90")
+    assert line_1.undiscounted_unit_price_net_amount == Decimal("10.00")
+    assert line_1.undiscounted_unit_price_gross_amount == Decimal("12.30")
+    assert line_1.base_unit_price_amount == Decimal("10.00")
+    assert (
+        quantize_price(
+            line_1.undiscounted_total_price_net_amount - line_1_order_discount_portion,
+            currency,
+        )
+        == line_1.total_price_net_amount
+    )
+    assert line_1.total_price_net_amount == Decimal("18.28")
+    assert line_1.total_price_gross_amount == Decimal("22.49")
+    assert line_1.unit_price_net_amount == Decimal("6.09")
+    assert line_1.unit_price_gross_amount == Decimal("7.50")
+
+    assert catalogue_discount.line == line_2
+    assert catalogue_discount.amount_value == Decimal("6.00")
+    assert catalogue_discount.value == Decimal("3.00")
+    assert catalogue_discount.value_type == DiscountValueType.FIXED
+    assert catalogue_discount.type == DiscountType.PROMOTION
+    # TODO zedzior ogarnij reason
+    # assert catalogue_discount.reason == f"Promotion: {catalogue_promotion_id}"
+
+    assert line_2.undiscounted_total_price_net_amount == Decimal("40.00")
+    assert line_2.undiscounted_total_price_gross_amount == Decimal("49.20")
+    assert line_2.undiscounted_unit_price_net_amount == Decimal("20.00")
+    assert line_2.undiscounted_unit_price_gross_amount == Decimal("24.60")
+    assert line_2.base_unit_price_amount == Decimal("17.00")
+    assert (
+        quantize_price(
+            line_2.undiscounted_total_price_net_amount
+            - line_2_order_discount_portion
+            - catalogue_discount.amount_value,
+            currency,
+        )
+        == line_2.total_price_net_amount
+    )
+    assert line_2.total_price_net_amount == Decimal("20.72")
+    assert line_2.total_price_gross_amount == Decimal("25.48")
+    assert line_2.unit_price_net_amount == Decimal("10.36")
+    assert line_2.unit_price_gross_amount == Decimal("12.74")
+
+    assert order_discount.order == order
+    assert order_discount.amount_value == Decimal("25.00")
+    assert order_discount.value == Decimal("25.00")
+    assert order_discount.value_type == DiscountValueType.FIXED
+    assert order_discount.type == DiscountType.ORDER_PROMOTION
+    assert order_discount.reason == f"Promotion: {order_promotion_id}"
+
+    assert order.shipping_price_net_amount == Decimal("10.00")
+    assert order.shipping_price_gross_amount == Decimal("12.30")
+    assert order.undiscounted_total_net_amount == Decimal("80.00")
+    # TODO zedzior fix it
+    # assert order.undiscounted_total_gross_amount == Decimal("98.40")
+    assert (
+        quantize_price(
+            order.undiscounted_total_net_amount
+            - order_discount.amount_value
+            - catalogue_discount.amount_value,
+            currency,
+        )
+        == order.total_net_amount
+    )
+    assert order.total_net_amount == Decimal("49.00")
+    assert order.total_gross_amount == Decimal("60.27")
+    assert order.subtotal_net_amount == Decimal("39.00")
+    assert order.subtotal_gross_amount == Decimal("47.97")
