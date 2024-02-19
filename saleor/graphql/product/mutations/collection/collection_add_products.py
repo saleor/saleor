@@ -47,7 +47,7 @@ class CollectionAddProducts(BaseMutation):
             products,
             "products",
             Product,
-            qs=models.Product.objects.filter(),
+            qs=models.Product.objects.all(),
         )
         cls.clean_products(products)
         manager = get_plugin_manager_promise(info.context).get()

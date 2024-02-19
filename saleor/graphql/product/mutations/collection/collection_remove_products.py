@@ -43,7 +43,7 @@ class CollectionRemoveProducts(BaseMutation):
             products,
             "products",
             only_type=Product,
-            qs=models.Product.objects.filter(),
+            qs=models.Product.objects.all(),
         )
         collection.products.remove(*products)
         manager = get_plugin_manager_promise(info.context).get()
