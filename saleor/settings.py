@@ -241,9 +241,9 @@ MIDDLEWARE = [
 ]
 
 # Database alias logger middleware
-if DEBUG:
+ENABLE_DB_ALIAS_LOGGER = get_bool_from_env("ENABLE_DB_ALIAS_LOGGER", False)
+if ENABLE_DB_ALIAS_LOGGER:
     MIDDLEWARE.append("saleor.core.db.connection.db_alias_logger_middleware")
-
     DB_ALIAS_LOGGER = {
         "LOG_REPLICA": False,
         "LOG_WRITER": True,
