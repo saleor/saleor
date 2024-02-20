@@ -48,7 +48,7 @@ class ProductVariantTranslate(BaseTranslateMutation):
                 language_code=language_code, defaults=input
             )
             variant = ChannelContext(node=variant, channel_slug=None)
-        cls.call_event(manager.product_variant_updated, variant.node)
+        cls.call_event(manager.product_variant_updated, variant)
 
         if created:
             cls.call_event(manager.translation_created, translation)
