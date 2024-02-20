@@ -2,7 +2,19 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/saleor/saleor/releases) page.
 
-# 3.19.0 [Unreleased]
+# 3.20.0 [Unreleased]
+
+### Highlights
+
+### Breaking changes
+
+### GraphQL API
+
+### Saleor Apps
+
+### Other changes
+
+# 3.19.0
 
 ### Highlights
 - Introduce `order` promotion rules that allow applying discounts during checkout calculations when the checkout meets certain conditions. - #14696 by @IKarbowiak, @zedzior
