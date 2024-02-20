@@ -13,6 +13,22 @@ from ..tasks import (
 )
 
 
+def create_event_payloads(webhook, settings, start_time):
+    delete_period = settings.EVENT_PAYLOAD_DELETE_PERIOD
+    before_delete_period = start_time - delete_period - timedelta(seconds=1)
+    after_delete_period = start_time - delete_period + timedelta(seconds=1)
+    for creation_time in [before_delete_period, after_delete_period]:
+        with freeze_time(creation_time):
+            payload = EventPayload.objects.create(payload='{"key": "data"}')
+            delivery = EventDelivery.objects.create(
+                event_type=WebhookEventAsyncType.ANY,
+                payload=payload,
+                webhook=webhook,
+            )
+        with freeze_time(creation_time + timedelta(seconds=2)):
+            EventDeliveryAttempt.objects.create(delivery=delivery)
+
+
 def test_delete_from_storage_task(product_with_image, media_root):
     # given
     path = product_with_image.media.first().image.name
@@ -36,23 +52,24 @@ def test_delete_from_storage_task_file_that_not_exists(media_root):
 
 
 def test_delete_event_payloads_task(webhook, settings):
-    delete_period = settings.EVENT_PAYLOAD_DELETE_PERIOD
     start_time = timezone.now()
-    before_delete_period = start_time - delete_period - timedelta(seconds=1)
-    after_delete_period = start_time - delete_period + timedelta(seconds=1)
-    for creation_time in [before_delete_period, after_delete_period]:
-        with freeze_time(creation_time):
-            payload = EventPayload.objects.create(payload='{"key": "data"}')
-            delivery = EventDelivery.objects.create(
-                event_type=WebhookEventAsyncType.ANY,
-                payload=payload,
-                webhook=webhook,
-            )
-        with freeze_time(creation_time + timedelta(seconds=2)):
-            EventDeliveryAttempt.objects.create(delivery=delivery)
+    create_event_payloads(webhook, settings, start_time)
 
     with freeze_time(start_time):
         delete_event_payloads_task()
+
+    assert EventPayload.objects.count() == 1
+    assert EventDelivery.objects.count() == 1
+    assert EventDeliveryAttempt.objects.count() == 1
+
+
+def test_delete_event_payloads_task_with_expiration_date(webhook, settings):
+    start_time = timezone.now()
+    expiration_date = start_time + timedelta(hours=1)
+    create_event_payloads(webhook, settings, start_time)
+
+    with freeze_time(start_time):
+        delete_event_payloads_task(expiration_date=expiration_date.isoformat())
 
     assert EventPayload.objects.count() == 1
     assert EventDelivery.objects.count() == 1
