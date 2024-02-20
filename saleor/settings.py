@@ -112,6 +112,9 @@ DATABASES = {
         conn_max_age=DB_CONN_MAX_AGE,
     ),
 }
+DATABASES[DATABASE_CONNECTION_REPLICA_NAME]["TEST"] = {
+    "MIRROR": DATABASE_CONNECTION_DEFAULT_NAME
+}
 
 DATABASE_ROUTERS = ["saleor.core.db_routers.PrimaryReplicaRouter"]
 
