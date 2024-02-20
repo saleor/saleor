@@ -398,6 +398,7 @@ def test_checkout_complete_fails_with_invalid_tax_app(
     address,
     tax_app,
     tax_data_response,  # noqa: F811
+    settings,
 ):
     # given
     mock_request.return_value = tax_data_response
@@ -433,6 +434,7 @@ def test_checkout_complete_fails_with_invalid_tax_app(
     assert not EventDelivery.objects.exists()
 
     checkout.refresh_from_db()
+    assert checkout.price_expiration == timezone.now() + settings.CHECKOUT_PRICES_TTL
     assert checkout.tax_error == "Empty tax data."
 
 

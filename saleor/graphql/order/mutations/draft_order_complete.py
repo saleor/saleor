@@ -101,8 +101,13 @@ class DraftOrderComplete(BaseMutation):
         cls.check_channel_permissions(info, [order.channel_id])
         force_update = order.tax_error is not None
         order, _ = fetch_order_prices_if_expired(
-            order, manager, force_update=force_update, need_tax_calculation=True
+            order, manager, force_update=force_update
         )
+        if order.tax_error is not None:
+            raise ValidationError(
+                "Configured Tax App didn't responded.",
+                code=OrderErrorCode.TAX_ERROR.value,
+            )
         cls.validate_order(order)
 
         country = get_order_country(order)

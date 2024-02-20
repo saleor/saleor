@@ -1048,7 +1048,7 @@ def test_draft_order_complete_fails_with_invalid_tax_app(
     assert not EventDelivery.objects.exists()
 
     order.refresh_from_db()
-    assert order.should_refresh_prices
+    assert not order.should_refresh_prices
     assert order.tax_error == "Empty tax data."
 
 

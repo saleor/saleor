@@ -2,7 +2,6 @@ from collections.abc import Iterable
 from decimal import Decimal
 from typing import Optional
 
-from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import prefetch_related_objects
 from prices import Money, TaxedMoney
@@ -23,7 +22,6 @@ from ..tax.utils import (
 )
 from . import ORDER_EDITABLE_STATUS
 from .base_calculations import apply_order_discounts, base_order_line_total
-from .error_codes import OrderErrorCode
 from .interface import OrderTaxedPricesData
 from .models import Order, OrderLine
 
@@ -33,7 +31,6 @@ def fetch_order_prices_if_expired(
     manager: PluginsManager,
     lines: Optional[Iterable[OrderLine]] = None,
     force_update: bool = False,
-    need_tax_calculation: bool = False,
 ) -> tuple[Order, Optional[Iterable[OrderLine]]]:
     """Fetch order prices with taxes.
 
@@ -56,7 +53,7 @@ def fetch_order_prices_if_expired(
     order.should_refresh_prices = False
 
     _update_order_discount_for_voucher(order)
-    _recalculate_prices(order, manager, lines, need_tax_calculation)
+    _recalculate_prices(order, manager, lines)
 
     order.subtotal = get_subtotal(lines, order.currency)
     with transaction.atomic(savepoint=False):
@@ -72,6 +69,7 @@ def fetch_order_prices_if_expired(
                 "shipping_price_gross_amount",
                 "shipping_tax_rate",
                 "should_refresh_prices",
+                "tax_error",
             ]
         )
         order.lines.bulk_update(
@@ -129,7 +127,6 @@ def _recalculate_prices(
     order: Order,
     manager: PluginsManager,
     lines: Iterable[OrderLine],
-    need_tax_calculation: bool = False,
 ):
     """Calculate prices after handling order level discounts and taxes."""
     tax_configuration = order.channel.tax_configuration
@@ -181,14 +178,6 @@ def _recalculate_prices(
                 order.tax_error = str(e)
         else:
             _remove_tax(order, lines)
-
-    order.save(update_fields=["tax_error"])
-    # raise an error if recorded tax_error and taxes are needed for process completion
-    if order.tax_error and need_tax_calculation:
-        raise ValidationError(
-            "Configured Tax App didn't responded.",
-            code=OrderErrorCode.TAX_ERROR.value,
-        )
 
 
 def _calculate_and_add_tax(
