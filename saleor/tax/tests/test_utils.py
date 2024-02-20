@@ -1,4 +1,14 @@
-from ..utils import get_charge_taxes, get_display_gross_prices, get_tax_country
+from unittest.mock import patch
+
+import pytest
+
+from ...checkout.fetch import CollectionPointInfo
+from ..utils import (
+    _get_country_code_for_checkout_for_tax_calculation,
+    get_charge_taxes,
+    get_display_gross_prices,
+    get_tax_country,
+)
 
 
 def test_get_display_gross_prices(channel_USD):
@@ -82,3 +92,62 @@ def test_get_tax_country_fallbacks_to_channel_country(channel_USD):
 
     # then
     assert country == channel_USD.default_country.code
+
+
+@pytest.mark.parametrize("delivery_method_assigned", (True, False))
+def test_get_tax_country_for_tax_calculation_shipping_is_required(
+    delivery_method_assigned,
+    checkout_info,
+    address_usa,
+    warehouse_for_cc,
+    shipping_method,
+    address_other_country,
+):
+    # given
+    if delivery_method_assigned:
+        checkout_info.delivery_method_info = CollectionPointInfo(
+            warehouse_for_cc, address_other_country
+        )
+    # when
+    with patch.object(
+        checkout_info.checkout, "is_shipping_required", return_value=True
+    ):
+        assert checkout_info.checkout.is_shipping_required() is True
+        country_code = _get_country_code_for_checkout_for_tax_calculation(
+            checkout_info, address_usa
+        )
+
+    # then
+    if delivery_method_assigned:
+        assert country_code == (
+            checkout_info.delivery_method_info.shipping_address.country.code
+        )
+    else:
+        assert country_code == address_usa.country.code
+
+
+@pytest.mark.parametrize("additional_address_assigned", (True, False))
+def test_get_tax_country_for_tax_calculation_shipping_is_not_required(
+    additional_address_assigned,
+    checkout_info,
+    address_usa,
+    warehouse_for_cc,
+    shipping_method,
+    address_other_country,
+):
+    # given
+    address = address_usa if additional_address_assigned else None
+    # when
+    with patch.object(
+        checkout_info.checkout, "is_shipping_required", return_value=False
+    ):
+        assert checkout_info.checkout.is_shipping_required() is False
+        country_code = _get_country_code_for_checkout_for_tax_calculation(
+            checkout_info, address
+        )
+
+    # then
+    if additional_address_assigned:
+        assert country_code == address_usa.country.code
+    else:
+        assert country_code == checkout_info.checkout.channel.default_country.code

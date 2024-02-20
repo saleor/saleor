@@ -14,12 +14,26 @@ if TYPE_CHECKING:
     from .models import TaxConfiguration, TaxConfigurationPerCountry
 
 
+def _get_country_code_for_checkout_for_tax_calculation(
+    checkout_info: "CheckoutInfo",
+    address: Optional["Address"] = None,
+) -> str:
+    if (
+        checkout_info.checkout.is_shipping_required()
+        and checkout_info.delivery_method_info.shipping_address is not None
+    ):
+        return checkout_info.delivery_method_info.shipping_address.country.code
+    elif address is not None:
+        return address.country.code
+    return checkout_info.channel.default_country.code
+
+
 def get_tax_country(
     channel: "Channel",
     is_shipping_required: bool,
     shipping_address: Optional["Address"] = None,
     billing_address: Optional["Address"] = None,
-):
+) -> str:
     """Get country code for tax calculations.
 
     For checkouts and orders, there are following rules for determining the country
