@@ -241,13 +241,18 @@ MIDDLEWARE = [
 ]
 
 # Database alias logger middleware
-ENABLE_DB_ALIAS_LOGGER = get_bool_from_env("ENABLE_DB_ALIAS_LOGGER", False)
-if ENABLE_DB_ALIAS_LOGGER:
+ENABLE_DB_ALIAS_LOGGER_MIDDLEWARE = get_bool_from_env(
+    "ENABLE_DB_ALIAS_LOGGER_MIDDLEWARE", False
+)
+if ENABLE_DB_ALIAS_LOGGER_MIDDLEWARE:
     MIDDLEWARE.append("saleor.core.db.connection.db_alias_logger_middleware")
-    DB_ALIAS_LOGGER = {
-        "LOG_REPLICA": False,
-        "LOG_WRITER": True,
-    }
+
+DB_ALIAS_LOGGER = {
+    # Set LOG_REPLICA to True to log queries executed on the replica database
+    "LOG_REPLICA": False,
+    # Set LOG_WRITER to True to log queries executed on the writer database
+    "LOG_WRITER": False,
+}
 
 INSTALLED_APPS = [
     # External apps that need to go before django's
