@@ -80,6 +80,7 @@ def _set_order_totals(
         order.total = quantize_price(default_value, currency)
         order.undiscounted_total = quantize_price(default_value, currency)
         order.subtotal = quantize_price(default_value, currency)
+        return
 
     subtotal = zero_taxed_money(currency)
     undiscounted_subtotal = zero_taxed_money(currency)
