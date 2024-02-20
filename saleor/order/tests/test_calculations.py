@@ -1191,6 +1191,8 @@ def test_fetch_order_prices_catalogue_discount_flat_rates(
 
     assert line_1.undiscounted_total_price_net_amount == Decimal("30.00")
     assert line_1.undiscounted_total_price_gross_amount == Decimal("36.90")
+    assert line_1.undiscounted_unit_price_net_amount == Decimal("10.00")
+    assert line_1.undiscounted_unit_price_gross_amount == Decimal("12.30")
     assert line_1.total_price_net_amount == Decimal("21.00")
     assert line_1.total_price_gross_amount == Decimal("25.83")
     assert line_1.base_unit_price_amount == Decimal("7.00")
@@ -1199,6 +1201,8 @@ def test_fetch_order_prices_catalogue_discount_flat_rates(
 
     assert line_2.undiscounted_total_price_net_amount == Decimal("40.00")
     assert line_2.undiscounted_total_price_gross_amount == Decimal("49.20")
+    assert line_2.undiscounted_unit_price_net_amount == Decimal("20.00")
+    assert line_2.undiscounted_unit_price_gross_amount == Decimal("24.60")
     assert line_2.total_price_net_amount == Decimal("40.00")
     assert line_2.total_price_gross_amount == Decimal("49.20")
     assert line_2.base_unit_price_amount == Decimal("20.00")
@@ -1208,8 +1212,7 @@ def test_fetch_order_prices_catalogue_discount_flat_rates(
     assert order.shipping_price_net_amount == Decimal("10.00")
     assert order.shipping_price_gross_amount == Decimal("12.30")
     assert order.undiscounted_total_net_amount == Decimal("80.00")
-    # TODO zedzior fix it
-    # assert order.undiscounted_total_gross_amount == Decimal("98.40")
+    assert order.undiscounted_total_gross_amount == Decimal("98.40")
     assert order.total_net_amount == Decimal("71.00")
     assert order.total_gross_amount == Decimal("87.33")
     assert order.subtotal_net_amount == Decimal("61.00")
@@ -1239,6 +1242,7 @@ def test_fetch_order_prices_order_discount_flat_rates(
         OrderDiscount.objects.all().delete()
 
     order = order_with_lines_and_order_promotion
+    currency = order.currency
     rule = PromotionRule.objects.get()
     promotion_id = graphene.Node.to_global_id("Promotion", rule.promotion_id)
 
@@ -1259,11 +1263,20 @@ def test_fetch_order_prices_order_discount_flat_rates(
     line_2 = [line for line in lines if line.quantity == 2][0]
     discount = OrderDiscount.objects.get()
 
+    line_1_base_total = line_1.quantity * line_1.base_unit_price_amount
+    line_2_base_total = line_2.quantity * line_2.base_unit_price_amount
+    base_total = line_1_base_total + line_2_base_total
+    line_1_order_discount_portion = (
+        discount.amount_value * line_1_base_total / base_total
+    )
+    line_2_order_discount_portion = (
+        discount.amount_value - line_1_order_discount_portion
+    )
+
     assert order.shipping_price_net_amount == Decimal("10.00")
     assert order.shipping_price_gross_amount == Decimal("12.30")
     assert order.undiscounted_total_net_amount == Decimal("80.00")
-    # TODO zedzior fix it
-    # assert order.undiscounted_total_gross_amount == Decimal("98.40")
+    assert order.undiscounted_total_gross_amount == Decimal("98.40")
     assert order.total_net_amount == Decimal("55.00")
     assert order.total_gross_amount == Decimal("67.65")
     assert order.subtotal_net_amount == Decimal("45.00")
@@ -1271,14 +1284,31 @@ def test_fetch_order_prices_order_discount_flat_rates(
 
     assert line_1.undiscounted_total_price_net_amount == Decimal("30.00")
     assert line_1.undiscounted_total_price_gross_amount == Decimal("36.90")
+    assert line_1.undiscounted_unit_price_net_amount == Decimal("10.00")
+    assert line_1.undiscounted_unit_price_gross_amount == Decimal("12.30")
+    assert (
+        quantize_price(
+            line_1.undiscounted_total_price_net_amount - line_1_order_discount_portion,
+            currency,
+        )
+        == line_1.total_price_net_amount
+    )
     assert line_1.total_price_net_amount == Decimal("19.29")
     assert line_1.total_price_gross_amount == Decimal("23.72")
     assert line_1.base_unit_price_amount == Decimal("10.00")
     assert line_1.unit_price_net_amount == Decimal("6.43")
     assert line_1.unit_price_gross_amount == Decimal("7.91")
-
+    assert (
+        quantize_price(
+            line_2.undiscounted_total_price_net_amount - line_2_order_discount_portion,
+            currency,
+        )
+        == line_2.total_price_net_amount
+    )
     assert line_2.undiscounted_total_price_net_amount == Decimal("40.00")
     assert line_2.undiscounted_total_price_gross_amount == Decimal("49.20")
+    assert line_2.undiscounted_unit_price_net_amount == Decimal("20.00")
+    assert line_2.undiscounted_unit_price_gross_amount == Decimal("24.60")
     assert line_2.total_price_net_amount == Decimal("25.71")
     assert line_2.total_price_gross_amount == Decimal("31.63")
     assert line_2.base_unit_price_amount == Decimal("20.00")
@@ -1330,8 +1360,7 @@ def test_fetch_order_prices_gift_discount_flat_rates(
     assert order.shipping_price_net_amount == Decimal("10.00")
     assert order.shipping_price_gross_amount == Decimal("12.30")
     assert order.undiscounted_total_net_amount == Decimal("80.00")
-    # TODO zedzior fix it
-    # assert order.undiscounted_total_gross_amount == Decimal("98.40")
+    assert order.undiscounted_total_gross_amount == Decimal("98.40")
     assert order.total_net_amount == Decimal("80.00")
     assert order.total_gross_amount == Decimal("98.40")
     assert order.subtotal_net_amount == Decimal("70.00")
@@ -1339,6 +1368,8 @@ def test_fetch_order_prices_gift_discount_flat_rates(
 
     assert line_1.undiscounted_total_price_net_amount == Decimal("30.00")
     assert line_1.undiscounted_total_price_gross_amount == Decimal("36.90")
+    assert line_1.undiscounted_unit_price_net_amount == Decimal("10.00")
+    assert line_1.undiscounted_unit_price_gross_amount == Decimal("12.30")
     assert line_1.total_price_net_amount == Decimal("30.00")
     assert line_1.total_price_gross_amount == Decimal("36.90")
     assert line_1.base_unit_price_amount == Decimal("10.00")
@@ -1347,6 +1378,8 @@ def test_fetch_order_prices_gift_discount_flat_rates(
 
     assert line_2.undiscounted_total_price_net_amount == Decimal("40.00")
     assert line_2.undiscounted_total_price_gross_amount == Decimal("49.20")
+    assert line_2.undiscounted_unit_price_net_amount == Decimal("20.00")
+    assert line_2.undiscounted_unit_price_gross_amount == Decimal("24.60")
     assert line_2.total_price_net_amount == Decimal("40.00")
     assert line_2.total_price_gross_amount == Decimal("49.20")
     assert line_2.base_unit_price_amount == Decimal("20.00")
@@ -1462,8 +1495,7 @@ def test_fetch_order_prices_catalogue_and_order_discounts_flat_rates(
     assert order.shipping_price_net_amount == Decimal("10.00")
     assert order.shipping_price_gross_amount == Decimal("12.30")
     assert order.undiscounted_total_net_amount == Decimal("80.00")
-    # TODO zedzior fix it
-    # assert order.undiscounted_total_gross_amount == Decimal("98.40")
+    assert order.undiscounted_total_gross_amount == Decimal("98.40")
     assert (
         quantize_price(
             order.undiscounted_total_net_amount
