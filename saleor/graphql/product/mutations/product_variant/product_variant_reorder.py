@@ -59,7 +59,7 @@ class ProductVariantReorder(BaseMutation):
                 }
             )
 
-        variants_m2m = product.variants
+        variants_m2m = product.variants.all()
         operations = {}
 
         for move_info in moves:
