@@ -5,11 +5,13 @@ All notable, unreleased changes to this project will be documented in this file.
 # 3.19.0
 
 ### Highlights
+
 - Introduce `order` promotion rules that allow applying discounts during checkout calculations when the checkout meets certain conditions. - #14696 by @IKarbowiak, @zedzior
 - Introduce gift reward as `order` promotion rule reward - #15259 by @zedzior, @IKarbowiak
 - New environment variable `EVENT_PAYLOAD_DELETE_TASK_TIME_LIMIT` to control time limit of `delete_event_payloads_task` - #15396 by @wcislo-saleor
 
 ### Breaking changes
+
 - Drop `OrderBulkCreateInput.voucher` field. Use `OrderBulkCreateInput.voucherCode` instead. - #14553 by @zedzior
 - Add new `type` field to `PromotionCreateInput`, the field will be required from 3.20 - #14696 by @IKarbowiak, @zedzior
 - Do not stack promotion rules within the promotion. Only the best promotion rule will be applied within the promotion. Previously discounts from all rules within the promotion that gives the best discount were applied to the variant's price - #15309 by @korycins
@@ -20,9 +22,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Mark as deprecated: `ordersTotal`, `reportProductSales` and `homepageEvents` - #14806 by @8r2y5
 - Add `identifier` field to App graphql object. Identifier field is the same as Manifest.id field (explicit ID set by the app).
 
-### Saleor Apps
-
 ### Other changes
+
 - Add missing descriptions to order module - #14845 by @DevilsAutumn
 - Unify how undiscounted prices are handled in orders and checkouts - #14780 by @jakubkuc
 - Drop demo - #14835 by @fowczarek
