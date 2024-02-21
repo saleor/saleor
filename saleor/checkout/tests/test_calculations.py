@@ -3,6 +3,7 @@ from typing import Literal, Union
 from unittest.mock import Mock, patch
 
 import pytest
+from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
 from prices import Money, TaxedMoney
@@ -521,3 +522,87 @@ def test_fetch_checkout_prices_when_tax_exemption_and_not_include_taxes_in_price
 
     assert checkout.total == shipping_price + all_lines_total_price
     assert checkout.subtotal == all_lines_total_price
+
+
+@freeze_time()
+@patch("saleor.plugins.avatax.plugin.AvataxPlugin")
+@patch("saleor.checkout.calculations._apply_tax_data_from_plugins")
+@patch("saleor.plugins.manager.PluginsManager.get_taxes_for_checkout")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_fetch_checkout_data_calls_plugin(
+    mock_get_taxes,
+    mock_apply_tax_data_from_plugins,
+    mock_avatax,
+    checkout_with_items,
+):
+    # given
+    plugin_identifier = "plugin:test"
+    mock_avatax.PLUGIN_IDENTIFIER = plugin_identifier
+
+    checkout = checkout_with_items
+    checkout.price_expiration = timezone.now()
+    checkout.save()
+
+    checkout.channel.tax_configuration.tax_app_id = plugin_identifier
+    checkout.channel.tax_configuration.save()
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines_info, _ = fetch_checkout_lines(checkout)
+
+    fetch_kwargs = {
+        "checkout_info": fetch_checkout_info(checkout, lines_info, manager),
+        "manager": manager,
+        "lines": lines_info,
+        "address": checkout.shipping_address or checkout.billing_address,
+    }
+
+    # when
+    fetch_checkout_data(**fetch_kwargs)
+
+    # then
+    mock_apply_tax_data_from_plugins.assert_called_once()
+    mock_get_taxes.assert_not_called()
+
+
+@freeze_time()
+@patch("saleor.plugins.avatax.plugin.AvataxPlugin")
+@patch("saleor.checkout.calculations._apply_tax_data_from_plugins")
+@patch("saleor.plugins.manager.PluginsManager.get_taxes_for_checkout")
+@patch("saleor.checkout.calculations._apply_tax_data")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_fetch_checkout_data_calls_tax_app(
+    mock_apply_tax_data,
+    mock_get_taxes,
+    mock_apply_tax_data_from_plugins,
+    mock_avatax,
+    fetch_kwargs,
+    checkout_with_items,
+):
+    # given
+    plugin_identifier = "plugin:test"
+    mock_avatax.PLUGIN_IDENTIFIER = plugin_identifier
+
+    checkout = checkout_with_items
+    checkout.price_expiration = timezone.now()
+    checkout.save()
+
+    checkout.channel.tax_configuration.tax_app_id = "test_app"
+    checkout.channel.tax_configuration.save()
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines_info, _ = fetch_checkout_lines(checkout)
+
+    fetch_kwargs = {
+        "checkout_info": fetch_checkout_info(checkout, lines_info, manager),
+        "manager": manager,
+        "lines": lines_info,
+        "address": checkout.shipping_address or checkout.billing_address,
+    }
+
+    # when
+    fetch_checkout_data(**fetch_kwargs)
+
+    # then
+    mock_get_taxes.assert_called_once()
+    mock_apply_tax_data.assert_called_once()
+    mock_apply_tax_data_from_plugins.assert_not_called()
