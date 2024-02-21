@@ -11,14 +11,10 @@ from ..discount.interface import VariantPromotionRuleInfo, fetch_variant_rules_i
 from ..discount.models import OrderLineDiscount, Voucher
 from ..payment.models import Payment
 from ..product.models import (
-    Collection,
     DigitalContent,
-    Product,
-    ProductType,
     ProductVariant,
     ProductVariantChannelListing,
 )
-from ..tax.models import TaxClass
 from .models import Order, OrderLine
 
 
@@ -81,13 +77,9 @@ class DraftOrderLineInfo:
     line: "OrderLine"
     variant: "ProductVariant"
     channel_listing: "ProductVariantChannelListing"
-    product: "Product"
-    product_type: "ProductType"
-    collections: list["Collection"]
     discounts: list["OrderLineDiscount"]
     rules_info: list["VariantPromotionRuleInfo"]
     channel: "Channel"
-    tax_class: Optional["TaxClass"] = None
     voucher: Optional["Voucher"] = None
     should_refresh_discounts = False
 
@@ -110,11 +102,6 @@ def fetch_draft_order_lines_info(
     order: "Order", lines: Optional[Iterable["OrderLine"]] = None
 ) -> list[DraftOrderLineInfo]:
     prefetch_related_fields = [
-        # TODO zedzior check if all are needed
-        "variant__product__collections",
-        "variant__product__channel_listings__channel",
-        "variant__product__product_type__tax_class__country_rates",
-        "variant__product__tax_class__country_rates",
         "variant__channel_listings__channel",
         "variant__channel_listings__variantlistingpromotionrule__promotion_rule__promotion__translations",
         "variant__channel_listings__variantlistingpromotionrule__promotion_rule__translations",
@@ -146,13 +133,9 @@ def fetch_draft_order_lines_info(
                 line=line,
                 variant=variant,
                 channel_listing=variant_channel_listing,
-                product=variant.product,
-                product_type=variant.product.product_type,
-                collections=list(variant.product.collections.all()),
                 discounts=list(line.discounts.all()),
                 rules_info=rules_info,
                 channel=channel,
-                tax_class=variant.product.tax_class,
             )
         )
     return lines_info

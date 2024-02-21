@@ -35,7 +35,6 @@ def test_fetch_draft_order_lines_info(draft_order_and_promotions):
     line_info_2 = [line_info for line_info in lines_info if line_info.line == line_2][0]
 
     variant_1 = line_1.variant
-    product_1 = variant_1.product
     assert line_info_1.variant == variant_1
     assert (
         line_info_1.channel_listing
@@ -43,18 +42,13 @@ def test_fetch_draft_order_lines_info(draft_order_and_promotions):
             channel=channel, variant=variant_1
         ).first()
     )
-    assert line_info_1.product == product_1
-    assert line_info_1.product_type == product_1.product_type
-    assert line_info_1.collections == []
     assert line_info_1.discounts == [manual_discount]
     assert line_info_1.channel == channel
-    assert line_info_1.tax_class == product_1.tax_class
     assert line_info_1.voucher is None
     assert line_info_1.rules_info == []
     assert line_info_1.should_refresh_discounts is False
 
     variant_2 = line_2.variant
-    product_2 = variant_2.product
     assert line_info_2.variant == variant_2
     assert (
         line_info_2.channel_listing
@@ -62,12 +56,8 @@ def test_fetch_draft_order_lines_info(draft_order_and_promotions):
             channel=channel, variant=variant_2
         ).first()
     )
-    assert line_info_2.product == product_2
-    assert line_info_2.product_type == product_2.product_type
-    assert line_info_2.collections == []
     assert line_info_2.discounts == []
     assert line_info_2.channel == channel
-    assert line_info_2.tax_class == product_2.tax_class
     assert line_info_2.voucher is None
     rule_info_2 = line_info_2.rules_info[0]
     assert rule_info_2.rule == rule_catalogue

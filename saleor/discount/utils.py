@@ -3,7 +3,6 @@ from collections import defaultdict, namedtuple
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from decimal import ROUND_HALF_UP, Decimal
-from enum import Enum
 from functools import partial
 from typing import (
     TYPE_CHECKING,
@@ -81,16 +80,10 @@ T_LineInfo = TypeVar(
 )
 
 
-class CheckoutOrOrderType(Enum):
-    ORDER = "order"
-    CHECKOUT = "checkout"
-
-
 @dataclass
 class CheckoutOrOrderHelper(
     Generic[T_Model, T_LineModel, T_DiscountModel, T_LineDiscountModel, T_LineInfo]
 ):
-    type: CheckoutOrOrderType
     predicate_type: "PredicateObjectType"
     model: T_Model
     line_model: T_LineModel
@@ -106,7 +99,6 @@ def get_checkout_or_order_models(
 
     if isinstance(instance, (Checkout, CheckoutInfo, CheckoutLine, CheckoutLineInfo)):
         return CheckoutOrOrderHelper(
-            type=CheckoutOrOrderType.CHECKOUT,
             predicate_type=PredicateObjectType.CHECKOUT,
             model=Checkout,
             line_model=CheckoutLine,
@@ -116,7 +108,6 @@ def get_checkout_or_order_models(
         )
     else:
         return CheckoutOrOrderHelper(
-            type=CheckoutOrOrderType.ORDER,
             predicate_type=PredicateObjectType.ORDER,
             model=Order,
             line_model=OrderLine,
@@ -1100,17 +1091,21 @@ def _handle_gift_reward(
 
     if line_created:
         variant = gift_listing.variant
-        gift_line_info = models.line_info(
-            line=line,
-            variant=variant,
-            channel_listing=gift_listing,
-            product=variant.product,
-            product_type=variant.product.product_type,
-            collections=[],
-            discounts=[line_discount],
-            rules_info=[rule_info],
-            channel=order_or_checkout.channel,
-        )
+        init_values = {
+            "line": line,
+            "variant": variant,
+            "channel_listing": gift_listing,
+            "discounts": [line_discount],
+            "rules_info": [rule_info],
+            "channel": order_or_checkout.channel,
+        }
+        if checkout_info:
+            init_values |= {
+                "product": variant.product,
+                "product_type": variant.product.product_type,
+                "collections": [],
+            }
+        gift_line_info = models.line_info(**init_values)
         lines_info.append(gift_line_info)  # type: ignore[attr-defined]
     else:
         line_info = next(
@@ -1146,10 +1141,6 @@ def create_gift_line(order_or_checkout: Union[Checkout, Order], variant_id: int)
     line, created = order_or_checkout.lines.get_or_create(
         is_gift=True, defaults=defaults
     )
-    # # TODO zedzior check performance
-    # line, created = OrderLine.objects.get_or_create(
-    #     order=order, is_gift=True, defaults=defaults
-    # )
     if not created:
         fields_to_update = []
         for field, value in defaults.items():
