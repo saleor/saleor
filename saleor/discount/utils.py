@@ -251,57 +251,49 @@ def calculate_discounted_price_for_rules(
 def calculate_discounted_price_for_promotions(
     *,
     price: Money,
-    rules_info_per_variant_and_promotion_id: dict[
-        int, dict[UUID, list[PromotionRuleInfo]]
-    ],
+    rules_info_per_variant: dict[int, list[PromotionRuleInfo]],
     channel: "Channel",
     variant_id: int,
-) -> list[tuple[UUID, Money]]:
+) -> Optional[tuple[UUID, Money]]:
     """Return minimum product's price of all prices with promotions applied."""
-    applied_discounts = []
-    rules_info_per_promotion_id = rules_info_per_variant_and_promotion_id.get(
-        variant_id
-    )
-    if rules_info_per_promotion_id:
-        applied_discounts = get_best_promotion_discount(
-            price, rules_info_per_promotion_id, channel
+    applied_discount = None
+    rules_info_for_variant = rules_info_per_variant.get(variant_id)
+    if rules_info_for_variant:
+        applied_discount = get_best_promotion_discount(
+            price, rules_info_for_variant, channel
         )
-    return applied_discounts
+    return applied_discount
 
 
 def get_best_promotion_discount(
     price: Money,
-    rules_info_per_promotion_id: dict[UUID, list[PromotionRuleInfo]],
+    rules_info_for_variant: list[PromotionRuleInfo],
     channel: "Channel",
-) -> list[tuple[UUID, Money]]:
-    """Return the rules with the discount amounts for the best promotion.
+) -> Optional[tuple[UUID, Money]]:
+    """Return the rule with the discount amount for the best promotion.
 
     The data for the promotion that gives the best saving are returned in the following
     shape:
-    [
-        (rule_id_1, discount_amount_1),
-        (rule_id_2, discount_amount_2),
-    ]
+        (rule_id_1, discount_amount_1)
     """
-    available_discounts = [
-        [
-            (rule_id, discount)
-            for rule_id, discount in get_product_promotion_discounts(
-                rules_info=rules_info,
-                channel=channel,
-            )
-        ]
-        for _, rules_info in rules_info_per_promotion_id.items()
-    ]
-    applied_discounts = max(
-        [
-            [(rule_id, price - discount(price)) for rule_id, discount in discounts]
-            for discounts in available_discounts
-        ],
-        key=lambda x: sum(y[1].amount for y in x),  # sort over a max discount
-    )
+    available_discounts = []
+    for rule_id, discount in get_product_promotion_discounts(
+        rules_info=rules_info_for_variant,
+        channel=channel,
+    ):
+        available_discounts.append((rule_id, discount))
 
-    return applied_discounts
+    applied_discount = None
+    if available_discounts:
+        applied_discount = max(
+            [
+                (rule_id, price - discount(price))
+                for rule_id, discount in available_discounts
+            ],
+            key=lambda x: x[1].amount,  # sort over a max discount
+        )
+
+    return applied_discount
 
 
 def get_product_promotion_discounts(
@@ -477,7 +469,7 @@ def create_discount_objects_for_catalogue_promotions(
     if not lines_info:
         return
 
-    models = get_checkout_or_order_models(lines_info[0])
+    models = get_checkout_or_order_models(lines_info[0])  # type: ignore[index]
 
     for line_info in lines_info:
         line = line_info.line
@@ -1177,25 +1169,18 @@ def create_gift_line(order_or_checkout: Union[Checkout, Order], variant_id: int)
     return line, created
 
 
-def get_variants_to_promotions_map(
+def get_variants_to_promotion_rules_map(
     variant_qs: "ProductVariantQueryset",
-) -> dict[int, dict[UUID, list[PromotionRuleInfo]]]:
+) -> dict[int, list[PromotionRuleInfo]]:
     """Return map of variant ids to the list of promotion rules that can be applied.
 
     The data is returned in the following shape:
     {
-        variant_id_1: {
-            promotion_id_1: [PromotionRuleInfo_1, PromotionRuleInfo_2],
-            promotion_id_2: [PromotionRuleInfo_3],
-        }
-        variant_id_2: {
-            promotion_id_1: [PromotionRuleInfo_1]
-        }
+        variant_id_1: [PromotionRuleInfo_1, PromotionRuleInfo_2, PromotionRuleInfo_3],
+        variant_id_2: [PromotionRuleInfo_1]
     }
     """
-    rules_info_per_variant_and_promotion_id: dict[
-        int, dict[UUID, list[PromotionRuleInfo]]
-    ] = defaultdict(lambda: defaultdict(list))
+    rules_info_per_variant: dict[int, list[PromotionRuleInfo]] = defaultdict(list)
 
     promotions = Promotion.objects.active()
     PromotionRuleVariant = PromotionRule.variants.through
@@ -1211,21 +1196,21 @@ def get_variants_to_promotions_map(
     rule_to_channel_ids_map = _get_rule_to_channel_ids_map(rules)
     rules_in_bulk = rules.in_bulk()
 
-    for promotion_rule_variant in list(promotion_rule_variants.iterator()):
+    for promotion_rule_variant in promotion_rule_variants.iterator():
         rule_id = promotion_rule_variant.promotionrule_id
         rule = rules_in_bulk.get(rule_id)
         # there is no rule when it is a part of inactive promotion
         if not rule:
             continue
         variant_id = promotion_rule_variant.productvariant_id
-        rules_info_per_variant_and_promotion_id[variant_id][rule.promotion_id].append(
+        rules_info_per_variant[variant_id].append(
             PromotionRuleInfo(
                 rule=rule,
                 channel_ids=rule_to_channel_ids_map.get(rule_id, []),
             )
         )
 
-    return rules_info_per_variant_and_promotion_id
+    return rules_info_per_variant
 
 
 def fetch_promotion_rules_for_checkout_or_order(

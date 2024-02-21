@@ -12,7 +12,7 @@ from ...discount import PromotionRuleInfo
 from ...discount.models import PromotionRule
 from ...discount.utils import (
     calculate_discounted_price_for_promotions,
-    get_variants_to_promotions_map,
+    get_variants_to_promotion_rules_map,
 )
 from ..managers import ProductsQueryset, ProductVariantQueryset
 from ..models import (
@@ -35,7 +35,7 @@ def update_discounted_prices_for_promotion(products: ProductsQueryset):
     variant_qs = ProductVariant.objects.filter(
         Exists(products.filter(id=OuterRef("product_id")))
     )
-    rules_info_per_variant = get_variants_to_promotions_map(variant_qs)
+    rules_info_per_variant = get_variants_to_promotion_rules_map(variant_qs)
     product_to_variant_listings_per_channel_map = (
         _get_product_to_variant_channel_listings_per_channel_map(variant_qs)
     )
@@ -218,7 +218,7 @@ def _get_variant_listings_to_listing_rule_per_rule_id_map(
 
 def _get_discounted_variants_prices_for_promotions(
     variant_listings: list[ProductVariantChannelListing],
-    rules_info_per_variant: dict[int, dict[UUID, list[PromotionRuleInfo]]],
+    rules_info_per_variant: dict[int, list[PromotionRuleInfo]],
     channel: Channel,
     variant_listing_to_listing_rule_per_rule_map: dict,
 ) -> tuple[
@@ -238,7 +238,7 @@ def _get_discounted_variants_prices_for_promotions(
     for variant_listing in variant_listings:
         applied_discount = calculate_discounted_price_for_promotions(
             price=variant_listing.price,
-            rules_info_per_variant_and_promotion_id=rules_info_per_variant,
+            rules_info_per_variant=rules_info_per_variant,
             channel=channel,
             variant_id=variant_listing.variant_id,
         )
@@ -246,8 +246,6 @@ def _get_discounted_variants_prices_for_promotions(
 
         rule_id = None
         if applied_discount:
-            # rule_id = cast(UUID, applied_discount[0])
-            # discount = cast(Money, applied_discount[1])
             rule_id, discount = applied_discount
             discounted_variant_price -= discount
             discounted_variant_price = max(
