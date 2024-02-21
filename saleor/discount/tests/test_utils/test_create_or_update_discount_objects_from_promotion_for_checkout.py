@@ -25,7 +25,6 @@ from ...utils import (
     _get_best_gift_reward,
     create_checkout_discount_objects_for_order_promotions,
     create_or_update_discount_objects_from_promotion_for_checkout,
-    get_checkout_or_order_models,
 )
 
 

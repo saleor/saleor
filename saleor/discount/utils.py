@@ -104,7 +104,7 @@ def get_checkout_or_order_models(
 ) -> CheckoutOrOrderHelper:
     from ..graphql.discount.utils import PredicateObjectType
 
-    if isinstance(instance, Checkout):
+    if isinstance(instance, (Checkout, CheckoutInfo, CheckoutLine, CheckoutLineInfo)):
         return CheckoutOrOrderHelper(
             type=CheckoutOrOrderType.CHECKOUT,
             predicate_type=PredicateObjectType.CHECKOUT,
@@ -421,24 +421,20 @@ def create_or_update_discount_objects_from_promotion_for_checkout(
     checkout_info: "CheckoutInfo",
     lines_info: Iterable["CheckoutLineInfo"],
 ):
-    models = get_checkout_or_order_models(checkout_info.checkout)
-    create_discount_objects_for_catalogue_promotions(lines_info, models)
-    create_checkout_discount_objects_for_order_promotions(
-        checkout_info, lines_info, models
-    )
+    create_discount_objects_for_catalogue_promotions(lines_info)
+    create_checkout_discount_objects_for_order_promotions(checkout_info, lines_info)
 
 
 def create_or_update_discount_objects_from_promotion_for_order(
     order: "Order",
     lines_info: Iterable["DraftOrderLineInfo"],
 ):
-    # TODO zedzior sprawdz checkoutowe flow czy nie trzbea poodswiezac
-    models = get_checkout_or_order_models(order)
-    create_discount_objects_for_catalogue_promotions(lines_info, models)
+    # TODO zedzior sprawdz checkoutowe flow czy nie trzbea poodswiezac prefetchy
+    create_discount_objects_for_catalogue_promotions(lines_info)
     _update_order_line_prefetched_discounts(lines_info)
     _update_order_line_base_unit_prices(lines_info)
 
-    create_order_discount_objects_for_order_promotions(order, lines_info, models)
+    create_order_discount_objects_for_order_promotions(order, lines_info)
     # if order promotion is type of gift, discount is associated with line, not order
     _update_order_line_prefetched_discounts(lines_info)
 
@@ -472,7 +468,6 @@ def _update_order_line_base_unit_prices(lines_info: Iterable[DraftOrderLineInfo]
 
 def create_discount_objects_for_catalogue_promotions(
     lines_info: Union[Iterable["CheckoutLineInfo"], Iterable["DraftOrderLineInfo"]],
-    models: CheckoutOrOrderHelper,
 ):
     line_discounts_to_create = []
     line_discounts_to_update = []
@@ -481,6 +476,8 @@ def create_discount_objects_for_catalogue_promotions(
 
     if not lines_info:
         return
+
+    models = get_checkout_or_order_models(lines_info[0])
 
     for line_info in lines_info:
         line = line_info.line
@@ -681,7 +678,6 @@ def _invalidate_order_line_discounts(
 def create_checkout_discount_objects_for_order_promotions(
     checkout_info: "CheckoutInfo",
     lines_info: Iterable["CheckoutLineInfo"],
-    models: CheckoutOrOrderHelper,
     *,
     save: bool = False,
 ):
@@ -689,6 +685,7 @@ def create_checkout_discount_objects_for_order_promotions(
     _set_checkout_base_prices(checkout_info, lines_info)
 
     checkout = checkout_info.checkout
+    models = get_checkout_or_order_models(checkout)
 
     # Discount from order rules is applied only when the voucher is not set
     if checkout.voucher_code:
@@ -726,12 +723,13 @@ def create_checkout_discount_objects_for_order_promotions(
 def create_order_discount_objects_for_order_promotions(
     order: "Order",
     lines_info: Iterable["DraftOrderLineInfo"],
-    models: CheckoutOrOrderHelper,
 ):
     from ..order.base_calculations import base_order_subtotal
 
-    # # The base prices are required for order promotion discount qualification.
+    # The base prices are required for order promotion discount qualification.
     _set_order_base_prices(order, lines_info)
+
+    models = get_checkout_or_order_models(order)
 
     # Discount from order rules is applied only when the voucher is not set
     if order.voucher_code:
