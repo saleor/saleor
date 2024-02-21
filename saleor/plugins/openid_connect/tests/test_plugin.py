@@ -8,7 +8,7 @@ from django.core import signing
 from django.core.exceptions import ValidationError
 from freezegun import freeze_time
 
-from ....account.models import Group
+from ....account.models import Group, User
 from ....core.jwt import (
     JWT_ACCESS_TYPE,
     JWT_REFRESH_TOKEN_COOKIE_NAME,
@@ -657,6 +657,81 @@ def test_external_obtain_access_tokens_user_which_is_no_more_staff(
     decoded_access_token = jwt_decode(tokens.token)
     assert decoded_access_token["permissions"] == []
     assert decoded_access_token["is_staff"] is False
+
+
+@freeze_time("2019-03-18 12:00:00")
+@patch("saleor.plugins.openid_connect.utils.cache.set")
+@patch("saleor.plugins.openid_connect.utils.cache.get")
+def test_external_obtain_access_tokens_user_created(
+    mocked_cache_get,
+    mocked_cache_set,
+    openid_plugin,
+    monkeypatch,
+    rf,
+    id_token,
+    id_payload,
+):
+    # given
+    mocked_jwt_validator = MagicMock()
+    mocked_jwt_validator.__getitem__.side_effect = id_payload.__getitem__
+    mocked_jwt_validator.get.side_effect = id_payload.get
+
+    mocked_cache_get.side_effect = lambda cache_key: None
+
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.utils.get_decoded_token",
+        Mock(return_value=mocked_jwt_validator),
+    )
+    plugin = openid_plugin(use_oauth_scope_permissions=True)
+    oauth_payload = {
+        "access_token": "FeHkE_QbuU3cYy1a1eQUrCE5jRcUnBK3",
+        "refresh_token": "refresh",
+        "id_token": id_token,
+        "scope": "openid profile email offline_access",
+        "expires_in": 86400,
+        "token_type": "Bearer",
+        "expires_at": 1600851112,
+    }
+    mocked_fetch_token = Mock(return_value=oauth_payload)
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.plugin.OAuth2Session.fetch_token",
+        mocked_fetch_token,
+    )
+    redirect_uri = "http://localhost:3000/used-logged-in"
+    state = signing.dumps({"redirectUri": redirect_uri})
+    code = "oauth-code"
+    user_count = User.objects.count()
+
+    # when
+    tokens = plugin.external_obtain_access_tokens(
+        {"state": state, "code": code}, rf.request(), previous_value=None
+    )
+
+    # then
+    assert User.objects.count() == user_count + 1
+    user = tokens.user
+    assert user.search_document
+    mocked_fetch_token.assert_called_once_with(
+        "https://saleor.io/oauth/token",
+        code=code,
+        redirect_uri=redirect_uri,
+    )
+
+    claims = get_parsed_id_token(
+        oauth_payload,
+        plugin.config.json_web_key_set_url,
+    )
+    expected_tokens = create_tokens_from_oauth_payload(
+        oauth_payload, user, claims, permissions=[], owner=plugin.PLUGIN_ID
+    )
+
+    decoded_access_token = jwt_decode(tokens.token)
+    assert decoded_access_token["permissions"] == []
+    assert decoded_access_token["is_staff"] is False
+    assert tokens.token == expected_tokens["token"]
+    decoded_refresh_token = jwt_decode(tokens.refresh_token)
+    assert tokens.csrf_token == decoded_refresh_token["csrf_token"]
+    assert decoded_refresh_token["oauth_refresh_token"] == "refresh"
 
 
 @freeze_time("2019-03-18 12:00:00")
