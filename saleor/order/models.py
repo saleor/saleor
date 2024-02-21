@@ -503,7 +503,10 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
     def get_country(self) -> str:
         address = self.shipping_address or self.billing_address
         if address is None or not address.country:
-            return self.checkout.country.code
+            if self.channel:
+                return self.channel.default_country
+            else:
+                return settings.DEFAULT_COUNTRY
         return address.country.code
 
 

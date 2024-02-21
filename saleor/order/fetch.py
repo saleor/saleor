@@ -130,9 +130,12 @@ def fetch_draft_order_lines_info(
     channel = order.channel
     for line in lines:
         variant = cast(ProductVariant, line.variant)
-        variant_channel_listing = ProductVariantChannelListing.objects.get(
+        variant_channel_listing = ProductVariantChannelListing.objects.filter(
             channel=channel, variant=variant
-        )
+        ).first()
+        if not variant_channel_listing:
+            continue
+
         rules_info = (
             fetch_variant_rules_info(variant_channel_listing, order.language_code)
             if not line.is_gift
