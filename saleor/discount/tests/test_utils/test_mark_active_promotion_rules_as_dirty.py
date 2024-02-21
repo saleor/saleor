@@ -7,21 +7,21 @@ import pytz
 
 from ... import RewardValueType
 from ...models import Promotion, PromotionRule
-from ...utils import mark_active_promotion_rules_as_dirty
+from ...utils import mark_active_catalogue_promotion_rules_as_dirty
 
 
 @patch("saleor.discount.utils.PromotionRule.channels.through.objects.filter")
-def test_mark_active_promotion_rules_as_dirty_with_empty_channel_list(
+def test_mark_active_catalogue_promotion_rules_as_dirty_with_empty_channel_list(
     mocked_promotion_channel_filter,
 ):
     # when
-    mark_active_promotion_rules_as_dirty([])
+    mark_active_catalogue_promotion_rules_as_dirty([])
 
     # then
     assert not mocked_promotion_channel_filter.called
 
 
-def test_mark_active_promotion_rules_as_dirty_with_single_channel(
+def test_mark_active_catalogue_promotion_rules_as_dirty_with_single_channel(
     catalogue_promotion, channel_PLN
 ):
     # given
@@ -32,7 +32,7 @@ def test_mark_active_promotion_rules_as_dirty_with_single_channel(
     assert rules.count() > 1
 
     # when
-    mark_active_promotion_rules_as_dirty([channel_PLN.id])
+    mark_active_catalogue_promotion_rules_as_dirty([channel_PLN.id])
 
     # then
     first_rule.refresh_from_db()
@@ -40,7 +40,7 @@ def test_mark_active_promotion_rules_as_dirty_with_single_channel(
     assert rules.filter(variants_dirty=True).count() == 1
 
 
-def test_mark_active_promotion_rules_as_dirty_with_multiple_channels(
+def test_mark_active_catalogue_promotion_rules_as_dirty_with_multiple_channels(
     product, catalogue_promotion, channel_PLN, channel_JPY, channel_USD
 ):
     # given
@@ -69,7 +69,7 @@ def test_mark_active_promotion_rules_as_dirty_with_multiple_channels(
     first_rule.channels.set([channel_PLN, channel_JPY])
 
     # when
-    mark_active_promotion_rules_as_dirty([channel_USD.id, channel_PLN.id])
+    mark_active_catalogue_promotion_rules_as_dirty([channel_USD.id, channel_PLN.id])
 
     # then
     PromotionRuleChannel = PromotionRule.channels.through
@@ -117,7 +117,7 @@ def test_mark_active_promotion_rules_as_dirty_with_multiple_promotions_and_chann
     first_rule.channels.set([channel_PLN, channel_JPY])
 
     # when
-    mark_active_promotion_rules_as_dirty([channel_USD.id, channel_PLN.id])
+    mark_active_catalogue_promotion_rules_as_dirty([channel_USD.id, channel_PLN.id])
 
     # then
     PromotionRuleChannel = PromotionRule.channels.through

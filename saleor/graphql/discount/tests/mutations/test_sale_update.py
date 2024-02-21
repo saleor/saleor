@@ -5,9 +5,8 @@ import graphene
 from django.utils import timezone
 from freezegun import freeze_time
 
-from .....discount import RewardValueType
 from .....discount.error_codes import DiscountErrorCode
-from .....discount.utils import get_channels_for_rules
+from .....discount.models import PromotionRule, RewardValueType
 from .....product.models import ProductChannelListing
 from ....tests.utils import get_graphql_content
 from ...enums import DiscountValueTypeEnum
@@ -90,11 +89,14 @@ def test_update_sale(
     updated_webhook_mock.assert_called_once_with(
         promotion, previous_catalogue, current_catalogue
     )
-    variants = get_variants_for_catalogue_predicate(rule.catalogue_predicate).select_related(
-        "product"
-    )
+    variants = get_variants_for_catalogue_predicate(
+        rule.catalogue_predicate
+    ).select_related("product")
+    PromotionRuleChannel = PromotionRule.channels.through
     channel_ids = set(
-        get_channels_for_rules(promotion.rules.all()).values_list("id", flat=True)
+        PromotionRuleChannel.objects.filter(
+            promotionrule__in=promotion.rules.all()
+        ).values_list("channel_id", flat=True)
     )
     for listing in ProductChannelListing.objects.filter(
         channel_id__in=channel_ids,
@@ -149,8 +151,11 @@ def test_update_sale_name(
     product_ids = list(
         get_products_for_promotion(promotion).values_list("id", flat=True)
     )
+    PromotionRuleChannel = PromotionRule.channels.through
     channel_ids = set(
-        get_channels_for_rules(promotion.rules.all()).values_list("id", flat=True)
+        PromotionRuleChannel.objects.filter(
+            promotionrule__in=promotion.rules.all()
+        ).values_list("channel_id", flat=True)
     )
     for listing in ProductChannelListing.objects.filter(
         channel_id__in=channel_ids, product_id__in=product_ids
@@ -209,8 +214,11 @@ def test_update_sale_start_date_after_current_date_notification_not_sent(
     product_ids = list(
         get_products_for_promotion(promotion).values_list("id", flat=True)
     )
+    PromotionRuleChannel = PromotionRule.channels.through
     channel_ids = set(
-        get_channels_for_rules(promotion.rules.all()).values_list("id", flat=True)
+        PromotionRuleChannel.objects.filter(
+            promotionrule__in=promotion.rules.all()
+        ).values_list("channel_id", flat=True)
     )
     for listing in ProductChannelListing.objects.filter(
         channel_id__in=channel_ids, product_id__in=product_ids
@@ -273,8 +281,11 @@ def test_update_sale_start_date_before_current_date_notification_already_sent(
     product_ids = list(
         get_products_for_promotion(promotion).values_list("id", flat=True)
     )
+    PromotionRuleChannel = PromotionRule.channels.through
     channel_ids = set(
-        get_channels_for_rules(promotion.rules.all()).values_list("id", flat=True)
+        PromotionRuleChannel.objects.filter(
+            promotionrule__in=promotion.rules.all()
+        ).values_list("channel_id", flat=True)
     )
     for listing in ProductChannelListing.objects.filter(
         channel_id__in=channel_ids, product_id__in=product_ids
@@ -334,8 +345,11 @@ def test_update_sale_start_date_before_current_date_notification_sent(
     product_ids = list(
         get_products_for_promotion(promotion).values_list("id", flat=True)
     )
+    PromotionRuleChannel = PromotionRule.channels.through
     channel_ids = set(
-        get_channels_for_rules(promotion.rules.all()).values_list("id", flat=True)
+        PromotionRuleChannel.objects.filter(
+            promotionrule__in=promotion.rules.all()
+        ).values_list("channel_id", flat=True)
     )
     for listing in ProductChannelListing.objects.filter(
         channel_id__in=channel_ids, product_id__in=product_ids
@@ -395,8 +409,11 @@ def test_update_sale_end_date_after_current_date_notification_not_sent(
     product_ids = list(
         get_products_for_promotion(promotion).values_list("id", flat=True)
     )
+    PromotionRuleChannel = PromotionRule.channels.through
     channel_ids = set(
-        get_channels_for_rules(promotion.rules.all()).values_list("id", flat=True)
+        PromotionRuleChannel.objects.filter(
+            promotionrule__in=promotion.rules.all()
+        ).values_list("channel_id", flat=True)
     )
     for listing in ProductChannelListing.objects.filter(
         channel_id__in=channel_ids, product_id__in=product_ids
@@ -458,8 +475,11 @@ def test_update_sale_end_date_before_current_date_notification_already_sent(
     product_ids = list(
         get_products_for_promotion(promotion).values_list("id", flat=True)
     )
+    PromotionRuleChannel = PromotionRule.channels.through
     channel_ids = set(
-        get_channels_for_rules(promotion.rules.all()).values_list("id", flat=True)
+        PromotionRuleChannel.objects.filter(
+            promotionrule__in=promotion.rules.all()
+        ).values_list("channel_id", flat=True)
     )
     for listing in ProductChannelListing.objects.filter(
         channel_id__in=channel_ids, product_id__in=product_ids
@@ -519,8 +539,11 @@ def test_update_sale_end_date_before_current_date_notification_sent(
     products_ids = list(
         get_products_for_promotion(promotion).values_list("id", flat=True)
     )
+    PromotionRuleChannel = PromotionRule.channels.through
     channel_ids = set(
-        get_channels_for_rules(promotion.rules.all()).values_list("id", flat=True)
+        PromotionRuleChannel.objects.filter(
+            promotionrule__in=promotion.rules.all()
+        ).values_list("channel_id", flat=True)
     )
     for listing in ProductChannelListing.objects.filter(
         channel_id__in=channel_ids, product_id__in=products_ids
@@ -669,8 +692,11 @@ def test_update_sale_variants(
     products_ids = list(
         get_products_for_promotion(promotion).values_list("id", flat=True)
     )
+    PromotionRuleChannel = PromotionRule.channels.through
     channel_ids = set(
-        get_channels_for_rules(promotion.rules.all()).values_list("id", flat=True)
+        PromotionRuleChannel.objects.filter(
+            promotionrule__in=promotion.rules.all()
+        ).values_list("channel_id", flat=True)
     )
     for listing in ProductChannelListing.objects.filter(
         channel_id__in=channel_ids, product_id__in=products_ids
@@ -723,8 +749,11 @@ def test_update_sale_products(
     products_ids = list(
         get_products_for_promotion(promotion).values_list("id", flat=True)
     )
+    PromotionRuleChannel = PromotionRule.channels.through
     channel_ids = set(
-        get_channels_for_rules(promotion.rules.all()).values_list("id", flat=True)
+        PromotionRuleChannel.objects.filter(
+            promotionrule__in=promotion.rules.all()
+        ).values_list("channel_id", flat=True)
     )
     for listing in ProductChannelListing.objects.filter(
         channel_id__in=channel_ids, product_id__in=products_ids
@@ -773,8 +802,11 @@ def test_update_sale_end_date_before_start_date(
     products_ids = list(
         get_products_for_promotion(promotion).values_list("id", flat=True)
     )
+    PromotionRuleChannel = PromotionRule.channels.through
     channel_ids = set(
-        get_channels_for_rules(promotion.rules.all()).values_list("id", flat=True)
+        PromotionRuleChannel.objects.filter(
+            promotionrule__in=promotion.rules.all()
+        ).values_list("channel_id", flat=True)
     )
     for listing in ProductChannelListing.objects.filter(
         channel_id__in=channel_ids, product_id__in=products_ids
@@ -879,8 +911,11 @@ def test_update_sale_with_promotion_id(
     products_ids = list(
         get_products_for_promotion(promotion).values_list("id", flat=True)
     )
+    PromotionRuleChannel = PromotionRule.channels.through
     channel_ids = set(
-        get_channels_for_rules(promotion.rules.all()).values_list("id", flat=True)
+        PromotionRuleChannel.objects.filter(
+            promotionrule__in=promotion.rules.all()
+        ).values_list("channel_id", flat=True)
     )
     for listing in ProductChannelListing.objects.filter(
         channel_id__in=channel_ids, product_id__in=products_ids

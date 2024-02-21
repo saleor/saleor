@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 
 from .....discount import events, models
 from .....permission.enums import DiscountPermissions
-from .....product.utils.product import mark_products_as_dirty
+from .....product.utils.product import mark_products_in_channels_as_dirty
 from .....webhook.event_types import WebhookEventAsyncType
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
@@ -99,7 +99,7 @@ class PromotionRuleCreate(ModelMutation):
             instance, promotion.type, channel_ids
         ):
             if product_ids := set(products.values_list("id", flat=True)):
-                mark_products_as_dirty(
+                mark_products_in_channels_as_dirty(
                     {channel_id: product_ids for channel_id in channel_ids}
                 )
 

@@ -2,7 +2,7 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from .....core.tracing import traced_atomic_transaction
-from .....discount.utils import mark_active_promotion_rules_as_dirty
+from .....discount.utils import mark_active_catalogue_promotion_rules_as_dirty
 from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.error_codes import CollectionErrorCode
@@ -61,7 +61,7 @@ class CollectionAddProducts(BaseMutation):
                 product_id__in=[product.id for product in products]
             ).values_list("channel_id", flat=True)
             # This will finally recalculate discounted prices for products.
-            cls.call_event(mark_active_promotion_rules_as_dirty, channel_ids)
+            cls.call_event(mark_active_catalogue_promotion_rules_as_dirty, channel_ids)
 
         return CollectionAddProducts(
             collection=ChannelContext(node=collection, channel_slug=None)

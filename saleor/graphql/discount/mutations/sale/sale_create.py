@@ -8,7 +8,7 @@ from .....core.tracing import traced_atomic_transaction
 from .....discount import PromotionType, models
 from .....discount.error_codes import DiscountErrorCode
 from .....discount.models import Promotion
-from .....discount.utils import mark_promotion_rules_as_dirty
+from .....discount.utils import mark_catalogue_promotion_rules_as_dirty
 from .....permission.enums import DiscountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
 from ....channel import ChannelContext
@@ -132,7 +132,7 @@ class SaleCreate(ModelMutation):
             )
             manager = get_plugin_manager_promise(info.context).get()
             cls.send_sale_notifications(manager, promotion, predicate)
-            cls.call_event(mark_promotion_rules_as_dirty, [promotion.pk])
+            cls.call_event(mark_catalogue_promotion_rules_as_dirty, [promotion.pk])
         return response
 
     @classmethod

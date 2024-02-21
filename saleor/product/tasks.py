@@ -15,14 +15,14 @@ from ..celeryconf import app
 from ..core.exceptions import PreorderAllocationError
 from ..discount import PromotionType
 from ..discount.models import Promotion, PromotionRule
-from ..discount.utils import mark_active_promotion_rules_as_dirty
+from ..discount.utils import mark_active_catalogue_promotion_rules_as_dirty
 from ..plugins.manager import get_plugins_manager
 from ..warehouse.management import deactivate_preorder_for_variant
 from ..webhook.event_types import WebhookEventAsyncType
 from ..webhook.utils import get_webhooks_for_event
 from .models import Product, ProductChannelListing, ProductType, ProductVariant
 from .search import PRODUCTS_BATCH_SIZE, update_products_search_vector
-from .utils.product import mark_products_as_dirty
+from .utils.product import mark_products_in_channels_as_dirty
 from .utils.variant_prices import update_discounted_prices_for_promotion
 from .utils.variants import (
     fetch_variants_for_promotion_rules,
@@ -101,9 +101,11 @@ def _get_channel_to_products_map(rule_to_variant_list):
     variant_ids = [
         rule_to_variant.productvariant_id for rule_to_variant in rule_to_variant_list
     ]
-    variant_id_with_product_id_qs = ProductVariant.objects.filter(
-        id__in=variant_ids
-    ).values_list("id", "product_id")
+    variant_id_with_product_id_qs = (
+        ProductVariant.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(id__in=variant_ids)
+        .values_list("id", "product_id")
+    )
     variant_id_to_product_id_map = {}
     for variant_id, product_id in variant_id_with_product_id_qs:
         variant_id_to_product_id_map[variant_id] = product_id
@@ -112,9 +114,9 @@ def _get_channel_to_products_map(rule_to_variant_list):
         rule_to_variant.promotionrule_id for rule_to_variant in rule_to_variant_list
     ]
     PromotionChannel = PromotionRule.channels.through
-    promotion_channel_qs = PromotionChannel.objects.filter(
-        promotionrule_id__in=rule_ids
-    )
+    promotion_channel_qs = PromotionChannel.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).filter(promotionrule_id__in=rule_ids)
     rule_to_channels_map = defaultdict(set)
     for promotion_channel in promotion_channel_qs:
         rule_to_channels_map[promotion_channel.promotionrule_id].add(
@@ -149,11 +151,13 @@ def update_variant_relations_for_active_promotion_rules_task():
     )
     if ids := list(rules.values_list("pk", flat=True)):
         # fetch rules to get a qs without slicing
-        rules = PromotionRule.objects.filter(pk__in=ids)
+        rules = PromotionRule.objects.using(
+            settings.DATABASE_CONNECTION_REPLICA_NAME
+        ).filter(pk__in=ids)
         new_rule_to_variant_list = fetch_variants_for_promotion_rules(rules=rules)
         channel_to_product_map = _get_channel_to_products_map(new_rule_to_variant_list)
-        rules.update(variants_dirty=False)
-        mark_products_as_dirty(channel_to_product_map)
+        PromotionRule.objects.filter(pk__in=ids).update(variants_dirty=False)
+        mark_products_in_channels_as_dirty(channel_to_product_map, allow_replica=True)
         update_variant_relations_for_active_promotion_rules_task.delay()
 
 
@@ -170,7 +174,7 @@ def update_products_discounted_prices_for_promotion_task(
     # dirty. This will make the same re-calculation as the old task.
     from ..channel.models import Channel
 
-    mark_active_promotion_rules_as_dirty(
+    mark_active_catalogue_promotion_rules_as_dirty(
         Channel.objects.all().values_list("id", flat=True)
     )
 

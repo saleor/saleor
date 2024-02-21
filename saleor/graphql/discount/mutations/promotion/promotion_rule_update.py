@@ -7,7 +7,7 @@ from django.db import transaction
 from .....discount import PromotionType, events, models
 from .....discount.utils import get_current_products_for_rules
 from .....permission.enums import DiscountPermissions
-from .....product.utils.product import mark_products_as_dirty
+from .....product.utils.product import mark_products_in_channels_as_dirty
 from .....webhook.event_types import WebhookEventAsyncType
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
@@ -178,7 +178,7 @@ class PromotionRuleUpdate(ModelMutation):
                 + removed_channel_ids
             )
             if product_ids:
-                mark_products_as_dirty(
+                mark_products_in_channels_as_dirty(
                     {channel_id: product_ids for channel_id in channel_ids_to_update}
                 )
         clear_promotion_old_sale_id(instance.promotion, save=True)

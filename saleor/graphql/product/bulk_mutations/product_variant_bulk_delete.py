@@ -10,7 +10,7 @@ from ....attribute import AttributeInputType
 from ....attribute import models as attribute_models
 from ....core.postgres import FlatConcatSearchVector
 from ....core.tracing import traced_atomic_transaction
-from ....discount.utils import mark_active_promotion_rules_as_dirty
+from ....discount.utils import mark_active_catalogue_promotion_rules_as_dirty
 from ....order import events as order_events
 from ....order import models as order_models
 from ....order.tasks import recalculate_orders_task
@@ -60,7 +60,9 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
             ]
             impacted_channels.update(channel_ids)
         # This will finally recalculate discounted prices for products.
-        cls.call_event(mark_active_promotion_rules_as_dirty, impacted_channels)
+        cls.call_event(
+            mark_active_catalogue_promotion_rules_as_dirty, impacted_channels
+        )
 
         manager = get_plugin_manager_promise(info.context).get()
         webhooks = get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_VARIANT_DELETED)

@@ -8,7 +8,7 @@ from django.utils import timezone
 from graphene.utils.str_converters import to_camel_case
 
 from ....core.tracing import traced_atomic_transaction
-from ....discount.utils import mark_active_promotion_rules_as_dirty
+from ....discount.utils import mark_active_catalogue_promotion_rules_as_dirty
 from ....permission.enums import ProductPermissions
 from ....product import models
 from ....product.error_codes import ProductErrorCode, ProductVariantBulkErrorCode
@@ -699,10 +699,20 @@ class ProductVariantBulkUpdate(BaseMutation):
         ).delete()
 
     @classmethod
-    def post_save_actions(cls, info, instances, product, webhooks, pre_save_payloads, request_time, impacted_channel_ids):
+    def post_save_actions(
+        cls,
+        info,
+        instances,
+        product,
+        webhooks,
+        pre_save_payloads,
+        request_time,
+        impacted_channel_ids,
+    ):
         if impacted_channel_ids:
-            cls.call_event(mark_active_promotion_rules_as_dirty, impacted_channel_ids)
-
+            cls.call_event(
+                mark_active_catalogue_promotion_rules_as_dirty, impacted_channel_ids
+            )
         manager = get_plugin_manager_promise(info.context).get()
         product.search_index_dirty = True
         product.save(update_fields=["search_index_dirty"])
@@ -806,7 +816,15 @@ class ProductVariantBulkUpdate(BaseMutation):
         instances = [
             result.product_variant for result in results if result.product_variant
         ]
-        cls.post_save_actions(info, instances, product, pre_save_payloads, request_time, impacted_channel_ids)
+        cls.post_save_actions(
+            info,
+            instances,
+            product,
+            webhooks,
+            pre_save_payloads,
+            request_time,
+            impacted_channel_ids,
+        )
 
         return ProductVariantBulkCreate(count=len(instances), results=results)
 
