@@ -3,6 +3,7 @@ from typing import Literal, Union
 from unittest.mock import Mock, patch, sentinel
 
 import pytest
+from django.test import override_settings
 from prices import Money, TaxedMoney
 
 from ...core.prices import quantize_price
@@ -1141,3 +1142,74 @@ def test_order_undiscounted_total(mocked_fetch_order_prices_if_expired):
     assert undiscounted_total == quantize_price(
         expected_undiscounted_total, order.currency
     )
+
+
+@patch("saleor.plugins.avatax.plugin.AvataxPlugin")
+@patch("saleor.order.calculations._recalculate_with_plugins")
+@patch("saleor.plugins.manager.PluginsManager.get_taxes_for_checkout")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_fetch_order_data_calls_plugin(
+    mock_get_taxes,
+    mock_recalculate_with_plugins,
+    mock_avatax,
+    order_with_lines,
+    order_lines,
+):
+    # given
+    plugin_identifier = "plugin:test"
+    mock_avatax.PLUGIN_IDENTIFIER = plugin_identifier
+
+    order = order_with_lines
+    order.channel.tax_configuration.tax_app_id = plugin_identifier
+    order.channel.tax_configuration.save()
+
+    fetch_kwargs = {
+        "order": order,
+        "manager": get_plugins_manager(allow_replica=False),
+        "lines": order_lines,
+        "force_update": True,
+    }
+
+    # when
+    calculations.fetch_order_prices_if_expired(**fetch_kwargs)
+
+    # then
+    mock_recalculate_with_plugins.assert_called_once()
+    mock_get_taxes.assert_not_called()
+
+
+@patch("saleor.plugins.avatax.plugin.AvataxPlugin")
+@patch("saleor.order.calculations._recalculate_with_plugins")
+@patch("saleor.plugins.manager.PluginsManager.get_taxes_for_order")
+@patch("saleor.order.calculations._apply_tax_data")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_fetch_order_data_calls_tax_app(
+    mock_apply_tax_data,
+    mock_get_taxes,
+    mock_recalculate_with_plugins,
+    mock_avatax,
+    order_with_lines,
+    order_lines,
+):
+    # given
+    plugin_identifier = "plugin:test"
+    mock_avatax.PLUGIN_IDENTIFIER = plugin_identifier
+
+    order = order_with_lines
+    order.channel.tax_configuration.tax_app_id = "test_app"
+    order.channel.tax_configuration.save()
+
+    fetch_kwargs = {
+        "order": order,
+        "manager": get_plugins_manager(allow_replica=False),
+        "lines": order_lines,
+        "force_update": True,
+    }
+
+    # when
+    calculations.fetch_order_prices_if_expired(**fetch_kwargs)
+
+    # then
+    mock_apply_tax_data.assert_called_once()
+    mock_get_taxes.assert_called_once()
+    mock_recalculate_with_plugins.assert_not_called()

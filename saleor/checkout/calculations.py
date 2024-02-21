@@ -328,22 +328,52 @@ def _calculate_and_add_tax(
     address: Optional["Address"] = None,
 ):
     if tax_calculation_strategy == TaxCalculationStrategy.TAX_APP:
-        # Call the tax plugins.
-        _apply_tax_data_from_plugins(checkout, manager, checkout_info, lines, address)
-        # Get the taxes calculated with apps and apply to checkout.
-        tax_data = manager.get_taxes_for_checkout(
-            checkout_info, lines, tax_app_identifier
-        )
-        # If taxAppId is not configured we will for now allow to finalize process for
-        # backward compatibility.
-        if tax_data is None and tax_app_identifier is not None:
-            raise EmptyTaxData("Empty tax data.")
-        _apply_tax_data(checkout, lines, tax_data)
+        # If taxAppId is not configured remain previous behaviour to call plugin and apps
+        if not tax_app_identifier:
+            # Call the tax plugins.
+            _apply_tax_data_from_plugins(
+                checkout, manager, checkout_info, lines, address
+            )
+            # Get the taxes calculated with apps and apply to checkout.
+            tax_data = manager.get_taxes_for_checkout(
+                checkout_info, lines, tax_app_identifier
+            )
+            _apply_tax_data(checkout, lines, tax_data)
+        else:
+            _call_plugin_or_app_tax(
+                tax_app_identifier,
+                checkout,
+                manager,
+                checkout_info,
+                lines,
+                address,
+            )
     else:
         # Get taxes calculated with flat rates and apply to checkout.
         update_checkout_prices_with_flat_rates(
             checkout, checkout_info, lines, prices_entered_with_tax, address
         )
+
+
+def _call_plugin_or_app_tax(
+    tax_app_identifier: Optional[str],
+    checkout: "Checkout",
+    manager: "PluginsManager",
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
+    address: Optional["Address"] = None,
+):
+    from ..plugins.avatax.plugin import AvataxPlugin
+
+    if tax_app_identifier == AvataxPlugin.PLUGIN_IDENTIFIER:
+        _apply_tax_data_from_plugins(checkout, manager, checkout_info, lines, address)
+    else:
+        tax_data = manager.get_taxes_for_checkout(
+            checkout_info, lines, tax_app_identifier
+        )
+        if tax_data is None:
+            raise EmptyTaxData("Empty tax data.")
+        _apply_tax_data(checkout, lines, tax_data)
 
 
 def _remove_tax(checkout, lines_info):

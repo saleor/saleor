@@ -189,18 +189,42 @@ def _calculate_and_add_tax(
     prices_entered_with_tax: bool,
 ):
     if tax_calculation_strategy == TaxCalculationStrategy.TAX_APP:
-        # Get the taxes calculated with plugins.
-        _recalculate_with_plugins(manager, order, lines, prices_entered_with_tax)
-        # Get the taxes calculated with apps and apply to order.
-        tax_data = manager.get_taxes_for_order(order, tax_app_identifier)
-        # If taxAppId is not configured we will for now allow to finalize process for
-        # backward compatibility.
-        if tax_data is None and tax_app_identifier is not None:
-            raise EmptyTaxData("Empty tax data.")
-        _apply_tax_data(order, lines, tax_data)
+        # If taxAppId is not configured remain previous behaviour to call plugin and apps
+        if not tax_app_identifier:
+            # Get the taxes calculated with plugins.
+            _recalculate_with_plugins(manager, order, lines, prices_entered_with_tax)
+            # Get the taxes calculated with apps and apply to order.
+            tax_data = manager.get_taxes_for_order(order, tax_app_identifier)
+            _apply_tax_data(order, lines, tax_data)
+        else:
+            _call_plugin_or_app_tax(
+                tax_app_identifier,
+                order,
+                lines,
+                manager,
+                prices_entered_with_tax,
+            )
     else:
         # Get taxes calculated with flat rates and apply to order.
         update_order_prices_with_flat_rates(order, lines, prices_entered_with_tax)
+
+
+def _call_plugin_or_app_tax(
+    tax_app_identifier: Optional[str],
+    order: "Order",
+    lines: Iterable["OrderLine"],
+    manager: "PluginsManager",
+    prices_entered_with_tax: bool,
+):
+    from ..plugins.avatax.plugin import AvataxPlugin
+
+    if tax_app_identifier == AvataxPlugin.PLUGIN_IDENTIFIER:
+        _recalculate_with_plugins(manager, order, lines, prices_entered_with_tax)
+    else:
+        tax_data = manager.get_taxes_for_order(order, tax_app_identifier)
+        if tax_data is None:
+            raise EmptyTaxData("Empty tax data.")
+        _apply_tax_data(order, lines, tax_data)
 
 
 def _recalculate_with_plugins(

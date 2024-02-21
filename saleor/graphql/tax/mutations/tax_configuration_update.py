@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 
 from ....app.utils import get_active_tax_apps
 from ....permission.enums import CheckoutPermissions
+from ....plugins.avatax.plugin import AvataxPlugin
 from ....tax import error_codes, models
 from ...account.enums import CountryCodeEnum
 from ...core import ResolveInfo
@@ -155,24 +156,31 @@ class TaxConfigurationUpdate(ModelMutation):
     @classmethod
     def clean_tax_app_id(cls, info: ResolveInfo, data):
         identifiers = []
-        if app_identifier := data.get("tax_app_id"):
+        if (app_identifier := data.get("tax_app_id")) is not None:
             identifiers.append(app_identifier)
 
         update_countries_configuration = data.get("update_countries_configuration", [])
         for country in update_countries_configuration:
-            if app_identifier := country.get("tax_app_id"):
+            if (app_identifier := country.get("tax_app_id")) is not None:
                 identifiers.append(app_identifier)
 
         active_tax_apps = list(get_active_tax_apps(identifiers))
+        active_tax_app_identifiers = [app.identifier for app in active_tax_apps]
 
-        if app_identifier := data.get("tax_app_id"):
-            cls.__verify_tax_app_id(info, app_identifier, active_tax_apps)
+        # include plugin in list of possible tax apps
+        active_tax_app_identifiers.append(AvataxPlugin.PLUGIN_IDENTIFIER)
+
+        if (app_identifier := data.get("tax_app_id")) is not None:
+            cls.__verify_tax_app_id(info, app_identifier, active_tax_app_identifiers)
 
         update_countries_configuration = data.get("update_countries_configuration", [])
         for country in update_countries_configuration:
-            if app_identifier := country.get("tax_app_id"):
+            if (app_identifier := country.get("tax_app_id")) is not None:
                 cls.__verify_tax_app_id(
-                    info, app_identifier, active_tax_apps, [country["country_code"]]
+                    info,
+                    app_identifier,
+                    active_tax_app_identifiers,
+                    [country["country_code"]],
                 )
 
     @classmethod
@@ -180,11 +188,10 @@ class TaxConfigurationUpdate(ModelMutation):
         cls,
         info: ResolveInfo,
         app_identifier,
-        active_tax_apps,
+        active_tax_app_identifiers,
         country_codes=[],
     ):
-        identifiers = [app.identifier for app in active_tax_apps]
-        if app_identifier not in identifiers:
+        if app_identifier not in active_tax_app_identifiers:
             message = "Did not found Tax App with provided taxAppId."
             code = error_codes.TaxConfigurationUpdateErrorCode.NOT_FOUND.value
             params = {"country_codes": country_codes}
