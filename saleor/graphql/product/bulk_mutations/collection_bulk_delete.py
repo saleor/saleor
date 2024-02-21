@@ -47,6 +47,7 @@ class CollectionBulkDelete(ModelBulkDeleteMutation):
         for product in products:
             cls.call_event(manager.product_updated, product, webhooks=webhooks)
 
-        update_products_discounted_prices_for_promotion_task.delay(
-            [product.id for product in products]
+        cls.call_event(
+            update_products_discounted_prices_for_promotion_task.delay,
+            [product.id for product in products],
         )

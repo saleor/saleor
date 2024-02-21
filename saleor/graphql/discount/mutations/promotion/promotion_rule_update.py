@@ -200,7 +200,7 @@ class PromotionRuleUpdate(ModelMutation):
         products = get_products_for_rule(instance, update_rule_variants=True)
         product_ids = set(products.values_list("id", flat=True)) | previous_product_ids
         if product_ids:
-            update_discounted_prices_task.delay(list(product_ids))
+            cls.call_event(update_discounted_prices_task.delay, list(product_ids))
         clear_promotion_old_sale_id(instance.promotion, save=True)
         app = get_app_promise(info.context).get()
         events.rule_updated_event(info.context.user, app, [instance])
