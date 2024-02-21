@@ -10,7 +10,7 @@ from .....core.tracing import traced_atomic_transaction
 from .....discount import DiscountValueType
 from .....discount.error_codes import DiscountErrorCode
 from .....discount.models import Promotion, PromotionRule
-from .....discount.utils import mark_promotion_rules_as_dirty
+from .....discount.utils import mark_catalogue_promotion_rules_as_dirty
 from .....permission.enums import DiscountPermissions
 from ....channel import ChannelContext
 from ....channel.mutations import BaseChannelListingMutation
@@ -223,7 +223,7 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
         with traced_atomic_transaction():
             cls.add_channels(promotion, rule, cleaned_input.get("add_channels", []))
             cls.remove_channels(promotion, cleaned_input.get("remove_channels", []))
-            cls.call_event(mark_promotion_rules_as_dirty, [promotion.pk])
+            cls.call_event(mark_catalogue_promotion_rules_as_dirty, [promotion.pk])
 
     @classmethod
     def get_instance(cls, id):

@@ -7,21 +7,23 @@ import pytz
 
 from ... import RewardValueType
 from ...models import Promotion, PromotionRule
-from ...utils import mark_promotion_rules_as_dirty
+from ...utils import mark_catalogue_promotion_rules_as_dirty
 
 
 @patch("saleor.discount.utils.PromotionRule.objects.filter")
-def test_mark_promotion_rules_as_dirty_with_empty_list_as_input(
+def test_mark_catalogue_promotion_rules_as_dirty_with_empty_list_as_input(
     mocked_promotion_rule_filter,
 ):
     # when
-    mark_promotion_rules_as_dirty([])
+    mark_catalogue_promotion_rules_as_dirty([])
 
     # then
     assert not mocked_promotion_rule_filter.called
 
 
-def test_mark_promotion_rules_as_dirty_single_promotion(catalogue_promotion, product):
+def test_mark_catalogue_promotion_rules_as_dirty_single_promotion(
+    catalogue_promotion, product
+):
     # given
     promotion = catalogue_promotion
     second_promotion = Promotion.objects.create(
@@ -46,7 +48,7 @@ def test_mark_promotion_rules_as_dirty_single_promotion(catalogue_promotion, pro
     rule.save(update_fields=["variants_dirty"])
 
     # when
-    mark_promotion_rules_as_dirty([promotion])
+    mark_catalogue_promotion_rules_as_dirty([promotion])
 
     # then
     assert not PromotionRule.objects.filter(
@@ -57,7 +59,9 @@ def test_mark_promotion_rules_as_dirty_single_promotion(catalogue_promotion, pro
     )
 
 
-def test_mark_promotion_rules_as_dirty_multiple_promotion(catalogue_promotion, product):
+def test_mark_catalogue_promotion_rules_as_dirty_multiple_promotion(
+    catalogue_promotion, product
+):
     # given
     promotion = catalogue_promotion
     second_promotion = Promotion.objects.create(
@@ -82,7 +86,7 @@ def test_mark_promotion_rules_as_dirty_multiple_promotion(catalogue_promotion, p
     rule.save(update_fields=["variants_dirty"])
 
     # when
-    mark_promotion_rules_as_dirty([promotion, second_promotion])
+    mark_catalogue_promotion_rules_as_dirty([promotion, second_promotion])
 
     # then
     assert not PromotionRule.objects.filter(

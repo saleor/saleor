@@ -12,7 +12,7 @@ from freezegun import freeze_time
 from graphql_relay import to_global_id
 
 from ....core.utils.json_serializer import CustomJsonEncoder
-from ....discount.utils import get_active_promotion_rules
+from ....discount.utils import get_active_catalogue_promotion_rules
 from ....product.error_codes import ProductErrorCode
 from ....product.models import Category, Product, ProductChannelListing
 from ....product.tests.utils import create_image, create_zip_file_with_image_ext
@@ -1233,7 +1233,7 @@ def test_category_delete_mutation(
     assert not Thumbnail.objects.filter(category_id=category_id)
     assert delete_from_storage_task_mock.call_count == 2
 
-    for rule in get_active_promotion_rules():
+    for rule in get_active_catalogue_promotion_rules():
         assert rule.variants_dirty is True
 
 
@@ -1329,7 +1329,7 @@ def test_category_delete_mutation_for_categories_tree(
         assert product_channel_listing.is_published is False
         assert not product_channel_listing.published_at
     assert product_channel_listings.count() == 4
-    for rule in get_active_promotion_rules():
+    for rule in get_active_catalogue_promotion_rules():
         assert rule.variants_dirty is True
 
 
@@ -1353,7 +1353,7 @@ def test_category_delete_mutation_for_children_from_categories_tree(
     with pytest.raises(child._meta.model.DoesNotExist):
         child.refresh_from_db()
 
-    for rule in get_active_promotion_rules():
+    for rule in get_active_catalogue_promotion_rules():
         assert rule.variants_dirty is True
 
     parent_product.refresh_from_db()

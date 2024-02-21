@@ -1,7 +1,7 @@
 import graphene
 
 from .....attribute import models as attribute_models
-from .....discount.utils import mark_active_promotion_rules_as_dirty
+from .....discount.utils import mark_active_catalogue_promotion_rules_as_dirty
 from .....permission.enums import ProductPermissions
 from .....product import models
 from ....attribute.utils import AttrValuesInput, ProductAttributeAssignmentMixin
@@ -54,7 +54,7 @@ class ProductUpdate(ProductCreate, ModelWithExtRefMutation):
         )
         listings = product.channel_listings.all()
         channel_ids = [listing.channel_id for listing in listings]
-        cls.call_event(mark_active_promotion_rules_as_dirty, channel_ids)
+        cls.call_event(mark_active_catalogue_promotion_rules_as_dirty, channel_ids)
 
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.product_updated, product)

@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-from ...discount.utils import get_active_promotion_rules
+from ...discount.utils import get_active_catalogue_promotion_rules
 from ...plugins.manager import get_plugins_manager
 from ...tests.utils import flush_post_commit_hooks
 from ..models import Category
@@ -45,7 +45,7 @@ def test_delete_categories(
             assert not product_channel_listing.is_published
             assert not product_channel_listing.published_at
 
-    for rule in get_active_promotion_rules():
+    for rule in get_active_catalogue_promotion_rules():
         assert rule.variants_dirty
 
 

@@ -73,6 +73,8 @@ def promotion_rule_should_be_marked_with_dirty_variants(
         return False
     if rule.catalogue_predicate == {}:
         return False
+    if rule.reward_value_type is None:
+        return False
     if not channels:
         return False
     return True

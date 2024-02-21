@@ -7,7 +7,7 @@ from django.utils.text import slugify
 from .....attribute import AttributeInputType
 from .....attribute import models as attribute_models
 from .....core.tracing import traced_atomic_transaction
-from .....discount.utils import mark_active_promotion_rules_as_dirty
+from .....discount.utils import mark_active_catalogue_promotion_rules_as_dirty
 from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.error_codes import ProductErrorCode
@@ -340,7 +340,7 @@ class ProductVariantCreate(ModelMutation):
             product_id=instance.product_id
         ).values_list("channel_id", flat=True)
         # This will recalculate discounted prices for products.
-        cls.call_event(mark_active_promotion_rules_as_dirty, channel_ids)
+        cls.call_event(mark_active_catalogue_promotion_rules_as_dirty, channel_ids)
 
     @classmethod
     def create_variant_stocks(cls, variant, stocks):

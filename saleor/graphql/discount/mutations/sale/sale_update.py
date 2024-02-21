@@ -11,7 +11,7 @@ from .....discount.error_codes import DiscountErrorCode
 from .....discount.utils import CATALOGUE_FIELDS
 from .....permission.enums import DiscountPermissions
 from .....product import models as product_models
-from .....product.utils.product import mark_products_as_dirty
+from .....product.utils.product import mark_products_in_channels_as_dirty
 from .....webhook.event_types import WebhookEventAsyncType
 from ....channel import ChannelContext
 from ....core import ResolveInfo
@@ -199,7 +199,7 @@ class SaleUpdate(ModelMutation):
             update_variants_for_promotion(variants, promotion)
             if product_ids | previous_product_ids:
                 product_ids_to_update = product_ids | previous_product_ids
-                mark_products_as_dirty(
+                mark_products_in_channels_as_dirty(
                     {channel_id: product_ids_to_update for channel_id in channel_ids}
                 )
 

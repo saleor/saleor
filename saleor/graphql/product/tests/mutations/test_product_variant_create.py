@@ -9,7 +9,7 @@ from django.conf import settings
 from django.utils.text import slugify
 from freezegun import freeze_time
 
-from .....discount.utils import get_active_promotion_rules
+from .....discount.utils import get_active_catalogue_promotion_rules
 from .....product.error_codes import ProductErrorCode
 from .....tests.utils import dummy_editorjs, flush_post_commit_hooks
 from ....core.enums import WeightUnitsEnum
@@ -150,7 +150,7 @@ def test_create_variant_with_name(
 
     created_webhook_mock.assert_called_once_with(product.variants.last())
     updated_webhook_mock.assert_not_called()
-    for rule in get_active_promotion_rules():
+    for rule in get_active_catalogue_promotion_rules():
         assert rule.variants_dirty
 
 

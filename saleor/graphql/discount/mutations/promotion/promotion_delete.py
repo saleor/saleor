@@ -2,12 +2,12 @@ import graphene
 from django.db import transaction
 
 from .....discount import models
-from .....discount.utils import (
-    get_channel_to_products_map_from_rules,
-)
 from .....graphql.core.mutations import ModelDeleteMutation
 from .....permission.enums import DiscountPermissions
-from .....product.utils.product import mark_products_as_dirty
+from .....product.utils.product import (
+    get_channel_to_products_map_from_rules,
+    mark_products_in_channels_as_dirty,
+)
 from .....webhook.event_types import WebhookEventAsyncType
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_317, PREVIEW_FEATURE
@@ -59,5 +59,5 @@ class PromotionDelete(ModelDeleteMutation):
             instance.id = promotion_id
             cls.call_event(manager.promotion_deleted, instance)
         if channel_to_products_map:
-            mark_products_as_dirty(channel_to_products_map)
+            mark_products_in_channels_as_dirty(channel_to_products_map)
         return response
