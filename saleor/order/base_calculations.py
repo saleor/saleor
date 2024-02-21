@@ -297,8 +297,8 @@ def assign_order_prices(
     order.total_net_amount = subtotal.amount + shipping_price.amount
     order.total_gross_amount = subtotal.amount + shipping_price.amount
 
-    order.subtotal_net_amount = subtotal
-    order.subtotal_gross_amount = subtotal
+    order.subtotal_net_amount = subtotal.amount
+    order.subtotal_gross_amount = subtotal.amount
 
     undiscounted_total = undiscounted_order_total(order, lines)
     order.undiscounted_total_net_amount = undiscounted_total.amount

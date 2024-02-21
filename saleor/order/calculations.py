@@ -46,19 +46,14 @@ def fetch_order_prices_if_expired(
     if not force_update and not order.should_refresh_prices:
         return order, lines
 
-    # TODO: zedzior use order.utils where possible
     lines_info: list[DraftOrderLineInfo] = fetch_draft_order_lines_info(order, lines)
     order.should_refresh_prices = False
     create_or_update_discount_objects_from_promotion_for_order(order, lines_info)
-
-    # TODO zedzior sprawdz czy lines_info sie nie przyda
     _update_order_discount_for_voucher(order)
-    lines = [line_info.line for line_info in lines_info]
 
+    lines = [line_info.line for line_info in lines_info]
     _recalculate_prices(order, manager, lines)
 
-    # TODO: zedzior zrob cos z tym subtotalem
-    order.subtotal = get_subtotal(lines, order.currency)
     with transaction.atomic(savepoint=False):
         order.save(
             update_fields=[
@@ -241,6 +236,7 @@ def _recalculate_with_plugins(
     order.undiscounted_total = undiscounted_subtotal + TaxedMoney(
         net=order.base_shipping_price, gross=order.base_shipping_price
     )
+    order.subtotal = get_subtotal(lines, order.currency)
     order.total = manager.calculate_order_total(order, lines)
 
 
@@ -290,12 +286,14 @@ def _apply_tax_data(
         order_line.tax_rate = normalize_tax_rate_for_db(tax_line.tax_rate)
         subtotal += line_total_price
 
+    order.subtotal = subtotal
     order.total = shipping_price + subtotal
 
 
 def _remove_tax(order, lines):
     order.total_gross_amount = order.total_net_amount
     order.undiscounted_total_gross_amount = order.undiscounted_total_net_amount
+    order.subtotal_gross_amount = order.subtotal_net_amount
     order.shipping_price_gross_amount = order.shipping_price_net_amount
     order.shipping_tax_rate = Decimal("0.00")
 
