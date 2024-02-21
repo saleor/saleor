@@ -491,10 +491,11 @@ def _update_user_details(
         user.last_name = user_last_name
         fields_to_save.update({"last_name", "search_document"})
 
-    if "search_document" in fields_to_save:
+    if not user.search_document or "search_document" in fields_to_save:
         user.search_document = prepare_user_search_document_value(
             user, attach_addresses_data=False
         )
+        fields_to_save.add("search_document")
 
     if fields_to_save:
         user.save(update_fields=fields_to_save)
