@@ -8,7 +8,7 @@ from django.db.models import Exists, OuterRef
 from .....discount.error_codes import DiscountErrorCode
 from .....product import models as product_models
 from .....product.utils import get_products_ids_without_variants
-from .....product.utils.product import mark_products_as_dirty
+from .....product.utils.product import mark_products_in_channels_as_dirty
 from ....core import ResolveInfo
 from ....core.mutations import BaseMutation
 from ....plugins.dataloaders import get_plugin_manager_promise
@@ -72,7 +72,7 @@ class SaleBaseCatalogueMutation(BaseMutation):
             channel_ids = PromotionRuleChannel.objects.filter(
                 Exists(rules.filter(id=OuterRef("promotionrule_id")))
             ).values_list("channel_id", flat=True)
-            mark_products_as_dirty(
+            mark_products_in_channels_as_dirty(
                 {channel_id: product_ids for channel_id in channel_ids}
             )
 

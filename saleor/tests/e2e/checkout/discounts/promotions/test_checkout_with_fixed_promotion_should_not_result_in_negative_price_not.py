@@ -1,7 +1,6 @@
 import pytest
 
-from saleor.product.tasks import recalculate_discounted_price_for_products_task
-
+from ......product.tasks import recalculate_discounted_price_for_products_task
 from ....product.utils import get_product
 from ....product.utils.preparing_product import prepare_product
 from ....promotions.utils import create_promotion, create_promotion_rule

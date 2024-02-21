@@ -130,7 +130,7 @@ class SaleCreate(ModelMutation):
             )
             manager = get_plugin_manager_promise(info.context).get()
             cls.send_sale_notifications(manager, promotion, predicate)
-            mark_promotion_rules_as_dirty([promotion.pk])
+            cls.call_event(mark_promotion_rules_as_dirty, [promotion.pk])
         return response
 
     @classmethod

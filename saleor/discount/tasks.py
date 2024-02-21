@@ -19,7 +19,7 @@ from ..product.models import (
     ProductVariantChannelListing,
     VariantChannelListingPromotionRule,
 )
-from ..product.utils.product import mark_products_as_dirty
+from ..product.utils.product import mark_products_in_channels_as_dirty_based_on_rules
 from ..product.utils.variant_prices import update_discounted_prices_for_promotion
 from ..webhook.event_types import WebhookEventAsyncType
 from ..webhook.utils import get_webhooks_for_event
@@ -31,7 +31,7 @@ from .models import (
     PromotionRule,
     VoucherCode,
 )
-from .utils import get_channel_to_products_map_from_rules, mark_promotion_rules_as_dirty
+from .utils import mark_catalogue_promotion_rules_as_dirty
 
 if TYPE_CHECKING:
     from uuid import UUID
@@ -96,7 +96,9 @@ def handle_promotion_toggle():
     if ending_promotions:
         clear_promotion_rule_variants_task.delay()
 
-    mark_promotion_rules_as_dirty(set(promotions.values_list("id", flat=True)))
+    mark_catalogue_promotion_rules_as_dirty(
+        set(promotions.values_list("id", flat=True))
+    )
 
     starting_promotion_ids = ", ".join(
         [str(staring_promo.id) for staring_promo in starting_promotions]
@@ -203,9 +205,7 @@ def clear_promotion_rule_variants_task():
         .values_list("pk", flat=True)
     )
     if rule_variants_id:
-        channel_to_products_map = get_channel_to_products_map_from_rules(rules)
-        if channel_to_products_map:
-            mark_products_as_dirty(channel_to_products_map)
+        mark_products_in_channels_as_dirty_based_on_rules(rules, allow_replica=True)
         PromotionRuleVariant.objects.filter(pk__in=rule_variants_id).delete()
         clear_promotion_rule_variants_task.delay()
 

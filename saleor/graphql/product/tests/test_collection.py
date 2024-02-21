@@ -8,7 +8,7 @@ import pytz
 from django.core.files import File
 from graphql_relay import to_global_id
 
-from ....discount.utils import get_active_promotion_rules
+from ....discount.utils import get_active_catalogue_promotion_rules
 from ....product.error_codes import CollectionErrorCode, ProductErrorCode
 from ....product.models import Collection, CollectionChannelListing, Product
 from ....product.tests.utils import create_image, create_zip_file_with_image_ext
@@ -1176,7 +1176,7 @@ def test_delete_collection(
         collection.refresh_from_db()
 
     deleted_webhook_mock.assert_called_once()
-    for rule in get_active_promotion_rules():
+    for rule in get_active_catalogue_promotion_rules():
         assert rule.variants_dirty is True
 
 
@@ -1280,7 +1280,7 @@ def test_add_products_to_collection(
     content = get_graphql_content(response)
     data = content["data"]["collectionAddProducts"]["collection"]
     assert data["products"]["totalCount"] == products_before + len(product_ids)
-    for rule in get_active_promotion_rules():
+    for rule in get_active_catalogue_promotion_rules():
         assert rule.variants_dirty is True
 
 
@@ -1379,7 +1379,7 @@ def test_remove_products_from_collection(
     content = get_graphql_content(response)
     data = content["data"]["collectionRemoveProducts"]["collection"]
     assert data["products"]["totalCount"] == products_before - len(product_ids)
-    for rule in get_active_promotion_rules():
+    for rule in get_active_catalogue_promotion_rules():
         assert rule.variants_dirty is True
 
 

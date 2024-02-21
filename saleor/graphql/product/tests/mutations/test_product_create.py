@@ -10,7 +10,7 @@ from django.utils.text import slugify
 from freezegun import freeze_time
 
 from .....core.taxes import TaxType
-from .....discount.utils import get_active_promotion_rules
+from .....discount.utils import get_active_catalogue_promotion_rules
 from .....graphql.core.enums import AttributeErrorCode
 from .....graphql.tests.utils import (
     get_graphql_content,
@@ -186,7 +186,7 @@ def test_create_product(
 
     created_webhook_mock.assert_called_once_with(product)
     updated_webhook_mock.assert_not_called()
-    for rule in get_active_promotion_rules():
+    for rule in get_active_catalogue_promotion_rules():
         assert rule.variants_dirty
 
 

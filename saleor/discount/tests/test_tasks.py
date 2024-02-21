@@ -19,7 +19,7 @@ from ..tasks import (
     fetch_promotion_variants_and_product_ids,
     handle_promotion_toggle,
 )
-from ..utils import mark_promotion_rules_as_dirty
+from ..utils import mark_catalogue_promotion_rules_as_dirty
 
 
 def test_fetch_promotion_variants_and_product_ids(
@@ -60,8 +60,8 @@ def test_fetch_promotion_variants_and_product_ids(
 @freeze_time("2020-03-18 12:00:00")
 @patch("saleor.discount.tasks.clear_promotion_rule_variants_task.delay")
 @patch(
-    "saleor.discount.tasks.mark_promotion_rules_as_dirty",
-    wraps=mark_promotion_rules_as_dirty,
+    "saleor.discount.tasks.mark_catalogue_promotion_rules_as_dirty",
+    wraps=mark_catalogue_promotion_rules_as_dirty,
 )
 @patch("saleor.plugins.manager.PluginsManager.sale_toggle")
 @patch("saleor.plugins.manager.PluginsManager.promotion_ended")
@@ -70,7 +70,7 @@ def test_handle_promotion_toggle(
     promotion_started_mock,
     promotion_ended_mock,
     sale_toggle_mock,
-    mock_mark_promotion_rules_as_dirty,
+    mock_mark_catalogue_promotion_rules_as_dirty,
     mock_clear_promotion_rule_variants_task,
     product_list,
 ):
@@ -186,7 +186,7 @@ def test_handle_promotion_toggle(
 
     assert PromotionRule.objects.filter(variants_dirty=True).count() == 2
 
-    mock_mark_promotion_rules_as_dirty.assert_called_once_with(
+    mock_mark_catalogue_promotion_rules_as_dirty.assert_called_once_with(
         set([promotions[index].id for index in indexes_of_toggle_sales])
     )
 

@@ -5,7 +5,7 @@ import graphene
 from django.test import override_settings
 
 from .....discount.models import PromotionRule
-from .....discount.utils import get_active_promotion_rules
+from .....discount.utils import get_active_catalogue_promotion_rules
 from .....graphql.webhook.subscription_payload import get_pre_save_payload_key
 from .....product.error_codes import ProductVariantBulkErrorCode
 from .....product.models import ProductChannelListing
@@ -132,7 +132,7 @@ def test_product_variant_bulk_update(
     assert product_with_single_variant.variants.count() == 1
     assert old_name != new_name
     assert product_variant_created_webhook_mock.call_count == data["count"]
-    for rule in get_active_promotion_rules():
+    for rule in get_active_catalogue_promotion_rules():
         assert rule.variants_dirty
 
 
@@ -205,7 +205,7 @@ def test_product_variant_bulk_update_stocks(
     assert stock_to_update.quantity == new_quantity
     assert variant.stocks.count() == 3
     assert variant.stocks.last().quantity == new_stock_quantity
-    for rule in get_active_promotion_rules():
+    for rule in get_active_catalogue_promotion_rules():
         assert rule.variants_dirty
 
 
@@ -335,7 +335,7 @@ def test_product_variant_bulk_update_and_remove_stock_when_stock_not_exists(
     assert variant.stocks.count() == 2
     error = data["results"][0]["errors"][0]
     assert error["code"] == ProductVariantBulkErrorCode.NOT_FOUND.name
-    for rule in get_active_promotion_rules():
+    for rule in get_active_catalogue_promotion_rules():
         assert rule.variants_dirty
 
 

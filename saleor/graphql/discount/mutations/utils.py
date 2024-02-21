@@ -56,7 +56,7 @@ def update_variants_for_promotion(
 
 
 def promotion_rule_should_be_marked_with_dirty_variants(
-    rule: PromotionRule, promotion_type: str, channels: list
+    rule: PromotionRule, channels: list
 ):
     """Check if the promotion rule should be marked as the one with dirty variants.
 
@@ -65,13 +65,13 @@ def promotion_rule_should_be_marked_with_dirty_variants(
     Keep in mind that in case of update applied on rule, this function should not be
     called, previous version of rule could have an impact on products.
     """
-    if promotion_type != PromotionType.CATALOGUE:
-        return False
     if rule.reward_value is None:
         return False
     if rule.reward_value <= 0:
         return False
     if rule.catalogue_predicate == {}:
+        return False
+    if rule.reward_value_type is None:
         return False
     if not channels:
         return False

@@ -19,7 +19,7 @@ from ....product.models import (
 )
 from ....product.models import Product as ProductModel
 from ....product.models import ProductVariant as ProductVariantModel
-from ....product.utils.product import mark_products_as_dirty
+from ....product.utils.product import mark_products_in_channels_as_dirty
 from ...channel import ChannelContext
 from ...channel.mutations import BaseChannelListingMutation
 from ...channel.types import Channel
@@ -365,7 +365,7 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
             for update_channel in cleaned_input.get("update_channels", [])
         ]
         modified_channel_ids.extend(cleaned_input.get("remove_channels", []))
-        mark_products_as_dirty(
+        mark_products_in_channels_as_dirty(
             {channel_id: {product.pk} for channel_id in modified_channel_ids}
         )
         product = ProductModel.objects.prefetched_for_webhook().get(pk=product.pk)
@@ -562,7 +562,7 @@ class ProductVariantChannelListingUpdate(BaseMutation):
         channel_ids = [
             channel_listing_data["channel"].id for channel_listing_data in cleaned_input
         ]
-        mark_products_as_dirty(
+        mark_products_in_channels_as_dirty(
             {channel_id: {variant.product_id} for channel_id in channel_ids}
         )
         manager = get_plugin_manager_promise(info.context).get()

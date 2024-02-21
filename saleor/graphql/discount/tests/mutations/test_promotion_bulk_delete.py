@@ -1,6 +1,5 @@
 from unittest import mock
 
-# import mock
 import graphene
 
 from .....discount.models import Promotion, PromotionRule

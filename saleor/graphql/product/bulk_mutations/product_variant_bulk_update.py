@@ -707,11 +707,10 @@ class ProductVariantBulkUpdate(BaseMutation):
         webhooks,
         pre_save_payloads,
         request_time,
-        impacted_channel_ids
+        impacted_channel_ids,
     ):
         if impacted_channel_ids:
             cls.call_event(mark_active_promotion_rules_as_dirty, impacted_channel_ids)
-
         manager = get_plugin_manager_promise(info.context).get()
         product.search_index_dirty = True
         product.save(update_fields=["search_index_dirty"])
@@ -822,7 +821,7 @@ class ProductVariantBulkUpdate(BaseMutation):
             webhooks,
             pre_save_payloads,
             request_time,
-            impacted_channel_ids
+            impacted_channel_ids,
         )
 
         return ProductVariantBulkCreate(count=len(instances), results=results)

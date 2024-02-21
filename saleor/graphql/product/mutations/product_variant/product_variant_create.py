@@ -350,7 +350,7 @@ class ProductVariantCreate(ModelMutation):
             product_id=instance.product_id
         ).values_list("channel_id", flat=True)
         # This will recalculate discounted prices for products.
-        mark_active_promotion_rules_as_dirty(channel_ids)
+        cls.call_event(mark_active_promotion_rules_as_dirty, channel_ids)
 
     @classmethod
     def create_variant_stocks(cls, variant, stocks):

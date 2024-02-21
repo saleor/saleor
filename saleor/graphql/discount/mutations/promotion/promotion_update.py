@@ -7,7 +7,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 
 from .....discount import PromotionType, events, models
-from .....discount.utils import mark_promotion_rules_as_dirty
+from .....discount.utils import mark_catalogue_promotion_rules_as_dirty
 from .....permission.enums import DiscountPermissions
 from .....plugins.manager import PluginsManager
 from .....webhook.event_types import WebhookEventAsyncType
@@ -111,7 +111,7 @@ class PromotionUpdate(ModelMutation):
         if instance.type == PromotionType.CATALOGUE and (
             "start_date" in cleaned_input or "end_date" in cleaned_input
         ):
-            mark_promotion_rules_as_dirty([instance.pk])
+            mark_catalogue_promotion_rules_as_dirty([instance.pk])
 
     @classmethod
     def get_toggle_type(cls, instance, clean_input, previous_end_date) -> Optional[str]:

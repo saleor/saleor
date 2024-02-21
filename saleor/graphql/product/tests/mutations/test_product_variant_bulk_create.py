@@ -9,7 +9,7 @@ from django.conf import settings
 from freezegun import freeze_time
 
 from .....attribute import AttributeInputType
-from .....discount.utils import get_active_promotion_rules
+from .....discount.utils import get_active_catalogue_promotion_rules
 from .....product.error_codes import ProductVariantBulkErrorCode
 from .....product.models import (
     ProductChannelListing,
@@ -172,7 +172,7 @@ def test_product_variant_bulk_create_by_name(
     product.refresh_from_db()
     assert product.default_variant == product_variant
     assert product_variant_created_webhook_mock.call_count == data["count"]
-    for rule in get_active_promotion_rules():
+    for rule in get_active_catalogue_promotion_rules():
         assert rule.variants_dirty
 
 
@@ -231,7 +231,7 @@ def test_product_variant_bulk_create_by_attribute_id(
     product.refresh_from_db()
     assert product.default_variant == product_variant
     assert product_variant_created_webhook_mock.call_count == data["count"]
-    for rule in get_active_promotion_rules():
+    for rule in get_active_catalogue_promotion_rules():
         assert rule.variants_dirty
 
 

@@ -223,7 +223,7 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
         with traced_atomic_transaction():
             cls.add_channels(promotion, rule, cleaned_input.get("add_channels", []))
             cls.remove_channels(promotion, cleaned_input.get("remove_channels", []))
-            mark_promotion_rules_as_dirty([promotion.pk])
+            cls.call_event(mark_promotion_rules_as_dirty, [promotion.pk])
 
     @classmethod
     def get_instance(cls, id):

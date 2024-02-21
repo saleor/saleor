@@ -1,9 +1,11 @@
 from decimal import Decimal
 
 import graphene
+import pytest
 
 from ....discount import RewardValueType
 from ....discount.models import Promotion, PromotionRule
+from ..mutations.utils import promotion_rule_should_be_marked_with_dirty_variants
 from ..utils import (
     convert_migrated_sale_predicate_to_catalogue_info,
     get_variants_for_predicate,
@@ -342,3 +344,45 @@ def test_convert_migrated_sale_predicate_to_catalogue_info(
 
     # then
     assert catalogue_info == expected_result
+
+
+
+@pytest.mark.parametrize(
+    ("field", "field_value", "expected_result"),
+    [
+        ("reward_value", None, False),
+        ("reward_value", 0, False),
+        ("reward_value", 1, True),
+        ("catalogue_predicate", {}, False),
+        ("reward_value_type", None, False),
+        ("reward_value_type", "fixed", True),
+    ],
+)
+def test_promotion_rule_should_be_marked_with_dirty_variants(
+    field, field_value, expected_result, promotion_rule
+):
+    # given
+    setattr(promotion_rule, field, field_value)
+
+    # when
+    result = promotion_rule_should_be_marked_with_dirty_variants(
+        promotion_rule, promotion_rule.channels.all()
+    )
+
+    # then
+    assert result == expected_result
+
+
+def test_promotion_rule_should_be_marked_with_dirty_variants_missing_channels(
+    promotion_rule,
+):
+    # given
+    promotion_rule.channels.set([])
+
+    # when
+    result = promotion_rule_should_be_marked_with_dirty_variants(
+        promotion_rule, promotion_rule.channels.all()
+    )
+
+    # then
+    assert not result

@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Union
 from ...core.taxes import TaxedMoney, zero_taxed_money
 from ...core.tracing import traced_atomic_transaction
 from ...core.utils.events import call_event
-from ...discount.utils import mark_active_promotion_rules_as_dirty
+from ...discount.utils import mark_active_catalogue_promotion_rules_as_dirty
 from ...webhook.event_types import WebhookEventAsyncType
 from ...webhook.utils import get_webhooks_for_event
 from ..models import Product, ProductChannelListing
@@ -65,7 +65,7 @@ def delete_categories(categories_ids: list[Union[str, int]], manager):
         call_event(manager.product_updated, product, webhooks=webhooks)
 
     channel_ids = set(product_channel_listing.values_list("channel_id", flat=True))
-    call_event(mark_active_promotion_rules_as_dirty, channel_ids)
+    call_event(mark_active_catalogue_promotion_rules_as_dirty, channel_ids)
 
 
 def collect_categories_tree_products(category: "Category") -> "QuerySet[Product]":

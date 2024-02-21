@@ -5,7 +5,7 @@ import pytz
 from django.core.exceptions import ValidationError
 
 from .....core.utils.date_time import convert_to_utc_date_time
-from .....discount.utils import mark_active_promotion_rules_as_dirty
+from .....discount.utils import mark_active_catalogue_promotion_rules_as_dirty
 from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.error_codes import CollectionErrorCode
@@ -135,7 +135,7 @@ class CollectionCreate(ModelMutation):
             channel_ids = models.ProductChannelListing.objects.filter(
                 product_id__in=product_ids
             ).values_list("channel_id", flat=True)
-            mark_active_promotion_rules_as_dirty(channel_ids)
+            mark_active_catalogue_promotion_rules_as_dirty(channel_ids)
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **kwargs):

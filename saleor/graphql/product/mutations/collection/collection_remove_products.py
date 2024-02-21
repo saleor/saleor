@@ -1,6 +1,6 @@
 import graphene
 
-from .....discount.utils import mark_active_promotion_rules_as_dirty
+from .....discount.utils import mark_active_catalogue_promotion_rules_as_dirty
 from .....permission.enums import ProductPermissions
 from .....product import models
 from ....channel import ChannelContext
@@ -55,7 +55,7 @@ class CollectionRemoveProducts(BaseMutation):
                 product__in=products
             ).values_list("channel_id", flat=True)
             # This will finally recalculate discounted prices for products.
-            mark_active_promotion_rules_as_dirty(channel_ids)
+            mark_active_catalogue_promotion_rules_as_dirty(channel_ids)
 
         return CollectionRemoveProducts(
             collection=ChannelContext(node=collection, channel_slug=None)
