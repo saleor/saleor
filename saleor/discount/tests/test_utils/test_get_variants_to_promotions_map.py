@@ -6,10 +6,10 @@ from ....product.models import ProductVariant
 from ....product.utils.variants import fetch_variants_for_promotion_rules
 from ... import PromotionRuleInfo, RewardValueType
 from ...models import Promotion, PromotionRule
-from ...utils import get_variants_to_promotions_map
+from ...utils import get_variants_to_promotion_rules_map
 
 
-def test_get_variants_to_promotions_map(
+def test_get_variants_to_promotion_rules_map(
     catalogue_promotion_without_rules, product, product_with_two_variants, channel_USD
 ):
     # given
@@ -48,7 +48,7 @@ def test_get_variants_to_promotions_map(
     variants = ProductVariant.objects.all()
 
     # when
-    rules_info_per_variant = get_variants_to_promotions_map(variants)
+    rules_info_per_variant = get_variants_to_promotion_rules_map(variants)
 
     # then
     assert len(rules_info_per_variant) == 3
@@ -62,7 +62,7 @@ def test_get_variants_to_promotions_map(
         ]
 
 
-def test_get_variants_to_promotions_map_from_different_promotions(
+def test_get_variants_to_promotion_rules_map_from_different_promotions(
     catalogue_promotion_without_rules, product, channel_USD
 ):
     # given
@@ -102,7 +102,7 @@ def test_get_variants_to_promotions_map_from_different_promotions(
     variants = ProductVariant.objects.all()
 
     # when
-    rules_info_per_variant = get_variants_to_promotions_map(variants)
+    rules_info_per_variant = get_variants_to_promotion_rules_map(variants)
 
     # then
     assert len(rules_info_per_variant) == 1
@@ -115,19 +115,19 @@ def test_get_variants_to_promotions_map_from_different_promotions(
         assert rule in expected_rules
 
 
-def test_get_variants_to_promotions_map_no_active_rules(product):
+def test_get_variants_to_promotion_rules_map_no_active_rules(product):
     # given
     variants = ProductVariant.objects.all()
     fetch_variants_for_promotion_rules(PromotionRule.objects.all())
 
     # when
-    rules_info_per_variant = get_variants_to_promotions_map(variants)
+    rules_info_per_variant = get_variants_to_promotion_rules_map(variants)
 
     # then
     assert not rules_info_per_variant
 
 
-def test_get_variants_to_promotions_map_no_matching_rules(
+def test_get_variants_to_promotion_rules_map_no_matching_rules(
     product_with_two_variants, variant, catalogue_promotion_without_rules
 ):
     # given
@@ -151,7 +151,7 @@ def test_get_variants_to_promotions_map_no_matching_rules(
     variants = ProductVariant.objects.filter(id=variant.id)
 
     # when
-    rules_info_per_variant = get_variants_to_promotions_map(variants)
+    rules_info_per_variant = get_variants_to_promotion_rules_map(variants)
 
     # then
     assert not rules_info_per_variant

@@ -677,7 +677,6 @@ def create_checkout_discount_objects_for_order_promotions(
     _set_checkout_base_prices(checkout_info, lines_info)
 
     checkout = checkout_info.checkout
-    models = get_checkout_or_order_models(checkout)
 
     # Discount from order rules is applied only when the voucher is not set
     if checkout.voucher_code:
@@ -685,7 +684,7 @@ def create_checkout_discount_objects_for_order_promotions(
         return lines_info
 
     channel = checkout_info.channel
-    rules = fetch_promotion_rules_for_checkout_or_order(checkout, models)
+    rules = fetch_promotion_rules_for_checkout_or_order(checkout)
     rule_data = get_best_rule(
         rules=rules,
         channel=channel,
@@ -706,7 +705,6 @@ def create_checkout_discount_objects_for_order_promotions(
         gift_listing,
         channel.currency_code,
         best_rule.promotion,
-        models,
         checkout_info,
         save,
     )
@@ -721,8 +719,6 @@ def create_order_discount_objects_for_order_promotions(
     # The base prices are required for order promotion discount qualification.
     _set_order_base_prices(order, lines_info)
 
-    models = get_checkout_or_order_models(order)
-
     # Discount from order rules is applied only when the voucher is not set
     if order.voucher_code:
         _clear_order_discount(order, lines_info)
@@ -731,7 +727,7 @@ def create_order_discount_objects_for_order_promotions(
     lines = [line_info.line for line_info in lines_info]
     subtotal = base_order_subtotal(order, lines)
     channel = order.channel
-    rules = fetch_promotion_rules_for_checkout_or_order(order, models)
+    rules = fetch_promotion_rules_for_checkout_or_order(order)
     rule_data = get_best_rule(
         rules=rules,
         channel=channel,
@@ -752,7 +748,6 @@ def create_order_discount_objects_for_order_promotions(
         gift_listing,
         channel.currency_code,
         best_rule.promotion,
-        models,
     )
 
 
@@ -955,7 +950,6 @@ def _create_or_update_order_discount(
     gift_listing: Optional[ProductVariantChannelListing],
     currency_code: str,
     promotion: "Promotion",
-    models: CheckoutOrOrderHelper,
     checkout_info: Optional["CheckoutInfo"] = None,
     save: bool = False,
 ):
@@ -991,7 +985,6 @@ def _create_or_update_order_discount(
             gift_listing,
             discount_object_defaults,
             rule_info,
-            models,
             checkout_info,
             save,
         )
@@ -1067,10 +1060,10 @@ def _handle_gift_reward(
     gift_listing: ProductVariantChannelListing,
     discount_object_defaults: dict,
     rule_info: VariantPromotionRuleInfo,
-    models: CheckoutOrOrderHelper,
     checkout_info: Optional[CheckoutInfo] = None,
     save: bool = False,
 ):
+    models = get_checkout_or_order_models(order_or_checkout)
     with transaction.atomic():
         line, line_created = create_gift_line(
             order_or_checkout, gift_listing.variant_id
@@ -1213,12 +1206,10 @@ def get_variants_to_promotion_rules_map(
     return rules_info_per_variant
 
 
-def fetch_promotion_rules_for_checkout_or_order(
-    instance: Union["Checkout", "Order"],
-    models: CheckoutOrOrderHelper,
-):
+def fetch_promotion_rules_for_checkout_or_order(instance: Union["Checkout", "Order"]):
     from ..graphql.discount.utils import filter_qs_by_predicate
 
+    models = get_checkout_or_order_models(instance)
     applicable_rules = []
     promotions = Promotion.objects.active()
     rules = (

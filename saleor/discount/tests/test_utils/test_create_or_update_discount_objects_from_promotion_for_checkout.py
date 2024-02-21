@@ -115,7 +115,14 @@ def test_create_fixed_discount(
         == discount_from_db.name
         == f"{catalogue_promotion_without_rules.name}: {rule.name}"
     )
-    assert discount_from_info.reason == discount_from_db.reason is None
+    promotion_id = graphene.Node.to_global_id(
+        "Promotion", catalogue_promotion_without_rules.pk
+    )
+    assert (
+        discount_from_info.reason
+        == discount_from_db.reason
+        == f"Promotion: {promotion_id}"
+    )
     assert discount_from_info.promotion_rule == discount_from_db.promotion_rule == rule
     assert discount_from_info.voucher == discount_from_db.voucher is None
     assert (
@@ -203,7 +210,14 @@ def test_create_fixed_discount_multiple_quantity_in_lines(
         == discount_from_db.name
         == catalogue_promotion_without_rules.name
     )
-    assert discount_from_info.reason == discount_from_db.reason is None
+    promotion_id = graphene.Node.to_global_id(
+        "Promotion", catalogue_promotion_without_rules.pk
+    )
+    assert (
+        discount_from_info.reason
+        == discount_from_db.reason
+        == f"Promotion: {promotion_id}"
+    )
     assert discount_from_info.promotion_rule == discount_from_db.promotion_rule == rule
     assert discount_from_info.voucher == discount_from_db.voucher is None
 
@@ -358,7 +372,14 @@ def test_create_percentage_discount(
         == discount_from_db.name
         == f"{catalogue_promotion_without_rules.name}: {rule.name}"
     )
-    assert discount_from_info.reason == discount_from_db.reason is None
+    promotion_id = graphene.Node.to_global_id(
+        "Promotion", catalogue_promotion_without_rules.pk
+    )
+    assert (
+        discount_from_info.reason
+        == discount_from_db.reason
+        == f"Promotion: {promotion_id}"
+    )
     assert discount_from_info.promotion_rule == discount_from_db.promotion_rule == rule
     assert discount_from_info.voucher == discount_from_db.voucher is None
 
@@ -441,7 +462,14 @@ def test_create_percentage_discount_multiple_quantity_in_lines(
     assert discount_from_info.currency == discount_from_db.currency == "USD"
     discount_name = f"{catalogue_promotion_without_rules.name}: {rule.name}"
     assert discount_from_info.name == discount_from_db.name == discount_name
-    assert discount_from_info.reason == discount_from_db.reason is None
+    promotion_id = graphene.Node.to_global_id(
+        "Promotion", catalogue_promotion_without_rules.pk
+    )
+    assert (
+        discount_from_info.reason
+        == discount_from_db.reason
+        == f"Promotion: {promotion_id}"
+    )
     assert discount_from_info.promotion_rule == discount_from_db.promotion_rule == rule
     assert discount_from_info.voucher == discount_from_db.voucher is None
 
@@ -691,7 +719,14 @@ def test_two_promotions_applied_to_two_different_lines(
         == discount_from_db_1.name
         == f"{catalogue_promotion_without_rules.name}: {rule_1.name}"
     )
-    assert discount_from_info_1.reason == discount_from_db_1.reason is None
+    promotion_id = graphene.Node.to_global_id(
+        "Promotion", catalogue_promotion_without_rules.pk
+    )
+    assert (
+        discount_from_info_1.reason
+        == discount_from_db_1.reason
+        == f"Promotion: {promotion_id}"
+    )
     assert (
         discount_from_info_1.promotion_rule
         == discount_from_db_1.promotion_rule
@@ -722,7 +757,11 @@ def test_two_promotions_applied_to_two_different_lines(
         == discount_from_db_2.name
         == f"{catalogue_promotion_without_rules.name}: {rule_2.name}"
     )
-    assert discount_from_info_2.reason == discount_from_db_2.reason is None
+    assert (
+        discount_from_info_2.reason
+        == discount_from_db_2.reason
+        == f"Promotion: {promotion_id}"
+    )
     assert (
         discount_from_info_2.promotion_rule
         == discount_from_db_2.promotion_rule
@@ -815,7 +854,14 @@ def test_create_percentage_discount_1_cent_variant_on_10_percentage_discount(
         == discount_from_db.name
         == f"{catalogue_promotion_without_rules.name}: {rule.name}"
     )
-    assert discount_from_info.reason == discount_from_db.reason is None
+    promotion_id = graphene.Node.to_global_id(
+        "Promotion", catalogue_promotion_without_rules.pk
+    )
+    assert (
+        discount_from_info.reason
+        == discount_from_db.reason
+        == f"Promotion: {promotion_id}"
+    )
     assert discount_from_info.promotion_rule == discount_from_db.promotion_rule == rule
     assert discount_from_info.voucher == discount_from_db.voucher is None
 
@@ -2102,13 +2148,12 @@ def test_create_discount_objects_for_order_promotions_race_condition(
             currency=channel.currency_code,
         )
 
-    models = get_checkout_or_order_models(checkout)
     with before_after.before(
         "saleor.discount.utils._create_or_update_order_discount",
         call_before_creating_discount_object,
     ):
         create_checkout_discount_objects_for_order_promotions(
-            checkout_info, checkout_lines_info, models
+            checkout_info, checkout_lines_info
         )
 
     # then
@@ -2143,8 +2188,6 @@ def test_create_or_update_order_discount_race_condition(
     )
     rule.channels.add(channel)
 
-    models = get_checkout_or_order_models(checkout)
-
     def call_update(*args, **kwargs):
         _create_or_update_order_discount(
             checkout,
@@ -2154,7 +2197,6 @@ def test_create_or_update_order_discount_race_condition(
             None,
             currency,
             promotion,
-            models,
             checkout_info,
             True,
         )
@@ -2185,8 +2227,6 @@ def test_create_or_update_order_discount_gift_reward_race_condition(
     variant_listings = ProductVariantChannelListing.objects.filter(variant__in=variants)
     listing = max(list(variant_listings), key=lambda x: x.discounted_price_amount)
 
-    models = get_checkout_or_order_models(checkout)
-
     def call_update(*args, **kwargs):
         _create_or_update_order_discount(
             checkout,
@@ -2196,7 +2236,6 @@ def test_create_or_update_order_discount_gift_reward_race_condition(
             listing,
             currency,
             promotion,
-            models,
             checkout_info,
             True,
         )
