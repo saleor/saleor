@@ -17,6 +17,7 @@ from django.utils import timezone
 from jwt import PyJWTError
 
 from ...account.models import Group, User
+from ...account.search import prepare_user_search_document_value
 from ...account.utils import get_user_groups_permissions
 from ...core.http_client import HTTPClient
 from ...core.jwt import (
@@ -478,6 +479,12 @@ def _update_user_details(
         ):
             user.last_login = timezone.now()
             fields_to_save.append("last_login")
+
+    if not user.search_document:
+        user.search_document = prepare_user_search_document_value(
+            user, attach_addresses_data=False
+        )
+        fields_to_save.append("search_document")
 
     if fields_to_save:
         user.save(update_fields=fields_to_save)
