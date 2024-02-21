@@ -49,7 +49,9 @@ class CollectionDelete(ModelDeleteMutation):
 
         for ids_batch in cls.batch_product_ids(product_ids):
             collection_product_updated_task.delay(ids_batch)
-        update_products_discounted_prices_for_promotion_task.delay(product_ids)
+        cls.call_event(
+            update_products_discounted_prices_for_promotion_task.delay, product_ids
+        )
 
         return CollectionDelete(
             collection=ChannelContext(node=result.collection, channel_slug=None)
