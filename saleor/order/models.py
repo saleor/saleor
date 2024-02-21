@@ -500,15 +500,6 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
     def get_total_weight(self, _lines=None):
         return self.weight
 
-    def get_country(self) -> str:
-        address = self.shipping_address or self.billing_address
-        if address is None or not address.country:
-            if self.channel:
-                return self.channel.default_country
-            else:
-                return settings.DEFAULT_COUNTRY
-        return address.country.code
-
 
 class OrderLineQueryset(models.QuerySet["OrderLine"]):
     def digital(self):

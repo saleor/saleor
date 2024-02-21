@@ -706,6 +706,7 @@ def create_order_discount_objects_for_order_promotions(
     lines_info: Iterable["DraftOrderLineInfo"],
 ):
     from ..order.base_calculations import base_order_subtotal
+    from ..order.utils import get_order_country
 
     # The base prices are required for order promotion discount qualification.
     _set_order_base_prices(order, lines_info)
@@ -722,7 +723,7 @@ def create_order_discount_objects_for_order_promotions(
     rule_data = get_best_rule(
         rules=rules,
         channel=channel,
-        country=order.get_country(),
+        country=get_order_country(order),
         subtotal=subtotal,
     )
     if not rule_data:
