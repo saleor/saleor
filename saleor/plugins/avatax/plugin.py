@@ -15,7 +15,7 @@ from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from ...checkout import base_calculations
 from ...checkout.fetch import fetch_checkout_lines
-from ...core.taxes import EmptyTaxData, TaxError, TaxType, zero_taxed_money
+from ...core.taxes import TaxError, TaxType, zero_taxed_money
 from ...order import base_calculations as order_base_calculation
 from ...order.interface import OrderTaxedPricesData
 from ...product.models import ProductType
@@ -28,6 +28,7 @@ from ...tax.utils import (
     get_tax_calculation_strategy_for_checkout,
     get_tax_calculation_strategy_for_order,
 )
+from .. import PLUGIN_IDENTIFIER_PREFIX
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 from ..error_codes import PluginErrorCode
 from . import (
@@ -77,7 +78,7 @@ class AvataxPlugin(BasePlugin):
     PLUGIN_NAME = "Avalara"
     PLUGIN_ID = "mirumee.taxes.avalara"
     # identifier used in tax configuration
-    PLUGIN_IDENTIFIER = "plugin:" + PLUGIN_ID
+    PLUGIN_IDENTIFIER = PLUGIN_IDENTIFIER_PREFIX + PLUGIN_ID
 
     DEFAULT_CONFIGURATION = [
         {"name": "Username or account", "value": None},
@@ -733,42 +734,54 @@ class AvataxPlugin(BasePlugin):
         base_value: Union[TaxedMoney, Decimal],
     ):
         if self._skip_plugin(base_value):
+            self._set_checkout_tax_error(checkout_info, lines_info)
             return None
 
         valid = _validate_checkout(checkout_info, lines_info)
         if not valid:
+            self._set_checkout_tax_error(checkout_info, lines_info)
             return None
 
         response = get_checkout_tax_data(checkout_info, lines_info, self.config)
 
         if not response or "error" in response:
-            app_identifier = get_tax_app_identifier_for_checkout(
-                checkout_info, lines_info
-            )
-            if app_identifier == self.PLUGIN_IDENTIFIER:
-                raise EmptyTaxData("Empty tax data.")
+            self._set_checkout_tax_error(checkout_info, lines_info)
             return None
 
         return response
+
+    def _set_checkout_tax_error(
+        self,
+        checkout_info: "CheckoutInfo",
+        lines_info: Iterable["CheckoutLineInfo"],
+    ) -> None:
+        app_identifier = get_tax_app_identifier_for_checkout(checkout_info, lines_info)
+        if app_identifier == self.PLUGIN_IDENTIFIER:
+            checkout_info.checkout.tax_error = "Empty tax data."
 
     def _get_order_tax_data(
         self, order: "Order", base_value: Union[Decimal, OrderTaxedPricesData]
     ):
         if self._skip_plugin(base_value):
+            self._set_order_tax_error(order)
             return None
 
         valid = _validate_order(order)
         if not valid:
+            self._set_order_tax_error(order)
             return None
 
         response = get_order_tax_data(order, self.config, False)
         if not response or "error" in response:
-            app_identifier = get_tax_app_identifier_for_order(order)
-            if app_identifier == self.PLUGIN_IDENTIFIER:
-                raise EmptyTaxData("Empty tax data.")
+            self._set_order_tax_error(order)
             return None
 
         return response
+
+    def _set_order_tax_error(self, order: "Order") -> None:
+        app_identifier = get_tax_app_identifier_for_order(order)
+        if app_identifier == self.PLUGIN_IDENTIFIER:
+            order.tax_error = "Empty tax data."
 
     @staticmethod
     def _get_unit_tax_rate(

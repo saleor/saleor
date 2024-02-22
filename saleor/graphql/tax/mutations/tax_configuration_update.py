@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 
 from ....app.utils import get_active_tax_apps
 from ....permission.enums import CheckoutPermissions
+from ....plugins import PLUGIN_IDENTIFIER_PREFIX
 from ....tax import error_codes, models
 from ...account.enums import CountryCodeEnum
 from ...core import ResolveInfo
@@ -168,18 +169,17 @@ class TaxConfigurationUpdate(ModelMutation):
         active_tax_app_identifiers = [app.identifier for app in active_tax_apps]
 
         # include plugin in list of possible tax apps
-        plugin_identifier_prefix = "plugin:"
         manager = get_plugin_manager_promise(info.context).get()
         plugin_ids = [
             identifier.split(":")[1]
             for identifier in identifiers
-            if identifier.startswith(plugin_identifier_prefix)
+            if identifier.startswith(PLUGIN_IDENTIFIER_PREFIX)
         ]
         valid_plugins = manager.get_plugins(
             instance.channel.slug, active_only=True, plugin_ids=plugin_ids
         )
         valid_plugin_identifiers = [
-            plugin_identifier_prefix + plugin.PLUGIN_ID for plugin in valid_plugins
+            PLUGIN_IDENTIFIER_PREFIX + plugin.PLUGIN_ID for plugin in valid_plugins
         ]
         active_tax_app_identifiers.extend(valid_plugin_identifiers)
 

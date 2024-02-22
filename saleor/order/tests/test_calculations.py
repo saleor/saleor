@@ -9,7 +9,9 @@ from prices import Money, TaxedMoney
 from ...core.prices import quantize_price
 from ...core.taxes import TaxData, TaxError, TaxLineData, zero_taxed_money
 from ...discount import DiscountValueType
+from ...plugins import PLUGIN_IDENTIFIER_PREFIX
 from ...plugins.manager import get_plugins_manager
+from ...plugins.tests.sample_plugins import PluginSample
 from ...tax import TaxCalculationStrategy
 from ...tax.calculations.order import update_order_prices_with_flat_rates
 from .. import OrderStatus, calculations
@@ -1144,24 +1146,27 @@ def test_order_undiscounted_total(mocked_fetch_order_prices_if_expired):
     )
 
 
-@patch("saleor.plugins.avatax.plugin.AvataxPlugin")
-@patch("saleor.order.calculations._recalculate_with_plugins")
-@patch("saleor.plugins.manager.PluginsManager.get_taxes_for_checkout")
-@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+@patch("saleor.plugins.manager.PluginsManager.calculate_order_line_total")
+@patch("saleor.plugins.manager.PluginsManager.get_taxes_for_order")
+@override_settings(PLUGINS=["saleor.plugins.tests.sample_plugins.PluginSample"])
 def test_fetch_order_data_calls_plugin(
     mock_get_taxes,
-    mock_recalculate_with_plugins,
-    mock_avatax,
+    mock_calculate_order_line_total,
     order_with_lines,
     order_lines,
 ):
     # given
-    plugin_identifier = "plugin:test"
-    mock_avatax.PLUGIN_IDENTIFIER = plugin_identifier
-
     order = order_with_lines
-    order.channel.tax_configuration.tax_app_id = plugin_identifier
+    order.channel.tax_configuration.tax_app_id = (
+        PLUGIN_IDENTIFIER_PREFIX + PluginSample.PLUGIN_ID
+    )
     order.channel.tax_configuration.save()
+
+    price = Money("10.0", currency=order.currency)
+    mock_calculate_order_line_total.return_value = OrderTaxedPricesData(
+        undiscounted_price=TaxedMoney(price, price),
+        price_with_discounts=TaxedMoney(price, price),
+    )
 
     fetch_kwargs = {
         "order": order,
@@ -1174,29 +1179,24 @@ def test_fetch_order_data_calls_plugin(
     calculations.fetch_order_prices_if_expired(**fetch_kwargs)
 
     # then
-    mock_recalculate_with_plugins.assert_called_once()
+    assert mock_calculate_order_line_total.call_count == 2
     mock_get_taxes.assert_not_called()
 
 
-@patch("saleor.plugins.avatax.plugin.AvataxPlugin")
-@patch("saleor.order.calculations._recalculate_with_plugins")
+@patch("saleor.plugins.manager.PluginsManager.calculate_order_total")
 @patch("saleor.plugins.manager.PluginsManager.get_taxes_for_order")
 @patch("saleor.order.calculations._apply_tax_data")
-@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+@override_settings(PLUGINS=["saleor.plugins.tests.sample_plugins.PluginSample"])
 def test_fetch_order_data_calls_tax_app(
     mock_apply_tax_data,
     mock_get_taxes,
-    mock_recalculate_with_plugins,
-    mock_avatax,
+    mock_calculate_order_total,
     order_with_lines,
     order_lines,
 ):
     # given
-    plugin_identifier = "plugin:test"
-    mock_avatax.PLUGIN_IDENTIFIER = plugin_identifier
-
     order = order_with_lines
-    order.channel.tax_configuration.tax_app_id = "test_app"
+    order.channel.tax_configuration.tax_app_id = "test.app"
     order.channel.tax_configuration.save()
 
     fetch_kwargs = {
@@ -1212,4 +1212,4 @@ def test_fetch_order_data_calls_tax_app(
     # then
     mock_apply_tax_data.assert_called_once()
     mock_get_taxes.assert_called_once()
-    mock_recalculate_with_plugins.assert_not_called()
+    mock_calculate_order_total.assert_not_called()

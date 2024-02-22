@@ -13,6 +13,7 @@ from ..discount.utils import (
     create_or_update_discount_objects_from_promotion_for_checkout,
 )
 from ..payment.models import TransactionItem
+from ..plugins import PLUGIN_IDENTIFIER_PREFIX
 from ..tax import TaxCalculationStrategy
 from ..tax.calculations.checkout import update_checkout_prices_with_flat_rates
 from ..tax.utils import (
@@ -358,17 +359,24 @@ def _calculate_and_add_tax(
 
 
 def _call_plugin_or_tax_app(
-    tax_app_identifier: Optional[str],
+    tax_app_identifier: str,
     checkout: "Checkout",
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"] = None,
 ):
-    from ..plugins.avatax.plugin import AvataxPlugin
-
-    if tax_app_identifier == AvataxPlugin.PLUGIN_IDENTIFIER:
-        _apply_tax_data_from_plugins(checkout, manager, checkout_info, lines, address)
+    if tax_app_identifier.startswith(PLUGIN_IDENTIFIER_PREFIX):
+        _apply_tax_data_from_plugins(
+            checkout,
+            manager,
+            checkout_info,
+            lines,
+            address,
+            plugin_ids=[tax_app_identifier.split(":")[1]],
+        )
+        if checkout.tax_error:
+            raise EmptyTaxData("Empty tax data.")
     else:
         tax_data = manager.get_taxes_for_checkout(
             checkout_info, lines, tax_app_identifier
@@ -446,6 +454,7 @@ def _apply_tax_data_from_plugins(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
+    plugin_ids: Optional[list[str]] = None,
 ) -> None:
     for line_info in lines:
         line = line_info.line
@@ -455,6 +464,7 @@ def _apply_tax_data_from_plugins(
             lines,
             line_info,
             address,
+            plugin_ids=plugin_ids,
         )
         line.total_price = total_price
 
@@ -464,18 +474,24 @@ def _apply_tax_data_from_plugins(
             line_info,
             address,
             total_price,
+            plugin_ids=plugin_ids,
         )
 
     checkout.shipping_price = manager.calculate_checkout_shipping(
-        checkout_info, lines, address
+        checkout_info, lines, address, plugin_ids=plugin_ids
     )
     checkout.shipping_tax_rate = manager.get_checkout_shipping_tax_rate(
-        checkout_info, lines, address, checkout.shipping_price
+        checkout_info, lines, address, checkout.shipping_price, plugin_ids=plugin_ids
     )
     checkout.subtotal = manager.calculate_checkout_subtotal(
-        checkout_info, lines, address
+        checkout_info, lines, address, plugin_ids=plugin_ids
     )
-    checkout.total = manager.calculate_checkout_total(checkout_info, lines, address)
+    checkout.total = manager.calculate_checkout_total(
+        checkout_info,
+        lines,
+        address,
+        plugin_ids=plugin_ids,
+    )
 
 
 def _get_checkout_base_prices(
