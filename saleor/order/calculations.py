@@ -189,7 +189,9 @@ def _calculate_and_add_tax(
     prices_entered_with_tax: bool,
 ):
     if tax_calculation_strategy == TaxCalculationStrategy.TAX_APP:
-        # If taxAppId is not configured remain previous behaviour to call plugin and apps
+        # If taxAppId is not configured run all active plugins and tax apps.
+        # If taxAppId is provided run Avatax plugin or Tax App. taxAppId can be
+        # configured with Avatax plugin identifier.
         if not tax_app_identifier:
             # Get the taxes calculated with plugins.
             _recalculate_with_plugins(manager, order, lines, prices_entered_with_tax)
@@ -197,7 +199,7 @@ def _calculate_and_add_tax(
             tax_data = manager.get_taxes_for_order(order, tax_app_identifier)
             _apply_tax_data(order, lines, tax_data)
         else:
-            _call_plugin_or_app_tax(
+            _call_plugin_or_tax_app(
                 tax_app_identifier,
                 order,
                 lines,
@@ -209,7 +211,7 @@ def _calculate_and_add_tax(
         update_order_prices_with_flat_rates(order, lines, prices_entered_with_tax)
 
 
-def _call_plugin_or_app_tax(
+def _call_plugin_or_tax_app(
     tax_app_identifier: Optional[str],
     order: "Order",
     lines: Iterable["OrderLine"],
