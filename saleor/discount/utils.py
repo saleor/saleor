@@ -833,28 +833,36 @@ def _clear_checkout_discount(
     checkout_info: "CheckoutInfo", lines_info: Iterable["CheckoutLineInfo"], save: bool
 ):
     delete_gift_line(checkout_info.checkout, lines_info)
-    CheckoutDiscount.objects.filter(
-        checkout=checkout_info.checkout,
-        type=DiscountType.ORDER_PROMOTION,
-    ).delete()
-    checkout_info.discounts = [
-        discount
-        for discount in checkout_info.discounts
-        if discount.type != DiscountType.ORDER_PROMOTION
-    ]
+    if checkout_info.discounts:
+        CheckoutDiscount.objects.filter(
+            checkout=checkout_info.checkout,
+            type=DiscountType.ORDER_PROMOTION,
+        ).delete()
+        checkout_info.discounts = [
+            discount
+            for discount in checkout_info.discounts
+            if discount.type != DiscountType.ORDER_PROMOTION
+        ]
+    checkout = checkout_info.checkout
     if not checkout_info.voucher_code:
-        checkout_info.checkout.discount_amount = 0
-        checkout_info.checkout.discount_name = None
-        checkout_info.checkout.translated_discount_name = None
+        is_update_needed = not (
+            checkout.discount_amount == 0
+            and checkout.discount_name is None
+            and checkout.translated_discount_name is None
+        )
+        if is_update_needed:
+            checkout.discount_amount = 0
+            checkout.discount_name = None
+            checkout.translated_discount_name = None
 
-        if save:
-            checkout_info.checkout.save(
-                update_fields=[
-                    "discount_amount",
-                    "discount_name",
-                    "translated_discount_name",
-                ]
-            )
+            if save and is_update_needed:
+                checkout.save(
+                    update_fields=[
+                        "discount_amount",
+                        "discount_name",
+                        "translated_discount_name",
+                    ]
+                )
 
 
 def _clear_order_discount(

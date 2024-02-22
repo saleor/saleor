@@ -189,7 +189,7 @@ def _recalculate_prices(
     # raise an error if recorded tax_error and taxes are needed for process completion
     if order.tax_error and need_tax_calculation:
         raise ValidationError(
-            "Configured Tax App didn't respond.",
+            "Configured Tax App didn't responded.",
             code=OrderErrorCode.TAX_ERROR.value,
         )
 

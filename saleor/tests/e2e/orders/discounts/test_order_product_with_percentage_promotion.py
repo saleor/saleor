@@ -119,8 +119,8 @@ def test_order_products_on_percentage_promotion_CORE_2103(
     product_price = order_line["undiscountedUnitPrice"]["gross"]["amount"]
     assert product_price == float(product_variant_price)
     assert discount == order_line["unitDiscount"]["amount"]
-    assert order_line["unitDiscountType"] == "FIXED"
-    assert order_line["unitDiscountValue"] == discount
+    assert order_line["unitDiscountType"] == "PERCENTAGE"
+    assert order_line["unitDiscountValue"] == discount_value
     assert order_line["unitDiscountReason"] == promotion_reason
     product_discounted_price = product_price - discount
     assert product_discounted_price == order_line["unitPrice"]["gross"]["amount"]

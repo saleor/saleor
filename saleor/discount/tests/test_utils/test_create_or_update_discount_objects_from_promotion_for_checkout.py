@@ -21,9 +21,9 @@ from ....product.models import (
 from ... import DiscountType, RewardType, RewardValueType
 from ...models import CheckoutDiscount, CheckoutLineDiscount, PromotionRule
 from ...utils import (
-    _create_or_update_checkout_discount,
+    _create_or_update_order_discount,
     _get_best_gift_reward,
-    create_discount_objects_for_order_promotions,
+    create_checkout_discount_objects_for_order_promotions,
     create_or_update_discount_objects_from_promotion_for_checkout,
 )
 
@@ -115,7 +115,14 @@ def test_create_fixed_discount(
         == discount_from_db.name
         == f"{catalogue_promotion_without_rules.name}: {rule.name}"
     )
-    assert discount_from_info.reason == discount_from_db.reason is None
+    promotion_id = graphene.Node.to_global_id(
+        "Promotion", catalogue_promotion_without_rules.pk
+    )
+    assert (
+        discount_from_info.reason
+        == discount_from_db.reason
+        == f"Promotion: {promotion_id}"
+    )
     assert discount_from_info.promotion_rule == discount_from_db.promotion_rule == rule
     assert discount_from_info.voucher == discount_from_db.voucher is None
     assert (
@@ -203,7 +210,14 @@ def test_create_fixed_discount_multiple_quantity_in_lines(
         == discount_from_db.name
         == catalogue_promotion_without_rules.name
     )
-    assert discount_from_info.reason == discount_from_db.reason is None
+    promotion_id = graphene.Node.to_global_id(
+        "Promotion", catalogue_promotion_without_rules.pk
+    )
+    assert (
+        discount_from_info.reason
+        == discount_from_db.reason
+        == f"Promotion: {promotion_id}"
+    )
     assert discount_from_info.promotion_rule == discount_from_db.promotion_rule == rule
     assert discount_from_info.voucher == discount_from_db.voucher is None
 
@@ -358,7 +372,14 @@ def test_create_percentage_discount(
         == discount_from_db.name
         == f"{catalogue_promotion_without_rules.name}: {rule.name}"
     )
-    assert discount_from_info.reason == discount_from_db.reason is None
+    promotion_id = graphene.Node.to_global_id(
+        "Promotion", catalogue_promotion_without_rules.pk
+    )
+    assert (
+        discount_from_info.reason
+        == discount_from_db.reason
+        == f"Promotion: {promotion_id}"
+    )
     assert discount_from_info.promotion_rule == discount_from_db.promotion_rule == rule
     assert discount_from_info.voucher == discount_from_db.voucher is None
 
@@ -441,7 +462,14 @@ def test_create_percentage_discount_multiple_quantity_in_lines(
     assert discount_from_info.currency == discount_from_db.currency == "USD"
     discount_name = f"{catalogue_promotion_without_rules.name}: {rule.name}"
     assert discount_from_info.name == discount_from_db.name == discount_name
-    assert discount_from_info.reason == discount_from_db.reason is None
+    promotion_id = graphene.Node.to_global_id(
+        "Promotion", catalogue_promotion_without_rules.pk
+    )
+    assert (
+        discount_from_info.reason
+        == discount_from_db.reason
+        == f"Promotion: {promotion_id}"
+    )
     assert discount_from_info.promotion_rule == discount_from_db.promotion_rule == rule
     assert discount_from_info.voucher == discount_from_db.voucher is None
 
@@ -691,7 +719,14 @@ def test_two_promotions_applied_to_two_different_lines(
         == discount_from_db_1.name
         == f"{catalogue_promotion_without_rules.name}: {rule_1.name}"
     )
-    assert discount_from_info_1.reason == discount_from_db_1.reason is None
+    promotion_id = graphene.Node.to_global_id(
+        "Promotion", catalogue_promotion_without_rules.pk
+    )
+    assert (
+        discount_from_info_1.reason
+        == discount_from_db_1.reason
+        == f"Promotion: {promotion_id}"
+    )
     assert (
         discount_from_info_1.promotion_rule
         == discount_from_db_1.promotion_rule
@@ -722,7 +757,14 @@ def test_two_promotions_applied_to_two_different_lines(
         == discount_from_db_2.name
         == f"{catalogue_promotion_without_rules.name}: {rule_2.name}"
     )
-    assert discount_from_info_2.reason == discount_from_db_2.reason is None
+    promotion_id = graphene.Node.to_global_id(
+        "Promotion", catalogue_promotion_without_rules.pk
+    )
+    assert (
+        discount_from_info_2.reason
+        == discount_from_db_2.reason
+        == f"Promotion: {promotion_id}"
+    )
     assert (
         discount_from_info_2.promotion_rule
         == discount_from_db_2.promotion_rule
@@ -815,7 +857,14 @@ def test_create_percentage_discount_1_cent_variant_on_10_percentage_discount(
         == discount_from_db.name
         == f"{catalogue_promotion_without_rules.name}: {rule.name}"
     )
-    assert discount_from_info.reason == discount_from_db.reason is None
+    promotion_id = graphene.Node.to_global_id(
+        "Promotion", catalogue_promotion_without_rules.pk
+    )
+    assert (
+        discount_from_info.reason
+        == discount_from_db.reason
+        == f"Promotion: {promotion_id}"
+    )
     assert discount_from_info.promotion_rule == discount_from_db.promotion_rule == rule
     assert discount_from_info.voucher == discount_from_db.voucher is None
 
@@ -2103,10 +2152,12 @@ def test_create_discount_objects_for_order_promotions_race_condition(
         )
 
     with before_after.before(
-        "saleor.discount.utils._create_or_update_checkout_discount",
+        "saleor.discount.utils._create_or_update_order_discount",
         call_before_creating_discount_object,
     ):
-        create_discount_objects_for_order_promotions(checkout_info, checkout_lines_info)
+        create_checkout_discount_objects_for_order_promotions(
+            checkout_info, checkout_lines_info
+        )
 
     # then
     discounts = list(checkout_info.checkout.discounts.all())
@@ -2114,7 +2165,7 @@ def test_create_discount_objects_for_order_promotions_race_condition(
     assert discounts[0].amount_value == reward_value
 
 
-def test_create_or_update_checkout_discount_race_condition(
+def test_create_or_update_order_discount_race_condition(
     checkout_info,
     checkout_lines_info,
     catalogue_promotion_without_rules,
@@ -2141,15 +2192,15 @@ def test_create_or_update_checkout_discount_race_condition(
     rule.channels.add(channel)
 
     def call_update(*args, **kwargs):
-        _create_or_update_checkout_discount(
+        _create_or_update_order_discount(
             checkout,
-            checkout_info,
             checkout_lines_info,
             rule,
             reward_value,
             None,
             currency,
             promotion,
+            checkout_info,
             True,
         )
 
@@ -2163,7 +2214,7 @@ def test_create_or_update_checkout_discount_race_condition(
     assert len(discounts) == 1
 
 
-def test_create_or_update_checkout_discount_gift_reward_race_condition(
+def test_create_or_update_order_discount_gift_reward_race_condition(
     checkout_info,
     checkout_lines_info,
     gift_promotion_rule,
@@ -2180,15 +2231,15 @@ def test_create_or_update_checkout_discount_gift_reward_race_condition(
     listing = max(list(variant_listings), key=lambda x: x.discounted_price_amount)
 
     def call_update(*args, **kwargs):
-        _create_or_update_checkout_discount(
+        _create_or_update_order_discount(
             checkout,
-            checkout_info,
             checkout_lines_info,
             rule,
             listing.discounted_price_amount,
             listing,
             currency,
             promotion,
+            checkout_info,
             True,
         )
 
