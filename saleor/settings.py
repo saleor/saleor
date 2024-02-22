@@ -109,10 +109,6 @@ DATABASES = {
         default="postgres://saleor:saleor@localhost:5432/saleor",
         conn_max_age=DB_CONN_MAX_AGE,
     ),
-    DATABASE_CONNECTION_WRITER_NAME: dj_database_url.config(
-        default="postgres://saleor:saleor@localhost:5432/saleor",
-        conn_max_age=DB_CONN_MAX_AGE,
-    ),
     DATABASE_CONNECTION_REPLICA_NAME: dj_database_url.config(
         default="postgres://saleor:saleor@localhost:5432/saleor",
         # TODO: We need to add read only user to saleor platform,
@@ -240,19 +236,14 @@ MIDDLEWARE = [
     "saleor.core.middleware.jwt_refresh_token_middleware",
 ]
 
-# Database alias logger middleware
-ENABLE_DB_ALIAS_LOGGER_MIDDLEWARE = get_bool_from_env(
-    "ENABLE_DB_ALIAS_LOGGER_MIDDLEWARE", False
+ENABLE_RESTRICT_WRITER_MIDDLEWARE = get_bool_from_env(
+    "ENABLE_RESTRICT_WRITER_MIDDLEWARE", False
 )
-if ENABLE_DB_ALIAS_LOGGER_MIDDLEWARE:
-    MIDDLEWARE.append("saleor.core.db.connection.db_alias_logger_middleware")
+if ENABLE_RESTRICT_WRITER_MIDDLEWARE:
+    MIDDLEWARE.append("saleor.core.db.connection.restrict_writer_middleware")
 
-DB_ALIAS_LOGGER = {
-    # Set LOG_REPLICA to True to log queries executed on the replica database
-    "LOG_REPLICA": False,
-    # Set LOG_WRITER to True to log queries executed on the writer database
-    "LOG_WRITER": False,
-}
+# If true, disallowed writer usage will raise an error, otherwise it will log a warning.
+RESTRICT_WRITER_RAISE_ERROR = False
 
 INSTALLED_APPS = [
     # External apps that need to go before django's

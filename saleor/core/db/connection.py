@@ -1,20 +1,46 @@
 import logging
+from contextlib import contextmanager
 from typing import Any
 
 from django.conf import settings
 from django.core.management.color import color_style
-from django.db.backends.base.base import BaseDatabaseWrapper
 from django.db.backends.utils import CursorWrapper
 
 logger = logging.getLogger(__name__)
 
 
-def db_alias_logger_middleware(get_response):
+@contextmanager
+def allow_writer():
+    from django.db import connections
+
+    default_connection = connections[settings.DATABASE_CONNECTION_DEFAULT_NAME]
+
+    # Check if we are already in an allow_writer block. If so we don't need to do
+    # anything and we don't have to close access to the writer at the end.
+    in_allow_writer_block = getattr(default_connection, "_allow_writer", False)
+    if not in_allow_writer_block:
+        setattr(default_connection, "_allow_writer", True)
+
+    yield
+
+    if not in_allow_writer_block:
+        # Close writer access when exiting the outermost allow_writer block.
+        setattr(default_connection, "_allow_writer", False)
+
+
+def restrict_writer_middleware(get_response):
+    """Middleware that restricts write access to the default database connection.
+
+    This middleware will raise an error or log a warning if a write operation is
+    attempted on the default database connection. To allow writes, use the
+    `allow_writer` context manager or the `using` queryset method.
+    """
+
     def middleware(request):
         from django.db import connections
 
-        for conn in connections.all():
-            wrap_connection(conn)
+        default_connection = connections[settings.DATABASE_CONNECTION_DEFAULT_NAME]
+        _wrap_connection(default_connection)
 
         response = get_response(request)
         return response
@@ -22,43 +48,38 @@ def db_alias_logger_middleware(get_response):
     return middleware
 
 
-def wrap_connection(connection: BaseDatabaseWrapper):
+def _wrap_connection(connection):
     if not hasattr(connection, "_orig_cursor"):
-        connection._orig_cursor = connection.cursor  # type: ignore
+        connection._orig_cursor = connection.cursor
 
         def cursor(*args, **kwargs):
-            orig_cursor = connection._orig_cursor(*args, **kwargs)  # type: ignore
-            PatchedCursor = _apply_mixin(orig_cursor.__class__, DbAliasLogger)
+            orig_cursor = connection._orig_cursor(*args, **kwargs)
+            PatchedCursor = _apply_mixin(orig_cursor.__class__, RestrictWriterWrapper)
             return PatchedCursor(orig_cursor.cursor, connection)
 
-        connection.cursor = cursor  # type: ignore[method-assign]
+        connection.cursor = cursor
 
 
-class DbAliasLogger(CursorWrapper):
+class UnsafeWriterAccessError(Exception):
+    pass
+
+
+class RestrictWriterWrapper(CursorWrapper):
     def _add_logger(self, method, sql, params):
         alias = self.db.alias
-
-        # Get logger settings.
-        log_settings = getattr(settings, "DB_ALIAS_LOGGER", {})
-        settings_log_replica = log_settings.get("LOG_REPLICA", False)
-        settings_log_writer = log_settings.get("LOG_WRITER", True)
-
-        if alias == settings.DATABASE_CONNECTION_DEFAULT_NAME:
-            msg_db_alias = color_style().NOTICE(f"[db:{alias}]")
-            msg = (
-                "Query executed using default DB alias. Use specific alias instead: "
-                f"{settings.DATABASE_CONNECTION_REPLICA_NAME} or "
-                f"{settings.DATABASE_CONNECTION_WRITER_NAME}"
-            )
-            logger.warning("%s: %s; %s", msg_db_alias, sql, msg)
-        elif settings_log_writer and alias == settings.DATABASE_CONNECTION_WRITER_NAME:
-            msg_db_alias = color_style().WARNING(f"[db:{alias}]")
-            logger.info("%s: %s", msg_db_alias, sql)
-        elif (
-            settings_log_replica and alias == settings.DATABASE_CONNECTION_REPLICA_NAME
-        ):
-            msg_db_alias = color_style().SUCCESS(f"[db:{alias}]")
-            logger.info("%s: %s", msg_db_alias, sql)
+        allow_writer = getattr(self.db, "_allow_writer", False)
+        if alias == settings.DATABASE_CONNECTION_DEFAULT_NAME and not allow_writer:
+            if settings.RESTRICT_WRITER_RAISE_ERROR:
+                raise UnsafeWriterAccessError(
+                    "Unsafe writer DB access - use `allow_writer` context manager or "
+                    f"`using(alias)` queryset method: {sql}"
+                )
+            else:
+                msg = (
+                    "Unsafe writer DB access - use `allow_writer` context manager or "
+                    f"`using(alias)` queryset method: {sql}"
+                )
+                logger.error(color_style().NOTICE(msg))
         return method(sql, params)
 
     def execute(self, sql, params=None):
@@ -69,8 +90,8 @@ class DbAliasLogger(CursorWrapper):
 
 
 def _apply_mixin(base_wrapper: Any, mixin: Any):
-    class DbAliasLoggerCursorWrapper(mixin, base_wrapper):
+    class _RestrictWriterWrapper(mixin, base_wrapper):
         # Purpose of this class is to combine the mixin and the base_wrapper together.
         pass
 
-    return DbAliasLoggerCursorWrapper
+    return _RestrictWriterWrapper
