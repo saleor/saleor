@@ -8,7 +8,7 @@ from prices import Money, TaxedMoney
 
 from ..checkout import base_calculations
 from ..core.prices import quantize_price
-from ..core.taxes import EmptyTaxData, TaxData, zero_money, zero_taxed_money
+from ..core.taxes import TaxData, TaxEmptyData, zero_money, zero_taxed_money
 from ..discount.utils import (
     create_or_update_discount_objects_from_promotion_for_checkout,
 )
@@ -253,7 +253,7 @@ def _fetch_checkout_prices_if_expired(
                 prices_entered_with_tax,
                 address,
             )
-        except EmptyTaxData as e:
+        except TaxEmptyData as e:
             checkout.tax_error = str(e)
 
         if not should_charge_tax:
@@ -277,7 +277,7 @@ def _fetch_checkout_prices_if_expired(
                     prices_entered_with_tax,
                     address,
                 )
-            except EmptyTaxData as e:
+            except TaxEmptyData as e:
                 checkout.tax_error = str(e)
         else:
             # Calculate net prices without taxes.
@@ -376,13 +376,13 @@ def _call_plugin_or_tax_app(
             plugin_ids=[tax_app_identifier.split(":")[1]],
         )
         if checkout.tax_error:
-            raise EmptyTaxData("Empty tax data.")
+            raise TaxEmptyData("Empty tax data.")
     else:
         tax_data = manager.get_taxes_for_checkout(
             checkout_info, lines, tax_app_identifier
         )
         if tax_data is None:
-            raise EmptyTaxData("Empty tax data.")
+            raise TaxEmptyData("Empty tax data.")
         _apply_tax_data(checkout, lines, tax_data)
 
 
