@@ -1,7 +1,9 @@
 import graphene
 import pytest
+from django.test import override_settings
 
 from .....core.tests.test_taxes import app_factory, tax_app_factory  # noqa: F401
+from .....plugins.tests.sample_plugins import PluginSample
 from .....tax.error_codes import TaxConfigurationUpdateErrorCode
 from .....tax.models import TaxConfiguration
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -389,13 +391,14 @@ def test_tax_configuration_update_tax_app_id_with_non_existent_app(
     assert errors[0]["code"] == TaxConfigurationUpdateErrorCode.NOT_FOUND.name
 
 
+@override_settings(PLUGINS=["saleor.plugins.tests.sample_plugins.PluginSample"])
 def test_tax_configuration_update_tax_app_id_with_plugin(
     example_tax_configuration, staff_api_client, permission_manage_taxes
 ):
     """Make sure that we are able to still use legacy plugin."""
     # given
     id = graphene.Node.to_global_id("TaxConfiguration", example_tax_configuration.pk)
-    plugin_id = "plugin:mirumee.taxes.avalara"
+    plugin_id = "plugin:" + PluginSample.PLUGIN_ID
     variables = {
         "id": id,
         "input": {

@@ -1778,7 +1778,10 @@ class PluginsManager(PaymentInterface):
         )
 
     def get_plugins(
-        self, channel_slug: Optional[str] = None, active_only=False
+        self,
+        channel_slug: Optional[str] = None,
+        active_only=False,
+        plugin_ids: Optional[list[str]] = None,
     ) -> list["BasePlugin"]:
         """Return list of plugins for a given channel."""
         if channel_slug:
@@ -1788,6 +1791,10 @@ class PluginsManager(PaymentInterface):
 
         if active_only:
             plugins = [plugin for plugin in plugins if plugin.active]
+
+        if plugin_ids:
+            plugins = [plugin for plugin in plugins if plugin.PLUGIN_ID in plugin_ids]
+
         return plugins
 
     def list_payment_gateways(
