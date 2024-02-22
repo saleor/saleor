@@ -16,6 +16,8 @@ from .....order import events as order_events
 from .....order.error_codes import OrderErrorCode
 from .....order.models import OrderEvent
 from .....payment.model_helpers import get_subtotal
+from .....plugins.avatax.plugin import AvataxPlugin
+from .....plugins.avatax.tests.conftest import plugin_configuration  # noqa: F401
 from .....plugins.base_plugin import ExcludedShippingMethod
 from .....plugins.webhook.conftest import (  # noqa: F401
     tax_data_response,
@@ -1139,3 +1141,44 @@ def test_draft_order_complete_calls_correct_tax_app(
     order.refresh_from_db()
     assert not order.should_refresh_prices
     assert not order.tax_error
+
+
+@freeze_time()
+@patch("saleor.plugins.avatax.plugin.get_order_tax_data")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_draft_order_complete_calls_failing_plugin(
+    mock_get_order_tax_data,
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    plugin_configuration,  # noqa: F811
+    channel_USD,
+):
+    # given
+    mock_get_order_tax_data.return_value = None
+    plugin_configuration()
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    order = draft_order
+    order.should_refresh_prices = True
+    order.save()
+
+    channel_USD.tax_configuration.tax_app_id = AvataxPlugin.PLUGIN_IDENTIFIER
+    channel_USD.tax_configuration.save()
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+
+    # when
+    response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["draftOrderComplete"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == OrderErrorCode.TAX_ERROR.name
+    assert data["errors"][0]["message"] == "Configured Tax App didn't responded."
+
+    order.refresh_from_db()
+    assert not order.should_refresh_prices
+    assert order.tax_error == "Empty tax data."

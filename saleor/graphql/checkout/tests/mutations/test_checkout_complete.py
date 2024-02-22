@@ -16,6 +16,8 @@ from .....core.models import EventDelivery
 from .....order import OrderStatus
 from .....order.models import Order
 from .....payment.model_helpers import get_subtotal
+from .....plugins.avatax.plugin import AvataxPlugin
+from .....plugins.avatax.tests.conftest import plugin_configuration  # noqa: F401
 from .....plugins.manager import get_plugins_manager
 from .....plugins.webhook.conftest import (  # noqa: F401
     tax_data_response,
@@ -487,6 +489,55 @@ def test_checkout_complete_calls_correct_tax_app(
     checkout.refresh_from_db()
     assert checkout.price_expiration == timezone.now() + settings.CHECKOUT_PRICES_TTL
     assert checkout.tax_error is None
+
+
+@freeze_time()
+@mock.patch("saleor.plugins.avatax.plugin.get_checkout_tax_data")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_checkout_complete_calls_failing_plugin(
+    mock_get_checkout_tax_data,
+    user_api_client,
+    checkout_without_shipping_required,
+    channel_USD,
+    plugin_configuration,  # noqa: F811
+    address,
+    settings,
+):
+    # given
+    mock_get_checkout_tax_data.return_value = None
+    plugin_configuration()
+
+    checkout = checkout_without_shipping_required
+    checkout.billing_address = address
+    checkout.price_expiration = timezone.now()
+    checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
+    checkout.metadata_storage.store_value_in_private_metadata(
+        items={"accepted": "false"}
+    )
+    checkout.metadata_storage.save()
+    checkout.save()
+
+    channel_USD.tax_configuration.tax_app_id = AvataxPlugin.PLUGIN_IDENTIFIER
+    channel_USD.tax_configuration.save()
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "redirectUrl": "https://www.example.com",
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["checkoutComplete"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == CheckoutErrorCode.TAX_ERROR.name
+    assert data["errors"][0]["message"] == "Configured Tax App didn't responded."
+
+    checkout.refresh_from_db()
+    assert checkout.price_expiration == timezone.now() + settings.CHECKOUT_PRICES_TTL
+    assert checkout.tax_error == "Empty tax data."
 
 
 @freeze_time()
