@@ -435,7 +435,7 @@ def group_lines_input_data_on_update(
             )
 
         if not line_db_id:
-            line_data = checkout_lines_data_map[variant_db_id]
+            line_data = checkout_lines_data_map[variant_db_id]  # type: ignore[index]
             line_data.variant_id = variant_db_id
         else:
             line_data = checkout_lines_data_map[line_db_id]

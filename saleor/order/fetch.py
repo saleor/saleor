@@ -106,6 +106,7 @@ def fetch_draft_order_lines_info(
         "variant__channel_listings__variantlistingpromotionrule__promotion_rule__promotion__translations",
         "variant__channel_listings__variantlistingpromotionrule__promotion_rule__translations",
         "discounts__promotion_rule__promotion",
+        "variant__product__product_type",
     ]
 
     if lines is None:

@@ -193,6 +193,7 @@ def filter_qs_by_predicate(
         predicate_type: type of predicate (catalogue or order)
         currency: currency used for filtering by order predicates
             with price conditions
+
     """
     if not predicate:
         return base_qs.model.objects.none()

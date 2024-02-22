@@ -412,7 +412,6 @@ def create_or_update_discount_objects_from_promotion_for_order(
     order: "Order",
     lines_info: Iterable["DraftOrderLineInfo"],
 ):
-    # TODO zedzior sprawdz checkoutowe flow czy nie trzbea poodswiezac prefetchy
     create_discount_objects_for_catalogue_promotions(lines_info)
     _update_order_line_prefetched_discounts(lines_info)
     _update_order_line_base_unit_prices(lines_info)
@@ -486,7 +485,7 @@ def create_discount_objects_for_catalogue_promotions(
             discount.promotion_rule_id: discount for discount in discounts_to_update
         }
 
-        # delete all existing discounts if the line is not discounted, or it is a gift
+        # delete all existing discounts if the line is not discounted or it is a gift
         if not discount_amount or line.is_gift:
             ids_to_remove = [discount.id for discount in discounts_to_update]
             if ids_to_remove:
@@ -684,7 +683,7 @@ def create_checkout_discount_objects_for_order_promotions(
     # Discount from order rules is applied only when the voucher is not set
     if checkout.voucher_code:
         _clear_checkout_discount(checkout_info, lines_info, save)
-        return lines_info
+        return
 
     channel = checkout_info.channel
     rules = fetch_promotion_rules_for_checkout_or_order(checkout)
@@ -696,7 +695,7 @@ def create_checkout_discount_objects_for_order_promotions(
     )
     if not rule_data:
         _clear_checkout_discount(checkout_info, lines_info, save)
-        return lines_info
+        return
 
     best_rule, best_discount_amount, gift_listing = rule_data
 
@@ -726,7 +725,7 @@ def create_order_discount_objects_for_order_promotions(
     # Discount from order rules is applied only when the voucher is not set
     if order.voucher_code:
         _clear_order_discount(order, lines_info)
-        return lines_info
+        return
 
     lines = [line_info.line for line_info in lines_info]
     subtotal = base_order_subtotal(order, lines)
@@ -740,7 +739,7 @@ def create_order_discount_objects_for_order_promotions(
     )
     if not rule_data:
         _clear_order_discount(order, lines_info)
-        return lines_info
+        return
 
     best_rule, best_discount_amount, gift_listing = rule_data
 
@@ -786,7 +785,7 @@ def get_best_rule(
             )
 
     if not rule_discounts:
-        return None
+        return
 
     best_rule, best_discount_amount, gift_listing = max(
         rule_discounts, key=lambda x: x.discount_amount
@@ -804,9 +803,13 @@ def _set_checkout_base_prices(checkout_info, lines_info):
         checkout_info, lines_info, include_voucher=False
     )
     total = subtotal + shipping_price
-    checkout.base_subtotal = subtotal
-    checkout.base_total = total
-    checkout.save(update_fields=["base_total_amount", "base_subtotal_amount"])
+    is_update_needed = not (
+        checkout.base_subtotal == subtotal and checkout.base_total == total
+    )
+    if is_update_needed:
+        checkout.base_subtotal = subtotal
+        checkout.base_total = total
+        checkout.save(update_fields=["base_total_amount", "base_subtotal_amount"])
 
 
 def _set_order_base_prices(order: Order, lines_info: Iterable[DraftOrderLineInfo]):
@@ -1148,10 +1151,10 @@ def _get_defaults_for_line(order_or_checkout: Union[Checkout, Order], variant_id
             "variant_id": variant_id,
             "quantity": 1,
             "currency": order_or_checkout.currency,
-            "unit_price_net_amount": 0,
-            "unit_price_gross_amount": 0,
-            "total_price_net_amount": 0,
-            "total_price_gross_amount": 0,
+            "unit_price_net_amount": Decimal(0),
+            "unit_price_gross_amount": Decimal(0),
+            "total_price_net_amount": Decimal(0),
+            "total_price_gross_amount": Decimal(0),
             "is_shipping_required": True,
             "is_gift_card": False,
         }
