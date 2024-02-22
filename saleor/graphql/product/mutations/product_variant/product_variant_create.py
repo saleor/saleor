@@ -213,6 +213,16 @@ class ProductVariantCreate(ModelMutation):
         else:
             # If the variant is getting created, no product type is associated yet,
             # retrieve it from the required "product" input field
+            product = cleaned_input["product"]
+            if not product:
+                raise ValidationError(
+                    {
+                        "product": ValidationError(
+                            "Product cannot be set empty.",
+                            code=ProductErrorCode.INVALID.value,
+                        )
+                    }
+                )
             product_type = cleaned_input["product"].product_type
             used_attribute_values = get_used_variants_attribute_values(
                 cleaned_input["product"]
