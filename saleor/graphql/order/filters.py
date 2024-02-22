@@ -244,7 +244,6 @@ class OrderDiscountedObjectWhere(DiscountedObjectWhere):
 
 
 def _filter_price(qs, _, field_name, value, currency):
-    # TODO zedzior check what does it mean
     # We will have single channel/currency as the rule can be applied only
     # on channels with the same currencies
     if not currency:

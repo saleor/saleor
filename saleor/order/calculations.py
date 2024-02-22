@@ -81,6 +81,10 @@ def fetch_order_prices_if_expired(
                 "undiscounted_total_price_net_amount",
                 "undiscounted_total_price_gross_amount",
                 "tax_rate",
+                "unit_discount_amount",
+                "unit_discount_reason",
+                "unit_discount_type",
+                "unit_discount_value",
             ],
         )
 
@@ -89,7 +93,6 @@ def fetch_order_prices_if_expired(
 
 def _update_order_discount_for_voucher(order: Order):
     """Create or delete OrderDiscount instances."""
-    # TODO: zedzior ogarnij wszystkie vouchery
     if not order.voucher_id:
         order.discounts.filter(type=DiscountType.VOUCHER).delete()
 

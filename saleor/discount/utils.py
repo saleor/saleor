@@ -420,6 +420,7 @@ def create_or_update_discount_objects_from_promotion_for_order(
     create_order_discount_objects_for_order_promotions(order, lines_info)
     # if order promotion is type of gift, discount is associated with line, not order
     _update_order_line_prefetched_discounts(lines_info)
+    _copy_unit_discount_data_to_order_line(lines_info)
 
 
 def _update_order_line_prefetched_discounts(lines_info: Iterable[DraftOrderLineInfo]):
@@ -447,6 +448,17 @@ def _update_order_line_base_unit_prices(lines_info: Iterable[DraftOrderLineInfo]
             base_unit_price -= unit_discount
         line.base_unit_price_amount = max(base_unit_price, Decimal(0))
     OrderLine.objects.bulk_update(modified_lines, ["base_unit_price_amount"])
+
+
+def _copy_unit_discount_data_to_order_line(lines_info: Iterable[DraftOrderLineInfo]):
+    for line_info in lines_info:
+        if line_info.discounts:
+            line = line_info.line
+            discount = line_info.discounts[0]
+            line.unit_discount_amount = discount.amount_value / line.quantity
+            line.unit_discount_reason = discount.reason
+            line.unit_discount_type = discount.value_type
+            line.unit_discount_value = discount.value
 
 
 def create_discount_objects_for_catalogue_promotions(

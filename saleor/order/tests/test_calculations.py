@@ -1224,11 +1224,10 @@ def test_fetch_order_prices_catalogue_discount_flat_rates(
     assert discount.type == DiscountType.PROMOTION
     assert discount.reason == f"Promotion: {promotion_id}"
 
-    # TODO zedzior sprawdz czy te pola sa dalej potrzebne, jesli tak to napraw
-    # assert line_1.discount_amount
-    # assert line_1.discount_reason
-    # assert line_1.discount_type
-    # assert line_1.discount_value
+    assert line_1.unit_discount_amount == Decimal("3.00")
+    assert line_1.unit_discount_reason == f"Promotion: {promotion_id}"
+    assert line_1.unit_discount_type == DiscountValueType.FIXED
+    assert line_1.unit_discount_value == Decimal("3.00")
 
 
 @pytest.mark.parametrize("create_new_discounts", [True, False])
@@ -1393,11 +1392,10 @@ def test_fetch_order_prices_gift_discount_flat_rates(
     assert discount.type == DiscountType.ORDER_PROMOTION
     assert discount.reason == f"Promotion: {promotion_id}"
 
-    # TODO zedzior sprawdz czy te pola sa dalej potrzebne, jesli tak to napraw
-    # assert gift_line.discount_amount
-    # assert gift_line.discount_reason
-    # assert gift_line.discount_type
-    # assert gift_line.discount_value
+    assert gift_line.unit_discount_amount == Decimal("10.00")
+    assert gift_line.unit_discount_reason == f"Promotion: {promotion_id}"
+    assert gift_line.unit_discount_type == DiscountValueType.FIXED
+    assert gift_line.unit_discount_value == Decimal("10.00")
 
 
 def test_fetch_order_prices_catalogue_and_order_discounts_flat_rates(
