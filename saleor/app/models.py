@@ -44,7 +44,7 @@ class App(ModelWithMetadata):
     type = models.CharField(
         choices=AppType.CHOICES, default=AppType.LOCAL, max_length=60
     )
-    identifier = models.CharField(blank=True, null=True, max_length=256)
+    identifier = models.CharField(max_length=256, blank=True)
     permissions = models.ManyToManyField(
         Permission,
         blank=True,

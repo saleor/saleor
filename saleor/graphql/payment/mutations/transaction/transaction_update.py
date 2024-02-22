@@ -24,9 +24,11 @@ from .....permission.auth_filters import AuthorizationFilters
 from .....permission.enums import PaymentPermissions
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_34, PREVIEW_FEATURE
+from ....core.descriptions import ADDED_IN_34, ADDED_IN_314, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_PAYMENTS
+from ....core.scalars import UUID
 from ....core.types import common as common_types
+from ....core.validators import validate_one_of_args_is_in_mutation
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import TransactionItem
 from ...utils import check_if_requestor_has_access
@@ -51,8 +53,17 @@ class TransactionUpdate(TransactionCreate):
 
     class Arguments:
         id = graphene.ID(
-            description="The ID of the transaction.",
-            required=True,
+            description=(
+                "The ID of the transaction. One of field id or token is required."
+            ),
+            required=False,
+        )
+        token = UUID(
+            description=(
+                "The token of the transaction. One of field id or token is required."
+            )
+            + ADDED_IN_314,
+            required=False,
         )
         transaction = TransactionUpdateInput(
             description="Input data required to create a new transaction object.",
@@ -174,19 +185,21 @@ class TransactionUpdate(TransactionCreate):
             transaction_data["app_identifier"] = app.identifier
 
     @classmethod
-    def perform_mutation(  # type: ignore[override]
+    def perform_mutation(
         cls,
         _root,
         info: ResolveInfo,
         /,
         *,
-        id: str,
+        token=None,
+        id=None,
         transaction=None,
         transaction_event=None,
     ):
-        app = get_app_promise(info.context).get()
+        validate_one_of_args_is_in_mutation("id", id, "token", token)
+        instance = get_transaction_item(id, token)
         user = info.context.user
-        instance = get_transaction_item(id)
+        app = get_app_promise(info.context).get()
         manager = get_plugin_manager_promise(info.context).get()
 
         cls.check_can_update(

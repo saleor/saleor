@@ -338,6 +338,7 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
     # this field is used only for draft/unconfirmed orders
     should_refresh_prices = models.BooleanField(default=True)
     tax_exemption = models.BooleanField(default=False)
+    tax_error = models.CharField(max_length=255, null=True, blank=True)
 
     objects = OrderManager()
 

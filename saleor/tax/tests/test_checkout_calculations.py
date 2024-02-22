@@ -7,7 +7,7 @@ from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...checkout.utils import add_variant_to_checkout
 from ...core.prices import quantize_price
 from ...core.taxes import zero_taxed_money
-from ...discount.utils import create_checkout_discount_objects_for_order_promotions
+from ...discount.utils import create_discount_objects_for_order_promotions
 from ...plugins.manager import get_plugins_manager
 from ...tax.models import TaxClassCountryRate
 from .. import TaxCalculationStrategy
@@ -880,7 +880,7 @@ def test_calculate_checkout_line_total_discount_from_order_promotion(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     checkout_line_info = lines[0]
-    create_checkout_discount_objects_for_order_promotions(checkout_info, lines)
+    create_discount_objects_for_order_promotions(checkout_info, lines)
 
     # when
     line_price = calculate_checkout_line_total(
@@ -928,7 +928,7 @@ def test_calculate_checkout_line_total_discount_for_gift_line(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     checkout_line_info = [line_info for line_info in lines if line_info.line.is_gift][0]
-    create_checkout_discount_objects_for_order_promotions(checkout_info, lines)
+    create_discount_objects_for_order_promotions(checkout_info, lines)
 
     # when
     line_price = calculate_checkout_line_total(

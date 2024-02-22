@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from ... import RewardType, RewardValueType
 from ...models import PromotionRule
-from ...utils import fetch_promotion_rules_for_checkout_or_order
+from ...utils import fetch_promotion_rules_for_checkout
 
 
 def test_fetch_promotion_rules_for_checkout(
@@ -23,7 +23,7 @@ def test_fetch_promotion_rules_for_checkout(
     )
 
     # when
-    rules_per_promotion_id = fetch_promotion_rules_for_checkout_or_order(checkout)
+    rules_per_promotion_id = fetch_promotion_rules_for_checkout(checkout)
 
     # then
     assert len(rules_per_promotion_id) == 1
@@ -48,7 +48,7 @@ def test_fetch_promotion_rules_for_checkout_no_matching_rule(
     )
 
     # when
-    rules_per_promotion_id = fetch_promotion_rules_for_checkout_or_order(checkout)
+    rules_per_promotion_id = fetch_promotion_rules_for_checkout(checkout)
 
     # then
     assert not rules_per_promotion_id
@@ -77,7 +77,7 @@ def test_fetch_promotion_rules_for_checkout_relevant_channel_only(
     rule_2.channels.add(checkout_JPY.channel)
 
     # when
-    rules_per_promotion_id = fetch_promotion_rules_for_checkout_or_order(checkout_JPY)
+    rules_per_promotion_id = fetch_promotion_rules_for_checkout(checkout_JPY)
 
     # then
     assert len(rules_per_promotion_id) == 1

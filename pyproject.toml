@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "saleor"
-version = "3.19.0-a.0"
+version = "3.20.0-a.0"
 description = "A modular, high performance, headless e-commerce platform built with Python, GraphQL, Django, and React."
 authors = [ "Saleor Commerce <hello@saleor.io>" ]
 license = "BSD-3-Clause"
@@ -30,7 +30,7 @@ documentation = "https://docs.saleor.io/"
   cryptography = "^42.0.1"
   dj-database-url = "^2"
   dj-email-url = "^1"
-  django = {version = "^3.2.22", extras = ["bcrypt"]}
+  django = {version = "^3.2.24", extras = ["bcrypt"]}
   django-cache-url = "^3.1.2"
   django-celery-beat = "^2.2.1"
   django-countries = "^7.2"
@@ -42,7 +42,7 @@ documentation = "https://docs.saleor.io/"
   django-redis = "^5.0.0"
   django-stubs-ext = "^4.2.1"
   draftjs-sanitizer = "^1.0.0"
-  faker = ">=4.1,<21.0"
+  faker = ">=4.1,<24.0"
   google-cloud-pubsub = ">=1.7,<3.0"
   google-cloud-storage = "^2.0.0"
   google-i18n-address = "^3.1.0"
@@ -119,7 +119,7 @@ documentation = "https://docs.saleor.io/"
   mypy-extensions = "^1.0.0"
   openpyxl = "^3.0.3"
   pre-commit = "^3.4"
-  pytest = "^7.0.1"
+  pytest = "^8.0.0"
   pytest-asyncio = "^0.21.0"
   pytest-celery = "^0.0.0"
   pytest-cov = "^4.0.0"
@@ -128,10 +128,10 @@ documentation = "https://docs.saleor.io/"
   pytest-memray = "^1.5.0"
   pytest-mock = "^3.6.1"
   pytest-recording = "^0.13.0"
-  pytest-socket = "^0.6.0"
+  pytest-socket = "^0.7.0"
   pytest-xdist = "^3.0.2"
   pywatchman = "^1.4.1"
-  ruff = "^0.1.3"
+  ruff = "^0.2.1"
   semgrep = ">=1.34.0"
   types-certifi = "^2021.10.8"
   types-freezegun = "^1.1.7"
@@ -158,13 +158,13 @@ extend_exclude = ["conftest\\.py", ".*/conftest\\.py", ".*/tests/.*"]
   DEP004 = ["debug_toolbar", "graphiql_debug_toolbar"]
 
 [tool.ruff]
-extend-select = ["D", "I", "ISC001", "ISC002", "PIE", "PT", "T20", "UP"]
-ignore = ["D100", "D101", "D102", "D103", "D104", "D105", "D106", "D107", "D202", "D203", "D206", "D213", "D407", "PT019"]
+lint.extend-select = ["D", "I", "ISC002", "PIE", "PT", "T20", "UP"]
+lint.ignore = ["D100", "D101", "D102", "D103", "D104", "D105", "D106", "D107", "D202", "D203", "D206", "D213", "D407", "PT019"]
 target-version = "py39"
 
-  [tool.ruff.flake8-pytest-style]
+  [tool.ruff.lint.flake8-pytest-style]
   fixture-parentheses = false
   mark-parentheses = false
 
-  [tool.ruff.isort]
+  [tool.ruff.lint.isort]
   known-first-party = ["saleor"]

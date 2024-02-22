@@ -2217,7 +2217,8 @@ def test_plain_text_attribute_value_create_translation(
 
     attribute_value = plain_text_attribute.values.first()
     associate_attribute_values_to_instance(
-        variant, plain_text_attribute, attribute_value
+        variant,
+        {plain_text_attribute.pk: [attribute_value]},
     )
     attribute_value_id = graphene.Node.to_global_id(
         "AttributeValue", attribute_value.id
@@ -2504,7 +2505,8 @@ def test_plain_text_attribute_value_update_translation_only_plain_text(
 
     attribute_value = plain_text_attribute.values.first()
     associate_attribute_values_to_instance(
-        variant, plain_text_attribute, attribute_value
+        variant,
+        {plain_text_attribute.pk: [attribute_value]},
     )
 
     text = "Jakiś bazowy opis"
@@ -2543,7 +2545,8 @@ def test_plain_text_attribute_value_update_translation_only_plain_text_long_text
 
     attribute_value = plain_text_attribute.values.first()
     associate_attribute_values_to_instance(
-        variant, plain_text_attribute, attribute_value
+        variant,
+        {plain_text_attribute.pk: [attribute_value]},
     )
 
     text = "Jakiś bazowy opis"
@@ -2584,7 +2587,8 @@ def test_plain_text_attribute_value_update_translation_name_set_manually(
 
     attribute_value = plain_text_attribute.values.first()
     associate_attribute_values_to_instance(
-        variant, plain_text_attribute, attribute_value
+        variant,
+        {plain_text_attribute.pk: [attribute_value]},
     )
 
     text = "Jakiś bazowy opis"
@@ -2624,7 +2628,8 @@ def test_plain_text_attribute_value_update_translation_empty_name(
 
     attribute_value = plain_text_attribute.values.first()
     associate_attribute_values_to_instance(
-        variant, plain_text_attribute, attribute_value
+        variant,
+        {plain_text_attribute.pk: [attribute_value]},
     )
 
     text = "Jakiś bazowy opis"
@@ -2663,7 +2668,8 @@ def test_plain_text_attribute_value_update_translation_name_null(
 
     attribute_value = plain_text_attribute.values.first()
     associate_attribute_values_to_instance(
-        variant, plain_text_attribute, attribute_value
+        variant,
+        {plain_text_attribute.pk: [attribute_value]},
     )
 
     text = "Jakiś bazowy opis"
@@ -3853,7 +3859,7 @@ def test_product_attribute_value_plain_text_translation(
 
     product_attr_value = plain_text_attribute.values.first()
     associate_attribute_values_to_instance(
-        product, plain_text_attribute, product_attr_value
+        product, {plain_text_attribute.id: [product_attr_value]}
     )
 
     text = "Test plain text translation"
@@ -3894,7 +3900,7 @@ def test_nested_product_attribute_translation(
 
     product_attr_value = plain_text_attribute.values.first()
     associate_attribute_values_to_instance(
-        product, plain_text_attribute, product_attr_value
+        product, {plain_text_attribute.id: [product_attr_value]}
     )
 
     text = "Test attribute translation"
@@ -3917,6 +3923,89 @@ def test_nested_product_attribute_translation(
     # then
     data = get_graphql_content(response)["data"]
 
+    attribute_response = data["translation"]["attributeValues"][0]["attribute"]
+    assert attribute_response["name"] == plain_text_attribute.name
+    assert attribute_response["translation"]["name"] == text
+
+
+def test_product_attribute_not_visible_in_storefront_translation_not_returned_no_page_permission(
+    staff_api_client,
+    plain_text_attribute,
+    product,
+    permission_manage_translations,
+):
+    # given
+    product_type = product.product_type
+    product_type.product_attributes.set([plain_text_attribute])
+    plain_text_attribute.visible_in_storefront = False
+    plain_text_attribute.save(update_fields=["visible_in_storefront"])
+    product_type.product_attributes.set([plain_text_attribute])
+    attribute_value = plain_text_attribute.values.first()
+
+    associate_attribute_values_to_instance(
+        product, {plain_text_attribute.pk: [attribute_value]}
+    )
+
+    text = "Test attribute translation"
+    plain_text_attribute.translations.create(language_code="pl", name=text)
+
+    product_id = graphene.Node.to_global_id("Product", product.id)
+
+    query = PRODUCT_ATTRIBUTE_VALUES_TRANSLATION_QUERY
+    variables = {
+        "id": product_id,
+        "kind": TranslatableKinds.PRODUCT.name,
+        "languageCode": LanguageCodeEnum.PL.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_translations]
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]
+    assert data["translation"]["attributeValues"] == []
+
+
+def test_product_attribute_not_visible_in_storefront_translation_returned_with_product_permission(
+    staff_api_client,
+    plain_text_attribute,
+    product,
+    permission_manage_translations,
+    permission_manage_products,
+):
+    # given
+    product_type = product.product_type
+    plain_text_attribute.visible_in_storefront = False
+    plain_text_attribute.save(update_fields=["visible_in_storefront"])
+    product_type.product_attributes.set([plain_text_attribute])
+    attribute_value = plain_text_attribute.values.first()
+
+    associate_attribute_values_to_instance(
+        product, {plain_text_attribute.pk: [attribute_value]}
+    )
+
+    text = "Test attribute translation"
+    plain_text_attribute.translations.create(language_code="pl", name=text)
+
+    product_id = graphene.Node.to_global_id("Product", product.id)
+
+    query = PRODUCT_ATTRIBUTE_VALUES_TRANSLATION_QUERY
+    variables = {
+        "id": product_id,
+        "kind": TranslatableKinds.PRODUCT.name,
+        "languageCode": LanguageCodeEnum.PL.name,
+    }
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_translations]
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]
     attribute_response = data["translation"]["attributeValues"][0]["attribute"]
     assert attribute_response["name"] == plain_text_attribute.name
     assert attribute_response["translation"]["name"] == text
@@ -4002,7 +4091,7 @@ def test_product_variant_attribute_value_plain_text_translation(
 
     attribute_value = plain_text_attribute.values.first()
     associate_attribute_values_to_instance(
-        variant, plain_text_attribute, attribute_value
+        variant, {plain_text_attribute.id: [attribute_value]}
     )
 
     text = "Test plain text translation"
@@ -4043,7 +4132,7 @@ def test_nested_product_variant_attribute_translation(
 
     attribute_value = plain_text_attribute.values.first()
     associate_attribute_values_to_instance(
-        variant, plain_text_attribute, attribute_value
+        variant, {plain_text_attribute.id: [attribute_value]}
     )
 
     text = "Test attribute translation"
@@ -4146,7 +4235,7 @@ def test_page_attribute_value_plain_text_translation(
     attribute_value = plain_text_attribute_page_type.values.first()
 
     associate_attribute_values_to_instance(
-        page, plain_text_attribute_page_type, attribute_value
+        page, {plain_text_attribute_page_type.id: [attribute_value]}
     )
 
     text = "Test plain text translation"
@@ -4189,7 +4278,7 @@ def test_nested_page_attribute_translation(
     attribute_value = plain_text_attribute_page_type.values.first()
 
     associate_attribute_values_to_instance(
-        page, plain_text_attribute_page_type, attribute_value
+        page, {plain_text_attribute_page_type.id: [attribute_value]}
     )
 
     text = "Test attribute translation"
@@ -4212,6 +4301,88 @@ def test_nested_page_attribute_translation(
     # then
     data = get_graphql_content(response)["data"]
 
+    attribute_response = data["translation"]["attributeValues"][0]["attribute"]
+    assert attribute_response["name"] == plain_text_attribute_page_type.name
+    assert attribute_response["translation"]["name"] == text
+
+
+def test_page_attribute_not_visible_in_storefront_translation_not_returned_no_page_permission(
+    staff_api_client,
+    plain_text_attribute_page_type,
+    page,
+    permission_manage_translations,
+):
+    # given
+    page_type = page.page_type
+    plain_text_attribute_page_type.visible_in_storefront = False
+    plain_text_attribute_page_type.save(update_fields=["visible_in_storefront"])
+    page_type.page_attributes.set([plain_text_attribute_page_type])
+    attribute_value = plain_text_attribute_page_type.values.first()
+
+    associate_attribute_values_to_instance(
+        page, {plain_text_attribute_page_type.pk: [attribute_value]}
+    )
+
+    text = "Test attribute translation"
+    plain_text_attribute_page_type.translations.create(language_code="pl", name=text)
+
+    page_id = graphene.Node.to_global_id("Page", page.id)
+
+    query = PAGE_ATTRIBUTE_VALUES_TRANSLATION_QUERY
+    variables = {
+        "id": page_id,
+        "kind": TranslatableKinds.PAGE.name,
+        "languageCode": LanguageCodeEnum.PL.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_translations]
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]
+    assert data["translation"]["attributeValues"] == []
+
+
+def test_page_attribute_not_visible_in_storefront_translation_returned_with_page_permission(
+    staff_api_client,
+    plain_text_attribute_page_type,
+    page,
+    permission_manage_translations,
+    permission_manage_pages,
+):
+    # given
+    page_type = page.page_type
+    plain_text_attribute_page_type.visible_in_storefront = False
+    plain_text_attribute_page_type.save(update_fields=["visible_in_storefront"])
+    page_type.page_attributes.set([plain_text_attribute_page_type])
+    attribute_value = plain_text_attribute_page_type.values.first()
+
+    associate_attribute_values_to_instance(
+        page, {plain_text_attribute_page_type.pk: [attribute_value]}
+    )
+
+    text = "Test attribute translation"
+    plain_text_attribute_page_type.translations.create(language_code="pl", name=text)
+
+    page_id = graphene.Node.to_global_id("Page", page.id)
+
+    query = PAGE_ATTRIBUTE_VALUES_TRANSLATION_QUERY
+    variables = {
+        "id": page_id,
+        "kind": TranslatableKinds.PAGE.name,
+        "languageCode": LanguageCodeEnum.PL.name,
+    }
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_pages)
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_translations]
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]
     attribute_response = data["translation"]["attributeValues"][0]["attribute"]
     assert attribute_response["name"] == plain_text_attribute_page_type.name
     assert attribute_response["translation"]["name"] == text

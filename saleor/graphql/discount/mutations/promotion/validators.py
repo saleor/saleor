@@ -21,7 +21,8 @@ def clean_promotion_rule(
     order_predicate = get_from_input_or_instance(
         "order_predicate", cleaned_input, instance
     )
-    _clean_gifts(cleaned_input, instance, errors, error_class, index)
+    gift_ids: set[int] = _get_gift_ids(cleaned_input, instance)
+    _clean_gifts(gift_ids, errors, error_class, index)
     invalid_predicates = _clean_predicates(
         catalogue_predicate,
         order_predicate,
@@ -39,6 +40,7 @@ def clean_promotion_rule(
             cleaned_input,
             order_predicate,
             channel_currencies,
+            gift_ids,
             errors,
             error_class,
             index,
@@ -58,13 +60,32 @@ def clean_promotion_rule(
     return cleaned_input
 
 
-def _clean_gifts(cleaned_input, instance, errors, error_class, index):
-    """Check if assigned gifts exceed the gift limit."""
-    if "gifts" not in cleaned_input:
+def _get_gift_ids(cleaned_input, instance):
+    """Return the set of gift ids for promotion rule valid after performing mutation."""
+    if not instance and not any(
+        [field in cleaned_input for field in ["gifts", "add_gifts", "remove_gifts"]]
+    ):
         return
 
-    gifts_count = len(cleaned_input["gifts"])
+    if "gifts" in cleaned_input:
+        gifts = cleaned_input["gifts"] or []
+        return {gift.id for gift in gifts}
+    else:
+        # this part is only for PromotionRuleUpdate mutation
+        # so the gifts will be fetched once
+        current_gift_ids = {gift.id for gift in instance.gifts.all()}
+        add_gift_ids = {gift.id for gift in cleaned_input.get("add_gifts", [])}
+        remove_gift_ids = {gift.id for gift in cleaned_input.get("remove_gifts", [])}
+        return (current_gift_ids | add_gift_ids) - remove_gift_ids
+
+
+def _clean_gifts(gift_ids, errors, error_class, index):
+    """Check if assigned gifts exceed the gift limit."""
+    if not gift_ids:
+        return
+
     gift_limit = int(settings.GIFTS_LIMIT_PER_RULE)
+    gifts_count = len(gift_ids)
     if gifts_count > gift_limit:
         errors["gifts"].append(
             ValidationError(
@@ -186,6 +207,7 @@ def _clean_order_predicate(
     cleaned_input,
     order_predicate,
     channel_currencies,
+    gift_ids,
     errors,
     error_class,
     index,
@@ -264,10 +286,10 @@ def _clean_order_predicate(
         return
 
     if reward_type == RewardType.GIFT:
-        _clean_gift_rule(cleaned_input, errors, error_class, index, instance)
+        _clean_gift_rule(cleaned_input, gift_ids, errors, error_class, index, instance)
 
 
-def _clean_gift_rule(cleaned_input, errors, error_class, index, instance):
+def _clean_gift_rule(cleaned_input, gift_ids, errors, error_class, index, instance):
     reward_value = get_from_input_or_instance("reward_value", cleaned_input, instance)
     if reward_value:
         errors["reward_value"].append(
@@ -296,10 +318,7 @@ def _clean_gift_rule(cleaned_input, errors, error_class, index, instance):
             )
         )
 
-    gifts = cleaned_input.get("gifts")
-    if "gifts" not in cleaned_input and instance:
-        gifts = list(instance.gifts.all())
-    if not gifts:
+    if not gift_ids:
         errors["gifts"].append(
             ValidationError(
                 message="The gifts field is required when rewardType is set to GIFT.",
@@ -309,20 +328,21 @@ def _clean_gift_rule(cleaned_input, errors, error_class, index, instance):
         )
         return
 
-    for gift in gifts:
-        model_name = gift.__class__.__name__
-        if model_name != "ProductVariant":
-            errors["gifts"].append(
-                ValidationError(
-                    message=(
-                        f"Gift IDs must resolve to ProductVariant type, "
-                        f"not to {model_name} type."
-                    ),
-                    code=error_class.INVALID_GIFT_TYPE.value,
-                    params={"index": index} if index is not None else {},
+    for field in ["gifts", "add_gifts", "remove_gifts"]:
+        for gift in cleaned_input.get(field, []):
+            model_name = gift.__class__.__name__
+            if model_name != "ProductVariant":
+                errors[field].append(
+                    ValidationError(
+                        message=(
+                            f"Gift IDs must resolve to ProductVariant type, "
+                            f"not to {model_name} type."
+                        ),
+                        code=error_class.INVALID_GIFT_TYPE.value,
+                        params={"index": index} if index is not None else {},
+                    )
                 )
-            )
-            return
+                return
 
 
 def _clean_reward(

@@ -1,7 +1,8 @@
+import datetime
 import json
 import logging
 from collections.abc import Sequence
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 from urllib.parse import urlparse
 
 from celery import group
@@ -13,8 +14,10 @@ from ....core import EventDeliveryStatus
 from ....core.models import EventDelivery, EventPayload
 from ....core.tracing import webhooks_opentracing_trace
 from ....core.utils import get_domain
+from ....graphql.core.dataloaders import DataLoader
 from ....graphql.webhook.subscription_payload import (
     generate_payload_from_subscription,
+    get_pre_save_payload_key,
     initialize_request,
 )
 from ....graphql.webhook.subscription_types import WEBHOOK_TYPES_MAP
@@ -42,7 +45,13 @@ task_logger = get_task_logger(__name__)
 
 
 def create_deliveries_for_subscriptions(
-    event_type, subscribable_object, webhooks, requestor=None, allow_replica=False
+    event_type,
+    subscribable_object,
+    webhooks,
+    requestor=None,
+    allow_replica=False,
+    pre_save_payloads: Optional[dict] = None,
+    request_time: Optional[datetime.datetime] = None,
 ) -> list[EventDelivery]:
     """Create a list of event deliveries with payloads based on subscription query.
 
@@ -64,24 +73,51 @@ def create_deliveries_for_subscriptions(
 
     event_payloads = []
     event_deliveries = []
+
+    # Dataloaders are shared between calls to generate_payload_from_subscription to
+    # reuse their cache. This avoids unnecessary DB queries when different webhooks
+    # need to resolve the same data.
+    dataloaders: dict[str, type[DataLoader]] = {}
+
+    request = initialize_request(
+        requestor,
+        event_type in WebhookEventSyncType.ALL,
+        event_type=event_type,
+        allow_replica=allow_replica,
+        request_time=request_time,
+        dataloaders=dataloaders,
+    )
+
     for webhook in webhooks:
         data = generate_payload_from_subscription(
             event_type=event_type,
             subscribable_object=subscribable_object,
             subscription_query=webhook.subscription_query,
-            request=initialize_request(
-                requestor,
-                event_type in WebhookEventSyncType.ALL,
-                event_type=event_type,
-                allow_replica=allow_replica,
-            ),
+            request=request,
             app=webhook.app,
         )
+
         if not data:
             logger.info(
                 "No payload was generated with subscription for event: %s" % event_type
             )
             continue
+
+        if (
+            settings.ENABLE_LIMITING_WEBHOOKS_FOR_IDENTICAL_PAYLOADS
+            and pre_save_payloads
+        ):
+            key = get_pre_save_payload_key(webhook, subscribable_object)
+            pre_save_payload = pre_save_payloads.get(key)
+            if pre_save_payload and pre_save_payload == data:
+                logger.info(
+                    "[Webhook ID:%r] No data changes for event %r, skip delivery to %r",
+                    webhook.id,
+                    event_type,
+                    webhook.target_url,
+                )
+                continue
+
         event_payload = EventPayload(payload=json.dumps({**data}))
         event_payloads.append(event_payload)
         event_deliveries.append(
@@ -131,6 +167,8 @@ def trigger_webhooks_async(
     requestor=None,
     legacy_data_generator=None,
     allow_replica=False,
+    pre_save_payloads=None,
+    request_time=None,
 ):
     """Trigger async webhooks - both regular and subscription.
 
@@ -141,7 +179,7 @@ def trigger_webhooks_async(
     :param webhooks: used in both webhook types, queryset of async webhooks.
     :param allow_replica: use a replica database.
     :param subscribable_object: subscribable object used in subscription webhooks.
-    :param requestor: used in subscription webhooks to generate mžeta data for payload.
+    :param requestor: used in subscription webhooks to generate metadata for payload.
     :param legacy_data_generator: used to generate payload for regular webhooks.
     """
     regular_webhooks, subscription_webhooks = group_webhooks_by_subscription(webhooks)
@@ -168,6 +206,8 @@ def trigger_webhooks_async(
                 webhooks=subscription_webhooks,
                 requestor=requestor,
                 allow_replica=allow_replica,
+                pre_save_payloads=pre_save_payloads,
+                request_time=request_time,
             )
         )
 

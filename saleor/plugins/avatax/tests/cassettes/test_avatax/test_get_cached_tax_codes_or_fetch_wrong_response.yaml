@@ -26,7 +26,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 01 Feb 2024 13:28:54 GMT
+      - Mon, 12 Feb 2024 11:19:15 GMT
       Transfer-Encoding:
       - chunked
       X-Content-Type-Options:
@@ -34,9 +34,9 @@ interactions:
       strict-transport-security:
       - max-age=31536000; includeSubdomains; preload
       x-avalara-uid:
-      - d5d1a960-fcbb-4cbb-9fad-7892f982c7c8
+      - eab423e1-9e48-4cf2-be6e-27ea98d678e5
       x-correlation-id:
-      - d5d1a960-fcbb-4cbb-9fad-7892f982c7c8
+      - eab423e1-9e48-4cf2-be6e-27ea98d678e5
     status:
       code: 401
       message: Unauthorized

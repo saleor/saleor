@@ -51,7 +51,10 @@ def _assert_promotion_data(promotion, content_data):
             "name": rule.name,
             "description": rule.description,
             "promotion": {"id": graphene.Node.to_global_id("Promotion", promotion.id)},
-            "channels": [{"slug": channel.slug} for channel in rule.channels.all()],
+            "channels": [
+                {"slug": channel.slug}
+                for channel in rule.channels.all().order_by("slug")
+            ],
             "rewardValueType": rule.reward_value_type.upper()
             if rule.reward_value_type
             else None,

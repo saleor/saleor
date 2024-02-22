@@ -514,7 +514,9 @@ def find_variant_id_when_line_parameter_used(
     return str(line_info[0].line.variant_id)
 
 
-def apply_gift_reward_if_applicable_on_checkout_creation(checkout: "models.Checkout") -> None:
+def apply_gift_reward_if_applicable_on_checkout_creation(
+    checkout: "models.Checkout",
+) -> None:
     """Apply gift reward if applicable on newly created checkout.
 
     This method apply the gift reward if any gift promotion exists and

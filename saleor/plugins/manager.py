@@ -583,17 +583,23 @@ class PluginsManager(PaymentInterface):
         default_value = False
         return self.__run_method_on_plugins("show_taxes_on_storefront", default_value)
 
-    def get_taxes_for_checkout(self, checkout_info, lines) -> Optional[TaxData]:
+    def get_taxes_for_checkout(
+        self, checkout_info, lines, app_identifier
+    ) -> Optional[TaxData]:
         return self.__run_plugin_method_until_first_success(
             "get_taxes_for_checkout",
             checkout_info,
             lines,
+            app_identifier,
             channel_slug=checkout_info.channel.slug,
         )
 
-    def get_taxes_for_order(self, order: "Order") -> Optional[TaxData]:
+    def get_taxes_for_order(self, order: "Order", app_identifier) -> Optional[TaxData]:
         return self.__run_plugin_method_until_first_success(
-            "get_taxes_for_order", order, channel_slug=order.channel.slug
+            "get_taxes_for_order",
+            order,
+            app_identifier,
+            channel_slug=order.channel.slug,
         )
 
     def preprocess_order_creation(
@@ -704,10 +710,16 @@ class PluginsManager(PaymentInterface):
             "product_variant_created", default_value, product_variant, webhooks=webhooks
         )
 
-    def product_variant_updated(self, product_variant: "ProductVariant", webhooks=None):
+    def product_variant_updated(
+        self, product_variant: "ProductVariant", webhooks=None, **kwargs
+    ):
         default_value = None
         return self.__run_method_on_plugins(
-            "product_variant_updated", default_value, product_variant, webhooks=webhooks
+            "product_variant_updated",
+            default_value,
+            product_variant,
+            webhooks=webhooks,
+            **kwargs,
         )
 
     def product_variant_deleted(self, product_variant: "ProductVariant", webhooks=None):

@@ -622,6 +622,11 @@ def test_checkout_create_with_gift_reward(
         line for line in checkout_data["lines"] if line["isGift"] is True
     ][0]
     assert gift_line_data["quantity"] == 1
+    gift_line = new_checkout.lines.get(is_gift=True)
+    assert gift_line.discounts.count() == 1
+    discount = gift_line.discounts.first()
+    gift_variant_listing = gift_line.variant.channel_listings.get(channel=channel_USD)
+    assert discount.amount_value == gift_variant_listing.price_amount
 
 
 def test_checkout_create_with_metadata_in_line(

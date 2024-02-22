@@ -5,7 +5,7 @@ interactions:
       true, "itemCode": "123", "discounted": false, "description": "Test product",
       "ref1": "123"}, {"quantity": 1, "amount": "10.000", "taxCode": "FR000000", "taxIncluded":
       true, "itemCode": "Shipping", "discounted": false, "description": null}], "code":
-      "b81a3482-dac3-4108-ad1e-2a0524564691", "date": "2024-02-01", "customerCode":
+      "c7cf7586-4b48-4604-bdae-f0488793c66d", "date": "2024-02-12", "customerCode":
       0, "discount": null, "addresses": {"shipFrom": {"line1": "Teczowa 7", "line2":
       "", "city": "Wroclaw", "region": "", "country": "PL", "postalCode": "53-601"},
       "shipTo": {"line1": "T\u0119czowa 7", "line2": "", "city": "WROC\u0141AW", "region":
@@ -38,7 +38,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 01 Feb 2024 13:28:56 GMT
+      - Mon, 12 Feb 2024 11:19:11 GMT
       Transfer-Encoding:
       - chunked
       X-Content-Type-Options:
@@ -46,9 +46,9 @@ interactions:
       strict-transport-security:
       - max-age=31536000; includeSubdomains; preload
       x-avalara-uid:
-      - 79cd1e5e-0268-4fbd-96f9-adab3a3343ec
+      - 1adc8de0-4937-4b4f-a1ef-096eddbeedb9
       x-correlation-id:
-      - 79cd1e5e-0268-4fbd-96f9-adab3a3343ec
+      - 1adc8de0-4937-4b4f-a1ef-096eddbeedb9
     status:
       code: 401
       message: Unauthorized

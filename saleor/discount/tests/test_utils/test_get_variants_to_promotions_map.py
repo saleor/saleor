@@ -9,7 +9,7 @@ from ...models import Promotion, PromotionRule
 from ...utils import get_variants_to_promotion_rules_map
 
 
-def test_get_variants_to_promotion_rules_map(
+def test_get_variants_to_promotions_map(
     catalogue_promotion_without_rules, product, product_with_two_variants, channel_USD
 ):
     # given
@@ -62,7 +62,7 @@ def test_get_variants_to_promotion_rules_map(
         ]
 
 
-def test_get_variants_to_promotion_rules_map_from_different_promotions(
+def test_get_variants_to_promotions_map_from_different_promotions(
     catalogue_promotion_without_rules, product, channel_USD
 ):
     # given
@@ -115,7 +115,7 @@ def test_get_variants_to_promotion_rules_map_from_different_promotions(
         assert rule in expected_rules
 
 
-def test_get_variants_to_promotion_rules_map_no_active_rules(product):
+def test_get_variants_to_promotions_map_no_active_rules(product):
     # given
     variants = ProductVariant.objects.all()
     fetch_variants_for_promotion_rules(PromotionRule.objects.all())
@@ -127,7 +127,7 @@ def test_get_variants_to_promotion_rules_map_no_active_rules(product):
     assert not rules_info_per_variant
 
 
-def test_get_variants_to_promotion_rules_map_no_matching_rules(
+def test_get_variants_to_promotions_map_no_matching_rules(
     product_with_two_variants, variant, catalogue_promotion_without_rules
 ):
     # given

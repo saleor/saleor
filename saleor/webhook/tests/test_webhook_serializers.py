@@ -84,7 +84,7 @@ def test_serialize_product_attributes(
     attr_val_1 = AttributeValue.objects.create(
         attribute=attribute, name="Eco Mode", slug="eco"
     )
-    associate_attribute_values_to_instance(product, attribute, attr_val_1)
+    associate_attribute_values_to_instance(product, {attribute.id: [attr_val_1]})
 
     # product reference
     product_slug = f"{product.pk}"
@@ -95,7 +95,7 @@ def test_serialize_product_attributes(
         reference_product=product,
     )
     associate_attribute_values_to_instance(
-        product, product_type_product_reference_attribute, attr_value
+        product, {product_type_product_reference_attribute.id: [attr_value]}
     )
 
     # page reference
@@ -108,12 +108,14 @@ def test_serialize_product_attributes(
         date_time=None,
     )
     associate_attribute_values_to_instance(
-        product, product_type_page_reference_attribute, ref_value
+        product, {product_type_page_reference_attribute.id: [ref_value]}
     )
 
     # file
     file_attr_value = file_attribute.values.first()
-    associate_attribute_values_to_instance(product, file_attribute, file_attr_value)
+    associate_attribute_values_to_instance(
+        product, {file_attribute.id: [file_attr_value]}
+    )
 
     # when
     product_data = serialize_product_attributes(product)

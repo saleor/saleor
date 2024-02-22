@@ -4,6 +4,7 @@ from typing import cast
 import graphene
 from django.core.exceptions import ValidationError
 from django.db.models import F
+from django.utils import timezone
 from graphene.utils.str_converters import to_camel_case
 
 from ....core.tracing import traced_atomic_transaction
@@ -23,6 +24,8 @@ from ...core.scalars import PositiveDecimal
 from ...core.types import BaseInputObjectType, NonNullList, ProductVariantBulkError
 from ...core.utils import get_duplicated_values
 from ...plugins.dataloaders import get_plugin_manager_promise
+from ...utils import get_user_or_app_from_context
+from ...webhook.subscription_payload import generate_pre_save_payloads
 from ..mutations.channels import ProductVariantChannelListingAddInput
 from ..mutations.product.product_create import StockInput, StockUpdateInput
 from ..utils import clean_variant_sku, get_used_variants_attribute_values
@@ -696,7 +699,9 @@ class ProductVariantBulkUpdate(BaseMutation):
         ).delete()
 
     @classmethod
-    def post_save_actions(cls, info, instances, product):
+    def post_save_actions(
+        cls, info, instances, product, webhooks, pre_save_payloads, request_time
+    ):
         manager = get_plugin_manager_promise(info.context).get()
 
         # Recalculate the "discounted price" for the parent product
@@ -706,15 +711,20 @@ class ProductVariantBulkUpdate(BaseMutation):
         product.search_index_dirty = True
         product.save(update_fields=["search_index_dirty"])
 
-        webhooks = get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED)
         for instance in instances:
             cls.call_event(
-                manager.product_variant_updated, instance.node, webhooks=webhooks
+                manager.product_variant_updated,
+                instance.node,
+                webhooks=webhooks,
+                pre_save_payloads=pre_save_payloads,
+                request_time=request_time,
             )
 
     @classmethod
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
+        request_time = timezone.now()
+
         index_error_map: dict = defaultdict(list)
         error_policy = data.get("error_policy", ErrorPolicyEnum.REJECT_EVERYTHING.value)
         product = cast(
@@ -733,6 +743,11 @@ class ProductVariantBulkUpdate(BaseMutation):
             product,
             variants_global_id_to_instance_map,
             index_error_map,
+        )
+
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED)
+        pre_save_payloads = cls.generate_pre_save_payloads(
+            info, request_time, cleaned_inputs_map, webhooks
         )
 
         instances_data_with_errors_list = cls.update_variants(
@@ -758,6 +773,31 @@ class ProductVariantBulkUpdate(BaseMutation):
         instances = [
             result.product_variant for result in results if result.product_variant
         ]
-        cls.post_save_actions(info, instances, product)
+        cls.post_save_actions(
+            info, instances, product, webhooks, pre_save_payloads, request_time
+        )
 
         return ProductVariantBulkCreate(count=len(instances), results=results)
+
+    @classmethod
+    def generate_pre_save_payloads(
+        cls, info, request_time, cleaned_inputs_map, webhooks
+    ):
+        # Take instances from cleaned_inputs_map to be updated in the mutation.
+        instances = [
+            clean_data["id"]
+            for clean_data in cleaned_inputs_map.values()
+            if clean_data and clean_data.get("id")
+        ]
+
+        requestor = get_user_or_app_from_context(info.context)
+        event_type = WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED
+
+        pre_save_payloads = generate_pre_save_payloads(
+            webhooks=webhooks,
+            instances=instances,
+            event_type=event_type,
+            requestor=requestor,
+            request_time=request_time,
+        )
+        return pre_save_payloads
