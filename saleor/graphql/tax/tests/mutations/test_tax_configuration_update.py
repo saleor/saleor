@@ -3,6 +3,7 @@ import pytest
 from django.test import override_settings
 
 from .....core.tests.test_taxes import app_factory, tax_app_factory  # noqa: F401
+from .....plugins import PLUGIN_IDENTIFIER_PREFIX
 from .....plugins.tests.sample_plugins import PluginSample
 from .....tax.error_codes import TaxConfigurationUpdateErrorCode
 from .....tax.models import TaxConfiguration
@@ -398,7 +399,7 @@ def test_tax_configuration_update_tax_app_id_with_plugin(
     """Make sure that we are able to still use legacy plugin."""
     # given
     id = graphene.Node.to_global_id("TaxConfiguration", example_tax_configuration.pk)
-    plugin_id = "plugin:" + PluginSample.PLUGIN_ID
+    plugin_id = PLUGIN_IDENTIFIER_PREFIX + PluginSample.PLUGIN_ID
     variables = {
         "id": id,
         "input": {

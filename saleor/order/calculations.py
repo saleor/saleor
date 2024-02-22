@@ -10,6 +10,7 @@ from ..core.prices import quantize_price
 from ..core.taxes import EmptyTaxData, TaxData, TaxError, zero_taxed_money
 from ..discount import DiscountType
 from ..payment.model_helpers import get_subtotal
+from ..plugins import PLUGIN_IDENTIFIER_PREFIX
 from ..plugins.manager import PluginsManager
 from ..tax import TaxCalculationStrategy
 from ..tax.calculations import get_taxed_undiscounted_price
@@ -212,16 +213,22 @@ def _calculate_and_add_tax(
 
 
 def _call_plugin_or_tax_app(
-    tax_app_identifier: Optional[str],
+    tax_app_identifier: str,
     order: "Order",
     lines: Iterable["OrderLine"],
     manager: "PluginsManager",
     prices_entered_with_tax: bool,
 ):
-    from ..plugins.avatax.plugin import AvataxPlugin
-
-    if tax_app_identifier == AvataxPlugin.PLUGIN_IDENTIFIER:
-        _recalculate_with_plugins(manager, order, lines, prices_entered_with_tax)
+    if tax_app_identifier.startswith(PLUGIN_IDENTIFIER_PREFIX):
+        _recalculate_with_plugins(
+            manager,
+            order,
+            lines,
+            prices_entered_with_tax,
+            plugin_ids=[tax_app_identifier.split(":")[1]],
+        )
+        if order.tax_error:
+            raise EmptyTaxData("Empty tax data.")
     else:
         tax_data = manager.get_taxes_for_order(order, tax_app_identifier)
         if tax_data is None:
@@ -234,6 +241,7 @@ def _recalculate_with_plugins(
     order: Order,
     lines: Iterable[OrderLine],
     prices_entered_with_tax: bool,
+    plugin_ids: Optional[list[str]] = None,
 ) -> None:
     """Fetch taxes from plugins and recalculate order/lines prices.
 
@@ -248,18 +256,23 @@ def _recalculate_with_plugins(
 
         try:
             line_unit = manager.calculate_order_line_unit(
-                order, line, variant, product, lines
+                order, line, variant, product, lines, plugin_ids=plugin_ids
             )
             line.unit_price = line_unit.price_with_discounts
 
             line_total = manager.calculate_order_line_total(
-                order, line, variant, product, lines
+                order, line, variant, product, lines, plugin_ids=plugin_ids
             )
             undiscounted_subtotal += line_total.undiscounted_price
             line.total_price = line_total.price_with_discounts
 
             line.tax_rate = manager.get_order_line_tax_rate(
-                order, product, variant, None, line_unit.undiscounted_price
+                order,
+                product,
+                variant,
+                None,
+                line_unit.undiscounted_price,
+                plugin_ids=plugin_ids,
             )
             line.undiscounted_unit_price = _get_undiscounted_price(
                 line_unit,
@@ -279,9 +292,11 @@ def _recalculate_with_plugins(
             pass
 
     try:
-        order.shipping_price = manager.calculate_order_shipping(order, lines)
+        order.shipping_price = manager.calculate_order_shipping(
+            order, lines, plugin_ids=plugin_ids
+        )
         order.shipping_tax_rate = manager.get_order_shipping_tax_rate(
-            order, order.shipping_price
+            order, order.shipping_price, plugin_ids=plugin_ids
         )
     except TaxError:
         pass
@@ -289,7 +304,7 @@ def _recalculate_with_plugins(
     order.undiscounted_total = undiscounted_subtotal + TaxedMoney(
         net=order.base_shipping_price, gross=order.base_shipping_price
     )
-    order.total = manager.calculate_order_total(order, lines)
+    order.total = manager.calculate_order_total(order, lines, plugin_ids=plugin_ids)
 
 
 def _get_undiscounted_price(
