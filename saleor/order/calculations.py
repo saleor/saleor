@@ -7,7 +7,7 @@ from django.db.models import prefetch_related_objects
 from prices import Money, TaxedMoney
 
 from ..core.prices import quantize_price
-from ..core.taxes import EmptyTaxData, TaxData, TaxError, zero_taxed_money
+from ..core.taxes import TaxData, TaxEmptyData, TaxError, zero_taxed_money
 from ..discount import DiscountType
 from ..payment.model_helpers import get_subtotal
 from ..plugins import PLUGIN_IDENTIFIER_PREFIX
@@ -153,7 +153,7 @@ def _recalculate_prices(
                 manager,
                 prices_entered_with_tax,
             )
-        except EmptyTaxData as e:
+        except TaxEmptyData as e:
             order.tax_error = str(e)
 
         if not should_charge_tax:
@@ -175,7 +175,7 @@ def _recalculate_prices(
                     manager,
                     prices_entered_with_tax,
                 )
-            except EmptyTaxData as e:
+            except TaxEmptyData as e:
                 order.tax_error = str(e)
         else:
             _remove_tax(order, lines)
@@ -228,11 +228,11 @@ def _call_plugin_or_tax_app(
             plugin_ids=[tax_app_identifier.split(":")[1]],
         )
         if order.tax_error:
-            raise EmptyTaxData("Empty tax data.")
+            raise TaxEmptyData("Empty tax data.")
     else:
         tax_data = manager.get_taxes_for_order(order, tax_app_identifier)
         if tax_data is None:
-            raise EmptyTaxData("Empty tax data.")
+            raise TaxEmptyData("Empty tax data.")
         _apply_tax_data(order, lines, tax_data)
 
 
