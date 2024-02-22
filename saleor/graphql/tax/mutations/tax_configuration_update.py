@@ -171,7 +171,7 @@ class TaxConfigurationUpdate(ModelMutation):
         # include plugin in list of possible tax apps
         manager = get_plugin_manager_promise(info.context).get()
         plugin_ids = [
-            identifier.split(":")[1]
+            identifier.replace(PLUGIN_IDENTIFIER_PREFIX, "")
             for identifier in identifiers
             if identifier.startswith(PLUGIN_IDENTIFIER_PREFIX)
         ]

@@ -225,7 +225,7 @@ def _call_plugin_or_tax_app(
             order,
             lines,
             prices_entered_with_tax,
-            plugin_ids=[tax_app_identifier.split(":")[1]],
+            plugin_ids=[tax_app_identifier.replace(PLUGIN_IDENTIFIER_PREFIX, "")],
         )
         if order.tax_error:
             raise TaxEmptyData("Empty tax data.")

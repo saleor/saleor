@@ -373,7 +373,7 @@ def _call_plugin_or_tax_app(
             checkout_info,
             lines,
             address,
-            plugin_ids=[tax_app_identifier.split(":")[1]],
+            plugin_ids=[tax_app_identifier.replace(PLUGIN_IDENTIFIER_PREFIX, "")],
         )
         if checkout.tax_error:
             raise TaxEmptyData("Empty tax data.")
