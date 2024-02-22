@@ -191,7 +191,7 @@ def _calculate_and_add_tax(
 ):
     if tax_calculation_strategy == TaxCalculationStrategy.TAX_APP:
         # If taxAppId is not configured run all active plugins and tax apps.
-        # If taxAppId is provided run Avatax plugin or Tax App. taxAppId can be
+        # If taxAppId is provided run tax plugin or Tax App. taxAppId can be
         # configured with Avatax plugin identifier.
         if not tax_app_identifier:
             # Get the taxes calculated with plugins.
