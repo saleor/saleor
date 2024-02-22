@@ -3,7 +3,6 @@ from django.core.exceptions import ValidationError
 
 from ....app.utils import get_active_tax_apps
 from ....permission.enums import CheckoutPermissions
-from ....plugins.avatax.plugin import AvataxPlugin
 from ....tax import error_codes, models
 from ...account.enums import CountryCodeEnum
 from ...core import ResolveInfo
@@ -12,6 +11,7 @@ from ...core.doc_category import DOC_CATEGORY_TAXES
 from ...core.mutations import ModelMutation
 from ...core.types import BaseInputObjectType, Error, NonNullList
 from ...core.utils import get_duplicates_items
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..enums import TaxCalculationStrategy
 from ..types import TaxConfiguration
 
@@ -131,7 +131,7 @@ class TaxConfigurationUpdate(ModelMutation):
 
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
-        cls.clean_tax_app_id(info, data)
+        cls.clean_tax_app_id(info, instance, data)
         update_countries_configuration = data.get("update_countries_configuration", [])
         update_country_codes = [
             item["country_code"] for item in update_countries_configuration
@@ -154,31 +154,45 @@ class TaxConfigurationUpdate(ModelMutation):
         return super().clean_input(info, instance, data, **kwargs)
 
     @classmethod
-    def clean_tax_app_id(cls, info: ResolveInfo, data):
+    def clean_tax_app_id(cls, info: ResolveInfo, instance, data):
         identifiers = []
         if (app_identifier := data.get("tax_app_id")) is not None:
             identifiers.append(app_identifier)
 
         update_countries_configuration = data.get("update_countries_configuration", [])
         for country in update_countries_configuration:
-            if (app_identifier := country.get("tax_app_id")) is not None:
-                identifiers.append(app_identifier)
+            if (country_app_identifier := country.get("tax_app_id")) is not None:
+                identifiers.append(country_app_identifier)
 
         active_tax_apps = list(get_active_tax_apps(identifiers))
         active_tax_app_identifiers = [app.identifier for app in active_tax_apps]
 
         # include plugin in list of possible tax apps
-        active_tax_app_identifiers.append(AvataxPlugin.PLUGIN_IDENTIFIER)
+        plugin_identifier_prefix = "plugin:"
+        manager = get_plugin_manager_promise(info.context).get()
+        plugin_ids = [
+            identifier.split(":")[1]
+            for identifier in identifiers
+            if identifier.startswith(plugin_identifier_prefix)
+        ]
+        valid_plugins = manager.get_plugins(
+            instance.channel.slug, active_only=True, plugin_ids=plugin_ids
+        )
+        valid_plugin_identifiers = [
+            plugin_identifier_prefix + plugin.PLUGIN_ID for plugin in valid_plugins
+        ]
+        active_tax_app_identifiers.extend(valid_plugin_identifiers)
 
-        if (app_identifier := data.get("tax_app_id")) is not None:
+        # validate input
+        if app_identifier is not None:
             cls.__verify_tax_app_id(info, app_identifier, active_tax_app_identifiers)
 
         update_countries_configuration = data.get("update_countries_configuration", [])
         for country in update_countries_configuration:
-            if (app_identifier := country.get("tax_app_id")) is not None:
+            if (country_app_identifier := country.get("tax_app_id")) is not None:
                 cls.__verify_tax_app_id(
                     info,
-                    app_identifier,
+                    country_app_identifier,
                     active_tax_app_identifiers,
                     [country["country_code"]],
                 )
