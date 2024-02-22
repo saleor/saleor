@@ -29,6 +29,7 @@ from ...site.dataloaders import get_site_promise
 from ..types import Checkout
 from .checkout_create import CheckoutAddressValidationRules
 from .utils import (
+    ERROR_CC_ADDRESS_CHANGE_FORBIDDEN,
     ERROR_DOES_NOT_SHIP,
     check_lines_quantity,
     get_checkout,
@@ -134,6 +135,16 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
                     "shipping_address": ValidationError(
                         ERROR_DOES_NOT_SHIP,
                         code=CheckoutErrorCode.SHIPPING_NOT_REQUIRED.value,
+                    )
+                }
+            )
+        # prevent from changing the shipping address when click and collect is used.
+        if checkout.collection_point_id:
+            raise ValidationError(
+                {
+                    "shipping_address": ValidationError(
+                        ERROR_CC_ADDRESS_CHANGE_FORBIDDEN,
+                        code=CheckoutErrorCode.SHIPPING_CHANGE_FORBIDDEN.value,
                     )
                 }
             )

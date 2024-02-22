@@ -447,11 +447,9 @@ def test_checkout_delivery_method_update_shipping_zone_with_channel(
     assert checkout.shipping_method == shipping_method
 
 
-@pytest.mark.parametrize("is_valid_delivery_method", (True, False))
 @pytest.mark.parametrize(
     "delivery_method, node_name, attribute_name",
     [
-        ("warehouse", "Warehouse", "collection_point"),
         ("shipping_method", "ShippingMethod", "shipping_method"),
     ],
     indirect=("delivery_method",),
@@ -460,17 +458,16 @@ def test_checkout_delivery_method_update_shipping_zone_with_channel(
     "saleor.graphql.checkout.mutations.checkout_delivery_method_update."
     "clean_delivery_method"
 )
-def test_checkout_delivery_method_update_with_not_all_required_shipping_address_data(
+def test_checkout_delivery_method_update_valid_method_not_all_shipping_data(
     mock_clean_delivery,
     api_client,
     delivery_method,
     node_name,
     attribute_name,
     checkout_with_item_for_cc,
-    is_valid_delivery_method,
 ):
     # given
-    mock_clean_delivery.return_value = is_valid_delivery_method
+    mock_clean_delivery.return_value = True
 
     checkout = checkout_with_item_for_cc
     checkout.shipping_address = Address.objects.create(country="US")
@@ -478,15 +475,12 @@ def test_checkout_delivery_method_update_with_not_all_required_shipping_address_
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-
-    shipping_method_data = delivery_method
-    if attribute_name == "shipping_method":
-        shipping_method_data = convert_to_shipping_method_data(
-            delivery_method,
-            delivery_method.channel_listings.get(),
-        )
+    shipping_method_data = convert_to_shipping_method_data(
+        delivery_method,
+        delivery_method.channel_listings.get(),
+    )
     query = MUTATION_UPDATE_DELIVERY_METHOD
-    mock_clean_delivery.return_value = is_valid_delivery_method
+    mock_clean_delivery.return_value = True
 
     method_id = graphene.Node.to_global_id(node_name, delivery_method.id)
 
@@ -503,20 +497,65 @@ def test_checkout_delivery_method_update_with_not_all_required_shipping_address_
         checkout_info=checkout_info, lines=lines, method=shipping_method_data
     )
     errors = data["errors"]
-    if is_valid_delivery_method:
-        assert not errors
-        assert getattr(checkout, attribute_name) == delivery_method
-    else:
-        assert len(errors) == 1
-        assert errors[0]["field"] == "deliveryMethodId"
-        assert (
-            errors[0]["code"] == CheckoutErrorCode.DELIVERY_METHOD_NOT_APPLICABLE.name
-        )
-        assert checkout.shipping_method is None
-        assert checkout.collection_point is None
+
+    assert not errors
+    assert getattr(checkout, attribute_name) == delivery_method
 
 
-@pytest.mark.parametrize("is_valid_delivery_method", (True, False))
+@pytest.mark.parametrize(
+    "delivery_method, node_name, attribute_name",
+    [
+        ("warehouse", "Warehouse", "collection_point"),
+    ],
+    indirect=("delivery_method",),
+)
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_delivery_method_update."
+    "clean_delivery_method"
+)
+def test_checkout_delivery_method_update_valid_method_not_all_shipping_data_for_cc(
+    mock_clean_delivery,
+    api_client,
+    delivery_method,
+    node_name,
+    attribute_name,
+    checkout_with_item_for_cc,
+):
+    # given
+    mock_clean_delivery.return_value = True
+
+    checkout = checkout_with_item_for_cc
+    checkout.shipping_address = Address.objects.create(country="US")
+    checkout.save()
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    shipping_method_data = delivery_method
+    checkout_info.shipping_address = shipping_method_data.address
+    query = MUTATION_UPDATE_DELIVERY_METHOD
+    mock_clean_delivery.return_value = True
+
+    method_id = graphene.Node.to_global_id(node_name, delivery_method.id)
+
+    # when
+    response = api_client.post_graphql(
+        query, {"id": to_global_id_or_none(checkout), "deliveryMethodId": method_id}
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutDeliveryMethodUpdate"]
+    checkout.refresh_from_db()
+
+    mock_clean_delivery.assert_called_once_with(
+        checkout_info=checkout_info, lines=lines, method=shipping_method_data
+    )
+    errors = data["errors"]
+
+    assert not errors
+    assert getattr(checkout, attribute_name) == delivery_method
+
+
 @pytest.mark.parametrize(
     "delivery_method, node_name, attribute_name",
     [
@@ -529,17 +568,78 @@ def test_checkout_delivery_method_update_with_not_all_required_shipping_address_
     "saleor.graphql.checkout.mutations.checkout_delivery_method_update."
     "clean_delivery_method"
 )
-def test_checkout_delivery_method_update_with_not_valid_address_data(
+def test_checkout_delivery_method_update_invalid_method_not_all_shipping_data(
     mock_clean_delivery,
     api_client,
     delivery_method,
     node_name,
     attribute_name,
     checkout_with_item_for_cc,
-    is_valid_delivery_method,
 ):
     # given
-    mock_clean_delivery.return_value = is_valid_delivery_method
+    mock_clean_delivery.return_value = False
+
+    checkout = checkout_with_item_for_cc
+    checkout.shipping_address = Address.objects.create(country="US")
+    checkout.save()
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    shipping_method_data = delivery_method
+    if attribute_name == "shipping_method":
+        shipping_method_data = convert_to_shipping_method_data(
+            delivery_method,
+            delivery_method.channel_listings.get(),
+        )
+    query = MUTATION_UPDATE_DELIVERY_METHOD
+    mock_clean_delivery.return_value = False
+
+    method_id = graphene.Node.to_global_id(node_name, delivery_method.id)
+
+    # when
+    response = api_client.post_graphql(
+        query, {"id": to_global_id_or_none(checkout), "deliveryMethodId": method_id}
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutDeliveryMethodUpdate"]
+    checkout.refresh_from_db()
+
+    mock_clean_delivery.assert_called_once_with(
+        checkout_info=checkout_info, lines=lines, method=shipping_method_data
+    )
+    errors = data["errors"]
+
+    assert len(errors) == 1
+    assert errors[0]["field"] == "deliveryMethodId"
+    assert errors[0]["code"] == CheckoutErrorCode.DELIVERY_METHOD_NOT_APPLICABLE.name
+    assert checkout.shipping_method is None
+    assert checkout.collection_point is None
+
+
+@pytest.mark.parametrize(
+    "delivery_method, node_name, attribute_name",
+    [
+        ("warehouse", "Warehouse", "collection_point"),
+        ("shipping_method", "ShippingMethod", "shipping_method"),
+    ],
+    indirect=("delivery_method",),
+)
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_delivery_method_update."
+    "clean_delivery_method"
+)
+def test_checkout_delivery_method_update_invalid_with_not_valid_address_data(
+    mock_clean_delivery,
+    api_client,
+    delivery_method,
+    node_name,
+    attribute_name,
+    checkout_with_item_for_cc,
+):
+    # given
+    mock_clean_delivery.return_value = False
 
     checkout = checkout_with_item_for_cc
     checkout.shipping_address = Address.objects.create(
@@ -561,7 +661,7 @@ def test_checkout_delivery_method_update_with_not_valid_address_data(
             delivery_method.channel_listings.get(),
         )
     query = MUTATION_UPDATE_DELIVERY_METHOD
-    mock_clean_delivery.return_value = is_valid_delivery_method
+    mock_clean_delivery.return_value = False
 
     method_id = graphene.Node.to_global_id(node_name, delivery_method.id)
 
@@ -578,14 +678,131 @@ def test_checkout_delivery_method_update_with_not_valid_address_data(
         checkout_info=checkout_info, lines=lines, method=shipping_method_data
     )
     errors = data["errors"]
-    if is_valid_delivery_method:
-        assert not errors
-        assert getattr(checkout, attribute_name) == delivery_method
-    else:
-        assert len(errors) == 1
-        assert errors[0]["field"] == "deliveryMethodId"
-        assert (
-            errors[0]["code"] == CheckoutErrorCode.DELIVERY_METHOD_NOT_APPLICABLE.name
-        )
-        assert checkout.shipping_method is None
-        assert checkout.collection_point is None
+
+    assert len(errors) == 1
+    assert errors[0]["field"] == "deliveryMethodId"
+    assert errors[0]["code"] == CheckoutErrorCode.DELIVERY_METHOD_NOT_APPLICABLE.name
+    assert checkout.shipping_method is None
+    assert checkout.collection_point is None
+
+
+@pytest.mark.parametrize(
+    "delivery_method, node_name, attribute_name",
+    [
+        ("shipping_method", "ShippingMethod", "shipping_method"),
+    ],
+    indirect=("delivery_method",),
+)
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_delivery_method_update."
+    "clean_delivery_method"
+)
+def test_checkout_delivery_method_update_valid_with_not_valid_address_data(
+    mock_clean_delivery,
+    api_client,
+    delivery_method,
+    node_name,
+    attribute_name,
+    checkout_with_item_for_cc,
+):
+    # given
+    mock_clean_delivery.return_value = True
+
+    checkout = checkout_with_item_for_cc
+    checkout.shipping_address = Address.objects.create(
+        country="US",
+        city="New York",
+        city_area="ABC",
+        street_address_1="New street",
+        postal_code="53-601",
+    )
+    checkout.save()
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    shipping_method_data = convert_to_shipping_method_data(
+        delivery_method,
+        delivery_method.channel_listings.get(),
+    )
+    query = MUTATION_UPDATE_DELIVERY_METHOD
+    mock_clean_delivery.return_value = True
+
+    method_id = graphene.Node.to_global_id(node_name, delivery_method.id)
+
+    # when
+    response = api_client.post_graphql(
+        query, {"id": to_global_id_or_none(checkout), "deliveryMethodId": method_id}
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutDeliveryMethodUpdate"]
+    checkout.refresh_from_db()
+
+    mock_clean_delivery.assert_called_once_with(
+        checkout_info=checkout_info, lines=lines, method=shipping_method_data
+    )
+    errors = data["errors"]
+
+    assert not errors
+    assert getattr(checkout, attribute_name) == delivery_method
+
+
+@pytest.mark.parametrize(
+    "delivery_method, node_name, attribute_name",
+    [
+        ("warehouse", "Warehouse", "collection_point"),
+    ],
+    indirect=("delivery_method",),
+)
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_delivery_method_update."
+    "clean_delivery_method"
+)
+def test_checkout_delivery_method_update_valid_with_not_valid_address_data_for_cc(
+    mock_clean_delivery,
+    api_client,
+    delivery_method,
+    node_name,
+    attribute_name,
+    checkout_with_item_for_cc,
+):
+    # given
+    mock_clean_delivery.return_value = True
+
+    checkout = checkout_with_item_for_cc
+    checkout.shipping_address = Address.objects.create(
+        country="US",
+        city="New York",
+        city_area="ABC",
+        street_address_1="New street",
+        postal_code="53-601",
+    )
+    checkout.save()
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    shipping_method_data = delivery_method
+    checkout_info.shipping_address = shipping_method_data.address
+    query = MUTATION_UPDATE_DELIVERY_METHOD
+    mock_clean_delivery.return_value = True
+
+    method_id = graphene.Node.to_global_id(node_name, delivery_method.id)
+
+    # when
+    response = api_client.post_graphql(
+        query, {"id": to_global_id_or_none(checkout), "deliveryMethodId": method_id}
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutDeliveryMethodUpdate"]
+    checkout.refresh_from_db()
+
+    mock_clean_delivery.assert_called_once_with(
+        checkout_info=checkout_info, lines=lines, method=shipping_method_data
+    )
+    errors = data["errors"]
+
+    assert not errors
+    assert getattr(checkout, attribute_name) == delivery_method
