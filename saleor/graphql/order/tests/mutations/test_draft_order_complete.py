@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from decimal import Decimal
 from unittest.mock import patch
 
 import graphene
@@ -10,9 +11,11 @@ from freezegun import freeze_time
 from .....core import EventDeliveryStatus
 from .....core.models import EventDelivery
 from .....core.taxes import zero_taxed_money
+from .....discount import DiscountValueType
 from .....discount.models import VoucherCustomer
 from .....order import OrderOrigin, OrderStatus
 from .....order import events as order_events
+from .....order.calculations import fetch_order_prices_if_expired
 from .....order.error_codes import OrderErrorCode
 from .....order.models import OrderEvent
 from .....payment.model_helpers import get_subtotal
@@ -1139,3 +1142,162 @@ def test_draft_order_complete_calls_correct_tax_app(
     order.refresh_from_db()
     assert not order.should_refresh_prices
     assert not order.tax_error
+
+
+DRAFT_ORDER_COMPLETE_WITH_DISCOUNTS_MUTATION = """
+    mutation draftComplete($id: ID!) {
+        draftOrderComplete(id: $id) {
+            errors {
+                field
+                code
+                message
+            }
+            order {
+                id
+                total {
+                    net {
+                        amount
+                    }
+                }
+                discounts {
+                    amount {
+                        amount
+                    }
+                    valueType
+                    type
+                    reason
+                }
+                lines {
+                    id
+                    quantity
+                    totalPrice {
+                        net {
+                            amount
+                        }
+                    }
+                    unitDiscount {
+                        amount
+                    }
+                    unitDiscountValue
+                    unitDiscountReason
+                    unitDiscountType
+                    isGift
+                }
+            }
+        }
+    }
+    """
+
+
+def test_draft_order_complete_with_catalogue_and_order_discount(
+    staff_api_client,
+    permission_group_manage_orders,
+    staff_user,
+    draft_order_and_promotions,
+    plugins_manager,
+):
+    # given
+    Allocation.objects.all().delete()
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    order, rule_catalogue, rule_total, _ = draft_order_and_promotions
+    catalogue_promotion_id = graphene.Node.to_global_id(
+        "Promotion", rule_catalogue.promotion_id
+    )
+    order_promotion_id = graphene.Node.to_global_id(
+        "Promotion", rule_total.promotion_id
+    )
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+    fetch_order_prices_if_expired(order, plugins_manager, force_update=True)
+
+    # when
+    response = staff_api_client.post_graphql(
+        DRAFT_ORDER_COMPLETE_WITH_DISCOUNTS_MUTATION, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    order_data = content["data"]["draftOrderComplete"]["order"]
+    assert order_data["total"]["net"]["amount"] == Decimal("49.00")
+    assert len(order_data["discounts"]) == 1
+
+    order_discount = order_data["discounts"][0]
+    assert order_discount["amount"]["amount"] == 25.00
+    assert order_discount["reason"] == f"Promotion: {order_promotion_id}"
+    assert order_discount["amount"]["amount"] == 25.00
+    assert order_discount["valueType"] == DiscountValueType.FIXED.upper()
+
+    lines = order_data["lines"]
+    line_1 = [line for line in lines if line["quantity"] == 3][0]
+    line_2 = [line for line in lines if line["quantity"] == 2][0]
+
+    assert line_1["totalPrice"]["net"]["amount"] == 18.28
+    assert line_1["unitDiscount"]["amount"] == 0.00
+    assert line_1["unitDiscountReason"] is None
+    assert line_1["unitDiscountValue"] == 0.00
+
+    assert line_2["totalPrice"]["net"]["amount"] == 20.72
+    assert line_2["unitDiscount"]["amount"] == 3.00
+    assert line_2["unitDiscountReason"] == f"Promotion: {catalogue_promotion_id}"
+    assert line_2["unitDiscountType"] == DiscountValueType.FIXED.upper()
+    assert line_2["unitDiscountValue"] == 3.00
+
+
+def test_draft_order_complete_with_catalogue_and_gift_discount(
+    staff_api_client,
+    permission_group_manage_orders,
+    staff_user,
+    draft_order_and_promotions,
+    plugins_manager,
+):
+    # given
+    Allocation.objects.all().delete()
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    order, rule_catalogue, rule_total, rule_gift = draft_order_and_promotions
+    rule_total.reward_value = Decimal(0)
+    rule_total.save(update_fields=["reward_value"])
+    catalogue_promotion_id = graphene.Node.to_global_id(
+        "Promotion", rule_catalogue.promotion_id
+    )
+    gift_promotion_id = graphene.Node.to_global_id("Promotion", rule_gift.promotion_id)
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+    fetch_order_prices_if_expired(order, plugins_manager, force_update=True)
+
+    # when
+    response = staff_api_client.post_graphql(
+        DRAFT_ORDER_COMPLETE_WITH_DISCOUNTS_MUTATION, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    order_data = content["data"]["draftOrderComplete"]["order"]
+    assert order_data["total"]["net"]["amount"] == 74.00
+    assert not order_data["discounts"]
+
+    lines = order_data["lines"]
+    assert len(lines) == 3
+    line_1 = [line for line in lines if line["quantity"] == 3][0]
+    line_2 = [line for line in lines if line["quantity"] == 2][0]
+    gift_line = [line for line in lines if line["isGift"] is True][0]
+
+    assert line_1["totalPrice"]["net"]["amount"] == 30.00
+    assert line_1["unitDiscount"]["amount"] == 0.00
+    assert line_1["unitDiscountReason"] is None
+    assert line_1["unitDiscountValue"] == 0.00
+
+    assert line_2["totalPrice"]["net"]["amount"] == 34.00
+    assert line_2["unitDiscount"]["amount"] == 3.00
+    assert line_2["unitDiscountReason"] == f"Promotion: {catalogue_promotion_id}"
+    assert line_2["unitDiscountType"] == DiscountValueType.FIXED.upper()
+    assert line_2["unitDiscountValue"] == 3.00
+
+    assert gift_line["totalPrice"]["net"]["amount"] == 0.00
+    assert gift_line["unitDiscount"]["amount"] == 20.00
+    assert gift_line["unitDiscountReason"] == f"Promotion: {gift_promotion_id}"
+    assert gift_line["unitDiscountType"] == DiscountValueType.FIXED.upper()
+    assert gift_line["unitDiscountValue"] == 20.00
