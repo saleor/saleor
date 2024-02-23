@@ -526,3 +526,293 @@ def test_fetch_order_prices_catalogue_and_order_discounts_exceed_total_flat_rate
     ) == Decimal("0.00")
     assert order.total_net_amount == order.shipping_price_net_amount
     assert order.total_gross_amount == order.shipping_price_gross_amount
+
+
+def test_fetch_order_prices_manual_discount_and_order_discount_flat_rates(
+    order_with_lines_and_order_promotion,
+    plugins_manager,
+):
+    # given
+    order = order_with_lines_and_order_promotion
+    assert OrderDiscount.objects.exists()
+    currency = order.currency
+
+    tc = order.channel.tax_configuration
+    tc.country_exceptions.all().delete()
+    tc.prices_entered_with_tax = False
+    tc.tax_calculation_strategy = TaxCalculationStrategy.FLAT_RATES
+    tc.save()
+
+    discount_value = Decimal("50")
+    manual_discount = order.discounts.create(
+        value_type=DiscountValueType.PERCENTAGE,
+        value=discount_value,
+        name="Manual order discount",
+        type=DiscountType.MANUAL,
+    )
+
+    # when
+    order, lines = calculations.fetch_order_prices_if_expired(
+        order, plugins_manager, None, True
+    )
+
+    # then
+    assert not OrderLineDiscount.objects.exists()
+    assert OrderDiscount.objects.count() == 1
+    manual_discount.refresh_from_db()
+    assert manual_discount.amount_value == Decimal(
+        order.undiscounted_total_net_amount / 2
+    )
+
+    assert order.undiscounted_total_net_amount == Decimal("80.00")
+    assert order.undiscounted_total_gross_amount == Decimal("98.40")
+    assert (
+        quantize_price(
+            order.undiscounted_total_net_amount * discount_value / 100, currency
+        )
+        == order.total_net_amount
+    )
+    assert order.total_net_amount == Decimal("40.00")
+    assert order.total_gross_amount == Decimal("49.20")
+    assert order.shipping_price_net_amount == Decimal("5.00")
+    assert order.shipping_price_gross_amount == Decimal("6.15")
+    assert order.subtotal_net_amount == Decimal("35.00")
+    assert order.subtotal_gross_amount == Decimal("43.05")
+
+    line_1 = [line for line in lines if line.quantity == 3][0]
+    line_2 = [line for line in lines if line.quantity == 2][0]
+
+    assert line_1.undiscounted_total_price_net_amount == Decimal("30.00")
+    assert line_1.undiscounted_total_price_gross_amount == Decimal("36.90")
+    assert line_1.undiscounted_unit_price_net_amount == Decimal("10.00")
+    assert line_1.undiscounted_unit_price_gross_amount == Decimal("12.30")
+    assert line_1.base_unit_price_amount == Decimal("10.00")
+    assert (
+        quantize_price(
+            line_1.undiscounted_total_price_net_amount * discount_value / 100,
+            currency,
+        )
+        == line_1.total_price_net_amount
+    )
+    assert line_1.total_price_net_amount == Decimal("15.00")
+    assert line_1.total_price_gross_amount == Decimal("18.45")
+    assert line_1.unit_price_net_amount == Decimal("5.00")
+    assert line_1.unit_price_gross_amount == Decimal("6.15")
+
+    assert line_2.undiscounted_total_price_net_amount == Decimal("40.00")
+    assert line_2.undiscounted_total_price_gross_amount == Decimal("49.20")
+    assert line_2.undiscounted_unit_price_net_amount == Decimal("20.00")
+    assert line_2.undiscounted_unit_price_gross_amount == Decimal("24.60")
+    assert line_2.base_unit_price_amount == Decimal("20.00")
+    assert (
+        quantize_price(
+            line_2.undiscounted_total_price_net_amount * discount_value / 100,
+            currency,
+        )
+        == line_2.total_price_net_amount
+    )
+    assert line_2.total_price_net_amount == Decimal("20.00")
+    assert line_2.total_price_gross_amount == Decimal("24.60")
+    assert line_2.unit_price_net_amount == Decimal("10.00")
+    assert line_2.unit_price_gross_amount == Decimal("12.30")
+
+
+def test_fetch_order_prices_manual_discount_and_gift_discount_flat_rates(
+    order_with_lines_and_gift_promotion,
+    plugins_manager,
+):
+    # given
+    order = order_with_lines_and_gift_promotion
+    assert OrderLineDiscount.objects.exists()
+    currency = order.currency
+
+    tc = order.channel.tax_configuration
+    tc.country_exceptions.all().delete()
+    tc.prices_entered_with_tax = False
+    tc.tax_calculation_strategy = TaxCalculationStrategy.FLAT_RATES
+    tc.save()
+
+    discount_value = Decimal("50")
+    manual_discount = order.discounts.create(
+        value_type=DiscountValueType.PERCENTAGE,
+        value=discount_value,
+        name="Manual order discount",
+        type=DiscountType.MANUAL,
+    )
+
+    # when
+    order, lines = calculations.fetch_order_prices_if_expired(
+        order, plugins_manager, None, True
+    )
+
+    # then
+    assert not OrderLineDiscount.objects.exists()
+    assert OrderDiscount.objects.count() == 1
+    manual_discount.refresh_from_db()
+    assert manual_discount.amount_value == Decimal(
+        order.undiscounted_total_net_amount / 2
+    )
+
+    assert order.undiscounted_total_net_amount == Decimal("80.00")
+    assert order.undiscounted_total_gross_amount == Decimal("98.40")
+    assert (
+        quantize_price(
+            order.undiscounted_total_net_amount * discount_value / 100, currency
+        )
+        == order.total_net_amount
+    )
+    assert order.total_net_amount == Decimal("40.00")
+    assert order.total_gross_amount == Decimal("49.20")
+    assert order.shipping_price_net_amount == Decimal("5.00")
+    assert order.shipping_price_gross_amount == Decimal("6.15")
+    assert order.subtotal_net_amount == Decimal("35.00")
+    assert order.subtotal_gross_amount == Decimal("43.05")
+
+    line_1 = [line for line in lines if line.quantity == 3][0]
+    line_2 = [line for line in lines if line.quantity == 2][0]
+
+    assert line_1.undiscounted_total_price_net_amount == Decimal("30.00")
+    assert line_1.undiscounted_total_price_gross_amount == Decimal("36.90")
+    assert line_1.undiscounted_unit_price_net_amount == Decimal("10.00")
+    assert line_1.undiscounted_unit_price_gross_amount == Decimal("12.30")
+    assert line_1.base_unit_price_amount == Decimal("10.00")
+    assert (
+        quantize_price(
+            line_1.undiscounted_total_price_net_amount * discount_value / 100,
+            currency,
+        )
+        == line_1.total_price_net_amount
+    )
+    assert line_1.total_price_net_amount == Decimal("15.00")
+    assert line_1.total_price_gross_amount == Decimal("18.45")
+    assert line_1.unit_price_net_amount == Decimal("5.00")
+    assert line_1.unit_price_gross_amount == Decimal("6.15")
+
+    assert line_2.undiscounted_total_price_net_amount == Decimal("40.00")
+    assert line_2.undiscounted_total_price_gross_amount == Decimal("49.20")
+    assert line_2.undiscounted_unit_price_net_amount == Decimal("20.00")
+    assert line_2.undiscounted_unit_price_gross_amount == Decimal("24.60")
+    assert line_2.base_unit_price_amount == Decimal("20.00")
+    assert (
+        quantize_price(
+            line_2.undiscounted_total_price_net_amount * discount_value / 100,
+            currency,
+        )
+        == line_2.total_price_net_amount
+    )
+    assert line_2.total_price_net_amount == Decimal("20.00")
+    assert line_2.total_price_gross_amount == Decimal("24.60")
+    assert line_2.unit_price_net_amount == Decimal("10.00")
+    assert line_2.unit_price_gross_amount == Decimal("12.30")
+
+
+def test_fetch_order_prices_manual_discount_and_catalogue_discount_flat_rates(
+    order_with_lines_and_catalogue_promotion,
+    plugins_manager,
+):
+    # given
+    order = order_with_lines_and_catalogue_promotion
+    currency = order.currency
+    rule = PromotionRule.objects.get()
+    promotion_id = graphene.Node.to_global_id("Promotion", rule.promotion_id)
+
+    tc = order.channel.tax_configuration
+    tc.country_exceptions.all().delete()
+    tc.prices_entered_with_tax = False
+    tc.tax_calculation_strategy = TaxCalculationStrategy.FLAT_RATES
+    tc.save()
+
+    manual_discount_value = Decimal("50")
+    manual_discount = order.discounts.create(
+        value_type=DiscountValueType.PERCENTAGE,
+        value=manual_discount_value,
+        name="Manual order discount",
+        type=DiscountType.MANUAL,
+    )
+
+    # when
+    order, lines = calculations.fetch_order_prices_if_expired(
+        order, plugins_manager, None, True
+    )
+
+    # then
+    catalogue_discount = OrderLineDiscount.objects.get()
+    assert OrderDiscount.objects.count() == 1
+    manual_discount.refresh_from_db()
+    manual_discount_amount = Decimal(
+        (order.undiscounted_total_net_amount - catalogue_discount.amount_value)
+        * manual_discount_value
+        / 100
+    )
+    assert manual_discount.amount_value == manual_discount_amount
+
+    assert order.undiscounted_total_net_amount == Decimal("80.00")
+    assert order.undiscounted_total_gross_amount == Decimal("98.40")
+    assert (
+        quantize_price(
+            order.undiscounted_total_net_amount
+            - catalogue_discount.amount_value
+            - manual_discount_amount,
+            currency,
+        )
+        == order.total_net_amount
+    )
+    assert order.total_net_amount == Decimal("35.50")
+    assert order.total_gross_amount == Decimal("43.67")
+    assert order.shipping_price_net_amount == Decimal("5.00")
+    assert order.shipping_price_gross_amount == Decimal("6.15")
+    assert order.subtotal_net_amount == Decimal("30.50")
+    assert order.subtotal_gross_amount == Decimal("37.52")
+
+    line_1 = [line for line in lines if line.quantity == 3][0]
+    line_2 = [line for line in lines if line.quantity == 2][0]
+
+    assert catalogue_discount.amount_value == Decimal("9.00")
+    assert catalogue_discount.value == Decimal("3.00")
+    assert catalogue_discount.value_type == DiscountValueType.FIXED
+    assert catalogue_discount.type == DiscountType.PROMOTION
+    assert catalogue_discount.reason == f"Promotion: {promotion_id}"
+    assert catalogue_discount.line == line_1
+
+    assert line_1.undiscounted_total_price_net_amount == Decimal("30.00")
+    assert line_1.undiscounted_total_price_gross_amount == Decimal("36.90")
+    assert line_1.undiscounted_unit_price_net_amount == Decimal("10.00")
+    assert line_1.undiscounted_unit_price_gross_amount == Decimal("12.30")
+    assert line_1.base_unit_price_amount == Decimal("7.00")
+    assert (
+        quantize_price(
+            (
+                line_1.undiscounted_total_price_net_amount
+                - catalogue_discount.amount_value
+            )
+            * manual_discount_value
+            / 100,
+            currency,
+        )
+        == line_1.total_price_net_amount
+    )
+    assert line_1.total_price_net_amount == Decimal("10.50")
+    assert line_1.total_price_gross_amount == Decimal("12.92")
+    assert line_1.unit_price_net_amount == Decimal("3.50")
+    assert line_1.unit_price_gross_amount == Decimal("4.31")
+    assert line_1.unit_discount_amount == Decimal("3.00")
+    assert line_1.unit_discount_reason == f"Promotion: {promotion_id}"
+    assert line_1.unit_discount_value == Decimal("3.00")
+    assert line_1.unit_discount_type == DiscountValueType.FIXED
+
+    assert line_2.undiscounted_total_price_net_amount == Decimal("40.00")
+    assert line_2.undiscounted_total_price_gross_amount == Decimal("49.20")
+    assert line_2.undiscounted_unit_price_net_amount == Decimal("20.00")
+    assert line_2.undiscounted_unit_price_gross_amount == Decimal("24.60")
+    assert line_2.base_unit_price_amount == Decimal("20.00")
+    assert (
+        quantize_price(
+            line_2.undiscounted_total_price_net_amount * manual_discount_value / 100,
+            currency,
+        )
+        == line_2.total_price_net_amount
+    )
+    assert line_2.total_price_net_amount == Decimal("20.00")
+    assert line_2.total_price_gross_amount == Decimal("24.60")
+    assert line_2.unit_price_net_amount == Decimal("10.00")
+    assert line_2.unit_price_gross_amount == Decimal("12.30")

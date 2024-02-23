@@ -719,13 +719,18 @@ def create_order_discount_objects_for_order_promotions(
     from ..order.base_calculations import base_order_subtotal
     from ..order.utils import get_order_country
 
-    # The base prices are required for order promotion discount qualification.
-    _set_order_base_prices(order, lines_info)
-
     # Discount from order rules is applied only when the voucher is not set
     if order.voucher_code:
         _clear_order_discount(order, lines_info)
         return
+
+    # If there is manual discount applied, skip order discounts
+    if order.discounts.filter(type=DiscountType.MANUAL).first():
+        _clear_order_discount(order, lines_info)
+        return
+
+    # The base prices are required for order promotion discount qualification.
+    _set_order_base_prices(order, lines_info)
 
     lines = [line_info.line for line_info in lines_info]
     subtotal = base_order_subtotal(order, lines)
