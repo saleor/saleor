@@ -165,7 +165,7 @@ class JWTManager(JWTManagerBase):
             payload,
             cls.get_private_key(),  # type: ignore[arg-type] # key is typed as str for all algos # noqa: E501
             algorithm="RS256",
-            headers={"kid": cls.get_key_id(), "crit": ["b64"]},
+            headers={"kid": cls.get_key_id()},
         )
 
     @classmethod
@@ -174,7 +174,7 @@ class JWTManager(JWTManagerBase):
             payload,
             key=cls.get_private_key(),  # type: ignore[arg-type] # key is typed as str for all algos # noqa: E501
             algorithm="RS256",
-            headers={"kid": cls.get_key_id(), "crit": ["b64"]},
+            headers={"kid": cls.get_key_id()},
             is_payload_detached=is_payload_detached,
         )
 
