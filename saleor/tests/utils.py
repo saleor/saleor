@@ -9,6 +9,16 @@ class TestDBConnectionWrapper:
         self._wrapped_conn = conn
         self._default_conn = default_conn
 
+    def cursor(self, *args, **kwargs):
+        cursor = self._default_conn.cursor(*args, **kwargs)
+        cursor.db = self
+        return cursor
+
+    def chunked_cursor(self, *args, **kwargs):
+        cursor = self._default_conn.chunked_cursor(*args, **kwargs)
+        cursor.db = self
+        return cursor
+
     def __getattr__(self, attr):
         if attr in ["alias", "settings_dict"]:
             return getattr(self._wrapped_conn, attr)
@@ -16,10 +26,9 @@ class TestDBConnectionWrapper:
 
 
 def prepare_test_db_connections():
-    default_conn = connections["default"]
-    for conn in connections.all():
-        if conn.alias != settings.DATABASE_CONNECTION_DEFAULT_NAME:
-            connections[conn.alias] = TestDBConnectionWrapper(conn, default_conn)  # type: ignore
+    replica = settings.DATABASE_CONNECTION_REPLICA_NAME
+    default_conn = connections[settings.DATABASE_CONNECTION_DEFAULT_NAME]
+    connections[replica] = TestDBConnectionWrapper(connections[replica], default_conn)
 
 
 def flush_post_commit_hooks():
