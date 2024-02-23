@@ -26,7 +26,8 @@ from .validators import clean_promotion_rule
 
 class PromotionRuleCreateInput(PromotionRuleInput):
     promotion = graphene.ID(
-        description="The ID of the promotion that rule belongs to.", required=True
+        description="The ID of the promotion that rule belongs to.",
+        required=True,
     )
 
 
@@ -58,7 +59,13 @@ class PromotionRuleCreate(ModelMutation):
     def clean_input(
         cls, info: ResolveInfo, instance: models.PromotionRule, data: dict, **kwargs
     ):
+        promotion_value = data.pop("promotion")
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
+        instance = cls.get_node_or_error(
+            info, promotion_value, field="promotion", only_type="Promotion"
+        )
+        cleaned_input["promotion"] = instance
+
         errors: DefaultDict[str, List[ValidationError]] = defaultdict(list)
 
         clean_promotion_rule(cleaned_input, errors, PromotionRuleCreateErrorCode)
