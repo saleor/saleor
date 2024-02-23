@@ -1247,6 +1247,9 @@ class CollectionFilter(MetadataFilterBase):
 
 class CollectionWhere(MetadataWhereFilterBase):
     ids = GlobalIDMultipleChoiceWhereFilter(method=filter_by_ids("Collection"))
+    # Collection where filter is also used in promotion logic. In case of extending it
+    # the collection update mutation should also be modified to recalculate the prices
+    # for new added field.
 
     class Meta:
         model = Collection
@@ -1282,6 +1285,9 @@ class CategoryFilter(MetadataFilterBase):
 
 class CategoryWhere(MetadataWhereFilterBase):
     ids = GlobalIDMultipleChoiceWhereFilter(method=filter_by_ids("Category"))
+    # Category where filter is also used in promotion logic. In case of extending it
+    # the category update mutation should also be modified to recalculate the prices
+    # for new added field.
 
     class Meta:
         model = Category
