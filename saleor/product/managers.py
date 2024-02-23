@@ -60,7 +60,9 @@ class ProductsQueryset(models.QuerySet):
         from .models import ProductVariant, ProductVariantChannelListing
 
         if channel := (
-            Channel.objects.filter(slug=str(channel_slug), is_active=True).first()
+            Channel.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+            .filter(slug=str(channel_slug), is_active=True)
+            .first()
         ):
             variant_channel_listings = ProductVariantChannelListing.objects.filter(
                 channel_id=channel.id,
@@ -81,7 +83,11 @@ class ProductsQueryset(models.QuerySet):
 
         if has_one_of_permissions(requestor, ALL_PRODUCTS_PERMISSIONS):
             if channel_slug:
-                if channel := Channel.objects.filter(slug=str(channel_slug)).first():
+                if (
+                    channel := Channel.objects.using("replica")
+                    .filter(slug=str(channel_slug))
+                    .first()
+                ):
                     channel_listings = ProductChannelListing.objects.filter(
                         channel_id=channel.id
                     ).values("id")

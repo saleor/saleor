@@ -12,6 +12,7 @@ in terms of weight.
 In the end, it does not really matter unless you travel between
 different planets.
 """
+from django.conf import settings
 from django.contrib.sites.models import Site
 from measurement.measures import Weight
 
@@ -32,7 +33,9 @@ def convert_weight(weight: Weight, unit: str) -> Weight:
 
 
 def get_default_weight_unit():
-    site = Site.objects.get_current()
+    site = Site.objects.db_manager(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).get_current()
     return site.settings.default_weight_unit
 
 

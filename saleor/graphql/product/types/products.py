@@ -5,6 +5,7 @@ from decimal import Decimal
 from typing import Optional
 
 import graphene
+from django.conf import settings
 from graphene import relay
 from promise import Promise
 
@@ -1920,7 +1921,11 @@ class ProductMedia(ModelObjectType[models.ProductMedia]):
     @staticmethod
     def __resolve_references(roots: list["ProductMedia"], _info):
         return resolve_federation_references(
-            ProductMedia, roots, models.ProductMedia.objects
+            ProductMedia,
+            roots,
+            models.ProductMedia.objects.using(
+                settings.DATABASE_CONNECTION_REPLICA_NAME
+            ),
         )
 
     @staticmethod

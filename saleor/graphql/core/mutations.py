@@ -27,6 +27,7 @@ from graphene import ObjectType
 from graphene.types.mutation import MutationOptions
 from graphql.error import GraphQLError
 
+from ...core.db.connection import allow_writer
 from ...core.error_codes import MetadataErrorCode
 from ...core.exceptions import PermissionDenied
 from ...core.utils.events import call_event
@@ -518,6 +519,7 @@ class BaseMutation(graphene.Mutation):
         return one_of_permissions_or_auth_filter_required(context, all_permissions)
 
     @classmethod
+    @allow_writer()
     def mutate(cls, root, info: ResolveInfo, **data):
         disallow_replica_in_context(info.context)
         setup_context_user(info.context)
@@ -1050,6 +1052,7 @@ class BaseBulkMutation(BaseMutation):
         return count, errors
 
     @classmethod
+    @allow_writer()
     def mutate(cls, root, info: ResolveInfo, **data):
         disallow_replica_in_context(info.context)
         setup_context_user(info.context)
