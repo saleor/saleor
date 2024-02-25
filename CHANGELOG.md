@@ -13,6 +13,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Saleor Apps
 
 ### Other changes
+- DB performance improvements in attribute dataloaders - #15474 by @AjmalPonneth
 
 # 3.19.0
 
