@@ -84,5 +84,5 @@ class ProductVariantReorder(BaseMutation):
             perform_reordering(variants_m2m, operations)
             product.save(update_fields=["updated_at"])
             cls.call_event(manager.product_updated, product)
-            product = ChannelContext(node=product, channel_slug=None)
-        return ProductVariantReorder(product=product)
+            context = ChannelContext(node=product, channel_slug=None)
+        return ProductVariantReorder(product=context)
