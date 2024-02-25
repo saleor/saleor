@@ -13,6 +13,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Saleor Apps
 
 ### Other changes
+Remove `prefetched_for_webhook` to legacy payload generators - #15369 by @AjmalPonneth
 
 # 3.19.0
 
