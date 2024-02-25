@@ -220,6 +220,52 @@ def test_create_variant_without_name(
     updated_webhook_mock.assert_not_called()
 
 
+def test_create_variant_empty_product_id(
+    staff_api_client,
+    product_type,
+    permission_manage_products,
+    warehouse,
+):
+    # given
+    query = CREATE_VARIANT_MUTATION
+    sku = "1"
+    weight = 10.22
+    attribute_id = graphene.Node.to_global_id(
+        "Attribute", product_type.variant_attributes.first().pk
+    )
+    variant_value = "test-value"
+    stocks = [
+        {
+            "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.pk),
+            "quantity": 20,
+        }
+    ]
+
+    variables = {
+        "input": {
+            "product": "",
+            "sku": sku,
+            "stocks": stocks,
+            "weight": weight,
+            "attributes": [{"id": attribute_id, "values": [variant_value]}],
+            "trackInventory": True,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)["data"]["productVariantCreate"]
+
+    # then
+    assert not content["productVariant"]
+    assert len(content["errors"]) == 1
+    error = content["errors"][0]
+    assert error["field"] == "product"
+    assert error["code"] == ProductErrorCode.INVALID.name
+
+
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
 def test_create_variant_preorder(
