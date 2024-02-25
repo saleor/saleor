@@ -1,8 +1,9 @@
 from collections import defaultdict
 
+from django.db.models import Exists, OuterRef
 from promise import Promise
 
-from ...attribute.models import AssignedPageAttributeValue, AttributePage
+from ...attribute.models import AssignedPageAttributeValue, Attribute, AttributePage
 from ...page.models import Page, PageType
 from ..attribute.dataloaders import AttributesByAttributeId, AttributeValueByIdLoader
 from ..core.dataloaders import DataLoader
@@ -94,7 +95,11 @@ class PageAttributesVisibleInStorefrontByPageTypeIdLoader(
 
     def get_queryset(self):
         return AttributePage.objects.using(self.database_connection_name).filter(
-            attribute__visible_in_storefront=True
+            Exists(
+                Attribute.objects.filter(
+                    pk=OuterRef("attribute_id"), visible_in_storefront=True
+                )
+            ),
         )
 
 
