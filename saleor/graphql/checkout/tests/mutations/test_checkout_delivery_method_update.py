@@ -523,9 +523,9 @@ def test_checkout_delivery_method_update_valid_method_not_all_shipping_data_for_
 ):
     # given
     mock_clean_delivery.return_value = True
-
+    checkout_address = Address.objects.create(country="US")
     checkout = checkout_with_item_for_cc
-    checkout.shipping_address = Address.objects.create(country="US")
+    checkout.shipping_address = checkout_address
     checkout.save()
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
@@ -551,7 +551,7 @@ def test_checkout_delivery_method_update_valid_method_not_all_shipping_data_for_
         checkout_info=checkout_info, lines=lines, method=shipping_method_data
     )
     errors = data["errors"]
-
+    assert checkout.shipping_address == delivery_method.address
     assert not errors
     assert getattr(checkout, attribute_name) == delivery_method
 
