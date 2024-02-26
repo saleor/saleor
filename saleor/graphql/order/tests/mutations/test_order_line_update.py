@@ -1,8 +1,10 @@
+from decimal import Decimal
 from unittest.mock import patch
 
 import graphene
 import pytest
 
+from .....discount import DiscountType, RewardValueType
 from .....order import OrderStatus
 from .....order import events as order_events
 from .....order.error_codes import OrderErrorCode
@@ -417,3 +419,130 @@ def test_order_line_update_quantity_gift(
     assert len(errors) == 1
     assert errors[0]["field"] == "id"
     assert errors[0]["code"] == OrderErrorCode.NON_EDITABLE_GIFT_LINE.name
+
+
+ORDER_LINE_UPDATE_WITH_DISCOUNTS = """
+    mutation OrderLineUpdate($lineId: ID!, $quantity: Int!) {
+        orderLineUpdate(id: $lineId, input: {quantity: $quantity}) {
+            errors {
+                field
+                message
+                code
+            }
+            orderLine {
+                id
+                quantity
+                unitDiscount {
+                  amount
+                }
+                unitDiscountType
+                unitDiscountValue
+                isGift
+            }
+            order {
+                discounts {
+                    amount {
+                        amount
+                    }
+                }
+                total {
+                    gross {
+                        amount
+                    }
+                }
+            }
+        }
+    }
+"""
+
+
+def test_order_line_update_order_promotion(
+    draft_order,
+    staff_api_client,
+    permission_group_manage_orders,
+    order_promotion_rule,
+):
+    # given
+    query = ORDER_LINE_UPDATE_WITH_DISCOUNTS
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = draft_order
+
+    rule = order_promotion_rule
+    promotion_id = graphene.Node.to_global_id("Promotion", rule.promotion_id)
+    reward_value = Decimal("25")
+    assert rule.reward_value == reward_value
+    assert rule.reward_value_type == RewardValueType.PERCENTAGE
+
+    order.lines.last().delete()
+    line = order.lines.first()
+    line_id = graphene.Node.to_global_id("OrderLine", line.id)
+    variant = line.variant
+    variant_channel_listing = variant.channel_listings.get(channel=order.channel)
+    quantity = 4
+    undiscounted_subtotal = quantity * variant_channel_listing.discounted_price_amount
+    expected_discount = round(reward_value / 100 * undiscounted_subtotal, 2)
+
+    variables = {"lineId": line_id, "quantity": quantity}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderLineUpdate"]
+
+    discounts = data["order"]["discounts"]
+    assert len(discounts) == 1
+    assert discounts[0]["amount"]["amount"] == expected_discount
+    assert expected_discount == 10.00
+
+    discount_db = order.discounts.get()
+    assert discount_db.promotion_rule == rule
+    assert discount_db.amount_value == expected_discount
+    assert discount_db.type == DiscountType.ORDER_PROMOTION
+    assert discount_db.reason == f"Promotion: {promotion_id}"
+
+
+def test_order_line_update_gift_promotion(
+    draft_order,
+    staff_api_client,
+    permission_group_manage_orders,
+    gift_promotion_rule,
+):
+    # given
+    query = ORDER_LINE_UPDATE_WITH_DISCOUNTS
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = draft_order
+    rule = gift_promotion_rule
+    promotion_id = graphene.Node.to_global_id("Promotion", rule.promotion_id)
+
+    order.lines.last().delete()
+    line = order.lines.first()
+    line_id = graphene.Node.to_global_id("OrderLine", line.id)
+    quantity = 4
+
+    variables = {"lineId": line_id, "quantity": quantity}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderLineUpdate"]
+
+    line = data["orderLine"]
+    assert line["quantity"] == quantity
+    assert line["unitDiscount"]["amount"] == 0
+    assert line["unitDiscountValue"] == 0
+
+    gift_line_db = order.lines.get(is_gift=True)
+    assert gift_line_db.unit_discount_amount == Decimal("20.00")
+    assert gift_line_db.unit_price_gross_amount == Decimal(0)
+
+    assert not data["order"]["discounts"]
+
+    discount = gift_line_db.discounts.get()
+    assert discount.promotion_rule == rule
+    assert discount.amount_value == Decimal("20.00")
+    assert discount.type == DiscountType.ORDER_PROMOTION
+    assert discount.reason == f"Promotion: {promotion_id}"
