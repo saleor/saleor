@@ -952,43 +952,43 @@ dev = ["polib"]
 
 [[package]]
 name = "cryptography"
-version = "42.0.3"
+version = "42.0.5"
 description = "cryptography is a package which provides cryptographic recipes and primitives to Python developers."
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "cryptography-42.0.3-cp37-abi3-macosx_10_12_universal2.whl", hash = "sha256:de5086cd475d67113ccb6f9fae6d8fe3ac54a4f9238fd08bfdb07b03d791ff0a"},
-    {file = "cryptography-42.0.3-cp37-abi3-macosx_10_12_x86_64.whl", hash = "sha256:935cca25d35dda9e7bd46a24831dfd255307c55a07ff38fd1a92119cffc34857"},
-    {file = "cryptography-42.0.3-cp37-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:20100c22b298c9eaebe4f0b9032ea97186ac2555f426c3e70670f2517989543b"},
-    {file = "cryptography-42.0.3-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:2eb6368d5327d6455f20327fb6159b97538820355ec00f8cc9464d617caecead"},
-    {file = "cryptography-42.0.3-cp37-abi3-manylinux_2_28_aarch64.whl", hash = "sha256:39d5c93e95bcbc4c06313fc6a500cee414ee39b616b55320c1904760ad686938"},
-    {file = "cryptography-42.0.3-cp37-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:3d96ea47ce6d0055d5b97e761d37b4e84195485cb5a38401be341fabf23bc32a"},
-    {file = "cryptography-42.0.3-cp37-abi3-musllinux_1_1_aarch64.whl", hash = "sha256:d1998e545081da0ab276bcb4b33cce85f775adb86a516e8f55b3dac87f469548"},
-    {file = "cryptography-42.0.3-cp37-abi3-musllinux_1_1_x86_64.whl", hash = "sha256:93fbee08c48e63d5d1b39ab56fd3fdd02e6c2431c3da0f4edaf54954744c718f"},
-    {file = "cryptography-42.0.3-cp37-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:90147dad8c22d64b2ff7331f8d4cddfdc3ee93e4879796f837bdbb2a0b141e0c"},
-    {file = "cryptography-42.0.3-cp37-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:4dcab7c25e48fc09a73c3e463d09ac902a932a0f8d0c568238b3696d06bf377b"},
-    {file = "cryptography-42.0.3-cp37-abi3-win32.whl", hash = "sha256:1e935c2900fb53d31f491c0de04f41110351377be19d83d908c1fd502ae8daa5"},
-    {file = "cryptography-42.0.3-cp37-abi3-win_amd64.whl", hash = "sha256:762f3771ae40e111d78d77cbe9c1035e886ac04a234d3ee0856bf4ecb3749d54"},
-    {file = "cryptography-42.0.3-cp39-abi3-macosx_10_12_universal2.whl", hash = "sha256:0d3ec384058b642f7fb7e7bff9664030011ed1af8f852540c76a1317a9dd0d20"},
-    {file = "cryptography-42.0.3-cp39-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:35772a6cffd1f59b85cb670f12faba05513446f80352fe811689b4e439b5d89e"},
-    {file = "cryptography-42.0.3-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:04859aa7f12c2b5f7e22d25198ddd537391f1695df7057c8700f71f26f47a129"},
-    {file = "cryptography-42.0.3-cp39-abi3-manylinux_2_28_aarch64.whl", hash = "sha256:c3d1f5a1d403a8e640fa0887e9f7087331abb3f33b0f2207d2cc7f213e4a864c"},
-    {file = "cryptography-42.0.3-cp39-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:df34312149b495d9d03492ce97471234fd9037aa5ba217c2a6ea890e9166f151"},
-    {file = "cryptography-42.0.3-cp39-abi3-musllinux_1_1_aarch64.whl", hash = "sha256:de4ae486041878dc46e571a4c70ba337ed5233a1344c14a0790c4c4be4bbb8b4"},
-    {file = "cryptography-42.0.3-cp39-abi3-musllinux_1_1_x86_64.whl", hash = "sha256:0fab2a5c479b360e5e0ea9f654bcebb535e3aa1e493a715b13244f4e07ea8eec"},
-    {file = "cryptography-42.0.3-cp39-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:25b09b73db78facdfd7dd0fa77a3f19e94896197c86e9f6dc16bce7b37a96504"},
-    {file = "cryptography-42.0.3-cp39-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:d5cf11bc7f0b71fb71af26af396c83dfd3f6eed56d4b6ef95d57867bf1e4ba65"},
-    {file = "cryptography-42.0.3-cp39-abi3-win32.whl", hash = "sha256:0fea01527d4fb22ffe38cd98951c9044400f6eff4788cf52ae116e27d30a1ba3"},
-    {file = "cryptography-42.0.3-cp39-abi3-win_amd64.whl", hash = "sha256:2619487f37da18d6826e27854a7f9d4d013c51eafb066c80d09c63cf24505306"},
-    {file = "cryptography-42.0.3-pp310-pypy310_pp73-macosx_10_12_x86_64.whl", hash = "sha256:ead69ba488f806fe1b1b4050febafdbf206b81fa476126f3e16110c818bac396"},
-    {file = "cryptography-42.0.3-pp310-pypy310_pp73-manylinux_2_28_aarch64.whl", hash = "sha256:20180da1b508f4aefc101cebc14c57043a02b355d1a652b6e8e537967f1e1b46"},
-    {file = "cryptography-42.0.3-pp310-pypy310_pp73-manylinux_2_28_x86_64.whl", hash = "sha256:5fbf0f3f0fac7c089308bd771d2c6c7b7d53ae909dce1db52d8e921f6c19bb3a"},
-    {file = "cryptography-42.0.3-pp310-pypy310_pp73-win_amd64.whl", hash = "sha256:c23f03cfd7d9826cdcbad7850de67e18b4654179e01fe9bc623d37c2638eb4ef"},
-    {file = "cryptography-42.0.3-pp39-pypy39_pp73-macosx_10_12_x86_64.whl", hash = "sha256:db0480ffbfb1193ac4e1e88239f31314fe4c6cdcf9c0b8712b55414afbf80db4"},
-    {file = "cryptography-42.0.3-pp39-pypy39_pp73-manylinux_2_28_aarch64.whl", hash = "sha256:6c25e1e9c2ce682d01fc5e2dde6598f7313027343bd14f4049b82ad0402e52cd"},
-    {file = "cryptography-42.0.3-pp39-pypy39_pp73-manylinux_2_28_x86_64.whl", hash = "sha256:9541c69c62d7446539f2c1c06d7046aef822940d248fa4b8962ff0302862cc1f"},
-    {file = "cryptography-42.0.3-pp39-pypy39_pp73-win_amd64.whl", hash = "sha256:1b797099d221df7cce5ff2a1d272761d1554ddf9a987d3e11f6459b38cd300fd"},
-    {file = "cryptography-42.0.3.tar.gz", hash = "sha256:069d2ce9be5526a44093a0991c450fe9906cdf069e0e7cd67d9dee49a62b9ebe"},
+    {file = "cryptography-42.0.5-cp37-abi3-macosx_10_12_universal2.whl", hash = "sha256:a30596bae9403a342c978fb47d9b0ee277699fa53bbafad14706af51fe543d16"},
+    {file = "cryptography-42.0.5-cp37-abi3-macosx_10_12_x86_64.whl", hash = "sha256:b7ffe927ee6531c78f81aa17e684e2ff617daeba7f189f911065b2ea2d526dec"},
+    {file = "cryptography-42.0.5-cp37-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:2424ff4c4ac7f6b8177b53c17ed5d8fa74ae5955656867f5a8affaca36a27abb"},
+    {file = "cryptography-42.0.5-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:329906dcc7b20ff3cad13c069a78124ed8247adcac44b10bea1130e36caae0b4"},
+    {file = "cryptography-42.0.5-cp37-abi3-manylinux_2_28_aarch64.whl", hash = "sha256:b03c2ae5d2f0fc05f9a2c0c997e1bc18c8229f392234e8a0194f202169ccd278"},
+    {file = "cryptography-42.0.5-cp37-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:f8837fe1d6ac4a8052a9a8ddab256bc006242696f03368a4009be7ee3075cdb7"},
+    {file = "cryptography-42.0.5-cp37-abi3-musllinux_1_1_aarch64.whl", hash = "sha256:0270572b8bd2c833c3981724b8ee9747b3ec96f699a9665470018594301439ee"},
+    {file = "cryptography-42.0.5-cp37-abi3-musllinux_1_1_x86_64.whl", hash = "sha256:b8cac287fafc4ad485b8a9b67d0ee80c66bf3574f655d3b97ef2e1082360faf1"},
+    {file = "cryptography-42.0.5-cp37-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:16a48c23a62a2f4a285699dba2e4ff2d1cff3115b9df052cdd976a18856d8e3d"},
+    {file = "cryptography-42.0.5-cp37-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:2bce03af1ce5a5567ab89bd90d11e7bbdff56b8af3acbbec1faded8f44cb06da"},
+    {file = "cryptography-42.0.5-cp37-abi3-win32.whl", hash = "sha256:b6cd2203306b63e41acdf39aa93b86fb566049aeb6dc489b70e34bcd07adca74"},
+    {file = "cryptography-42.0.5-cp37-abi3-win_amd64.whl", hash = "sha256:98d8dc6d012b82287f2c3d26ce1d2dd130ec200c8679b6213b3c73c08b2b7940"},
+    {file = "cryptography-42.0.5-cp39-abi3-macosx_10_12_universal2.whl", hash = "sha256:5e6275c09d2badf57aea3afa80d975444f4be8d3bc58f7f80d2a484c6f9485c8"},
+    {file = "cryptography-42.0.5-cp39-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:e4985a790f921508f36f81831817cbc03b102d643b5fcb81cd33df3fa291a1a1"},
+    {file = "cryptography-42.0.5-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:7cde5f38e614f55e28d831754e8a3bacf9ace5d1566235e39d91b35502d6936e"},
+    {file = "cryptography-42.0.5-cp39-abi3-manylinux_2_28_aarch64.whl", hash = "sha256:7367d7b2eca6513681127ebad53b2582911d1736dc2ffc19f2c3ae49997496bc"},
+    {file = "cryptography-42.0.5-cp39-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:cd2030f6650c089aeb304cf093f3244d34745ce0cfcc39f20c6fbfe030102e2a"},
+    {file = "cryptography-42.0.5-cp39-abi3-musllinux_1_1_aarch64.whl", hash = "sha256:a2913c5375154b6ef2e91c10b5720ea6e21007412f6437504ffea2109b5a33d7"},
+    {file = "cryptography-42.0.5-cp39-abi3-musllinux_1_1_x86_64.whl", hash = "sha256:c41fb5e6a5fe9ebcd58ca3abfeb51dffb5d83d6775405305bfa8715b76521922"},
+    {file = "cryptography-42.0.5-cp39-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:3eaafe47ec0d0ffcc9349e1708be2aaea4c6dd4978d76bf6eb0cb2c13636c6fc"},
+    {file = "cryptography-42.0.5-cp39-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:1b95b98b0d2af784078fa69f637135e3c317091b615cd0905f8b8a087e86fa30"},
+    {file = "cryptography-42.0.5-cp39-abi3-win32.whl", hash = "sha256:1f71c10d1e88467126f0efd484bd44bca5e14c664ec2ede64c32f20875c0d413"},
+    {file = "cryptography-42.0.5-cp39-abi3-win_amd64.whl", hash = "sha256:a011a644f6d7d03736214d38832e030d8268bcff4a41f728e6030325fea3e400"},
+    {file = "cryptography-42.0.5-pp310-pypy310_pp73-macosx_10_12_x86_64.whl", hash = "sha256:9481ffe3cf013b71b2428b905c4f7a9a4f76ec03065b05ff499bb5682a8d9ad8"},
+    {file = "cryptography-42.0.5-pp310-pypy310_pp73-manylinux_2_28_aarch64.whl", hash = "sha256:ba334e6e4b1d92442b75ddacc615c5476d4ad55cc29b15d590cc6b86efa487e2"},
+    {file = "cryptography-42.0.5-pp310-pypy310_pp73-manylinux_2_28_x86_64.whl", hash = "sha256:ba3e4a42397c25b7ff88cdec6e2a16c2be18720f317506ee25210f6d31925f9c"},
+    {file = "cryptography-42.0.5-pp310-pypy310_pp73-win_amd64.whl", hash = "sha256:111a0d8553afcf8eb02a4fea6ca4f59d48ddb34497aa8706a6cf536f1a5ec576"},
+    {file = "cryptography-42.0.5-pp39-pypy39_pp73-macosx_10_12_x86_64.whl", hash = "sha256:cd65d75953847815962c84a4654a84850b2bb4aed3f26fadcc1c13892e1e29f6"},
+    {file = "cryptography-42.0.5-pp39-pypy39_pp73-manylinux_2_28_aarch64.whl", hash = "sha256:e807b3188f9eb0eaa7bbb579b462c5ace579f1cedb28107ce8b48a9f7ad3679e"},
+    {file = "cryptography-42.0.5-pp39-pypy39_pp73-manylinux_2_28_x86_64.whl", hash = "sha256:f12764b8fffc7a123f641d7d049d382b73f96a34117e0b637b80643169cec8ac"},
+    {file = "cryptography-42.0.5-pp39-pypy39_pp73-win_amd64.whl", hash = "sha256:37dd623507659e08be98eec89323469e8c7b4c1407c85112634ae3dbdb926fdd"},
+    {file = "cryptography-42.0.5.tar.gz", hash = "sha256:6fe07eec95dfd477eb9530aef5bead34fec819b3aaf6c5bd6d20565da607bfe1"},
 ]
 
 [package.dependencies]
@@ -5396,4 +5396,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.9"
-content-hash = "a5212e4962a51a8dfe34ae036c0293a98cee178ccea77ec51caa252ac540f1a3"
+content-hash = "e16f7ba5d1ec19b7fc9fa0fbe4fe4839918abad3e44b447eb1761d15dfd8c45d"
