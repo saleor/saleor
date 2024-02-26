@@ -14795,14 +14795,19 @@ type Mutation {
     startingAt: Date
   ): ProductBulkPublish
 
-  """Updates private metadata of a megapack product."""
-  updateMegapackPrivateMetadata(
-    """ID or token (for Order and Checkout) of an object to update."""
+  """Adds new products to Megapack."""
+  addProductsToMegapack(
+    filter: ProductFilterInput
+
+    """ID of megapack."""
     id: ID!
 
-    """Fields required to update the object's metadata."""
-    input: [MetadataInput!]!
-  ): UpdateMegapackPrivateMetadata
+    """SKUs to add to Megapack"""
+    input: [MetadataInput]
+
+    """List of products IDs to add to Megapack."""
+    productIds: [ID]
+  ): AddProductsToMegaPack
 
   """Delete object's private metadata."""
   deleteMegapackPrivateMetadata(
@@ -19932,8 +19937,8 @@ specified by
 """
 scalar Time
 
-"""Updates private metadata of a megapack product."""
-type UpdateMegapackPrivateMetadata {
+"""Adds new products to Megapack."""
+type AddProductsToMegaPack {
   metadataErrors: [MetadataError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [MetadataError!]!
   item: ObjectWithMetadata
