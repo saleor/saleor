@@ -10,7 +10,7 @@ from .....discount.models import PromotionEvent
 from .....product.models import ProductChannelListing
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...enums import RewardTypeEnum, RewardValueTypeEnum
-from ...utils import get_variants_for_predicate
+from ...utils import get_variants_for_catalogue_predicate
 
 PROMOTION_RULE_UPDATE_MUTATION = """
     mutation promotionRuleUpdate($id: ID!, $input: PromotionRuleUpdateInput!) {
@@ -234,7 +234,7 @@ def test_promotion_rule_update_by_customer(
 
     # then
     assert_no_permission(response)
-    for variant in get_variants_for_predicate(rule.catalogue_predicate):
+    for variant in get_variants_for_catalogue_predicate(rule.catalogue_predicate):
         assert variant.product.discounted_price_dirty is True
 
 

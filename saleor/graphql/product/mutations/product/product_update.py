@@ -55,7 +55,7 @@ class ProductUpdate(ProductCreate, ModelWithExtRefMutation):
         if "category" in cleaned_input or "collections" in cleaned_input:
             listings = product.channel_listings.all()
             channel_ids = [listing.channel_id for listing in listings]
-            mark_active_promotion_rules_as_dirty(channel_ids)
+            cls.call_event(mark_active_promotion_rules_as_dirty, channel_ids)
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.product_updated, product)
 

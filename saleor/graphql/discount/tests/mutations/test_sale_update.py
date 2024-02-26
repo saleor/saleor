@@ -14,7 +14,7 @@ from ...enums import DiscountValueTypeEnum
 from ...utils import (
     convert_migrated_sale_predicate_to_catalogue_info,
     get_products_for_promotion,
-    get_variants_for_predicate,
+    get_variants_for_catalogue_predicate,
 )
 
 SALE_UPDATE_MUTATION = """
@@ -90,7 +90,7 @@ def test_update_sale(
     updated_webhook_mock.assert_called_once_with(
         promotion, previous_catalogue, current_catalogue
     )
-    variants = get_variants_for_predicate(rule.catalogue_predicate).select_related(
+    variants = get_variants_for_catalogue_predicate(rule.catalogue_predicate).select_related(
         "product"
     )
     channel_ids = set(

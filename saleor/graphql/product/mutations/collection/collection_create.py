@@ -136,7 +136,7 @@ class CollectionCreate(ModelMutation):
             channel_ids = models.ProductChannelListing.objects.filter(
                 product_id__in=product_ids
             ).values_list("channel_id", flat=True)
-            mark_active_promotion_rules_as_dirty(channel_ids)
+            cls.call_event(mark_active_promotion_rules_as_dirty, channel_ids)
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **kwargs):

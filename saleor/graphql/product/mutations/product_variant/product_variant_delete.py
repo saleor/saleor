@@ -139,7 +139,7 @@ class ProductVariantDelete(ModelDeleteMutation, ModelWithExtRefMutation):
             cls.call_event(manager.product_variant_deleted, variant)
 
         # This will finally recalculate discounted prices for products.
-        mark_active_promotion_rules_as_dirty(channel_ids)
+        cls.call_event(mark_active_promotion_rules_as_dirty, channel_ids)
 
         return response
 

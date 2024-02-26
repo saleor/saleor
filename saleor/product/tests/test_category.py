@@ -36,6 +36,8 @@ def test_delete_categories(
     ).exists()
 
     # then
+    flush_post_commit_hooks()
+
     for product in product_list:
         product.refresh_from_db()
         assert not product.category

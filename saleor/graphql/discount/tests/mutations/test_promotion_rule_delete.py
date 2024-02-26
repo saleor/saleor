@@ -98,7 +98,7 @@ def test_promotion_rule_delete_by_customer(api_client, catalogue_promotion):
     # given
     rule = catalogue_promotion.rules.first()
     variables = {"id": graphene.Node.to_global_id("PromotionRule", rule.id)}
-    products = get_products_for_promotion(promotion)
+    products = get_products_for_promotion(catalogue_promotion)
     channels_ids = set(rule.channels.values_list("id", flat=True))
 
     # when

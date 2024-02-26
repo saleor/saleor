@@ -53,32 +53,19 @@ def test_update_variant_relations_for_active_promotion_rules_task(
     assert update_variant_relations_for_active_promotion_rules_task_mock.called
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
 @patch("saleor.product.tasks.PROMOTION_RULE_BATCH_SIZE", 1)
-@patch("saleor.product.tasks.update_discounted_prices_task.delay")
-def test_update_products_discounted_prices_for_promotion_task_with_order_predicate(
-    update_discounted_prices_task_mock,
-    update_products_discounted_prices_for_promotion_task_delay_mocked,
-    promotion_list,
-    product_list,
-):
-    # given
-    Promotion.objects.update(start_date=timezone.now() - timedelta(days=1))
-    product_ids = [product.id for product in product_list]
-    PromotionRule.objects.update(catalogue_predicate={})
-    PromotionRuleVariant = PromotionRule.variants.through
+ def test_update_products_discounted_prices_for_promotion_task_with_order_predicate(
+     order_promotion_rule,
+ ):
+     # given
+     Promotion.objects.update(start_date=timezone.now() - timedelta(days=1))
+     PromotionRule.objects.update(catalogue_predicate={})
 
-    # when
-    update_products_discounted_prices_for_promotion_task(product_ids)
+     # when
+     update_variant_relations_for_active_promotion_rules_task()
 
-    # then
-    assert not update_products_discounted_prices_for_promotion_task_delay_mocked.called
-    update_discounted_prices_task_mock.assert_called_once_with(product_ids)
-    assert set(
-        PromotionRuleVariant.objects.values_list("promotionrule_id", flat=True)
-    ) == set(PromotionRule.objects.values_list("id", flat=True))
+     # then
+     assert PromotionRule.objects.filter(variants_dirty=True).count() == 0
 
 @pytest.mark.parametrize("reward_value", [None, 0])
 @patch("saleor.product.tasks.PROMOTION_RULE_BATCH_SIZE", 1)

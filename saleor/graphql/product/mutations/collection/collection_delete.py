@@ -54,7 +54,7 @@ class CollectionDelete(ModelDeleteMutation):
                     product_id__in=product_ids
                 ).values_list("channel_id", flat=True)
             )
-            mark_active_promotion_rules_as_dirty(channel_ids)
+            cls.call_event(mark_active_promotion_rules_as_dirty, channel_ids)
 
         return CollectionDelete(
             collection=ChannelContext(node=result.collection, channel_slug=None)

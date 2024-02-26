@@ -21,7 +21,7 @@ def test_mark_promotion_rules_as_dirty_with_empty_list_as_input(
     assert not mocked_promotion_rule_filter.called
 
 
-def test_mark_promotion_rules_as_dirty_single_promotion(promotion, product):
+def test_mark_promotion_rules_as_dirty_single_promotion(catalogue_promotion, product):
     # given
     second_promotion = Promotion.objects.create(
         name="Promotion",
@@ -40,23 +40,23 @@ def test_mark_promotion_rules_as_dirty_single_promotion(promotion, product):
         variants_dirty=False,
     )
 
-    rule = promotion.rules.first()
+    rule = catalogue_promotion.rules.first()
     rule.variants_dirty = False
     rule.save(update_fields=["variants_dirty"])
 
     # when
-    mark_promotion_rules_as_dirty([promotion])
+    mark_promotion_rules_as_dirty([catalogue_promotion])
 
     # then
     assert not PromotionRule.objects.filter(
-        promotion_id=promotion.id, variants_dirty=False
+        promotion_id=catalogue_promotion.id, variants_dirty=False
     )
     assert not PromotionRule.objects.filter(
         promotion_id=second_promotion.id, variants_dirty=True
     )
 
 
-def test_mark_promotion_rules_as_dirty_multiple_promotion(promotion, product):
+def test_mark_promotion_rules_as_dirty_multiple_promotion(catalogue_promotion, product):
     # given
     second_promotion = Promotion.objects.create(
         name="Promotion",
@@ -75,14 +75,14 @@ def test_mark_promotion_rules_as_dirty_multiple_promotion(promotion, product):
         variants_dirty=False,
     )
 
-    rule = promotion.rules.first()
+    rule = catalogue_promotion.rules.first()
     rule.variants_dirty = False
     rule.save(update_fields=["variants_dirty"])
 
     # when
-    mark_promotion_rules_as_dirty([promotion, second_promotion])
+    mark_promotion_rules_as_dirty([catalogue_promotion, second_promotion])
 
     # then
     assert not PromotionRule.objects.filter(
-        promotion_id__in=[promotion.id, second_promotion.id], variants_dirty=False
+        promotion_id__in=[catalogue_promotion.id, second_promotion.id], variants_dirty=False
     )
