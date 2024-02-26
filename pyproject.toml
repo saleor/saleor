@@ -15,7 +15,7 @@ documentation = "https://docs.saleor.io/"
 
   [tool.poetry.dependencies]
   python = "~3.9"
-  Adyen = "^4.0.0"
+  Adyen = "^11.2.0"
   aniso8601 = "^7.0.0"
   asgiref = "^3.7.2"
   Authlib = "^1.0.0"
