@@ -220,12 +220,18 @@ def _call_plugin_or_tax_app(
     prices_entered_with_tax: bool,
 ):
     if tax_app_identifier.startswith(PLUGIN_IDENTIFIER_PREFIX):
+        plugin_ids = [tax_app_identifier.replace(PLUGIN_IDENTIFIER_PREFIX, "")]
+        plugins = manager.get_plugins(
+            order.channel.slug, active_only=True, plugin_ids=plugin_ids
+        )
+        if not plugins:
+            raise TaxEmptyData("Empty tax data.")
         _recalculate_with_plugins(
             manager,
             order,
             lines,
             prices_entered_with_tax,
-            plugin_ids=[tax_app_identifier.replace(PLUGIN_IDENTIFIER_PREFIX, "")],
+            plugin_ids=plugin_ids,
         )
         if order.tax_error:
             raise TaxEmptyData("Empty tax data.")

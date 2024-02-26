@@ -367,13 +367,21 @@ def _call_plugin_or_tax_app(
     address: Optional["Address"] = None,
 ):
     if tax_app_identifier.startswith(PLUGIN_IDENTIFIER_PREFIX):
+        plugin_ids = [tax_app_identifier.replace(PLUGIN_IDENTIFIER_PREFIX, "")]
+        plugins = manager.get_plugins(
+            checkout_info.channel.slug,
+            active_only=True,
+            plugin_ids=plugin_ids,
+        )
+        if not plugins:
+            raise TaxEmptyData("Empty tax data.")
         _apply_tax_data_from_plugins(
             checkout,
             manager,
             checkout_info,
             lines,
             address,
-            plugin_ids=[tax_app_identifier.replace(PLUGIN_IDENTIFIER_PREFIX, "")],
+            plugin_ids=plugin_ids,
         )
         if checkout.tax_error:
             raise TaxEmptyData("Empty tax data.")

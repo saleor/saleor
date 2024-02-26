@@ -603,3 +603,33 @@ def test_fetch_checkout_data_calls_tax_app(
     mock_get_taxes.assert_called_once()
     mock_apply_tax_data.assert_called_once()
     mock_calculate_checkout_total.assert_not_called()
+
+
+@freeze_time()
+def test_fetch_checkout_data_calls_inactive_plugin(
+    fetch_kwargs,
+    checkout_with_items,
+):
+    # given
+    checkout = checkout_with_items
+    checkout.price_expiration = timezone.now()
+    checkout.save()
+
+    checkout.channel.tax_configuration.tax_app_id = "plugin:test"
+    checkout.channel.tax_configuration.save()
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines_info, _ = fetch_checkout_lines(checkout)
+
+    fetch_kwargs = {
+        "checkout_info": fetch_checkout_info(checkout, lines_info, manager),
+        "manager": manager,
+        "lines": lines_info,
+        "address": checkout.shipping_address or checkout.billing_address,
+    }
+
+    # when
+    fetch_checkout_data(**fetch_kwargs)
+
+    # then
+    assert checkout_with_items.tax_error == "Empty tax data."
