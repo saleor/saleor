@@ -17,7 +17,6 @@ from ....order.error_codes import OrderErrorCode
 from ....order.search import update_order_search_vector
 from ....order.utils import (
     create_order_line,
-    invalidate_order_prices,
     recalculate_order_weight,
     update_order_display_gross_prices,
 )
@@ -482,9 +481,8 @@ class DraftOrderCreate(
             )
 
     @classmethod
-    def should_invalidate_prices(cls, instance, cleaned_input) -> bool:
-        # For newly created draft orders we calculate prices in mutation
-        return False
+    def should_invalidate_prices(cls, cleaned_input, is_new_instance) -> bool:
+        return is_new_instance
 
     @classmethod
     def save(cls, info: ResolveInfo, instance, cleaned_input):
@@ -567,12 +565,11 @@ class DraftOrderCreate(
                 ]
             )
 
-            if is_new_instance:
+            if cls.should_invalidate_prices(cleaned_input, is_new_instance):
                 fetch_order_prices_if_expired(instance, manager, force_update=True)
-
-            if cls.should_invalidate_prices(instance, cleaned_input):
-                invalidate_order_prices(instance)
-                updated_fields.extend(["should_refresh_prices"])
+                # zedzior
+                # invalidate_order_prices(instance)
+                # updated_fields.extend(["should_refresh_prices"])
 
             recalculate_order_weight(instance)
             update_order_search_vector(instance, save=False)

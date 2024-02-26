@@ -1,9 +1,11 @@
+from decimal import Decimal
+
 import graphene
 from prices import TaxedMoney
 
 from .....core.prices import quantize_price
 from .....core.taxes import zero_money
-from .....discount import DiscountType, DiscountValueType
+from .....discount import DiscountType, DiscountValueType, RewardValueType
 from .....order import OrderStatus
 from .....order.error_codes import OrderErrorCode
 from .....order.models import OrderEvent
@@ -1163,3 +1165,166 @@ def test_draft_order_update_no_shipping_method_channel_listings(
     assert len(errors) == 1
     assert errors[0]["code"] == OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
     assert errors[0]["field"] == "shippingMethod"
+
+
+DRAFT_ORDER_UPDATE_MUTATION_PROMOTIONS = """
+        mutation draftUpdate(
+        $id: ID!,
+        $input: DraftOrderInput!,
+        ) {
+            draftOrderUpdate(
+                id: $id,
+                input: $input
+            ) {
+                errors {
+                    field
+                    code
+                    message
+                }
+                order {
+                    discounts {
+                        amount {
+                            amount
+                        }
+                        valueType
+                        type
+                        reason
+                    }
+                    lines {
+                        quantity
+                        unitDiscount {
+                          amount
+                        }
+                        undiscountedUnitPrice {
+                            net {
+                                amount
+                            }
+                        }
+                        unitPrice {
+                            net {
+                                amount
+                            }
+                        }
+                        totalPrice {
+                            net {
+                                amount
+                            }
+                        }
+                        unitDiscountReason
+                        unitDiscountType
+                        unitDiscountValue
+                        isGift
+                    }
+                    total {
+                        net {
+                            amount
+                        }
+                    }
+                    subtotal {
+                        net {
+                            amount
+                        }
+                    }
+                    undiscountedTotal {
+                        net {
+                            amount
+                        }
+                    }
+                }
+            }
+        }
+        """
+
+
+def test_draft_order_update_order_promotion(
+    staff_api_client,
+    permission_group_manage_orders,
+    customer_user,
+    shipping_method,
+    graphql_address_data,
+    variant_with_many_stocks,
+    channel_USD,
+    draft_order,
+    order_promotion_rule,
+):
+    # given
+    query = DRAFT_ORDER_UPDATE_MUTATION_PROMOTIONS
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    rule = order_promotion_rule
+    promotion_id = graphene.Node.to_global_id("Promotion", rule.promotion_id)
+    assert rule.reward_value_type == RewardValueType.PERCENTAGE
+    assert rule.reward_value == Decimal("25")
+
+    variables = {
+        "id": graphene.Node.to_global_id("Order", draft_order.pk),
+        "input": {
+            "billingAddress": graphql_address_data,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["draftOrderUpdate"]["errors"]
+    order = content["data"]["draftOrderUpdate"]["order"]
+
+    assert len(order["discounts"]) == 1
+    assert order["discounts"][0]["amount"]["amount"] == 17.50
+    assert order["discounts"][0]["reason"] == f"Promotion: {promotion_id}"
+    assert order["discounts"][0]["type"] == DiscountType.ORDER_PROMOTION.upper()
+    assert order["discounts"][0]["valueType"] == RewardValueType.PERCENTAGE.upper()
+
+    assert order["subtotal"]["net"]["amount"] == 52.50
+    assert order["total"]["net"]["amount"] == 62.50
+    assert order["undiscountedTotal"]["net"]["amount"] == 80.00
+
+
+def test_draft_order_update_gift_promotion(
+    staff_api_client,
+    permission_group_manage_orders,
+    customer_user,
+    shipping_method,
+    graphql_address_data,
+    variant_with_many_stocks,
+    channel_USD,
+    draft_order,
+    gift_promotion_rule,
+):
+    # given
+    query = DRAFT_ORDER_UPDATE_MUTATION_PROMOTIONS
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    rule = gift_promotion_rule
+    promotion_id = graphene.Node.to_global_id("Promotion", rule.promotion_id)
+
+    variables = {
+        "id": graphene.Node.to_global_id("Order", draft_order.pk),
+        "input": {
+            "billingAddress": graphql_address_data,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["draftOrderUpdate"]["errors"]
+    order = content["data"]["draftOrderUpdate"]["order"]
+
+    lines = order["lines"]
+    assert len(lines) == 3
+    gift_line = [line for line in lines if line["isGift"]][0]
+
+    assert gift_line["totalPrice"]["net"]["amount"] == 0.00
+    assert gift_line["unitDiscount"]["amount"] == 20.00
+    assert gift_line["unitDiscountReason"] == f"Promotion: {promotion_id}"
+    assert gift_line["unitDiscountType"] == RewardValueType.FIXED.upper()
+    assert gift_line["unitDiscountValue"] == 20.00
+
+    assert order["subtotal"]["net"]["amount"] == 70.00
+    assert order["total"]["net"]["amount"] == 80.00
+    assert order["undiscountedTotal"]["net"]["amount"] == 80.00
