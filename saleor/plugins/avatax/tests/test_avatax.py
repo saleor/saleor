@@ -2467,6 +2467,56 @@ def test_calculate_order_total_for_JPY(
 
 @pytest.mark.vcr
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_order_total_order_promotion(
+    order_with_lines_and_order_promotion,
+    shipping_zone,
+    site_settings,
+    address,
+    plugin_configuration,
+):
+    plugin_configuration()
+    manager = get_plugins_manager(allow_replica=False)
+    order = order_with_lines_and_order_promotion
+    method = shipping_zone.shipping_methods.get()
+    order.shipping_address = order.billing_address.get_copy()
+    order_set_shipping_method(order, method)
+    order.save()
+
+    site_settings.company_address = address
+    site_settings.save()
+
+    price = manager.calculate_order_total(order, order.lines.all())
+    price = quantize_price(price, price.currency)
+    assert price == TaxedMoney(net=Money("44.71", "USD"), gross=Money("55.00", "USD"))
+
+
+@pytest.mark.vcr
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_order_total_gift_promotion(
+    order_with_lines_and_gift_promotion,
+    shipping_zone,
+    site_settings,
+    address,
+    plugin_configuration,
+):
+    plugin_configuration()
+    manager = get_plugins_manager(allow_replica=False)
+    order = order_with_lines_and_gift_promotion
+    method = shipping_zone.shipping_methods.get()
+    order.shipping_address = order.billing_address.get_copy()
+    order_set_shipping_method(order, method)
+    order.save()
+
+    site_settings.company_address = address
+    site_settings.save()
+
+    price = manager.calculate_order_total(order, order.lines.all())
+    price = quantize_price(price, price.currency)
+    assert price == TaxedMoney(net=Money("65.04", "USD"), gross=Money("80.00", "USD"))
+
+
+@pytest.mark.vcr
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
 def test_calculate_order_shipping_entire_order_voucher(
     order_line, shipping_zone, voucher, site_settings, address, plugin_configuration
 ):
