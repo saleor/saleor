@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 
 from ....app.utils import get_active_tax_apps
 from ....permission.enums import CheckoutPermissions
+from ....plugins import PLUGIN_IDENTIFIER_PREFIX
 from ....tax import error_codes, models
 from ...account.enums import CountryCodeEnum
 from ...core import ResolveInfo
@@ -11,6 +12,7 @@ from ...core.doc_category import DOC_CATEGORY_TAXES
 from ...core.mutations import ModelMutation
 from ...core.types import BaseInputObjectType, Error, NonNullList
 from ...core.utils import get_duplicates_items
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..enums import TaxCalculationStrategy
 from ..types import TaxConfiguration
 
@@ -91,7 +93,9 @@ class TaxConfigurationUpdateInput(BaseInputObjectType):
             "The tax app id that will be used to calculate the taxes for the given channel. "
             "Empty value for `TAX_APP` set as `taxCalculationStrategy` means that Saleor will "
             "iterate over all installed tax apps. If multiple tax apps exist with provided "
-            "tax app id use the `App` with newest `created` date. "
+            "tax app id use the `App` with newest `created` date. It's possible to set plugin "
+            "by using prefix `plugin:` with `PLUGIN_ID` "
+            "e.g. with Avalara `plugin:mirumee.taxes.avalara`."
             "Will become mandatory in 4.0 for `TAX_APP` `taxCalculationStrategy`."
             + ADDED_IN_319
         ),
@@ -130,7 +134,7 @@ class TaxConfigurationUpdate(ModelMutation):
 
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
-        cls.clean_tax_app_id(info, data)
+        cls.clean_tax_app_id(info, instance, data)
         update_countries_configuration = data.get("update_countries_configuration", [])
         update_country_codes = [
             item["country_code"] for item in update_countries_configuration
@@ -153,26 +157,46 @@ class TaxConfigurationUpdate(ModelMutation):
         return super().clean_input(info, instance, data, **kwargs)
 
     @classmethod
-    def clean_tax_app_id(cls, info: ResolveInfo, data):
+    def clean_tax_app_id(cls, info: ResolveInfo, instance, data):
         identifiers = []
-        if app_identifier := data.get("tax_app_id"):
+        if (app_identifier := data.get("tax_app_id")) is not None:
             identifiers.append(app_identifier)
 
         update_countries_configuration = data.get("update_countries_configuration", [])
         for country in update_countries_configuration:
-            if app_identifier := country.get("tax_app_id"):
-                identifiers.append(app_identifier)
+            if (country_app_identifier := country.get("tax_app_id")) is not None:
+                identifiers.append(country_app_identifier)
 
         active_tax_apps = list(get_active_tax_apps(identifiers))
+        active_tax_app_identifiers = [app.identifier for app in active_tax_apps]
 
-        if app_identifier := data.get("tax_app_id"):
-            cls.__verify_tax_app_id(info, app_identifier, active_tax_apps)
+        # include plugin in list of possible tax apps
+        manager = get_plugin_manager_promise(info.context).get()
+        plugin_ids = [
+            identifier.replace(PLUGIN_IDENTIFIER_PREFIX, "")
+            for identifier in identifiers
+            if identifier.startswith(PLUGIN_IDENTIFIER_PREFIX)
+        ]
+        valid_plugins = manager.get_plugins(
+            instance.channel.slug, active_only=True, plugin_ids=plugin_ids
+        )
+        valid_plugin_identifiers = [
+            PLUGIN_IDENTIFIER_PREFIX + plugin.PLUGIN_ID for plugin in valid_plugins
+        ]
+        active_tax_app_identifiers.extend(valid_plugin_identifiers)
+
+        # validate input
+        if app_identifier is not None:
+            cls.__verify_tax_app_id(info, app_identifier, active_tax_app_identifiers)
 
         update_countries_configuration = data.get("update_countries_configuration", [])
         for country in update_countries_configuration:
-            if app_identifier := country.get("tax_app_id"):
+            if (country_app_identifier := country.get("tax_app_id")) is not None:
                 cls.__verify_tax_app_id(
-                    info, app_identifier, active_tax_apps, [country["country_code"]]
+                    info,
+                    country_app_identifier,
+                    active_tax_app_identifiers,
+                    [country["country_code"]],
                 )
 
     @classmethod
@@ -180,11 +204,10 @@ class TaxConfigurationUpdate(ModelMutation):
         cls,
         info: ResolveInfo,
         app_identifier,
-        active_tax_apps,
+        active_tax_app_identifiers,
         country_codes=[],
     ):
-        identifiers = [app.identifier for app in active_tax_apps]
-        if app_identifier not in identifiers:
+        if app_identifier not in active_tax_app_identifiers:
             message = "Did not found Tax App with provided taxAppId."
             code = error_codes.TaxConfigurationUpdateErrorCode.NOT_FOUND.value
             params = {"country_codes": country_codes}

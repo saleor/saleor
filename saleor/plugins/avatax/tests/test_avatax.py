@@ -6122,3 +6122,241 @@ def test_calculate_checkout_line_unit_price_validates_checkout(
 
     # then
     assert not mocked_func.called
+
+
+@patch("saleor.plugins.avatax.plugin.api_post_request_task.delay")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_preprocess_order_creation_with_tax_app_id_as_plugin(
+    api_post_request_task_mock,
+    checkout_with_item,
+    address,
+    ship_to_pl_address,
+    site_settings,
+    shipping_zone,
+    plugin_configuration,
+):
+    # given
+    channel = checkout_with_item.channel
+    tax_configuration = channel.tax_configuration
+    tax_configuration.tax_calculation_strategy = TaxCalculationStrategy.TAX_APP
+    tax_configuration.tax_app_id = "test_app"
+    tax_configuration.save()
+    tax_configuration.country_exceptions.all().delete()
+
+    plugin_configuration(
+        from_street_address="Tęczowa 7",
+        from_city="WROCŁAW",
+        from_postal_code="53-603",
+        from_country="PL",
+        shipping_tax_code="FR00001",
+    )
+
+    manager = get_plugins_manager(allow_replica=True)
+    site_settings.company_address = address
+    site_settings.save()
+
+    checkout_with_item.shipping_address = ship_to_pl_address
+    checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
+    checkout_with_item.save()
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
+
+    # when
+    manager.preprocess_order_creation(checkout_info, lines)
+
+    # then
+    api_post_request_task_mock.assert_not_called()
+
+
+@patch("saleor.plugins.avatax.plugin.api_post_request_task.delay")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_preprocess_order_creation_with_country_exception_tax_app_id_plugin(
+    api_post_request_task_mock,
+    checkout_with_item,
+    address,
+    ship_to_pl_address,
+    site_settings,
+    shipping_zone,
+    plugin_configuration,
+):
+    # given
+    channel = checkout_with_item.channel
+    tax_configuration = channel.tax_configuration
+    tax_configuration.tax_app_id = None
+    tax_configuration.save()
+    tax_configuration.country_exceptions.all().delete()
+
+    tax_configuration.country_exceptions.create(
+        country="PL",
+        tax_calculation_strategy=TaxCalculationStrategy.TAX_APP,
+        tax_app_id="test_app",
+    )
+
+    plugin_configuration(
+        from_street_address="Tęczowa 7",
+        from_city="WROCŁAW",
+        from_postal_code="53-603",
+        from_country="PL",
+        shipping_tax_code="FR00001",
+    )
+
+    manager = get_plugins_manager(allow_replica=True)
+    site_settings.company_address = address
+    site_settings.save()
+
+    checkout_with_item.shipping_address = ship_to_pl_address
+    checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
+    checkout_with_item.save()
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
+
+    # when
+    manager.preprocess_order_creation(checkout_info, lines)
+
+    # then
+    api_post_request_task_mock.assert_not_called()
+
+
+@patch("saleor.plugins.avatax.plugin.api_post_request_task.delay")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_order_confirmed_skip_with_tax_app_id_as_plugin(
+    api_post_request_task_mock, order, plugin_configuration
+):
+    # given
+    channel = order.channel
+    tax_configuration = channel.tax_configuration
+    tax_configuration.tax_calculation_strategy = TaxCalculationStrategy.TAX_APP
+    tax_configuration.tax_app_id = "test_app"
+    tax_configuration.save()
+    tax_configuration.country_exceptions.all().delete()
+
+    plugin_configuration(
+        from_street_address="Tęczowa 7",
+        from_city="WROCŁAW",
+        from_postal_code="53-603",
+        from_country="PL",
+        shipping_tax_code="FR00001",
+    )
+
+    manager = get_plugins_manager(allow_replica=True)
+
+    # when
+    manager.order_confirmed(order)
+
+    # then
+    api_post_request_task_mock.assert_not_called()
+
+
+@patch("saleor.plugins.avatax.plugin.api_post_request_task.delay")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_order_confirmed_skip_with_country_exception_tax_app_id_plugin(
+    api_post_request_task_mock, order, order_line, plugin_configuration
+):
+    # given
+    channel = order.channel
+    tax_configuration = channel.tax_configuration
+    tax_configuration.tax_app_id = None
+    tax_configuration.save()
+    tax_configuration.country_exceptions.all().delete()
+
+    tax_configuration.country_exceptions.create(
+        country="PL",
+        tax_calculation_strategy=TaxCalculationStrategy.TAX_APP,
+        tax_app_id="test_app",
+    )
+
+    plugin_configuration(
+        from_street_address="Tęczowa 7",
+        from_city="WROCŁAW",
+        from_postal_code="53-603",
+        from_country="PL",
+        shipping_tax_code="FR00001",
+    )
+
+    manager = get_plugins_manager(allow_replica=True)
+
+    # when
+    manager.order_confirmed(order)
+
+    # then
+    api_post_request_task_mock.assert_not_called()
+
+
+@patch("saleor.plugins.avatax.plugin.get_order_tax_data")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_get_order_tax_data_set_tax_error(
+    mock_get_order_tax_data, order, order_line, plugin_configuration
+):
+    # given
+    mock_get_order_tax_data.return_value = None
+
+    channel = order.channel
+    tax_configuration = channel.tax_configuration
+    tax_configuration.tax_app_id = AvataxPlugin.PLUGIN_IDENTIFIER
+    tax_configuration.save()
+    tax_configuration.country_exceptions.all().delete()
+
+    plugin_configuration(
+        from_street_address="Tęczowa 7",
+        from_city="WROCŁAW",
+        from_postal_code="53-603",
+        from_country="PL",
+        shipping_tax_code="FR00001",
+    )
+
+    manager = get_plugins_manager(allow_replica=True)
+
+    # when
+    manager.calculate_order_total(order, order.lines.all())
+
+    # then
+    assert order.tax_error == "Empty tax data."
+
+
+@patch("saleor.plugins.avatax.plugin.get_checkout_tax_data")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_get_checkout_tax_data_set_tax_error(
+    mock_get_checkout_tax_data,
+    checkout_with_item,
+    address,
+    ship_to_pl_address,
+    site_settings,
+    shipping_zone,
+    plugin_configuration,
+):
+    # given
+    mock_get_checkout_tax_data.return_value = None
+
+    channel = checkout_with_item.channel
+    tax_configuration = channel.tax_configuration
+    tax_configuration.tax_app_id = AvataxPlugin.PLUGIN_IDENTIFIER
+    tax_configuration.save()
+    tax_configuration.country_exceptions.all().delete()
+
+    plugin_configuration(
+        from_street_address="Tęczowa 7",
+        from_city="WROCŁAW",
+        from_postal_code="53-603",
+        from_country="PL",
+        shipping_tax_code="FR00001",
+    )
+
+    manager = get_plugins_manager(allow_replica=True)
+    site_settings.company_address = address
+    site_settings.save()
+
+    checkout_with_item.shipping_address = ship_to_pl_address
+    checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
+    checkout_with_item.save()
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
+
+    # when
+    manager.calculate_checkout_total(
+        checkout_info=checkout_info,
+        lines=lines,
+        address=address,
+    )
+
+    # then
+    assert checkout_with_item.tax_error == "Empty tax data."
