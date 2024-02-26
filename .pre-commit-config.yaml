@@ -29,7 +29,7 @@ repos:
       - id: deptry
 
   - repo: https://github.com/returntocorp/semgrep
-    rev: v1.60.1
+    rev: v1.62.0
     hooks:
     - id: semgrep
       language_version: python3.9
