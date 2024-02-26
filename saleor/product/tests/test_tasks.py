@@ -1,12 +1,14 @@
 import logging
 from datetime import timedelta
+from decimal import Decimal
 from unittest.mock import patch
 
 import pytest
 from django.utils import timezone
 
+from ...discount import RewardValueType
 from ...discount.models import Promotion, PromotionRule
-from ..models import ProductChannelListing, ProductVariantChannelListing
+from ..models import Product, ProductChannelListing, ProductVariantChannelListing
 from ..tasks import (
     _get_preorder_variants_to_clean,
     recalculate_discounted_price_for_products_task,
@@ -14,6 +16,7 @@ from ..tasks import (
     update_variant_relations_for_active_promotion_rules_task,
     update_variants_names,
 )
+from ..utils.variants import fetch_variants_for_promotion_rules
 
 
 @patch(
@@ -50,6 +53,66 @@ def test_update_variant_relations_for_active_promotion_rules_task(
         PromotionRuleVariant.objects.values_list("promotionrule_id", flat=True)
     ) == set(PromotionRule.objects.values_list("id", flat=True))
     assert update_variant_relations_for_active_promotion_rules_task_mock.called
+
+
+@patch(
+    "saleor.product.tasks.update_variant_relations_for_active_promotion_rules_task."
+    "delay"
+)
+def test_update_variant_relations_for_active_promotion_rules_task_when_not_valid(
+    update_variant_relations_for_active_promotion_rules_task_mock,
+    product_list,
+    category,
+    channel_USD,
+):
+    # given
+    category.metadata = {"test": "test"}
+    category.save(update_fields=["metadata"])
+
+    promotion = Promotion.objects.create(
+        name="Promotion",
+        end_date=timezone.now() + timedelta(days=30),
+    )
+    rule = promotion.rules.create(
+        name="Percentage promotion rule",
+        reward_value_type=RewardValueType.PERCENTAGE,
+        reward_value=Decimal("10"),
+        catalogue_predicate={
+            "categoryPredicate": {"metadata": [{"key": "test", "value": "test"}]}
+        },
+    )
+    rule.channels.add(channel_USD)
+    fetch_variants_for_promotion_rules(promotion.rules.all())
+
+    PromotionRule.objects.update(variants_dirty=True)
+    category.metadata = {}
+    category.save(update_fields=["metadata"])
+
+    # when
+    update_variant_relations_for_active_promotion_rules_task()
+
+    # then
+    product_ids_in_category = Product.objects.filter(category=category).values_list(
+        "id", flat=True
+    )
+    assert ProductChannelListing.objects.filter(
+        product_id__in=product_ids_in_category, discounted_price_dirty=True
+    ).count() == len(product_ids_in_category)
+
+
+@patch("saleor.product.tasks.PROMOTION_RULE_BATCH_SIZE", 1)
+def test_update_variant_relations_for_active_promotion_rules_task_with_order_predicate(
+    order_promotion_rule,
+):
+    # given
+    Promotion.objects.update(start_date=timezone.now() - timedelta(days=1))
+    PromotionRule.objects.update(catalogue_predicate={})
+
+    # when
+    update_variant_relations_for_active_promotion_rules_task()
+
+    # then
+    assert PromotionRule.objects.filter(variants_dirty=True).count() == 0
 
 
 @pytest.mark.parametrize("reward_value", [None, 0])
