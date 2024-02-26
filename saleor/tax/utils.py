@@ -19,7 +19,7 @@ def get_tax_country(
     is_shipping_required: bool,
     shipping_address: Optional["Address"] = None,
     billing_address: Optional["Address"] = None,
-):
+) -> str:
     """Get country code for tax calculations.
 
     For checkouts and orders, there are following rules for determining the country
