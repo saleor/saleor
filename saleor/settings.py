@@ -240,7 +240,7 @@ ENABLE_RESTRICT_WRITER_MIDDLEWARE = get_bool_from_env(
     "ENABLE_RESTRICT_WRITER_MIDDLEWARE", False
 )
 if ENABLE_RESTRICT_WRITER_MIDDLEWARE:
-    MIDDLEWARE.append("saleor.core.db.connection.restrict_writer_middleware")
+    MIDDLEWARE = ["saleor.core.db.connection.restrict_writer_middleware"] + MIDDLEWARE
 
 # If true, disallowed writer usage will raise an error, otherwise it will log a warning.
 RESTRICT_WRITER_RAISE_ERROR = False
