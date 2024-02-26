@@ -33,7 +33,8 @@ class AccountRegisterInput(AccountBaseInput):
     last_name = graphene.String(description="Family name.")
     redirect_url = graphene.String(
         description=(
-            "Base of frontend URL that will be needed to create confirmation URL."
+            "Base of frontend URL that will be needed to create confirmation URL. "
+            "Required when account confirmation is enabled."
         ),
         required=False,
     )

@@ -31255,7 +31255,9 @@ input AccountRegisterInput @doc(category: "Users") {
   """Password."""
   password: String!
 
-  """Base of frontend URL that will be needed to create confirmation URL."""
+  """
+  Base of frontend URL that will be needed to create confirmation URL. Required when account confirmation is enabled.
+  """
   redirectUrl: String
 
   """User public metadata."""
