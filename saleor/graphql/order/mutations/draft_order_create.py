@@ -12,6 +12,7 @@ from ....core.utils.url import validate_storefront_url
 from ....discount.models import Voucher, VoucherCode
 from ....discount.utils import get_voucher_code_instance, increase_voucher_usage
 from ....order import OrderOrigin, OrderStatus, events, models
+from ....order.calculations import fetch_order_prices_if_expired
 from ....order.error_codes import OrderErrorCode
 from ....order.search import update_order_search_vector
 from ....order.utils import (
@@ -481,9 +482,9 @@ class DraftOrderCreate(
             )
 
     @classmethod
-    def should_invalidate_prices(cls, instance, cleaned_input, is_new_instance) -> bool:
-        # Force price recalculation for all new instances
-        return is_new_instance
+    def should_invalidate_prices(cls, instance, cleaned_input) -> bool:
+        # For newly created draft orders we calculate prices in mutation
+        return False
 
     @classmethod
     def save(cls, info: ResolveInfo, instance, cleaned_input):
@@ -565,9 +566,14 @@ class DraftOrderCreate(
                     "display_gross_prices",
                 ]
             )
-            if cls.should_invalidate_prices(instance, cleaned_input, is_new_instance):
+
+            if is_new_instance:
+                fetch_order_prices_if_expired(instance, manager, force_update=True)
+
+            if cls.should_invalidate_prices(instance, cleaned_input):
                 invalidate_order_prices(instance)
                 updated_fields.extend(["should_refresh_prices"])
+
             recalculate_order_weight(instance)
             update_order_search_vector(instance, save=False)
 

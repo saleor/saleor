@@ -51,7 +51,7 @@ class DraftOrderUpdate(DraftOrderCreate, ModelWithExtRefMutation):
         return instance
 
     @classmethod
-    def should_invalidate_prices(cls, instance, cleaned_input, is_new_instance) -> bool:
+    def should_invalidate_prices(cls, instance, cleaned_input) -> bool:
         return any(
             field in cleaned_input
             for field in [

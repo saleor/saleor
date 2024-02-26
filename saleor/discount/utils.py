@@ -426,6 +426,9 @@ def _update_order_line_prefetched_discounts(lines_info: Iterable[DraftOrderLineI
     modified_lines_info = [
         line_info for line_info in lines_info if line_info.should_refresh_discounts
     ]
+    if not modified_lines_info:
+        return
+
     for line_info in modified_lines_info:
         line_info.line._prefetched_objects_cache.pop(  # type: ignore[attr-defined] # noqa: E501
             "discounts", None
@@ -1062,6 +1065,11 @@ def _handle_order_promotion(
             )
 
     delete_gift_line(order_or_checkout, lines_info)
+    if hasattr(order_or_checkout, "_prefetched_objects_cache"):
+        order_or_checkout._prefetched_objects_cache.pop("discounts", None)
+        prefetch_related_objects(
+            [order_or_checkout], "discounts__promotion_rule__promotion"
+        )
 
 
 def delete_gift_line(
