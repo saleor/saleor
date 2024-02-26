@@ -1213,3 +1213,26 @@ def test_fetch_order_data_calls_tax_app(
     mock_apply_tax_data.assert_called_once()
     mock_get_taxes.assert_called_once()
     mock_calculate_order_total.assert_not_called()
+
+
+def test_fetch_order_data_calls_inactive_plugin(
+    order_with_lines,
+    order_lines,
+):
+    # given
+    order = order_with_lines
+    order.channel.tax_configuration.tax_app_id = "plugin:test"
+    order.channel.tax_configuration.save()
+
+    fetch_kwargs = {
+        "order": order,
+        "manager": get_plugins_manager(allow_replica=False),
+        "lines": order_lines,
+        "force_update": True,
+    }
+
+    # when
+    calculations.fetch_order_prices_if_expired(**fetch_kwargs)
+
+    # then
+    assert order_with_lines.tax_error == "Empty tax data."
