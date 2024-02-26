@@ -106,7 +106,6 @@ class AccountRegister(ModelMutation):
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
         site = get_site_promise(info.context).get()
-
         if not site.settings.enable_account_confirmation_by_email:
             return super().clean_input(info, instance, data, **kwargs)
         elif not data.get("redirect_url"):
@@ -158,9 +157,8 @@ class AccountRegister(ModelMutation):
 
         with traced_atomic_transaction():
             user.is_confirmed = False
+            user.save()
             if site.settings.enable_account_confirmation_by_email:
-                user.save()
-
                 # Notifications will be deprecated in the future
                 token = default_token_generator.make_token(user)
                 notifications.send_account_confirmation(
@@ -170,25 +168,22 @@ class AccountRegister(ModelMutation):
                     channel_slug=cleaned_input["channel"],
                     token=token,
                 )
-            else:
-                user.save()
+                if redirect_url:
+                    params = urlencode(
+                        {
+                            "email": user.email,
+                            "token": token or default_token_generator.make_token(user),
+                        }
+                    )
+                    redirect_url = prepare_url(params, redirect_url)
 
-            if redirect_url:
-                params = urlencode(
-                    {
-                        "email": user.email,
-                        "token": token or default_token_generator.make_token(user),
-                    }
+                cls.call_event(
+                    manager.account_confirmation_requested,
+                    user,
+                    cleaned_input["channel"],
+                    token,
+                    redirect_url,
                 )
-                redirect_url = prepare_url(params, redirect_url)
-
-            cls.call_event(
-                manager.account_confirmation_requested,
-                user,
-                cleaned_input["channel"],
-                token,
-                redirect_url,
-            )
 
             cls.call_event(manager.customer_created, user)
         account_events.customer_account_created_event(user=user)
