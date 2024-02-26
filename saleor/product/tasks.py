@@ -7,7 +7,7 @@ from uuid import UUID
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Exists, OuterRef, Q
+from django.db.models import Exists, OuterRef, Q, QuerySet
 from django.utils import timezone
 
 from ..attribute.models import Attribute
@@ -98,9 +98,9 @@ def update_products_discounted_prices_of_promotion_task(promotion_pk: UUID):
 
 
 def _get_channel_to_products_map(rule_to_variant_list):
-    variant_ids = [
-        rule_to_variant.productvariant_id for rule_to_variant in rule_to_variant_list
-    ]
+    variant_ids = set(
+        [rule_to_variant.productvariant_id for rule_to_variant in rule_to_variant_list]
+    )
     variant_id_with_product_id_qs = (
         ProductVariant.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
         .filter(id__in=variant_ids)
@@ -110,9 +110,9 @@ def _get_channel_to_products_map(rule_to_variant_list):
     for variant_id, product_id in variant_id_with_product_id_qs:
         variant_id_to_product_id_map[variant_id] = product_id
 
-    rule_ids = [
-        rule_to_variant.promotionrule_id for rule_to_variant in rule_to_variant_list
-    ]
+    rule_ids = set(
+        [rule_to_variant.promotionrule_id for rule_to_variant in rule_to_variant_list]
+    )
     PromotionChannel = PromotionRule.channels.through
     promotion_channel_qs = PromotionChannel.objects.using(
         settings.DATABASE_CONNECTION_REPLICA_NAME
@@ -131,6 +131,24 @@ def _get_channel_to_products_map(rule_to_variant_list):
             channel_to_products_map[channel_id].add(product_id)
 
     return channel_to_products_map
+
+
+def _get_existing_rule_variant_list(rules: QuerySet[PromotionRule]):
+    PromotionRuleVariant = PromotionRule.variants.through
+    existing_rules_variants = (
+        PromotionRuleVariant.objects.filter(
+            Exists(rules.filter(pk=OuterRef("promotionrule_id")))
+        )
+        .all()
+        .values_list(
+            "promotionrule_id",
+            "productvariant_id",
+        )
+    )
+    return [
+        PromotionRuleVariant(promotionrule_id=rule_id, productvariant_id=variant_id)
+        for rule_id, variant_id in existing_rules_variants
+    ]
 
 
 @app.task
@@ -156,8 +174,16 @@ def update_variant_relations_for_active_promotion_rules_task():
         rules = PromotionRule.objects.using(
             settings.DATABASE_CONNECTION_REPLICA_NAME
         ).filter(pk__in=ids)
+
+        # Fetch existing variant relations to also mark products which are no longer
+        # in the promotion as dirty
+        existing_variant_relation = _get_existing_rule_variant_list(rules)
+
         new_rule_to_variant_list = fetch_variants_for_promotion_rules(rules=rules)
-        channel_to_product_map = _get_channel_to_products_map(new_rule_to_variant_list)
+        channel_to_product_map = _get_channel_to_products_map(
+            existing_variant_relation + new_rule_to_variant_list
+        )
+
         PromotionRule.objects.filter(pk__in=ids).update(variants_dirty=False)
         mark_products_in_channels_as_dirty(channel_to_product_map, allow_replica=True)
         update_variant_relations_for_active_promotion_rules_task.delay()
