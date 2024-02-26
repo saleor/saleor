@@ -71,15 +71,15 @@ class RestrictWriterWrapper(CursorWrapper):
         if alias == settings.DATABASE_CONNECTION_DEFAULT_NAME and not allow_writer:
             if settings.RESTRICT_WRITER_RAISE_ERROR:
                 raise UnsafeWriterAccessError(
-                    "Unsafe writer DB access - use `allow_writer` context manager or "
-                    f"`using(alias)` queryset method: {sql}"
+                    "Unsafe writer DB access. Use `allow_writer` context manager or "
+                    f"`using()` queryset method: {sql}"
                 )
             else:
                 msg = (
-                    "Unsafe writer DB access - use `allow_writer` context manager or "
-                    f"`using(alias)` queryset method: {sql}"
+                    "Unsafe writer DB access. Use `allow_writer` context manager or "
+                    "`using()` queryset method: "
                 )
-                logger.error(color_style().NOTICE(msg))
+                logger.error("%s %s", color_style().NOTICE(msg), sql)
         return method(sql, params)
 
     def execute(self, sql, params=None):
