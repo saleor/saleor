@@ -38,6 +38,7 @@ from ..checkout.dataloaders import (
 )
 from ..core import ResolveInfo
 from ..core.connection import CountableConnection
+from ..core.dataloaders import is_writer_allowed
 from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_34,
@@ -287,6 +288,7 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
                 checkout.token
             )
 
+            @is_writer_allowed(info.context)
             def calculate_line_unit_price(data):
                 (
                     checkout_info,
