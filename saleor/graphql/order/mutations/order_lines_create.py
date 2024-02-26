@@ -6,12 +6,12 @@ from django.core.exceptions import ValidationError
 from ....core.taxes import TaxError
 from ....core.tracing import traced_atomic_transaction
 from ....order import events
+from ....order.calculations import fetch_order_prices_if_expired
 from ....order.error_codes import OrderErrorCode
 from ....order.fetch import fetch_order_lines
 from ....order.search import update_order_search_vector
 from ....order.utils import (
     add_variant_to_order,
-    invalidate_order_prices,
     recalculate_order_weight,
 )
 from ....permission.enums import OrderPermissions
@@ -193,12 +193,14 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
                 order_lines=added_lines,
             )
 
-            invalidate_order_prices(order)
+            fetch_order_prices_if_expired(order, manager, force_update=True)
+            if gift_line := order.lines.filter(is_gift=True).first():
+                added_lines.append(gift_line)
+
             recalculate_order_weight(order)
             update_order_search_vector(order, save=False)
             order.save(
                 update_fields=[
-                    "should_refresh_prices",
                     "weight",
                     "search_vector",
                     "updated_at",

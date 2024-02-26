@@ -57,10 +57,21 @@ ORDER_LINES_CREATE_MUTATION = """
                         currency
                     }
                 }
+                unitDiscount {
+                  amount
+                }
+                unitDiscountType
+                unitDiscountValue
+                isGift
             }
             order {
                 total {
                     gross {
+                        amount
+                    }
+                }
+                discounts {
+                    amount {
                         amount
                     }
                 }
@@ -611,7 +622,6 @@ def test_order_lines_create_variant_on_promotion(
     line_data = data["orderLines"][0]
     assert line_data["productSku"] == variant.sku
     assert line_data["quantity"] == quantity
-    assert line_data["quantity"] == quantity
 
     assert (
         line_data["unitPrice"]["gross"]["amount"]
@@ -642,6 +652,153 @@ def test_order_lines_create_variant_on_promotion(
         discount.translated_name
         == f"{promotion_translation_fr.name}: {promotion_rule_translation_fr.name}"
     )
+
+
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
+@patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+def test_order_lines_create_order_promotion(
+    order_updated_webhook_mock,
+    draft_order_updated_webhook_mock,
+    status,
+    order_with_lines,
+    permission_group_manage_orders,
+    staff_api_client,
+    variant_with_many_stocks,
+    order_promotion_rule,
+):
+    # given
+    query = ORDER_LINES_CREATE_MUTATION
+
+    order = order_with_lines
+    order.status = status
+    order.save(update_fields=["status"])
+    order.lines.all().delete()
+
+    rule = order_promotion_rule
+    promotion_id = graphene.Node.to_global_id("Promotion", rule.promotion_id)
+    assert rule.reward_value_type == RewardValueType.PERCENTAGE
+    assert rule.reward_value == Decimal("25")
+
+    variant = variant_with_many_stocks
+    quantity = 5
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variant_channel_listing = variant.channel_listings.get(channel=order.channel)
+    expected_discount = round(
+        quantity * variant_channel_listing.discounted_price.amount * Decimal(0.25), 2
+    )
+    expected_unit_discount = round(expected_discount / quantity, 2)
+
+    variables = {"orderId": order_id, "variantId": variant_id, "quantity": quantity}
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    assert_proper_webhook_called_once(
+        order, status, draft_order_updated_webhook_mock, order_updated_webhook_mock
+    )
+    assert OrderEvent.objects.count() == 1
+    assert OrderEvent.objects.last().type == order_events.OrderEvents.ADDED_PRODUCTS
+    content = get_graphql_content(response)
+    data = content["data"]["orderLinesCreate"]
+
+    line_data = data["orderLines"][0]
+    assert line_data["productSku"] == variant.sku
+    assert line_data["quantity"] == quantity
+    assert line_data["unitDiscount"]["amount"] == 0.00
+    assert (
+        line_data["unitPrice"]["gross"]["amount"]
+        == variant_channel_listing.price_amount - expected_unit_discount
+    )
+    assert (
+        line_data["unitPrice"]["net"]["amount"]
+        == variant_channel_listing.price_amount - expected_unit_discount
+    )
+
+    line = order.lines.get(product_sku=variant.sku)
+    assert line.unit_discount_amount == 0
+    assert (
+        line.unit_price_gross_amount
+        == variant_channel_listing.discounted_price.amount - expected_unit_discount
+    )
+
+    assert len(data["order"]["discounts"]) == 1
+    discount = data["order"]["discounts"][0]
+    assert discount["amount"]["amount"] == expected_discount
+
+    discount = order.discounts.get()
+    assert discount.promotion_rule == rule
+    assert discount.amount_value == expected_discount
+    assert discount.type == DiscountType.ORDER_PROMOTION
+    assert discount.reason == f"Promotion: {promotion_id}"
+
+
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
+@patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+def test_order_lines_create_gift_promotion(
+    order_updated_webhook_mock,
+    draft_order_updated_webhook_mock,
+    status,
+    order_with_lines,
+    permission_group_manage_orders,
+    staff_api_client,
+    variant_with_many_stocks,
+    gift_promotion_rule,
+):
+    # given
+    query = ORDER_LINES_CREATE_MUTATION
+
+    order = order_with_lines
+    order.status = status
+    order.save(update_fields=["status"])
+    order.lines.all().delete()
+
+    rule = gift_promotion_rule
+    promotion_id = graphene.Node.to_global_id("Promotion", rule.promotion_id)
+
+    variant = variant_with_many_stocks
+    quantity = 5
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    variables = {"orderId": order_id, "variantId": variant_id, "quantity": quantity}
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    assert_proper_webhook_called_once(
+        order, status, draft_order_updated_webhook_mock, order_updated_webhook_mock
+    )
+    assert OrderEvent.objects.count() == 1
+    assert OrderEvent.objects.last().type == order_events.OrderEvents.ADDED_PRODUCTS
+    content = get_graphql_content(response)
+    data = content["data"]["orderLinesCreate"]
+
+    lines = data["orderLines"]
+    assert len(lines) == 2
+    gift_line = [line for line in lines if line["isGift"]][0]
+    assert gift_line["quantity"] == 1
+    assert gift_line["unitDiscount"]["amount"] == 20.00
+    assert gift_line["unitDiscountValue"] == 20.00
+    assert gift_line["unitPrice"]["gross"]["amount"] == 0.00
+
+    gift_line_db = order.lines.get(is_gift=True)
+    assert gift_line_db.unit_discount_amount == Decimal("20.00")
+    assert gift_line_db.unit_price_gross_amount == Decimal(0)
+
+    assert not data["order"]["discounts"]
+
+    discount = gift_line_db.discounts.get()
+    assert discount.promotion_rule == rule
+    assert discount.amount_value == Decimal("20.00")
+    assert discount.type == DiscountType.ORDER_PROMOTION
+    assert discount.reason == f"Promotion: {promotion_id}"
 
 
 @pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
