@@ -4,9 +4,11 @@ from typing import Generic, Optional, TypeVar, Union
 
 import opentracing
 import opentracing.tags
+from django.conf import settings
 from promise import Promise
 from promise.dataloader import DataLoader as BaseLoader
 
+from ...core.db.connection import allow_writer
 from ...thumbnail.models import Thumbnail
 from ...thumbnail.utils import get_thumbnail_format
 from . import SaleorContext
@@ -47,7 +49,16 @@ class DataLoader(BaseLoader, Generic[K, R]):
         ) as scope:
             span = scope.span
             span.set_tag(opentracing.tags.COMPONENT, "dataloaders")
-            results = self.batch_load(keys)
+
+            if (
+                self.database_connection_name
+                == settings.DATABASE_CONNECTION_DEFAULT_NAME
+            ):
+                with allow_writer():
+                    results = self.batch_load(keys)
+            else:
+                results = self.batch_load(keys)
+
             if not isinstance(results, Promise):
                 return Promise.resolve(results)
             return results
