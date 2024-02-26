@@ -135,9 +135,11 @@ def _get_channel_to_products_map(rule_to_variant_list):
 
 @app.task
 def update_variant_relations_for_active_promotion_rules_task():
-    promotions = Promotion.objects.using(
-        settings.DATABASE_CONNECTION_REPLICA_NAME
-    ).active().filter(type=PromotionType.CATALOGUE)
+    promotions = (
+        Promotion.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .active()
+        .filter(type=PromotionType.CATALOGUE)
+    )
 
     rules = (
         PromotionRule.objects.order_by("id")
@@ -145,9 +147,9 @@ def update_variant_relations_for_active_promotion_rules_task():
         .filter(
             Exists(promotions.filter(id=OuterRef("promotion_id"))), variants_dirty=True
         )
-        .exclude(Q(reward_value__isnull=True) | Q(reward_value=0) | Q(catalogue_predicate={}))[
-            :PROMOTION_RULE_BATCH_SIZE
-        ]
+        .exclude(
+            Q(reward_value__isnull=True) | Q(reward_value=0) | Q(catalogue_predicate={})
+        )[:PROMOTION_RULE_BATCH_SIZE]
     )
     if ids := list(rules.values_list("pk", flat=True)):
         # fetch rules to get a qs without slicing

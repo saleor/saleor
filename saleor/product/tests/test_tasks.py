@@ -60,11 +60,12 @@ def test_update_variant_relations_for_active_promotion_rules_task_with_order_pre
     Promotion.objects.update(start_date=timezone.now() - timedelta(days=1))
     PromotionRule.objects.update(catalogue_predicate={})
 
-     # when
-     update_variant_relations_for_active_promotion_rules_task()
+    # when
+    update_variant_relations_for_active_promotion_rules_task()
 
-     # then
-     assert PromotionRule.objects.filter(variants_dirty=True).count() == 0
+    # then
+    assert PromotionRule.objects.filter(variants_dirty=True).count() == 0
+
 
 @pytest.mark.parametrize("reward_value", [None, 0])
 @patch("saleor.product.tasks.PROMOTION_RULE_BATCH_SIZE", 1)

@@ -1032,7 +1032,6 @@ def create_order_promotions(how_many=5):
         yield f"Promotion: {promotion}"
 
 
-
 def create_channel(channel_name, currency_code, slug=None, country=None):
     if not slug:
         slug = slugify(channel_name)
