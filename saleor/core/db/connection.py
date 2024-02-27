@@ -33,12 +33,12 @@ def allow_writer():
     in_allow_writer_block = getattr(default_connection, "_allow_writer", False)
     if not in_allow_writer_block:
         setattr(default_connection, "_allow_writer", True)
-
-    yield
-
-    if not in_allow_writer_block:
-        # Close writer access when exiting the outermost allow_writer block.
-        setattr(default_connection, "_allow_writer", False)
+    try:
+        yield
+    finally:
+        if not in_allow_writer_block:
+            # Close writer access when exiting the outermost allow_writer block.
+            setattr(default_connection, "_allow_writer", False)
 
 
 def is_read_only_query(sql_query: str) -> bool:
