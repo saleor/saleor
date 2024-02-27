@@ -264,7 +264,12 @@ class AttributeValueManager(models.Manager):
         results = [obj for index, obj in results]
 
         if objects_not_in_db:
-            self.bulk_create(objects_not_in_db)  # type: ignore[arg-type]
+            # After migrating to Django 4.0 we should use `update_conflicts` instead
+            # of `ignore_conflicts`
+            # https://docs.djangoproject.com/en/4.1/ref/models/querysets/#bulk-create
+            self.bulk_create(
+                objects_not_in_db, ignore_conflicts=True  # type: ignore[arg-type]
+            )
 
         return results
 
@@ -307,7 +312,12 @@ class AttributeValueManager(models.Manager):
         results = [obj for index, obj in results]
 
         if objects_not_in_db:
-            self.bulk_create(objects_not_in_db)  # type: ignore[arg-type]
+            # After migrating to Django 4.0 we should use `update_conflicts` instead
+            # of `ignore_conflicts`
+            # https://docs.djangoproject.com/en/4.1/ref/models/querysets/#bulk-create
+            self.bulk_create(
+                objects_not_in_db, ignore_conflicts=True  # type: ignore[arg-type]
+            )
 
         if objects_to_be_updated:
             self.bulk_update(
