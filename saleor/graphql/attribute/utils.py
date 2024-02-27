@@ -420,7 +420,9 @@ class AttributeAssignmentMixin:
                 # to ensure that attribute will be present in variable `pre_save_bulk`,
                 # so function `associate_attribute_values_to_instance` will be called
                 # properly for all attributes, even in case when attribute has no values
-                pre_save_bulk[None].setdefault(attribute, [])
+                pre_save_bulk[AttributeValueBulkActionEnum.NONE].setdefault(
+                    attribute, []
+                )
             else:
                 for key, value in attribute_values:
                     pre_save_bulk[key][attribute].append(value)
@@ -787,7 +789,11 @@ class AttributeAssignmentMixin:
     @classmethod
     def _prepare_attribute_values(cls, attribute, values):
         results, values_to_create = prepare_attribute_values(attribute, values)
-        return [(AttributeValueBulkActionEnum.NONE, record) for record in results] + [
+        return [
+            (AttributeValueBulkActionEnum.NONE, record)
+            for record in results
+            if record not in values_to_create
+        ] + [
             (AttributeValueBulkActionEnum.CREATE, record) for record in values_to_create
         ]
 
