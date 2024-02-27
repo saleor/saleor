@@ -101,7 +101,7 @@ class OrderUpdate(DraftOrderCreate, ModelWithExtRefMutation):
                 *prepare_order_search_vector_value(instance)
             )
             manager = get_plugin_manager_promise(info.context).get()
-            if cls.should_invalidate_prices(instance, cleaned_input, False):
+            if cls.should_invalidate_prices(cleaned_input):
                 invalidate_order_prices(instance)
 
             instance.save()
