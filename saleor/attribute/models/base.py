@@ -265,7 +265,8 @@ class AttributeValueManager(models.Manager):
             # of `ignore_conflicts`
             # https://docs.djangoproject.com/en/4.1/ref/models/querysets/#bulk-create
             self.bulk_create(
-                objects_not_in_db, ignore_conflicts=True  # type: ignore[arg-type]
+                objects_not_in_db,  # type: ignore[arg-type]
+                ignore_conflicts=True,
             )
 
         return results
@@ -313,7 +314,8 @@ class AttributeValueManager(models.Manager):
             # of `ignore_conflicts`
             # https://docs.djangoproject.com/en/4.1/ref/models/querysets/#bulk-create
             self.bulk_create(
-                objects_not_in_db, ignore_conflicts=True  # type: ignore[arg-type]
+                objects_not_in_db,  # type: ignore[arg-type]
+                ignore_conflicts=True,
             )
 
         if objects_to_be_updated:
