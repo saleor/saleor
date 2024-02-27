@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.staticfiles.views import serve
-from django.urls import include, re_path
+from django.urls import include, path, re_path
 from django.views.decorators.csrf import csrf_exempt
 
 from .core.views import jwks
@@ -16,8 +16,8 @@ from .product.views import digital_product
 from .thumbnail.views import handle_thumbnail
 
 urlpatterns = [
-    re_path(
-        r"^graphql/$",
+    path(
+        "graphql/",
         csrf_exempt(GraphQLView.as_view(backend=backend, schema=schema)),
         name="api",
     ),
@@ -67,10 +67,10 @@ if settings.DEBUG:
         )
     else:
         urlpatterns += [
-            re_path(r"^__debug__/", include(debug_toolbar.urls))  # type: ignore
+            path("__debug__/", include(debug_toolbar.urls))  # type: ignore
         ]
 
     urlpatterns += static("/media/", document_root=settings.MEDIA_ROOT) + [
         re_path(r"^static/(?P<path>.*)$", serve),
-        re_path(r"^$", views.home, name="home"),
+        path("", views.home, name="home"),
     ]

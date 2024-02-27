@@ -122,7 +122,6 @@ LANGUAGE_CODE = "en"
 LANGUAGES = CORE_LANGUAGES
 LOCALE_PATHS = [os.path.join(PROJECT_ROOT, "locale")]
 USE_I18N = True
-USE_L10N = True
 USE_TZ = True
 
 FORM_RENDERER = "django.forms.renderers.TemplatesSetting"

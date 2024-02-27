@@ -63,7 +63,7 @@ def get_client_ip(request):
     If no forwarded IP was provided or all of them are invalid,
     it fallback to the requester IP.
     """
-    ip = request.META.get("HTTP_X_FORWARDED_FOR", "")
+    ip = request.headers.get("x-forwarded-for", "")
     ips = ip.split(",")
     for ip in ips:
         if is_valid_ipv4(ip) or is_valid_ipv6(ip):
