@@ -84,7 +84,7 @@ class OrderUpdate(DraftOrderCreate, ModelWithExtRefMutation):
         return instance
 
     @classmethod
-    def should_invalidate_prices(cls, instance, cleaned_input, is_new_instance) -> bool:
+    def should_invalidate_prices(cls, cleaned_input, *args) -> bool:
         return any(
             cleaned_input.get(field) is not None
             for field in ["shipping_address", "billing_address"]
