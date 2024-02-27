@@ -818,7 +818,11 @@ class AttributeAssignmentMixin:
     @classmethod
     def _prepare_attribute_values(cls, attribute, values):
         results, values_to_create = prepare_attribute_values(attribute, values)
-        return [(AttributeValueBulkActionEnum.NONE, record) for record in results] + [
+        return [
+            (AttributeValueBulkActionEnum.NONE, record)
+            for record in results
+            if record not in values_to_create
+        ] + [
             (AttributeValueBulkActionEnum.CREATE, record) for record in values_to_create
         ]
 
