@@ -7,6 +7,7 @@ import pytz
 from django.db.models import Sum
 from django.test import override_settings
 from freezegun import freeze_time
+from prices import Money, TaxedMoney
 
 from .....core import EventDeliveryStatus
 from .....core.models import EventDelivery
@@ -17,9 +18,12 @@ from .....order import OrderOrigin, OrderStatus
 from .....order import events as order_events
 from .....order.calculations import fetch_order_prices_if_expired
 from .....order.error_codes import OrderErrorCode
+from .....order.interface import OrderTaxedPricesData
 from .....order.models import OrderEvent
 from .....payment.model_helpers import get_subtotal
+from .....plugins import PLUGIN_IDENTIFIER_PREFIX
 from .....plugins.base_plugin import ExcludedShippingMethod
+from .....plugins.tests.sample_plugins import PluginSample
 from .....plugins.webhook.conftest import (  # noqa: F401
     tax_data_response,
     tax_line_data_response,
@@ -1051,7 +1055,7 @@ def test_draft_order_complete_fails_with_invalid_tax_app(
     assert not EventDelivery.objects.exists()
 
     order.refresh_from_db()
-    assert order.should_refresh_prices
+    assert not order.should_refresh_prices
     assert order.tax_error == "Empty tax data."
 
 
@@ -1142,6 +1146,56 @@ def test_draft_order_complete_calls_correct_tax_app(
     order.refresh_from_db()
     assert not order.should_refresh_prices
     assert not order.tax_error
+
+
+@freeze_time()
+@patch("saleor.plugins.tests.sample_plugins.PluginSample.calculate_order_line_total")
+@override_settings(PLUGINS=["saleor.plugins.tests.sample_plugins.PluginSample"])
+def test_draft_order_complete_calls_failing_plugin(
+    mock_calculate_order_line_total,
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    channel_USD,
+):
+    # given
+    def side_effect(order, *args, **kwargs):
+        price = Money("10.0", order.currency)
+        order.tax_error = "Test error"
+        return OrderTaxedPricesData(
+            price_with_discounts=TaxedMoney(price, price),
+            undiscounted_price=TaxedMoney(price, price),
+        )
+
+    mock_calculate_order_line_total.side_effect = side_effect
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    order = draft_order
+    order.should_refresh_prices = True
+    order.save()
+
+    channel_USD.tax_configuration.tax_app_id = (
+        PLUGIN_IDENTIFIER_PREFIX + PluginSample.PLUGIN_ID
+    )
+    channel_USD.tax_configuration.save()
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+
+    # when
+    response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["draftOrderComplete"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == OrderErrorCode.TAX_ERROR.name
+    assert data["errors"][0]["message"] == "Configured Tax App didn't responded."
+
+    order.refresh_from_db()
+    assert not order.should_refresh_prices
+    assert order.tax_error == "Empty tax data."
 
 
 DRAFT_ORDER_COMPLETE_WITH_DISCOUNTS_MUTATION = """

@@ -3,12 +3,15 @@ from typing import Literal, Union
 from unittest.mock import Mock, patch, sentinel
 
 import pytest
+from django.test import override_settings
 from prices import Money, TaxedMoney
 
 from ...core.prices import quantize_price
 from ...core.taxes import TaxData, TaxError, TaxLineData, zero_taxed_money
 from ...discount import DiscountValueType
+from ...plugins import PLUGIN_IDENTIFIER_PREFIX
 from ...plugins.manager import get_plugins_manager
+from ...plugins.tests.sample_plugins import PluginSample
 from ...tax import TaxCalculationStrategy
 from ...tax.calculations.order import update_order_prices_with_flat_rates
 from .. import OrderStatus, calculations
@@ -1141,3 +1144,95 @@ def test_order_undiscounted_total(mocked_fetch_order_prices_if_expired):
     assert undiscounted_total == quantize_price(
         expected_undiscounted_total, order.currency
     )
+
+
+@patch("saleor.plugins.manager.PluginsManager.calculate_order_line_total")
+@patch("saleor.plugins.manager.PluginsManager.get_taxes_for_order")
+@override_settings(PLUGINS=["saleor.plugins.tests.sample_plugins.PluginSample"])
+def test_fetch_order_data_calls_plugin(
+    mock_get_taxes,
+    mock_calculate_order_line_total,
+    order_with_lines,
+    order_lines,
+):
+    # given
+    order = order_with_lines
+    order.channel.tax_configuration.tax_app_id = (
+        PLUGIN_IDENTIFIER_PREFIX + PluginSample.PLUGIN_ID
+    )
+    order.channel.tax_configuration.save()
+
+    price = Money("10.0", currency=order.currency)
+    mock_calculate_order_line_total.return_value = OrderTaxedPricesData(
+        undiscounted_price=TaxedMoney(price, price),
+        price_with_discounts=TaxedMoney(price, price),
+    )
+
+    fetch_kwargs = {
+        "order": order,
+        "manager": get_plugins_manager(allow_replica=False),
+        "lines": order_lines,
+        "force_update": True,
+    }
+
+    # when
+    calculations.fetch_order_prices_if_expired(**fetch_kwargs)
+
+    # then
+    assert mock_calculate_order_line_total.call_count == 2
+    mock_get_taxes.assert_not_called()
+
+
+@patch("saleor.plugins.manager.PluginsManager.calculate_order_total")
+@patch("saleor.plugins.manager.PluginsManager.get_taxes_for_order")
+@patch("saleor.order.calculations._apply_tax_data")
+@override_settings(PLUGINS=["saleor.plugins.tests.sample_plugins.PluginSample"])
+def test_fetch_order_data_calls_tax_app(
+    mock_apply_tax_data,
+    mock_get_taxes,
+    mock_calculate_order_total,
+    order_with_lines,
+    order_lines,
+):
+    # given
+    order = order_with_lines
+    order.channel.tax_configuration.tax_app_id = "test.app"
+    order.channel.tax_configuration.save()
+
+    fetch_kwargs = {
+        "order": order,
+        "manager": get_plugins_manager(allow_replica=False),
+        "lines": order_lines,
+        "force_update": True,
+    }
+
+    # when
+    calculations.fetch_order_prices_if_expired(**fetch_kwargs)
+
+    # then
+    mock_apply_tax_data.assert_called_once()
+    mock_get_taxes.assert_called_once()
+    mock_calculate_order_total.assert_not_called()
+
+
+def test_fetch_order_data_calls_inactive_plugin(
+    order_with_lines,
+    order_lines,
+):
+    # given
+    order = order_with_lines
+    order.channel.tax_configuration.tax_app_id = "plugin:test"
+    order.channel.tax_configuration.save()
+
+    fetch_kwargs = {
+        "order": order,
+        "manager": get_plugins_manager(allow_replica=False),
+        "lines": order_lines,
+        "force_update": True,
+    }
+
+    # when
+    calculations.fetch_order_prices_if_expired(**fetch_kwargs)
+
+    # then
+    assert order_with_lines.tax_error == "Empty tax data."

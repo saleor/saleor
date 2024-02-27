@@ -8,7 +8,7 @@ class TaxError(Exception):
     """Default tax error."""
 
 
-class EmptyTaxData(Exception):
+class TaxEmptyData(Exception):
     """Empty tax data received from Tax App error."""
 
 
