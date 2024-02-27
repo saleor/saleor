@@ -426,7 +426,9 @@ class AttributeAssignmentMixin:
                 # to ensure that attribute will be present in variable `pre_save_bulk`,
                 # so function `associate_attribute_values_to_instance` will be called
                 # properly for all attributes, even in case when attribute has no values
-                pre_save_bulk[None].setdefault(attribute, [])
+                pre_save_bulk[AttributeValueBulkActionEnum.NONE].setdefault(
+                    attribute, []
+                )
             else:
                 for key, value in attribute_values:
                     pre_save_bulk[key][attribute].append(value)
