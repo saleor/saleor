@@ -4,11 +4,11 @@ from django.core.exceptions import ValidationError
 from ....core.exceptions import InsufficientStock
 from ....core.tracing import traced_atomic_transaction
 from ....order import models
-from ....order.calculations import fetch_order_prices_if_expired
 from ....order.error_codes import OrderErrorCode
 from ....order.fetch import OrderLineInfo
 from ....order.utils import (
     change_order_line_quantity,
+    invalidate_order_prices,
     recalculate_order_weight,
 )
 from ....permission.enums import OrderPermissions
@@ -100,10 +100,9 @@ class OrderLineUpdate(
                     "Cannot set new quantity because of insufficient stock.",
                     code=OrderErrorCode.INSUFFICIENT_STOCK.value,
                 )
-
-            fetch_order_prices_if_expired(instance.order, manager, force_update=True)
+            invalidate_order_prices(instance.order)
             recalculate_order_weight(instance.order)
-            instance.order.save(update_fields=["weight"])
+            instance.order.save(update_fields=["should_refresh_prices", "weight"])
 
             func = get_webhook_handler_by_order_status(instance.order.status, manager)
             cls.call_event(func, instance.order)

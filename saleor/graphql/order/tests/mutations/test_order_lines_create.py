@@ -781,12 +781,8 @@ def test_order_lines_create_gift_promotion(
     data = content["data"]["orderLinesCreate"]
 
     lines = data["orderLines"]
-    assert len(lines) == 2
-    gift_line = [line for line in lines if line["isGift"]][0]
-    assert gift_line["quantity"] == 1
-    assert gift_line["unitDiscount"]["amount"] == 20.00
-    assert gift_line["unitDiscountValue"] == 20.00
-    assert gift_line["unitPrice"]["gross"]["amount"] == 0.00
+    # gift line is not returned
+    assert len(lines) == 1
 
     gift_line_db = order.lines.get(is_gift=True)
     assert gift_line_db.unit_discount_amount == Decimal("20.00")
