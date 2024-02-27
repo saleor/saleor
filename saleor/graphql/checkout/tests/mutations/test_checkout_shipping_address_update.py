@@ -989,3 +989,29 @@ def test_with_active_problems_flow(
 
     # then
     assert not content["data"]["checkoutShippingAddressUpdate"]["errors"]
+
+
+def test_checkout_shipping_address_update_with_collection_point_already_set(
+    user_api_client,
+    checkout_with_item,
+    graphql_address_data,
+    warehouse_for_cc,
+):
+    checkout = checkout_with_item
+    checkout.collection_point_id = warehouse_for_cc.id
+    checkout.save(update_fields=["collection_point_id"])
+
+    shipping_address = graphql_address_data
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "shippingAddress": shipping_address,
+    }
+
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutShippingAddressUpdate"]
+    errors = data["errors"]
+    assert errors[0]["code"] == CheckoutErrorCode.SHIPPING_CHANGE_FORBIDDEN.name
+    assert errors[0]["field"] == "shippingAddress"

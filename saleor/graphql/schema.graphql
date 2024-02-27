@@ -18850,7 +18850,7 @@ type Mutation {
   ): CheckoutShippingMethodUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT]) @deprecated(reason: "This field will be removed in Saleor 4.0. Use `checkoutDeliveryMethodUpdate` instead.")
 
   """
-  Updates the delivery method (shipping method or pick up point) of the checkout.
+  Updates the delivery method (shipping method or pick up point) of the checkout. Updates the checkout shipping_address for click and collect delivery for a warehouse address. 
   
   Added in Saleor 3.1.
   
@@ -28513,6 +28513,7 @@ enum CheckoutErrorCode @doc(category: "Checkout") {
   EMAIL_NOT_SET
   NO_LINES
   INACTIVE_PAYMENT
+  SHIPPING_CHANGE_FORBIDDEN
 }
 
 """
@@ -28949,7 +28950,7 @@ type CheckoutShippingMethodUpdate @doc(category: "Checkout") @webhookEventsInfo(
 }
 
 """
-Updates the delivery method (shipping method or pick up point) of the checkout.
+Updates the delivery method (shipping method or pick up point) of the checkout. Updates the checkout shipping_address for click and collect delivery for a warehouse address. 
 
 Added in Saleor 3.1.
 
