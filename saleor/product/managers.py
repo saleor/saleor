@@ -59,11 +59,13 @@ class ProductsQueryset(models.QuerySet):
     def published_with_variants(self, channel_slug: str):
         from .models import ProductVariant, ProductVariantChannelListing
 
-        if channel := (
-            Channel.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        channel = (
+            Channel.objects.using(self.db)
             .filter(slug=str(channel_slug), is_active=True)
             .first()
-        ):
+        )
+
+        if channel:
             variant_channel_listings = ProductVariantChannelListing.objects.filter(
                 channel_id=channel.id,
                 price_amount__isnull=False,
@@ -83,11 +85,12 @@ class ProductsQueryset(models.QuerySet):
 
         if has_one_of_permissions(requestor, ALL_PRODUCTS_PERMISSIONS):
             if channel_slug:
-                if (
-                    channel := Channel.objects.using("replica")
+                channel = (
+                    Channel.objects.using(self.db)
                     .filter(slug=str(channel_slug))
                     .first()
-                ):
+                )
+                if channel:
                     channel_listings = ProductChannelListing.objects.filter(
                         channel_id=channel.id
                     ).values("id")

@@ -32,12 +32,7 @@ def get_domain(site: Optional[Site] = None) -> str:
 def get_public_url(domain: Optional[str] = None) -> str:
     if settings.PUBLIC_URL:
         return settings.PUBLIC_URL
-    host = (
-        domain
-        or Site.objects.db_manager(settings.DATABASE_CONNECTION_REPLICA_NAME)
-        .get_current()
-        .domain
-    )
+    host = domain or Site.objects.get_current().domain
     protocol = "https" if settings.ENABLE_SSL else "http"
     return f"{protocol}://{host}"
 

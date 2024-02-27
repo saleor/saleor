@@ -9,6 +9,7 @@ from promise import Promise
 
 from ...account import models
 from ...checkout.utils import get_user_checkout
+from ...core.db.connection import allow_writer
 from ...core.exceptions import PermissionDenied
 from ...graphql.meta.inputs import MetadataInput
 from ...order import OrderStatus
@@ -537,10 +538,15 @@ class User(ModelObjectType[models.User]):
         )
 
     @staticmethod
-    def resolve_user_permissions(root: models.User, _info: ResolveInfo):
+    def resolve_user_permissions(root: models.User, info: ResolveInfo):
         from .resolvers import resolve_permissions
 
-        return resolve_permissions(root)
+        # TODO: rewrite to use dataloader
+        if info.context.allow_replica:
+            return resolve_permissions(root, info)
+        else:
+            with allow_writer():
+                return resolve_permissions(root, info)
 
     @staticmethod
     def resolve_permission_groups(root: models.User, info: ResolveInfo):

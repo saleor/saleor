@@ -1,7 +1,6 @@
 from itertools import chain
 from typing import Optional
 
-from django.conf import settings
 from django.db.models import Q
 from i18naddress import get_validation_rules
 
@@ -251,9 +250,8 @@ def resolve_addresses(info, ids, app):
     return models.Address.objects.none()
 
 
-def resolve_permissions(root: models.User):
-    permissions = get_user_permissions(root).using(
-        settings.DATABASE_CONNECTION_REPLICA_NAME
-    )
-    permissions = permissions.order_by("codename")
+def resolve_permissions(root: models.User, info: ResolveInfo):
+    permissions = get_user_permissions(root)
+    db = get_database_connection_name(info.context)
+    permissions = permissions.using(db).order_by("codename")
     return format_permissions_for_display(permissions)
