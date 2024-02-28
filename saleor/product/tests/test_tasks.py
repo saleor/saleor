@@ -247,6 +247,22 @@ def test_update_products_search_vector_task(product):
     assert product.search_index_dirty is False
 
 
+@pytest.mark.parametrize("dirty_products_number", [0, 1, 2, 3])
+def test_update_products_search_vector_task_with_static_number_of_queries(
+    product, product_list, dirty_products_number, django_assert_num_queries
+):
+    # given
+    product.search_index_dirty = True
+    product.save()
+    for i in range(dirty_products_number):
+        product_list[i].search_index_dirty = True
+        product_list[i].save(update_fields=["search_index_dirty"])
+
+    # when & # then
+    with django_assert_num_queries(12):
+        update_products_search_vector_task()
+
+
 @pytest.mark.slow
 @pytest.mark.limit_memory("50 MB")
 def test_mem_usage_update_products_discounted_prices(lots_of_products_with_variants):
