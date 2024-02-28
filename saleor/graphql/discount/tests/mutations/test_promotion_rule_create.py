@@ -932,3 +932,52 @@ def test_promotion_rule_create_serializable_decimal_in_predicate(
     data = content["data"]["promotionRuleCreate"]
     assert not data["errors"]
     assert data["promotionRule"]["cataloguePredicate"] == catalogue_predicate
+
+
+def test_promotion_rule_create_invalid_promotion_id(
+    staff_api_client,
+    permission_group_manage_discounts,
+    channel_USD,
+    variant,
+    promotion,
+    promotion_rule,
+):
+    # given
+    permission_group_manage_discounts.user_set.add(staff_api_client.user)
+
+    channel_ids = [graphene.Node.to_global_id("Channel", channel_USD.pk)]
+    catalogue_predicate = {
+        "variantPredicate": {
+            "ids": [graphene.Node.to_global_id("ProductVariant", variant.id)]
+        }
+    }
+    name = "test promotion rule"
+    reward_value = Decimal("10")
+    reward_value_type = RewardValueTypeEnum.PERCENTAGE.name
+    invalid_promotion_id = graphene.Node.to_global_id(
+        "PromotionRule", promotion_rule.id
+    )
+
+    variables = {
+        "input": {
+            "name": name,
+            "promotion": invalid_promotion_id,
+            "channels": channel_ids,
+            "rewardValueType": reward_value_type,
+            "rewardValue": reward_value,
+            "cataloguePredicate": catalogue_predicate,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PROMOTION_RULE_CREATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleCreate"]
+    rule_data = data["promotionRule"]
+
+    assert not rule_data
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "promotion"
+    assert data["errors"][0]["code"] == PromotionRuleCreateErrorCode.GRAPHQL_ERROR.name
