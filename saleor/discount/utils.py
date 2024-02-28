@@ -20,6 +20,7 @@ from ..checkout.base_calculations import (
 )
 from ..checkout.fetch import CheckoutLineInfo, find_checkout_line_info
 from ..checkout.models import Checkout, CheckoutLine
+from ..core.db import get_database_connection_name
 from ..core.db.connection import allow_writer
 from ..core.exceptions import InsufficientStock
 from ..core.taxes import zero_money
@@ -344,9 +345,12 @@ def apply_discount_to_value(
 def create_or_update_discount_objects_from_promotion_for_checkout(
     checkout_info: "CheckoutInfo",
     lines_info: Iterable["CheckoutLineInfo"],
+    allow_replica: bool = False,
 ):
     create_discount_objects_for_catalogue_promotions(lines_info)
-    create_discount_objects_for_order_promotions(checkout_info, lines_info)
+    create_discount_objects_for_order_promotions(
+        checkout_info, lines_info, allow_replica=allow_replica
+    )
 
 
 def create_discount_objects_for_catalogue_promotions(
@@ -537,6 +541,7 @@ def create_discount_objects_for_order_promotions(
     lines_info: Iterable["CheckoutLineInfo"],
     *,
     save: bool = False,
+    allow_replica: bool = False,
 ):
     # The base prices are required for order promotion discount qualification.
     _set_checkout_base_prices(checkout_info, lines_info)
@@ -550,7 +555,7 @@ def create_discount_objects_for_order_promotions(
 
     channel = checkout_info.channel
     rule_data = get_best_rule_for_checkout(
-        checkout, channel, checkout_info.get_country()
+        checkout, channel, checkout_info.get_country(), allow_replica
     )
     if not rule_data:
         _clear_checkout_discount(checkout_info, lines_info, save)
@@ -571,12 +576,14 @@ def create_discount_objects_for_order_promotions(
     )
 
 
-def get_best_rule_for_checkout(checkout: "Checkout", channel: "Channel", country: str):
+def get_best_rule_for_checkout(
+    checkout: "Checkout", channel: "Channel", country: str, allow_replica: bool = False
+):
     RuleDiscount = namedtuple(
         "RuleDiscount", ["rule", "discount_amount", "gift_listing"]
     )
     subtotal = checkout.base_subtotal
-    rules = fetch_promotion_rules_for_checkout(checkout)
+    rules = fetch_promotion_rules_for_checkout(checkout, allow_replica)
     if not rules:
         return
 
@@ -981,22 +988,31 @@ def get_variants_to_promotion_rules_map(
 
 def fetch_promotion_rules_for_checkout(
     checkout: Checkout,
+    allow_replica: bool = False,
 ):
     from ..graphql.discount.utils import PredicateObjectType, filter_qs_by_predicate
 
+    database_connection_name = get_database_connection_name(allow_replica)
+
     applicable_rules = []
-    promotions = Promotion.objects.active()
+    promotions = Promotion.objects.using(database_connection_name).active()
     checkout_channel_id = checkout.channel_id
-    PromotionRuleChannels = PromotionRule.channels.through.objects.filter(
-        channel_id=checkout_channel_id
+    PromotionRuleChannels = PromotionRule.channels.through.objects.using(
+        database_connection_name
+    ).filter(channel_id=checkout_channel_id)
+    rules = (
+        PromotionRule.objects.using(database_connection_name)
+        .filter(
+            Exists(promotions.filter(id=OuterRef("promotion_id"))),
+            Exists(PromotionRuleChannels.filter(promotionrule_id=OuterRef("id"))),
+        )
+        .exclude(order_predicate={})
     )
-    rules = PromotionRule.objects.filter(
-        Exists(promotions.filter(id=OuterRef("promotion_id"))),
-        Exists(PromotionRuleChannels.filter(promotionrule_id=OuterRef("id"))),
-    ).exclude(order_predicate={})
 
     currency = checkout.channel.currency_code
-    checkout_qs = Checkout.objects.filter(pk=checkout.pk)
+    checkout_qs = Checkout.objects.using(database_connection_name).filter(
+        pk=checkout.pk
+    )
     for rule in rules.iterator():
         checkouts = filter_qs_by_predicate(
             rule.order_predicate,

@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Optional
 
 from prices import TaxedMoney
 
+from ..core.db import get_database_connection_name
 from ..core.utils.country import get_active_country
 from . import TaxCalculationStrategy
 
@@ -128,9 +129,12 @@ def get_tax_app_identifier_for_order(order: "Order"):
 
 
 def _get_tax_configuration_for_checkout(
-    checkout_info: "CheckoutInfo", lines: Iterable["CheckoutLineInfo"]
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
+    allow_replica: bool = False,
 ) -> tuple["TaxConfiguration", Optional["TaxConfigurationPerCountry"]]:
     tax_configuration = checkout_info.tax_configuration
+    database_connection_name = get_database_connection_name(allow_replica)
     country_code = get_active_country(
         checkout_info.channel,
         checkout_info.shipping_address,
@@ -139,7 +143,9 @@ def _get_tax_configuration_for_checkout(
     country_tax_configuration = next(
         (
             tc
-            for tc in tax_configuration.country_exceptions.all()
+            for tc in tax_configuration.country_exceptions.using(
+                database_connection_name
+            ).all()
             if tc.country.code == country_code
         ),
         None,
@@ -148,31 +154,37 @@ def _get_tax_configuration_for_checkout(
 
 
 def get_charge_taxes_for_checkout(
-    checkout_info: "CheckoutInfo", lines: Iterable["CheckoutLineInfo"]
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
+    allow_replica: bool = False,
 ):
     """Get charge_taxes value for checkout."""
     tax_configuration, country_tax_configuration = _get_tax_configuration_for_checkout(
-        checkout_info, lines
+        checkout_info, lines, allow_replica
     )
     return get_charge_taxes(tax_configuration, country_tax_configuration)
 
 
 def get_tax_calculation_strategy_for_checkout(
-    checkout_info: "CheckoutInfo", lines: Iterable["CheckoutLineInfo"]
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
+    allow_replica: bool = False,
 ):
     """Get tax_calculation_strategy value for checkout."""
     tax_configuration, country_tax_configuration = _get_tax_configuration_for_checkout(
-        checkout_info, lines
+        checkout_info, lines, allow_replica
     )
     return get_tax_calculation_strategy(tax_configuration, country_tax_configuration)
 
 
 def get_tax_app_identifier_for_checkout(
-    checkout_info: "CheckoutInfo", lines: Iterable["CheckoutLineInfo"]
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
+    allow_replica: bool = False,
 ):
     """Get tax_app_id value for checkout."""
     tax_configuration, country_tax_configuration = _get_tax_configuration_for_checkout(
-        checkout_info, lines
+        checkout_info, lines, allow_replica
     )
     return get_tax_app_id(tax_configuration, country_tax_configuration)
 

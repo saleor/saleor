@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Optional
 from prices import TaxedMoney
 
 from ...checkout import base_calculations
+from ...core.db import get_database_connection_name
 from ...core.prices import quantize_price
 from ...core.taxes import zero_taxed_money
 from ...core.utils.country import get_active_country
@@ -24,11 +25,15 @@ def update_checkout_prices_with_flat_rates(
     lines: Iterable["CheckoutLineInfo"],
     prices_entered_with_tax: bool,
     address: Optional["Address"] = None,
+    allow_replica: bool = False,
 ):
+    database_connection_name = get_database_connection_name(allow_replica)
     country_code = get_active_country(checkout_info.channel, address)
-    default_country_rate_obj = TaxClassCountryRate.objects.filter(
-        country=country_code, tax_class=None
-    ).first()
+    default_country_rate_obj = (
+        TaxClassCountryRate.objects.using(database_connection_name)
+        .filter(country=country_code, tax_class=None)
+        .first()
+    )
     default_tax_rate = (
         default_country_rate_obj.rate if default_country_rate_obj else Decimal(0)
     )

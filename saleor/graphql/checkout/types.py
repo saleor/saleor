@@ -890,6 +890,7 @@ class Checkout(ModelObjectType[models.Checkout]):
     @traced_resolver
     @prevent_sync_event_circular_query
     def resolve_total_price(root: models.Checkout, info: ResolveInfo):
+        @is_writer_allowed(info.context)
         def calculate_total_price(data):
             address, lines, checkout_info, manager = data
             taxed_total = calculations.calculate_checkout_total_with_gift_cards(
@@ -907,6 +908,7 @@ class Checkout(ModelObjectType[models.Checkout]):
     @traced_resolver
     @prevent_sync_event_circular_query
     def resolve_subtotal_price(root: models.Checkout, info: ResolveInfo):
+        @is_writer_allowed(info.context)
         def calculate_subtotal_price(data):
             address, lines, checkout_info, manager = data
             return calculations.checkout_subtotal(

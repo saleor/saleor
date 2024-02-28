@@ -8,6 +8,7 @@ from django.utils import timezone
 from prices import Money, TaxedMoney
 
 from ..checkout import base_calculations
+from ..core.db.connection import allow_writer
 from ..core.prices import quantize_price
 from ..core.taxes import EmptyTaxData, TaxData, zero_money, zero_taxed_money
 from ..discount.utils import (
@@ -228,6 +229,7 @@ def _fetch_checkout_prices_if_expired(
     address: Optional["Address"] = None,
     force_update: bool = False,
     need_tax_calculation: bool = False,
+    allow_replica: bool = False,
 ) -> tuple["CheckoutInfo", Iterable["CheckoutLineInfo"]]:
     """Fetch checkout prices with taxes.
 
@@ -245,15 +247,19 @@ def _fetch_checkout_prices_if_expired(
 
     tax_configuration = checkout_info.tax_configuration
     tax_calculation_strategy = get_tax_calculation_strategy_for_checkout(
-        checkout_info, lines
+        checkout_info, lines, allow_replica
     )
     prices_entered_with_tax = tax_configuration.prices_entered_with_tax
-    charge_taxes = get_charge_taxes_for_checkout(checkout_info, lines)
+    charge_taxes = get_charge_taxes_for_checkout(checkout_info, lines, allow_replica)
     should_charge_tax = charge_taxes and not checkout.tax_exemption
-    tax_app_identifier = get_tax_app_identifier_for_checkout(checkout_info, lines)
+    tax_app_identifier = get_tax_app_identifier_for_checkout(
+        checkout_info, lines, allow_replica
+    )
 
     lines = cast(list, lines)
-    create_or_update_discount_objects_from_promotion_for_checkout(checkout_info, lines)
+    create_or_update_discount_objects_from_promotion_for_checkout(
+        checkout_info, lines, allow_replica
+    )
 
     checkout.tax_error = None
     if prices_entered_with_tax:
@@ -329,18 +335,19 @@ def _fetch_checkout_prices_if_expired(
 
     checkout.price_expiration = timezone.now() + settings.CHECKOUT_PRICES_TTL
 
-    checkout.save(
-        update_fields=checkout_update_fields,
-        using=settings.DATABASE_CONNECTION_DEFAULT_NAME,
-    )
-    checkout.lines.bulk_update(
-        [line_info.line for line_info in lines],
-        [
-            "total_price_net_amount",
-            "total_price_gross_amount",
-            "tax_rate",
-        ],
-    )
+    with allow_writer():
+        checkout.save(
+            update_fields=checkout_update_fields,
+            using=settings.DATABASE_CONNECTION_DEFAULT_NAME,
+        )
+        checkout.lines.bulk_update(
+            [line_info.line for line_info in lines],
+            [
+                "total_price_net_amount",
+                "total_price_gross_amount",
+                "tax_rate",
+            ],
+        )
     return checkout_info, lines
 
 
@@ -368,8 +375,14 @@ def _calculate_and_add_tax(
         _apply_tax_data(checkout, lines, tax_data)
     else:
         # Get taxes calculated with flat rates and apply to checkout.
+        allow_replica = manager._allow_replica
         update_checkout_prices_with_flat_rates(
-            checkout, checkout_info, lines, prices_entered_with_tax, address
+            checkout,
+            checkout_info,
+            lines,
+            prices_entered_with_tax,
+            address,
+            allow_replica,
         )
 
 
@@ -534,6 +547,10 @@ def fetch_checkout_data(
     need_tax_calculation: Set to true if fetching data should fail when received tax data
     is invalid. Otherwise will only collect error message to checkout.tax_error field.
     """
+
+    # Utilize the manager's replica setting to determine if we should allow replica
+    allow_replica = manager._allow_replica
+
     previous_total_gross = checkout_info.checkout.total.gross
     checkout_info, lines = _fetch_checkout_prices_if_expired(
         checkout_info=checkout_info,
@@ -542,6 +559,7 @@ def fetch_checkout_data(
         address=address,
         force_update=force_update,
         need_tax_calculation=need_tax_calculation,
+        allow_replica=allow_replica,
     )
     current_total_gross = checkout_info.checkout.total.gross
     if current_total_gross != previous_total_gross or force_status_update:
