@@ -38,6 +38,7 @@ from ..checkout.dataloaders import (
 )
 from ..core import ResolveInfo
 from ..core.connection import CountableConnection
+from ..core.context import get_database_connection_name
 from ..core.dataloaders import is_writer_allowed
 from ..core.descriptions import (
     ADDED_IN_31,
@@ -953,7 +954,12 @@ class Checkout(ModelObjectType[models.Checkout]):
     def resolve_available_collection_points(root: models.Checkout, info: ResolveInfo):
         @is_writer_allowed(info.context)
         def get_available_collection_points(lines):
-            return get_valid_collection_points_for_checkout(lines, root.channel_id)
+            database_connection_name = get_database_connection_name(info.context)
+            return get_valid_collection_points_for_checkout(
+                lines,
+                root.channel_id,
+                database_connection_name=database_connection_name,
+            )
 
         return (
             CheckoutLinesInfoByCheckoutTokenLoader(info.context)
