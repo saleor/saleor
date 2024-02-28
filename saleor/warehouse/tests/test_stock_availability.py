@@ -233,6 +233,17 @@ def test_check_stock_quantity_bulk(variant_with_many_stocks, channel_USD):
             global_quantity_limit,
         )
 
+    # test that it doesn't raise an error if variant.track_inventory is False
+    variant.track_inventory = False
+    variant.save(update_fields=["track_inventory"])
+    check_stock_quantity_bulk(
+        [variant],
+        country_code,
+        [available_quantity],
+        channel_USD.slug,
+        global_quantity_limit,
+    )
+
 
 def test_check_stock_quantity_bulk_no_channel_shipping_zones(
     variant_with_many_stocks, channel_USD
