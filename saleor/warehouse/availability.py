@@ -291,13 +291,16 @@ def check_stock_quantity_bulk(
         if quantity > 0:
             _check_quantity_limits(variant, quantity, global_quantity_limit)
 
+            if not variant.track_inventory:
+                continue
+
             if not stocks:
                 insufficient_stocks.append(
                     InsufficientStockData(
                         variant=variant, available_quantity=available_quantity
                     )
                 )
-            elif variant.track_inventory and quantity > available_quantity:
+            elif quantity > available_quantity:
                 insufficient_stocks.append(
                     InsufficientStockData(
                         variant=variant,
