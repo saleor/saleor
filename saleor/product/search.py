@@ -4,17 +4,12 @@ from typing import TYPE_CHECKING, Union
 from django.conf import settings
 from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.db.models import F, Q, Value, prefetch_related_objects
-from django.db.models.expressions import Exists, OuterRef
 
 from ..attribute import AttributeInputType
-from ..attribute.models import (
-    AssignedProductAttributeValue,
-    Attribute,
-    AttributeProduct,
-)
+from ..attribute.models import Attribute
 from ..core.postgres import FlatConcatSearchVector, NoValidationSearchVector
 from ..core.utils.editorjs import clean_editor_js
-from .models import Product
+from ..product.models import Product
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
@@ -22,7 +17,7 @@ if TYPE_CHECKING:
 PRODUCT_SEARCH_FIELDS = ["name", "description_plaintext"]
 PRODUCT_FIELDS_TO_PREFETCH = [
     "variants__attributes__values",
-    "variants__attributes",
+    "variants__attributes__assignment__attribute",
     "attributevalues__value",
     "product_type__attributeproduct__attribute",
 ]
@@ -108,19 +103,14 @@ def generate_attributes_search_vector_value(
 
     Method should receive assigned attributes with prefetched `values`
     """
-    product_attributes = AttributeProduct.objects.filter(
-        product_type_id=product.product_type_id
-    )
-    attributes = Attribute.objects.filter(
-        Exists(product_attributes.filter(attribute_id=OuterRef("id")))
-    ).order_by("attributeproduct__sort_order")[
-        : settings.PRODUCT_MAX_INDEXED_ATTRIBUTES
-    ]
+    product_attributes = product.product_type.attributeproduct.all()
 
-    assigned_values = AssignedProductAttributeValue.objects.filter(
-        product_id=product.pk
-    )
-    prefetch_related_objects(assigned_values, "value")
+    attributes = []
+    for product_attribute in product_attributes:
+        attributes.append(product_attribute.attribute)  # type: ignore
+    attributes = attributes[: settings.PRODUCT_MAX_INDEXED_ATTRIBUTES]
+
+    assigned_values = product.attributevalues.all()
 
     search_vectors = []
 
