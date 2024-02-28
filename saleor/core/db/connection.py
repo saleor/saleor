@@ -58,13 +58,11 @@ def restrict_writer(execute, sql, params, many, context):
     allow_writer = getattr(conn, "_allow_writer", False)
     if conn.alias == writer and not allow_writer:
         raise UnsafeWriterAccessError(
-            "Unsafe writer DB access - use `allow_writer` context manager."
+            f"Unsafe writer DB access. Use `allow_writer` context manager: {sql}"
         )
     elif conn.alias == replica:
         if not is_read_only_query(sql):
-            raise UnsafeReplicaUsageError(
-                f"Unsafe replica usage. Queryset method: {sql}"
-            )
+            raise UnsafeReplicaUsageError(f"Unsafe replica usage: {sql}")
     return execute(sql, params, many, context)
 
 
@@ -72,11 +70,8 @@ def log_writer_usage(execute, sql, params, many, context):
     conn: BaseDatabaseWrapper = context["connection"]
     allow_writer = getattr(conn, "_allow_writer", False)
     if conn.alias == writer and not allow_writer:
-        msg = (
-            "Unsafe writer DB access - use `allow_writer` context manager. "
-            f"Queryset method: {sql}"
-        )
-        logger.error(color_style().NOTICE(msg))
+        msg = "Unsafe writer DB access. Use `allow_writer` context manager."
+        logger.error("%s %s", color_style().NOTICE(msg), sql)
     return execute(sql, params, many, context)
 
 
