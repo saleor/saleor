@@ -5,6 +5,7 @@ from graphql.error.base import GraphQLError
 from ....checkout import models as checkout_models
 from ....checkout.models import Checkout
 from ....core import models
+from ....core.db.connection import allow_writer
 from ....core.error_codes import MetadataErrorCode
 from ....core.exceptions import PermissionDenied
 from ....discount import models as discount_models
@@ -168,6 +169,7 @@ class BaseMetadataMutation(BaseMutation):
         return super().check_permissions(context, permissions)
 
     @classmethod
+    @allow_writer()
     def mutate(cls, root, info: ResolveInfo, **data):
         try:
             type_name, object_pk = cls.get_object_type_name_and_pk(data)

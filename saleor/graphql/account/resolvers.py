@@ -250,7 +250,8 @@ def resolve_addresses(info, ids, app):
     return models.Address.objects.none()
 
 
-def resolve_permissions(root: models.User):
+def resolve_permissions(root: models.User, info: ResolveInfo):
     permissions = get_user_permissions(root)
-    permissions = permissions.order_by("codename")
+    db = get_database_connection_name(info.context)
+    permissions = permissions.using(db).order_by("codename")
     return format_permissions_for_display(permissions)

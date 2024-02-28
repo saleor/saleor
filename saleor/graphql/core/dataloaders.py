@@ -1,12 +1,15 @@
 from collections import defaultdict
 from collections.abc import Iterable
+from contextlib import contextmanager
 from typing import Generic, Optional, TypeVar, Union
 
 import opentracing
 import opentracing.tags
+from django.conf import settings
 from promise import Promise
 from promise.dataloader import DataLoader as BaseLoader
 
+from ...core.db.connection import allow_writer
 from ...thumbnail.models import Thumbnail
 from ...thumbnail.utils import get_thumbnail_format
 from . import SaleorContext
@@ -14,6 +17,16 @@ from .context import get_database_connection_name
 
 K = TypeVar("K")
 R = TypeVar("R")
+
+
+@contextmanager
+def is_writer_allowed(context: SaleorContext):
+    conn_name = get_database_connection_name(context)
+    if conn_name == settings.DATABASE_CONNECTION_DEFAULT_NAME:
+        with allow_writer():
+            yield
+    else:
+        yield
 
 
 class DataLoader(BaseLoader, Generic[K, R]):
@@ -47,7 +60,10 @@ class DataLoader(BaseLoader, Generic[K, R]):
         ) as scope:
             span = scope.span
             span.set_tag(opentracing.tags.COMPONENT, "dataloaders")
-            results = self.batch_load(keys)
+
+            with is_writer_allowed(self.context):
+                results = self.batch_load(keys)
+
             if not isinstance(results, Promise):
                 return Promise.resolve(results)
             return results

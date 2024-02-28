@@ -1,4 +1,5 @@
 import jwt
+from django.conf import settings
 
 from ..account.models import User
 from ..graphql.account.dataloaders import UserByEmailLoader
@@ -72,6 +73,7 @@ class JSONWebTokenBackend(BaseBackend):
         perm_cache_name = "_effective_permissions_cache"
         if not getattr(user_obj, perm_cache_name, None):
             perms = getattr(self, f"_get_{from_name}_permissions")(user_obj)
+            perms = perms.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
             perms = perms.values_list("content_type__app_label", "codename").order_by()
             setattr(user_obj, perm_cache_name, {f"{ct}.{name}" for ct, name in perms})
         return getattr(user_obj, perm_cache_name)

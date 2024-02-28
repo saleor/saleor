@@ -38,6 +38,7 @@ from ..checkout.dataloaders import (
 )
 from ..core import ResolveInfo
 from ..core.connection import CountableConnection
+from ..core.dataloaders import is_writer_allowed
 from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_34,
@@ -287,6 +288,7 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
                 checkout.token
             )
 
+            @is_writer_allowed(info.context)
             def calculate_line_unit_price(data):
                 (
                     checkout_info,
@@ -852,10 +854,14 @@ class Checkout(ModelObjectType[models.Checkout]):
     @traced_resolver
     @prevent_sync_event_circular_query
     def resolve_shipping_methods(root: models.Checkout, info: ResolveInfo):
+        @is_writer_allowed(info.context)
+        def with_checkout_info(checkout_info):
+            return unwrap_lazy(checkout_info.all_shipping_methods)
+
         return (
             CheckoutInfoByCheckoutTokenLoader(info.context)
             .load(root.token)
-            .then(lambda checkout_info: unwrap_lazy(checkout_info.all_shipping_methods))
+            .then(with_checkout_info)
         )
 
     @staticmethod
@@ -945,6 +951,7 @@ class Checkout(ModelObjectType[models.Checkout]):
     @staticmethod
     @traced_resolver
     def resolve_available_collection_points(root: models.Checkout, info: ResolveInfo):
+        @is_writer_allowed(info.context)
         def get_available_collection_points(lines):
             return get_valid_collection_points_for_checkout(lines, root.channel_id)
 

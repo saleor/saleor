@@ -29,7 +29,7 @@ from ...product.models import ProductChannelListing
 from ...warehouse.models import Stock
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..channel.dataloaders import ChannelByIdLoader
-from ..core.dataloaders import DataLoader
+from ..core.dataloaders import DataLoader, is_writer_allowed
 from ..discount.dataloaders import (
     CheckoutDiscountByCheckoutIdLoader,
     CheckoutLineDiscountsByCheckoutLineIdLoader,
@@ -75,6 +75,7 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader[str, list[CheckoutLineIn
     context_key = "checkoutlinesinfo_by_checkout"
 
     def batch_load(self, keys):
+        @is_writer_allowed(self.context)
         def with_checkout_lines(results):
             checkouts, checkout_lines = results
 
@@ -91,6 +92,7 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader[str, list[CheckoutLineIn
 
             channel_pks = [checkout.channel_id for checkout in checkouts]
 
+            @is_writer_allowed(self.context)
             def with_variants_products_collections(results):
                 (
                     variants,
@@ -420,12 +422,14 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
     context_key = "checkoutinfo_by_checkout"
 
     def batch_load(self, keys):
+        @is_writer_allowed(self.context)
         def with_checkout(data):
             checkouts, checkout_line_infos, checkout_discounts, manager = data
             from ..channel.dataloaders import ChannelByIdLoader
 
             channel_pks = [checkout.channel_id for checkout in checkouts]
 
+            @is_writer_allowed(self.context)
             def with_channel(channels):
                 billing_address_ids = {
                     checkout.billing_address_id
@@ -479,6 +483,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
                     self.context
                 ).load_many(channel_ids)
 
+                @is_writer_allowed(self.context)
                 def with_checkout_info(results):
                     (
                         addresses,

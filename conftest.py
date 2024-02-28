@@ -8,6 +8,13 @@ from django.core.management import call_command
 from django.db import connections
 from django.test.testcases import TransactionTestCase
 
+from saleor.tests.utils import prepare_test_db_connections
+
+django.test.TransactionTestCase.databases = "__all__"
+django.test.TestCase.databases = "__all__"
+
+prepare_test_db_connections()
+
 pytest_plugins = [
     "saleor.tests.fixtures",
     "saleor.discount.tests.test_utils.fixtures",

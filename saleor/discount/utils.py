@@ -20,6 +20,7 @@ from ..checkout.base_calculations import (
 )
 from ..checkout.fetch import CheckoutLineInfo, find_checkout_line_info
 from ..checkout.models import Checkout, CheckoutLine
+from ..core.db.connection import allow_writer
 from ..core.exceptions import InsufficientStock
 from ..core.taxes import zero_money
 from ..core.utils.promo_code import InvalidPromoCode
@@ -624,7 +625,8 @@ def _set_checkout_base_prices(checkout_info, lines_info):
     if is_update_needed:
         checkout.base_subtotal = subtotal
         checkout.base_total = total
-        checkout.save(update_fields=["base_total_amount", "base_subtotal_amount"])
+        with allow_writer():
+            checkout.save(update_fields=["base_total_amount", "base_subtotal_amount"])
 
 
 def _clear_checkout_discount(

@@ -19,7 +19,11 @@ from ....product.models import (
     VariantChannelListingPromotionRule,
     VariantMedia,
 )
-from ...core.dataloaders import BaseThumbnailBySizeAndFormatLoader, DataLoader
+from ...core.dataloaders import (
+    BaseThumbnailBySizeAndFormatLoader,
+    DataLoader,
+    is_writer_allowed,
+)
 
 ProductIdAndChannelSlug = tuple[int, str]
 VariantIdAndChannelSlug = tuple[int, str]
@@ -556,6 +560,7 @@ class ProductTypeByProductIdLoader(DataLoader):
     context_key = "producttype_by_product_id"
 
     def batch_load(self, keys):
+        @is_writer_allowed(self.context)
         def with_products(products):
             product_ids = {p.id for p in products}
             product_types_map = (
