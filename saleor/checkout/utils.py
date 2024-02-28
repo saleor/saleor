@@ -29,10 +29,10 @@ from ..discount.models import (
 )
 from ..discount.utils import (
     create_checkout_discount_objects_for_order_promotions,
-    create_discount_objects_for_catalogue_promotions,
     delete_gift_line,
     get_products_voucher_discount,
     get_voucher_code_instance,
+    prepare_line_discount_objects_for_catalogue_promotions,
     validate_voucher_for_checkout,
 )
 from ..giftcard.utils import (
@@ -90,7 +90,7 @@ def recalculate_checkout_discounts(
     Update line and checkout discounts from vouchers and promotions.
     Create or remove gift line if needed.
     """
-    create_discount_objects_for_catalogue_promotions(lines)
+    prepare_line_discount_objects_for_catalogue_promotions(lines)
     recalculate_checkout_discount(manager, checkout_info, lines)
 
 
