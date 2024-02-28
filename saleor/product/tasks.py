@@ -176,7 +176,7 @@ def _get_preorder_variants_to_clean():
     expires=settings.BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC,
 )
 def update_products_search_vector_task():
-    products = Product.objects.filter(search_index_dirty=True).order_by()[
+    products = Product.objects.filter(search_index_dirty=True).order_by("updated_at")[
         :PRODUCTS_BATCH_SIZE
     ]
     update_products_search_vector(products, use_batches=False)
