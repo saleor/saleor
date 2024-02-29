@@ -26,10 +26,21 @@ ORDER_LINE_UPDATE_MUTATION = """
             orderLine {
                 id
                 quantity
+                unitDiscount {
+                  amount
+                }
+                unitDiscountType
+                unitDiscountValue
+                isGift
             }
             order {
                 total {
                     gross {
+                        amount
+                    }
+                }
+                discounts {
+                    amount {
                         amount
                     }
                 }
@@ -421,41 +432,6 @@ def test_order_line_update_quantity_gift(
     assert errors[0]["code"] == OrderErrorCode.NON_EDITABLE_GIFT_LINE.name
 
 
-ORDER_LINE_UPDATE_WITH_DISCOUNTS = """
-    mutation OrderLineUpdate($lineId: ID!, $quantity: Int!) {
-        orderLineUpdate(id: $lineId, input: {quantity: $quantity}) {
-            errors {
-                field
-                message
-                code
-            }
-            orderLine {
-                id
-                quantity
-                unitDiscount {
-                  amount
-                }
-                unitDiscountType
-                unitDiscountValue
-                isGift
-            }
-            order {
-                discounts {
-                    amount {
-                        amount
-                    }
-                }
-                total {
-                    gross {
-                        amount
-                    }
-                }
-            }
-        }
-    }
-"""
-
-
 def test_order_line_update_order_promotion(
     draft_order,
     staff_api_client,
@@ -463,7 +439,7 @@ def test_order_line_update_order_promotion(
     order_promotion_rule,
 ):
     # given
-    query = ORDER_LINE_UPDATE_WITH_DISCOUNTS
+    query = ORDER_LINE_UPDATE_MUTATION
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order
 
@@ -494,7 +470,6 @@ def test_order_line_update_order_promotion(
     discounts = data["order"]["discounts"]
     assert len(discounts) == 1
     assert discounts[0]["amount"]["amount"] == expected_discount
-    assert expected_discount == 10.00
 
     discount_db = order.discounts.get()
     assert discount_db.promotion_rule == rule
@@ -510,7 +485,7 @@ def test_order_line_update_gift_promotion(
     gift_promotion_rule,
 ):
     # given
-    query = ORDER_LINE_UPDATE_WITH_DISCOUNTS
+    query = ORDER_LINE_UPDATE_MUTATION
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order
     rule = gift_promotion_rule
@@ -536,13 +511,16 @@ def test_order_line_update_gift_promotion(
     assert line["unitDiscountValue"] == 0
 
     gift_line_db = order.lines.get(is_gift=True)
-    assert gift_line_db.unit_discount_amount == Decimal("20.00")
+    gift_price = gift_line_db.variant.channel_listings.get(
+        channel=order.channel
+    ).price_amount
+    assert gift_line_db.unit_discount_amount == gift_price
     assert gift_line_db.unit_price_gross_amount == Decimal(0)
 
     assert not data["order"]["discounts"]
 
     discount = gift_line_db.discounts.get()
     assert discount.promotion_rule == rule
-    assert discount.amount_value == Decimal("20.00")
+    assert discount.amount_value == gift_price
     assert discount.type == DiscountType.ORDER_PROMOTION
     assert discount.reason == f"Promotion: {promotion_id}"
