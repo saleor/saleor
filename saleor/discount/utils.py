@@ -15,7 +15,7 @@ from uuid import UUID
 import graphene
 import pytz
 from django.db import transaction
-from django.db.models import Exists, F, OuterRef, QuerySet, prefetch_related_objects
+from django.db.models import Exists, F, OuterRef, QuerySet
 from django.utils import timezone
 from prices import Money, TaxedMoney, fixed_discount, percentage_discount
 
@@ -361,43 +361,99 @@ def create_or_update_discount_objects_from_promotion_for_order(
     lines_info: Iterable["DraftOrderLineInfo"],
 ):
     create_order_line_discount_objects_for_catalogue_promotions(lines_info)
-    _update_order_line_prefetched_discounts(lines_info)
     _update_order_line_base_unit_prices(lines_info)
 
     create_order_discount_objects_for_order_promotions(order, lines_info)
-    # if order promotion is type of gift, discount is associated with line, not order
-    _update_order_line_prefetched_discounts(lines_info)
     _copy_unit_discount_data_to_order_line(lines_info)
 
 
-def _update_order_line_prefetched_discounts(lines_info: Iterable[DraftOrderLineInfo]):
-    modified_lines_info = [
-        line_info for line_info in lines_info if line_info.should_refresh_discounts
-    ]
-    if not modified_lines_info:
+def create_checkout_line_discount_objects_for_catalogue_promotions(
+    lines_info: Iterable[CheckoutLineInfo],
+):
+    discount_data = prepare_line_discount_objects_for_catalogue_promotions(lines_info)
+    if not discount_data:
         return
 
-    for line_info in modified_lines_info:
-        if hasattr(line_info.line, "_prefetched_objects_cache"):
-            line_info.line._prefetched_objects_cache.pop("discounts", None)
+    (
+        discounts_to_create_inputs,
+        discounts_to_update,
+        discount_to_remove,
+        updated_fields,
+    ) = discount_data
 
-    modified_lines = [line_info.line for line_info in modified_lines_info]
-    prefetch_related_objects(modified_lines, "discounts__promotion_rule__promotion")
-    for line_info in modified_lines_info:
-        line_info.discounts = list(line_info.line.discounts.all())
+    new_line_discounts = []
+    if discounts_to_create_inputs:
+        new_line_discounts = [
+            CheckoutLineDiscount(**input) for input in discounts_to_create_inputs
+        ]
+        CheckoutLineDiscount.objects.bulk_create(new_line_discounts)
+
+    if discounts_to_update and updated_fields:
+        CheckoutLineDiscount.objects.bulk_update(discounts_to_update, updated_fields)
+
+    if discount_ids_to_remove := [discount.id for discount in discount_to_remove]:
+        CheckoutLineDiscount.objects.filter(id__in=discount_ids_to_remove).delete()
+
+    _update_line_info_cached_discounts(
+        lines_info, new_line_discounts, discounts_to_update, discount_to_remove
+    )
+
+
+def create_order_line_discount_objects_for_catalogue_promotions(
+    lines_info: Iterable[DraftOrderLineInfo],
+):
+    discount_data = prepare_line_discount_objects_for_catalogue_promotions(lines_info)
+    if not discount_data:
+        return
+
+    (
+        discounts_to_create_inputs,
+        discounts_to_update,
+        discount_to_remove,
+        updated_fields,
+    ) = discount_data
+
+    new_line_discounts = []
+    if discounts_to_create_inputs:
+        new_line_discounts = [
+            OrderLineDiscount(**input) for input in discounts_to_create_inputs
+        ]
+        OrderLineDiscount.objects.bulk_create(new_line_discounts)
+
+    if discounts_to_update and updated_fields:
+        OrderLineDiscount.objects.bulk_update(discounts_to_update, updated_fields)
+
+    if discount_ids_to_remove := [discount.id for discount in discount_to_remove]:
+        OrderLineDiscount.objects.filter(id__in=discount_ids_to_remove).delete()
+
+    _update_line_info_cached_discounts(
+        lines_info, new_line_discounts, discounts_to_update, discount_to_remove
+    )
+
+    affected_line_ids = [
+        discount_line.line.id
+        for discount_line in new_line_discounts
+        + discounts_to_update
+        + discount_to_remove
+    ]
+    for line_info in lines_info:
+        if line_info.line.id in affected_line_ids:
+            _invalidate_order_line_discounts(line_info)
 
 
 def _update_order_line_base_unit_prices(lines_info: Iterable[DraftOrderLineInfo]):
-    modified_lines = [
-        line_info.line for line_info in lines_info if line_info.should_refresh_discounts
+    modified_lines_info = [
+        line_info for line_info in lines_info if line_info.should_refresh_discounts
     ]
-    for line in modified_lines:
+    for line_info in modified_lines_info:
+        line = line_info.line
         base_unit_price = line.undiscounted_base_unit_price_amount
-        for discount in line.discounts.all():
+        for discount in line_info.discounts:
             unit_discount = discount.amount_value / line.quantity
             base_unit_price -= unit_discount
         line.base_unit_price_amount = max(base_unit_price, Decimal(0))
-    OrderLine.objects.bulk_update(modified_lines, ["base_unit_price_amount"])
+    lines = [line_info.line for line_info in modified_lines_info]
+    OrderLine.objects.bulk_update(lines, ["base_unit_price_amount"])
 
 
 def _copy_unit_discount_data_to_order_line(lines_info: Iterable[DraftOrderLineInfo]):
@@ -411,71 +467,10 @@ def _copy_unit_discount_data_to_order_line(lines_info: Iterable[DraftOrderLineIn
             line.unit_discount_value = discount.value
 
 
-def create_checkout_line_discount_objects_for_catalogue_promotions(
-    lines_info: Iterable[CheckoutLineInfo],
+def _update_line_info_cached_discounts(
+    lines_info, new_line_discounts, updated_discounts, line_discount_ids_to_remove
 ):
-    (
-        line_discounts_to_create_inputs,
-        line_discounts_to_update,
-        line_discount_ids_to_remove,
-        updated_fields,
-    ) = prepare_line_discount_objects_for_catalogue_promotions(lines_info)
-
-    new_line_discounts = []
-    if line_discounts_to_create_inputs:
-        new_line_discounts = [
-            CheckoutLineDiscount(**input) for input in line_discounts_to_create_inputs
-        ]
-        CheckoutLineDiscount.objects.bulk_create(new_line_discounts)
-
-    if line_discounts_to_update and updated_fields:
-        CheckoutLineDiscount.objects.bulk_update(
-            line_discounts_to_update, updated_fields
-        )
-
-    if line_discount_ids_to_remove:
-        CheckoutLineDiscount.objects.filter(id__in=line_discount_ids_to_remove).delete()
-
-    _update_line_info_discounts(
-        lines_info, new_line_discounts, line_discount_ids_to_remove
-    )
-
-
-def create_order_line_discount_objects_for_catalogue_promotions(
-    lines_info: Iterable[DraftOrderLineInfo],
-):
-    (
-        line_discounts_to_create_inputs,
-        line_discounts_to_update,
-        line_discount_ids_to_remove,
-        updated_fields,
-    ) = prepare_line_discount_objects_for_catalogue_promotions(lines_info)
-
-    new_line_discounts = []
-    if line_discounts_to_create_inputs:
-        new_line_discounts = [
-            OrderLineDiscount(**input) for input in line_discounts_to_create_inputs
-        ]
-        OrderLineDiscount.objects.bulk_create(new_line_discounts)
-
-    if line_discounts_to_update and updated_fields:
-        OrderLineDiscount.objects.bulk_update(line_discounts_to_update, updated_fields)
-
-    if line_discount_ids_to_remove:
-        OrderLineDiscount.objects.filter(id__in=line_discount_ids_to_remove).delete()
-
-    _update_line_info_discounts(
-        lines_info, new_line_discounts, line_discount_ids_to_remove
-    )
-    # TODO zedzior to optimise
-    for line_info in lines_info:
-        _invalidate_order_line_discounts(line_info)
-
-
-def _update_line_info_discounts(
-    lines_info, new_line_discounts, line_discount_ids_to_remove
-):
-    if not new_line_discounts and not line_discount_ids_to_remove:
+    if not any([new_line_discounts, updated_discounts, line_discount_ids_to_remove]):
         return
 
     line_id_line_discounts_map = defaultdict(list)
@@ -497,7 +492,7 @@ def prepare_line_discount_objects_for_catalogue_promotions(
 ):
     line_discounts_to_create_inputs: list[dict] = []
     line_discounts_to_update: list[Union[CheckoutLineDiscount, OrderLineDiscount]] = []
-    line_discount_ids_to_remove: list[UUID] = []
+    line_discounts_to_remove: list[Union[CheckoutLineDiscount, OrderLineDiscount]] = []
     updated_fields: list[str] = []
 
     if not lines_info:
@@ -517,12 +512,11 @@ def prepare_line_discount_objects_for_catalogue_promotions(
 
         # delete all existing discounts if the line is not discounted or it is a gift
         if not discount_amount or line.is_gift:
-            if ids_to_remove := [discount.id for discount in discounts_to_update]:
-                line_discount_ids_to_remove.extend(ids_to_remove)
+            line_discounts_to_remove.extend(discounts_to_update)
             continue
 
         # delete the discount objects that are not valid anymore
-        line_discount_ids_to_remove.extend(
+        line_discounts_to_remove.extend(
             _get_discounts_that_are_not_valid_anymore(
                 line_info.rules_info,
                 rule_id_to_discount,  # type: ignore[arg-type]
@@ -565,7 +559,7 @@ def prepare_line_discount_objects_for_catalogue_promotions(
     return (
         line_discounts_to_create_inputs,
         line_discounts_to_update,
-        line_discount_ids_to_remove,
+        line_discounts_to_remove,
         updated_fields,
     )
 
@@ -592,12 +586,12 @@ def _get_discounts_that_are_not_valid_anymore(
     rule_id_to_discount: dict[int, Union["CheckoutLineDiscount", "OrderLineDiscount"]],
 ):
     rule_ids = {rule_info.rule.id for rule_info in rules_info}
-    discount_ids = [
-        discount.id
+    discounts = [
+        discount
         for rule_id, discount in rule_id_to_discount.items()
         if rule_id not in rule_ids
     ]
-    return discount_ids
+    return discounts
 
 
 def _get_rule_discount_amount(
@@ -1060,9 +1054,6 @@ def _handle_order_promotion_for_order(
             discount_object.save(update_fields=fields_to_update)
 
     delete_gift_line(order, lines_info)
-    if hasattr(order, "_prefetched_objects_cache"):
-        order._prefetched_objects_cache.pop("discounts", None)
-        prefetch_related_objects([order], "discounts__promotion_rule__promotion")
 
 
 def _handle_order_promotion_for_checkout(
