@@ -11,6 +11,7 @@ from prices import Money, TaxedMoney
 
 from .....core import EventDeliveryStatus
 from .....core.models import EventDelivery
+from .....core.prices import quantize_price
 from .....core.taxes import zero_taxed_money
 from .....discount import DiscountValueType
 from .....discount.models import VoucherCustomer
@@ -1261,7 +1262,10 @@ def test_draft_order_complete_with_catalogue_and_order_discount(
     order_promotion_id = graphene.Node.to_global_id(
         "Promotion", rule_total.promotion_id
     )
+    rule_catalogue_value = rule_catalogue.reward_value
+    rule_total_value = rule_total.reward_value
 
+    currency = order.currency
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
     fetch_order_prices_if_expired(order, plugins_manager, force_update=True)
@@ -1274,29 +1278,55 @@ def test_draft_order_complete_with_catalogue_and_order_discount(
     # then
     content = get_graphql_content(response)
     order_data = content["data"]["draftOrderComplete"]["order"]
-    assert order_data["total"]["net"]["amount"] == Decimal("49.00")
+
     assert len(order_data["discounts"]) == 1
 
     order_discount = order_data["discounts"][0]
-    assert order_discount["amount"]["amount"] == 25.00
+    assert order_discount["amount"]["amount"] == 25.00 == rule_total_value
     assert order_discount["reason"] == f"Promotion: {order_promotion_id}"
-    assert order_discount["amount"]["amount"] == 25.00
+    assert order_discount["amount"]["amount"] == 25.00 == rule_total_value
     assert order_discount["valueType"] == DiscountValueType.FIXED.upper()
+
+    lines_db = order.lines.all()
+    line_1_db = [line for line in lines_db if line.quantity == 3][0]
+    line_2_db = [line for line in lines_db if line.quantity == 2][0]
+    line_1_base_total = line_1_db.quantity * line_1_db.base_unit_price_amount
+    line_2_base_total = line_2_db.quantity * line_2_db.base_unit_price_amount
+    base_total = line_1_base_total + line_2_base_total
+    line_1_order_discount_portion = rule_total_value * line_1_base_total / base_total
+    line_2_order_discount_portion = rule_total_value - line_1_order_discount_portion
 
     lines = order_data["lines"]
     line_1 = [line for line in lines if line["quantity"] == 3][0]
     line_2 = [line for line in lines if line["quantity"] == 2][0]
-
-    assert line_1["totalPrice"]["net"]["amount"] == 18.28
+    line_1_total = quantize_price(
+        line_1_db.undiscounted_total_price_net_amount - line_1_order_discount_portion,
+        currency,
+    )
+    assert line_1["totalPrice"]["net"]["amount"] == float(line_1_total)
     assert line_1["unitDiscount"]["amount"] == 0.00
     assert line_1["unitDiscountReason"] is None
     assert line_1["unitDiscountValue"] == 0.00
 
-    assert line_2["totalPrice"]["net"]["amount"] == 20.72
-    assert line_2["unitDiscount"]["amount"] == 3.00
+    line_2_total = quantize_price(
+        line_2_db.undiscounted_total_price_net_amount
+        - rule_catalogue_value * line_2_db.quantity
+        - line_2_order_discount_portion,
+        currency,
+    )
+    assert line_2["totalPrice"]["net"]["amount"] == float(line_2_total)
+    assert line_2["unitDiscount"]["amount"] == rule_catalogue_value
     assert line_2["unitDiscountReason"] == f"Promotion: {catalogue_promotion_id}"
     assert line_2["unitDiscountType"] == DiscountValueType.FIXED.upper()
-    assert line_2["unitDiscountValue"] == 3.00
+    assert line_2["unitDiscountValue"] == rule_catalogue_value
+
+    total = (
+        order.undiscounted_total_net_amount
+        - line_2["quantity"] * rule_catalogue_value
+        - rule_total_value
+    )
+    assert order_data["total"]["net"]["amount"] == total
+    assert total == line_2_total + line_1_total + order.base_shipping_price_amount
 
 
 def test_draft_order_complete_with_catalogue_and_gift_discount(
@@ -1317,7 +1347,9 @@ def test_draft_order_complete_with_catalogue_and_gift_discount(
         "Promotion", rule_catalogue.promotion_id
     )
     gift_promotion_id = graphene.Node.to_global_id("Promotion", rule_gift.promotion_id)
+    rule_catalogue_value = rule_catalogue.reward_value
 
+    currency = order.currency
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
     fetch_order_prices_if_expired(order, plugins_manager, force_update=True)
@@ -1330,8 +1362,15 @@ def test_draft_order_complete_with_catalogue_and_gift_discount(
     # then
     content = get_graphql_content(response)
     order_data = content["data"]["draftOrderComplete"]["order"]
-    assert order_data["total"]["net"]["amount"] == 74.00
     assert not order_data["discounts"]
+
+    lines_db = order.lines.all()
+    line_1_db = [line for line in lines_db if line.quantity == 3][0]
+    line_2_db = [line for line in lines_db if line.quantity == 2][0]
+    gift_line_db = [line for line in lines_db if line.is_gift][0]
+    gift_price = gift_line_db.variant.channel_listings.get(
+        channel=order.channel
+    ).price_amount
 
     lines = order_data["lines"]
     assert len(lines) == 3
@@ -1339,19 +1378,31 @@ def test_draft_order_complete_with_catalogue_and_gift_discount(
     line_2 = [line for line in lines if line["quantity"] == 2][0]
     gift_line = [line for line in lines if line["isGift"] is True][0]
 
-    assert line_1["totalPrice"]["net"]["amount"] == 30.00
+    line_1_total = line_1_db.undiscounted_total_price_net_amount
+    assert line_1["totalPrice"]["net"]["amount"] == line_1_total
     assert line_1["unitDiscount"]["amount"] == 0.00
     assert line_1["unitDiscountReason"] is None
     assert line_1["unitDiscountValue"] == 0.00
 
-    assert line_2["totalPrice"]["net"]["amount"] == 34.00
-    assert line_2["unitDiscount"]["amount"] == 3.00
+    line_2_total = quantize_price(
+        line_2_db.undiscounted_total_price_net_amount
+        - rule_catalogue_value * line_2_db.quantity,
+        currency,
+    )
+    assert line_2["totalPrice"]["net"]["amount"] == line_2_total
+    assert line_2["unitDiscount"]["amount"] == rule_catalogue_value
     assert line_2["unitDiscountReason"] == f"Promotion: {catalogue_promotion_id}"
     assert line_2["unitDiscountType"] == DiscountValueType.FIXED.upper()
-    assert line_2["unitDiscountValue"] == 3.00
+    assert line_2["unitDiscountValue"] == rule_catalogue_value
 
     assert gift_line["totalPrice"]["net"]["amount"] == 0.00
-    assert gift_line["unitDiscount"]["amount"] == 20.00
+    assert gift_line["unitDiscount"]["amount"] == gift_price
     assert gift_line["unitDiscountReason"] == f"Promotion: {gift_promotion_id}"
     assert gift_line["unitDiscountType"] == DiscountValueType.FIXED.upper()
-    assert gift_line["unitDiscountValue"] == 20.00
+    assert gift_line["unitDiscountValue"] == gift_price
+
+    total = (
+        order.undiscounted_total_net_amount - rule_catalogue_value * line_2_db.quantity
+    )
+    assert order_data["total"]["net"]["amount"] == total
+    assert total == line_2_total + line_1_total + order.base_shipping_price_amount
