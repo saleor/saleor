@@ -3,6 +3,7 @@ from decimal import Decimal
 
 import graphene
 import pytest
+from django.core.exceptions import ValidationError
 from freezegun import freeze_time
 
 from .....core.postgres import FlatConcatSearchVector
@@ -13,7 +14,9 @@ from .....order.search import (
     prepare_order_search_vector_value,
     update_order_search_vector,
 )
+from ....core.connection import where_filter_qs
 from ....tests.utils import get_graphql_content
+from ...filters import OrderDiscountedObjectWhere
 
 
 @pytest.fixture
@@ -218,3 +221,197 @@ def test_draft_orders_query_with_filter_search(
     response = staff_api_client.post_graphql(draft_orders_query_with_filter, variables)
     content = get_graphql_content(response)
     assert content["data"]["draftOrders"]["totalCount"] == count
+
+
+@pytest.mark.parametrize(("gte", "count"), [(20, 1), (0, 1), (500, 0), (20.01, 0)])
+def test_draft_orders_query_with_filter_base_total_price_range(draft_order, gte, count):
+    # given
+    order = draft_order
+    currency = order.currency
+    order.total_net_amount = Decimal("20")
+    order.save(update_fields=["total_net_amount"])
+
+    qs = Order.objects.all()
+    predicate_data = {
+        "currency": currency,
+        "base_total_price": {
+            "range": {
+                "gte": gte,
+            }
+        },
+    }
+
+    # when
+    result = where_filter_qs(
+        qs,
+        {},
+        OrderDiscountedObjectWhere,
+        predicate_data,
+        None,
+    )
+
+    # then
+    assert result.count() == count
+    if count:
+        assert result.first() == order
+
+
+@pytest.mark.parametrize(("gte", "count"), [(20, 1), (0, 1), (500, 0), (20.01, 0)])
+def test_draft_orders_query_with_filter_base_subtotal_price_range(
+    draft_order, gte, count
+):
+    # given
+    order = draft_order
+    currency = order.currency
+    order.subtotal_net_amount = Decimal("20")
+    order.save(update_fields=["subtotal_net_amount"])
+
+    qs = Order.objects.all()
+    predicate_data = {
+        "currency": currency,
+        "base_subtotal_price": {
+            "range": {
+                "gte": gte,
+            }
+        },
+    }
+
+    # when
+    result = where_filter_qs(
+        qs,
+        {},
+        OrderDiscountedObjectWhere,
+        predicate_data,
+        None,
+    )
+
+    # then
+    assert result.count() == count
+    if count:
+        assert result.first() == order
+
+
+@pytest.mark.parametrize(
+    ("one_of", "count"), [([1, 20, 70], 1), ([3, 20.1], 0), ([-3, 0], 0)]
+)
+def test_draft_orders_query_with_filter_base_total_price_one_of(
+    draft_order, one_of, count
+):
+    # given
+    order = draft_order
+    currency = order.currency
+    order.total_net_amount = Decimal("20")
+    order.save(update_fields=["total_net_amount"])
+
+    qs = Order.objects.all()
+    predicate_data = {
+        "currency": currency,
+        "base_total_price": {"one_of": one_of},
+    }
+
+    # when
+    result = where_filter_qs(
+        qs,
+        {},
+        OrderDiscountedObjectWhere,
+        predicate_data,
+        None,
+    )
+
+    # then
+    assert result.count() == count
+    if count:
+        assert result.first() == order
+
+
+@pytest.mark.parametrize(
+    ("one_of", "count"), [([1, 20, 70], 1), ([3, 20.1], 0), ([-3, 0], 0)]
+)
+def test_draft_orders_query_with_filter_base_subtotal_price_one_of(
+    draft_order, one_of, count
+):
+    # given
+    order = draft_order
+    currency = order.currency
+    order.subtotal_net_amount = Decimal("20")
+    order.save(update_fields=["subtotal_net_amount"])
+
+    qs = Order.objects.all()
+    predicate_data = {
+        "currency": currency,
+        "base_subtotal_price": {"one_of": one_of},
+    }
+
+    # when
+    result = where_filter_qs(
+        qs,
+        {},
+        OrderDiscountedObjectWhere,
+        predicate_data,
+        None,
+    )
+
+    # then
+    assert result.count() == count
+    if count:
+        assert result.first() == order
+
+
+def test_draft_orders_query_with_filter_base_total_price_missing_currency(draft_order):
+    # given
+    order = draft_order
+    order.total_net_amount = Decimal("20")
+    order.save(update_fields=["total_net_amount"])
+
+    qs = Order.objects.all()
+    predicate_data = {
+        "base_total_price": {
+            "range": {
+                "gte": 20,
+            }
+        },
+    }
+
+    # when
+    with pytest.raises(ValidationError) as validation_error:
+        where_filter_qs(
+            qs,
+            {},
+            OrderDiscountedObjectWhere,
+            predicate_data,
+            None,
+        )
+
+    # then
+    assert validation_error.value.code == "required"
+
+
+def test_draft_orders_query_with_filter_base_subtotal_price_missing_currency(
+    draft_order,
+):
+    # given
+    order = draft_order
+    order.subtotal_net_amount = Decimal("20")
+    order.save(update_fields=["subtotal_net_amount"])
+
+    qs = Order.objects.all()
+    predicate_data = {
+        "base_subtotal_price": {
+            "range": {
+                "gte": 20,
+            }
+        },
+    }
+
+    # when
+    with pytest.raises(ValidationError) as validation_error:
+        where_filter_qs(
+            qs,
+            {},
+            OrderDiscountedObjectWhere,
+            predicate_data,
+            None,
+        )
+
+    # then
+    assert validation_error.value.code == "required"
