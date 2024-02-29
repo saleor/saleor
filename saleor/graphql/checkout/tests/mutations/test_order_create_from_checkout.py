@@ -987,6 +987,7 @@ mutation orderCreateFromCheckout($id: ID!){
                 unitDiscountType
                 unitDiscountValue
                 isGift
+                quantity
             }
             discounts {
                 amount {
@@ -1064,9 +1065,9 @@ def test_order_from_checkout_on_catalogue_promotion(
     assert not data["order"]["discounts"]
     assert len(data["order"]["lines"]) == 1
     line = data["order"]["lines"][0]
-    assert line["unitDiscount"]["amount"] == 5.00
+    assert line["unitDiscount"]["amount"] == discount.amount_value / line["quantity"]
     assert line["unitDiscountType"] == RewardValueType.FIXED.upper()
-    assert line["unitDiscountValue"] == 5.00
+    assert line["unitDiscountValue"] == discount.amount_value / line["quantity"]
 
 
 def test_order_from_checkout_on_order_promotion(
@@ -1120,7 +1121,7 @@ def test_order_from_checkout_on_order_promotion(
 
     discounts = data["order"]["discounts"]
     assert len(discounts) == 1
-    assert discounts[0]["amount"]["amount"] == 5.00
+    assert discounts[0]["amount"]["amount"] == order_discount.amount_value
     assert discounts[0]["type"] == DiscountType.ORDER_PROMOTION.upper()
     assert discounts[0]["valueType"] == DiscountValueType.FIXED.upper()
 
@@ -1171,17 +1172,22 @@ def test_order_from_checkout_on_gift_promotion(
     assert not order.discounts.all()
     assert order.lines.count() == line_count
     gift_line = order.lines.get(is_gift=True)
+    gift_price = gift_line.variant.channel_listings.get(
+        channel=checkout.channel
+    ).discounted_price_amount
     assert gift_line.discounts.count() == 1
     line_discount = gift_line.discounts.first()
     assert line_discount.promotion_rule == gift_promotion_rule
     assert line_discount.type == DiscountType.ORDER_PROMOTION
+    assert line_discount.amount_value == gift_price
+    assert line_discount.value == gift_price
 
     assert not data["order"]["discounts"]
     lines = data["order"]["lines"]
     assert len(lines) == 2
     gift_line_api = [line for line in lines if line["isGift"]][0]
-    assert gift_line_api["unitDiscount"]["amount"] == 20.00
-    assert gift_line_api["unitDiscountValue"] == 20.00
+    assert gift_line_api["unitDiscount"]["amount"] == gift_price
+    assert gift_line_api["unitDiscountValue"] == gift_price
     assert gift_line_api["unitDiscountType"] == RewardValueType.FIXED.upper()
 
 
