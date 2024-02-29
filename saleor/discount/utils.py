@@ -356,17 +356,6 @@ def create_or_update_discount_objects_from_promotion_for_checkout(
     create_checkout_discount_objects_for_order_promotions(checkout_info, lines_info)
 
 
-def create_or_update_discount_objects_from_promotion_for_order(
-    order: "Order",
-    lines_info: Iterable["DraftOrderLineInfo"],
-):
-    create_order_line_discount_objects_for_catalogue_promotions(lines_info)
-    _update_order_line_base_unit_prices(lines_info)
-
-    create_order_discount_objects_for_order_promotions(order, lines_info)
-    _copy_unit_discount_data_to_order_line(lines_info)
-
-
 def create_checkout_line_discount_objects_for_catalogue_promotions(
     lines_info: Iterable[CheckoutLineInfo],
 ):
@@ -397,94 +386,6 @@ def create_checkout_line_discount_objects_for_catalogue_promotions(
     _update_line_info_cached_discounts(
         lines_info, new_line_discounts, discounts_to_update, discount_to_remove
     )
-
-
-def create_order_line_discount_objects_for_catalogue_promotions(
-    lines_info: Iterable[DraftOrderLineInfo],
-):
-    discount_data = prepare_line_discount_objects_for_catalogue_promotions(lines_info)
-    if not discount_data:
-        return
-
-    (
-        discounts_to_create_inputs,
-        discounts_to_update,
-        discount_to_remove,
-        updated_fields,
-    ) = discount_data
-
-    new_line_discounts = []
-    if discounts_to_create_inputs:
-        new_line_discounts = [
-            OrderLineDiscount(**input) for input in discounts_to_create_inputs
-        ]
-        OrderLineDiscount.objects.bulk_create(new_line_discounts)
-
-    if discounts_to_update and updated_fields:
-        OrderLineDiscount.objects.bulk_update(discounts_to_update, updated_fields)
-
-    if discount_ids_to_remove := [discount.id for discount in discount_to_remove]:
-        OrderLineDiscount.objects.filter(id__in=discount_ids_to_remove).delete()
-
-    _update_line_info_cached_discounts(
-        lines_info, new_line_discounts, discounts_to_update, discount_to_remove
-    )
-
-    affected_line_ids = [
-        discount_line.line.id
-        for discount_line in new_line_discounts
-        + discounts_to_update
-        + discount_to_remove
-    ]
-    for line_info in lines_info:
-        if line_info.line.id in affected_line_ids:
-            _invalidate_order_line_discounts(line_info)
-
-
-def _update_order_line_base_unit_prices(lines_info: Iterable[DraftOrderLineInfo]):
-    modified_lines_info = [
-        line_info for line_info in lines_info if line_info.should_refresh_discounts
-    ]
-    for line_info in modified_lines_info:
-        line = line_info.line
-        base_unit_price = line.undiscounted_base_unit_price_amount
-        for discount in line_info.discounts:
-            unit_discount = discount.amount_value / line.quantity
-            base_unit_price -= unit_discount
-        line.base_unit_price_amount = max(base_unit_price, Decimal(0))
-    lines = [line_info.line for line_info in modified_lines_info]
-    OrderLine.objects.bulk_update(lines, ["base_unit_price_amount"])
-
-
-def _copy_unit_discount_data_to_order_line(lines_info: Iterable[DraftOrderLineInfo]):
-    for line_info in lines_info:
-        if line_info.discounts:
-            line = line_info.line
-            discount = line_info.discounts[0]
-            line.unit_discount_amount = discount.amount_value / line.quantity
-            line.unit_discount_reason = discount.reason
-            line.unit_discount_type = discount.value_type
-            line.unit_discount_value = discount.value
-
-
-def _update_line_info_cached_discounts(
-    lines_info, new_line_discounts, updated_discounts, line_discount_ids_to_remove
-):
-    if not any([new_line_discounts, updated_discounts, line_discount_ids_to_remove]):
-        return
-
-    line_id_line_discounts_map = defaultdict(list)
-    for line_discount in new_line_discounts:
-        line_id_line_discounts_map[line_discount.line_id].append(line_discount)
-
-    for line_info in lines_info:
-        line_info.discounts = [
-            discount
-            for discount in line_info.discounts
-            if discount.id not in line_discount_ids_to_remove
-        ]
-        if discount := line_id_line_discounts_map.get(line_info.line.id):
-            line_info.discounts.extend(discount)
 
 
 def prepare_line_discount_objects_for_catalogue_promotions(
@@ -670,11 +571,24 @@ def _update_discount(
         updated_fields.append("reason")
 
 
-def _invalidate_order_line_discounts(
-    line_info: Union["CheckoutLineInfo", "DraftOrderLineInfo"],
+def _update_line_info_cached_discounts(
+    lines_info, new_line_discounts, updated_discounts, line_discount_ids_to_remove
 ):
-    if isinstance(line_info, DraftOrderLineInfo):
-        line_info.should_refresh_discounts = True
+    if not any([new_line_discounts, updated_discounts, line_discount_ids_to_remove]):
+        return
+
+    line_id_line_discounts_map = defaultdict(list)
+    for line_discount in new_line_discounts:
+        line_id_line_discounts_map[line_discount.line_id].append(line_discount)
+
+    for line_info in lines_info:
+        line_info.discounts = [
+            discount
+            for discount in line_info.discounts
+            if discount.id not in line_discount_ids_to_remove
+        ]
+        if discount := line_id_line_discounts_map.get(line_info.line.id):
+            line_info.discounts.extend(discount)
 
 
 def create_checkout_discount_objects_for_order_promotions(
@@ -752,80 +666,6 @@ def create_checkout_discount_objects_for_order_promotions(
         )
 
 
-def create_order_discount_objects_for_order_promotions(
-    order: "Order",
-    lines_info: Iterable["DraftOrderLineInfo"],
-):
-    from ..order.base_calculations import base_order_subtotal
-    from ..order.utils import get_order_country
-
-    # If voucher is set or manual discount applied, then skip order promotions
-    if order.voucher_code or order.discounts.filter(type=DiscountType.MANUAL).first():
-        _clear_order_discount(order, lines_info)
-        return
-
-    # The base prices are required for order promotion discount qualification.
-    _set_order_base_prices(order, lines_info)
-
-    lines = [line_info.line for line_info in lines_info]
-    subtotal = base_order_subtotal(order, lines)
-    channel = order.channel
-    rules = fetch_promotion_rules_for_checkout_or_order(order)
-    rule_data = get_best_rule(
-        rules=rules,
-        channel=channel,
-        country=get_order_country(order),
-        subtotal=subtotal,
-    )
-    if not rule_data:
-        _clear_order_discount(order, lines_info)
-        return
-
-    best_rule, best_discount_amount, gift_listing = rule_data
-    promotion = best_rule.promotion
-    currency = channel.currency_code
-    translation_language_code = order.language_code
-    promotion_translation, rule_translation = get_rule_translations(
-        promotion, best_rule, translation_language_code
-    )
-    rule_info = VariantPromotionRuleInfo(
-        rule=best_rule,
-        variant_listing_promotion_rule=None,
-        promotion=best_rule.promotion,
-        promotion_translation=promotion_translation,
-        rule_translation=rule_translation,
-    )
-    # gift rule has empty reward_value and reward_value_type
-    value_type = best_rule.reward_value_type or RewardValueType.FIXED
-    amount_value = gift_listing.price_amount if gift_listing else best_discount_amount
-    value = best_rule.reward_value or amount_value
-    discount_object_defaults = {
-        "promotion_rule": best_rule,
-        "value_type": value_type,
-        "value": value,
-        "amount_value": amount_value,
-        "currency": currency,
-        "name": get_discount_name(best_rule, promotion),
-        "translated_name": get_discount_translated_name(rule_info),
-        "reason": prepare_promotion_discount_reason(promotion, get_sale_id(promotion)),
-    }
-    if gift_listing:
-        _handle_gift_reward_for_order(
-            order,
-            lines_info,
-            gift_listing,
-            discount_object_defaults,
-            rule_info,
-        )
-    else:
-        _handle_order_promotion_for_order(
-            order,
-            lines_info,
-            discount_object_defaults,
-            rule_info,
-        )
-
-
 def get_best_rule(
     rules: Iterable["PromotionRule"], channel: "Channel", country: str, subtotal: Money
 ):
@@ -884,26 +724,6 @@ def _set_checkout_base_prices(checkout_info, lines_info):
         checkout.save(update_fields=["base_total_amount", "base_subtotal_amount"])
 
 
-def _set_order_base_prices(order: Order, lines_info: Iterable[DraftOrderLineInfo]):
-    """Set base order prices that includes only catalogue discounts."""
-    from ..order.base_calculations import base_order_subtotal
-
-    lines = [line_info.line for line_info in lines_info]
-    subtotal = base_order_subtotal(order, lines)
-    shipping_price = order.base_shipping_price
-    total = subtotal + shipping_price
-    order.subtotal = TaxedMoney(net=subtotal, gross=subtotal)
-    order.total = TaxedMoney(net=total, gross=total)
-    order.save(
-        update_fields=[
-            "subtotal_net_amount",
-            "subtotal_gross_amount",
-            "total_net_amount",
-            "total_gross_amount",
-        ]
-    )
-
-
 def _clear_checkout_discount(
     checkout_info: "CheckoutInfo", lines_info: Iterable["CheckoutLineInfo"], save: bool
 ):
@@ -938,14 +758,6 @@ def _clear_checkout_discount(
                         "translated_discount_name",
                     ]
                 )
-
-
-def _clear_order_discount(
-    order_or_checkout: Union[Checkout, Order],
-    lines_info: Iterable[DraftOrderLineInfo],
-):
-    delete_gift_line(order_or_checkout, lines_info)
-    order_or_checkout.discounts.filter(type=DiscountType.ORDER_PROMOTION).delete()
 
 
 def _get_best_gift_reward(
@@ -1027,33 +839,6 @@ def _get_available_for_purchase_variant_ids(
         Exists(product_listings.filter(product_id=OuterRef("product_id")))
     ).values_list("id", flat=True)
     return set(available_variant_ids)
-
-
-def _handle_order_promotion_for_order(
-    order: Order,
-    lines_info: Iterable[DraftOrderLineInfo],
-    discount_object_defaults: dict,
-    rule_info: VariantPromotionRuleInfo,
-):
-    discount_object, created = order.discounts.get_or_create(
-        type=DiscountType.ORDER_PROMOTION,
-        defaults=discount_object_defaults,
-    )
-    discount_amount = discount_object_defaults["amount_value"]
-
-    if not created:
-        fields_to_update: list[str] = []
-        _update_discount(
-            discount_object_defaults["promotion_rule"],
-            rule_info,
-            discount_amount,
-            discount_object,
-            fields_to_update,
-        )
-        if fields_to_update:
-            discount_object.save(update_fields=fields_to_update)
-
-    delete_gift_line(order, lines_info)
 
 
 def _handle_order_promotion_for_checkout(
@@ -1165,59 +950,6 @@ def _handle_gift_reward_for_checkout(
         }
 
         gift_line_info = CheckoutLineInfo(**init_values)
-        lines_info.append(gift_line_info)  # type: ignore[attr-defined]
-    else:
-        line_info = next(
-            line_info for line_info in lines_info if line_info.line.pk == line.id
-        )
-        line_info.line = line
-        line_info.discounts = [line_discount]
-
-
-def _handle_gift_reward_for_order(
-    order: Order,
-    lines_info: Iterable[DraftOrderLineInfo],
-    gift_listing: ProductVariantChannelListing,
-    discount_object_defaults: dict,
-    rule_info: VariantPromotionRuleInfo,
-):
-    with transaction.atomic():
-        line, line_created = create_gift_line(order, gift_listing.variant_id)
-        (
-            line_discount,
-            discount_created,
-        ) = OrderLineDiscount.objects.get_or_create(
-            type=DiscountType.ORDER_PROMOTION,
-            line=line,
-            defaults=discount_object_defaults,
-        )
-
-    if not discount_created:
-        fields_to_update = []
-        if line_discount.line_id != line.id:
-            line_discount.line = line
-            fields_to_update.append("line_id")
-        _update_discount(
-            discount_object_defaults["promotion_rule"],
-            rule_info,
-            discount_object_defaults["amount_value"],
-            line_discount,
-            fields_to_update,
-        )
-        if fields_to_update:
-            line_discount.save(update_fields=fields_to_update)
-
-    if line_created:
-        variant = gift_listing.variant
-        init_values = {
-            "line": line,
-            "variant": variant,
-            "channel_listing": gift_listing,
-            "discounts": [line_discount],
-            "rules_info": [rule_info],
-            "channel": order.channel_id,
-        }
-        gift_line_info = DraftOrderLineInfo(**init_values)
         lines_info.append(gift_line_info)  # type: ignore[attr-defined]
     else:
         line_info = next(
@@ -1415,3 +1147,260 @@ def update_rule_variant_relation(
         PromotionRuleVariant.objects.bulk_create(
             rules_variants_to_add, ignore_conflicts=True
         )
+
+
+def create_or_update_discount_objects_from_promotion_for_order(
+    order: "Order",
+    lines_info: Iterable["DraftOrderLineInfo"],
+):
+    create_order_line_discount_objects_for_catalogue_promotions(lines_info)
+    create_order_discount_objects_for_order_promotions(order, lines_info)
+    _copy_unit_discount_data_to_order_line(lines_info)
+
+
+def create_order_line_discount_objects_for_catalogue_promotions(
+    lines_info: Iterable[DraftOrderLineInfo],
+):
+    discount_data = prepare_line_discount_objects_for_catalogue_promotions(lines_info)
+    if not discount_data:
+        return
+
+    (
+        discounts_to_create_inputs,
+        discounts_to_update,
+        discount_to_remove,
+        updated_fields,
+    ) = discount_data
+
+    new_line_discounts = []
+    if discounts_to_create_inputs:
+        new_line_discounts = [
+            OrderLineDiscount(**input) for input in discounts_to_create_inputs
+        ]
+        OrderLineDiscount.objects.bulk_create(new_line_discounts)
+
+    if discounts_to_update and updated_fields:
+        OrderLineDiscount.objects.bulk_update(discounts_to_update, updated_fields)
+
+    if discount_ids_to_remove := [discount.id for discount in discount_to_remove]:
+        OrderLineDiscount.objects.filter(id__in=discount_ids_to_remove).delete()
+
+    _update_line_info_cached_discounts(
+        lines_info, new_line_discounts, discounts_to_update, discount_to_remove
+    )
+
+    affected_line_ids = [
+        discount_line.line.id
+        for discount_line in new_line_discounts
+        + discounts_to_update
+        + discount_to_remove
+    ]
+    modified_lines_info = [
+        line_info for line_info in lines_info if line_info.line.id in affected_line_ids
+    ]
+    _update_order_line_base_unit_prices(modified_lines_info)
+
+
+def _update_order_line_base_unit_prices(lines_info: Iterable[DraftOrderLineInfo]):
+    for line_info in lines_info:
+        line = line_info.line
+        base_unit_price = line.undiscounted_base_unit_price_amount
+        for discount in line_info.discounts:
+            unit_discount = discount.amount_value / line.quantity
+            base_unit_price -= unit_discount
+        line.base_unit_price_amount = max(base_unit_price, Decimal(0))
+    lines = [line_info.line for line_info in lines_info]
+    OrderLine.objects.bulk_update(lines, ["base_unit_price_amount"])
+
+
+def _copy_unit_discount_data_to_order_line(lines_info: Iterable[DraftOrderLineInfo]):
+    for line_info in lines_info:
+        if line_info.discounts:
+            line = line_info.line
+            discount = line_info.discounts[0]
+            line.unit_discount_amount = discount.amount_value / line.quantity
+            line.unit_discount_reason = discount.reason
+            line.unit_discount_type = discount.value_type
+            line.unit_discount_value = discount.value
+
+
+def create_order_discount_objects_for_order_promotions(
+    order: "Order",
+    lines_info: Iterable["DraftOrderLineInfo"],
+):
+    from ..order.base_calculations import base_order_subtotal
+    from ..order.utils import get_order_country
+
+    # If voucher is set or manual discount applied, then skip order promotions
+    if order.voucher_code or order.discounts.filter(type=DiscountType.MANUAL).first():
+        _clear_order_discount(order, lines_info)
+        return
+
+    # The base prices are required for order promotion discount qualification.
+    _set_order_base_prices(order, lines_info)
+
+    lines = [line_info.line for line_info in lines_info]
+    subtotal = base_order_subtotal(order, lines)
+    channel = order.channel
+    rules = fetch_promotion_rules_for_checkout_or_order(order)
+    rule_data = get_best_rule(
+        rules=rules,
+        channel=channel,
+        country=get_order_country(order),
+        subtotal=subtotal,
+    )
+    if not rule_data:
+        _clear_order_discount(order, lines_info)
+        return
+
+    best_rule, best_discount_amount, gift_listing = rule_data
+    promotion = best_rule.promotion
+    currency = channel.currency_code
+    translation_language_code = order.language_code
+    promotion_translation, rule_translation = get_rule_translations(
+        promotion, best_rule, translation_language_code
+    )
+    rule_info = VariantPromotionRuleInfo(
+        rule=best_rule,
+        variant_listing_promotion_rule=None,
+        promotion=best_rule.promotion,
+        promotion_translation=promotion_translation,
+        rule_translation=rule_translation,
+    )
+    # gift rule has empty reward_value and reward_value_type
+    value_type = best_rule.reward_value_type or RewardValueType.FIXED
+    amount_value = gift_listing.price_amount if gift_listing else best_discount_amount
+    value = best_rule.reward_value or amount_value
+    discount_object_defaults = {
+        "promotion_rule": best_rule,
+        "value_type": value_type,
+        "value": value,
+        "amount_value": amount_value,
+        "currency": currency,
+        "name": get_discount_name(best_rule, promotion),
+        "translated_name": get_discount_translated_name(rule_info),
+        "reason": prepare_promotion_discount_reason(promotion, get_sale_id(promotion)),
+    }
+    if gift_listing:
+        _handle_gift_reward_for_order(
+            order,
+            lines_info,
+            gift_listing,
+            discount_object_defaults,
+            rule_info,
+        )
+    else:
+        _handle_order_promotion_for_order(
+            order,
+            lines_info,
+            discount_object_defaults,
+            rule_info,
+        )
+
+
+def _clear_order_discount(
+    order_or_checkout: Union[Checkout, Order],
+    lines_info: Iterable[DraftOrderLineInfo],
+):
+    delete_gift_line(order_or_checkout, lines_info)
+    order_or_checkout.discounts.filter(type=DiscountType.ORDER_PROMOTION).delete()
+
+
+def _set_order_base_prices(order: Order, lines_info: Iterable[DraftOrderLineInfo]):
+    """Set base order prices that includes only catalogue discounts."""
+    from ..order.base_calculations import base_order_subtotal
+
+    lines = [line_info.line for line_info in lines_info]
+    subtotal = base_order_subtotal(order, lines)
+    shipping_price = order.base_shipping_price
+    total = subtotal + shipping_price
+    order.subtotal = TaxedMoney(net=subtotal, gross=subtotal)
+    order.total = TaxedMoney(net=total, gross=total)
+    order.save(
+        update_fields=[
+            "subtotal_net_amount",
+            "subtotal_gross_amount",
+            "total_net_amount",
+            "total_gross_amount",
+        ]
+    )
+
+
+def _handle_order_promotion_for_order(
+    order: Order,
+    lines_info: Iterable[DraftOrderLineInfo],
+    discount_object_defaults: dict,
+    rule_info: VariantPromotionRuleInfo,
+):
+    discount_object, created = order.discounts.get_or_create(
+        type=DiscountType.ORDER_PROMOTION,
+        defaults=discount_object_defaults,
+    )
+    discount_amount = discount_object_defaults["amount_value"]
+
+    if not created:
+        fields_to_update: list[str] = []
+        _update_discount(
+            discount_object_defaults["promotion_rule"],
+            rule_info,
+            discount_amount,
+            discount_object,
+            fields_to_update,
+        )
+        if fields_to_update:
+            discount_object.save(update_fields=fields_to_update)
+
+    delete_gift_line(order, lines_info)
+
+
+def _handle_gift_reward_for_order(
+    order: Order,
+    lines_info: Iterable[DraftOrderLineInfo],
+    gift_listing: ProductVariantChannelListing,
+    discount_object_defaults: dict,
+    rule_info: VariantPromotionRuleInfo,
+):
+    with transaction.atomic():
+        line, line_created = create_gift_line(order, gift_listing.variant_id)
+        (
+            line_discount,
+            discount_created,
+        ) = OrderLineDiscount.objects.get_or_create(
+            type=DiscountType.ORDER_PROMOTION,
+            line=line,
+            defaults=discount_object_defaults,
+        )
+
+    if not discount_created:
+        fields_to_update = []
+        if line_discount.line_id != line.id:
+            line_discount.line = line
+            fields_to_update.append("line_id")
+        _update_discount(
+            discount_object_defaults["promotion_rule"],
+            rule_info,
+            discount_object_defaults["amount_value"],
+            line_discount,
+            fields_to_update,
+        )
+        if fields_to_update:
+            line_discount.save(update_fields=fields_to_update)
+
+    if line_created:
+        variant = gift_listing.variant
+        init_values = {
+            "line": line,
+            "variant": variant,
+            "channel_listing": gift_listing,
+            "discounts": [line_discount],
+            "rules_info": [rule_info],
+            "channel": order.channel_id,
+        }
+        gift_line_info = DraftOrderLineInfo(**init_values)
+        lines_info.append(gift_line_info)  # type: ignore[attr-defined]
+    else:
+        line_info = next(
+            line_info for line_info in lines_info if line_info.line.pk == line.id
+        )
+        line_info.line = line
+        line_info.discounts = [line_discount]

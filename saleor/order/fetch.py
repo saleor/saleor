@@ -81,7 +81,6 @@ class DraftOrderLineInfo:
     rules_info: list["VariantPromotionRuleInfo"]
     channel: "Channel"
     voucher: Optional["Voucher"] = None
-    should_refresh_discounts = False
 
     def get_promotion_discounts(self) -> list["OrderLineDiscount"]:
         return [
