@@ -331,6 +331,8 @@ def test_get_or_create_user_from_payload_creates_user_with_sub(
     assert user_from_payload.email == customer_email
     assert user_from_payload.private_metadata[f"oidc:{oauth_url}"] == sub_id
     assert not user_from_payload.has_usable_password()
+    assert user_from_payload.is_active
+    assert user_from_payload.is_confirmed
 
 
 @mock.patch("saleor.plugins.openid_connect.utils.cache.set")
@@ -527,6 +529,36 @@ def test_get_or_create_user_from_payload_update_last_login(
     assert customer_user.last_login
     last_login = customer_user.last_login.strftime("%Y-%m-%d %H:%M:%S")
     assert last_login == "2019-03-18 12:00:00"
+
+
+@mock.patch("saleor.plugins.openid_connect.utils.cache.set")
+@mock.patch("saleor.plugins.openid_connect.utils.cache.get")
+def test_get_or_create_user_from_payload_set_is_confirmed(
+    mocked_cache_get, mocked_cache_set, customer_user
+):
+    # given
+    customer_user.is_confirmed = False
+    customer_user.save(update_fields=["is_confirmed"])
+    assert customer_user.last_login is None
+    oauth_url = "https://saleor.io/oauth"
+    sub_id = "oauth|1234"
+
+    mocked_cache_get.side_effect = lambda cache_key: None
+
+    # when
+    get_or_create_user_from_payload(
+        payload={"sub": sub_id, "email": customer_user.email},
+        oauth_url=oauth_url,
+    )
+    cache_key = f"oidc:{oauth_url}" + ":" + str(sub_id)
+
+    # then
+    customer_user.refresh_from_db()
+    mocked_cache_get.assert_called_once_with(cache_key)
+    mocked_cache_set.assert_called_once_with(
+        cache_key, customer_user.id, OIDC_CACHE_TIMEOUT
+    )
+    assert customer_user.is_confirmed
 
 
 @mock.patch("saleor.plugins.openid_connect.utils.cache.set")

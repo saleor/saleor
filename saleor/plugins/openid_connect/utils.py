@@ -500,6 +500,10 @@ def _update_user_details(
         )
         fields_to_save.add("search_document")
 
+    if not user.is_confirmed:
+        user.is_confirmed = True
+        fields_to_save.add("is_confirmed")
+
     if fields_to_save:
         user.save(update_fields=fields_to_save)
 
