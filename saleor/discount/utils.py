@@ -384,7 +384,7 @@ def create_checkout_line_discount_objects_for_catalogue_promotions(
         CheckoutLineDiscount.objects.filter(id__in=discount_ids_to_remove).delete()
 
     _update_line_info_cached_discounts(
-        lines_info, new_line_discounts, discounts_to_update, discount_to_remove
+        lines_info, new_line_discounts, discounts_to_update, discount_ids_to_remove
     )
 
 
@@ -959,7 +959,26 @@ def _handle_gift_reward_for_checkout(
         line_info.discounts = [line_discount]
 
 
-def _get_defaults_for_line(order_or_checkout: Union[Checkout, Order], variant_id: int):
+def create_gift_line(order_or_checkout: Union[Checkout, Order], variant_id: int):
+    defaults = _get_defaults_for_gift_line(order_or_checkout, variant_id)
+    line, created = order_or_checkout.lines.get_or_create(
+        is_gift=True, defaults=defaults
+    )
+    if not created:
+        fields_to_update = []
+        for field, value in defaults.items():
+            if getattr(line, field) != value:
+                setattr(line, field, value)
+                fields_to_update.append(field)
+        if fields_to_update:
+            line.save(update_fields=fields_to_update)
+
+    return line, created
+
+
+def _get_defaults_for_gift_line(
+    order_or_checkout: Union[Checkout, Order], variant_id: int
+):
     if isinstance(order_or_checkout, Checkout):
         return {
             "variant_id": variant_id,
@@ -978,23 +997,6 @@ def _get_defaults_for_line(order_or_checkout: Union[Checkout, Order], variant_id
             "is_shipping_required": True,
             "is_gift_card": False,
         }
-
-
-def create_gift_line(order_or_checkout: Union[Checkout, Order], variant_id: int):
-    defaults = _get_defaults_for_line(order_or_checkout, variant_id)
-    line, created = order_or_checkout.lines.get_or_create(
-        is_gift=True, defaults=defaults
-    )
-    if not created:
-        fields_to_update = []
-        for field, value in defaults.items():
-            if getattr(line, field) != value:
-                setattr(line, field, value)
-                fields_to_update.append(field)
-        if fields_to_update:
-            line.save(update_fields=fields_to_update)
-
-    return line, created
 
 
 def get_variants_to_promotion_rules_map(

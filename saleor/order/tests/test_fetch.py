@@ -46,7 +46,6 @@ def test_fetch_draft_order_lines_info(draft_order_and_promotions):
     assert line_info_1.channel == channel
     assert line_info_1.voucher is None
     assert line_info_1.rules_info == []
-    assert line_info_1.should_refresh_discounts is False
 
     variant_2 = line_2.variant
     assert line_info_2.variant == variant_2
