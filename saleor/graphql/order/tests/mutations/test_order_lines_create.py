@@ -785,14 +785,17 @@ def test_order_lines_create_gift_promotion(
     assert len(lines) == 1
 
     gift_line_db = order.lines.get(is_gift=True)
-    assert gift_line_db.unit_discount_amount == Decimal("20.00")
+    gift_price = gift_line_db.variant.channel_listings.get(
+        channel=order.channel
+    ).price_amount
+    assert gift_line_db.unit_discount_amount == gift_price
     assert gift_line_db.unit_price_gross_amount == Decimal(0)
 
     assert not data["order"]["discounts"]
 
     discount = gift_line_db.discounts.get()
     assert discount.promotion_rule == rule
-    assert discount.amount_value == Decimal("20.00")
+    assert discount.amount_value == gift_price
     assert discount.type == DiscountType.ORDER_PROMOTION
     assert discount.reason == f"Promotion: {promotion_id}"
 
