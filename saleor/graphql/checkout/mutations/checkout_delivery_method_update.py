@@ -248,11 +248,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             checkout_info, lines, manager, save=False
         )
         checkout.save(
-            update_fields=[
-                "shipping_method",
-                "collection_point",
-            ]
-            + invalidate_prices_updated_fields
+            update_fields=checkout_fields_to_update + invalidate_prices_updated_fields
         )
         get_or_create_checkout_metadata(checkout).save()
         cls.call_event(manager.checkout_updated, checkout)
