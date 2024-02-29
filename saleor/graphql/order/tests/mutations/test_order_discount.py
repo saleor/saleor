@@ -280,6 +280,57 @@ def test_add_fixed_order_discount_to_order_by_app(
     assert discount_data["amount_value"] == str(order_discount.amount.amount)
 
 
+def test_add_manual_discount_to_order_with_order_discount(
+    order_with_lines_and_order_promotion,
+    staff_api_client,
+    permission_group_manage_orders,
+):
+    """Order discount should be deleted in a favour of manual discount."""
+    # given
+    order = order_with_lines_and_order_promotion
+    order.status = OrderStatus.DRAFT
+    order.save(update_fields=["status"])
+    order_discount = order.discounts.get()
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    discount_value = Decimal("10.00")
+
+    variables = {
+        "orderId": graphene.Node.to_global_id("Order", order.pk),
+        "input": {
+            "valueType": DiscountValueTypeEnum.FIXED.name,
+            "value": discount_value,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_DISCOUNT_ADD, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["orderDiscountAdd"]
+    order.refresh_from_db()
+    assert not data["errors"]
+
+    with pytest.raises(order_discount._meta.model.DoesNotExist):
+        order_discount.refresh_from_db()
+
+    assert order.discounts.count() == 1
+    manual_discount = order.discounts.get()
+
+    assert manual_discount.value == discount_value
+    assert manual_discount.value_type == DiscountValueType.FIXED
+    assert manual_discount.amount.amount == discount_value
+
+    assert (
+        order.total_net_amount == order.undiscounted_total_net_amount - discount_value
+    )
+    assert (
+        order.shipping_price_net_amount + order.subtotal_net_amount
+        == order.total_net_amount
+    )
+
+
 ORDER_DISCOUNT_UPDATE = """
 mutation OrderDiscountUpdate($discountId: ID!, $input: OrderDiscountCommonInput!){
   orderDiscountUpdate(discountId:$discountId, input: $input){
@@ -598,6 +649,9 @@ mutation OrderDiscountDelete($discountId: ID!){
   orderDiscountDelete(discountId: $discountId){
     order{
       id
+      discounts {
+        id
+      }
     }
     errors{
       field
@@ -754,6 +808,48 @@ def test_delete_order_discount_from_order_by_app(
     assert event.type == OrderEvents.ORDER_DISCOUNT_DELETED
 
     assert order.search_vector
+
+
+def test_delete_manual_discount_from_order_with_promotion(
+    draft_order_with_fixed_discount_order,
+    staff_api_client,
+    permission_group_manage_orders,
+    order_promotion_rule,
+):
+    # given
+    order = draft_order_with_fixed_discount_order
+    manual_discount = draft_order_with_fixed_discount_order.discounts.get()
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {
+        "discountId": graphene.Node.to_global_id("OrderDiscount", manual_discount.pk),
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_DISCOUNT_DELETE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["orderDiscountDelete"]
+    assert not data["errors"]
+
+    with pytest.raises(manual_discount._meta.model.DoesNotExist):
+        manual_discount.refresh_from_db()
+
+    order.refresh_from_db()
+    order_discount = order.discounts.get()
+    reward_value = order_promotion_rule.reward_value
+    assert order_discount.value == reward_value
+    assert order_discount.value_type == order_promotion_rule.reward_value_type
+
+    undiscounted_subtotal = (
+        order.undiscounted_total_net_amount - order.base_shipping_price_amount
+    )
+    assert order_discount.amount.amount == reward_value / 100 * undiscounted_subtotal
+    assert (
+        order.total_net_amount
+        == order.undiscounted_total_net_amount - order_discount.amount.amount
+    )
 
 
 ORDER_LINE_DISCOUNT_UPDATE = """
