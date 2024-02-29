@@ -1,5 +1,3 @@
-from decimal import Decimal
-
 import graphene
 import pytest
 from prices import TaxedMoney
@@ -1365,7 +1363,7 @@ def test_draft_order_update_order_promotion(
     rule = order_promotion_rule
     promotion_id = graphene.Node.to_global_id("Promotion", rule.promotion_id)
     assert rule.reward_value_type == RewardValueType.PERCENTAGE
-    assert rule.reward_value == Decimal("25")
+    reward_value = rule.reward_value
 
     variables = {
         "id": graphene.Node.to_global_id("Order", draft_order.pk),
@@ -1380,17 +1378,24 @@ def test_draft_order_update_order_promotion(
     # then
     content = get_graphql_content(response)
     assert not content["data"]["draftOrderUpdate"]["errors"]
+    draft_order.refresh_from_db()
+    undiscounted_total = draft_order.undiscounted_total_net_amount
+
     order = content["data"]["draftOrderUpdate"]["order"]
 
     assert len(order["discounts"]) == 1
-    assert order["discounts"][0]["amount"]["amount"] == 17.50
+    discount_amount = reward_value / 100 * undiscounted_total
+    assert order["discounts"][0]["amount"]["amount"] == discount_amount
     assert order["discounts"][0]["reason"] == f"Promotion: {promotion_id}"
     assert order["discounts"][0]["type"] == DiscountType.ORDER_PROMOTION.upper()
     assert order["discounts"][0]["valueType"] == RewardValueType.PERCENTAGE.upper()
 
-    assert order["subtotal"]["net"]["amount"] == 52.50
-    assert order["total"]["net"]["amount"] == 62.50
-    assert order["undiscountedTotal"]["net"]["amount"] == 80.00
+    assert (
+        order["subtotal"]["net"]["amount"]
+        == undiscounted_total - discount_amount - draft_order.base_shipping_price_amount
+    )
+    assert order["total"]["net"]["amount"] == undiscounted_total - discount_amount
+    assert order["undiscountedTotal"]["net"]["amount"] == undiscounted_total
 
 
 def test_draft_order_update_gift_promotion(
@@ -1424,18 +1429,30 @@ def test_draft_order_update_gift_promotion(
     # then
     content = get_graphql_content(response)
     assert not content["data"]["draftOrderUpdate"]["errors"]
-    order = content["data"]["draftOrderUpdate"]["order"]
 
+    gift_line_db = [line for line in draft_order.lines.all() if line.is_gift][0]
+    gift_price = gift_line_db.variant.channel_listings.get(
+        channel=draft_order.channel
+    ).price_amount
+
+    order = content["data"]["draftOrderUpdate"]["order"]
     lines = order["lines"]
     assert len(lines) == 3
     gift_line = [line for line in lines if line["isGift"]][0]
 
     assert gift_line["totalPrice"]["net"]["amount"] == 0.00
-    assert gift_line["unitDiscount"]["amount"] == 20.00
+    assert gift_line["unitDiscount"]["amount"] == gift_price
     assert gift_line["unitDiscountReason"] == f"Promotion: {promotion_id}"
     assert gift_line["unitDiscountType"] == RewardValueType.FIXED.upper()
-    assert gift_line["unitDiscountValue"] == 20.00
+    assert gift_line["unitDiscountValue"] == gift_price
 
-    assert order["subtotal"]["net"]["amount"] == 70.00
-    assert order["total"]["net"]["amount"] == 80.00
-    assert order["undiscountedTotal"]["net"]["amount"] == 80.00
+    assert (
+        order["subtotal"]["net"]["amount"]
+        == draft_order.undiscounted_total_net_amount
+        - draft_order.base_shipping_price_amount
+    )
+    assert order["total"]["net"]["amount"] == draft_order.undiscounted_total_net_amount
+    assert (
+        order["undiscountedTotal"]["net"]["amount"]
+        == draft_order.undiscounted_total_net_amount
+    )
