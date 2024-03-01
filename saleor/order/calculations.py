@@ -48,14 +48,14 @@ def fetch_order_prices_if_expired(
     if not force_update and not order.should_refresh_prices:
         return order, lines
 
-    # handle discounts
+    # handle promotions
     lines_info: list[DraftOrderLineInfo] = fetch_draft_order_lines_info(order, lines)
     create_or_update_discount_objects_from_promotion_for_order(order, lines_info)
+    lines = [line_info.line for line_info in lines_info]
     _update_order_discount_for_voucher(order)
-    _clear_cache(order)
+    _clear_cache(order, lines)
 
     # handle taxes
-    lines = [line_info.line for line_info in lines_info]
     _recalculate_prices(order, manager, lines)
 
     order.should_refresh_prices = False
@@ -122,7 +122,7 @@ def _update_order_discount_for_voucher(order: Order):
             )
 
 
-def _clear_cache(order):
+def _clear_cache(order, lines):
     # Prefetch has to be cleared and refreshed to avoid returning cached discounts
     if (
         hasattr(order, "_prefetched_objects_cache")
@@ -130,6 +130,13 @@ def _clear_cache(order):
     ):
         del order._prefetched_objects_cache["discounts"]
     prefetch_related_objects([order], "discounts")
+    # Prefetched line discounts could be outdated and are not needed anymore
+    for line in lines:
+        if (
+            hasattr(line, "_prefetched_objects_cache")
+            and "discounts" in order._prefetched_objects_cache
+        ):
+            del line._prefetched_objects_cache["discounts"]
 
 
 def _recalculate_prices(

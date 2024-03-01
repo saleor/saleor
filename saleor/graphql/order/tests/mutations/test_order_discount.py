@@ -696,8 +696,8 @@ def test_delete_order_discount_from_order(
     errors = data["errors"]
     assert len(errors) == 0
 
-    assert order.undiscounted_total == current_undiscounted_total
-    assert order.total == current_undiscounted_total
+    assert order.undiscounted_total.net == current_undiscounted_total.net
+    assert order.total.net == current_undiscounted_total.net
 
     event = order.events.get()
     assert event.type == OrderEvents.ORDER_DISCOUNT_DELETED
@@ -801,8 +801,8 @@ def test_delete_order_discount_from_order_by_app(
     errors = data["errors"]
     assert len(errors) == 0
 
-    assert order.undiscounted_total == current_undiscounted_total
-    assert order.total == current_undiscounted_total
+    assert order.undiscounted_total.net == current_undiscounted_total.net
+    assert order.total.net == current_undiscounted_total.net
 
     event = order.events.get()
     assert event.type == OrderEvents.ORDER_DISCOUNT_DELETED

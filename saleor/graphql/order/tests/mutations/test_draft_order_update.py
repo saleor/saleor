@@ -1380,11 +1380,10 @@ def test_draft_order_update_order_promotion(
     assert not content["data"]["draftOrderUpdate"]["errors"]
     draft_order.refresh_from_db()
     undiscounted_total = draft_order.undiscounted_total_net_amount
-
+    shipping_price = draft_order.base_shipping_price_amount
     order = content["data"]["draftOrderUpdate"]["order"]
-
     assert len(order["discounts"]) == 1
-    discount_amount = reward_value / 100 * undiscounted_total
+    discount_amount = reward_value / 100 * (undiscounted_total - shipping_price)
     assert order["discounts"][0]["amount"]["amount"] == discount_amount
     assert order["discounts"][0]["reason"] == f"Promotion: {promotion_id}"
     assert order["discounts"][0]["type"] == DiscountType.ORDER_PROMOTION.upper()
@@ -1392,7 +1391,7 @@ def test_draft_order_update_order_promotion(
 
     assert (
         order["subtotal"]["net"]["amount"]
-        == undiscounted_total - discount_amount - draft_order.base_shipping_price_amount
+        == undiscounted_total - discount_amount - shipping_price
     )
     assert order["total"]["net"]["amount"] == undiscounted_total - discount_amount
     assert order["undiscountedTotal"]["net"]["amount"] == undiscounted_total

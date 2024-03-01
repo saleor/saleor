@@ -1191,6 +1191,9 @@ def create_order_line_discount_objects_for_catalogue_promotions(
         lines_info, new_line_discounts, discounts_to_update, discount_to_remove
     )
 
+    # base unit price must reflect all actual catalogue discounts
+    _update_base_unit_price_amount(lines_info)
+
 
 def _copy_unit_discount_data_to_order_line(lines_info: Iterable[DraftOrderLineInfo]):
     for line_info in lines_info:
@@ -1214,6 +1217,17 @@ def _copy_unit_discount_data_to_order_line(lines_info: Iterable[DraftOrderLineIn
             line.unit_discount_reason = discount_reason
             line.unit_discount_type = discount_type
             line.unit_discount_value = discount_value
+
+
+def _update_base_unit_price_amount(lines_info: Iterable[DraftOrderLineInfo]):
+    for line_info in lines_info:
+        line = line_info.line
+        base_unit_price = line.undiscounted_base_unit_price_amount
+        for discount in line_info.discounts:
+            if discount.type == DiscountType.PROMOTION:
+                unit_discount = discount.amount_value / line.quantity
+                base_unit_price -= unit_discount
+        line.base_unit_price_amount = max(base_unit_price, Decimal(0))
 
 
 def create_order_discount_objects_for_order_promotions(
@@ -1301,15 +1315,6 @@ def _clear_order_discount(
 def _set_order_base_prices(order: Order, lines_info: Iterable[DraftOrderLineInfo]):
     """Set base order prices that includes only catalogue discounts."""
     from ..order.base_calculations import base_order_subtotal
-
-    for line_info in lines_info:
-        line = line_info.line
-        base_unit_price = line.undiscounted_base_unit_price_amount
-        for discount in line_info.discounts:
-            if discount.type == DiscountType.PROMOTION:
-                unit_discount = discount.amount_value / line.quantity
-                base_unit_price -= unit_discount
-        line.base_unit_price_amount = max(base_unit_price, Decimal(0))
 
     lines = [line_info.line for line_info in lines_info]
     subtotal = base_order_subtotal(order, lines)

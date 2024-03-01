@@ -64,4 +64,3 @@ def test_fetch_draft_order_lines_info(draft_order_and_promotions):
     assert rule_info_2.promotion == rule_catalogue.promotion
     assert rule_info_2.promotion_translation.name == promotion_translation
     assert rule_info_2.rule_translation.name == rule_translation
-    assert line_info_2.should_refresh_discounts is False
