@@ -78,8 +78,9 @@ class PromotionRuleCreate(ModelMutation):
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
         products = get_products_for_rule(instance, update_rule_variants=True)
         if products:
-            update_discounted_prices_task.delay(
-                list(products.values_list("id", flat=True))
+            cls.call_event(
+                update_discounted_prices_task.delay,
+                list(products.values_list("id", flat=True)),
             )
         clear_promotion_old_sale_id(instance.promotion, save=True)
         app = get_app_promise(info.context).get()

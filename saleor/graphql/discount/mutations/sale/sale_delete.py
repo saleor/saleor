@@ -68,7 +68,7 @@ class SaleDelete(ModelDeleteMutation):
 
             manager = get_plugin_manager_promise(info.context).get()
             cls.call_event(manager.sale_deleted, promotion, previous_catalogue)
-            update_discounted_prices_task.delay(list(product_ids))
+            cls.call_event(update_discounted_prices_task.delay, list(product_ids))
 
         return response
 
