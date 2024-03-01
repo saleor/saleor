@@ -91,6 +91,7 @@ def fetch_order_prices_if_expired(
                 "unit_discount_reason",
                 "unit_discount_type",
                 "unit_discount_value",
+                "base_unit_price_amount",
             ],
         )
 
