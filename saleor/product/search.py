@@ -1,4 +1,5 @@
 from collections import defaultdict
+from collections.abc import Iterable
 from typing import TYPE_CHECKING, Union
 
 from django.conf import settings
@@ -22,7 +23,7 @@ PRODUCT_FIELDS_TO_PREFETCH = [
     "product_type__attributeproduct__attribute",
 ]
 
-PRODUCTS_BATCH_SIZE = 300
+PRODUCTS_BATCH_SIZE = 100
 # Setting threshold to 300 results in about 350MB of memory usage
 # when testing locally. Should be adjusted after some time by running
 # update task on a large dataset and measuring the total time, memory usage
@@ -31,6 +32,7 @@ PRODUCTS_BATCH_SIZE = 300
 
 def _prep_product_search_vector_index(products):
     prefetch_related_objects(products, *PRODUCT_FIELDS_TO_PREFETCH)
+
     for product in products:
         product.search_vector = FlatConcatSearchVector(
             *prepare_product_search_vector_value(product, already_prefetched=True)
@@ -42,17 +44,31 @@ def _prep_product_search_vector_index(products):
     )
 
 
-def update_products_search_vector(products: "QuerySet", use_batches=True):
-    if use_batches:
-        last_id = 0
-        while True:
-            products_batch = list(products.filter(id__gt=last_id)[:PRODUCTS_BATCH_SIZE])
-            if not products_batch:
-                break
-            last_id = products_batch[-1].id
-            _prep_product_search_vector_index(products_batch)
-    else:
-        _prep_product_search_vector_index(products)
+def queryset_in_batches(queryset):
+    """Slice a queryset into batches.
+
+    Input queryset should be sorted be pk.
+    """
+    start_pk = 0
+
+    while True:
+        qs = queryset.filter(pk__gt=start_pk)[:PRODUCTS_BATCH_SIZE]
+        pks = list(qs.values_list("pk", flat=True))
+
+        if not pks:
+            break
+
+        yield pks
+
+        start_pk = pks[-1]
+
+
+def update_products_search_vector(product_ids: Iterable[int]):
+    product_ids = list(product_ids)
+    products = Product.objects.filter(pk__in=product_ids).order_by("pk")
+    for product_pks in queryset_in_batches(products):
+        products_batch = list(Product.objects.filter(id__in=product_pks))
+        _prep_product_search_vector_index(products_batch)
 
 
 def prepare_product_search_vector_value(

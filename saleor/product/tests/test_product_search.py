@@ -9,7 +9,7 @@ def test_update_products_search_vector(product_list):
     Product.objects.bulk_update(product_list, ["search_vector"])
 
     # when
-    update_products_search_vector(Product.objects.all())
+    update_products_search_vector(Product.objects.all().values_list("id", flat=True))
 
     # then
     for product in product_list:
