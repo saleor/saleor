@@ -2,33 +2,36 @@ import json
 
 from django.conf import settings
 from django.db import connections, transaction
+from django.db.backends.base.base import BaseDatabaseWrapper
 
 
-class TestDBConnectionWrapper:
-    def __init__(self, conn, default_conn):
-        self._wrapped_conn = conn
-        self._default_conn = default_conn
+class FakeReplicaDBConnection:
+    def __init__(
+        self, replica_conn: BaseDatabaseWrapper, writer_conn: BaseDatabaseWrapper
+    ):
+        self._replica_conn = replica_conn
+        self._writer_conn = writer_conn
 
-    def cursor(self, *args, **kwargs):
-        cursor = self._default_conn.cursor(*args, **kwargs)
+    def cursor(self):
+        cursor = self._writer_conn.cursor()
         cursor.db = self
         return cursor
 
-    def chunked_cursor(self, *args, **kwargs):
-        cursor = self._default_conn.chunked_cursor(*args, **kwargs)
+    def chunked_cursor(self):
+        cursor = self._writer_conn.chunked_cursor()
         cursor.db = self
         return cursor
 
     def __getattr__(self, attr):
         if attr in ["alias", "settings_dict"]:
-            return getattr(self._wrapped_conn, attr)
-        return getattr(self._default_conn, attr)
+            return getattr(self._replica_conn, attr)
+        return getattr(self._writer_conn, attr)
 
 
 def prepare_test_db_connections():
     replica = settings.DATABASE_CONNECTION_REPLICA_NAME
     default_conn = connections[settings.DATABASE_CONNECTION_DEFAULT_NAME]
-    connections[replica] = TestDBConnectionWrapper(connections[replica], default_conn)
+    connections[replica] = FakeReplicaDBConnection(connections[replica], default_conn)  # type: ignore[override]
 
 
 def flush_post_commit_hooks():
