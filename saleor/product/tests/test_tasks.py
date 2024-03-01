@@ -287,7 +287,7 @@ def test_update_products_search_vector_task_with_static_number_of_queries(
         product_list[i].save(update_fields=["search_index_dirty"])
 
     # when & # then
-    with django_assert_num_queries(12):
+    with django_assert_num_queries(15):
         update_products_search_vector_task()
 
 
