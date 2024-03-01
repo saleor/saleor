@@ -422,8 +422,9 @@ def get_or_create_user_from_payload(
             defaults=defaults_create,
         )
 
-    site_settings = Site.objects.get_current().settings
-    if not user.can_login(site_settings):  # it is true only if we fetch disabled user.
+    # User logged in by OpenID are treated as confirmed by default so we only need to
+    # check if user is active
+    if not user.is_active:
         raise AuthenticationError("Unable to log in.")
 
     _update_user_details(
