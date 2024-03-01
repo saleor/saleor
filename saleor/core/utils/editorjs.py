@@ -69,10 +69,10 @@ def clean_list_item(blocks, block, plain_text_list, to_string, index):
     for item_index, item in enumerate(block["data"]["items"]):
         if not item:
             return
-        new_text = clean_text_data(item)
         if to_string:
-            plain_text_list.append(strip_tags(new_text))
+            plain_text_list.append(strip_tags(item))
         else:
+            new_text = clean_text_data_block(item)
             blocks[index]["data"]["items"][item_index] = new_text
 
 
@@ -80,16 +80,16 @@ def clean_image_item(blocks, block, plain_text_list, to_string, index):
     file_url = block["data"].get("file", {}).get("url")
     caption = block["data"].get("caption")
     if file_url:
-        file_url = clean_text_data(file_url)
         if to_string:
             plain_text_list.append(strip_tags(file_url))
         else:
+            file_url = clean_text_data_block(file_url)
             blocks[index]["data"]["file"]["ulr"] = file_url
     if caption:
-        caption = clean_text_data(caption)
         if to_string:
             plain_text_list.append(strip_tags(caption))
         else:
+            caption = clean_text_data_block(caption)
             blocks[index]["data"]["caption"] = caption
 
 
@@ -98,25 +98,31 @@ def clean_embed_item(blocks, block, plain_text_list, to_string, index):
         data = block["data"].get(field)
         if not data:
             return
-        data = clean_text_data(data)
         if to_string:
             plain_text_list.append(strip_tags(data))
         else:
+            data = clean_text_data_block(data)
             blocks[index]["data"][field] = data
 
 
-def clean_other_items(blocks, block, plain_text_list, to_string, index):
+def clean_other_items(
+    blocks,
+    block,
+    plain_text_list,
+    to_string,
+    index,
+):
     text = block["data"].get("text")
     if not text:
         return
-    new_text = clean_text_data(text)
     if to_string:
-        plain_text_list.append(strip_tags(new_text))
+        plain_text_list.append(strip_tags(text))
     else:
+        new_text = clean_text_data_block(text)
         blocks[index]["data"]["text"] = new_text
 
 
-def clean_text_data(text: str) -> str:
+def clean_text_data_block(text: str) -> str:
     """Look for url in text, check if URL is allowed and return the cleaned URL.
 
     By default, only the protocol ``javascript`` is denied.
