@@ -97,7 +97,7 @@ class SaleBulkDelete(ModelBulkDeleteMutation):
             cls.call_event(
                 manager.sale_deleted, sale, catalogue_info, webhooks=webhooks
             )
-        update_discounted_prices_task.delay(list(product_ids))
+        cls.call_event(update_discounted_prices_task.delay, list(product_ids))
 
     @classmethod
     def get_sale_and_rules(cls, qs: QuerySet[models.Promotion]):
