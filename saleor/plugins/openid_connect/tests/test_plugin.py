@@ -18,6 +18,7 @@ from ....core.jwt import (
     jwt_user_payload,
 )
 from ....graphql.account.mutations.authentication.utils import _get_new_csrf_token
+from ....tests.utils import flush_post_commit_hooks
 from ...base_plugin import ExternalAccessTokens
 from ...models import PluginConfiguration
 from ..utils import (
@@ -416,7 +417,7 @@ def test_external_obtain_access_tokens(
         oauth_payload,
         plugin.config.json_web_key_set_url,
     )
-    user = get_or_create_user_from_payload(
+    user, _ = get_or_create_user_from_payload(
         claims,
         oauth_url="https://saleor.io/oauth",
     )
@@ -487,7 +488,7 @@ def test_external_obtain_access_tokens_with_permissions(
         oauth_payload,
         plugin.config.json_web_key_set_url,
     )
-    user = get_or_create_user_from_payload(claims, "https://saleor.io/oauth")
+    user, _ = get_or_create_user_from_payload(claims, "https://saleor.io/oauth")
     user.is_staff = True
     expected_tokens = create_tokens_from_oauth_payload(
         oauth_payload,
@@ -512,12 +513,14 @@ def test_external_obtain_access_tokens_with_permissions(
 
 
 @freeze_time("2019-03-18 12:00:00")
+@patch("saleor.plugins.manager.PluginsManager.staff_created")
 @patch("saleor.plugins.openid_connect.utils.cache.set")
 @patch("saleor.plugins.openid_connect.utils.cache.get")
 @pytest.mark.vcr
 def test_external_obtain_access_tokens_with_saleor_staff(
     mocked_cache_get,
     mocked_cache_set,
+    mocked_staff_created_webhook,
     openid_plugin,
     monkeypatch,
     rf,
@@ -566,7 +569,7 @@ def test_external_obtain_access_tokens_with_saleor_staff(
         oauth_payload,
         plugin.config.json_web_key_set_url,
     )
-    user = get_or_create_user_from_payload(
+    user, _ = get_or_create_user_from_payload(
         claims,
         "https://saleor.io/oauth",
     )
@@ -586,15 +589,21 @@ def test_external_obtain_access_tokens_with_saleor_staff(
     decoded_refresh_token = jwt_decode(tokens.refresh_token)
     assert tokens.csrf_token == decoded_refresh_token["csrf_token"]
     assert decoded_refresh_token["oauth_refresh_token"] == "refresh"
+    flush_post_commit_hooks()
+    mocked_staff_created_webhook.assert_called_once_with(user)
 
 
 @freeze_time("2019-03-18 12:00:00")
+@patch("saleor.plugins.manager.PluginsManager.customer_created")
+@patch("saleor.plugins.manager.PluginsManager.staff_created")
 @patch("saleor.plugins.openid_connect.utils.cache.set")
 @patch("saleor.plugins.openid_connect.utils.cache.get")
 @pytest.mark.vcr
 def test_external_obtain_access_tokens_user_which_is_no_more_staff(
     mocked_cache_get,
     mocked_cache_set,
+    mocked_staff_created_webhook,
+    mocked_customer_created_webhook,
     openid_plugin,
     monkeypatch,
     rf,
@@ -648,7 +657,7 @@ def test_external_obtain_access_tokens_user_which_is_no_more_staff(
         oauth_payload,
         plugin.config.json_web_key_set_url,
     )
-    user = get_or_create_user_from_payload(claims, "https://saleor.io/oauth")
+    user, _ = get_or_create_user_from_payload(claims, "https://saleor.io/oauth")
 
     staff_user.refresh_from_db()
     assert staff_user == user
@@ -657,14 +666,18 @@ def test_external_obtain_access_tokens_user_which_is_no_more_staff(
     decoded_access_token = jwt_decode(tokens.token)
     assert decoded_access_token["permissions"] == []
     assert decoded_access_token["is_staff"] is False
+    mocked_staff_created_webhook.assert_not_called()
+    mocked_customer_created_webhook.assert_not_called()
 
 
 @freeze_time("2019-03-18 12:00:00")
+@patch("saleor.plugins.manager.PluginsManager.customer_created")
 @patch("saleor.plugins.openid_connect.utils.cache.set")
 @patch("saleor.plugins.openid_connect.utils.cache.get")
 def test_external_obtain_access_tokens_user_created(
     mocked_cache_get,
     mocked_cache_set,
+    mocked_customer_created_webhook,
     openid_plugin,
     monkeypatch,
     rf,
@@ -732,6 +745,8 @@ def test_external_obtain_access_tokens_user_created(
     decoded_refresh_token = jwt_decode(tokens.refresh_token)
     assert tokens.csrf_token == decoded_refresh_token["csrf_token"]
     assert decoded_refresh_token["oauth_refresh_token"] == "refresh"
+    flush_post_commit_hooks()
+    mocked_customer_created_webhook.assert_called_once_with(user)
 
 
 @freeze_time("2019-03-18 12:00:00")

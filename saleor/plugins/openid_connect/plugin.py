@@ -41,6 +41,7 @@ from .utils import (
     get_user_from_oauth_access_token,
     get_user_from_token,
     is_owner_of_token_valid,
+    send_user_created_event,
     validate_refresh_token,
 )
 
@@ -295,7 +296,7 @@ class OpenIDConnectPlugin(BasePlugin):
             token_data, self.config.json_web_key_set_url
         )
 
-        user = get_or_create_user_from_payload(
+        user, user_created = get_or_create_user_from_payload(
             parsed_id_token,
             self.config.authorization_url,
         )
@@ -318,6 +319,9 @@ class OpenIDConnectPlugin(BasePlugin):
             elif user.is_staff and not is_staff_user:
                 user.is_staff = False
                 user.save(update_fields=["is_staff"])
+
+        if user_created:
+            send_user_created_event(user)
 
         tokens = create_tokens_from_oauth_payload(
             token_data, user, parsed_id_token, user_permissions, owner=self.PLUGIN_ID

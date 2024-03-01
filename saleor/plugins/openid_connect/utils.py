@@ -29,6 +29,7 @@ from ...core.jwt import (
     jwt_encode,
     jwt_user_payload,
 )
+from ...core.utils.events import call_event
 from ...graphql.account.mutations.authentication.utils import (
     _does_token_match,
     _get_new_csrf_token,
@@ -38,6 +39,7 @@ from ...permission.enums import get_permission_names, get_permissions_from_coden
 from ...permission.models import Permission
 from ...site.models import Site
 from ..error_codes import PluginErrorCode
+from ..manager import get_plugins_manager
 from ..models import PluginConfiguration
 from . import PLUGIN_ID
 from .const import SALEOR_STAFF_PERMISSION
@@ -190,7 +192,7 @@ def get_user_from_oauth_access_token_in_jwt_format(
         return None
 
     try:
-        user = get_or_create_user_from_payload(
+        user, user_created = get_or_create_user_from_payload(
             user_info,
             user_info_url,
             last_login=token_payload.get("iat"),
@@ -243,6 +245,9 @@ def get_user_from_oauth_access_token_in_jwt_format(
         user.is_staff = is_staff
         user.save(update_fields=["is_staff"])
 
+    if user_created:
+        send_user_created_event(user)
+
     return user
 
 
@@ -276,7 +281,7 @@ def get_user_from_oauth_access_token(
             "Failed to fetch OIDC user info", extra={"user_info_url": user_info_url}
         )
         return None
-    user = get_or_create_user_from_payload(
+    user, user_created = get_or_create_user_from_payload(
         user_info,
         oauth_url=user_info_url,
     )
@@ -290,7 +295,16 @@ def get_user_from_oauth_access_token(
             user, staff_default_group_name
         )
 
+    if user_created:
+        send_user_created_event(user)
+
     return user
+
+
+def send_user_created_event(user: User):
+    manager = get_plugins_manager(allow_replica=False)
+    event = manager.staff_created if user.is_staff else manager.customer_created
+    call_event(event, user)
 
 
 def assign_staff_to_default_group_and_update_permissions(
@@ -379,7 +393,7 @@ def get_or_create_user_from_payload(
     payload: dict,
     oauth_url: str,
     last_login: Optional[int] = None,
-) -> User:
+) -> tuple[User, bool]:
     oidc_metadata_key = f"oidc:{oauth_url}"
     user_email = payload.get("email")
     if not user_email:
@@ -404,16 +418,18 @@ def get_or_create_user_from_payload(
     user_id = cache.get(cache_key)
     if user_id:
         get_kwargs = {"id": user_id}
+    created = False
     try:
         user = User.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME).get(
             **get_kwargs
         )
     except User.DoesNotExist:
-        user, _ = User.objects.get_or_create(
+        user, created = User.objects.get_or_create(
             email=user_email,
             defaults=defaults_create,
         )
         match_orders_with_new_user(user)
+
     except User.MultipleObjectsReturned:
         logger.warning("Multiple users returned for single OIDC sub ID")
         user, _ = User.objects.get_or_create(
@@ -436,7 +452,7 @@ def get_or_create_user_from_payload(
     )
 
     cache.set(cache_key, user.id, min(JWKS_CACHE_TIME, OIDC_DEFAULT_CACHE_TIME))
-    return user
+    return user, created
 
 
 def get_domain_from_email(email: str):

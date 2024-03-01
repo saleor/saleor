@@ -24,6 +24,7 @@ from ....core.jwt import (
     jwt_user_payload,
 )
 from ....permission.models import Permission
+from ....tests.utils import flush_post_commit_hooks
 from ..exceptions import AuthenticationError
 from ..utils import (
     JWKS_CACHE_TIME,
@@ -129,7 +130,7 @@ def test_create_tokens_from_oauth_payload(monkeypatch, id_token, id_payload):
         "token_type": "Bearer",
         "expires_at": 1600851112,
     }
-    user = get_or_create_user_from_payload(id_payload, "https://saleor.io/oauth")
+    user, _ = get_or_create_user_from_payload(id_payload, "https://saleor.io/oauth")
     permissions = get_saleor_permissions_qs_from_scope(auth_payload.get("scope"))
     perms = get_saleor_permission_names(permissions)
     tokens = create_tokens_from_oauth_payload(
@@ -230,7 +231,7 @@ def test_get_or_create_user_from_payload_retrieve_user_by_sub(
     mocked_cache_get.side_effect = lambda cache_key: None
 
     # when
-    user_from_payload = get_or_create_user_from_payload(
+    user_from_payload, _ = get_or_create_user_from_payload(
         payload={"sub": sub_id, "email": customer_user.email},
         oauth_url=oauth_url,
     )
@@ -258,7 +259,7 @@ def test_get_or_create_user_from_payload_updates_sub(
     mocked_cache_get.side_effect = lambda cache_key: None
 
     # when
-    user_from_payload = get_or_create_user_from_payload(
+    user_from_payload, _ = get_or_create_user_from_payload(
         payload={"sub": sub_id, "email": customer_user.email},
         oauth_url=oauth_url,
     )
@@ -285,7 +286,7 @@ def test_get_or_create_user_from_payload_assigns_sub(
     mocked_cache_get.side_effect = lambda cache_key: None
 
     # when
-    user_from_payload = get_or_create_user_from_payload(
+    user_from_payload, _ = get_or_create_user_from_payload(
         payload={"sub": sub_id, "email": customer_user.email},
         oauth_url=oauth_url,
     )
@@ -314,7 +315,7 @@ def test_get_or_create_user_from_payload_creates_user_with_sub(
     mocked_cache_get.side_effect = lambda cache_key: None
 
     # when
-    user_from_payload = get_or_create_user_from_payload(
+    user_from_payload, _ = get_or_create_user_from_payload(
         payload={"sub": sub_id, "email": customer_email},
         oauth_url=oauth_url,
     )
@@ -347,7 +348,7 @@ def test_get_or_create_user_from_payload_match_orders_for_new_user(
     order.save()
 
     # when
-    user_from_payload = get_or_create_user_from_payload(
+    user_from_payload, _ = get_or_create_user_from_payload(
         payload={"sub": sub_id, "email": customer_email},
         oauth_url=oauth_url,
     )
@@ -382,7 +383,7 @@ def test_get_or_create_user_from_payload_match_orders_when_changing_email(
     order.save()
 
     # when
-    user_from_payload = get_or_create_user_from_payload(
+    user_from_payload, _ = get_or_create_user_from_payload(
         payload={"sub": sub_id, "email": new_customer_email},
         oauth_url=oauth_url,
     )
@@ -411,7 +412,7 @@ def test_get_or_create_user_from_payload_multiple_subs(customer_user, admin_user
 
     # when
     with warnings.catch_warnings(record=True):
-        user_from_payload = get_or_create_user_from_payload(
+        user_from_payload, _ = get_or_create_user_from_payload(
             payload={"sub": sub_id, "email": customer_user.email},
             oauth_url=oauth_url,
         )
@@ -437,7 +438,7 @@ def test_get_or_create_user_from_payload_different_email(
     customer_user.save()
 
     # when
-    user_from_payload = get_or_create_user_from_payload(
+    user_from_payload, _ = get_or_create_user_from_payload(
         payload={"sub": sub_id, "email": new_customer_email},
         oauth_url=oauth_url,
     )
@@ -475,7 +476,7 @@ def test_get_or_create_user_from_payload_with_last_login(
     customer_user.save()
 
     # when
-    user_from_payload = get_or_create_user_from_payload(
+    user_from_payload, _ = get_or_create_user_from_payload(
         payload={"sub": sub_id, "email": customer_user.email},
         oauth_url=oauth_url,
         last_login=current_ts,
@@ -582,7 +583,11 @@ def test_get_or_create_user_from_payload_last_login_modifies(
     assert customer_user.last_login != last_login
 
 
-def test_jwt_token_without_expiration_claim(monkeypatch, decoded_access_token):
+@patch("saleor.plugins.manager.PluginsManager.customer_created")
+def test_jwt_token_without_expiration_claim(
+    mocked_customer_created_webhook, monkeypatch, decoded_access_token
+):
+    # given
     monkeypatch.setattr(
         "saleor.plugins.openid_connect.utils.get_user_info_from_cache_or_fetch",
         lambda *args, **kwargs: {
@@ -596,6 +601,8 @@ def test_jwt_token_without_expiration_claim(monkeypatch, decoded_access_token):
         decoded_access_token,
         {},
     )
+
+    # when
     user = get_user_from_oauth_access_token_in_jwt_format(
         token_payload,
         "https://example.com",
@@ -605,14 +612,20 @@ def test_jwt_token_without_expiration_claim(monkeypatch, decoded_access_token):
         staff_user_domains=[],
         staff_default_group_name="",
     )
+
+    # then
     assert user.email == "test@example.org"
+    flush_post_commit_hooks()
+    mocked_customer_created_webhook.assert_called_once_with(user)
 
 
+@patch("saleor.plugins.manager.PluginsManager.customer_created")
 @mock.patch("saleor.plugins.openid_connect.utils.cache.set")
 @mock.patch("saleor.plugins.openid_connect.utils.cache.get")
 def test_jwt_token_without_expiration_claim_mixed_permissions_from_group(
     mocked_cache_get,
     mocked_cache_set,
+    mocked_customer_created_webhook,
     customer_user,
     monkeypatch,
     decoded_access_token,
@@ -654,6 +667,8 @@ def test_jwt_token_without_expiration_claim_mixed_permissions_from_group(
     assert len(user.effective_permissions) > 1
     # ensure that manage_shipping is not from openID scope permissions
     assert "saleor:manage_shipping" not in token_payload["scope"]
+    flush_post_commit_hooks()
+    mocked_customer_created_webhook.assert_not_called()
 
 
 @mock.patch("saleor.plugins.openid_connect.utils.cache.set")
