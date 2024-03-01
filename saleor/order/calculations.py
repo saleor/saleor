@@ -48,14 +48,17 @@ def fetch_order_prices_if_expired(
     if not force_update and not order.should_refresh_prices:
         return order, lines
 
+    # handle discounts
     lines_info: list[DraftOrderLineInfo] = fetch_draft_order_lines_info(order, lines)
-    order.should_refresh_prices = False
     create_or_update_discount_objects_from_promotion_for_order(order, lines_info)
     _update_order_discount_for_voucher(order)
+    _clear_cache(order)
 
+    # handle taxes
     lines = [line_info.line for line_info in lines_info]
     _recalculate_prices(order, manager, lines)
 
+    order.should_refresh_prices = False
     with transaction.atomic(savepoint=False):
         order.save(
             update_fields=[
@@ -117,13 +120,14 @@ def _update_order_discount_for_voucher(order: Order):
                 voucher_code=order.voucher_code,
             )
 
+
+def _clear_cache(order):
     # Prefetch has to be cleared and refreshed to avoid returning cached discounts
     if (
         hasattr(order, "_prefetched_objects_cache")
         and "discounts" in order._prefetched_objects_cache
     ):
         del order._prefetched_objects_cache["discounts"]
-
     prefetch_related_objects([order], "discounts")
 
 

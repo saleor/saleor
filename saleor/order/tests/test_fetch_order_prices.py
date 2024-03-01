@@ -1036,15 +1036,9 @@ def test_fetch_order_prices_manual_discount_and_gift_discount_flat_rates(
     )
 
     # then
-    # when
-    order, lines = calculations.fetch_order_prices_if_expired(
-        order, plugins_manager, None, True
-    )
-
-    # then
     assert not OrderLineDiscount.objects.exists()
     assert OrderDiscount.objects.count() == 1
-    assert len(lines) == 1
+    assert len(lines) == 2
     manual_discount.refresh_from_db()
 
     assert manual_discount.order == order
