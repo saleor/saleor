@@ -1215,14 +1215,26 @@ def _update_order_line_base_unit_prices(lines_info: Iterable[DraftOrderLineInfo]
 
 def _copy_unit_discount_data_to_order_line(lines_info: Iterable[DraftOrderLineInfo]):
     for line_info in lines_info:
-        if line_info.discounts:
+        if discounts := line_info.discounts:
             line = line_info.line
-            # TODO zedzior cumulate discounts
-            discount = line_info.discounts[0]
-            line.unit_discount_amount = discount.amount_value / line.quantity
-            line.unit_discount_reason = discount.reason
-            line.unit_discount_type = discount.value_type
-            line.unit_discount_value = discount.value
+            discount_amount = sum([discount.amount_value for discount in discounts])
+            unit_discount_amount = discount_amount / line.quantity
+            discount_reason = ";".join(
+                [discount.reason for discount in discounts if discount.reason]
+            )
+            discount_type = (
+                discounts[0].value_type
+                if len(discounts) == 1
+                else DiscountValueType.FIXED
+            )
+            discount_value = (
+                discounts[0].value if len(discounts) == 1 else unit_discount_amount
+            )
+
+            line.unit_discount_amount = unit_discount_amount
+            line.unit_discount_reason = discount_reason
+            line.unit_discount_type = discount_type
+            line.unit_discount_value = discount_value
 
 
 def create_order_discount_objects_for_order_promotions(
