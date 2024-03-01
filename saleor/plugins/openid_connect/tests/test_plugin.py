@@ -416,7 +416,7 @@ def test_external_obtain_access_tokens(
         oauth_payload,
         plugin.config.json_web_key_set_url,
     )
-    user = get_or_create_user_from_payload(
+    user, _, _ = get_or_create_user_from_payload(
         claims,
         oauth_url="https://saleor.io/oauth",
     )
@@ -487,7 +487,7 @@ def test_external_obtain_access_tokens_with_permissions(
         oauth_payload,
         plugin.config.json_web_key_set_url,
     )
-    user = get_or_create_user_from_payload(claims, "https://saleor.io/oauth")
+    user, _, _ = get_or_create_user_from_payload(claims, "https://saleor.io/oauth")
     user.is_staff = True
     expected_tokens = create_tokens_from_oauth_payload(
         oauth_payload,
@@ -512,12 +512,14 @@ def test_external_obtain_access_tokens_with_permissions(
 
 
 @freeze_time("2019-03-18 12:00:00")
+@patch("saleor.plugins.openid_connect.plugin.send_user_event")
 @patch("saleor.plugins.openid_connect.utils.cache.set")
 @patch("saleor.plugins.openid_connect.utils.cache.get")
 @pytest.mark.vcr
 def test_external_obtain_access_tokens_with_saleor_staff(
     mocked_cache_get,
     mocked_cache_set,
+    mock_send_user_event,
     openid_plugin,
     monkeypatch,
     rf,
@@ -566,7 +568,7 @@ def test_external_obtain_access_tokens_with_saleor_staff(
         oauth_payload,
         plugin.config.json_web_key_set_url,
     )
-    user = get_or_create_user_from_payload(
+    user, _, _ = get_or_create_user_from_payload(
         claims,
         "https://saleor.io/oauth",
     )
@@ -586,15 +588,18 @@ def test_external_obtain_access_tokens_with_saleor_staff(
     decoded_refresh_token = jwt_decode(tokens.refresh_token)
     assert tokens.csrf_token == decoded_refresh_token["csrf_token"]
     assert decoded_refresh_token["oauth_refresh_token"] == "refresh"
+    mock_send_user_event.assert_called_once_with(user, True, True)
 
 
 @freeze_time("2019-03-18 12:00:00")
+@patch("saleor.plugins.openid_connect.plugin.send_user_event")
 @patch("saleor.plugins.openid_connect.utils.cache.set")
 @patch("saleor.plugins.openid_connect.utils.cache.get")
 @pytest.mark.vcr
 def test_external_obtain_access_tokens_user_which_is_no_more_staff(
     mocked_cache_get,
     mocked_cache_set,
+    mock_send_user_event,
     openid_plugin,
     monkeypatch,
     rf,
@@ -648,7 +653,7 @@ def test_external_obtain_access_tokens_user_which_is_no_more_staff(
         oauth_payload,
         plugin.config.json_web_key_set_url,
     )
-    user = get_or_create_user_from_payload(claims, "https://saleor.io/oauth")
+    user, _, _ = get_or_create_user_from_payload(claims, "https://saleor.io/oauth")
 
     staff_user.refresh_from_db()
     assert staff_user == user
@@ -657,14 +662,17 @@ def test_external_obtain_access_tokens_user_which_is_no_more_staff(
     decoded_access_token = jwt_decode(tokens.token)
     assert decoded_access_token["permissions"] == []
     assert decoded_access_token["is_staff"] is False
+    mock_send_user_event.assert_called_once_with(user, False, True)
 
 
 @freeze_time("2019-03-18 12:00:00")
+@patch("saleor.plugins.openid_connect.plugin.send_user_event")
 @patch("saleor.plugins.openid_connect.utils.cache.set")
 @patch("saleor.plugins.openid_connect.utils.cache.get")
 def test_external_obtain_access_tokens_user_created(
     mocked_cache_get,
     mocked_cache_set,
+    mock_send_user_event,
     openid_plugin,
     monkeypatch,
     rf,
@@ -732,6 +740,7 @@ def test_external_obtain_access_tokens_user_created(
     decoded_refresh_token = jwt_decode(tokens.refresh_token)
     assert tokens.csrf_token == decoded_refresh_token["csrf_token"]
     assert decoded_refresh_token["oauth_refresh_token"] == "refresh"
+    mock_send_user_event.assert_called_once_with(user, True, True)
 
 
 @freeze_time("2019-03-18 12:00:00")
@@ -1119,7 +1128,9 @@ def test_authenticate_user_with_jwt_access_token(
 
 
 @freeze_time("2021-03-08 12:00:00")
+@patch("saleor.plugins.openid_connect.utils.send_user_event")
 def test_authenticate_user_with_jwt_access_token_which_is_no_more_staff(
+    mock_send_user_event,
     openid_plugin,
     decoded_access_token,
     user_info_response,
@@ -1167,10 +1178,13 @@ def test_authenticate_user_with_jwt_access_token_which_is_no_more_staff(
     assert user == customer_user
     assert user.is_staff is False
     assert list(user.effective_permissions) == []
+    mock_send_user_event.assert_called_once_with(user, False, True)
 
 
 @freeze_time("2021-03-08 12:00:00")
+@patch("saleor.plugins.openid_connect.utils.send_user_event")
 def test_authenticate_staff_user_with_jwt_access_token_and_staff_scope(
+    mock_send_user_event,
     openid_plugin,
     decoded_access_token,
     user_info_response,
@@ -1223,6 +1237,7 @@ def test_authenticate_staff_user_with_jwt_access_token_and_staff_scope(
     assert group.name == plugin.config.default_group_name
     assert user.groups.count() == 1
     assert user.groups.first() == group
+    mock_send_user_event.assert_called_once_with(user, False, True)
 
 
 @freeze_time("2021-03-08 12:00:00")
