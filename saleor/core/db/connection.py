@@ -1,5 +1,6 @@
 import logging
 from contextlib import contextmanager
+from contextvars import ContextVar
 
 import sqlparse
 from django.conf import settings
@@ -22,23 +23,18 @@ class UnsafeReplicaUsageError(UnsafeDBUsageError):
     pass
 
 
+writer = settings.DATABASE_CONNECTION_DEFAULT_NAME
+replica = settings.DATABASE_CONNECTION_REPLICA_NAME
+allowed_db_connection = ContextVar("allowed_db_connection", default=replica)
+
+
 @contextmanager
 def allow_writer():
-    from django.db import connections
-
-    default_connection = connections[settings.DATABASE_CONNECTION_DEFAULT_NAME]
-
-    # Check if we are already in an allow_writer block. If so we don't need to do
-    # anything and we don't have to close access to the writer at the end.
-    in_allow_writer_block = getattr(default_connection, "_allow_writer", False)
-    if not in_allow_writer_block:
-        setattr(default_connection, "_allow_writer", True)
+    token = allowed_db_connection.set(writer)
     try:
         yield
     finally:
-        if not in_allow_writer_block:
-            # Close writer access when exiting the outermost allow_writer block.
-            setattr(default_connection, "_allow_writer", False)
+        allowed_db_connection.reset(token)
 
 
 def is_read_only_query(sql_query: str) -> bool:
@@ -49,17 +45,13 @@ def is_read_only_query(sql_query: str) -> bool:
     return True
 
 
-writer = settings.DATABASE_CONNECTION_DEFAULT_NAME
-replica = settings.DATABASE_CONNECTION_REPLICA_NAME
-
-
 def restrict_writer(execute, sql, params, many, context):
     conn: BaseDatabaseWrapper = context["connection"]
-    allow_writer = getattr(conn, "_allow_writer", False)
-    if conn.alias == writer and not allow_writer:
-        raise UnsafeWriterAccessError(
-            f"Unsafe writer DB access. Use `allow_writer` context manager: {sql}"
-        )
+    if conn.alias == writer:
+        if allowed_db_connection.get() != writer:
+            raise UnsafeWriterAccessError(
+                f"Unsafe writer DB access. Use `allow_writer` context manager: {sql}"
+            )
     elif conn.alias == replica:
         if not is_read_only_query(sql):
             raise UnsafeReplicaUsageError(f"Unsafe replica usage: {sql}")
@@ -68,8 +60,7 @@ def restrict_writer(execute, sql, params, many, context):
 
 def log_writer_usage(execute, sql, params, many, context):
     conn: BaseDatabaseWrapper = context["connection"]
-    allow_writer = getattr(conn, "_allow_writer", False)
-    if conn.alias == writer and not allow_writer:
+    if conn.alias == writer and allowed_db_connection.get() != writer:
         msg = "Unsafe writer DB access. Use `allow_writer` context manager."
         logger.error("%s %s", color_style().NOTICE(msg), sql)
     return execute(sql, params, many, context)
