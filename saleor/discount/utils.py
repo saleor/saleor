@@ -1191,8 +1191,17 @@ def create_order_line_discount_objects_for_catalogue_promotions(
         lines_info, new_line_discounts, discounts_to_update, discount_to_remove
     )
 
+    affected_line_ids = [
+        discount_line.line.id
+        for discount_line in new_line_discounts
+        + discounts_to_update
+        + discount_to_remove
+    ]
+    modified_lines_info = [
+        line_info for line_info in lines_info if line_info.line.id in affected_line_ids
+    ]
     # base unit price must reflect all actual catalogue discounts
-    _update_base_unit_price_amount(lines_info)
+    _update_base_unit_price_amount(modified_lines_info)
 
 
 def _copy_unit_discount_data_to_order_line(lines_info: Iterable[DraftOrderLineInfo]):
