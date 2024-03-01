@@ -1191,28 +1191,6 @@ def create_order_line_discount_objects_for_catalogue_promotions(
         lines_info, new_line_discounts, discounts_to_update, discount_to_remove
     )
 
-    affected_line_ids = [
-        discount_line.line.id
-        for discount_line in new_line_discounts
-        + discounts_to_update
-        + discount_to_remove
-    ]
-    modified_lines_info = [
-        line_info for line_info in lines_info if line_info.line.id in affected_line_ids
-    ]
-    _update_order_line_base_unit_prices(modified_lines_info)
-
-
-def _update_order_line_base_unit_prices(lines_info: Iterable[DraftOrderLineInfo]):
-    for line_info in lines_info:
-        line = line_info.line
-        base_unit_price = line.undiscounted_base_unit_price_amount
-        for discount in line_info.discounts:
-            if discount.type == DiscountType.PROMOTION:
-                unit_discount = discount.amount_value / line.quantity
-                base_unit_price -= unit_discount
-        line.base_unit_price_amount = max(base_unit_price, Decimal(0))
-
 
 def _copy_unit_discount_data_to_order_line(lines_info: Iterable[DraftOrderLineInfo]):
     for line_info in lines_info:
@@ -1323,6 +1301,15 @@ def _clear_order_discount(
 def _set_order_base_prices(order: Order, lines_info: Iterable[DraftOrderLineInfo]):
     """Set base order prices that includes only catalogue discounts."""
     from ..order.base_calculations import base_order_subtotal
+
+    for line_info in lines_info:
+        line = line_info.line
+        base_unit_price = line.undiscounted_base_unit_price_amount
+        for discount in line_info.discounts:
+            if discount.type == DiscountType.PROMOTION:
+                unit_discount = discount.amount_value / line.quantity
+                base_unit_price -= unit_discount
+        line.base_unit_price_amount = max(base_unit_price, Decimal(0))
 
     lines = [line_info.line for line_info in lines_info]
     subtotal = base_order_subtotal(order, lines)
