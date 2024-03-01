@@ -87,6 +87,7 @@ documentation = "https://docs.saleor.io/"
   uvicorn = {extras = ["standard"], version = "^0.23.1"}
   weasyprint = ">=53.0" # libpango >=1.44 is required
   psycopg = "^3.1.8"
+  psycopg2 = "^2.8.3"
 
     [tool.poetry.dependencies.celery]
     version = ">=4.4.5,<6.0.0"
@@ -154,7 +155,7 @@ extend_exclude = ["conftest\\.py", ".*/conftest\\.py", ".*/tests/.*"]
 
   [tool.deptry.per_rule_ignores]
   DEP001 = ["pkg_resources"]
-  DEP002 = ["azure-common", "azure-storage-blob", "azure-storage-common", "django-redis", "gunicorn", "psycopg"]
+  DEP002 = ["azure-common", "azure-storage-blob", "azure-storage-common", "django-redis", "gunicorn", "psycopg2", "psycopg"]
   DEP004 = ["debug_toolbar", "graphiql_debug_toolbar"]
 
 [tool.ruff]
