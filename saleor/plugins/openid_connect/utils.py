@@ -18,7 +18,7 @@ from jwt import PyJWTError
 
 from ...account.models import Group, User
 from ...account.search import prepare_user_search_document_value
-from ...account.utils import get_user_groups_permissions
+from ...account.utils import get_user_groups_permissions, send_user_event
 from ...core.http_client import HTTPClient
 from ...core.jwt import (
     JWT_ACCESS_TYPE,
@@ -190,7 +190,7 @@ def get_user_from_oauth_access_token_in_jwt_format(
         return None
 
     try:
-        user = get_or_create_user_from_payload(
+        user, user_created, user_updated = get_or_create_user_from_payload(
             user_info,
             user_info_url,
             last_login=token_payload.get("iat"),
@@ -241,7 +241,11 @@ def get_user_from_oauth_access_token_in_jwt_format(
 
     if is_staff is not None:
         user.is_staff = is_staff
+        user_updated = True
         user.save(update_fields=["is_staff"])
+
+    if user_created or user_updated:
+        send_user_event(user, user_created, user_updated)
 
     return user
 
@@ -276,7 +280,7 @@ def get_user_from_oauth_access_token(
             "Failed to fetch OIDC user info", extra={"user_info_url": user_info_url}
         )
         return None
-    user = get_or_create_user_from_payload(
+    user, user_created, user_updated = get_or_create_user_from_payload(
         user_info,
         oauth_url=user_info_url,
     )
@@ -284,11 +288,16 @@ def get_user_from_oauth_access_token(
     email_domain = get_domain_from_email(user.email)
     is_staff_email = email_domain in staff_user_domains
     if not use_scope_permissions and not is_staff_email:
-        user.is_staff = False
+        if user.is_staff:
+            user.is_staff = False
+            user_updated = True
     elif is_staff_email:
         assign_staff_to_default_group_and_update_permissions(
             user, staff_default_group_name
         )
+
+    if user_created or user_updated:
+        send_user_event(user, user_created, user_updated)
 
     return user
 
@@ -379,7 +388,7 @@ def get_or_create_user_from_payload(
     payload: dict,
     oauth_url: str,
     last_login: Optional[int] = None,
-) -> User:
+) -> tuple[User, bool, bool]:
     oidc_metadata_key = f"oidc:{oauth_url}"
     user_email = payload.get("email")
     if not user_email:
@@ -404,16 +413,18 @@ def get_or_create_user_from_payload(
     user_id = cache.get(cache_key)
     if user_id:
         get_kwargs = {"id": user_id}
+    created = False
     try:
         user = User.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME).get(
             **get_kwargs
         )
     except User.DoesNotExist:
-        user, _ = User.objects.get_or_create(
+        user, created = User.objects.get_or_create(
             email=user_email,
             defaults=defaults_create,
         )
         match_orders_with_new_user(user)
+
     except User.MultipleObjectsReturned:
         logger.warning("Multiple users returned for single OIDC sub ID")
         user, _ = User.objects.get_or_create(
@@ -425,7 +436,7 @@ def get_or_create_user_from_payload(
     if not user.can_login(site_settings):  # it is true only if we fetch disabled user.
         raise AuthenticationError("Unable to log in.")
 
-    _update_user_details(
+    updated = _update_user_details(
         user=user,
         oidc_key=oidc_metadata_key,
         user_email=user_email,
@@ -436,7 +447,7 @@ def get_or_create_user_from_payload(
     )
 
     cache.set(cache_key, user.id, min(JWKS_CACHE_TIME, OIDC_DEFAULT_CACHE_TIME))
-    return user
+    return user, created, updated
 
 
 def get_domain_from_email(email: str):
@@ -453,7 +464,7 @@ def _update_user_details(
     user_last_name: str,
     sub: str,
     last_login: Optional[int],
-):
+) -> bool:
     user_sub = user.get_value_from_private_metadata(oidc_key)
     fields_to_save = set()
     if user_sub != sub:
@@ -466,7 +477,7 @@ def _update_user_details(
                 "Unable to update user email as the new one already exists in DB",
                 extra={"oidc_key": oidc_key},
             )
-            return
+            return False
         user.email = user_email
         match_orders_with_new_user(user)
         fields_to_save.update({"email", "search_document"})
@@ -501,6 +512,8 @@ def _update_user_details(
 
     if fields_to_save:
         user.save(update_fields=fields_to_save)
+
+    return bool(fields_to_save)
 
 
 def get_staff_user_domains(
