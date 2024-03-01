@@ -55,6 +55,30 @@ def associate_attribute_values_to_instance(
     _associate_attribute_to_instance(instance, attr_val_map)
 
 
+def validate_attribute_owns_values(attr_val_map: dict[int, list]) -> None:
+    values_map = defaultdict(set)
+    slug_value_to_value_map = {}
+    values = AttributeValue.objects.filter(
+        attribute_id__in=attr_val_map.keys(),
+        # slug is used as newly created values have no id yet because of
+        # using `ignore_conflicts=True` flag in `bulk_create
+        slug__in=[v.slug for values in attr_val_map.values() for v in values],
+    )
+    for value in values:
+        values_map[value.attribute_id].add(value.slug)
+        slug_value_to_value_map[value.slug] = value
+
+    for attribute_id, attr_values in attr_val_map.items():
+        if values_map[attribute_id] != {v.slug for v in attr_values}:
+            raise AssertionError("Some values are not from the provided attribute.")
+        # Update the attr_val_map to use the created AttributeValue instances with
+        # id set. This is needed as `ignore_conflicts=True` flag in `bulk_create
+        # is used in `AttributeValueManager`
+        attr_val_map[attribute_id] = [
+            slug_value_to_value_map[v.slug] for v in attr_values
+        ]
+
+
 def _associate_attribute_to_instance(
     instance: T_INSTANCE, attr_val_map: dict[int, list]
 ):
@@ -177,16 +201,3 @@ def _order_assigned_attr_values(
         value.sort_order = values_order_map[value.assignment_id].index(value.value_id)
 
     assigment_model.objects.bulk_update(assigned_attrs_values, ["sort_order"])
-
-
-def validate_attribute_owns_values(attr_val_map: dict[int, list]) -> None:
-    values = defaultdict(set)
-    for value in AttributeValue.objects.filter(
-        attribute_id__in=attr_val_map.keys(),
-        pk__in=[v.pk for values in attr_val_map.values() for v in values],
-    ).iterator():
-        values[value.attribute_id].add(value.id)
-
-    for attribute_id, value_ids in attr_val_map.items():
-        if values[attribute_id] != {v.pk for v in value_ids}:
-            raise AssertionError("Some values are not from the provided attribute.")
