@@ -1322,3 +1322,81 @@ def test_fetch_order_prices_manual_discount_and_catalogue_discount_flat_rates(
     assert order.shipping_price_gross_amount == quantize_price(
         order.shipping_price_net_amount * tax_rate, currency
     )
+
+
+def test_fetch_order_prices_manual_line_discount_and_catalogue_discount_flat_rates(
+    order_with_lines_and_catalogue_promotion,
+    plugins_manager,
+):
+    # given
+    order = order_with_lines_and_catalogue_promotion
+    currency = order.currency
+    rule = PromotionRule.objects.get()
+    rule_catalogue_reward = rule.reward_value
+    promotion_id = graphene.Node.to_global_id("Promotion", rule.promotion_id)
+
+    tc = order.channel.tax_configuration
+    tc.country_exceptions.all().delete()
+    tc.prices_entered_with_tax = False
+    tc.tax_calculation_strategy = TaxCalculationStrategy.FLAT_RATES
+    tc.save()
+
+    line_1 = order.lines.get(quantity=3)
+    variant_1 = line_1.variant
+    variant_1_listing = variant_1.channel_listings.get(channel=order.channel)
+    variant_1_base_unit_price = variant_1_listing.discounted_price_amount
+
+    manual_discount_value = Decimal("50")
+    manual_discount_reason = "Manual discount"
+    manual_discount_amount = quantize_price(
+        (variant_1_base_unit_price * line_1.quantity) * manual_discount_value / 100,
+        currency,
+    )
+    manual_discount = line_1.discounts.create(
+        value_type=DiscountValueType.PERCENTAGE,
+        value=manual_discount_value,
+        name="Manual order line discount",
+        type=DiscountType.MANUAL,
+        reason=manual_discount_reason,
+        amount_value=manual_discount_amount,
+    )
+
+    # when
+    order, lines = calculations.fetch_order_prices_if_expired(
+        order, plugins_manager, None, True
+    )
+
+    # then
+    assert OrderLineDiscount.objects.count() == 2
+    assert not OrderDiscount.objects.exists()
+    catalogue_discount = OrderLineDiscount.objects.get(type=DiscountType.PROMOTION)
+    manual_discount.refresh_from_db()
+
+    line_1 = [line for line in lines if line.quantity == 3][0]
+
+    assert line_1.base_unit_price_amount == variant_1_listing.discounted_price_amount
+    assert manual_discount.line == line_1
+    assert manual_discount.amount_value == manual_discount_amount
+    assert manual_discount.value == manual_discount_value
+    assert manual_discount.value_type == DiscountValueType.PERCENTAGE
+    assert manual_discount.type == DiscountType.MANUAL
+    assert manual_discount.reason == manual_discount_reason
+
+    catalogue_discount_amount = rule_catalogue_reward * line_1.quantity
+    assert catalogue_discount.line == line_1
+    assert catalogue_discount.amount_value == catalogue_discount_amount
+    assert catalogue_discount.value == rule_catalogue_reward
+    assert catalogue_discount.value_type == DiscountValueType.FIXED
+    assert catalogue_discount.type == DiscountType.PROMOTION
+    assert catalogue_discount.reason == f"Promotion: {promotion_id}"
+
+    # TODO https://github.com/saleor/saleor/issues/15517
+    # line_1_total_net_amount = quantize_price(
+    #     (
+    #         variant_1_undiscounted_unit_price * line_1.quantity
+    #         - catalogue_discount_amount
+    #         - manual_discount_amount
+    #     ),
+    #     currency,
+    # )
+    # assert line_1.total_price_net_amount == line_1_total_net_amount

@@ -1208,8 +1208,9 @@ def _update_order_line_base_unit_prices(lines_info: Iterable[DraftOrderLineInfo]
         line = line_info.line
         base_unit_price = line.undiscounted_base_unit_price_amount
         for discount in line_info.discounts:
-            unit_discount = discount.amount_value / line.quantity
-            base_unit_price -= unit_discount
+            if discount.type == DiscountType.PROMOTION:
+                unit_discount = discount.amount_value / line.quantity
+                base_unit_price -= unit_discount
         line.base_unit_price_amount = max(base_unit_price, Decimal(0))
 
 
