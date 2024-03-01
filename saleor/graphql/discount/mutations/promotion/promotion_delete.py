@@ -58,5 +58,5 @@ class PromotionDelete(ModelDeleteMutation):
             response = super().perform_mutation(root, info, id=id)
             instance.id = promotion_id
             cls.call_event(manager.promotion_deleted, instance)
-            update_discounted_prices_task.delay(product_ids)
+            cls.call_event(update_discounted_prices_task.delay, product_ids)
         return response

@@ -66,7 +66,7 @@ class SaleBaseCatalogueMutation(BaseMutation):
                 product_ids = new_product_ids - previous_product_ids
             else:
                 product_ids = previous_product_ids - new_product_ids
-            update_discounted_prices_task.delay(list(product_ids))
+            cls.call_event(update_discounted_prices_task.delay, list(product_ids))
 
     @classmethod
     def get_product_ids_for_predicate(cls, predicate: dict) -> set[int]:

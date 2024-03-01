@@ -47,7 +47,7 @@ class PromotionBulkDelete(ModelBulkDeleteMutation):
         for promotion in promotions:
             cls.call_event(manager.promotion_deleted, promotion, webhooks=webhooks)
 
-        update_discounted_prices_task.delay(list(product_ids))
+        cls.call_event(update_discounted_prices_task.delay, list(product_ids))
 
     @classmethod
     def get_product_ids(cls, qs: QuerySet[models.Promotion]):

@@ -198,7 +198,7 @@ class SaleUpdate(ModelMutation):
             )
             update_variants_for_promotion(variants, promotion)
             if product_ids | previous_product_ids:
-                update_discounted_prices_task.delay(list(product_ids))
+                cls.call_event(update_discounted_prices_task.delay, list(product_ids))
 
     @classmethod
     def send_sale_notifications(

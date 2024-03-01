@@ -66,7 +66,7 @@ class PromotionRuleDelete(ModelDeleteMutation):
         instance.id = db_id
 
         if product_ids:
-            update_discounted_prices_task.delay(product_ids)
+            cls.call_event(update_discounted_prices_task.delay, product_ids)
 
         app = get_app_promise(info.context).get()
         events.rule_deleted_event(info.context.user, app, [instance])

@@ -51,8 +51,9 @@ class ProductVariantDelete(ModelDeleteMutation, ModelWithExtRefMutation):
     @classmethod
     def success_response(cls, instance):
         # Update the "discounted_prices" of the parent product
-        update_products_discounted_prices_for_promotion_task.delay(
-            [instance.product_id]
+        cls.call_event(
+            update_products_discounted_prices_for_promotion_task.delay,
+            [instance.product_id],
         )
         product = models.Product.objects.get(id=instance.product_id)
         product.search_index_dirty = True
