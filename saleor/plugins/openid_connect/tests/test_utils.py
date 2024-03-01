@@ -43,6 +43,7 @@ from ..utils import (
     get_user_from_oauth_access_token_in_jwt_format,
     get_user_from_token,
     get_user_info,
+    send_user_event,
     validate_refresh_token,
 )
 
@@ -130,7 +131,7 @@ def test_create_tokens_from_oauth_payload(monkeypatch, id_token, id_payload):
         "token_type": "Bearer",
         "expires_at": 1600851112,
     }
-    user, _ = get_or_create_user_from_payload(id_payload, "https://saleor.io/oauth")
+    user, _, _ = get_or_create_user_from_payload(id_payload, "https://saleor.io/oauth")
     permissions = get_saleor_permissions_qs_from_scope(auth_payload.get("scope"))
     perms = get_saleor_permission_names(permissions)
     tokens = create_tokens_from_oauth_payload(
@@ -231,7 +232,7 @@ def test_get_or_create_user_from_payload_retrieve_user_by_sub(
     mocked_cache_get.side_effect = lambda cache_key: None
 
     # when
-    user_from_payload, _ = get_or_create_user_from_payload(
+    user_from_payload, _, _ = get_or_create_user_from_payload(
         payload={"sub": sub_id, "email": customer_user.email},
         oauth_url=oauth_url,
     )
@@ -259,7 +260,7 @@ def test_get_or_create_user_from_payload_updates_sub(
     mocked_cache_get.side_effect = lambda cache_key: None
 
     # when
-    user_from_payload, _ = get_or_create_user_from_payload(
+    user_from_payload, _, _ = get_or_create_user_from_payload(
         payload={"sub": sub_id, "email": customer_user.email},
         oauth_url=oauth_url,
     )
@@ -286,7 +287,7 @@ def test_get_or_create_user_from_payload_assigns_sub(
     mocked_cache_get.side_effect = lambda cache_key: None
 
     # when
-    user_from_payload, _ = get_or_create_user_from_payload(
+    user_from_payload, _, _ = get_or_create_user_from_payload(
         payload={"sub": sub_id, "email": customer_user.email},
         oauth_url=oauth_url,
     )
@@ -315,7 +316,7 @@ def test_get_or_create_user_from_payload_creates_user_with_sub(
     mocked_cache_get.side_effect = lambda cache_key: None
 
     # when
-    user_from_payload, _ = get_or_create_user_from_payload(
+    user_from_payload, _, _ = get_or_create_user_from_payload(
         payload={"sub": sub_id, "email": customer_email},
         oauth_url=oauth_url,
     )
@@ -348,7 +349,7 @@ def test_get_or_create_user_from_payload_match_orders_for_new_user(
     order.save()
 
     # when
-    user_from_payload, _ = get_or_create_user_from_payload(
+    user_from_payload, _, _ = get_or_create_user_from_payload(
         payload={"sub": sub_id, "email": customer_email},
         oauth_url=oauth_url,
     )
@@ -383,7 +384,7 @@ def test_get_or_create_user_from_payload_match_orders_when_changing_email(
     order.save()
 
     # when
-    user_from_payload, _ = get_or_create_user_from_payload(
+    user_from_payload, _, _ = get_or_create_user_from_payload(
         payload={"sub": sub_id, "email": new_customer_email},
         oauth_url=oauth_url,
     )
@@ -412,7 +413,7 @@ def test_get_or_create_user_from_payload_multiple_subs(customer_user, admin_user
 
     # when
     with warnings.catch_warnings(record=True):
-        user_from_payload, _ = get_or_create_user_from_payload(
+        user_from_payload, _, _ = get_or_create_user_from_payload(
             payload={"sub": sub_id, "email": customer_user.email},
             oauth_url=oauth_url,
         )
@@ -438,7 +439,7 @@ def test_get_or_create_user_from_payload_different_email(
     customer_user.save()
 
     # when
-    user_from_payload, _ = get_or_create_user_from_payload(
+    user_from_payload, _, _ = get_or_create_user_from_payload(
         payload={"sub": sub_id, "email": new_customer_email},
         oauth_url=oauth_url,
     )
@@ -476,7 +477,7 @@ def test_get_or_create_user_from_payload_with_last_login(
     customer_user.save()
 
     # when
-    user_from_payload, _ = get_or_create_user_from_payload(
+    user_from_payload, _, _ = get_or_create_user_from_payload(
         payload={"sub": sub_id, "email": customer_user.email},
         oauth_url=oauth_url,
         last_login=current_ts,
@@ -510,7 +511,7 @@ def test_get_or_create_user_from_payload_update_last_login(
     mocked_cache_get.side_effect = lambda cache_key: None
 
     # when
-    get_or_create_user_from_payload(
+    user, created, updated = get_or_create_user_from_payload(
         payload={"sub": sub_id, "email": customer_user.email},
         oauth_url=oauth_url,
     )
@@ -525,6 +526,7 @@ def test_get_or_create_user_from_payload_update_last_login(
     assert customer_user.last_login
     last_login = customer_user.last_login.strftime("%Y-%m-%d %H:%M:%S")
     assert last_login == "2019-03-18 12:00:00"
+    assert updated is True
 
 
 @mock.patch("saleor.plugins.openid_connect.utils.cache.set")
@@ -990,7 +992,7 @@ def test_update_user_details_update_user_first_name(
     assert customer_user.search_document != expected_search_document
 
     # when
-    _update_user_details(
+    updated = _update_user_details(
         customer_user,
         "test oidc_key",
         customer_user.email,
@@ -1004,6 +1006,7 @@ def test_update_user_details_update_user_first_name(
     customer_user.refresh_from_db()
     assert customer_user.first_name == "test user_first_name"
     assert customer_user.search_document == expected_search_document
+    assert updated is True
 
 
 def test_update_user_details_update_user_last_name(
@@ -1015,7 +1018,7 @@ def test_update_user_details_update_user_last_name(
     assert customer_user.search_document != expected_search_document
 
     # when
-    _update_user_details(
+    updated = _update_user_details(
         customer_user,
         "test oidc_key",
         customer_user.email,
@@ -1029,3 +1032,142 @@ def test_update_user_details_update_user_last_name(
     customer_user.refresh_from_db()
     assert customer_user.last_name == "test user_last_name"
     assert customer_user.search_document == expected_search_document
+    assert updated is True
+
+
+def test_update_user_details_nothing_changed(
+    customer_user,
+):
+    # given
+    last_login = timezone.now() - timedelta(minutes=14)
+    customer_user.last_login = last_login
+    customer_user.search_document = "abc"
+    customer_user.save(update_fields=["search_document", "last_login"])
+
+    first_name = customer_user.first_name
+
+    # when
+    updated = _update_user_details(
+        customer_user,
+        "test oidc_key",
+        customer_user.email,
+        customer_user.first_name,
+        customer_user.last_name,
+        None,
+        5,
+    )
+
+    # then
+    customer_user.refresh_from_db()
+    assert customer_user.first_name == first_name
+    assert updated is False
+
+
+@patch("saleor.plugins.manager.PluginsManager.customer_updated")
+@patch("saleor.plugins.manager.PluginsManager.customer_created")
+@patch("saleor.plugins.manager.PluginsManager.staff_updated")
+@patch("saleor.plugins.manager.PluginsManager.staff_created")
+def test_send_user_event_no_webhook_sent(
+    mock_staff_created_webhook,
+    mock_staff_updated_webhook,
+    mock_customer_created_webhook,
+    mock_customer_updated_webhook,
+    customer_user,
+):
+    # when
+    send_user_event(customer_user, False, False)
+
+    # then
+    flush_post_commit_hooks()
+    mock_staff_created_webhook.assert_not_called()
+    mock_staff_updated_webhook.assert_not_called()
+    mock_customer_created_webhook.assert_not_called()
+    mock_customer_updated_webhook.assert_not_called()
+
+
+@patch("saleor.plugins.manager.PluginsManager.customer_updated")
+@patch("saleor.plugins.manager.PluginsManager.customer_created")
+@patch("saleor.plugins.manager.PluginsManager.staff_updated")
+@patch("saleor.plugins.manager.PluginsManager.staff_created")
+def test_send_user_event_customer_created_event(
+    mock_staff_created_webhook,
+    mock_staff_updated_webhook,
+    mock_customer_created_webhook,
+    mock_customer_updated_webhook,
+    customer_user,
+):
+    # when
+    send_user_event(customer_user, True, True)
+
+    # then
+    flush_post_commit_hooks()
+    mock_customer_created_webhook.assert_called_once_with(customer_user)
+    mock_customer_updated_webhook.assert_not_called()
+    mock_staff_created_webhook.assert_not_called()
+    mock_staff_updated_webhook.assert_not_called()
+
+
+@patch("saleor.plugins.manager.PluginsManager.customer_updated")
+@patch("saleor.plugins.manager.PluginsManager.customer_created")
+@patch("saleor.plugins.manager.PluginsManager.staff_updated")
+@patch("saleor.plugins.manager.PluginsManager.staff_created")
+def test_send_user_event_customer_updated_event(
+    mock_staff_created_webhook,
+    mock_staff_updated_webhook,
+    mock_customer_created_webhook,
+    mock_customer_updated_webhook,
+    customer_user,
+):
+    # when
+    send_user_event(customer_user, False, True)
+
+    # then
+    flush_post_commit_hooks()
+    mock_customer_updated_webhook.assert_called_once_with(customer_user)
+    mock_customer_created_webhook.assert_not_called()
+    mock_staff_created_webhook.assert_not_called()
+    mock_staff_updated_webhook.assert_not_called()
+
+
+@patch("saleor.plugins.manager.PluginsManager.customer_updated")
+@patch("saleor.plugins.manager.PluginsManager.customer_created")
+@patch("saleor.plugins.manager.PluginsManager.staff_updated")
+@patch("saleor.plugins.manager.PluginsManager.staff_created")
+def test_send_user_event_staff_created_event(
+    mock_staff_created_webhook,
+    mock_staff_updated_webhook,
+    mock_customer_created_webhook,
+    mock_customer_updated_webhook,
+    staff_user,
+):
+    # when
+    send_user_event(staff_user, True, True)
+
+    # then
+    flush_post_commit_hooks()
+    mock_staff_created_webhook.assert_called_once_with(staff_user)
+    mock_staff_updated_webhook.assert_not_called()
+    mock_customer_created_webhook.assert_not_called()
+    mock_customer_updated_webhook.assert_not_called()
+
+
+@patch("saleor.plugins.manager.PluginsManager.customer_updated")
+@patch("saleor.plugins.manager.PluginsManager.customer_created")
+@patch("saleor.plugins.manager.PluginsManager.staff_updated")
+@patch("saleor.plugins.manager.PluginsManager.staff_created")
+def test_send_user_event_staff_updated_event(
+    mock_staff_created_webhook,
+    mock_staff_updated_webhook,
+    mock_customer_created_webhook,
+    mock_customer_updated_webhook,
+    staff_user,
+):
+    # when
+    send_user_event(staff_user, False, True)
+
+    # then
+    flush_post_commit_hooks()
+    mock_staff_updated_webhook.assert_called_once_with(staff_user)
+    mock_staff_created_webhook.assert_not_called()
+    mock_customer_created_webhook.assert_not_called()
+    mock_customer_updated_webhook.assert_not_called()
