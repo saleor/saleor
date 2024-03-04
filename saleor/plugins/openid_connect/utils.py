@@ -393,6 +393,7 @@ def get_or_create_user_from_payload(
 
     defaults_create = {
         "is_active": True,
+        "is_confirmed": True,
         "email": user_email,
         "first_name": payload.get("given_name", ""),
         "last_name": payload.get("family_name", ""),
@@ -496,6 +497,10 @@ def _update_user_details(
             user, attach_addresses_data=False
         )
         fields_to_save.add("search_document")
+
+    if not user.is_confirmed:
+        user.is_confirmed = True
+        fields_to_save.add("is_confirmed")
 
     if fields_to_save:
         user.save(update_fields=fields_to_save)
