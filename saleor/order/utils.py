@@ -942,6 +942,7 @@ def remove_discount_from_order_line(order_line: OrderLine, order: "Order"):
             "tax_rate",
         ]
     )
+    order_line.discounts.all().delete()
 
 
 def update_order_charge_status(order: Order, granted_refund_amount: Decimal):

@@ -1304,6 +1304,13 @@ def test_delete_discount_from_order_line(
     line.unit_discount_value = Decimal("2.5")
     line.save()
 
+    line.discounts.create(
+        type=DiscountType.MANUAL,
+        value_type=DiscountValueType.FIXED,
+        value=Decimal("2.5"),
+        currency=order.currency,
+    )
+
     variables = {
         "orderLineId": graphene.Node.to_global_id("OrderLine", line.pk),
     }
@@ -1331,6 +1338,8 @@ def test_delete_discount_from_order_line(
 
     line_data = lines[0]
     assert line_data.get("line_pk") == str(line.pk)
+
+    assert not line.discounts.exists()
 
 
 @patch("saleor.plugins.manager.PluginsManager.calculate_order_line_unit")
@@ -1417,6 +1426,13 @@ def test_delete_discount_from_order_line_by_app(
     line.unit_discount_value = Decimal("2.5")
     line.save()
 
+    line.discounts.create(
+        type=DiscountType.MANUAL,
+        value_type=DiscountValueType.FIXED,
+        value=Decimal("2.5"),
+        currency=order.currency,
+    )
+
     variables = {
         "orderLineId": graphene.Node.to_global_id("OrderLine", line.pk),
     }
@@ -1449,6 +1465,8 @@ def test_delete_discount_from_order_line_by_app(
 
     line_data = lines[0]
     assert line_data.get("line_pk") == str(line.pk)
+
+    assert not line.discounts.exists()
 
 
 def test_delete_order_line_discount_order_is_not_draft(
@@ -1484,3 +1502,30 @@ def test_delete_order_line_discount_order_is_not_draft(
     assert error["code"] == OrderErrorCode.CANNOT_DISCOUNT.name
 
     assert line.unit_discount_amount == Decimal("2.5")
+
+
+def test_delete_order_line_discount_line_with_catalogue_promotion(
+    order_with_lines_and_catalogue_promotion,
+    staff_api_client,
+    permission_group_manage_orders,
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = order_with_lines_and_catalogue_promotion
+    order.status = OrderStatus.DRAFT
+    order.save(update_fields=["status"])
+    line = order.lines.get(quantity=3)
+    assert line.discounts.filter(type=DiscountType.PROMOTION).exists()
+
+    variables = {
+        "orderLineId": graphene.Node.to_global_id("OrderLine", line.pk),
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_LINE_DISCOUNT_REMOVE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderLineDiscountRemove"]
+    assert not data["errors"]
+    assert not line.discounts.exists()
