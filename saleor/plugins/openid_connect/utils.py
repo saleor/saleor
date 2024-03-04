@@ -18,7 +18,7 @@ from jwt import PyJWTError
 
 from ...account.models import Group, User
 from ...account.search import prepare_user_search_document_value
-from ...account.utils import get_user_groups_permissions
+from ...account.utils import get_user_groups_permissions, send_user_event
 from ...core.http_client import HTTPClient
 from ...core.jwt import (
     JWT_ACCESS_TYPE,
@@ -29,7 +29,6 @@ from ...core.jwt import (
     jwt_encode,
     jwt_user_payload,
 )
-from ...core.utils.events import call_event
 from ...graphql.account.mutations.authentication.utils import (
     _does_token_match,
     _get_new_csrf_token,
@@ -39,7 +38,6 @@ from ...permission.enums import get_permission_names, get_permissions_from_coden
 from ...permission.models import Permission
 from ...site.models import Site
 from ..error_codes import PluginErrorCode
-from ..manager import get_plugins_manager
 from ..models import PluginConfiguration
 from . import PLUGIN_ID
 from .const import SALEOR_STAFF_PERMISSION
@@ -302,17 +300,6 @@ def get_user_from_oauth_access_token(
         send_user_event(user, user_created, user_updated)
 
     return user
-
-
-def send_user_event(user: User, created: bool, updated: bool):
-    manager = get_plugins_manager(allow_replica=False)
-    event = None
-    if created:
-        event = manager.staff_created if user.is_staff else manager.customer_created
-    elif updated:
-        event = manager.staff_updated if user.is_staff else manager.customer_updated
-    if event:
-        call_event(event, user)
 
 
 def assign_staff_to_default_group_and_update_permissions(
