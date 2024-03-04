@@ -100,7 +100,7 @@ class SaleBulkDelete(ModelBulkDeleteMutation):
                 manager.sale_deleted, sale, catalogue_info, webhooks=webhooks
             )
         if channel_to_products_map:
-            mark_products_in_channels_as_dirty(channel_to_products_map)
+            cls.call_event(mark_products_in_channels_as_dirty, channel_to_products_map)
 
     @classmethod
     def get_sale_and_rules(cls, qs: QuerySet[models.Promotion]):

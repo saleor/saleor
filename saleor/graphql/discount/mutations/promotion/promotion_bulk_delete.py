@@ -49,7 +49,7 @@ class PromotionBulkDelete(ModelBulkDeleteMutation):
         for promotion in promotions:
             cls.call_event(manager.promotion_deleted, promotion, webhooks=webhooks)
         if channel_to_products_map:
-            mark_products_in_channels_as_dirty(channel_to_products_map)
+            cls.call_event(mark_products_in_channels_as_dirty, channel_to_products_map)
 
     @classmethod
     def get_product_and_channel_map(cls, qs: QuerySet[models.Promotion]):

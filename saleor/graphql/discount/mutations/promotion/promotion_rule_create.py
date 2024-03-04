@@ -85,8 +85,9 @@ class PromotionRuleCreate(ModelMutation):
             instance, channel_ids
         ):
             if product_ids := set(products.values_list("id", flat=True)):
-                mark_products_in_channels_as_dirty(
-                    {channel_id: product_ids for channel_id in channel_ids}
+                cls.call_event(
+                    mark_products_in_channels_as_dirty,
+                    {channel_id: product_ids for channel_id in channel_ids},
                 )
 
         clear_promotion_old_sale_id(instance.promotion, save=True)

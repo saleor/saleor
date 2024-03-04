@@ -140,7 +140,7 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
         channel_ids = ProductChannelListing.objects.filter(
             product_id=instance.product_id
         ).values_list("channel_id", flat=True)
-        mark_active_catalogue_promotion_rules_as_dirty(channel_ids)
+        cls.call_event(mark_active_catalogue_promotion_rules_as_dirty, channel_ids)
 
     @classmethod
     def perform_mutation(  # type: ignore[override]

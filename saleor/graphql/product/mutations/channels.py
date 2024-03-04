@@ -365,8 +365,9 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
             for update_channel in cleaned_input.get("update_channels", [])
         ]
         modified_channel_ids.extend(cleaned_input.get("remove_channels", []))
-        mark_products_in_channels_as_dirty(
-            {channel_id: {product.pk} for channel_id in modified_channel_ids}
+        cls.call_event(
+            mark_products_in_channels_as_dirty,
+            {channel_id: {product.pk} for channel_id in modified_channel_ids},
         )
         product = ProductModel.objects.prefetched_for_webhook().get(pk=product.pk)
         manager = get_plugin_manager_promise(info.context).get()
@@ -562,8 +563,9 @@ class ProductVariantChannelListingUpdate(BaseMutation):
         channel_ids = [
             channel_listing_data["channel"].id for channel_listing_data in cleaned_input
         ]
-        mark_products_in_channels_as_dirty(
-            {channel_id: {variant.product_id} for channel_id in channel_ids}
+        cls.call_event(
+            mark_products_in_channels_as_dirty,
+            {channel_id: {variant.product_id} for channel_id in channel_ids},
         )
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.product_variant_updated, variant)

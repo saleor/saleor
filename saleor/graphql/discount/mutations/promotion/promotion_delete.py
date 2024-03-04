@@ -59,5 +59,5 @@ class PromotionDelete(ModelDeleteMutation):
             instance.id = promotion_id
             cls.call_event(manager.promotion_deleted, instance)
         if channel_to_products_map:
-            mark_products_in_channels_as_dirty(channel_to_products_map)
+            cls.call_event(mark_products_in_channels_as_dirty, channel_to_products_map)
         return response
