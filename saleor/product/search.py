@@ -24,10 +24,9 @@ PRODUCT_FIELDS_TO_PREFETCH = [
 ]
 
 PRODUCTS_BATCH_SIZE = 100
-# Setting threshold to 300 results in about 350MB of memory usage
-# when testing locally. Should be adjusted after some time by running
-# update task on a large dataset and measuring the total time, memory usage
-# and time of a single SQL statement.
+# Setting threshold to 100 results in about 766.98MB of memory usage
+# when testing locally with multiple attributes of different types assigned to product
+# and product variants.
 
 
 def _prep_product_search_vector_index(products):
