@@ -1188,7 +1188,7 @@ def create_order_line_discount_objects_for_catalogue_promotions(
         OrderLineDiscount.objects.filter(id__in=discount_ids_to_remove).delete()
 
     _update_line_info_cached_discounts(
-        lines_info, new_line_discounts, discounts_to_update, discount_to_remove
+        lines_info, new_line_discounts, discounts_to_update, discount_ids_to_remove
     )
 
     affected_line_ids = [
