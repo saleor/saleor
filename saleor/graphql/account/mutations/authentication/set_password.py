@@ -82,6 +82,9 @@ class SetPassword(CreateToken):
             raise ValidationError({"password": error})
         fields_to_save = ["password", "updated_at"]
         user.set_password(password)
+        # To reset the password user need to process the token sent separately by email,
+        # so we can be sure that the user has access to email account and can be
+        # confirmed.
         if not user.is_confirmed:
             user.is_confirmed = True
             match_orders_with_new_user(user)
