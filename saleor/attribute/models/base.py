@@ -211,6 +211,133 @@ class AttributeTranslation(Translation):
         return {"name": self.name}
 
 
+class AttributeValueManager(models.Manager):
+    def _prepare_query_for_bulk_operation(self, objects_data):
+        query_params = models.Q()
+
+        for obj in objects_data:
+            defaults = obj.pop("defaults")
+            query_params |= models.Q(**obj)
+            obj["defaults"] = defaults
+
+        return self.filter(query_params)
+
+    def _is_correct_record(self, record, obj):
+        is_correct_record = (
+            getattr(record, field_name) == field_value
+            for field_name, field_value in obj.items()
+            if field_name != "defaults"
+        )
+        return all(is_correct_record)
+
+    def bulk_get_or_create(self, objects_data):
+        # this method mimics django's queryset.get_or_create method on bulk objects
+        # instead of performing it one by one
+        # https://docs.djangoproject.com/en/5.0/ref/models/querysets/#get-or-create
+
+        results = []
+        objects_not_in_db: list[AttributeValue] = []
+
+        # prepare a list that will save order index of attribute values
+        objects_enumerated = list(enumerate(objects_data))
+        query = self._prepare_query_for_bulk_operation(objects_data)
+
+        # iterate over all records in db and check if they match any of objects data
+        for record in query.iterator():
+            # iterate over all objects data and check if they match any of records in db
+            for index, obj in objects_enumerated:
+                if self._is_correct_record(record, obj):
+                    # upon finding existing record add it to results
+                    results.append((index, record))
+                    # remove it from objects list, so it won't be added to new records
+                    objects_enumerated.remove((index, obj))
+
+                    break
+
+        # add what is left to the list of new records
+        self._add_new_records(objects_enumerated, objects_not_in_db, results)
+        # sort results by index as db record order might be different from sort_order
+        results.sort()
+        results = [obj for index, obj in results]
+
+        if objects_not_in_db:
+            # After migrating to Django 4.0 we should use `update_conflicts` instead
+            # of `ignore_conflicts`
+            # https://docs.djangoproject.com/en/4.1/ref/models/querysets/#bulk-create
+            self.bulk_create(
+                objects_not_in_db,  # type: ignore[arg-type]
+                ignore_conflicts=True,
+            )
+
+        return results
+
+    def bulk_update_or_create(self, objects_data):
+        # this method mimics django's queryset.update_or_create method on bulk objects
+        # https://docs.djangoproject.com/en/5.0/ref/models/querysets/#update-or-create
+        results = []
+        objects_not_in_db: list[AttributeValue] = []
+        objects_to_be_updated = []
+        update_fields = set()
+        objects_enumerated = list(enumerate(objects_data))
+        query = self._prepare_query_for_bulk_operation(objects_data)
+
+        # iterate over all records in db and check if they match any of objects data
+        for record in query.iterator():
+            # iterate over all objects data and check if they match any of records in db
+            for index, obj in objects_enumerated:
+                if self._is_correct_record(record, obj):
+                    # upon finding a matching record, update it with defaults
+                    for key, value in obj["defaults"].items():
+                        setattr(record, key, value)
+                        update_fields.add(key)
+
+                    # add it to results and objects to be updated
+                    results.append((index, record))
+
+                    # add it to objects to be updated, so it can be bulk updated later
+                    objects_to_be_updated.append(record)
+
+                    # remove it from objects data, so it won't be added to new records
+                    objects_enumerated.remove((index, obj))
+
+                    break
+
+        # add what is left to the list of new records
+        self._add_new_records(objects_enumerated, objects_not_in_db, results)
+
+        # sort results by index as db record order might be different from sort_order
+        results.sort()
+        results = [obj for index, obj in results]
+
+        if objects_not_in_db:
+            # After migrating to Django 4.0 we should use `update_conflicts` instead
+            # of `ignore_conflicts`
+            # https://docs.djangoproject.com/en/4.1/ref/models/querysets/#bulk-create
+            self.bulk_create(
+                objects_not_in_db,  # type: ignore[arg-type]
+                ignore_conflicts=True,
+            )
+
+        if objects_to_be_updated:
+            self.bulk_update(
+                objects_to_be_updated,
+                fields=update_fields,  # type: ignore[arg-type]
+            )
+
+        return results
+
+    def _add_new_records(self, objects_enumerated, objects_not_in_db, results):
+        for index, obj in objects_enumerated:
+            # updating object data with defaults as they contain new values
+            defaults = obj.pop("defaults")
+            obj.update(defaults)
+
+            # add new record to the list of new records, so it can be bulk created later
+            record = self.model(**obj)
+            objects_not_in_db.append(record)
+            results.append((index, record))
+
+
 class AttributeValue(ModelWithExternalReference):
     name = models.CharField(max_length=250)
     # keeps hex code color value in #RRGGBBAA format
@@ -249,6 +376,8 @@ class AttributeValue(ModelWithExternalReference):
         Page, related_name="references", on_delete=models.CASCADE, null=True, blank=True
     )
     sort_order = models.IntegerField(editable=False, db_index=True, null=True)
+
+    objects = AttributeValueManager()
 
     class Meta:
         ordering = ("sort_order", "pk")

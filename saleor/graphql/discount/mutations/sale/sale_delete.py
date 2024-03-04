@@ -69,8 +69,9 @@ class SaleDelete(ModelDeleteMutation):
 
             manager = get_plugin_manager_promise(info.context).get()
             cls.call_event(manager.sale_deleted, promotion, previous_catalogue)
-            mark_products_in_channels_as_dirty(
-                {channel_id: product_ids for channel_id in channels_ids}
+            cls.call_event(
+                mark_products_in_channels_as_dirty,
+                {channel_id: product_ids for channel_id in channels_ids},
             )
 
         return response

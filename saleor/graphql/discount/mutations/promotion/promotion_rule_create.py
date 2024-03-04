@@ -28,7 +28,8 @@ from .validators import clean_promotion_rule
 
 class PromotionRuleCreateInput(PromotionRuleInput):
     promotion = graphene.ID(
-        description="The ID of the promotion that rule belongs to.", required=True
+        description="The ID of the promotion that rule belongs to.",
+        required=True,
     )
 
 
@@ -72,12 +73,15 @@ class PromotionRuleCreate(ModelMutation):
     def clean_input(
         cls, info: ResolveInfo, instance: models.PromotionRule, data: dict, **kwargs
     ):
+        promotion_value = data.pop("promotion")
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
+        promotion = cls.get_node_or_error(
+            info, promotion_value, field="promotion", only_type="Promotion"
+        )
+        cleaned_input["promotion"] = promotion
+        promotion_type = promotion.type  # type: ignore[union-attr]
+
         errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
-
-        promotion = cleaned_input["promotion"]
-        promotion_type = promotion.type
-
         clean_promotion_rule(
             cleaned_input,
             promotion_type,
@@ -99,10 +103,10 @@ class PromotionRuleCreate(ModelMutation):
             instance, promotion.type, channel_ids
         ):
             if product_ids := set(products.values_list("id", flat=True)):
-                mark_products_in_channels_as_dirty(
-                    {channel_id: product_ids for channel_id in channel_ids}
+                cls.call_event(
+                    mark_products_in_channels_as_dirty,
+                    {channel_id: product_ids for channel_id in channel_ids},
                 )
-
         clear_promotion_old_sale_id(instance.promotion, save=True)
         app = get_app_promise(info.context).get()
         events.rule_created_event(info.context.user, app, [instance])

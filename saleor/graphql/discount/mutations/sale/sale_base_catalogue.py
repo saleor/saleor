@@ -75,8 +75,9 @@ class SaleBaseCatalogueMutation(BaseMutation):
             channel_ids = PromotionRuleChannel.objects.filter(
                 Exists(rules.filter(id=OuterRef("promotionrule_id")))
             ).values_list("channel_id", flat=True)
-            mark_products_in_channels_as_dirty(
-                {channel_id: product_ids for channel_id in channel_ids}
+            cls.call_event(
+                mark_products_in_channels_as_dirty,
+                {channel_id: product_ids for channel_id in channel_ids},
             )
 
     @classmethod

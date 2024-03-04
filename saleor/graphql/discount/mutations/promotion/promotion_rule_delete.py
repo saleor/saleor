@@ -67,7 +67,7 @@ class PromotionRuleDelete(ModelDeleteMutation):
         instance.id = db_id
 
         if channel_to_products_map:
-            mark_products_in_channels_as_dirty(channel_to_products_map)
+            cls.call_event(mark_products_in_channels_as_dirty, channel_to_products_map)
 
         app = get_app_promise(info.context).get()
         events.rule_deleted_event(info.context.user, app, [instance])
