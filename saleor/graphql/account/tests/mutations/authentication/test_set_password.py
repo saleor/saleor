@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from django.contrib.auth.tokens import default_token_generator
 from freezegun import freeze_time
 
@@ -47,6 +49,41 @@ def test_set_password(user_api_client, customer_user):
     password_resent_event = account_events.CustomerEvent.objects.get()
     assert password_resent_event.type == account_events.CustomerEvents.PASSWORD_RESET
     assert password_resent_event.user == customer_user
+
+
+@freeze_time("2018-05-31 12:00:01")
+@patch(
+    "saleor.graphql.account.mutations.authentication.set_password.match_orders_with_new_user"
+)
+def test_set_password_confirm_user_and_match_orders(
+    match_orders_with_new_user_mock, user_api_client, customer_user
+):
+    # given
+    customer_user.is_confirmed = False
+    customer_user.save(update_fields=["is_confirmed"])
+
+    token = default_token_generator.make_token(customer_user)
+    password = "spanish-inquisition"
+
+    variables = {"email": customer_user.email, "password": password, "token": token}
+
+    # when
+    response = user_api_client.post_graphql(SET_PASSWORD_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["setPassword"]
+    assert data["user"]["id"]
+    assert data["token"]
+
+    customer_user.refresh_from_db()
+    assert customer_user.check_password(password)
+
+    password_resent_event = account_events.CustomerEvent.objects.get()
+    assert password_resent_event.type == account_events.CustomerEvents.PASSWORD_RESET
+    assert password_resent_event.user == customer_user
+    assert customer_user.is_confirmed
+    match_orders_with_new_user_mock.assert_called_once_with(customer_user)
 
 
 def test_set_password_invalid_token(user_api_client, customer_user):

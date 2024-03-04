@@ -422,8 +422,9 @@ def get_or_create_user_from_payload(
             defaults=defaults_create,
         )
 
-    site_settings = Site.objects.get_current().settings
-    if not user.can_login(site_settings):  # it is true only if we fetch disabled user.
+    # User logged in by OpenID are treated as confirmed by default so we only need to
+    # check if user is active
+    if not user.is_active:
         raise AuthenticationError("Unable to log in.")
 
     _update_user_details(
@@ -499,6 +500,10 @@ def _update_user_details(
             user, attach_addresses_data=False
         )
         fields_to_save.add("search_document")
+
+    if not user.is_confirmed:
+        user.is_confirmed = True
+        fields_to_save.add("is_confirmed")
 
     if fields_to_save:
         user.save(update_fields=fields_to_save)
