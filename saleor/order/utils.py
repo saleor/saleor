@@ -822,6 +822,8 @@ def update_discount_for_order_line(
     value: Optional[Decimal],
 ):
     """Update discount fields for order line. Apply discount to the price."""
+    # TODO: Move price calculation to fetch_order_prices_if_expired function
+    # https://github.com/saleor/saleor/issues/15517
     current_value = order_line.unit_discount_value
     current_value_type = order_line.unit_discount_type
     value = value or current_value
@@ -870,6 +872,10 @@ def update_discount_for_order_line(
             ]
         )
 
+    # Save lines before calculating the taxes as some plugin can fetch all order data
+    # from db
+    order_line.save(update_fields=fields_to_update)
+
     # Update discount objects
     discount_to_update = None
     discount_to_delete_ids = []
@@ -908,10 +914,6 @@ def update_discount_for_order_line(
             discount_to_update.reason = reason
             update_fields.append("reason")
         discount_to_update.save(update_fields=update_fields)
-
-    # Save lines before calculating the taxes as some plugin can fetch all order data
-    # from db
-    order_line.save(update_fields=fields_to_update)
 
 
 def remove_discount_from_order_line(order_line: OrderLine, order: "Order"):
