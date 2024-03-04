@@ -18,7 +18,6 @@ from ....core.mutations import BaseMutation
 from ....core.types import AccountError
 from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
-from ....site.dataloaders import get_site_promise
 
 
 class RequestPasswordReset(BaseMutation):
@@ -72,7 +71,6 @@ class RequestPasswordReset(BaseMutation):
                 {"redirect_url": error}, code=AccountErrorCode.INVALID.value
             )
 
-        site = get_site_promise(info.context).get()
         user = retrieve_user_by_email(email)
         if not user:
             raise ValidationError(
@@ -84,7 +82,7 @@ class RequestPasswordReset(BaseMutation):
                 }
             )
 
-        if not user.can_login(site.settings):
+        if not user.is_active:
             raise ValidationError(
                 {
                     "email": ValidationError(
