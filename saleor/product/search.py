@@ -65,9 +65,17 @@ def queryset_in_batches(queryset):
 
 def update_products_search_vector(product_ids: Iterable[int]):
     product_ids = list(product_ids)
-    products = Product.objects.filter(pk__in=product_ids).order_by("pk")
+    products = (
+        Product.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(pk__in=product_ids)
+        .order_by("pk")
+    )
     for product_pks in queryset_in_batches(products):
-        products_batch = list(Product.objects.filter(id__in=product_pks))
+        products_batch = list(
+            Product.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME).filter(
+                id__in=product_pks
+            )
+        )
         _prep_product_search_vector_index(products_batch)
 
 
