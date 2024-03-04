@@ -111,7 +111,7 @@ class PromotionUpdate(ModelMutation):
         if instance.type == PromotionType.CATALOGUE and (
             "start_date" in cleaned_input or "end_date" in cleaned_input
         ):
-            mark_catalogue_promotion_rules_as_dirty([instance.pk])
+            cls.call_event(mark_catalogue_promotion_rules_as_dirty, [instance.pk])
 
     @classmethod
     def get_toggle_type(cls, instance, clean_input, previous_end_date) -> Optional[str]:
