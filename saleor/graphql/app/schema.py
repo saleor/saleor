@@ -125,7 +125,9 @@ class AppQueries(graphene.ObjectType):
     @staticmethod
     def resolve_apps(_root, info: ResolveInfo, **kwargs):
         qs = resolve_apps(info)
-        qs = filter_connection_queryset(qs, kwargs)
+        qs = filter_connection_queryset(
+            qs, kwargs, allow_replica=info.context.allow_replica
+        )
         return create_connection_slice(qs, info, kwargs, AppCountableConnection)
 
     @staticmethod
@@ -144,7 +146,9 @@ class AppQueries(graphene.ObjectType):
     @staticmethod
     def resolve_app_extensions(_root, info: ResolveInfo, **kwargs):
         qs = resolve_app_extensions(info)
-        qs = filter_connection_queryset(qs, kwargs)
+        qs = filter_connection_queryset(
+            qs, kwargs, allow_replica=info.context.allow_replica
+        )
         return create_connection_slice(
             qs, info, kwargs, AppExtensionCountableConnection
         )

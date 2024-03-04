@@ -1824,18 +1824,22 @@ class ProductType(ModelObjectType[models.ProductType]):
         requestor = get_user_or_app_from_context(info.context)
         if channel is None:
             channel = get_default_channel_slug_or_graphql_error()
-        qs = root.products.visible_to_user(requestor, channel)
+        qs = root.products.using(
+            get_database_connection_name(info.context)
+        ).visible_to_user(requestor, channel)
         qs = ChannelQsContext(qs=qs, channel_slug=channel)
         kwargs["channel"] = channel
         return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
 
     @staticmethod
     def resolve_available_attributes(root: models.ProductType, info, **kwargs):
-        qs = attribute_models.Attribute.objects.get_unassigned_product_type_attributes(
-            root.pk
-        ).using(get_database_connection_name(info.context))
+        qs = attribute_models.Attribute.objects.using(
+            get_database_connection_name(info.context)
+        ).get_unassigned_product_type_attributes(root.pk)
         qs = resolve_attributes(info, qs=qs)
-        qs = filter_connection_queryset(qs, kwargs, info.context)
+        qs = filter_connection_queryset(
+            qs, kwargs, info.context, allow_replica=info.context.allow_replica
+        )
         return create_connection_slice(qs, info, kwargs, AttributeCountableConnection)
 
     @staticmethod
@@ -1851,9 +1855,12 @@ class ProductType(ModelObjectType[models.ProductType]):
         )
 
     @staticmethod
-    def __resolve_references(roots: list["ProductType"], _info):
+    def __resolve_references(roots: list["ProductType"], info):
+        database_connection_name = get_database_connection_name(info.context)
         return resolve_federation_references(
-            ProductType, roots, models.ProductType.objects
+            ProductType,
+            roots,
+            models.ProductType.objects.using(database_connection_name),
         )
 
 
@@ -1918,9 +1925,12 @@ class ProductMedia(ModelObjectType[models.ProductMedia]):
         )
 
     @staticmethod
-    def __resolve_references(roots: list["ProductMedia"], _info):
+    def __resolve_references(roots: list["ProductMedia"], info):
+        database_connection_name = get_database_connection_name(info.context)
         return resolve_federation_references(
-            ProductMedia, roots, models.ProductMedia.objects
+            ProductMedia,
+            roots,
+            models.ProductMedia.objects.using(database_connection_name),
         )
 
     @staticmethod
