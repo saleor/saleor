@@ -68,13 +68,13 @@ def clean_input_order_settings(
 
     if "delete_expired_orders_after" in order_settings:
         delete_expired_orders_after = order_settings["delete_expired_orders_after"]
-        cleaned_input[
-            "delete_expired_orders_after"
-        ] = clean_delete_expired_orders_after(delete_expired_orders_after)
+        cleaned_input["delete_expired_orders_after"] = (
+            clean_delete_expired_orders_after(delete_expired_orders_after)
+        )
 
-    cleaned_input[
-        "prev_include_draft_order_in_voucher_usage"
-    ] = instance.include_draft_order_in_voucher_usage
+    cleaned_input["prev_include_draft_order_in_voucher_usage"] = (
+        instance.include_draft_order_in_voucher_usage
+    )
 
 
 def clean_input_checkout_settings(checkout_settings: dict, cleaned_input: dict):
@@ -88,6 +88,6 @@ def clean_input_payment_settings(payment_settings: dict, cleaned_input: dict):
     if default_transaction_strategy := payment_settings.get(
         "default_transaction_flow_strategy"
     ):
-        cleaned_input[
-            "default_transaction_flow_strategy"
-        ] = default_transaction_strategy
+        cleaned_input["default_transaction_flow_strategy"] = (
+            default_transaction_strategy
+        )

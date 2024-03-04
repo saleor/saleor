@@ -416,8 +416,7 @@ def create_transaction(
     gateway_response: Optional[GatewayResponse] = None,
     error_msg=None,
     is_success=False,
-) -> Transaction:
-    ...
+) -> Transaction: ...
 
 
 @overload
@@ -430,8 +429,7 @@ def create_transaction(
     gateway_response: GatewayResponse,
     error_msg=None,
     is_success=False,
-) -> Transaction:
-    ...
+) -> Transaction: ...
 
 
 def create_transaction(

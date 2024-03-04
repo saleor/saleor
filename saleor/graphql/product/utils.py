@@ -108,9 +108,9 @@ def get_draft_order_lines_data_for_variants(
     lines = order_models.OrderLine.objects.filter(
         variant__id__in=variant_ids, order__status=OrderStatus.DRAFT
     ).select_related("order")
-    order_to_lines_mapping: dict[
-        order_models.Order, list[order_models.OrderLine]
-    ] = defaultdict(list)
+    order_to_lines_mapping: dict[order_models.Order, list[order_models.OrderLine]] = (
+        defaultdict(list)
+    )
     line_pks = set()
     order_pks = set()
     for line in lines:
