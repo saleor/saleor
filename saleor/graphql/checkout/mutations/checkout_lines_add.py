@@ -29,6 +29,7 @@ from .utils import (
     get_checkout,
     get_variants_and_total_quantities,
     group_lines_input_on_add,
+    update_checkout_external_shipping_method_if_invalid,
     update_checkout_shipping_method_if_invalid,
     validate_variants_are_published,
     validate_variants_available_for_purchase,
@@ -213,6 +214,7 @@ class CheckoutLinesAdd(BaseMutation):
             manager,
             replace,
         )
+        update_checkout_external_shipping_method_if_invalid(checkout_info, lines)
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
         invalidate_checkout_prices(checkout_info, lines, manager, save=True)
         cls.call_event(manager.checkout_updated, checkout)
