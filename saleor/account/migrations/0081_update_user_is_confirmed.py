@@ -35,15 +35,10 @@ def set_user_is_confirmed_to_false(qs: QuerySet["User"]):
 
 def set_user_is_confirmed_task(apps, schema_editor):
     User = apps.get_model("account", "User")
-    SiteSettings = apps.get_model("site", "SiteSettings")
-    confirmation_enabled = (
-        SiteSettings.objects.first().enable_account_confirmation_by_email
+
+    users = User.objects.order_by("pk").filter(
+        is_confirmed=True, is_active=False, last_login__isnull=True
     )
-
-    users = User.objects.order_by("pk").filter(is_confirmed=True)
-    if confirmation_enabled:
-        users = users.filter(is_active=False, last_login__isnull=True)
-
     for ids in queryset_in_batches(users):
         qs = User.objects.filter(pk__in=ids)
         set_user_is_confirmed_to_false(qs)
