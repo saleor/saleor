@@ -216,15 +216,15 @@ class ProductVariantBulkUpdate(BaseMutation):
         index_error_map,
     ):
         if listings_data := cleaned_input["channel_listings"].get("create"):
-            cleaned_input["channel_listings"][
-                "create"
-            ] = ProductVariantBulkCreate.clean_channel_listings(
-                listings_data,
-                product_channel_global_id_to_instance_map,
-                None,
-                variant_index,
-                index_error_map,
-                "channelListings.create",
+            cleaned_input["channel_listings"]["create"] = (
+                ProductVariantBulkCreate.clean_channel_listings(
+                    listings_data,
+                    product_channel_global_id_to_instance_map,
+                    None,
+                    variant_index,
+                    index_error_map,
+                    "channelListings.create",
+                )
             )
         if listings_data := cleaned_input["channel_listings"].get("update"):
             listings_to_update = []

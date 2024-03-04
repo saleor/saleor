@@ -144,24 +144,24 @@ class AdminEmailPlugin(BasePlugin):
         },
     }
     CONFIG_STRUCTURE.update(DEFAULT_EMAIL_CONFIG_STRUCTURE)
-    CONFIG_STRUCTURE["host"][
-        "help_text"
-    ] += " Leave it blank if you want to use system environment - EMAIL_HOST."
-    CONFIG_STRUCTURE["port"][
-        "help_text"
-    ] += " Leave it blank if you want to use system environment - EMAIL_PORT."
-    CONFIG_STRUCTURE["username"][
-        "help_text"
-    ] += " Leave it blank if you want to use system environment - EMAIL_HOST_USER."
-    CONFIG_STRUCTURE["password"][
-        "help_text"
-    ] += " Leave it blank if you want to use system environment - EMAIL_HOST_PASSWORD."
-    CONFIG_STRUCTURE["use_tls"][
-        "help_text"
-    ] += " Leave it blank if you want to use system environment - EMAIL_USE_TLS."
-    CONFIG_STRUCTURE["use_ssl"][
-        "help_text"
-    ] += " Leave it blank if you want to use system environment - EMAIL_USE_SSL."
+    CONFIG_STRUCTURE["host"]["help_text"] += (
+        " Leave it blank if you want to use system environment - EMAIL_HOST."
+    )
+    CONFIG_STRUCTURE["port"]["help_text"] += (
+        " Leave it blank if you want to use system environment - EMAIL_PORT."
+    )
+    CONFIG_STRUCTURE["username"]["help_text"] += (
+        " Leave it blank if you want to use system environment - EMAIL_HOST_USER."
+    )
+    CONFIG_STRUCTURE["password"]["help_text"] += (
+        " Leave it blank if you want to use system environment - EMAIL_HOST_PASSWORD."
+    )
+    CONFIG_STRUCTURE["use_tls"]["help_text"] += (
+        " Leave it blank if you want to use system environment - EMAIL_USE_TLS."
+    )
+    CONFIG_STRUCTURE["use_ssl"]["help_text"] += (
+        " Leave it blank if you want to use system environment - EMAIL_USE_SSL."
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

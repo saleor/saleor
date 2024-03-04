@@ -31,8 +31,7 @@ class RefundEvents(BaseEvent):
 
 
 @dataclass
-class CancelEvents(BaseEvent):
-    ...
+class CancelEvents(BaseEvent): ...
 
 
 PSPReference = str

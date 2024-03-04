@@ -1,4 +1,5 @@
 """Checkout-related ORM models."""
+
 from collections.abc import Iterable
 from datetime import date
 from decimal import Decimal

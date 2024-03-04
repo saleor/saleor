@@ -1,4 +1,5 @@
 """Checkout-related utility functions."""
+
 from collections.abc import Iterable
 from decimal import Decimal
 from typing import TYPE_CHECKING, Optional, Union, cast
