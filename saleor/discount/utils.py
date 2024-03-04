@@ -402,14 +402,23 @@ def prepare_line_discount_objects_for_catalogue_promotions(
     for line_info in lines_info:
         line = line_info.line
 
-        # discount_amount based on the difference between discounted_price and price
-        discount_amount = _get_discount_amount(line_info.channel_listing, line.quantity)
-
         # get the existing discounts for the line
         discounts_to_update = line_info.get_catalogue_discounts()
         rule_id_to_discount = {
             discount.promotion_rule_id: discount for discount in discounts_to_update
         }
+
+        # manual line discount do not stack with other discounts
+        if [
+            discount
+            for discount in line_info.discounts
+            if discount.type == DiscountType.MANUAL
+        ]:
+            line_discounts_to_remove.extend(discounts_to_update)
+            continue
+
+        # discount_amount based on the difference between discounted_price and price
+        discount_amount = _get_discount_amount(line_info.channel_listing, line.quantity)
 
         # delete all existing discounts if the line is not discounted or it is a gift
         if not discount_amount or line.is_gift:
@@ -1233,9 +1242,8 @@ def _update_base_unit_price_amount(lines_info: Iterable[DraftOrderLineInfo]):
         line = line_info.line
         base_unit_price = line.undiscounted_base_unit_price_amount
         for discount in line_info.discounts:
-            if discount.type == DiscountType.PROMOTION:
-                unit_discount = discount.amount_value / line.quantity
-                base_unit_price -= unit_discount
+            unit_discount = discount.amount_value / line.quantity
+            base_unit_price -= unit_discount
         line.base_unit_price_amount = max(base_unit_price, Decimal(0))
 
 

@@ -870,6 +870,45 @@ def update_discount_for_order_line(
             ]
         )
 
+    # Update discount objects
+    discount_to_update = None
+    discount_to_delete_ids = []
+    discounts = order_line.discounts.all()
+    for discount in discounts:
+        if discount.type == DiscountType.MANUAL and not discount_to_update:
+            discount_to_update = discount
+        else:
+            discount_to_delete_ids.append(discount.pk)
+
+    if discount_to_delete_ids:
+        OrderLineDiscount.objects.filter(id__in=discount_to_delete_ids).delete()
+
+    amount_value = quantize_price(
+        order_line.unit_discount.amount * order_line.quantity, order.currency
+    )
+    if not discount_to_update:
+        order_line.discounts.create(
+            type=DiscountType.MANUAL,
+            value_type=value_type,
+            value=value,
+            amount_value=amount_value,
+            currency=order.currency,
+            reason=reason,
+        )
+    else:
+        update_fields = []
+        if discount_to_update.value_type != value_type:
+            discount_to_update.value_type = value_type
+            update_fields.append("value_type")
+        if discount_to_update.value != value:
+            discount_to_update.value = value
+            discount_to_update.amount_value = amount_value
+            update_fields.extend(["value", "amount_value"])
+        if discount_to_update.reason != reason:
+            discount_to_update.reason = reason
+            update_fields.append("reason")
+        discount_to_update.save(update_fields=update_fields)
+
     # Save lines before calculating the taxes as some plugin can fetch all order data
     # from db
     order_line.save(update_fields=fields_to_update)

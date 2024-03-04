@@ -7,7 +7,7 @@ import pytest
 from prices import Money, TaxedMoney, fixed_discount, percentage_discount
 
 from .....core.prices import quantize_price
-from .....discount import DiscountValueType
+from .....discount import DiscountType, DiscountValueType
 from .....order import OrderEvents, OrderStatus
 from .....order.error_codes import OrderErrorCode
 from .....order.interface import OrderTaxedPricesData
@@ -897,11 +897,12 @@ def test_update_order_line_discount(
     line_price_before_discount = line_to_discount.unit_price
 
     value = Decimal("5")
+    value_type = DiscountValueTypeEnum.FIXED
     reason = "New reason for unit discount"
     variables = {
         "orderLineId": graphene.Node.to_global_id("OrderLine", line_to_discount.pk),
         "input": {
-            "valueType": DiscountValueTypeEnum.FIXED.name,
+            "valueType": value_type.name,
             "value": value,
             "reason": reason,
         },
@@ -962,8 +963,15 @@ def test_update_order_line_discount(
     discount_data = line_data.get("discount")
 
     assert discount_data["value"] == str(value)
-    assert discount_data["value_type"] == DiscountValueTypeEnum.FIXED.value
+    assert discount_data["value_type"] == value_type.value
     assert discount_data["amount_value"] == str(unit_discount.amount)
+
+    line_discount = line_to_discount.discounts.get()
+    assert line_discount.type == DiscountType.MANUAL
+    assert line_discount.value == value
+    assert line_discount.value_type == value_type.value
+    assert line_discount.reason == reason
+    assert line_discount.amount_value == value * line_to_discount.quantity
 
 
 def test_update_order_line_discount_by_user_no_channel_access(
@@ -1012,11 +1020,12 @@ def test_update_order_line_discount_by_app(
     line_to_discount = order.lines.first()
 
     value = Decimal("5")
+    value_type = DiscountValueTypeEnum.FIXED
     reason = "New reason for unit discount"
     variables = {
         "orderLineId": graphene.Node.to_global_id("OrderLine", line_to_discount.pk),
         "input": {
-            "valueType": DiscountValueTypeEnum.FIXED.name,
+            "valueType": value_type.name,
             "value": value,
             "reason": reason,
         },
@@ -1049,8 +1058,15 @@ def test_update_order_line_discount_by_app(
     discount_data = line_data.get("discount")
 
     assert discount_data["value"] == str(value)
-    assert discount_data["value_type"] == DiscountValueTypeEnum.FIXED.value
+    assert discount_data["value_type"] == value_type.value
     assert discount_data["amount_value"] == str(unit_discount.amount)
+
+    line_discount = line_to_discount.discounts.get()
+    assert line_discount.type == DiscountType.MANUAL
+    assert line_discount.value == value
+    assert line_discount.value_type == value_type.value
+    assert line_discount.reason == reason
+    assert line_discount.amount_value == value * line_to_discount.quantity
 
 
 @pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
@@ -1098,11 +1114,12 @@ def test_update_order_line_discount_line_with_discount(
     line_undiscounted_price = line_to_discount.undiscounted_unit_price
 
     value = Decimal("50")
+    value_type = DiscountValueTypeEnum.PERCENTAGE
     reason = "New reason for unit discount"
     variables = {
         "orderLineId": graphene.Node.to_global_id("OrderLine", line_to_discount.pk),
         "input": {
-            "valueType": DiscountValueTypeEnum.PERCENTAGE.name,
+            "valueType": value_type.name,
             "value": value,
             "reason": reason,
         },
@@ -1118,7 +1135,6 @@ def test_update_order_line_discount_line_with_discount(
     data = content["data"]["orderLineDiscountUpdate"]
 
     line_to_discount.refresh_from_db()
-
     errors = data["errors"]
     assert not errors
 
@@ -1143,12 +1159,63 @@ def test_update_order_line_discount_line_with_discount(
     discount_data = line_data.get("discount")
 
     assert discount_data["value"] == str(value)
-    assert discount_data["value_type"] == DiscountValueTypeEnum.PERCENTAGE.value
+    assert discount_data["value_type"] == value_type.value
     assert discount_data["amount_value"] == str(unit_discount.amount)
 
     assert discount_data["old_value"] == str(line_discount_value_before_update)
     assert discount_data["old_value_type"] == DiscountValueTypeEnum.FIXED.value
     assert discount_data["old_amount_value"] == str(line_discount_amount_before_update)
+
+    line_discount = line_to_discount.discounts.get()
+    assert line_discount.type == DiscountType.MANUAL
+    assert line_discount.value == value
+    assert line_discount.value_type == value_type.value
+    assert line_discount.reason == reason
+    assert (
+        line_discount.amount_value
+        == line_to_discount.unit_discount_amount * line_to_discount.quantity
+    )
+
+
+def test_update_order_line_discount_line_with_catalogue_promotion(
+    order_with_lines_and_catalogue_promotion,
+    staff_api_client,
+    permission_group_manage_orders,
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = order_with_lines_and_catalogue_promotion
+    order.status = OrderStatus.DRAFT
+    order.save(update_fields=["status"])
+    line = order.lines.get(quantity=3)
+    assert line.discounts.filter(type=DiscountType.PROMOTION).exists()
+
+    value = Decimal("5")
+    value_type = DiscountValueTypeEnum.FIXED
+    reason = "Manual fixed line discount"
+    variables = {
+        "orderLineId": graphene.Node.to_global_id("OrderLine", line.pk),
+        "input": {
+            "valueType": value_type.name,
+            "value": value,
+            "reason": reason,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_LINE_DISCOUNT_UPDATE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderLineDiscountUpdate"]
+    assert not data["errors"]
+
+    line_discount = line.discounts.get()
+    assert line_discount.type == DiscountType.MANUAL
+    assert line_discount.value == value
+    assert line_discount.value_type == value_type.value
+    assert line_discount.reason == reason
+    assert line_discount.amount_value == value * line.quantity
 
 
 def test_update_order_line_discount_order_is_not_draft(
