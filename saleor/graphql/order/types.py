@@ -1501,8 +1501,7 @@ class Order(ModelObjectType[models.Order]):
             fetch_order_prices_if_expired(root, manager)
             return OrderDiscountsByOrderIDLoader(info.context).load(root.id)
 
-        manager = get_plugin_manager_promise(info.context)
-        return Promise.all([manager]).then(with_manager)
+        return get_plugin_manager_promise(info.context).then(with_manager)
 
     @staticmethod
     @traced_resolver
