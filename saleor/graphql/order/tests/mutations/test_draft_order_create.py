@@ -19,6 +19,7 @@ from .....order.models import Order, OrderEvent
 from .....payment.model_helpers import get_subtotal
 from .....product.models import ProductVariant
 from .....tax import TaxCalculationStrategy
+from .....tests.utils import round_up
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 DRAFT_ORDER_CREATE_MUTATION = """
@@ -2576,6 +2577,7 @@ def test_draft_order_create_order_promotion_flat_rates(
     tc.tax_calculation_strategy = TaxCalculationStrategy.FLAT_RATES
     tc.prices_entered_with_tax = False
     tc.save()
+    tax_rate = Decimal("1.23")
 
     rule = order_promotion_rule
     promotion_id = graphene.Node.to_global_id("Promotion", rule.promotion_id)
@@ -2598,14 +2600,14 @@ def test_draft_order_create_order_promotion_flat_rates(
     ).discounted_price_amount
     undiscounted_subtotal_net = Decimal(quantity * variant_price)
     discount_amount = quantize_price(
-        Decimal(0.25) * undiscounted_subtotal_net, currency
+        reward_value / 100 * undiscounted_subtotal_net, currency
     )
     subtotal_net = undiscounted_subtotal_net - discount_amount
-    subtotal_gross = quantize_price(Decimal(1.23) * subtotal_net, currency)
+    subtotal_gross = quantize_price(tax_rate * subtotal_net, currency)
     shipping_price_net = shipping_method.channel_listings.get(
         channel=channel_USD
     ).price_amount
-    shipping_price_gross = quantize_price(Decimal(1.23) * shipping_price_net, currency)
+    shipping_price_gross = quantize_price(tax_rate * shipping_price_net, currency)
     total_gross = quantize_price(subtotal_gross + shipping_price_gross, currency)
 
     shipping_address = graphql_address_data
@@ -2633,25 +2635,25 @@ def test_draft_order_create_order_promotion_flat_rates(
     assert not content["data"]["draftOrderCreate"]["errors"]
     order = content["data"]["draftOrderCreate"]["order"]
     assert order["status"] == OrderStatus.DRAFT.upper()
-    assert subtotal_gross == Decimal("36.90")
-    assert total_gross == Decimal("49.20")
-    assert shipping_price_gross == Decimal("12.30")
-    assert order["subtotal"]["gross"]["amount"] == 36.90
-    assert Decimal(order["total"]["gross"]["amount"]) == 49.20
-    assert Decimal(order["shippingPrice"]["gross"]["amount"]) == 12.30
+    assert order["subtotal"]["gross"]["amount"] == float(subtotal_gross)
+    assert order["total"]["gross"]["amount"] == float(total_gross)
+    assert order["shippingPrice"]["gross"]["amount"] == float(shipping_price_gross)
 
     assert len(order["discounts"]) == 1
-    assert discount_amount == Decimal("10.00")
-    assert order["discounts"][0]["amount"]["amount"] == 10.00
+    assert order["discounts"][0]["amount"]["amount"] == discount_amount
     assert order["discounts"][0]["reason"] == f"Promotion: {promotion_id}"
     assert order["discounts"][0]["type"] == DiscountType.ORDER_PROMOTION.upper()
     assert order["discounts"][0]["valueType"] == RewardValueType.PERCENTAGE.upper()
 
     assert len(order["lines"]) == 1
-    assert order["lines"][0]["quantity"] == 4
-    assert order["lines"][0]["totalPrice"]["gross"]["amount"] == 36.90
-    assert order["lines"][0]["undiscountedUnitPrice"]["gross"]["amount"] == 12.30
-    assert order["lines"][0]["unitPrice"]["gross"]["amount"] == 9.23
+    assert order["lines"][0]["quantity"] == quantity
+    assert order["lines"][0]["totalPrice"]["gross"]["amount"] == float(subtotal_gross)
+    assert order["lines"][0]["undiscountedUnitPrice"]["gross"]["amount"] == float(
+        quantize_price(undiscounted_subtotal_net * tax_rate / quantity, currency)
+    )
+    assert order["lines"][0]["unitPrice"]["gross"]["amount"] == float(
+        round_up(subtotal_gross / quantity)
+    )
 
     order_db = Order.objects.get()
     assert order_db.total_gross_amount == total_gross
@@ -2660,12 +2662,16 @@ def test_draft_order_create_order_promotion_flat_rates(
 
     line_db = order_db.lines.get()
     assert line_db.total_price_gross_amount == subtotal_gross
-    assert line_db.undiscounted_unit_price_gross_amount == Decimal("12.30")
-    assert line_db.unit_price_net_amount == Decimal("7.50")
-    assert line_db.unit_price_gross_amount == Decimal("9.23")
+    assert line_db.undiscounted_unit_price_gross_amount == quantize_price(
+        undiscounted_subtotal_net * tax_rate / quantity, currency
+    )
+    assert line_db.unit_price_net_amount == quantize_price(
+        subtotal_net / quantity, currency
+    )
+    assert line_db.unit_price_gross_amount == round_up(subtotal_gross / quantity)
 
     discount_db = order_db.discounts.get()
-    assert discount_db.amount_value == Decimal("10.00")
+    assert discount_db.amount_value == discount_amount
     assert discount_db.reason == f"Promotion: {promotion_id}"
     assert discount_db.value == reward_value
     assert discount_db.value_type == RewardValueType.PERCENTAGE
@@ -2691,6 +2697,7 @@ def test_draft_order_create_gift_promotion_flat_rates(
     tc.tax_calculation_strategy = TaxCalculationStrategy.FLAT_RATES
     tc.prices_entered_with_tax = False
     tc.save()
+    tax_rate = Decimal("1.23")
 
     rule = gift_promotion_rule
     promotion_id = graphene.Node.to_global_id("Promotion", rule.promotion_id)
@@ -2710,11 +2717,11 @@ def test_draft_order_create_gift_promotion_flat_rates(
         channel=channel_USD
     ).discounted_price_amount
     subtotal_net = quantity * variant_price
-    subtotal_gross = quantize_price(Decimal(1.23) * subtotal_net, currency)
+    subtotal_gross = quantize_price(tax_rate * subtotal_net, currency)
     shipping_price_net = shipping_method.channel_listings.get(
         channel=channel_USD
     ).price_amount
-    shipping_price_gross = quantize_price(Decimal(1.23) * shipping_price_net, currency)
+    shipping_price_gross = quantize_price(tax_rate * shipping_price_net, currency)
     total_gross = quantize_price(subtotal_gross + shipping_price_gross, currency)
 
     shipping_address = graphql_address_data
@@ -2743,12 +2750,11 @@ def test_draft_order_create_gift_promotion_flat_rates(
     order = content["data"]["draftOrderCreate"]["order"]
 
     assert order["status"] == OrderStatus.DRAFT.upper()
-    assert subtotal_gross == Decimal("49.20")
-    assert total_gross == Decimal("61.50")
-    assert shipping_price_gross == Decimal("12.30")
-    assert order["subtotal"]["gross"]["amount"] == 49.20
-    assert Decimal(order["total"]["gross"]["amount"]) == 61.50
-    assert Decimal(order["shippingPrice"]["gross"]["amount"]) == 12.30
+    assert order["subtotal"]["gross"]["amount"] == float(subtotal_gross)
+    assert Decimal(order["total"]["gross"]["amount"]) == float(total_gross)
+    assert Decimal(order["shippingPrice"]["gross"]["amount"]) == float(
+        shipping_price_gross
+    )
 
     assert not order["discounts"]
 
@@ -2756,18 +2762,12 @@ def test_draft_order_create_gift_promotion_flat_rates(
     line = [line for line in order["lines"] if line["quantity"] == 4][0]
     gift_line = [line for line in order["lines"] if line["isGift"]][0]
 
-    assert line["totalPrice"]["gross"]["amount"] == 49.20
-    assert line["undiscountedUnitPrice"]["gross"]["amount"] == 12.30
-    assert line["unitPrice"]["gross"]["amount"] == 12.30
+    assert line["totalPrice"]["gross"]["amount"] == float(subtotal_gross)
+    assert line["undiscountedUnitPrice"]["gross"]["amount"] == float(
+        subtotal_gross / quantity
+    )
+    assert line["unitPrice"]["gross"]["amount"] == float(subtotal_gross / quantity)
     assert line["unitDiscount"]["amount"] == 0.00
-
-    assert gift_line["totalPrice"]["gross"]["amount"] == 0.00
-    assert gift_line["undiscountedUnitPrice"]["gross"]["amount"] == 0.00
-    assert gift_line["unitPrice"]["gross"]["amount"] == 0.00
-    assert gift_line["unitDiscount"]["amount"] == 20.00
-    assert gift_line["unitDiscountReason"] == f"Promotion: {promotion_id}"
-    assert gift_line["unitDiscountType"] == RewardValueType.FIXED.upper()
-    assert gift_line["unitDiscountValue"] == 20.00
 
     order_db = Order.objects.get()
     assert order_db.total_gross_amount == total_gross
@@ -2777,13 +2777,25 @@ def test_draft_order_create_gift_promotion_flat_rates(
     lines_db = order_db.lines.all()
     assert len(lines_db) == 2
     gift_line_db = [line for line in lines_db if line.is_gift][0]
+    gift_price = gift_line_db.variant.channel_listings.get(
+        channel=channel_USD
+    ).price_amount
+
     assert gift_line_db.total_price_gross_amount == Decimal(0)
     assert gift_line_db.undiscounted_unit_price_gross_amount == Decimal(0)
     assert gift_line_db.unit_price_gross_amount == Decimal(0)
     assert gift_line_db.base_unit_price_amount == Decimal(0)
-    assert gift_line_db.unit_discount_value == Decimal("20.00")
+    assert gift_line_db.unit_discount_value == gift_price
+
+    assert gift_line["totalPrice"]["gross"]["amount"] == 0.00
+    assert gift_line["undiscountedUnitPrice"]["gross"]["amount"] == 0.00
+    assert gift_line["unitPrice"]["gross"]["amount"] == 0.00
+    assert gift_line["unitDiscount"]["amount"] == gift_price
+    assert gift_line["unitDiscountReason"] == f"Promotion: {promotion_id}"
+    assert gift_line["unitDiscountType"] == RewardValueType.FIXED.upper()
+    assert gift_line["unitDiscountValue"] == gift_price
 
     discount_db = gift_line_db.discounts.get()
-    assert discount_db.amount_value == Decimal("20.00")
+    assert discount_db.amount_value == gift_price
     assert discount_db.reason == f"Promotion: {promotion_id}"
     assert discount_db.type == DiscountType.ORDER_PROMOTION

@@ -1,4 +1,3 @@
-import math
 from decimal import Decimal
 
 import graphene
@@ -12,6 +11,7 @@ from ...discount.models import (
     PromotionRule,
 )
 from ...tax import TaxCalculationStrategy
+from ...tests.utils import round_down, round_up
 from .. import OrderStatus, calculations
 
 
@@ -19,14 +19,6 @@ from .. import OrderStatus, calculations
 def order_with_lines(order_with_lines):
     order_with_lines.status = OrderStatus.UNCONFIRMED
     return order_with_lines
-
-
-def round_down(price: Decimal) -> Decimal:
-    return Decimal(math.floor(price * 100)) / 100
-
-
-def round_up(price: Decimal) -> Decimal:
-    return Decimal(math.ceil(price * 100)) / 100
 
 
 @pytest.mark.parametrize("create_new_discounts", [True, False])
