@@ -4,7 +4,9 @@ from django.conf import settings
 from django.db.models import Exists, OuterRef
 
 from ..checkout import AddressType
+from ..core.utils.events import call_event
 from ..permission.models import Permission
+from ..plugins.manager import get_plugins_manager
 from .models import Group, User
 
 if TYPE_CHECKING:
@@ -143,3 +145,15 @@ def get_user_groups_permissions(user: User):
     return Permission.objects.filter(
         Exists(group_permissions.filter(permission_id=OuterRef("id")))
     )
+
+
+def send_user_event(user: User, created: bool, updated: bool):
+    """Send created or updated event for user."""
+    manager = get_plugins_manager(allow_replica=False)
+    event = None
+    if created:
+        event = manager.staff_created if user.is_staff else manager.customer_created
+    elif updated:
+        event = manager.staff_updated if user.is_staff else manager.customer_updated
+    if event:
+        call_event(event, user)
