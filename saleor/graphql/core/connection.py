@@ -339,8 +339,9 @@ def create_connection_slice(
     else:
         queryset = iterable
 
+    allow_replica = getattr(info.context, "allow_replica", False)
     queryset, sort_by = sort_queryset_for_connection(
-        iterable=queryset, args=args, allow_replica=info.context.allow_replica
+        iterable=queryset, args=args, allow_replica=allow_replica
     )
     args["sort_by"] = sort_by
 
