@@ -1496,8 +1496,7 @@ class Order(ModelObjectType[models.Order]):
 
     @staticmethod
     def resolve_discounts(root: models.Order, info):
-        def with_manager(data):
-            manager = data[0]
+        def with_manager(manager):
             fetch_order_prices_if_expired(root, manager)
             return OrderDiscountsByOrderIDLoader(info.context).load(root.id)
 
