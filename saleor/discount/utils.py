@@ -1338,16 +1338,15 @@ def _set_order_base_prices(order: Order, lines_info: Iterable[DraftOrderLineInfo
     subtotal = base_order_subtotal(order, lines)
     shipping_price = order.base_shipping_price
     total = subtotal + shipping_price
-    order.subtotal = TaxedMoney(net=subtotal, gross=subtotal)
-    order.total = TaxedMoney(net=total, gross=total)
-    order.save(
-        update_fields=[
-            "subtotal_net_amount",
-            "subtotal_gross_amount",
-            "total_net_amount",
-            "total_gross_amount",
-        ]
-    )
+
+    update_fields = []
+    if order.subtotal != TaxedMoney(net=subtotal, gross=subtotal):
+        order.subtotal = TaxedMoney(net=subtotal, gross=subtotal)
+        update_fields.extend(["subtotal_net_amount", "subtotal_gross_amount"])
+    if order.total != TaxedMoney(net=total, gross=total):
+        order.total = TaxedMoney(net=total, gross=total)
+        update_fields.extend(["total_net_amount", "total_gross_amount"])
+    order.save(update_fields=update_fields)
 
 
 def _handle_order_promotion_for_order(
