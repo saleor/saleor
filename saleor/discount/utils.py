@@ -1325,8 +1325,9 @@ def _clear_order_discount(
     order_or_checkout: Union[Checkout, Order],
     lines_info: Iterable[DraftOrderLineInfo],
 ):
-    delete_gift_line(order_or_checkout, lines_info)
-    order_or_checkout.discounts.filter(type=DiscountType.ORDER_PROMOTION).delete()
+    with transaction.atomic():
+        delete_gift_line(order_or_checkout, lines_info)
+        order_or_checkout.discounts.filter(type=DiscountType.ORDER_PROMOTION).delete()
 
 
 def _set_order_base_prices(order: Order, lines_info: Iterable[DraftOrderLineInfo]):

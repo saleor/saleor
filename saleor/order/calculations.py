@@ -53,6 +53,7 @@ def fetch_order_prices_if_expired(
     create_or_update_discount_objects_from_promotion_for_order(order, lines_info)
     lines = [line_info.line for line_info in lines_info]
     _update_order_discount_for_voucher(order)
+
     _clear_prefetched_discounts(order, lines)
     prefetch_related_objects([order], "discounts")
 
