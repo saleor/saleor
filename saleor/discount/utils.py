@@ -1068,7 +1068,7 @@ def fetch_promotion_rules_for_checkout_or_order(instance: Union["Checkout", "Ord
 
     channel_id = instance.channel_id
     currency = instance.channel.currency_code
-    qs = type(instance).objects.filter(pk=instance.pk)  # type: ignore[misc]
+    qs = instance._meta.model.objects.filter(pk=instance.pk)  # type: ignore[attr-defined]
     for rule in rules.iterator():
         rule_channel_ids = rule_to_channel_ids_map.get(rule.id, [])
         if channel_id not in rule_channel_ids:
@@ -1255,7 +1255,7 @@ def create_order_discount_objects_for_order_promotions(
     from ..order.utils import get_order_country
 
     # If voucher is set or manual discount applied, then skip order promotions
-    if order.voucher_code or order.discounts.filter(type=DiscountType.MANUAL).first():
+    if order.voucher_code or order.discounts.filter(type=DiscountType.MANUAL):
         _clear_order_discount(order, lines_info)
         return
 

@@ -822,7 +822,8 @@ def update_discount_for_order_line(
     value: Optional[Decimal],
 ):
     """Update discount fields for order line. Apply discount to the price."""
-    # TODO: Move price calculation to fetch_order_prices_if_expired function
+    # TODO: Move price calculation to fetch_order_prices_if_expired function.
+    # Here we should only create order line discount object
     # https://github.com/saleor/saleor/issues/15517
     current_value = order_line.unit_discount_value
     current_value_type = order_line.unit_discount_type
@@ -876,7 +877,14 @@ def update_discount_for_order_line(
     # from db
     order_line.save(update_fields=fields_to_update)
 
-    # Update discount objects
+    _update_manual_order_line_discount_object(
+        value, value_type, reason, order_line, order.currency
+    )
+
+
+def _update_manual_order_line_discount_object(
+    value, value_type, reason, order_line, currency
+):
     discount_to_update = None
     discount_to_delete_ids = []
     discounts = order_line.discounts.all()
@@ -890,7 +898,7 @@ def update_discount_for_order_line(
         OrderLineDiscount.objects.filter(id__in=discount_to_delete_ids).delete()
 
     amount_value = quantize_price(
-        order_line.unit_discount.amount * order_line.quantity, order.currency
+        order_line.unit_discount.amount * order_line.quantity, currency
     )
     if not discount_to_update:
         order_line.discounts.create(
@@ -898,7 +906,7 @@ def update_discount_for_order_line(
             value_type=value_type,
             value=value,
             amount_value=amount_value,
-            currency=order.currency,
+            currency=currency,
             reason=reason,
         )
     else:
