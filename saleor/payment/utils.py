@@ -747,13 +747,17 @@ def try_void_or_refund_inactive_payment(
         )
 
 
-def payment_owned_by_user(payment_pk: int, user) -> bool:
+def payment_owned_by_user(
+    payment_pk: int,
+    user,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+) -> bool:
     if not user:
         return False
     return (
-        Payment.objects.filter(
-            (Q(order__user=user) | Q(checkout__user=user)) & Q(pk=payment_pk)
-        ).first()
+        Payment.objects.using(database_connection_name)
+        .filter((Q(order__user=user) | Q(checkout__user=user)) & Q(pk=payment_pk))
+        .first()
         is not None
     )
 
