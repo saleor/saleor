@@ -125,18 +125,12 @@ def _update_order_discount_for_voucher(order: Order):
 
 
 def _clear_prefetched_discounts(order, lines):
-    if (
-        hasattr(order, "_prefetched_objects_cache")
-        and "discounts" in order._prefetched_objects_cache
-    ):
-        del order._prefetched_objects_cache["discounts"]
+    if hasattr(order, "_prefetched_objects_cache"):
+        order._prefetched_objects_cache.pop("discounts", None)
 
     for line in lines:
-        if (
-            hasattr(line, "_prefetched_objects_cache")
-            and "discounts" in order._prefetched_objects_cache
-        ):
-            del line._prefetched_objects_cache["discounts"]
+        if hasattr(line, "_prefetched_objects_cache"):
+            line._prefetched_objects_cache.pop("discounts", None)
 
 
 def _recalculate_prices(
