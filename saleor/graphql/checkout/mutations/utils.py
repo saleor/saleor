@@ -56,15 +56,6 @@ class CheckoutLineData:
     metadata_list: Optional[list] = None
 
 
-def _is_external_shipping_valid(checkout_info: "CheckoutInfo"):
-    if external_shipping_id := get_external_shipping_id(checkout_info.checkout):
-        for method in checkout_info.valid_delivery_methods:
-            if method.id == external_shipping_id:
-                return True
-        return False
-    return True
-
-
 def clean_delivery_method(
     checkout_info: "CheckoutInfo",
     lines: Iterable[CheckoutLineInfo],
@@ -96,6 +87,15 @@ def clean_delivery_method(
 
     valid_methods = checkout_info.valid_delivery_methods
     return method in valid_methods
+
+
+def _is_external_shipping_valid(checkout_info: "CheckoutInfo"):
+    if external_shipping_id := get_external_shipping_id(checkout_info.checkout):
+        for method in checkout_info.valid_delivery_methods:
+            if method.id == external_shipping_id:
+                return True
+        return False
+    return True
 
 
 def update_checkout_external_shipping_method_if_invalid(

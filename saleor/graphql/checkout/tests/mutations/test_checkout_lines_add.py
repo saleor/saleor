@@ -731,6 +731,7 @@ def test_checkout_lines_add_existing_variant_override_previous_custom_price(
 def test_checkout_lines_add_deletes_external_shipping_method_if_invalid(
     mocked_webhook, app_api_client, checkout_with_item, permission_handle_checkouts
 ):
+    # given
     mocked_webhook.return_value = []
     checkout = checkout_with_item
     line = checkout.lines.first()
@@ -746,11 +747,15 @@ def test_checkout_lines_add_deletes_external_shipping_method_if_invalid(
         "lines": [{"variantId": variant_id, "quantity": 7, "price": price}],
         "channelSlug": checkout.channel.slug,
     }
+
+    # when
     response = app_api_client.post_graphql(
         MUTATION_CHECKOUT_LINES_ADD,
         variables,
         permissions=[permission_handle_checkouts],
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["checkoutLinesAdd"]
     assert not data["errors"]
@@ -766,6 +771,7 @@ def test_checkout_lines_add_doesnt_delete_external_shipping_method_if_valid(
     permission_handle_checkouts,
     address,
 ):
+    # given
     external_method_data = ShippingMethodData(
         id=graphene.Node.to_global_id("App", app_api_client.app.id),
         price=Money(Decimal(10), checkout_with_item.currency),
@@ -788,11 +794,15 @@ def test_checkout_lines_add_doesnt_delete_external_shipping_method_if_valid(
         "lines": [{"variantId": variant_id, "quantity": 7, "price": price}],
         "channelSlug": checkout.channel.slug,
     }
+
+    # when
     response = app_api_client.post_graphql(
         MUTATION_CHECKOUT_LINES_ADD,
         variables,
         permissions=[permission_handle_checkouts],
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["checkoutLinesAdd"]
     assert not data["errors"]
