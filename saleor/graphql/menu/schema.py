@@ -78,7 +78,9 @@ class MenuQueries(graphene.ObjectType):
     @staticmethod
     def resolve_menu(_root, info: ResolveInfo, *, channel=None, **data):
         if channel is None:
-            channel = get_default_channel_slug_or_graphql_error()
+            channel = get_default_channel_slug_or_graphql_error(
+                allow_replica=info.context.allow_replica
+            )
         return resolve_menu(
             info, channel, data.get("id"), data.get("name"), data.get("slug")
         )
@@ -86,7 +88,9 @@ class MenuQueries(graphene.ObjectType):
     @staticmethod
     def resolve_menus(_root, info: ResolveInfo, *, channel=None, **kwargs):
         if channel is None:
-            channel = get_default_channel_slug_or_graphql_error()
+            channel = get_default_channel_slug_or_graphql_error(
+                allow_replica=info.context.allow_replica
+            )
         qs = resolve_menus(info, channel)
         qs = filter_connection_queryset(
             qs, kwargs, allow_replica=info.context.allow_replica
@@ -96,14 +100,18 @@ class MenuQueries(graphene.ObjectType):
     @staticmethod
     def resolve_menu_item(_root, info: ResolveInfo, *, channel=None, id: str):
         if channel is None:
-            channel = get_default_channel_slug_or_graphql_error()
+            channel = get_default_channel_slug_or_graphql_error(
+                allow_replica=info.context.allow_replica
+            )
         _, id = from_global_id_or_error(id, MenuItem)
         return resolve_menu_item(info, id, channel)
 
     @staticmethod
     def resolve_menu_items(_root, info: ResolveInfo, *, channel=None, **kwargs):
         if channel is None:
-            channel = get_default_channel_slug_or_graphql_error()
+            channel = get_default_channel_slug_or_graphql_error(
+                allow_replica=info.context.allow_replica
+            )
         menu_items = resolve_menu_items(info)
         qs = ChannelQsContext(qs=menu_items, channel_slug=channel)
         qs = filter_connection_queryset(

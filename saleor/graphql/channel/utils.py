@@ -11,21 +11,25 @@ from ...channel.utils import get_default_channel
 from ...shipping.models import ShippingZone
 
 
-def get_default_channel_slug_or_graphql_error() -> SimpleLazyObject:
+def get_default_channel_slug_or_graphql_error(
+    allow_replica: bool = False,
+) -> SimpleLazyObject:
     """Return a default channel slug in lazy way or a GraphQL error.
 
     Utility to get the default channel in GraphQL query resolvers.
     """
-    return SimpleLazyObject(lambda: get_default_channel_or_graphql_error().slug)
+    return SimpleLazyObject(
+        lambda: get_default_channel_or_graphql_error(allow_replica).slug
+    )
 
 
-def get_default_channel_or_graphql_error() -> Channel:
+def get_default_channel_or_graphql_error(allow_replica: bool = False) -> Channel:
     """Return a default channel or a GraphQL error.
 
     Utility to get the default channel in GraphQL query resolvers.
     """
     try:
-        channel = get_default_channel()
+        channel = get_default_channel(allow_replica)
     except (ChannelNotDefined, NoDefaultChannel) as e:
         raise GraphQLError(str(e))
     else:
@@ -59,12 +63,13 @@ def validate_channel(channel_slug, error_class):
 def clean_channel(
     channel_slug,
     error_class,
+    allow_replica: bool = False,
 ):
     if channel_slug is not None:
         channel = validate_channel(channel_slug, error_class)
     else:
         try:
-            channel = get_default_channel()
+            channel = get_default_channel(allow_replica)
         except ChannelNotDefined:
             raise ValidationError(
                 {
