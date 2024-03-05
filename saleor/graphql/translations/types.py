@@ -563,8 +563,8 @@ class PageTranslatableContent(ModelObjectType[page_models.Page]):
     @staticmethod
     def resolve_page(root: page_models.Page, info):
         return (
-            page_models.Page.objects.visible_to_user(info.context.user)
-            .using(get_database_connection_name(info.context))
+            page_models.Page.objects.using(get_database_connection_name(info.context))
+            .visible_to_user(info.context.user)
             .filter(pk=root.id)
             .first()
         )

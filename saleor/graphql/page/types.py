@@ -92,7 +92,9 @@ class PageType(ModelObjectType[models.PageType]):
         qs = attribute_models.Attribute.objects.get_unassigned_page_type_attributes(
             root.pk
         ).using(get_database_connection_name(info.context))
-        qs = filter_connection_queryset(qs, kwargs, info.context)
+        qs = filter_connection_queryset(
+            qs, kwargs, info.context, allow_replica=info.context.allow_replica
+        )
         return create_connection_slice(qs, info, kwargs, AttributeCountableConnection)
 
     @staticmethod

@@ -342,7 +342,9 @@ class ProductQueries(graphene.ObjectType):
     @staticmethod
     def resolve_categories(_root, info: ResolveInfo, *, level=None, **kwargs):
         qs = resolve_categories(info, level=level)
-        qs = filter_connection_queryset(qs, kwargs)
+        qs = filter_connection_queryset(
+            qs, kwargs, allow_replica=info.context.allow_replica
+        )
         return create_connection_slice(qs, info, kwargs, CategoryCountableConnection)
 
     @staticmethod
@@ -393,7 +395,9 @@ class ProductQueries(graphene.ObjectType):
             channel = get_default_channel_slug_or_graphql_error()
         qs = resolve_collections(info, channel)
         kwargs["channel"] = channel
-        qs = filter_connection_queryset(qs, kwargs)
+        qs = filter_connection_queryset(
+            qs, kwargs, allow_replica=info.context.allow_replica
+        )
         return create_connection_slice(qs, info, kwargs, CollectionCountableConnection)
 
     @staticmethod
@@ -460,7 +464,9 @@ class ProductQueries(graphene.ObjectType):
                 qs=search_products(qs.qs, search), channel_slug=channel
             )
         kwargs["channel"] = channel
-        qs = filter_connection_queryset(qs, kwargs)
+        qs = filter_connection_queryset(
+            qs, kwargs, allow_replica=info.context.allow_replica
+        )
         return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
 
     @staticmethod
@@ -471,7 +477,9 @@ class ProductQueries(graphene.ObjectType):
     @staticmethod
     def resolve_product_types(_root, info: ResolveInfo, **kwargs):
         qs = resolve_product_types(info)
-        qs = filter_connection_queryset(qs, kwargs)
+        qs = filter_connection_queryset(
+            qs, kwargs, allow_replica=info.context.allow_replica
+        )
         return create_connection_slice(qs, info, kwargs, ProductTypeCountableConnection)
 
     @staticmethod
@@ -526,7 +534,9 @@ class ProductQueries(graphene.ObjectType):
             requestor=requestor,
         )
         kwargs["channel"] = qs.channel_slug
-        qs = filter_connection_queryset(qs, kwargs)
+        qs = filter_connection_queryset(
+            qs, kwargs, allow_replica=info.context.allow_replica
+        )
         return create_connection_slice(
             qs, info, kwargs, ProductVariantCountableConnection
         )

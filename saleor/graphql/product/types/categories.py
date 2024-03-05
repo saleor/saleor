@@ -189,12 +189,17 @@ class Category(ModelObjectType[models.Category]):
         qs = ChannelQsContext(qs=qs, channel_slug=channel)
 
         kwargs["channel"] = channel
-        qs = filter_connection_queryset(qs, kwargs)
+        qs = filter_connection_queryset(
+            qs, kwargs, allow_replica=info.context.allow_replica
+        )
         return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
 
     @staticmethod
-    def __resolve_references(roots: list["Category"], _info):
-        return resolve_federation_references(Category, roots, models.Category.objects)
+    def __resolve_references(roots: list["Category"], info):
+        database_connection_name = get_database_connection_name(info.context)
+        return resolve_federation_references(
+            Category, roots, models.Category.objects.using(database_connection_name)
+        )
 
 
 class CategoryCountableConnection(CountableConnection):

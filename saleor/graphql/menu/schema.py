@@ -88,7 +88,9 @@ class MenuQueries(graphene.ObjectType):
         if channel is None:
             channel = get_default_channel_slug_or_graphql_error()
         qs = resolve_menus(info, channel)
-        qs = filter_connection_queryset(qs, kwargs)
+        qs = filter_connection_queryset(
+            qs, kwargs, allow_replica=info.context.allow_replica
+        )
         return create_connection_slice(qs, info, kwargs, MenuCountableConnection)
 
     @staticmethod
@@ -104,7 +106,9 @@ class MenuQueries(graphene.ObjectType):
             channel = get_default_channel_slug_or_graphql_error()
         menu_items = resolve_menu_items(info)
         qs = ChannelQsContext(qs=menu_items, channel_slug=channel)
-        qs = filter_connection_queryset(qs, kwargs)
+        qs = filter_connection_queryset(
+            qs, kwargs, allow_replica=info.context.allow_replica
+        )
         return create_connection_slice(qs, info, kwargs, MenuItemCountableConnection)
 
 
