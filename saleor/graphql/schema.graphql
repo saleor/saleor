@@ -30796,6 +30796,10 @@ input UserCreateInput @doc(category: "Users") {
   User account is confirmed.
   
   Added in Saleor 3.15.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  
+  The user will be always set as unconfirmed. The confirmation will take place when the user sets the password.
   """
   isConfirmed: Boolean
 
