@@ -25807,6 +25807,7 @@ enum OrderGrantRefundCreateErrorCode @doc(category: "Orders") {
   GRAPHQL_ERROR
   NOT_FOUND
   SHIPPING_COSTS_ALREADY_GRANTED
+  AMOUNT_GREATER_THAN_AVAILABLE
   REQUIRED
   INVALID
 }
@@ -25860,6 +25861,15 @@ input OrderGrantRefundCreateInput @doc(category: "Orders") {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   grantRefundForShipping: Boolean
+
+  """
+  The ID of the transaction item related to the granted refund. transaction.chargedAmount needs to be equal or greater than provided `amount`. If `amount` calculated automatically, the min(amount, transaction.chargedAmount) will be used.Field will be required starting from Saleor 3.21.
+  
+  Added in Saleor 3.20.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  transactionId: ID
 }
 
 input OrderGrantRefundCreateLineInput @doc(category: "Orders") {
@@ -25928,6 +25938,7 @@ enum OrderGrantRefundUpdateErrorCode @doc(category: "Orders") {
   NOT_FOUND
   REQUIRED
   INVALID
+  AMOUNT_GREATER_THAN_AVAILABLE
   SHIPPING_COSTS_ALREADY_GRANTED
 }
 
@@ -25989,6 +26000,15 @@ input OrderGrantRefundUpdateInput @doc(category: "Orders") {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   grantRefundForShipping: Boolean
+
+  """
+  The ID of the transaction item related to the granted refund. transaction.chargedAmount needs to be equal or greater than provided `amount`. If `amount` calculated automatically, the min(amount, transaction.chargedAmount) will be used.
+  
+  Added in Saleor 3.20.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  transactionId: ID
 }
 
 input OrderGrantRefundUpdateLineAddInput @doc(category: "Orders") {

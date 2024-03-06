@@ -879,6 +879,14 @@ class OrderGrantedRefund(models.Model):
     )
     shipping_costs_included = models.BooleanField(default=False)
 
+    transaction_item = models.OneToOneField(
+        "payment.TransactionItem",
+        related_name="granted_refund",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+
     class Meta:
         ordering = ("created_at", "id")
 

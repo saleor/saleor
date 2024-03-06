@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+import graphene
 import pytest
 
 from .....core.prices import quantize_price
@@ -1277,3 +1278,780 @@ def test_grant_refund_updates_order_charge_status(
     assert len(data["order"]["grantedRefunds"]) == 1
 
     assert order.charge_status == OrderChargeStatusEnum.FULL.value
+
+
+def test_grant_refund_update_with_transaction_item(
+    staff_api_client, app, permission_manage_orders, order, transaction_item_generator
+):
+    # given
+    transaction_item = transaction_item_generator(
+        order_id=order.id, charged_value=Decimal("22.00")
+    )
+    current_reason = "Granted refund reason."
+    current_amount = Decimal("10.00")
+    granted_refund = order.granted_refunds.create(
+        amount_value=current_amount,
+        currency=order.currency,
+        reason=current_reason,
+        app=app,
+    )
+    updated_at = granted_refund.updated_at
+    granted_refund_id = to_global_id_or_none(granted_refund)
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    variables = {
+        "id": granted_refund_id,
+        "input": {
+            "transactionId": graphene.Node.to_global_id(
+                "TransactionItem", transaction_item.token
+            )
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_GRANT_REFUND_UPDATE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderGrantRefundUpdate"]
+    assert not data["errors"]
+
+    assert data["order"]["id"] == to_global_id_or_none(order)
+    assert len(data["order"]["grantedRefunds"]) == 1
+
+    granted_refund_assigned_to_order = data["order"]["grantedRefunds"][0]
+    assert granted_refund_assigned_to_order == data["grantedRefund"]
+    assert updated_at.isoformat() != data["grantedRefund"]["updatedAt"]
+    granted_refund.refresh_from_db()
+    assert granted_refund.transaction_item == transaction_item
+    assert granted_refund.updated_at.isoformat() == data["grantedRefund"]["updatedAt"]
+    assert (
+        granted_refund_assigned_to_order["amount"]["amount"]
+        == granted_refund.amount_value
+    )
+    assert granted_refund_assigned_to_order["reason"] == granted_refund.reason
+    assert granted_refund_assigned_to_order["app"]["id"] == to_global_id_or_none(
+        granted_refund.app
+    )
+
+
+@pytest.mark.parametrize("expected_granted_amount", [Decimal("2.00"), Decimal("1.00")])
+def test_grant_refund_update_with_transaction_and_correct_amount(
+    expected_granted_amount,
+    staff_api_client,
+    app,
+    permission_manage_orders,
+    order,
+    transaction_item_generator,
+):
+    # given
+    transaction_item = transaction_item_generator(
+        order_id=order.id, charged_value=Decimal("2.00")
+    )
+    current_reason = "Granted refund reason."
+    granted_refund = order.granted_refunds.create(
+        amount_value=expected_granted_amount,
+        currency=order.currency,
+        reason=current_reason,
+        app=app,
+    )
+    updated_at = granted_refund.updated_at
+    granted_refund_id = to_global_id_or_none(granted_refund)
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    variables = {
+        "id": granted_refund_id,
+        "input": {
+            "transactionId": graphene.Node.to_global_id(
+                "TransactionItem", transaction_item.token
+            )
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_GRANT_REFUND_UPDATE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderGrantRefundUpdate"]
+    assert not data["errors"]
+
+    assert data["order"]["id"] == to_global_id_or_none(order)
+    assert len(data["order"]["grantedRefunds"]) == 1
+
+    granted_refund_assigned_to_order = data["order"]["grantedRefunds"][0]
+    assert granted_refund_assigned_to_order == data["grantedRefund"]
+    assert updated_at.isoformat() != data["grantedRefund"]["updatedAt"]
+    granted_refund.refresh_from_db()
+    assert granted_refund.transaction_item == transaction_item
+    assert granted_refund.updated_at.isoformat() == data["grantedRefund"]["updatedAt"]
+    assert (
+        granted_refund_assigned_to_order["amount"]["amount"]
+        == granted_refund.amount_value
+    )
+    assert granted_refund_assigned_to_order["reason"] == granted_refund.reason
+    assert granted_refund_assigned_to_order["app"]["id"] == to_global_id_or_none(
+        granted_refund.app
+    )
+
+
+def test_grant_refund_update_with_input_amount_greater_than_transaction_charged_amount(
+    staff_api_client, app, permission_manage_orders, order, transaction_item_generator
+):
+    # given
+    charged_value = Decimal("10.00")
+    transaction_item = transaction_item_generator(
+        order_id=order.id, charged_value=charged_value
+    )
+    current_reason = "Granted refund reason."
+    current_amount = Decimal("10.00")
+    granted_refund = order.granted_refunds.create(
+        amount_value=current_amount,
+        currency=order.currency,
+        reason=current_reason,
+        app=app,
+    )
+    granted_refund_id = to_global_id_or_none(granted_refund)
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    transaction_id = graphene.Node.to_global_id(
+        "TransactionItem", transaction_item.token
+    )
+
+    variables = {
+        "id": granted_refund_id,
+        "input": {
+            "amount": charged_value + Decimal("1.00"),
+            "transactionId": transaction_id,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_GRANT_REFUND_UPDATE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderGrantRefundUpdate"]
+    assert len(data["errors"]) == 1
+    error = data["errors"][0]
+    assert error["field"] == "amount"
+    assert (
+        error["code"]
+        == OrderGrantRefundUpdateErrorCode.AMOUNT_GREATER_THAN_AVAILABLE.name
+    )
+
+
+def test_grant_refund_update_with_transaction_granted_amount_is_bigger_than_charged(
+    staff_api_client, app, permission_manage_orders, order, transaction_item_generator
+):
+    # given
+    charged_value = Decimal("0.00")
+    transaction_item = transaction_item_generator(
+        order_id=order.id, charged_value=charged_value
+    )
+    current_reason = "Granted refund reason."
+    current_amount = Decimal("10.00")
+    granted_refund = order.granted_refunds.create(
+        amount_value=current_amount,
+        currency=order.currency,
+        reason=current_reason,
+        app=app,
+    )
+    granted_refund_id = to_global_id_or_none(granted_refund)
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    transaction_id = graphene.Node.to_global_id(
+        "TransactionItem", transaction_item.token
+    )
+
+    variables = {
+        "id": granted_refund_id,
+        "input": {"transactionId": transaction_id},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_GRANT_REFUND_UPDATE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderGrantRefundUpdate"]
+    assert len(data["errors"]) == 1
+    error = data["errors"][0]
+    assert error["field"] == "transactionId"
+    assert (
+        error["code"]
+        == OrderGrantRefundUpdateErrorCode.AMOUNT_GREATER_THAN_AVAILABLE.name
+    )
+
+
+@pytest.mark.parametrize("input_amount", [Decimal("1.00"), Decimal("2.00")])
+def test_grant_refund_update_with_correct_input_amount_to_transaction_charged_amount(
+    input_amount,
+    staff_api_client,
+    app,
+    permission_manage_orders,
+    order,
+    transaction_item_generator,
+):
+    # given
+    transaction_item = transaction_item_generator(
+        order_id=order.id, charged_value=Decimal("2.00")
+    )
+    current_reason = "Granted refund reason."
+    granted_refund = order.granted_refunds.create(
+        amount_value=Decimal("0.50"),
+        currency=order.currency,
+        reason=current_reason,
+        app=app,
+    )
+    updated_at = granted_refund.updated_at
+    granted_refund_id = to_global_id_or_none(granted_refund)
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    transaction_id = graphene.Node.to_global_id(
+        "TransactionItem", transaction_item.token
+    )
+
+    variables = {
+        "id": granted_refund_id,
+        "input": {"transactionId": transaction_id, "amount": input_amount},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_GRANT_REFUND_UPDATE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderGrantRefundUpdate"]
+    assert not data["errors"]
+
+    assert data["order"]["id"] == to_global_id_or_none(order)
+    assert len(data["order"]["grantedRefunds"]) == 1
+
+    granted_refund_assigned_to_order = data["order"]["grantedRefunds"][0]
+    assert granted_refund_assigned_to_order == data["grantedRefund"]
+    assert updated_at.isoformat() != data["grantedRefund"]["updatedAt"]
+    granted_refund.refresh_from_db()
+    assert granted_refund.transaction_item == transaction_item
+    assert granted_refund.updated_at.isoformat() == data["grantedRefund"]["updatedAt"]
+    assert (
+        granted_refund_assigned_to_order["amount"]["amount"]
+        == granted_refund.amount_value
+    )
+    assert granted_refund_assigned_to_order["reason"] == granted_refund.reason
+    assert granted_refund_assigned_to_order["app"]["id"] == to_global_id_or_none(
+        granted_refund.app
+    )
+
+
+def test_grant_refund_update_with_transaction_and_add_lines(
+    transaction_item_generator,
+    app_api_client,
+    staff_user,
+    permission_manage_orders,
+    order_with_lines,
+):
+    # given
+    max_granted_charged_value = Decimal("1.00")
+    transaction_item = transaction_item_generator(
+        order_id=order_with_lines.id, charged_value=max_granted_charged_value
+    )
+    current_reason = "Granted refund reason."
+    current_amount = Decimal("10.00")
+    granted_refund = order_with_lines.granted_refunds.create(
+        amount_value=current_amount,
+        currency=order_with_lines.currency,
+        reason=current_reason,
+        user=staff_user,
+    )
+    order_line = order_with_lines.lines.first()
+    granted_refund_id = to_global_id_or_none(granted_refund)
+    app_api_client.app.permissions.set([permission_manage_orders])
+
+    expected_quantity = 1
+    expected_reason = "Reason"
+
+    transaction_id = graphene.Node.to_global_id(
+        "TransactionItem", transaction_item.token
+    )
+
+    variables = {
+        "id": granted_refund_id,
+        "input": {
+            "transactionId": transaction_id,
+            "addLines": [
+                {
+                    "id": to_global_id_or_none(order_line),
+                    "quantity": expected_quantity,
+                    "reason": expected_reason,
+                }
+            ],
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(ORDER_GRANT_REFUND_UPDATE, variables)
+
+    # then
+    granted_refund.refresh_from_db()
+    content = get_graphql_content(response)
+    data = content["data"]["orderGrantRefundUpdate"]
+    assert not data["errors"]
+    assert len(data["order"]["grantedRefunds"]) == 1
+    granted_refund_data = data["order"]["grantedRefunds"][0]
+    assert len(granted_refund_data["lines"]) == 1
+    assert granted_refund_data["lines"][0]["orderLine"]["id"] == to_global_id_or_none(
+        order_line
+    )
+    assert granted_refund_data["lines"][0]["quantity"] == expected_quantity
+    assert granted_refund_data["lines"][0]["reason"] == expected_reason
+
+    assert len(granted_refund.lines.all()) == 1
+    granted_refund_line = granted_refund.lines.first()
+    assert granted_refund_line.order_line == order_line
+    assert granted_refund_line.quantity == expected_quantity
+    assert granted_refund_line.reason == expected_reason
+
+    assert granted_refund.amount_value == max_granted_charged_value
+    assert quantize_price(
+        granted_refund.amount_value, order_with_lines.currency
+    ) == quantize_price(
+        Decimal(granted_refund_data["amount"]["amount"]), order_with_lines.currency
+    )
+
+
+def test_grant_refund_update_with_transaction_and_remove_lines(
+    app_api_client,
+    staff_user,
+    permission_manage_orders,
+    order_with_lines,
+    transaction_item_generator,
+):
+    # given
+    max_granted_charged_value = Decimal("1.00")
+    transaction_item = transaction_item_generator(
+        order_id=order_with_lines.id, charged_value=max_granted_charged_value
+    )
+    current_reason = "Granted refund reason."
+    current_amount = Decimal("10.00")
+    granted_refund = order_with_lines.granted_refunds.create(
+        amount_value=current_amount,
+        currency=order_with_lines.currency,
+        reason=current_reason,
+        user=staff_user,
+    )
+    order_line = order_with_lines.lines.first()
+    granted_refund_line = granted_refund.lines.create(order_line=order_line, quantity=1)
+    granted_refund_line_id = to_global_id_or_none(granted_refund_line)
+    granted_refund_id = to_global_id_or_none(granted_refund)
+
+    second_order_line = order_with_lines.lines.last()
+    granted_refund.lines.create(order_line=second_order_line, quantity=1)
+
+    app_api_client.app.permissions.set([permission_manage_orders])
+
+    transaction_id = graphene.Node.to_global_id(
+        "TransactionItem", transaction_item.token
+    )
+
+    variables = {
+        "id": granted_refund_id,
+        "input": {
+            "transactionId": transaction_id,
+            "removeLines": [granted_refund_line_id],
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(ORDER_GRANT_REFUND_UPDATE, variables)
+
+    # then
+    granted_refund.refresh_from_db()
+    content = get_graphql_content(response)
+    data = content["data"]["orderGrantRefundUpdate"]
+
+    assert not data["errors"]
+
+    assert len(data["order"]["grantedRefunds"]) == 1
+    granted_refund_data = data["order"]["grantedRefunds"][0]
+
+    assert granted_refund.amount_value == max_granted_charged_value
+    assert quantize_price(
+        granted_refund.amount_value, order_with_lines.currency
+    ) == quantize_price(
+        Decimal(granted_refund_data["amount"]["amount"]), order_with_lines.currency
+    )
+
+
+def test_grant_refund_update_with_transaction_and_shipping_and_add_and_remove_lines(
+    app_api_client,
+    staff_user,
+    permission_manage_orders,
+    order_with_lines,
+    transaction_item_generator,
+):
+    # given
+    max_granted_charged_value = Decimal("1.00")
+    transaction_item = transaction_item_generator(
+        order_id=order_with_lines.id, charged_value=max_granted_charged_value
+    )
+    current_reason = "Granted refund reason."
+    current_amount = Decimal("10.00")
+    granted_refund = order_with_lines.granted_refunds.create(
+        amount_value=current_amount,
+        currency=order_with_lines.currency,
+        reason=current_reason,
+        user=staff_user,
+    )
+    order_line = order_with_lines.lines.first()
+    granted_refund_line = granted_refund.lines.create(order_line=order_line, quantity=1)
+    granted_refund_line_id = to_global_id_or_none(granted_refund_line)
+    granted_refund_id = to_global_id_or_none(granted_refund)
+
+    second_order_line = order_with_lines.lines.last()
+
+    app_api_client.app.permissions.set([permission_manage_orders])
+
+    transaction_id = graphene.Node.to_global_id(
+        "TransactionItem", transaction_item.token
+    )
+
+    variables = {
+        "id": granted_refund_id,
+        "input": {
+            "transactionId": transaction_id,
+            "removeLines": [granted_refund_line_id],
+            "addLines": [
+                {
+                    "id": to_global_id_or_none(second_order_line),
+                    "quantity": 1,
+                }
+            ],
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(ORDER_GRANT_REFUND_UPDATE, variables)
+
+    # then
+    granted_refund.refresh_from_db()
+    content = get_graphql_content(response)
+    data = content["data"]["orderGrantRefundUpdate"]
+
+    assert not data["errors"]
+
+    assert len(data["order"]["grantedRefunds"]) == 1
+    granted_refund_data = data["order"]["grantedRefunds"][0]
+
+    assert granted_refund.amount_value == max_granted_charged_value
+    assert quantize_price(
+        granted_refund.amount_value, order_with_lines.currency
+    ) == quantize_price(
+        Decimal(granted_refund_data["amount"]["amount"]), order_with_lines.currency
+    )
+
+
+def test_grant_refund_update_with_transaction_add_remove_lines_shipping_invalid_amount(
+    app_api_client,
+    staff_user,
+    permission_manage_orders,
+    order_with_lines,
+    transaction_item_generator,
+):
+    # given
+    max_granted_charged_value = Decimal("1.00")
+    transaction_item = transaction_item_generator(
+        order_id=order_with_lines.id, charged_value=max_granted_charged_value
+    )
+    current_reason = "Granted refund reason."
+    current_amount = Decimal("0.50")
+    granted_refund = order_with_lines.granted_refunds.create(
+        amount_value=current_amount,
+        currency=order_with_lines.currency,
+        reason=current_reason,
+        user=staff_user,
+    )
+    order_line = order_with_lines.lines.first()
+    granted_refund_line = granted_refund.lines.create(order_line=order_line, quantity=1)
+    granted_refund_line_id = to_global_id_or_none(granted_refund_line)
+    granted_refund_id = to_global_id_or_none(granted_refund)
+
+    second_order_line = order_with_lines.lines.last()
+
+    app_api_client.app.permissions.set([permission_manage_orders])
+
+    transaction_id = graphene.Node.to_global_id(
+        "TransactionItem", transaction_item.token
+    )
+
+    variables = {
+        "id": granted_refund_id,
+        "input": {
+            "amount": Decimal("20.00"),
+            "transactionId": transaction_id,
+            "grantRefundForShipping": True,
+            "removeLines": [granted_refund_line_id],
+            "addLines": [
+                {
+                    "id": to_global_id_or_none(second_order_line),
+                    "quantity": 1,
+                }
+            ],
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(ORDER_GRANT_REFUND_UPDATE, variables)
+
+    # then
+    granted_refund.refresh_from_db()
+    content = get_graphql_content(response)
+    data = content["data"]["orderGrantRefundUpdate"]
+
+    assert len(data["errors"]) == 1
+    error = data["errors"][0]
+    assert error["field"] == "amount"
+    assert (
+        error["code"]
+        == OrderGrantRefundUpdateErrorCode.AMOUNT_GREATER_THAN_AVAILABLE.name
+    )
+
+
+def test_grant_refund_update_with_transaction_add_remove_lines_shipping_amount(
+    app_api_client,
+    staff_user,
+    permission_manage_orders,
+    order_with_lines,
+    transaction_item_generator,
+):
+    # given
+    max_granted_charged_value = Decimal("1.00")
+    transaction_item = transaction_item_generator(
+        order_id=order_with_lines.id, charged_value=max_granted_charged_value
+    )
+    current_reason = "Granted refund reason."
+    current_amount = Decimal("0.50")
+    granted_refund = order_with_lines.granted_refunds.create(
+        amount_value=current_amount,
+        currency=order_with_lines.currency,
+        reason=current_reason,
+        user=staff_user,
+    )
+    order_line = order_with_lines.lines.first()
+    granted_refund_line = granted_refund.lines.create(order_line=order_line, quantity=1)
+    granted_refund_line_id = to_global_id_or_none(granted_refund_line)
+    granted_refund_id = to_global_id_or_none(granted_refund)
+
+    second_order_line = order_with_lines.lines.last()
+
+    app_api_client.app.permissions.set([permission_manage_orders])
+
+    transaction_id = graphene.Node.to_global_id(
+        "TransactionItem", transaction_item.token
+    )
+
+    variables = {
+        "id": granted_refund_id,
+        "input": {
+            "amount": max_granted_charged_value,
+            "transactionId": transaction_id,
+            "grantRefundForShipping": True,
+            "removeLines": [granted_refund_line_id],
+            "addLines": [
+                {
+                    "id": to_global_id_or_none(second_order_line),
+                    "quantity": 1,
+                }
+            ],
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(ORDER_GRANT_REFUND_UPDATE, variables)
+
+    # then
+    granted_refund.refresh_from_db()
+    content = get_graphql_content(response)
+    data = content["data"]["orderGrantRefundUpdate"]
+
+    assert not data["errors"]
+
+    assert len(data["order"]["grantedRefunds"]) == 1
+    granted_refund_data = data["order"]["grantedRefunds"][0]
+
+    assert granted_refund.amount_value == max_granted_charged_value
+    assert quantize_price(
+        granted_refund.amount_value, order_with_lines.currency
+    ) == quantize_price(
+        Decimal(granted_refund_data["amount"]["amount"]), order_with_lines.currency
+    )
+
+
+def test_grant_refund_update_with_transaction_add_lines_and_invalid_amount(
+    app_api_client,
+    staff_user,
+    permission_manage_orders,
+    order_with_lines,
+    transaction_item_generator,
+):
+    # given
+    max_granted_charged_value = Decimal("1.00")
+    transaction_item = transaction_item_generator(
+        order_id=order_with_lines.id, charged_value=max_granted_charged_value
+    )
+    current_reason = "Granted refund reason."
+    current_amount = Decimal("0.50")
+    granted_refund = order_with_lines.granted_refunds.create(
+        amount_value=current_amount,
+        currency=order_with_lines.currency,
+        reason=current_reason,
+        user=staff_user,
+    )
+    granted_refund_id = to_global_id_or_none(granted_refund)
+
+    second_order_line = order_with_lines.lines.last()
+
+    app_api_client.app.permissions.set([permission_manage_orders])
+
+    transaction_id = graphene.Node.to_global_id(
+        "TransactionItem", transaction_item.token
+    )
+
+    variables = {
+        "id": granted_refund_id,
+        "input": {
+            "amount": max_granted_charged_value + Decimal("1.00"),
+            "transactionId": transaction_id,
+            "addLines": [
+                {
+                    "id": to_global_id_or_none(second_order_line),
+                    "quantity": 1,
+                }
+            ],
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(ORDER_GRANT_REFUND_UPDATE, variables)
+
+    # then
+    granted_refund.refresh_from_db()
+    content = get_graphql_content(response)
+    data = content["data"]["orderGrantRefundUpdate"]
+
+    assert len(data["errors"]) == 1
+    error = data["errors"][0]
+    assert error["field"] == "amount"
+    assert (
+        error["code"]
+        == OrderGrantRefundUpdateErrorCode.AMOUNT_GREATER_THAN_AVAILABLE.name
+    )
+
+
+def test_grant_refund_update_with_transaction_remove_lines_and_invalid_amount(
+    app_api_client,
+    staff_user,
+    permission_manage_orders,
+    order_with_lines,
+    transaction_item_generator,
+):
+    # given
+    max_granted_charged_value = Decimal("1.00")
+    transaction_item = transaction_item_generator(
+        order_id=order_with_lines.id, charged_value=max_granted_charged_value
+    )
+    current_reason = "Granted refund reason."
+    current_amount = Decimal("0.50")
+    granted_refund = order_with_lines.granted_refunds.create(
+        amount_value=current_amount,
+        currency=order_with_lines.currency,
+        reason=current_reason,
+        user=staff_user,
+    )
+    order_line = order_with_lines.lines.first()
+    granted_refund_line = granted_refund.lines.create(order_line=order_line, quantity=1)
+    granted_refund_line_id = to_global_id_or_none(granted_refund_line)
+    granted_refund_id = to_global_id_or_none(granted_refund)
+
+    app_api_client.app.permissions.set([permission_manage_orders])
+
+    transaction_id = graphene.Node.to_global_id(
+        "TransactionItem", transaction_item.token
+    )
+
+    variables = {
+        "id": granted_refund_id,
+        "input": {
+            "amount": max_granted_charged_value + Decimal("1.00"),
+            "transactionId": transaction_id,
+            "grantRefundForShipping": True,
+            "removeLines": [granted_refund_line_id],
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(ORDER_GRANT_REFUND_UPDATE, variables)
+
+    # then
+    granted_refund.refresh_from_db()
+    content = get_graphql_content(response)
+    data = content["data"]["orderGrantRefundUpdate"]
+
+    assert len(data["errors"]) == 1
+    error = data["errors"][0]
+    assert error["field"] == "amount"
+    assert (
+        error["code"]
+        == OrderGrantRefundUpdateErrorCode.AMOUNT_GREATER_THAN_AVAILABLE.name
+    )
+
+
+def test_grant_refund_update_with_transaction_granted_shipping_and_invalid_amount(
+    app_api_client,
+    staff_user,
+    permission_manage_orders,
+    order_with_lines,
+    transaction_item_generator,
+):
+    # given
+    max_granted_charged_value = Decimal("1.00")
+    transaction_item = transaction_item_generator(
+        order_id=order_with_lines.id, charged_value=max_granted_charged_value
+    )
+    current_reason = "Granted refund reason."
+    current_amount = Decimal("0.50")
+    granted_refund = order_with_lines.granted_refunds.create(
+        amount_value=current_amount,
+        currency=order_with_lines.currency,
+        reason=current_reason,
+        user=staff_user,
+    )
+    granted_refund_id = to_global_id_or_none(granted_refund)
+
+    app_api_client.app.permissions.set([permission_manage_orders])
+
+    transaction_id = graphene.Node.to_global_id(
+        "TransactionItem", transaction_item.token
+    )
+
+    variables = {
+        "id": granted_refund_id,
+        "input": {
+            "amount": max_granted_charged_value + Decimal("1.00"),
+            "transactionId": transaction_id,
+            "grantRefundForShipping": True,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(ORDER_GRANT_REFUND_UPDATE, variables)
+
+    # then
+    granted_refund.refresh_from_db()
+    content = get_graphql_content(response)
+    data = content["data"]["orderGrantRefundUpdate"]
+
+    assert len(data["errors"]) == 1
+    error = data["errors"][0]
+    assert error["field"] == "amount"
+    assert (
+        error["code"]
+        == OrderGrantRefundUpdateErrorCode.AMOUNT_GREATER_THAN_AVAILABLE.name
+    )
