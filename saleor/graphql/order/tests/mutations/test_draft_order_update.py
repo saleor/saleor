@@ -67,9 +67,15 @@ DRAFT_ORDER_UPDATE_MUTATION = """
                         gross {
                             amount
                         }
+                        net {
+                            amount
+                        }
                     }
                     subtotal {
                         gross {
+                            amount
+                        }
+                        net {
                             amount
                         }
                     }
@@ -77,6 +83,42 @@ DRAFT_ORDER_UPDATE_MUTATION = """
                         gross {
                             amount
                         }
+                        net {
+                            amount
+                        }
+                    }
+                    discounts {
+                        amount {
+                            amount
+                        }
+                        valueType
+                        type
+                        reason
+                    }
+                    lines {
+                        quantity
+                        unitDiscount {
+                          amount
+                        }
+                        undiscountedUnitPrice {
+                            net {
+                                amount
+                            }
+                        }
+                        unitPrice {
+                            net {
+                                amount
+                            }
+                        }
+                        totalPrice {
+                            net {
+                                amount
+                            }
+                        }
+                        unitDiscountReason
+                        unitDiscountType
+                        unitDiscountValue
+                        isGift
                     }
                 }
             }
@@ -1394,75 +1436,6 @@ def test_draft_order_update_no_shipping_method_channel_listings(
     assert errors[0]["field"] == "shippingMethod"
 
 
-DRAFT_ORDER_UPDATE_MUTATION_PROMOTIONS = """
-        mutation draftUpdate(
-        $id: ID!,
-        $input: DraftOrderInput!,
-        ) {
-            draftOrderUpdate(
-                id: $id,
-                input: $input
-            ) {
-                errors {
-                    field
-                    code
-                    message
-                }
-                order {
-                    discounts {
-                        amount {
-                            amount
-                        }
-                        valueType
-                        type
-                        reason
-                    }
-                    lines {
-                        quantity
-                        unitDiscount {
-                          amount
-                        }
-                        undiscountedUnitPrice {
-                            net {
-                                amount
-                            }
-                        }
-                        unitPrice {
-                            net {
-                                amount
-                            }
-                        }
-                        totalPrice {
-                            net {
-                                amount
-                            }
-                        }
-                        unitDiscountReason
-                        unitDiscountType
-                        unitDiscountValue
-                        isGift
-                    }
-                    total {
-                        net {
-                            amount
-                        }
-                    }
-                    subtotal {
-                        net {
-                            amount
-                        }
-                    }
-                    undiscountedTotal {
-                        net {
-                            amount
-                        }
-                    }
-                }
-            }
-        }
-        """
-
-
 def test_draft_order_update_order_promotion(
     staff_api_client,
     permission_group_manage_orders,
@@ -1475,7 +1448,7 @@ def test_draft_order_update_order_promotion(
     order_promotion_rule,
 ):
     # given
-    query = DRAFT_ORDER_UPDATE_MUTATION_PROMOTIONS
+    query = DRAFT_ORDER_UPDATE_MUTATION
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     rule = order_promotion_rule
@@ -1527,7 +1500,7 @@ def test_draft_order_update_gift_promotion(
     gift_promotion_rule,
 ):
     # given
-    query = DRAFT_ORDER_UPDATE_MUTATION_PROMOTIONS
+    query = DRAFT_ORDER_UPDATE_MUTATION
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     rule = gift_promotion_rule
