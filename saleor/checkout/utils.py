@@ -5,6 +5,7 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Optional, Union, cast
 
 import graphene
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import prefetch_related_objects
@@ -113,8 +114,12 @@ def invalidate_checkout_prices(
 
 
 def get_user_checkout(
-    user: User, checkout_queryset=Checkout.objects.all()
+    user: User,
+    checkout_queryset=None,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> Optional[Checkout]:
+    if not checkout_queryset:
+        checkout_queryset = Checkout.objects.using(database_connection_name).all()
     return checkout_queryset.filter(user=user, channel__is_active=True).first()
 
 

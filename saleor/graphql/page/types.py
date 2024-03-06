@@ -106,8 +106,11 @@ class PageType(ModelObjectType[models.PageType]):
         )
 
     @staticmethod
-    def __resolve_references(roots: list["PageType"], _info: ResolveInfo):
-        return resolve_federation_references(PageType, roots, models.PageType.objects)
+    def __resolve_references(roots: list["PageType"], info: ResolveInfo):
+        database_connection_name = get_database_connection_name(info.context)
+        return resolve_federation_references(
+            PageType, roots, models.PageType.objects.using(database_connection_name)
+        )
 
 
 class PageTypeCountableConnection(CountableConnection):

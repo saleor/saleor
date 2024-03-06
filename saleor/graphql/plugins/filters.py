@@ -10,11 +10,13 @@ from .types import Plugin
 
 
 def filter_plugin_status_in_channels(
-    plugins: list[Plugin], status_in_channels: dict
+    plugins: list[Plugin], status_in_channels: dict, database_connection_name: str
 ) -> list[Plugin]:
     is_active = status_in_channels["active"]
     channels_id = status_in_channels["channels"]
-    channels = get_nodes(channels_id, Channel)
+    channels = get_nodes(
+        channels_id, Channel, database_connection_name=database_connection_name
+    )
 
     filtered_plugins = []
     for plugin in plugins:

@@ -1135,7 +1135,7 @@ def test_attributes_filter_by_non_existing_category_id(customer_user, channel_US
     """Ensure using a non-existing category ID returns an empty query set."""
 
     category_id = graphene.Node.to_global_id("Category", -1)
-    mocked_qs = mock.MagicMock()
+    mocked_qs = mock.MagicMock(db="default")
     qs = filter_attributes_by_product_types(
         mocked_qs, "in_category", category_id, customer_user, channel_USD.slug
     )
