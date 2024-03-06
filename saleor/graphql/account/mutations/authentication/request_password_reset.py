@@ -117,7 +117,7 @@ class RequestPasswordReset(BaseMutation):
 
         if not user.is_staff:
             channel_slug = clean_channel(
-                channel_slug, error_class=AccountErrorCode
+                channel_slug, error_class=AccountErrorCode, allow_replica=False
             ).slug
         elif channel_slug is not None:
             channel_slug = validate_channel(

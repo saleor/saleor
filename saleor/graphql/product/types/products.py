@@ -1823,7 +1823,9 @@ class ProductType(ModelObjectType[models.ProductType]):
     def resolve_products(root: models.ProductType, info, *, channel=None, **kwargs):
         requestor = get_user_or_app_from_context(info.context)
         if channel is None:
-            channel = get_default_channel_slug_or_graphql_error()
+            channel = get_default_channel_slug_or_graphql_error(
+                allow_replica=info.context.allow_replica
+            )
         qs = root.products.using(
             get_database_connection_name(info.context)
         ).visible_to_user(requestor, channel)

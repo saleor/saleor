@@ -339,7 +339,10 @@ def create_connection_slice(
     else:
         queryset = iterable
 
-    queryset, sort_by = sort_queryset_for_connection(iterable=queryset, args=args)
+    allow_replica = getattr(info.context, "allow_replica", False)
+    queryset, sort_by = sort_queryset_for_connection(
+        iterable=queryset, args=args, allow_replica=allow_replica
+    )
     args["sort_by"] = sort_by
 
     slice = connection_from_queryset_slice(
@@ -485,7 +488,7 @@ def filter_qs(
     filter_input["channel"] = (
         args.get("channel")
         or filter_channel
-        or get_default_channel_slug_or_graphql_error()
+        or get_default_channel_slug_or_graphql_error(allow_replica)
     )
 
     if isinstance(iterable, ChannelQsContext):

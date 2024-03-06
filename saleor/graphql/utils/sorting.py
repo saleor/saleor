@@ -24,7 +24,7 @@ def _sort_queryset_by_attribute(queryset, sorting_attribute, sorting_direction):
     return queryset
 
 
-def sort_queryset_for_connection(iterable, args):
+def sort_queryset_for_connection(iterable, args, allow_replica):
     sort_by = args.get("sort_by")
     reversed = True if "last" in args else False
     if sort_by:
@@ -33,7 +33,7 @@ def sort_queryset_for_connection(iterable, args):
             sort_by=sort_by,
             reversed=reversed,
             channel_slug=args.get("channel")  # type: ignore[arg-type]
-            or get_default_channel_slug_or_graphql_error(),
+            or get_default_channel_slug_or_graphql_error(allow_replica=allow_replica),
         )
     else:
         iterable, sort_by = sort_queryset_by_default(

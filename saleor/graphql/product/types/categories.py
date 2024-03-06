@@ -172,7 +172,9 @@ class Category(ModelObjectType[models.Category]):
         )
         tree = root.get_descendants(include_self=True)
         if channel is None and not has_required_permissions:
-            channel = get_default_channel_slug_or_graphql_error()
+            channel = get_default_channel_slug_or_graphql_error(
+                allow_replica=info.context.allow_replica
+            )
         connection_name = get_database_connection_name(info.context)
         qs = models.Product.objects.using(connection_name).all()
         if not has_required_permissions:
