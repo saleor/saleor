@@ -186,6 +186,7 @@ def trigger_webhook_sync_if_not_cached(
     )
     response_data = cache.get(cache_key)
     if response_data is None:
+        logger.info("response_data is None")
         response_data = trigger_webhook_sync(
             event_type,
             payload,
@@ -201,6 +202,8 @@ def trigger_webhook_sync_if_not_cached(
                 response_data,
                 timeout=cache_timeout or WEBHOOK_CACHE_DEFAULT_TIMEOUT,
             )
+    else:
+        logger.info("response_data is not None")
     return response_data
 
 
