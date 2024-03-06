@@ -6,11 +6,13 @@ import graphene
 import pytest
 import pytz
 from django.utils import timezone
+from prices import Money
 
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
 from .....checkout.utils import (
+    PRIVATE_META_APP_SHIPPING_ID,
     calculate_checkout_quantity,
     invalidate_checkout_prices,
     recalculate_checkout_discount,
@@ -18,6 +20,7 @@ from .....checkout.utils import (
 from .....discount import RewardValueType
 from .....plugins.manager import get_plugins_manager
 from .....product.models import ProductChannelListing
+from .....shipping.interface import ShippingMethodData
 from .....warehouse import WarehouseClickAndCollectOption
 from .....warehouse.models import Reservation, Stock
 from .....warehouse.tests.utils import get_available_quantity_for_stock
@@ -722,6 +725,90 @@ def test_checkout_lines_add_existing_variant_override_previous_custom_price(
     line = checkout.lines.last()
     assert line.quantity == 10
     assert line.price_override == price
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.list_shipping_methods_for_checkout")
+def test_checkout_lines_add_deletes_external_shipping_method_if_invalid(
+    mocked_webhook, app_api_client, checkout_with_item, permission_handle_checkouts
+):
+    # given
+    mocked_webhook.return_value = []
+    checkout = checkout_with_item
+    line = checkout.lines.first()
+    metadata = checkout.metadata_storage
+    metadata.private_metadata = {PRIVATE_META_APP_SHIPPING_ID: "QXBwOjEzMzc="}
+    metadata.save(update_fields=["private_metadata"])
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", line.variant.pk)
+    price = Decimal("13.11")
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [{"variantId": variant_id, "quantity": 7, "price": price}],
+        "channelSlug": checkout.channel.slug,
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_CHECKOUT_LINES_ADD,
+        variables,
+        permissions=[permission_handle_checkouts],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLinesAdd"]
+    assert not data["errors"]
+    metadata.refresh_from_db()
+    assert metadata.private_metadata == {}
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.list_shipping_methods_for_checkout")
+def test_checkout_lines_add_doesnt_delete_external_shipping_method_if_valid(
+    mocked_webhook,
+    app_api_client,
+    checkout_with_item,
+    permission_handle_checkouts,
+    address,
+):
+    # given
+    external_method_data = ShippingMethodData(
+        id=graphene.Node.to_global_id("App", app_api_client.app.id),
+        price=Money(Decimal(10), checkout_with_item.currency),
+        active=True,
+    )
+    mocked_webhook.return_value = [external_method_data]
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.save()
+    line = checkout.lines.first()
+    metadata = checkout.metadata_storage
+    metadata.private_metadata = {PRIVATE_META_APP_SHIPPING_ID: external_method_data.id}
+    metadata.save(update_fields=["private_metadata"])
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", line.variant.pk)
+    price = Decimal("13.11")
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [{"variantId": variant_id, "quantity": 7, "price": price}],
+        "channelSlug": checkout.channel.slug,
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_CHECKOUT_LINES_ADD,
+        variables,
+        permissions=[permission_handle_checkouts],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLinesAdd"]
+    assert not data["errors"]
+    assert metadata.private_metadata == {
+        PRIVATE_META_APP_SHIPPING_ID: external_method_data.id
+    }
 
 
 def test_checkout_lines_add_custom_price_app_no_perm(app_api_client, checkout, stock):
