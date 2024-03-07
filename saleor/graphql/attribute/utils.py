@@ -594,7 +594,7 @@ class AttributeAssignmentMixin:
     @classmethod
     def _pre_save_numeric_values(
         cls,
-        instance: T_INSTANCE,
+        _,
         attribute: attribute_models.Attribute,
         attr_values: AttrValuesInput,
     ):
@@ -605,10 +605,13 @@ class AttributeAssignmentMixin:
         else:
             return tuple()
 
+        slug = slugify(unidecode(f"{value}_{attribute.id}"))
         defaults = {
-            "name": value,
+            "attribute": attribute,
+            "slug": slug,
+            "defaults": {"name": value},
         }
-        return cls._update_or_create_value(instance, attribute, defaults)
+        return ((AttributeValueBulkActionEnum.UPDATE_OR_CREATE, defaults),)
 
     @classmethod
     def _pre_save_values(

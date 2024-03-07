@@ -2165,3 +2165,54 @@ def test_prepare_attribute_values_that_gives_the_same_slug(color_attribute):
     assert result[0] == existing_value
     assert result[1].name == new_value
     assert result[2].name == new_value_2
+
+
+def test_attribute_assignment_save_slugs(
+    numeric_attribute, boolean_attribute, color_attribute, plain_text_attribute, product
+):
+    # given
+    dropdown_attribute = color_attribute
+    product.product_type.product_attributes.set(
+        [numeric_attribute, boolean_attribute, dropdown_attribute, plain_text_attribute]
+    )
+
+    numeric_id = graphene.Node.to_global_id("Attribute", numeric_attribute.id)
+    boolean_id = graphene.Node.to_global_id("Attribute", boolean_attribute.id)
+    dropdown_id = graphene.Node.to_global_id("Attribute", dropdown_attribute.id)
+    plain_text_id = graphene.Node.to_global_id("Attribute", plain_text_attribute.id)
+
+    cleaned_input = [
+        (numeric_attribute, AttrValuesInput(global_id=numeric_id, numeric="13")),
+        (boolean_attribute, AttrValuesInput(global_id=boolean_id, boolean=True)),
+        (
+            dropdown_attribute,
+            AttrValuesInput(
+                global_id=dropdown_id,
+                dropdown=AttrValuesForSelectableFieldInput(value="black"),
+            ),
+        ),
+        (
+            plain_text_attribute,
+            AttrValuesInput(global_id=plain_text_id, plain_text="taco taco"),
+        ),
+    ]
+
+    expected_numeric_slug = f"13_{numeric_attribute.id}"
+    expected_boolean_slug = f"{boolean_attribute.id}_true"
+    expected_dropdown_slug = "black"
+    expected_plain_text_slug = f"{product.id}_{plain_text_attribute.id}"
+
+    # when
+    AttributeAssignmentMixin.save(product, cleaned_input)
+
+    # then
+    assignments = product.attributevalues.all()
+    assert len(assignments) == 4
+
+    slugs = {attribute_value.value.slug for attribute_value in assignments}
+    assert slugs == {
+        expected_plain_text_slug,
+        expected_boolean_slug,
+        expected_dropdown_slug,
+        expected_numeric_slug,
+    }
