@@ -1,5 +1,6 @@
 import pytest
 
+from .....product.tasks import recalculate_discounted_price_for_products_task
 from ... import DEFAULT_ADDRESS
 from ...product.utils.preparing_product import prepare_product
 from ...product.utils.product_query import get_product
@@ -78,6 +79,10 @@ def test_order_promotion_still_applied_to_the_order_when_promotion_is_removed_CO
     assert promotion_rule["channels"][0]["id"] == channel_id
     assert product_predicate[0] == product_id
 
+    # prices are updated in the background, we need to force it to retrieve the correct
+    # ones
+    recalculate_discounted_price_for_products_task()
+
     # Step 1 - Create a draft order for a product with fixed promotion
     input = {
         "channelId": channel_id,
@@ -118,6 +123,11 @@ def test_order_promotion_still_applied_to_the_order_when_promotion_is_removed_CO
 
     # Step 4 - Remove the promotion and check the product is not on promotion
     delete_promotion(e2e_staff_api_client, promotion_id)
+
+    # prices are updated in the background, we need to force it to retrieve the correct
+    # ones
+    recalculate_discounted_price_for_products_task()
+
     data = promotion_query(e2e_staff_api_client, promotion_id)
     assert data["promotion"] is None
     product_data = get_product(e2e_staff_api_client, product_id, channel_slug)

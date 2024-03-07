@@ -174,7 +174,9 @@ class DiscountQueries(graphene.ObjectType):
     def resolve_sales(_root, info: ResolveInfo, *, channel=None, **kwargs):
         qs = resolve_sales(info, channel_slug=channel, **kwargs)
         kwargs["channel"] = channel
-        qs = filter_connection_queryset(qs, kwargs)
+        qs = filter_connection_queryset(
+            qs, kwargs, allow_replica=info.context.allow_replica
+        )
         return create_connection_slice(qs, info, kwargs, SaleCountableConnection)
 
     @staticmethod
@@ -186,7 +188,9 @@ class DiscountQueries(graphene.ObjectType):
     def resolve_vouchers(_root, info: ResolveInfo, *, channel=None, **kwargs):
         qs = resolve_vouchers(info, channel_slug=channel, **kwargs)
         kwargs["channel"] = channel
-        qs = filter_connection_queryset(qs, kwargs)
+        qs = filter_connection_queryset(
+            qs, kwargs, allow_replica=info.context.allow_replica
+        )
         return create_connection_slice(qs, info, kwargs, VoucherCountableConnection)
 
     @staticmethod
@@ -197,7 +201,9 @@ class DiscountQueries(graphene.ObjectType):
     @staticmethod
     def resolve_promotions(_root, info: ResolveInfo, **kwargs):
         qs = resolve_promotions(info)
-        qs = filter_connection_queryset(qs, kwargs)
+        qs = filter_connection_queryset(
+            qs, kwargs, allow_replica=info.context.allow_replica
+        )
         return create_connection_slice(qs, info, kwargs, PromotionCountableConnection)
 
 

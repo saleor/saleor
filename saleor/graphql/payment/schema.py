@@ -86,7 +86,9 @@ class PaymentQueries(graphene.ObjectType):
     @staticmethod
     def resolve_payments(_root, info: ResolveInfo, **kwargs):
         qs = resolve_payments(info)
-        qs = filter_connection_queryset(qs, kwargs)
+        qs = filter_connection_queryset(
+            qs, kwargs, allow_replica=info.context.allow_replica
+        )
         return create_connection_slice(qs, info, kwargs, PaymentCountableConnection)
 
     @staticmethod

@@ -415,8 +415,8 @@ def get_listings_reservations(
     listings_reservations: dict = defaultdict(int)
 
     for reservation in quantity_reservation_list:
-        listings_reservations[
-            reservation["product_variant_channel_listing"]
-        ] += reservation["quantity_reserved_sum"]
+        listings_reservations[reservation["product_variant_channel_listing"]] += (
+            reservation["quantity_reserved_sum"]
+        )
 
     return listings_reservations

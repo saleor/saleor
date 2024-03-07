@@ -13,6 +13,8 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Saleor Apps
 
 ### Other changes
+- Don't raise InsufficientStock for track_inventory=False variants #15475 by @carlosa54
+- DB performance improvements in attribute dataloaders - #15474 by @AjmalPonneth
 
 # 3.19.0
 

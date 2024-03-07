@@ -383,7 +383,9 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         cls, _root, info: ResolveInfo, /, *, input
     ):
         channel_input = input.get("channel")
-        channel = clean_channel(channel_input, error_class=CheckoutErrorCode)
+        channel = clean_channel(
+            channel_input, error_class=CheckoutErrorCode, allow_replica=False
+        )
         if channel:
             input["channel"] = channel
         response = super().perform_mutation(_root, info, input=input)

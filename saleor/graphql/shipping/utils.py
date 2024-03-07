@@ -8,15 +8,15 @@ from ..core.utils import from_global_id_or_error
 
 
 @overload
-def get_shipping_model_by_object_id(object_id: str, raise_error=True) -> ShippingMethod:
-    ...
+def get_shipping_model_by_object_id(
+    object_id: str, raise_error=True
+) -> ShippingMethod: ...
 
 
 @overload
 def get_shipping_model_by_object_id(
     object_id: Optional[str], raise_error=False
-) -> Optional[ShippingMethod]:
-    ...
+) -> Optional[ShippingMethod]: ...
 
 
 def get_shipping_model_by_object_id(object_id, raise_error=True):

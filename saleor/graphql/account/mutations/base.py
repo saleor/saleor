@@ -330,7 +330,7 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
             channel_slug = cleaned_input.get("channel")
             if not instance.is_staff:
                 channel_slug = clean_channel(
-                    channel_slug, error_class=AccountErrorCode
+                    channel_slug, error_class=AccountErrorCode, allow_replica=False
                 ).slug
             elif channel_slug is not None:
                 channel_slug = validate_channel(

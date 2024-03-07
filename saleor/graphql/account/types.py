@@ -459,8 +459,11 @@ class User(ModelObjectType[models.User]):
         return root.addresses.annotate_default(root).all()
 
     @staticmethod
-    def resolve_checkout(root: models.User, _info: ResolveInfo):
-        return get_user_checkout(root)
+    def resolve_checkout(root: models.User, info: ResolveInfo):
+        database_connection_name = get_database_connection_name(info.context)
+        return get_user_checkout(
+            root, database_connection_name=database_connection_name
+        )
 
     @staticmethod
     @traced_resolver

@@ -70,3 +70,4 @@ def fetch_variants_for_promotion_rules(
             ]
         )
     update_rule_variant_relation(rules, new_rules_variants)
+    return new_rules_variants

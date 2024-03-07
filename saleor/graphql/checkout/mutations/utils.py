@@ -50,6 +50,10 @@ if TYPE_CHECKING:
 
 
 ERROR_DOES_NOT_SHIP = "This checkout doesn't need shipping"
+ERROR_CC_ADDRESS_CHANGE_FORBIDDEN = (
+    "Can't change shipping address manually. "
+    "For click and collect delivery, address is set to a warehouse address."
+)
 
 
 @dataclass

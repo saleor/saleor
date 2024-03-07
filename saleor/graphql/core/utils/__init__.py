@@ -47,8 +47,7 @@ def from_global_id_or_error(
     global_id: str,
     only_type: Union[ObjectType, str, None] = None,
     raise_error: Literal[True] = True,
-) -> tuple[str, str]:
-    ...
+) -> tuple[str, str]: ...
 
 
 @overload
@@ -56,8 +55,7 @@ def from_global_id_or_error(
     global_id: str,
     only_type: Union[type[ObjectType], str, None] = None,
     raise_error: bool = False,
-) -> Union[tuple[str, str], tuple[str, None]]:
-    ...
+) -> Union[tuple[str, str], tuple[str, None]]: ...
 
 
 def from_global_id_or_error(

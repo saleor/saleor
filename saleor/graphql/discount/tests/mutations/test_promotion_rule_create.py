@@ -7,6 +7,7 @@ from django.test import override_settings
 from .....discount import PromotionEvents
 from .....discount.error_codes import PromotionRuleCreateErrorCode
 from .....discount.models import PromotionEvent
+from .....product.models import ProductChannelListing
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...enums import RewardTypeEnum, RewardValueTypeEnum
 
@@ -54,9 +55,7 @@ PROMOTION_RULE_CREATE_MUTATION = """
 
 
 @patch("saleor.plugins.manager.PluginsManager.promotion_rule_created")
-@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 def test_promotion_rule_create_by_staff_user(
-    update_discounted_prices_task_mock,
     promotion_rule_created_mock,
     staff_api_client,
     permission_group_manage_discounts,
@@ -127,6 +126,10 @@ def test_promotion_rule_create_by_staff_user(
     content = get_graphql_content(response)
     data = content["data"]["promotionRuleCreate"]
     rule_data = data["promotionRule"]
+    product.refresh_from_db()
+    listings = ProductChannelListing.objects.filter(
+        channel__in=[channel_USD, channel_PLN], product=product
+    )
 
     assert not data["errors"]
     assert rule_data["name"] == name
@@ -138,14 +141,13 @@ def test_promotion_rule_create_by_staff_user(
     assert rule_data["rewardValue"] == reward_value
     assert rule_data["promotion"]["id"] == promotion_id
     assert promotion.rules.count() == rules_count + 1
-    update_discounted_prices_task_mock.assert_called_once_with([product.id])
     rule = promotion.rules.last()
     promotion_rule_created_mock.assert_called_once_with(rule)
+    for listing in listings:
+        assert listing.discounted_price_dirty is True
 
 
-@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 def test_promotion_rule_create_by_app(
-    update_discounted_prices_task_mock,
     app_api_client,
     permission_manage_discounts,
     description_json,
@@ -211,14 +213,9 @@ def test_promotion_rule_create_by_app(
     assert rule_data["rewardValue"] == reward_value
     assert rule_data["promotion"]["id"] == promotion_id
     assert promotion.rules.count() == rules_count + 1
-    update_discounted_prices_task_mock.assert_called_once_with(
-        [category.products.first().id]
-    )
 
 
-@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 def test_promotion_rule_create_by_customer(
-    update_discounted_prices_task_mock,
     api_client,
     description_json,
     channel_USD,
@@ -263,7 +260,11 @@ def test_promotion_rule_create_by_customer(
     # when
     response = api_client.post_graphql(PROMOTION_RULE_CREATE_MUTATION, variables)
     assert_no_permission(response)
-    update_discounted_prices_task_mock.assert_not_called()
+
+    # then
+    product = category.products.first()
+    listing = ProductChannelListing.objects.get(channel=channel_USD, product=product)
+    assert listing.discounted_price_dirty is False
 
 
 def test_promotion_rule_create_missing_predicate(
@@ -876,9 +877,7 @@ def test_promotion_rule_create_percentage_value_above_100(
     assert promotion.rules.count() == rules_count
 
 
-@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 def test_promotion_rule_create_clears_old_sale_id(
-    update_discounted_prices_task_mock,
     staff_api_client,
     permission_group_manage_discounts,
     description_json,
@@ -931,7 +930,10 @@ def test_promotion_rule_create_clears_old_sale_id(
     content = get_graphql_content(response)
     data = content["data"]["promotionRuleCreate"]
     rule_data = data["promotionRule"]
-
+    product.refresh_from_db()
+    listings = ProductChannelListing.objects.filter(
+        channel__in=[channel_USD, channel_PLN], product=product
+    )
     assert not data["errors"]
     assert rule_data["name"] == name
     assert rule_data["description"] == description_json
@@ -942,7 +944,9 @@ def test_promotion_rule_create_clears_old_sale_id(
     assert rule_data["rewardValue"] == reward_value
     assert rule_data["promotion"]["id"] == promotion_id
     assert promotion.rules.count() == rules_count + 1
-    update_discounted_prices_task_mock.assert_called_once_with([product.id])
+
+    for listing in listings:
+        assert listing.discounted_price_dirty is True
 
     promotion.refresh_from_db()
     assert promotion.old_sale_id is None
@@ -1001,9 +1005,7 @@ def test_promotion_rule_create_events(
 
 
 @patch("saleor.plugins.manager.PluginsManager.promotion_rule_created")
-@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 def test_promotion_rule_create_serializable_decimal_in_predicate(
-    update_discounted_prices_task_mock,
     promotion_rule_created_mock,
     staff_api_client,
     permission_group_manage_discounts,
@@ -1302,11 +1304,7 @@ def test_promotion_rule_create_reward_type_with_catalogue_predicate(
 
 
 @patch("saleor.plugins.manager.PluginsManager.promotion_rule_created")
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
 def test_promotion_rule_create_order_predicate(
-    update_products_discounted_prices_for_promotion_task_mock,
     promotion_rule_created_mock,
     staff_api_client,
     permission_group_manage_discounts,
@@ -1362,6 +1360,7 @@ def test_promotion_rule_create_order_predicate(
     assert rule_data["promotion"]["id"] == promotion_id
     assert promotion.rules.count() == rules_count + 1
     rule = promotion.rules.last()
+    assert not rule.variants_dirty
     promotion_rule_created_mock.assert_called_once_with(rule)
 
 
@@ -1883,3 +1882,52 @@ def test_promotion_rule_create_gift_promotion_missing_gifts(
     assert errors[0]["code"] == PromotionRuleCreateErrorCode.REQUIRED.name
     assert errors[0]["field"] == "gifts"
     assert promotion.rules.count() == rules_count
+
+
+def test_promotion_rule_create_invalid_promotion_id(
+    staff_api_client,
+    permission_group_manage_discounts,
+    channel_USD,
+    variant,
+    catalogue_promotion,
+    promotion_rule,
+):
+    # given
+    permission_group_manage_discounts.user_set.add(staff_api_client.user)
+
+    channel_ids = [graphene.Node.to_global_id("Channel", channel_USD.pk)]
+    catalogue_predicate = {
+        "variantPredicate": {
+            "ids": [graphene.Node.to_global_id("ProductVariant", variant.id)]
+        }
+    }
+    name = "test promotion rule"
+    reward_value = Decimal("10")
+    reward_value_type = RewardValueTypeEnum.PERCENTAGE.name
+    invalid_promotion_id = graphene.Node.to_global_id(
+        "PromotionRule", promotion_rule.id
+    )
+
+    variables = {
+        "input": {
+            "name": name,
+            "promotion": invalid_promotion_id,
+            "channels": channel_ids,
+            "rewardValueType": reward_value_type,
+            "rewardValue": reward_value,
+            "cataloguePredicate": catalogue_predicate,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PROMOTION_RULE_CREATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleCreate"]
+    rule_data = data["promotionRule"]
+
+    assert not rule_data
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "promotion"
+    assert data["errors"][0]["code"] == PromotionRuleCreateErrorCode.GRAPHQL_ERROR.name

@@ -184,9 +184,9 @@ class PluginsManager(PaymentInterface):
                     global_configs[db_plugin_config.identifier] = db_plugin_config
                 else:
                     db_plugin_config.channel = channel
-                    channel_configs[channel][
-                        db_plugin_config.identifier
-                    ] = db_plugin_config
+                    channel_configs[channel][db_plugin_config.identifier] = (
+                        db_plugin_config
+                    )
 
             return global_configs, channel_configs
 
@@ -1957,9 +1957,9 @@ class PluginsManager(PaymentInterface):
                     .prefetch_related("channel")
                     .all()
                 )
-                self._plugin_configs_per_channel: defaultdict[
-                    Channel, dict
-                ] = defaultdict(dict)
+                self._plugin_configs_per_channel: defaultdict[Channel, dict] = (
+                    defaultdict(dict)
+                )
                 self._global_plugin_configs = {}
                 for pc in plugin_configurations:
                     channel = pc.channel

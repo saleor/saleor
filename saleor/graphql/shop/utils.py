@@ -1,12 +1,16 @@
 from typing import Optional
 
+from django.conf import settings
 from django_countries import countries
 
 from ...shipping.models import ShippingZone
 from ..site.dataloaders import get_site_promise
 
 
-def get_countries_codes_list(attached_to_shipping_zones: Optional[bool] = None):
+def get_countries_codes_list(
+    attached_to_shipping_zones: Optional[bool] = None,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+):
     """Return set of countries codes.
 
     If 'True', return countries with shipping zone assigned.
@@ -17,7 +21,7 @@ def get_countries_codes_list(attached_to_shipping_zones: Optional[bool] = None):
     all_countries_codes = {country[0] for country in countries}
     if attached_to_shipping_zones is not None:
         covered_countries_codes = set()
-        for zone in ShippingZone.objects.iterator():
+        for zone in ShippingZone.objects.using(database_connection_name).iterator():
             covered_countries_codes.update({country.code for country in zone.countries})
 
         if attached_to_shipping_zones:

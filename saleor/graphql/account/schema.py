@@ -213,13 +213,17 @@ class AccountQueries(graphene.ObjectType):
     @staticmethod
     def resolve_customers(_root, info: ResolveInfo, **kwargs):
         qs = resolve_customers(info)
-        qs = filter_connection_queryset(qs, kwargs)
+        qs = filter_connection_queryset(
+            qs, kwargs, allow_replica=info.context.allow_replica
+        )
         return create_connection_slice(qs, info, kwargs, UserCountableConnection)
 
     @staticmethod
     def resolve_permission_groups(_root, info: ResolveInfo, **kwargs):
         qs = resolve_permission_groups(info)
-        qs = filter_connection_queryset(qs, kwargs)
+        qs = filter_connection_queryset(
+            qs, kwargs, allow_replica=info.context.allow_replica
+        )
         return create_connection_slice(qs, info, kwargs, GroupCountableConnection)
 
     @staticmethod
@@ -235,7 +239,9 @@ class AccountQueries(graphene.ObjectType):
     @staticmethod
     def resolve_staff_users(_root, info: ResolveInfo, **kwargs):
         qs = resolve_staff_users(info)
-        qs = filter_connection_queryset(qs, kwargs)
+        qs = filter_connection_queryset(
+            qs, kwargs, allow_replica=info.context.allow_replica
+        )
         return create_connection_slice(qs, info, kwargs, UserCountableConnection)
 
     @staticmethod

@@ -32,6 +32,7 @@ from ...site import models as site_models
 from ...warehouse import models as warehouse_models
 from ..app.dataloaders import get_app_promise
 from ..core import ResolveInfo
+from ..core.context import get_database_connection_name
 from ..core.utils import from_global_id_or_error
 
 
@@ -48,7 +49,12 @@ def public_user_permissions(
     Staff user with `MANAGE_USERS` have access to customers public metadata.
     Staff user with `MANAGE_STAFF` have access to staff users public metadata.
     """
-    user = account_models.User.objects.filter(pk=user_pk).first()
+    database_connection_name = get_database_connection_name(info.context)
+    user = (
+        account_models.User.objects.using(database_connection_name)
+        .filter(pk=user_pk)
+        .first()
+    )
     if not user:
         raise ValidationError(
             {
@@ -65,9 +71,14 @@ def public_user_permissions(
 
 
 def private_user_permissions(
-    _info: ResolveInfo, user_pk: int
+    info: ResolveInfo, user_pk: int
 ) -> list[BasePermissionEnum]:
-    user = account_models.User.objects.filter(pk=user_pk).first()
+    database_connection_name = get_database_connection_name(info.context)
+    user = (
+        account_models.User.objects.using(database_connection_name)
+        .filter(pk=user_pk)
+        .first()
+    )
     if not user:
         raise PermissionDenied()
     if user.is_staff:
@@ -87,8 +98,10 @@ def public_address_permissions(
     addresses.
     For now, updating warehouse and shop addresses is forbidden.
     """
+    database_connection_name = get_database_connection_name(info.context)
     address = (
-        account_models.Address.objects.filter(pk=address_pk)
+        account_models.Address.objects.using(database_connection_name)
+        .filter(pk=address_pk)
         .prefetch_related("user_addresses")
         .first()
     )
@@ -108,21 +121,29 @@ def public_address_permissions(
 
     if address.user_addresses.filter(Exists(staff_users.filter(id=OuterRef("id")))):
         return [AccountPermissions.MANAGE_STAFF]
-    elif warehouse_models.Warehouse.objects.filter(address_id=address.id).exists():
+    elif (
+        warehouse_models.Warehouse.objects.using(database_connection_name)
+        .filter(address_id=address.id)
+        .exists()
+    ):
         return [ProductPermissions.MANAGE_PRODUCTS]
-    elif site_models.SiteSettings.objects.filter(
-        company_address_id=address.id
-    ).exists():
+    elif (
+        site_models.SiteSettings.objects.using(database_connection_name)
+        .filter(company_address_id=address.id)
+        .exists()
+    ):
         return [SitePermissions.MANAGE_SETTINGS]
 
     return [AccountPermissions.MANAGE_USERS]
 
 
 def private_address_permissions(
-    _info: ResolveInfo, address_pk: int
+    info: ResolveInfo, address_pk: int
 ) -> list[BasePermissionEnum]:
+    database_connection_name = get_database_connection_name(info.context)
     address = (
-        account_models.Address.objects.filter(pk=address_pk)
+        account_models.Address.objects.using(database_connection_name)
+        .filter(pk=address_pk)
         .prefetch_related("user_addresses")
         .first()
     )
@@ -134,14 +155,18 @@ def private_address_permissions(
                 )
             }
         )
-    staff_users = account_models.User.objects.filter(is_staff=True)
+    staff_users = account_models.User.objects.using(database_connection_name).filter(
+        is_staff=True
+    )
     if address.user_addresses.filter(Exists(staff_users.filter(id=OuterRef("id")))):
         return [AccountPermissions.MANAGE_STAFF]
     if (
-        warehouse_models.Warehouse.objects.filter(address_id=address.id).exists()
-        or site_models.SiteSettings.objects.filter(
-            company_address_id=address.id
-        ).exists()
+        warehouse_models.Warehouse.objects.using(database_connection_name)
+        .filter(address_id=address.id)
+        .exists()
+        or site_models.SiteSettings.objects.using(database_connection_name)
+        .filter(company_address_id=address.id)
+        .exists()
     ):
         raise PermissionDenied()
     return [AccountPermissions.MANAGE_USERS]
@@ -217,12 +242,15 @@ def page_type_permissions(
     return [PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES]
 
 
-def attribute_permissions(_info: ResolveInfo, attribute_pk: int):
-    attribute = attribute_models.Attribute.objects.get(pk=attribute_pk)
+def attribute_permissions(info: ResolveInfo, attribute_pk: int):
+    database_connection_name = get_database_connection_name(info.context)
+    attribute = attribute_models.Attribute.objects.using(database_connection_name).get(
+        pk=attribute_pk
+    )
     if attribute.type == AttributeType.PAGE_TYPE:
-        return page_type_permissions(_info, attribute_pk)
+        return page_type_permissions(info, attribute_pk)
     else:
-        return product_type_permissions(_info, attribute_pk)
+        return product_type_permissions(info, attribute_pk)
 
 
 def shipping_permissions(
@@ -240,11 +268,12 @@ def discount_permissions(
 def public_payment_permissions(
     info: ResolveInfo, payment_pk: int
 ) -> list[BasePermissionEnum]:
+    database_connection_name = get_database_connection_name(info.context)
     context_user = info.context.user
     app = get_app_promise(info.context).get()
     if app or (context_user and context_user.is_staff):
         return [PaymentPermissions.HANDLE_PAYMENTS]
-    if payment_owned_by_user(payment_pk, context_user):
+    if payment_owned_by_user(payment_pk, context_user, database_connection_name):
         return []
     raise PermissionDenied()
 

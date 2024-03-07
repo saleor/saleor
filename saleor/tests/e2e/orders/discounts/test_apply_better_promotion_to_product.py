@@ -1,5 +1,6 @@
 import pytest
 
+from .....product.tasks import recalculate_discounted_price_for_products_task
 from ... import DEFAULT_ADDRESS
 from ...product.utils import get_product
 from ...product.utils.preparing_product import prepare_product
@@ -118,6 +119,10 @@ def test_apply_best_promotion_to_product_core_2105(
         channel_id,
         product_id,
     )
+
+    # prices are updated in the background, we need to force it to retrieve the correct
+    # ones
+    recalculate_discounted_price_for_products_task()
 
     # Step 1 - Get product and check if it is on promotion
     product_data = get_product(e2e_staff_api_client, product_id, channel_slug)

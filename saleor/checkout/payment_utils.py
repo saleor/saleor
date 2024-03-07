@@ -1,4 +1,5 @@
 """Checkout-related utility functions."""
+
 from collections.abc import Iterable
 from typing import Optional
 
