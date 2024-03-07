@@ -9,6 +9,7 @@ from django.conf import settings
 from django.utils.text import slugify
 from freezegun import freeze_time
 
+from .....discount.utils import get_active_catalogue_promotion_rules
 from .....product.error_codes import ProductErrorCode
 from .....tests.utils import dummy_editorjs, flush_post_commit_hooks
 from ....core.enums import WeightUnitsEnum
@@ -76,15 +77,11 @@ CREATE_VARIANT_MUTATION = """
 """
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
 def test_create_variant_with_name(
     updated_webhook_mock,
     created_webhook_mock,
-    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     product,
     product_type,
@@ -153,9 +150,8 @@ def test_create_variant_with_name(
 
     created_webhook_mock.assert_called_once_with(product.variants.last())
     updated_webhook_mock.assert_not_called()
-    update_products_discounted_prices_for_promotion_task_mock.assert_called_once_with(
-        [product.id]
-    )
+    for rule in get_active_catalogue_promotion_rules():
+        assert rule.variants_dirty
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")

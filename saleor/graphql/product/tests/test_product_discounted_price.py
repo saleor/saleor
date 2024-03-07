@@ -3,19 +3,19 @@ from unittest.mock import patch
 from freezegun import freeze_time
 from graphql_relay import to_global_id
 
-from ....discount.models import Promotion
+from ....discount.models import Promotion, PromotionRule
+from ....discount.utils import (
+    get_active_catalogue_promotion_rules,
+    get_current_products_for_rules,
+)
+from ....product.models import ProductChannelListing
 from ...discount.enums import DiscountValueTypeEnum
 from ...tests.utils import get_graphql_content
 
 
-@patch(
-    "saleor.graphql.product.mutations.product_variant.product_variant_delete"
-    ".update_products_discounted_prices_for_promotion_task"
-)
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_product_variant_delete_updates_discounted_price(
     mocked_recalculate_orders_task,
-    mock_update_products_discounted_prices_for_promotion_task,
     staff_api_client,
     product,
     permission_manage_products,
@@ -47,16 +47,12 @@ def test_product_variant_delete_updates_discounted_price(
     content = get_graphql_content(response)
     data = content["data"]["productVariantDelete"]
     assert data["errors"] == []
-
-    mock_update_products_discounted_prices_for_promotion_task.delay.assert_called_once_with(
-        [product.pk]
-    )
+    for rule in get_active_catalogue_promotion_rules():
+        assert rule.variants_dirty
     mocked_recalculate_orders_task.assert_not_called()
 
 
-@patch("saleor.product.utils.update_products_discounted_prices_for_promotion_task")
 def test_category_delete_updates_discounted_price(
-    mock_update_products_discounted_prices_for_promotion_task,
     staff_api_client,
     categories_tree_with_published_products,
     permission_manage_products,
@@ -92,24 +88,15 @@ def test_category_delete_updates_discounted_price(
     data = content["data"]["categoryDelete"]
     assert data["errors"] == []
 
-    mock_update_products_discounted_prices_for_promotion_task.delay.assert_called_once()
-    (
-        _call_args,
-        call_kwargs,
-    ) = mock_update_products_discounted_prices_for_promotion_task.delay.call_args
-    assert set(call_kwargs["product_ids"]) == set(p.pk for p in product_list)
+    for rule in get_active_catalogue_promotion_rules():
+        assert rule.variants_dirty
 
     for product in product_list:
         product.refresh_from_db()
         assert not product.category
 
 
-@patch(
-    "saleor.graphql.product.mutations.collection.collection_add_products"
-    ".update_products_discounted_prices_for_promotion_task.delay"
-)
-def test_collection_add_products_updates_discounted_price(
-    mock_update_products_discounted_prices_for_promotion_task,
+def test_collection_add_products_updates_rule_variants_dirty(
     staff_api_client,
     collection,
     product_list,
@@ -145,20 +132,11 @@ def test_collection_add_products_updates_discounted_price(
     content = get_graphql_content(response)
     data = content["data"]["collectionAddProducts"]
     assert data["errors"] == []
-
-    mock_update_products_discounted_prices_for_promotion_task.assert_called_once()
-    args = set(
-        mock_update_products_discounted_prices_for_promotion_task.call_args.args[0]
-    )
-    assert args == {product.id for product in product_list}
+    for rule in get_active_catalogue_promotion_rules():
+        assert rule.variants_dirty
 
 
-@patch(
-    "saleor.graphql.product.mutations.collection.collection_remove_products"
-    ".update_products_discounted_prices_for_promotion_task.delay"
-)
-def test_collection_remove_products_updates_discounted_price(
-    mock_update_products_discounted_prices_for_promotion_task,
+def test_collection_remove_products_updates_rule_variants_dirty(
     staff_api_client,
     collection,
     product_list,
@@ -194,21 +172,12 @@ def test_collection_remove_products_updates_discounted_price(
     content = get_graphql_content(response)
     data = content["data"]["collectionRemoveProducts"]
     assert data["errors"] == []
-
-    mock_update_products_discounted_prices_for_promotion_task.assert_called_once()
-    args = set(
-        mock_update_products_discounted_prices_for_promotion_task.call_args.args[0]
-    )
-    assert args == {product.id for product in product_list}
+    for rule in get_active_catalogue_promotion_rules():
+        assert rule.variants_dirty
 
 
 @freeze_time("2010-05-31 12:00:01")
-@patch(
-    "saleor.graphql.discount.mutations.sale.sale_create"
-    ".update_products_discounted_prices_of_promotion_task"
-)
 def test_sale_create_updates_products_discounted_prices(
-    mock_update_products_discounted_prices_of_promotion_task,
     staff_api_client,
     permission_manage_discounts,
 ):
@@ -251,17 +220,11 @@ def test_sale_create_updates_products_discounted_prices(
     assert content["data"]["saleCreate"]["errors"] == []
 
     sale = Promotion.objects.filter(name="Half price product").get()
-    mock_update_products_discounted_prices_of_promotion_task.delay.assert_called_once_with(
-        sale.id
-    )
+    for rule in sale.rules.all():
+        assert rule.variants_dirty is True
 
 
-@patch(
-    "saleor.graphql.discount.mutations.sale.sale_update"
-    ".update_discounted_prices_task"
-)
 def test_sale_update_updates_products_discounted_prices(
-    mock_update_discounted_prices_task,
     staff_api_client,
     promotion_converted_from_sale,
     product,
@@ -297,17 +260,20 @@ def test_sale_update_updates_products_discounted_prices(
     assert response.status_code == 200
     content = get_graphql_content(response)
     assert content["data"]["saleUpdate"]["errors"] == []
+    rules = promotion.rules.all()
+    PromotionRuleChannel = PromotionRule.channels.through
+    channel_ids = set(
+        PromotionRuleChannel.objects.filter(
+            promotionrule__in=promotion.rules.all()
+        ).values_list("channel_id", flat=True)
+    )
+    for listing in ProductChannelListing.objects.filter(
+        product__in=get_current_products_for_rules(rules), channel__in=channel_ids
+    ):
+        assert listing.discounted_price_dirty
 
-    args, _ = mock_update_discounted_prices_task.delay.call_args
-    assert args[0] == [product.id]
 
-
-@patch(
-    "saleor.graphql.discount.mutations.sale.sale_delete"
-    ".update_discounted_prices_task"
-)
 def test_sale_delete_updates_products_discounted_prices(
-    mock_update_discounted_prices_task,
     staff_api_client,
     promotion_converted_from_sale,
     product,
@@ -340,17 +306,22 @@ def test_sale_delete_updates_products_discounted_prices(
 
     content = get_graphql_content(response)
     assert content["data"]["saleDelete"]["errors"] == []
+    rules = promotion.rules.all()
+    PromotionRuleChannel = PromotionRule.channels.through
+    channel_ids = set(
+        PromotionRuleChannel.objects.filter(
+            promotionrule__in=promotion.rules.all()
+        ).values_list("channel_id", flat=True)
+    )
 
-    args, _ = mock_update_discounted_prices_task.delay.call_args
-    assert args[0] == [product.id]
+    for listing in ProductChannelListing.objects.filter(
+        product__in=get_current_products_for_rules(rules),
+        channel__in=channel_ids,
+    ):
+        assert listing.discounted_price_dirty
 
 
-@patch(
-    "saleor.graphql.discount.mutations.sale.sale_base_catalogue"
-    ".update_discounted_prices_task"
-)
 def test_sale_add_catalogues_updates_products_discounted_prices(
-    mock_update_discounted_prices_task,
     staff_api_client,
     promotion_converted_from_sale_with_empty_predicate,
     product_list,
@@ -396,16 +367,8 @@ def test_sale_add_catalogues_updates_products_discounted_prices(
     content = get_graphql_content(response)
     assert not content["data"]["saleCataloguesAdd"]["errors"]
 
-    args, _ = mock_update_discounted_prices_task.delay.call_args
-    assert set(args[0]) == {product.id for product in product_list[1:]}
 
-
-@patch(
-    "saleor.graphql.discount.mutations.sale.sale_base_catalogue"
-    ".update_discounted_prices_task"
-)
 def test_sale_remove_catalogues_updates_products_discounted_prices(
-    mock_update_discounted_prices_task,
     staff_api_client,
     promotion_converted_from_sale_with_empty_predicate,
     product_list,
@@ -453,4 +416,8 @@ def test_sale_remove_catalogues_updates_products_discounted_prices(
     content = get_graphql_content(response)
     assert not content["data"]["saleCataloguesRemove"]["errors"]
 
-    mock_update_discounted_prices_task.delay.called_once_with(product_id)
+    for listing in ProductChannelListing.objects.filter(
+        product=product_list[-1],
+        channel__in=rule.channels.all(),
+    ):
+        assert listing.discounted_price_dirty
