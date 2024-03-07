@@ -400,6 +400,7 @@ class PromotionRule(models.Model):
         "product.ProductVariant", blank=True, related_name="+"
     )
     old_channel_listing_id = models.IntegerField(blank=True, null=True, unique=True)
+    variants_dirty = models.BooleanField(default=False)
 
     class Meta:
         ordering = ("name", "pk")

@@ -558,6 +558,11 @@ BEAT_UPDATE_SEARCH_SEC = parse(
 )
 BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC = BEAT_UPDATE_SEARCH_SEC
 
+BEAT_PRICE_RECALCULATION_SCHEDULE = parse(
+    os.environ.get("BEAT_PRICE_RECALCULATION_SCHEDULE", "30 seconds")
+)
+BEAT_PRICE_RECALCULATION_SCHEDULE_EXPIRE_AFTER_SEC = BEAT_PRICE_RECALCULATION_SCHEDULE
+
 # Defines the Celery beat scheduler entries.
 #
 # Note: if a Celery task triggered by a Celery beat entry has an expiration
@@ -626,6 +631,19 @@ CELERY_BEAT_SCHEDULE = {
     "release-funds-for-abandoned-checkouts": {
         "task": "saleor.payment.tasks.transaction_release_funds_for_checkout_task",
         "schedule": timedelta(minutes=10),
+    },
+    "recalculate-promotion-rules": {
+        "task": (
+            "saleor.product.tasks"
+            ".update_variant_relations_for_active_promotion_rules_task"
+        ),
+        "schedule": timedelta(seconds=BEAT_PRICE_RECALCULATION_SCHEDULE),
+        "options": {"expires": BEAT_PRICE_RECALCULATION_SCHEDULE_EXPIRE_AFTER_SEC},
+    },
+    "recalculate-discounted-price-for-products": {
+        "task": "saleor.product.tasks.recalculate_discounted_price_for_products_task",
+        "schedule": timedelta(seconds=BEAT_PRICE_RECALCULATION_SCHEDULE),
+        "options": {"expires": BEAT_PRICE_RECALCULATION_SCHEDULE_EXPIRE_AFTER_SEC},
     },
 }
 

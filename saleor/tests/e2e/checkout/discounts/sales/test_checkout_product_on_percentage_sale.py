@@ -1,5 +1,6 @@
 import pytest
 
+from ......product.tasks import recalculate_discounted_price_for_products_task
 from ....product.utils.preparing_product import prepare_product
 from ....sales.utils import (
     create_sale,
@@ -91,6 +92,10 @@ def test_checkout_products_on_percentage_sale_core_1004(
         sale_discount_type="PERCENTAGE",
         sale_discount_value=3,
     )
+
+    # prices are updated in the background, we need to force it to retrieve the correct
+    # ones
+    recalculate_discounted_price_for_products_task()
 
     # Step 1 - checkoutCreate for product on sale
     lines = [
