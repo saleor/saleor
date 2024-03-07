@@ -12,7 +12,7 @@ from .....payment.gateway import request_refund_action
 from .....permission.enums import PaymentPermissions
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_314, ADDED_IN_315, PREVIEW_FEATURE
+from ....core.descriptions import ADDED_IN_315, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_PAYMENTS
 from ....core.enums import TransactionRequestRefundForGrantedRefundErrorCode
 from ....core.mutations import BaseMutation
@@ -33,15 +33,20 @@ class TransactionRequestRefundForGrantedRefund(BaseMutation):
     class Arguments:
         id = graphene.ID(
             description=(
-                "The ID of the transaction. One of field id or token is required."
+                "The ID of the transaction. One of field id or token is required, "
+                "if `transactionItem` is not already assigned to the "
+                "`orderGrantedRefund`. If `transactionItem` is already assigned to the "
+                "grantedRefund the field will be ignored."
             ),
             required=False,
         )
         token = UUID(
             description=(
-                "The token of the transaction. One of field id or token is required."
-            )
-            + ADDED_IN_314,
+                "The token of the transaction. One of field id or token is required, "
+                "if `transactionItem` is not already assigned to the "
+                "`orderGrantedRefund`. If `transactionItem` is already assigned to the "
+                "grantedRefund the field will be ignored."
+            ),
             required=False,
         )
         granted_refund_id = graphene.ID(
@@ -63,40 +68,66 @@ class TransactionRequestRefundForGrantedRefund(BaseMutation):
     def clean_input(
         cls, info, transaction_id: str, token: UUID, granted_refund_id: str
     ) -> tuple[payment_models.TransactionItem, order_models.OrderGrantedRefund]:
-        transaction_item = get_transaction_item(transaction_id, token)
         granted_refund = cls.get_node_or_error(
             info,
             granted_refund_id,
             field="granted_refund_id",
             only_type="OrderGrantedRefund",
             qs=order_models.OrderGrantedRefund.objects.select_related(
-                "order__channel"
+                "order__channel", "transaction_item"
             ).all(),
         )
         granted_refund = cast(order_models.OrderGrantedRefund, granted_refund)
-        if transaction_item.order_id != granted_refund.order_id:
-            error_code = TransactionRequestRefundForGrantedRefundErrorCode.INVALID.value
-            raise ValidationError(
-                {
-                    "granted_refund_id": ValidationError(
-                        "The granted refund belongs to different order than "
-                        "transaction.",
-                        code=error_code,
-                    ),
-                    "id": ValidationError(
-                        "The transaction belongs to different order than "
-                        "granted refund.",
-                        code=error_code,
-                    ),
-                }
+
+        if granted_refund.transaction_item_id:
+            transaction_item = cast(
+                payment_models.TransactionItem, granted_refund.transaction_item
             )
+            if transaction_item.charged_value < granted_refund.amount_value:
+                error_code = TransactionRequestRefundForGrantedRefundErrorCode.AMOUNT_GREATER_THAN_AVAILABLE.value
+                raise ValidationError(
+                    {
+                        "granted_refund_id": ValidationError(
+                            f"The granted refund amount {granted_refund.amount_value} "
+                            f"is greater than available charged amount on "
+                            f"transactionItem ({transaction_item.charged_value})."
+                            f"Update the order granted refund amount to process the "
+                            f"grant refund",
+                            code=error_code,
+                        )
+                    }
+                )
+        else:
+            validate_one_of_args_is_in_mutation("id", transaction_id, "token", token)
+            transaction_item = get_transaction_item(transaction_id, token)
+            if transaction_item.order_id != granted_refund.order_id:
+                error_code = (
+                    TransactionRequestRefundForGrantedRefundErrorCode.INVALID.value
+                )
+                raise ValidationError(
+                    {
+                        "granted_refund_id": ValidationError(
+                            "The granted refund belongs to different order than "
+                            "transaction.",
+                            code=error_code,
+                        ),
+                        "id": ValidationError(
+                            "The transaction belongs to different order than "
+                            "granted refund.",
+                            code=error_code,
+                        ),
+                    }
+                )
+            if not granted_refund.transaction_item_id:
+                granted_refund.transaction_item_id = transaction_item.pk
+                granted_refund.save(update_fields=["transaction_item_id"])
+
         return transaction_item, granted_refund
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
         cls, root, info: ResolveInfo, /, granted_refund_id, token=None, id=None
     ):
-        validate_one_of_args_is_in_mutation("id", id, "token", token)
         transaction_item, granted_refund = cls.clean_input(
             info, id, token, granted_refund_id
         )

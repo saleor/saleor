@@ -16677,13 +16677,13 @@ type Mutation {
     """The ID of the granted refund."""
     grantedRefundId: ID!
 
-    """The ID of the transaction. One of field id or token is required."""
+    """
+    The ID of the transaction. One of field id or token is required, if `transactionItem` is not already assigned to the `orderGrantedRefund`. If `transactionItem` is already assigned to the grantedRefund the field will be ignored.
+    """
     id: ID
 
     """
-    The token of the transaction. One of field id or token is required.
-    
-    Added in Saleor 3.14.
+    The token of the transaction. One of field id or token is required, if `transactionItem` is not already assigned to the `orderGrantedRefund`. If `transactionItem` is already assigned to the grantedRefund the field will be ignored.
     """
     token: UUID
   ): TransactionRequestRefundForGrantedRefund @doc(category: "Payments")
@@ -24547,6 +24547,7 @@ enum TransactionRequestRefundForGrantedRefundErrorCode @doc(category: "Payments"
   INVALID
   GRAPHQL_ERROR
   NOT_FOUND
+  AMOUNT_GREATER_THAN_AVAILABLE
   MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK
 }
 
