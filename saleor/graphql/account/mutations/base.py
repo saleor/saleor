@@ -24,7 +24,12 @@ from ...account.types import Address, AddressInput, User
 from ...app.dataloaders import get_app_promise
 from ...channel.utils import clean_channel, validate_channel
 from ...core import ResolveInfo, SaleorContext
-from ...core.descriptions import ADDED_IN_310, ADDED_IN_314, ADDED_IN_315
+from ...core.descriptions import (
+    ADDED_IN_310,
+    ADDED_IN_314,
+    ADDED_IN_315,
+    DEPRECATED_IN_3X_INPUT,
+)
 from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
@@ -233,6 +238,16 @@ class UserCreateInput(CustomerInput):
             "only one channel exists."
         )
     )
+    is_confirmed = graphene.Boolean(
+        required=False,
+        description=(
+            "User account is confirmed."
+            + ADDED_IN_315
+            + DEPRECATED_IN_3X_INPUT
+            + "\n\nThe user will be always set as unconfirmed. "
+            "The confirmation will take place when the user sets the password."
+        ),
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_USERS
@@ -288,6 +303,11 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
         email = cleaned_input.get("email")
         if email:
             cleaned_input["email"] = email.lower()
+
+        # Always set the user as unconfirmed during account creation.
+        # The confirmation will take place when the user sets the password.
+        if not instance.id:
+            cleaned_input["is_confirmed"] = False
 
         return cleaned_input
 
