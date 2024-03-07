@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -63,22 +65,33 @@ class AttributeValueCreate(AttributeMixin, ModelMutation):
         input_type = instance.attribute.input_type
 
         is_swatch_attr = input_type == AttributeInputType.SWATCH
-        errors: dict[str, list[ValidationError]] = {}
+        errors: dict[str, list[ValidationError]] = defaultdict(list)
         if not is_swatch_attr:
             for field in cls.ONLY_SWATCH_FIELDS:
                 if cleaned_input.get(field):
-                    errors[field] = [
+                    errors[field].append(
                         ValidationError(
                             f"The field {field} can be defined only for swatch attributes.",  # noqa: E501
                             code=AttributeErrorCode.INVALID.value,
                         )
-                    ]
+                    )
         else:
             try:
                 cls.validate_swatch_attr_value(cleaned_input)
             except ValidationError as error:
                 errors["value"] = error.error_dict[cls.ATTRIBUTE_VALUES_FIELD]
                 errors["fileUrl"] = error.error_dict[cls.ATTRIBUTE_VALUES_FIELD]
+
+        if input_type == AttributeInputType.NUMERIC and "name" in cleaned_input:
+            try:
+                float(cleaned_input["name"])
+            except ValueError:
+                errors["name"].append(
+                    ValidationError(
+                        "Value of numeric attribute must be numeric.",
+                        code=AttributeErrorCode.INVALID.value,
+                    )
+                )
 
         if errors:
             raise ValidationError(errors)

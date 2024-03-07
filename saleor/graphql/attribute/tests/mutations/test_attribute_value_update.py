@@ -622,3 +622,30 @@ def test_update_attribute_value_with_non_unique_external_reference(
         error["message"]
         == "Attribute value with this External reference already exists."
     )
+
+
+def test_update_attribute_value_for_numeric_attribute_not_a_number(
+    staff_api_client,
+    numeric_attribute,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    query = UPDATE_ATTRIBUTE_VALUE_MUTATION
+    attribute_value = numeric_attribute.values.first()
+    node_id = graphene.Node.to_global_id("AttributeValue", attribute_value.id)
+    name = "not a number"
+    variables = {"input": {"name": name}, "id": node_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["attributeValueUpdate"]
+    assert not data["attributeValue"]
+    assert len(data["errors"]) == 1
+    error = data["errors"][0]
+    assert error["field"] == "name"
+    assert error["code"] == AttributeErrorCode.INVALID.name
