@@ -35,6 +35,7 @@ from . import (
     OrderAuthorizeStatus,
     OrderChargeStatus,
     OrderEvents,
+    OrderGrantedRefundStatus,
     OrderOrigin,
     OrderStatus,
 )
@@ -885,6 +886,12 @@ class OrderGrantedRefund(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
+    )
+
+    status = models.CharField(
+        choices=OrderGrantedRefundStatus.CHOICES,
+        default=OrderGrantedRefundStatus.NONE,
+        max_length=128,
     )
 
     class Meta:

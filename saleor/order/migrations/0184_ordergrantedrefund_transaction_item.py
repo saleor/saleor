@@ -22,4 +22,25 @@ class Migration(migrations.Migration):
                 to="payment.transactionitem",
             ),
         ),
+        migrations.AddField(
+            model_name="ordergrantedrefund",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("none", "The refund on related transactionItem is not processed"),
+                    ("pending", "The refund on related transactionItem is pending"),
+                    (
+                        "full",
+                        "The refund on related transactionItem is fully processed",
+                    ),
+                    ("fail", "The refund on related transactionItem failed"),
+                ],
+                default="none",
+                max_length=128,
+            ),
+        ),
+        migrations.RunSQL(
+            "ALTER TABLE order_ordergrantedrefund ALTER COLUMN status SET DEFAULT 'none';",
+            migrations.RunSQL.noop,
+        ),
     ]
