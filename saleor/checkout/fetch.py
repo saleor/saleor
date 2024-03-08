@@ -16,6 +16,7 @@ from django.conf import settings
 from ..core.utils.lazyobjects import lazy_no_retry
 from ..discount import DiscountType, VoucherType
 from ..discount.interface import fetch_variant_rules_info, fetch_voucher_info
+from ..graphql.core.context import get_database_connection_name_from_flag
 from ..shipping.interface import ShippingMethodData
 from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ..shipping.utils import (
@@ -439,6 +440,10 @@ def fetch_checkout_info(
 ) -> CheckoutInfo:
     """Fetch checkout as CheckoutInfo object."""
     from .utils import get_voucher_for_checkout
+
+    database_connection_name = get_database_connection_name_from_flag(
+        manager._allow_replica
+    )
 
     channel = checkout.channel
     tax_configuration = channel.tax_configuration
