@@ -11,9 +11,12 @@ from typing import (
 )
 from uuid import UUID
 
+from django.conf import settings
+
 from ..core.utils.lazyobjects import lazy_no_retry
 from ..discount import DiscountType, VoucherType
 from ..discount.interface import fetch_variant_rules_info, fetch_voucher_info
+from ..graphql.core.context import get_database_connection_name_from_flag
 from ..shipping.interface import ShippingMethodData
 from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ..shipping.utils import (
@@ -240,6 +243,7 @@ def fetch_checkout_lines(
     skip_lines_with_unavailable_variants: bool = True,
     skip_recalculation: bool = False,
     voucher: Optional["Voucher"] = None,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> tuple[Iterable[CheckoutLineInfo], Iterable[int]]:
     """Fetch checkout lines as CheckoutLineInfo objects."""
     from .utils import get_voucher_for_checkout
@@ -326,7 +330,10 @@ def fetch_checkout_lines(
     if not skip_recalculation and checkout.voucher_code and lines_info:
         if not voucher:
             voucher, _ = get_voucher_for_checkout(
-                checkout, channel_slug=channel.slug, with_prefetch=True
+                checkout,
+                channel_slug=channel.slug,
+                with_prefetch=True,
+                database_connection_name=database_connection_name,
             )
         if not voucher:
             # in case when voucher is expired, it will be null so no need to apply any
@@ -433,6 +440,10 @@ def fetch_checkout_info(
     """Fetch checkout as CheckoutInfo object."""
     from .utils import get_voucher_for_checkout
 
+    database_connection_name = get_database_connection_name_from_flag(
+        manager._allow_replica
+    )
+
     channel = checkout.channel
     tax_configuration = channel.tax_configuration
     shipping_address = checkout.shipping_address
@@ -441,7 +452,9 @@ def fetch_checkout_info(
 
     if not voucher or not voucher_code:
         voucher, voucher_code = get_voucher_for_checkout(
-            checkout, channel_slug=channel.slug
+            checkout,
+            channel_slug=channel.slug,
+            database_connection_name=database_connection_name,
         )
 
     delivery_method_info = get_delivery_method_info(None, shipping_address)

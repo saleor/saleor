@@ -559,18 +559,20 @@ def get_voucher_for_checkout(
     channel_slug: str,
     with_lock: bool = False,
     with_prefetch: bool = False,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> tuple[Optional[Voucher], Optional[VoucherCode]]:
     """Return voucher assigned to checkout."""
     if checkout.voucher_code is not None:
         try:
-            code = VoucherCode.objects.get(code=checkout.voucher_code, is_active=True)
+            code = VoucherCode.objects.using(database_connection_name).get(
+                code=checkout.voucher_code, is_active=True
+            )
         except VoucherCode.DoesNotExist:
             return None, None
 
         voucher = (
-            Voucher.objects.active_in_channel(
-                date=timezone.now(), channel_slug=channel_slug
-            )
+            Voucher.objects.using(database_connection_name)
+            .active_in_channel(date=timezone.now(), channel_slug=channel_slug)
             .filter(id=code.voucher_id)
             .first()
         )
@@ -589,8 +591,10 @@ def get_voucher_for_checkout(
             )
 
         if voucher.usage_limit is not None and with_lock:
-            code = VoucherCode.objects.select_for_update().get(
-                code=checkout.voucher_code
+            code = (
+                VoucherCode.objects.using(database_connection_name)
+                .select_for_update()
+                .get(code=checkout.voucher_code)
             )
 
         return voucher, code
@@ -847,13 +851,16 @@ def get_valid_internal_shipping_methods_for_checkout(
     subtotal: "Money",
     shipping_channel_listings: Iterable["ShippingMethodChannelListing"],
     country_code: Optional[str] = None,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> list[ShippingMethodData]:
     if not is_shipping_required(lines):
         return []
     if not checkout_info.shipping_address:
         return []
 
-    shipping_methods = ShippingMethod.objects.applicable_shipping_methods_for_instance(
+    shipping_methods = ShippingMethod.objects.using(
+        database_connection_name
+    ).applicable_shipping_methods_for_instance(
         checkout_info.checkout,
         channel_id=checkout_info.checkout.channel_id,
         price=subtotal,

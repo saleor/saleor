@@ -58,6 +58,13 @@ def get_database_connection_name(context: SaleorContext) -> str:
     return settings.DATABASE_CONNECTION_DEFAULT_NAME
 
 
+def get_database_connection_name_from_flag(allow_replica: bool):
+    """Retrieve connection name based on allow_replica flag."""
+    if allow_replica:
+        return settings.DATABASE_CONNECTION_REPLICA_NAME
+    return settings.DATABASE_CONNECTION_DEFAULT_NAME
+
+
 def setup_context_user(context: SaleorContext) -> None:
     if hasattr(context.user, "_wrapped") and (
         context.user._wrapped is empty or context.user._wrapped is None  # type: ignore

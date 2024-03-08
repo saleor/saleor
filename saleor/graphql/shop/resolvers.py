@@ -14,9 +14,9 @@ from .utils import get_countries_codes_list
 @traced_resolver
 def resolve_available_shipping_methods(info, *, channel_slug: str, address):
     instances = []
-    available = ShippingMethod.objects.for_channel(channel_slug).using(
+    available = ShippingMethod.objects.using(
         get_database_connection_name(info.context)
-    )
+    ).for_channel(channel_slug)
     if address and address.country:
         available = available.filter(
             shipping_zone__countries__contains=address.country,

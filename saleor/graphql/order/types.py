@@ -17,6 +17,7 @@ from ...core.prices import quantize_price
 from ...core.taxes import zero_money
 from ...discount import DiscountType
 from ...graphql.checkout.types import DeliveryMethod
+from ...graphql.core.context import get_database_connection_name
 from ...graphql.core.federation.entities import federated_entity
 from ...graphql.core.federation.resolvers import resolve_federation_references
 from ...graphql.order.resolvers import resolve_orders
@@ -2025,7 +2026,10 @@ class Order(ModelObjectType[models.Order]):
     @traced_resolver
     def resolve_available_collection_points(cls, root: models.Order, info):
         def get_available_collection_points(lines):
-            return get_valid_collection_points_for_order(lines, root.channel_id)
+            database_connection_name = get_database_connection_name(info.context)
+            return get_valid_collection_points_for_order(
+                lines, root.channel_id, database_connection_name
+            )
 
         return cls.resolve_lines(root, info).then(get_available_collection_points)
 

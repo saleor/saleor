@@ -8,6 +8,7 @@ from typing import (
     Optional,
 )
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db.models import F, QuerySet, Sum
 from django.db.models.functions import Coalesce
@@ -67,6 +68,7 @@ def check_stock_and_preorder_quantity(
     checkout_lines: Optional[list["CheckoutLine"]] = None,
     check_reservations: bool = False,
     order_line: Optional["OrderLine"] = None,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     """Validate if there is stock/preorder available for given variant.
 
@@ -86,6 +88,7 @@ def check_stock_and_preorder_quantity(
             checkout_lines,
             check_reservations,
             order_line,
+            database_connection_name,
         )
 
 
@@ -97,6 +100,7 @@ def check_stock_quantity(
     checkout_lines: Optional[list["CheckoutLine"]] = None,
     check_reservations: bool = False,
     order_line: Optional["OrderLine"] = None,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     """Validate if there is stock available for given variant in given country.
 
@@ -104,9 +108,9 @@ def check_stock_quantity(
     exception.
     """
     if variant.track_inventory:
-        stocks = Stock.objects.get_variant_stocks_for_country(
-            country_code, channel_slug, variant
-        )
+        stocks = Stock.objects.using(
+            database_connection_name
+        ).get_variant_stocks_for_country(country_code, channel_slug, variant)
         if not stocks:
             raise InsufficientStock(
                 [
