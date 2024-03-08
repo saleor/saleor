@@ -12946,7 +12946,7 @@ Represents the status of a granted refund.
 enum OrderGrantedRefundStatusEnum @doc(category: "Orders") {
   NONE
   PENDING
-  FULL
+  SUCCESS
   FAIL
 }
 

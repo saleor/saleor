@@ -30,8 +30,9 @@ class Migration(migrations.Migration):
                     ("none", "The refund on related transactionItem is not processed"),
                     ("pending", "The refund on related transactionItem is pending"),
                     (
-                        "full",
-                        "The refund on related transactionItem is fully processed",
+                        "success",
+                        "The refund on related transactionItem is successfully "
+                        "processed",
                     ),
                     ("fail", "The refund on related transactionItem failed"),
                 ],

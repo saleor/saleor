@@ -333,12 +333,12 @@ class OrderGrantedRefundStatus:
 
     NONE = "none"
     PENDING = "pending"
-    FULL = "full"
+    SUCCESS = "success"
     FAIL = "fail"
 
     CHOICES = [
         (NONE, "The refund on related transactionItem is not processed"),
         (PENDING, "The refund on related transactionItem is pending"),
-        (FULL, "The refund on related transactionItem is fully processed"),
+        (SUCCESS, "The refund on related transactionItem is successfully processed"),
         (FAIL, "The refund on related transactionItem failed"),
     ]
