@@ -34,7 +34,7 @@ class Migration(migrations.Migration):
                         "The refund on related transactionItem is successfully "
                         "processed",
                     ),
-                    ("fail", "The refund on related transactionItem failed"),
+                    ("failure", "The refund on related transactionItem failed"),
                 ],
                 default="none",
                 max_length=128,
