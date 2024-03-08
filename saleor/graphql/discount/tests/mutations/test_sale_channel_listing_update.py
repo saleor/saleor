@@ -2,7 +2,9 @@ import graphene
 
 from .....discount import RewardValueType
 from .....discount.error_codes import DiscountErrorCode
+from .....product.models import ProductChannelListing
 from ....tests.utils import assert_negative_positive_decimal_value, get_graphql_content
+from ...utils import get_products_for_rule
 
 SALE_CHANNEL_LISTING_UPDATE_MUTATION = """
 mutation UpdateSaleChannelListing(
@@ -193,6 +195,8 @@ def test_sale_channel_listing_remove_channels(
     sale_id = graphene.Node.to_global_id("Sale", promotion.old_sale_id)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
 
+    rule = promotion.rules.filter(channels=channel_PLN).get()
+    product_ids = list(get_products_for_rule(rule).values_list("id", flat=True))
     variables = {
         "id": sale_id,
         "input": {"removeChannels": [channel_id]},
@@ -218,9 +222,11 @@ def test_sale_channel_listing_remove_channels(
     promotion.refresh_from_db()
     rules = promotion.rules.all()
     assert len(rules) == 1
-
-    for rule in promotion.rules.all():
-        assert rule.variants_dirty is True
+    assert not ProductChannelListing.objects.filter(
+        product_id__in=product_ids,
+        channel_id=channel_USD.id,
+        discounted_price_dirty=False,
+    )
 
 
 def test_sale_channel_listing_remove_all_channels(
@@ -241,6 +247,9 @@ def test_sale_channel_listing_remove_all_channels(
     rule = promotion.rules.first()
     reward_value_type = rule.reward_value_type
     predicate = rule.catalogue_predicate
+
+    rule = promotion.rules.filter(channels=channel_PLN).get()
+    product_ids = list(get_products_for_rule(rule).values_list("id", flat=True))
 
     variables = {
         "id": sale_id,
@@ -269,8 +278,11 @@ def test_sale_channel_listing_remove_all_channels(
     assert rules[0].reward_value_type == reward_value_type
     assert rules[0].catalogue_predicate == predicate
 
-    for rule in promotion.rules.all():
-        assert rule.variants_dirty is True
+    assert not ProductChannelListing.objects.filter(
+        product_id__in=product_ids,
+        channel_id=channel_USD.id,
+        discounted_price_dirty=False,
+    )
 
 
 def test_sale_channel_listing_add_update_remove_channels(
