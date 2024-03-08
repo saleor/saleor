@@ -2216,3 +2216,35 @@ def test_attribute_assignment_save_slugs(
         expected_dropdown_slug,
         expected_numeric_slug,
     }
+
+
+def test_attribute_assignment_save_numeric_attribute_value_slug(
+    numeric_attribute, product
+):
+    # given
+    product.attributevalues.all().delete()
+    product.product_type.product_attributes.add(numeric_attribute)
+    numeric_id = graphene.Node.to_global_id("Attribute", numeric_attribute.id)
+
+    cleaned_input = [
+        (numeric_attribute, AttrValuesInput(global_id=numeric_id, numeric="13.2")),
+        (numeric_attribute, AttrValuesInput(global_id=numeric_id, numeric="132")),
+        (numeric_attribute, AttrValuesInput(global_id=numeric_id, numeric="1.32")),
+        (numeric_attribute, AttrValuesInput(global_id=numeric_id, numeric="13.22")),
+        (numeric_attribute, AttrValuesInput(global_id=numeric_id, numeric=None)),
+    ]
+
+    expected_numeric_slugs = {
+        f"132_{numeric_attribute.id}",
+        f"1322_{numeric_attribute.id}",
+    }
+
+    # when
+    AttributeAssignmentMixin.save(product, cleaned_input)
+
+    # then
+    assignments = product.attributevalues.all()
+    assert len(assignments) == 2
+
+    slugs = {attribute_value.value.slug for attribute_value in assignments}
+    assert slugs == expected_numeric_slugs
