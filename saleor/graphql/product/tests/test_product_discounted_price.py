@@ -267,10 +267,11 @@ def test_sale_update_updates_products_discounted_prices(
             promotionrule__in=promotion.rules.all()
         ).values_list("channel_id", flat=True)
     )
-    for listing in ProductChannelListing.objects.filter(
-        product__in=get_current_products_for_rules(rules), channel__in=channel_ids
-    ):
-        assert listing.discounted_price_dirty
+    assert not ProductChannelListing.objects.filter(
+        product__in=get_current_products_for_rules(rules),
+        channel__in=channel_ids,
+        discounted_price_dirty=False,
+    )
 
 
 def test_sale_delete_updates_products_discounted_prices(
@@ -295,6 +296,14 @@ def test_sale_delete_updates_products_discounted_prices(
     """
     promotion = promotion_converted_from_sale
     variables = {"id": to_global_id("Sale", promotion.old_sale_id)}
+    rules = promotion.rules.all()
+    PromotionRuleChannel = PromotionRule.channels.through
+    channel_ids = set(
+        PromotionRuleChannel.objects.filter(
+            promotionrule__in=promotion.rules.all()
+        ).values_list("channel_id", flat=True)
+    )
+    products = list(get_current_products_for_rules(rules))
 
     # when
     response = staff_api_client.post_graphql(
@@ -306,19 +315,10 @@ def test_sale_delete_updates_products_discounted_prices(
 
     content = get_graphql_content(response)
     assert content["data"]["saleDelete"]["errors"] == []
-    rules = promotion.rules.all()
-    PromotionRuleChannel = PromotionRule.channels.through
-    channel_ids = set(
-        PromotionRuleChannel.objects.filter(
-            promotionrule__in=promotion.rules.all()
-        ).values_list("channel_id", flat=True)
-    )
 
-    for listing in ProductChannelListing.objects.filter(
-        product__in=get_current_products_for_rules(rules),
-        channel__in=channel_ids,
-    ):
-        assert listing.discounted_price_dirty
+    assert not ProductChannelListing.objects.filter(
+        product__in=products, channel__in=channel_ids, discounted_price_dirty=False
+    )
 
 
 def test_sale_add_catalogues_updates_products_discounted_prices(

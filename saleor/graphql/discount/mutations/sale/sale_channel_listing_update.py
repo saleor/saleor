@@ -12,6 +12,7 @@ from .....discount.error_codes import DiscountErrorCode
 from .....discount.models import Promotion, PromotionRule
 from .....discount.utils import mark_promotion_rules_as_dirty
 from .....permission.enums import DiscountPermissions
+from .....product.utils.product import mark_products_in_channels_as_dirty
 from ....channel import ChannelContext
 from ....channel.mutations import BaseChannelListingMutation
 from ....core import ResolveInfo
@@ -26,6 +27,7 @@ from ...dataloaders import (
     PromotionRulesByPromotionIdLoader,
     SaleChannelListingByPromotionIdLoader,
 )
+from ...utils import get_products_for_rule
 
 
 class SaleChannelListingAddInput(BaseInputObjectType):
@@ -220,10 +222,22 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
         rule: PromotionRule,
         cleaned_input: dict,
     ):
+        add_channels = cleaned_input.get("add_channels", [])
+        remove_channels = cleaned_input.get("remove_channels", [])
+        if remove_channels and not add_channels:
+            # In case of only removing the channels, we need to mark the product to be
+            # recalculated.
+            product_ids = list(get_products_for_rule(rule).values_list("id", flat=True))
+            mark_as_dirty_func = mark_products_in_channels_as_dirty
+            func_arg = {int(channel_id): product_ids for channel_id in remove_channels}
+        else:
+            mark_as_dirty_func = mark_promotion_rules_as_dirty  # type: ignore
+            func_arg = [promotion.pk]  # type: ignore[assignment]
+
         with traced_atomic_transaction():
             cls.add_channels(promotion, rule, cleaned_input.get("add_channels", []))
             cls.remove_channels(promotion, cleaned_input.get("remove_channels", []))
-            cls.call_event(mark_promotion_rules_as_dirty, [promotion.pk])
+            cls.call_event(mark_as_dirty_func, func_arg)
 
     @classmethod
     def get_instance(cls, id):
