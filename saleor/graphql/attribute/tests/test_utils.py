@@ -2218,33 +2218,34 @@ def test_attribute_assignment_save_slugs(
     }
 
 
-def test_attribute_assignment_save_numeric_attribute_value_slug(
-    numeric_attribute, product
+def test_numeric_attribute_assignment_do_not_create_duplicated_values(
+    numeric_attribute,
+    product_list,
 ):
     # given
-    product.attributevalues.all().delete()
-    product.product_type.product_attributes.add(numeric_attribute)
+    count = AttributeValue.objects.count()
+    for product in product_list:
+        product.attributevalues.all().delete()
+        product.product_type.product_attributes.add(numeric_attribute)
     numeric_id = graphene.Node.to_global_id("Attribute", numeric_attribute.id)
 
     cleaned_input = [
-        (numeric_attribute, AttrValuesInput(global_id=numeric_id, numeric="13.2")),
-        (numeric_attribute, AttrValuesInput(global_id=numeric_id, numeric="132")),
-        (numeric_attribute, AttrValuesInput(global_id=numeric_id, numeric="1.32")),
-        (numeric_attribute, AttrValuesInput(global_id=numeric_id, numeric="13.22")),
-        (numeric_attribute, AttrValuesInput(global_id=numeric_id, numeric=None)),
+        (numeric_attribute, AttrValuesInput(global_id=numeric_id, numeric="13.2"))
     ]
 
-    expected_numeric_slugs = {
-        f"132_{numeric_attribute.id}",
-        f"1322_{numeric_attribute.id}",
-    }
-
     # when
-    AttributeAssignmentMixin.save(product, cleaned_input)
+    for product in product_list:
+        AttributeAssignmentMixin.save(product, cleaned_input)
 
     # then
-    assignments = product.attributevalues.all()
-    assert len(assignments) == 2
+    assert AttributeValue.objects.count() == count + 1
+    new_attribute_value = AttributeValue.objects.last()
+    for product in product_list:
+        assert product.attributevalues.count() == 1
+        assert product.attributevalues.first().value == new_attribute_value
 
-    slugs = {attribute_value.value.slug for attribute_value in assignments}
-    assert slugs == expected_numeric_slugs
+    # when delete one of the product, which share the attribute value, the value should
+    # be still associated with remaining products
+    product_list[0].delete()
+    for product in product_list[1:]:
+        assert product.attributevalues.exists()
