@@ -2255,7 +2255,6 @@ def test_create_product_with_numeric_attribute_new_attribute_value(
     content = get_graphql_content(response)
     data = content["data"]["productCreate"]
     assert data["errors"] == []
-    product_pk = graphene.Node.from_global_id(data["product"]["id"])[1]
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
     assert data["product"]["productType"]["name"] == product_type.name
@@ -2267,7 +2266,7 @@ def test_create_product_with_numeric_attribute_new_attribute_value(
     values = data["product"]["attributes"][0]["values"]
     assert len(values) == 1
     assert values[0]["name"] == expected_name
-    assert values[0]["slug"] == f"{product_pk}_{numeric_attribute.id}"
+    assert values[0]["slug"] == slugify(f"{value}_{numeric_attribute.id}")
 
     numeric_attribute.refresh_from_db()
     assert numeric_attribute.values.count() == values_count + 1
@@ -2311,7 +2310,6 @@ def test_create_product_with_numeric_attribute_existing_value(
     content = get_graphql_content(response)
     data = content["data"]["productCreate"]
     assert data["errors"] == []
-    product_pk = graphene.Node.from_global_id(data["product"]["id"])[1]
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
     assert data["product"]["productType"]["name"] == product_type.name
@@ -2323,7 +2321,7 @@ def test_create_product_with_numeric_attribute_existing_value(
     values = data["product"]["attributes"][0]["values"]
     assert len(values) == 1
     assert values[0]["name"] == existing_value.name
-    assert values[0]["slug"] == f"{product_pk}_{numeric_attribute.id}"
+    assert values[0]["slug"] == slugify(f"{existing_value}_{numeric_attribute.id}")
 
     numeric_attribute.refresh_from_db()
     assert numeric_attribute.values.count() == values_count + 1
