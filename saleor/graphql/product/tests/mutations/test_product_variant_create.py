@@ -1175,13 +1175,11 @@ def test_create_variant_with_numeric_attribute(
     content = get_graphql_content(response)["data"]["productVariantCreate"]
     assert not content["errors"]
     data = content["productVariant"]
-    variant_pk = graphene.Node.from_global_id(data["id"])[1]
     assert data["name"] == sku
     assert data["sku"] == sku
     assert data["attributes"][0]["attribute"]["slug"] == variant_slug
-    assert (
-        data["attributes"][0]["values"][0]["slug"]
-        == f"{variant_pk}_{numeric_attribute.pk}"
+    assert data["attributes"][0]["values"][0]["slug"] == slugify(
+        f"{variant_value}_{numeric_attribute.pk}"
     )
     assert data["weight"]["unit"] == WeightUnitsEnum.KG.name
     assert data["weight"]["value"] == weight
