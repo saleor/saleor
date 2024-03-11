@@ -42,7 +42,6 @@ class AttributeInputType:
         REFERENCE,
         RICH_TEXT,
         PLAIN_TEXT,
-        NUMERIC,
         DATE,
         DATE_TIME,
     ]
