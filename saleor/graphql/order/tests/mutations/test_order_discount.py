@@ -997,6 +997,14 @@ def test_update_order_line_discount(
     line_to_discount.undiscounted_total_price = total_price
     line_to_discount.save()
 
+    line_to_discount.discounts.create(
+        value_type="fixed",
+        value=0,
+        amount_value=0,
+        name="Manual line discount",
+        type="manual",
+    )
+
     line_price_before_discount = line_to_discount.unit_price
 
     value = Decimal("5")
