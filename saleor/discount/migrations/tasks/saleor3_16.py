@@ -22,10 +22,13 @@ from ...models import (
 from babel.numbers import get_currency_precision
 
 # The batch of size 100 takes ~0.9 second and consumes ~30MB memory at peak
-BATCH_SIZE = 100
+SALE_LISTING_BATCH_SIZE = 100
 
 # Results in memory usage of ~40MB for 20K products
 DISCOUNTED_PRICES_RECALCULATION_BATCH_SIZE = 100
+
+# The batch of size 1000 takes ~0.2 seconds and consumes ~10MB memory at peak
+PROMOTION_BATCH_SIZE = 1000
 
 
 @dataclass
@@ -39,9 +42,14 @@ class RuleInfo:
 def remigrate_sales_to_promotions_task():
     # we need to recreate promotions as the error was introduced in 3.16.5
     # and promotion rules were not created for the promotions
-    if Promotion.objects.exists():
-        Promotion.objects.all().delete()
-    migrate_sales_to_promotions_task.delay()
+    promotion_ids = list(
+        Promotion.objects.all().values_list("id", flat=True)[:PROMOTION_BATCH_SIZE]
+    )
+    if promotion_ids:
+        Promotion.objects.filter(id__in=promotion_ids).delete()
+        remigrate_sales_to_promotions_task.delay()
+    else:
+        migrate_sales_to_promotions_task.delay()
 
 
 @app.task
@@ -51,7 +59,7 @@ def migrate_sales_to_promotions_task():
     ).order_by("pk")
     sales_listing = SaleChannelListing.objects.order_by("sale_id").filter(
         Exists(sales.filter(id=OuterRef("sale_id")))
-    )[:BATCH_SIZE]
+    )[:SALE_LISTING_BATCH_SIZE]
     sale_ids = list(sales_listing.values_list("sale_id", flat=True))
 
     if sale_ids:
@@ -105,7 +113,7 @@ def migrate_sales_not_listed_in_any_channels_task():
         ~Exists(sales_listing.filter(sale_id=OuterRef("pk"))),
         ~Exists(Promotion.objects.filter(old_sale_id=OuterRef("pk"))),
     ).order_by("pk")
-    ids = list(sales_not_listed.values_list("pk", flat=True)[:BATCH_SIZE])
+    ids = list(sales_not_listed.values_list("pk", flat=True)[:SALE_LISTING_BATCH_SIZE])
     if ids:
         with transaction.atomic():
             # we need to double check if any of those listings already have promotion
