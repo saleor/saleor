@@ -151,7 +151,10 @@ if TYPE_CHECKING:
     from ...webhook.models import Webhook
 
 
-CACHE_TIME_SHIPPING_LIST_METHODS_FOR_CHECKOUT: Final[int] = 5 * 60  # 5 minutes
+# Set the timeout for the shipping methods cache to 12 hours as it was the lowest
+# time labels were valid for when checking documentation for the carriers
+# (FedEx, UPS, TNT, DHL).
+CACHE_TIME_SHIPPING_LIST_METHODS_FOR_CHECKOUT: Final[int] = 3600 * 12
 
 
 logger = logging.getLogger(__name__)
