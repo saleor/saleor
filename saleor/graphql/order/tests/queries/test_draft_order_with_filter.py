@@ -415,3 +415,49 @@ def test_draft_orders_query_with_filter_base_subtotal_price_missing_currency(
 
     # then
     assert validation_error.value.code == "required"
+
+
+def test_draft_orders_query_with_filter_price_with_and_or(draft_order):
+    # given
+    order = draft_order
+    currency = order.currency
+    order.total_net_amount = Decimal("20")
+    order.save(update_fields=["total_net_amount"])
+
+    qs = Order.objects.all()
+    predicate_data = {
+        "AND": [
+            {
+                "OR": [
+                    {
+                        "currency": currency,
+                        "base_total_price": {
+                            "range": {
+                                "gte": 20,
+                            }
+                        },
+                    },
+                    {
+                        "currency": currency,
+                        "base_total_price": {
+                            "range": {
+                                "gte": 10,
+                            }
+                        },
+                    },
+                ]
+            }
+        ],
+    }
+
+    # when
+    result = where_filter_qs(
+        qs,
+        {},
+        OrderDiscountedObjectWhere,
+        predicate_data,
+        None,
+    )
+
+    # then
+    assert result.count() == 1
