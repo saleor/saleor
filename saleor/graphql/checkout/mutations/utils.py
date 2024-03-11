@@ -14,6 +14,7 @@ from typing import (
 
 import graphene
 import pytz
+from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Q, QuerySet
@@ -513,7 +514,10 @@ def find_variant_id_when_line_parameter_used(
     return str(line_info[0].line.variant_id)
 
 
-def apply_gift_reward_if_applicable_on_checkout_creation(checkout: "Checkout") -> None:
+def apply_gift_reward_if_applicable_on_checkout_creation(
+    checkout: "Checkout",
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+) -> None:
     """Apply gift reward if applicable on newly created checkout.
 
     This method apply the gift reward if any gift promotion exists and
@@ -530,7 +534,7 @@ def apply_gift_reward_if_applicable_on_checkout_creation(checkout: "Checkout") -
     _set_checkout_base_subtotal_and_total_on_checkout_creation(checkout)
 
     best_rule_data = get_best_rule_for_checkout(
-        checkout, checkout.channel, checkout.get_country()
+        checkout, checkout.channel, checkout.get_country(), database_connection_name
     )
     if not best_rule_data:
         return

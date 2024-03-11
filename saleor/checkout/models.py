@@ -219,11 +219,17 @@ class Checkout(models.Model):
         """Return `True` if any of the lines requires shipping."""
         return any(line.is_shipping_required() for line in self)
 
-    def get_total_gift_cards_balance(self) -> Money:
+    def get_total_gift_cards_balance(
+        self, database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME
+    ) -> Money:
         """Return the total balance of the gift cards assigned to the checkout."""
-        balance = self.gift_cards.active(date=date.today()).aggregate(
-            models.Sum("current_balance_amount")
-        )["current_balance_amount__sum"]
+        balance = (
+            self.gift_cards.using(database_connection_name)
+            .active(date=date.today())
+            .aggregate(models.Sum("current_balance_amount"))[
+                "current_balance_amount__sum"
+            ]
+        )
         if balance is None:
             return zero_money(currency=self.currency)
         return Money(balance, self.currency)

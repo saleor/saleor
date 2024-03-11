@@ -566,6 +566,7 @@ def get_valid_internal_shipping_method_list_for_checkout_info(
     shipping_address: Optional["Address"],
     lines: Iterable[CheckoutLineInfo],
     shipping_channel_listings: Iterable[ShippingMethodChannelListing],
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> list["ShippingMethodData"]:
     from . import base_calculations
     from .utils import get_valid_internal_shipping_methods_for_checkout
@@ -599,6 +600,7 @@ def get_valid_internal_shipping_method_list_for_checkout_info(
         subtotal,
         shipping_channel_listings,
         country_code=country_code,
+        database_connection_name=database_connection_name,
     )
 
     return valid_shipping_methods
@@ -622,6 +624,9 @@ def get_all_shipping_methods_list(
     shipping_channel_listings,
     manager,
 ):
+    database_connection_name = get_database_connection_name_from_flag(
+        manager._allow_replica
+    )
     return list(
         itertools.chain(
             get_valid_internal_shipping_method_list_for_checkout_info(
@@ -629,6 +634,7 @@ def get_all_shipping_methods_list(
                 shipping_address,
                 lines,
                 shipping_channel_listings,
+                database_connection_name=database_connection_name,
             ),
             get_valid_external_shipping_method_list_for_checkout_info(
                 checkout_info, shipping_address, lines, manager
