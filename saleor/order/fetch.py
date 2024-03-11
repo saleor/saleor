@@ -117,6 +117,9 @@ def fetch_draft_order_lines_info(
     channel = order.channel
     for line in lines:
         variant = cast(ProductVariant, line.variant)
+        if not variant:
+            continue
+
         variant_channel_listing = variant.channel_listings.filter(
             channel=channel
         ).first()
