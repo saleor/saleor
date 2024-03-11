@@ -29,7 +29,9 @@ def test_get_taxes_for_checkout_no_permission(
     # given
     plugin = webhook_plugin()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, plugin)
+    checkout_info = fetch_checkout_info(
+        checkout, lines, get_plugins_manager(allow_replica=False)
+    )
     app_identifier = None
 
     # when
