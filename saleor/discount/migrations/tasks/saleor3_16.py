@@ -30,6 +30,12 @@ DISCOUNTED_PRICES_RECALCULATION_BATCH_SIZE = 100
 # The batch of size 1000 takes ~0.2 seconds and consumes ~10MB memory at peak
 PROMOTION_BATCH_SIZE = 1000
 
+# The batch of size 1000 takes ~0.7 seconds and consumes ~18MB memory at peak
+CHECKOUT_LINE_DISCOUNT_BATCH_SIZE = 500
+
+# The batch of size 1000 takes ~0.5 seconds and consumes ~15MB memory at peak
+ORDER_LINE_DISCOUNT_BATCH_SIZE = 500
+
 
 @dataclass
 class RuleInfo:
@@ -286,28 +292,44 @@ def migrate_translations(sale_ids, saleid_promotion_map):
 
 
 def migrate_checkout_line_discounts(sale_ids, rule_by_channel_and_sale):
-    if checkout_line_discounts := CheckoutLineDiscount.objects.filter(
+    checkout_line_discounts = CheckoutLineDiscount.objects.filter(
         sale_id__in=sale_ids
-    ).select_related("line__checkout"):
-        for checkout_line_discount in checkout_line_discounts:
+    ).exclude(type="promotion")[:CHECKOUT_LINE_DISCOUNT_BATCH_SIZE]
+    discount_line_ids = list(checkout_line_discounts.values_list("id", flat=True))
+    if discount_line_ids:
+        line_discounts = CheckoutLineDiscount.objects.filter(
+            id__in=discount_line_ids
+        ).select_related("line__checkout")
+        discounts_to_update = []
+        for checkout_line_discount in line_discounts:
+            discounts_to_update.append(checkout_line_discount)
+            checkout_line_discount.type = "promotion"
             if checkout_line := checkout_line_discount.line:
                 channel_id = checkout_line.checkout.channel_id
                 sale_id = checkout_line_discount.sale_id
                 lookup = f"{channel_id}_{sale_id}"
-                checkout_line_discount.type = "promotion"
                 if promotion_rule := rule_by_channel_and_sale.get(lookup):
                     checkout_line_discount.promotion_rule = promotion_rule
 
         CheckoutLineDiscount.objects.bulk_update(
-            checkout_line_discounts, ["promotion_rule_id", "type"]
+            discounts_to_update, ["promotion_rule_id", "type"]
         )
+        migrate_checkout_line_discounts(sale_ids, rule_by_channel_and_sale)
 
 
-def migrate_order_line_discounts(sale_ids, rule_by_channel_and_sale):
+def migrate_order_line_discounts(sale_ids, rule_by_channel_and_sale, last_id=None):
     global_pks = [graphene.Node.to_global_id("Sale", pk) for pk in sale_ids]
-    if order_lines := OrderLine.objects.filter(sale_id__in=global_pks).prefetch_related(
-        "order"
-    ):
+    lookup = {"sale_id__in": global_pks}
+    if last_id:
+        lookup["id__gt"] = last_id
+    lines = OrderLine.objects.filter(**lookup).order_by("created_at", "id")[
+        :ORDER_LINE_DISCOUNT_BATCH_SIZE
+    ]
+    discount_line_ids = list(lines.values_list("id", flat=True))
+    if discount_line_ids:
+        order_lines = OrderLine.objects.filter(
+            id__in=discount_line_ids
+        ).prefetch_related("order")
         order_line_discounts = []
         for order_line in order_lines:
             channel_id = order_line.order.channel_id
@@ -327,6 +349,9 @@ def migrate_order_line_discounts(sale_ids, rule_by_channel_and_sale):
                 )
 
         OrderLineDiscount.objects.bulk_create(order_line_discounts)
+        migrate_order_line_discounts(
+            sale_ids, rule_by_channel_and_sale, discount_line_ids[-1]
+        )
 
 
 def get_discount_amount_value(order_line):
