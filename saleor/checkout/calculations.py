@@ -12,6 +12,7 @@ from ..core.taxes import TaxData, TaxEmptyData, zero_money, zero_taxed_money
 from ..discount.utils import (
     create_or_update_discount_objects_from_promotion_for_checkout,
 )
+from ..graphql.core.context import get_database_connection_name_from_flag
 from ..payment.models import TransactionItem
 from ..plugins import PLUGIN_IDENTIFIER_PREFIX
 from ..tax import TaxCalculationStrategy
@@ -236,6 +237,9 @@ def _fetch_checkout_prices_if_expired(
     last price update is greater than settings.CHECKOUT_PRICES_TTL.
     """
     checkout = checkout_info.checkout
+    database_connection_name = get_database_connection_name_from_flag(
+        manager._allow_replica
+    )
 
     if not force_update and checkout.price_expiration > timezone.now():
         return checkout_info, lines

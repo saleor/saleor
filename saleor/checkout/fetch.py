@@ -629,6 +629,9 @@ def get_all_shipping_methods_list(
     manager,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
+    database_connection_name = get_database_connection_name_from_flag(
+        manager._allow_replica
+    )
     return list(
         itertools.chain(
             get_valid_internal_shipping_method_list_for_checkout_info(
