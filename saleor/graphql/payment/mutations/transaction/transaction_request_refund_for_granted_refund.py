@@ -141,11 +141,22 @@ class TransactionRequestRefundForGrantedRefund(BaseMutation):
         manager = get_plugin_manager_promise(info.context).get()
         action_value = granted_refund.amount_value or transaction_item.charged_value
         action_value = min(action_value, transaction_item.charged_value)
+
+        assigned_granted_refund = None
+        if granted_refund.transaction_item_id == transaction_item.pk:
+            # For granted refund which doesn't have transaction item assigned
+            # there is a possibility to call the multiple refund with different
+            # transaction items. In that case we only match granted refund with
+            # transaction event when the same transaction item is assigned to the
+            # granted refund.
+            assigned_granted_refund = granted_refund
+
         request_event = transaction_item.events.create(
             amount_value=action_value,
             currency=transaction_item.currency,
             type=TransactionEventType.REFUND_REQUEST,
             idempotency_key=str(uuid.uuid4()),
+            related_granted_refund=assigned_granted_refund,
         )
 
         try:

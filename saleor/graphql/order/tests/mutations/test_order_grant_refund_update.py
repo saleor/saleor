@@ -13,6 +13,7 @@ from ....tests.utils import (
 )
 from ...enums import (
     OrderChargeStatusEnum,
+    OrderGrantedRefundStatusEnum,
     OrderGrantRefundUpdateErrorCode,
     OrderGrantRefundUpdateLineErrorCode,
 )
@@ -45,6 +46,13 @@ mutation OrderGrantRefundUpdate(
         quantity
         reason
       }
+      status
+      transactionEvents{
+        id
+      }
+      transaction{
+        id
+      }
     }
     order {
       id
@@ -70,6 +78,13 @@ mutation OrderGrantRefundUpdate(
           }
           quantity
           reason
+        }
+        status
+        transactionEvents{
+          id
+        }
+        transaction{
+          id
         }
       }
     }
@@ -143,6 +158,12 @@ def test_grant_refund_update_by_user(
     assert granted_refund_assigned_to_order["app"]["id"] == to_global_id_or_none(
         granted_refund.app
     )
+    assert (
+        granted_refund_assigned_to_order["status"]
+        == OrderGrantedRefundStatusEnum.NONE.name
+    )
+    assert granted_refund_assigned_to_order["transactionEvents"] == []
+    assert not granted_refund_assigned_to_order["transaction"]
 
 
 @pytest.mark.parametrize("amount", [Decimal("0.00"), Decimal("20.00")])
@@ -325,6 +346,12 @@ def test_grant_refund_update_by_app(
     assert granted_refund_assigned_to_order["user"]["id"] == to_global_id_or_none(
         granted_refund.user
     )
+    assert (
+        granted_refund_assigned_to_order["status"]
+        == OrderGrantedRefundStatusEnum.NONE.name
+    )
+    assert granted_refund_assigned_to_order["transactionEvents"] == []
+    assert not granted_refund_assigned_to_order["transaction"]
 
 
 @pytest.mark.parametrize("amount", [Decimal("0.00"), Decimal("20.00")])
@@ -1299,13 +1326,12 @@ def test_grant_refund_update_with_transaction_item(
     granted_refund_id = to_global_id_or_none(granted_refund)
     staff_api_client.user.user_permissions.add(permission_manage_orders)
 
+    transaction_item_id = graphene.Node.to_global_id(
+        "TransactionItem", transaction_item.token
+    )
     variables = {
         "id": granted_refund_id,
-        "input": {
-            "transactionId": graphene.Node.to_global_id(
-                "TransactionItem", transaction_item.token
-            )
-        },
+        "input": {"transactionId": transaction_item_id},
     }
 
     # when
@@ -1333,6 +1359,12 @@ def test_grant_refund_update_with_transaction_item(
     assert granted_refund_assigned_to_order["app"]["id"] == to_global_id_or_none(
         granted_refund.app
     )
+    assert (
+        granted_refund_assigned_to_order["status"]
+        == OrderGrantedRefundStatusEnum.NONE.name
+    )
+    assert granted_refund_assigned_to_order["transactionEvents"] == []
+    assert granted_refund_assigned_to_order["transaction"]["id"] == transaction_item_id
 
 
 @pytest.mark.parametrize("expected_granted_amount", [Decimal("2.00"), Decimal("1.00")])
@@ -1359,6 +1391,9 @@ def test_grant_refund_update_with_transaction_and_correct_amount(
     granted_refund_id = to_global_id_or_none(granted_refund)
     staff_api_client.user.user_permissions.add(permission_manage_orders)
 
+    transaction_item_id = graphene.Node.to_global_id(
+        "TransactionItem", transaction_item.token
+    )
     variables = {
         "id": granted_refund_id,
         "input": {
@@ -1393,6 +1428,12 @@ def test_grant_refund_update_with_transaction_and_correct_amount(
     assert granted_refund_assigned_to_order["app"]["id"] == to_global_id_or_none(
         granted_refund.app
     )
+    assert (
+        granted_refund_assigned_to_order["status"]
+        == OrderGrantedRefundStatusEnum.NONE.name
+    )
+    assert granted_refund_assigned_to_order["transactionEvents"] == []
+    assert granted_refund_assigned_to_order["transaction"]["id"] == transaction_item_id
 
 
 def test_grant_refund_update_with_input_amount_greater_than_transaction_charged_amount(
@@ -1539,6 +1580,12 @@ def test_grant_refund_update_with_correct_input_amount_to_transaction_charged_am
     assert granted_refund_assigned_to_order["app"]["id"] == to_global_id_or_none(
         granted_refund.app
     )
+    assert (
+        granted_refund_assigned_to_order["status"]
+        == OrderGrantedRefundStatusEnum.NONE.name
+    )
+    assert granted_refund_assigned_to_order["transactionEvents"] == []
+    assert granted_refund_assigned_to_order["transaction"]["id"] == transaction_id
 
 
 def test_grant_refund_update_with_transaction_and_add_lines(
@@ -1615,6 +1662,9 @@ def test_grant_refund_update_with_transaction_and_add_lines(
     ) == quantize_price(
         Decimal(granted_refund_data["amount"]["amount"]), order_with_lines.currency
     )
+    assert granted_refund_data["status"] == OrderGrantedRefundStatusEnum.NONE.name
+    assert granted_refund_data["transactionEvents"] == []
+    assert granted_refund_data["transaction"]["id"] == transaction_id
 
 
 def test_grant_refund_update_with_transaction_and_remove_lines(
@@ -1678,6 +1728,9 @@ def test_grant_refund_update_with_transaction_and_remove_lines(
     ) == quantize_price(
         Decimal(granted_refund_data["amount"]["amount"]), order_with_lines.currency
     )
+    assert granted_refund_data["status"] == OrderGrantedRefundStatusEnum.NONE.name
+    assert granted_refund_data["transactionEvents"] == []
+    assert granted_refund_data["transaction"]["id"] == transaction_id
 
 
 def test_grant_refund_update_with_transaction_and_shipping_and_add_and_remove_lines(
@@ -1746,6 +1799,9 @@ def test_grant_refund_update_with_transaction_and_shipping_and_add_and_remove_li
     ) == quantize_price(
         Decimal(granted_refund_data["amount"]["amount"]), order_with_lines.currency
     )
+    assert granted_refund_data["status"] == OrderGrantedRefundStatusEnum.NONE.name
+    assert granted_refund_data["transactionEvents"] == []
+    assert granted_refund_data["transaction"]["id"] == transaction_id
 
 
 def test_grant_refund_update_with_transaction_add_remove_lines_shipping_invalid_amount(
@@ -1882,6 +1938,10 @@ def test_grant_refund_update_with_transaction_add_remove_lines_shipping_amount(
     ) == quantize_price(
         Decimal(granted_refund_data["amount"]["amount"]), order_with_lines.currency
     )
+
+    assert granted_refund_data["status"] == OrderGrantedRefundStatusEnum.NONE.name
+    assert granted_refund_data["transactionEvents"] == []
+    assert granted_refund_data["transaction"]["id"] == transaction_id
 
 
 def test_grant_refund_update_with_transaction_add_lines_and_invalid_amount(

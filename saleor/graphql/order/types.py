@@ -77,6 +77,7 @@ from ..core.descriptions import (
     ADDED_IN_315,
     ADDED_IN_318,
     ADDED_IN_319,
+    ADDED_IN_320,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -108,9 +109,17 @@ from ..invoice.dataloaders import InvoicesByOrderIdLoader
 from ..invoice.types import Invoice
 from ..meta.resolvers import check_private_metadata_privilege, resolve_metadata
 from ..meta.types import MetadataItem, ObjectWithMetadata
-from ..payment.dataloaders import TransactionByPaymentIdLoader
+from ..payment.dataloaders import (
+    TransactionByPaymentIdLoader,
+    TransactionItemsByIDLoader,
+)
 from ..payment.enums import OrderAction
-from ..payment.types import Payment, PaymentChargeStatusEnum, TransactionItem
+from ..payment.types import (
+    Payment,
+    PaymentChargeStatusEnum,
+    TransactionEvent,
+    TransactionItem,
+)
 from ..plugins.dataloaders import (
     get_plugin_manager_promise,
     plugin_manager_promise_callback,
@@ -150,6 +159,7 @@ from .dataloaders import (
     OrderGrantedRefundsByOrderIdLoader,
     OrderLineByIdLoader,
     OrderLinesByOrderIdLoader,
+    TransactionEventByOrderGrantedRefundIdLoader,
     TransactionItemsByOrderIDLoader,
 )
 from .enums import (
@@ -158,6 +168,7 @@ from .enums import (
     OrderChargeStatusEnum,
     OrderEventsEmailsEnum,
     OrderEventsEnum,
+    OrderGrantedRefundStatusEnum,
     OrderOriginEnum,
     OrderStatusEnum,
 )
@@ -261,6 +272,25 @@ class OrderGrantedRefund(ModelObjectType[models.OrderGrantedRefund]):
         + ADDED_IN_315
         + PREVIEW_FEATURE,
     )
+    status = graphene.Field(
+        OrderGrantedRefundStatusEnum,
+        required=True,
+        description=(
+            "Status of the granted refund calculated based on transactionItem assigned "
+            "to granted refund." + ADDED_IN_320
+        ),
+    )
+    transaction_events = NonNullList(
+        TransactionEvent,
+        description=(
+            "List of refund events associated with the granted refund." + ADDED_IN_320
+        ),
+    )
+
+    transaction = graphene.Field(
+        TransactionItem,
+        description="The transaction assigned to the granted refund." + ADDED_IN_320,
+    )
 
     class Meta:
         description = "The details of granted refund." + ADDED_IN_313 + PREVIEW_FEATURE
@@ -296,6 +326,22 @@ class OrderGrantedRefund(ModelObjectType[models.OrderGrantedRefund]):
         return OrderGrantedRefundLinesByOrderGrantedRefundIdLoader(info.context).load(
             root.id
         )
+
+    @staticmethod
+    @one_of_permissions_required(
+        [OrderPermissions.MANAGE_ORDERS, PaymentPermissions.HANDLE_PAYMENTS]
+    )
+    def resolve_transaction_events(root: models.OrderGrantedRefund, info):
+        return TransactionEventByOrderGrantedRefundIdLoader(info.context).load(root.id)
+
+    @staticmethod
+    @one_of_permissions_required(
+        [OrderPermissions.MANAGE_ORDERS, PaymentPermissions.HANDLE_PAYMENTS]
+    )
+    def resolve_transaction(root: models.OrderGrantedRefund, info):
+        if not root.transaction_item_id:
+            return None
+        return TransactionItemsByIDLoader(info.context).load(root.transaction_item_id)
 
 
 class OrderDiscount(BaseObjectType):

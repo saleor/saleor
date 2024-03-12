@@ -9,6 +9,7 @@ from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...enums import (
     OrderChargeStatusEnum,
+    OrderGrantedRefundStatusEnum,
     OrderGrantRefundCreateErrorCode,
     OrderGrantRefundCreateLineErrorCode,
 )
@@ -41,6 +42,13 @@ mutation OrderGrantRefundCreate(
         quantity
         reason
       }
+      status
+      transactionEvents{
+        id
+      }
+      transaction{
+        id
+      }
     }
     order{
       id
@@ -67,6 +75,13 @@ mutation OrderGrantRefundCreate(
           }
           quantity
           reason
+        }
+        status
+        transactionEvents{
+          id
+        }
+        transaction{
+          id
         }
       }
     }
@@ -130,6 +145,13 @@ def test_grant_refund_by_user(
     )
     assert not granted_refund_assigned_to_order["app"]
 
+    assert (
+        granted_refund_assigned_to_order["status"]
+        == OrderGrantedRefundStatusEnum.NONE.name
+    )
+    assert granted_refund_assigned_to_order["transactionEvents"] == []
+    assert not granted_refund_assigned_to_order["transaction"]
+
 
 @pytest.mark.parametrize("reason", ["", "Reason", None])
 def test_grant_refund_by_app(reason, app_api_client, permission_manage_orders, order):
@@ -169,6 +191,10 @@ def test_grant_refund_by_app(reason, app_api_client, permission_manage_orders, o
         == to_global_id_or_none(app_api_client.app)
         == to_global_id_or_none(granted_refund_from_db.app)
     )
+
+    assert granted_refund["status"] == OrderGrantedRefundStatusEnum.NONE.name
+    assert granted_refund["transactionEvents"] == []
+    assert not granted_refund["transaction"]
 
 
 def test_grant_refund_by_app_missing_permission(app_api_client, order):
@@ -788,6 +814,10 @@ def test_grant_refund_with_transaction_item_and_without_input_amount(
     )
     assert order_granted_refund["lines"][0]["reason"] == expected_reason
 
+    assert order_granted_refund["status"] == OrderGrantedRefundStatusEnum.NONE.name
+    assert order_granted_refund["transactionEvents"] == []
+    assert order_granted_refund["transaction"]["id"] == transaction_item_id
+
     assert quantize_price(
         granted_refund_from_db.amount_value, order.currency
     ) == quantize_price(
@@ -913,6 +943,10 @@ def test_grant_refund_with_transaction_item_and_amount(
         first_line
     )
     assert order_granted_refund["lines"][0]["reason"] == expected_reason
+
+    assert order_granted_refund["status"] == OrderGrantedRefundStatusEnum.NONE.name
+    assert order_granted_refund["transactionEvents"] == []
+    assert order_granted_refund["transaction"]["id"] == transaction_item_id
 
     assert quantize_price(
         granted_refund_from_db.amount_value, order.currency

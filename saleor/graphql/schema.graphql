@@ -12892,6 +12892,27 @@ type OrderGrantedRefund @doc(category: "Orders") {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   lines: [OrderGrantedRefundLine!]
+
+  """
+  Status of the granted refund calculated based on transactionItem assigned to granted refund.
+  
+  Added in Saleor 3.20.
+  """
+  status: OrderGrantedRefundStatusEnum!
+
+  """
+  List of refund events associated with the granted refund.
+  
+  Added in Saleor 3.20.
+  """
+  transactionEvents: [TransactionEvent!]
+
+  """
+  The transaction assigned to the granted refund.
+  
+  Added in Saleor 3.20.
+  """
+  transaction: TransactionItem
 }
 
 """
@@ -12912,6 +12933,21 @@ type OrderGrantedRefundLine {
 
   """Reason for refunding the line."""
   reason: String
+}
+
+"""
+Represents the status of a granted refund.
+
+    NONE - the refund on related transactionItem is not processed
+    PENDING - the refund on related transactionItem is pending
+    FULL - the refund on related transactionItem is fully processed
+    FAIL - the refund on related transactionItem failed
+"""
+enum OrderGrantedRefundStatusEnum @doc(category: "Orders") {
+  NONE
+  PENDING
+  SUCCESS
+  FAILURE
 }
 
 """Represents transaction's event."""
