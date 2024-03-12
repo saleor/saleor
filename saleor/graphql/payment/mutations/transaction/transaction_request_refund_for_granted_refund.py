@@ -92,7 +92,7 @@ class TransactionRequestRefundForGrantedRefund(BaseMutation):
                             f"is greater than available charged amount on "
                             f"transactionItem ({transaction_item.charged_value})."
                             f"Update the order granted refund amount to process the "
-                            f"grant refund",
+                            f"grant refund.",
                             code=error_code,
                         )
                     }
