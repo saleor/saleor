@@ -1,9 +1,10 @@
 import graphene
 from django.db.models import Exists, OuterRef
 
+from ....discount.utils import mark_active_catalogue_promotion_rules_as_dirty
 from ....permission.enums import ProductPermissions
 from ....product import models
-from ....product.tasks import update_products_discounted_prices_for_promotion_task
+from ....product.models import ProductChannelListing
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
 from ...core.mutations import ModelBulkDeleteMutation
@@ -47,7 +48,9 @@ class CollectionBulkDelete(ModelBulkDeleteMutation):
         for product in products:
             cls.call_event(manager.product_updated, product, webhooks=webhooks)
 
-        cls.call_event(
-            update_products_discounted_prices_for_promotion_task.delay,
-            [product.id for product in products],
+        channel_ids = set(
+            ProductChannelListing.objects.filter(
+                Exists(collection_products.filter(product_id=OuterRef("product_id")))
+            ).values_list("channel_id", flat=True)
         )
+        cls.call_event(mark_active_catalogue_promotion_rules_as_dirty, channel_ids)

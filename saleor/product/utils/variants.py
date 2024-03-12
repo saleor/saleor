@@ -52,9 +52,7 @@ def get_variant_selection_attributes(
     ]
 
 
-def fetch_variants_for_promotion_rules(
-    rules: QuerySet[PromotionRule],
-):
+def fetch_variants_for_promotion_rules(rules: QuerySet[PromotionRule]):
     from ...graphql.discount.utils import get_variants_for_catalogue_predicate
 
     PromotionRuleVariant = PromotionRule.variants.through
@@ -70,3 +68,4 @@ def fetch_variants_for_promotion_rules(
             ]
         )
     update_rule_variant_relation(rules, new_rules_variants)
+    return new_rules_variants
