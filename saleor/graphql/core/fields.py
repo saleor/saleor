@@ -122,8 +122,9 @@ class ConnectionField(PermissionsField):
             )
 
         assert issubclass(connection_type, Connection), (
-            '{} type have to be a subclass of Connection. Received "{}".'
-        ).format(self.__class__.__name__, connection_type)
+            f"{self.__class__.__name__} type have to be a subclass of Connection. "
+            f'Received "{connection_type}".'
+        )
         return type
 
 
