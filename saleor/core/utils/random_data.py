@@ -455,7 +455,7 @@ def create_products_by_schema(placeholder_dir, create_images):
     assign_products_to_collections(associations=types["product.collectionproduct"])
 
     all_products_qs = Product.objects.all()
-    update_products_search_vector(all_products_qs)
+    update_products_search_vector(all_products_qs.values_list("id", flat=True))
 
 
 class SaleorProvider(BaseProvider):
