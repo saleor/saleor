@@ -21,7 +21,7 @@ from ..warehouse.management import deactivate_preorder_for_variant
 from ..webhook.event_types import WebhookEventAsyncType
 from ..webhook.utils import get_webhooks_for_event
 from .models import Product, ProductChannelListing, ProductType, ProductVariant
-from .search import PRODUCTS_BATCH_SIZE, update_products_search_vector
+from .search import update_products_search_vector
 from .utils.product import mark_products_in_channels_as_dirty
 from .utils.variant_prices import update_discounted_prices_for_promotion
 from .utils.variants import (
@@ -31,6 +31,8 @@ from .utils.variants import (
 
 logger = logging.getLogger(__name__)
 task_logger = get_task_logger(__name__)
+
+PRODUCTS_BATCH_SIZE = 300
 
 VARIANTS_UPDATE_BATCH = 500
 # Results in update time ~0.2s
@@ -265,10 +267,13 @@ def _get_preorder_variants_to_clean():
     expires=settings.BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC,
 )
 def update_products_search_vector_task():
-    products = Product.objects.filter(search_index_dirty=True).order_by()[
-        :PRODUCTS_BATCH_SIZE
-    ]
-    update_products_search_vector(products, use_batches=False)
+    products = (
+        Product.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(search_index_dirty=True)
+        .order_by("updated_at")[:PRODUCTS_BATCH_SIZE]
+        .values_list("id", flat=True)
+    )
+    update_products_search_vector(products)
 
 
 @app.task(queue=settings.COLLECTION_PRODUCT_UPDATED_QUEUE_NAME)
