@@ -30,10 +30,10 @@ DISCOUNTED_PRICES_RECALCULATION_BATCH_SIZE = 100
 # The batch of size 1000 takes ~0.2 seconds and consumes ~10MB memory at peak
 PROMOTION_BATCH_SIZE = 1000
 
-# The batch of size 1000 takes ~0.7 seconds and consumes ~18MB memory at peak
+# The batch of size 500 takes ~0.7 seconds and consumes ~18MB memory at peak
 CHECKOUT_LINE_DISCOUNT_BATCH_SIZE = 500
 
-# The batch of size 1000 takes ~0.5 seconds and consumes ~15MB memory at peak
+# The batch of size 500 takes ~0.5 seconds and consumes ~15MB memory at peak
 ORDER_LINE_DISCOUNT_BATCH_SIZE = 500
 
 
@@ -317,19 +317,29 @@ def migrate_checkout_line_discounts(sale_ids, rule_by_channel_and_sale):
         migrate_checkout_line_discounts(sale_ids, rule_by_channel_and_sale)
 
 
-def migrate_order_line_discounts(sale_ids, rule_by_channel_and_sale, last_id=None):
+def migrate_order_line_discounts(
+    sale_ids, rule_by_channel_and_sale, last_created_at=None, already_processed_ids=None
+):
     global_pks = [graphene.Node.to_global_id("Sale", pk) for pk in sale_ids]
-    lookup = {"sale_id__in": global_pks}
-    if last_id:
-        lookup["id__gt"] = last_id
-    lines = OrderLine.objects.filter(**lookup).order_by("created_at", "id")[
-        :ORDER_LINE_DISCOUNT_BATCH_SIZE
-    ]
+    filter_lookup = {"sale_id__in": global_pks}
+    # We need to ensure that all instances with the same created_at timestamp
+    # are processed. We need to prevent a situation when the batch proceeds only
+    # part of the instanced with the same created_at value.
+    # To prevent such situation the `gte` is used in filters with excluding
+    # of already processed ids for this created_at timestamp.
+    if last_created_at:
+        filter_lookup["created_at__gte"] = last_created_at
+    lines = OrderLine.objects.filter(**filter_lookup)
+    if already_processed_ids:
+        lines = lines.exclude(id__in=already_processed_ids)
+    lines = lines.order_by("created_at")[:ORDER_LINE_DISCOUNT_BATCH_SIZE]
     discount_line_ids = list(lines.values_list("id", flat=True))
     if discount_line_ids:
-        order_lines = OrderLine.objects.filter(
-            id__in=discount_line_ids
-        ).prefetch_related("order")
+        order_lines = (
+            OrderLine.objects.filter(id__in=discount_line_ids)
+            .order_by("created_at")
+            .prefetch_related("order")
+        )
         order_line_discounts = []
         for order_line in order_lines:
             channel_id = order_line.order.channel_id
@@ -347,10 +357,13 @@ def migrate_order_line_discounts(sale_ids, rule_by_channel_and_sale, last_id=Non
                         line=order_line,
                     )
                 )
-
+        last_created_at = order_line.created_at
+        already_processed_ids = list(
+            order_lines.filter(created_at=last_created_at).values_list("id", flat=True)
+        )
         OrderLineDiscount.objects.bulk_create(order_line_discounts)
         migrate_order_line_discounts(
-            sale_ids, rule_by_channel_and_sale, discount_line_ids[-1]
+            sale_ids, rule_by_channel_and_sale, last_created_at, already_processed_ids
         )
 
 
