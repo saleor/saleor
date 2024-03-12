@@ -34,20 +34,26 @@ def resolve_access_token_for_app(info, root):
     user = info.context.user
     if not user or not user.is_staff:
         return None
-    return create_access_token_for_app(root, user)
+    database_connection_name = get_database_connection_name(info.context)
+    return create_access_token_for_app(
+        root, user, database_connection_name=database_connection_name
+    )
 
 
 def resolve_access_token_for_app_extension(info, root, app):
     user = info.context.user
     if not user:
         return None
-    extension_permissions = root.permissions.using(
-        get_database_connection_name(info.context)
-    ).all()
-    user_permissions = user.effective_permissions
+    database_connection_name = get_database_connection_name(info.context)
+    extension_permissions = root.permissions.using(database_connection_name).all()
+    user_permissions = user.effective_permissions.using(database_connection_name)
     if set(extension_permissions).issubset(user_permissions):
         return create_access_token_for_app_extension(
-            app_extension=root, permissions=extension_permissions, user=user, app=app
+            app_extension=root,
+            permissions=extension_permissions,
+            user=user,
+            app=app,
+            database_connection_name=database_connection_name,
         )
     return None
 

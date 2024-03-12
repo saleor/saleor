@@ -1,6 +1,7 @@
 from collections.abc import Iterable
 from enum import Enum
 
+from django.conf import settings
 from django.db.models import QuerySet
 
 from .models import Permission
@@ -151,7 +152,10 @@ def split_permission_codename(permissions):
     return [permission.split(".")[1] for permission in permissions]
 
 
-def get_permissions(permissions=None):
+def get_permissions(
+    permissions=None,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+):
     if permissions is None:
         codenames = get_permissions_codename()
     else:
