@@ -1,10 +1,16 @@
 from decimal import Decimal
 
+import pytest
+
 from ...product.models import ProductVariantChannelListing
 from ..fetch import fetch_draft_order_lines_info
 
 
-def test_fetch_draft_order_lines_info(draft_order_and_promotions):
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_fetch_draft_order_lines_info(
+    draft_order_and_promotions, django_assert_num_queries, count_queries
+):
     # given
     order, rule_catalogue, rule_total, rule_gift = draft_order_and_promotions
     channel = order.channel
@@ -28,7 +34,8 @@ def test_fetch_draft_order_lines_info(draft_order_and_promotions):
     )
 
     # when
-    lines_info = fetch_draft_order_lines_info(order)
+    with django_assert_num_queries(11):
+        lines_info = fetch_draft_order_lines_info(order)
 
     # then
     line_info_1 = [line_info for line_info in lines_info if line_info.line == line_1][0]

@@ -100,14 +100,7 @@ class DraftOrderLineInfo:
 def fetch_draft_order_lines_info(
     order: "Order", lines: Optional[Iterable["OrderLine"]] = None
 ) -> list[DraftOrderLineInfo]:
-    prefetch_related_fields = [
-        "variant__channel_listings__channel",
-        "variant__channel_listings__variantlistingpromotionrule__promotion_rule__promotion__translations",
-        "variant__channel_listings__variantlistingpromotionrule__promotion_rule__translations",
-        "discounts__promotion_rule__promotion",
-        "variant__product__product_type",
-    ]
-
+    prefetch_related_fields = ["discounts", "variant"]
     if lines is None:
         lines = list(order.lines.prefetch_related(*prefetch_related_fields))
     else:
@@ -117,11 +110,8 @@ def fetch_draft_order_lines_info(
     channel = order.channel
     for line in lines:
         variant = cast(ProductVariant, line.variant)
-        if not variant:
-            continue
-
-        variant_channel_listing = variant.channel_listings.filter(
-            channel=channel
+        variant_channel_listing = ProductVariantChannelListing.objects.filter(
+            channel=channel, variant=variant
         ).first()
         if not variant_channel_listing:
             continue
