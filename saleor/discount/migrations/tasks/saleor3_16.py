@@ -107,8 +107,8 @@ def migrate_sales(sales):
     migrate_translations(sale_ids, saleid_promotion_map)
 
     rule_by_channel_and_sale = get_rule_by_channel_sale(rules_info)
-    migrate_checkout_line_discounts(sale_ids, rule_by_channel_and_sale)
-    migrate_order_line_discounts(sale_ids, rule_by_channel_and_sale)
+    migrate_checkout_line_discounts_task.delay(sale_ids, rule_by_channel_and_sale)
+    migrate_order_line_discounts_task.delay(sale_ids, rule_by_channel_and_sale)
 
 
 @app.task
@@ -291,15 +291,18 @@ def migrate_translations(sale_ids, saleid_promotion_map):
         PromotionTranslation.objects.bulk_create(promotion_translations)
 
 
-def migrate_checkout_line_discounts(sale_ids, rule_by_channel_and_sale):
+@app.task
+def migrate_checkout_line_discounts_task(sale_ids, rule_by_channel_and_sale):
     checkout_line_discounts = CheckoutLineDiscount.objects.filter(
         sale_id__in=sale_ids
     ).exclude(type="promotion")[:CHECKOUT_LINE_DISCOUNT_BATCH_SIZE]
     discount_line_ids = list(checkout_line_discounts.values_list("id", flat=True))
     if discount_line_ids:
-        line_discounts = CheckoutLineDiscount.objects.filter(
-            id__in=discount_line_ids
-        ).select_related("line__checkout")
+        line_discounts = (
+            CheckoutLineDiscount.objects.filter(id__in=discount_line_ids)
+            .select_related("line__checkout")
+            .only("line__checkout__channel_id", "sale_id")
+        )
         discounts_to_update = []
         for checkout_line_discount in line_discounts:
             discounts_to_update.append(checkout_line_discount)
@@ -314,10 +317,11 @@ def migrate_checkout_line_discounts(sale_ids, rule_by_channel_and_sale):
         CheckoutLineDiscount.objects.bulk_update(
             discounts_to_update, ["promotion_rule_id", "type"]
         )
-        migrate_checkout_line_discounts(sale_ids, rule_by_channel_and_sale)
+        migrate_checkout_line_discounts_task.delay(sale_ids, rule_by_channel_and_sale)
 
 
-def migrate_order_line_discounts(
+@app.task
+def migrate_order_line_discounts_task(
     sale_ids, rule_by_channel_and_sale, last_created_at=None, already_processed_ids=None
 ):
     global_pks = [graphene.Node.to_global_id("Sale", pk) for pk in sale_ids]
@@ -332,13 +336,13 @@ def migrate_order_line_discounts(
     lines = OrderLine.objects.filter(**filter_lookup)
     if already_processed_ids:
         lines = lines.exclude(id__in=already_processed_ids)
-    lines = lines.order_by("created_at")[:ORDER_LINE_DISCOUNT_BATCH_SIZE]
+    lines = lines[:ORDER_LINE_DISCOUNT_BATCH_SIZE]
     discount_line_ids = list(lines.values_list("id", flat=True))
     if discount_line_ids:
         order_lines = (
             OrderLine.objects.filter(id__in=discount_line_ids)
             .order_by("created_at")
-            .prefetch_related("order")
+            .select_related("order")
         )
         order_line_discounts = []
         for order_line in order_lines:
@@ -362,7 +366,7 @@ def migrate_order_line_discounts(
             order_lines.filter(created_at=last_created_at).values_list("id", flat=True)
         )
         OrderLineDiscount.objects.bulk_create(order_line_discounts)
-        migrate_order_line_discounts(
+        migrate_order_line_discounts_task.delay(
             sale_ids, rule_by_channel_and_sale, last_created_at, already_processed_ids
         )
 
