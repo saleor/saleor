@@ -106,9 +106,12 @@ class OrderGrantRefundUpdateInput(BaseInputObjectType):
     transaction_id = graphene.ID(
         description=(
             "The ID of the transaction item related to the granted refund. "
-            "transaction.chargedAmount needs to be equal or greater than provided "
-            "`amount`. If `amount` calculated automatically, the "
-            "min(amount, transaction.chargedAmount) will be used."
+            "If `amount` provided in the input, the transaction.chargedAmount needs to "
+            "be equal or greater than provided `amount`."
+            "If `amount` is not provided in the input and calculated automatically by "
+            "Saleor, the `min(calculatedAmount, transaction.chargedAmount)` will be "
+            "used."
+            "Field will be required starting from Saleor 3.21."
             + ADDED_IN_320
             + PREVIEW_FEATURE
         ),

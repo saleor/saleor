@@ -25863,7 +25863,7 @@ input OrderGrantRefundCreateInput @doc(category: "Orders") {
   grantRefundForShipping: Boolean
 
   """
-  The ID of the transaction item related to the granted refund. transaction.chargedAmount needs to be equal or greater than provided `amount`. If `amount` calculated automatically, the min(amount, transaction.chargedAmount) will be used.Field will be required starting from Saleor 3.21.
+  The ID of the transaction item related to the granted refund. If `amount` provided in the input, the transaction.chargedAmount needs to be equal or greater than provided `amount`.If `amount` is not provided in the input and calculated automatically by Saleor, the `min(calculatedAmount, transaction.chargedAmount)` will be used.Field will be required starting from Saleor 3.21.
   
   Added in Saleor 3.20.
   
@@ -26002,7 +26002,7 @@ input OrderGrantRefundUpdateInput @doc(category: "Orders") {
   grantRefundForShipping: Boolean
 
   """
-  The ID of the transaction item related to the granted refund. transaction.chargedAmount needs to be equal or greater than provided `amount`. If `amount` calculated automatically, the min(amount, transaction.chargedAmount) will be used.
+  The ID of the transaction item related to the granted refund. If `amount` provided in the input, the transaction.chargedAmount needs to be equal or greater than provided `amount`.If `amount` is not provided in the input and calculated automatically by Saleor, the `min(calculatedAmount, transaction.chargedAmount)` will be used.Field will be required starting from Saleor 3.21.
   
   Added in Saleor 3.20.
   
