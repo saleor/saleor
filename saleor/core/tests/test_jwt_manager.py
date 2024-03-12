@@ -1,3 +1,5 @@
+import json
+
 import jwt
 import pytest
 from cryptography.hazmat.primitives import serialization
@@ -29,7 +31,7 @@ def test_jwt_manager_validate_missing_rsa_private_key(settings):
 
 
 @override_settings(RSA_PRIVATE_KEY="WRONG-FORMAT")
-def test_jwt_manager_validate_incorect_format_of_rsa_private_key(settings):
+def test_jwt_manager_validate_incorrect_format_of_rsa_private_key(settings):
     # given
     jwt_manager = get_jwt_manager()
 
@@ -56,8 +58,39 @@ def test_jwt_manager_encode(settings):
         private_key.public_key(),
         algorithms=["RS256"],
     )
-    assert headers.get("alg") == "RS256"
+
     assert decoded_token == payload
+    assert headers == {"alg": "RS256", "kid": jwt_manager.get_key_id(), "typ": "JWT"}
+
+
+def test_jwt_manager_jws_encode(settings):
+    # given
+    payload = {"A": "1", "B": "2"}
+    encoded_payload = json.dumps(payload).encode()
+    jwt_manager = get_jwt_manager()
+    private_key = serialization.load_pem_private_key(
+        settings.RSA_PRIVATE_KEY.encode("utf-8"), password=settings.RSA_PRIVATE_PASSWORD
+    )
+
+    # when
+    token = jwt_manager.jws_encode(encoded_payload)
+
+    # then
+    headers = jwt.get_unverified_header(token)
+    decoded_token = jwt.decode(
+        token,
+        private_key.public_key(),
+        algorithms=["RS256"],
+        detached_payload=encoded_payload,
+    )
+    assert decoded_token == payload
+    assert headers == {
+        "alg": "RS256",
+        "b64": False,
+        "crit": ["b64"],
+        "kid": jwt_manager.get_key_id(),
+        "typ": "JWT",
+    }
 
 
 def test_jwt_manager_decode_token_signed_with_rs256(settings):
