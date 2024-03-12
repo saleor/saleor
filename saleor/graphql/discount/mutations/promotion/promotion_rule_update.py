@@ -4,10 +4,10 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
-from .....discount import events, models
+from .....discount import PromotionType, events, models
 from .....discount.utils import get_current_products_for_rules
 from .....permission.enums import DiscountPermissions
-from .....product.tasks import update_discounted_prices_task
+from .....product.utils.product import mark_products_in_channels_as_dirty
 from .....webhook.event_types import WebhookEventAsyncType
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
@@ -23,9 +23,7 @@ from ...inputs import PromotionRuleBaseInput
 from ...types import PromotionRule
 from ...utils import get_products_for_rule
 from ..utils import clear_promotion_old_sale_id
-from .validators import (
-    clean_promotion_rule,
-)
+from .validators import clean_promotion_rule
 
 
 class PromotionRuleUpdateError(Error):
@@ -101,15 +99,23 @@ class PromotionRuleUpdate(ModelMutation):
         data = data.get("input")
         cleaned_input = cls.clean_input(info, instance, data)
         instance = cls.construct_instance(instance, cleaned_input)
+        promotion_type = instance.promotion.type
 
-        previous_products = get_current_products_for_rules(
-            models.PromotionRule.objects.filter(id=instance.id)
-        )
-        previous_product_ids = set(previous_products.values_list("id", flat=True))
+        previous_product_ids = set()
+        removed_channel_ids = []
+        if promotion_type == PromotionType.CATALOGUE:
+            previous_products = get_current_products_for_rules(
+                models.PromotionRule.objects.filter(id=instance.id)
+            )
+            previous_product_ids = set(previous_products.values_list("id", flat=True))
+            removed_channel_ids = [
+                channel.id for channel in cleaned_input.get("remove_channels", [])
+            ]
+
         cls.clean_instance(info, instance)
         cls.save(info, instance, cleaned_input)
         cls._save_m2m(info, instance, cleaned_input)
-        cls.post_save_actions(info, instance, previous_product_ids)
+        cls.post_save_actions(info, instance, previous_product_ids, removed_channel_ids)
 
         return cls.success_response(instance)
 
@@ -157,11 +163,25 @@ class PromotionRuleUpdate(ModelMutation):
                 instance.gifts.add(*add_gifts)
 
     @classmethod
-    def post_save_actions(cls, info: ResolveInfo, instance, previous_product_ids):
-        products = get_products_for_rule(instance, update_rule_variants=True)
-        product_ids = set(products.values_list("id", flat=True)) | previous_product_ids
-        if product_ids:
-            update_discounted_prices_task.delay(list(product_ids))
+    def post_save_actions(
+        cls, info: ResolveInfo, instance, previous_product_ids, removed_channel_ids
+    ):
+        if instance.promotion.type == PromotionType.CATALOGUE:
+            # no need to trigger the logic to recalculate the prices if the promotion
+            # type is different from CATALOGUE
+            products = get_products_for_rule(instance, update_rule_variants=True)
+            product_ids = (
+                set(products.values_list("id", flat=True)) | previous_product_ids
+            )
+            channel_ids_to_update = (
+                list(instance.channels.values_list("id", flat=True))
+                + removed_channel_ids
+            )
+            if product_ids:
+                cls.call_event(
+                    mark_products_in_channels_as_dirty,
+                    {channel_id: product_ids for channel_id in channel_ids_to_update},
+                )
         clear_promotion_old_sale_id(instance.promotion, save=True)
         app = get_app_promise(info.context).get()
         events.rule_updated_event(info.context.user, app, [instance])

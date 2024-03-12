@@ -1,5 +1,6 @@
 import pytest
 
+from .....product.tasks import recalculate_discounted_price_for_products_task
 from ... import DEFAULT_ADDRESS
 from ...product.utils import (
     create_category,
@@ -176,6 +177,10 @@ def test_order_products_from_category_on_fixed_promotion_CORE_2106(
         discount_type,
         promotion_rule_name,
     )
+
+    # prices are updated in the background, we need to force it to retrieve the correct
+    # ones
+    recalculate_discounted_price_for_products_task()
 
     # Step 1 - Create a draft order for a product with fixed promotion
     input = {

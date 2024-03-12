@@ -12,6 +12,7 @@ in terms of weight.
 In the end, it does not really matter unless you travel between
 different planets.
 """
+
 from django.contrib.sites.models import Site
 from measurement.measures import Weight
 

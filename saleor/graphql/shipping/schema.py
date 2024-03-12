@@ -70,7 +70,9 @@ class ShippingQueries(graphene.ObjectType):
     @staticmethod
     def resolve_shipping_zones(_root, info: ResolveInfo, *, channel=None, **kwargs):
         qs = resolve_shipping_zones(info, channel)
-        qs = filter_connection_queryset(qs, kwargs)
+        qs = filter_connection_queryset(
+            qs, kwargs, allow_replica=info.context.allow_replica
+        )
         return create_connection_slice(
             qs, info, kwargs, ShippingZoneCountableConnection
         )

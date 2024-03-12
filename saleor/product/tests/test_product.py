@@ -160,7 +160,7 @@ def test_filtering_by_attribute(
 
 
 def test_clean_product_attributes_date_time_range_filter_input(
-    date_attribute, date_time_attribute
+    date_attribute, date_time_attribute, settings
 ):
     # filter date attribute
     filter_value = [
@@ -169,7 +169,9 @@ def test_clean_product_attributes_date_time_range_filter_input(
             {"gte": datetime(2020, 10, 5, tzinfo=pytz.utc)},
         )
     ]
-    values_qs = _clean_product_attributes_date_time_range_filter_input(filter_value)
+    values_qs = _clean_product_attributes_date_time_range_filter_input(
+        filter_value, settings.DATABASE_CONNECTION_DEFAULT_NAME
+    )
 
     assert set(date_attribute.values.all()) == set(values_qs.all())
 
@@ -179,7 +181,9 @@ def test_clean_product_attributes_date_time_range_filter_input(
             {"gte": datetime(2020, 10, 5).date(), "lte": datetime(2020, 11, 4).date()},
         )
     ]
-    values_qs = _clean_product_attributes_date_time_range_filter_input(filter_value)
+    values_qs = _clean_product_attributes_date_time_range_filter_input(
+        filter_value, settings.DATABASE_CONNECTION_DEFAULT_NAME
+    )
 
     assert {date_attribute.values.first().pk} == set(
         values_qs.values_list("pk", flat=True)
@@ -192,7 +196,9 @@ def test_clean_product_attributes_date_time_range_filter_input(
             {"lte": datetime(2020, 11, 4, tzinfo=timezone.utc)},
         )
     ]
-    values_qs = _clean_product_attributes_date_time_range_filter_input(filter_value)
+    values_qs = _clean_product_attributes_date_time_range_filter_input(
+        filter_value, settings.DATABASE_CONNECTION_DEFAULT_NAME
+    )
 
     assert {date_attribute.values.first().pk} == set(
         values_qs.values_list("pk", flat=True)
@@ -204,15 +210,19 @@ def test_clean_product_attributes_date_time_range_filter_input(
             {"lte": datetime(2020, 10, 4, tzinfo=timezone.utc)},
         )
     ]
-    values_qs = _clean_product_attributes_date_time_range_filter_input(filter_value)
+    values_qs = _clean_product_attributes_date_time_range_filter_input(
+        filter_value, settings.DATABASE_CONNECTION_DEFAULT_NAME
+    )
 
     assert values_qs.exists() is False
 
 
-def test_clean_product_attributes_boolean_filter_input(boolean_attribute):
+def test_clean_product_attributes_boolean_filter_input(boolean_attribute, settings):
     filter_value = [(boolean_attribute.slug, True)]
     queries = defaultdict(list)
-    _clean_product_attributes_boolean_filter_input(filter_value, queries)
+    _clean_product_attributes_boolean_filter_input(
+        filter_value, queries, settings.DATABASE_CONNECTION_DEFAULT_NAME
+    )
 
     assert dict(queries) == {
         boolean_attribute.pk: [boolean_attribute.values.first().pk]
@@ -220,13 +230,17 @@ def test_clean_product_attributes_boolean_filter_input(boolean_attribute):
 
     filter_value = [(boolean_attribute.slug, False)]
     queries = defaultdict(list)
-    _clean_product_attributes_boolean_filter_input(filter_value, queries)
+    _clean_product_attributes_boolean_filter_input(
+        filter_value, queries, settings.DATABASE_CONNECTION_DEFAULT_NAME
+    )
 
     assert dict(queries) == {boolean_attribute.pk: [boolean_attribute.values.last().pk]}
 
     filter_value = [(boolean_attribute.slug, True), (boolean_attribute.slug, False)]
     queries = defaultdict(list)
-    _clean_product_attributes_boolean_filter_input(filter_value, queries)
+    _clean_product_attributes_boolean_filter_input(
+        filter_value, queries, settings.DATABASE_CONNECTION_DEFAULT_NAME
+    )
 
     assert dict(queries) == {
         boolean_attribute.pk: list(

@@ -249,9 +249,9 @@ class OrderFulfill(BaseMutation):
 
         cls.check_total_quantity_of_items(quantities_for_lines)
 
-        lines_for_warehouses: defaultdict[
-            UUID, list[OrderFulfillmentLineInfo]
-        ] = defaultdict(list)
+        lines_for_warehouses: defaultdict[UUID, list[OrderFulfillmentLineInfo]] = (
+            defaultdict(list)
+        )
         for line, order_line in zip(lines, order_lines):
             for stock in line["stocks"]:
                 if stock["quantity"] > 0:

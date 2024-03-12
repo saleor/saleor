@@ -167,6 +167,51 @@ def test_update_product_variant_by_id(
     product_variant_created_webhook_mock.assert_not_called()
 
 
+def test_update_product_variant_marks_prices_as_dirty(
+    staff_api_client,
+    product,
+    size_attribute,
+    permission_manage_products,
+    catalogue_promotion,
+):
+    # given
+    query = """
+        mutation updateVariant (
+            $id: ID!
+            $sku: String!) {
+                productVariantUpdate(
+                    id: $id,
+                    input: {
+                        sku: $sku,
+                    }) {
+                    productVariant {
+                        name
+                        sku
+                    }
+                }
+            }
+    """
+    variant = product.variants.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    sku = "test sku"
+
+    variables = {
+        "id": variant_id,
+        "sku": sku,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    variant.refresh_from_db()
+    get_graphql_content(response)
+    flush_post_commit_hooks()
+    assert not catalogue_promotion.rules.filter(variants_dirty=False).exists()
+
+
 UPDATE_VARIANT_BY_SKU = """
  mutation updateVariant (
             $sku: String!,

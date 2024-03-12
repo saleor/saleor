@@ -26,8 +26,8 @@ def resolve_categories(info: ResolveInfo, level=None):
 
 def resolve_collection_by_id(info: ResolveInfo, id, channel_slug, requestor):
     return (
-        models.Collection.objects.visible_to_user(requestor, channel_slug=channel_slug)
-        .using(get_database_connection_name(info.context))
+        models.Collection.objects.using(get_database_connection_name(info.context))
+        .visible_to_user(requestor, channel_slug=channel_slug)
         .filter(id=id)
         .first()
     )
@@ -35,8 +35,8 @@ def resolve_collection_by_id(info: ResolveInfo, id, channel_slug, requestor):
 
 def resolve_collection_by_slug(info: ResolveInfo, slug, channel_slug, requestor):
     return (
-        models.Collection.objects.visible_to_user(requestor, channel_slug)
-        .using(get_database_connection_name(info.context))
+        models.Collection.objects.using(get_database_connection_name(info.context))
+        .visible_to_user(requestor, channel_slug)
         .filter(slug=slug)
         .first()
     )
@@ -44,9 +44,9 @@ def resolve_collection_by_slug(info: ResolveInfo, slug, channel_slug, requestor)
 
 def resolve_collections(info: ResolveInfo, channel_slug):
     requestor = get_user_or_app_from_context(info.context)
-    qs = models.Collection.objects.visible_to_user(requestor, channel_slug).using(
+    qs = models.Collection.objects.using(
         get_database_connection_name(info.context)
-    )
+    ).visible_to_user(requestor, channel_slug)
 
     return ChannelQsContext(qs=qs, channel_slug=channel_slug)
 
@@ -135,8 +135,8 @@ def resolve_variant(
 ):
     connection_name = get_database_connection_name(info.context)
     visible_products = (
-        models.Product.objects.visible_to_user(requestor, channel_slug)
-        .using(connection_name)
+        models.Product.objects.using(connection_name)
+        .visible_to_user(requestor, channel_slug)
         .values_list("pk", flat=True)
     )
     qs = models.ProductVariant.objects.using(connection_name).filter(
@@ -162,9 +162,9 @@ def resolve_product_variants(
     channel_slug=None,
 ) -> ChannelQsContext:
     connection_name = get_database_connection_name(info.context)
-    visible_products = models.Product.objects.visible_to_user(
+    visible_products = models.Product.objects.using(connection_name).visible_to_user(
         requestor, channel_slug
-    ).using(connection_name)
+    )
     qs = models.ProductVariant.objects.using(connection_name).filter(
         product__id__in=visible_products
     )
@@ -174,9 +174,9 @@ def resolve_product_variants(
             channel_slug
         ).exclude(visible_in_listings=False)
         qs = (
-            qs.filter(product__in=visible_products)
+            qs.using(connection_name)
+            .filter(product__in=visible_products)
             .available_in_channel(channel_slug)
-            .using(connection_name)
         )
     if ids:
         db_ids = [

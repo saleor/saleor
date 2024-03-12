@@ -22,11 +22,14 @@ CUSTOMER_CREATE_MUTATION = """
         $redirect_url: String, $languageCode: LanguageCodeEnum,
         $externalReference: String, $metadata: [MetadataInput!],
         $privateMetadata: [MetadataInput!],
+        $isActive: Boolean, $isConfirmed: Boolean
     ) {
         customerCreate(input: {
             email: $email,
             firstName: $firstName,
             lastName: $lastName,
+            isActive: $isActive,
+            isConfirmed: $isConfirmed,
             note: $note,
             defaultShippingAddress: $shipping,
             defaultBillingAddress: $billing,
@@ -63,6 +66,7 @@ CUSTOMER_CREATE_MUTATION = """
                 lastName
                 isActive
                 isStaff
+                isConfirmed
                 note
                 externalReference
                 metadata {
@@ -152,6 +156,124 @@ def test_customer_create(
     assert data["user"]["languageCode"] == "PL"
     assert data["user"]["externalReference"] == external_reference
     assert not data["user"]["isStaff"]
+    assert data["user"]["isConfirmed"] is False
+    assert data["user"]["isActive"]
+    assert data["user"]["metadata"] == metadata
+    assert data["user"]["privateMetadata"] == private_metadata
+    assert data["user"]["defaultShippingAddress"]["metadata"] == metadata
+    assert data["user"]["defaultBillingAddress"]["metadata"] == metadata
+
+    new_user = User.objects.get(email=email)
+    assert (
+        generate_user_fields_search_document_value(new_user) in new_user.search_document
+    )
+    assert generate_address_search_document_value(address) in new_user.search_document
+    params = urlencode({"email": new_user.email, "token": "token"})
+    password_set_url = prepare_url(params, redirect_url)
+    expected_payload = {
+        "user": get_default_user_payload(new_user),
+        "token": "token",
+        "password_set_url": password_set_url,
+        "recipient_email": new_user.email,
+        "channel_slug": channel_PLN.slug,
+        **get_site_context_payload(site_settings.site),
+    }
+    mocked_notify.assert_called_once_with(
+        NotifyEventType.ACCOUNT_SET_CUSTOMER_PASSWORD,
+        payload=expected_payload,
+        channel_slug=channel_PLN.slug,
+    )
+    mocked_customer_metadata_updated.assert_called_once_with(new_user)
+
+    assert set([shipping_address, billing_address]) == set(new_user.addresses.all())
+    customer_creation_event = account_events.CustomerEvent.objects.get()
+    assert customer_creation_event.type == account_events.CustomerEvents.ACCOUNT_CREATED
+    assert customer_creation_event.user == new_customer
+
+    mocked_account_set_password_requested.assert_called_once_with(
+        new_user, channel_PLN.slug, "token", password_set_url
+    )
+
+
+@patch("saleor.plugins.manager.PluginsManager.customer_metadata_updated")
+@patch("saleor.account.notifications.default_token_generator.make_token")
+@patch("saleor.plugins.manager.PluginsManager.notify")
+@patch("saleor.plugins.manager.PluginsManager.account_set_password_requested")
+def test_customer_create_as_app(
+    mocked_account_set_password_requested,
+    mocked_notify,
+    mocked_generator,
+    mocked_customer_metadata_updated,
+    app_api_client,
+    address,
+    permission_manage_users,
+    channel_PLN,
+    site_settings,
+):
+    # given
+    mocked_generator.return_value = "token"
+    email = "api_user@example.com"
+    first_name = "api_first_name"
+    last_name = "api_last_name"
+    note = "Test user"
+    address_data = convert_dict_keys_to_camel_case(address.as_data())
+    metadata = [{"key": "test key", "value": "test value"}]
+    stored_metadata = {"test key": "test value"}
+    address_data["metadata"] = metadata
+    address_data.pop("privateMetadata")
+
+    redirect_url = "https://www.example.com"
+    external_reference = "test-ext-ref"
+    private_metadata = [{"key": "private test key", "value": "private test value"}]
+    is_active = True
+    is_confirmed = True
+    variables = {
+        "email": email,
+        "firstName": first_name,
+        "lastName": last_name,
+        "note": note,
+        "shipping": address_data,
+        "billing": address_data,
+        "redirect_url": redirect_url,
+        "languageCode": "PL",
+        "channel": channel_PLN.slug,
+        "externalReference": external_reference,
+        "metadata": metadata,
+        "privateMetadata": private_metadata,
+        "isActive": is_active,
+        "isConfirmed": is_confirmed,
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        CUSTOMER_CREATE_MUTATION, variables, permissions=[permission_manage_users]
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    new_customer = User.objects.get(email=email)
+
+    shipping_address, billing_address = (
+        new_customer.default_shipping_address,
+        new_customer.default_billing_address,
+    )
+    assert shipping_address == billing_address
+    assert billing_address.metadata == stored_metadata
+    assert shipping_address.metadata == stored_metadata
+    assert shipping_address.pk != billing_address.pk
+
+    data = content["data"]["customerCreate"]
+    assert data["errors"] == []
+    assert data["user"]["email"] == email
+    assert data["user"]["firstName"] == first_name
+    assert data["user"]["lastName"] == last_name
+    assert data["user"]["note"] == note
+    assert data["user"]["languageCode"] == "PL"
+    assert data["user"]["externalReference"] == external_reference
+    assert not data["user"]["isStaff"]
+    assert data["user"]["isActive"] == is_active
+    assert data["user"]["isConfirmed"] is False
     assert data["user"]["isActive"]
     assert data["user"]["metadata"] == metadata
     assert data["user"]["privateMetadata"] == private_metadata

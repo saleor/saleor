@@ -383,7 +383,9 @@ class PromotionRule(models.Model):
     order_predicate = models.JSONField(
         blank=True, default=dict, encoder=CustomJsonEncoder
     )
-    variants = models.ManyToManyField("product.ProductVariant", blank=True)
+    variants = models.ManyToManyField(  # type: ignore[var-annotated]
+        "product.ProductVariant", blank=True, through="PromotionRule_Variants"
+    )
     reward_value_type = models.CharField(
         max_length=255, choices=RewardValueType.CHOICES, blank=True, null=True
     )
@@ -400,6 +402,7 @@ class PromotionRule(models.Model):
         "product.ProductVariant", blank=True, related_name="+"
     )
     old_channel_listing_id = models.IntegerField(blank=True, null=True, unique=True)
+    variants_dirty = models.BooleanField(default=False)
 
     class Meta:
         ordering = ("name", "pk")
@@ -426,6 +429,18 @@ class PromotionRule(models.Model):
                 """
             )
             return cursor.fetchall()
+
+
+class PromotionRule_Variants(models.Model):
+    id = models.BigAutoField(primary_key=True, editable=False, unique=True)
+    promotionrule = models.ForeignKey(
+        PromotionRule,
+        on_delete=models.CASCADE,
+    )
+    productvariant = models.ForeignKey(
+        "product.ProductVariant",
+        on_delete=models.CASCADE,
+    )
 
 
 class PromotionRuleTranslation(Translation):

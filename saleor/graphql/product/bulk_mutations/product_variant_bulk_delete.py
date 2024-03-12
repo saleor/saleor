@@ -10,13 +10,13 @@ from ....attribute import AttributeInputType
 from ....attribute import models as attribute_models
 from ....core.postgres import FlatConcatSearchVector
 from ....core.tracing import traced_atomic_transaction
+from ....discount.utils import mark_active_catalogue_promotion_rules_as_dirty
 from ....order import events as order_events
 from ....order import models as order_models
 from ....order.tasks import recalculate_orders_task
 from ....permission.enums import ProductPermissions
 from ....product import models
 from ....product.search import prepare_product_search_vector_value
-from ....product.tasks import update_products_discounted_prices_for_promotion_task
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
 from ...app.dataloaders import get_app_promise
@@ -50,6 +50,24 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
+
+    @classmethod
+    def post_save_actions(cls, info, variants):
+        impacted_channels = set()
+        for variant in variants:
+            channel_ids = [
+                listing.channel_id for listing in variant.channel_listings.all()
+            ]
+            impacted_channels.update(channel_ids)
+        # This will finally recalculate discounted prices for products.
+        cls.call_event(
+            mark_active_catalogue_promotion_rules_as_dirty, impacted_channels
+        )
+
+        manager = get_plugin_manager_promise(info.context).get()
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_VARIANT_DELETED)
+        for variant in variants:
+            cls.call_event(manager.product_variant_deleted, variant, webhooks=webhooks)
 
     @classmethod
     @traced_atomic_transaction()
@@ -87,10 +105,6 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
         cls.delete_assigned_attribute_values(pks)
         cls.delete_product_channel_listings_without_available_variants(product_pks, pks)
         response = super().perform_mutation(_root, info, ids=ids, **data)
-        manager = get_plugin_manager_promise(info.context).get()
-        webhooks = get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_VARIANT_DELETED)
-        for variant in variants:
-            cls.call_event(manager.product_variant_deleted, variant, webhooks=webhooks)
 
         # delete order lines for deleted variants
         order_models.OrderLine.objects.filter(
@@ -125,11 +139,7 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
                 ]
             )
 
-        # Recalculate the "discounted price" for the related products
-        cls.call_event(
-            update_products_discounted_prices_for_promotion_task.delay, product_pks
-        )
-
+        cls.post_save_actions(info, variants)
         return response
 
     @staticmethod

@@ -23,15 +23,18 @@ def resolve_webhook(info: ResolveInfo, id, app):
     if app:
         return app.webhooks.filter(id=id).first()
     user = info.context.user
+    database_connection_name = get_database_connection_name(info.context)
     if user and user.has_perm(AppPermission.MANAGE_APPS):
         apps = (
-            App.objects.using(get_database_connection_name(info.context))
+            App.objects.using(database_connection_name)
             .filter(removed_at__isnull=True)
             .values("pk")
         )
-        return models.Webhook.objects.filter(
-            Q(pk=id), Exists(apps.filter(id=OuterRef("app_id")))
-        ).first()
+        return (
+            models.Webhook.objects.using(database_connection_name)
+            .filter(Q(pk=id), Exists(apps.filter(id=OuterRef("app_id"))))
+            .first()
+        )
     raise PermissionDenied(permissions=[AppPermission.MANAGE_APPS])
 
 

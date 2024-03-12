@@ -18,18 +18,15 @@ ITEM_TYPE_TO_CLEAN_FUNC_MAP = {
 @overload
 def clean_editor_js(
     definitions: Union[dict, str, None], *, to_string: Literal[True]
-) -> str:
-    ...
+) -> str: ...
 
 
 @overload
-def clean_editor_js(definitions: dict) -> dict:
-    ...
+def clean_editor_js(definitions: dict) -> dict: ...
 
 
 @overload
-def clean_editor_js(definitions: None) -> None:
-    ...
+def clean_editor_js(definitions: None) -> None: ...
 
 
 def clean_editor_js(definitions, *, to_string=False) -> Union[dict, str, None]:

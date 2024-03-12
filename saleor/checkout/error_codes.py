@@ -32,6 +32,7 @@ class CheckoutErrorCode(Enum):
     INACTIVE_PAYMENT = "inactive_payment"
     NON_EDITABLE_GIFT_LINE = "non_editable_gift_line"
     NON_REMOVABLE_GIFT_LINE = "non_removable_gift_line"
+    SHIPPING_CHANGE_FORBIDDEN = "shipping_change_forbidden"
 
 
 class OrderCreateFromCheckoutErrorCode(Enum):

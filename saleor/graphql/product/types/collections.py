@@ -142,9 +142,9 @@ class Collection(ChannelContextTypeWithMetadata[models.Collection]):
         search = kwargs.get("search")
 
         requestor = get_user_or_app_from_context(info.context)
-        qs = root.node.products.visible_to_user(requestor, root.channel_slug).using(
+        qs = root.node.products.using(
             get_database_connection_name(info.context)
-        )
+        ).visible_to_user(requestor, root.channel_slug)
 
         if search:
             qs = ChannelQsContext(
@@ -154,7 +154,9 @@ class Collection(ChannelContextTypeWithMetadata[models.Collection]):
             qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
 
         kwargs["channel"] = root.channel_slug
-        qs = filter_connection_queryset(qs, kwargs)
+        qs = filter_connection_queryset(
+            qs, kwargs, allow_replica=info.context.allow_replica
+        )
         return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
 
     @staticmethod

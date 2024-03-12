@@ -122,14 +122,18 @@ def filter_is_click_and_collect(qs, _, values):
 
 def filter_is_preorder(qs, _, values):
     if values is not None:
-        variants = ProductVariant.objects.filter(
-            Q(is_preorder=True)
-            & (
-                Q(preorder_end_date__isnull=True)
-                | Q(preorder_end_date__gte=timezone.now())
+        variants = (
+            ProductVariant.objects.using(qs.db)
+            .filter(
+                Q(is_preorder=True)
+                & (
+                    Q(preorder_end_date__isnull=True)
+                    | Q(preorder_end_date__gte=timezone.now())
+                )
             )
-        ).values("id")
-        lines = OrderLine.objects.filter(
+            .values("id")
+        )
+        lines = OrderLine.objects.using(qs.db).filter(
             Exists(variants.filter(id=OuterRef("variant_id")))
         )
         lookup = Exists(lines.filter(order_id=OuterRef("id")))
@@ -146,8 +150,10 @@ def filter_gift_card_bought(qs, _, value):
 
 
 def filter_by_gift_card(qs, value, gift_card_type):
-    gift_card_events = GiftCardEvent.objects.filter(type=gift_card_type).values(
-        "order_id"
+    gift_card_events = (
+        GiftCardEvent.objects.using(qs.db)
+        .filter(type=gift_card_type)
+        .values("order_id")
     )
     lookup = Exists(gift_card_events.filter(order_id=OuterRef("id")))
     return qs.filter(lookup) if value is True else qs.exclude(lookup)

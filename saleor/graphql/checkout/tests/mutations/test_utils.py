@@ -1,6 +1,10 @@
 import graphene
 
-from .....checkout.fetch import fetch_checkout_lines
+from .....checkout.fetch import (
+    CheckoutLineInfo,
+    _get_the_cheapest_line,
+    fetch_checkout_lines,
+)
 from ...mutations.utils import (
     CheckoutLineData,
     group_lines_input_data_on_update,
@@ -179,3 +183,32 @@ def test_group_on_update_when_one_line_and_mixed_parameters_provided(
     assert expected == group_lines_input_data_on_update(
         lines_data, existing_checkout_lines
     )
+
+
+def test_get_the_cheapest_line_no_lines_provided():
+    # when
+    line_info = _get_the_cheapest_line(None)
+    # then
+    assert line_info is None
+
+
+def test_get_the_cheapest_line(checkout_with_items, channel_USD):
+    # given
+    lines = [
+        CheckoutLineInfo(
+            line=line,
+            channel_listing=line.variant.channel_listings.first(),
+            collections=[],
+            product=line.variant.product,
+            variant=line.variant,
+            discounts=list(line.discounts.all()),
+            rules_info=[],
+            product_type=line.variant.product.product_type,
+            channel=channel_USD,
+        )
+        for line in checkout_with_items.lines.all()
+    ]
+    # when
+    line_info = _get_the_cheapest_line(lines)
+    # then
+    assert line_info == lines[0]

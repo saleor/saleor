@@ -39,7 +39,10 @@ def resolve_countries(info, **kwargs):
     countries_filter = kwargs.get("filter", {})
     attached_to_shipping_zones = countries_filter.get("attached_to_shipping_zones")
     language_code = kwargs.get("language_code")
-    codes_list = get_countries_codes_list(attached_to_shipping_zones)
+    database_connection_name = get_database_connection_name(info.context)
+    codes_list = get_countries_codes_list(
+        attached_to_shipping_zones, database_connection_name=database_connection_name
+    )
     # DEPRECATED: translation.override will be dropped in Saleor 4.0
     with translation.override(language_code):
         return [
