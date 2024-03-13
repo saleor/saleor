@@ -18,7 +18,6 @@ from ...product.models import Product, ProductChannelListing, ProductVariant
 from ...shipping.interface import ShippingMethodData
 from ...shipping.utils import convert_to_shipping_method_data
 from ...warehouse.availability import check_stock_and_preorder_quantity
-from ..core.context import get_database_connection_name_from_flag
 from ..core.validators import validate_variants_available_in_channel
 
 if TYPE_CHECKING:
@@ -54,6 +53,7 @@ def get_shipping_method_availability_error(
     order: "Order",
     method: Optional["ShippingMethodData"],
     manager: "PluginsManager",
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     """Validate whether shipping method is still available for the order."""
     is_valid = False
@@ -64,6 +64,7 @@ def get_shipping_method_availability_error(
                 order,
                 order.channel.shipping_method_listings.all(),
                 manager,
+                database_connection_name=database_connection_name,
             )
             if m.active
         }
@@ -77,7 +78,10 @@ def get_shipping_method_availability_error(
 
 
 def validate_shipping_method(
-    order: "Order", errors: T_ERRORS, manager: "PluginsManager"
+    order: "Order",
+    errors: T_ERRORS,
+    manager: "PluginsManager",
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     if not order.shipping_method:
         error = ValidationError(
@@ -112,6 +116,7 @@ def validate_shipping_method(
                 order,
                 convert_to_shipping_method_data(order.shipping_method, listing),
                 manager,
+                database_connection_name=database_connection_name,
             )
 
     if error:
@@ -319,7 +324,12 @@ def _validate_voucher(order: "Order", errors: T_ERRORS):
             )
 
 
-def validate_draft_order(order: "Order", country: str, manager: "PluginsManager"):
+def validate_draft_order(
+    order: "Order",
+    country: str,
+    manager: "PluginsManager",
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+):
     """Check if the given order contains the proper data.
 
     - Has proper customer data,
@@ -331,14 +341,11 @@ def validate_draft_order(order: "Order", country: str, manager: "PluginsManager"
 
     Returns a list of errors if any were found.
     """
-    database_connection_name = get_database_connection_name_from_flag(
-        manager._allow_replica
-    )
     errors: T_ERRORS = defaultdict(list)
     validate_billing_address(order, errors)
     if order.is_shipping_required():
         validate_shipping_address(order, errors)
-        validate_shipping_method(order, errors, manager)
+        validate_shipping_method(order, errors, manager, database_connection_name)
     validate_total_quantity(order, errors)
     validate_order_lines(order, country, errors, database_connection_name)
     validate_channel_is_active(order.channel, errors)

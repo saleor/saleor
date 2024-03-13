@@ -643,13 +643,9 @@ def get_valid_shipping_methods_for_order(
     order: Order,
     shipping_channel_listings: Iterable["ShippingMethodChannelListing"],
     manager: "PluginsManager",
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> list[ShippingMethodData]:
     """Return a list of shipping methods according to Saleor's own business logic."""
-    if manager._allow_replica:
-        database_connection_name = settings.DATABASE_CONNECTION_REPLICA_NAME
-    else:
-        database_connection_name = settings.DATABASE_CONNECTION_DEFAULT_NAME
-
     valid_methods = get_all_shipping_methods_for_order(
         order, shipping_channel_listings, database_connection_name
     )

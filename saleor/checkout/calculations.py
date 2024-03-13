@@ -12,7 +12,6 @@ from ..core.taxes import TaxData, TaxEmptyData, zero_money, zero_taxed_money
 from ..discount.utils import (
     create_or_update_discount_objects_from_promotion_for_checkout,
 )
-from ..graphql.core.context import get_database_connection_name_from_flag
 from ..payment.models import TransactionItem
 from ..plugins import PLUGIN_IDENTIFIER_PREFIX
 from ..tax import TaxCalculationStrategy
@@ -39,6 +38,7 @@ def checkout_shipping_price(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> "TaxedMoney":
     """Return checkout shipping price.
 
@@ -50,6 +50,7 @@ def checkout_shipping_price(
         manager=manager,
         lines=lines,
         address=address,
+        database_connection_name=database_connection_name,
     )
     return quantize_price(checkout_info.checkout.shipping_price, currency)
 
@@ -60,6 +61,7 @@ def checkout_shipping_tax_rate(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> Decimal:
     """Return checkout shipping tax rate.
 
@@ -70,6 +72,7 @@ def checkout_shipping_tax_rate(
         manager=manager,
         lines=lines,
         address=address,
+        database_connection_name=database_connection_name,
     )
     return checkout_info.checkout.shipping_tax_rate
 
@@ -80,6 +83,7 @@ def checkout_subtotal(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> "TaxedMoney":
     """Return the total cost of all the checkout lines, taxes included.
 
@@ -91,6 +95,7 @@ def checkout_subtotal(
         manager=manager,
         lines=lines,
         address=address,
+        database_connection_name=database_connection_name,
     )
     return quantize_price(checkout_info.checkout.subtotal, currency)
 
@@ -100,15 +105,14 @@ def calculate_checkout_total_with_gift_cards(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> "TaxedMoney":
-    database_connection_name = get_database_connection_name_from_flag(
-        manager._allow_replica
-    )
     total = checkout_total(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
         address=address,
+        database_connection_name=database_connection_name,
     ) - checkout_info.checkout.get_total_gift_cards_balance(database_connection_name)
 
     return max(total, zero_taxed_money(total.currency))
@@ -120,6 +124,7 @@ def checkout_total(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> "TaxedMoney":
     """Return the total cost of the checkout.
 
@@ -134,6 +139,7 @@ def checkout_total(
         manager=manager,
         lines=lines,
         address=address,
+        database_connection_name=database_connection_name,
     )
     return quantize_price(checkout_info.checkout.total, currency)
 
@@ -144,6 +150,7 @@ def checkout_line_total(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> TaxedMoney:
     """Return the total price of provided line, taxes included.
 
@@ -156,6 +163,7 @@ def checkout_line_total(
         manager=manager,
         lines=lines,
         address=address,
+        database_connection_name=database_connection_name,
     )
     checkout_line = find_checkout_line_info(lines, checkout_line_info.line.id).line
     return quantize_price(checkout_line.total_price, currency)
@@ -167,6 +175,7 @@ def checkout_line_unit_price(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> TaxedMoney:
     """Return the unit price of provided line, taxes included.
 
@@ -179,6 +188,7 @@ def checkout_line_unit_price(
         manager=manager,
         lines=lines,
         address=address,
+        database_connection_name=database_connection_name,
     )
     checkout_line = find_checkout_line_info(lines, checkout_line_info.line.id).line
     unit_price = checkout_line.total_price / checkout_line.quantity
@@ -191,6 +201,7 @@ def checkout_line_tax_rate(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> Decimal:
     """Return the tax rate of provided line.
 
@@ -202,6 +213,7 @@ def checkout_line_tax_rate(
         manager=manager,
         lines=lines,
         address=address,
+        database_connection_name=database_connection_name,
     )
     checkout_line_info = find_checkout_line_info(lines, checkout_line_info.line.id)
     return checkout_line_info.line.tax_rate
@@ -213,6 +225,7 @@ def _fetch_checkout_prices_if_expired(
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"] = None,
     force_update: bool = False,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> tuple["CheckoutInfo", Iterable["CheckoutLineInfo"]]:
     """Fetch checkout prices with taxes.
 
@@ -223,9 +236,6 @@ def _fetch_checkout_prices_if_expired(
     last price update is greater than settings.CHECKOUT_PRICES_TTL.
     """
     checkout = checkout_info.checkout
-    database_connection_name = get_database_connection_name_from_flag(
-        manager._allow_replica
-    )
 
     if not force_update and checkout.price_expiration > timezone.now():
         return checkout_info, lines
@@ -559,6 +569,7 @@ def fetch_checkout_data(
     force_update: bool = False,
     checkout_transactions: Optional[Iterable["TransactionItem"]] = None,
     force_status_update: bool = False,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     """Fetch checkout data.
 
@@ -572,6 +583,7 @@ def fetch_checkout_data(
         lines=lines,
         address=address,
         force_update=force_update,
+        database_connection_name=database_connection_name,
     )
     current_total_gross = checkout_info.checkout.total.gross
     if current_total_gross != previous_total_gross or force_status_update:
@@ -580,9 +592,7 @@ def fetch_checkout_data(
             checkout_total_gross=current_total_gross,
             checkout_has_lines=bool(lines),
             checkout_transactions=checkout_transactions,
-            database_connection_name=get_database_connection_name_from_flag(
-                manager._allow_replica
-            ),
+            database_connection_name=database_connection_name,
         )
 
     return checkout_info, lines

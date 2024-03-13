@@ -1881,8 +1881,14 @@ class Order(ModelObjectType[models.Order]):
 
             def _validate_draft_order(manager):
                 country = get_order_country(root)
+                database_connection_name = get_database_connection_name(info.context)
                 try:
-                    validate_draft_order(root, country, manager)
+                    validate_draft_order(
+                        root,
+                        country,
+                        manager,
+                        database_connection_name=database_connection_name,
+                    )
                 except ValidationError:
                     return False
                 return True
@@ -1996,10 +2002,14 @@ class Order(ModelObjectType[models.Order]):
     def resolve_shipping_methods(cls, root: models.Order, info):
         def with_channel(data):
             channel, manager = data
+            database_connection_name = get_database_connection_name(info.context)
 
             def with_listings(channel_listings):
                 return get_valid_shipping_methods_for_order(
-                    root, channel_listings, manager
+                    root,
+                    channel_listings,
+                    manager,
+                    database_connection_name=database_connection_name,
                 )
 
             return (
@@ -2091,8 +2101,14 @@ class Order(ModelObjectType[models.Order]):
 
             def _validate_order(manager):
                 country = get_order_country(root)
+                database_connection_name = get_database_connection_name(info.context)
                 try:
-                    validate_draft_order(root, country, manager)
+                    validate_draft_order(
+                        root,
+                        country,
+                        manager,
+                        database_connection_name=database_connection_name,
+                    )
                 except ValidationError as e:
                     return validation_error_to_error_type(e, OrderError)
                 return []

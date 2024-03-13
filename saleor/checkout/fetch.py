@@ -16,7 +16,6 @@ from django.conf import settings
 from ..core.utils.lazyobjects import lazy_no_retry
 from ..discount import DiscountType, VoucherType
 from ..discount.interface import fetch_variant_rules_info, fetch_voucher_info
-from ..graphql.core.context import get_database_connection_name_from_flag
 from ..shipping.interface import ShippingMethodData
 from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ..shipping.utils import (
@@ -436,13 +435,10 @@ def fetch_checkout_info(
     fetch_delivery_methods=True,
     voucher: Optional["Voucher"] = None,
     voucher_code: Optional["VoucherCode"] = None,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> CheckoutInfo:
     """Fetch checkout as CheckoutInfo object."""
     from .utils import get_voucher_for_checkout
-
-    database_connection_name = get_database_connection_name_from_flag(
-        manager._allow_replica
-    )
 
     channel = checkout.channel
     tax_configuration = channel.tax_configuration
@@ -481,6 +477,7 @@ def fetch_checkout_info(
             lines,
             manager,
             shipping_channel_listings,
+            database_connection_name=database_connection_name,
         )
 
     return checkout_info
@@ -547,6 +544,7 @@ def update_checkout_info_shipping_address(
     lines: Iterable[CheckoutLineInfo],
     manager: "PluginsManager",
     shipping_channel_listings: Iterable["ShippingMethodChannelListing"],
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     checkout_info.shipping_address = address
 
@@ -558,6 +556,7 @@ def update_checkout_info_shipping_address(
         lines,
         manager,
         shipping_channel_listings,
+        database_connection_name=database_connection_name,
     )
 
 
@@ -623,10 +622,8 @@ def get_all_shipping_methods_list(
     lines,
     shipping_channel_listings,
     manager,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
-    database_connection_name = get_database_connection_name_from_flag(
-        manager._allow_replica
-    )
     return list(
         itertools.chain(
             get_valid_internal_shipping_method_list_for_checkout_info(
@@ -651,6 +648,7 @@ def update_delivery_method_lists_for_checkout_info(
     lines: Iterable[CheckoutLineInfo],
     manager: "PluginsManager",
     shipping_channel_listings: Iterable[ShippingMethodChannelListing],
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     """Update the list of shipping methods for checkout info.
 
@@ -669,6 +667,7 @@ def update_delivery_method_lists_for_checkout_info(
             lines,
             shipping_channel_listings,
             manager,
+            database_connection_name=database_connection_name,
         )
         # Filter shipping methods using sync webhooks
         excluded_methods = manager.excluded_shipping_methods_for_checkout(

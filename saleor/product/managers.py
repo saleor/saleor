@@ -37,11 +37,15 @@ class ProductsQueryset(models.QuerySet):
             .filter(slug=str(channel_slug), is_active=True)
             .first()
         ):
-            channel_listings = ProductChannelListing.objects.filter(
-                Q(published_at__lte=today) | Q(published_at__isnull=True),
-                channel_id=channel.id,
-                is_published=True,
-            ).values("id")
+            channel_listings = (
+                ProductChannelListing.objects.using(self.db)
+                .filter(
+                    Q(published_at__lte=today) | Q(published_at__isnull=True),
+                    channel_id=channel.id,
+                    is_published=True,
+                )
+                .values("id")
+            )
             return self.filter(
                 Exists(channel_listings.filter(product_id=OuterRef("pk")))
             )
@@ -59,13 +63,19 @@ class ProductsQueryset(models.QuerySet):
         from .models import ProductVariant, ProductVariantChannelListing
 
         if channel := (
-            Channel.objects.filter(slug=str(channel_slug), is_active=True).first()
+            Channel.objects.using(self.db)
+            .filter(slug=str(channel_slug), is_active=True)
+            .first()
         ):
-            variant_channel_listings = ProductVariantChannelListing.objects.filter(
-                channel_id=channel.id,
-                price_amount__isnull=False,
-            ).values("id")
-            variants = ProductVariant.objects.filter(
+            variant_channel_listings = (
+                ProductVariantChannelListing.objects.using(self.db)
+                .filter(
+                    channel_id=channel.id,
+                    price_amount__isnull=False,
+                )
+                .values("id")
+            )
+            variants = ProductVariant.objects.using(self.db).filter(
                 Exists(variant_channel_listings.filter(variant_id=OuterRef("pk")))
             )
             return self.published(channel_slug).filter(
