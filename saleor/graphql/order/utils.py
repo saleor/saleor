@@ -18,7 +18,6 @@ from ...product.models import Product, ProductChannelListing, ProductVariant
 from ...shipping.interface import ShippingMethodData
 from ...shipping.utils import convert_to_shipping_method_data
 from ...warehouse.availability import check_stock_and_preorder_quantity
-from ..core.context import get_database_connection_name_from_flag
 from ..core.validators import validate_variants_available_in_channel
 
 if TYPE_CHECKING:
@@ -342,9 +341,6 @@ def validate_draft_order(
 
     Returns a list of errors if any were found.
     """
-    database_connection_name = get_database_connection_name_from_flag(
-        manager._allow_replica
-    )
     errors: T_ERRORS = defaultdict(list)
     validate_billing_address(order, errors)
     if order.is_shipping_required():
