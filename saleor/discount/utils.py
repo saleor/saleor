@@ -710,6 +710,7 @@ def _get_best_gift_reward(
             [1] * variants.count(),
             channel.slug,
             None,
+            database_connection_name=database_connection_name,
         )
     except InsufficientStock as error:
         variant_ids_with_insufficient_stock = {
