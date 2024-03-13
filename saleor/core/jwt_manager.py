@@ -13,7 +13,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.core.management.color import color_style
 from django.urls import reverse
 from django.utils.module_loading import import_string
-from jwt import api_jws
+from jwt import api_jws, api_jwt
 from jwt.algorithms import RSAAlgorithm
 
 from .utils import build_absolute_uri
@@ -161,7 +161,7 @@ class JWTManager(JWTManagerBase):
 
     @classmethod
     def encode(cls, payload):
-        return jwt.encode(
+        return api_jwt.encode(
             payload,
             cls.get_private_key(),  # type: ignore[arg-type] # key is typed as str for all algos # noqa: E501
             algorithm="RS256",
@@ -174,7 +174,7 @@ class JWTManager(JWTManagerBase):
             payload,
             key=cls.get_private_key(),  # type: ignore[arg-type] # key is typed as str for all algos # noqa: E501
             algorithm="RS256",
-            headers={"kid": cls.get_key_id()},
+            headers={"kid": cls.get_key_id(), "crit": ["b64"]},
             is_payload_detached=is_payload_detached,
         )
 
