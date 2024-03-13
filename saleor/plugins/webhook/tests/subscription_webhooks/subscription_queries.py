@@ -1990,44 +1990,83 @@ subscription {
       translation {
         ... on ProductTranslation {
           id
+          product {
+            id
+          }
         }
         ... on CollectionTranslation {
           id
+          collection {
+            id
+          }
         }
         ... on CategoryTranslation {
           id
+          category {
+            id
+          }
         }
         ... on AttributeTranslation {
           id
+          attribute {
+            id
+          }
         }
         ... on ProductVariantTranslation {
           id
+          productvariant {
+            id
+          }
         }
         ... on PageTranslation {
           id
+          page {
+            id
+          }
         }
         ... on ShippingMethodTranslation {
           id
+          shippingmethod {
+            id
+          }
         }
         ... on SaleTranslation {
           id
           __typename
+          sale {
+            id
+          }
         }
         ... on VoucherTranslation {
           id
+          voucher {
+            id
+          }
         }
         ... on MenuItemTranslation {
           id
+          menuitem {
+            id
+          }
         }
         ... on AttributeValueTranslation {
           id
+          attributevalue {
+            id
+          }
         }
         ... on PromotionTranslation {
           id
           __typename
+          promotion {
+            id
+          }
         }
         ... on PromotionRuleTranslation {
           id
+          promotionrule {
+            id
+          }
         }
       }
     }
@@ -2042,44 +2081,83 @@ subscription {
       translation {
         ... on ProductTranslation {
           id
+          product {
+            id
+          }
         }
         ... on CollectionTranslation {
           id
+          collection {
+            id
+          }
         }
         ... on CategoryTranslation {
           id
+          category {
+            id
+          }
         }
         ... on AttributeTranslation {
           id
+          attribute {
+            id
+          }
         }
         ... on ProductVariantTranslation {
           id
+          productvariant {
+            id
+          }
         }
         ... on PageTranslation {
           id
+          page {
+            id
+          }
         }
         ... on ShippingMethodTranslation {
           id
+          shippingmethod {
+            id
+          }
         }
         ... on SaleTranslation {
           id
           __typename
+          sale {
+            id
+          }
         }
         ... on VoucherTranslation {
           id
+          voucher {
+            id
+          }
         }
         ... on MenuItemTranslation {
           id
+          menuitem {
+            id
+          }
         }
         ... on AttributeValueTranslation {
           id
+          attributevalue {
+            id
+          }
         }
         ... on PromotionTranslation {
           id
           __typename
+          promotion {
+            id
+          }
         }
         ... on PromotionRuleTranslation {
           id
+          promotionrule {
+            id
+          }
         }
       }
     }
