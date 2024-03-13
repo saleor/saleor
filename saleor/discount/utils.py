@@ -1014,10 +1014,14 @@ def fetch_promotion_rules_for_checkout(
     PromotionRuleChannels = PromotionRule.channels.through.objects.filter(
         channel_id=checkout_channel_id
     )
-    rules = PromotionRule.objects.filter(
-        Exists(promotions.filter(id=OuterRef("promotion_id"))),
-        Exists(PromotionRuleChannels.filter(promotionrule_id=OuterRef("id"))),
-    ).exclude(order_predicate={})
+    rules = (
+        PromotionRule.objects.using(database_connection_name)
+        .filter(
+            Exists(promotions.filter(id=OuterRef("promotion_id"))),
+            Exists(PromotionRuleChannels.filter(promotionrule_id=OuterRef("id"))),
+        )
+        .exclude(order_predicate={})
+    )
 
     currency = checkout.currency
     checkout_qs = Checkout.objects.using(database_connection_name).filter(
