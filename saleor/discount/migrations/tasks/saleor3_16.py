@@ -22,10 +22,19 @@ from ...models import (
 from babel.numbers import get_currency_precision
 
 # The batch of size 100 takes ~0.9 second and consumes ~30MB memory at peak
-BATCH_SIZE = 100
+SALE_LISTING_BATCH_SIZE = 100
 
 # Results in memory usage of ~40MB for 20K products
 DISCOUNTED_PRICES_RECALCULATION_BATCH_SIZE = 100
+
+# The batch of size 1000 takes ~0.2 seconds and consumes ~10MB memory at peak
+PROMOTION_BATCH_SIZE = 1000
+
+# The batch of size 500 takes ~0.7 seconds and consumes ~18MB memory at peak
+CHECKOUT_LINE_DISCOUNT_BATCH_SIZE = 500
+
+# The batch of size 500 takes ~0.5 seconds and consumes ~15MB memory at peak
+ORDER_LINE_DISCOUNT_BATCH_SIZE = 500
 
 
 @dataclass
@@ -39,9 +48,14 @@ class RuleInfo:
 def remigrate_sales_to_promotions_task():
     # we need to recreate promotions as the error was introduced in 3.16.5
     # and promotion rules were not created for the promotions
-    if Promotion.objects.exists():
-        Promotion.objects.all().delete()
-    migrate_sales_to_promotions_task.delay()
+    promotion_ids = list(
+        Promotion.objects.all().values_list("id", flat=True)[:PROMOTION_BATCH_SIZE]
+    )
+    if promotion_ids:
+        Promotion.objects.filter(id__in=promotion_ids).delete()
+        remigrate_sales_to_promotions_task.delay()
+    else:
+        migrate_sales_to_promotions_task.delay()
 
 
 @app.task
@@ -51,7 +65,7 @@ def migrate_sales_to_promotions_task():
     ).order_by("pk")
     sales_listing = SaleChannelListing.objects.order_by("sale_id").filter(
         Exists(sales.filter(id=OuterRef("sale_id")))
-    )[:BATCH_SIZE]
+    )[:SALE_LISTING_BATCH_SIZE]
     sale_ids = list(sales_listing.values_list("sale_id", flat=True))
 
     if sale_ids:
@@ -93,8 +107,8 @@ def migrate_sales(sales):
     migrate_translations(sale_ids, saleid_promotion_map)
 
     rule_by_channel_and_sale = get_rule_by_channel_sale(rules_info)
-    migrate_checkout_line_discounts(sale_ids, rule_by_channel_and_sale)
-    migrate_order_line_discounts(sale_ids, rule_by_channel_and_sale)
+    migrate_checkout_line_discounts_task.delay(sale_ids, rule_by_channel_and_sale)
+    migrate_order_line_discounts_task.delay(sale_ids, rule_by_channel_and_sale)
 
 
 @app.task
@@ -105,7 +119,7 @@ def migrate_sales_not_listed_in_any_channels_task():
         ~Exists(sales_listing.filter(sale_id=OuterRef("pk"))),
         ~Exists(Promotion.objects.filter(old_sale_id=OuterRef("pk"))),
     ).order_by("pk")
-    ids = list(sales_not_listed.values_list("pk", flat=True)[:BATCH_SIZE])
+    ids = list(sales_not_listed.values_list("pk", flat=True)[:SALE_LISTING_BATCH_SIZE])
     if ids:
         with transaction.atomic():
             # we need to double check if any of those listings already have promotion
@@ -277,29 +291,59 @@ def migrate_translations(sale_ids, saleid_promotion_map):
         PromotionTranslation.objects.bulk_create(promotion_translations)
 
 
-def migrate_checkout_line_discounts(sale_ids, rule_by_channel_and_sale):
-    if checkout_line_discounts := CheckoutLineDiscount.objects.filter(
+@app.task
+def migrate_checkout_line_discounts_task(sale_ids, rule_by_channel_and_sale):
+    checkout_line_discounts = CheckoutLineDiscount.objects.filter(
         sale_id__in=sale_ids
-    ).select_related("line__checkout"):
-        for checkout_line_discount in checkout_line_discounts:
+    ).exclude(type="promotion")[:CHECKOUT_LINE_DISCOUNT_BATCH_SIZE]
+    discount_line_ids = list(checkout_line_discounts.values_list("id", flat=True))
+    if discount_line_ids:
+        line_discounts = (
+            CheckoutLineDiscount.objects.filter(id__in=discount_line_ids)
+            .select_related("line__checkout")
+            .only("line__checkout__channel_id", "sale_id")
+        )
+        discounts_to_update = []
+        for checkout_line_discount in line_discounts:
+            discounts_to_update.append(checkout_line_discount)
+            checkout_line_discount.type = "promotion"
             if checkout_line := checkout_line_discount.line:
                 channel_id = checkout_line.checkout.channel_id
                 sale_id = checkout_line_discount.sale_id
                 lookup = f"{channel_id}_{sale_id}"
-                checkout_line_discount.type = "promotion"
                 if promotion_rule := rule_by_channel_and_sale.get(lookup):
                     checkout_line_discount.promotion_rule = promotion_rule
 
         CheckoutLineDiscount.objects.bulk_update(
-            checkout_line_discounts, ["promotion_rule_id", "type"]
+            discounts_to_update, ["promotion_rule_id", "type"]
         )
+        migrate_checkout_line_discounts_task.delay(sale_ids, rule_by_channel_and_sale)
 
 
-def migrate_order_line_discounts(sale_ids, rule_by_channel_and_sale):
+@app.task
+def migrate_order_line_discounts_task(
+    sale_ids, rule_by_channel_and_sale, last_created_at=None, already_processed_ids=None
+):
     global_pks = [graphene.Node.to_global_id("Sale", pk) for pk in sale_ids]
-    if order_lines := OrderLine.objects.filter(sale_id__in=global_pks).prefetch_related(
-        "order"
-    ):
+    filter_lookup = {"sale_id__in": global_pks}
+    # We need to ensure that all instances with the same created_at timestamp
+    # are processed. We need to prevent a situation when the batch proceeds only
+    # part of the instanced with the same created_at value.
+    # To prevent such situation the `gte` is used in filters with excluding
+    # of already processed ids for this created_at timestamp.
+    if last_created_at:
+        filter_lookup["created_at__gte"] = last_created_at
+    lines = OrderLine.objects.filter(**filter_lookup)
+    if already_processed_ids:
+        lines = lines.exclude(id__in=already_processed_ids)
+    lines = lines[:ORDER_LINE_DISCOUNT_BATCH_SIZE]
+    discount_line_ids = list(lines.values_list("id", flat=True))
+    if discount_line_ids:
+        order_lines = (
+            OrderLine.objects.filter(id__in=discount_line_ids)
+            .order_by("created_at")
+            .select_related("order")
+        )
         order_line_discounts = []
         for order_line in order_lines:
             channel_id = order_line.order.channel_id
@@ -317,8 +361,14 @@ def migrate_order_line_discounts(sale_ids, rule_by_channel_and_sale):
                         line=order_line,
                     )
                 )
-
+        last_created_at = order_line.created_at
+        already_processed_ids = list(
+            order_lines.filter(created_at=last_created_at).values_list("id", flat=True)
+        )
         OrderLineDiscount.objects.bulk_create(order_line_discounts)
+        migrate_order_line_discounts_task.delay(
+            sale_ids, rule_by_channel_and_sale, last_created_at, already_processed_ids
+        )
 
 
 def get_discount_amount_value(order_line):
