@@ -242,12 +242,16 @@ def _fetch_checkout_prices_if_expired(
 
     tax_configuration = checkout_info.tax_configuration
     tax_calculation_strategy = get_tax_calculation_strategy_for_checkout(
-        checkout_info, lines
+        checkout_info, lines, database_connection_name=database_connection_name
     )
     prices_entered_with_tax = tax_configuration.prices_entered_with_tax
-    charge_taxes = get_charge_taxes_for_checkout(checkout_info, lines)
+    charge_taxes = get_charge_taxes_for_checkout(
+        checkout_info, lines, database_connection_name=database_connection_name
+    )
     should_charge_tax = charge_taxes and not checkout.tax_exemption
-    tax_app_identifier = get_tax_app_identifier_for_checkout(checkout_info, lines)
+    tax_app_identifier = get_tax_app_identifier_for_checkout(
+        checkout_info, lines, database_connection_name
+    )
 
     lines = cast(list, lines)
     create_or_update_discount_objects_from_promotion_for_checkout(
@@ -268,6 +272,7 @@ def _fetch_checkout_prices_if_expired(
                 lines,
                 prices_entered_with_tax,
                 address,
+                database_connection_name=database_connection_name,
             )
         except TaxEmptyData as e:
             checkout.tax_error = str(e)
@@ -292,6 +297,7 @@ def _fetch_checkout_prices_if_expired(
                     lines,
                     prices_entered_with_tax,
                     address,
+                    database_connection_name=database_connection_name,
                 )
             except TaxEmptyData as e:
                 checkout.tax_error = str(e)
@@ -343,6 +349,7 @@ def _calculate_and_add_tax(
     lines: Iterable["CheckoutLineInfo"],
     prices_entered_with_tax: bool,
     address: Optional["Address"] = None,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     if tax_calculation_strategy == TaxCalculationStrategy.TAX_APP:
         # If taxAppId is not configured run all active plugins and tax apps.
@@ -370,7 +377,12 @@ def _calculate_and_add_tax(
     else:
         # Get taxes calculated with flat rates and apply to checkout.
         update_checkout_prices_with_flat_rates(
-            checkout, checkout_info, lines, prices_entered_with_tax, address
+            checkout,
+            checkout_info,
+            lines,
+            prices_entered_with_tax,
+            address,
+            database_connection_name=database_connection_name,
         )
 
 
