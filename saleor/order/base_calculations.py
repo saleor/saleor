@@ -99,6 +99,13 @@ def propagate_order_discount_on_order_prices(
                     currency=currency,
                     price_to_discount=subtotal,
                 )
+        elif order_discount.type == DiscountType.ORDER_PROMOTION:
+            subtotal = apply_discount_to_value(
+                value=order_discount.value,
+                value_type=order_discount.value_type,
+                currency=currency,
+                price_to_discount=subtotal,
+            )
         elif order_discount.type == DiscountType.MANUAL:
             if order_discount.value_type == DiscountValueType.PERCENTAGE:
                 subtotal = apply_discount_to_value(
@@ -113,7 +120,7 @@ def propagate_order_discount_on_order_prices(
                     currency=currency,
                     price_to_discount=shipping_price,
                 )
-            else:
+            elif order_discount.value_type == DiscountValueType.FIXED:
                 temporary_undiscounted_total = subtotal + shipping_price
                 if temporary_undiscounted_total.amount > 0:
                     temporary_total = apply_discount_to_value(

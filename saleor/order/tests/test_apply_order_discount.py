@@ -1,7 +1,7 @@
 from decimal import Decimal
 
 import pytest
-from prices import Money, TaxedMoney
+from prices import Money
 
 from ...core.prices import quantize_price
 from ...core.taxes import zero_money
@@ -9,51 +9,7 @@ from ...discount import DiscountType, DiscountValueType
 from ...order.base_calculations import (
     apply_order_discounts,
     apply_subtotal_discount_to_order_lines,
-    base_order_line_total,
-    base_order_total,
 )
-from ...order.interface import OrderTaxedPricesData
-
-
-def test_base_order_total(order_with_lines):
-    # given
-    order = order_with_lines
-    lines = order.lines.all()
-    shipping_price = order.shipping_price.net
-    subtotal = zero_money(order.currency)
-    for line in lines:
-        subtotal += line.base_unit_price * line.quantity
-    undiscounted_total = subtotal + shipping_price
-
-    # when
-    order_total = base_order_total(order, lines)
-
-    # then
-    assert order_total == undiscounted_total
-
-
-def test_base_order_line_total(order_with_lines):
-    # given
-    line = order_with_lines.lines.all().first()
-
-    # when
-    order_total = base_order_line_total(line)
-
-    # then
-    base_line_unit_price = line.base_unit_price
-    quantity = line.quantity
-    expected_price_with_discount = (
-        TaxedMoney(base_line_unit_price, base_line_unit_price) * quantity
-    )
-    base_line_undiscounted_unit_price = line.undiscounted_base_unit_price
-    expected_undiscounted_price = (
-        TaxedMoney(base_line_undiscounted_unit_price, base_line_undiscounted_unit_price)
-        * quantity
-    )
-    assert order_total == OrderTaxedPricesData(
-        price_with_discounts=expected_price_with_discount,
-        undiscounted_price=expected_undiscounted_price,
-    )
 
 
 def test_apply_order_discounts_voucher_entire_order(order_with_lines, voucher):

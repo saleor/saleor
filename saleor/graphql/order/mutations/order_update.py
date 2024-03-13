@@ -84,7 +84,7 @@ class OrderUpdate(DraftOrderCreate, ModelWithExtRefMutation):
         return instance
 
     @classmethod
-    def should_invalidate_prices(cls, instance, cleaned_input, is_new_instance) -> bool:
+    def should_invalidate_prices(cls, cleaned_input, *args) -> bool:
         return any(
             cleaned_input.get(field) is not None
             for field in ["shipping_address", "billing_address"]
@@ -101,7 +101,7 @@ class OrderUpdate(DraftOrderCreate, ModelWithExtRefMutation):
                 *prepare_order_search_vector_value(instance)
             )
             manager = get_plugin_manager_promise(info.context).get()
-            if cls.should_invalidate_prices(instance, cleaned_input, False):
+            if cls.should_invalidate_prices(cleaned_input):
                 invalidate_order_prices(instance)
 
             instance.save()

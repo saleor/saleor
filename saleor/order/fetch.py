@@ -1,14 +1,21 @@
 from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Optional
+from typing import Optional, cast
 from uuid import UUID
 
-if TYPE_CHECKING:
-    from ..channel.models import Channel
-    from ..discount.models import OrderLineDiscount
-    from ..payment.models import Payment
-    from ..product.models import DigitalContent, ProductVariant
-    from .models import Order, OrderLine
+from django.db.models import prefetch_related_objects
+
+from ..channel.models import Channel
+from ..discount import DiscountType
+from ..discount.interface import VariantPromotionRuleInfo, fetch_variant_rules_info
+from ..discount.models import OrderLineDiscount, Voucher
+from ..payment.models import Payment
+from ..product.models import (
+    DigitalContent,
+    ProductVariant,
+    ProductVariantChannelListing,
+)
+from .models import Order, OrderLine
 
 
 @dataclass
@@ -62,4 +69,66 @@ def fetch_order_lines(order: "Order") -> list[OrderLineInfo]:
             )
         )
 
+    return lines_info
+
+
+@dataclass
+class DraftOrderLineInfo:
+    line: "OrderLine"
+    variant: "ProductVariant"
+    channel_listing: "ProductVariantChannelListing"
+    discounts: list["OrderLineDiscount"]
+    rules_info: list["VariantPromotionRuleInfo"]
+    channel: "Channel"
+    voucher: Optional["Voucher"] = None
+
+    def get_promotion_discounts(self) -> list["OrderLineDiscount"]:
+        return [
+            discount
+            for discount in self.discounts
+            if discount.type in [DiscountType.PROMOTION, DiscountType.ORDER_PROMOTION]
+        ]
+
+    def get_catalogue_discounts(self) -> list["OrderLineDiscount"]:
+        return [
+            discount
+            for discount in self.discounts
+            if discount.type == DiscountType.PROMOTION
+        ]
+
+
+def fetch_draft_order_lines_info(
+    order: "Order", lines: Optional[Iterable["OrderLine"]] = None
+) -> list[DraftOrderLineInfo]:
+    prefetch_related_fields = ["discounts", "variant"]
+    if lines is None:
+        lines = list(order.lines.prefetch_related(*prefetch_related_fields))
+    else:
+        prefetch_related_objects(lines, *prefetch_related_fields)
+
+    lines_info = []
+    channel = order.channel
+    for line in lines:
+        variant = cast(ProductVariant, line.variant)
+        variant_channel_listing = ProductVariantChannelListing.objects.filter(
+            channel=channel, variant=variant
+        ).first()
+        if not variant_channel_listing:
+            continue
+
+        rules_info = (
+            fetch_variant_rules_info(variant_channel_listing, order.language_code)
+            if not line.is_gift
+            else []
+        )
+        lines_info.append(
+            DraftOrderLineInfo(
+                line=line,
+                variant=variant,
+                channel_listing=variant_channel_listing,
+                discounts=list(line.discounts.all()),
+                rules_info=rules_info,
+                channel=channel,
+            )
+        )
     return lines_info
