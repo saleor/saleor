@@ -392,7 +392,7 @@ def create_checkout_line_discount_objects_for_catalogue_promotions(
         lines_info, new_line_discounts, discounts_to_update, discount_ids_to_remove
     )
     # Protect against potential thread race
-    _remove_potential_duplicated_line_discounts(lines_info, CheckoutLineDiscount)
+    _remove_potential_duplicated_catalogue_discounts(lines_info, CheckoutLineDiscount)
 
 
 def prepare_line_discount_objects_for_catalogue_promotions(
@@ -607,11 +607,11 @@ def _update_line_info_cached_discounts(
             line_info.discounts.extend(discount)
 
 
-def _remove_potential_duplicated_line_discounts(
+def _remove_potential_duplicated_catalogue_discounts(
     lines_info: Union[Iterable["CheckoutLineInfo"], Iterable["DraftOrderLineInfo"]],
     discount_line_model: Union[type[CheckoutLineDiscount], type[OrderLineDiscount]],
 ):
-    """Line object can't have multiple discounts of the same type applied."""
+    """Line object can have only single catalogue discount applied."""
     line_ids = [line_info.line.id for line_info in lines_info]
     discounts = discount_line_model.objects.filter(line_id__in=line_ids).only(
         "id", "type"
@@ -619,20 +619,20 @@ def _remove_potential_duplicated_line_discounts(
     duplicated_discount_ids = []
     line_discount_map = defaultdict(list)
     for discount in discounts:
-        # SALE and PROMOTION types should be treated as the same catalogue promotions
-        if discount.type == DiscountType.SALE:
-            discount.type = DiscountType.PROMOTION
         line_discount_map[discount.line_id].append(discount)
 
     for _, discounts in line_discount_map.items():
         if len(discounts) <= 1:
             continue
-        types = []
+        is_catalogue_discount_applied = False
         for discount in discounts:
-            if discount.type in types:
+            if (
+                discount.type in [DiscountType.PROMOTION, DiscountType.SALE]
+                and is_catalogue_discount_applied
+            ):
                 duplicated_discount_ids.append(discount.id)
             else:
-                types.append(discount.type)
+                is_catalogue_discount_applied = True
 
     if duplicated_discount_ids:
         discount_line_model.objects.filter(id__in=duplicated_discount_ids).delete()
@@ -1244,7 +1244,7 @@ def create_order_line_discount_objects_for_catalogue_promotions(
         lines_info, new_line_discounts, discounts_to_update, discount_ids_to_remove
     )
     # Protect against potential thread race
-    _remove_potential_duplicated_line_discounts(lines_info, OrderLineDiscount)
+    _remove_potential_duplicated_catalogue_discounts(lines_info, OrderLineDiscount)
 
     affected_line_ids = [
         discount_line.line.id
