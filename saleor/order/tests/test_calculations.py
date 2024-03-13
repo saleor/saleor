@@ -651,7 +651,10 @@ def test_fetch_order_prices_if_expired_flat_rates(
 
     # then
     mocked_update_order_prices_with_flat_rates.assert_called_once_with(
-        order, list(order.lines.all()), prices_entered_with_tax
+        order,
+        list(order.lines.all()),
+        prices_entered_with_tax,
+        database_connection_name=order.lines.db,
     )
     assert line.tax_rate == Decimal("0.2300")
     assert order.shipping_tax_rate == Decimal("0.2300")
