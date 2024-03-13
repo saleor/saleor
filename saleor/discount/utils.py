@@ -726,7 +726,9 @@ def _get_best_gift_reward(
 
     # check if variant is available for purchase
     available_variant_ids = _get_available_for_purchase_variant_ids(
-        available_variant_ids, channel
+        available_variant_ids,
+        channel,
+        database_connection_name=database_connection_name,
     )
     if not available_variant_ids:
         return None, None
@@ -753,11 +755,17 @@ def _get_best_gift_reward(
 
 
 def _get_available_for_purchase_variant_ids(
-    available_variant_ids: set[int], channel: "Channel"
+    available_variant_ids: set[int],
+    channel: "Channel",
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     today = datetime.datetime.now(pytz.UTC)
-    variants = ProductVariant.objects.filter(id__in=available_variant_ids)
-    product_listings = ProductChannelListing.objects.filter(
+    variants = ProductVariant.objects.using(database_connection_name).filter(
+        id__in=available_variant_ids
+    )
+    product_listings = ProductChannelListing.objects.using(
+        database_connection_name
+    ).filter(
         Exists(variants.filter(product_id=OuterRef("product_id"))),
         available_for_purchase_at__lte=today,
         channel_id=channel.id,
@@ -970,7 +978,9 @@ def get_variants_to_promotion_rules_map(
     """
     rules_info_per_variant: dict[int, list[PromotionRuleInfo]] = defaultdict(list)
 
-    promotions = Promotion.objects.active()
+    promotions = Promotion.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).active()
     PromotionRuleVariant = PromotionRule.variants.through
     promotion_rule_variants = PromotionRuleVariant.objects.using(
         settings.DATABASE_CONNECTION_REPLICA_NAME
