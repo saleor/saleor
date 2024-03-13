@@ -18,11 +18,12 @@ from ....product.models import (
     ProductVariantChannelListing,
     VariantChannelListingPromotionRule,
 )
-from ... import DiscountType, RewardType, RewardValueType
+from ... import DiscountType, DiscountValueType, RewardType, RewardValueType
 from ...models import CheckoutDiscount, CheckoutLineDiscount, PromotionRule
 from ...utils import (
     _get_best_gift_reward,
     create_checkout_discount_objects_for_order_promotions,
+    create_checkout_line_discount_objects_for_catalogue_promotions,
     create_or_update_discount_objects_from_promotion_for_checkout,
 )
 
@@ -2326,3 +2327,67 @@ def test_get_best_gift_reward_no_variants_in_channel(gift_promotion_rule, channe
     # then
     assert rule is None
     assert listing is None
+
+
+def test_remove_potential_duplicated_checkout_line_discounts(
+    checkout_with_item, plugins_manager
+):
+    # given
+    checkout = checkout_with_item
+    line = checkout.lines.get()
+    discounts = []
+    for _ in range(2):
+        discounts.append(
+            CheckoutLineDiscount(
+                line=line,
+                type=DiscountType.SALE,
+                value_type=DiscountValueType.FIXED,
+                value=Decimal("5"),
+                currency=checkout.currency,
+            )
+        )
+        discounts.append(
+            CheckoutLineDiscount(
+                line=line,
+                type=DiscountType.PROMOTION,
+                value_type=DiscountValueType.FIXED,
+                value=Decimal("5"),
+                currency=checkout.currency,
+            )
+        )
+    CheckoutLineDiscount.objects.bulk_create(discounts)
+    assert line.discounts.count() == 4
+
+    checkout_info = fetch_checkout_info(checkout, [line], plugins_manager)
+    lines_info, _ = fetch_checkout_lines(checkout)
+
+    # when
+    create_or_update_discount_objects_from_promotion_for_checkout(
+        checkout_info, lines_info
+    )
+
+    # then
+    assert line.discounts.count() == 1
+
+
+def test_create_checkout_line_discount_objects_for_catalogue_promotions_race_condition(
+    checkout_with_item_on_promotion,
+    plugins_manager,
+):
+    # given
+    checkout = checkout_with_item_on_promotion
+    CheckoutLineDiscount.objects.all().delete()
+    lines_info, _ = fetch_checkout_lines(checkout)
+
+    # when
+    def call_before_creating_creating_catalogue_line_discount(*args, **kwargs):
+        create_checkout_line_discount_objects_for_catalogue_promotions(lines_info)
+
+    with before_after.before(
+        "saleor.discount.utils._update_line_info_cached_discounts",
+        call_before_creating_creating_catalogue_line_discount,
+    ):
+        create_checkout_line_discount_objects_for_catalogue_promotions(lines_info)
+
+    # then
+    assert CheckoutLineDiscount.objects.count() == 1

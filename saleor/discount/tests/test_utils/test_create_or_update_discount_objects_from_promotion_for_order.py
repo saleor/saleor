@@ -535,7 +535,7 @@ def test_remove_potential_duplicated_order_line_discounts(
     line.discounts.create(
         type=DiscountType.PROMOTION,
         value_type=DiscountValueType.FIXED,
-        value=Decimal("10"),
+        value=Decimal("5"),
         currency=order.currency,
     )
     assert line.discounts.count() == 3
