@@ -954,7 +954,12 @@ class Checkout(ModelObjectType[models.Checkout]):
     @traced_resolver
     def resolve_available_collection_points(root: models.Checkout, info: ResolveInfo):
         def get_available_collection_points(lines):
-            return get_valid_collection_points_for_checkout(lines, root.channel_id)
+            database_connection_name = get_database_connection_name(info.context)
+            return get_valid_collection_points_for_checkout(
+                lines,
+                root.channel_id,
+                database_connection_name=database_connection_name,
+            )
 
         return (
             CheckoutLinesInfoByCheckoutTokenLoader(info.context)

@@ -886,6 +886,7 @@ def get_valid_collection_points_for_checkout(
     lines: Iterable["CheckoutLineInfo"],
     channel_id: int,
     quantity_check: bool = True,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     """Return a collection of `Warehouse`s that can be used as a collection point.
 
@@ -897,14 +898,16 @@ def get_valid_collection_points_for_checkout(
         return []
 
     line_ids = [line_info.line.id for line_info in lines]
-    lines = CheckoutLine.objects.filter(id__in=line_ids)
+    lines = CheckoutLine.objects.using(database_connection_name).filter(id__in=line_ids)
 
     return (
-        Warehouse.objects.applicable_for_click_and_collect(lines, channel_id)
+        Warehouse.objects.using(
+            database_connection_name
+        ).applicable_for_click_and_collect(lines, channel_id)
         if quantity_check
-        else Warehouse.objects.applicable_for_click_and_collect_no_quantity_check(
-            lines, channel_id
-        )
+        else Warehouse.objects.using(
+            database_connection_name
+        ).applicable_for_click_and_collect_no_quantity_check(lines, channel_id)
     )
 
 

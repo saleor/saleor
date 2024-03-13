@@ -678,7 +678,11 @@ def update_delivery_method_lists_for_checkout_info(
 
     checkout_info.all_shipping_methods = lazy_no_retry(_resolve_all_shipping_methods)  # type: ignore[assignment] # using lazy object breaks protocol
     checkout_info.valid_pick_up_points = lazy_no_retry(
-        lambda: (get_valid_collection_points_for_checkout_info(lines, checkout_info))
+        lambda: (
+            get_valid_collection_points_for_checkout_info(
+                lines, checkout_info, database_connection_name=database_connection_name
+            )
+        )
     )  # type: ignore[assignment] # using lazy object breaks protocol
     update_checkout_info_delivery_method_info(
         checkout_info,
@@ -691,11 +695,15 @@ def update_delivery_method_lists_for_checkout_info(
 def get_valid_collection_points_for_checkout_info(
     lines: Iterable[CheckoutLineInfo],
     checkout_info: CheckoutInfo,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     from .utils import get_valid_collection_points_for_checkout
 
     valid_collection_points = get_valid_collection_points_for_checkout(
-        lines, checkout_info.channel.id, quantity_check=False
+        lines,
+        checkout_info.channel.id,
+        quantity_check=False,
+        database_connection_name=database_connection_name,
     )
     return list(valid_collection_points)
 
