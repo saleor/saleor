@@ -153,6 +153,125 @@ from ..webhook.observability import WebhookData
 from ..webhook.transport.utils import WebhookResponse, to_payment_app_id
 from .utils import dummy_editorjs
 
+CALCULATE_TAXES_SUBSCRIPTION_QUERY = """
+subscription CalculateTaxes {
+  event {
+    ...CalculateTaxesEvent
+  }
+}
+
+fragment CalculateTaxesEvent on Event {
+  __typename
+  ... on CalculateTaxes {
+    taxBase {
+      ...TaxBase
+    }
+    recipient {
+      privateMetadata {
+        key
+        value
+      }
+    }
+  }
+}
+
+fragment TaxBase on TaxableObject {
+  pricesEnteredWithTax
+  currency
+  channel {
+    slug
+  }
+  discounts {
+    ...TaxDiscount
+  }
+  address {
+    ...Address
+  }
+  shippingPrice {
+    amount
+  }
+  lines {
+    ...TaxBaseLine
+  }
+  sourceObject {
+    __typename
+    ... on Checkout {
+      avataxEntityCode: metafield(key: "avataxEntityCode")
+      user {
+        ...User
+      }
+    }
+    ... on Order {
+      avataxEntityCode: metafield(key: "avataxEntityCode")
+      user {
+        ...User
+      }
+    }
+  }
+}
+
+fragment TaxDiscount on TaxableObjectDiscount {
+  name
+  amount {
+    amount
+  }
+}
+
+fragment Address on Address {
+  streetAddress1
+  streetAddress2
+  city
+  countryArea
+  postalCode
+  country {
+    code
+  }
+}
+
+fragment TaxBaseLine on TaxableObjectLine {
+  sourceLine {
+    __typename
+    ... on CheckoutLine {
+      id
+      checkoutProductVariant: variant {
+        id
+        product {
+          taxClass {
+            id
+            name
+          }
+        }
+      }
+    }
+    ... on OrderLine {
+      id
+      orderProductVariant: variant {
+        id
+        product {
+          taxClass {
+            id
+            name
+          }
+        }
+      }
+    }
+  }
+  quantity
+  unitPrice {
+    amount
+  }
+  totalPrice {
+    amount
+  }
+}
+
+fragment User on User {
+  id
+  email
+  avataxCustomerCode: metafield(key: "avataxCustomerCode")
+}
+"""
+
 
 class CaptureQueriesContext(BaseCaptureQueriesContext):
     IGNORED_QUERIES = settings.PATTERNS_IGNORED_IN_QUERY_CAPTURES  # type: ignore
@@ -7078,6 +7197,39 @@ def shipping_app(db, permission_manage_shipping):
 
 
 @pytest.fixture
+def shipping_app_with_subscription(db, permission_manage_shipping):
+    app = App.objects.create(name="Shipping App with subscription", is_active=True)
+    app.tokens.create(name="Default")
+    app.permissions.add(permission_manage_shipping)
+
+    webhook = Webhook.objects.create(
+        name="shipping-webhook-1",
+        app=app,
+        target_url="https://shipping-app.com/api/",
+        subscription_query="""
+        subscription {
+  event {
+    ... on ShippingListMethodsForCheckout {
+      __typename
+    }
+  }
+}
+
+        """,
+    )
+    webhook.events.bulk_create(
+        [
+            WebhookEvent(event_type=event_type, webhook=webhook)
+            for event_type in [
+                WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+                WebhookEventAsyncType.FULFILLMENT_CREATED,
+            ]
+        ]
+    )
+    return app
+
+
+@pytest.fixture
 def list_stored_payment_methods_app(db, permission_manage_payments):
     app = App.objects.create(
         name="List payment methods app",
@@ -7191,6 +7343,30 @@ def tax_app(db, permission_handle_taxes):
         name="tax-webhook-1",
         app=app,
         target_url="https://tax-app.com/api/",
+        subscription_query=CALCULATE_TAXES_SUBSCRIPTION_QUERY,
+    )
+    webhook.events.bulk_create(
+        [
+            WebhookEvent(event_type=event_type, webhook=webhook)
+            for event_type in [
+                WebhookEventSyncType.ORDER_CALCULATE_TAXES,
+                WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
+            ]
+        ]
+    )
+    return app
+
+
+@pytest.fixture
+def tax_app_with_subscription_webhooks(db, permission_handle_taxes):
+    app = App.objects.create(name="Tax App with subscription", is_active=True)
+    app.permissions.add(permission_handle_taxes)
+
+    webhook = Webhook.objects.create(
+        name="tax-subscription-webhook-1",
+        app=app,
+        target_url="https://tax-app.com/api/",
+        subscription_query=CALCULATE_TAXES_SUBSCRIPTION_QUERY,
     )
     webhook.events.bulk_create(
         [
