@@ -1206,6 +1206,8 @@ def create_order_line_discount_objects_for_catalogue_promotions(
     _update_line_info_cached_discounts(
         lines_info, new_line_discounts, discounts_to_update, discount_ids_to_remove
     )
+    # Protect against potential thread race
+    _remove_potential_duplicated_order_line_discounts(lines_info)
 
     affected_line_ids = [
         discount_line.line.id
@@ -1218,6 +1220,41 @@ def create_order_line_discount_objects_for_catalogue_promotions(
     ]
     # base unit price must reflect all actual catalogue discounts
     _update_base_unit_price_amount(modified_lines_info)
+
+
+def _remove_potential_duplicated_order_line_discounts(
+    lines_info: Iterable[DraftOrderLineInfo],
+):
+    """OrderLine can't have multiple discounts of the same type applied."""
+    line_ids = [line_info.line.id for line_info in lines_info]
+    discounts = OrderLineDiscount.objects.filter(line_id__in=line_ids).only(
+        "id", "type"
+    )
+    duplicated_discount_ids = []
+    line_discount_map = defaultdict(list)
+    for discount in discounts:
+        # SALE and PROMOTION types should be treated as the same catalogue promotions
+        if discount.type == DiscountType.SALE:
+            discount.type = DiscountType.PROMOTION
+        line_discount_map[discount.line_id].append(discount)
+
+    for _, discounts in line_discount_map.items():
+        if len(discounts) <= 1:
+            continue
+        types = []
+        for discount in discounts:
+            if discount.type in types:
+                duplicated_discount_ids.append(discount.id)
+            else:
+                types.append(discount.type)
+
+    if duplicated_discount_ids:
+        OrderLineDiscount.objects.filter(id__in=duplicated_discount_ids).delete()
+
+    for line_info in lines_info:
+        for discount in line_info.discounts:
+            if discount.id in duplicated_discount_ids:
+                line_info.discounts.remove(discount)
 
 
 def _copy_unit_discount_data_to_order_line(lines_info: Iterable[DraftOrderLineInfo]):

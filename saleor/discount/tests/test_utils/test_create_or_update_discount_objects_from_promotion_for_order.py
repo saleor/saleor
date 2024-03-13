@@ -8,7 +8,7 @@ from ....product.models import (
     VariantChannelListingPromotionRule,
 )
 from ....warehouse.models import Stock
-from ... import DiscountType, RewardType, RewardValueType
+from ... import DiscountType, DiscountValueType, RewardType, RewardValueType
 from ...models import OrderDiscount, OrderLineDiscount
 from ...utils import create_or_update_discount_objects_from_promotion_for_order
 
@@ -518,3 +518,31 @@ def test_update_gift_discount_new_gift_available(
 
     assert gift_line.quantity == 1
     assert gift_line.variant == variant
+
+
+def test_remove_potential_duplicated_order_line_discounts(
+    order_with_lines_and_catalogue_promotion,
+):
+    # given
+    order = order_with_lines_and_catalogue_promotion
+    line = order.lines.get(quantity=3)
+    line.discounts.create(
+        type=DiscountType.SALE,
+        value_type=DiscountValueType.FIXED,
+        value=Decimal("5"),
+        currency=order.currency,
+    )
+    line.discounts.create(
+        type=DiscountType.PROMOTION,
+        value_type=DiscountValueType.FIXED,
+        value=Decimal("10"),
+        currency=order.currency,
+    )
+    assert line.discounts.count() == 3
+    lines_info = fetch_draft_order_lines_info(order)
+
+    # when
+    create_or_update_discount_objects_from_promotion_for_order(order, lines_info)
+
+    # then
+    assert line.discounts.count() == 1
