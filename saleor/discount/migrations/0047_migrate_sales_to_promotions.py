@@ -12,7 +12,13 @@ from django.db.models.signals import post_migrate
 from ..tasks import update_discounted_prices_task
 
 # The batch of size 100 takes ~0.9 second and consumes ~30MB memory at peak
-BATCH_SIZE = 100
+SALE_LISTING_BATCH_SIZE = 100
+
+# The batch of size 500 takes ~0.7 seconds and consumes ~18MB memory at peak
+CHECKOUT_LINE_DISCOUNT_BATCH_SIZE = 500
+
+# The batch of size 500 takes ~0.5 seconds and consumes ~15MB memory at peak
+ORDER_LINE_DISCOUNT_BATCH_SIZE = 500
 
 
 def run_migration(apps, _schema_editor):
@@ -106,7 +112,9 @@ def migrate_sales_with_listing(
 def sale_id_in_batches(queryset):
     sale_id = 0
     while True:
-        qs = queryset.values("sale_id").filter(sale_id__gt=sale_id)[:BATCH_SIZE]
+        qs = queryset.values("sale_id").filter(sale_id__gt=sale_id)[
+            :SALE_LISTING_BATCH_SIZE
+        ]
         sale_pks = [v["sale_id"] for v in qs]
         if not sale_pks:
             break
@@ -166,7 +174,7 @@ def migrate_sales_without_listing(
         ~Exists(sales_listing.filter(sale_id=OuterRef("pk"))),
         ~Exists(Promotion.objects.filter(old_sale_id=OuterRef("pk"))),
     ).order_by("pk")
-    for ids in queryset_in_batches(sales_not_listed):
+    for ids in queryset_in_batches(sales_not_listed, SALE_LISTING_BATCH_SIZE):
         with transaction.atomic():
             qs = Sale.objects.filter(
                 ~Exists(Promotion.objects.filter(old_sale_id=OuterRef("pk"))),
@@ -183,10 +191,10 @@ def migrate_sales_without_listing(
         )
 
 
-def queryset_in_batches(queryset):
+def queryset_in_batches(queryset, batch_size):
     start_pk = 0
     while True:
-        qs = queryset.values("pk").filter(pk__gt=start_pk)[:BATCH_SIZE]
+        qs = queryset.values("pk").filter(pk__gt=start_pk)[:batch_size]
         pks = [v["pk"] for v in qs]
         if not pks:
             break
@@ -354,9 +362,13 @@ def migrate_translations(
 def migrate_checkout_line_discounts(
     CheckoutLineDiscount, sale_ids, rule_by_channel_and_sale
 ):
-    if checkout_line_discounts := CheckoutLineDiscount.objects.filter(
-        sale_id__in=sale_ids
-    ).select_related("line__checkout"):
+    lines = CheckoutLineDiscount.objects.filter(sale_id__in=sale_ids)
+    for discount_ids in queryset_in_batches(lines, CHECKOUT_LINE_DISCOUNT_BATCH_SIZE):
+        checkout_line_discounts = (
+            CheckoutLineDiscount.objects.filter(id__in=discount_ids)
+            .select_related("line__checkout")
+            .only("line__checkout__channel_id", "sale_id")
+        )
         for checkout_line_discount in checkout_line_discounts:
             if checkout_line := checkout_line_discount.line:
                 channel_id = checkout_line.checkout.channel_id
@@ -375,9 +387,9 @@ def migrate_order_line_discounts(
     OrderLine, OrderLineDiscount, sale_ids, rule_by_channel_and_sale
 ):
     global_pks = [graphene.Node.to_global_id("Sale", pk) for pk in sale_ids]
-    if order_lines := OrderLine.objects.filter(sale_id__in=global_pks).prefetch_related(
-        "order"
-    ):
+    lines = OrderLine.objects.filter(sale_id__in=global_pks)
+    for line_ids in queryset_in_batches(lines, ORDER_LINE_DISCOUNT_BATCH_SIZE):
+        order_lines = OrderLine.objects.filter(id__in=line_ids).select_related("order")
         order_line_discounts = []
         for order_line in order_lines:
             channel_id = order_line.order.channel_id
