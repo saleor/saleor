@@ -60,9 +60,8 @@ class Migration(migrations.Migration):
             tsvector_update_trigger(
                 'search_vector', 'pg_catalog.english', 'description_plaintext', 'name'
             )
-
-
-        """
+            """,
+            reverse_sql=migrations.RunSQL.noop,
         ),
         migrations.RunSQL(
             """
@@ -83,7 +82,8 @@ class Migration(migrations.Migration):
 
             CREATE TRIGGER tsvectorupdate BEFORE INSERT OR UPDATE
                 ON product_product FOR EACH ROW EXECUTE FUNCTION messages_trigger();
-            """
+            """,
+            reverse_sql=migrations.RunSQL.noop,
         ),
         migrations.RunPython(
             parse_description_json_field,
