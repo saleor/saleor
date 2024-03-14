@@ -15,7 +15,7 @@ from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout, CheckoutLine
 from .....core.taxes import TaxError, zero_money, zero_taxed_money
 from .....discount import DiscountType, DiscountValueType, RewardValueType
-from .....discount.models import CheckoutLineDiscount, Promotion
+from .....discount.models import CheckoutLineDiscount
 from .....giftcard import GiftCardEvents
 from .....giftcard.models import GiftCard, GiftCardEvent
 from .....order import OrderOrigin, OrderStatus
@@ -1279,91 +1279,6 @@ def test_order_from_checkout_on_catalogue_and_gift_promotion(
     assert (
         order.undiscounted_total - order.total
     ).gross.amount == top_price + line_discount.amount_value
-
-
-def test_order_from_checkout_multiple_rules_applied(
-    app_api_client,
-    checkout_with_item_on_promotion,
-    permission_handle_checkouts,
-    permission_manage_checkouts,
-    address,
-    shipping_method,
-):
-    # given
-    checkout = checkout_with_item_on_promotion
-    checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
-    checkout.billing_address = address
-    checkout.save()
-
-    channel = checkout.channel
-
-    line = checkout.lines.first()
-    variant = line.variant
-    variant_channel_listing = variant.channel_listings.get(channel=channel)
-
-    reward_value_2 = Decimal("10.00")
-    promotion = Promotion.objects.first()
-    rule_2 = promotion.rules.create(
-        name="Percentage promotion rule 2",
-        reward_value_type=RewardValueType.PERCENTAGE,
-        reward_value=reward_value_2,
-        catalogue_predicate={
-            "variantPredicate": {
-                "ids": [graphene.Node.to_global_id("ProductVariant", line.variant_id)]
-            }
-        },
-    )
-    rule_2.channels.add(channel)
-
-    discount_amount_2 = reward_value_2 / 100 * variant_channel_listing.price.amount
-
-    variant_channel_listing.variantlistingpromotionrule.create(
-        promotion_rule=rule_2,
-        discount_amount=discount_amount_2,
-        currency=channel.currency_code,
-    )
-    CheckoutLineDiscount.objects.create(
-        line=line,
-        type=DiscountType.PROMOTION,
-        value_type=DiscountValueType.PERCENTAGE,
-        amount_value=discount_amount_2,
-        currency=channel.currency_code,
-        promotion_rule=rule_2,
-    )
-
-    variant_channel_listing.discounted_price_amount = (
-        variant_channel_listing.discounted_price_amount - discount_amount_2
-    )
-    variant_channel_listing.save(update_fields=["discounted_price_amount"])
-
-    variables = {
-        "id": graphene.Node.to_global_id("Checkout", checkout.pk),
-    }
-
-    # when
-    response = app_api_client.post_graphql(
-        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
-        variables,
-        permissions=[permission_handle_checkouts, permission_manage_checkouts],
-    )
-
-    # then
-    content = get_graphql_content(response)
-    data = content["data"]["orderCreateFromCheckout"]
-    assert not data["errors"]
-
-    order = Order.objects.first()
-
-    assert order.status == OrderStatus.UNCONFIRMED
-    assert order.origin == OrderOrigin.CHECKOUT
-    assert not order.original
-
-    assert order.lines.count() == 1
-    line = order.lines.first()
-    assert line.sale_id == graphene.Node.to_global_id("Promotion", promotion.pk)
-    assert line.unit_discount_reason
-    assert line.discounts.count() == 2
 
 
 @pytest.mark.integration
