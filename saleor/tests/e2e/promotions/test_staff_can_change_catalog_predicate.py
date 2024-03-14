@@ -1,5 +1,6 @@
 import pytest
 
+from ....product.tasks import recalculate_discounted_price_for_products_task
 from ..product.utils import (
     create_collection,
     create_collection_channel_listing,
@@ -112,6 +113,10 @@ def test_staff_can_change_catalogue_predicate_core_2112(
         }
     }
     update_promotion_rule(e2e_staff_api_client, promotion_rule_id, input)
+
+    # prices are updated in the background, we need to force it to retrieve the correct
+    # ones
+    recalculate_discounted_price_for_products_task()
 
     # Step 3 Check if promotion is applied to new variant
     product_data = get_product(e2e_staff_api_client, product_id, channel_slug)

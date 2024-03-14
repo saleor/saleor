@@ -1,5 +1,6 @@
 import pytest
 
+from .....product.tasks import recalculate_discounted_price_for_products_task
 from ...product.utils.preparing_product import prepare_product
 from ...promotions.utils import create_promotion, create_promotion_rule
 from ...shop.utils.preparing_shop import prepare_default_shop
@@ -177,6 +178,10 @@ def test_checkout_with_promotion_and_voucher_CORE_2107(
         voucher_discount_type,
         voucher_discount_value,
     )
+
+    # prices are updated in the background, we need to force it to retrieve the correct
+    # ones
+    recalculate_discounted_price_for_products_task()
 
     # Step 1 - Create checkout for product with promotion
     lines = [

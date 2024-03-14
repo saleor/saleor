@@ -1,11 +1,11 @@
-from unittest.mock import patch
-
 import graphene
 import pytest
 
 from .....discount import PromotionEvents
 from .....discount.models import PromotionEvent
+from .....product.models import ProductChannelListing
 from ....tests.utils import assert_no_permission, get_graphql_content
+from ...utils import get_products_for_promotion
 
 PROMOTION_RULE_DELETE_MUTATION = """
     mutation promotionRuleDelete($id: ID!) {
@@ -34,21 +34,18 @@ PROMOTION_RULE_DELETE_MUTATION = """
 """
 
 
-@patch("saleor.plugins.manager.PluginsManager.promotion_rule_deleted")
-@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 def test_promotion_rule_delete_by_staff_user(
-    update_discounted_prices_task_mock,
-    promotion_rule_deleted_mock,
     staff_api_client,
     permission_group_manage_discounts,
     catalogue_promotion,
     product,
 ):
     # given
+    promotion = catalogue_promotion
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
-    rule = catalogue_promotion.rules.get(name="Percentage promotion rule")
+    rule = promotion.rules.get(name="Percentage promotion rule")
     variables = {"id": graphene.Node.to_global_id("PromotionRule", rule.id)}
-
+    channels_ids = set(rule.channels.values_list("id", flat=True))
     # when
     response = staff_api_client.post_graphql(PROMOTION_RULE_DELETE_MUTATION, variables)
 
@@ -59,21 +56,24 @@ def test_promotion_rule_delete_by_staff_user(
     with pytest.raises(rule._meta.model.DoesNotExist):
         rule.refresh_from_db()
 
-    update_discounted_prices_task_mock.assert_called_once_with([product.id])
-    promotion_rule_deleted_mock.assert_called_once_with(rule)
+    listings = ProductChannelListing.objects.filter(
+        channel__in=channels_ids, product=product
+    )
+    for listing in listings:
+        assert listing.discounted_price_dirty is True
 
 
-@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 def test_promotion_rule_delete_by_staff_app(
-    update_discounted_prices_task_mock,
     app_api_client,
     permission_manage_discounts,
     catalogue_promotion,
     product,
 ):
     # given
-    rule = catalogue_promotion.rules.get(name="Percentage promotion rule")
+    promotion = catalogue_promotion
+    rule = promotion.rules.get(name="Percentage promotion rule")
     variables = {"id": graphene.Node.to_global_id("PromotionRule", rule.id)}
+    channels_ids = set(rule.channels.values_list("id", flat=True))
 
     # when
     response = app_api_client.post_graphql(
@@ -89,28 +89,34 @@ def test_promotion_rule_delete_by_staff_app(
     with pytest.raises(rule._meta.model.DoesNotExist):
         rule.refresh_from_db()
 
-    update_discounted_prices_task_mock.assert_called_once_with([product.id])
+    listings = ProductChannelListing.objects.filter(
+        channel__in=channels_ids, product=product
+    )
+    for listing in listings:
+        assert listing.discounted_price_dirty is True
 
 
-@patch("saleor.product.tasks.update_discounted_prices_task.delay")
-def test_promotion_rule_delete_by_customer(
-    update_discounted_prices_task_mock, api_client, catalogue_promotion
-):
+def test_promotion_rule_delete_by_customer(api_client, catalogue_promotion):
     # given
-    rule = catalogue_promotion.rules.first()
+    promotion = catalogue_promotion
+    rule = promotion.rules.first()
     variables = {"id": graphene.Node.to_global_id("PromotionRule", rule.id)}
+    products = get_products_for_promotion(promotion)
+    channels_ids = set(rule.channels.values_list("id", flat=True))
 
     # when
     response = api_client.post_graphql(PROMOTION_RULE_DELETE_MUTATION, variables)
 
     # then
     assert_no_permission(response)
-    update_discounted_prices_task_mock.assert_not_called()
+    listings = ProductChannelListing.objects.filter(
+        channel__in=channels_ids, product__in=products
+    )
+    for listing in listings:
+        assert listing.discounted_price_dirty is False
 
 
-@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 def test_promotion_delete_clears_old_sale_id(
-    update_discounted_prices_task_mock,
     staff_api_client,
     permission_group_manage_discounts,
     promotion_converted_from_sale,
@@ -120,6 +126,7 @@ def test_promotion_delete_clears_old_sale_id(
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
     promotion = promotion_converted_from_sale
     rule = promotion.rules.first()
+    channels_ids = set(rule.channels.values_list("id", flat=True))
 
     assert promotion.old_sale_id
 
@@ -129,16 +136,20 @@ def test_promotion_delete_clears_old_sale_id(
     response = staff_api_client.post_graphql(PROMOTION_RULE_DELETE_MUTATION, variables)
 
     # then
+    listings = ProductChannelListing.objects.filter(
+        channel__in=channels_ids, product=product
+    )
     content = get_graphql_content(response)
     data = content["data"]["promotionRuleDelete"]
     assert data["promotionRule"]["name"] == rule.name
     with pytest.raises(rule._meta.model.DoesNotExist):
         rule.refresh_from_db()
 
-    update_discounted_prices_task_mock.assert_called_once_with([product.id])
-
     promotion.refresh_from_db()
     assert promotion.old_sale_id is None
+
+    for listing in listings:
+        assert listing.discounted_price_dirty is True
 
 
 def test_promotion_rule_delete_events(

@@ -11,7 +11,7 @@ from .....discount.error_codes import DiscountErrorCode
 from .....discount.utils import CATALOGUE_FIELDS
 from .....permission.enums import DiscountPermissions
 from .....product import models as product_models
-from .....product.tasks import update_discounted_prices_task
+from .....product.utils.product import mark_products_in_channels_as_dirty
 from .....webhook.event_types import WebhookEventAsyncType
 from ....channel import ChannelContext
 from ....core import ResolveInfo
@@ -172,6 +172,7 @@ class SaleUpdate(ModelMutation):
         previous_product_ids,
     ):
         rule = promotion.rules.first()
+        channel_ids = rule.channels.values_list("id", flat=True)
         current_predicate = rule.catalogue_predicate
         current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
             current_predicate
@@ -185,7 +186,6 @@ class SaleUpdate(ModelMutation):
             current_catalogue,
             previous_end_date,
         )
-
         if any(
             field in input.keys()
             for field in [*CATALOGUE_FIELDS, "start_date", "end_date", "type"]
@@ -198,7 +198,11 @@ class SaleUpdate(ModelMutation):
             )
             update_variants_for_promotion(variants, promotion)
             if product_ids | previous_product_ids:
-                update_discounted_prices_task.delay(list(product_ids))
+                product_ids_to_update = product_ids | previous_product_ids
+                cls.call_event(
+                    mark_products_in_channels_as_dirty,
+                    {channel_id: product_ids_to_update for channel_id in channel_ids},
+                )
 
     @classmethod
     def send_sale_notifications(

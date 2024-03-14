@@ -282,7 +282,9 @@ class Attribute(ModelObjectType[models.Attribute]):
                 QuerySet[models.AttributeValue], models.AttributeValue.objects.none()
             )
 
-        qs = filter_connection_queryset(qs, kwargs)
+        qs = filter_connection_queryset(
+            qs, kwargs, allow_replica=info.context.allow_replica
+        )
         return create_connection_slice(
             qs, info, kwargs, AttributeValueCountableConnection
         )

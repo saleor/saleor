@@ -100,6 +100,7 @@ def get_nodes(
     model=None,
     qs=None,
     schema=None,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     """Return a list of nodes.
 
@@ -123,9 +124,9 @@ def get_nodes(
             raise GraphQLError("GraphQL schema was not provided")
 
     if qs is None and graphene_type and not isinstance(graphene_type, str):
-        qs = graphene_type._meta.model.objects
+        qs = graphene_type._meta.model.objects.using(database_connection_name)
     elif model is not None:
-        qs = model.objects
+        qs = model.objects.using(database_connection_name)
 
     is_object_type_with_double_id = str(graphene_type) in TYPES_WITH_DOUBLE_ID_AVAILABLE
     if is_object_type_with_double_id:
@@ -142,9 +143,9 @@ def get_nodes(
         old_id_field = "number" if str(graphene_type) == "Order" else "old_id"
         nodes_pk_list.extend([str(getattr(node, old_id_field)) for node in nodes])
     for pk in pks:
-        assert pk in nodes_pk_list, "There is no node of type {} with pk {}".format(
-            graphene_type, pk
-        )
+        assert (
+            pk in nodes_pk_list
+        ), f"There is no node of type {graphene_type} with pk {pk}"
     return nodes
 
 

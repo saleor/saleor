@@ -42,7 +42,12 @@ def _applicable_weight_based_methods(weight, qs):
     return qs.filter(min_weight_matched & max_weight_matched)
 
 
-def _applicable_price_based_methods(price: Money, qs, channel_id):
+def _applicable_price_based_methods(
+    price: Money,
+    qs,
+    channel_id,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+):
     """Return price based shipping methods that are applicable for the given total."""
     qs_shipping_method = qs.price_based()
 
@@ -53,12 +58,16 @@ def _applicable_price_based_methods(price: Money, qs, channel_id):
     no_price_limit = Q(maximum_order_price_amount__isnull=True)
     max_price_matched = Q(maximum_order_price_amount__gte=price.amount)
 
-    applicable_price_based_methods = ShippingMethodChannelListing.objects.filter(
-        channel_filter
-        & price_based
-        & (min_price_is_null | min_price_matched)
-        & (no_price_limit | max_price_matched)
-    ).values_list("shipping_method__id", flat=True)
+    applicable_price_based_methods = (
+        ShippingMethodChannelListing.objects.using(database_connection_name)
+        .filter(
+            channel_filter
+            & price_based
+            & (min_price_is_null | min_price_matched)
+            & (no_price_limit | max_price_matched)
+        )
+        .values_list("shipping_method__id", flat=True)
+    )
     return qs_shipping_method.filter(id__in=applicable_price_based_methods)
 
 
@@ -104,11 +113,12 @@ class ShippingMethodQueryset(models.QuerySet["ShippingMethod"]):
             channel_listings__channel__slug=channel_slug,
         )
 
-    @staticmethod
-    def applicable_shipping_methods_by_channel(shipping_methods, channel_id):
-        query = ShippingMethodChannelListing.objects.filter(
-            shipping_method=OuterRef("pk"), channel_id=channel_id
-        ).values_list("price_amount")
+    def applicable_shipping_methods_by_channel(self, shipping_methods, channel_id):
+        query = (
+            ShippingMethodChannelListing.objects.using(self.db)
+            .filter(shipping_method=OuterRef("pk"), channel_id=channel_id)
+            .values_list("price_amount")
+        )
         return shipping_methods.annotate(price_amount=Subquery(query)).order_by(
             "price_amount"
         )
@@ -142,7 +152,9 @@ class ShippingMethodQueryset(models.QuerySet["ShippingMethod"]):
         if product_ids:
             qs = self.exclude_shipping_methods_for_excluded_products(qs, product_ids)
 
-        price_based_methods = _applicable_price_based_methods(price, qs, channel_id)
+        price_based_methods = _applicable_price_based_methods(
+            price, qs, channel_id, database_connection_name=self.db
+        )
         weight_based_methods = _applicable_weight_based_methods(weight, qs)
         shipping_methods = price_based_methods | weight_based_methods
 

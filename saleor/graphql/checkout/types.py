@@ -13,6 +13,7 @@ from ...checkout.calculations import fetch_checkout_data
 from ...checkout.utils import get_valid_collection_points_for_checkout
 from ...core.taxes import zero_money, zero_taxed_money
 from ...core.utils.lazyobjects import unwrap_lazy
+from ...graphql.core.context import get_database_connection_name
 from ...payment.interface import ListStoredPaymentMethodsRequestData
 from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import (
@@ -288,10 +289,8 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
             )
 
             def calculate_line_unit_price(data):
-                (
-                    checkout_info,
-                    lines,
-                ) = data
+                checkout_info, lines = data
+                database_connection_name = get_database_connection_name(info.context)
                 for line_info in lines:
                     if line_info.line.pk == root.pk:
                         return calculations.checkout_line_unit_price(
@@ -299,6 +298,7 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
                             checkout_info=checkout_info,
                             lines=lines,
                             checkout_line_info=line_info,
+                            database_connection_name=database_connection_name,
                         )
                 return None
 
@@ -367,6 +367,7 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
 
             def calculate_line_total_price(data):
                 (checkout_info, lines) = data
+                database_connection_name = get_database_connection_name(info.context)
                 for line_info in lines:
                     if line_info.line.pk == root.pk:
                         return calculations.checkout_line_total(
@@ -374,6 +375,7 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
                             checkout_info=checkout_info,
                             lines=lines,
                             checkout_line_info=line_info,
+                            database_connection_name=database_connection_name,
                         )
                 return None
 
@@ -885,11 +887,13 @@ class Checkout(ModelObjectType[models.Checkout]):
     def resolve_total_price(root: models.Checkout, info: ResolveInfo):
         def calculate_total_price(data):
             address, lines, checkout_info, manager = data
+            database_connection_name = get_database_connection_name(info.context)
             taxed_total = calculations.calculate_checkout_total_with_gift_cards(
                 manager=manager,
                 checkout_info=checkout_info,
                 lines=lines,
                 address=address,
+                database_connection_name=database_connection_name,
             )
             return max(taxed_total, zero_taxed_money(root.currency))
 
@@ -902,11 +906,13 @@ class Checkout(ModelObjectType[models.Checkout]):
     def resolve_subtotal_price(root: models.Checkout, info: ResolveInfo):
         def calculate_subtotal_price(data):
             address, lines, checkout_info, manager = data
+            database_connection_name = get_database_connection_name(info.context)
             return calculations.checkout_subtotal(
                 manager=manager,
                 checkout_info=checkout_info,
                 lines=lines,
                 address=address,
+                database_connection_name=database_connection_name,
             )
 
         dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
@@ -918,11 +924,13 @@ class Checkout(ModelObjectType[models.Checkout]):
     def resolve_shipping_price(root: models.Checkout, info: ResolveInfo):
         def calculate_shipping_price(data):
             address, lines, checkout_info, manager = data
+            database_connection_name = get_database_connection_name(info.context)
             return calculations.checkout_shipping_price(
                 manager=manager,
                 checkout_info=checkout_info,
                 lines=lines,
                 address=address,
+                database_connection_name=database_connection_name,
             )
 
         dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
@@ -946,7 +954,12 @@ class Checkout(ModelObjectType[models.Checkout]):
     @traced_resolver
     def resolve_available_collection_points(root: models.Checkout, info: ResolveInfo):
         def get_available_collection_points(lines):
-            return get_valid_collection_points_for_checkout(lines, root.channel_id)
+            database_connection_name = get_database_connection_name(info.context)
+            return get_valid_collection_points_for_checkout(
+                lines,
+                root.channel_id,
+                database_connection_name=database_connection_name,
+            )
 
         return (
             CheckoutLinesInfoByCheckoutTokenLoader(info.context)
@@ -1166,6 +1179,7 @@ class Checkout(ModelObjectType[models.Checkout]):
     def resolve_authorize_status(root: models.Checkout, info):
         def _resolve_authorize_status(data):
             address, lines, checkout_info, manager, transactions = data
+            database_connection_name = get_database_connection_name(info.context)
             fetch_checkout_data(
                 checkout_info=checkout_info,
                 manager=manager,
@@ -1173,6 +1187,7 @@ class Checkout(ModelObjectType[models.Checkout]):
                 address=address,
                 checkout_transactions=transactions,
                 force_status_update=True,
+                database_connection_name=database_connection_name,
             )
             return checkout_info.checkout.authorize_status
 
@@ -1186,6 +1201,7 @@ class Checkout(ModelObjectType[models.Checkout]):
     def resolve_charge_status(root: models.Checkout, info):
         def _resolve_charge_status(data):
             address, lines, checkout_info, manager, transactions = data
+            database_connection_name = get_database_connection_name(info.context)
             fetch_checkout_data(
                 checkout_info=checkout_info,
                 manager=manager,
@@ -1193,6 +1209,7 @@ class Checkout(ModelObjectType[models.Checkout]):
                 address=address,
                 checkout_transactions=transactions,
                 force_status_update=True,
+                database_connection_name=database_connection_name,
             )
             return checkout_info.checkout.charge_status
 
@@ -1204,6 +1221,8 @@ class Checkout(ModelObjectType[models.Checkout]):
 
     @staticmethod
     def resolve_total_balance(root: models.Checkout, info):
+        database_connection_name = get_database_connection_name(info.context)
+
         def _calculate_total_balance_for_transactions(data):
             address, lines, checkout_info, manager, transactions = data
             taxed_total = calculations.calculate_checkout_total_with_gift_cards(
@@ -1211,6 +1230,7 @@ class Checkout(ModelObjectType[models.Checkout]):
                 checkout_info=checkout_info,
                 lines=lines,
                 address=address,
+                database_connection_name=database_connection_name,
             )
             checkout_total = max(taxed_total, zero_taxed_money(root.currency))
             total_charged = zero_money(root.currency)

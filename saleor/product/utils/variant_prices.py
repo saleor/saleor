@@ -2,6 +2,7 @@ from collections import defaultdict
 from decimal import Decimal
 from uuid import UUID
 
+from django.conf import settings
 from django.db import transaction
 from django.db.models import Exists, OuterRef
 from prices import Money
@@ -23,7 +24,9 @@ from ..models import (
 )
 
 
-def update_discounted_prices_for_promotion(products: ProductsQueryset):
+def update_discounted_prices_for_promotion(
+    products: ProductsQueryset, only_dirty_products: bool = False
+):
     """Update Products and ProductVariants discounted prices.
 
     The discounted price is the minimal price of the product/variant based on active
@@ -31,10 +34,13 @@ def update_discounted_prices_for_promotion(products: ProductsQueryset):
     If there is no applied promotion rule, the discounted price for the product
     is equal to the cheapest variant price, in the case of the variant it's equal
     to the variant price.
+
+    When only_dirty_products set to True, the prices will be recalculated only for the
+    listings marked as dirty.
     """
-    variant_qs = ProductVariant.objects.filter(
-        Exists(products.filter(id=OuterRef("product_id")))
-    )
+    variant_qs = ProductVariant.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).filter(Exists(products.filter(id=OuterRef("product_id"))))
     rules_info_per_variant = get_variants_to_promotion_rules_map(variant_qs)
     product_to_variant_listings_per_channel_map = (
         _get_product_to_variant_channel_listings_per_channel_map(variant_qs)
@@ -49,9 +55,12 @@ def update_discounted_prices_for_promotion(products: ProductsQueryset):
     changed_variant_listing_promotion_rule_to_create = []
     changed_variant_listing_promotion_rule_to_update = []
 
-    product_channel_listings = ProductChannelListing.objects.filter(
-        Exists(products.filter(id=OuterRef("product_id")))
-    )
+    product_channel_listings = ProductChannelListing.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).filter(Exists(products.filter(id=OuterRef("product_id"))))
+    if only_dirty_products:
+        product_channel_listings.filter(discounted_price_dirty=True)
+
     for product_channel_listing in product_channel_listings:
         product_id = product_channel_listing.product_id
         channel_id = product_channel_listing.channel_id

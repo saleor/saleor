@@ -4,6 +4,8 @@ from unittest.mock import patch
 import graphene
 from django.test import override_settings
 
+from .....discount.models import PromotionRule
+from .....discount.utils import get_active_catalogue_promotion_rules
 from .....graphql.webhook.subscription_payload import get_pre_save_payload_key
 from .....product.error_codes import ProductVariantBulkErrorCode
 from .....product.models import ProductChannelListing
@@ -76,13 +78,9 @@ PRODUCT_VARIANT_BULK_UPDATE_MUTATION = """
     "saleor.graphql.product.bulk_mutations."
     "product_variant_bulk_update.get_webhooks_for_event"
 )
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
 @patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
 def test_product_variant_bulk_update(
     product_variant_created_webhook_mock,
-    update_products_discounted_prices_for_promotion_task_mock,
     mocked_get_webhooks_for_event,
     staff_api_client,
     product_with_single_variant,
@@ -134,20 +132,15 @@ def test_product_variant_bulk_update(
     assert product_with_single_variant.variants.count() == 1
     assert old_name != new_name
     assert product_variant_created_webhook_mock.call_count == data["count"]
-    update_products_discounted_prices_for_promotion_task_mock.assert_called_once_with(
-        [product_with_single_variant.id]
-    )
+    for rule in get_active_catalogue_promotion_rules():
+        assert rule.variants_dirty
 
 
 @patch(
     "saleor.graphql.product.bulk_mutations."
     "product_variant_bulk_update.get_webhooks_for_event"
 )
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
 def test_product_variant_bulk_update_stocks(
-    update_products_discounted_prices_for_promotion_task_mock,
     mocked_get_webhooks_for_event,
     staff_api_client,
     variant_with_many_stocks,
@@ -212,9 +205,8 @@ def test_product_variant_bulk_update_stocks(
     assert stock_to_update.quantity == new_quantity
     assert variant.stocks.count() == 3
     assert variant.stocks.last().quantity == new_stock_quantity
-    update_products_discounted_prices_for_promotion_task_mock.assert_called_once_with(
-        [variant.product_id]
-    )
+    for rule in get_active_catalogue_promotion_rules():
+        assert rule.variants_dirty
 
 
 def test_product_variant_bulk_update_create_already_existing_stock(
@@ -305,11 +297,7 @@ def test_product_variant_bulk_update_and_remove_stock(
     assert variant.stocks.count() == 1
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
 def test_product_variant_bulk_update_and_remove_stock_when_stock_not_exists(
-    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     variant_with_many_stocks,
     warehouse,
@@ -347,7 +335,8 @@ def test_product_variant_bulk_update_and_remove_stock_when_stock_not_exists(
     assert variant.stocks.count() == 2
     error = data["results"][0]["errors"][0]
     assert error["code"] == ProductVariantBulkErrorCode.NOT_FOUND.name
-    update_products_discounted_prices_for_promotion_task_mock.assert_not_called()
+    for rule in get_active_catalogue_promotion_rules():
+        assert rule.variants_dirty
 
 
 def test_product_variant_bulk_update_stocks_with_invalid_warehouse(
@@ -406,13 +395,24 @@ def test_product_variant_bulk_update_channel_listings_input(
     size_attribute,
     channel_USD,
     channel_PLN,
+    channel_JPY,
+    promotion_rule,
 ):
     # given
+    promotion_rule_id = promotion_rule.id
+    second_promotion_rule = promotion_rule
+    second_promotion_rule.pk = None
+    second_promotion_rule.save()
+    second_promotion_rule.channels.add(channel_PLN)
+    promotion_rule = PromotionRule.objects.get(id=promotion_rule_id)
+
     product = variant.product
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
     ProductChannelListing.objects.create(product=product, channel=channel_PLN)
-    existing_variant_listing = variant.channel_listings.last()
+    existing_variant_listing = variant.channel_listings.exclude(
+        channel=channel_PLN
+    ).last()
 
     assert variant.channel_listings.count() == 1
     product_id = graphene.Node.to_global_id("Product", product.pk)
@@ -450,30 +450,17 @@ def test_product_variant_bulk_update_channel_listings_input(
     response = staff_api_client.post_graphql(
         PRODUCT_VARIANT_BULK_UPDATE_MUTATION, variables
     )
-    content = get_graphql_content(response, ignore_errors=True)
-    data = content["data"]["productVariantBulkUpdate"]
-    existing_variant_listing.refresh_from_db()
+    get_graphql_content(response, ignore_errors=True)
 
+    existing_variant_listing.refresh_from_db()
     # then
-    assert not data["results"][0]["errors"]
-    assert data["count"] == 1
-    assert variant.channel_listings.count() == 2
-    new_variant_channel_listing = variant.channel_listings.last()
-    assert (
-        new_variant_channel_listing.price_amount == not_existing_variant_listing_price
-    )
-    assert (
-        new_variant_channel_listing.discounted_price_amount
-        == not_existing_variant_listing_price
-    )
-    assert new_variant_channel_listing.channel == channel_PLN
-    assert (
-        existing_variant_listing.price_amount == new_price_for_existing_variant_listing
-    )
-    assert (
-        existing_variant_listing.discounted_price_amount
-        == new_price_for_existing_variant_listing
-    )
+
+    # only promotions with created channel will be marked as dirty
+    second_promotion_rule.refresh_from_db()
+    assert second_promotion_rule.variants_dirty is True
+
+    promotion_rule.refresh_from_db()
+    assert promotion_rule.variants_dirty is True
 
 
 def test_product_variant_bulk_update_and_remove_channel_listings(

@@ -3,6 +3,7 @@ from collections.abc import Iterable
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Optional
 
+from django.conf import settings
 from django.db.models import F, Sum
 from django.db.models.functions import Coalesce
 from django.utils import timezone
@@ -401,9 +402,11 @@ def get_reservation_length(site, user) -> Optional[int]:
 def get_listings_reservations(
     checkout_lines: Optional[Iterable["CheckoutLine"]],
     all_variants_channel_listings,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> dict[int, int]:
     quantity_reservation_list = (
-        PreorderReservation.objects.filter(
+        PreorderReservation.objects.using(database_connection_name)
+        .filter(
             product_variant_channel_listing__in=all_variants_channel_listings,
             quantity_reserved__gt=0,
         )
@@ -415,8 +418,8 @@ def get_listings_reservations(
     listings_reservations: dict = defaultdict(int)
 
     for reservation in quantity_reservation_list:
-        listings_reservations[
-            reservation["product_variant_channel_listing"]
-        ] += reservation["quantity_reserved_sum"]
+        listings_reservations[reservation["product_variant_channel_listing"]] += (
+            reservation["quantity_reserved_sum"]
+        )
 
     return listings_reservations

@@ -15,7 +15,9 @@ from .types import TaxClass, TaxConfiguration
 
 def filter_tax_classes_by_country(qs, _, values):
     if values:
-        rates = models.TaxClassCountryRate.objects.filter(country__in=values)
+        rates = models.TaxClassCountryRate.objects.using(qs.db).filter(
+            country__in=values
+        )
         qs = qs.filter(Exists(rates.filter(tax_class_id=OuterRef("id"))))
     return qs
 

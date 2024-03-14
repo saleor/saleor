@@ -116,9 +116,9 @@ def fulfill_gift_card_lines(
     settings: "SiteSettings",
     manager: "PluginsManager",
 ):
-    lines_for_warehouses: defaultdict[
-        UUID, list[OrderFulfillmentLineInfo]
-    ] = defaultdict(list)
+    lines_for_warehouses: defaultdict[UUID, list[OrderFulfillmentLineInfo]] = (
+        defaultdict(list)
+    )
     channel_slug = order.channel.slug
     for line in gift_card_lines.prefetch_related(
         "allocations__stock", "variant__stocks"

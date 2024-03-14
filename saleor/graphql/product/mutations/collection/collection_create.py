@@ -5,6 +5,7 @@ import pytz
 from django.core.exceptions import ValidationError
 
 from .....core.utils.date_time import convert_to_utc_date_time
+from .....discount.utils import mark_active_catalogue_promotion_rules_as_dirty
 from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.error_codes import CollectionErrorCode
@@ -130,6 +131,12 @@ class CollectionCreate(ModelMutation):
         product_ids = list(instance.products.values_list("id", flat=True))
         for ids_batch in cls.batch_product_ids(product_ids):
             collection_product_updated_task.delay(ids_batch)
+
+        if product_ids:
+            channel_ids = models.ProductChannelListing.objects.filter(
+                product_id__in=product_ids
+            ).values_list("channel_id", flat=True)
+            cls.call_event(mark_active_catalogue_promotion_rules_as_dirty, channel_ids)
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **kwargs):

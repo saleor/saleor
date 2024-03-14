@@ -59,13 +59,11 @@ PROMOTION_CREATE_MUTATION = """
 
 
 @freeze_time("2020-03-18 12:00:00")
-@patch("saleor.product.tasks.update_products_discounted_prices_of_promotion_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.promotion_started")
 @patch("saleor.plugins.manager.PluginsManager.promotion_created")
 def test_promotion_create_by_staff_user(
     promotion_created_mock,
     promotion_started_mock,
-    update_products_discounted_prices_of_promotion_task_mock,
     staff_api_client,
     permission_group_manage_discounts,
     description_json,
@@ -177,19 +175,16 @@ def test_promotion_create_by_staff_user(
 
     promotion_created_mock.assert_called_once_with(promotion)
     promotion_started_mock.assert_called_once_with(promotion)
-    update_products_discounted_prices_of_promotion_task_mock.assert_called_once_with(
-        promotion.id
-    )
+    for rule in promotion.rules.all():
+        assert rule.variants_dirty is True
 
 
 @freeze_time("2020-03-18 12:00:00")
-@patch("saleor.product.tasks.update_products_discounted_prices_of_promotion_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.promotion_started")
 @patch("saleor.plugins.manager.PluginsManager.promotion_created")
 def test_promotion_create_by_app(
     promotion_created_mock,
     promotion_started_mock,
-    update_products_discounted_prices_of_promotion_task_mock,
     app_api_client,
     permission_manage_discounts,
     description_json,
@@ -257,9 +252,8 @@ def test_promotion_create_by_app(
 
     promotion_created_mock.assert_called_once_with(promotion)
     promotion_started_mock.assert_called_once_with(promotion)
-    update_products_discounted_prices_of_promotion_task_mock.assert_called_once_with(
-        promotion.id
-    )
+    for rule in promotion.rules.all():
+        assert rule.variants_dirty is True
 
 
 @freeze_time("2020-03-18 12:00:00")
@@ -591,13 +585,11 @@ def test_promotion_create_invalid_percentage_value(
 
 
 @freeze_time("2020-03-18 12:00:00")
-@patch("saleor.product.tasks.update_products_discounted_prices_of_promotion_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.promotion_started")
 @patch("saleor.plugins.manager.PluginsManager.promotion_created")
 def test_promotion_create_only_name_and_end_date(
     promotion_created_mock,
     promotion_started_mock,
-    update_products_discounted_prices_of_promotion_task_mock,
     app_api_client,
     permission_manage_discounts,
     description_json,
@@ -635,19 +627,16 @@ def test_promotion_create_only_name_and_end_date(
 
     promotion_created_mock.assert_called_once_with(promotion)
     promotion_started_mock.assert_called_once_with(promotion)
-    update_products_discounted_prices_of_promotion_task_mock.assert_called_once_with(
-        promotion.id
-    )
+    for rule in promotion.rules.all():
+        assert rule.variants_dirty is True
 
 
 @freeze_time("2020-03-18 12:00:00")
-@patch("saleor.product.tasks.update_products_discounted_prices_of_promotion_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.promotion_started")
 @patch("saleor.plugins.manager.PluginsManager.promotion_created")
 def test_promotion_create_start_date_and_end_date_after_current_date(
     promotion_created_mock,
     promotion_started_mock,
-    update_products_discounted_prices_of_promotion_task_mock,
     staff_api_client,
     permission_group_manage_discounts,
     description_json,
@@ -759,9 +748,8 @@ def test_promotion_create_start_date_and_end_date_after_current_date(
 
     promotion_created_mock.assert_called_once_with(promotion)
     promotion_started_mock.assert_not_called()
-    update_products_discounted_prices_of_promotion_task_mock.assert_called_once_with(
-        promotion.id
-    )
+    for rule in promotion.rules.all():
+        assert rule.variants_dirty is True
 
 
 @freeze_time("2020-03-18 12:00:00")

@@ -127,9 +127,9 @@ class VoucherChannelListingByVoucherIdAndChanneSlugLoader(DataLoader):
                 voucher_channel_listing.voucher_id,
                 voucher_channel_listing.channel_slug,
             )
-            voucher_channel_listings_by_voucher_and_channel_map[
-                key
-            ] = voucher_channel_listing
+            voucher_channel_listings_by_voucher_and_channel_map[key] = (
+                voucher_channel_listing
+            )
         return [
             voucher_channel_listings_by_voucher_and_channel_map.get(key) for key in keys
         ]

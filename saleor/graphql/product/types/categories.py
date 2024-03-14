@@ -172,7 +172,9 @@ class Category(ModelObjectType[models.Category]):
         )
         tree = root.get_descendants(include_self=True)
         if channel is None and not has_required_permissions:
-            channel = get_default_channel_slug_or_graphql_error()
+            channel = get_default_channel_slug_or_graphql_error(
+                allow_replica=info.context.allow_replica
+            )
         connection_name = get_database_connection_name(info.context)
         qs = models.Product.objects.using(connection_name).all()
         if not has_required_permissions:
@@ -189,12 +191,17 @@ class Category(ModelObjectType[models.Category]):
         qs = ChannelQsContext(qs=qs, channel_slug=channel)
 
         kwargs["channel"] = channel
-        qs = filter_connection_queryset(qs, kwargs)
+        qs = filter_connection_queryset(
+            qs, kwargs, allow_replica=info.context.allow_replica
+        )
         return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
 
     @staticmethod
-    def __resolve_references(roots: list["Category"], _info):
-        return resolve_federation_references(Category, roots, models.Category.objects)
+    def __resolve_references(roots: list["Category"], info):
+        database_connection_name = get_database_connection_name(info.context)
+        return resolve_federation_references(
+            Category, roots, models.Category.objects.using(database_connection_name)
+        )
 
 
 class CategoryCountableConnection(CountableConnection):

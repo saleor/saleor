@@ -281,8 +281,7 @@ class BaseMutation(graphene.Mutation):
         only_type: type[ModelObjectType[MT]],
         qs: Any = None,
         code: str = "not_found",
-    ) -> MT:
-        ...
+    ) -> MT: ...
 
     @overload
     @classmethod
@@ -295,8 +294,7 @@ class BaseMutation(graphene.Mutation):
         only_type: type[ModelObjectType[MT]],
         qs: Any = None,
         code: str = "not_found",
-    ) -> Optional[MT]:
-        ...
+    ) -> Optional[MT]: ...
 
     @overload
     @classmethod
@@ -309,8 +307,7 @@ class BaseMutation(graphene.Mutation):
         only_type: None,
         qs: QuerySet[MT],
         code: str = "not_found",
-    ) -> MT:
-        ...
+    ) -> MT: ...
 
     @overload
     @classmethod
@@ -323,8 +320,7 @@ class BaseMutation(graphene.Mutation):
         only_type: None = None,
         qs: Any = None,
         code: str = "not_found",
-    ) -> Model:
-        ...
+    ) -> Model: ...
 
     @overload
     @classmethod
@@ -337,8 +333,7 @@ class BaseMutation(graphene.Mutation):
         only_type: Any = None,
         qs: Any = None,
         code: str = "not_found",
-    ) -> Optional[Model]:
-        ...
+    ) -> Optional[Model]: ...
 
     @classmethod
     def get_node_or_error(
@@ -404,15 +399,13 @@ class BaseMutation(graphene.Mutation):
     @classmethod
     def get_nodes_or_error(
         cls, ids, field, only_type: type[ModelObjectType[MT]], qs=None, schema=None
-    ) -> list[MT]:
-        ...
+    ) -> list[MT]: ...
 
     @overload
     @classmethod
     def get_nodes_or_error(
         cls, ids, field, only_type: Optional[ObjectType] = None, qs=None, schema=None
-    ) -> list[Model]:
-        ...
+    ) -> list[Model]: ...
 
     @classmethod
     def get_nodes_or_error(cls, ids, field, only_type=None, qs=None, schema=None):
@@ -432,9 +425,9 @@ class BaseMutation(graphene.Mutation):
         """
         for old_field, new_field in field_map.items():
             try:
-                validation_error.error_dict[
-                    new_field
-                ] = validation_error.error_dict.pop(old_field)
+                validation_error.error_dict[new_field] = (
+                    validation_error.error_dict.pop(old_field)
+                )
             except KeyError:
                 pass
 

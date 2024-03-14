@@ -82,9 +82,9 @@ def test_validate_auth_user_when_auth_is_disabled(adyen_plugin):
 def test_validate_merchant_account(adyen_plugin, notification_with_hmac_signature):
     plugin = adyen_plugin()
     config = plugin.config
-    notification_with_hmac_signature[
-        "merchantAccountCode"
-    ] = config.connection_params.get("merchant_account")
+    notification_with_hmac_signature["merchantAccountCode"] = (
+        config.connection_params.get("merchant_account")
+    )
     assert validate_merchant_account(notification_with_hmac_signature, config) is True
 
 

@@ -1,11 +1,13 @@
 from collections import defaultdict
 
+from django.db.models import Exists, OuterRef
 from promise import Promise
 
 from ....attribute.models import (
     AssignedProductAttributeValue,
     AssignedVariantAttribute,
     AssignedVariantAttributeValue,
+    Attribute,
     AttributeProduct,
     AttributeVariant,
 )
@@ -79,7 +81,11 @@ class ProductAttributesVisibleInStorefrontByProductTypeIdLoader(
 
     def get_queryset(self):
         return self.model_name.objects.using(self.database_connection_name).filter(
-            attribute__visible_in_storefront=True
+            Exists(
+                Attribute.objects.filter(
+                    pk=OuterRef("attribute_id"), visible_in_storefront=True
+                ),
+            ),
         )
 
 
@@ -107,7 +113,11 @@ class VariantAttributesVisibleInStorefrontByProductTypeIdLoader(
 
     def get_queryset(self):
         return self.model_name.objects.using(self.database_connection_name).filter(
-            attribute__visible_in_storefront=True
+            Exists(
+                Attribute.objects.filter(
+                    pk=OuterRef("attribute_id"), visible_in_storefront=True
+                ),
+            ),
         )
 
 

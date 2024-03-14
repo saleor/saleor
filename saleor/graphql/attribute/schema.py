@@ -61,7 +61,9 @@ class AttributeQueries(graphene.ObjectType):
 
     def resolve_attributes(self, info: ResolveInfo, *, search=None, **kwargs):
         qs = resolve_attributes(info)
-        qs = filter_connection_queryset(qs, kwargs, info.context)
+        qs = filter_connection_queryset(
+            qs, kwargs, info.context, allow_replica=info.context.allow_replica
+        )
         if search:
             qs = filter_attribute_search(qs, None, search)
         return create_connection_slice(qs, info, kwargs, AttributeCountableConnection)

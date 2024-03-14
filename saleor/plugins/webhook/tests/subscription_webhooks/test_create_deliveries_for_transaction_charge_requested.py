@@ -1,8 +1,8 @@
 import json
-from datetime import datetime, timedelta
 from decimal import Decimal
 
 import graphene
+from django.utils import timezone
 from freezegun import freeze_time
 
 from .....core.prices import quantize_price
@@ -117,7 +117,7 @@ def test_checkout_transaction_charge_request(
     checkout_with_items, webhook_app, permission_manage_payments
 ):
     # given
-    checkout_with_items.price_expiration = datetime.now() - timedelta(hours=10)
+    checkout_with_items.price_expiration = timezone.now() - timezone.timedelta(hours=10)
     checkout_with_items.save()
     authorized_value = Decimal("10")
     webhook_app.permissions.add(permission_manage_payments)

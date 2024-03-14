@@ -4,6 +4,7 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Optional
 
 import graphene
+from django.conf import settings
 from django.core.exceptions import ValidationError
 
 from ...core.exceptions import InsufficientStock
@@ -52,6 +53,7 @@ def get_shipping_method_availability_error(
     order: "Order",
     method: Optional["ShippingMethodData"],
     manager: "PluginsManager",
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     """Validate whether shipping method is still available for the order."""
     is_valid = False
@@ -62,6 +64,7 @@ def get_shipping_method_availability_error(
                 order,
                 order.channel.shipping_method_listings.all(),
                 manager,
+                database_connection_name=database_connection_name,
             )
             if m.active
         }
@@ -75,7 +78,10 @@ def get_shipping_method_availability_error(
 
 
 def validate_shipping_method(
-    order: "Order", errors: T_ERRORS, manager: "PluginsManager"
+    order: "Order",
+    errors: T_ERRORS,
+    manager: "PluginsManager",
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     if not order.shipping_method:
         error = ValidationError(
@@ -110,6 +116,7 @@ def validate_shipping_method(
                 order,
                 convert_to_shipping_method_data(order.shipping_method, listing),
                 manager,
+                database_connection_name=database_connection_name,
             )
 
     if error:
@@ -136,7 +143,12 @@ def validate_shipping_address(order: "Order", errors: T_ERRORS):
         )
 
 
-def validate_order_lines(order: "Order", country: str, errors: T_ERRORS):
+def validate_order_lines(
+    order: "Order",
+    country: str,
+    errors: T_ERRORS,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+):
     for line in order.lines.all():
         if line.variant is None:
             errors["lines"].append(
@@ -153,6 +165,7 @@ def validate_order_lines(order: "Order", country: str, errors: T_ERRORS):
                     order.channel.slug,
                     line.quantity,
                     order_line=line,
+                    database_connection_name=database_connection_name,
                 )
             except InsufficientStock as exc:
                 errors["lines"].extend(
@@ -160,23 +173,34 @@ def validate_order_lines(order: "Order", country: str, errors: T_ERRORS):
                 )
 
 
-def validate_variants_is_available(order: "Order", errors: T_ERRORS):
+def validate_variants_is_available(
+    order: "Order",
+    errors: T_ERRORS,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+):
     variants_ids = {line.variant_id for line in order.lines.all()}
     try:
         validate_variants_available_in_channel(
             variants_ids,
             order.channel_id,
             OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.value,
+            database_connection_name=database_connection_name,
         )
     except ValidationError as e:
         errors["lines"].extend(e.error_dict["lines"])
 
 
-def validate_product_is_published(order: "Order", errors: T_ERRORS):
+def validate_product_is_published(
+    order: "Order",
+    errors: T_ERRORS,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+):
     variant_ids = [line.variant_id for line in order.lines.all()]
-    unpublished_product = Product.objects.filter(
-        variants__id__in=variant_ids
-    ).not_published(order.channel.slug)
+    unpublished_product = (
+        Product.objects.using(database_connection_name)
+        .filter(variants__id__in=variant_ids)
+        .not_published(order.channel.slug)
+    )
     if unpublished_product.exists():
         errors["lines"].append(
             ValidationError(
@@ -187,7 +211,9 @@ def validate_product_is_published(order: "Order", errors: T_ERRORS):
 
 
 def validate_product_is_published_in_channel(
-    variants: Iterable[ProductVariant], channel: "Channel"
+    variants: Iterable[ProductVariant],
+    channel: "Channel",
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     if not channel:
         raise ValidationError(
@@ -200,12 +226,16 @@ def validate_product_is_published_in_channel(
         )
     variant_ids = [variant.id for variant in variants]
     unpublished_product = list(
-        Product.objects.filter(variants__id__in=variant_ids).not_published(channel.slug)
+        Product.objects.using(database_connection_name)
+        .filter(variants__id__in=variant_ids)
+        .not_published(channel.slug)
     )
     if unpublished_product:
-        unpublished_variants = ProductVariant.objects.filter(
-            product_id__in=unpublished_product, id__in=variant_ids
-        ).values_list("pk", flat=True)
+        unpublished_variants = (
+            ProductVariant.objects.using(database_connection_name)
+            .filter(product_id__in=unpublished_product, id__in=variant_ids)
+            .values_list("pk", flat=True)
+        )
         unpublished_variants_global_ids = [
             graphene.Node.to_global_id("ProductVariant", unpublished_variant)
             for unpublished_variant in unpublished_variants
@@ -241,15 +271,21 @@ def validate_variant_channel_listings(
     )
 
 
-def validate_product_is_available_for_purchase(order: "Order", errors: T_ERRORS):
+def validate_product_is_available_for_purchase(
+    order: "Order",
+    errors: T_ERRORS,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+):
     invalid_lines = []
     for line in order.lines.all():
         variant = line.variant
         if not variant:
             continue
-        product_channel_listing = ProductChannelListing.objects.filter(
-            channel_id=order.channel_id, product_id=variant.product_id
-        ).first()
+        product_channel_listing = (
+            ProductChannelListing.objects.using(database_connection_name)
+            .filter(channel_id=order.channel_id, product_id=variant.product_id)
+            .first()
+        )
         if not (
             product_channel_listing
             and product_channel_listing.is_available_for_purchase()
@@ -288,7 +324,12 @@ def _validate_voucher(order: "Order", errors: T_ERRORS):
             )
 
 
-def validate_draft_order(order: "Order", country: str, manager: "PluginsManager"):
+def validate_draft_order(
+    order: "Order",
+    country: str,
+    manager: "PluginsManager",
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+):
     """Check if the given order contains the proper data.
 
     - Has proper customer data,
@@ -304,13 +345,13 @@ def validate_draft_order(order: "Order", country: str, manager: "PluginsManager"
     validate_billing_address(order, errors)
     if order.is_shipping_required():
         validate_shipping_address(order, errors)
-        validate_shipping_method(order, errors, manager)
+        validate_shipping_method(order, errors, manager, database_connection_name)
     validate_total_quantity(order, errors)
-    validate_order_lines(order, country, errors)
+    validate_order_lines(order, country, errors, database_connection_name)
     validate_channel_is_active(order.channel, errors)
-    validate_product_is_published(order, errors)
-    validate_product_is_available_for_purchase(order, errors)
-    validate_variants_is_available(order, errors)
+    validate_product_is_published(order, errors, database_connection_name)
+    validate_product_is_available_for_purchase(order, errors, database_connection_name)
+    validate_variants_is_available(order, errors, database_connection_name)
     _validate_voucher(order, errors)
 
     if errors:

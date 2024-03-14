@@ -7,7 +7,6 @@ from .....core.utils.editorjs import clean_editor_js
 from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.error_codes import ProductErrorCode
-from .....product.tasks import update_products_discounted_prices_for_promotion_task
 from ....attribute.types import AttributeValueInput
 from ....attribute.utils import AttrValuesInput, ProductAttributeAssignmentMixin
 from ....channel import ChannelContext
@@ -219,9 +218,9 @@ class ProductCreate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, _cleaned_input):
-        update_products_discounted_prices_for_promotion_task.delay([instance.id])
+        product = models.Product.objects.prefetched_for_webhook().get(pk=instance.pk)
         manager = get_plugin_manager_promise(info.context).get()
-        cls.call_event(manager.product_created, instance)
+        cls.call_event(manager.product_created, product)
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):

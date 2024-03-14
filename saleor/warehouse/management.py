@@ -486,9 +486,9 @@ def decrease_stock(
 
     variant_and_warehouse_to_stock: dict[int, dict[UUID, Stock]] = defaultdict(dict)
     for stock in stocks:
-        variant_and_warehouse_to_stock[stock.product_variant_id][
-            stock.warehouse_id
-        ] = stock
+        variant_and_warehouse_to_stock[stock.product_variant_id][stock.warehouse_id] = (
+            stock
+        )
 
     quantity_allocation_list = list(
         Allocation.objects.filter(
@@ -703,17 +703,17 @@ def allocate_preorders(
         )
         listings_reservations: dict = defaultdict(int)
         for reservation in quantity_reservation_list:
-            listings_reservations[
-                reservation["product_variant_channel_listing"]
-            ] += reservation["quantity_reserved_sum"]
+            listings_reservations[reservation["product_variant_channel_listing"]] += (
+                reservation["quantity_reserved_sum"]
+            )
     else:
         listings_reservations = defaultdict(int)
 
     variants_global_allocations: dict[int, int] = defaultdict(int)
     for channel_listing in all_variants_channel_listings:
-        variants_global_allocations[
-            channel_listing["variant_id"]
-        ] += quantity_allocation_for_channel[channel_listing["id"]]
+        variants_global_allocations[channel_listing["variant_id"]] += (
+            quantity_allocation_for_channel[channel_listing["id"]]
+        )
 
     insufficient_stocks: list[InsufficientStockData] = []
     allocations: list[PreorderAllocation] = []

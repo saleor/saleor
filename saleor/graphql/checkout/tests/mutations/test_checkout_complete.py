@@ -5,7 +5,7 @@ import pytest
 from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
-from prices import Money
+from prices import Money, TaxedMoney
 
 from .....checkout import calculations
 from .....checkout.error_codes import CheckoutErrorCode
@@ -16,7 +16,9 @@ from .....core.models import EventDelivery
 from .....order import OrderStatus
 from .....order.models import Order
 from .....payment.model_helpers import get_subtotal
+from .....plugins import PLUGIN_IDENTIFIER_PREFIX
 from .....plugins.manager import get_plugins_manager
+from .....plugins.tests.sample_plugins import PluginSample
 from .....plugins.webhook.conftest import (  # noqa: F401
     tax_data_response,
     tax_line_data_response,
@@ -398,6 +400,7 @@ def test_checkout_complete_fails_with_invalid_tax_app(
     address,
     tax_app,
     tax_data_response,  # noqa: F811
+    settings,
 ):
     # given
     mock_request.return_value = tax_data_response
@@ -433,6 +436,7 @@ def test_checkout_complete_fails_with_invalid_tax_app(
     assert not EventDelivery.objects.exists()
 
     checkout.refresh_from_db()
+    assert checkout.price_expiration == timezone.now() + settings.CHECKOUT_PRICES_TTL
     assert checkout.tax_error == "Empty tax data."
 
 
@@ -485,6 +489,62 @@ def test_checkout_complete_calls_correct_tax_app(
     checkout.refresh_from_db()
     assert checkout.price_expiration == timezone.now() + settings.CHECKOUT_PRICES_TTL
     assert checkout.tax_error is None
+
+
+@freeze_time()
+@mock.patch(
+    "saleor.plugins.tests.sample_plugins.PluginSample.calculate_checkout_line_total"
+)
+@override_settings(PLUGINS=["saleor.plugins.tests.sample_plugins.PluginSample"])
+def test_checkout_complete_calls_failing_plugin(
+    mock_calculate_checkout_line_total,
+    user_api_client,
+    checkout_without_shipping_required,
+    channel_USD,
+    address,
+    settings,
+):
+    # given
+    def side_effect(checkout_info, *args, **kwargs):
+        price = Money("10.0", checkout_info.checkout.currency)
+        checkout_info.checkout.tax_error = "Test error"
+        return TaxedMoney(price, price)
+
+    mock_calculate_checkout_line_total.side_effect = side_effect
+
+    checkout = checkout_without_shipping_required
+    checkout.billing_address = address
+    checkout.price_expiration = timezone.now()
+    checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
+    checkout.metadata_storage.store_value_in_private_metadata(
+        items={"accepted": "false"}
+    )
+    checkout.metadata_storage.save()
+    checkout.save()
+
+    channel_USD.tax_configuration.tax_app_id = (
+        PLUGIN_IDENTIFIER_PREFIX + PluginSample.PLUGIN_ID
+    )
+    channel_USD.tax_configuration.save()
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "redirectUrl": "https://www.example.com",
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["checkoutComplete"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == CheckoutErrorCode.TAX_ERROR.name
+    assert data["errors"][0]["message"] == "Configured Tax App didn't responded."
+
+    checkout.refresh_from_db()
+    assert checkout.price_expiration == timezone.now() + settings.CHECKOUT_PRICES_TTL
+    assert checkout.tax_error == "Empty tax data."
 
 
 @freeze_time()

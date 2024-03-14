@@ -14,6 +14,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 - Remove `prefetched_for_webhook` to legacy payload generators - #15369 by @AjmalPonneth
+- Don't raise InsufficientStock for track_inventory=False variants #15475 by @carlosa54
+- DB performance improvements in attribute dataloaders - #15474 by @AjmalPonneth
 
 # 3.19.0
 
@@ -51,7 +53,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - Added new field `taxAppId` in `TaxConfiguration` and `TaxConfigurationPerCountry`.
   - Added new input `AppInput.identifier`.
   - Added new parameter `identifier` for `create_app` command.
-  - When `taxAppId` is provided for `TaxConfiguration` do not allow to finalize `checkoutComplete` or `draftOrderComplete` mutations if Tax App doesn't respond.
+  - When `taxAppId` is provided for `TaxConfiguration` do not allow to finalize `checkoutComplete` or `draftOrderComplete` mutations if Tax App or Avatax plugin didn't respond.
 
 # 3.18.0
 

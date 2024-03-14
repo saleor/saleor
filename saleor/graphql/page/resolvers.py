@@ -12,16 +12,16 @@ def resolve_page(info, global_page_id=None, slug=None):
 
     if slug is not None:
         page = (
-            models.Page.objects.visible_to_user(requestor)
-            .using(get_database_connection_name(info.context))
+            models.Page.objects.using(get_database_connection_name(info.context))
+            .visible_to_user(requestor)
             .filter(slug=slug)
             .first()
         )
     else:
         _type, page_pk = from_global_id_or_error(global_page_id, Page)
         page = (
-            models.Page.objects.visible_to_user(requestor)
-            .using(get_database_connection_name(info.context))
+            models.Page.objects.using(get_database_connection_name(info.context))
+            .visible_to_user(requestor)
             .filter(pk=page_pk)
             .first()
         )
@@ -30,9 +30,9 @@ def resolve_page(info, global_page_id=None, slug=None):
 
 def resolve_pages(info):
     requestor = get_user_or_app_from_context(info.context)
-    return models.Page.objects.visible_to_user(requestor).using(
+    return models.Page.objects.using(
         get_database_connection_name(info.context)
-    )
+    ).visible_to_user(requestor)
 
 
 def resolve_page_type(info, id):

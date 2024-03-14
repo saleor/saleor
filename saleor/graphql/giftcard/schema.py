@@ -103,7 +103,9 @@ class GiftCardQueries(graphene.ObjectType):
         if search:
             qs = search_gift_cards(qs, search)
         qs = filter_connection_queryset(
-            qs, {"sort_by": sort_by, "filter": filter, **kwargs}
+            qs,
+            {"sort_by": sort_by, "filter": filter, **kwargs},
+            allow_replica=info.context.allow_replica,
         )
         return create_connection_slice(
             qs,
@@ -123,7 +125,9 @@ class GiftCardQueries(graphene.ObjectType):
     @staticmethod
     def resolve_gift_card_tags(_root, info: ResolveInfo, **data):
         qs = resolve_gift_card_tags(info)
-        qs = filter_connection_queryset(qs, data)
+        qs = filter_connection_queryset(
+            qs, data, allow_replica=info.context.allow_replica
+        )
         return create_connection_slice(qs, info, data, GiftCardTagCountableConnection)
 
 

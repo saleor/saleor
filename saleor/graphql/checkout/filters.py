@@ -50,7 +50,7 @@ def get_checkout_id_from_query(value):
 
 def filter_checkout_by_payment(qs, payment_id):
     if payment_id:
-        payments = Payment.objects.filter(pk=payment_id).values("id")
+        payments = Payment.objects.using(qs.db).filter(pk=payment_id).values("id")
         qs = qs.filter(Q(Exists(payments.filter(checkout_id=OuterRef("token")))))
     return qs
 
@@ -76,9 +76,15 @@ def filter_updated_at_range(qs, _, value):
 
 
 def filter_customer(qs, _, value):
-    users = User.objects.filter(
-        Q(email__ilike=value) | Q(first_name__ilike=value) | Q(last_name__ilike=value)
-    ).values("pk")
+    users = (
+        User.objects.using(qs.db)
+        .filter(
+            Q(email__ilike=value)
+            | Q(first_name__ilike=value)
+            | Q(last_name__ilike=value)
+        )
+        .values("pk")
+    )
 
     return qs.filter(Q(Exists(users.filter(id=OuterRef("user_id")))))
 
@@ -94,9 +100,15 @@ def filter_checkout_search(qs, _, value):
     if payment_id := get_payment_id_from_query(value):
         return filter_checkout_by_payment(qs, payment_id)
 
-    users = User.objects.filter(
-        Q(email__ilike=value) | Q(first_name__ilike=value) | Q(last_name__ilike=value)
-    ).values("pk")
+    users = (
+        User.objects.using(qs.db)
+        .filter(
+            Q(email__ilike=value)
+            | Q(first_name__ilike=value)
+            | Q(last_name__ilike=value)
+        )
+        .values("pk")
+    )
 
     filter_option = Q(Exists(users.filter(id=OuterRef("user_id"))))
 
@@ -105,7 +117,7 @@ def filter_checkout_search(qs, _, value):
     if checkout_id := get_checkout_token_from_query(possible_token):
         filter_option |= Q(token=checkout_id)
 
-    payments = Payment.objects.filter(psp_reference=value).values("id")
+    payments = Payment.objects.using(qs.db).filter(psp_reference=value).values("id")
     filter_option |= Q(Exists(payments.filter(checkout_id=OuterRef("token"))))
 
     return qs.filter(filter_option)

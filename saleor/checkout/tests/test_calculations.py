@@ -3,6 +3,7 @@ from typing import Literal, Union
 from unittest.mock import Mock, patch
 
 import pytest
+from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
 from prices import Money, TaxedMoney
@@ -10,7 +11,9 @@ from prices import Money, TaxedMoney
 from ...checkout.utils import add_promo_code_to_checkout
 from ...core.prices import quantize_price
 from ...core.taxes import TaxData, TaxLineData, zero_taxed_money
+from ...plugins import PLUGIN_IDENTIFIER_PREFIX
 from ...plugins.manager import get_plugins_manager
+from ...plugins.tests.sample_plugins import PluginSample
 from ...tax import TaxCalculationStrategy
 from ...tax.calculations.checkout import update_checkout_prices_with_flat_rates
 from ..base_calculations import (
@@ -521,3 +524,112 @@ def test_fetch_checkout_prices_when_tax_exemption_and_not_include_taxes_in_price
 
     assert checkout.total == shipping_price + all_lines_total_price
     assert checkout.subtotal == all_lines_total_price
+
+
+@freeze_time()
+@patch("saleor.plugins.manager.PluginsManager.calculate_checkout_total")
+@patch("saleor.plugins.manager.PluginsManager.get_taxes_for_checkout")
+@override_settings(PLUGINS=["saleor.plugins.tests.sample_plugins.PluginSample"])
+def test_fetch_checkout_data_calls_plugin(
+    mock_get_taxes,
+    mock_calculate_checkout_total,
+    checkout_with_items,
+):
+    # given
+    checkout = checkout_with_items
+    checkout.price_expiration = timezone.now()
+    checkout.save()
+
+    price = Money("10.0", currency=checkout.currency)
+    mock_calculate_checkout_total.return_value = TaxedMoney(price, price)
+
+    checkout.channel.tax_configuration.tax_app_id = (
+        PLUGIN_IDENTIFIER_PREFIX + PluginSample.PLUGIN_ID
+    )
+    checkout.channel.tax_configuration.save()
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines_info, _ = fetch_checkout_lines(checkout)
+
+    fetch_kwargs = {
+        "checkout_info": fetch_checkout_info(checkout, lines_info, manager),
+        "manager": manager,
+        "lines": lines_info,
+        "address": checkout.shipping_address or checkout.billing_address,
+    }
+
+    # when
+    fetch_checkout_data(**fetch_kwargs)
+
+    # then
+    mock_calculate_checkout_total.assert_called_once()
+    mock_get_taxes.assert_not_called()
+
+
+@freeze_time()
+@patch("saleor.plugins.manager.PluginsManager.calculate_checkout_total")
+@patch("saleor.plugins.manager.PluginsManager.get_taxes_for_checkout")
+@patch("saleor.checkout.calculations._apply_tax_data")
+@override_settings(PLUGINS=["saleor.plugins.tests.sample_plugins.PluginSample"])
+def test_fetch_checkout_data_calls_tax_app(
+    mock_apply_tax_data,
+    mock_get_taxes,
+    mock_calculate_checkout_total,
+    fetch_kwargs,
+    checkout_with_items,
+):
+    # given
+    checkout = checkout_with_items
+    checkout.price_expiration = timezone.now()
+    checkout.save()
+
+    checkout.channel.tax_configuration.tax_app_id = "test.app"
+    checkout.channel.tax_configuration.save()
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines_info, _ = fetch_checkout_lines(checkout)
+
+    fetch_kwargs = {
+        "checkout_info": fetch_checkout_info(checkout, lines_info, manager),
+        "manager": manager,
+        "lines": lines_info,
+        "address": checkout.shipping_address or checkout.billing_address,
+    }
+
+    # when
+    fetch_checkout_data(**fetch_kwargs)
+
+    # then
+    mock_get_taxes.assert_called_once()
+    mock_apply_tax_data.assert_called_once()
+    mock_calculate_checkout_total.assert_not_called()
+
+
+@freeze_time()
+def test_fetch_checkout_data_calls_inactive_plugin(
+    fetch_kwargs,
+    checkout_with_items,
+):
+    # given
+    checkout = checkout_with_items
+    checkout.price_expiration = timezone.now()
+    checkout.save()
+
+    checkout.channel.tax_configuration.tax_app_id = "plugin:test"
+    checkout.channel.tax_configuration.save()
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines_info, _ = fetch_checkout_lines(checkout)
+
+    fetch_kwargs = {
+        "checkout_info": fetch_checkout_info(checkout, lines_info, manager),
+        "manager": manager,
+        "lines": lines_info,
+        "address": checkout.shipping_address or checkout.billing_address,
+    }
+
+    # when
+    fetch_checkout_data(**fetch_kwargs)
+
+    # then
+    assert checkout_with_items.tax_error == "Empty tax data."
