@@ -611,7 +611,6 @@ def _remove_potential_duplicated_catalogue_discounts(
     lines_info: Union[Iterable["CheckoutLineInfo"], Iterable["DraftOrderLineInfo"]],
     discount_line_model: Union[type[CheckoutLineDiscount], type[OrderLineDiscount]],
 ):
-    """Line object can have only single catalogue discount applied."""
     line_ids = [line_info.line.id for line_info in lines_info]
     discounts = discount_line_model.objects.filter(line_id__in=line_ids).only(
         "id", "type"
@@ -1229,10 +1228,26 @@ def create_order_line_discount_objects_for_catalogue_promotions(
 
     new_line_discounts = []
     if discounts_to_create_inputs:
-        new_line_discounts = [
-            OrderLineDiscount(**input) for input in discounts_to_create_inputs
-        ]
-        OrderLineDiscount.objects.bulk_create(new_line_discounts)
+        line_ids = [input["line"].id for input in discounts_to_create_inputs]
+        # Protect against potential thread race. OrderLine object can have only
+        # single catalogue discount applied.
+        with transaction.atomic():
+            discounts = (
+                OrderLineDiscount.objects.filter(line_id__in=line_ids)
+                .only("id", "type")
+                .select_for_update()
+            )
+            line_ids_with_catalogue_discount_applied = [
+                discount.line_id
+                for discount in discounts
+                if discount.type in [DiscountType.PROMOTION, DiscountType.SALE]
+            ]
+            new_line_discounts = [
+                OrderLineDiscount(**input)
+                for input in discounts_to_create_inputs
+                if input["line"].id not in line_ids_with_catalogue_discount_applied
+            ]
+            OrderLineDiscount.objects.bulk_create(new_line_discounts)
 
     if discounts_to_update and updated_fields:
         OrderLineDiscount.objects.bulk_update(discounts_to_update, updated_fields)
@@ -1243,8 +1258,6 @@ def create_order_line_discount_objects_for_catalogue_promotions(
     _update_line_info_cached_discounts(
         lines_info, new_line_discounts, discounts_to_update, discount_ids_to_remove
     )
-    # Protect against potential thread race
-    _remove_potential_duplicated_catalogue_discounts(lines_info, OrderLineDiscount)
 
     affected_line_ids = [
         discount_line.line.id
