@@ -377,10 +377,26 @@ def create_checkout_line_discount_objects_for_catalogue_promotions(
 
     new_line_discounts = []
     if discounts_to_create_inputs:
-        new_line_discounts = [
-            CheckoutLineDiscount(**input) for input in discounts_to_create_inputs
-        ]
-        CheckoutLineDiscount.objects.bulk_create(new_line_discounts)
+        line_ids = [input["line"].id for input in discounts_to_create_inputs]
+        # Protect against potential thread race. CheckoutLine object can have only
+        # single catalogue discount applied.
+        with transaction.atomic():
+            discounts = (
+                CheckoutLineDiscount.objects.filter(line_id__in=line_ids)
+                .only("id", "type")
+                .select_for_update()
+            )
+            line_ids_with_catalogue_discount_applied = [
+                discount.line_id
+                for discount in discounts
+                if discount.type in [DiscountType.PROMOTION, DiscountType.SALE]
+            ]
+            new_line_discounts = [
+                CheckoutLineDiscount(**input)
+                for input in discounts_to_create_inputs
+                if input["line"].id not in line_ids_with_catalogue_discount_applied
+            ]
+            CheckoutLineDiscount.objects.bulk_create(new_line_discounts)
 
     if discounts_to_update and updated_fields:
         CheckoutLineDiscount.objects.bulk_update(discounts_to_update, updated_fields)
@@ -391,8 +407,6 @@ def create_checkout_line_discount_objects_for_catalogue_promotions(
     _update_line_info_cached_discounts(
         lines_info, new_line_discounts, discounts_to_update, discount_ids_to_remove
     )
-    # Protect against potential thread race
-    _remove_potential_duplicated_catalogue_discounts(lines_info, CheckoutLineDiscount)
 
 
 def prepare_line_discount_objects_for_catalogue_promotions(
@@ -605,40 +619,6 @@ def _update_line_info_cached_discounts(
         ]
         if discount := line_id_line_discounts_map.get(line_info.line.id):
             line_info.discounts.extend(discount)
-
-
-def _remove_potential_duplicated_catalogue_discounts(
-    lines_info: Union[Iterable["CheckoutLineInfo"], Iterable["DraftOrderLineInfo"]],
-    discount_line_model: Union[type[CheckoutLineDiscount], type[OrderLineDiscount]],
-):
-    line_ids = [line_info.line.id for line_info in lines_info]
-    discounts = discount_line_model.objects.filter(line_id__in=line_ids).only(
-        "id", "type"
-    )
-    duplicated_discount_ids = []
-    line_discount_map = defaultdict(list)
-    for discount in discounts:
-        line_discount_map[discount.line_id].append(discount)
-
-    for _, discounts in line_discount_map.items():
-        if len(discounts) <= 1:
-            continue
-        is_catalogue_discount_applied = False
-        for discount in discounts:
-            if (
-                discount.type in [DiscountType.PROMOTION, DiscountType.SALE]
-                and is_catalogue_discount_applied
-            ):
-                duplicated_discount_ids.append(discount.id)
-            else:
-                is_catalogue_discount_applied = True
-
-    if duplicated_discount_ids:
-        discount_line_model.objects.filter(id__in=duplicated_discount_ids).delete()
-        for line_info in lines_info:
-            for discount in line_info.discounts:
-                if discount.id in duplicated_discount_ids:
-                    line_info.discounts.remove(discount)  # type: ignore[arg-type]
 
 
 def create_checkout_discount_objects_for_order_promotions(
