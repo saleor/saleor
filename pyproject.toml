@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "saleor"
-version = "3.19.9"
+version = "3.19.10"
 description = "A modular, high performance, headless e-commerce platform built with Python, GraphQL, Django, and React."
 authors = [ "Saleor Commerce <hello@saleor.io>" ]
 license = "BSD-3-Clause"
@@ -80,7 +80,7 @@ documentation = "https://docs.saleor.io/"
   Rx = "^1.6.3"
   semantic-version = "^2.10.0"
   sendgrid = "^6.7.1"
-  sentry-sdk = "1.40" # https://github.com/python-poetry/poetry/issues/3128
+  sentry-sdk = "1.40"
   stripe = "^3.0.0"
   text-unidecode = "^1.2"
   urllib3 = "^1.26.18"
