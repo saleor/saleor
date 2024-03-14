@@ -576,7 +576,7 @@ class ProductVariantChannelListingUpdate(BaseMutation):
     ):
         validate_one_of_args_is_in_mutation("sku", sku, "id", id)
 
-        qs = ProductVariantModel.objects.prefetched_for_webhook()
+        qs = ProductVariantModel.objects.all()
         if id:
             variant = cls.get_node_or_error(
                 info, id, only_type=ProductVariant, field="id", qs=qs
