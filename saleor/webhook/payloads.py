@@ -835,9 +835,14 @@ def generate_product_variant_payload(
     requestor: Optional["RequestorOrLazyObject"] = None,
     with_meta: bool = True,
 ):
-    product_variants = ProductVariant.objects.prefetched_for_webhook().filter(
-        pk__in=[variant.pk for variant in product_variants]
-    )
+    if (
+        product_variants_with_prefetch
+        := ProductVariant.objects.prefetched_for_webhook().filter(
+            pk__in=[variant.pk for variant in product_variants]
+        )
+    ):
+        product_variants = product_variants_with_prefetch
+
     extra_dict_data = {
         "id": lambda v: v.get_global_id(),
         "attributes": lambda v: serialize_variant_attributes(v),
