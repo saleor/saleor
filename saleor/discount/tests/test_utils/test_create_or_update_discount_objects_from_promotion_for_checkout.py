@@ -2259,12 +2259,12 @@ def test_create_checkout_line_discount_objects_for_catalogue_promotions_race_con
     lines_info, _ = fetch_checkout_lines(checkout)
 
     # when
-    def call_before_creating_creating_catalogue_line_discount(*args, **kwargs):
+    def call_before_creating_catalogue_line_discount(*args, **kwargs):
         create_checkout_line_discount_objects_for_catalogue_promotions(lines_info)
 
     with before_after.before(
         "saleor.discount.utils._update_line_info_cached_discounts",
-        call_before_creating_creating_catalogue_line_discount,
+        call_before_creating_catalogue_line_discount,
     ):
         create_checkout_line_discount_objects_for_catalogue_promotions(lines_info)
 

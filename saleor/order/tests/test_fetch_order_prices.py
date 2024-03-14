@@ -1381,12 +1381,12 @@ def test_fetch_order_prices_catalogue_discount_race_condition(
     OrderLineDiscount.objects.all().delete()
 
     # when
-    def call_before_creating_creating_catalogue_line_discount(*args, **kwargs):
+    def call_before_creating_catalogue_line_discount(*args, **kwargs):
         calculations.fetch_order_prices_if_expired(order, plugins_manager, None, True)
 
     with before_after.before(
         "saleor.discount.utils.prepare_line_discount_objects_for_catalogue_promotions",
-        call_before_creating_creating_catalogue_line_discount,
+        call_before_creating_catalogue_line_discount,
     ):
         calculations.fetch_order_prices_if_expired(order, plugins_manager, None, True)
 
