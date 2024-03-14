@@ -6,6 +6,7 @@ from unittest import mock
 import pytest
 from django.conf import settings
 from django.contrib.sites.models import Site
+from django.core.files.base import ContentFile
 from django.utils import timezone
 from requests import RequestException, TooManyRedirects
 from requests_hardened import HTTPSession
@@ -266,7 +267,11 @@ def test_send_webhook_request_with_proper_timeout(mock_post, event_delivery, app
 
 def test_send_webhook_request_sync_invalid_scheme(webhook, app):
     target_url = "gcpubsub://cloud.google.com/projects/saleor/topics/test"
-    event_payload = EventPayload.objects.create(payload="fake_content")
+    event_payload = EventPayload.objects.create()
+    event_payload.payload_file.save(
+        f"payload-{event_payload.pk}-{event_payload.created_at}",
+        ContentFile("fake_content"),
+    )
     webhook.target_url = target_url
     webhook.save()
     delivery = EventDelivery.objects.create(
