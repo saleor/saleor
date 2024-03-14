@@ -8,17 +8,17 @@
 </div>
 
 <div align="center">
-  <strong>Truly composable and open commerce</strong>
+  <strong>Commerce that works with your language and stack</strong>
 </div>
 
 <div align="center">
-  The API-only, headless, GraphQL-first, composable e-commerce platform that puts developers first.
+  GraphQL native, API-only platform for scalable composable commerce.
 </div>
 
 <br>
 
 <div align="center">
-  Join our active, engaged community: <br>
+  Join our community: <br>
   <a href="https://saleor.io/">Website</a>
   <span> | </span>
   <a href="https://twitter.com/getsaleor">Twitter</a>
@@ -29,7 +29,7 @@
 </div>
 
 <div align="center">
-   <a href="https://saleor.io/blog/">Blog</a>
+   <a href="https://saleor.io/blog">Blog</a>
   <span> | </span>
   <a href="https://saleor.typeform.com/to/JTJK0Nou">Subscribe to newsletter</a>
 </div>
@@ -64,13 +64,13 @@
 
 - **GraphQL only** - Not afterthought API design or fragmentation across different styles of API.
 
-- **Headless and API only** - APIs is the only way to interact, configure or extend backend.
+- **Headless and API only** - APIs are the only way to interact, configure, or extend the backend.
 
-- **Truly open licence** - no community edition or commercial limitations, single version of Saleor.
+- **Open source** -  a single version of Saleor without feature fragmentation or commercial limitations.
 
 - **Cloud native** - battle tested on global brands.
 
-- **Native-multichannel**: Per [channel](https://docs.saleor.io/docs/3.x/developer/channels) control of pricing, currencies, stock, product, and more
+- **Native-multichannel** - Per [channel](https://docs.saleor.io/docs/3.x/developer/channels) control of pricing, currencies, stock, product, and more.
 
 
 ## Why API-only Architecture?
@@ -79,17 +79,16 @@ Saleor's API-first extensibility provides powerful tools for developers to exten
 
 Compared to traditional plugin architectures (monoliths) it provides the following benefits:
 
-* Less downtime as apps can be deployed independently.
+* There is less downtime as apps are deployed independently.
 * Reliability and performance - custom logic is separated from the core.
 * Simplified upgrade paths - eliminates incompatibility conflicts between extensions.
-* Technology-agnostic - works with any technology, stack or language.
-* Parallel development - easier to collaborate than with monolithic core.
+* Technology-agnostic - works with any technology, stack, or language.
+* Parallel development - easier to collaborate than with a monolithic core.
 * Simplified debugging - easier to narrow down bugs in independent services.
-* Scalability - each extension or service can be scaled independently.
+* Scalability - extensions and apps can be scaled independently.
 
 ### What are the tradeoffs?
-If you are a single developer working with small business that doesn't have high traffic or critical need for 24/7 availability,
-using service oriented approach might feel more complex compared to traditional Wordpress or Magento approach that provides language specific framework, runtime, database schema, aspect oriented programming and other tools to quickstart.
+If you are a single developer working with a small business that doesn't have high traffic or a critical need for 24/7 availability, using a service-oriented approach might feel more complex compared to the traditional WordPress or Magento approach that provides a language-specific framework, runtime, database schema, aspect-oriented programming, and other tools to a quick start.
 
 However, if you deploy on a daily basis, reliability and uptime is critical,
 you need to collaborate with other developers, or you have non-trivial requirements you might be in the right place.
@@ -98,17 +97,17 @@ you need to collaborate with other developers, or you have non-trivial requireme
 - **Enterprise ready**: Secure, scalable, and stable. Battle-tested by big brands
 - **Dashboard**: User-friendly, fast, and productive. (Decoupled project [repo](https://github.com/saleor/saleor-dashboard) )
 - **Global by design** Multi-currency, multi-language, multi-warehouse, tutti multi!
-- **CMS**: Content is king, that's why we have a kingdom built-in
-- **Product management**: advance model for large and complex catalogs
-- **Orders**: Flexible order model, split-payments, multi-warehouse, returns and more
-- **Customers**: order history and preferences
-- **Promotion engine**: sales, vouchers, cart rules, giftcards
-- **Payment orchestration**: multi-gateway, extensible payment API, flexible flows
-- **Cart**: Advanced payment and tax options, with full control over discounts and promotions
-- **Payments**: Flexible API architecture allows integration of any payment method
-- **Translations**: Fully translatable catalog
-- **SEO**: Packed with features that get stores to a wider audience
-- **Apps**: Custom dashboard apps
+- **CMS**: Manage product or marketing content.
+- **Product management**: A rich content model for large and complex catalogs.
+- **Orders**: Flexible order model, split payments, multi-warehouse, returns, and more.
+- **Customers**: Order history and preferences.
+- **Promotion engine**: Sales, vouchers, cart rules, giftcards.
+- **Payment orchestration**: multi-gateway, extensible payment API, flexible flows.
+- **Cart**: Advanced payment and tax options, with full control over discounts and promotions.
+- **Payments**: Flexible API architecture allows integration of any payment method.
+- **Translations**: Fully translatable catalog.
+- **SEO**: Unlimited SEO freedom with headless architecture.
+- **Apps**: Extend dashboard via iframe with any web stack.
 
 
 ![Saleor Dashboard - Modern UI for managing your e-commerce](https://user-images.githubusercontent.com/9268745/224249510-d3c7658e-6d5c-42c5-b4fb-93eaf65a5335.png)
