@@ -6,9 +6,10 @@ import pytest
 from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
+from graphene import Node
 from prices import Money, TaxedMoney
 
-from ...checkout.utils import add_promo_code_to_checkout
+from ...checkout.utils import add_promo_code_to_checkout, set_external_shipping_id
 from ...core.prices import quantize_price
 from ...core.taxes import TaxData, TaxLineData, zero_taxed_money
 from ...plugins import PLUGIN_IDENTIFIER_PREFIX
@@ -22,6 +23,7 @@ from ..base_calculations import (
 )
 from ..calculations import (
     _apply_tax_data,
+    _calculate_and_add_tax,
     _get_checkout_base_prices,
     fetch_checkout_data,
 )
@@ -633,3 +635,69 @@ def test_fetch_checkout_data_calls_inactive_plugin(
 
     # then
     assert checkout_with_items.tax_error == "Empty tax data."
+
+
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+def test_external_shipping_method_called_only_once_during_tax_calculations(
+    mock_send_webhook_request_sync,
+    checkout_with_single_item,
+    settings,
+    tax_app_with_subscription_webhooks,
+    shipping_app_with_subscription,
+    address,
+):
+    # given
+    external_method_id = "method-1-from-shipping-app"
+    mock_send_webhook_request_sync.side_effect = (
+        [
+            {
+                "amount": 1337.0,
+                "currency": "USD",
+                "id": external_method_id,
+                "name": "Shipping app method 1",
+            }
+        ],
+        {
+            "lines": [
+                {"tax_rate": 0, "total_gross_amount": 21.6, "total_net_amount": 20}
+            ],
+            "shipping_price_gross_amount": 1443.96,
+            "shipping_price_net_amount": 1337,
+            "shipping_tax_rate": 0,
+        },
+    )
+    external_shipping_method_id = Node.to_global_id(
+        "app", f"{shipping_app_with_subscription.id}:{external_method_id}"
+    )
+
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager(allow_replica=False)
+
+    checkout_with_single_item.shipping_address = address
+    set_external_shipping_id(checkout_with_single_item, external_shipping_method_id)
+    checkout_with_single_item.save()
+    checkout_with_single_item.metadata_storage.save()
+    checkout_lines, _ = fetch_checkout_lines(checkout_with_single_item)
+    checkout_info = fetch_checkout_info(
+        checkout_with_single_item, checkout_lines, manager
+    )
+    assert checkout_with_single_item.shipping_price == TaxedMoney(
+        net=Money("0", "USD"), gross=Money("0", "USD")
+    )
+
+    # when
+    _calculate_and_add_tax(
+        TaxCalculationStrategy.TAX_APP,
+        None,
+        checkout_with_single_item,
+        manager,
+        checkout_info,
+        checkout_lines,
+        prices_entered_with_tax=False,
+    )
+
+    # then
+    assert mock_send_webhook_request_sync.call_count == 2
+    assert checkout_with_single_item.shipping_price == TaxedMoney(
+        net=Money("1337.00", "USD"), gross=Money("1443.96", "USD")
+    )
