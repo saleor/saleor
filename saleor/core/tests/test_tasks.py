@@ -42,7 +42,7 @@ def test_delete_event_payloads_task(webhook, settings):
     after_delete_period = start_time - delete_period + timedelta(seconds=1)
     for creation_time in [before_delete_period, after_delete_period]:
         with freeze_time(creation_time):
-            payload = EventPayload.objects.create(payload='{"key": "data"}')
+            payload = EventPayload.objects.create()
             delivery = EventDelivery.objects.create(
                 event_type=WebhookEventAsyncType.ANY,
                 payload=payload,
