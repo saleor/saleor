@@ -930,13 +930,17 @@ class Group(ModelObjectType[models.Group]):
         doc_category = DOC_CATEGORY_USERS
 
     @staticmethod
-    def resolve_users(root: models.Group, _info: ResolveInfo):
-        return root.user_set.all()  # type: ignore[attr-defined]
+    def resolve_users(root: models.Group, info: ResolveInfo):
+        database_connection_name = get_database_connection_name(info.context)
+        return root.user_set.using(database_connection_name).all()  # type: ignore[attr-defined]
 
     @staticmethod
-    def resolve_permissions(root: models.Group, _info: ResolveInfo):
-        permissions = root.permissions.prefetch_related("content_type").order_by(
-            "codename"
+    def resolve_permissions(root: models.Group, info: ResolveInfo):
+        database_connection_name = get_database_connection_name(info.context)
+        permissions = (
+            root.permissions.using(database_connection_name)
+            .prefetch_related("content_type")
+            .order_by("codename")
         )
         return format_permissions_for_display(permissions)
 
