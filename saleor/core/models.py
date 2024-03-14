@@ -144,8 +144,16 @@ class Job(models.Model):
 
 
 class EventPayload(models.Model):
-    payload = models.TextField()
+    payload = models.TextField(default="")
+    payload_file = models.FileField(upload_to="payloads", null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def get_payload(self):
+        if self.payload_file:
+            with self.payload_file.open("r") as f:
+                payload = f.read()
+                return payload
+        return self.payload
 
 
 class EventDelivery(models.Model):
