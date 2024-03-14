@@ -172,13 +172,6 @@ If nothing grabs your attention, check [our roadmap](https://github.com/orgs/sal
 
 Get more details in our [Contributing Guide](https://docs.saleor.io/docs/developer/community/contributing).
 
-## Your feedback
-
-Do you use Saleor as an e-commerce platform?
-Fill out this short survey and help us grow. It will take just a minute, but means a lot!
-
-[Take a survey](https://mirumee.typeform.com/to/sOIJbJ)
-
 ## License
 
 Disclaimer: Everything you see here is open and free to use as long as you comply with the [license](https://github.com/saleor/saleor/blob/master/LICENSE). There are no hidden charges. We promise to do our best to fix bugs and improve the code.
