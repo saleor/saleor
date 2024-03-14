@@ -11,6 +11,8 @@ from typing import (
 )
 from uuid import UUID
 
+from django.conf import settings
+
 from ..core.utils.lazyobjects import lazy_no_retry
 from ..discount import DiscountType, VoucherType
 from ..discount.interface import fetch_variant_rules_info, fetch_voucher_info
@@ -240,6 +242,7 @@ def fetch_checkout_lines(
     skip_lines_with_unavailable_variants: bool = True,
     skip_recalculation: bool = False,
     voucher: Optional["Voucher"] = None,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> tuple[Iterable[CheckoutLineInfo], Iterable[int]]:
     """Fetch checkout lines as CheckoutLineInfo objects."""
     from .utils import get_voucher_for_checkout
@@ -326,7 +329,10 @@ def fetch_checkout_lines(
     if not skip_recalculation and checkout.voucher_code and lines_info:
         if not voucher:
             voucher, _ = get_voucher_for_checkout(
-                checkout, channel_slug=channel.slug, with_prefetch=True
+                checkout,
+                channel_slug=channel.slug,
+                with_prefetch=True,
+                database_connection_name=database_connection_name,
             )
         if not voucher:
             # in case when voucher is expired, it will be null so no need to apply any
@@ -429,6 +435,7 @@ def fetch_checkout_info(
     fetch_delivery_methods=True,
     voucher: Optional["Voucher"] = None,
     voucher_code: Optional["VoucherCode"] = None,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> CheckoutInfo:
     """Fetch checkout as CheckoutInfo object."""
     from .utils import get_voucher_for_checkout
@@ -441,7 +448,9 @@ def fetch_checkout_info(
 
     if not voucher or not voucher_code:
         voucher, voucher_code = get_voucher_for_checkout(
-            checkout, channel_slug=channel.slug
+            checkout,
+            channel_slug=channel.slug,
+            database_connection_name=database_connection_name,
         )
 
     delivery_method_info = get_delivery_method_info(None, shipping_address)
@@ -468,6 +477,7 @@ def fetch_checkout_info(
             lines,
             manager,
             shipping_channel_listings,
+            database_connection_name=database_connection_name,
         )
 
     return checkout_info
@@ -534,6 +544,7 @@ def update_checkout_info_shipping_address(
     lines: Iterable[CheckoutLineInfo],
     manager: "PluginsManager",
     shipping_channel_listings: Iterable["ShippingMethodChannelListing"],
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     checkout_info.shipping_address = address
 
@@ -545,6 +556,7 @@ def update_checkout_info_shipping_address(
         lines,
         manager,
         shipping_channel_listings,
+        database_connection_name=database_connection_name,
     )
 
 
@@ -553,6 +565,7 @@ def get_valid_internal_shipping_method_list_for_checkout_info(
     shipping_address: Optional["Address"],
     lines: Iterable[CheckoutLineInfo],
     shipping_channel_listings: Iterable[ShippingMethodChannelListing],
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> list["ShippingMethodData"]:
     from . import base_calculations
     from .utils import get_valid_internal_shipping_methods_for_checkout
@@ -586,6 +599,7 @@ def get_valid_internal_shipping_method_list_for_checkout_info(
         subtotal,
         shipping_channel_listings,
         country_code=country_code,
+        database_connection_name=database_connection_name,
     )
 
     return valid_shipping_methods
@@ -608,6 +622,7 @@ def get_all_shipping_methods_list(
     lines,
     shipping_channel_listings,
     manager,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     return list(
         itertools.chain(
@@ -616,6 +631,7 @@ def get_all_shipping_methods_list(
                 shipping_address,
                 lines,
                 shipping_channel_listings,
+                database_connection_name=database_connection_name,
             ),
             get_valid_external_shipping_method_list_for_checkout_info(
                 checkout_info, shipping_address, lines, manager
@@ -632,6 +648,7 @@ def update_delivery_method_lists_for_checkout_info(
     lines: Iterable[CheckoutLineInfo],
     manager: "PluginsManager",
     shipping_channel_listings: Iterable[ShippingMethodChannelListing],
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     """Update the list of shipping methods for checkout info.
 
@@ -650,6 +667,7 @@ def update_delivery_method_lists_for_checkout_info(
             lines,
             shipping_channel_listings,
             manager,
+            database_connection_name=database_connection_name,
         )
         # Filter shipping methods using sync webhooks
         excluded_methods = manager.excluded_shipping_methods_for_checkout(
@@ -660,7 +678,11 @@ def update_delivery_method_lists_for_checkout_info(
 
     checkout_info.all_shipping_methods = lazy_no_retry(_resolve_all_shipping_methods)  # type: ignore[assignment] # using lazy object breaks protocol
     checkout_info.valid_pick_up_points = lazy_no_retry(
-        lambda: (get_valid_collection_points_for_checkout_info(lines, checkout_info))
+        lambda: (
+            get_valid_collection_points_for_checkout_info(
+                lines, checkout_info, database_connection_name=database_connection_name
+            )
+        )
     )  # type: ignore[assignment] # using lazy object breaks protocol
     update_checkout_info_delivery_method_info(
         checkout_info,
@@ -673,11 +695,15 @@ def update_delivery_method_lists_for_checkout_info(
 def get_valid_collection_points_for_checkout_info(
     lines: Iterable[CheckoutLineInfo],
     checkout_info: CheckoutInfo,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     from .utils import get_valid_collection_points_for_checkout
 
     valid_collection_points = get_valid_collection_points_for_checkout(
-        lines, checkout_info.channel.id, quantity_check=False
+        lines,
+        checkout_info.channel.id,
+        quantity_check=False,
+        database_connection_name=database_connection_name,
     )
     return list(valid_collection_points)
 

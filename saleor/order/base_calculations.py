@@ -1,6 +1,7 @@
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, Optional
 
+from django.conf import settings
 from prices import Money, TaxedMoney
 
 from ..core.prices import quantize_price
@@ -37,12 +38,21 @@ def base_order_subtotal(order: "Order", lines: Iterable["OrderLine"]) -> Money:
     return quantize_price(subtotal, currency)
 
 
-def base_order_total(order: "Order", lines: Iterable["OrderLine"]) -> Money:
+def base_order_total(
+    order: "Order",
+    lines: Iterable["OrderLine"],
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+) -> Money:
     """Return order total, recalculate, and update order discounts.
 
     All discounts are included in this price.
     """
-    subtotal, shipping_price = apply_order_discounts(order, lines, assign_prices=False)
+    subtotal, shipping_price = apply_order_discounts(
+        order,
+        lines,
+        assign_prices=False,
+        database_connection_name=database_connection_name,
+    )
     return subtotal + shipping_price
 
 
@@ -147,6 +157,7 @@ def apply_order_discounts(
     order: "Order",
     lines: Iterable["OrderLine"],
     assign_prices=True,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> tuple[Money, Money]:
     """Calculate prices after applying order level discounts.
 
@@ -168,6 +179,7 @@ def apply_order_discounts(
             lines,
             subtotal,
             shipping_price,
+            database_connection_name=database_connection_name,
         )
         subtotal_discount = base_subtotal - subtotal
         apply_subtotal_discount_to_order_lines(lines, base_subtotal, subtotal_discount)
@@ -284,6 +296,7 @@ def assign_order_prices(
     lines: Iterable["OrderLine"],
     subtotal: Money,
     shipping_price: Money,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     order.shipping_price_net_amount = shipping_price.amount
     order.shipping_price_gross_amount = shipping_price.amount
@@ -293,19 +306,28 @@ def assign_order_prices(
     order.subtotal_net_amount = subtotal.amount
     order.subtotal_gross_amount = subtotal.amount
 
-    undiscounted_total = undiscounted_order_total(order, lines)
+    undiscounted_total = undiscounted_order_total(
+        order, lines, database_connection_name=database_connection_name
+    )
     order.undiscounted_total_net_amount = undiscounted_total.amount
     order.undiscounted_total_gross_amount = undiscounted_total.amount
 
 
-def undiscounted_order_shipping(order: "Order") -> Money:
+def undiscounted_order_shipping(
+    order: "Order",
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+) -> Money:
     """Return shipping price without any discounts."""
     # TODO: add undiscounted_shipping_price field to order model.
     # https://github.com/saleor/saleor/issues/14915
     if shipping_method := order.shipping_method:
-        if listing := ShippingMethodChannelListing.objects.filter(
-            channel=order.channel, shipping_method=shipping_method
-        ).first():
+        if (
+            listing := ShippingMethodChannelListing.objects.using(
+                database_connection_name
+            )
+            .filter(channel=order.channel, shipping_method=shipping_method)
+            .first()
+        ):
             return Money(listing.price_amount, order.currency)
     return zero_money(order.currency)
 
@@ -320,8 +342,14 @@ def undiscounted_order_subtotal(order: "Order", lines: Iterable["OrderLine"]) ->
     return quantize_price(subtotal, currency)
 
 
-def undiscounted_order_total(order: "Order", lines: Iterable["OrderLine"]) -> Money:
+def undiscounted_order_total(
+    order: "Order",
+    lines: Iterable["OrderLine"],
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+) -> Money:
     """Return order total without any discounts."""
     subtotal = undiscounted_order_subtotal(order, lines)
-    shipping_price = undiscounted_order_shipping(order)
+    shipping_price = undiscounted_order_shipping(
+        order, database_connection_name=database_connection_name
+    )
     return quantize_price(subtotal + shipping_price, order.currency)

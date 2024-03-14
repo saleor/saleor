@@ -38,9 +38,9 @@ def update_discounted_prices_for_promotion(
     When only_dirty_products set to True, the prices will be recalculated only for the
     listings marked as dirty.
     """
-    variant_qs = ProductVariant.objects.filter(
-        Exists(products.filter(id=OuterRef("product_id")))
-    )
+    variant_qs = ProductVariant.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).filter(Exists(products.filter(id=OuterRef("product_id"))))
     rules_info_per_variant = get_variants_to_promotion_rules_map(variant_qs)
     product_to_variant_listings_per_channel_map = (
         _get_product_to_variant_channel_listings_per_channel_map(variant_qs)
