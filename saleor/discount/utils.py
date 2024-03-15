@@ -26,7 +26,7 @@ from ..checkout.base_calculations import (
     base_checkout_subtotal,
 )
 from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
-from ..checkout.models import Checkout
+from ..checkout.models import Checkout, CheckoutLine
 from ..core.exceptions import InsufficientStock
 from ..core.taxes import zero_money
 from ..core.utils.promo_code import InvalidPromoCode
@@ -375,16 +375,14 @@ def create_checkout_line_discount_objects_for_catalogue_promotions(
         updated_fields,
     ) = discount_data
 
-    new_line_discounts = []
-    if discounts_to_create_inputs:
-        line_ids = [input["line"].id for input in discounts_to_create_inputs]
+    with transaction.atomic():
         # Protect against potential thread race. CheckoutLine object can have only
         # single catalogue discount applied.
-        with transaction.atomic():
-            discounts = (
-                CheckoutLineDiscount.objects.filter(line_id__in=line_ids)
-                .only("id", "type")
-                .select_for_update()
+        line_ids = [line_info.line.id for line_info in lines_info]
+        CheckoutLine.objects.filter(id__in=line_ids).only("id").select_for_update()
+        if discounts_to_create_inputs:
+            discounts = CheckoutLineDiscount.objects.filter(line_id__in=line_ids).only(
+                "id", "type"
             )
             line_ids_with_catalogue_discount_applied = [
                 discount.line_id
@@ -398,11 +396,13 @@ def create_checkout_line_discount_objects_for_catalogue_promotions(
             ]
             CheckoutLineDiscount.objects.bulk_create(new_line_discounts)
 
-    if discounts_to_update and updated_fields:
-        CheckoutLineDiscount.objects.bulk_update(discounts_to_update, updated_fields)
+        if discounts_to_update and updated_fields:
+            CheckoutLineDiscount.objects.bulk_update(
+                discounts_to_update, updated_fields
+            )
 
-    if discount_ids_to_remove := [discount.id for discount in discount_to_remove]:
-        CheckoutLineDiscount.objects.filter(id__in=discount_ids_to_remove).delete()
+        if discount_ids_to_remove := [discount.id for discount in discount_to_remove]:
+            CheckoutLineDiscount.objects.filter(id__in=discount_ids_to_remove).delete()
 
     _update_line_info_cached_discounts(
         lines_info, new_line_discounts, discounts_to_update, discount_ids_to_remove
