@@ -43,9 +43,7 @@ class ProductMediaUpdate(BaseMutation):
         cls, _root, info: ResolveInfo, /, *, id, input
     ):
         media = cls.get_node_or_error(info, id, only_type=ProductMedia)
-        product = models.Product.objects.prefetched_for_webhook().get(
-            pk=media.product_id
-        )
+        product = models.Product.objects.get(pk=media.product_id)
         alt = input.get("alt")
         if alt is not None:
             if len(alt) > ALT_CHAR_LIMIT:
