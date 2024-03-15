@@ -292,14 +292,18 @@ class OpenIDConnectPlugin(BasePlugin):
                 }
             )
 
-        parsed_id_token = get_parsed_id_token(
-            token_data, self.config.json_web_key_set_url
-        )
-
-        user, user_created, user_updated = get_or_create_user_from_payload(
-            parsed_id_token,
-            self.config.authorization_url,
-        )
+        try:
+            parsed_id_token = get_parsed_id_token(
+                token_data, self.config.json_web_key_set_url
+            )
+            user, user_created, user_updated = get_or_create_user_from_payload(
+                parsed_id_token,
+                self.config.authorization_url,
+            )
+        except AuthenticationError as e:
+            raise ValidationError(
+                {"code": ValidationError(str(e), code=PluginErrorCode.INVALID.value)}
+            )
 
         user_permissions = []
         is_staff_user_email = self.is_staff_user_email(user)
