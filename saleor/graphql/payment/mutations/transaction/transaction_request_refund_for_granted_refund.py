@@ -4,7 +4,9 @@ from typing import TYPE_CHECKING, cast
 import graphene
 from django.core.exceptions import ValidationError
 
+from .....order import OrderGrantedRefundStatus
 from .....order import models as order_models
+from .....order.utils import calculate_order_granted_refund_status
 from .....payment import PaymentError, TransactionEventType
 from .....payment import models as payment_models
 from .....payment.error_codes import TransactionRequestActionErrorCode
@@ -83,8 +85,29 @@ class TransactionRequestRefundForGrantedRefund(BaseMutation):
             transaction_item = cast(
                 payment_models.TransactionItem, granted_refund.transaction_item
             )
+            error_class = TransactionRequestRefundForGrantedRefundErrorCode
+            if granted_refund.status == OrderGrantedRefundStatus.PENDING:
+                error_code = error_class.REFUND_IS_PENDING.value
+                raise ValidationError(
+                    {
+                        "granted_refund_id": ValidationError(
+                            "The refund request is already in progress.",
+                            code=error_code,
+                        )
+                    }
+                )
+            if granted_refund.status == OrderGrantedRefundStatus.SUCCESS:
+                error_code = error_class.REFUND_ALREADY_PROCESSED.value
+                raise ValidationError(
+                    {
+                        "granted_refund_id": ValidationError(
+                            "The granted refund is already processed.",
+                            code=error_code,
+                        )
+                    }
+                )
             if transaction_item.charged_value < granted_refund.amount_value:
-                error_code = TransactionRequestRefundForGrantedRefundErrorCode.AMOUNT_GREATER_THAN_AVAILABLE.value
+                error_code = error_class.AMOUNT_GREATER_THAN_AVAILABLE.value
                 raise ValidationError(
                     {
                         "granted_refund_id": ValidationError(
@@ -174,4 +197,8 @@ class TransactionRequestRefundForGrantedRefund(BaseMutation):
             error_enum = TransactionRequestActionErrorCode
             code = error_enum.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK.value
             raise ValidationError(str(e), code=code)
+        finally:
+            if assigned_granted_refund:
+                calculate_order_granted_refund_status(assigned_granted_refund)
+
         return cls(transaction=transaction_item)

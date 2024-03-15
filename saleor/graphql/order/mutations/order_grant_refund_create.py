@@ -20,7 +20,7 @@ from ...core.mutations import BaseMutation
 from ...core.scalars import Decimal
 from ...core.types import BaseInputObjectType
 from ...core.types.common import Error, NonNullList
-from ...payment.types import TransactionItem
+from ...payment.mutations.transaction.utils import get_transaction_item
 from ..enums import OrderGrantRefundCreateErrorCode, OrderGrantRefundCreateLineErrorCode
 from ..types import Order, OrderGrantedRefund
 from .order_grant_refund_utils import (
@@ -238,8 +238,11 @@ class OrderGrantRefundCreate(BaseMutation):
         max_grant_amount = None
         transaction_item = None
         if transaction_id is not None:
-            transaction_item = cls.get_node_or_error(
-                info, transaction_id, only_type=TransactionItem
+            transaction_item = get_transaction_item(
+                id=transaction_id,
+                token=None,
+                error_field_name="transaction_id",
+                qs=order.payment_transactions.all(),
             )
             max_grant_amount = transaction_item.charged_value
 
