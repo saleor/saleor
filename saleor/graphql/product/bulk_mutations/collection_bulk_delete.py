@@ -33,7 +33,7 @@ class CollectionBulkDelete(ModelBulkDeleteMutation):
             collection_id__in=collections_ids
         )
         products = list(
-            models.Product.objects.prefetched_for_webhook(single_object=False).filter(
+            models.Product.objects.filter(
                 Exists(collection_products.filter(product_id=OuterRef("id")))
             )
         )
