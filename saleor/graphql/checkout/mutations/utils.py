@@ -23,6 +23,8 @@ from ....checkout.fetch import CheckoutInfo, CheckoutLineInfo
 from ....checkout.utils import (
     calculate_checkout_quantity,
     clear_delivery_method,
+    delete_external_shipping_id,
+    get_external_shipping_id,
     is_shipping_required,
 )
 from ....core.exceptions import InsufficientStock, PermissionDenied
@@ -91,8 +93,25 @@ def clean_delivery_method(
     return method in valid_methods
 
 
-def update_checkout_shipping_method_if_invalid(
+def _is_external_shipping_valid(checkout_info: "CheckoutInfo"):
+    if external_shipping_id := get_external_shipping_id(checkout_info.checkout):
+        for method in checkout_info.valid_delivery_methods:
+            if method.id == external_shipping_id:
+                return True
+        return False
+    return True
+
+
+def update_checkout_external_shipping_method_if_invalid(
     checkout_info: "CheckoutInfo", lines: Iterable[CheckoutLineInfo]
+):
+    if not _is_external_shipping_valid(checkout_info):
+        delete_external_shipping_id(checkout_info.checkout, save=True)
+
+
+def update_checkout_shipping_method_if_invalid(
+    checkout_info: "CheckoutInfo",
+    lines: Iterable[CheckoutLineInfo],
 ):
     quantity = calculate_checkout_quantity(lines)
 

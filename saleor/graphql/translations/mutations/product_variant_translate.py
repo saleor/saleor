@@ -40,21 +40,19 @@ class ProductVariantTranslate(BaseTranslateMutation):
     ):
         node_id = cls.clean_node_id(id)[0]
         variant_pk = cls.get_global_id_or_error(node_id, only_type=ProductVariant)
-        variant = product_models.ProductVariant.objects.prefetched_for_webhook().get(
-            pk=variant_pk
-        )
+        variant = product_models.ProductVariant.objects.get(pk=variant_pk)
         cls.validate_input(input)
         manager = get_plugin_manager_promise(info.context).get()
         with traced_atomic_transaction():
             translation, created = variant.translations.update_or_create(
                 language_code=language_code, defaults=input
             )
-            variant = ChannelContext(node=variant, channel_slug=None)
-        cls.call_event(manager.product_variant_updated, variant.node)
+            context = ChannelContext(node=variant, channel_slug=None)
+        cls.call_event(manager.product_variant_updated, context.node)
 
         if created:
             cls.call_event(manager.translation_created, translation)
         else:
             cls.call_event(manager.translation_updated, translation)
 
-        return cls(**{cls._meta.return_field_name: variant})
+        return cls(**{cls._meta.return_field_name: context})

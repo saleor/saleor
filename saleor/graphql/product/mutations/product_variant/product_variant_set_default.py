@@ -40,7 +40,7 @@ class ProductVariantSetDefault(BaseMutation):
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, product_id, variant_id
     ):
-        qs = models.Product.objects.prefetched_for_webhook()
+        qs = models.Product.objects.all()
         product = cls.get_node_or_error(
             info, product_id, field="product_id", only_type=Product, qs=qs
         )

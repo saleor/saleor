@@ -943,9 +943,11 @@ def get_external_shipping_id(container: Union["Checkout", "Order"]):
     )
 
 
-def delete_external_shipping_id(checkout: Checkout):
+def delete_external_shipping_id(checkout: Checkout, save: bool = False):
     metadata = get_or_create_checkout_metadata(checkout)
     metadata.delete_value_from_private_metadata(PRIVATE_META_APP_SHIPPING_ID)
+    if save:
+        metadata.save(update_fields=["private_metadata"])
 
 
 def get_or_create_checkout_metadata(checkout: "Checkout") -> CheckoutMetadata:

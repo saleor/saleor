@@ -43,7 +43,7 @@ class CollectionRemoveProducts(BaseMutation):
             products,
             "products",
             only_type=Product,
-            qs=models.Product.objects.prefetched_for_webhook(single_object=False),
+            qs=models.Product.objects.all(),
         )
         collection.products.remove(*products)
         manager = get_plugin_manager_promise(info.context).get()
