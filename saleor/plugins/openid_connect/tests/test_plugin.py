@@ -20,6 +20,7 @@ from ....core.jwt import (
 from ....graphql.account.mutations.authentication.utils import _get_new_csrf_token
 from ...base_plugin import ExternalAccessTokens
 from ...models import PluginConfiguration
+from ..exceptions import AuthenticationError
 from ..utils import (
     create_jwt_refresh_token,
     create_jwt_token,
@@ -805,6 +806,96 @@ def test_external_obtain_access_tokens_fetch_token_raises_error(
     monkeypatch.setattr(
         "saleor.plugins.openid_connect.client.OAuth2Client.fetch_token",
         Mock(side_effect=OAuthError()),
+    )
+
+    redirect_uri = "http://localhost:3000/used-logged-in"
+    state = signing.dumps({"redirectUri": redirect_uri})
+    code = "oauth-code"
+
+    # when & then
+    with pytest.raises(ValidationError):
+        plugin.external_obtain_access_tokens(
+            {"state": state, "code": code}, rf.request(), previous_value=None
+        )
+
+
+def test_external_obtain_access_tokens_get_parsed_id_token_raises_error(
+    openid_plugin, monkeypatch, rf, id_token, id_payload
+):
+    # given
+    mocked_jwt_validator = MagicMock()
+    mocked_jwt_validator.__getitem__.side_effect = id_payload.__getitem__
+    mocked_jwt_validator.get.side_effect = id_payload.get
+
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.utils.get_decoded_token",
+        Mock(return_value=mocked_jwt_validator),
+    )
+    plugin = openid_plugin(use_oauth_scope_permissions=True)
+
+    oauth_payload = {
+        "access_token": "FeHkE_QbuU3cYy1a1eQUrCE5jRcUnBK3",
+        "refresh_token": "refresh",
+        "id_token": id_token,
+        "scope": "openid profile email offline_access",
+        "expires_in": 86400,
+        "token_type": "Bearer",
+        "expires_at": 1600851112,
+    }
+    mocked_fetch_token = Mock(return_value=oauth_payload)
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.client.OAuth2Client.fetch_token",
+        mocked_fetch_token,
+    )
+
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.plugin.get_parsed_id_token",
+        Mock(side_effect=AuthenticationError()),
+    )
+
+    redirect_uri = "http://localhost:3000/used-logged-in"
+    state = signing.dumps({"redirectUri": redirect_uri})
+    code = "oauth-code"
+
+    # when & then
+    with pytest.raises(ValidationError):
+        plugin.external_obtain_access_tokens(
+            {"state": state, "code": code}, rf.request(), previous_value=None
+        )
+
+
+def test_external_obtain_access_tokens_get_or_create_user_from_payload_raises_error(
+    openid_plugin, monkeypatch, rf, id_token, id_payload
+):
+    # given
+    mocked_jwt_validator = MagicMock()
+    mocked_jwt_validator.__getitem__.side_effect = id_payload.__getitem__
+    mocked_jwt_validator.get.side_effect = id_payload.get
+
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.utils.get_decoded_token",
+        Mock(return_value=mocked_jwt_validator),
+    )
+    plugin = openid_plugin(use_oauth_scope_permissions=True)
+
+    oauth_payload = {
+        "access_token": "FeHkE_QbuU3cYy1a1eQUrCE5jRcUnBK3",
+        "refresh_token": "refresh",
+        "id_token": id_token,
+        "scope": "openid profile email offline_access",
+        "expires_in": 86400,
+        "token_type": "Bearer",
+        "expires_at": 1600851112,
+    }
+    mocked_fetch_token = Mock(return_value=oauth_payload)
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.client.OAuth2Client.fetch_token",
+        mocked_fetch_token,
+    )
+
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.plugin.get_or_create_user_from_payload",
+        Mock(side_effect=AuthenticationError()),
     )
 
     redirect_uri = "http://localhost:3000/used-logged-in"
