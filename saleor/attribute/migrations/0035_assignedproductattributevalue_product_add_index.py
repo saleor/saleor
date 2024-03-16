@@ -21,7 +21,8 @@ class Migration(migrations.Migration):
             """
                 DROP INDEX CONCURRENTLY IF EXISTS
                 attribute_assignedproductattributevalue_product_id_805656f1;
-            """
+            """,
+            reverse_sql=migrations.RunSQL.noop,
         ),
         AddIndexConcurrently(
             model_name="assignedproductattributevalue",
