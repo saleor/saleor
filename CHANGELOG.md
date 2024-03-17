@@ -2,12 +2,19 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/saleor/saleor/releases) page.
 
-# 3.19.0 [Unreleased]
+# 3.19.0
 
 ### Highlights
 
+- Introduce `order` promotion rules that allow applying discounts during checkout calculations when the checkout meets certain conditions. - #14696 by @IKarbowiak, @zedzior
+- Introduce gift reward as `order` promotion rule reward - #15259 by @zedzior, @IKarbowiak
+- New environment variable `EVENT_PAYLOAD_DELETE_TASK_TIME_LIMIT` to control time limit of `delete_event_payloads_task` - #15396 by @wcislo-saleor
+
 ### Breaking changes
+
 - Drop `OrderBulkCreateInput.voucher` field. Use `OrderBulkCreateInput.voucherCode` instead. - #14553 by @zedzior
+- Add new `type` field to `PromotionCreateInput`, the field will be required from 3.20 - #14696 by @IKarbowiak, @zedzior
+- Do not stack promotion rules within the promotion. Only the best promotion rule will be applied within the promotion. Previously discounts from all rules within the promotion that gives the best discount were applied to the variant's price - #15309 by @korycins
 
 ### GraphQL API
 
@@ -15,17 +22,24 @@ All notable, unreleased changes to this project will be documented in this file.
 - Mark as deprecated: `ordersTotal`, `reportProductSales` and `homepageEvents` - #14806 by @8r2y5
 - Add `identifier` field to App graphql object. Identifier field is the same as Manifest.id field (explicit ID set by the app).
 
-### Saleor Apps
-
 ### Other changes
+
 - Add missing descriptions to order module - #14845 by @DevilsAutumn
 - Unify how undiscounted prices are handled in orders and checkouts - #14780 by @jakubkuc
 - Drop demo - #14835 by @fowczarek
 - Add JSON serialization immediately after creating observability events to eliminate extra cPickle serialization and deserialization steps - #14992 by @przlada
-
 - Added caching of GraphQL documents for common queries to improve performance - #14843 by @patrys
 - Added `VOUCHER_CODES_CREATED` and `VOUCHER_CODES_DELETED` webhooks events. - #14652 by @SzymJ
-- Update existing lines discount type with zero downtime support  - #15331 by @AjmalPonneth
+- Fixed validation for streetAddress1 or streetAddress2 are too long - #13973 by sonbui00
+- Clear db leftovers after attribute refactor - #15372 by @IKarbowiak
+
+- Added possibility to break checkout/draft order completion: #15292 by @kadewu
+  - Added new field `Shop.availableTaxApps`.
+  - Added new input `taxAppId` for `TaxConfigurationUpdateInput` and `TaxConfigurationPerCountryInput`.
+  - Added new field `taxAppId` in `TaxConfiguration` and `TaxConfigurationPerCountry`.
+  - Added new input `AppInput.identifier`.
+  - Added new parameter `identifier` for `create_app` command.
+  - When `taxAppId` is provided for `TaxConfiguration` do not allow to finalize `checkoutComplete` or `draftOrderComplete` mutations if Tax App or Avatax plugin didn't respond.
 
 # 3.18.0
 

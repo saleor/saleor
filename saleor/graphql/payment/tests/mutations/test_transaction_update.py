@@ -21,12 +21,93 @@ TEST_SERVER_DOMAIN = "testserver.com"
 
 MUTATION_TRANSACTION_UPDATE = """
 mutation TransactionUpdate(
-    $id: ID!,
-    $transaction_event: TransactionEventInput,
+    $id: ID
+    $transaction_event: TransactionEventInput
     $transaction: TransactionUpdateInput
     ){
     transactionUpdate(
             id: $id,
+            transactionEvent: $transaction_event,
+            transaction: $transaction
+        ){
+        transaction{
+                id
+                actions
+                pspReference
+                name
+                message
+                modifiedAt
+                createdAt
+                externalUrl
+                authorizedAmount{
+                    amount
+                    currency
+                }
+                canceledAmount{
+                    currency
+                    amount
+                }
+                chargedAmount{
+                    currency
+                    amount
+                }
+                refundedAmount{
+                    currency
+                    amount
+                }
+                privateMetadata{
+                    key
+                    value
+                }
+                metadata{
+                    key
+                    value
+                }
+                createdBy{
+                    ... on User {
+                        id
+                    }
+                    ... on App {
+                        id
+                    }
+                }
+                events{
+                    pspReference
+                    message
+                    createdAt
+                    externalUrl
+                    amount{
+                        amount
+                        currency
+                    }
+                    type
+                    createdBy{
+                        ... on User {
+                            id
+                        }
+                        ... on App {
+                            id
+                        }
+                    }
+                }
+        }
+        errors{
+            field
+            message
+            code
+        }
+    }
+}
+"""
+
+MUTATION_TRANSACTION_UPDATE_BY_TOKEN = """
+mutation TransactionUpdate(
+    $token: UUID
+    $transaction_event: TransactionEventInput
+    $transaction: TransactionUpdateInput
+    ){
+    transactionUpdate(
+            token: $token,
             transactionEvent: $transaction_event,
             transaction: $transaction
         ){
@@ -265,6 +346,35 @@ def test_transaction_update_name_by_app(
     # when
     response = app_api_client.post_graphql(
         MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    transaction.refresh_from_db()
+    content = get_graphql_content(response)
+    data = content["data"]["transactionUpdate"]["transaction"]
+    assert data["name"] == name
+    assert transaction.name == name
+
+
+def test_transaction_update_name_by_app_via_token(
+    transaction_item_created_by_app, permission_manage_payments, app_api_client
+):
+    # given
+    transaction = transaction_item_created_by_app
+    name = "New credit card"
+
+    variables = {
+        "token": transaction.token,
+        "transaction": {
+            "name": name,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE_BY_TOKEN,
+        variables,
+        permissions=[permission_manage_payments],
     )
 
     # then

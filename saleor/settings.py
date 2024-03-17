@@ -558,6 +558,11 @@ BEAT_UPDATE_SEARCH_SEC = parse(
 )
 BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC = BEAT_UPDATE_SEARCH_SEC
 
+BEAT_PRICE_RECALCULATION_SCHEDULE = parse(
+    os.environ.get("BEAT_PRICE_RECALCULATION_SCHEDULE", "30 seconds")
+)
+BEAT_PRICE_RECALCULATION_SCHEDULE_EXPIRE_AFTER_SEC = BEAT_PRICE_RECALCULATION_SCHEDULE
+
 # Defines the Celery beat scheduler entries.
 #
 # Note: if a Celery task triggered by a Celery beat entry has an expiration
@@ -627,6 +632,19 @@ CELERY_BEAT_SCHEDULE = {
         "task": "saleor.payment.tasks.transaction_release_funds_for_checkout_task",
         "schedule": timedelta(minutes=10),
     },
+    "recalculate-promotion-rules": {
+        "task": (
+            "saleor.product.tasks"
+            ".update_variant_relations_for_active_promotion_rules_task"
+        ),
+        "schedule": timedelta(seconds=BEAT_PRICE_RECALCULATION_SCHEDULE),
+        "options": {"expires": BEAT_PRICE_RECALCULATION_SCHEDULE_EXPIRE_AFTER_SEC},
+    },
+    "recalculate-discounted-price-for-products": {
+        "task": "saleor.product.tasks.recalculate_discounted_price_for_products_task",
+        "schedule": timedelta(seconds=BEAT_PRICE_RECALCULATION_SCHEDULE),
+        "options": {"expires": BEAT_PRICE_RECALCULATION_SCHEDULE_EXPIRE_AFTER_SEC},
+    },
 }
 
 # The maximum wait time between each is_due() call on schedulers
@@ -636,6 +654,9 @@ CELERY_BEAT_MAX_LOOP_INTERVAL = 300  # 5 minutes
 
 EVENT_PAYLOAD_DELETE_PERIOD = timedelta(
     seconds=parse(os.environ.get("EVENT_PAYLOAD_DELETE_PERIOD", "14 days"))
+)
+EVENT_PAYLOAD_DELETE_TASK_TIME_LIMIT = timedelta(
+    seconds=parse(os.environ.get("EVENT_PAYLOAD_DELETE_TASK_TIME_LIMIT", "1 hour"))
 )
 # Time between marking app "to remove" and removing the app from the database.
 # App is not visible for the user after removing, but it still exists in the database.
@@ -889,3 +910,17 @@ COMMON_REQUESTS_TIMEOUT = (REQUESTS_CONN_EST_TIMEOUT, 18)
 
 WEBHOOK_TIMEOUT = (REQUESTS_CONN_EST_TIMEOUT, 18)
 WEBHOOK_SYNC_TIMEOUT = (REQUESTS_CONN_EST_TIMEOUT, 18)
+
+# The max number of rules with order_predicate defined
+ORDER_RULES_LIMIT = os.environ.get("ORDER_RULES_LIMIT", 100)
+
+# The max number of gits assigned to promotion rule
+GIFTS_LIMIT_PER_RULE = os.environ.get("GIFTS_LIMIT_PER_RULE", 500)
+
+# Whether to enable the comparison of pre-save and post-save webhook payloads in
+# mutations, in order to limit sending webhooks where the payload has not changed as
+# a result of the mutation. Note: this works only for subscriptions webhooks; legacy
+# payloads are not supported.
+ENABLE_LIMITING_WEBHOOKS_FOR_IDENTICAL_PAYLOADS = get_bool_from_env(
+    "ENABLE_LIMITING_WEBHOOKS_FOR_IDENTICAL_PAYLOADS", False
+)

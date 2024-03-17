@@ -266,7 +266,7 @@ def test_update_attribute_value_product_search_document_updated(
     product_type = product.product_type
     product_type.product_attributes.add(attribute)
 
-    associate_attribute_values_to_instance(product, attribute, value)
+    associate_attribute_values_to_instance(product, {attribute.pk: [value]})
 
     node_id = graphene.Node.to_global_id("AttributeValue", value.id)
     name = "Crimson name"
@@ -303,7 +303,7 @@ def test_update_attribute_value_product_search_document_updated_variant_attribut
     product_type = product.product_type
     product_type.variant_attributes.add(attribute)
 
-    associate_attribute_values_to_instance(variant, attribute, value)
+    associate_attribute_values_to_instance(variant, {attribute.pk: [value]})
 
     node_id = graphene.Node.to_global_id("AttributeValue", value.id)
     name = "Crimson name"

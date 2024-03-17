@@ -265,13 +265,13 @@ def test_add_variant_to_order(
     order,
     customer_user,
     variant,
-    promotion_with_single_rule,
+    catalogue_promotion_with_single_rule,
 ):
     # given
     manager = get_plugins_manager(allow_replica=False)
     quantity = 4
 
-    promotion = promotion_with_single_rule
+    promotion = catalogue_promotion_with_single_rule
     discount_value = promotion.rules.first().reward_value
     channel_listing = variant.channel_listings.get(channel=order.channel)
     channel_listing.discounted_price_amount = (
@@ -576,9 +576,13 @@ def test_get_order_country_use_channel_country(order):
 
 
 def test_create_order_line_discounts(
-    order_line, promotion, promotion_translation_fr, promotion_rule_translation_fr
+    order_line,
+    catalogue_promotion,
+    promotion_translation_fr,
+    promotion_rule_translation_fr,
 ):
     # given
+    promotion = catalogue_promotion
     rules = promotion.rules.all()
     rule_1 = rules[0]
     rule_2 = rules[1]

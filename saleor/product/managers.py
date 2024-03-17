@@ -227,7 +227,6 @@ class ProductsQueryset(models.QuerySet):
             "variants__stocks__allocations",
             "variants__channel_listings__channel",
             "channel_listings__channel",
-            "product_type__product_attributes__values",
             "product_type__attributeproduct",
         )
         if single_object:

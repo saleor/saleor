@@ -5,6 +5,7 @@ import pytest
 from django_countries import countries
 
 from ..... import __version__
+from .....core.tests.test_taxes import app_factory, tax_app_factory  # noqa: F401
 from .....permission.enums import get_permissions_codename
 from .....shipping import PostalCodeRuleInclusionType
 from .....shipping.models import ShippingMethod
@@ -876,3 +877,33 @@ def test_query_allow_login_without_confirmation(
     assert content["data"]["shop"]["allowLoginWithoutConfirmation"] == (
         site_settings.allow_login_without_confirmation
     )
+
+
+def test_query_available_tax_apps(staff_api_client, tax_app_factory):  # noqa: F811
+    # given
+    query = """
+    query {
+        shop {
+            availableTaxApps{
+                id
+                name
+            }
+        }
+    }
+    """
+
+    apps = [
+        tax_app_factory(name="app1", is_active=True),
+        tax_app_factory(name="app2", is_active=True),
+    ]
+
+    # when
+    response = staff_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+
+    # then
+    assert len(content["data"]["shop"]["availableTaxApps"]) == len(apps)
+
+    apps_ids = [graphene.Node.to_global_id("App", app.id) for app in apps]
+    for app in content["data"]["shop"]["availableTaxApps"]:
+        assert app["id"] in apps_ids

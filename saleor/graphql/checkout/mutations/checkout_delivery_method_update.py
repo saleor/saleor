@@ -14,13 +14,14 @@ from ....checkout.fetch import (
 from ....checkout.utils import (
     delete_external_shipping_id,
     get_or_create_checkout_metadata,
-    invalidate_checkout_prices,
+    invalidate_checkout,
     is_shipping_required,
     set_external_shipping_id,
 )
 from ....shipping import interface as shipping_interface
 from ....shipping import models as shipping_models
 from ....shipping.utils import convert_to_shipping_method_data
+from ....warehouse import WarehouseClickAndCollectOption
 from ....warehouse import models as warehouse_models
 from ....webhook.const import APP_ID_PREFIX
 from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
@@ -59,7 +60,9 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
     class Meta:
         description = (
             "Updates the delivery method (shipping method or pick up point) "
-            "of the checkout." + ADDED_IN_31
+            "of the checkout. "
+            "Updates the checkout shipping_address for click and collect delivery "
+            "for a warehouse address. " + ADDED_IN_31
         )
         doc_category = DOC_CATEGORY_CHECKOUT
         error_type_class = CheckoutError
@@ -238,6 +241,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         external_shipping_method: Optional[shipping_interface.ShippingMethodData],
         collection_point: Optional[Warehouse],
     ) -> None:
+        checkout_fields_to_update = ["shipping_method", "collection_point"]
         checkout = checkout_info.checkout
         if external_shipping_method:
             set_external_shipping_id(
@@ -247,15 +251,19 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             delete_external_shipping_id(checkout=checkout)
         checkout.shipping_method = shipping_method
         checkout.collection_point = collection_point
-        invalidate_prices_updated_fields = invalidate_checkout_prices(
+        if (
+            collection_point is not None
+            and collection_point.click_and_collect_option
+            == WarehouseClickAndCollectOption.LOCAL_STOCK
+        ):
+            checkout.shipping_address = collection_point.address
+            checkout_info.shipping_address = collection_point.address
+            checkout_fields_to_update += ["shipping_address"]
+        invalidate_prices_updated_fields = invalidate_checkout(
             checkout_info, lines, manager, save=False
         )
         checkout.save(
-            update_fields=[
-                "shipping_method",
-                "collection_point",
-            ]
-            + invalidate_prices_updated_fields
+            update_fields=checkout_fields_to_update + invalidate_prices_updated_fields
         )
         get_or_create_checkout_metadata(checkout).save()
         cls.call_event(manager.checkout_updated, checkout)
@@ -324,7 +332,6 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
                 }
             )
         type_name = cls._resolve_delivery_method_type(delivery_method_id)
-
         checkout_info = fetch_checkout_info(checkout, lines, manager)
         if type_name == "Warehouse":
             return cls.perform_on_collection_point(

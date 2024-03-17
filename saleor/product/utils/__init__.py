@@ -4,10 +4,10 @@ from typing import TYPE_CHECKING, Union
 from ...core.taxes import TaxedMoney, zero_taxed_money
 from ...core.tracing import traced_atomic_transaction
 from ...core.utils.events import call_event
+from ...discount.utils import mark_active_catalogue_promotion_rules_as_dirty
 from ...webhook.event_types import WebhookEventAsyncType
 from ...webhook.utils import get_webhooks_for_event
 from ..models import Product, ProductChannelListing
-from ..tasks import update_products_discounted_prices_for_promotion_task
 
 if TYPE_CHECKING:
     from datetime import date, datetime
@@ -51,9 +51,8 @@ def delete_categories(categories_ids: list[Union[str, int]], manager):
     for category in categories:
         products = products | collect_categories_tree_products(category)
 
-    ProductChannelListing.objects.filter(product__in=products).update(
-        is_published=False, published_at=None
-    )
+    product_channel_listing = ProductChannelListing.objects.filter(product__in=products)
+    product_channel_listing.update(is_published=False, published_at=None)
     products = list(products)
 
     category_instances = [cat for cat in categories]
@@ -65,9 +64,8 @@ def delete_categories(categories_ids: list[Union[str, int]], manager):
     for product in products:
         call_event(manager.product_updated, product, webhooks=webhooks)
 
-    update_products_discounted_prices_for_promotion_task.delay(
-        product_ids=[product.id for product in products]
-    )
+    channel_ids = set(product_channel_listing.values_list("channel_id", flat=True))
+    call_event(mark_active_catalogue_promotion_rules_as_dirty, channel_ids)
 
 
 def collect_categories_tree_products(category: "Category") -> "QuerySet[Product]":

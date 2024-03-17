@@ -1,5 +1,6 @@
 from unittest.mock import ANY, Mock, call
 
+import graphene
 import pytest
 from django.core.management import call_command
 from django.forms import ValidationError
@@ -116,6 +117,7 @@ def test_creates_app_object():
     tokens = app.tokens.all()
     assert len(tokens) == 1
     assert app.uuid is not None
+    assert app.identifier == graphene.Node.to_global_id("App", app.id)
 
 
 def test_app_has_all_required_permissions():
@@ -157,3 +159,22 @@ def test_sends_data_to_target_url(monkeypatch):
         json={"auth_token": ANY},
         allow_redirects=False,
     )
+
+
+def test_creates_app_with_identifier():
+    # given
+    name = "Single App"
+    permissions = ["MANAGE_USERS", "MANAGE_ORDERS"]
+
+    # when
+    call_command("create_app", name, permission=permissions, identifier="test.test")
+
+    # then
+    apps = App.objects.filter(name=name)
+    assert len(apps) == 1
+
+    app = apps[0]
+    tokens = app.tokens.all()
+    assert len(tokens) == 1
+    assert app.uuid is not None
+    assert app.identifier == "test.test"

@@ -21,11 +21,14 @@ from ..core.types import ModelObjectType, NonNullList
 from ..meta.types import ObjectWithMetadata
 from ..translations.fields import TranslationField
 from ..translations.types import PageTranslation
+from ..utils import get_user_or_app_from_context
 from .dataloaders import (
-    PageAttributesByPageTypeIdLoader,
+    PageAttributesAllByPageTypeIdLoader,
+    PageAttributesVisibleInStorefrontByPageTypeIdLoader,
     PagesByPageTypeIdLoader,
     PageTypeByIdLoader,
-    SelectedAttributesByPageIdLoader,
+    SelectedAttributesAllByPageIdLoader,
+    SelectedAttributesVisibleInStorefrontPageIdLoader,
 )
 
 
@@ -70,7 +73,17 @@ class PageType(ModelObjectType[models.PageType]):
 
     @staticmethod
     def resolve_attributes(root: models.PageType, info: ResolveInfo):
-        return PageAttributesByPageTypeIdLoader(info.context).load(root.pk)
+        requestor = get_user_or_app_from_context(info.context)
+        if (
+            requestor
+            and requestor.is_active
+            and requestor.has_perm(PagePermissions.MANAGE_PAGES)
+        ):
+            return PageAttributesAllByPageTypeIdLoader(info.context).load(root.pk)
+        else:
+            return PageAttributesVisibleInStorefrontByPageTypeIdLoader(
+                info.context
+            ).load(root.pk)
 
     @staticmethod
     def resolve_available_attributes(
@@ -165,7 +178,17 @@ class Page(ModelObjectType[models.Page]):
 
     @staticmethod
     def resolve_attributes(root: models.Page, info: ResolveInfo):
-        return SelectedAttributesByPageIdLoader(info.context).load(root.id)
+        requestor = get_user_or_app_from_context(info.context)
+        if (
+            requestor
+            and requestor.is_active
+            and requestor.has_perm(PagePermissions.MANAGE_PAGES)
+        ):
+            return SelectedAttributesAllByPageIdLoader(info.context).load(root.id)
+        else:
+            return SelectedAttributesVisibleInStorefrontPageIdLoader(info.context).load(
+                root.id
+            )
 
 
 class PageCountableConnection(CountableConnection):

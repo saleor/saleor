@@ -26,11 +26,10 @@ from ..core.tracing import traced_atomic_transaction
 from ..core.transactions import transaction_with_commit_on_errors
 from ..core.utils.url import validate_storefront_url
 from ..discount import DiscountType, DiscountValueType
-from ..discount.models import NotApplicable, OrderLineDiscount
+from ..discount.models import CheckoutDiscount, NotApplicable, OrderLineDiscount
 from ..discount.utils import (
     get_sale_id,
     increase_voucher_usage,
-    prepare_promotion_discount_reason,
     release_voucher_code_usage,
 )
 from ..graphql.checkout.utils import (
@@ -292,6 +291,7 @@ def _create_line_for_order(
         is_gift_card=variant.is_gift_card(),
         quantity=quantity,
         variant=variant,
+        is_gift=checkout_line.is_gift,
         unit_price=unit_price,  # money field not supported by mypy_django_plugin
         undiscounted_unit_price=undiscounted_unit_price,  # money field not supported by mypy_django_plugin # noqa: E501
         undiscounted_total_price=undiscounted_total_price,  # money field not supported by mypy_django_plugin # noqa: E501
@@ -310,15 +310,12 @@ def _create_line_for_order(
 
     line_discounts = _create_order_line_discounts(checkout_line_info, line)
     if line_discounts:
-        # Currently only one promotion can be applied on the single line.
-        # This is temporary solution until the discount API is implemented.
-        # Ultimately, this info should be taken from the orderLineDiscount instances.
-
-        promotion = checkout_line_info.rules_info[0].promotion
-        sale_id = get_sale_id(promotion)
-        line.sale_id = sale_id
-        promotion_discount_reason = prepare_promotion_discount_reason(
-            promotion, sale_id
+        # We might have catalogue and gift predicate promotion so there might be more
+        # than one sale_id.
+        # The sale_id will be set only for the catalogue discount if exists.
+        line.sale_id = _get_sale_id(line_discounts)
+        promotion_discount_reason = " & ".join(
+            [discount.reason for discount in line_discounts if discount.reason]
         )
         unit_discount_reason = (
             f"{unit_discount_reason} & {promotion_discount_reason}"
@@ -353,6 +350,13 @@ def _create_order_line_discounts(
         discount_data["line_id"] = order_line.pk
         line_discounts.append(OrderLineDiscount(**discount_data))
     return line_discounts
+
+
+def _get_sale_id(line_discounts: list[OrderLineDiscount]):
+    for discount in line_discounts:
+        if discount.type == DiscountType.PROMOTION:
+            if rule := discount.promotion_rule:
+                return get_sale_id(rule.promotion)
 
 
 def _create_lines_for_order(
@@ -473,7 +477,10 @@ def _prepare_order_data(
     )
     undiscounted_total = (
         sum(
-            [line.line.undiscounted_total_price for line in order_data["lines"]],
+            [
+                line_data.line.undiscounted_total_price
+                for line_data in order_data["lines"]
+            ],
             start=zero_taxed_money(taxed_total.currency),
         )
         + shipping_total
@@ -576,7 +583,7 @@ def _create_order(
         tax_exemption=checkout_info.checkout.tax_exemption,
     )
 
-    _handle_checkout_discount(order, checkout)
+    _create_order_discount(order, checkout_info)
 
     order_lines: list[OrderLine] = []
     order_line_discounts: list[OrderLineDiscount] = []
@@ -1053,12 +1060,28 @@ def _handle_allocations_of_order_lines(
     )
 
 
-def _handle_checkout_discount(order: "Order", checkout: "Checkout"):
-    if checkout.discount:
-        # store voucher as a fixed value as it this the simplest solution for now.
-        # This will be solved when we refactor the voucher logic to use .discounts
-        # relations
+def _create_order_discount(order: "Order", checkout_info: "CheckoutInfo"):
+    checkout = checkout_info.checkout
+    checkout_discount = checkout.discounts.first()
+    is_voucher_discount = checkout.discount and not checkout_discount
+    is_promotion_discount = (
+        checkout_discount and checkout_discount.type == DiscountType.ORDER_PROMOTION
+    )
 
+    if is_promotion_discount:
+        checkout_discount = cast(CheckoutDiscount, checkout_discount)
+        discount_data = model_to_dict(checkout_discount)
+        discount_data["promotion_rule"] = checkout_discount.promotion_rule
+        del discount_data["checkout"]
+        order.discounts.create(**discount_data)
+
+    if is_voucher_discount:
+        # Currently, we don't create `CheckoutDiscount` of type VOUCHER, so if there is
+        # discount on checkout, but not related `CheckoutDiscount`, we assume it is
+        # a voucher discount.
+        # Store voucher as a fixed value as it this the simplest solution for now.
+        # This will be solved when we refactor the voucher logic to use .discounts
+        # relations.
         order.discounts.create(
             type=DiscountType.VOUCHER,
             value_type=DiscountValueType.FIXED,
@@ -1067,6 +1090,10 @@ def _handle_checkout_discount(order: "Order", checkout: "Checkout"):
             translated_name=checkout.translated_discount_name,
             currency=checkout.currency,
             amount_value=checkout.discount_amount,
+            voucher=checkout_info.voucher,
+            voucher_code=checkout_info.voucher_code.code
+            if checkout_info.voucher_code
+            else None,
         )
 
 
@@ -1199,7 +1226,7 @@ def _create_order_from_checkout(
     )
 
     # checkout discount
-    _handle_checkout_discount(order, checkout_info.checkout)
+    _create_order_discount(order, checkout_info)
 
     # lines
     order_lines_info = _create_order_lines_from_checkout_lines(
@@ -1213,7 +1240,7 @@ def _create_order_from_checkout(
     # update undiscounted order total
     undiscounted_total = (
         sum(
-            [line.line.undiscounted_total_price for line in order_lines_info],
+            [line_info.line.undiscounted_total_price for line_info in order_lines_info],
             start=zero_taxed_money(taxed_total.currency),
         )
         + shipping_total
@@ -1319,7 +1346,7 @@ def create_order_from_checkout(
         # ensure that we are processing checkout on the current data.
         checkout_lines, _ = fetch_checkout_lines(checkout, voucher=voucher)
         checkout_info = fetch_checkout_info(
-            checkout, checkout_lines, manager, voucher=voucher
+            checkout, checkout_lines, manager, voucher=voucher, voucher_code=code
         )
         assign_checkout_user(user, checkout_info)
 
@@ -1379,7 +1406,19 @@ def complete_checkout(
     private_metadata_list: Optional[list] = None,
 ) -> tuple[Optional[Order], bool, dict]:
     transactions = checkout_info.checkout.payment_transactions.all()
-    fetch_checkout_data(checkout_info, manager, lines)
+
+    force_update = checkout_info.checkout.tax_error is not None
+    fetch_checkout_data(
+        checkout_info,
+        manager,
+        lines,
+        force_update=force_update,
+    )
+    if checkout_info.checkout.tax_error is not None:
+        raise ValidationError(
+            "Configured Tax App didn't responded.",
+            code=CheckoutErrorCode.TAX_ERROR.value,
+        )
 
     # When checkout is zero, we don't need any transaction to cover the checkout total.
     # We check if checkout is zero, and we also check what flow for marking an order as

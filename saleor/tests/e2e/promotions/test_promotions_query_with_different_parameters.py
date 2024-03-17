@@ -22,9 +22,10 @@ def test_step_1_query_promotions_first_10_CORE_2118(
         [permission_manage_discounts],
     )
 
+    promotion_type = "CATALOGUE"
     for i in range(11):
         promotion_name = f"Promotion first {i + 1}"
-        create_promotion(e2e_staff_api_client, promotion_name)
+        create_promotion(e2e_staff_api_client, promotion_name, promotion_type)
 
     promotions_list = promotions_query(e2e_staff_api_client, first=10)
 
@@ -42,11 +43,14 @@ def test_step_2_query_promotions_first_10_created_at_CORE_2118(
         [permission_manage_discounts],
     )
 
-    promotion_dnm = create_promotion(e2e_staff_api_client, "Promotion does not match")
+    promotion_type = "CATALOGUE"
+    promotion_dnm = create_promotion(
+        e2e_staff_api_client, "Promotion does not match", promotion_type
+    )
 
     for i in range(10):
         promotion_name = f"Promotion {i + 1}"
-        create_promotion(e2e_staff_api_client, promotion_name)
+        create_promotion(e2e_staff_api_client, promotion_name, promotion_type)
 
     promotions_list = promotions_query(
         e2e_staff_api_client,
@@ -79,7 +83,10 @@ def test_step_3_query_promotions_first_10_start_date_before_CORE_2118(
         [permission_manage_discounts],
     )
 
-    promotion_dnm = create_promotion(e2e_staff_api_client, "Promotion does not match")
+    promotion_type = "CATALOGUE"
+    promotion_dnm = create_promotion(
+        e2e_staff_api_client, "Promotion does not match", promotion_type
+    )
 
     base_date = datetime(2023, 1, 1, 14, 1, 34, 61119)
 
@@ -88,7 +95,10 @@ def test_step_3_query_promotions_first_10_start_date_before_CORE_2118(
             promotion_name = f"Promotion start date before {i + 1}"
             start_date = (base_date - timedelta(days=i + 1)).isoformat() + "+00:00"
             promotion = create_promotion(
-                e2e_staff_api_client, promotion_name, start_date
+                e2e_staff_api_client,
+                promotion_name,
+                promotion_type,
+                start_date=start_date,
             )
             assert promotion["startDate"] == start_date
 
@@ -135,7 +145,9 @@ def test_step_4_old_sales_CORE_2118(
             sale_type="FIXED",
         )
 
-    promotion_dnm = create_promotion(e2e_staff_api_client, "Promotion does not match")
+    promotion_dnm = create_promotion(
+        e2e_staff_api_client, "Promotion does not match", "CATALOGUE"
+    )
 
     old_sale_promotions = promotions_query(
         e2e_staff_api_client,
@@ -160,10 +172,13 @@ def test_step_5_promotions_with_metadata_CORE_211(
     )
 
     metadata = []
+    promotion_type = "CATALOGUE"
 
     for i in range(10):
         promotion_name = f"Promotion with metadata {i + 1}"
-        promotion_with_metadata = create_promotion(e2e_staff_api_client, promotion_name)
+        promotion_with_metadata = create_promotion(
+            e2e_staff_api_client, promotion_name, promotion_type
+        )
         promotion_id = promotion_with_metadata["id"]
         assert promotion_id is not None
 
@@ -173,7 +188,10 @@ def test_step_5_promotions_with_metadata_CORE_211(
             promotion_id,
             metadata,
         )
-    promotion_dnm = create_promotion(e2e_staff_api_client, "Promotion does not match")
+
+    promotion_dnm = create_promotion(
+        e2e_staff_api_client, "Promotion does not match", promotion_type
+    )
 
     promotions_list = promotions_query(
         e2e_staff_api_client, first=11, where={"metadata": [{"key": "pub"}]}
@@ -196,17 +214,16 @@ def test_step_6_promotions_with_one_of_names_CORE_2118(
         [permission_manage_discounts],
     )
 
+    promotion_type = "CATALOGUE"
     for i in range(3):
         promotion_name = f"Promotion {i + 1}"
-        create_promotion(
-            e2e_staff_api_client,
-            promotion_name,
-        )
+        create_promotion(e2e_staff_api_client, promotion_name, promotion_type)
     for i in range(3):
         promotion_name = f"Test {i + 1}"
         create_promotion(
             e2e_staff_api_client,
             promotion_name,
+            promotion_type,
         )
     promotions_list = promotions_query(
         e2e_staff_api_client,
@@ -228,11 +245,13 @@ def test_step_7_promotions_with_name_eq_CORE_2118(
         e2e_staff_api_client,
         [permission_manage_discounts],
     )
+    promotion_type = "CATALOGUE"
     for i in range(3):
         promotion_name = f"Promotion {i + 1}"
         create_promotion(
             e2e_staff_api_client,
             promotion_name,
+            promotion_type,
         )
     promotions_list = promotions_query(
         e2e_staff_api_client,
@@ -262,7 +281,7 @@ def test_step_8_query_old_sales_with_name_CORE_2118(
             sale_type="FIXED",
         )
 
-    promotion_dnm = create_promotion(e2e_staff_api_client, "Old sale 2")
+    promotion_dnm = create_promotion(e2e_staff_api_client, "Old sale 2", "CATALOGUE")
 
     promotions = promotions_query(
         e2e_staff_api_client,
@@ -326,6 +345,7 @@ def test_step_10_promotions_with_end_date_after_CORE_2118(
     )
     base_date = datetime(2023, 1, 1, 14, 1, 34, 61119)
     now = base_date.isoformat()
+    promotion_type = "CATALOGUE"
 
     with freeze_time(now):
         for i in range(10):
@@ -337,6 +357,7 @@ def test_step_10_promotions_with_end_date_after_CORE_2118(
             promotion = create_promotion(
                 e2e_staff_api_client,
                 promotion_name,
+                promotion_type,
                 start_date="2023-10-04T00:00:00+02:00",
                 end_date=end_date,
             )
@@ -345,6 +366,7 @@ def test_step_10_promotions_with_end_date_after_CORE_2118(
     promotion_dnm = create_promotion(
         e2e_staff_api_client,
         "Promotion does not match",
+        promotion_type,
         end_date="2024-12-31T21:00:00.000000+00:00",
     )
 
@@ -386,9 +408,12 @@ def test_step_11_promotions_with_no_date_CORE_2118(
         e2e_staff_api_client,
         [permission_manage_discounts],
     )
+    promotion_type = "CATALOGUE"
     for i in range(10):
         promotion_name = f"Promotion without end date {i + 1}"
-        promotion = create_promotion(e2e_staff_api_client, promotion_name)
+        promotion = create_promotion(
+            e2e_staff_api_client, promotion_name, promotion_type
+        )
         assert promotion["endDate"] is None
 
     base_date = datetime(2023, 1, 1, 14, 1, 34, 61119)
@@ -401,6 +426,7 @@ def test_step_11_promotions_with_no_date_CORE_2118(
         promotion_dnm = create_promotion(
             e2e_staff_api_client,
             promotion_name="With end date",
+            promotion_type=promotion_type,
             start_date="2023-10-04T00:00:00+02:00",
             end_date=end_date,
         )

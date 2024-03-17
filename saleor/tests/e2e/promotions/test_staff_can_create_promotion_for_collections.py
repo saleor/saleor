@@ -1,5 +1,6 @@
 import pytest
 
+from ....product.tasks import recalculate_discounted_price_for_products_task
 from ..product.utils import (
     create_category,
     create_collection,
@@ -95,24 +96,34 @@ def test_create_promotion_for_collection_core_2109(
     discount_type = "PERCENTAGE"
     promotion_rule_name = "rule for collections"
 
-    promotion_data = create_promotion(e2e_staff_api_client, promotion_name)
+    promotion_type = "CATALOGUE"
+    promotion_data = create_promotion(
+        e2e_staff_api_client, promotion_name, promotion_type
+    )
     promotion_id = promotion_data["id"]
 
     collection_ids = [collection_id]
     predicate_input = {"collectionPredicate": {"ids": collection_ids}}
+    input = {
+        "promotion": promotion_id,
+        "channels": [channel_id],
+        "name": promotion_rule_name,
+        "cataloguePredicate": predicate_input,
+        "rewardValue": discount_value,
+        "rewardValueType": discount_type,
+    }
     promotion_rule = create_promotion_rule(
         e2e_staff_api_client,
-        promotion_id,
-        predicate_input,
-        discount_type,
-        discount_value,
-        promotion_rule_name,
-        channel_id,
+        input,
     )
 
     collection_predicate = promotion_rule["cataloguePredicate"]["collectionPredicate"]
     assert promotion_rule["channels"][0]["id"] == channel_id
     assert collection_predicate["ids"][0] == collection_id
+
+    # prices are updated in the background, we need to force it to retrieve the correct
+    # ones
+    recalculate_discounted_price_for_products_task()
 
     # Step 2 Get product and verify that is on sale
     product_data = get_product(e2e_staff_api_client, product_id, channel_slug)

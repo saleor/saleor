@@ -334,6 +334,8 @@ def create_order_line_discounts(
     line_discounts_to_create: list[OrderLineDiscount] = []
     for rule_info in rules_info:
         rule = rule_info.rule
+        if not rule_info.variant_listing_promotion_rule:
+            continue
         rule_discount_amount = rule_info.variant_listing_promotion_rule.discount_amount
         line_discounts_to_create.append(
             OrderLineDiscount(

@@ -1,4 +1,5 @@
 from datetime import timedelta
+from decimal import Decimal
 
 import graphene
 from django.utils import timezone
@@ -6,6 +7,7 @@ from django.utils import timezone
 from .....checkout import base_calculations
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from .....discount import RewardValueType
 from .....plugins.manager import get_plugins_manager
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
@@ -20,8 +22,14 @@ MUTATION_CHECKOUT_REMOVE_PROMO_CODE = """
                 message
             }
             checkout {
-                token,
+                token
                 voucherCode
+                lines {
+                    id
+                }
+                discount {
+                    amount
+                }
                 giftCards {
                     id
                     last4CodeChars
@@ -295,6 +303,73 @@ def test_checkout_remove_voucher_code_invalidates_price(
     assert not data["errors"]
     assert data["checkout"]["subtotalPrice"]["gross"]["amount"] == subtotal.amount
     assert data["checkout"]["totalPrice"]["gross"]["amount"] == expected_total
+
+
+def test_checkout_remove_voucher_code_order_promotion_discount_applied(
+    api_client, checkout_with_voucher, order_promotion_rule
+):
+    # given
+    checkout = checkout_with_voucher
+    reward_value = Decimal("5")
+    order_promotion_rule.reward_value = reward_value
+    order_promotion_rule.reward_value_type = RewardValueType.FIXED
+    order_promotion_rule.save(update_fields=["reward_value", "reward_value_type"])
+
+    assert checkout.voucher_code is not None
+    previous_checkout_last_change = checkout.last_change
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "promoCode": checkout.voucher_code,
+    }
+
+    # when
+    data = _mutate_checkout_remove_promo_code(api_client, variables)
+
+    # then
+    checkout.refresh_from_db()
+    assert not data["errors"]
+    assert data["checkout"]["token"] == str(checkout.token)
+    assert data["checkout"]["voucherCode"] is None
+    assert data["checkout"]["discount"]["amount"] == reward_value
+    assert checkout.voucher_code is None
+    assert checkout.discount_amount == reward_value
+    assert checkout.last_change != previous_checkout_last_change
+    assert checkout.discounts.count() == 1
+
+
+def test_checkout_remove_voucher_code_gift_reward_applied(
+    api_client, checkout_with_voucher, gift_promotion_rule
+):
+    # given
+    checkout = checkout_with_voucher
+
+    assert checkout.voucher_code is not None
+    previous_checkout_last_change = checkout.last_change
+
+    lines_count = checkout.lines.count()
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "promoCode": checkout.voucher_code,
+    }
+
+    # when
+    data = _mutate_checkout_remove_promo_code(api_client, variables)
+
+    # then
+    checkout.refresh_from_db()
+    assert not data["errors"]
+    assert data["checkout"]["token"] == str(checkout.token)
+    assert data["checkout"]["voucherCode"] is None
+    assert data["checkout"]["discount"]["amount"] == 0
+    assert checkout.voucher_code is None
+    assert not checkout.discount_amount
+    assert checkout.last_change != previous_checkout_last_change
+    assert not checkout.discounts.all()
+    assert checkout.lines.count() == lines_count + 1 == len(data["checkout"]["lines"])
+    gift_line = checkout.lines.get(is_gift=True)
+    assert gift_line.discounts.count() == 1
 
 
 def test_with_active_problems_flow(

@@ -69,8 +69,7 @@ jobs:
 
       - name: Run E2E tests
         run: |
-          pytest -m "e2e"
-          pytest --junit-xml=e2e-test-results.xml
+          pytest -m "e2e" --junit-xml=e2e-test-results.xml
       - name: Surface failing tests
         if: always()
         uses: pmeier/pytest-results-action@4c22f3314dfc484aaad53353d3dd8dddf5de6b46 # v0.5.0

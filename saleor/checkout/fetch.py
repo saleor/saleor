@@ -27,7 +27,12 @@ if TYPE_CHECKING:
     from ..account.models import Address, User
     from ..channel.models import Channel
     from ..discount.interface import VariantPromotionRuleInfo, VoucherInfo
-    from ..discount.models import CheckoutLineDiscount, Voucher, VoucherCode
+    from ..discount.models import (
+        CheckoutDiscount,
+        CheckoutLineDiscount,
+        Voucher,
+        VoucherCode,
+    )
     from ..plugins.manager import PluginsManager
     from ..product.models import (
         Collection,
@@ -59,6 +64,13 @@ class CheckoutLineInfo:
         return [
             discount
             for discount in self.discounts
+            if discount.type in [DiscountType.PROMOTION, DiscountType.ORDER_PROMOTION]
+        ]
+
+    def get_catalogue_discounts(self) -> list["CheckoutLineDiscount"]:
+        return [
+            discount
+            for discount in self.discounts
             if discount.type == DiscountType.PROMOTION
         ]
 
@@ -74,6 +86,7 @@ class CheckoutInfo:
     all_shipping_methods: list["ShippingMethodData"]
     tax_configuration: "TaxConfiguration"
     valid_pick_up_points: list["Warehouse"]
+    discounts: list["CheckoutDiscount"]
     voucher: Optional["Voucher"] = None
     voucher_code: Optional["VoucherCode"] = None
 
@@ -240,7 +253,7 @@ def fetch_checkout_lines(
         "variant__channel_listings__channel",
         "variant__channel_listings__variantlistingpromotionrule__promotion_rule__promotion__translations",
         "variant__channel_listings__variantlistingpromotionrule__promotion_rule__translations",
-        "discounts",
+        "discounts__promotion_rule__promotion",
     ]
     if prefetch_variant_attributes:
         prefetch_related_fields.extend(
@@ -268,8 +281,10 @@ def fetch_checkout_lines(
             variant, checkout.channel_id
         )
         translation_language_code = checkout.language_code
-        rules_info = fetch_variant_rules_info(
-            variant_channel_listing, translation_language_code
+        rules_info = (
+            fetch_variant_rules_info(variant_channel_listing, translation_language_code)
+            if not line.is_gift
+            else []
         )
 
         if not skip_recalculation and not _is_variant_valid(
@@ -319,7 +334,7 @@ def fetch_checkout_lines(
             return lines_info, unavailable_variant_pks
         if voucher.type == VoucherType.SPECIFIC_PRODUCT or voucher.apply_once_per_order:
             voucher_info = fetch_voucher_info(voucher)
-            apply_voucher_to_checkout_line(voucher_info, checkout, lines_info)
+            apply_voucher_to_checkout_line(voucher_info, lines_info)
     return lines_info, unavailable_variant_pks
 
 
@@ -368,7 +383,6 @@ def _get_product_channel_listing(
 
 def apply_voucher_to_checkout_line(
     voucher_info: "VoucherInfo",
-    checkout: "Checkout",
     lines_info: Iterable[CheckoutLineInfo],
 ):
     """Attach voucher to valid checkout lines info.
@@ -396,8 +410,10 @@ def apply_voucher_to_checkout_line(
 
 
 def _get_the_cheapest_line(
-    lines_info: Iterable[CheckoutLineInfo],
-):
+    lines_info: Optional[Iterable[CheckoutLineInfo]],
+) -> Optional[CheckoutLineInfo]:
+    if not lines_info:
+        return None
     return min(
         lines_info, key=lambda line_info: line_info.channel_listing.discounted_price
     )
@@ -423,7 +439,7 @@ def fetch_checkout_info(
     if shipping_channel_listings is None:
         shipping_channel_listings = channel.shipping_method_listings.all()
 
-    if not voucher:
+    if not voucher or not voucher_code:
         voucher, voucher_code = get_voucher_for_checkout(
             checkout, channel_slug=channel.slug
         )
@@ -439,6 +455,7 @@ def fetch_checkout_info(
         tax_configuration=tax_configuration,
         all_shipping_methods=[],
         valid_pick_up_points=[],
+        discounts=list(checkout.discounts.all()),
         voucher=voucher,
         voucher_code=voucher_code,
     )
@@ -672,3 +689,14 @@ def update_checkout_info_delivery_method(
     checkout_info.delivery_method_info = get_delivery_method_info(
         delivery_method, checkout_info.shipping_address
     )
+
+
+def find_checkout_line_info(
+    lines: Iterable["CheckoutLineInfo"],
+    line_id: "UUID",
+) -> "CheckoutLineInfo":
+    """Return checkout line info from lines parameter.
+
+    The return value represents the updated version of checkout_line_info parameter.
+    """
+    return next(line_info for line_info in lines if line_info.line.pk == line_id)

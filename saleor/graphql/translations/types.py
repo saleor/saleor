@@ -10,7 +10,12 @@ from ...attribute.models import AttributeValue
 from ...discount import models as discount_models
 from ...menu import models as menu_models
 from ...page import models as page_models
-from ...permission.enums import DiscountPermissions, ShippingPermissions
+from ...permission.enums import (
+    DiscountPermissions,
+    PagePermissions,
+    ProductPermissions,
+    ShippingPermissions,
+)
 from ...product import models as product_models
 from ...shipping import models as shipping_models
 from ...site import models as site_models
@@ -29,11 +34,16 @@ from ..core.fields import JSONString, PermissionsField
 from ..core.tracing import traced_resolver
 from ..core.types import LanguageDisplay, ModelObjectType, NonNullList
 from ..core.utils import str_to_enum
-from ..page.dataloaders import SelectedAttributesByPageIdLoader
-from ..product.dataloaders import (
-    SelectedAttributesByProductIdLoader,
-    SelectedAttributesByProductVariantIdLoader,
+from ..page.dataloaders import (
+    SelectedAttributesAllByPageIdLoader,
+    SelectedAttributesVisibleInStorefrontPageIdLoader,
 )
+from ..product.dataloaders import (
+    SelectedAttributesAllByProductIdLoader,
+    SelectedAttributesByProductVariantIdLoader,
+    SelectedAttributesVisibleInStorefrontByProductIdLoader,
+)
+from ..utils import get_user_or_app_from_context
 from .fields import TranslationField
 
 
@@ -320,11 +330,23 @@ class ProductTranslatableContent(ModelObjectType[product_models.Product]):
 
     @staticmethod
     def resolve_attribute_values(root: product_models.Product, info):
-        return (
-            SelectedAttributesByProductIdLoader(info.context)
-            .load(root.id)
-            .then(get_translatable_attribute_values)
-        )
+        requestor = get_user_or_app_from_context(info.context)
+        if (
+            requestor
+            and requestor.is_active
+            and requestor.has_perm(ProductPermissions.MANAGE_PRODUCTS)
+        ):
+            return (
+                SelectedAttributesAllByProductIdLoader(info.context)
+                .load(root.id)
+                .then(get_translatable_attribute_values)
+            )
+        else:
+            return (
+                SelectedAttributesVisibleInStorefrontByProductIdLoader(info.context)
+                .load(root.id)
+                .then(get_translatable_attribute_values)
+            )
 
 
 class CollectionTranslation(BaseTranslationType[product_models.CollectionTranslation]):
@@ -554,11 +576,23 @@ class PageTranslatableContent(ModelObjectType[page_models.Page]):
 
     @staticmethod
     def resolve_attribute_values(root: page_models.Page, info):
-        return (
-            SelectedAttributesByPageIdLoader(info.context)
-            .load(root.id)
-            .then(get_translatable_attribute_values)
-        )
+        requestor = get_user_or_app_from_context(info.context)
+        if (
+            requestor
+            and requestor.is_active
+            and requestor.has_perm(PagePermissions.MANAGE_PAGES)
+        ):
+            return (
+                SelectedAttributesAllByPageIdLoader(info.context)
+                .load(root.id)
+                .then(get_translatable_attribute_values)
+            )
+        else:
+            return (
+                SelectedAttributesVisibleInStorefrontPageIdLoader(info.context)
+                .load(root.id)
+                .then(get_translatable_attribute_values)
+            )
 
 
 class VoucherTranslation(BaseTranslationType[discount_models.VoucherTranslation]):

@@ -109,7 +109,7 @@ QUERY_PROMOTIONS_PAGINATION = """
 
 
 def test_query_promotions_pagination(
-    promotion_list, promotion, staff_api_client, permission_manage_discounts
+    promotion_list, catalogue_promotion, staff_api_client, permission_manage_discounts
 ):
     # given
     end_cursor = None
