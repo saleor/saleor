@@ -334,13 +334,3 @@ def set_promotion_rule_variants_task(start_id=None):
         qs = PromotionRule.objects.filter(pk__in=ids)
         fetch_variants_for_promotion_rules(rules=qs)
         set_promotion_rule_variants_task.delay(ids[-1])
-
-
-@app.task
-def set_discount_type_to_promotion_catalogue_task():
-    BATCH_SIZE = 100
-    lines = OrderLineDiscount.objects.filter(type=DiscountType.PROMOTION)[:BATCH_SIZE]
-    if not lines:
-        return
-    lines.update(type=DiscountType.CATALOGUE_PROMOTION)
-    set_discount_type_to_promotion_catalogue_task.delay()
