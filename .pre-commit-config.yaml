@@ -11,7 +11,7 @@ repos:
         exclude_types: [svg]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.3.2
+    rev: v0.3.3
     hooks:
       - id: ruff
       - id: ruff-format
@@ -24,7 +24,7 @@ repos:
         exclude: tests/
 
   - repo: https://github.com/fpgmaas/deptry.git
-    rev: "0.12.0"
+    rev: "0.14.0"
     hooks:
       - id: deptry
 
