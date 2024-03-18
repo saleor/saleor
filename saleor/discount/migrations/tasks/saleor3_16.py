@@ -106,9 +106,9 @@ def migrate_sales(sales):
     )
     migrate_translations(sale_ids, saleid_promotion_map)
 
-    rule_by_channel_and_sale = get_rule_by_channel_sale(rules_info)
-    migrate_checkout_line_discounts_task.delay(sale_ids, rule_by_channel_and_sale)
-    migrate_order_line_discounts_task.delay(sale_ids, rule_by_channel_and_sale)
+    rule_id_by_channel_sale = get_rule_id_by_channel_sale(rules_info)
+    migrate_checkout_line_discounts_task.delay(sale_ids, rule_id_by_channel_sale)
+    migrate_order_line_discounts_task.delay(sale_ids, rule_id_by_channel_sale)
 
 
 @app.task
@@ -292,7 +292,7 @@ def migrate_translations(sale_ids, saleid_promotion_map):
 
 
 @app.task
-def migrate_checkout_line_discounts_task(sale_ids, rule_by_channel_and_sale):
+def migrate_checkout_line_discounts_task(sale_ids, rule_id_by_channel_sale):
     checkout_line_discounts = CheckoutLineDiscount.objects.filter(
         sale_id__in=sale_ids
     ).exclude(type="promotion")[:CHECKOUT_LINE_DISCOUNT_BATCH_SIZE]
@@ -311,18 +311,18 @@ def migrate_checkout_line_discounts_task(sale_ids, rule_by_channel_and_sale):
                 channel_id = checkout_line.checkout.channel_id
                 sale_id = checkout_line_discount.sale_id
                 lookup = f"{channel_id}_{sale_id}"
-                if promotion_rule := rule_by_channel_and_sale.get(lookup):
-                    checkout_line_discount.promotion_rule = promotion_rule
+                if promotion_rule_id := rule_id_by_channel_sale.get(lookup):
+                    checkout_line_discount.promotion_rule_id = promotion_rule_id
 
         CheckoutLineDiscount.objects.bulk_update(
             discounts_to_update, ["promotion_rule_id", "type"]
         )
-        migrate_checkout_line_discounts_task.delay(sale_ids, rule_by_channel_and_sale)
+        migrate_checkout_line_discounts_task.delay(sale_ids, rule_id_by_channel_sale)
 
 
 @app.task
 def migrate_order_line_discounts_task(
-    sale_ids, rule_by_channel_and_sale, last_created_at=None, already_processed_ids=None
+    sale_ids, rule_id_by_channel_sale, last_created_at=None, already_processed_ids=None
 ):
     global_pks = [graphene.Node.to_global_id("Sale", pk) for pk in sale_ids]
     filter_lookup = {"sale_id__in": global_pks}
@@ -345,11 +345,16 @@ def migrate_order_line_discounts_task(
             .select_related("order")
         )
         order_line_discounts = []
+        rule_ids = list(rule_id_by_channel_sale.values())
+        rules_in_bulk = PromotionRule.objects.filter(id__in=rule_ids).in_bulk()
         for order_line in order_lines:
             channel_id = order_line.order.channel_id
             sale_id = graphene.Node.from_global_id(order_line.sale_id)[1]
             lookup = f"{channel_id}_{sale_id}"
-            if rule := rule_by_channel_and_sale.get(lookup):
+            if rule_id := rule_id_by_channel_sale.get(lookup):
+                rule = rules_in_bulk.get(rule_id)
+                if not rule:
+                    continue
                 order_line_discounts.append(
                     OrderLineDiscount(
                         type="promotion",
@@ -367,7 +372,7 @@ def migrate_order_line_discounts_task(
         )
         OrderLineDiscount.objects.bulk_create(order_line_discounts)
         migrate_order_line_discounts_task.delay(
-            sale_ids, rule_by_channel_and_sale, last_created_at, already_processed_ids
+            sale_ids, rule_id_by_channel_sale, last_created_at, already_processed_ids
         )
 
 
@@ -378,9 +383,9 @@ def get_discount_amount_value(order_line):
     return price.quantize(number_places)
 
 
-def get_rule_by_channel_sale(rules_info):
+def get_rule_id_by_channel_sale(rules_info):
     return {
-        f"{rule_info.channel_id}_{rule_info.sale_id}": rule_info.rule
+        f"{rule_info.channel_id}_{rule_info.sale_id}": rule_info.rule.id
         for rule_info in rules_info
     }
 
