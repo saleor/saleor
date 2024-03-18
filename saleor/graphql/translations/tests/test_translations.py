@@ -3094,8 +3094,10 @@ QUERY_TRANSLATION_PRODUCT = """
             __typename
             ...on ProductTranslatableContent{
                 id
+                productId
                 name
                 translation(languageCode: $languageCode){
+                    id
                     name
                 }
             }
@@ -3111,7 +3113,9 @@ def test_translation_query_product(
     product_translation_fr,
 ):
     product_id = graphene.Node.to_global_id("Product", product.id)
-
+    translation_id = graphene.Node.to_global_id(
+        "ProductTranslation", product_translation_fr.id
+    )
     variables = {
         "id": product_id,
         "kind": TranslatableKinds.PRODUCT.name,
@@ -3124,7 +3128,9 @@ def test_translation_query_product(
     )
     content = get_graphql_content(response)
     data = content["data"]["translation"]
+    assert data["productId"] == product_id
     assert data["name"] == product.name
+    assert data["translation"]["id"] == translation_id
     assert data["translation"]["name"] == product_translation_fr.name
 
 
@@ -3136,8 +3142,10 @@ QUERY_TRANSLATION_COLLECTION = """
             __typename
             ...on CollectionTranslatableContent{
                 id
+                collectionId
                 name
                 translation(languageCode: $languageCode){
+                    id
                     name
                 }
             }
@@ -3156,6 +3164,9 @@ def test_translation_query_collection(
     channel_listing = published_collection.channel_listings.get()
     channel_listing.save()
     collection_id = graphene.Node.to_global_id("Collection", published_collection.id)
+    translation_id = graphene.Node.to_global_id(
+        "CollectionTranslation", collection_translation_fr.id
+    )
 
     variables = {
         "id": collection_id,
@@ -3169,7 +3180,9 @@ def test_translation_query_collection(
     )
     content = get_graphql_content(response)
     data = content["data"]["translation"]
+    assert data["collectionId"] == collection_id
     assert data["name"] == published_collection.name
+    assert data["translation"]["id"] == translation_id
     assert data["translation"]["name"] == collection_translation_fr.name
 
 
@@ -3181,9 +3194,15 @@ QUERY_TRANSLATION_CATEGORY = """
             __typename
             ...on CategoryTranslatableContent{
                 id
+                categoryId
                 name
                 translation(languageCode: $languageCode){
+                    id
                     name
+                    translatableContent {
+                        id
+                        name
+                    }
                 }
             }
         }
@@ -3195,7 +3214,9 @@ def test_translation_query_category(
     staff_api_client, category, category_translation_fr, permission_manage_translations
 ):
     category_id = graphene.Node.to_global_id("Category", category.id)
-
+    translation_id = graphene.Node.to_global_id(
+        "CategoryTranslation", category_translation_fr.id
+    )
     variables = {
         "id": category_id,
         "kind": TranslatableKinds.CATEGORY.name,
@@ -3208,8 +3229,10 @@ def test_translation_query_category(
     )
     content = get_graphql_content(response)
     data = content["data"]["translation"]
+    assert data["categoryId"] == category_id
     assert data["name"] == category.name
     assert data["translation"]["name"] == category_translation_fr.name
+    assert data["translation"]["id"] == translation_id
 
 
 QUERY_TRANSLATION_ATTRIBUTE = """
@@ -3220,8 +3243,10 @@ QUERY_TRANSLATION_ATTRIBUTE = """
             __typename
             ...on AttributeTranslatableContent{
                 id
+                attributeId
                 name
                 translation(languageCode: $languageCode){
+                    id
                     name
                 }
             }
@@ -3235,6 +3260,9 @@ def test_translation_query_attribute(
 ):
     attribute = translated_attribute.attribute
     attribute_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    translation_id = graphene.Node.to_global_id(
+        "AttributeTranslation", translated_attribute.id
+    )
 
     variables = {
         "id": attribute_id,
@@ -3248,7 +3276,9 @@ def test_translation_query_attribute(
     )
     content = get_graphql_content(response)
     data = content["data"]["translation"]
+    assert data["attributeId"] == attribute_id
     assert data["name"] == attribute.name
+    assert data["translation"]["id"] == translation_id
     assert data["translation"]["name"] == translated_attribute.name
 
 
@@ -3260,8 +3290,10 @@ QUERY_TRANSLATION_ATTRIBUTE_VALUE = """
             __typename
             ...on AttributeValueTranslatableContent{
                 id
+                attributeValueId
                 name
                 translation(languageCode: $languageCode){
+                    id
                     name
                 }
             }
@@ -3279,6 +3311,9 @@ def test_translation_query_attribute_value(
     attribute_value_id = graphene.Node.to_global_id(
         "AttributeValue", pink_attribute_value.id
     )
+    translation_id = graphene.Node.to_global_id(
+        "AttributeValueTranslation", translated_attribute_value.id
+    )
 
     variables = {
         "id": attribute_value_id,
@@ -3292,7 +3327,9 @@ def test_translation_query_attribute_value(
     )
     content = get_graphql_content(response)
     data = content["data"]["translation"]
+    assert data["attributeValueId"] == attribute_value_id
     assert data["name"] == pink_attribute_value.name
+    assert data["translation"]["id"] == translation_id
     assert data["translation"]["name"] == translated_attribute_value.name
 
 
@@ -3304,8 +3341,10 @@ QUERY_TRANSLATION_VARIANT = """
             __typename
             ...on ProductVariantTranslatableContent{
                 id
+                productVariantId
                 name
                 translation(languageCode: $languageCode){
+                    id
                     name
                 }
             }
@@ -3322,6 +3361,9 @@ def test_translation_query_variant(
     variant_translation_fr,
 ):
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    translation_id = graphene.Node.to_global_id(
+        "ProductVariantTranslation", variant_translation_fr.id
+    )
     variables = {
         "id": variant_id,
         "kind": TranslatableKinds.VARIANT.name,
@@ -3334,7 +3376,9 @@ def test_translation_query_variant(
     )
     content = get_graphql_content(response)
     data = content["data"]["translation"]
+    assert data["productVariantId"] == variant_id
     assert data["name"] == variant.name
+    assert data["translation"]["id"] == translation_id
     assert data["translation"]["name"] == variant_translation_fr.name
 
 
@@ -3346,8 +3390,10 @@ QUERY_TRANSLATION_PAGE = """
             __typename
             ...on PageTranslatableContent{
                 id
+                pageId
                 title
                 translation(languageCode: $languageCode){
+                    id
                     title
                 }
             }
@@ -3375,6 +3421,9 @@ def test_translation_query_page(
     page.save()
 
     page_id = graphene.Node.to_global_id("Page", page.id)
+    translation_id = graphene.Node.to_global_id(
+        "PageTranslation", page_translation_fr.id
+    )
     perms = list(Permission.objects.filter(codename__in=perm_codenames))
 
     variables = {
@@ -3387,7 +3436,9 @@ def test_translation_query_page(
     )
     content = get_graphql_content(response)
     data = content["data"]["translation"]
+    assert data["pageId"] == page_id
     assert data["title"] == page.title
+    assert data["translation"]["id"] == translation_id
     assert data["translation"]["title"] == page_translation_fr.title
 
 
@@ -3399,9 +3450,11 @@ QUERY_TRANSLATION_SHIPPING_METHOD = """
             __typename
             ...on ShippingMethodTranslatableContent{
                 id
+                shippingMethodId
                 name
                 description
                 translation(languageCode: $languageCode){
+                    id
                     name
                 }
             }
@@ -3427,6 +3480,9 @@ def test_translation_query_shipping_method(
     shipping_method_id = graphene.Node.to_global_id(
         "ShippingMethodType", shipping_method.id
     )
+    translation_id = graphene.Node.to_global_id(
+        "ShippingMethodTranslation", shipping_method_translation_fr.id
+    )
     perms = list(Permission.objects.filter(codename__in=perm_codenames))
 
     variables = {
@@ -3439,8 +3495,10 @@ def test_translation_query_shipping_method(
     )
     content = get_graphql_content(response, ignore_errors=True)
     data = content["data"]["translation"]
+    assert data["shippingMethodId"] == shipping_method_id
     assert data["name"] == shipping_method.name
     assert data["description"] == shipping_method.description
+    assert data["translation"]["id"] == translation_id
     assert data["translation"]["name"] == shipping_method_translation_fr.name
 
 
@@ -3452,8 +3510,10 @@ QUERY_TRANSLATION_SALE = """
             __typename
             ...on SaleTranslatableContent{
                 id
+                saleId
                 name
                 translation(languageCode: $languageCode){
+                    id
                     name
                 }
             }
@@ -3474,6 +3534,9 @@ def test_translation_query_sale(
 ):
     sale_id = graphene.Node.to_global_id("Sale", sale.id)
     perms = list(Permission.objects.filter(codename__in=perm_codenames))
+    translation_id = graphene.Node.to_global_id(
+        "SaleTranslation", sale_translation_fr.id
+    )
 
     variables = {
         "id": sale_id,
@@ -3485,7 +3548,9 @@ def test_translation_query_sale(
     )
     content = get_graphql_content(response, ignore_errors=True)
     data = content["data"]["translation"]
+    assert data["saleId"] == sale_id
     assert data["name"] == sale.name
+    assert data["translation"]["id"] == translation_id
     assert data["translation"]["name"] == sale_translation_fr.name
 
 
@@ -3497,8 +3562,10 @@ QUERY_TRANSLATION_VOUCHER = """
             __typename
             ...on VoucherTranslatableContent{
                 id
+                voucherId
                 name
                 translation(languageCode: $languageCode){
+                    id
                     name
                 }
             }
@@ -3518,6 +3585,9 @@ def test_translation_query_voucher(
     staff_api_client, voucher, voucher_translation_fr, perm_codenames, return_voucher
 ):
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+    translation_id = graphene.Node.to_global_id(
+        "VoucherTranslation", voucher_translation_fr.id
+    )
     perms = list(Permission.objects.filter(codename__in=perm_codenames))
 
     variables = {
@@ -3530,7 +3600,9 @@ def test_translation_query_voucher(
     )
     content = get_graphql_content(response, ignore_errors=True)
     data = content["data"]["translation"]
+    assert data["voucherId"] == voucher_id
     assert data["name"] == voucher.name
+    assert data["translation"]["id"] == translation_id
     assert data["translation"]["name"] == voucher_translation_fr.name
 
 
@@ -3542,8 +3614,10 @@ QUERY_TRANSLATION_MENU_ITEM = """
             __typename
             ...on MenuItemTranslatableContent{
                 id
+                menuItemId
                 name
                 translation(languageCode: $languageCode){
+                    id
                     name
                 }
             }
@@ -3559,6 +3633,9 @@ def test_translation_query_menu_item(
     permission_manage_translations,
 ):
     menu_item_id = graphene.Node.to_global_id("MenuItem", menu_item.id)
+    translation_id = graphene.Node.to_global_id(
+        "MenuItemTranslation", menu_item_translation_fr.id
+    )
 
     variables = {
         "id": menu_item_id,
@@ -3572,7 +3649,9 @@ def test_translation_query_menu_item(
     )
     content = get_graphql_content(response)
     data = content["data"]["translation"]
+    assert data["menuItemId"] == menu_item_id
     assert data["name"] == menu_item.name
+    assert data["translation"]["id"] == translation_id
     assert data["translation"]["name"] == menu_item_translation_fr.name
 
 
