@@ -4172,6 +4172,13 @@ type ShippingMethodTranslation implements Node @doc(category: "Shipping") {
   Rich text format. For reference see https://editorjs.io/
   """
   description: JSONString
+
+  """
+  Represents the shipping method fields to translate.
+  
+  Added in Saleor 3.14.
+  """
+  translatableContent: ShippingMethodTranslatableContent
 }
 
 type LanguageDisplay {
@@ -4963,6 +4970,44 @@ enum LanguageCodeEnum {
   ZH_HANT_TW
   ZU
   ZU_ZA
+}
+
+"""
+Represents shipping method's original translatable fields and related translations.
+"""
+type ShippingMethodTranslatableContent implements Node @doc(category: "Shipping") {
+  """The ID of the shipping method translatable content."""
+  id: ID!
+
+  """
+  The ID of the shipping method to translate.
+  
+  Added in Saleor 3.14.
+  """
+  shippingMethodId: ID!
+
+  """Shipping method name to translate."""
+  name: String!
+
+  """
+  Shipping method description to translate.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  description: JSONString
+
+  """Returns translated shipping method fields for the given language code."""
+  translation(
+    """A language code to return the translation for shipping method."""
+    languageCode: LanguageCodeEnum!
+  ): ShippingMethodTranslation
+
+  """
+  Shipping method are the methods you'll use to get customer's orders  to them. They are directly exposed to the customers.
+  
+  Requires one of the following permissions: MANAGE_SHIPPING.
+  """
+  shippingMethod: ShippingMethodType @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
 }
 
 """Represents shipping method channel listing."""
@@ -6492,6 +6537,103 @@ type AttributeValueTranslation implements Node @doc(category: "Attributes") {
 
   """Translated plain text attribute value ."""
   plainText: String
+
+  """
+  Represents the attribute value fields to translate.
+  
+  Added in Saleor 3.14.
+  """
+  translatableContent: AttributeValueTranslatableContent
+}
+
+"""
+Represents attribute value's original translatable fields and related translations.
+"""
+type AttributeValueTranslatableContent implements Node @doc(category: "Attributes") {
+  """The ID of the attribute value translatable content."""
+  id: ID!
+
+  """
+  The ID of the attribute value to translate.
+  
+  Added in Saleor 3.14.
+  """
+  attributeValueId: ID!
+
+  """Name of the attribute value to translate."""
+  name: String!
+
+  """
+  Attribute value.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  richText: JSONString
+
+  """Attribute plain text value."""
+  plainText: String
+
+  """Returns translated attribute value fields for the given language code."""
+  translation(
+    """A language code to return the translation for attribute value."""
+    languageCode: LanguageCodeEnum!
+  ): AttributeValueTranslation
+
+  """Represents a value of an attribute."""
+  attributeValue: AttributeValue @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
+
+  """
+  Associated attribute that can be translated.
+  
+  Added in Saleor 3.9.
+  """
+  attribute: AttributeTranslatableContent
+}
+
+"""
+Represents attribute's original translatable fields and related translations.
+"""
+type AttributeTranslatableContent implements Node @doc(category: "Attributes") {
+  """The ID of the attribute translatable content."""
+  id: ID!
+
+  """
+  The ID of the attribute to translate.
+  
+  Added in Saleor 3.14.
+  """
+  attributeId: ID!
+
+  """Name of the attribute to translate."""
+  name: String!
+
+  """Returns translated attribute fields for the given language code."""
+  translation(
+    """A language code to return the translation for attribute."""
+    languageCode: LanguageCodeEnum!
+  ): AttributeTranslation
+
+  """Custom attribute of a product."""
+  attribute: Attribute @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
+}
+
+"""Represents attribute translations."""
+type AttributeTranslation implements Node @doc(category: "Attributes") {
+  """The ID of the attribute translation."""
+  id: ID!
+
+  """Translation language."""
+  language: LanguageDisplay!
+
+  """Translated attribute name."""
+  name: String!
+
+  """
+  Represents the attribute fields to translate.
+  
+  Added in Saleor 3.14.
+  """
+  translatableContent: AttributeTranslatableContent
 }
 
 type File {
@@ -6529,18 +6671,6 @@ input AttributeValueFilterInput @doc(category: "Attributes") {
   search: String
   ids: [ID!]
   slugs: [String!]
-}
-
-"""Represents attribute translations."""
-type AttributeTranslation implements Node @doc(category: "Attributes") {
-  """The ID of the attribute translation."""
-  id: ID!
-
-  """Translation language."""
-  language: LanguageDisplay!
-
-  """Translated attribute name."""
-  name: String!
 }
 
 type ProductTypeCountableConnection @doc(category: "Products") {
@@ -7317,6 +7447,60 @@ type CategoryTranslation implements Node @doc(category: "Products") {
   Rich text format. For reference see https://editorjs.io/
   """
   descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
+
+  """
+  Represents the category fields to translate.
+  
+  Added in Saleor 3.14.
+  """
+  translatableContent: CategoryTranslatableContent
+}
+
+"""
+Represents category original translatable fields and related translations.
+"""
+type CategoryTranslatableContent implements Node @doc(category: "Products") {
+  """The ID of the category translatable content."""
+  id: ID!
+
+  """
+  The ID of the category to translate.
+  
+  Added in Saleor 3.14.
+  """
+  categoryId: ID!
+
+  """SEO title to translate."""
+  seoTitle: String
+
+  """SEO description to translate."""
+  seoDescription: String
+
+  """Name of the category translatable content."""
+  name: String!
+
+  """
+  Category description to translate.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  description: JSONString
+
+  """
+  Description of the category.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
+
+  """Returns translated category fields for the given language code."""
+  translation(
+    """A language code to return the translation for category."""
+    languageCode: LanguageCodeEnum!
+  ): CategoryTranslation
+
+  """Represents a single category of products."""
+  category: Category @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
 }
 
 """Represents a version of a product such as different size or color."""
@@ -7778,6 +7962,43 @@ type ProductVariantTranslation implements Node @doc(category: "Products") {
 
   """Translated product variant name."""
   name: String!
+
+  """
+  Represents the product variant fields to translate.
+  
+  Added in Saleor 3.14.
+  """
+  translatableContent: ProductVariantTranslatableContent
+}
+
+"""
+Represents product variant's original translatable fields and related translations.
+"""
+type ProductVariantTranslatableContent implements Node @doc(category: "Products") {
+  """The ID of the product variant translatable content."""
+  id: ID!
+
+  """
+  The ID of the product variant to translate.
+  
+  Added in Saleor 3.14.
+  """
+  productVariantId: ID!
+
+  """Name of the product variant to translate."""
+  name: String!
+
+  """Returns translated product variant fields for the given language code."""
+  translation(
+    """A language code to return the translation for product variant."""
+    languageCode: LanguageCodeEnum!
+  ): ProductVariantTranslation
+
+  """Represents a version of a product such as different size or color."""
+  productVariant: ProductVariant @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
+
+  """List of product variant attribute values that can be translated."""
+  attributeValues: [AttributeValueTranslatableContent!]!
 }
 
 """Represents digital content associated with a product variant."""
@@ -8212,6 +8433,60 @@ type CollectionTranslation implements Node @doc(category: "Products") {
   Rich text format. For reference see https://editorjs.io/
   """
   descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
+
+  """
+  Represents the collection fields to translate.
+  
+  Added in Saleor 3.14.
+  """
+  translatableContent: CollectionTranslatableContent
+}
+
+"""
+Represents collection's original translatable fields and related translations.
+"""
+type CollectionTranslatableContent implements Node @doc(category: "Products") {
+  """The ID of the collection translatable content."""
+  id: ID!
+
+  """
+  The ID of the collection to translate.
+  
+  Added in Saleor 3.14.
+  """
+  collectionId: ID!
+
+  """SEO title to translate."""
+  seoTitle: String
+
+  """SEO description to translate."""
+  seoDescription: String
+
+  """Collection's name to translate."""
+  name: String!
+
+  """
+  Collection's description to translate.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  description: JSONString
+
+  """
+  Description of the collection.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
+
+  """Returns translated collection fields for the given language code."""
+  translation(
+    """A language code to return the translation for collection."""
+    languageCode: LanguageCodeEnum!
+  ): CollectionTranslation
+
+  """Represents a collection of products."""
+  collection: Collection @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
 }
 
 """Represents collection channel listing."""
@@ -8264,6 +8539,63 @@ type ProductTranslation implements Node @doc(category: "Products") {
   Rich text format. For reference see https://editorjs.io/
   """
   descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
+
+  """
+  Represents the product fields to translate.
+  
+  Added in Saleor 3.14.
+  """
+  translatableContent: ProductTranslatableContent
+}
+
+"""
+Represents product's original translatable fields and related translations.
+"""
+type ProductTranslatableContent implements Node @doc(category: "Products") {
+  """The ID of the product translatable content."""
+  id: ID!
+
+  """
+  The ID of the product to translate.
+  
+  Added in Saleor 3.14.
+  """
+  productId: ID!
+
+  """SEO title to translate."""
+  seoTitle: String
+
+  """SEO description to translate."""
+  seoDescription: String
+
+  """Product's name to translate."""
+  name: String!
+
+  """
+  Product's description to translate.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  description: JSONString
+
+  """
+  Description of the product.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
+
+  """Returns translated product fields for the given language code."""
+  translation(
+    """A language code to return the translation for product."""
+    languageCode: LanguageCodeEnum!
+  ): ProductTranslation
+
+  """Represents an individual item for sale in the storefront."""
+  product: Product @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
+
+  """List of product attribute values that can be translated."""
+  attributeValues: [AttributeValueTranslatableContent!]!
 }
 
 type WarehouseCountableConnection @doc(category: "Products") {
@@ -8326,214 +8658,18 @@ type TranslatableItemEdge {
 union TranslatableItem = ProductTranslatableContent | CollectionTranslatableContent | CategoryTranslatableContent | AttributeTranslatableContent | AttributeValueTranslatableContent | ProductVariantTranslatableContent | PageTranslatableContent | ShippingMethodTranslatableContent | VoucherTranslatableContent | MenuItemTranslatableContent | PromotionTranslatableContent | PromotionRuleTranslatableContent | SaleTranslatableContent
 
 """
-Represents product's original translatable fields and related translations.
-"""
-type ProductTranslatableContent implements Node @doc(category: "Products") {
-  """The ID of the product translatable content."""
-  id: ID!
-
-  """SEO title to translate."""
-  seoTitle: String
-
-  """SEO description to translate."""
-  seoDescription: String
-
-  """Product's name to translate."""
-  name: String!
-
-  """
-  Product's description to translate.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  description: JSONString
-
-  """
-  Description of the product.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
-
-  """Returns translated product fields for the given language code."""
-  translation(
-    """A language code to return the translation for product."""
-    languageCode: LanguageCodeEnum!
-  ): ProductTranslation
-
-  """Represents an individual item for sale in the storefront."""
-  product: Product @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
-
-  """List of product attribute values that can be translated."""
-  attributeValues: [AttributeValueTranslatableContent!]!
-}
-
-"""
-Represents attribute value's original translatable fields and related translations.
-"""
-type AttributeValueTranslatableContent implements Node @doc(category: "Attributes") {
-  """The ID of the attribute value translatable content."""
-  id: ID!
-
-  """Name of the attribute value to translate."""
-  name: String!
-
-  """
-  Attribute value.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  richText: JSONString
-
-  """Attribute plain text value."""
-  plainText: String
-
-  """Returns translated attribute value fields for the given language code."""
-  translation(
-    """A language code to return the translation for attribute value."""
-    languageCode: LanguageCodeEnum!
-  ): AttributeValueTranslation
-
-  """Represents a value of an attribute."""
-  attributeValue: AttributeValue @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
-
-  """
-  Associated attribute that can be translated.
-  
-  Added in Saleor 3.9.
-  """
-  attribute: AttributeTranslatableContent
-}
-
-"""
-Represents attribute's original translatable fields and related translations.
-"""
-type AttributeTranslatableContent implements Node @doc(category: "Attributes") {
-  """The ID of the attribute."""
-  id: ID!
-
-  """Name of the attribute to translate."""
-  name: String!
-
-  """Returns translated attribute fields for the given language code."""
-  translation(
-    """A language code to return the translation for attribute."""
-    languageCode: LanguageCodeEnum!
-  ): AttributeTranslation
-
-  """Custom attribute of a product."""
-  attribute: Attribute @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
-}
-
-"""
-Represents collection's original translatable fields and related translations.
-"""
-type CollectionTranslatableContent implements Node @doc(category: "Products") {
-  """The ID of the collection translatable content."""
-  id: ID!
-
-  """SEO title to translate."""
-  seoTitle: String
-
-  """SEO description to translate."""
-  seoDescription: String
-
-  """Collection's name to translate."""
-  name: String!
-
-  """
-  Collection's description to translate.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  description: JSONString
-
-  """
-  Description of the collection.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
-
-  """Returns translated collection fields for the given language code."""
-  translation(
-    """A language code to return the translation for collection."""
-    languageCode: LanguageCodeEnum!
-  ): CollectionTranslation
-
-  """Represents a collection of products."""
-  collection: Collection @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
-}
-
-"""
-Represents category original translatable fields and related translations.
-"""
-type CategoryTranslatableContent implements Node @doc(category: "Products") {
-  """The ID of the category translatable content."""
-  id: ID!
-
-  """SEO title to translate."""
-  seoTitle: String
-
-  """SEO description to translate."""
-  seoDescription: String
-
-  """Name of the category translatable content."""
-  name: String!
-
-  """
-  Category description to translate.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  description: JSONString
-
-  """
-  Description of the category.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
-
-  """Returns translated category fields for the given language code."""
-  translation(
-    """A language code to return the translation for category."""
-    languageCode: LanguageCodeEnum!
-  ): CategoryTranslation
-
-  """Represents a single category of products."""
-  category: Category @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
-}
-
-"""
-Represents product variant's original translatable fields and related translations.
-"""
-type ProductVariantTranslatableContent implements Node @doc(category: "Products") {
-  """The ID of the product variant translatable content."""
-  id: ID!
-
-  """Name of the product variant to translate."""
-  name: String!
-
-  """Returns translated product variant fields for the given language code."""
-  translation(
-    """A language code to return the translation for product variant."""
-    languageCode: LanguageCodeEnum!
-  ): ProductVariantTranslation
-
-  """Represents a version of a product such as different size or color."""
-  productVariant: ProductVariant @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
-
-  """List of product variant attribute values that can be translated."""
-  attributeValues: [AttributeValueTranslatableContent!]!
-}
-
-"""
 Represents page's original translatable fields and related translations.
 """
 type PageTranslatableContent implements Node @doc(category: "Pages") {
   """The ID of the page translatable content."""
   id: ID!
+
+  """
+  The ID of the page to translate.
+  
+  Added in Saleor 3.14.
+  """
+  pageId: ID!
 
   """SEO title to translate."""
   seoTitle: String
@@ -8603,6 +8739,13 @@ type PageTranslation implements Node @doc(category: "Pages") {
   Rich text format. For reference see https://editorjs.io/
   """
   contentJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `content` field instead.")
+
+  """
+  Represents the page fields to translate.
+  
+  Added in Saleor 3.14.
+  """
+  translatableContent: PageTranslatableContent
 }
 
 """
@@ -8792,42 +8935,18 @@ type PageType implements Node & ObjectWithMetadata @doc(category: "Pages") {
 }
 
 """
-Represents shipping method's original translatable fields and related translations.
-"""
-type ShippingMethodTranslatableContent implements Node @doc(category: "Shipping") {
-  """The ID of the shipping method translatable content."""
-  id: ID!
-
-  """Shipping method name to translate."""
-  name: String!
-
-  """
-  Shipping method description to translate.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  description: JSONString
-
-  """Returns translated shipping method fields for the given language code."""
-  translation(
-    """A language code to return the translation for shipping method."""
-    languageCode: LanguageCodeEnum!
-  ): ShippingMethodTranslation
-
-  """
-  Shipping method are the methods you'll use to get customer's orders  to them. They are directly exposed to the customers.
-  
-  Requires one of the following permissions: MANAGE_SHIPPING.
-  """
-  shippingMethod: ShippingMethodType @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
-}
-
-"""
 Represents voucher's original translatable fields and related translations.
 """
 type VoucherTranslatableContent implements Node @doc(category: "Discounts") {
   """The ID of the voucher translatable content."""
   id: ID!
+
+  """
+  The ID of the voucher to translate.
+  
+  Added in Saleor 3.14.
+  """
+  voucherId: ID!
 
   """Voucher name to translate."""
   name: String
@@ -8856,6 +8975,13 @@ type VoucherTranslation implements Node @doc(category: "Discounts") {
 
   """Translated voucher name."""
   name: String
+
+  """
+  Represents the voucher fields to translate.
+  
+  Added in Saleor 3.14.
+  """
+  translatableContent: VoucherTranslatableContent
 }
 
 """
@@ -9130,6 +9256,13 @@ type MenuItemTranslatableContent implements Node @doc(category: "Menu") {
   """The ID of the menu item translatable content."""
   id: ID!
 
+  """
+  The ID of the menu item to translate.
+  
+  Added in Saleor 3.14.
+  """
+  menuItemId: ID!
+
   """Name of the menu item to translate."""
   name: String!
 
@@ -9155,6 +9288,13 @@ type MenuItemTranslation implements Node @doc(category: "Menu") {
 
   """Translated menu item name."""
   name: String!
+
+  """
+  Represents the menu item fields to translate.
+  
+  Added in Saleor 3.14.
+  """
+  translatableContent: MenuItemTranslatableContent
 }
 
 """
@@ -9304,6 +9444,9 @@ type PromotionTranslatableContent implements Node @doc(category: "Discounts") {
   """ID of the promotion translatable content."""
   id: ID!
 
+  """ID of the promotion to translate."""
+  promotionId: ID!
+
   """Name of the promotion."""
   name: String!
 
@@ -9342,6 +9485,13 @@ type PromotionTranslation implements Node @doc(category: "Discounts") {
   Rich text format. For reference see https://editorjs.io/
   """
   description: JSONString
+
+  """
+  Represents the promotion fields to translate.
+  
+  Added in Saleor 3.14.
+  """
+  translatableContent: PromotionTranslatableContent
 }
 
 """
@@ -9352,6 +9502,13 @@ Added in Saleor 3.17.
 type PromotionRuleTranslatableContent implements Node @doc(category: "Discounts") {
   """ID of the promotion rule translatable content."""
   id: ID!
+
+  """
+  ID of the promotion rule to translate.
+  
+  Added in Saleor 3.14.
+  """
+  promotionRuleId: ID!
 
   """Name of the promotion rule."""
   name: String
@@ -9391,6 +9548,13 @@ type PromotionRuleTranslation implements Node @doc(category: "Discounts") {
   Rich text format. For reference see https://editorjs.io/
   """
   description: JSONString
+
+  """
+  Represents the promotion rule fields to translate.
+  
+  Added in Saleor 3.14.
+  """
+  translatableContent: PromotionRuleTranslatableContent
 }
 
 """
@@ -9401,6 +9565,13 @@ DEPRECATED: this type will be removed in Saleor 4.0. Use `PromotionTranslatableC
 type SaleTranslatableContent implements Node @doc(category: "Discounts") {
   """The ID of the sale translatable content."""
   id: ID!
+
+  """
+  The ID of the sale to translate.
+  
+  Added in Saleor 3.14.
+  """
+  saleId: ID!
 
   """Name of the sale to translate."""
   name: String!
@@ -9433,6 +9604,13 @@ type SaleTranslation implements Node @doc(category: "Discounts") {
 
   """Translated name of sale."""
   name: String
+
+  """
+  Represents the sale fields to translate.
+  
+  Added in Saleor 3.14.
+  """
+  translatableContent: SaleTranslatableContent
 }
 
 """
