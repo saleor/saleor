@@ -3297,6 +3297,7 @@ QUERY_TRANSLATION_CATEGORY = """
                 translation(languageCode: $languageCode){
                     name
                 }
+                categoryId
             }
         }
     }
@@ -3307,7 +3308,6 @@ def test_translation_query_category(
     staff_api_client, category, category_translation_fr, permission_manage_translations
 ):
     category_id = graphene.Node.to_global_id("Category", category.id)
-
     variables = {
         "id": category_id,
         "kind": TranslatableKinds.CATEGORY.name,
@@ -3322,6 +3322,7 @@ def test_translation_query_category(
     data = content["data"]["translation"]
     assert data["name"] == category.name
     assert data["translation"]["name"] == category_translation_fr.name
+    assert data["categoryId"] == category_id
 
 
 QUERY_TRANSLATION_ATTRIBUTE = """

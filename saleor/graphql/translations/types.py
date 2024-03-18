@@ -460,7 +460,12 @@ class CategoryTranslation(BaseTranslationType[product_models.CategoryTranslation
 
 class CategoryTranslatableContent(ModelObjectType[product_models.Category]):
     id = graphene.GlobalID(
-        required=True, description="The ID of the category translatable content."
+        required=True,
+        description="The ID of the category translatable content.",
+        deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use categoryId instead."),
+    )
+    category_id = graphene.ID(
+        required=True, description="The ID of the category to translate."
     )
     seo_title = graphene.String(description="SEO title to translate.")
     seo_description = graphene.String(description="SEO description to translate.")
@@ -500,6 +505,10 @@ class CategoryTranslatableContent(ModelObjectType[product_models.Category]):
     def resolve_description_json(root: product_models.Category, _info):
         description = root.description
         return description if description is not None else {}
+
+    @staticmethod
+    def resolve_category_id(root: product_models.Category, _info):
+        return graphene.Node.to_global_id("Category", root.id)
 
 
 class PageTranslation(BaseTranslationType[page_models.PageTranslation]):

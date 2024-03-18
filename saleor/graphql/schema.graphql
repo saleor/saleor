@@ -8502,7 +8502,10 @@ Represents category original translatable fields and related translations.
 """
 type CategoryTranslatableContent implements Node @doc(category: "Products") {
   """The ID of the category translatable content."""
-  id: ID!
+  id: ID! @deprecated(reason: "This field will be removed in Saleor 4.0. Use categoryId instead.")
+
+  """The ID of the category to translate."""
+  categoryId: ID!
 
   """SEO title to translate."""
   seoTitle: String
