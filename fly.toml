@@ -12,6 +12,10 @@ console_command = '/code/manage.py shell'
 [deploy]
   release_command = 'python manage.py migrate --noinput'
 
+[processes]
+  app = "gunicorn --bind :8000 --workers 4 --worker-class saleor.asgi.gunicorn_worker.UvicornWorker saleor.asgi:application"
+  worker = "python -m celery -A saleor --app=saleor.celeryconf:app worker --loglevel=info -B"
+
 [env]
   AWS_STORAGE_BUCKET_NAME = 'saleor'
   AWS_MEDIA_BUCKET_NAME = 'saleor'
