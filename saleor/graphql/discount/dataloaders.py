@@ -101,6 +101,14 @@ class SaleChannelListingBySaleIdLoader(DataLoader):
         return [sale_channel_listings_by_sale_map[sale_id] for sale_id in keys]
 
 
+class SaleByIdLoader(DataLoader):
+    context_key = "sale_by_id"
+
+    def batch_load(self, keys):
+        sales = Sale.objects.using(self.database_connection_name).in_bulk(keys)
+        return [sales.get(sale_id) for sale_id in keys]
+
+
 class VoucherByIdLoader(DataLoader):
     context_key = "voucher_by_id"
 
