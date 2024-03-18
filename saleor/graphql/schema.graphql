@@ -7349,6 +7349,52 @@ type CategoryTranslation implements Node @doc(category: "Products") {
   Rich text format. For reference see https://editorjs.io/
   """
   descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
+
+  """Represents the category fields for translation."""
+  translatableContent: CategoryTranslatableContent
+}
+
+"""
+Represents category original translatable fields and related translations.
+"""
+type CategoryTranslatableContent implements Node @doc(category: "Products") {
+  """The ID of the category translatable content."""
+  id: ID! @deprecated(reason: "This field will be removed in Saleor 4.0. Use categoryId instead.")
+
+  """The ID of the category to translate."""
+  categoryId: ID!
+
+  """SEO title to translate."""
+  seoTitle: String
+
+  """SEO description to translate."""
+  seoDescription: String
+
+  """Name of the category translatable content."""
+  name: String!
+
+  """
+  Category description to translate.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  description: JSONString
+
+  """
+  Description of the category.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
+
+  """Returns translated category fields for the given language code."""
+  translation(
+    """A language code to return the translation for category."""
+    languageCode: LanguageCodeEnum!
+  ): CategoryTranslation
+
+  """Represents a single category of products."""
+  category: Category @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
 }
 
 """Represents a version of a product such as different size or color."""
@@ -8495,49 +8541,6 @@ type CollectionTranslatableContent implements Node @doc(category: "Products") {
 
   """Represents a collection of products."""
   collection: Collection @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
-}
-
-"""
-Represents category original translatable fields and related translations.
-"""
-type CategoryTranslatableContent implements Node @doc(category: "Products") {
-  """The ID of the category translatable content."""
-  id: ID! @deprecated(reason: "This field will be removed in Saleor 4.0. Use categoryId instead.")
-
-  """The ID of the category to translate."""
-  categoryId: ID!
-
-  """SEO title to translate."""
-  seoTitle: String
-
-  """SEO description to translate."""
-  seoDescription: String
-
-  """Name of the category translatable content."""
-  name: String!
-
-  """
-  Category description to translate.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  description: JSONString
-
-  """
-  Description of the category.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
-
-  """Returns translated category fields for the given language code."""
-  translation(
-    """A language code to return the translation for category."""
-    languageCode: LanguageCodeEnum!
-  ): CategoryTranslation
-
-  """Represents a single category of products."""
-  category: Category @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
 }
 
 """

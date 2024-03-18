@@ -1996,6 +1996,14 @@ subscription {
         }
         ... on CategoryTranslation {
           id
+          name
+          translatableContent {
+             ...on CategoryTranslatableContent {
+               id
+               name
+               categoryId
+             }
+          }
         }
         ... on AttributeTranslation {
           id

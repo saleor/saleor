@@ -77,8 +77,24 @@ def test_translation_created_category(
         event_type, category_translation_fr, webhooks
     )
 
-    expected_payload = json.dumps({"translation": {"id": translation_id}})
-
+    expected_payload = json.dumps(
+        {
+            "translation": {
+                "id": translation_id,
+                "name": category_translation_fr.name,
+                "translatableContent": {
+                    "id": graphene.Node.to_global_id(
+                        "CategoryTranslatableContent",
+                        category_translation_fr.category_id,
+                    ),
+                    "name": category_translation_fr.category.name,
+                    "categoryId": graphene.Node.to_global_id(
+                        "Category", category_translation_fr.category_id
+                    ),
+                },
+            }
+        }
+    )
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]

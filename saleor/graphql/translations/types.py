@@ -39,6 +39,7 @@ from ..page.dataloaders import (
     SelectedAttributesVisibleInStorefrontPageIdLoader,
 )
 from ..product.dataloaders import (
+    CategoryByIdLoader,
     SelectedAttributesAllByProductIdLoader,
     SelectedAttributesByProductVariantIdLoader,
     SelectedAttributesVisibleInStorefrontByProductIdLoader,
@@ -446,6 +447,10 @@ class CategoryTranslation(BaseTranslationType[product_models.CategoryTranslation
             f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
         ),
     )
+    translatable_content = graphene.Field(
+        "saleor.graphql.translations.types.CategoryTranslatableContent",
+        description="Represents the category fields for translation.",
+    )
 
     class Meta:
         model = product_models.CategoryTranslation
@@ -456,6 +461,9 @@ class CategoryTranslation(BaseTranslationType[product_models.CategoryTranslation
     def resolve_description_json(root: product_models.CategoryTranslation, _info):
         description = root.description
         return description if description is not None else {}
+
+    def resolve_translatable_content(root: product_models.CategoryTranslation, info):
+        return CategoryByIdLoader(info.context).load(root.category_id)
 
 
 class CategoryTranslatableContent(ModelObjectType[product_models.Category]):

@@ -61,7 +61,6 @@ class TranslatableItem(graphene.Union):
             return translation_types.SaleTranslatableContent
         elif instance_type in TYPES_TRANSLATIONS_MAP:
             return TYPES_TRANSLATIONS_MAP[instance_type]
-
         return super().resolve_type(instance, info)
 
 
