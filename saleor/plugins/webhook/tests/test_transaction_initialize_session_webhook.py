@@ -109,7 +109,7 @@ def _assert_with_static_payload(
 def _assert_fields(payload, webhook, expected_response, response, mock_request):
     webhook_app = webhook.app
     event_payload = EventPayload.objects.get()
-    assert json.loads(event_payload.payload) == payload
+    assert json.loads(event_payload.get_payload()) == payload
     delivery = EventDelivery.objects.get()
     assert delivery.status == EventDeliveryStatus.PENDING
     assert delivery.event_type == WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION

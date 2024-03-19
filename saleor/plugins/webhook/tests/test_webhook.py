@@ -13,6 +13,7 @@ from celery.exceptions import MaxRetriesExceededError
 from celery.exceptions import Retry as CeleryTaskRetryError
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.models import Site
+from django.core.files.base import ContentFile
 from django.core.serializers import serialize
 from django.utils import timezone
 from freezegun import freeze_time
@@ -111,9 +112,9 @@ def test_trigger_webhooks_for_event_calls_expected_events(
         target_url="http://www.example.com/third/"
     )
     third_webhook.events.create(event_type=WebhookEventAsyncType.ANY)
-    event_payload = EventPayload.objects.create()
+    payload = ""
     trigger_webhooks_async(
-        event_payload,
+        payload,
         event_name,
         get_webhooks_for_event(event_name),
         allow_replica=False,
@@ -1708,7 +1709,11 @@ def test_create_event_payload_reference_with_error(
     webhook.target_url = "testy"
     webhook.save()
     expected_data = serialize("json", [order_with_lines])
-    event_payload = EventPayload.objects.create(payload=expected_data)
+    event_payload = EventPayload.objects.create()
+    event_payload.payload_file.save(
+        f"payload-{event_payload.pk}-{event_payload.created_at}",
+        ContentFile(expected_data),
+    )
     trigger_webhooks_async(
         event_payload,
         WebhookEventAsyncType.ORDER_CREATED,
@@ -1916,7 +1921,7 @@ def test_send_webhook_request_async(
         "mirumee.com",
         event_delivery.webhook.secret_key,
         event_delivery.event_type,
-        event_delivery.payload.payload,
+        event_delivery.payload.get_payload(),
         event_delivery.webhook.custom_headers,
     )
     mocked_clear_delivery.assert_called_once_with(event_delivery)
@@ -2275,7 +2280,7 @@ def test_send_webhook_request_async_with_request_exception(
 ):
     # given
     event_payload = event_delivery.payload
-    data = event_payload.payload
+    data = event_payload.get_payload()
     webhook = event_delivery.webhook
     domain = Site.objects.get_current().domain
     message = data.encode("utf-8")
