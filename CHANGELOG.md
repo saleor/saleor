@@ -7,6 +7,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Highlights
 
 ### Breaking changes
+- The ID of TranslatableContent types represents an ID of the object being translated and not TranslatableContent itself - #15617 by @zedzior
 
 ### GraphQL API
 

@@ -48,6 +48,7 @@ TYPE_TO_TRANSLATION_LOADER_MAP = {
 
 def resolve_translation(instance, info: ResolveInfo, *, language_code):
     """Get translation object from instance based on language code."""
+
     loader = TYPE_TO_TRANSLATION_LOADER_MAP.get(type(instance))
     if loader:
         return loader(info.context).load((instance.id, language_code))

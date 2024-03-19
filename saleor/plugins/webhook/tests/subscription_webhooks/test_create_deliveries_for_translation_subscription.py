@@ -73,6 +73,8 @@ def test_translation_created_category(
     translation_id = graphene.Node.to_global_id(
         "CategoryTranslation", category_translation_fr.id
     )
+    category = category_translation_fr.category
+    category_id = graphene.Node.to_global_id("Category", category.id)
     deliveries = create_deliveries_for_subscriptions(
         event_type, category_translation_fr, webhooks
     )
@@ -83,14 +85,8 @@ def test_translation_created_category(
                 "id": translation_id,
                 "name": category_translation_fr.name,
                 "translatableContent": {
-                    "id": graphene.Node.to_global_id(
-                        "CategoryTranslatableContent",
-                        category_translation_fr.category_id,
-                    ),
-                    "name": category_translation_fr.category.name,
-                    "categoryId": graphene.Node.to_global_id(
-                        "Category", category_translation_fr.category_id
-                    ),
+                    "id": category_id,
+                    "name": category.name,
                 },
             }
         }

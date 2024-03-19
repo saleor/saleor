@@ -25,6 +25,7 @@ from ..core.context import get_database_connection_name
 from ..core.descriptions import (
     ADDED_IN_39,
     ADDED_IN_317,
+    ADDED_IN_320,
     DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_TYPE,
     RICH_CONTENT,
@@ -449,7 +450,7 @@ class CategoryTranslation(BaseTranslationType[product_models.CategoryTranslation
     )
     translatable_content = graphene.Field(
         "saleor.graphql.translations.types.CategoryTranslatableContent",
-        description="Represents the category fields for translation.",
+        description="Represents the category fields for translation." + ADDED_IN_320,
     )
 
     class Meta:
@@ -467,14 +468,7 @@ class CategoryTranslation(BaseTranslationType[product_models.CategoryTranslation
 
 
 class CategoryTranslatableContent(ModelObjectType[product_models.Category]):
-    id = graphene.GlobalID(
-        required=True,
-        description="The ID of the category translatable content.",
-        deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use categoryId instead."),
-    )
-    category_id = graphene.ID(
-        required=True, description="The ID of the category to translate."
-    )
+    id = graphene.ID(required=True, description="The ID of the category to translate.")
     seo_title = graphene.String(description="SEO title to translate.")
     seo_description = graphene.String(description="SEO description to translate.")
     name = graphene.String(
@@ -515,7 +509,7 @@ class CategoryTranslatableContent(ModelObjectType[product_models.Category]):
         return description if description is not None else {}
 
     @staticmethod
-    def resolve_category_id(root: product_models.Category, _info):
+    def resolve_id(root: product_models.Category, _info):
         return graphene.Node.to_global_id("Category", root.id)
 
 

@@ -2001,7 +2001,6 @@ subscription {
              ...on CategoryTranslatableContent {
                id
                name
-               categoryId
              }
           }
         }

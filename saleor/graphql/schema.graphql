@@ -7350,7 +7350,11 @@ type CategoryTranslation implements Node @doc(category: "Products") {
   """
   descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
 
-  """Represents the category fields for translation."""
+  """
+  Represents the category fields for translation.
+  
+  Added in Saleor 3.20.
+  """
   translatableContent: CategoryTranslatableContent
 }
 
@@ -7358,11 +7362,8 @@ type CategoryTranslation implements Node @doc(category: "Products") {
 Represents category original translatable fields and related translations.
 """
 type CategoryTranslatableContent implements Node @doc(category: "Products") {
-  """The ID of the category translatable content."""
-  id: ID! @deprecated(reason: "This field will be removed in Saleor 4.0. Use categoryId instead.")
-
   """The ID of the category to translate."""
-  categoryId: ID!
+  id: ID!
 
   """SEO title to translate."""
   seoTitle: String
