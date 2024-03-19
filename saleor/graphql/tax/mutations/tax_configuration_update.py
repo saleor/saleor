@@ -47,7 +47,7 @@ class TaxConfigurationPerCountryInput(BaseInputObjectType):
     )
     tax_app_id = graphene.String(
         description=(
-            "The tax app identifier that will be used to calculate the taxes for the "
+            "The tax app `App.identifier` that will be used to calculate the taxes for the "
             "given channel and country. If not provided, use the value from the channel's "
             "tax configuration." + ADDED_IN_319
         ),
@@ -90,7 +90,7 @@ class TaxConfigurationUpdateInput(BaseInputObjectType):
     )
     tax_app_id = graphene.String(
         description=(
-            "The tax app id that will be used to calculate the taxes for the given channel. "
+            "The tax app `App.identifier` that will be used to calculate the taxes for the given channel. "
             "Empty value for `TAX_APP` set as `taxCalculationStrategy` means that Saleor will "
             "iterate over all installed tax apps. If multiple tax apps exist with provided "
             "tax app id use the `App` with newest `created` date. It's possible to set plugin "
