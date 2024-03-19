@@ -86,7 +86,7 @@ def test_payment_method_process_tokenization_with_static_payload(
 
     # then
     delivery = EventDelivery.objects.get()
-    assert json.loads(delivery.payload.payload) == {
+    assert json.loads(delivery.payload.get_payload()) == {
         "id": expected_payment_method_id,
         "user_id": graphene.Node.to_global_id("User", customer_user.pk),
         "channel_slug": channel_USD.slug,
@@ -149,7 +149,7 @@ def test_payment_method_process_tokenization_with_subscription_payload(
 
     # then
     delivery = EventDelivery.objects.get()
-    assert json.loads(delivery.payload.payload) == {
+    assert json.loads(delivery.payload.get_payload()) == {
         "user": {"id": graphene.Node.to_global_id("User", customer_user.pk)},
         "data": expected_data,
         "channel": {"id": graphene.Node.to_global_id("Channel", channel_USD.pk)},
@@ -263,7 +263,7 @@ def test_payment_method_process_tokenization_failure_from_app(
 
     # then
     delivery = EventDelivery.objects.get()
-    assert json.loads(delivery.payload.payload) == {
+    assert json.loads(delivery.payload.get_payload()) == {
         "id": expected_payment_method_id,
         "user_id": graphene.Node.to_global_id("User", customer_user.pk),
         "channel_slug": channel_USD.slug,
@@ -322,7 +322,7 @@ def test_payment_method_process_tokenization_additional_action_required(
 
     # then
     delivery = EventDelivery.objects.get()
-    assert json.loads(delivery.payload.payload) == {
+    assert json.loads(delivery.payload.get_payload()) == {
         "id": expected_payment_method_id,
         "user_id": graphene.Node.to_global_id("User", customer_user.pk),
         "channel_slug": channel_USD.slug,
@@ -389,7 +389,7 @@ def test_payment_method_process_tokenization_missing_required_id(
 
     # then
     delivery = EventDelivery.objects.get()
-    assert json.loads(delivery.payload.payload) == {
+    assert json.loads(delivery.payload.get_payload()) == {
         "user_id": graphene.Node.to_global_id("User", customer_user.pk),
         "channel_slug": channel_USD.slug,
         "data": expected_data,
@@ -507,7 +507,7 @@ def test_expected_result_invalidates_cache_for_app(
     delivery = EventDelivery.objects.filter(
         event_type=WebhookEventSyncType.PAYMENT_METHOD_PROCESS_TOKENIZATION_SESSION
     ).first()
-    assert json.loads(delivery.payload.payload) == {
+    assert json.loads(delivery.payload.get_payload()) == {
         "user": {"id": graphene.Node.to_global_id("User", customer_user.pk)},
         "data": expected_data,
         "channel": {"id": graphene.Node.to_global_id("Channel", channel_USD.pk)},
