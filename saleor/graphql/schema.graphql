@@ -8455,7 +8455,7 @@ union TranslatableItem = ProductTranslatableContent | CollectionTranslatableCont
 Represents product's original translatable fields and related translations.
 """
 type ProductTranslatableContent implements Node @doc(category: "Products") {
-  """The ID of the product translatable content."""
+  """The ID of the product to translate."""
   id: ID!
 
   """SEO title to translate."""
@@ -8498,7 +8498,7 @@ type ProductTranslatableContent implements Node @doc(category: "Products") {
 Represents attribute value's original translatable fields and related translations.
 """
 type AttributeValueTranslatableContent implements Node @doc(category: "Attributes") {
-  """The ID of the attribute value translatable content."""
+  """The ID of the attribute value to translate."""
   id: ID!
 
   """Name of the attribute value to translate."""
@@ -8535,7 +8535,7 @@ type AttributeValueTranslatableContent implements Node @doc(category: "Attribute
 Represents attribute's original translatable fields and related translations.
 """
 type AttributeTranslatableContent implements Node @doc(category: "Attributes") {
-  """The ID of the attribute."""
+  """The ID of the attribute to translate."""
   id: ID!
 
   """Name of the attribute to translate."""
@@ -8555,7 +8555,7 @@ type AttributeTranslatableContent implements Node @doc(category: "Attributes") {
 Represents product variant's original translatable fields and related translations.
 """
 type ProductVariantTranslatableContent implements Node @doc(category: "Products") {
-  """The ID of the product variant translatable content."""
+  """The ID of the product variant to translate."""
   id: ID!
 
   """Name of the product variant to translate."""
@@ -8578,7 +8578,7 @@ type ProductVariantTranslatableContent implements Node @doc(category: "Products"
 Represents page's original translatable fields and related translations.
 """
 type PageTranslatableContent implements Node @doc(category: "Pages") {
-  """The ID of the page translatable content."""
+  """The ID of the page to translate."""
   id: ID!
 
   """SEO title to translate."""
@@ -8841,7 +8841,7 @@ type PageType implements Node & ObjectWithMetadata @doc(category: "Pages") {
 Represents shipping method's original translatable fields and related translations.
 """
 type ShippingMethodTranslatableContent implements Node @doc(category: "Shipping") {
-  """The ID of the shipping method translatable content."""
+  """The ID of the shipping method to translate."""
   id: ID!
 
   """Shipping method name to translate."""
@@ -8872,7 +8872,7 @@ type ShippingMethodTranslatableContent implements Node @doc(category: "Shipping"
 Represents voucher's original translatable fields and related translations.
 """
 type VoucherTranslatableContent implements Node @doc(category: "Discounts") {
-  """The ID of the voucher translatable content."""
+  """The ID of the voucher to translate."""
   id: ID!
 
   """Voucher name to translate."""
@@ -9246,7 +9246,7 @@ type VoucherChannelListing implements Node @doc(category: "Discounts") {
 Represents menu item's original translatable fields and related translations.
 """
 type MenuItemTranslatableContent implements Node @doc(category: "Menu") {
-  """The ID of the menu item translatable content."""
+  """The ID of the menu item to translate."""
   id: ID!
 
   """Name of the menu item to translate."""
@@ -9420,7 +9420,7 @@ Represents promotion's original translatable fields and related translations.
 Added in Saleor 3.17.
 """
 type PromotionTranslatableContent implements Node @doc(category: "Discounts") {
-  """ID of the promotion translatable content."""
+  """ID of the promotion to translate."""
   id: ID!
 
   """Name of the promotion."""
@@ -9469,7 +9469,7 @@ Represents promotion rule's original translatable fields and related translation
 Added in Saleor 3.17.
 """
 type PromotionRuleTranslatableContent implements Node @doc(category: "Discounts") {
-  """ID of the promotion rule translatable content."""
+  """ID of the promotion rule to translate."""
   id: ID!
 
   """Name of the promotion rule."""
@@ -9518,7 +9518,7 @@ Represents sale's original translatable fields and related translations.
 DEPRECATED: this type will be removed in Saleor 4.0. Use `PromotionTranslatableContent` instead.
 """
 type SaleTranslatableContent implements Node @doc(category: "Discounts") {
-  """The ID of the sale translatable content."""
+  """The ID of the sale to translate."""
   id: ID!
 
   """Name of the sale to translate."""
