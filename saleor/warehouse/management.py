@@ -809,9 +809,13 @@ def deactivate_preorder_for_variant(product_variant: ProductVariant):
         variant_id=product_variant.pk
     )
     channel_listings_pk = (channel_listing.id for channel_listing in channel_listings)
-    preorder_allocations = PreorderAllocation.objects.filter(
-        product_variant_channel_listing_id__in=channel_listings_pk
-    ).select_related("order_line", "order_line__order")
+    preorder_allocations = (
+        PreorderAllocation.objects.filter(
+            product_variant_channel_listing_id__in=channel_listings_pk
+        )
+        .select_for_update(of=("self",))
+        .select_related("order_line", "order_line__order")
+    )
 
     allocations_to_create = []
     stocks_to_create = []
@@ -876,6 +880,7 @@ def _get_stock_for_preorder_allocation(
     """
     order = preorder_allocation.order_line.order
     shipping_method_id = order.shipping_method_id
+
     if shipping_method_id is not None:
         warehouse = Warehouse.objects.filter(
             shipping_zones__id=order.shipping_method.shipping_zone_id  # type: ignore
