@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from graphql import GraphQLError
 
-from ....order import models
+from ....order import OrderGrantedRefundStatus, models
 from ....order.utils import update_order_charge_data
 from ....permission.enums import OrderPermissions
 from ...core import ResolveInfo
@@ -144,7 +144,9 @@ class OrderGrantRefundUpdate(BaseMutation):
         doc_category = DOC_CATEGORY_ORDERS
 
     @classmethod
-    def validate_input(cls, input: dict[str, Any]):
+    def validate_input(
+        cls, input: dict[str, Any], granted_refund: models.OrderGrantedRefund
+    ):
         amount = input.get("amount")
         reason = input.get("reason")
         input_lines = input.get("add_lines", [])
@@ -165,6 +167,27 @@ class OrderGrantRefundUpdate(BaseMutation):
                     "input": ValidationError(
                         error_msg, code=OrderGrantRefundUpdateErrorCode.REQUIRED.value
                     )
+                }
+            )
+        only_reason_provided = reason is not None and len(input) == 1
+        if (
+            granted_refund.status
+            in [OrderGrantedRefundStatus.PENDING, OrderGrantedRefundStatus.SUCCESS]
+            and not only_reason_provided
+        ):
+            fields_from_input = set(input.keys())
+            if "reason" in fields_from_input:
+                fields_from_input.remove("reason")
+            error_msg = (
+                "Only reason can be updated when `OrderGrantedRefund.status` is PENDING"
+                " or SUCCESS."
+            )
+            raise ValidationError(
+                {
+                    error_field: ValidationError(
+                        error_msg, code=OrderGrantRefundUpdateErrorCode.INVALID.value
+                    )
+                    for error_field in fields_from_input
                 }
             )
 
@@ -245,7 +268,7 @@ class OrderGrantRefundUpdate(BaseMutation):
         add_errors: list[dict[str, Any]] = []
         remove_errors: list[dict[str, Any]] = []
         errors = {}
-        cls.validate_input(input)
+        cls.validate_input(input, granted_refund)
         order = granted_refund.order
         amount = input.get("amount")
         reason = input.get("reason", None)

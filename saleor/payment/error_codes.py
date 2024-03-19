@@ -56,6 +56,8 @@ class TransactionRequestRefundForGrantedRefundErrorCode(Enum):
     MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK = (
         "missing_transaction_action_request_webhook"
     )
+    REFUND_ALREADY_PROCESSED = "refund_already_processed"
+    REFUND_IS_PENDING = "refund_is_pending"
 
 
 class TransactionEventReportErrorCode(Enum):

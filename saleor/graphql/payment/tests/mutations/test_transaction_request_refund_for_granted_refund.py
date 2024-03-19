@@ -4,6 +4,7 @@ from unittest.mock import patch
 import graphene
 import pytest
 
+from .....order import OrderGrantedRefundStatus
 from .....payment import TransactionAction, TransactionEventType
 from .....payment.interface import TransactionActionData
 from .....payment.models import TransactionEvent
@@ -604,3 +605,153 @@ def test_trigger_refund_request_with_assigned_transaction_item_and_not_enough_ch
 
     assert not mocked_is_active.called
     assert not mocked_payment_action_request.called
+
+
+@pytest.mark.parametrize(
+    ("granted_refund_status", "expected_error_code"),
+    [
+        (OrderGrantedRefundStatus.PENDING, "REFUND_IS_PENDING"),
+        (OrderGrantedRefundStatus.SUCCESS, "REFUND_ALREADY_PROCESSED"),
+    ],
+)
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.transaction_refund_requested")
+def test_trigger_refund_blocked_based_on_status_of_granted_refund(
+    mocked_payment_action_request,
+    mocked_is_active,
+    granted_refund_status,
+    expected_error_code,
+    staff_api_client,
+    order_with_lines,
+    permission_manage_payments,
+    transaction_item_generator,
+    app,
+    permission_group_no_perms_all_channels,
+):
+    # given
+    permission_group_no_perms_all_channels.user_set.add(staff_api_client.user)
+    staff_api_client.user.user_permissions.add(permission_manage_payments)
+
+    webhook = app.webhooks.create(
+        name="Request", is_active=True, target_url="http://localhost:8000/endpoint/"
+    )
+    webhook.events.create(event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED)
+
+    available_charged_value = Decimal("20.00")
+    transaction_item = transaction_item_generator(
+        order_id=order_with_lines.pk,
+        charged_value=available_charged_value,
+        app=app,
+    )
+    granted_refund = order_with_lines.granted_refunds.create(
+        amount_value=available_charged_value - Decimal("1"),
+        transaction_item=transaction_item,
+        status=granted_refund_status,
+    )
+
+    variables = {
+        "grantedRefundID": to_global_id_or_none(granted_refund),
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        TRANSACTION_REQUEST_REFUND_FOR_GRANTED_REFUND,
+        variables,
+    )
+
+    # then
+    response = get_graphql_content(response)
+    data = response["data"]["transactionRequestRefundForGrantedRefund"]
+    assert len(data["errors"]) == 1
+    error = data["errors"][0]
+    assert error["field"] == "grantedRefundId"
+    assert (
+        error["code"]
+        == getattr(
+            TransactionRequestRefundForGrantedRefundErrorCode, expected_error_code
+        ).name
+    )
+
+    assert not mocked_is_active.called
+    assert not mocked_payment_action_request.called
+
+
+@pytest.mark.parametrize(
+    "granted_refund_status",
+    [
+        OrderGrantedRefundStatus.NONE,
+        OrderGrantedRefundStatus.FAILURE,
+    ],
+)
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.transaction_refund_requested")
+def test_trigger_refund_possible_based_on_status_of_granted_refund(
+    mocked_payment_action_request,
+    mocked_is_active,
+    granted_refund_status,
+    staff_api_client,
+    order_with_lines,
+    permission_manage_payments,
+    transaction_item_generator,
+    app,
+    permission_group_no_perms_all_channels,
+):
+    # given
+    permission_group_no_perms_all_channels.user_set.add(staff_api_client.user)
+    staff_api_client.user.user_permissions.add(permission_manage_payments)
+
+    webhook = app.webhooks.create(
+        name="Request", is_active=True, target_url="http://localhost:8000/endpoint/"
+    )
+    webhook.events.create(event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED)
+
+    transaction_item = transaction_item_generator(
+        order_id=order_with_lines.pk,
+        charged_value=Decimal("20.00"),
+        app=app,
+    )
+    refund_amount = Decimal("10.00")
+    granted_refund = order_with_lines.granted_refunds.create(
+        amount_value=refund_amount,
+        transaction_item=transaction_item,
+        status=granted_refund_status,
+    )
+
+    variables = {
+        "grantedRefundID": to_global_id_or_none(granted_refund),
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        TRANSACTION_REQUEST_REFUND_FOR_GRANTED_REFUND,
+        variables,
+    )
+
+    # then
+    get_graphql_content(response)
+
+    granted_refund.refresh_from_db()
+    assert granted_refund.status == OrderGrantedRefundStatus.PENDING
+
+    request_event = TransactionEvent.objects.filter(
+        type=TransactionEventType.REFUND_REQUEST,
+    ).first()
+    assert request_event
+    assert mocked_is_active.called
+    mocked_payment_action_request.assert_called_once_with(
+        TransactionActionData(
+            transaction=transaction_item,
+            action_type=TransactionAction.REFUND,
+            action_value=refund_amount,
+            event=request_event,
+            transaction_app_owner=app,
+            granted_refund=granted_refund,
+        ),
+        order_with_lines.channel.slug,
+    )
+
+    assert TransactionEvent.objects.get(
+        transaction=transaction_item,
+        type=TransactionEventType.REFUND_REQUEST,
+        amount_value=refund_amount,
+    )

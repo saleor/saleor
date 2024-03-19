@@ -12,6 +12,7 @@ from freezegun import freeze_time
 from .....checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from .....checkout.calculations import fetch_checkout_data
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from .....order import OrderGrantedRefundStatus
 from .....payment import TransactionEventType
 from .....payment.models import TransactionEvent
 from .....payment.transaction_item_calculations import recalculate_transaction_amounts
@@ -2086,3 +2087,79 @@ def test_transaction_event_report_assign_transaction_psp_reference_if_missing(
         == expected_transaction_psp_reference
     )
     assert transaction.psp_reference == expected_transaction_psp_reference
+
+
+@pytest.mark.parametrize(
+    ("event_type", "expected_status"),
+    [
+        (TransactionEventTypeEnum.REFUND_SUCCESS, OrderGrantedRefundStatus.SUCCESS),
+        (TransactionEventTypeEnum.REFUND_FAILURE, OrderGrantedRefundStatus.FAILURE),
+        (TransactionEventTypeEnum.REFUND_REVERSE, OrderGrantedRefundStatus.NONE),
+    ],
+)
+def test_transaction_event_report_updates_granted_refund_status_when_needed(
+    event_type,
+    expected_status,
+    transaction_item_generator,
+    app_api_client,
+    permission_manage_payments,
+    order,
+):
+    # given
+    amount = Decimal("11.00")
+    transaction = transaction_item_generator(
+        app=app_api_client.app, charged_value=Decimal("10"), order_id=order.pk
+    )
+    granted_refund = order.granted_refunds.create(
+        amount_value=amount, currency=order.currency, transaction_item=transaction
+    )
+    psp_reference = "111-abc"
+
+    transaction.events.create(
+        psp_reference=psp_reference,
+        amount_value=amount,
+        currency=transaction.currency,
+        type=TransactionEventType.REFUND_REQUEST,
+        include_in_calculations=True,
+        related_granted_refund=granted_refund,
+    )
+
+    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
+    variables = {
+        "id": transaction_id,
+        "type": event_type.name,
+        "amount": amount,
+        "pspReference": psp_reference,
+        "availableActions": [],
+    }
+    query = (
+        MUTATION_DATA_FRAGMENT
+        + """
+    mutation TransactionEventReport(
+        $id: ID
+        $type: TransactionEventTypeEnum!
+        $amount: PositiveDecimal!
+        $pspReference: String!
+        $availableActions: [TransactionActionEnum!]!
+    ) {
+        transactionEventReport(
+            id: $id
+            type: $type
+            amount: $amount
+            pspReference: $pspReference
+            availableActions: $availableActions
+        ) {
+            ...TransactionEventData
+        }
+    }
+    """
+    )
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    response = get_graphql_content(response)
+    granted_refund.refresh_from_db()
+    assert granted_refund.status == expected_status
