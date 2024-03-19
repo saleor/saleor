@@ -1,6 +1,6 @@
 import datetime
 import json
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, call, patch
 
 import pytest
 from celery import Task
@@ -10,6 +10,7 @@ from celery.utils.threads import LocalStack
 from ....core import EventDeliveryStatus
 from ....core.models import EventDeliveryAttempt
 from ...event_types import WebhookEventAsyncType
+from ..shipping import get_cache_data_for_shipping_list_methods_for_checkout
 from ..utils import WebhookResponse, handle_webhook_retry, send_webhook_using_aws_sqs
 
 
@@ -187,3 +188,19 @@ def test_send_webhook_using_aws_sqs_with_fifo_queue(mocked_boto3_client):
     # then
     _, send_message_kwargs = mocked_boto3_client.send_message.call_args
     assert send_message_kwargs["MessageGroupId"] == domain
+
+
+@patch("saleor.webhook.transport.shipping.json.loads")
+def test_get_cache_data_for_shipping_list_methods_for_checkout(mock_loads):
+    # when
+    result = get_cache_data_for_shipping_list_methods_for_checkout("test payload")
+
+    # then
+    assert result is mock_loads.return_value
+    assert mock_loads.mock_calls == [
+        call("test payload"),
+        call().__getitem__(0),
+        call().__getitem__().pop("last_change"),
+        call().__getitem__(0),
+        call().__getitem__().pop("meta"),
+    ]
