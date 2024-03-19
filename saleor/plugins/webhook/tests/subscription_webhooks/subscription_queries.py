@@ -1993,15 +1993,18 @@ subscription {
         }
         ... on CollectionTranslation {
           id
+          name
+          translatableContent {
+            id
+            name
+          }
         }
         ... on CategoryTranslation {
           id
           name
           translatableContent {
-             ...on CategoryTranslatableContent {
-               id
-               name
-             }
+            id
+            name
           }
         }
         ... on AttributeTranslation {

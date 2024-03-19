@@ -41,6 +41,7 @@ from ..page.dataloaders import (
 )
 from ..product.dataloaders import (
     CategoryByIdLoader,
+    CollectionByIdLoader,
     SelectedAttributesAllByProductIdLoader,
     SelectedAttributesByProductVariantIdLoader,
     SelectedAttributesVisibleInStorefrontByProductIdLoader,
@@ -367,6 +368,10 @@ class CollectionTranslation(BaseTranslationType[product_models.CollectionTransla
             f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
         ),
     )
+    translatable_content = graphene.Field(
+        "saleor.graphql.translations.types.CollectionTranslatableContent",
+        description="Represents the collection fields for translation." + ADDED_IN_320,
+    )
 
     class Meta:
         model = product_models.CollectionTranslation
@@ -378,10 +383,14 @@ class CollectionTranslation(BaseTranslationType[product_models.CollectionTransla
         description = root.description
         return description if description is not None else {}
 
+    @staticmethod
+    def resolve_translatable_content(root: product_models.CollectionTranslation, info):
+        return CollectionByIdLoader(info.context).load(root.collection_id)
+
 
 class CollectionTranslatableContent(ModelObjectType[product_models.Collection]):
-    id = graphene.GlobalID(
-        required=True, description="The ID of the collection translatable content."
+    id = graphene.ID(
+        required=True, description="The ID of the collection to translate."
     )
     seo_title = graphene.String(description="SEO title to translate.")
     seo_description = graphene.String(description="SEO description to translate.")
@@ -431,6 +440,10 @@ class CollectionTranslatableContent(ModelObjectType[product_models.Collection]):
         description = root.description
         return description if description is not None else {}
 
+    @staticmethod
+    def resolve_id(root: product_models.Collection, _info):
+        return graphene.Node.to_global_id("Collection", root.id)
+
 
 class CategoryTranslation(BaseTranslationType[product_models.CategoryTranslation]):
     id = graphene.GlobalID(
@@ -463,6 +476,7 @@ class CategoryTranslation(BaseTranslationType[product_models.CategoryTranslation
         description = root.description
         return description if description is not None else {}
 
+    @staticmethod
     def resolve_translatable_content(root: product_models.CategoryTranslation, info):
         return CategoryByIdLoader(info.context).load(root.category_id)
 

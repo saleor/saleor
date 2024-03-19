@@ -3250,6 +3250,7 @@ QUERY_TRANSLATION_COLLECTION = """
                 id
                 name
                 translation(languageCode: $languageCode){
+                    id
                     name
                 }
             }
@@ -3268,6 +3269,9 @@ def test_translation_query_collection(
     channel_listing = published_collection.channel_listings.get()
     channel_listing.save()
     collection_id = graphene.Node.to_global_id("Collection", published_collection.id)
+    translation_id = graphene.Node.to_global_id(
+        "CollectionTranslation", collection_translation_fr.id
+    )
 
     variables = {
         "id": collection_id,
@@ -3281,7 +3285,9 @@ def test_translation_query_collection(
     )
     content = get_graphql_content(response)
     data = content["data"]["translation"]
+    assert data["id"] == collection_id
     assert data["name"] == published_collection.name
+    assert data["translation"]["id"] == translation_id
     assert data["translation"]["name"] == collection_translation_fr.name
 
 

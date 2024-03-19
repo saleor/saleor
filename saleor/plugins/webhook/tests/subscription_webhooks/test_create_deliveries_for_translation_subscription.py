@@ -54,11 +54,24 @@ def test_translation_created_collection(
     translation_id = graphene.Node.to_global_id(
         "CollectionTranslation", collection_translation_fr.id
     )
+    collection = collection_translation_fr.collection
+    collection_id = graphene.Node.to_global_id("Collection", collection.id)
     deliveries = create_deliveries_for_subscriptions(
         event_type, collection_translation_fr, webhooks
     )
 
-    expected_payload = json.dumps({"translation": {"id": translation_id}})
+    expected_payload = json.dumps(
+        {
+            "translation": {
+                "id": translation_id,
+                "name": collection_translation_fr.name,
+                "translatableContent": {
+                    "id": collection_id,
+                    "name": collection.name,
+                },
+            }
+        }
+    )
 
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
