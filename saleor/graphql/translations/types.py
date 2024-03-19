@@ -853,7 +853,8 @@ class ShippingMethodTranslatableContent(
 
     @staticmethod
     def resolve_id(root: shipping_models.ShippingMethod, _info):
-        return graphene.Node.to_global_id("ShippingMethod", root.id)
+        # zedzior dlaczego ShippingMethodType a nie ShippingMethod
+        return graphene.Node.to_global_id("ShippingMethodType", root.id)
 
 
 class PromotionTranslation(BaseTranslationType[discount_models.PromotionTranslation]):
