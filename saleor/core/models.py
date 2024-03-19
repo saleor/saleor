@@ -150,7 +150,7 @@ class EventPayload(models.Model):
 
     def get_payload(self):
         if self.payload_file:
-            with self.payload_file.open("r") as f:
+            with self.payload_file.open("rt") as f:
                 payload = f.read()
                 return payload
         return self.payload
