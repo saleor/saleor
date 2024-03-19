@@ -2168,11 +2168,11 @@ def test_granted_refund_update_when_status_blocks_action(
     granted_refund.refresh_from_db()
     content = get_graphql_content(response)
     data = content["data"]["orderGrantRefundUpdate"]
-
-    assert len(data["errors"]) == 1
-    error = data["errors"][0]
-    assert error["field"] == "input"
-    assert error["code"] == OrderGrantRefundUpdateErrorCode.INVALID.name
+    assert len(data["errors"]) == 3
+    error_fields = {error["field"] for error in data["errors"]}
+    error_codes = {error["code"] for error in data["errors"]}
+    assert error_codes == {OrderGrantRefundUpdateErrorCode.INVALID.name}
+    assert error_fields == {"amount", "transactionId", "grantRefundForShipping"}
 
 
 @pytest.mark.parametrize(

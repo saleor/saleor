@@ -172,12 +172,19 @@ class OrderGrantRefundUpdate(BaseMutation):
             in [OrderGrantedRefundStatus.PENDING, OrderGrantedRefundStatus.SUCCESS]
             and not only_reason_provided
         ):
-            error_msg = "Only reason can be updated when `OrderGrantedRefund.status` is PENDING or SUCCESS."
+            fields_from_input = set(input.keys())
+            if "reason" in fields_from_input:
+                fields_from_input.remove("reason")
+            error_msg = (
+                "Only reason can be updated when `OrderGrantedRefund.status` is PENDING"
+                " or SUCCESS."
+            )
             raise ValidationError(
                 {
-                    "input": ValidationError(
+                    error_field: ValidationError(
                         error_msg, code=OrderGrantRefundUpdateErrorCode.INVALID.value
                     )
+                    for error_field in fields_from_input
                 }
             )
 
