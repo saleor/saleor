@@ -1,9 +1,11 @@
+from datetime import datetime
 from decimal import Decimal
 from unittest.mock import patch
 
 import before_after
 import graphene
 import pytest
+import pytz
 from django.core.management import call_command
 from prices import Money
 
@@ -23,7 +25,9 @@ def test_update_discounted_price_for_promotion_no_discount(product, channel_USD)
     assert product_channel_listing.discounted_price == Money("10", "USD")
 
     # when
-    update_discounted_prices_for_promotion(Product.objects.filter(id__in=[product.id]))
+    update_discounted_prices_for_promotion(
+        Product.objects.filter(id__in=[product.id]),
+    )
 
     # then
     product_channel_listing.refresh_from_db()
@@ -596,3 +600,67 @@ def test_update_discounted_price_rule_deleted_in_meantime_promotion_listing_exis
     with pytest.raises(VariantChannelListingPromotionRule.DoesNotExist):
         listing_promotion_rule.refresh_from_db()
     assert not variant_channel_listing.variantlistingpromotionrule.exists()
+
+
+def test_update_discounted_prices_for_promotion_only_dirty_products(
+    product, channel_USD, channel_PLN
+):
+    # given
+    variant = product.variants.first()
+    variant_channel_listing = variant.channel_listings.get(channel_id=channel_USD.id)
+    product_channel_listing = product.channel_listings.get(channel_id=channel_USD.id)
+    product_channel_listing.discounted_price_dirty = True
+    product_channel_listing.save()
+    second_channel_discounted_price = 123456
+    second_listing = product.channel_listings.create(
+        channel=channel_PLN,
+        discounted_price_amount=second_channel_discounted_price,
+        currency=channel_PLN.currency_code,
+        visible_in_listings=True,
+        available_for_purchase_at=(datetime(1999, 1, 1, tzinfo=pytz.UTC)),
+        discounted_price_dirty=False,
+    )
+
+    variant_price = Money("9.99", "USD")
+    variant_channel_listing.price = variant_price
+    variant_channel_listing.discounted_price = variant_price
+    variant_channel_listing.save()
+    product_channel_listing.refresh_from_db()
+
+    reward_value = Decimal("2")
+    promotion = Promotion.objects.create(
+        name="Promotion",
+    )
+    rule = promotion.rules.create(
+        name="Percentage promotion rule",
+        promotion=promotion,
+        catalogue_predicate={
+            "variantPredicate": {
+                "ids": [graphene.Node.to_global_id("ProductVariant", variant.id)]
+            }
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=reward_value,
+    )
+    rule.channels.add(variant_channel_listing.channel)
+    rule.variants.add(variant)
+
+    # when
+    update_discounted_prices_for_promotion(
+        Product.objects.filter(id__in=[product.id]), only_dirty_products=True
+    )
+
+    # then
+    expected_price_amount = variant_price.amount - reward_value
+    product_channel_listing.refresh_from_db()
+    variant_channel_listing.refresh_from_db()
+    assert product_channel_listing.discounted_price_amount == expected_price_amount
+    assert variant_channel_listing.discounted_price_amount == expected_price_amount
+    assert variant_channel_listing.promotion_rules.first() == rule
+    assert variant_channel_listing.promotion_rules.first()
+    assert (
+        variant_channel_listing.variantlistingpromotionrule.first().discount_amount
+        == reward_value
+    )
+    second_listing.refresh_from_db()
+    assert second_listing.discounted_price_amount == second_channel_discounted_price

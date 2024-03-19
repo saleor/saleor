@@ -130,7 +130,7 @@ class AccountRegister(ModelMutation):
             )
 
         data["channel"] = clean_channel(
-            data.get("channel"), error_class=AccountErrorCode
+            data.get("channel"), error_class=AccountErrorCode, allow_replica=False
         ).slug
 
         data["email"] = data["email"].lower()

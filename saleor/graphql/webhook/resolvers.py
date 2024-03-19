@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db.models import Exists, OuterRef, Q
 
 from ...app.models import App
@@ -61,7 +62,12 @@ def resolve_sample_payload(info: ResolveInfo, event_name, app):
         raise PermissionDenied(permissions=[required_permission])
 
 
-def resolve_shipping_methods_for_checkout(info: ResolveInfo, checkout, manager):
+def resolve_shipping_methods_for_checkout(
+    info: ResolveInfo,
+    checkout,
+    manager,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+):
     lines, _ = fetch_checkout_lines(checkout)
     shipping_channel_listings = checkout.channel.shipping_method_listings.all()
     checkout_info = fetch_checkout_info(
@@ -70,6 +76,7 @@ def resolve_shipping_methods_for_checkout(info: ResolveInfo, checkout, manager):
         manager,
         shipping_channel_listings,
         fetch_delivery_methods=False,
+        database_connection_name=database_connection_name,
     )
     all_shipping_methods = get_all_shipping_methods_list(
         checkout_info,
@@ -77,5 +84,6 @@ def resolve_shipping_methods_for_checkout(info: ResolveInfo, checkout, manager):
         lines,
         shipping_channel_listings,
         manager,
+        database_connection_name=database_connection_name,
     )
     return all_shipping_methods

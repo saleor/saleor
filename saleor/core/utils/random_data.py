@@ -87,7 +87,10 @@ from ...product.models import (
     VariantMedia,
 )
 from ...product.search import update_products_search_vector
-from ...product.tasks import update_products_discounted_prices_of_promotion_task
+from ...product.tasks import (
+    recalculate_discounted_price_for_products_task,
+    update_variant_relations_for_active_promotion_rules_task,
+)
 from ...shipping.models import (
     ShippingMethod,
     ShippingMethodChannelListing,
@@ -452,7 +455,7 @@ def create_products_by_schema(placeholder_dir, create_images):
     assign_products_to_collections(associations=types["product.collectionproduct"])
 
     all_products_qs = Product.objects.all()
-    update_products_search_vector(all_products_qs)
+    update_products_search_vector(all_products_qs.values_list("id", flat=True))
 
 
 class SaleorProvider(BaseProvider):
@@ -839,6 +842,7 @@ def create_fake_catalogue_promotion():
                 promotion=promotion,
                 reward_value_type=RewardValueType.PERCENTAGE,
                 reward_value=random.choice([10, 20, 30, 40, 50]),
+                variants_dirty=True,
                 catalogue_predicate={
                     "productPredicate": {
                         "ids": [
@@ -852,6 +856,7 @@ def create_fake_catalogue_promotion():
                 promotion=promotion,
                 reward_value_type=RewardValueType.PERCENTAGE,
                 reward_value=random.choice([10, 20, 30, 40, 50]),
+                variants_dirty=True,
                 catalogue_predicate={
                     "variantPredicate": {
                         "ids": [
@@ -1014,8 +1019,11 @@ def create_orders(how_many=10):
 def create_catalogue_promotions(how_many=5):
     for _ in range(how_many):
         promotion = create_fake_catalogue_promotion()
-        update_products_discounted_prices_of_promotion_task.delay(promotion.pk)
         yield f"Promotion: {promotion}"
+    # recalculation is handled by celery beat, so we trigger it manually, to receive the
+    # correct amounts in random data created by saleor.
+    update_variant_relations_for_active_promotion_rules_task()
+    recalculate_discounted_price_for_products_task()
 
 
 def create_order_promotions(how_many=5):

@@ -99,7 +99,7 @@ def filter_started(qs, _, value):
 
 def filter_sale_type(qs, _, value):
     if value in [DiscountValueType.FIXED, DiscountValueType.PERCENTAGE]:
-        rules = PromotionRule.objects.filter(reward_value_type=value)
+        rules = PromotionRule.objects.using(qs.db).filter(reward_value_type=value)
         qs = qs.filter(Exists(rules.filter(promotion_id=OuterRef("pk"))))
     return qs
 
@@ -111,7 +111,7 @@ def filter_sale_search(qs, _, value):
         return qs.filter(
             Q(name__ilike=value) | Q(rules__reward_value_type__ilike=value)
         )
-    rules = PromotionRule.objects.filter(reward_value=value)
+    rules = PromotionRule.objects.using(qs.db).filter(reward_value=value)
     return qs.filter(Exists(rules.filter(promotion_id=OuterRef("pk"))))
 
 
@@ -120,7 +120,9 @@ def filter_voucher_search(qs, _, value):
         Q(name__ilike=value)
         | Q(
             Exists(
-                VoucherCode.objects.filter(code__ilike=value, voucher_id=OuterRef("pk"))
+                VoucherCode.objects.using(qs.db).filter(
+                    code__ilike=value, voucher_id=OuterRef("pk")
+                )
             )
         )
     )

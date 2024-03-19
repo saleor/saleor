@@ -4,6 +4,7 @@ import pytest
 from django.utils import timezone
 from freezegun import freeze_time
 
+from .....product.tasks import recalculate_discounted_price_for_products_task
 from ... import DEFAULT_ADDRESS
 from ...product.utils import get_product
 from ...product.utils.preparing_product import prepare_product
@@ -52,6 +53,10 @@ def test_order_promotion_not_applied_when_not_within_time_range_CORE_2110(
     ) = prepare_product(
         e2e_staff_api_client, warehouse_id, channel_id, variant_price=20
     )
+
+    # prices are updated in the background, we need to force it to retrieve the correct
+    # ones
+    recalculate_discounted_price_for_products_task()
 
     # Step 1 - Create promotion lasting for a specific time range
     promotion_type = "CATALOGUE"

@@ -371,7 +371,9 @@ class ProductQueries(graphene.ObjectType):
             requestor, ALL_PRODUCTS_PERMISSIONS
         )
         if channel is None and not has_required_permissions:
-            channel = get_default_channel_slug_or_graphql_error()
+            channel = get_default_channel_slug_or_graphql_error(
+                allow_replica=info.context.allow_replica
+            )
         if id:
             _, id = from_global_id_or_error(id, Collection)
             collection = resolve_collection_by_id(info, id, channel, requestor)
@@ -392,7 +394,9 @@ class ProductQueries(graphene.ObjectType):
             requestor, ALL_PRODUCTS_PERMISSIONS
         )
         if channel is None and not has_required_permissions:
-            channel = get_default_channel_slug_or_graphql_error()
+            channel = get_default_channel_slug_or_graphql_error(
+                allow_replica=info.context.allow_replica
+            )
         qs = resolve_collections(info, channel)
         kwargs["channel"] = channel
         qs = filter_connection_queryset(
@@ -433,7 +437,9 @@ class ProductQueries(graphene.ObjectType):
         )
 
         if channel is None and not has_required_permissions:
-            channel = get_default_channel_slug_or_graphql_error()
+            channel = get_default_channel_slug_or_graphql_error(
+                allow_replica=info.context.allow_replica
+            )
 
         product = resolve_product(
             info,
@@ -457,7 +463,9 @@ class ProductQueries(graphene.ObjectType):
             requestor, ALL_PRODUCTS_PERMISSIONS
         )
         if channel is None and not has_required_permissions:
-            channel = get_default_channel_slug_or_graphql_error()
+            channel = get_default_channel_slug_or_graphql_error(
+                allow_replica=info.context.allow_replica
+            )
         qs = resolve_products(info, requestor, channel_slug=channel)
         if search:
             qs = ChannelQsContext(
@@ -502,7 +510,9 @@ class ProductQueries(graphene.ObjectType):
         )
 
         if channel is None and not has_required_permissions:
-            channel = get_default_channel_slug_or_graphql_error()
+            channel = get_default_channel_slug_or_graphql_error(
+                allow_replica=info.context.allow_replica
+            )
 
         variant = resolve_variant(
             info,
@@ -525,7 +535,9 @@ class ProductQueries(graphene.ObjectType):
             requestor, ALL_PRODUCTS_PERMISSIONS
         )
         if channel is None and not has_required_permissions:
-            channel = get_default_channel_slug_or_graphql_error()
+            channel = get_default_channel_slug_or_graphql_error(
+                allow_replica=info.context.allow_replica
+            )
         qs = resolve_product_variants(
             info,
             ids=ids,

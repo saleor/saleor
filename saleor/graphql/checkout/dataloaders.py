@@ -562,6 +562,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
                             checkout_lines,
                             manager,
                             shipping_method_listings,
+                            database_connection_name=self.database_connection_name,
                         )
                         checkout_info_map[key] = checkout_info
 

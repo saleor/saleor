@@ -339,7 +339,10 @@ def create_connection_slice(
     else:
         queryset = iterable
 
-    queryset, sort_by = sort_queryset_for_connection(iterable=queryset, args=args)
+    allow_replica = getattr(info.context, "allow_replica", False)
+    queryset, sort_by = sort_queryset_for_connection(
+        iterable=queryset, args=args, allow_replica=allow_replica
+    )
     args["sort_by"] = sort_by
 
     slice = connection_from_queryset_slice(
@@ -383,16 +386,16 @@ def _validate_slice_args(
     if max_limit:
         if first:
             assert first <= max_limit, (
-                "Requesting {} records on the `{}` connection exceeds the "
-                "`first` limit of {} records."
-            ).format(first, info.field_name, max_limit)
+                f"Requesting {first} records on the `{info.field_name}` connection "
+                f"exceeds the `first` limit of {max_limit} records."
+            )
             args["first"] = min(first, max_limit)
 
         if last:
             assert last <= max_limit, (
-                "Requesting {} records on the `{}` connection exceeds the "
-                "`last` limit of {} records."
-            ).format(last, info.field_name, max_limit)
+                f"Requesting {last} records on the `{info.field_name}` connection "
+                f"exceeds the `last` limit of {max_limit} records."
+            )
             args["last"] = min(last, max_limit)
 
 
@@ -485,7 +488,7 @@ def filter_qs(
     filter_input["channel"] = (
         args.get("channel")
         or filter_channel
-        or get_default_channel_slug_or_graphql_error()
+        or get_default_channel_slug_or_graphql_error(allow_replica)
     )
 
     if isinstance(iterable, ChannelQsContext):

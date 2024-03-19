@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import Literal, Optional, Union, overload
 
 import graphene
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from graphene import ObjectType
 from graphql.error import GraphQLError
@@ -124,10 +125,15 @@ def raise_validation_error(field=None, message=None, code=None):
     raise ValidationError({field: ValidationError(message, code=code)})
 
 
-def ext_ref_to_global_id_or_error(model, external_reference):
+def ext_ref_to_global_id_or_error(
+    model,
+    external_reference,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+):
     """Convert external reference to global id."""
     internal_id = (
-        model.objects.filter(external_reference=external_reference)
+        model.objects.using(database_connection_name)
+        .filter(external_reference=external_reference)
         .values_list("id", flat=True)
         .first()
     )

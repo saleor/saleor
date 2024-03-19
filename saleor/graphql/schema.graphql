@@ -9823,7 +9823,7 @@ type TaxConfiguration implements Node & ObjectWithMetadata @doc(category: "Taxes
   countries: [TaxConfigurationPerCountry!]!
 
   """
-  The tax app id that will be used to calculate the taxes for the given channel. Empty value for `TAX_APP` set as `taxCalculationStrategy` means that Saleor will iterate over all installed tax apps. If multiple tax apps exist with provided tax app id use the `App` with newest `created` date. Will become mandatory in 4.0 for `TAX_APP` `taxCalculationStrategy`.
+  The tax app `App.identifier` that will be used to calculate the taxes for the given channel. Empty value for `TAX_APP` set as `taxCalculationStrategy` means that Saleor will iterate over all installed tax apps. If multiple tax apps exist with provided tax app id use the `App` with newest `created` date. Will become mandatory in 4.0 for `TAX_APP` `taxCalculationStrategy`.
   
   Added in Saleor 3.19.
   """
@@ -9858,7 +9858,7 @@ type TaxConfigurationPerCountry @doc(category: "Taxes") {
   displayGrossPrices: Boolean!
 
   """
-  The tax app id that will be used to calculate the taxes for the given channel and country. If not provided, use the value from the channel's tax configuration.
+  The tax app `App.identifier` that will be used to calculate the taxes for the given channel and country. If not provided, use the value from the channel's tax configuration.
   
   Added in Saleor 3.19.
   """
@@ -20917,7 +20917,7 @@ input TaxConfigurationUpdateInput @doc(category: "Taxes") {
   removeCountriesConfiguration: [CountryCode!]
 
   """
-  The tax app id that will be used to calculate the taxes for the given channel. Empty value for `TAX_APP` set as `taxCalculationStrategy` means that Saleor will iterate over all installed tax apps. If multiple tax apps exist with provided tax app id use the `App` with newest `created` date. It's possible to set plugin by using prefix `plugin:` with `PLUGIN_ID` e.g. with Avalara `plugin:mirumee.taxes.avalara`.Will become mandatory in 4.0 for `TAX_APP` `taxCalculationStrategy`.
+  The tax app `App.identifier` that will be used to calculate the taxes for the given channel. Empty value for `TAX_APP` set as `taxCalculationStrategy` means that Saleor will iterate over all installed tax apps. If multiple tax apps exist with provided tax app id use the `App` with newest `created` date. It's possible to set plugin by using prefix `plugin:` with `PLUGIN_ID` e.g. with Avalara `plugin:mirumee.taxes.avalara`.Will become mandatory in 4.0 for `TAX_APP` `taxCalculationStrategy`.
   
   Added in Saleor 3.19.
   """
@@ -20942,7 +20942,7 @@ input TaxConfigurationPerCountryInput @doc(category: "Taxes") {
   displayGrossPrices: Boolean!
 
   """
-  The tax app identifier that will be used to calculate the taxes for the given channel and country. If not provided, use the value from the channel's tax configuration.
+  The tax app `App.identifier` that will be used to calculate the taxes for the given channel and country. If not provided, use the value from the channel's tax configuration.
   
   Added in Saleor 3.19.
   """
@@ -31527,6 +31527,10 @@ input UserCreateInput @doc(category: "Users") {
   User account is confirmed.
   
   Added in Saleor 3.15.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  
+  The user will be always set as unconfirmed. The confirmation will take place when the user sets the password.
   """
   isConfirmed: Boolean
 
