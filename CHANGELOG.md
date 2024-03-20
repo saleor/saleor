@@ -1,3 +1,4 @@
+
 # Changelog
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/saleor/saleor/releases) page.
@@ -9,6 +10,8 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Breaking changes
 
 ### GraphQL API
+
+- Add a `taxConfiguration` to a `Channel` - #15610 by @Air-t
 
 ### Saleor Apps
 
