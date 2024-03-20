@@ -19,7 +19,7 @@ from ...permission.enums import (
 from ...product import models as product_models
 from ...shipping import models as shipping_models
 from ...site import models as site_models
-from ..attribute.dataloaders import AttributesByAttributeId
+from ..attribute.dataloaders import AttributesByAttributeId, AttributeValueByIdLoader
 from ..channel import ChannelContext
 from ..core.context import get_database_connection_name
 from ..core.descriptions import (
@@ -35,17 +35,27 @@ from ..core.fields import JSONString, PermissionsField
 from ..core.tracing import traced_resolver
 from ..core.types import LanguageDisplay, ModelObjectType, NonNullList
 from ..core.utils import str_to_enum
+from ..discount.dataloaders import (
+    PromotionByIdLoader,
+    PromotionRuleByIdLoader,
+    VoucherByIdLoader,
+)
+from ..menu.dataloaders import MenuItemByIdLoader
 from ..page.dataloaders import (
+    PageByIdLoader,
     SelectedAttributesAllByPageIdLoader,
     SelectedAttributesVisibleInStorefrontPageIdLoader,
 )
 from ..product.dataloaders import (
     CategoryByIdLoader,
     CollectionByIdLoader,
+    ProductByIdLoader,
+    ProductVariantByIdLoader,
     SelectedAttributesAllByProductIdLoader,
     SelectedAttributesByProductVariantIdLoader,
     SelectedAttributesVisibleInStorefrontByProductIdLoader,
 )
+from ..shipping.dataloaders import ShippingMethodByIdLoader
 from ..utils import get_user_or_app_from_context
 from .fields import TranslationField
 
@@ -103,11 +113,22 @@ class AttributeValueTranslation(
         description="Translated rich-text attribute value." + RICH_CONTENT
     )
     plain_text = graphene.String(description="Translated plain text attribute value .")
+    translatable_content = graphene.Field(
+        "saleor.graphql.translations.types.AttributeValueTranslatableContent",
+        description="Represents the attribute value fields to translate."
+        + ADDED_IN_320,
+    )
 
     class Meta:
         model = attribute_models.AttributeValueTranslation
         interfaces = [graphene.relay.Node]
         description = "Represents attribute value translations."
+
+    @staticmethod
+    def resolve_translatable_content(
+        root: attribute_models.AttributeValueTranslation, info
+    ):
+        return AttributeValueByIdLoader(info.context).load(root.attribute_value_id)
 
 
 class AttributeTranslation(BaseTranslationType[attribute_models.AttributeTranslation]):
@@ -115,11 +136,19 @@ class AttributeTranslation(BaseTranslationType[attribute_models.AttributeTransla
         required=True, description="The ID of the attribute translation."
     )
     name = graphene.String(required=True, description="Translated attribute name.")
+    translatable_content = graphene.Field(
+        "saleor.graphql.translations.types.AttributeTranslatableContent",
+        description="Represents the attribute fields to translate." + ADDED_IN_320,
+    )
 
     class Meta:
         model = attribute_models.AttributeTranslation
         interfaces = [graphene.relay.Node]
         description = "Represents attribute translations."
+
+    @staticmethod
+    def resolve_translatable_content(root: attribute_models.AttributeTranslation, info):
+        return AttributesByAttributeId(info.context).load(root.attribute_id)
 
 
 class AttributeTranslatableContent(ModelObjectType[attribute_models.Attribute]):
@@ -210,11 +239,22 @@ class ProductVariantTranslation(
     name = graphene.String(
         required=True, description="Translated product variant name."
     )
+    translatable_content = graphene.Field(
+        "saleor.graphql.translations.types.ProductVariantTranslatableContent",
+        description="Represents the product variant fields to translate."
+        + ADDED_IN_320,
+    )
 
     class Meta:
         model = product_models.ProductVariantTranslation
         interfaces = [graphene.relay.Node]
         description = "Represents product variant translations."
+
+    @staticmethod
+    def resolve_translatable_content(
+        root: product_models.ProductVariantTranslation, info
+    ):
+        return ProductVariantByIdLoader(info.context).load(root.product_variant_id)
 
 
 class ProductVariantTranslatableContent(ModelObjectType[product_models.ProductVariant]):
@@ -284,6 +324,10 @@ class ProductTranslation(BaseTranslationType[product_models.ProductTranslation])
             f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
         ),
     )
+    translatable_content = graphene.Field(
+        "saleor.graphql.translations.types.ProductTranslatableContent",
+        description="Represents the product fields to translate." + ADDED_IN_320,
+    )
 
     class Meta:
         model = product_models.ProductTranslation
@@ -294,6 +338,10 @@ class ProductTranslation(BaseTranslationType[product_models.ProductTranslation])
     def resolve_description_json(root: product_models.ProductTranslation, _info):
         description = root.description
         return description if description is not None else {}
+
+    @staticmethod
+    def resolve_translatable_content(root: product_models.ProductTranslation, info):
+        return ProductByIdLoader(info.context).load(root.product_id)
 
 
 class ProductTranslatableContent(ModelObjectType[product_models.Product]):
@@ -384,7 +432,7 @@ class CollectionTranslation(BaseTranslationType[product_models.CollectionTransla
     )
     translatable_content = graphene.Field(
         "saleor.graphql.translations.types.CollectionTranslatableContent",
-        description="Represents the collection fields for translation." + ADDED_IN_320,
+        description="Represents the collection fields to translate." + ADDED_IN_320,
     )
 
     class Meta:
@@ -477,7 +525,7 @@ class CategoryTranslation(BaseTranslationType[product_models.CategoryTranslation
     )
     translatable_content = graphene.Field(
         "saleor.graphql.translations.types.CategoryTranslatableContent",
-        description="Represents the category fields for translation." + ADDED_IN_320,
+        description="Represents the category fields to translate." + ADDED_IN_320,
     )
 
     class Meta:
@@ -551,6 +599,10 @@ class PageTranslation(BaseTranslationType[page_models.PageTranslation]):
         description="Translated description of the page." + RICH_CONTENT,
         deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use the `content` field instead.",
     )
+    translatable_content = graphene.Field(
+        "saleor.graphql.translations.types.PageTranslatableContent",
+        description="Represents the page fields to translate." + ADDED_IN_320,
+    )
 
     class Meta:
         model = page_models.PageTranslation
@@ -561,6 +613,10 @@ class PageTranslation(BaseTranslationType[page_models.PageTranslation]):
     def resolve_content_json(root: page_models.PageTranslation, _info):
         content = root.content
         return content if content is not None else {}
+
+    @staticmethod
+    def resolve_translatable_content(root: page_models.PageTranslation, info):
+        return PageByIdLoader(info.context).load(root.page_id)
 
 
 class PageTranslatableContent(ModelObjectType[page_models.Page]):
@@ -641,11 +697,19 @@ class VoucherTranslation(BaseTranslationType[discount_models.VoucherTranslation]
         required=True, description="The ID of the voucher translation."
     )
     name = graphene.String(description="Translated voucher name.")
+    translatable_content = graphene.Field(
+        "saleor.graphql.translations.types.VoucherTranslatableContent",
+        description="Represents the voucher fields to translate." + ADDED_IN_320,
+    )
 
     class Meta:
         model = discount_models.VoucherTranslation
         interfaces = [graphene.relay.Node]
         description = "Represents voucher translations."
+
+    @staticmethod
+    def resolve_translatable_content(root: discount_models.VoucherTranslation, info):
+        return VoucherByIdLoader(info.context).load(root.voucher_id)
 
 
 class VoucherTranslatableContent(ModelObjectType[discount_models.Voucher]):
@@ -685,6 +749,10 @@ class VoucherTranslatableContent(ModelObjectType[discount_models.Voucher]):
 class SaleTranslation(BaseTranslationType[discount_models.PromotionTranslation]):
     id = graphene.GlobalID(required=True, description="The ID of the sale translation.")
     name = graphene.String(description="Translated name of sale.")
+    translatable_content = graphene.Field(
+        "saleor.graphql.translations.types.SaleTranslatableContent",
+        description="Represents the sale fields to translate." + ADDED_IN_320,
+    )
 
     class Meta:
         model = discount_models.PromotionTranslation
@@ -694,6 +762,10 @@ class SaleTranslation(BaseTranslationType[discount_models.PromotionTranslation])
             + DEPRECATED_IN_3X_TYPE
             + " Use `PromotionTranslation` instead."
         )
+
+    @staticmethod
+    def resolve_translatable_content(root: discount_models.PromotionTranslation, info):
+        return PromotionByIdLoader(info.context).load(root.promotion_id)
 
 
 class SaleTranslatableContent(ModelObjectType[discount_models.Promotion]):
@@ -750,11 +822,19 @@ class MenuItemTranslation(BaseTranslationType[menu_models.MenuItemTranslation]):
         required=True, description="The ID of the menu item translation."
     )
     name = graphene.String(required=True, description="Translated menu item name.")
+    translatable_content = graphene.Field(
+        "saleor.graphql.translations.types.MenuItemTranslatableContent",
+        description="Represents the menu item fields to translate." + ADDED_IN_320,
+    )
 
     class Meta:
         model = menu_models.MenuItemTranslation
         interfaces = [graphene.relay.Node]
         description = "Represents menu item translations."
+
+    @staticmethod
+    def resolve_translatable_content(root: menu_models.MenuItemTranslation, info):
+        return MenuItemByIdLoader(info.context).load(root.menu_item_id)
 
 
 class MenuItemTranslatableContent(ModelObjectType[menu_models.MenuItem]):
@@ -803,11 +883,22 @@ class ShippingMethodTranslation(
     description = JSONString(
         description="Translated description of the shipping method." + RICH_CONTENT
     )
+    translatable_content = graphene.Field(
+        "saleor.graphql.translations.types.ShippingMethodTranslatableContent",
+        description="Represents the shipping method fields to translate."
+        + ADDED_IN_320,
+    )
 
     class Meta:
         model = shipping_models.ShippingMethodTranslation
         interfaces = [graphene.relay.Node]
         description = "Represents shipping method translations."
+
+    @staticmethod
+    def resolve_translatable_content(
+        root: shipping_models.ShippingMethodTranslation, info
+    ):
+        return ShippingMethodByIdLoader(info.context).load(root.shipping_method_id)
 
 
 class ShippingMethodTranslatableContent(
@@ -865,11 +956,19 @@ class PromotionTranslation(BaseTranslationType[discount_models.PromotionTranslat
     description = JSONString(
         description="Translated description of the promotion." + RICH_CONTENT
     )
+    translatable_content = graphene.Field(
+        "saleor.graphql.translations.types.PromotionTranslatableContent",
+        description="Represents the promotion fields to translate." + ADDED_IN_320,
+    )
 
     class Meta:
         model = discount_models.Promotion
         interfaces = [graphene.relay.Node]
         description = "Represents promotion translations." + ADDED_IN_317
+
+    @staticmethod
+    def resolve_translatable_content(root: discount_models.PromotionTranslation, info):
+        return PromotionByIdLoader(info.context).load(root.promotion_id)
 
 
 class PromotionTranslatableContent(ModelObjectType[discount_models.Promotion]):
@@ -901,11 +1000,21 @@ class PromotionRuleTranslation(
     description = JSONString(
         description="Translated description of the promotion rule." + RICH_CONTENT
     )
+    translatable_content = graphene.Field(
+        "saleor.graphql.translations.types.PromotionRuleTranslatableContent",
+        description="Represents the promotion rule fields to translate." + ADDED_IN_320,
+    )
 
     class Meta:
         model = discount_models.PromotionRule
         interfaces = [graphene.relay.Node]
         description = "Represents promotion rule translations." + ADDED_IN_317
+
+    @staticmethod
+    def resolve_translatable_content(
+        root: discount_models.PromotionRuleTranslation, info
+    ):
+        return PromotionRuleByIdLoader(info.context).load(root.promotion_rule_id)
 
 
 class PromotionRuleTranslatableContent(ModelObjectType[discount_models.Promotion]):

@@ -3309,6 +3309,10 @@ QUERY_TRANSLATION_CATEGORY = """
                 translation(languageCode: $languageCode){
                     id
                     name
+                    translatableContent {
+                        id
+                        name
+                    }
                 }
             }
         }

@@ -16,11 +16,24 @@ def test_translation_created_product(
     translation_id = graphene.Node.to_global_id(
         "ProductTranslation", product_translation_fr.id
     )
+    product = product_translation_fr.product
+    product_id = graphene.Node.to_global_id("Product", product.id)
     deliveries = create_deliveries_for_subscriptions(
         event_type, product_translation_fr, webhooks
     )
 
-    expected_payload = json.dumps({"translation": {"id": translation_id}})
+    expected_payload = json.dumps(
+        {
+            "translation": {
+                "id": translation_id,
+                "name": product_translation_fr.name,
+                "translatableContent": {
+                    "id": product_id,
+                    "name": product.name,
+                },
+            }
+        }
+    )
 
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
@@ -35,11 +48,24 @@ def test_translation_created_product_variant(
     translation_id = graphene.Node.to_global_id(
         "ProductVariantTranslation", variant_translation_fr.id
     )
+    variant = variant_translation_fr.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     deliveries = create_deliveries_for_subscriptions(
         event_type, variant_translation_fr, webhooks
     )
 
-    expected_payload = json.dumps({"translation": {"id": translation_id}})
+    expected_payload = json.dumps(
+        {
+            "translation": {
+                "id": translation_id,
+                "name": variant_translation_fr.name,
+                "translatableContent": {
+                    "id": variant_id,
+                    "name": variant.name,
+                },
+            }
+        }
+    )
 
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
