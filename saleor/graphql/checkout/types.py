@@ -861,6 +861,7 @@ class Checkout(ModelObjectType[models.Checkout]):
         )
 
     @staticmethod
+    @prevent_sync_event_circular_query
     def resolve_delivery_method(root: models.Checkout, info: ResolveInfo):
         return (
             CheckoutInfoByCheckoutTokenLoader(info.context)
