@@ -540,18 +540,19 @@ class User(ModelObjectType[models.User]):
         )
 
     @staticmethod
-    def resolve_user_permissions(root: models.User, _info: ResolveInfo):
+    def resolve_user_permissions(root: models.User, info: ResolveInfo):
         from .resolvers import resolve_permissions
 
-        return resolve_permissions(root)
+        return resolve_permissions(root, info)
 
     @staticmethod
     def resolve_permission_groups(root: models.User, info: ResolveInfo):
         return root.groups.using(get_database_connection_name(info.context)).all()
 
     @staticmethod
-    def resolve_editable_groups(root: models.User, _info: ResolveInfo):
-        return get_groups_which_user_can_manage(root)
+    def resolve_editable_groups(root: models.User, info: ResolveInfo):
+        database_connection_name = get_database_connection_name(info.context)
+        return get_groups_which_user_can_manage(root, database_connection_name)
 
     @staticmethod
     def resolve_accessible_channels(root: models.Group, info: ResolveInfo):
@@ -929,13 +930,17 @@ class Group(ModelObjectType[models.Group]):
         doc_category = DOC_CATEGORY_USERS
 
     @staticmethod
-    def resolve_users(root: models.Group, _info: ResolveInfo):
-        return root.user_set.all()  # type: ignore[attr-defined]
+    def resolve_users(root: models.Group, info: ResolveInfo):
+        database_connection_name = get_database_connection_name(info.context)
+        return root.user_set.using(database_connection_name).all()  # type: ignore[attr-defined]
 
     @staticmethod
-    def resolve_permissions(root: models.Group, _info: ResolveInfo):
-        permissions = root.permissions.prefetch_related("content_type").order_by(
-            "codename"
+    def resolve_permissions(root: models.Group, info: ResolveInfo):
+        database_connection_name = get_database_connection_name(info.context)
+        permissions = (
+            root.permissions.using(database_connection_name)
+            .prefetch_related("content_type")
+            .order_by("codename")
         )
         return format_permissions_for_display(permissions)
 

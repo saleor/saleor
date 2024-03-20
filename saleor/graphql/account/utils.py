@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING, Optional, Union
 
+from django.conf import settings
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models import Q, Value
 from django.db.models.functions import Concat
@@ -112,15 +113,22 @@ def get_group_permission_codes(group: Group) -> "QuerySet":
     ).values_list("formatted_codename", flat=True)  # type: ignore[misc]
 
 
-def get_groups_which_user_can_manage(user: "User") -> list[Group]:
+def get_groups_which_user_can_manage(
+    user: "User",
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+) -> list[Group]:
     """Return groups which user can manage."""
     if not user.is_staff:
         return []
 
-    user_permissions = get_user_permissions(user)
+    user_permissions = get_user_permissions(user).using(database_connection_name)
     user_permission_pks = set(user_permissions.values_list("pk", flat=True))
 
-    groups = Group.objects.all().annotate(group_perms=ArrayAgg("permissions"))
+    groups = (
+        Group.objects.using(database_connection_name)
+        .all()
+        .annotate(group_perms=ArrayAgg("permissions"))
+    )
 
     editable_groups: list[Group] = []
     for group in groups.iterator():

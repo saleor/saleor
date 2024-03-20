@@ -474,8 +474,9 @@ class Shop(graphene.ObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_permissions(_, _info):
-        permissions = get_permissions()
+    def resolve_permissions(_, info):
+        database_connection_name = get_database_connection_name(info.context)
+        permissions = get_permissions(database_connection_name=database_connection_name)
         return format_permissions_for_display(permissions)
 
     @staticmethod
