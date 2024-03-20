@@ -244,7 +244,6 @@ def test_translation_created_shipping_method(
         "ShippingMethodTranslation", shipping_method_translation_fr.id
     )
     shipping_method = shipping_method_translation_fr.shipping_method
-    # zedzior dlaczego ShippingMethodType a nie ShippingMethod
     shipping_method_id = graphene.Node.to_global_id(
         "ShippingMethodType", shipping_method.id
     )
@@ -666,7 +665,6 @@ def test_translation_updated_shipping_method(
         "ShippingMethodTranslation", shipping_method_translation_fr.id
     )
     shipping_method = shipping_method_translation_fr.shipping_method
-    # zedzior dlaczego ShippingMethodType a nie ShippingMethod
     shipping_method_id = graphene.Node.to_global_id(
         "ShippingMethodType", shipping_method.id
     )

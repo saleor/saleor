@@ -944,7 +944,6 @@ class ShippingMethodTranslatableContent(
 
     @staticmethod
     def resolve_id(root: shipping_models.ShippingMethod, _info):
-        # zedzior dlaczego ShippingMethodType a nie ShippingMethod
         return graphene.Node.to_global_id("ShippingMethodType", root.id)
 
 

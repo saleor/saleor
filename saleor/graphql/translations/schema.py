@@ -81,7 +81,6 @@ class TranslatableKinds(graphene.Enum):
     PROMOTION = "Promotion"
     PROMOTION_RULE = "PromotionRule"
     SALE = "Sale"
-    # zedzior dlaczego ShippingMethodType a nie ShippingMethod
     SHIPPING_METHOD = "ShippingMethodType"
     VARIANT = "ProductVariant"
     VOUCHER = "Voucher"
