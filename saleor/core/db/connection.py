@@ -8,6 +8,8 @@ from django.core.management.color import color_style
 from django.db import connections
 from django.db.backends.base.base import BaseDatabaseWrapper
 
+from ...graphql.core.context import SaleorContext, get_database_connection_name
+
 logger = logging.getLogger(__name__)
 
 writer = settings.DATABASE_CONNECTION_DEFAULT_NAME
@@ -104,3 +106,13 @@ def _log_writer_usage(execute, sql, params, many, context):
         )
         logger.error(log_msg)
     return execute(sql, params, many, context)
+
+
+@contextmanager
+def allow_writer_in_context(context: SaleorContext):
+    conn_name = get_database_connection_name(context)
+    if conn_name == settings.DATABASE_CONNECTION_DEFAULT_NAME:
+        with allow_writer():
+            yield
+    else:
+        yield

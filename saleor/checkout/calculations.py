@@ -7,6 +7,7 @@ from django.utils import timezone
 from prices import Money, TaxedMoney
 
 from ..checkout import base_calculations
+from ..core.db.connection import allow_writer
 from ..core.prices import quantize_price
 from ..core.taxes import TaxData, TaxEmptyData, zero_money, zero_taxed_money
 from ..discount.utils import (
@@ -325,18 +326,19 @@ def _fetch_checkout_prices_if_expired(
 
     checkout.price_expiration = timezone.now() + settings.CHECKOUT_PRICES_TTL
 
-    checkout.save(
-        update_fields=checkout_update_fields,
-        using=settings.DATABASE_CONNECTION_DEFAULT_NAME,
-    )
-    checkout.lines.bulk_update(
-        [line_info.line for line_info in lines],
-        [
-            "total_price_net_amount",
-            "total_price_gross_amount",
-            "tax_rate",
-        ],
-    )
+    with allow_writer():
+        checkout.save(
+            update_fields=checkout_update_fields,
+            using=settings.DATABASE_CONNECTION_DEFAULT_NAME,
+        )
+        checkout.lines.bulk_update(
+            [line_info.line for line_info in lines],
+            [
+                "total_price_net_amount",
+                "total_price_gross_amount",
+                "tax_rate",
+            ],
+        )
     return checkout_info, lines
 
 

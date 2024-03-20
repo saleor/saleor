@@ -6,6 +6,7 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from .....account import events as account_events
 from .....account import models
 from .....account.error_codes import AccountErrorCode
+from .....core.db.connection import allow_writer
 from .....order.utils import match_orders_with_new_user
 from ....core import ResolveInfo
 from ....core.context import disallow_replica_in_context
@@ -35,6 +36,7 @@ class SetPassword(CreateToken):
         error_type_field = "account_errors"
 
     @classmethod
+    @allow_writer()
     def mutate(  # type: ignore[override]
         cls, root, info: ResolveInfo, /, *, email, password, token
     ):
