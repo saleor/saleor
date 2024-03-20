@@ -7,6 +7,7 @@ from authlib.jose.errors import JoseError
 from django.core import signing
 from django.core.exceptions import ValidationError
 from freezegun import freeze_time
+from jwt import InvalidTokenError
 
 from ....account.models import Group, User
 from ....core.jwt import (
@@ -1269,6 +1270,118 @@ def test_authenticate_user_with_jwt_access_token_which_is_no_more_staff(
     assert user.is_staff is False
     assert list(user.effective_permissions) == []
     mock_send_user_event.assert_called_once_with(user, False, True)
+
+
+def test_authenticate_user_get_user_from_oauth_access_token_raises_authentication_error(
+    openid_plugin,
+    customer_user,
+    monkeypatch,
+    rf,
+):
+    # given
+    plugin = openid_plugin(
+        oauth_authorization_url=None,
+        oauth_token_url=None,
+        json_web_key_set_url="https://saleor.io/.well-known/jwks.json",
+        user_info_url="https://saleor.io/userinfo",
+        use_oauth_scope_permissions=True,
+    )
+
+    # mock get token from request
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.plugin.get_token_from_request",
+        lambda _: "OAuth_access_token",
+    )
+    # mock request to api to fetch user info details
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.plugin.get_user_from_oauth_access_token",
+        Mock(side_effect=AuthenticationError()),
+    )
+
+    # when
+    user = plugin.authenticate_user(rf.request(), None)
+
+    # then
+    assert user is None
+
+
+def test_authenticate_user_get_user_from_access_payload_decode_error(
+    openid_plugin,
+    customer_user,
+    monkeypatch,
+    rf,
+):
+    # given
+    plugin = openid_plugin(
+        oauth_authorization_url="https://saleor.io/auth",
+        oauth_token_url="https://saleor.io/token",
+        json_web_key_set_url="https://saleor.io/.well-known/jwks.json",
+        user_info_url="https://saleor.io/userinfo",
+        use_oauth_scope_permissions=True,
+    )
+
+    # mock get token from request
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.plugin.get_token_from_request",
+        lambda _: "OAuth_access_token",
+    )
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.plugin.is_owner_of_token_valid",
+        Mock(return_value=True),
+    )
+    # mock request to api to fetch user info details
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.plugin.get_user_from_access_payload",
+        Mock(side_effect=InvalidTokenError()),
+    )
+
+    # when
+    user = plugin.authenticate_user(rf.request(), None)
+
+    # then
+    assert user is None
+
+
+def test_authenticate_user_get_user_from_access_payload_raises_invalid_token_error(
+    openid_plugin,
+    decoded_access_token,
+    customer_user,
+    monkeypatch,
+    rf,
+):
+    # given
+    plugin = openid_plugin(
+        oauth_authorization_url="https://saleor.io/auth",
+        oauth_token_url="https://saleor.io/token",
+        json_web_key_set_url="https://saleor.io/.well-known/jwks.json",
+        user_info_url="https://saleor.io/userinfo",
+        use_oauth_scope_permissions=True,
+    )
+
+    # mock get token from request
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.plugin.get_token_from_request",
+        lambda _: "OAuth_access_token",
+    )
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.plugin.jwt_decode",
+        lambda _: decoded_access_token,
+    )
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.plugin.is_owner_of_token_valid",
+        Mock(return_value=True),
+    )
+    # mock request to api to fetch user info details
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.plugin.get_user_from_access_payload",
+        Mock(side_effect=InvalidTokenError()),
+    )
+
+    # when
+    user = plugin.authenticate_user(rf.request(), None)
+
+    # then
+    assert user is None
 
 
 @freeze_time("2021-03-08 12:00:00")
