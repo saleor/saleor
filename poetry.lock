@@ -3797,12 +3797,17 @@ files = [
 
 [[package]]
 name = "pywatchman"
-version = "1.4.1"
-description = "Watchman client for python"
+version = "2.0.0"
+description = "Watchman client for Python"
 optional = false
-python-versions = "*"
+python-versions = ">=3.8"
 files = [
-    {file = "pywatchman-1.4.1.tar.gz", hash = "sha256:d0047eb275deafb0011eda0a1a815fbd9742478c3d2b5ad6956d300e447dc2f9"},
+    {file = "pywatchman-2.0.0-cp310-cp310-macosx_14_0_arm64.whl", hash = "sha256:a8b531a9276c1dc8897510824cbb3290e4a5775793889758020593aedb97015b"},
+    {file = "pywatchman-2.0.0-cp311-cp311-macosx_14_0_arm64.whl", hash = "sha256:44217f0a38f40e64f975bd13eed91c73a076c0fb7e9e9908b96917389f53371e"},
+    {file = "pywatchman-2.0.0-cp312-cp312-macosx_14_0_arm64.whl", hash = "sha256:51c2b4c72bea6b9fd90caf20759f5bc47febf0fd27bf2f247b87c66e2f6bab02"},
+    {file = "pywatchman-2.0.0-cp38-cp38-macosx_14_0_arm64.whl", hash = "sha256:ed905338952db01f6506104295a3176adf0d8c2575e4f00505cb123ae09a2755"},
+    {file = "pywatchman-2.0.0-cp39-cp39-macosx_14_0_arm64.whl", hash = "sha256:4183ea206be46cb45d48f59ef7540b849582798ccd51ce54e1e400237b7dbf43"},
+    {file = "pywatchman-2.0.0.tar.gz", hash = "sha256:25354d9e3647f94411a4c13e510c83a1ceecc17977b0525ba41b16e7019c7b0c"},
 ]
 
 [[package]]
@@ -5395,4 +5400,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.9"
-content-hash = "fd3458d2c19430f29c5af859f04535fc81c2c310b83eac4df7b7da4ebb36354e"
+content-hash = "16a2c854e9a7d0795c7e1222c51c247373015023e4f738575472d075bbc3b014"
