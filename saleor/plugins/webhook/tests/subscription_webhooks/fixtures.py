@@ -1172,6 +1172,164 @@ def build_translation_updated_query(type: TranslationTypes) -> str:
 
 
 @pytest.fixture
+def subscription_product_translation_updated_webhook(subscription_webhook):
+    query = build_translation_updated_query(TranslationTypes.PRODUCT_TRANSLATION)
+    return subscription_webhook(
+        query,
+        WebhookEventAsyncType.TRANSLATION_UPDATED,
+    )
+
+
+@pytest.fixture
+def subscription_product_variant_translation_updated_webhook(subscription_webhook):
+    query = build_translation_updated_query(
+        TranslationTypes.PRODUCT_VARIANT_TRANSLATION
+    )
+    return subscription_webhook(
+        query,
+        WebhookEventAsyncType.TRANSLATION_UPDATED,
+    )
+
+
+@pytest.fixture
+def subscription_collection_translation_updated_webhook(subscription_webhook):
+    query = build_translation_updated_query(TranslationTypes.COLLECTION_TRANSLATION)
+    return subscription_webhook(
+        query,
+        WebhookEventAsyncType.TRANSLATION_UPDATED,
+    )
+
+
+@pytest.fixture
+def subscription_category_translation_updated_webhook(subscription_webhook):
+    query = build_translation_updated_query(TranslationTypes.CATEGORY_TRANSLATION)
+    return subscription_webhook(
+        query,
+        WebhookEventAsyncType.TRANSLATION_UPDATED,
+    )
+
+
+@pytest.fixture
+def subscription_attribute_translation_updated_webhook(subscription_webhook):
+    query = build_translation_updated_query(TranslationTypes.ATTRIBUTE_TRANSLATION)
+    return subscription_webhook(
+        query,
+        WebhookEventAsyncType.TRANSLATION_UPDATED,
+    )
+
+
+@pytest.fixture
+def subscription_attribute_value_translation_updated_webhook(subscription_webhook):
+    query = build_translation_updated_query(
+        TranslationTypes.ATTRIBUTE_VALUE_TRANSLATION
+    )
+    return subscription_webhook(
+        query,
+        WebhookEventAsyncType.TRANSLATION_UPDATED,
+    )
+
+
+@pytest.fixture
+def subscription_page_translation_updated_webhook(subscription_webhook):
+    query = """
+        subscription {
+          event {
+            ... on TranslationUpdated {
+              translation {
+                ... on PageTranslation {
+                  id
+                  title
+                  translatableContent {
+                    id
+                    title
+                  }
+                }
+              }
+            }
+          }
+        }
+        """
+    return subscription_webhook(
+        query,
+        WebhookEventAsyncType.TRANSLATION_UPDATED,
+    )
+
+
+@pytest.fixture
+def subscription_shipping_method_translation_updated_webhook(subscription_webhook):
+    query = build_translation_updated_query(
+        TranslationTypes.SHIPPING_METHOD_TRANSLATION
+    )
+    return subscription_webhook(
+        query,
+        WebhookEventAsyncType.TRANSLATION_UPDATED,
+    )
+
+
+@pytest.fixture
+def subscription_promotion_translation_updated_webhook(subscription_webhook):
+    query = build_translation_updated_query(TranslationTypes.PROMOTION_TRANSLATION)
+    return subscription_webhook(
+        query,
+        WebhookEventAsyncType.TRANSLATION_UPDATED,
+    )
+
+
+@pytest.fixture
+def subscription_sale_translation_updated_webhook(subscription_webhook):
+    query = """
+        subscription {
+          event {
+            ... on TranslationUpdated {
+              translation {
+                ... on SaleTranslation {
+                  __typename
+                  id
+                  name
+                  translatableContent {
+                    id
+                    name
+                  }
+                }
+              }
+            }
+          }
+        }
+        """
+    return subscription_webhook(
+        query,
+        WebhookEventAsyncType.TRANSLATION_UPDATED,
+    )
+
+
+@pytest.fixture
+def subscription_promotion_rule_translation_updated_webhook(subscription_webhook):
+    query = build_translation_updated_query(TranslationTypes.PROMOTION_RULE_TRANSLATION)
+    return subscription_webhook(
+        query,
+        WebhookEventAsyncType.TRANSLATION_UPDATED,
+    )
+
+
+@pytest.fixture
+def subscription_voucher_translation_updated_webhook(subscription_webhook):
+    query = build_translation_updated_query(TranslationTypes.VOUCHER_TRANSLATION)
+    return subscription_webhook(
+        query,
+        WebhookEventAsyncType.TRANSLATION_UPDATED,
+    )
+
+
+@pytest.fixture
+def subscription_menu_item_translation_updated_webhook(subscription_webhook):
+    query = build_translation_updated_query(TranslationTypes.MENU_ITEM_TRANSLATION)
+    return subscription_webhook(
+        query,
+        WebhookEventAsyncType.TRANSLATION_UPDATED,
+    )
+
+
+@pytest.fixture
 def subscription_warehouse_created_webhook(subscription_webhook):
     return subscription_webhook(
         queries.WAREHOUSE_CREATED, WebhookEventAsyncType.WAREHOUSE_CREATED
