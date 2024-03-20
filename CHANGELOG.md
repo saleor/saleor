@@ -10,6 +10,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - The ID of TranslatableContent types represents an ID of the object being translated and not TranslatableContent itself - #15617 by @zedzior
 
 ### GraphQL API
+- Add `translatableContent` to all translation types - #15617 by @zedzior
 
 ### Saleor Apps
 
