@@ -1,5 +1,9 @@
-import pytest
+from enum import Enum
 
+import pytest
+from graphene.utils.str_converters import to_snake_case
+
+from .....graphql.webhook.subscription_types import TRANSLATIONS_TYPES_MAP
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from .....webhook.models import Webhook
 from . import subscription_queries as queries
@@ -942,11 +946,228 @@ def subscription_translation_created_webhook(subscription_webhook):
     )
 
 
+TranslationTypes = Enum(
+    "TranslationTypes",
+    {
+        to_snake_case(k.__name__).upper(): k.__name__
+        for k in TRANSLATIONS_TYPES_MAP.keys()
+    },
+)
+
+
+def build_translation_created_query(type: TranslationTypes) -> str:
+    return (
+        """
+        subscription {
+          event {
+            ... on TranslationCreated {
+              translation {
+                ... on """
+        + type.value
+        + """ {
+                  id
+                  name
+                  translatableContent {
+                    id
+                    name
+                  }
+                }
+              }
+            }
+          }
+        }
+        """
+    )
+
+
+@pytest.fixture
+def subscription_product_translation_created_webhook(subscription_webhook):
+    query = build_translation_created_query(TranslationTypes.PRODUCT_TRANSLATION)
+    return subscription_webhook(
+        query,
+        WebhookEventAsyncType.TRANSLATION_CREATED,
+    )
+
+
+@pytest.fixture
+def subscription_product_variant_translation_created_webhook(subscription_webhook):
+    query = build_translation_created_query(
+        TranslationTypes.PRODUCT_VARIANT_TRANSLATION
+    )
+    return subscription_webhook(
+        query,
+        WebhookEventAsyncType.TRANSLATION_CREATED,
+    )
+
+
+@pytest.fixture
+def subscription_collection_translation_created_webhook(subscription_webhook):
+    query = build_translation_created_query(TranslationTypes.COLLECTION_TRANSLATION)
+    return subscription_webhook(
+        query,
+        WebhookEventAsyncType.TRANSLATION_CREATED,
+    )
+
+
+@pytest.fixture
+def subscription_category_translation_created_webhook(subscription_webhook):
+    query = build_translation_created_query(TranslationTypes.CATEGORY_TRANSLATION)
+    return subscription_webhook(
+        query,
+        WebhookEventAsyncType.TRANSLATION_CREATED,
+    )
+
+
+@pytest.fixture
+def subscription_attribute_translation_created_webhook(subscription_webhook):
+    query = build_translation_created_query(TranslationTypes.ATTRIBUTE_TRANSLATION)
+    return subscription_webhook(
+        query,
+        WebhookEventAsyncType.TRANSLATION_CREATED,
+    )
+
+
+@pytest.fixture
+def subscription_attribute_value_translation_created_webhook(subscription_webhook):
+    query = build_translation_created_query(
+        TranslationTypes.ATTRIBUTE_VALUE_TRANSLATION
+    )
+    return subscription_webhook(
+        query,
+        WebhookEventAsyncType.TRANSLATION_CREATED,
+    )
+
+
+@pytest.fixture
+def subscription_page_translation_created_webhook(subscription_webhook):
+    query = """
+        subscription {
+          event {
+            ... on TranslationCreated {
+              translation {
+                ... on PageTranslation {
+                  id
+                  title
+                  translatableContent {
+                    id
+                    title
+                  }
+                }
+              }
+            }
+          }
+        }
+        """
+    return subscription_webhook(
+        query,
+        WebhookEventAsyncType.TRANSLATION_CREATED,
+    )
+
+
+@pytest.fixture
+def subscription_shipping_method_translation_created_webhook(subscription_webhook):
+    query = build_translation_created_query(
+        TranslationTypes.SHIPPING_METHOD_TRANSLATION
+    )
+    return subscription_webhook(
+        query,
+        WebhookEventAsyncType.TRANSLATION_CREATED,
+    )
+
+
+@pytest.fixture
+def subscription_promotion_translation_created_webhook(subscription_webhook):
+    query = build_translation_created_query(TranslationTypes.PROMOTION_TRANSLATION)
+    return subscription_webhook(
+        query,
+        WebhookEventAsyncType.TRANSLATION_CREATED,
+    )
+
+
+@pytest.fixture
+def subscription_sale_translation_created_webhook(subscription_webhook):
+    query = """
+        subscription {
+          event {
+            ... on TranslationCreated {
+              translation {
+                ... on SaleTranslation {
+                  __typename
+                  id
+                  name
+                  translatableContent {
+                    id
+                    name
+                  }
+                }
+              }
+            }
+          }
+        }
+        """
+    return subscription_webhook(
+        query,
+        WebhookEventAsyncType.TRANSLATION_CREATED,
+    )
+
+
+@pytest.fixture
+def subscription_promotion_rule_translation_created_webhook(subscription_webhook):
+    query = build_translation_created_query(TranslationTypes.PROMOTION_RULE_TRANSLATION)
+    return subscription_webhook(
+        query,
+        WebhookEventAsyncType.TRANSLATION_CREATED,
+    )
+
+
+@pytest.fixture
+def subscription_voucher_translation_created_webhook(subscription_webhook):
+    query = build_translation_created_query(TranslationTypes.VOUCHER_TRANSLATION)
+    return subscription_webhook(
+        query,
+        WebhookEventAsyncType.TRANSLATION_CREATED,
+    )
+
+
+@pytest.fixture
+def subscription_menu_item_translation_created_webhook(subscription_webhook):
+    query = build_translation_created_query(TranslationTypes.MENU_ITEM_TRANSLATION)
+    return subscription_webhook(
+        query,
+        WebhookEventAsyncType.TRANSLATION_CREATED,
+    )
+
+
 @pytest.fixture
 def subscription_translation_updated_webhook(subscription_webhook):
     return subscription_webhook(
         queries.TRANSLATION_UPDATED,
         WebhookEventAsyncType.TRANSLATION_UPDATED,
+    )
+
+
+def build_translation_updated_query(type: TranslationTypes) -> str:
+    return (
+        """
+        subscription {
+          event {
+            ... on TranslationUpdated {
+              translation {
+                ... on """
+        + type.value
+        + """ {
+                  id
+                  name
+                  translatableContent {
+                    id
+                    name
+                  }
+                }
+              }
+            }
+          }
+        }
+        """
     )
 
 

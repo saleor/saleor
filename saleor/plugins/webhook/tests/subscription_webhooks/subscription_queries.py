@@ -1983,149 +1983,58 @@ subscription{
 }
 """
 
-# TRANSLATION_CREATED = """
-# subscription {
-#   event {
-#     ... on TranslationCreated {
-#       translation {
-#         ... on ProductTranslation {
-#           id
-#           name
-#           translatableContent {
-#             id
-#             name
-#           }
-#         }
-#         ... on CollectionTranslation {
-#           id
-#           name
-#           translatableContent {
-#             id
-#             name
-#           }
-#         }
-#         ... on CategoryTranslation {
-#           id
-#           name
-#           translatableContent {
-#             id
-#             name
-#           }
-#         }
-#         ... on AttributeTranslation {
-#           id
-#           name
-#           translatableContent {
-#             id
-#             name
-#           }
-#         }
-#         ... on ProductVariantTranslation {
-#           id
-#           name
-#           translatableContent {
-#             id
-#             name
-#           }
-#         }
-#         ... on PageTranslation {
-#           id
-#           name
-#           translatableContent {
-#             id
-#             name
-#           }
-#         }
-#         ... on ShippingMethodTranslation {
-#           id
-#           name
-#           translatableContent {
-#             id
-#             name
-#           }
-#         }
-#         ... on SaleTranslation {
-#           id
-#           name
-#           translatableContent {
-#             id
-#             name
-#           }
-#           __typename
-#         }
-#         ... on VoucherTranslation {
-#           id
-#           name
-#           translatableContent {
-#             id
-#             name
-#           }
-#         }
-#         ... on MenuItemTranslation {
-#           id
-#           name
-#           translatableContent {
-#             id
-#             name
-#           }
-#         }
-#         ... on AttributeValueTranslation {
-#           id
-#           name
-#           translatableContent {
-#             id
-#             name
-#           }
-#         }
-#         ... on PromotionTranslation {
-#           id
-#           name
-#           translatableContent {
-#             id
-#             name
-#           }
-#           __typename
-#         }
-#         ... on PromotionRuleTranslation {
-#           id
-#           name
-#           translatableContent {
-#             id
-#             name
-#           }
-#         }
-#       }
-#     }
-#   }
-# }
-# """
-
 TRANSLATION_CREATED = """
 subscription {
   event {
     ... on TranslationCreated {
       translation {
-        ... on ProductVariantTranslation {
-          id
-          name
-          translatableContent {
-            id
-            name
-          }
-        }
         ... on ProductTranslation {
           id
-          name
-          translatableContent {
-            id
-            name
-          }
+        }
+        ... on CollectionTranslation {
+          id
+        }
+        ... on CategoryTranslation {
+          id
+        }
+        ... on AttributeTranslation {
+          id
+        }
+        ... on ProductVariantTranslation {
+          id
+        }
+        ... on PageTranslation {
+          id
+        }
+        ... on ShippingMethodTranslation {
+          id
+        }
+        ... on SaleTranslation {
+          id
+          __typename
+        }
+        ... on VoucherTranslation {
+          id
+        }
+        ... on MenuItemTranslation {
+          id
+        }
+        ... on AttributeValueTranslation {
+          id
+        }
+        ... on PromotionTranslation {
+          id
+          __typename
+        }
+        ... on PromotionRuleTranslation {
+          id
         }
       }
     }
   }
 }
 """
+
 
 TRANSLATION_UPDATED = """
 subscription {
@@ -2134,109 +2043,44 @@ subscription {
       translation {
         ... on ProductTranslation {
           id
-          name
-          translatableContent {
-            id
-            name
-          }
         }
         ... on CollectionTranslation {
           id
-          name
-          translatableContent {
-            id
-            name
-          }
         }
         ... on CategoryTranslation {
           id
-          name
-          translatableContent {
-            id
-            name
-          }
         }
         ... on AttributeTranslation {
           id
-          name
-          translatableContent {
-            id
-            name
-          }
         }
         ... on ProductVariantTranslation {
           id
-          name
-          translatableContent {
-            id
-            name
-          }
         }
         ... on PageTranslation {
           id
-          name
-          translatableContent {
-            id
-            name
-          }
         }
         ... on ShippingMethodTranslation {
           id
-          name
-          translatableContent {
-            id
-            name
-          }
         }
         ... on SaleTranslation {
           id
-          name
-          translatableContent {
-            id
-            name
-          }
           __typename
         }
         ... on VoucherTranslation {
           id
-          name
-          translatableContent {
-            id
-            name
-          }
         }
         ... on MenuItemTranslation {
           id
-          name
-          translatableContent {
-            id
-            name
-          }
         }
         ... on AttributeValueTranslation {
           id
-          name
-          translatableContent {
-            id
-            name
-          }
         }
         ... on PromotionTranslation {
           id
-          name
-          translatableContent {
-            id
-            name
-          }
           __typename
         }
         ... on PromotionRuleTranslation {
           id
-          name
-          translatableContent {
-            id
-            name
-          }
         }
       }
     }
