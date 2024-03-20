@@ -1336,6 +1336,13 @@ def order_unconfirmed(order):
 
 
 @pytest.fixture
+def order_unconfirmed_with_lines(order_with_lines):
+    order_with_lines.status = OrderStatus.UNCONFIRMED
+    order_with_lines.save(update_fields=["status"])
+    return order_with_lines
+
+
+@pytest.fixture
 def product_type_generator(
     attribute_generator, attribute_value_generator, default_tax_class
 ):
