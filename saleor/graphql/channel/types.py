@@ -25,11 +25,16 @@ from ..core.descriptions import (
     ADDED_IN_314,
     PREVIEW_FEATURE,
 )
-from ..core.doc_category import DOC_CATEGORY_ORDERS, DOC_CATEGORY_PRODUCTS
+from ..core.doc_category import (
+    DOC_CATEGORY_ORDERS,
+    DOC_CATEGORY_PRODUCTS,
+    DOC_CATEGORY_TAXES,
+)
 from ..core.fields import PermissionsField
 from ..core.scalars import Day, Minute
 from ..core.types import BaseObjectType, CountryDisplay, ModelObjectType, NonNullList
 from ..meta.types import ObjectWithMetadata
+from ..tax.dataloaders import TaxConfigurationByChannelId
 from ..translations.resolvers import resolve_translation
 from ..warehouse.dataloaders import WarehousesByChannelIdLoader
 from ..warehouse.types import Warehouse
@@ -321,10 +326,25 @@ class Channel(ModelObjectType):
         ],
     )
 
+    tax_configuration = PermissionsField(
+        "saleor.graphql.tax.types.TaxConfiguration",
+        description="Channel specific tax configuration.",
+        required=True,
+        permissions=[
+            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+            AuthorizationFilters.AUTHENTICATED_APP,
+        ],
+        doc_category=DOC_CATEGORY_TAXES,
+    )
+
     class Meta:
         description = "Represents channel."
         model = models.Channel
         interfaces = [graphene.relay.Node]
+
+    @staticmethod
+    def resolve_tax_configuration(root: models.Channel, info: ResolveInfo):
+        return TaxConfigurationByChannelId(info.context).load(root.id)
 
     @staticmethod
     def resolve_has_orders(root: models.Channel, info: ResolveInfo):
