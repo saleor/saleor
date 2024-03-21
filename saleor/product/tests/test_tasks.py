@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 import pytest
 from django.utils import timezone
+from faker import Faker
 
 from ...discount import PromotionType, RewardValueType
 from ...discount.models import Promotion, PromotionRule
@@ -230,17 +231,23 @@ def test_recalculate_discounted_price_for_products_task_re_trigger_task(
     assert recalculate_discounted_price_for_products_task_mock.called
 
 
-@patch("saleor.product.tasks._update_variants_names")
-def test_update_variants_names(
-    update_variants_names_mock, product_type, size_attribute
-):
+def test_update_variants_names(product_variant_list, size_attribute):
+    # given
+    variant_without_name = product_variant_list[0]
+    variant_with_name = product_variant_list[1]
+    random_name = Faker().word()
+    variant_with_name.name = random_name
+    variant_with_name.save()
+    product = variant_without_name.product
+
     # when
-    update_variants_names(product_type.id, [size_attribute.id])
+    update_variants_names(product.product_type.id, [size_attribute.id])
 
     # then
-    args, _ = update_variants_names_mock.call_args
-    assert args[0] == product_type
-    assert {arg.pk for arg in args[1]} == {size_attribute.pk}
+    variant_without_name.refresh_from_db()
+    variant_with_name.refresh_from_db()
+    assert variant_without_name.name == variant_without_name.sku
+    assert variant_with_name.name == random_name
 
 
 def test_update_variants_names_product_type_does_not_exist(caplog):
