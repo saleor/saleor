@@ -279,6 +279,27 @@ def test_handle_thumbnail_view_invalid_image_mime_type(
     assert Thumbnail.objects.count() == thumbnail_count
 
 
+def test_handle_thumbnail_view_image_does_not_exist(
+    client, staff_user, product_with_image, settings
+):
+    # given
+    product_media = product_with_image.media.first()
+    product_media.image.name = "invalid_image.jpg"
+    product_media.save(update_fields=["image"])
+
+    size = 500
+    product_media_id = graphene.Node.to_global_id("ProductMedia", product_media.id)
+    thumbnail_count = Thumbnail.objects.count()
+
+    # when
+    response = client.get(f"/thumbnail/{product_media_id}/{size}/")
+
+    # then
+    assert response.status_code == 404
+    assert response.content.decode("utf-8") == "Cannot found image file."
+    assert Thumbnail.objects.count() == thumbnail_count
+
+
 def test_handle_icon_thumbnail_view_with_format(
     client, app, icon_image, media_root, settings
 ):
