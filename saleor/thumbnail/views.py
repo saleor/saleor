@@ -108,6 +108,9 @@ def handle_thumbnail(
         processed_image = ProcessedImage(image.name, size_px, format)
     try:
         thumbnail_file, _ = processed_image.create_thumbnail()
+    except FileNotFoundError as error:
+        logger.info(str(error))
+        return HttpResponseNotFound("Cannot found image file.")
     except ValueError as error:
         logger.info(str(error))
         return HttpResponseBadRequest("Invalid image.")
