@@ -731,7 +731,7 @@ FORMAT_FILED_DESCRIPTION = (
     "\n\nMany fields in the JSON refer to address fields by one-letter "
     "abbreviations. These are defined as follows:\n\n"
     "- `N`: Name\n"
-    "- `O`: Organisation\n"
+    "- `O`: Organization\n"
     "- `A`: Street Address Line(s)\n"
     "- `D`: Dependent locality (may be an inner-city district or a suburb)\n"
     "- `C`: City or Locality\n"
