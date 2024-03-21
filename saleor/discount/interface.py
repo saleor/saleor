@@ -54,15 +54,16 @@ def fetch_variant_rules_info(
     variant_channel_listing: "ProductVariantChannelListing",
     translation_language_code: str,
 ):
-    listings_rules = (
-        variant_channel_listing.variantlistingpromotionrule.all()
+    listing_promotion_rule = (
+        variant_channel_listing.variantlistingpromotionrule.order_by(
+            "discount_amount"
+        ).last()
         if variant_channel_listing
-        else []
+        else None
     )
     rules_info = []
-    for listing_promotion_rule in listings_rules:
+    if listing_promotion_rule:
         promotion = listing_promotion_rule.promotion_rule.promotion
-
         promotion_translation, rule_translation = get_rule_translations(
             promotion, listing_promotion_rule.promotion_rule, translation_language_code
         )
