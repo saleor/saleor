@@ -175,3 +175,40 @@ def test_associate_attribute_to_product_copies_data_over_to_new_field(
         (values[0].pk, product.id),
         (values[1].pk, product.id),
     ]
+
+
+def test_associate_attribute_to_instance_duplicated_values(
+    product, attribute_value_generator, multiselect_attribute, color_attribute
+):
+    # Ensure values are properly assigned even if the new value name is the same
+    # as value of different attribute.
+    product.product_type.product_attributes.add(multiselect_attribute, color_attribute)
+    color_attribute_value = color_attribute.values.first()
+
+    # create multiselect value with the same name as color value
+    multiselect_value = attribute_value_generator(
+        attribute=multiselect_attribute,
+        slug=color_attribute_value.slug,
+        name=color_attribute_value.name,
+    )
+    new_color_value = attribute_value_generator(
+        attribute=color_attribute,
+        slug="new-color-value",
+        name="New color value",
+    )
+
+    # Assign new values
+    associate_attribute_values_to_instance(
+        product,
+        {
+            color_attribute.id: [new_color_value],
+            multiselect_attribute.id: [multiselect_value],
+        },
+    )
+
+    # Ensure the new assignment was created
+    assert product.attributevalues.count() == 2
+    assert set(product.attributevalues.values_list("value_id", "product_id")) == {
+        (new_color_value.pk, product.id),
+        (multiselect_value.pk, product.id),
+    }
