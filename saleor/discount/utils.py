@@ -443,7 +443,6 @@ def prepare_line_discount_objects_for_catalogue_promotions(
         if line_info.rules_info:
             rule_info = line_info.rules_info[0]
             rule = rule_info.rule
-            # discount_to_update = rule_id_to_discount.get(rule.id)
             rule_discount_amount = _get_rule_discount_amount(
                 rule_info.variant_listing_promotion_rule, line.quantity
             )
@@ -574,6 +573,9 @@ def _update_discount(
     if discount_to_update.reason != reason:
         discount_to_update.reason = reason
         updated_fields.append("reason")
+    if discount_to_update.unique_type is None:
+        discount_to_update.unique_type = DiscountType.PROMOTION
+        updated_fields.append("unique_type")
 
 
 def _update_line_info_cached_discounts(

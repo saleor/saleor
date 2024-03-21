@@ -130,9 +130,88 @@ def test_create_fixed_discount(
         == discount_from_db.translated_name
         == promotion_translation_fr.name
     )
+    assert (
+        discount_from_info.unique_type
+        == discount_from_db.unique_type
+        == DiscountType.PROMOTION
+    )
 
     for checkout_line_info in checkout_lines_info[1:]:
         assert not checkout_line_info.discounts
+
+
+@freeze_time("2020-12-12 12:00:00")
+def test_update_catalogue_discount(
+    checkout_info,
+    checkout_lines_info,
+    catalogue_promotion_without_rules,
+    promotion_translation_fr,
+):
+    # given
+    line_info1 = checkout_lines_info[0]
+    product_line1 = line_info1.product
+
+    actual_reward_value = Decimal("5")
+    discount_to_update = line_info1.line.discounts.create(
+        type=DiscountType.PROMOTION,
+        value_type=RewardValueType.FIXED,
+        value=actual_reward_value,
+        name="Fixed 5 catalogue discount",
+        currency=line_info1.channel.currency_code,
+        amount_value=actual_reward_value * line_info1.line.quantity,
+    )
+    checkout_lines_info[0].discounts.append(discount_to_update)
+
+    reward_value = Decimal("7")
+    assert reward_value > actual_reward_value
+    rule = catalogue_promotion_without_rules.rules.create(
+        name="Percentage promotion rule",
+        catalogue_predicate={
+            "productPredicate": {
+                "ids": [graphene.Node.to_global_id("Product", product_line1.id)]
+            }
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=reward_value,
+    )
+    rule.channels.add(line_info1.channel)
+
+    listing = line_info1.channel_listing
+    discounted_price = listing.price.amount - reward_value
+    listing.discounted_price_amount = discounted_price
+    listing.save(update_fields=["discounted_price_amount"])
+
+    listing_promotion_rule = VariantChannelListingPromotionRule.objects.create(
+        variant_channel_listing=listing,
+        promotion_rule=rule,
+        discount_amount=reward_value,
+        currency=line_info1.channel.currency_code,
+    )
+    line_info1.rules_info = [
+        VariantPromotionRuleInfo(
+            rule=rule,
+            variant_listing_promotion_rule=listing_promotion_rule,
+            promotion=catalogue_promotion_without_rules,
+            promotion_translation=promotion_translation_fr,
+            rule_translation=None,
+        )
+    ]
+
+    # when
+    create_or_update_discount_objects_from_promotion_for_checkout(
+        checkout_info, checkout_lines_info
+    )
+
+    # then
+    assert len(line_info1.discounts) == 1
+    assert CheckoutLineDiscount.objects.count() == 1
+
+    discount = line_info1.discounts[0]
+    assert discount.id == discount_to_update.id
+    assert discount.value == reward_value
+    assert discount.promotion_rule_id == rule.id
+    assert discount.amount_value == reward_value * line_info1.line.quantity
+    assert discount.unique_type == DiscountType.PROMOTION
 
 
 @freeze_time("2020-12-12 12:00:00")

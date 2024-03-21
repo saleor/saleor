@@ -396,7 +396,7 @@ def test_update_catalogue_discount(
     line = order.lines.get(quantity=3)
     variant = line.variant
     assert OrderLineDiscount.objects.count() == 1
-    initial_discount = line.discounts.get()
+    discount_to_update = line.discounts.get()
 
     reward_value = Decimal(6)
     assert reward_value > promotion.rules.first().reward_value
@@ -430,7 +430,7 @@ def test_update_catalogue_discount(
     # then
     assert OrderLineDiscount.objects.count() == 1
     discount = OrderLineDiscount.objects.get()
-    assert initial_discount.id == discount.id
+    assert discount_to_update.id == discount.id
     assert discount.line == line
     assert discount.promotion_rule == rule
     assert discount.type == DiscountType.PROMOTION
