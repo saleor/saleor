@@ -5155,6 +5155,13 @@ type Channel implements Node & ObjectWithMetadata @doc(category: "Channels") {
   Requires one of the following permissions: MANAGE_CHANNELS, HANDLE_PAYMENTS.
   """
   paymentSettings: PaymentSettings!
+
+  """
+  Channel specific tax configuration.
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
+  """
+  taxConfiguration: TaxConfiguration!
 }
 
 """
@@ -5670,6 +5677,102 @@ Determine the transaction flow strategy.
 enum TransactionFlowStrategyEnum @doc(category: "Payments") {
   AUTHORIZATION
   CHARGE
+}
+
+"""
+Channel-specific tax configuration.
+
+Added in Saleor 3.9.
+"""
+type TaxConfiguration implements Node & ObjectWithMetadata @doc(category: "Taxes") {
+  """The ID of the object."""
+  id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  """
+  metafields(keys: [String!]): Metadata
+
+  """A channel to which the tax configuration applies to."""
+  channel: Channel!
+
+  """Determines whether taxes are charged in the given channel."""
+  chargeTaxes: Boolean!
+
+  """
+  The default strategy to use for tax calculation in the given channel. Taxes can be calculated either using user-defined flat rates or with a tax app. Empty value means that no method is selected and taxes are not calculated.
+  """
+  taxCalculationStrategy: TaxCalculationStrategy
+
+  """Determines whether displayed prices should include taxes."""
+  displayGrossPrices: Boolean!
+
+  """Determines whether prices are entered with the tax included."""
+  pricesEnteredWithTax: Boolean!
+
+  """List of country-specific exceptions in tax configuration."""
+  countries: [TaxConfigurationPerCountry!]!
+}
+
+enum TaxCalculationStrategy @doc(category: "Taxes") {
+  FLAT_RATES
+  TAX_APP
+}
+
+"""
+Country-specific exceptions of a channel's tax configuration.
+
+Added in Saleor 3.9.
+"""
+type TaxConfigurationPerCountry @doc(category: "Taxes") {
+  """Country in which this configuration applies."""
+  country: CountryDisplay!
+
+  """Determines whether taxes are charged in this country."""
+  chargeTaxes: Boolean!
+
+  """
+  A country-specific strategy to use for tax calculation. Taxes can be calculated either using user-defined flat rates or with a tax app. If not provided, use the value from the channel's tax configuration.
+  """
+  taxCalculationStrategy: TaxCalculationStrategy
+
+  """
+  Determines whether displayed prices should include taxes for this country.
+  """
+  displayGrossPrices: Boolean!
 }
 
 """Represents shipping method postal code rule."""
@@ -9740,102 +9843,6 @@ enum TranslatableKinds {
   SHIPPING_METHOD
   VARIANT
   VOUCHER
-}
-
-"""
-Channel-specific tax configuration.
-
-Added in Saleor 3.9.
-"""
-type TaxConfiguration implements Node & ObjectWithMetadata @doc(category: "Taxes") {
-  """The ID of the object."""
-  id: ID!
-
-  """List of private metadata items. Requires staff permissions to access."""
-  privateMetadata: [MetadataItem!]!
-
-  """
-  A single key from private metadata. Requires staff permissions to access.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
-  """
-  privateMetafield(key: String!): String
-
-  """
-  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
-  """
-  privateMetafields(keys: [String!]): Metadata
-
-  """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem!]!
-
-  """
-  A single key from public metadata.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
-  """
-  metafield(key: String!): String
-
-  """
-  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
-  """
-  metafields(keys: [String!]): Metadata
-
-  """A channel to which the tax configuration applies to."""
-  channel: Channel!
-
-  """Determines whether taxes are charged in the given channel."""
-  chargeTaxes: Boolean!
-
-  """
-  The default strategy to use for tax calculation in the given channel. Taxes can be calculated either using user-defined flat rates or with a tax app. Empty value means that no method is selected and taxes are not calculated.
-  """
-  taxCalculationStrategy: TaxCalculationStrategy
-
-  """Determines whether displayed prices should include taxes."""
-  displayGrossPrices: Boolean!
-
-  """Determines whether prices are entered with the tax included."""
-  pricesEnteredWithTax: Boolean!
-
-  """List of country-specific exceptions in tax configuration."""
-  countries: [TaxConfigurationPerCountry!]!
-}
-
-enum TaxCalculationStrategy @doc(category: "Taxes") {
-  FLAT_RATES
-  TAX_APP
-}
-
-"""
-Country-specific exceptions of a channel's tax configuration.
-
-Added in Saleor 3.9.
-"""
-type TaxConfigurationPerCountry @doc(category: "Taxes") {
-  """Country in which this configuration applies."""
-  country: CountryDisplay!
-
-  """Determines whether taxes are charged in this country."""
-  chargeTaxes: Boolean!
-
-  """
-  A country-specific strategy to use for tax calculation. Taxes can be calculated either using user-defined flat rates or with a tax app. If not provided, use the value from the channel's tax configuration.
-  """
-  taxCalculationStrategy: TaxCalculationStrategy
-
-  """
-  Determines whether displayed prices should include taxes for this country.
-  """
-  displayGrossPrices: Boolean!
 }
 
 type TaxConfigurationCountableConnection @doc(category: "Taxes") {
