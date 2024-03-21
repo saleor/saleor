@@ -20,6 +20,10 @@ QUERY_CHANNEL = """
             stockSettings{
                 allocationStrategy
             }
+            taxConfiguration {
+              id
+              pricesEnteredWithTax
+            }
         }
     }
 """
@@ -29,6 +33,9 @@ def test_query_channel_as_staff_user(staff_api_client, channel_USD):
     # given
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {"id": channel_id}
+    tax_configuration_id = graphene.Node.to_global_id(
+        "TaxConfiguration", channel_USD.tax_configuration.id
+    )
 
     # when
     response = staff_api_client.post_graphql(QUERY_CHANNEL, variables=variables)
@@ -45,12 +52,17 @@ def test_query_channel_as_staff_user(staff_api_client, channel_USD):
         AllocationStrategyEnum[allocation_strategy].value
         == channel_USD.allocation_strategy
     )
+    assert channel_data["taxConfiguration"]["id"] == tax_configuration_id
+    assert channel_data["taxConfiguration"]["pricesEnteredWithTax"] is True
 
 
 def test_query_channel_as_app(app_api_client, channel_USD):
     # given
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {"id": channel_id}
+    tax_configuration_id = graphene.Node.to_global_id(
+        "TaxConfiguration", channel_USD.tax_configuration.id
+    )
 
     # when
     response = app_api_client.post_graphql(QUERY_CHANNEL, variables=variables)
@@ -67,6 +79,8 @@ def test_query_channel_as_app(app_api_client, channel_USD):
         AllocationStrategyEnum[allocation_strategy].value
         == channel_USD.allocation_strategy
     )
+    assert channel_data["taxConfiguration"]["id"] == tax_configuration_id
+    assert channel_data["taxConfiguration"]["pricesEnteredWithTax"] is True
 
 
 def test_query_channel_as_customer(user_api_client, channel_USD):
