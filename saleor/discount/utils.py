@@ -382,18 +382,8 @@ def create_checkout_line_discount_objects_for_catalogue_promotions(
         line_ids = [line_info.line.id for line_info in lines_info]
         CheckoutLine.objects.filter(id__in=line_ids).only("id").select_for_update()
         if discounts_to_create_inputs:
-            discounts = CheckoutLineDiscount.objects.filter(line_id__in=line_ids).only(
-                "id", "type"
-            )
-            line_ids_with_catalogue_discount_applied = [
-                discount.line_id
-                for discount in discounts
-                if discount.type in [DiscountType.PROMOTION, DiscountType.SALE]
-            ]
             new_line_discounts = [
-                CheckoutLineDiscount(**input)
-                for input in discounts_to_create_inputs
-                if input["line"].id not in line_ids_with_catalogue_discount_applied
+                CheckoutLineDiscount(**input) for input in discounts_to_create_inputs
             ]
             CheckoutLineDiscount.objects.bulk_create(
                 new_line_discounts, ignore_conflicts=True
@@ -472,6 +462,7 @@ def prepare_line_discount_objects_for_catalogue_promotions(
                     "translated_name": translated_name,
                     "reason": reason,
                     "promotion_rule": rule,
+                    "unique_type": DiscountType.PROMOTION,
                 }
                 line_discounts_to_create_inputs.append(line_discount_input)
             else:
@@ -1197,18 +1188,8 @@ def create_order_line_discount_objects_for_catalogue_promotions(
         line_ids = [line_info.line.id for line_info in lines_info]
         OrderLine.objects.filter(id__in=line_ids).only("id").select_for_update()
         if discounts_to_create_inputs:
-            discounts = OrderLineDiscount.objects.filter(line_id__in=line_ids).only(
-                "id", "type"
-            )
-            line_ids_with_catalogue_discount_applied = [
-                discount.line_id
-                for discount in discounts
-                if discount.type in [DiscountType.PROMOTION, DiscountType.SALE]
-            ]
             new_line_discounts = [
-                OrderLineDiscount(**input)
-                for input in discounts_to_create_inputs
-                if input["line"].id not in line_ids_with_catalogue_discount_applied
+                OrderLineDiscount(**input) for input in discounts_to_create_inputs
             ]
             OrderLineDiscount.objects.bulk_create(
                 new_line_discounts, ignore_conflicts=True
