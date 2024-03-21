@@ -7,6 +7,7 @@ from django.db import transaction
 from django.db.models import prefetch_related_objects
 from prices import Money, TaxedMoney
 
+from ..core.db.connection import allow_writer
 from ..core.prices import quantize_price
 from ..core.taxes import TaxData, TaxEmptyData, TaxError, zero_taxed_money
 from ..discount import DiscountType
@@ -61,40 +62,44 @@ def fetch_order_prices_if_expired(
 
     _update_order_discount_for_voucher(order)
     _recalculate_prices(
-        order, manager, lines, database_connection_name=database_connection_name
+        order,
+        manager,
+        lines,
+        database_connection_name=database_connection_name,
     )
 
     order.subtotal = get_subtotal(lines, order.currency)
     with transaction.atomic(savepoint=False):
-        order.save(
-            update_fields=[
-                "subtotal_net_amount",
-                "subtotal_gross_amount",
-                "total_net_amount",
-                "total_gross_amount",
-                "undiscounted_total_net_amount",
-                "undiscounted_total_gross_amount",
-                "shipping_price_net_amount",
-                "shipping_price_gross_amount",
-                "shipping_tax_rate",
-                "should_refresh_prices",
-                "tax_error",
-            ]
-        )
-        order.lines.bulk_update(
-            lines,
-            [
-                "unit_price_net_amount",
-                "unit_price_gross_amount",
-                "undiscounted_unit_price_net_amount",
-                "undiscounted_unit_price_gross_amount",
-                "total_price_net_amount",
-                "total_price_gross_amount",
-                "undiscounted_total_price_net_amount",
-                "undiscounted_total_price_gross_amount",
-                "tax_rate",
-            ],
-        )
+        with allow_writer():
+            order.save(
+                update_fields=[
+                    "subtotal_net_amount",
+                    "subtotal_gross_amount",
+                    "total_net_amount",
+                    "total_gross_amount",
+                    "undiscounted_total_net_amount",
+                    "undiscounted_total_gross_amount",
+                    "shipping_price_net_amount",
+                    "shipping_price_gross_amount",
+                    "shipping_tax_rate",
+                    "should_refresh_prices",
+                    "tax_error",
+                ]
+            )
+            order.lines.bulk_update(
+                lines,
+                [
+                    "unit_price_net_amount",
+                    "unit_price_gross_amount",
+                    "undiscounted_unit_price_net_amount",
+                    "undiscounted_unit_price_gross_amount",
+                    "total_price_net_amount",
+                    "total_price_gross_amount",
+                    "undiscounted_total_price_net_amount",
+                    "undiscounted_total_price_gross_amount",
+                    "tax_rate",
+                ],
+            )
 
         return order, lines
 
@@ -102,7 +107,8 @@ def fetch_order_prices_if_expired(
 def _update_order_discount_for_voucher(order: Order):
     """Create or delete OrderDiscount instances."""
     if not order.voucher_id:
-        order.discounts.filter(type=DiscountType.VOUCHER).delete()
+        with allow_writer():
+            order.discounts.filter(type=DiscountType.VOUCHER).delete()
 
     elif (
         order.voucher_id
