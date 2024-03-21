@@ -454,6 +454,11 @@ class BaseDiscount(models.Model):
         choices=DiscountType.CHOICES,
         default=DiscountType.MANUAL,
     )
+    # `unique_type` is a field to ensure, that only single specific discount type
+    # can be associated with discounted object
+    unique_type = models.CharField(
+        max_length=64, choices=DiscountType.CHOICES, null=True, blank=True
+    )
     value_type = models.CharField(
         max_length=10,
         choices=DiscountValueType.CHOICES,
@@ -515,6 +520,7 @@ class OrderDiscount(BaseDiscount):
             GinIndex(fields=["voucher_code"], name="orderdiscount_voucher_code_idx"),
         ]
         ordering = ("created_at", "id")
+        unique_together = (("order_id", "unique_type"),)
 
 
 class OrderLineDiscount(BaseDiscount):
@@ -534,6 +540,7 @@ class OrderLineDiscount(BaseDiscount):
             GinIndex(fields=["voucher_code"], name="orderlinedisc_voucher_code_idx"),
         ]
         ordering = ("created_at", "id")
+        unique_together = (("line_id", "unique_type"),)
 
 
 class CheckoutDiscount(BaseDiscount):
@@ -553,7 +560,10 @@ class CheckoutDiscount(BaseDiscount):
             GinIndex(fields=["voucher_code"], name="checkoutdiscount_voucher_idx"),
         ]
         ordering = ("created_at", "id")
-        unique_together = ("checkout_id", "promotion_rule_id")
+        unique_together = (
+            ("checkout_id", "promotion_rule_id"),
+            ("checkout_id", "unique_type"),
+        )
 
 
 class CheckoutLineDiscount(BaseDiscount):
@@ -573,6 +583,7 @@ class CheckoutLineDiscount(BaseDiscount):
             GinIndex(fields=["voucher_code"], name="checklinedisc_voucher_code_idx"),
         ]
         ordering = ("created_at", "id")
+        unique_together = (("line_id", "unique_type"),)
 
 
 class PromotionEvent(models.Model):

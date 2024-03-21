@@ -395,7 +395,9 @@ def create_checkout_line_discount_objects_for_catalogue_promotions(
                 for input in discounts_to_create_inputs
                 if input["line"].id not in line_ids_with_catalogue_discount_applied
             ]
-            CheckoutLineDiscount.objects.bulk_create(new_line_discounts)
+            CheckoutLineDiscount.objects.bulk_create(
+                new_line_discounts, ignore_conflicts=True
+            )
 
         if discounts_to_update and updated_fields:
             CheckoutLineDiscount.objects.bulk_update(
@@ -1208,7 +1210,9 @@ def create_order_line_discount_objects_for_catalogue_promotions(
                 for input in discounts_to_create_inputs
                 if input["line"].id not in line_ids_with_catalogue_discount_applied
             ]
-            OrderLineDiscount.objects.bulk_create(new_line_discounts)
+            OrderLineDiscount.objects.bulk_create(
+                new_line_discounts, ignore_conflicts=True
+            )
 
         if discounts_to_update and updated_fields:
             OrderLineDiscount.objects.bulk_update(discounts_to_update, updated_fields)
