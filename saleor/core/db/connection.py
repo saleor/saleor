@@ -30,6 +30,14 @@ class UnsafeReplicaUsageError(UnsafeDBUsageError):
 
 @contextmanager
 def allow_writer():
+    """Context manager that allows write access to the default database connection.
+
+    This context manager works in conjunction with the `restrict_writer_middleware` and
+    `log_writer_usage_middleware` middlewares. If any of these middlewares are enabled,
+    use the `allow_writer` context manager to allow write access to the default
+    database. Otherwise an error will be raised or a log message will be emitted.
+    """
+
     from django.db import connections
 
     default_connection = connections[settings.DATABASE_CONNECTION_DEFAULT_NAME]
@@ -47,12 +55,28 @@ def allow_writer():
             setattr(default_connection, "_allow_writer", False)
 
 
+@contextmanager
+def allow_writer_in_context(context: SaleorContext):
+    """Context manager that allows write access to the default database connection in a context (SaleorContext).
+
+    This is a helper context manager that conditionally allows write access based on the
+    database connection name in the given context.
+    """
+    conn_name = get_database_connection_name(context)
+    if conn_name == settings.DATABASE_CONNECTION_DEFAULT_NAME:
+        with allow_writer():
+            yield
+    else:
+        yield
+
+
 def restrict_writer_middleware(get_response):
     """Middleware that restricts write access to the default database connection.
 
-    This middleware will raise an error or log a warning if a write operation is
-    attempted on the default database connection. To allow writes, use the
-    `allow_writer` context manager or the `using` queryset method.
+    This middleware will raise an error if a write operation is attempted on the default
+    database connection. To allow writes, use the `allow_writer` context manager. Make
+    sure that writer is not used accidentally and always use the `using` queryset method
+    with proper database connection name.
     """
 
     def middleware(request):
@@ -85,6 +109,13 @@ def _is_read_only_query(sql_query: str) -> bool:
 
 
 def log_writer_usage_middleware(get_response):
+    """Middleware that logs write access to the default database connection.
+
+    This is similar to the `restrict_writer_middleware` middleware, but instead of
+    raising an error, it logs a message when a write operation is attempted on the
+    default database connection.
+    """
+
     def middleware(request):
         with connections[writer].execute_wrapper(_log_writer_usage):
             return get_response(request)
@@ -106,13 +137,3 @@ def _log_writer_usage(execute, sql, params, many, context):
         )
         logger.error(log_msg)
     return execute(sql, params, many, context)
-
-
-@contextmanager
-def allow_writer_in_context(context: SaleorContext):
-    conn_name = get_database_connection_name(context)
-    if conn_name == settings.DATABASE_CONNECTION_DEFAULT_NAME:
-        with allow_writer():
-            yield
-    else:
-        yield
