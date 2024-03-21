@@ -30,6 +30,7 @@ from . import (
     PromotionType,
     RewardType,
     RewardValueType,
+    UniqueDiscountType,
     VoucherType,
 )
 
@@ -457,7 +458,7 @@ class BaseDiscount(models.Model):
     # `unique_type` is a field to ensure, that only single specific discount type
     # can be associated with discounted object
     unique_type = models.CharField(
-        max_length=64, choices=DiscountType.CHOICES, null=True, blank=True
+        max_length=64, choices=UniqueDiscountType.CHOICES, null=True, blank=True
     )
     value_type = models.CharField(
         max_length=10,

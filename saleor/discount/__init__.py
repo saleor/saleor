@@ -31,6 +31,16 @@ class DiscountType:
     ]
 
 
+class UniqueDiscountType:
+    PROMOTION = "promotion"
+    MANUAL = "manual"
+
+    CHOICES = [
+        (PROMOTION, "Promotion"),
+        (MANUAL, "Manual"),
+    ]
+
+
 class VoucherType:
     SHIPPING = "shipping"
     ENTIRE_ORDER = "entire_order"
