@@ -1756,6 +1756,7 @@ def attribute_generator():
         slug="attr",
         name="Attr",
         type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.DROPDOWN,
         filterable_in_storefront=True,
         filterable_in_dashboard=True,
         available_in_grid=True,
@@ -1765,6 +1766,7 @@ def attribute_generator():
             slug=slug,
             name=name,
             type=type,
+            input_type=input_type,
             filterable_in_storefront=filterable_in_storefront,
             filterable_in_dashboard=filterable_in_dashboard,
             available_in_grid=available_in_grid,
@@ -1903,6 +1905,28 @@ def attribute_without_values():
         visible_in_storefront=True,
         entity_type=None,
     )
+
+
+@pytest.fixture
+def multiselect_attribute(db, attribute_generator, attribute_values_generator):
+    attribute = attribute_generator(
+        slug="multi",
+        name="Multi",
+        type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.MULTISELECT,
+        filterable_in_storefront=True,
+        filterable_in_dashboard=True,
+        available_in_grid=True,
+    )
+    slugs = ["choice-1", "choice-1"]
+    names = ["Choice 1", "Choice 2"]
+    attribute_values_generator(
+        attribute=attribute,
+        names=names,
+        slugs=slugs,
+    )
+
+    return attribute
 
 
 @pytest.fixture
