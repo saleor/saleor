@@ -1,4 +1,3 @@
-import uuid
 from typing import cast
 
 import graphene
@@ -12,13 +11,14 @@ from ....order.actions import order_charged, order_confirmed
 from ....order.error_codes import OrderErrorCode
 from ....order.fetch import fetch_order_info
 from ....order.utils import update_order_display_gross_prices
-from ....payment import TransactionAction, TransactionEventType, gateway
+from ....payment import PaymentError, TransactionAction, gateway
 from ....payment.gateway import request_charge_action
 from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.mutations import ModelMutation
 from ...core.types import OrderError
+from ...payment.mutations.transaction.utils import create_transaction_event_requested
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...site.dataloaders import get_site_promise
 from ..types import Order
@@ -64,31 +64,44 @@ class OrderConfirm(ModelMutation):
 
     @staticmethod
     def charge_transaction_items(user, app, order, manager):
-        for transaction_item in order.payment_transactions.filter(
-            available_actions__contains=[TransactionAction.CHARGE],
-            authorized_value__gt=0,
-        ):
-            charge_value = transaction_item.authorized_value
-            if transaction_item.authorized_value > order.total.gross.amount:
-                charge_value = order.total.gross.amount
-            event = transaction_item.events.create(
-                amount_value=charge_value,
-                currency=transaction_item.currency,
-                type=TransactionEventType.CHARGE_REQUEST,
+        already_charged_amount = 0
+        transaction_items = order.payment_transactions.all()
+        for transaction_item in transaction_items:
+            if transaction_item.amount_charged:
+                already_charged_amount += transaction_item.amount_charged
+
+        for transaction_item in transaction_items:
+            if (
+                not transaction_item.authorized_value > 0
+                or TransactionAction.CHARGE not in transaction_item.available_actions
+            ):
+                continue
+            charge_value = (
+                min(transaction_item.authorized_value, order.total.gross.amount)
+                - already_charged_amount
+            )
+            if charge_value <= 0:
+                return
+            event = create_transaction_event_requested(
+                transaction_item,
+                charge_value,
+                TransactionAction.CHARGE,
                 user=user,
                 app=app,
-                app_identifier=app.identifier if app else None,
-                idempotency_key=str(uuid.uuid4()),
             )
-            request_charge_action(
-                channel_slug=order.channel.slug,
-                user=user,
-                app=app,
-                transaction=transaction_item,
-                manager=manager,
-                charge_value=charge_value,
-                request_event=event,
-            )
+            try:
+                request_charge_action(
+                    channel_slug=order.channel.slug,
+                    user=user,
+                    app=app,
+                    transaction=transaction_item,
+                    manager=manager,
+                    charge_value=charge_value,
+                    request_event=event,
+                )
+            except PaymentError:
+                continue
+            already_charged_amount += charge_value
 
     @classmethod
     def perform_mutation(cls, root, info: ResolveInfo, /, **data):
