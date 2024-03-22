@@ -2,7 +2,6 @@ import logging
 import traceback
 from contextlib import contextmanager
 
-import sqlparse
 from django.conf import settings
 from django.core.management.color import color_style
 from django.db import connections
@@ -14,6 +13,16 @@ logger = logging.getLogger(__name__)
 
 writer = settings.DATABASE_CONNECTION_DEFAULT_NAME
 replica = settings.DATABASE_CONNECTION_REPLICA_NAME
+
+# Limit the number of frames in the traceback in `log_writer_usage_middleware` to avoid
+# excessive log size.
+TRACEBACK_LIMIT = 20
+
+UNSAFE_WRITER_ACCESS_MSG = (
+    "Unsafe access to the writer DB detected. Call `using()` on the `QuerySet` "
+    "to utilize a replica DB, or employ the `allow_writer` context manager to "
+    "explicitly permit access to the writer."
+)
 
 
 class UnsafeDBUsageError(Exception):
@@ -37,8 +46,6 @@ def allow_writer():
     use the `allow_writer` context manager to allow write access to the default
     database. Otherwise an error will be raised or a log message will be emitted.
     """
-
-    from django.db import connections
 
     default_connection = connections[settings.DATABASE_CONNECTION_DEFAULT_NAME]
 
@@ -91,21 +98,8 @@ def _restrict_writer(execute, sql, params, many, context):
     conn: BaseDatabaseWrapper = context["connection"]
     allow_writer = getattr(conn, "_allow_writer", False)
     if conn.alias == writer and not allow_writer:
-        raise UnsafeWriterAccessError(
-            f"Unsafe writer DB access, use `allow_writer` context manager. SQL: {sql}"
-        )
-    elif conn.alias == replica:
-        if not _is_read_only_query(sql):
-            raise UnsafeReplicaUsageError(f"Unsafe replica usage. SQL: {sql}")
+        raise UnsafeWriterAccessError(f"{UNSAFE_WRITER_ACCESS_MSG} SQL: {sql}")
     return execute(sql, params, many, context)
-
-
-def _is_read_only_query(sql_query: str) -> bool:
-    for query in sqlparse.parse(sql_query):
-        query_type = query.get_type().upper()
-        if query_type != "SELECT":
-            return False
-    return True
 
 
 def log_writer_usage_middleware(get_response):
@@ -127,10 +121,8 @@ def _log_writer_usage(execute, sql, params, many, context):
     conn: BaseDatabaseWrapper = context["connection"]
     allow_writer = getattr(conn, "_allow_writer", False)
     if conn.alias == writer and not allow_writer:
-        stack_trace = traceback.extract_stack(limit=20)
-        error_msg = color_style().NOTICE(
-            "Unsafe writer DB access, use `allow_writer` context manager."
-        )
+        stack_trace = traceback.extract_stack(limit=TRACEBACK_LIMIT)
+        error_msg = color_style().NOTICE(UNSAFE_WRITER_ACCESS_MSG)
         log_msg = (
             f"{error_msg} SQL: {sql} \n"
             f"Traceback: \n{''.join(traceback.format_list(stack_trace))}"
