@@ -194,7 +194,7 @@ class AttributeValueTranslatableContent(
         required=True, description="The ID of the attribute value translatable content."
     )
     attribute_value_id = graphene.ID(
-        description="The ID of the attribute value to translate."
+        required=True, description="The ID of the attribute value to translate."
     )
     name = graphene.String(
         required=True,
@@ -715,7 +715,7 @@ class PageTranslatableContent(ModelObjectType[page_models.Page]):
             )
 
     @staticmethod
-    def resolve_page_d(root: page_models.Page, _info):
+    def resolve_page_id(root: page_models.Page, _info):
         return graphene.Node.to_global_id("Page", root.id)
 
 

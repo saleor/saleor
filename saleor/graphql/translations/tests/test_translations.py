@@ -3206,6 +3206,7 @@ QUERY_TRANSLATION_PRODUCT = """
             __typename
             ...on ProductTranslatableContent{
                 id
+                productId
                 name
                 translation(languageCode: $languageCode){
                     id
@@ -3227,7 +3228,6 @@ def test_translation_query_product(
     translation_id = graphene.Node.to_global_id(
         "ProductTranslation", product_translation_fr.id
     )
-
     variables = {
         "id": product_id,
         "kind": TranslatableKinds.PRODUCT.name,
@@ -3240,7 +3240,7 @@ def test_translation_query_product(
     )
     content = get_graphql_content(response)
     data = content["data"]["translation"]
-    assert data["id"] == product_id
+    assert data["productId"] == product_id
     assert data["name"] == product.name
     assert data["translation"]["id"] == translation_id
     assert data["translation"]["name"] == product_translation_fr.name
@@ -3254,6 +3254,7 @@ QUERY_TRANSLATION_COLLECTION = """
             __typename
             ...on CollectionTranslatableContent{
                 id
+                collectionId
                 name
                 translation(languageCode: $languageCode){
                     id
@@ -3291,7 +3292,7 @@ def test_translation_query_collection(
     )
     content = get_graphql_content(response)
     data = content["data"]["translation"]
-    assert data["id"] == collection_id
+    assert data["collectionId"] == collection_id
     assert data["name"] == published_collection.name
     assert data["translation"]["id"] == translation_id
     assert data["translation"]["name"] == collection_translation_fr.name
@@ -3305,6 +3306,7 @@ QUERY_TRANSLATION_CATEGORY = """
             __typename
             ...on CategoryTranslatableContent{
                 id
+                categoryId
                 name
                 translation(languageCode: $languageCode){
                     id
@@ -3340,7 +3342,7 @@ def test_translation_query_category(
     )
     content = get_graphql_content(response)
     data = content["data"]["translation"]
-    assert data["id"] == category_id
+    assert data["categoryId"] == category_id
     assert data["name"] == category.name
     assert data["translation"]["name"] == category_translation_fr.name
     assert data["translation"]["id"] == translation_id
@@ -3354,6 +3356,7 @@ QUERY_TRANSLATION_ATTRIBUTE = """
             __typename
             ...on AttributeTranslatableContent{
                 id
+                attributeId
                 name
                 translation(languageCode: $languageCode){
                     id
@@ -3386,7 +3389,7 @@ def test_translation_query_attribute(
     )
     content = get_graphql_content(response)
     data = content["data"]["translation"]
-    assert data["id"] == attribute_id
+    assert data["attributeId"] == attribute_id
     assert data["name"] == attribute.name
     assert data["translation"]["id"] == translation_id
     assert data["translation"]["name"] == translated_attribute.name
@@ -3400,6 +3403,7 @@ QUERY_TRANSLATION_ATTRIBUTE_VALUE = """
             __typename
             ...on AttributeValueTranslatableContent{
                 id
+                attributeValueId
                 name
                 translation(languageCode: $languageCode){
                     id
@@ -3436,7 +3440,7 @@ def test_translation_query_attribute_value(
     )
     content = get_graphql_content(response)
     data = content["data"]["translation"]
-    assert data["id"] == attribute_value_id
+    assert data["attributeValueId"] == attribute_value_id
     assert data["name"] == pink_attribute_value.name
     assert data["translation"]["id"] == translation_id
     assert data["translation"]["name"] == translated_attribute_value.name
@@ -3450,6 +3454,7 @@ QUERY_TRANSLATION_VARIANT = """
             __typename
             ...on ProductVariantTranslatableContent{
                 id
+                productVariantId
                 name
                 translation(languageCode: $languageCode){
                     id
@@ -3484,7 +3489,7 @@ def test_translation_query_variant(
     )
     content = get_graphql_content(response)
     data = content["data"]["translation"]
-    assert data["id"] == variant_id
+    assert data["productVariantId"] == variant_id
     assert data["name"] == variant.name
     assert data["translation"]["id"] == translation_id
     assert data["translation"]["name"] == variant_translation_fr.name
@@ -3498,6 +3503,7 @@ QUERY_TRANSLATION_PAGE = """
             __typename
             ...on PageTranslatableContent{
                 id
+                pageId
                 title
                 translation(languageCode: $languageCode){
                     id
@@ -3543,7 +3549,7 @@ def test_translation_query_page(
     )
     content = get_graphql_content(response)
     data = content["data"]["translation"]
-    assert data["id"] == page_id
+    assert data["pageId"] == page_id
     assert data["title"] == page.title
     assert data["translation"]["id"] == translation_id
     assert data["translation"]["title"] == page_translation_fr.title
@@ -3557,6 +3563,7 @@ QUERY_TRANSLATION_SHIPPING_METHOD = """
             __typename
             ...on ShippingMethodTranslatableContent{
                 id
+                shippingMethodId
                 name
                 description
                 translation(languageCode: $languageCode){
@@ -3601,7 +3608,7 @@ def test_translation_query_shipping_method(
     )
     content = get_graphql_content(response, ignore_errors=True)
     data = content["data"]["translation"]
-    assert data["id"] == shipping_method_id
+    assert data["shippingMethodId"] == shipping_method_id
     assert data["name"] == shipping_method.name
     assert data["description"] == shipping_method.description
     assert data["translation"]["id"] == translation_id
@@ -3616,6 +3623,7 @@ QUERY_TRANSLATION_SALE = """
             __typename
             ...on SaleTranslatableContent{
                 id
+                saleId
                 name
                 translation(languageCode: $languageCode){
                     id
@@ -3658,7 +3666,7 @@ def test_translation_query_sale(
     # then
     content = get_graphql_content(response, ignore_errors=True)
     data = content["data"]["translation"]
-    assert data["id"] == sale_id
+    assert data["saleId"] == sale_id
     assert data["name"] == promotion.name
     assert data["translation"]["id"] == translation_id
     assert data["translation"]["name"] == promotion_translation.name
@@ -3672,6 +3680,7 @@ QUERY_TRANSLATION_VOUCHER = """
             __typename
             ...on VoucherTranslatableContent{
                 id
+                voucherId
                 name
                 translation(languageCode: $languageCode){
                     id
@@ -3709,7 +3718,7 @@ def test_translation_query_voucher(
     )
     content = get_graphql_content(response, ignore_errors=True)
     data = content["data"]["translation"]
-    assert data["id"] == voucher_id
+    assert data["voucherId"] == voucher_id
     assert data["name"] == voucher.name
     assert data["translation"]["id"] == translation_id
     assert data["translation"]["name"] == voucher_translation_fr.name
@@ -3723,6 +3732,7 @@ QUERY_TRANSLATION_MENU_ITEM = """
             __typename
             ...on MenuItemTranslatableContent{
                 id
+                menuItemId
                 name
                 translation(languageCode: $languageCode){
                     id
@@ -3757,7 +3767,7 @@ def test_translation_query_menu_item(
     )
     content = get_graphql_content(response)
     data = content["data"]["translation"]
-    assert data["id"] == menu_item_id
+    assert data["menuItemId"] == menu_item_id
     assert data["name"] == menu_item.name
     assert data["translation"]["id"] == translation_id
     assert data["translation"]["name"] == menu_item_translation_fr.name

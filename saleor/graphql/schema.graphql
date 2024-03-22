@@ -6582,7 +6582,7 @@ type AttributeValueTranslatableContent implements Node @doc(category: "Attribute
   id: ID!
 
   """The ID of the attribute value to translate."""
-  attributeValueId: ID
+  attributeValueId: ID!
 
   """Name of the attribute value to translate."""
   name: String!
