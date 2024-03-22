@@ -241,7 +241,7 @@ def test_update_variants_names(product_variant_list, size_attribute):
     product = variant_without_name.product
 
     # when
-    update_variants_names(product.product_type.id, [size_attribute.id])
+    update_variants_names(product.product_type_id, [size_attribute.id])
 
     # then
     variant_without_name.refresh_from_db()
