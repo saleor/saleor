@@ -3,11 +3,12 @@ from decimal import Decimal
 
 import graphene
 import pytest
+from django.db import IntegrityError
 from django.utils import timezone
 from prices import Money, TaxedMoney
 
 from ...discount.interface import VariantPromotionRuleInfo
-from .. import DiscountValueType, RewardValueType, VoucherType
+from .. import DiscountValueType, RewardValueType, UniqueDiscountType, VoucherType
 from ..models import (
     NotApplicable,
     Voucher,
@@ -579,3 +580,43 @@ def test_get_discount_translated_name_no_translations(rule_info):
 
     # then
     assert translated_name is None
+
+
+def test_unique_together_order(order):
+    order.discounts.create(
+        unique_type=UniqueDiscountType.MANUAL,
+    )
+    with pytest.raises(IntegrityError):
+        order.discounts.create(
+            unique_type=UniqueDiscountType.MANUAL,
+        )
+
+
+def test_unique_together_checkout(checkout):
+    checkout.discounts.create(
+        unique_type=UniqueDiscountType.MANUAL,
+    )
+    with pytest.raises(IntegrityError):
+        checkout.discounts.create(
+            unique_type=UniqueDiscountType.MANUAL,
+        )
+
+
+def test_unique_together_order_line(order_line):
+    order_line.discounts.create(
+        unique_type=UniqueDiscountType.PROMOTION,
+    )
+    with pytest.raises(IntegrityError):
+        order_line.discounts.create(
+            unique_type=UniqueDiscountType.PROMOTION,
+        )
+
+
+def test_unique_together_checkout_line(checkout_line):
+    checkout_line.discounts.create(
+        unique_type=UniqueDiscountType.PROMOTION,
+    )
+    with pytest.raises(IntegrityError):
+        checkout_line.discounts.create(
+            unique_type=UniqueDiscountType.PROMOTION,
+        )
