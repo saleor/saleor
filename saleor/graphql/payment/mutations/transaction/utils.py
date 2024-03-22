@@ -1,3 +1,4 @@
+import uuid
 from typing import TYPE_CHECKING, Optional
 
 from django.core.exceptions import ValidationError
@@ -5,8 +6,12 @@ from django.core.validators import validate_ipv46_address
 
 from .....core.exceptions import PermissionDenied
 from .....core.utils import get_client_ip
+from .....payment import TransactionAction, TransactionEventType
 from .....payment import models as payment_models
-from .....payment.error_codes import TransactionUpdateErrorCode
+from .....payment.error_codes import (
+    TransactionRequestActionErrorCode,
+    TransactionUpdateErrorCode,
+)
 from .....permission.enums import PaymentPermissions
 from ....app.dataloaders import get_app_promise
 from ....core.utils import from_global_id_or_error
@@ -75,3 +80,32 @@ def clean_customer_ip_address(
             }
         )
     return customer_ip_address
+
+
+def create_transaction_event_requested(
+    transaction, action_value, action, user=None, app=None
+):
+    if action == TransactionAction.CANCEL:
+        type = TransactionEventType.CANCEL_REQUEST
+    elif action == TransactionAction.CHARGE:
+        type = TransactionEventType.CHARGE_REQUEST
+    elif action == TransactionAction.REFUND:
+        type = TransactionEventType.REFUND_REQUEST
+    else:
+        raise ValidationError(
+            {
+                "actionType": ValidationError(
+                    "Incorrect action.",
+                    code=TransactionRequestActionErrorCode.INVALID.value,
+                )
+            }
+        )
+    return transaction.events.create(
+        amount_value=action_value,
+        currency=transaction.currency,
+        type=type,
+        user=user,
+        app=app,
+        app_identifier=app.identifier if app else None,
+        idempotency_key=str(uuid.uuid4()),
+    )

@@ -1,3 +1,4 @@
+import uuid
 from unittest.mock import ANY, patch
 
 import graphene
@@ -11,6 +12,8 @@ from .....order.fetch import fetch_order_info
 from .....order.models import OrderEvent
 from .....order.notifications import get_default_order_payload
 from .....order.utils import updates_amounts_for_order
+from .....payment import TransactionAction, TransactionEventType
+from .....payment.models import TransactionItem
 from .....product.models import ProductVariant
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -101,6 +104,53 @@ def test_order_confirm(
     handle_fully_paid_order_mock.assert_called_once_with(
         ANY, order_info, staff_api_client.user, None, site_settings
     )
+
+
+@patch("saleor.graphql.order.mutations.order_confirm.request_charge_action")
+def test_order_confirm_charge_transaction_items(
+    request_charge_action_mock,
+    staff_api_client,
+    order_unconfirmed_with_lines,
+    permission_group_manage_orders,
+):
+    # given
+    transaction = TransactionItem.objects.create(
+        token=uuid.uuid4(),
+        name="ti",
+        order_id=order_unconfirmed_with_lines.id,
+        available_actions=[TransactionAction.CHARGE],
+        authorized_value=order_unconfirmed_with_lines.total.gross.amount,
+        currency=order_unconfirmed_with_lines.currency,
+    )
+
+    order_unconfirmed_with_lines.total_charged = (
+        order_unconfirmed_with_lines.total.gross
+    )
+    order_unconfirmed_with_lines.save(update_fields=["total_charged_amount"])
+    updates_amounts_for_order(order_unconfirmed_with_lines)
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    assert not OrderEvent.objects.exists()
+
+    # when
+    response = staff_api_client.post_graphql(
+        ORDER_CONFIRM_MUTATION,
+        {"id": graphene.Node.to_global_id("Order", order_unconfirmed_with_lines.id)},
+    )
+
+    # then
+    assert not get_graphql_content(response)["data"]["orderConfirm"]["errors"]
+
+    request_charge_action_mock.assert_called_once_with(
+        channel_slug=order_unconfirmed_with_lines.channel.slug,
+        user=staff_api_client.user,
+        app=None,
+        transaction=transaction,
+        manager=ANY,
+        charge_value=order_unconfirmed_with_lines.total.gross.amount,
+        request_event=ANY,
+    )
+    assert transaction.events.filter(type=TransactionEventType.CHARGE_REQUEST).exists()
 
 
 @patch("saleor.plugins.manager.PluginsManager.notify")

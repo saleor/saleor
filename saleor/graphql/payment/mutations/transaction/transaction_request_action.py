@@ -1,4 +1,3 @@
-import uuid
 from decimal import Decimal
 from typing import TYPE_CHECKING, Optional, cast
 
@@ -7,7 +6,7 @@ from django.core.exceptions import ValidationError
 
 from .....app.models import App
 from .....order.models import Order
-from .....payment import PaymentError, TransactionAction, TransactionEventType
+from .....payment import PaymentError, TransactionAction
 from .....payment.error_codes import TransactionRequestActionErrorCode
 from .....payment.gateway import (
     request_cancelation_action,
@@ -27,7 +26,7 @@ from ....core.validators import validate_one_of_args_is_in_mutation
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import TransactionActionEnum
 from ...types import TransactionItem
-from .utils import get_transaction_item
+from .utils import create_transaction_event_requested, get_transaction_item
 
 if TYPE_CHECKING:
     from .....account.models import User
@@ -81,7 +80,7 @@ class TransactionRequestAction(BaseMutation):
     ):
         if action == TransactionAction.CANCEL:
             transaction = action_kwargs["transaction"]
-            request_event = cls.create_transaction_event_requested(
+            request_event = create_transaction_event_requested(
                 transaction, 0, action, user=user, app=app
             )
             request_cancelation_action(
@@ -94,7 +93,7 @@ class TransactionRequestAction(BaseMutation):
             transaction = action_kwargs["transaction"]
             action_value = action_value or transaction.authorized_value
             action_value = min(action_value, transaction.authorized_value)
-            request_event = cls.create_transaction_event_requested(
+            request_event = create_transaction_event_requested(
                 transaction, action_value, TransactionAction.CHARGE, user=user, app=app
             )
             request_charge_action(
@@ -104,41 +103,12 @@ class TransactionRequestAction(BaseMutation):
             transaction = action_kwargs["transaction"]
             action_value = action_value or transaction.charged_value
             action_value = min(action_value, transaction.charged_value)
-            request_event = cls.create_transaction_event_requested(
+            request_event = create_transaction_event_requested(
                 transaction, action_value, TransactionAction.REFUND, user=user, app=app
             )
             request_refund_action(
                 **action_kwargs, refund_value=action_value, request_event=request_event
             )
-
-    @classmethod
-    def create_transaction_event_requested(
-        cls, transaction, action_value, action, user=None, app=None
-    ):
-        if action == TransactionAction.CANCEL:
-            type = TransactionEventType.CANCEL_REQUEST
-        elif action == TransactionAction.CHARGE:
-            type = TransactionEventType.CHARGE_REQUEST
-        elif action == TransactionAction.REFUND:
-            type = TransactionEventType.REFUND_REQUEST
-        else:
-            raise ValidationError(
-                {
-                    "actionType": ValidationError(
-                        "Incorrect action.",
-                        code=TransactionRequestActionErrorCode.INVALID.value,
-                    )
-                }
-            )
-        return transaction.events.create(
-            amount_value=action_value,
-            currency=transaction.currency,
-            type=type,
-            user=user,
-            app=app,
-            app_identifier=app.identifier if app else None,
-            idempotency_key=str(uuid.uuid4()),
-        )
 
     @classmethod
     def perform_mutation(cls, root, info: ResolveInfo, /, **data):
