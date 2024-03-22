@@ -2057,6 +2057,7 @@ class TranslationQueryType(Enum):
 def build_translation_query(
     type: TranslationTypes,
     query_type: TranslationQueryType,
+    translated_object_id: str,
 ) -> str:
     return (  # noqa: UP031
         """
@@ -2068,7 +2069,7 @@ def build_translation_query(
                   id
                   name
                   translatableContent {
-                    id
+                    %s
                     name
                   }
                 }
@@ -2077,41 +2078,63 @@ def build_translation_query(
           }
         }
         """
-    ) % (query_type.value, type.value)
+    ) % (query_type.value, type.value, translated_object_id)
 
 
 TRANSLATION_CREATED_PRODUCT = build_translation_query(
-    TranslationTypes.PRODUCT_TRANSLATION, TranslationQueryType.CREATED
+    TranslationTypes.PRODUCT_TRANSLATION,
+    TranslationQueryType.CREATED,
+    "productId",
 )
 TRANSLATION_CREATED_PRODUCT_VARIANT = build_translation_query(
-    TranslationTypes.PRODUCT_VARIANT_TRANSLATION, TranslationQueryType.CREATED
+    TranslationTypes.PRODUCT_VARIANT_TRANSLATION,
+    TranslationQueryType.CREATED,
+    "productVariantId",
 )
 TRANSLATION_CREATED_COLLECTION = build_translation_query(
-    TranslationTypes.COLLECTION_TRANSLATION, TranslationQueryType.CREATED
+    TranslationTypes.COLLECTION_TRANSLATION,
+    TranslationQueryType.CREATED,
+    "collectionId",
 )
 TRANSLATION_CREATED_CATEGORY = build_translation_query(
-    TranslationTypes.CATEGORY_TRANSLATION, TranslationQueryType.CREATED
+    TranslationTypes.CATEGORY_TRANSLATION,
+    TranslationQueryType.CREATED,
+    "categoryId",
 )
 TRANSLATION_CREATED_ATTRIBUTE = build_translation_query(
-    TranslationTypes.ATTRIBUTE_TRANSLATION, TranslationQueryType.CREATED
+    TranslationTypes.ATTRIBUTE_TRANSLATION,
+    TranslationQueryType.CREATED,
+    "attributeId",
 )
 TRANSLATION_CREATED_ATTRIBUTE_VALUE = build_translation_query(
-    TranslationTypes.ATTRIBUTE_VALUE_TRANSLATION, TranslationQueryType.CREATED
+    TranslationTypes.ATTRIBUTE_VALUE_TRANSLATION,
+    TranslationQueryType.CREATED,
+    "attributeValueId",
 )
 TRANSLATION_CREATED_SHIPPING_METHOD = build_translation_query(
-    TranslationTypes.SHIPPING_METHOD_TRANSLATION, TranslationQueryType.CREATED
+    TranslationTypes.SHIPPING_METHOD_TRANSLATION,
+    TranslationQueryType.CREATED,
+    "shippingMethodId",
 )
 TRANSLATION_CREATED_PROMOTION = build_translation_query(
-    TranslationTypes.PROMOTION_TRANSLATION, TranslationQueryType.CREATED
+    TranslationTypes.PROMOTION_TRANSLATION,
+    TranslationQueryType.CREATED,
+    "promotionId",
 )
 TRANSLATION_CREATED_PROMOTION_RULE = build_translation_query(
-    TranslationTypes.PROMOTION_RULE_TRANSLATION, TranslationQueryType.CREATED
+    TranslationTypes.PROMOTION_RULE_TRANSLATION,
+    TranslationQueryType.CREATED,
+    "promotionRuleId",
 )
 TRANSLATION_CREATED_VOUCHER = build_translation_query(
-    TranslationTypes.VOUCHER_TRANSLATION, TranslationQueryType.CREATED
+    TranslationTypes.VOUCHER_TRANSLATION,
+    TranslationQueryType.CREATED,
+    "voucherId",
 )
 TRANSLATION_CREATED_MENU_ITEM = build_translation_query(
-    TranslationTypes.MENU_ITEM_TRANSLATION, TranslationQueryType.CREATED
+    TranslationTypes.MENU_ITEM_TRANSLATION,
+    TranslationQueryType.CREATED,
+    "menuItemId",
 )
 TRANSLATION_CREATED_PAGE = """
     subscription {
@@ -2122,7 +2145,7 @@ TRANSLATION_CREATED_PAGE = """
               id
               title
               translatableContent {
-                id
+                pageId
                 title
               }
             }
@@ -2141,7 +2164,7 @@ TRANSLATION_CREATED_SALE = """
               id
               name
               translatableContent {
-                id
+                saleId
                 name
               }
             }
@@ -2204,37 +2227,59 @@ subscription {
 """
 
 TRANSLATION_UPDATED_PRODUCT = build_translation_query(
-    TranslationTypes.PRODUCT_TRANSLATION, TranslationQueryType.UPDATED
+    TranslationTypes.PRODUCT_TRANSLATION,
+    TranslationQueryType.UPDATED,
+    "productId",
 )
 TRANSLATION_UPDATED_PRODUCT_VARIANT = build_translation_query(
-    TranslationTypes.PRODUCT_VARIANT_TRANSLATION, TranslationQueryType.UPDATED
+    TranslationTypes.PRODUCT_VARIANT_TRANSLATION,
+    TranslationQueryType.UPDATED,
+    "productVariantId",
 )
 TRANSLATION_UPDATED_COLLECTION = build_translation_query(
-    TranslationTypes.COLLECTION_TRANSLATION, TranslationQueryType.UPDATED
+    TranslationTypes.COLLECTION_TRANSLATION,
+    TranslationQueryType.UPDATED,
+    "collectionId",
 )
 TRANSLATION_UPDATED_CATEGORY = build_translation_query(
-    TranslationTypes.CATEGORY_TRANSLATION, TranslationQueryType.UPDATED
+    TranslationTypes.CATEGORY_TRANSLATION,
+    TranslationQueryType.UPDATED,
+    "categoryId",
 )
 TRANSLATION_UPDATED_ATTRIBUTE = build_translation_query(
-    TranslationTypes.ATTRIBUTE_TRANSLATION, TranslationQueryType.UPDATED
+    TranslationTypes.ATTRIBUTE_TRANSLATION,
+    TranslationQueryType.UPDATED,
+    "attributeId",
 )
 TRANSLATION_UPDATED_ATTRIBUTE_VALUE = build_translation_query(
-    TranslationTypes.ATTRIBUTE_VALUE_TRANSLATION, TranslationQueryType.UPDATED
+    TranslationTypes.ATTRIBUTE_VALUE_TRANSLATION,
+    TranslationQueryType.UPDATED,
+    "attributeValueId",
 )
 TRANSLATION_UPDATED_SHIPPING_METHOD = build_translation_query(
-    TranslationTypes.SHIPPING_METHOD_TRANSLATION, TranslationQueryType.UPDATED
+    TranslationTypes.SHIPPING_METHOD_TRANSLATION,
+    TranslationQueryType.UPDATED,
+    "shippingMethodId",
 )
 TRANSLATION_UPDATED_PROMOTION = build_translation_query(
-    TranslationTypes.PROMOTION_TRANSLATION, TranslationQueryType.UPDATED
+    TranslationTypes.PROMOTION_TRANSLATION,
+    TranslationQueryType.UPDATED,
+    "promotionId",
 )
 TRANSLATION_UPDATED_PROMOTION_RULE = build_translation_query(
-    TranslationTypes.PROMOTION_RULE_TRANSLATION, TranslationQueryType.UPDATED
+    TranslationTypes.PROMOTION_RULE_TRANSLATION,
+    TranslationQueryType.UPDATED,
+    "promotionRuleId",
 )
 TRANSLATION_UPDATED_VOUCHER = build_translation_query(
-    TranslationTypes.VOUCHER_TRANSLATION, TranslationQueryType.UPDATED
+    TranslationTypes.VOUCHER_TRANSLATION,
+    TranslationQueryType.UPDATED,
+    "voucherId",
 )
 TRANSLATION_UPDATED_MENU_ITEM = build_translation_query(
-    TranslationTypes.MENU_ITEM_TRANSLATION, TranslationQueryType.UPDATED
+    TranslationTypes.MENU_ITEM_TRANSLATION,
+    TranslationQueryType.UPDATED,
+    "menuItemId",
 )
 TRANSLATION_UPDATED_PAGE = """
     subscription {
@@ -2245,7 +2290,7 @@ TRANSLATION_UPDATED_PAGE = """
               id
               title
               translatableContent {
-                id
+                pageId
                 title
               }
             }
