@@ -126,3 +126,39 @@ def test_associate_attribute_to_variant_instance_multiple_values(
     assert list(
         new_assignment.variantvalueassignment.values_list("value__pk", "sort_order")
     ) == [(values[0].pk, 0), (values[1].pk, 1)]
+
+
+def test_associate_attribute_to_instance_duplicated_values(
+    product, attribute_value_generator, multiselect_attribute, color_attribute
+):
+    # Ensure values are properly assigned even if the new value name is the same
+    # as value of different attribute.
+    product.product_type.product_attributes.add(multiselect_attribute, color_attribute)
+    color_attribute_value = color_attribute.values.first()
+
+    # create multiselect value with the same name as color value
+    multiselect_value = attribute_value_generator(
+        attribute=multiselect_attribute,
+        slug=color_attribute_value.slug,
+        name=color_attribute_value.name,
+    )
+    new_color_value = attribute_value_generator(
+        attribute=color_attribute,
+        slug="new-color-value",
+        name="New color value",
+    )
+    old_assignment = product.attributes.last()
+
+    # Assign new values
+    associate_attribute_values_to_instance(
+        product,
+        {
+            color_attribute.id: [new_color_value],
+            multiselect_attribute.id: [multiselect_value],
+        },
+    )
+
+    assert old_assignment.values.count() == 1
+    new_assignment = product.attributes.last()
+    # Ensure the new assignment was created and ordered correctly
+    assert new_assignment.values.count() == 1
