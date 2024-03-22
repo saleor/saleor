@@ -152,7 +152,12 @@ class AttributeTranslation(BaseTranslationType[attribute_models.AttributeTransla
 
 
 class AttributeTranslatableContent(ModelObjectType[attribute_models.Attribute]):
-    id = graphene.ID(required=True, description="The ID of the attribute to translate.")
+    id = graphene.GlobalID(
+        required=True, description="The ID of the attribute translatable content."
+    )
+    attribute_id = graphene.ID(
+        required=True, description="The ID of the attribute to translate."
+    )
     name = graphene.String(
         required=True, description="Name of the attribute to translate."
     )
@@ -178,15 +183,18 @@ class AttributeTranslatableContent(ModelObjectType[attribute_models.Attribute]):
         return root
 
     @staticmethod
-    def resolve_id(root: attribute_models.Attribute, _info):
+    def resolve_attribute_id(root: attribute_models.Attribute, _info):
         return graphene.Node.to_global_id("Attribute", root.id)
 
 
 class AttributeValueTranslatableContent(
     ModelObjectType[attribute_models.AttributeValue]
 ):
-    id = graphene.ID(
-        required=True, description="The ID of the attribute value to translate."
+    id = graphene.GlobalID(
+        required=True, description="The ID of the attribute value translatable content."
+    )
+    attribute_value_id = graphene.ID(
+        description="The ID of the attribute value to translate."
     )
     name = graphene.String(
         required=True,
@@ -226,7 +234,7 @@ class AttributeValueTranslatableContent(
         return AttributesByAttributeId(info.context).load(root.attribute_id)
 
     @staticmethod
-    def resolve_id(root: attribute_models.AttributeValue, _info):
+    def resolve_attribute_value_id(root: attribute_models.AttributeValue, _info):
         return graphene.Node.to_global_id("AttributeValue", root.id)
 
 
@@ -258,7 +266,10 @@ class ProductVariantTranslation(
 
 
 class ProductVariantTranslatableContent(ModelObjectType[product_models.ProductVariant]):
-    id = graphene.ID(
+    id = graphene.GlobalID(
+        required=True, description="The ID of the product variant translatable content."
+    )
+    product_variant_id = graphene.ID(
         required=True, description="The ID of the product variant to translate."
     )
     name = graphene.String(
@@ -304,7 +315,7 @@ class ProductVariantTranslatableContent(ModelObjectType[product_models.ProductVa
         )
 
     @staticmethod
-    def resolve_id(root: product_models.ProductVariant, _info):
+    def resolve_product_variant_id(root: product_models.ProductVariant, _info):
         return graphene.Node.to_global_id("ProductVariant", root.id)
 
 
@@ -345,7 +356,12 @@ class ProductTranslation(BaseTranslationType[product_models.ProductTranslation])
 
 
 class ProductTranslatableContent(ModelObjectType[product_models.Product]):
-    id = graphene.ID(required=True, description="The ID of the product to translate.")
+    id = graphene.GlobalID(
+        required=True, description="The ID of the product translatable content."
+    )
+    product_id = graphene.ID(
+        required=True, description="The ID of the product to translate."
+    )
     seo_title = graphene.String(description="SEO title to translate.")
     seo_description = graphene.String(description="SEO description to translate.")
     name = graphene.String(required=True, description="Product's name to translate.")
@@ -410,7 +426,7 @@ class ProductTranslatableContent(ModelObjectType[product_models.Product]):
             )
 
     @staticmethod
-    def resolve_id(root: product_models.Product, _info):
+    def resolve_product_id(root: product_models.Product, _info):
         return graphene.Node.to_global_id("Product", root.id)
 
 
@@ -451,7 +467,10 @@ class CollectionTranslation(BaseTranslationType[product_models.CollectionTransla
 
 
 class CollectionTranslatableContent(ModelObjectType[product_models.Collection]):
-    id = graphene.ID(
+    id = graphene.GlobalID(
+        required=True, description="The ID of the collection translatable content."
+    )
+    collection_id = graphene.ID(
         required=True, description="The ID of the collection to translate."
     )
     seo_title = graphene.String(description="SEO title to translate.")
@@ -503,7 +522,7 @@ class CollectionTranslatableContent(ModelObjectType[product_models.Collection]):
         return description if description is not None else {}
 
     @staticmethod
-    def resolve_id(root: product_models.Collection, _info):
+    def resolve_collection_id(root: product_models.Collection, _info):
         return graphene.Node.to_global_id("Collection", root.id)
 
 
@@ -544,7 +563,12 @@ class CategoryTranslation(BaseTranslationType[product_models.CategoryTranslation
 
 
 class CategoryTranslatableContent(ModelObjectType[product_models.Category]):
-    id = graphene.ID(required=True, description="The ID of the category to translate.")
+    id = graphene.GlobalID(
+        required=True, description="The ID of the category translatable content."
+    )
+    category_id = graphene.ID(
+        required=True, description="The ID of the category to translate."
+    )
     seo_title = graphene.String(description="SEO title to translate.")
     seo_description = graphene.String(description="SEO description to translate.")
     name = graphene.String(
@@ -585,7 +609,7 @@ class CategoryTranslatableContent(ModelObjectType[product_models.Category]):
         return description if description is not None else {}
 
     @staticmethod
-    def resolve_id(root: product_models.Category, _info):
+    def resolve_category_id(root: product_models.Category, _info):
         return graphene.Node.to_global_id("Category", root.id)
 
 
@@ -620,7 +644,10 @@ class PageTranslation(BaseTranslationType[page_models.PageTranslation]):
 
 
 class PageTranslatableContent(ModelObjectType[page_models.Page]):
-    id = graphene.ID(required=True, description="The ID of the page to translate.")
+    id = graphene.GlobalID(
+        required=True, description="The ID of the page translatable content."
+    )
+    page_id = graphene.ID(required=True, description="The ID of the page to translate.")
     seo_title = graphene.String(description="SEO title to translate.")
     seo_description = graphene.String(description="SEO description to translate.")
     title = graphene.String(required=True, description="Page title to translate.")
@@ -688,7 +715,7 @@ class PageTranslatableContent(ModelObjectType[page_models.Page]):
             )
 
     @staticmethod
-    def resolve_id(root: page_models.Page, _info):
+    def resolve_page_d(root: page_models.Page, _info):
         return graphene.Node.to_global_id("Page", root.id)
 
 
@@ -713,7 +740,12 @@ class VoucherTranslation(BaseTranslationType[discount_models.VoucherTranslation]
 
 
 class VoucherTranslatableContent(ModelObjectType[discount_models.Voucher]):
-    id = graphene.ID(required=True, description="The ID of the voucher to translate.")
+    id = graphene.GlobalID(
+        required=True, description="The ID of the voucher translatable content."
+    )
+    voucher_id = graphene.ID(
+        required=True, description="The ID of the voucher to translate."
+    )
     name = graphene.String(description="Voucher name to translate.")
     translation = TranslationField(VoucherTranslation, type_name="voucher")
     voucher = PermissionsField(
@@ -742,7 +774,7 @@ class VoucherTranslatableContent(ModelObjectType[discount_models.Voucher]):
         return ChannelContext(node=root, channel_slug=None)
 
     @staticmethod
-    def resolve_id(root: discount_models.Voucher, _info):
+    def resolve_voucher_id(root: discount_models.Voucher, _info):
         return graphene.Node.to_global_id("Voucher", root.id)
 
 
@@ -769,7 +801,10 @@ class SaleTranslation(BaseTranslationType[discount_models.PromotionTranslation])
 
 
 class SaleTranslatableContent(ModelObjectType[discount_models.Promotion]):
-    id = graphene.ID(required=True, description="The ID of the sale to translate.")
+    id = graphene.GlobalID(
+        required=True, description="The ID of the sale translatable content."
+    )
+    sale_id = graphene.ID(required=True, description="The ID of the sale to translate.")
     name = graphene.String(required=True, description="Name of the sale to translate.")
     translation = TranslationField(SaleTranslation, type_name="sale")
     sale = PermissionsField(
@@ -798,7 +833,7 @@ class SaleTranslatableContent(ModelObjectType[discount_models.Promotion]):
         return ChannelContext(node=root, channel_slug=None)
 
     @staticmethod
-    def resolve_id(root: discount_models.Promotion, _info):
+    def resolve_sale_id(root: discount_models.Promotion, _info):
         return graphene.Node.to_global_id("Sale", root.old_sale_id)
 
 
@@ -838,7 +873,12 @@ class MenuItemTranslation(BaseTranslationType[menu_models.MenuItemTranslation]):
 
 
 class MenuItemTranslatableContent(ModelObjectType[menu_models.MenuItem]):
-    id = graphene.ID(required=True, description="The ID of the menu item to translate.")
+    id = graphene.GlobalID(
+        required=True, description="The ID of the menu item translatable content."
+    )
+    menu_item_id = graphene.ID(
+        required=True, description="The ID of the menu item to translate."
+    )
     name = graphene.String(
         required=True, description="Name of the menu item to translate."
     )
@@ -867,7 +907,7 @@ class MenuItemTranslatableContent(ModelObjectType[menu_models.MenuItem]):
         return ChannelContext(node=root, channel_slug=None)
 
     @staticmethod
-    def resolve_id(root: menu_models.MenuItem, _info):
+    def resolve_menu_item_id(root: menu_models.MenuItem, _info):
         return graphene.Node.to_global_id("MenuItem", root.id)
 
 
@@ -904,7 +944,10 @@ class ShippingMethodTranslation(
 class ShippingMethodTranslatableContent(
     ModelObjectType[shipping_models.ShippingMethod]
 ):
-    id = graphene.ID(
+    id = graphene.GlobalID(
+        required=True, description="The ID of the shipping method translatable content."
+    )
+    shipping_method_id = graphene.ID(
         required=True, description="The ID of the shipping method to translate."
     )
     name = graphene.String(
@@ -943,7 +986,7 @@ class ShippingMethodTranslatableContent(
         return ChannelContext(node=root, channel_slug=None)
 
     @staticmethod
-    def resolve_id(root: shipping_models.ShippingMethod, _info):
+    def resolve_shipping_method_id(root: shipping_models.ShippingMethod, _info):
         return graphene.Node.to_global_id("ShippingMethodType", root.id)
 
 
@@ -971,7 +1014,12 @@ class PromotionTranslation(BaseTranslationType[discount_models.PromotionTranslat
 
 
 class PromotionTranslatableContent(ModelObjectType[discount_models.Promotion]):
-    id = graphene.ID(required=True, description="ID of the promotion to translate.")
+    id = graphene.GlobalID(
+        required=True, description="ID of the promotion translatable content."
+    )
+    promotion_id = graphene.ID(
+        required=True, description="ID of the promotion to translate."
+    )
     name = graphene.String(required=True, description="Name of the promotion.")
     description = JSONString(description="Description of the promotion." + RICH_CONTENT)
     translation = TranslationField(PromotionTranslation, type_name="promotion")
@@ -985,7 +1033,7 @@ class PromotionTranslatableContent(ModelObjectType[discount_models.Promotion]):
         )
 
     @staticmethod
-    def resolve_id(root: discount_models.Promotion, _info):
+    def resolve_promotion_id(root: discount_models.Promotion, _info):
         return graphene.Node.to_global_id("Promotion", root.id)
 
 
@@ -1017,7 +1065,10 @@ class PromotionRuleTranslation(
 
 
 class PromotionRuleTranslatableContent(ModelObjectType[discount_models.Promotion]):
-    id = graphene.ID(
+    id = graphene.GlobalID(
+        required=True, description="ID of the promotion rule translatable content."
+    )
+    promotion_rule_id = graphene.ID(
         required=True, description="ID of the promotion rule to translate."
     )
     name = graphene.String(description="Name of the promotion rule.")
@@ -1035,5 +1086,5 @@ class PromotionRuleTranslatableContent(ModelObjectType[discount_models.Promotion
         )
 
     @staticmethod
-    def resolve_id(root: discount_models.PromotionRule, _info):
+    def resolve_promotion_rule_id(root: discount_models.PromotionRule, _info):
         return graphene.Node.to_global_id("PromotionRule", root.id)

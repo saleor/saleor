@@ -5008,8 +5008,11 @@ enum LanguageCodeEnum {
 Represents shipping method's original translatable fields and related translations.
 """
 type ShippingMethodTranslatableContent implements Node @doc(category: "Shipping") {
-  """The ID of the shipping method to translate."""
+  """The ID of the shipping method translatable content."""
   id: ID!
+
+  """The ID of the shipping method to translate."""
+  shippingMethodId: ID!
 
   """Shipping method name to translate."""
   name: String!
@@ -6575,8 +6578,11 @@ type AttributeValueTranslation implements Node @doc(category: "Attributes") {
 Represents attribute value's original translatable fields and related translations.
 """
 type AttributeValueTranslatableContent implements Node @doc(category: "Attributes") {
-  """The ID of the attribute value to translate."""
+  """The ID of the attribute value translatable content."""
   id: ID!
+
+  """The ID of the attribute value to translate."""
+  attributeValueId: ID
 
   """Name of the attribute value to translate."""
   name: String!
@@ -6612,8 +6618,11 @@ type AttributeValueTranslatableContent implements Node @doc(category: "Attribute
 Represents attribute's original translatable fields and related translations.
 """
 type AttributeTranslatableContent implements Node @doc(category: "Attributes") {
-  """The ID of the attribute to translate."""
+  """The ID of the attribute translatable content."""
   id: ID!
+
+  """The ID of the attribute to translate."""
+  attributeId: ID!
 
   """Name of the attribute to translate."""
   name: String!
@@ -7471,8 +7480,11 @@ type CategoryTranslation implements Node @doc(category: "Products") {
 Represents category original translatable fields and related translations.
 """
 type CategoryTranslatableContent implements Node @doc(category: "Products") {
-  """The ID of the category to translate."""
+  """The ID of the category translatable content."""
   id: ID!
+
+  """The ID of the category to translate."""
+  categoryId: ID!
 
   """SEO title to translate."""
   seoTitle: String
@@ -7979,8 +7991,11 @@ type ProductVariantTranslation implements Node @doc(category: "Products") {
 Represents product variant's original translatable fields and related translations.
 """
 type ProductVariantTranslatableContent implements Node @doc(category: "Products") {
-  """The ID of the product variant to translate."""
+  """The ID of the product variant translatable content."""
   id: ID!
+
+  """The ID of the product variant to translate."""
+  productVariantId: ID!
 
   """Name of the product variant to translate."""
   name: String!
@@ -8443,8 +8458,11 @@ type CollectionTranslation implements Node @doc(category: "Products") {
 Represents collection's original translatable fields and related translations.
 """
 type CollectionTranslatableContent implements Node @doc(category: "Products") {
-  """The ID of the collection to translate."""
+  """The ID of the collection translatable content."""
   id: ID!
+
+  """The ID of the collection to translate."""
+  collectionId: ID!
 
   """SEO title to translate."""
   seoTitle: String
@@ -8542,8 +8560,11 @@ type ProductTranslation implements Node @doc(category: "Products") {
 Represents product's original translatable fields and related translations.
 """
 type ProductTranslatableContent implements Node @doc(category: "Products") {
-  """The ID of the product to translate."""
+  """The ID of the product translatable content."""
   id: ID!
+
+  """The ID of the product to translate."""
+  productId: ID!
 
   """SEO title to translate."""
   seoTitle: String
@@ -8644,8 +8665,11 @@ union TranslatableItem = ProductTranslatableContent | CollectionTranslatableCont
 Represents page's original translatable fields and related translations.
 """
 type PageTranslatableContent implements Node @doc(category: "Pages") {
-  """The ID of the page to translate."""
+  """The ID of the page translatable content."""
   id: ID!
+
+  """The ID of the page to translate."""
+  pageId: ID!
 
   """SEO title to translate."""
   seoTitle: String
@@ -8914,8 +8938,11 @@ type PageType implements Node & ObjectWithMetadata @doc(category: "Pages") {
 Represents voucher's original translatable fields and related translations.
 """
 type VoucherTranslatableContent implements Node @doc(category: "Discounts") {
-  """The ID of the voucher to translate."""
+  """The ID of the voucher translatable content."""
   id: ID!
+
+  """The ID of the voucher to translate."""
+  voucherId: ID!
 
   """Voucher name to translate."""
   name: String
@@ -9295,8 +9322,11 @@ type VoucherChannelListing implements Node @doc(category: "Discounts") {
 Represents menu item's original translatable fields and related translations.
 """
 type MenuItemTranslatableContent implements Node @doc(category: "Menu") {
-  """The ID of the menu item to translate."""
+  """The ID of the menu item translatable content."""
   id: ID!
+
+  """The ID of the menu item to translate."""
+  menuItemId: ID!
 
   """Name of the menu item to translate."""
   name: String!
@@ -9476,8 +9506,11 @@ Represents promotion's original translatable fields and related translations.
 Added in Saleor 3.17.
 """
 type PromotionTranslatableContent implements Node @doc(category: "Discounts") {
-  """ID of the promotion to translate."""
+  """ID of the promotion translatable content."""
   id: ID!
+
+  """ID of the promotion to translate."""
+  promotionId: ID!
 
   """Name of the promotion."""
   name: String!
@@ -9532,8 +9565,11 @@ Represents promotion rule's original translatable fields and related translation
 Added in Saleor 3.17.
 """
 type PromotionRuleTranslatableContent implements Node @doc(category: "Discounts") {
-  """ID of the promotion rule to translate."""
+  """ID of the promotion rule translatable content."""
   id: ID!
+
+  """ID of the promotion rule to translate."""
+  promotionRuleId: ID!
 
   """Name of the promotion rule."""
   name: String
@@ -9588,8 +9624,11 @@ Represents sale's original translatable fields and related translations.
 DEPRECATED: this type will be removed in Saleor 4.0. Use `PromotionTranslatableContent` instead.
 """
 type SaleTranslatableContent implements Node @doc(category: "Discounts") {
-  """The ID of the sale to translate."""
+  """The ID of the sale translatable content."""
   id: ID!
+
+  """The ID of the sale to translate."""
+  saleId: ID!
 
   """Name of the sale to translate."""
   name: String!
