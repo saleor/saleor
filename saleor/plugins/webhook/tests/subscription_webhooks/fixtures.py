@@ -1104,26 +1104,8 @@ def subscription_attribute_value_translation_updated_webhook(subscription_webhoo
 
 @pytest.fixture
 def subscription_page_translation_updated_webhook(subscription_webhook):
-    query = """
-        subscription {
-          event {
-            ... on TranslationUpdated {
-              translation {
-                ... on PageTranslation {
-                  id
-                  title
-                  translatableContent {
-                    id
-                    title
-                  }
-                }
-              }
-            }
-          }
-        }
-        """
     return subscription_webhook(
-        query,
+        queries.TRANSLATION_UPDATED_PAGE,
         WebhookEventAsyncType.TRANSLATION_UPDATED,
     )
 

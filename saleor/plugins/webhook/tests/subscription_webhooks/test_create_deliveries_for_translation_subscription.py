@@ -28,7 +28,7 @@ def test_translation_created_product(
                 "id": translation_id,
                 "name": product_translation_fr.name,
                 "translatableContent": {
-                    "id": product_id,
+                    "productId": product_id,
                     "name": product.name,
                 },
             }
@@ -60,7 +60,7 @@ def test_translation_created_product_variant(
                 "id": translation_id,
                 "name": variant_translation_fr.name,
                 "translatableContent": {
-                    "id": variant_id,
+                    "productVariantId": variant_id,
                     "name": variant.name,
                 },
             }
@@ -92,7 +92,7 @@ def test_translation_created_collection(
                 "id": translation_id,
                 "name": collection_translation_fr.name,
                 "translatableContent": {
-                    "id": collection_id,
+                    "collectionId": collection_id,
                     "name": collection.name,
                 },
             }
@@ -124,7 +124,7 @@ def test_translation_created_category(
                 "id": translation_id,
                 "name": category_translation_fr.name,
                 "translatableContent": {
-                    "id": category_id,
+                    "categoryId": category_id,
                     "name": category.name,
                 },
             }
@@ -156,7 +156,7 @@ def test_translation_created_attribute(
                 "id": translation_id,
                 "name": translated_attribute.name,
                 "translatableContent": {
-                    "id": attribute_id,
+                    "attributeId": attribute_id,
                     "name": attribute.name,
                 },
             }
@@ -190,7 +190,7 @@ def test_translation_created_attribute_value(
                 "id": translation_id,
                 "name": translated_attribute_value.name,
                 "translatableContent": {
-                    "id": attribute_value_id,
+                    "attributeValueId": attribute_value_id,
                     "name": attribute_value.name,
                 },
             }
@@ -222,7 +222,7 @@ def test_translation_created_page(
                 "id": translation_id,
                 "title": page_translation_fr.title,
                 "translatableContent": {
-                    "id": page_id,
+                    "pageId": page_id,
                     "title": page.title,
                 },
             }
@@ -257,7 +257,7 @@ def test_translation_created_shipping_method(
                 "id": translation_id,
                 "name": shipping_method_translation_fr.name,
                 "translatableContent": {
-                    "id": shipping_method_id,
+                    "shippingMethodId": shipping_method_id,
                     "name": shipping_method.name,
                 },
             }
@@ -289,7 +289,7 @@ def test_translation_created_promotion(
                 "id": translation_id,
                 "name": promotion_translation_fr.name,
                 "translatableContent": {
-                    "id": promotion_id,
+                    "promotionId": promotion_id,
                     "name": promotion.name,
                 },
             }
@@ -320,7 +320,7 @@ def test_translation_created_promotion_converted_from_sale(
                 "id": translation_id,
                 "name": promotion_converted_from_sale_translation_fr.name,
                 "translatableContent": {
-                    "id": promotion_id,
+                    "saleId": promotion_id,
                     "name": promotion.name,
                 },
             }
@@ -353,7 +353,7 @@ def test_translation_created_promotion_rule(
                 "id": translation_id,
                 "name": promotion_rule_translation_fr.name,
                 "translatableContent": {
-                    "id": promotion_rule_id,
+                    "promotionRuleId": promotion_rule_id,
                     "name": promotion_rule.name,
                 },
             }
@@ -385,7 +385,7 @@ def test_translation_created_voucher(
                 "id": translation_id,
                 "name": voucher_translation_fr.name,
                 "translatableContent": {
-                    "id": voucher_id,
+                    "voucherId": voucher_id,
                     "name": voucher.name,
                 },
             }
@@ -417,7 +417,7 @@ def test_translation_created_menu_item(
                 "id": translation_id,
                 "name": menu_item_translation_fr.name,
                 "translatableContent": {
-                    "id": menu_item_id,
+                    "menuItemId": menu_item_id,
                     "name": menu_item.name,
                 },
             }
@@ -449,7 +449,7 @@ def test_translation_updated_product(
                 "id": translation_id,
                 "name": product_translation_fr.name,
                 "translatableContent": {
-                    "id": product_id,
+                    "productId": product_id,
                     "name": product.name,
                 },
             }
@@ -481,7 +481,7 @@ def test_translation_updated_product_variant(
                 "id": translation_id,
                 "name": variant_translation_fr.name,
                 "translatableContent": {
-                    "id": variant_id,
+                    "productVariantId": variant_id,
                     "name": variant.name,
                 },
             }
@@ -513,7 +513,7 @@ def test_translation_updated_collection(
                 "id": translation_id,
                 "name": collection_translation_fr.name,
                 "translatableContent": {
-                    "id": collection_id,
+                    "collectionId": collection_id,
                     "name": collection.name,
                 },
             }
@@ -545,7 +545,7 @@ def test_translation_updated_category(
                 "id": translation_id,
                 "name": category_translation_fr.name,
                 "translatableContent": {
-                    "id": category_id,
+                    "categoryId": category_id,
                     "name": category.name,
                 },
             }
@@ -577,7 +577,7 @@ def test_translation_updated_attribute(
                 "id": translation_id,
                 "name": translated_attribute.name,
                 "translatableContent": {
-                    "id": attribute_id,
+                    "attributeId": attribute_id,
                     "name": attribute.name,
                 },
             }
@@ -611,7 +611,7 @@ def test_translation_updated_attribute_value(
                 "id": translation_id,
                 "name": translated_attribute_value.name,
                 "translatableContent": {
-                    "id": attribute_value_id,
+                    "attributeValueId": attribute_value_id,
                     "name": attribute_value.name,
                 },
             }
@@ -643,7 +643,7 @@ def test_translation_updated_page(
                 "id": translation_id,
                 "title": page_translation_fr.title,
                 "translatableContent": {
-                    "id": page_id,
+                    "pageId": page_id,
                     "title": page.title,
                 },
             }
@@ -678,7 +678,7 @@ def test_translation_updated_shipping_method(
                 "id": translation_id,
                 "name": shipping_method_translation_fr.name,
                 "translatableContent": {
-                    "id": shipping_method_id,
+                    "shippingMethodId": shipping_method_id,
                     "name": shipping_method.name,
                 },
             }
@@ -710,7 +710,7 @@ def test_translation_updated_promotion(
                 "id": translation_id,
                 "name": promotion_translation_fr.name,
                 "translatableContent": {
-                    "id": promotion_id,
+                    "promotionId": promotion_id,
                     "name": promotion.name,
                 },
             }
@@ -743,7 +743,7 @@ def test_translation_updated_promotion_rule(
                 "id": translation_id,
                 "name": promotion_rule_translation_fr.name,
                 "translatableContent": {
-                    "id": promotion_rule_id,
+                    "promotionRuleId": promotion_rule_id,
                     "name": promotion_rule.name,
                 },
             }
@@ -775,7 +775,7 @@ def test_translation_updated_voucher(
                 "id": translation_id,
                 "name": voucher_translation_fr.name,
                 "translatableContent": {
-                    "id": voucher_id,
+                    "voucherId": voucher_id,
                     "name": voucher.name,
                 },
             }
@@ -807,7 +807,7 @@ def test_translation_updated_menu_item(
                 "id": translation_id,
                 "name": menu_item_translation_fr.name,
                 "translatableContent": {
-                    "id": menu_item_id,
+                    "menuItemId": menu_item_id,
                     "name": menu_item.name,
                 },
             }
