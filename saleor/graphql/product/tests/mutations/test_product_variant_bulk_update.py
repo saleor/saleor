@@ -410,9 +410,7 @@ def test_product_variant_bulk_update_channel_listings_input(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
     ProductChannelListing.objects.create(product=product, channel=channel_PLN)
-    existing_variant_listing = variant.channel_listings.exclude(
-        channel=channel_PLN
-    ).last()
+    existing_variant_listing = variant.channel_listings.get()
 
     assert variant.channel_listings.count() == 1
     product_id = graphene.Node.to_global_id("Product", product.pk)
@@ -452,8 +450,21 @@ def test_product_variant_bulk_update_channel_listings_input(
     )
     get_graphql_content(response, ignore_errors=True)
 
-    existing_variant_listing.refresh_from_db()
     # then
+    existing_variant_listing.refresh_from_db()
+    assert (
+        existing_variant_listing.price_amount == new_price_for_existing_variant_listing
+    )
+    assert (
+        existing_variant_listing.discounted_price_amount
+        == new_price_for_existing_variant_listing
+    )
+    new_variant_listing = variant.channel_listings.get(channel=channel_PLN)
+    assert new_variant_listing.price_amount == not_existing_variant_listing_price
+    assert (
+        new_variant_listing.discounted_price_amount
+        == not_existing_variant_listing_price
+    )
 
     # only promotions with created channel will be marked as dirty
     second_promotion_rule.refresh_from_db()
