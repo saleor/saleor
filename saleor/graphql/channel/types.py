@@ -259,7 +259,7 @@ class OrderSettings(ObjectType):
     allow_unpaid_orders = graphene.Boolean(
         required=True,
         description=(
-            "Determine if it is possible to place unpdaid order by calling "
+            "Determine if it is possible to place unpaid order by calling "
             "`checkoutComplete` mutation." + ADDED_IN_315 + PREVIEW_FEATURE
         ),
     )

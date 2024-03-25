@@ -324,7 +324,7 @@ class Shop(graphene.ObjectType):
         graphene.Boolean,
         description=(
             "Determines if user can login without confirmation when "
-            "`enableAccountConfrimation` is enabled." + ADDED_IN_315
+            "`enableAccountConfirmation` is enabled." + ADDED_IN_315
         ),
         permissions=[SitePermissions.MANAGE_SETTINGS],
     )

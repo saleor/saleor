@@ -3147,7 +3147,7 @@ type App implements Node & ObjectWithMetadata @doc(category: "Apps") {
   """Version number of the app."""
   version: String
 
-  """JWT token used to authenticate by thridparty app."""
+  """JWT token used to authenticate by third-party app."""
   accessToken: String
 
   """
@@ -5615,7 +5615,7 @@ type OrderSettings {
   deleteExpiredOrdersAfter: Day!
 
   """
-  Determine if it is possible to place unpdaid order by calling `checkoutComplete` mutation.
+  Determine if it is possible to place unpaid order by calling `checkoutComplete` mutation.
   
   Added in Saleor 3.15.
   
@@ -6602,7 +6602,7 @@ type AttributeValue implements Node @doc(category: "Attributes") {
   richText: JSONString
 
   """
-  Represents the text of the attribute value, plain text without formating.
+  Represents the text of the attribute value, plain text without formatting.
   """
   plainText: String
 
@@ -10188,7 +10188,7 @@ type Shop implements ObjectWithMetadata {
   enableAccountConfirmationByEmail: Boolean
 
   """
-  Determines if user can login without confirmation when `enableAccountConfrimation` is enabled.
+  Determines if user can login without confirmation when `enableAccountConfirmation` is enabled.
   
   Added in Saleor 3.15.
   
@@ -15015,7 +15015,7 @@ type AddressValidationData @doc(category: "Users") {
   Many fields in the JSON refer to address fields by one-letter abbreviations. These are defined as follows:
   
   - `N`: Name
-  - `O`: Organisation
+  - `O`: Organization
   - `A`: Street Address Line(s)
   - `D`: Dependent locality (may be an inner-city district or a suburb)
   - `C`: City or Locality
@@ -15033,7 +15033,7 @@ type AddressValidationData @doc(category: "Users") {
   Many fields in the JSON refer to address fields by one-letter abbreviations. These are defined as follows:
   
   - `N`: Name
-  - `O`: Organisation
+  - `O`: Organization
   - `A`: Street Address Line(s)
   - `D`: Dependent locality (may be an inner-city district or a suburb)
   - `C`: City or Locality
@@ -27552,7 +27552,7 @@ input ExternalNotificationTriggerInput {
   ids: [ID!]!
 
   """
-  Additional payload that will be merged with the one based on the bussines object ID.
+  Additional payload that will be merged with the one based on the business object ID.
   """
   extraPayload: JSONString
 
@@ -28864,7 +28864,7 @@ type CheckoutError @doc(category: "Checkout") {
   """The error code."""
   code: CheckoutErrorCode!
 
-  """List of varint IDs which causes the error."""
+  """List of variant IDs which causes the error."""
   variants: [ID!]
 
   """List of line Ids which cause the error."""
@@ -29567,7 +29567,7 @@ input OrderSettingsInput @doc(category: "Orders") {
   automaticallyConfirmAllNewOrders: Boolean
 
   """
-  When enabled, all non-shippable gift card orders will be fulfilled automatically. By defualt set to True.
+  When enabled, all non-shippable gift card orders will be fulfilled automatically. By default set to True.
   """
   automaticallyFulfillNonShippableGiftCard: Boolean
 
@@ -29926,7 +29926,7 @@ input AttributeValueCreateInput @doc(category: "Attributes") {
   richText: JSONString
 
   """
-  Represents the text of the attribute value, plain text without formating.
+  Represents the text of the attribute value, plain text without formatting.
   
   DEPRECATED: this field will be removed in Saleor 4.0.The plain text attribute hasn't got predefined value, so can be specified only from instance that supports the given attribute.
   """
@@ -30055,7 +30055,7 @@ input AttributeValueUpdateInput @doc(category: "Attributes") {
   richText: JSONString
 
   """
-  Represents the text of the attribute value, plain text without formating.
+  Represents the text of the attribute value, plain text without formatting.
   
   DEPRECATED: this field will be removed in Saleor 4.0.The plain text attribute hasn't got predefined value, so can be specified only from instance that supports the given attribute.
   """
@@ -31889,7 +31889,7 @@ type PermissionGroupError @doc(category: "Users") {
   """List of user IDs which causes the error."""
   users: [ID!]
 
-  """List of chnnels IDs which causes the error."""
+  """List of channels IDs which causes the error."""
   channels: [ID!]
 }
 

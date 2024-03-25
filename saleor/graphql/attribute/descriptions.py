@@ -47,7 +47,7 @@ class AttributeValueDescriptions:
         + RICH_CONTENT
     )
     PLAIN_TEXT = (
-        "Represents the text of the attribute value, plain text without formating."
+        "Represents the text of the attribute value, plain text without formatting."
     )
     BOOLEAN = "Represents the boolean value of the attribute value."
     DATE = "Represents the date value of the attribute value."
