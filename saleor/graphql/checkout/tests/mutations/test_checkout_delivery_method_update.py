@@ -552,6 +552,7 @@ def test_checkout_delivery_method_update_valid_method_not_all_shipping_data_for_
     )
     errors = data["errors"]
     assert checkout.shipping_address == delivery_method.address
+    assert checkout.shipping_address_id != delivery_method.address.id
     assert not errors
     assert getattr(checkout, attribute_name) == delivery_method
 
