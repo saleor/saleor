@@ -256,8 +256,8 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             and collection_point.click_and_collect_option
             == WarehouseClickAndCollectOption.LOCAL_STOCK
         ):
-            checkout.shipping_address = collection_point.address
-            checkout_info.shipping_address = collection_point.address
+            checkout.shipping_address = collection_point.address.get_copy()
+            checkout_info.shipping_address = checkout.shipping_address
             checkout_fields_to_update += ["shipping_address"]
         invalidate_prices_updated_fields = invalidate_checkout_prices(
             checkout_info, lines, manager, save=False
