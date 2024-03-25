@@ -7,6 +7,7 @@ import opentracing.tags
 from promise import Promise
 from promise.dataloader import DataLoader as BaseLoader
 
+from ...core.db.connection import allow_writer_in_context
 from ...thumbnail.models import Thumbnail
 from ...thumbnail.utils import get_thumbnail_format
 from . import SaleorContext
@@ -47,7 +48,10 @@ class DataLoader(BaseLoader, Generic[K, R]):
         ) as scope:
             span = scope.span
             span.set_tag(opentracing.tags.COMPONENT, "dataloaders")
-            results = self.batch_load(keys)
+
+            with allow_writer_in_context(self.context):
+                results = self.batch_load(keys)
+
             if not isinstance(results, Promise):
                 return Promise.resolve(results)
             return results

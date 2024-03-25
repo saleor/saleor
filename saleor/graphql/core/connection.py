@@ -345,13 +345,16 @@ def create_connection_slice(
     )
     args["sort_by"] = sort_by
 
-    slice = connection_from_queryset_slice(
-        queryset,
-        args,
-        connection_type,
-        edge_type or connection_type.Edge,
-        pageinfo_type or graphene.relay.PageInfo,
-    )
+    from ...core.db.connection import allow_writer_in_context
+
+    with allow_writer_in_context(info.context):
+        slice = connection_from_queryset_slice(
+            queryset,
+            args,
+            connection_type,
+            edge_type or connection_type.Edge,
+            pageinfo_type or graphene.relay.PageInfo,
+        )
 
     if isinstance(iterable, ChannelQsContext):
         edges_with_context = []

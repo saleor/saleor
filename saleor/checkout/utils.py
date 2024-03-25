@@ -13,6 +13,7 @@ from django.utils import timezone
 from prices import Money
 
 from ..account.models import User
+from ..core.db.connection import allow_writer
 from ..core.exceptions import ProductNotPublished
 from ..core.taxes import zero_taxed_money
 from ..core.utils.promo_code import (
@@ -960,9 +961,7 @@ def cancel_active_payments(checkout: Checkout):
 
 def is_shipping_required(lines: Iterable["CheckoutLineInfo"]):
     """Check if shipping is required for given checkout lines."""
-    return any(
-        line_info.product.product_type.is_shipping_required for line_info in lines
-    )
+    return any(line_info.product_type.is_shipping_required for line_info in lines)
 
 
 def validate_variants_in_checkout_lines(lines: Iterable["CheckoutLineInfo"]):
@@ -1012,6 +1011,7 @@ def delete_external_shipping_id(checkout: Checkout, save: bool = False):
         metadata.save(update_fields=["private_metadata"])
 
 
+@allow_writer()
 def get_or_create_checkout_metadata(checkout: "Checkout") -> CheckoutMetadata:
     if hasattr(checkout, "metadata_storage"):
         return checkout.metadata_storage

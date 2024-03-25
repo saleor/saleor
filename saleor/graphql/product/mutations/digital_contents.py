@@ -1,6 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 
+from ....core.db.connection import allow_writer
 from ....core.exceptions import PermissionDenied
 from ....permission.enums import ProductPermissions
 from ....product import models
@@ -172,6 +173,7 @@ class DigitalContentDelete(BaseMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
 
     @classmethod
+    @allow_writer()
     def mutate(  # type: ignore[override]
         cls, root, info: ResolveInfo, /, *, variant_id: str
     ):
