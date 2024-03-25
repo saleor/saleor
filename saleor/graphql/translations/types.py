@@ -24,8 +24,8 @@ from ..channel import ChannelContext
 from ..core.context import get_database_connection_name
 from ..core.descriptions import (
     ADDED_IN_39,
+    ADDED_IN_314,
     ADDED_IN_317,
-    ADDED_IN_320,
     DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_TYPE,
     RICH_CONTENT,
@@ -116,7 +116,7 @@ class AttributeValueTranslation(
     translatable_content = graphene.Field(
         "saleor.graphql.translations.types.AttributeValueTranslatableContent",
         description="Represents the attribute value fields to translate."
-        + ADDED_IN_320,
+        + ADDED_IN_314,
     )
 
     class Meta:
@@ -138,7 +138,7 @@ class AttributeTranslation(BaseTranslationType[attribute_models.AttributeTransla
     name = graphene.String(required=True, description="Translated attribute name.")
     translatable_content = graphene.Field(
         "saleor.graphql.translations.types.AttributeTranslatableContent",
-        description="Represents the attribute fields to translate." + ADDED_IN_320,
+        description="Represents the attribute fields to translate." + ADDED_IN_314,
     )
 
     class Meta:
@@ -156,7 +156,8 @@ class AttributeTranslatableContent(ModelObjectType[attribute_models.Attribute]):
         required=True, description="The ID of the attribute translatable content."
     )
     attribute_id = graphene.ID(
-        required=True, description="The ID of the attribute to translate."
+        required=True,
+        description="The ID of the attribute to translate." + ADDED_IN_314,
     )
     name = graphene.String(
         required=True, description="Name of the attribute to translate."
@@ -194,7 +195,8 @@ class AttributeValueTranslatableContent(
         required=True, description="The ID of the attribute value translatable content."
     )
     attribute_value_id = graphene.ID(
-        required=True, description="The ID of the attribute value to translate."
+        required=True,
+        description="The ID of the attribute value to translate." + ADDED_IN_314,
     )
     name = graphene.String(
         required=True,
@@ -250,7 +252,7 @@ class ProductVariantTranslation(
     translatable_content = graphene.Field(
         "saleor.graphql.translations.types.ProductVariantTranslatableContent",
         description="Represents the product variant fields to translate."
-        + ADDED_IN_320,
+        + ADDED_IN_314,
     )
 
     class Meta:
@@ -270,7 +272,8 @@ class ProductVariantTranslatableContent(ModelObjectType[product_models.ProductVa
         required=True, description="The ID of the product variant translatable content."
     )
     product_variant_id = graphene.ID(
-        required=True, description="The ID of the product variant to translate."
+        required=True,
+        description="The ID of the product variant to translate." + ADDED_IN_314,
     )
     name = graphene.String(
         required=True,
@@ -337,7 +340,7 @@ class ProductTranslation(BaseTranslationType[product_models.ProductTranslation])
     )
     translatable_content = graphene.Field(
         "saleor.graphql.translations.types.ProductTranslatableContent",
-        description="Represents the product fields to translate." + ADDED_IN_320,
+        description="Represents the product fields to translate." + ADDED_IN_314,
     )
 
     class Meta:
@@ -360,7 +363,8 @@ class ProductTranslatableContent(ModelObjectType[product_models.Product]):
         required=True, description="The ID of the product translatable content."
     )
     product_id = graphene.ID(
-        required=True, description="The ID of the product to translate."
+        required=True,
+        description="The ID of the product to translate." + ADDED_IN_314,
     )
     seo_title = graphene.String(description="SEO title to translate.")
     seo_description = graphene.String(description="SEO description to translate.")
@@ -448,7 +452,7 @@ class CollectionTranslation(BaseTranslationType[product_models.CollectionTransla
     )
     translatable_content = graphene.Field(
         "saleor.graphql.translations.types.CollectionTranslatableContent",
-        description="Represents the collection fields to translate." + ADDED_IN_320,
+        description="Represents the collection fields to translate." + ADDED_IN_314,
     )
 
     class Meta:
@@ -471,7 +475,8 @@ class CollectionTranslatableContent(ModelObjectType[product_models.Collection]):
         required=True, description="The ID of the collection translatable content."
     )
     collection_id = graphene.ID(
-        required=True, description="The ID of the collection to translate."
+        required=True,
+        description="The ID of the collection to translate." + ADDED_IN_314,
     )
     seo_title = graphene.String(description="SEO title to translate.")
     seo_description = graphene.String(description="SEO description to translate.")
@@ -544,7 +549,7 @@ class CategoryTranslation(BaseTranslationType[product_models.CategoryTranslation
     )
     translatable_content = graphene.Field(
         "saleor.graphql.translations.types.CategoryTranslatableContent",
-        description="Represents the category fields to translate." + ADDED_IN_320,
+        description="Represents the category fields to translate." + ADDED_IN_314,
     )
 
     class Meta:
@@ -567,7 +572,8 @@ class CategoryTranslatableContent(ModelObjectType[product_models.Category]):
         required=True, description="The ID of the category translatable content."
     )
     category_id = graphene.ID(
-        required=True, description="The ID of the category to translate."
+        required=True,
+        description="The ID of the category to translate." + ADDED_IN_314,
     )
     seo_title = graphene.String(description="SEO title to translate.")
     seo_description = graphene.String(description="SEO description to translate.")
@@ -625,7 +631,7 @@ class PageTranslation(BaseTranslationType[page_models.PageTranslation]):
     )
     translatable_content = graphene.Field(
         "saleor.graphql.translations.types.PageTranslatableContent",
-        description="Represents the page fields to translate." + ADDED_IN_320,
+        description="Represents the page fields to translate." + ADDED_IN_314,
     )
 
     class Meta:
@@ -647,7 +653,9 @@ class PageTranslatableContent(ModelObjectType[page_models.Page]):
     id = graphene.GlobalID(
         required=True, description="The ID of the page translatable content."
     )
-    page_id = graphene.ID(required=True, description="The ID of the page to translate.")
+    page_id = graphene.ID(
+        required=True, description="The ID of the page to translate." + ADDED_IN_314
+    )
     seo_title = graphene.String(description="SEO title to translate.")
     seo_description = graphene.String(description="SEO description to translate.")
     title = graphene.String(required=True, description="Page title to translate.")
@@ -726,7 +734,7 @@ class VoucherTranslation(BaseTranslationType[discount_models.VoucherTranslation]
     name = graphene.String(description="Translated voucher name.")
     translatable_content = graphene.Field(
         "saleor.graphql.translations.types.VoucherTranslatableContent",
-        description="Represents the voucher fields to translate." + ADDED_IN_320,
+        description="Represents the voucher fields to translate." + ADDED_IN_314,
     )
 
     class Meta:
@@ -744,7 +752,8 @@ class VoucherTranslatableContent(ModelObjectType[discount_models.Voucher]):
         required=True, description="The ID of the voucher translatable content."
     )
     voucher_id = graphene.ID(
-        required=True, description="The ID of the voucher to translate."
+        required=True,
+        description="The ID of the voucher to translate." + ADDED_IN_314,
     )
     name = graphene.String(description="Voucher name to translate.")
     translation = TranslationField(VoucherTranslation, type_name="voucher")
@@ -783,7 +792,7 @@ class SaleTranslation(BaseTranslationType[discount_models.PromotionTranslation])
     name = graphene.String(description="Translated name of sale.")
     translatable_content = graphene.Field(
         "saleor.graphql.translations.types.SaleTranslatableContent",
-        description="Represents the sale fields to translate." + ADDED_IN_320,
+        description="Represents the sale fields to translate." + ADDED_IN_314,
     )
 
     class Meta:
@@ -804,7 +813,10 @@ class SaleTranslatableContent(ModelObjectType[discount_models.Promotion]):
     id = graphene.GlobalID(
         required=True, description="The ID of the sale translatable content."
     )
-    sale_id = graphene.ID(required=True, description="The ID of the sale to translate.")
+    sale_id = graphene.ID(
+        required=True,
+        description="The ID of the sale to translate." + ADDED_IN_314,
+    )
     name = graphene.String(required=True, description="Name of the sale to translate.")
     translation = TranslationField(SaleTranslation, type_name="sale")
     sale = PermissionsField(
@@ -859,7 +871,7 @@ class MenuItemTranslation(BaseTranslationType[menu_models.MenuItemTranslation]):
     name = graphene.String(required=True, description="Translated menu item name.")
     translatable_content = graphene.Field(
         "saleor.graphql.translations.types.MenuItemTranslatableContent",
-        description="Represents the menu item fields to translate." + ADDED_IN_320,
+        description="Represents the menu item fields to translate." + ADDED_IN_314,
     )
 
     class Meta:
@@ -877,7 +889,8 @@ class MenuItemTranslatableContent(ModelObjectType[menu_models.MenuItem]):
         required=True, description="The ID of the menu item translatable content."
     )
     menu_item_id = graphene.ID(
-        required=True, description="The ID of the menu item to translate."
+        required=True,
+        description="The ID of the menu item to translate." + ADDED_IN_314,
     )
     name = graphene.String(
         required=True, description="Name of the menu item to translate."
@@ -926,7 +939,7 @@ class ShippingMethodTranslation(
     translatable_content = graphene.Field(
         "saleor.graphql.translations.types.ShippingMethodTranslatableContent",
         description="Represents the shipping method fields to translate."
-        + ADDED_IN_320,
+        + ADDED_IN_314,
     )
 
     class Meta:
@@ -948,7 +961,8 @@ class ShippingMethodTranslatableContent(
         required=True, description="The ID of the shipping method translatable content."
     )
     shipping_method_id = graphene.ID(
-        required=True, description="The ID of the shipping method to translate."
+        required=True,
+        description="The ID of the shipping method to translate." + ADDED_IN_314,
     )
     name = graphene.String(
         required=True, description="Shipping method name to translate."
@@ -1000,7 +1014,7 @@ class PromotionTranslation(BaseTranslationType[discount_models.PromotionTranslat
     )
     translatable_content = graphene.Field(
         "saleor.graphql.translations.types.PromotionTranslatableContent",
-        description="Represents the promotion fields to translate." + ADDED_IN_320,
+        description="Represents the promotion fields to translate." + ADDED_IN_314,
     )
 
     class Meta:
@@ -1049,7 +1063,7 @@ class PromotionRuleTranslation(
     )
     translatable_content = graphene.Field(
         "saleor.graphql.translations.types.PromotionRuleTranslatableContent",
-        description="Represents the promotion rule fields to translate." + ADDED_IN_320,
+        description="Represents the promotion rule fields to translate." + ADDED_IN_314,
     )
 
     class Meta:
@@ -1069,7 +1083,8 @@ class PromotionRuleTranslatableContent(ModelObjectType[discount_models.Promotion
         required=True, description="ID of the promotion rule translatable content."
     )
     promotion_rule_id = graphene.ID(
-        required=True, description="ID of the promotion rule to translate."
+        required=True,
+        description="ID of the promotion rule to translate." + ADDED_IN_314,
     )
     name = graphene.String(description="Name of the promotion rule.")
     description = JSONString(

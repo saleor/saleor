@@ -4208,7 +4208,7 @@ type ShippingMethodTranslation implements Node @doc(category: "Shipping") {
   """
   Represents the shipping method fields to translate.
   
-  Added in Saleor 3.20.
+  Added in Saleor 3.14.
   """
   translatableContent: ShippingMethodTranslatableContent
 }
@@ -5011,7 +5011,11 @@ type ShippingMethodTranslatableContent implements Node @doc(category: "Shipping"
   """The ID of the shipping method translatable content."""
   id: ID!
 
-  """The ID of the shipping method to translate."""
+  """
+  The ID of the shipping method to translate.
+  
+  Added in Saleor 3.14.
+  """
   shippingMethodId: ID!
 
   """Shipping method name to translate."""
@@ -6569,7 +6573,7 @@ type AttributeValueTranslation implements Node @doc(category: "Attributes") {
   """
   Represents the attribute value fields to translate.
   
-  Added in Saleor 3.20.
+  Added in Saleor 3.14.
   """
   translatableContent: AttributeValueTranslatableContent
 }
@@ -6581,7 +6585,11 @@ type AttributeValueTranslatableContent implements Node @doc(category: "Attribute
   """The ID of the attribute value translatable content."""
   id: ID!
 
-  """The ID of the attribute value to translate."""
+  """
+  The ID of the attribute value to translate.
+  
+  Added in Saleor 3.14.
+  """
   attributeValueId: ID!
 
   """Name of the attribute value to translate."""
@@ -6621,7 +6629,11 @@ type AttributeTranslatableContent implements Node @doc(category: "Attributes") {
   """The ID of the attribute translatable content."""
   id: ID!
 
-  """The ID of the attribute to translate."""
+  """
+  The ID of the attribute to translate.
+  
+  Added in Saleor 3.14.
+  """
   attributeId: ID!
 
   """Name of the attribute to translate."""
@@ -6651,7 +6663,7 @@ type AttributeTranslation implements Node @doc(category: "Attributes") {
   """
   Represents the attribute fields to translate.
   
-  Added in Saleor 3.20.
+  Added in Saleor 3.14.
   """
   translatableContent: AttributeTranslatableContent
 }
@@ -7471,7 +7483,7 @@ type CategoryTranslation implements Node @doc(category: "Products") {
   """
   Represents the category fields to translate.
   
-  Added in Saleor 3.20.
+  Added in Saleor 3.14.
   """
   translatableContent: CategoryTranslatableContent
 }
@@ -7483,7 +7495,11 @@ type CategoryTranslatableContent implements Node @doc(category: "Products") {
   """The ID of the category translatable content."""
   id: ID!
 
-  """The ID of the category to translate."""
+  """
+  The ID of the category to translate.
+  
+  Added in Saleor 3.14.
+  """
   categoryId: ID!
 
   """SEO title to translate."""
@@ -7982,7 +7998,7 @@ type ProductVariantTranslation implements Node @doc(category: "Products") {
   """
   Represents the product variant fields to translate.
   
-  Added in Saleor 3.20.
+  Added in Saleor 3.14.
   """
   translatableContent: ProductVariantTranslatableContent
 }
@@ -7994,7 +8010,11 @@ type ProductVariantTranslatableContent implements Node @doc(category: "Products"
   """The ID of the product variant translatable content."""
   id: ID!
 
-  """The ID of the product variant to translate."""
+  """
+  The ID of the product variant to translate.
+  
+  Added in Saleor 3.14.
+  """
   productVariantId: ID!
 
   """Name of the product variant to translate."""
@@ -8449,7 +8469,7 @@ type CollectionTranslation implements Node @doc(category: "Products") {
   """
   Represents the collection fields to translate.
   
-  Added in Saleor 3.20.
+  Added in Saleor 3.14.
   """
   translatableContent: CollectionTranslatableContent
 }
@@ -8461,7 +8481,11 @@ type CollectionTranslatableContent implements Node @doc(category: "Products") {
   """The ID of the collection translatable content."""
   id: ID!
 
-  """The ID of the collection to translate."""
+  """
+  The ID of the collection to translate.
+  
+  Added in Saleor 3.14.
+  """
   collectionId: ID!
 
   """SEO title to translate."""
@@ -8551,7 +8575,7 @@ type ProductTranslation implements Node @doc(category: "Products") {
   """
   Represents the product fields to translate.
   
-  Added in Saleor 3.20.
+  Added in Saleor 3.14.
   """
   translatableContent: ProductTranslatableContent
 }
@@ -8563,7 +8587,11 @@ type ProductTranslatableContent implements Node @doc(category: "Products") {
   """The ID of the product translatable content."""
   id: ID!
 
-  """The ID of the product to translate."""
+  """
+  The ID of the product to translate.
+  
+  Added in Saleor 3.14.
+  """
   productId: ID!
 
   """SEO title to translate."""
@@ -8668,7 +8696,11 @@ type PageTranslatableContent implements Node @doc(category: "Pages") {
   """The ID of the page translatable content."""
   id: ID!
 
-  """The ID of the page to translate."""
+  """
+  The ID of the page to translate.
+  
+  Added in Saleor 3.14.
+  """
   pageId: ID!
 
   """SEO title to translate."""
@@ -8743,7 +8775,7 @@ type PageTranslation implements Node @doc(category: "Pages") {
   """
   Represents the page fields to translate.
   
-  Added in Saleor 3.20.
+  Added in Saleor 3.14.
   """
   translatableContent: PageTranslatableContent
 }
@@ -8941,7 +8973,11 @@ type VoucherTranslatableContent implements Node @doc(category: "Discounts") {
   """The ID of the voucher translatable content."""
   id: ID!
 
-  """The ID of the voucher to translate."""
+  """
+  The ID of the voucher to translate.
+  
+  Added in Saleor 3.14.
+  """
   voucherId: ID!
 
   """Voucher name to translate."""
@@ -8975,7 +9011,7 @@ type VoucherTranslation implements Node @doc(category: "Discounts") {
   """
   Represents the voucher fields to translate.
   
-  Added in Saleor 3.20.
+  Added in Saleor 3.14.
   """
   translatableContent: VoucherTranslatableContent
 }
@@ -9325,7 +9361,11 @@ type MenuItemTranslatableContent implements Node @doc(category: "Menu") {
   """The ID of the menu item translatable content."""
   id: ID!
 
-  """The ID of the menu item to translate."""
+  """
+  The ID of the menu item to translate.
+  
+  Added in Saleor 3.14.
+  """
   menuItemId: ID!
 
   """Name of the menu item to translate."""
@@ -9357,7 +9397,7 @@ type MenuItemTranslation implements Node @doc(category: "Menu") {
   """
   Represents the menu item fields to translate.
   
-  Added in Saleor 3.20.
+  Added in Saleor 3.14.
   """
   translatableContent: MenuItemTranslatableContent
 }
@@ -9554,7 +9594,7 @@ type PromotionTranslation implements Node @doc(category: "Discounts") {
   """
   Represents the promotion fields to translate.
   
-  Added in Saleor 3.20.
+  Added in Saleor 3.14.
   """
   translatableContent: PromotionTranslatableContent
 }
@@ -9568,7 +9608,11 @@ type PromotionRuleTranslatableContent implements Node @doc(category: "Discounts"
   """ID of the promotion rule translatable content."""
   id: ID!
 
-  """ID of the promotion rule to translate."""
+  """
+  ID of the promotion rule to translate.
+  
+  Added in Saleor 3.14.
+  """
   promotionRuleId: ID!
 
   """Name of the promotion rule."""
@@ -9613,7 +9657,7 @@ type PromotionRuleTranslation implements Node @doc(category: "Discounts") {
   """
   Represents the promotion rule fields to translate.
   
-  Added in Saleor 3.20.
+  Added in Saleor 3.14.
   """
   translatableContent: PromotionRuleTranslatableContent
 }
@@ -9627,7 +9671,11 @@ type SaleTranslatableContent implements Node @doc(category: "Discounts") {
   """The ID of the sale translatable content."""
   id: ID!
 
-  """The ID of the sale to translate."""
+  """
+  The ID of the sale to translate.
+  
+  Added in Saleor 3.14.
+  """
   saleId: ID!
 
   """Name of the sale to translate."""
@@ -9665,7 +9713,7 @@ type SaleTranslation implements Node @doc(category: "Discounts") {
   """
   Represents the sale fields to translate.
   
-  Added in Saleor 3.20.
+  Added in Saleor 3.14.
   """
   translatableContent: SaleTranslatableContent
 }

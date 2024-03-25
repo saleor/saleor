@@ -9,8 +9,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Breaking changes
 
 ### GraphQL API
-- Add `translatableContent` to all translation types - #15617 by @zedzior
-- Add translated object id to all translatable content types - #15617 by @zedzior
+- Add `translatableContent` to all translation types; add translated object id to all translatable content types - #15617 by @zedzior
 
 ### Saleor Apps
 
