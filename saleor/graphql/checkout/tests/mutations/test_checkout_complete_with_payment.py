@@ -2972,7 +2972,7 @@ def test_complete_checkout_for_local_click_and_collect(
     order_count = Order.objects.count()
     checkout = checkout_with_item_for_cc
     checkout.collection_point = warehouse_for_cc
-    checkout.shipping_address = None
+    checkout.shipping_address = warehouse_for_cc.address
     checkout.save(update_fields=["collection_point", "shipping_address"])
 
     variables = {
@@ -3014,7 +3014,8 @@ def test_complete_checkout_for_local_click_and_collect(
 
     assert order.collection_point == warehouse_for_cc
     assert order.shipping_method is None
-    assert order.shipping_address == warehouse_for_cc.address
+    assert order.shipping_address
+    assert order.shipping_address.id != warehouse_for_cc.address.id
     assert order.shipping_price == zero_taxed_money(payment.currency)
     assert order.lines.count() == 1
 
@@ -3083,7 +3084,8 @@ def test_complete_checkout_for_global_click_and_collect(
 
     assert order.collection_point == warehouse_for_cc
     assert order.shipping_method is None
-    assert order.shipping_address == warehouse_for_cc.address
+    assert order.shipping_address
+    assert order.shipping_address.id != warehouse_for_cc.address.id
     assert order.shipping_price == zero_taxed_money(payment.currency)
     assert order.lines.count() == 1
 
