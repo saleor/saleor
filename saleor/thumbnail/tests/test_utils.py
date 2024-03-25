@@ -1,8 +1,10 @@
+from unittest import mock
 from unittest.mock import MagicMock
 
 import graphene
 import pytest
 from django.core.files import File
+from PIL.JpegImagePlugin import JpegImageFile
 
 from .. import FILE_NAME_MAX_LENGTH, ThumbnailFormat
 from ..models import Thumbnail
@@ -107,6 +109,27 @@ def test_processed_image_preprocess_method_called(category_with_image, thumb_for
     preprocess_mock = MagicMock()
     preprocess_mock.side_effect = getattr(processed_image, preprocess_method_name)
     setattr(processed_image, preprocess_method_name, preprocess_mock)
+
+    # when
+    processed_image.create_thumbnail()
+
+    # then
+    preprocess_mock.assert_called_once()
+
+
+@pytest.mark.parametrize("thumb_format", [ThumbnailFormat.WEBP, ThumbnailFormat.AVIF])
+@mock.patch.object(JpegImageFile, "_getexif")
+def test_processed_image_preprocess_with_exif_corrupted(
+    mocked_getexif, category_with_image, thumb_format
+):
+    # given
+    image_path = category_with_image.background_image.name
+    processed_image = ProcessedImage(image_path, 128, thumb_format)
+    preprocess_method_name = f"preprocess_{thumb_format.upper()}"
+    preprocess_mock = MagicMock()
+    preprocess_mock.side_effect = getattr(processed_image, preprocess_method_name)
+    setattr(processed_image, preprocess_method_name, preprocess_mock)
+    mocked_getexif.side_effect = SyntaxError()
 
     # when
     processed_image.create_thumbnail()
