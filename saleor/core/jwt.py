@@ -1,5 +1,5 @@
 from collections.abc import Iterable
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
 
 import graphene
@@ -31,7 +31,7 @@ JWT_OWNER_FIELD = "owner"
 def jwt_base_payload(
     exp_delta: Optional[timedelta], token_owner: str
 ) -> dict[str, Any]:
-    utc_now = datetime.utcnow()
+    utc_now = datetime.now(timezone.utc)
 
     payload = {
         "iat": utc_now,
