@@ -173,7 +173,16 @@ class ProcessedImage:
 
         # Ensuring image is properly rotated
         if hasattr(image, "_getexif"):
-            exif_datadict = image._getexif()  # returns None if no EXIF data
+            try:
+                # validation of the exif data was added in separate PR:
+                # https://github.com/saleor/saleor/pull/11224, it means that there is a
+                # possibility that we could have the file with corrupted exif data.
+                # exif data is only used to apply some optional action on the image,
+                # but without it, we are still able to create a thumbnail.
+                exif_datadict = image._getexif()  # returns None if no EXIF data
+            except SyntaxError:
+                exif_datadict = None
+
             if exif_datadict is not None:
                 exif = dict(exif_datadict.items())
                 orientation = exif.get(self.EXIF_ORIENTATION_KEY, None)
