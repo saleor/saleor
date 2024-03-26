@@ -24,6 +24,7 @@ from . import PostalCodeRuleInclusionType, ShippingMethodType
 from .postal_codes import filter_shipping_methods_by_postal_code_rules
 
 if TYPE_CHECKING:
+    from ..account.models import Address
     from ..checkout.fetch import CheckoutLineInfo
     from ..checkout.models import Checkout
     from ..order.fetch import OrderLineInfo
@@ -165,32 +166,44 @@ class ShippingMethodQueryset(models.QuerySet["ShippingMethod"]):
         instance: Union["Checkout", "Order"],
         channel_id,
         price: Money,
+        shipping_address: Optional["Address"] = None,
         country_code: Optional[str] = None,
         lines: Union[
             Iterable["CheckoutLineInfo"], Iterable["OrderLineInfo"], None
         ] = None,
     ):
-        if not instance.shipping_address:
+        if not shipping_address:
             return None
+
         if not country_code:
-            # TODO: country_code should come from argument
-            country_code = instance.shipping_address.country.code
+            country_code = shipping_address.country.code
+
         if lines is None:
             # TODO: lines should comes from args in get_valid_shipping_methods_for_order
             lines = list(instance.lines.prefetch_related("variant__product").all())  # type: ignore[misc] # this is hack # noqa: E501
         instance_product_ids = {
             line.variant.product_id for line in lines if line.variant
         }
+
+        from ..checkout.models import Checkout
+
+        if isinstance(instance, Checkout):
+            from ..checkout.utils import calculate_checkout_weight
+
+            weight = calculate_checkout_weight(lines)  # type: ignore[arg-type]
+        else:
+            weight = instance.weight
+
         applicable_methods = self.applicable_shipping_methods(
             price=price,
             channel_id=channel_id,
-            weight=instance.get_total_weight(lines),
-            country_code=country_code or instance.shipping_address.country.code,
+            weight=weight,
+            country_code=country_code,
             product_ids=instance_product_ids,
         ).prefetch_related("postal_code_rules")
 
         return filter_shipping_methods_by_postal_code_rules(
-            applicable_methods, instance.shipping_address
+            applicable_methods, shipping_address
         )
 
 

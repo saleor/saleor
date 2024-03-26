@@ -611,7 +611,8 @@ def get_all_shipping_methods_for_order(
     if not order.is_shipping_required():
         return []
 
-    if not order.shipping_address:
+    shipping_address = order.shipping_address
+    if not shipping_address:
         return []
 
     all_methods = []
@@ -622,7 +623,8 @@ def get_all_shipping_methods_for_order(
             order,
             channel_id=order.channel_id,
             price=order.subtotal.gross,
-            country_code=order.shipping_address.country.code,
+            shipping_address=shipping_address,
+            country_code=shipping_address.country.code,
         )
         .prefetch_related("channel_listings")
     )
