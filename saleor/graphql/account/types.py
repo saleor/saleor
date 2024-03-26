@@ -64,6 +64,7 @@ from ..utils import format_permissions_for_display, get_user_or_app_from_context
 from .dataloaders import (
     AccessibleChannelsByGroupIdLoader,
     AccessibleChannelsByUserIdLoader,
+    AddressByIdLoader,
     CustomerEventsByUserLoader,
     RestrictedChannelAccessByUserIdLoader,
     ThumbnailByUserIdSizeAndFormatLoader,
@@ -714,6 +715,20 @@ class User(ModelObjectType[models.User]):
                 get_plugin_manager_promise(info.context),
             ]
         ).then(get_stored_payment_methods)
+
+    @staticmethod
+    def resolve_default_billing_address(root: models.User, info: ResolveInfo):
+        if root.default_billing_address_id:
+            return AddressByIdLoader(info.context).load(root.default_billing_address_id)
+        return None
+
+    @staticmethod
+    def resolve_default_shipping_address(root: models.User, info: ResolveInfo):
+        if root.default_shipping_address_id:
+            return AddressByIdLoader(info.context).load(
+                root.default_shipping_address_id
+            )
+        return None
 
 
 class UserCountableConnection(CountableConnection):
