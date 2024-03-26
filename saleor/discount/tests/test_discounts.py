@@ -8,7 +8,7 @@ from django.utils import timezone
 from prices import Money, TaxedMoney
 
 from ...discount.interface import VariantPromotionRuleInfo
-from .. import DiscountValueType, RewardValueType, UniqueDiscountType, VoucherType
+from .. import DiscountType, DiscountValueType, RewardValueType, VoucherType
 from ..models import (
     NotApplicable,
     Voucher,
@@ -584,39 +584,39 @@ def test_get_discount_translated_name_no_translations(rule_info):
 
 def test_unique_together_order(order):
     order.discounts.create(
-        unique_type=UniqueDiscountType.MANUAL,
+        unique_type=DiscountType.MANUAL,
     )
     with pytest.raises(IntegrityError):
         order.discounts.create(
-            unique_type=UniqueDiscountType.MANUAL,
+            unique_type=DiscountType.MANUAL,
         )
 
 
 def test_unique_together_checkout(checkout):
     checkout.discounts.create(
-        unique_type=UniqueDiscountType.MANUAL,
+        unique_type=DiscountType.MANUAL,
     )
     with pytest.raises(IntegrityError):
         checkout.discounts.create(
-            unique_type=UniqueDiscountType.MANUAL,
+            unique_type=DiscountType.MANUAL,
         )
 
 
 def test_unique_together_order_line(order_line):
     order_line.discounts.create(
-        unique_type=UniqueDiscountType.PROMOTION,
+        unique_type=DiscountType.PROMOTION,
     )
     with pytest.raises(IntegrityError):
         order_line.discounts.create(
-            unique_type=UniqueDiscountType.PROMOTION,
+            unique_type=DiscountType.PROMOTION,
         )
 
 
 def test_unique_together_checkout_line(checkout_line):
     checkout_line.discounts.create(
-        unique_type=UniqueDiscountType.PROMOTION,
+        unique_type=DiscountType.PROMOTION,
     )
     with pytest.raises(IntegrityError):
         checkout_line.discounts.create(
-            unique_type=UniqueDiscountType.PROMOTION,
+            unique_type=DiscountType.PROMOTION,
         )
