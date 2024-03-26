@@ -144,6 +144,9 @@ def _process_shipping_data_for_order(
         if checkout_info.user.addresses.filter(pk=shipping_address.pk).exists():
             shipping_address = shipping_address.get_copy()
 
+    if shipping_address and delivery_method_info.warehouse_pk:
+        shipping_address = shipping_address.get_copy()
+
     shipping_method = delivery_method_info.delivery_method
     tax_class = getattr(shipping_method, "tax_class", None)
 
