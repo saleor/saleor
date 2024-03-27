@@ -641,7 +641,7 @@ class CategoryChildrenByCategoryIdLoader(DataLoader):
 
     def batch_load(self, keys):
         categories = Category.objects.using(self.database_connection_name).filter(
-            parent__isnull=False
+            parent_id__in=keys
         )
         parent_to_children_mapping = defaultdict(list)
         for category in categories.iterator():
