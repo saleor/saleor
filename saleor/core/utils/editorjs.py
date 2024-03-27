@@ -2,7 +2,7 @@ import re
 import warnings
 from typing import Literal, Union, overload
 
-from django.utils.html import strip_tags
+import nh3
 from urllib3.util import parse_url
 
 BLACKLISTED_URL_SCHEMES = ("javascript",)
@@ -57,7 +57,14 @@ def clean_editor_js(definitions, *, to_string=False) -> Union[dict, str, None]:
         if clean_func := ITEM_TYPE_TO_CLEAN_FUNC_MAP.get(block_type):
             clean_func(*params)
         else:
-            clean_other_items(*params)
+            text = block["data"].get("text")
+            if not text:
+                return
+            if to_string:
+                plain_text_list.append(nh3.clean(text, tags={"b", "i", "a"}))
+            else:
+                new_text = clean_text_data_block(text)
+                blocks[index]["data"]["text"] = new_text
 
     return " ".join(plain_text_list) if to_string else definitions
 
@@ -67,7 +74,7 @@ def clean_list_item(blocks, block, plain_text_list, to_string, index):
         if not item:
             return
         if to_string:
-            plain_text_list.append(strip_tags(item))
+            plain_text_list.append(nh3.clean(item, tags={"b", "i", "a"}))
         else:
             new_text = clean_text_data_block(item)
             blocks[index]["data"]["items"][item_index] = new_text
@@ -78,13 +85,13 @@ def clean_image_item(blocks, block, plain_text_list, to_string, index):
     caption = block["data"].get("caption")
     if file_url:
         if to_string:
-            plain_text_list.append(strip_tags(file_url))
+            plain_text_list.append(nh3.clean(file_url, tags={"b", "i", "a"}))
         else:
             file_url = clean_text_data_block(file_url)
             blocks[index]["data"]["file"]["ulr"] = file_url
     if caption:
         if to_string:
-            plain_text_list.append(strip_tags(caption))
+            plain_text_list.append(nh3.clean(caption, tags={"b", "i", "a"}))
         else:
             caption = clean_text_data_block(caption)
             blocks[index]["data"]["caption"] = caption
@@ -96,27 +103,10 @@ def clean_embed_item(blocks, block, plain_text_list, to_string, index):
         if not data:
             return
         if to_string:
-            plain_text_list.append(strip_tags(data))
+            plain_text_list.append(nh3.clean(data, tags={"b", "i", "a"}))
         else:
             data = clean_text_data_block(data)
             blocks[index]["data"][field] = data
-
-
-def clean_other_items(
-    blocks,
-    block,
-    plain_text_list,
-    to_string,
-    index,
-):
-    text = block["data"].get("text")
-    if not text:
-        return
-    if to_string:
-        plain_text_list.append(strip_tags(text))
-    else:
-        new_text = clean_text_data_block(text)
-        blocks[index]["data"]["text"] = new_text
 
 
 def clean_text_data_block(text: str) -> str:
