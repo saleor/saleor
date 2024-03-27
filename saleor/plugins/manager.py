@@ -2164,6 +2164,7 @@ class PluginsManager(PaymentInterface):
     def excluded_shipping_methods_for_checkout(
         self,
         checkout: "Checkout",
+        channel: "Channel",
         available_shipping_methods: list["ShippingMethodData"],
     ) -> list[ExcludedShippingMethod]:
         return self.__run_method_on_plugins(
@@ -2171,7 +2172,7 @@ class PluginsManager(PaymentInterface):
             [],
             checkout,
             available_shipping_methods,
-            channel_slug=checkout.channel.slug,
+            channel_slug=channel.slug,
         )
 
     def perform_mutation(

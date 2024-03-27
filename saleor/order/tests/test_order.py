@@ -658,12 +658,12 @@ def test_get_order_weight_non_existing_product(
         app=None,
         manager=anonymous_plugins,
     )
-    old_weight = order.get_total_weight()
+    old_weight = order.weight
 
     product.delete()
 
     order.refresh_from_db()
-    new_weight = order.get_total_weight()
+    new_weight = order.weight
 
     assert old_weight == new_weight
 
