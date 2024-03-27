@@ -1,7 +1,12 @@
+import os
 import re
 from typing import List, Pattern, Union
 
 from django.utils.functional import SimpleLazyObject
+
+# Disable Jaeger tracing should be done before importing settings.
+# without this line pytest will start sending traces to Jaeger agent.
+os.environ["JAEGER_AGENT_HOST"] = ""
 
 from ..settings import *  # noqa
 
