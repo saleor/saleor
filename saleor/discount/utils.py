@@ -26,12 +26,12 @@ from ..checkout.base_calculations import (
     base_checkout_subtotal,
 )
 from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
-from ..checkout.models import Checkout
+from ..checkout.models import Checkout, CheckoutLine
 from ..core.exceptions import InsufficientStock
 from ..core.taxes import zero_money
 from ..core.utils.promo_code import InvalidPromoCode
 from ..order.fetch import DraftOrderLineInfo
-from ..order.models import Order
+from ..order.models import Order, OrderLine
 from ..product.models import (
     Product,
     ProductChannelListing,
@@ -376,17 +376,31 @@ def create_checkout_line_discount_objects_for_catalogue_promotions(
     ) = discount_data
 
     new_line_discounts = []
-    if discounts_to_create_inputs:
-        new_line_discounts = [
-            CheckoutLineDiscount(**input) for input in discounts_to_create_inputs
-        ]
-        CheckoutLineDiscount.objects.bulk_create(new_line_discounts)
+    with transaction.atomic():
+        # Protect against potential thread race. CheckoutLine object can have only
+        # single catalogue discount applied.
+        line_ids = [line_info.line.id for line_info in lines_info]
+        _lines_lock = list(
+            CheckoutLine.objects.filter(id__in=line_ids).select_for_update(
+                of=(["self"])
+            )
+        )
 
-    if discounts_to_update and updated_fields:
-        CheckoutLineDiscount.objects.bulk_update(discounts_to_update, updated_fields)
+        if discount_ids_to_remove := [discount.id for discount in discount_to_remove]:
+            CheckoutLineDiscount.objects.filter(id__in=discount_ids_to_remove).delete()
 
-    if discount_ids_to_remove := [discount.id for discount in discount_to_remove]:
-        CheckoutLineDiscount.objects.filter(id__in=discount_ids_to_remove).delete()
+        if discounts_to_create_inputs:
+            new_line_discounts = [
+                CheckoutLineDiscount(**input) for input in discounts_to_create_inputs
+            ]
+            CheckoutLineDiscount.objects.bulk_create(
+                new_line_discounts, ignore_conflicts=True
+            )
+
+        if discounts_to_update and updated_fields:
+            CheckoutLineDiscount.objects.bulk_update(
+                discounts_to_update, updated_fields
+            )
 
     _update_line_info_cached_discounts(
         lines_info, new_line_discounts, discounts_to_update, discount_ids_to_remove
@@ -407,11 +421,13 @@ def prepare_line_discount_objects_for_catalogue_promotions(
     for line_info in lines_info:
         line = line_info.line
 
-        # get the existing discounts for the line
-        discounts_to_update = line_info.get_catalogue_discounts()
-        rule_id_to_discount = {
-            discount.promotion_rule_id: discount for discount in discounts_to_update
-        }
+        # get the existing catalogue discount for the line
+        discount_to_update = None
+        if discounts_to_update := line_info.get_catalogue_discounts():
+            discount_to_update = discounts_to_update[0]
+            # Line should never have multiple catalogue discounts associated. Before
+            # introducing unique_type on discount models, there was such a possibility.
+            line_discounts_to_remove.extend(discounts_to_update[1:])
 
         # manual line discount do not stack with other discounts
         if [
@@ -430,17 +446,9 @@ def prepare_line_discount_objects_for_catalogue_promotions(
             line_discounts_to_remove.extend(discounts_to_update)
             continue
 
-        # delete the discount objects that are not valid anymore
-        line_discounts_to_remove.extend(
-            _get_discounts_that_are_not_valid_anymore(
-                line_info.rules_info,
-                rule_id_to_discount,  # type: ignore[arg-type]
-            )
-        )
-
-        for rule_info in line_info.rules_info:
+        if line_info.rules_info:
+            rule_info = line_info.rules_info[0]
             rule = rule_info.rule
-            discount_to_update = rule_id_to_discount.get(rule.id)
             rule_discount_amount = _get_rule_discount_amount(
                 rule_info.variant_listing_promotion_rule, line.quantity
             )
@@ -459,6 +467,7 @@ def prepare_line_discount_objects_for_catalogue_promotions(
                     "translated_name": translated_name,
                     "reason": reason,
                     "promotion_rule": rule,
+                    "unique_type": DiscountType.PROMOTION,
                 }
                 line_discounts_to_create_inputs.append(line_discount_input)
             else:
@@ -494,19 +503,6 @@ def _get_discount_amount(
 
     unit_discount = price_amount - discounted_price_amount
     return unit_discount * line_quantity
-
-
-def _get_discounts_that_are_not_valid_anymore(
-    rules_info: list["VariantPromotionRuleInfo"],
-    rule_id_to_discount: dict[int, Union["CheckoutLineDiscount", "OrderLineDiscount"]],
-):
-    rule_ids = {rule_info.rule.id for rule_info in rules_info}
-    discounts = [
-        discount
-        for rule_id, discount in rule_id_to_discount.items()
-        if rule_id not in rule_ids
-    ]
-    return discounts
 
 
 def _get_rule_discount_amount(
@@ -583,6 +579,9 @@ def _update_discount(
     if discount_to_update.reason != reason:
         discount_to_update.reason = reason
         updated_fields.append("reason")
+    if discount_to_update.unique_type is None:
+        discount_to_update.unique_type = DiscountType.PROMOTION
+        updated_fields.append("unique_type")
 
 
 def _update_line_info_cached_discounts(
@@ -1191,17 +1190,27 @@ def create_order_line_discount_objects_for_catalogue_promotions(
     ) = discount_data
 
     new_line_discounts = []
-    if discounts_to_create_inputs:
-        new_line_discounts = [
-            OrderLineDiscount(**input) for input in discounts_to_create_inputs
-        ]
-        OrderLineDiscount.objects.bulk_create(new_line_discounts)
+    with transaction.atomic():
+        # Protect against potential thread race. OrderLine object can have only
+        # single catalogue discount applied.
+        line_ids = [line_info.line.id for line_info in lines_info]
+        _lines_lock = list(
+            OrderLine.objects.filter(id__in=line_ids).select_for_update(of=(["self"]))
+        )
 
-    if discounts_to_update and updated_fields:
-        OrderLineDiscount.objects.bulk_update(discounts_to_update, updated_fields)
+        if discount_ids_to_remove := [discount.id for discount in discount_to_remove]:
+            OrderLineDiscount.objects.filter(id__in=discount_ids_to_remove).delete()
 
-    if discount_ids_to_remove := [discount.id for discount in discount_to_remove]:
-        OrderLineDiscount.objects.filter(id__in=discount_ids_to_remove).delete()
+        if discounts_to_create_inputs:
+            new_line_discounts = [
+                OrderLineDiscount(**input) for input in discounts_to_create_inputs
+            ]
+            OrderLineDiscount.objects.bulk_create(
+                new_line_discounts, ignore_conflicts=True
+            )
+
+        if discounts_to_update and updated_fields:
+            OrderLineDiscount.objects.bulk_update(discounts_to_update, updated_fields)
 
     _update_line_info_cached_discounts(
         lines_info, new_line_discounts, discounts_to_update, discount_ids_to_remove
