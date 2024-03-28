@@ -26,12 +26,12 @@ from ..checkout.base_calculations import (
     base_checkout_subtotal,
 )
 from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
-from ..checkout.models import Checkout, CheckoutLine
+from ..checkout.models import Checkout
 from ..core.exceptions import InsufficientStock
 from ..core.taxes import zero_money
 from ..core.utils.promo_code import InvalidPromoCode
 from ..order.fetch import DraftOrderLineInfo
-from ..order.models import Order, OrderLine
+from ..order.models import Order
 from ..product.models import (
     Product,
     ProductChannelListing,
@@ -365,7 +365,7 @@ def create_checkout_line_discount_objects_for_catalogue_promotions(
     lines_info: Iterable[CheckoutLineInfo],
 ):
     discount_data = prepare_line_discount_objects_for_catalogue_promotions(lines_info)
-    if not discount_data:
+    if not discount_data or lines_info:
         return
 
     (
@@ -379,11 +379,9 @@ def create_checkout_line_discount_objects_for_catalogue_promotions(
     with transaction.atomic():
         # Protect against potential thread race. CheckoutLine object can have only
         # single catalogue discount applied.
-        line_ids = [line_info.line.id for line_info in lines_info]
-        _lines_lock = list(
-            CheckoutLine.objects.filter(id__in=line_ids).select_for_update(
-                of=(["self"])
-            )
+        checkout_id = lines_info[0].line.checkout_id  # type: ignore[index]
+        _checkout_lock = list(
+            Checkout.objects.filter(pk=checkout_id).select_for_update(of=(["self"]))
         )
 
         if discount_ids_to_remove := [discount.id for discount in discount_to_remove]:
@@ -1179,7 +1177,7 @@ def create_order_line_discount_objects_for_catalogue_promotions(
     lines_info: Iterable[DraftOrderLineInfo],
 ):
     discount_data = prepare_line_discount_objects_for_catalogue_promotions(lines_info)
-    if not discount_data:
+    if not discount_data or not lines_info:
         return
 
     (
@@ -1193,9 +1191,9 @@ def create_order_line_discount_objects_for_catalogue_promotions(
     with transaction.atomic():
         # Protect against potential thread race. OrderLine object can have only
         # single catalogue discount applied.
-        line_ids = [line_info.line.id for line_info in lines_info]
-        _lines_lock = list(
-            OrderLine.objects.filter(id__in=line_ids).select_for_update(of=(["self"]))
+        order_id = lines_info[0].line.order_id  # type: ignore[index]
+        _order_lock = list(
+            Order.objects.filter(id=order_id).select_for_update(of=(["self"]))
         )
 
         if discount_ids_to_remove := [discount.id for discount in discount_to_remove]:
