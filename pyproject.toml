@@ -142,7 +142,7 @@ documentation = "https://docs.saleor.io/"
   types-redis = "^4.6.0"
   types-requests = "^2.31.0"
   types-six = "^1.16.17"
-  vcrpy = ">=4.0,<5.0"
+  vcrpy = ">=4.0,<7.0"
 
 [tool.deptry]
 extend_exclude = ["conftest\\.py", ".*/conftest\\.py", ".*/tests/.*"]
