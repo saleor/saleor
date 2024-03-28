@@ -458,7 +458,9 @@ class BaseDiscount(models.Model):
     # discounts for checkout/order. To not have an impact on existing DB objects,
     # the new field `unique_type` will be used for new discount records.
     # This will ensure that we always apply a single specific discount type.
-    unique_type = models.CharField(max_length=64, null=True, blank=True)
+    unique_type = models.CharField(
+        max_length=64, null=True, blank=True, choices=DiscountType.CHOICES
+    )
     value_type = models.CharField(
         max_length=10,
         choices=DiscountValueType.CHOICES,
@@ -520,7 +522,12 @@ class OrderDiscount(BaseDiscount):
             GinIndex(fields=["voucher_code"], name="orderdiscount_voucher_code_idx"),
         ]
         ordering = ("created_at", "id")
-        unique_together = (("order_id", "unique_type"),)
+        constraints = [
+            models.UniqueConstraint(
+                fields=["order_id", "unique_type"],
+                name="unique_order_discount_type",
+            ),
+        ]
 
 
 class OrderLineDiscount(BaseDiscount):
@@ -540,7 +547,12 @@ class OrderLineDiscount(BaseDiscount):
             GinIndex(fields=["voucher_code"], name="orderlinedisc_voucher_code_idx"),
         ]
         ordering = ("created_at", "id")
-        unique_together = (("line_id", "unique_type"),)
+        constraints = [
+            models.UniqueConstraint(
+                fields=["line_id", "unique_type"],
+                name="unique_orderline_discount_type",
+            ),
+        ]
 
 
 class CheckoutDiscount(BaseDiscount):
@@ -560,10 +572,13 @@ class CheckoutDiscount(BaseDiscount):
             GinIndex(fields=["voucher_code"], name="checkoutdiscount_voucher_idx"),
         ]
         ordering = ("created_at", "id")
-        unique_together = (
-            ("checkout_id", "promotion_rule_id"),
-            ("checkout_id", "unique_type"),
-        )
+        unique_together = (("checkout_id", "promotion_rule_id"),)
+        constraints = [
+            models.UniqueConstraint(
+                fields=["checkout_id", "unique_type"],
+                name="unique_checkout_discount_type",
+            ),
+        ]
 
 
 class CheckoutLineDiscount(BaseDiscount):
@@ -583,7 +598,12 @@ class CheckoutLineDiscount(BaseDiscount):
             GinIndex(fields=["voucher_code"], name="checklinedisc_voucher_code_idx"),
         ]
         ordering = ("created_at", "id")
-        unique_together = (("line_id", "unique_type"),)
+        constraints = [
+            models.UniqueConstraint(
+                fields=["line_id", "unique_type"],
+                name="unique_checkoutline_discount_type",
+            ),
+        ]
 
 
 class PromotionEvent(models.Model):
