@@ -58,7 +58,7 @@ def clean_editor_js(definitions, *, to_string=False) -> Union[dict, str, None]:
             clean_func(*params)
         else:
             text = block["data"].get("text")
-            if not text:
+            if text is None:
                 return
             if to_string:
                 plain_text_list.append(nh3.clean(text, tags={"b", "i", "a"}))
