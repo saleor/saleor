@@ -99,7 +99,11 @@ def test_create_fixed_discount(
     discount_from_db = line_info1.line.discounts.get()
     assert discount_from_info.line == discount_from_db.line == line_info1.line
     assert discount_from_info.created_at == discount_from_db.created_at == now
-    assert discount_from_info.type == discount_from_db.type == DiscountType.PROMOTION
+    assert (
+        discount_from_info.type
+        == discount_from_db.type
+        == DiscountType.CATALOGUE_PROMOTION
+    )
     assert (
         discount_from_info.value_type
         == discount_from_db.value_type
@@ -185,7 +189,11 @@ def test_create_fixed_discount_multiple_quantity_in_lines(
     discount_from_db = line_info1.line.discounts.get()
     assert discount_from_info.line == discount_from_db.line == line_info1.line
     assert discount_from_info.created_at == discount_from_db.created_at == now
-    assert discount_from_info.type == discount_from_db.type == DiscountType.PROMOTION
+    assert (
+        discount_from_info.type
+        == discount_from_db.type
+        == DiscountType.CATALOGUE_PROMOTION
+    )
     assert (
         discount_from_info.value_type
         == discount_from_db.value_type
@@ -267,7 +275,11 @@ def test_create_fixed_discount_multiple_quantity_in_lines_discount_bigger_than_t
     discount_from_info = line_info1.discounts[0]
     discount_from_db = line_info1.line.discounts.get()
     assert discount_from_info.line == discount_from_db.line == line_info1.line
-    assert discount_from_info.type == discount_from_db.type == DiscountType.PROMOTION
+    assert (
+        discount_from_info.type
+        == discount_from_db.type
+        == DiscountType.CATALOGUE_PROMOTION
+    )
     assert (
         discount_from_info.value_type
         == discount_from_db.value_type
@@ -340,7 +352,11 @@ def test_create_percentage_discount(
     discount_from_db = line_info1.line.discounts.get()
     assert discount_from_info.line == discount_from_db.line == line_info1.line
     assert discount_from_info.created_at == discount_from_db.created_at == now
-    assert discount_from_info.type == discount_from_db.type == DiscountType.PROMOTION
+    assert (
+        discount_from_info.type
+        == discount_from_db.type
+        == DiscountType.CATALOGUE_PROMOTION
+    )
     assert (
         discount_from_info.value_type
         == discount_from_db.value_type
@@ -426,7 +442,11 @@ def test_create_percentage_discount_multiple_quantity_in_lines(
     discount_from_db = line_info1.line.discounts.get()
     assert discount_from_info.line == discount_from_db.line == line_info1.line
     assert discount_from_info.created_at == discount_from_db.created_at == now
-    assert discount_from_info.type == discount_from_db.type == DiscountType.PROMOTION
+    assert (
+        discount_from_info.type
+        == discount_from_db.type
+        == DiscountType.CATALOGUE_PROMOTION
+    )
     assert (
         discount_from_info.value_type
         == discount_from_db.value_type
@@ -548,8 +568,8 @@ def test_create_discount_multiple_rules_applied(
     assert discount_for_rule_1.line == line_info1.line
     assert discount_for_rule_2.line == line_info1.line
 
-    assert discount_for_rule_1.type == DiscountType.PROMOTION
-    assert discount_for_rule_2.type == DiscountType.PROMOTION
+    assert discount_for_rule_1.type == DiscountType.CATALOGUE_PROMOTION
+    assert discount_for_rule_2.type == DiscountType.CATALOGUE_PROMOTION
 
     assert discount_for_rule_1.value_type == RewardValueType.FIXED
     assert discount_for_rule_2.value_type == RewardValueType.PERCENTAGE
@@ -672,7 +692,9 @@ def test_two_promotions_applied_to_two_different_lines(
     discount_from_db_1 = line_info1.line.discounts.get()
     assert discount_from_info_1.line == discount_from_db_1.line == line_info1.line
     assert (
-        discount_from_info_1.type == discount_from_db_1.type == DiscountType.PROMOTION
+        discount_from_info_1.type
+        == discount_from_db_1.type
+        == DiscountType.CATALOGUE_PROMOTION
     )
     assert (
         discount_from_info_1.value_type
@@ -703,7 +725,9 @@ def test_two_promotions_applied_to_two_different_lines(
     discount_from_db_2 = line_info2.line.discounts.get()
     assert discount_from_info_2.line == discount_from_db_2.line == line_info2.line
     assert (
-        discount_from_info_2.type == discount_from_db_2.type == DiscountType.PROMOTION
+        discount_from_info_2.type
+        == discount_from_db_2.type
+        == DiscountType.CATALOGUE_PROMOTION
     )
     assert (
         discount_from_info_2.value_type
@@ -797,7 +821,11 @@ def test_create_percentage_discount_1_cent_variant_on_10_percentage_discount(
     discount_from_db = line_info1.line.discounts.get()
     assert discount_from_info.line == discount_from_db.line == line_info1.line
     assert discount_from_info.created_at == discount_from_db.created_at == now
-    assert discount_from_info.type == discount_from_db.type == DiscountType.PROMOTION
+    assert (
+        discount_from_info.type
+        == discount_from_db.type
+        == DiscountType.CATALOGUE_PROMOTION
+    )
     assert (
         discount_from_info.value_type
         == discount_from_db.value_type
@@ -852,7 +880,7 @@ def test_promotion_not_valid_anymore(
         value_type=RewardValueType.FIXED,
         value=reward_value,
         currency=line_info1.channel.currency_code,
-        type=DiscountType.PROMOTION,
+        type=DiscountType.CATALOGUE_PROMOTION,
         promotion_rule=rule,
     )
 
@@ -931,7 +959,7 @@ def test_one_of_promotion_rule_not_valid_anymore_one_updated(
                 value_type=RewardValueType.PERCENTAGE,
                 value=Decimal("10"),
                 currency=line_info1.channel.currency_code,
-                type=DiscountType.PROMOTION,
+                type=DiscountType.CATALOGUE_PROMOTION,
                 promotion_rule=rule_1,
             ),
             CheckoutLineDiscount(
@@ -939,7 +967,7 @@ def test_one_of_promotion_rule_not_valid_anymore_one_updated(
                 value_type=RewardValueType.FIXED,
                 value=reward_value_2,
                 currency=line_info1.channel.currency_code,
-                type=DiscountType.PROMOTION,
+                type=DiscountType.CATALOGUE_PROMOTION,
                 promotion_rule=rule_2,
             ),
         ]
@@ -970,7 +998,11 @@ def test_one_of_promotion_rule_not_valid_anymore_one_updated(
     discount_from_info = line_info1.discounts[0]
     line_discount_1.refresh_from_db()
     assert discount_from_info.line == line_discount_1.line == line_info1.line
-    assert discount_from_info.type == line_discount_1.type == DiscountType.PROMOTION
+    assert (
+        discount_from_info.type
+        == line_discount_1.type
+        == DiscountType.CATALOGUE_PROMOTION
+    )
     assert (
         discount_from_info.value_type
         == line_discount_1.value_type

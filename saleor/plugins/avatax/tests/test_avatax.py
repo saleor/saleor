@@ -1748,7 +1748,7 @@ def test_calculate_checkout_total_for_JPY_with_promotion(
     )
     CheckoutLineDiscount.objects.create(
         line=line,
-        type=DiscountType.PROMOTION,
+        type=DiscountType.CATALOGUE_PROMOTION,
         value_type=DiscountValueType.FIXED,
         value=reward_value,
         amount_value=reward_value * line.quantity,

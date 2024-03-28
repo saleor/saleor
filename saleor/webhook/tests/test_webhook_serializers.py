@@ -396,7 +396,7 @@ def test_serialize_checkout_lines_for_tax_calculation_with_promotion(
         }
 
         discount = line_info.discounts[0]
-        assert discount.type == DiscountType.PROMOTION
+        assert discount.type == DiscountType.CATALOGUE_PROMOTION
         undiscounted_unit_price = variant.get_base_price(
             line_info.channel_listing,
             line_info.line.price_override,

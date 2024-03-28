@@ -340,7 +340,7 @@ def create_order_line_discounts(
         line_discounts_to_create.append(
             OrderLineDiscount(
                 line=line,
-                type=DiscountType.PROMOTION,
+                type=DiscountType.CATALOGUE_PROMOTION,
                 value_type=rule.reward_value_type,
                 value=rule.reward_value,
                 amount_value=rule_discount_amount,
