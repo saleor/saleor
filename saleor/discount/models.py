@@ -454,8 +454,10 @@ class BaseDiscount(models.Model):
         choices=DiscountType.CHOICES,
         default=DiscountType.MANUAL,
     )
-    # `unique_type` is a field to ensure, that only single specific discount type
-    # can be associated with discounted object
+    # Saleor in version 3.19 and below, doesn't have any unique constraint applied on
+    # discounts for checkout/order. To not have an impact on existing DB objects,
+    # the new field `unique_type` will be used for new discount records.
+    # This will ensure that we always apply a single specific discount type.
     unique_type = models.CharField(max_length=64, null=True, blank=True)
     value_type = models.CharField(
         max_length=10,
