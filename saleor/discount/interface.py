@@ -62,6 +62,9 @@ def fetch_variant_rules_info(
 
     rules_info = []
     if listings_rules:
+        # Before introducing unique_type on discount models, there were possibility
+        # to have multiple catalogue discount associated with single line. In such a
+        # case, we should pick the best discount (with the highest discount amount)
         listing_promotion_rule = max(
             list(listings_rules),
             key=lambda x: x.discount_amount,

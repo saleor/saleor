@@ -425,7 +425,8 @@ def prepare_line_discount_objects_for_catalogue_promotions(
         discount_to_update = None
         if discounts_to_update := line_info.get_catalogue_discounts():
             discount_to_update = discounts_to_update[0]
-            # line should never have multiple catalogue discounts associated
+            # Line should never have multiple catalogue discounts associated. Before
+            # introducing unique_type on discount models, there was such a possibility.
             line_discounts_to_remove.extend(discounts_to_update[1:])
 
         # manual line discount do not stack with other discounts
