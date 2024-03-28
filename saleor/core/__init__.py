@@ -1,6 +1,3 @@
-default_app_config = "saleor.core.app.CoreAppConfig"
-
-
 class JobStatus:
     PENDING = "pending"
     SUCCESS = "success"

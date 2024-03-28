@@ -165,7 +165,7 @@ class GraphQLView(View):
                 opentracing.tags.HTTP_URL,
                 request.build_absolute_uri(request.get_full_path()),
             )
-            span.set_tag("http.useragent", request.META.get("HTTP_USER_AGENT", ""))
+            span.set_tag("http.useragent", request.headers.get("user-agent", ""))
             span.set_tag("span.type", "web")
 
             main_ip_header = settings.REAL_IP_ENVIRON[0]
