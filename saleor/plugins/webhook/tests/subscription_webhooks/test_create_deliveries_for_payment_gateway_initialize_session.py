@@ -58,8 +58,8 @@ def test_payment_gateway_initialize_session_checkout_with_data(
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     assert delivery.payload
-    assert delivery.payload.payload
-    assert json.loads(delivery.payload.payload) == {
+    assert delivery.payload.get_payload()
+    assert json.loads(delivery.payload.get_payload()) == {
         "data": payload_data,
         "sourceObject": {
             "__typename": "Checkout",
@@ -91,8 +91,8 @@ def test_payment_gateway_initialize_session_checkout_without_data(
     # then
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     assert delivery.payload
-    assert delivery.payload.payload
-    assert json.loads(delivery.payload.payload) == {
+    assert delivery.payload.get_payload()
+    assert json.loads(delivery.payload.get_payload()) == {
         "data": None,
         "sourceObject": {
             "__typename": "Checkout",
@@ -126,8 +126,8 @@ def test_payment_gateway_initialize_session_order_with_data(
 
     order_id = graphene.Node.to_global_id("Order", order.pk)
     assert delivery.payload
-    assert delivery.payload.payload
-    assert json.loads(delivery.payload.payload) == {
+    assert delivery.payload.get_payload()
+    assert json.loads(delivery.payload.get_payload()) == {
         "data": payload_data,
         "sourceObject": {"__typename": "Order", "id": order_id},
     }
@@ -156,8 +156,8 @@ def test_payment_gateway_initialize_session_order_without_data(
     # then
     order_id = graphene.Node.to_global_id("Order", order.pk)
     assert delivery.payload
-    assert delivery.payload.payload
-    assert json.loads(delivery.payload.payload) == {
+    assert delivery.payload.get_payload()
+    assert json.loads(delivery.payload.get_payload()) == {
         "data": None,
         "sourceObject": {"__typename": "Order", "id": order_id},
     }

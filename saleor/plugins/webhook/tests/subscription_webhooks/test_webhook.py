@@ -85,7 +85,7 @@ def test_trigger_webhook_sync_with_subscription(
     event_delivery = EventDelivery.objects.first()
 
     # then
-    assert json.loads(event_delivery.payload.payload) == expected_payment_payload
+    assert json.loads(event_delivery.payload.get_payload()) == expected_payment_payload
     mock_request.assert_called_once_with(event_delivery)
 
 

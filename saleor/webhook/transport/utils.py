@@ -15,6 +15,7 @@ from celery import Task
 from celery.exceptions import MaxRetriesExceededError, Retry
 from celery.utils.log import get_task_logger
 from django.conf import settings
+from django.core.files.base import ContentFile
 from django.urls import reverse
 from google.cloud import pubsub_v1
 from requests import RequestException
@@ -486,7 +487,11 @@ def trigger_transaction_request(
         payload = generate_transaction_action_request_payload(
             transaction_data, requestor
         )
-        event_payload = EventPayload.objects.create(payload=payload)
+        event_payload = EventPayload.objects.create()
+        event_payload.payload_file.save(
+            f"payload-{event_payload.pk}-{event_payload.created_at}",
+            ContentFile(payload),
+        )
         delivery = EventDelivery.objects.create(
             status=EventDeliveryStatus.PENDING,
             event_type=event_type,

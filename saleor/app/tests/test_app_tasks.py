@@ -123,7 +123,7 @@ def test_remove_app_task_not_remove_not_own_payloads(
     event_attempt_removed_app,
 ):
     # given
-    EventPayload.objects.create(payload="")
+    EventPayload.objects.create()
     assert EventPayload.objects.count() == 2
 
     # when

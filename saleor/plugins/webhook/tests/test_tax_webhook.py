@@ -65,7 +65,7 @@ def test_get_taxes_for_order(
 
     # then
     payload = EventPayload.objects.get()
-    assert payload.payload == generate_order_payload_for_tax_calculation(order)
+    assert payload.get_payload() == generate_order_payload_for_tax_calculation(order)
     delivery = EventDelivery.objects.get()
     assert delivery.status == EventDeliveryStatus.PENDING
     assert delivery.event_type == WebhookEventSyncType.ORDER_CALCULATE_TAXES
@@ -185,7 +185,7 @@ def test_get_taxes_for_order_with_sync_subscription(
 
     # then
     payload = EventPayload.objects.get()
-    assert payload.payload == json.dumps({"taxBase": {"currency": "USD"}})
+    assert payload.get_payload() == json.dumps({"taxBase": {"currency": "USD"}})
     delivery = EventDelivery.objects.get()
     assert delivery.status == EventDeliveryStatus.PENDING
     assert delivery.event_type == WebhookEventSyncType.ORDER_CALCULATE_TAXES
@@ -229,7 +229,7 @@ def test_get_taxes_for_checkout_with_sync_subscription(
 
     # then
     payload = EventPayload.objects.get()
-    assert payload.payload == json.dumps({"taxBase": {"currency": "USD"}})
+    assert payload.get_payload() == json.dumps({"taxBase": {"currency": "USD"}})
     delivery = EventDelivery.objects.get()
     assert delivery.status == EventDeliveryStatus.PENDING
     assert delivery.event_type == WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES

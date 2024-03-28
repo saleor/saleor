@@ -74,7 +74,7 @@ def test_payment_gateway_initialize_tokenization_with_static_payload(
 
     # then
     delivery = EventDelivery.objects.get()
-    assert json.loads(delivery.payload.payload) == {
+    assert json.loads(delivery.payload.get_payload()) == {
         "user_id": graphene.Node.to_global_id("User", customer_user.pk),
         "channel_slug": channel_USD.slug,
         "data": expected_data,
@@ -128,7 +128,7 @@ def test_payment_gateway_initialize_tokenization_with_subscription_payload(
 
     # then
     delivery = EventDelivery.objects.get()
-    assert json.loads(delivery.payload.payload) == {
+    assert json.loads(delivery.payload.get_payload()) == {
         "user": {"id": graphene.Node.to_global_id("User", customer_user.pk)},
         "data": expected_data,
         "channel": {"id": graphene.Node.to_global_id("Channel", channel_USD.pk)},
@@ -230,7 +230,7 @@ def test_payment_gateway_initialize_tokenization_failure_from_app(
 
     # then
     delivery = EventDelivery.objects.get()
-    assert json.loads(delivery.payload.payload) == {
+    assert json.loads(delivery.payload.get_payload()) == {
         "user_id": graphene.Node.to_global_id("User", customer_user.pk),
         "channel_slug": channel_USD.slug,
         "data": expected_data,

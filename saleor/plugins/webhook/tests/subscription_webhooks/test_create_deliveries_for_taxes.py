@@ -113,7 +113,7 @@ def test_checkout_calculate_taxes(
     )
 
     # then
-    assert json.loads(deliveries.payload.payload) == {
+    assert json.loads(deliveries.payload.get_payload()) == {
         "__typename": "CalculateTaxes",
         "taxBase": {
             "address": {
@@ -173,7 +173,7 @@ def test_checkout_calculate_taxes_with_free_shipping_voucher(
     )
 
     # then
-    assert json.loads(deliveries.payload.payload) == {
+    assert json.loads(deliveries.payload.get_payload()) == {
         "__typename": "CalculateTaxes",
         "taxBase": {
             "address": {"id": to_global_id_or_none(checkout.shipping_address)},
@@ -214,7 +214,7 @@ def test_checkout_calculate_taxes_with_voucher(
     )
 
     # then
-    assert json.loads(deliveries.payload.payload) == {
+    assert json.loads(deliveries.payload.get_payload()) == {
         "__typename": "CalculateTaxes",
         "taxBase": {
             "address": None,
@@ -271,7 +271,7 @@ def test_checkout_calculate_taxes_with_shipping_voucher(
     )
 
     # then
-    assert json.loads(deliveries.payload.payload) == {
+    assert json.loads(deliveries.payload.get_payload()) == {
         "__typename": "CalculateTaxes",
         "taxBase": {
             "address": None,
@@ -326,7 +326,7 @@ def test_checkout_calculate_taxes_empty_checkout(
     )
 
     # then
-    assert json.loads(deliveries.payload.payload) == {
+    assert json.loads(deliveries.payload.get_payload()) == {
         "__typename": "CalculateTaxes",
         "taxBase": {
             "address": None,
@@ -380,7 +380,7 @@ def test_order_calculate_taxes(
     ).price.amount
     shipping_price_amount = quantize_price(shipping_price_amount, order.currency)
     assert expected_shipping_price != shipping_price_amount
-    assert json.loads(deliveries.payload.payload) == {
+    assert json.loads(deliveries.payload.get_payload()) == {
         "__typename": "CalculateTaxes",
         "taxBase": {
             "address": {"id": to_global_id_or_none(order.shipping_address)},
@@ -451,7 +451,7 @@ def test_order_calculate_taxes_with_discounts(
     deliveries = create_delivery_for_subscription_sync_event(event_type, order, webhook)
 
     # then
-    assert json.loads(deliveries.payload.payload) == {
+    assert json.loads(deliveries.payload.get_payload()) == {
         "__typename": "CalculateTaxes",
         "taxBase": {
             "address": {"id": to_global_id_or_none(order.shipping_address)},
@@ -500,7 +500,7 @@ def test_order_calculate_taxes_empty_order(
     deliveries = create_delivery_for_subscription_sync_event(event_type, order, webhook)
 
     # then
-    assert json.loads(deliveries.payload.payload) == {
+    assert json.loads(deliveries.payload.get_payload()) == {
         "__typename": "CalculateTaxes",
         "taxBase": {
             "address": None,

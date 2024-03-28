@@ -19,7 +19,7 @@ def test_payment_authorize(payment, subscription_payment_authorize_webhook):
 
     # then
     expected_payload = generate_payment_payload(payment)
-    assert json.loads(deliveries[0].payload.payload) == expected_payload
+    assert json.loads(deliveries[0].payload.get_payload()) == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -34,7 +34,7 @@ def test_payment_capture(payment, subscription_payment_capture_webhook):
 
     # then
     expected_payload = generate_payment_payload(payment)
-    assert json.loads(deliveries[0].payload.payload) == expected_payload
+    assert json.loads(deliveries[0].payload.get_payload()) == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -49,7 +49,7 @@ def test_payment_refund(payment, subscription_payment_refund_webhook):
 
     # then
     expected_payload = generate_payment_payload(payment)
-    assert json.loads(deliveries[0].payload.payload) == expected_payload
+    assert json.loads(deliveries[0].payload.get_payload()) == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -64,7 +64,7 @@ def test_payment_void(payment, subscription_payment_void_webhook):
 
     # then
     expected_payload = generate_payment_payload(payment)
-    assert json.loads(deliveries[0].payload.payload) == expected_payload
+    assert json.loads(deliveries[0].payload.get_payload()) == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -79,7 +79,7 @@ def test_payment_confirm(payment, subscription_payment_confirm_webhook):
 
     # then
     expected_payload = generate_payment_payload(payment)
-    assert json.loads(deliveries[0].payload.payload) == expected_payload
+    assert json.loads(deliveries[0].payload.get_payload()) == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -94,7 +94,7 @@ def test_payment_process(payment, subscription_payment_process_webhook):
 
     # then
     expected_payload = generate_payment_payload(payment)
-    assert json.loads(deliveries[0].payload.payload) == expected_payload
+    assert json.loads(deliveries[0].payload.get_payload()) == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -112,6 +112,6 @@ def test_payment_list_gateways(checkout, subscription_payment_list_gateways_webh
 
     # then
     expected_payload = {"checkout": {"id": checkout_id}}
-    assert json.loads(deliveries[0].payload.payload) == expected_payload
+    assert json.loads(deliveries[0].payload.get_payload()) == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]

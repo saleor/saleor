@@ -48,7 +48,7 @@ def test_create_deliveries_different_pre_save_payloads(webhook_app, variant):
     event_delivery = event_deliveries[0]
     assert event_delivery
     payload = event_delivery.payload
-    assert payload.payload
+    assert payload.get_payload()
 
 
 @override_settings(ENABLE_LIMITING_WEBHOOKS_FOR_IDENTICAL_PAYLOADS=True)
@@ -105,7 +105,7 @@ def test_create_deliveries_no_payload_changes_limiting_disabled(webhook_app, var
     event_delivery = event_deliveries[0]
     assert event_delivery
     payload = event_delivery.payload
-    assert json.loads(payload.payload) == pre_payload
+    assert json.loads(payload.get_payload()) == pre_payload
 
 
 @override_settings(ENABLE_LIMITING_WEBHOOKS_FOR_IDENTICAL_PAYLOADS=True)
