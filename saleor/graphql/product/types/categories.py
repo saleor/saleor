@@ -37,6 +37,7 @@ from ...translations.fields import TranslationField
 from ...translations.types import CategoryTranslation
 from ...utils import get_user_or_app_from_context
 from ..dataloaders import (
+    CategoryByIdLoader,
     CategoryChildrenByCategoryIdLoader,
     ThumbnailByCategoryIdSizeAndFormatLoader,
 )
@@ -158,6 +159,12 @@ class Category(ModelObjectType[models.Category]):
             .load(root.pk)
             .then(slice_children_categories)
         )
+
+    @staticmethod
+    def resolve_parent(root: models.Category, info):
+        if root.parent_id:
+            return CategoryByIdLoader(info.context).load(root.parent_id)
+        return None
 
     @staticmethod
     def resolve_url(root: models.Category, _info):
