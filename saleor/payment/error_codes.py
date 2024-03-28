@@ -52,9 +52,12 @@ class TransactionRequestRefundForGrantedRefundErrorCode(Enum):
     INVALID = "invalid"
     GRAPHQL_ERROR = "graphql_error"
     NOT_FOUND = "not_found"
+    AMOUNT_GREATER_THAN_AVAILABLE = "amount_greater_than_available"
     MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK = (
         "missing_transaction_action_request_webhook"
     )
+    REFUND_ALREADY_PROCESSED = "refund_already_processed"
+    REFUND_IS_PENDING = "refund_is_pending"
 
 
 class TransactionEventReportErrorCode(Enum):

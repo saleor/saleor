@@ -203,6 +203,14 @@ class TransactionEvent(models.Model):
 
     include_in_calculations = models.BooleanField(default=False)
 
+    related_granted_refund = models.ForeignKey(
+        "order.OrderGrantedRefund",
+        related_name="transaction_events",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+    )
+
     class Meta:
         ordering = ("pk",)
         constraints = [

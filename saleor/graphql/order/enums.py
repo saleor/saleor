@@ -6,6 +6,7 @@ from ...order import (
     OrderChargeStatus,
     OrderEvents,
     OrderEventsEmails,
+    OrderGrantedRefundStatus,
     OrderOrigin,
     OrderStatus,
     StockUpdatePolicy,
@@ -67,6 +68,12 @@ OrderGrantRefundUpdateErrorCode = graphene.Enum.from_enum(
     error_codes.OrderGrantRefundUpdateErrorCode
 )
 OrderGrantRefundUpdateErrorCode.doc_category = DOC_CATEGORY_ORDERS
+
+
+OrderGrantedRefundStatusEnum = to_enum(
+    OrderGrantedRefundStatus, description=OrderGrantedRefundStatus.__doc__
+)
+OrderGrantedRefundStatusEnum.doc_category = DOC_CATEGORY_ORDERS
 
 
 class OrderStatusFilter(BaseEnum):

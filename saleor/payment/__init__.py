@@ -237,6 +237,12 @@ class TransactionEventType:
         (CANCEL_REQUEST, "Represents cancel request"),
         (INFO, "Represents an info event"),
     ]
+    REFUND_RELATED_EVENT_TYPES = [
+        REFUND_SUCCESS,
+        REFUND_FAILURE,
+        REFUND_REVERSE,
+        REFUND_REQUEST,
+    ]
 
 
 class TokenizedPaymentFlow:

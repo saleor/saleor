@@ -9,15 +9,17 @@ from ...discount.interface import VariantPromotionRuleInfo
 from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCardEvent
 from ...graphql.order.utils import OrderLineData
+from ...payment import TransactionEventType
 from ...plugins.manager import get_plugins_manager
 from ...product.models import VariantChannelListingPromotionRule
-from .. import OrderStatus
+from .. import OrderGrantedRefundStatus, OrderStatus
 from ..events import OrderEvents
 from ..fetch import OrderLineInfo
 from ..models import Order, OrderEvent
 from ..utils import (
     add_gift_cards_to_order,
     add_variant_to_order,
+    calculate_order_granted_refund_status,
     change_order_line_quantity,
     create_order_line_discounts,
     get_order_country,
@@ -662,3 +664,44 @@ def test_create_order_line_discounts(
     assert discount_2.name == f"{promotion.name}: {rule_2.name}"
     assert discount_2.translated_name == f"{promotion_translation_fr.name}"
     assert discount_2.promotion_rule == rule_2
+
+
+@pytest.mark.parametrize(
+    ("expected_granted_status", "event_type"),
+    [
+        (OrderGrantedRefundStatus.NONE, TransactionEventType.CHARGE_SUCCESS),
+        (OrderGrantedRefundStatus.PENDING, TransactionEventType.REFUND_REQUEST),
+        (OrderGrantedRefundStatus.SUCCESS, TransactionEventType.REFUND_SUCCESS),
+        (OrderGrantedRefundStatus.FAILURE, TransactionEventType.REFUND_FAILURE),
+        (OrderGrantedRefundStatus.NONE, TransactionEventType.REFUND_REVERSE),
+    ],
+)
+def test_calculate_order_granted_refund_status(
+    expected_granted_status, event_type, order, transaction_item_generator
+):
+    # given
+    transaction_item = transaction_item_generator(
+        order_id=order.pk,
+        charged_value=Decimal("100.00"),
+        refunded_value=Decimal("5.00"),
+    )
+
+    granted_refund = order.granted_refunds.create(
+        amount_value=Decimal("10.00"),
+        currency=order.currency,
+        transaction_item=transaction_item,
+    )
+
+    transaction_item.events.create(
+        amount_value=Decimal("10.00"),
+        currency=order.currency,
+        type=event_type,
+        related_granted_refund=granted_refund,
+    )
+
+    # when
+    calculate_order_granted_refund_status(granted_refund)
+
+    # then
+    granted_refund.refresh_from_db()
+    assert granted_refund.status == expected_granted_status

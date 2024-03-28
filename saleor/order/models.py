@@ -35,6 +35,7 @@ from . import (
     OrderAuthorizeStatus,
     OrderChargeStatus,
     OrderEvents,
+    OrderGrantedRefundStatus,
     OrderOrigin,
     OrderStatus,
 )
@@ -875,6 +876,20 @@ class OrderGrantedRefund(models.Model):
         Order, related_name="granted_refunds", on_delete=models.CASCADE
     )
     shipping_costs_included = models.BooleanField(default=False)
+
+    transaction_item = models.ForeignKey(
+        "payment.TransactionItem",
+        related_name="granted_refund",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+
+    status = models.CharField(
+        choices=OrderGrantedRefundStatus.CHOICES,
+        default=OrderGrantedRefundStatus.NONE,
+        max_length=128,
+    )
 
     class Meta:
         ordering = ("created_at", "id")
