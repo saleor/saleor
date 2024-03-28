@@ -1,8 +1,8 @@
 import warnings
 from unittest import mock
 
+import nh3
 import pytest
-from django.utils.html import strip_tags
 
 from ..editorjs import clean_editor_js
 
@@ -27,6 +27,7 @@ def test_clean_editor_js(text):
 
     # when
     result = clean_editor_js(data)
+    print(result)
 
     # then
     assert result == data
@@ -35,7 +36,7 @@ def test_clean_editor_js(text):
     result = clean_editor_js(data, to_string=True)
 
     # then
-    assert result == strip_tags(text)
+    assert result == nh3.clean(text, tags={"b", "i", "a"})
 
 
 def test_clean_editor_js_no_blocks():
@@ -138,13 +139,14 @@ def test_clean_editor_js_for_list():
     result = clean_editor_js(data, to_string=True)
 
     # then
-    assert result == strip_tags(
+    assert result == nh3.clean(
         "The Saleor Winter Sale is snowed "
-        '<a href="https://docs.saleor.io/docs/">. Test.'
+        '<a href="https://docs.saleor.io/docs/">. Test.</a>'
         " It is a block-styled editor "
-        '<a href="https://docs.saleor.io/docs/">.'
+        '<a href="https://docs.saleor.io/docs/">.</a>'
         " It returns clean data output in JSON"
-        " Designed to be extendable and pluggable with a simple API"
+        " Designed to be extendable and pluggable with a simple API",
+        tags={"b", "i", "a"},
     )
 
 
@@ -276,9 +278,9 @@ def test_clean_editor_js_for_complex_description():
     result = clean_editor_js(data, to_string=True)
 
     # then
-    assert result == strip_tags(
+    assert result == nh3.clean(
         "The Saleor Winter Sale is snowed"
-        '<a href="https://docs.saleor.io/docs/">. Test.'
+        '<a href="https://docs.saleor.io/docs/">. Test.</a>'
         " The one thing you be sure of is: Polish winters are quite"
         " unpredictable. The coldest months are January and February"
         " with temperatures around -3.0 °C (on average), but the"
@@ -292,5 +294,6 @@ def test_clean_editor_js_for_complex_description():
         " Test caption"
         " https://www.youtube.com/erz"
         " https://www.youtube.com/embed/erz"
-        " How To Use"
+        " How To Use",
+        tags={"b", "i", "a"},
     )
