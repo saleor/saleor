@@ -5,7 +5,9 @@ from decimal import Decimal
 
 import graphene
 from django.db import transaction
-from django.db.models import Exists, OuterRef
+from django.db.models import Exists, OuterRef, Q
+
+from ....checkout.models import Checkout
 from ....order.models import OrderLine
 from ....product.models import Product
 from ....product.utils.variant_prices import update_products_discounted_price
@@ -294,8 +296,10 @@ def migrate_translations(sale_ids, saleid_promotion_map):
 @app.task
 def migrate_checkout_line_discounts_task(sale_ids, rule_id_by_channel_sale):
     checkout_line_discounts = CheckoutLineDiscount.objects.filter(
-        sale_id__in=sale_ids
-    ).exclude(type="promotion")[:CHECKOUT_LINE_DISCOUNT_BATCH_SIZE]
+        Exists(Checkout.objects.filter(token=OuterRef("line__checkout")))
+        & ~Q(type="promotion"),
+        sale_id__in=sale_ids,
+    )[:CHECKOUT_LINE_DISCOUNT_BATCH_SIZE]
     discount_line_ids = list(checkout_line_discounts.values_list("id", flat=True))
     if discount_line_ids:
         line_discounts = (
