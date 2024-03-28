@@ -8,17 +8,17 @@
 </div>
 
 <div align="center">
-  <strong>Customer-centric e-commerce on a modern stack</strong>
+  <strong>Commerce that works with your language and stack</strong>
 </div>
 
 <div align="center">
-  A headless, GraphQL commerce platform delivering ultra-fast, dynamic, personalized shopping experiences.<br/>Beautiful online stores, anywhere, on any device.
+  GraphQL native, API-only platform for scalable composable commerce.
 </div>
 
 <br>
 
 <div align="center">
-  Join our active, engaged community: <br>
+  Join our community: <br>
   <a href="https://saleor.io/">Website</a>
   <span> | </span>
   <a href="https://twitter.com/getsaleor">Twitter</a>
@@ -29,7 +29,7 @@
 </div>
 
 <div align="center">
-   <a href="https://saleor.io/blog/">Blog</a>
+   <a href="https://saleor.io/blog">Blog</a>
   <span> | </span>
   <a href="https://saleor.typeform.com/to/JTJK0Nou">Subscribe to newsletter</a>
 </div>
@@ -60,29 +60,55 @@
 
 ## What makes Saleor special?
 
-Saleor is a rapidly-growing open-source e-commerce platform that serves high-volume companies. Designed from the ground up to be extensible, headless, and composable.
+- **Technology-agnostic** - no monolithic plugin architecture or technology lock-in.
 
-Learn more about [architecture](https://docs.saleor.io/docs/3.x/overview/architecture).
+- **GraphQL only** - Not afterthought API design or fragmentation across different styles of API.
+
+- **Headless and API only** - APIs are the only way to interact, configure, or extend the backend.
+
+- **Open source** -  a single version of Saleor without feature fragmentation or commercial limitations.
+
+- **Cloud native** - battle tested on global brands.
+
+- **Native-multichannel** - Per [channel](https://docs.saleor.io/docs/3.x/developer/channels) control of pricing, currencies, stock, product, and more.
+
+
+## Why API-only Architecture?
+
+Saleor's API-first extensibility provides powerful tools for developers to extend backend using [webhooks](https://docs.saleor.io/docs/3.x/developer/extending/webhooks/overview), attributes, [metadata](https://docs.saleor.io/docs/3.x/api-usage/metadata), [apps](https://docs.saleor.io/docs/3.x/developer/extending/apps/overview), [subscription queries](https://docs.saleor.io/docs/3.x/developer/extending/webhooks/subscription-webhook-payloads), [API extensions](https://docs.saleor.io/docs/3.x/developer/extending/webhooks/synchronous-events/overview), [dashboard iframes](https://docs.saleor.io/docs/3.x/developer/extending/apps/overview).
+
+Compared to traditional plugin architectures (monoliths) it provides the following benefits:
+
+* There is less downtime as apps are deployed independently.
+* Reliability and performance - custom logic is separated from the core.
+* Simplified upgrade paths - eliminates incompatibility conflicts between extensions.
+* Technology-agnostic - works with any technology, stack, or language.
+* Parallel development - easier to collaborate than with a monolithic core.
+* Simplified debugging - easier to narrow down bugs in independent services.
+* Scalability - extensions and apps can be scaled independently.
+
+### What are the tradeoffs?
+If you are a single developer working with a small business that doesn't have high traffic or a critical need for 24/7 availability, using a service-oriented approach might feel more complex compared to the traditional WordPress or Magento approach that provides a language-specific framework, runtime, database schema, aspect-oriented programming, and other tools to a quick start.
+
+However, if you deploy on a daily basis, reliability and uptime is critical,
+you need to collaborate with other developers, or you have non-trivial requirements you might be in the right place.
 
 ## Features
-
-- **Headless / API first**: Build mobile apps, custom storefronts, POS, automation, etc
-- **Extensible**: Build anything with webhooks, apps, metadata, and attributes
-- [**App Store**](https://github.com/saleor/apps): Leverage a collection of built-in integrations
-- **GraphQL API**: Get many resources in a single request and [more](https://graphql.org/)
-- **Multichannel**: Per channel control of pricing, currencies, stock, product, and more
 - **Enterprise ready**: Secure, scalable, and stable. Battle-tested by big brands
-- **CMS**: Content is king, that's why we have a kingdom built-in
 - **Dashboard**: User-friendly, fast, and productive. (Decoupled project [repo](https://github.com/saleor/saleor-dashboard) )
 - **Global by design** Multi-currency, multi-language, multi-warehouse, tutti multi!
-- **Orders**: A comprehensive system for orders, dispatch, and refunds
-- **Cart**: Advanced payment and tax options, with full control over discounts and promotions
-- **Payments**: Flexible API architecture allows integration of any payment method
-- **SEO**: Packed with features that get stores to a wider audience
-- **Cloud**: Optimized for deployments using Docker
+- **CMS**: Manage product or marketing content.
+- **Product management**: A rich content model for large and complex catalogs.
+- **Orders**: Flexible order model, split payments, multi-warehouse, returns, and more.
+- **Customers**: Order history and preferences.
+- **Promotion engine**: Sales, vouchers, cart rules, giftcards.
+- **Payment orchestration**: multi-gateway, extensible payment API, flexible flows.
+- **Cart**: Advanced payment and tax options, with full control over discounts and promotions.
+- **Payments**: Flexible API architecture allows integration of any payment method.
+- **Translations**: Fully translatable catalog.
+- **SEO**: Unlimited SEO freedom with headless architecture.
+- **Apps**: Extend dashboard via iframe with any web stack.
 
-Saleor is free and always will be.
-Help us out… If you love free stuff and great software, give us a star! 🌟
 
 ![Saleor Dashboard - Modern UI for managing your e-commerce](https://user-images.githubusercontent.com/9268745/224249510-d3c7658e-6d5c-42c5-b4fb-93eaf65a5335.png)
 
@@ -145,13 +171,6 @@ We love your contributions and do our best to provide you with mentorship and su
 If nothing grabs your attention, check [our roadmap](https://github.com/orgs/saleor/projects/3/views/4) or come up with your feature. Just drop us a line or [open an issue](https://github.com/saleor/saleor/issues/new) and we’ll work out how to handle it.
 
 Get more details in our [Contributing Guide](https://docs.saleor.io/docs/developer/community/contributing).
-
-## Your feedback
-
-Do you use Saleor as an e-commerce platform?
-Fill out this short survey and help us grow. It will take just a minute, but means a lot!
-
-[Take a survey](https://mirumee.typeform.com/to/sOIJbJ)
 
 ## License
 
