@@ -496,7 +496,7 @@ def test_menu_reorder_assign_parent_to_top_level(
     assert not response["errors"]
     assert menu_data
 
-    # Ensure the the item was successfully placed at the root
+    # Ensure the item was successfully placed at the root
     # and is now at the bottom of the list (default)
     assert menu_data == expected_data
 
