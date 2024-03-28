@@ -58,8 +58,8 @@ def _variants_in_batches(variants_qs):
 def _update_variants_names(instance: ProductType, saved_attributes: Iterable):
     """Product variant names are created from names of assigned attributes.
 
-    After change in attribute value name, for all product variants using this
-    attributes we need to update the names.
+    After change in attribute value name, we update the names for all product variants
+    that lack names and use these attributes.
     """
     initial_attributes = set(instance.variant_attributes.all())
     attributes_changed = initial_attributes.intersection(saved_attributes)
@@ -67,6 +67,7 @@ def _update_variants_names(instance: ProductType, saved_attributes: Iterable):
         return
 
     variants = ProductVariant.objects.filter(
+        name="",
         product__in=instance.products.all(),
         product__product_type__variant_attributes__in=attributes_changed,
     )
