@@ -397,7 +397,7 @@ def checkout_with_item_on_promotion(checkout_with_item):
     )
     CheckoutLineDiscount.objects.create(
         line=line,
-        type=DiscountType.PROMOTION,
+        type=DiscountType.CATALOGUE_PROMOTION,
         value_type=DiscountValueType.FIXED,
         value=reward_value,
         amount_value=reward_value * line.quantity,

@@ -29,6 +29,7 @@ class DiscountType:
         (MANUAL, "Manual"),
         (PROMOTION, "Promotion"),
         (ORDER_PROMOTION, "Order promotion"),
+        (CATALOGUE_PROMOTION, "Catalogue promotion"),
     ]
 
 

@@ -636,7 +636,7 @@ def test_order_lines_create_variant_on_promotion(
     discount = line.discounts.first()
     assert discount.promotion_rule == rule
     assert discount.amount_value == reward_value
-    assert discount.type == DiscountType.PROMOTION
+    assert discount.type == DiscountType.CATALOGUE_PROMOTION
     assert discount.name == f"{catalogue_promotion_without_rules.name}: {rule.name}"
     assert (
         discount.translated_name

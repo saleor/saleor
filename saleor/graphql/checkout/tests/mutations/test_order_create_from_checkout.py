@@ -1190,7 +1190,7 @@ def test_order_from_checkout_on_catalogue_and_gift_promotion(
     assert line.discounts.count() == 1
     line_discount = line.discounts.first()
     assert line_discount.promotion_rule
-    assert line_discount.type == DiscountType.PROMOTION
+    assert line_discount.type == DiscountType.CATALOGUE_PROMOTION
 
     assert (
         order.undiscounted_total - order.total
@@ -1241,7 +1241,7 @@ def test_order_from_checkout_multiple_rules_applied(
     )
     CheckoutLineDiscount.objects.create(
         line=line,
-        type=DiscountType.PROMOTION,
+        type=DiscountType.CATALOGUE_PROMOTION,
         value_type=DiscountValueType.PERCENTAGE,
         amount_value=discount_amount_2,
         currency=channel.currency_code,

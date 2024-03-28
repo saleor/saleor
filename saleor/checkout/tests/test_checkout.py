@@ -1328,7 +1328,7 @@ def test_recalculate_checkout_discount_with_promotion(
 
     line_discount = CheckoutLineDiscount.objects.create(
         line=line_info.line,
-        type=DiscountType.PROMOTION,
+        type=DiscountType.CATALOGUE_PROMOTION,
         value_type=DiscountValueType.FIXED,
         amount_value=reward_value * line_info.line.quantity,
         currency=line_info.channel.currency_code,
