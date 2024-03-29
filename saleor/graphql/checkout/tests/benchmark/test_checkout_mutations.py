@@ -9,6 +9,7 @@ from .....checkout import calculations
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
 from .....checkout.utils import add_variants_to_checkout, set_external_shipping_id
+from .....discount import RewardValueType
 from .....plugins.manager import get_plugins_manager
 from .....product.models import ProductVariant, ProductVariantChannelListing
 from .....warehouse.models import Stock
@@ -1099,6 +1100,63 @@ def test_add_checkout_lines_with_reservations(
         content = get_graphql_content(response)
         data = content["data"]["checkoutLinesAdd"]
         assert not data["errors"]
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_add_checkout_lines_catalogue_discount_applies(
+    user_api_client,
+    catalogue_promotion_without_rules,
+    checkout,
+    channel_USD,
+    django_assert_num_queries,
+    count_queries,
+    variant_with_many_stocks,
+):
+    # given
+    Stock.objects.update(quantity=100)
+    variant = variant_with_many_stocks
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    # prepare promotion with 50% discount
+    reward_value = Decimal("50.00")
+    rule = catalogue_promotion_without_rules.rules.create(
+        catalogue_predicate={"variantPredicate": {"ids": [variant_id]}},
+        reward_value_type=RewardValueType.PERCENTAGE,
+        reward_value=reward_value,
+    )
+    rule.channels.add(channel_USD)
+
+    variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
+    variant_unit_price = variant_channel_listing.price_amount
+    discount_amount = variant_unit_price * reward_value / 100
+    variant_channel_listing.discounted_price_amount = (
+        variant_unit_price - discount_amount
+    )
+    variant_channel_listing.save(update_fields=["discounted_price_amount"])
+    variant_channel_listing.variantlistingpromotionrule.create(
+        promotion_rule=rule,
+        discount_amount=discount_amount,
+        currency=channel_USD.currency_code,
+    )
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [{"variantId": variant_id, "quantity": 3}],
+        "channelSlug": checkout.channel.slug,
+    }
+
+    # when
+    with django_assert_num_queries(81):
+        response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLinesAdd"]
+    assert not data["errors"]
+    checkout_lines = checkout.lines.all()
+    assert len(checkout_lines) == 1
+    assert checkout_lines[0].discounts.count() == 1
 
 
 @pytest.mark.django_db

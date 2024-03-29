@@ -365,7 +365,7 @@ def create_checkout_line_discount_objects_for_catalogue_promotions(
     lines_info: Iterable[CheckoutLineInfo],
 ):
     discount_data = prepare_line_discount_objects_for_catalogue_promotions(lines_info)
-    if not discount_data or lines_info:
+    if not discount_data or not lines_info:
         return
 
     (
