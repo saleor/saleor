@@ -1,0 +1,1 @@
+ALT_CHAR_LIMIT = 250
