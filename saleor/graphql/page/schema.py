@@ -13,6 +13,9 @@ from .mutations import (
     PageAttributeUnassign,
     PageCreate,
     PageDelete,
+    PageMediaCreate,
+    PageMediaDelete,
+    PageMediaUpdate,
     PageReorderAttributeValues,
     PageTypeCreate,
     PageTypeDelete,
@@ -89,6 +92,9 @@ class PageMutations(graphene.ObjectType):
     page_delete = PageDelete.Field()
     page_bulk_delete = PageBulkDelete.Field()
     page_bulk_publish = PageBulkPublish.Field()
+    page_media_create = PageMediaCreate.Field()
+    page_media_delete = PageMediaDelete.Field()
+    page_media_update = PageMediaUpdate.Field()
     page_update = PageUpdate.Field()
     page_translate = PageTranslate.Field()
 
