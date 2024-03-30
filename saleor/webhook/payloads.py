@@ -35,7 +35,7 @@ from ..discount import VoucherType
 from ..order import FulfillmentStatus, OrderStatus
 from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..order.utils import get_order_country
-from ..page.models import Page
+from ..page.models import Page, PageMedia
 from ..payment import ChargeStatus
 from ..product import ProductMediaTypes
 from ..product.models import Collection, Product, ProductMedia
@@ -1009,6 +1009,11 @@ def generate_page_payload(
         },
     )
     return page_payload
+
+
+def generate_page_media_payload(media: PageMedia):
+    page_media_id = graphene.Node.to_global_id("PageMedia", media.id)
+    return json.dumps({"id": page_media_id})
 
 
 def _generate_refund_data_payload(data):
