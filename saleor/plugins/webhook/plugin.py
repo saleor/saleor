@@ -83,7 +83,7 @@ from ...webhook.payloads import (
     generate_sale_toggle_payload,
     generate_thumbnail_payload,
     generate_transaction_session_payload,
-    generate_translation_payload,
+    generate_translation_payload, generate_page_media_payload,
 )
 from ...webhook.transport.asynchronous.transport import (
     send_webhook_request_async,
@@ -1916,6 +1916,21 @@ class WebhookPlugin(BasePlugin):
                 page,
                 self.requestor,
                 legacy_data_generator=page_data_generator,
+            )
+
+    def page_media_created(self, media: "PageMedia", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        event_type = WebhookEventAsyncType.PAGE_MEDIA_CREATED
+        if webhooks := get_webhooks_for_event(event_type):
+            media_data_generator = partial(generate_page_media_payload, media)
+            self.trigger_webhooks_async(
+                None,
+                event_type,
+                webhooks,
+                media,
+                self.requestor,
+                legacy_data_generator=media_data_generator,
             )
 
     def _trigger_page_type_event(self, event_type, page_type):
