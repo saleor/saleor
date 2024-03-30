@@ -71,7 +71,9 @@ class PageQueries(graphene.ObjectType):
     @staticmethod
     def resolve_pages(_root, info: ResolveInfo, **kwargs):
         qs = resolve_pages(info)
-        qs = filter_connection_queryset(qs, kwargs)
+        qs = filter_connection_queryset(
+            qs, kwargs, allow_replica=info.context.allow_replica
+        )
         return create_connection_slice(qs, info, kwargs, PageCountableConnection)
 
     @staticmethod
@@ -82,7 +84,9 @@ class PageQueries(graphene.ObjectType):
     @staticmethod
     def resolve_page_types(_root, info: ResolveInfo, **kwargs):
         qs = resolve_page_types(info)
-        qs = filter_connection_queryset(qs, kwargs)
+        qs = filter_connection_queryset(
+            qs, kwargs, allow_replica=info.context.allow_replica
+        )
         return create_connection_slice(qs, info, kwargs, PageTypeCountableConnection)
 
 

@@ -29,7 +29,7 @@ from ..core.fields import JSONString, PermissionsField
 from ..core.tracing import traced_resolver
 from ..core.types import LanguageDisplay, ModelObjectType, NonNullList
 from ..core.utils import str_to_enum
-from ..page.dataloaders import SelectedAttributesByPageIdLoader
+from ..page.dataloaders import SelectedAttributesAllByPageIdLoader
 from ..product.dataloaders import (
     SelectedAttributesByProductIdLoader,
     SelectedAttributesByProductVariantIdLoader,
@@ -555,7 +555,7 @@ class PageTranslatableContent(ModelObjectType[page_models.Page]):
     @staticmethod
     def resolve_attribute_values(root: page_models.Page, info):
         return (
-            SelectedAttributesByPageIdLoader(info.context)
+            SelectedAttributesAllByPageIdLoader(info.context)
             .load(root.id)
             .then(get_translatable_attribute_values)
         )

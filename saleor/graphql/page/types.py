@@ -30,10 +30,10 @@ from ..meta.types import ObjectWithMetadata
 from ..translations.fields import TranslationField
 from ..translations.types import PageTranslation
 from .dataloaders import (
-    PageAttributesByPageTypeIdLoader,
+    PageAttributesAllByPageTypeIdLoader,
     PagesByPageTypeIdLoader,
     PageTypeByIdLoader,
-    SelectedAttributesByPageIdLoader,
+    SelectedAttributesAllByPageIdLoader,
     ThumbnailByPageMediaIdSizeAndFormatLoader,
     MediaByPageIdLoader
 )
@@ -82,7 +82,7 @@ class PageType(ModelObjectType[models.PageType]):
 
     @staticmethod
     def resolve_attributes(root: models.PageType, info: ResolveInfo):
-        return PageAttributesByPageTypeIdLoader(info.context).load(root.pk)
+        return PageAttributesAllByPageTypeIdLoader(info.context).load(root.pk)
 
     @staticmethod
     def resolve_available_attributes(
@@ -190,7 +190,7 @@ class Page(ModelObjectType[models.Page]):
 
     @staticmethod
     def resolve_attributes(root: models.Page, info: ResolveInfo):
-        return SelectedAttributesByPageIdLoader(info.context).load(root.id)
+        return SelectedAttributesAllByPageIdLoader(info.context).load(root.id)
 
 
     @staticmethod
