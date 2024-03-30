@@ -68,7 +68,7 @@ if TYPE_CHECKING:
     from ..invoice.models import Invoice
     from ..menu.models import Menu, MenuItem
     from ..order.models import Fulfillment, Order, OrderLine
-    from ..page.models import Page, PageType
+    from ..page.models import Page, PageMedia, PageType
     from ..payment.models import TransactionItem
     from ..product.models import (
         Category,
@@ -1098,6 +1098,21 @@ class PluginsManager(PaymentInterface):
     def page_deleted(self, page: "Page"):
         default_value = None
         return self.__run_method_on_plugins("page_deleted", default_value, page)
+
+    def page_media_created(self, page_media: "PageMedia"):
+        default_value = None
+        return self.__run_method_on_plugins("page_media_created",
+                                            default_value, page_media)
+
+    def page_media_updated(self, page_media: "PageMedia"):
+        default_value = None
+        return self.__run_method_on_plugins("page_media_updated",
+                                            default_value, page_media)
+
+    def page_media_deleted(self, page_media: "PageMedia"):
+        default_value = None
+        return self.__run_method_on_plugins("page_media_deleted",
+                                            default_value, page_media)
 
     def page_type_created(self, page_type: "PageType"):
         default_value = None

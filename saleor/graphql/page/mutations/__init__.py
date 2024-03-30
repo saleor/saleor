@@ -8,10 +8,16 @@ from .page_type_delete import PageTypeDelete
 from .page_type_reorder_attributes import PageTypeReorderAttributes
 from .page_type_update import PageTypeUpdate
 from .page_update import PageUpdate
+from .page_media_create import PageMediaCreate
+from .page_media_update import PageMediaUpdate
+from .page_media_delete import PageMediaDelete
 
 __all__ = [
     "PageCreate",
     "PageDelete",
+    "PageMediaCreate",
+    "PageMediaDelete",
+    "PageMediaUpdate",
     "PageUpdate",
     "PageTypeCreate",
     "PageTypeUpdate",

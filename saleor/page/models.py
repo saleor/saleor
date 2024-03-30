@@ -1,11 +1,15 @@
 from typing import TYPE_CHECKING, Union
 
 from django.contrib.postgres.indexes import GinIndex
-from django.db import models
+from django.db import models, transaction
+from django.db.models import JSONField
 
+from . import PageMediaTypes
 from ..core.db.fields import SanitizedJSONField
-from ..core.models import ModelWithMetadata, PublishableModel, PublishedQuerySet
+from ..core.models import ModelWithMetadata, PublishableModel, PublishedQuerySet, \
+    SortableModel
 from ..core.utils.editorjs import clean_editor_js
+from ..graphql.channel import ChannelContext
 from ..permission.enums import PagePermissions, PageTypePermissions
 from ..seo.models import SeoModel, SeoModelTranslation
 
@@ -19,6 +23,13 @@ class PageQueryset(PublishedQuerySet):
         if requestor and requestor.has_perm(PagePermissions.MANAGE_PAGES):
             return self.all()
         return self.published()
+
+    def prefetched_for_webhook(self, single_object=True):
+        common_fields = (
+            "media",
+        )
+
+        return self.prefetch_related(*common_fields)
 
 
 PageManager = models.Manager.from_queryset(PageQueryset)
@@ -42,6 +53,38 @@ class Page(ModelWithMetadata, SeoModel, PublishableModel):
 
     def __str__(self):
         return self.title
+
+
+class PageMedia(SortableModel, ModelWithMetadata):
+    page = models.ForeignKey(
+        Page,
+        related_name="media",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
+    image = models.ImageField(upload_to="pages", blank=True, null=True)
+    alt = models.CharField(max_length=250, blank=True)
+    type = models.CharField(
+        max_length=32,
+        choices=PageMediaTypes.CHOICES,
+        default=PageMediaTypes.IMAGE,
+    )
+    external_url = models.CharField(max_length=256, blank=True, null=True)
+    oembed_data = JSONField(blank=True, default=dict)
+
+    class Meta:
+        ordering = ("sort_order", "pk")
+        app_label = "page"
+
+    def get_ordering_queryset(self):
+        if not self.page:
+            return PageMedia.objects.none()
+        return self.page.media.all()
+
+    @transaction.atomic
+    def delete(self, *args, **kwargs):
+        super(SortableModel, self).delete(*args, **kwargs)
 
 
 class PageTranslation(SeoModelTranslation):

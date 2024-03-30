@@ -3,6 +3,7 @@ from django.db import models
 
 from ..account.models import User
 from ..app.models import App, AppInstallation
+from ..page.models import PageMedia
 from ..product.models import Category, Collection, ProductMedia
 from . import THUMBNAIL_SIZES, ThumbnailFormat
 
@@ -37,6 +38,13 @@ class Thumbnail(models.Model):
     )
     product_media = models.ForeignKey(
         ProductMedia,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="thumbnails",
+    )
+    page_media = models.ForeignKey(
+        PageMedia,
         null=True,
         blank=True,
         on_delete=models.CASCADE,

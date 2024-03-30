@@ -57,3 +57,26 @@ class PageTypeSortingInput(SortInputObjectType):
         doc_category = DOC_CATEGORY_PAGES
         sort_enum = PageTypeSortField
         type_name = "page types"
+
+
+class PageMediaChoicesSortField(BaseEnum):
+    ID = ["id"]
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PAGES
+
+    @property
+    def description(self):
+        descriptions = {
+            PageMediaChoicesSortField.ID.name: "Sort media by ID.",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+        }
+        if self.name in descriptions:
+            return descriptions[self.name]
+        raise ValueError(f"Unsupported enum value: {self.value}")
+
+
+class PageMediaSortingInput(SortInputObjectType):
+    class Meta:
+        doc_category = DOC_CATEGORY_PAGES
+        sort_enum = PageMediaChoicesSortField
+        type_name = "media"

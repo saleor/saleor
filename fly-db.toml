@@ -1,0 +1,69 @@
+# fly.toml app configuration file generated for postgres-saleor on 2024-02-02T08:09:17+02:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'postgres-saleor'
+primary_region = 'cdg'
+
+[env]
+  PRIMARY_REGION = 'cdg'
+
+[[mounts]]
+  source = 'pg_data'
+  destination = '/data'
+
+[[services]]
+  protocol = 'tcp'
+  internal_port = 5432
+  auto_stop_machines = true
+  auto_start_machines = true
+
+[[services.ports]]
+    port = 5432
+    handlers = ['pg_tls']
+
+  [services.concurrency]
+    type = 'connections'
+    hard_limit = 1000
+    soft_limit = 1000
+
+[[services]]
+  protocol = 'tcp'
+  internal_port = 5433
+  auto_start_machines = true
+
+[[services.ports]]
+    port = 5433
+    handlers = ['pg_tls']
+
+  [services.concurrency]
+    type = 'connections'
+    hard_limit = 1000
+    soft_limit = 1000
+
+[checks]
+  [checks.pg]
+    port = 5500
+    type = 'http'
+    interval = '15s'
+    timeout = '10s'
+    path = '/flycheck/pg'
+
+  [checks.role]
+    port = 5500
+    type = 'http'
+    interval = '15s'
+    timeout = '10s'
+    path = '/flycheck/role'
+
+  [checks.vm]
+    port = 5500
+    type = 'http'
+    interval = '15s'
+    timeout = '10s'
+    path = '/flycheck/vm'
+
+[[metrics]]
+  port = 9187
+  path = '/metrics'

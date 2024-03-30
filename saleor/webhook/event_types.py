@@ -154,6 +154,10 @@ class WebhookEventAsyncType:
     PAGE_UPDATED = "page_updated"
     PAGE_DELETED = "page_deleted"
 
+    PAGE_MEDIA_CREATED = "page_media_created"
+    PAGE_MEDIA_UPDATED = "page_media_updated"
+    PAGE_MEDIA_DELETED = "page_media_deleted"
+
     PAGE_TYPE_CREATED = "page_type_created"
     PAGE_TYPE_UPDATED = "page_type_updated"
     PAGE_TYPE_DELETED = "page_type_deleted"
