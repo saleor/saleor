@@ -12,11 +12,13 @@ from .....payment.gateway import request_refund_action
 from .....permission.enums import PaymentPermissions
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_315, PREVIEW_FEATURE
+from ....core.descriptions import ADDED_IN_314, ADDED_IN_315, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_PAYMENTS
 from ....core.enums import TransactionRequestRefundForGrantedRefundErrorCode
 from ....core.mutations import BaseMutation
+from ....core.scalars import UUID
 from ....core.types import common as common_types
+from ....core.validators import validate_one_of_args_is_in_mutation
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import TransactionItem
 from .utils import get_transaction_item
@@ -30,8 +32,17 @@ class TransactionRequestRefundForGrantedRefund(BaseMutation):
 
     class Arguments:
         id = graphene.ID(
-            description="The ID of the transaction.",
-            required=True,
+            description=(
+                "The ID of the transaction. One of field id or token is required."
+            ),
+            required=False,
+        )
+        token = UUID(
+            description=(
+                "The token of the transaction. One of field id or token is required."
+            )
+            + ADDED_IN_314,
+            required=False,
         )
         granted_refund_id = graphene.ID(
             required=True,
@@ -50,9 +61,9 @@ class TransactionRequestRefundForGrantedRefund(BaseMutation):
 
     @classmethod
     def clean_input(
-        cls, info, transaction_id: str, granted_refund_id: str
+        cls, info, transaction_id: str, token: UUID, granted_refund_id: str
     ) -> tuple[payment_models.TransactionItem, order_models.OrderGrantedRefund]:
-        transaction_item = get_transaction_item(transaction_id)
+        transaction_item = get_transaction_item(transaction_id, token)
         granted_refund = cls.get_node_or_error(
             info,
             granted_refund_id,
@@ -83,9 +94,12 @@ class TransactionRequestRefundForGrantedRefund(BaseMutation):
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
-        cls, root, info: ResolveInfo, /, id, granted_refund_id
+        cls, root, info: ResolveInfo, /, granted_refund_id, token=None, id=None
     ):
-        transaction_item, granted_refund = cls.clean_input(info, id, granted_refund_id)
+        validate_one_of_args_is_in_mutation("id", id, "token", token)
+        transaction_item, granted_refund = cls.clean_input(
+            info, id, token, granted_refund_id
+        )
         order = granted_refund.order
 
         channel = order.channel

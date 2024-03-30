@@ -82,8 +82,14 @@ def test_filtering_by_attribute(
     color_2 = color_attribute.values.last()
 
     # Associate color to a product and a variant
-    associate_attribute_values_to_instance(product_a, color_attribute, color)
-    associate_attribute_values_to_instance(variant_b, color_attribute, color)
+    associate_attribute_values_to_instance(
+        product_a,
+        {color_attribute.pk: [color]},
+    )
+    associate_attribute_values_to_instance(
+        variant_b,
+        {color_attribute.pk: [color]},
+    )
 
     product_qs = models.Product.objects.all().values_list("pk", flat=True)
 
@@ -92,7 +98,10 @@ def test_filtering_by_attribute(
     assert product_a.pk in list(filtered)
     assert product_b.pk in list(filtered)
 
-    associate_attribute_values_to_instance(product_a, color_attribute, color_2)
+    associate_attribute_values_to_instance(
+        product_a,
+        {color_attribute.pk: [color_2]},
+    )
 
     filters = {color_attribute.pk: [color.pk]}
     filtered = filter_products_by_attributes_values(product_qs, filters)
@@ -114,7 +123,10 @@ def test_filtering_by_attribute(
     # Associate additional attribute to a product
     size = size_attribute.values.first()
     product_type_a.product_attributes.add(size_attribute)
-    associate_attribute_values_to_instance(product_a, size_attribute, size)
+    associate_attribute_values_to_instance(
+        product_a,
+        {size_attribute.pk: [size]},
+    )
 
     # Filter by multiple attributes
     filters = {color_attribute.pk: [color_2.pk], size_attribute.pk: [size.pk]}
@@ -126,10 +138,16 @@ def test_filtering_by_attribute(
     product_type_b.product_attributes.add(date_attribute)
 
     date = date_attribute.values.first()
-    associate_attribute_values_to_instance(product_a, date_attribute, date)
+    associate_attribute_values_to_instance(
+        product_a,
+        {date_attribute.pk: [date]},
+    )
 
     date_2 = date_attribute.values.last()
-    associate_attribute_values_to_instance(product_b, date_attribute, date_2)
+    associate_attribute_values_to_instance(
+        product_b,
+        {date_attribute.pk: [date_2]},
+    )
 
     filters = {date_attribute.pk: [date.pk]}
     filtered = filter_products_by_attributes_values(product_qs, filters)
@@ -142,7 +160,7 @@ def test_filtering_by_attribute(
 
 
 def test_clean_product_attributes_date_time_range_filter_input(
-    date_attribute, date_time_attribute
+    date_attribute, date_time_attribute, settings
 ):
     # filter date attribute
     filter_value = [
@@ -151,7 +169,9 @@ def test_clean_product_attributes_date_time_range_filter_input(
             {"gte": datetime(2020, 10, 5, tzinfo=pytz.utc)},
         )
     ]
-    values_qs = _clean_product_attributes_date_time_range_filter_input(filter_value)
+    values_qs = _clean_product_attributes_date_time_range_filter_input(
+        filter_value, settings.DATABASE_CONNECTION_DEFAULT_NAME
+    )
 
     assert set(date_attribute.values.all()) == set(values_qs.all())
 
@@ -161,7 +181,9 @@ def test_clean_product_attributes_date_time_range_filter_input(
             {"gte": datetime(2020, 10, 5).date(), "lte": datetime(2020, 11, 4).date()},
         )
     ]
-    values_qs = _clean_product_attributes_date_time_range_filter_input(filter_value)
+    values_qs = _clean_product_attributes_date_time_range_filter_input(
+        filter_value, settings.DATABASE_CONNECTION_DEFAULT_NAME
+    )
 
     assert {date_attribute.values.first().pk} == set(
         values_qs.values_list("pk", flat=True)
@@ -174,7 +196,9 @@ def test_clean_product_attributes_date_time_range_filter_input(
             {"lte": datetime(2020, 11, 4, tzinfo=timezone.utc)},
         )
     ]
-    values_qs = _clean_product_attributes_date_time_range_filter_input(filter_value)
+    values_qs = _clean_product_attributes_date_time_range_filter_input(
+        filter_value, settings.DATABASE_CONNECTION_DEFAULT_NAME
+    )
 
     assert {date_attribute.values.first().pk} == set(
         values_qs.values_list("pk", flat=True)
@@ -186,15 +210,19 @@ def test_clean_product_attributes_date_time_range_filter_input(
             {"lte": datetime(2020, 10, 4, tzinfo=timezone.utc)},
         )
     ]
-    values_qs = _clean_product_attributes_date_time_range_filter_input(filter_value)
+    values_qs = _clean_product_attributes_date_time_range_filter_input(
+        filter_value, settings.DATABASE_CONNECTION_DEFAULT_NAME
+    )
 
     assert values_qs.exists() is False
 
 
-def test_clean_product_attributes_boolean_filter_input(boolean_attribute):
+def test_clean_product_attributes_boolean_filter_input(boolean_attribute, settings):
     filter_value = [(boolean_attribute.slug, True)]
     queries = defaultdict(list)
-    _clean_product_attributes_boolean_filter_input(filter_value, queries)
+    _clean_product_attributes_boolean_filter_input(
+        filter_value, queries, settings.DATABASE_CONNECTION_DEFAULT_NAME
+    )
 
     assert dict(queries) == {
         boolean_attribute.pk: [boolean_attribute.values.first().pk]
@@ -202,13 +230,17 @@ def test_clean_product_attributes_boolean_filter_input(boolean_attribute):
 
     filter_value = [(boolean_attribute.slug, False)]
     queries = defaultdict(list)
-    _clean_product_attributes_boolean_filter_input(filter_value, queries)
+    _clean_product_attributes_boolean_filter_input(
+        filter_value, queries, settings.DATABASE_CONNECTION_DEFAULT_NAME
+    )
 
     assert dict(queries) == {boolean_attribute.pk: [boolean_attribute.values.last().pk]}
 
     filter_value = [(boolean_attribute.slug, True), (boolean_attribute.slug, False)]
     queries = defaultdict(list)
-    _clean_product_attributes_boolean_filter_input(filter_value, queries)
+    _clean_product_attributes_boolean_filter_input(
+        filter_value, queries, settings.DATABASE_CONNECTION_DEFAULT_NAME
+    )
 
     assert dict(queries) == {
         boolean_attribute.pk: list(
@@ -284,7 +316,7 @@ def test_get_price_overridden_price_with_discount(
     product_type,
     category,
     channel_USD,
-    promotion_without_rules,
+    catalogue_promotion_without_rules,
 ):
     # given
     product = models.Product.objects.create(
@@ -306,7 +338,7 @@ def test_get_price_overridden_price_with_discount(
     rule_1, rule_2 = PromotionRule.objects.bulk_create(
         [
             PromotionRule(
-                promotion=promotion_without_rules,
+                promotion=catalogue_promotion_without_rules,
                 catalogue_predicate={
                     "productPredicate": {
                         "ids": [
@@ -318,7 +350,7 @@ def test_get_price_overridden_price_with_discount(
                 reward_value=reward_value_1,
             ),
             PromotionRule(
-                promotion=promotion_without_rules,
+                promotion=catalogue_promotion_without_rules,
                 catalogue_predicate={
                     "variantPredicate": {
                         "ids": [

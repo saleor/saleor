@@ -98,7 +98,9 @@ class RequestEmailChange(BaseMutation):
             raise ValidationError(
                 {"redirect_url": error}, code=AccountErrorCode.INVALID.value
             )
-        channel_slug = clean_channel(channel, error_class=AccountErrorCode).slug
+        channel_slug = clean_channel(
+            channel, error_class=AccountErrorCode, allow_replica=False
+        ).slug
 
         token_payload = {
             "old_email": user.email,

@@ -1,5 +1,4 @@
 import graphene
-from django.utils import timezone
 from graphene import AbstractType, Union
 from rx import Observable
 
@@ -138,8 +137,8 @@ class Event(graphene.Interface):
         return cls.get_type(type_str)
 
     @staticmethod
-    def resolve_issued_at(_root, _info: ResolveInfo):
-        return timezone.now()
+    def resolve_issued_at(_root, info: ResolveInfo):
+        return info.context.request_time
 
     @staticmethod
     def resolve_version(_root, _info: ResolveInfo):
@@ -2569,7 +2568,10 @@ class ShippingListMethodsForCheckout(SubscriptionObjectType, CheckoutBase):
     @plugin_manager_promise_callback
     def resolve_shipping_methods(root, info: ResolveInfo, manager):
         _, checkout = root
-        return resolve_shipping_methods_for_checkout(info, checkout, manager)
+        database_connection_name = get_database_connection_name(info.context)
+        return resolve_shipping_methods_for_checkout(
+            info, checkout, manager, database_connection_name
+        )
 
     class Meta:
         root_type = None
@@ -2610,7 +2612,10 @@ class CheckoutFilterShippingMethods(SubscriptionObjectType, CheckoutBase):
     @plugin_manager_promise_callback
     def resolve_shipping_methods(root, info: ResolveInfo, manager):
         _, checkout = root
-        return resolve_shipping_methods_for_checkout(info, checkout, manager)
+        database_connection_name = get_database_connection_name(info.context)
+        return resolve_shipping_methods_for_checkout(
+            info, checkout, manager, database_connection_name
+        )
 
     class Meta:
         root_type = None

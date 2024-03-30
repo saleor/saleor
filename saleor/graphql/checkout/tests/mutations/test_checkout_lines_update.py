@@ -12,7 +12,7 @@ from .....checkout.models import Checkout, CheckoutLine
 from .....checkout.utils import (
     add_variant_to_checkout,
     calculate_checkout_quantity,
-    invalidate_checkout_prices,
+    invalidate_checkout,
 )
 from .....plugins.manager import get_plugins_manager
 from .....product.models import ProductChannelListing
@@ -52,6 +52,7 @@ MUTATION_CHECKOUT_LINES_UPDATE = """
                 code
                 message
                 variants
+                lines
             }
         }
     }
@@ -64,12 +65,11 @@ MUTATION_CHECKOUT_LINES_UPDATE = """
     wraps=update_checkout_shipping_method_if_invalid,
 )
 @mock.patch(
-    "saleor.graphql.checkout.mutations.checkout_lines_add."
-    "invalidate_checkout_prices",
-    wraps=invalidate_checkout_prices,
+    "saleor.graphql.checkout.mutations.checkout_lines_add.invalidate_checkout",
+    wraps=invalidate_checkout,
 )
 def test_checkout_lines_update(
-    mocked_invalidate_checkout_prices,
+    mocked_invalidate_checkout,
     mocked_update_shipping_method,
     user_api_client,
     checkout_with_item,
@@ -107,7 +107,7 @@ def test_checkout_lines_update(
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.last_change != previous_last_change
-    assert mocked_invalidate_checkout_prices.call_count == 1
+    assert mocked_invalidate_checkout.call_count == 1
 
 
 @mock.patch(
@@ -1155,3 +1155,29 @@ def test_with_active_problems_flow(
 
     # then
     assert not content["data"]["checkoutLinesUpdate"]["errors"]
+
+
+def test_checkout_lines_update_quantity_gift(user_api_client, checkout_with_item):
+    # given
+    checkout = checkout_with_item
+    line = checkout.lines.first()
+    line.is_gift = True
+    line.save(update_fields=["is_gift"])
+    line_id = to_global_id_or_none(line)
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [{"lineId": line_id, "quantity": 0}],
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLinesUpdate"]
+    assert not data["checkout"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "lineId"
+    assert errors[0]["code"] == CheckoutErrorCode.NON_EDITABLE_GIFT_LINE.name
+    assert errors[0]["lines"] == [line_id]

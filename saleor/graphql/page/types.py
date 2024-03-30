@@ -29,11 +29,14 @@ from ..core.types import ModelObjectType, NonNullList, ThumbnailField
 from ..meta.types import ObjectWithMetadata
 from ..translations.fields import TranslationField
 from ..translations.types import PageTranslation
+from ..utils import get_user_or_app_from_context
 from .dataloaders import (
-    PageAttributesByPageTypeIdLoader,
+    PageAttributesAllByPageTypeIdLoader,
+    PageAttributesVisibleInStorefrontByPageTypeIdLoader,
     PagesByPageTypeIdLoader,
     PageTypeByIdLoader,
-    SelectedAttributesByPageIdLoader,
+    SelectedAttributesAllByPageIdLoader,
+    SelectedAttributesVisibleInStorefrontPageIdLoader,
     ThumbnailByPageMediaIdSizeAndFormatLoader,
     MediaByPageIdLoader
 )
@@ -82,7 +85,17 @@ class PageType(ModelObjectType[models.PageType]):
 
     @staticmethod
     def resolve_attributes(root: models.PageType, info: ResolveInfo):
-        return PageAttributesByPageTypeIdLoader(info.context).load(root.pk)
+        requestor = get_user_or_app_from_context(info.context)
+        if (
+            requestor
+            and requestor.is_active
+            and requestor.has_perm(PagePermissions.MANAGE_PAGES)
+        ):
+            return PageAttributesAllByPageTypeIdLoader(info.context).load(root.pk)
+        else:
+            return PageAttributesVisibleInStorefrontByPageTypeIdLoader(
+                info.context
+            ).load(root.pk)
 
     @staticmethod
     def resolve_available_attributes(
@@ -91,7 +104,9 @@ class PageType(ModelObjectType[models.PageType]):
         qs = attribute_models.Attribute.objects.get_unassigned_page_type_attributes(
             root.pk
         ).using(get_database_connection_name(info.context))
-        qs = filter_connection_queryset(qs, kwargs, info.context)
+        qs = filter_connection_queryset(
+            qs, kwargs, info.context, allow_replica=info.context.allow_replica
+        )
         return create_connection_slice(qs, info, kwargs, AttributeCountableConnection)
 
     @staticmethod
@@ -103,8 +118,11 @@ class PageType(ModelObjectType[models.PageType]):
         )
 
     @staticmethod
-    def __resolve_references(roots: list["PageType"], _info: ResolveInfo):
-        return resolve_federation_references(PageType, roots, models.PageType.objects)
+    def __resolve_references(roots: list["PageType"], info: ResolveInfo):
+        database_connection_name = get_database_connection_name(info.context)
+        return resolve_federation_references(
+            PageType, roots, models.PageType.objects.using(database_connection_name)
+        )
 
 
 class PageTypeCountableConnection(CountableConnection):
@@ -150,12 +168,12 @@ class Page(ModelObjectType[models.Page]):
         description="List of attributes assigned to this page.",
     )
     media_by_id = graphene.Field(
-        lambda: PageMedia,
+        lambda: models.PageMedia,
         id=graphene.Argument(graphene.ID, description="ID of a page media."),
         description="Get a single page media by ID.",
     )
     media = NonNullList(
-        lambda: PageMedia,
+        lambda: models.PageMedia,
         sort_by=graphene.Argument(
             PageMediaSortingInput, description=f"Sort media. {ADDED_IN_39}"
         ),
@@ -190,7 +208,17 @@ class Page(ModelObjectType[models.Page]):
 
     @staticmethod
     def resolve_attributes(root: models.Page, info: ResolveInfo):
-        return SelectedAttributesByPageIdLoader(info.context).load(root.id)
+        requestor = get_user_or_app_from_context(info.context)
+        if (
+            requestor
+            and requestor.is_active
+            and requestor.has_perm(PagePermissions.MANAGE_PAGES)
+        ):
+            return SelectedAttributesAllByPageIdLoader(info.context).load(root.id)
+        else:
+            return SelectedAttributesVisibleInStorefrontPageIdLoader(info.context).load(
+                root.id
+            )
 
 
     @staticmethod

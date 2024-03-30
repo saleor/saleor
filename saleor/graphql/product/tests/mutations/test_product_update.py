@@ -18,10 +18,9 @@ from .....attribute.tests.model_helpers import (
     get_product_attribute_values,
     get_product_attributes,
 )
-from .....attribute.utils import (
-    associate_attribute_values_to_instance,
-)
+from .....attribute.utils import associate_attribute_values_to_instance
 from .....core.taxes import TaxType
+from .....discount.utils import get_active_catalogue_promotion_rules
 from .....graphql.core.enums import AttributeErrorCode
 from .....graphql.tests.utils import get_graphql_content
 from .....plugins.manager import PluginsManager
@@ -92,15 +91,11 @@ MUTATION_UPDATE_PRODUCT = """
 """
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
 @patch("saleor.plugins.manager.PluginsManager.product_created")
 def test_update_product(
     created_webhook_mock,
     updated_webhook_mock,
-    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     category,
     non_default_category,
@@ -194,16 +189,9 @@ def test_update_product(
 
     updated_webhook_mock.assert_called_once_with(product)
     created_webhook_mock.assert_not_called()
-    update_products_discounted_prices_for_promotion_task_mock.assert_called_once_with(
-        [product.id]
-    )
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
 def test_update_and_search_product_by_description(
-    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     category,
     non_default_category,
@@ -239,16 +227,9 @@ def test_update_and_search_product_by_description(
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
     assert data["product"]["description"] == other_description_json
-    update_products_discounted_prices_for_promotion_task_mock.assert_called_once_with(
-        [product.id]
-    )
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
 def test_update_product_only_description(
-    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     product,
     other_description_json,
@@ -273,14 +254,9 @@ def test_update_product_only_description(
     data = content["data"]["productUpdate"]
     assert not data["errors"]
     assert data["product"]["description"] == other_description_json
-    update_products_discounted_prices_for_promotion_task_mock.assert_not_called()
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
 def test_update_product_only_collections(
-    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     product,
     collection,
@@ -288,7 +264,6 @@ def test_update_product_only_collections(
     permission_manage_products,
 ):
     query = MUTATION_UPDATE_PRODUCT
-    other_description_json = json.dumps(other_description_json)
 
     product_id = graphene.Node.to_global_id("Product", product.pk)
     collection_id = graphene.Node.to_global_id("Collection", collection.pk)
@@ -308,9 +283,8 @@ def test_update_product_only_collections(
     assert not data["errors"]
     assert len(data["product"]["collections"]) == 1
     assert data["product"]["collections"][0]["name"] == collection.name
-    update_products_discounted_prices_for_promotion_task_mock.assert_called_once_with(
-        [product.id]
-    )
+    for rule in get_active_catalogue_promotion_rules():
+        assert rule.variants_dirty is True
 
 
 def test_update_product_clear_description_plaintext_when_description_is_none(
@@ -590,8 +564,10 @@ def test_update_product_with_file_attribute_value_new_value_is_not_created(
 
     product_type.product_attributes.add(file_attribute)
     attribute_values = file_attribute.values.all()
-    existing_value = attribute_values[0]
-    associate_attribute_values_to_instance(product, file_attribute, existing_value)
+    existing_value = file_attribute.values.first()
+    associate_attribute_values_to_instance(
+        product, {file_attribute.pk: [existing_value]}
+    )
 
     values_count = len(attribute_values)
     domain = site_settings.site.domain
@@ -716,7 +692,7 @@ def test_update_product_with_numeric_attribute_value_new_value_is_not_created(
     value = AttributeValue.objects.create(
         attribute=numeric_attribute, slug=slug_value, name="20.0"
     )
-    associate_attribute_values_to_instance(product, numeric_attribute, value)
+    associate_attribute_values_to_instance(product, {numeric_attribute.pk: [value]})
 
     value_count = AttributeValue.objects.count()
 
@@ -819,7 +795,7 @@ def test_update_product_clean_boolean_attribute_value(
 
     product_type.product_attributes.add(boolean_attribute)
     associate_attribute_values_to_instance(
-        product, boolean_attribute, boolean_attribute.values.first()
+        product, {boolean_attribute.pk: [boolean_attribute.values.first()]}
     )
 
     product_attr = get_product_attributes(product).get(id=boolean_attribute.id)
@@ -865,7 +841,7 @@ def test_update_product_clean_file_attribute_value(
 
     product_type.product_attributes.add(file_attribute)
     associate_attribute_values_to_instance(
-        product, file_attribute, file_attribute.values.first()
+        product, {file_attribute.pk: [file_attribute.values.first()]}
     )
 
     product_attr = get_product_attributes(product).get(pk=file_attribute.id)
@@ -1301,7 +1277,7 @@ def test_update_product_with_page_reference_attribute_existing_value(
         reference_page=page,
     )
     associate_attribute_values_to_instance(
-        product, product_type_page_reference_attribute, attr_value
+        product, {product_type_page_reference_attribute.pk: [attr_value]}
     )
 
     values_count = product_type_page_reference_attribute.values.count()
@@ -1588,7 +1564,7 @@ def test_update_product_with_product_reference_attribute_existing_value(
         reference_product=product_ref,
     )
     associate_attribute_values_to_instance(
-        product, product_type_product_reference_attribute, attr_value
+        product, {product_type_product_reference_attribute.pk: [attr_value]}
     )
 
     values_count = product_type_product_reference_attribute.values.count()
@@ -1717,7 +1693,8 @@ def test_update_product_change_values_ordering(
     )
 
     associate_attribute_values_to_instance(
-        product, product_type_page_reference_attribute, attr_value_2, attr_value_1
+        product,
+        {product_type_page_reference_attribute.pk: [attr_value_2, attr_value_1]},
     )
 
     attribute = get_product_attributes(product).first()
@@ -2215,7 +2192,7 @@ def test_update_product_with_numeric_attribute_by_numeric_field_null_value(
     value = AttributeValue.objects.create(
         attribute=numeric_attribute, slug=slug_value, name="20.0"
     )
-    associate_attribute_values_to_instance(product, numeric_attribute, value)
+    associate_attribute_values_to_instance(product, {numeric_attribute.pk: [value]})
 
     variables = {
         "productId": product_id,
@@ -2252,7 +2229,7 @@ def test_update_product_with_numeric_attribute_by_numeric_field_new_value_not_cr
     value = AttributeValue.objects.create(
         attribute=numeric_attribute, slug=slug_value, name="20.0"
     )
-    associate_attribute_values_to_instance(product, numeric_attribute, value)
+    associate_attribute_values_to_instance(product, {numeric_attribute.pk: [value]})
 
     value_count = AttributeValue.objects.count()
 
@@ -2570,7 +2547,7 @@ def test_update_product_with_multiselect_attribute_existing_values(
     attr_value_id_2 = graphene.Node.to_global_id("AttributeValue", attr_value_2.pk)
     attr_value_name_2 = attr_value_2.name
 
-    associate_attribute_values_to_instance(product, attribute, attr_value_1)
+    associate_attribute_values_to_instance(product, {attribute.pk: [attr_value_1]})
 
     attribute = get_product_attributes(product).first()
     assert len(get_product_attribute_values(product, attribute)) == 1

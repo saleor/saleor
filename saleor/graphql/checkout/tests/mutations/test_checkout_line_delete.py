@@ -3,12 +3,13 @@ from unittest import mock
 import graphene
 
 from .....checkout import base_calculations
+from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.utils import (
     add_variant_to_checkout,
     add_voucher_to_checkout,
     calculate_checkout_quantity,
-    invalidate_checkout_prices,
+    invalidate_checkout,
 )
 from .....plugins.manager import get_plugins_manager
 from .....warehouse.models import Reservation
@@ -31,6 +32,7 @@ MUTATION_CHECKOUT_LINE_DELETE = """
             errors {
                 field
                 message
+                code
             }
         }
     }
@@ -43,12 +45,11 @@ MUTATION_CHECKOUT_LINE_DELETE = """
     wraps=update_checkout_shipping_method_if_invalid,
 )
 @mock.patch(
-    "saleor.graphql.checkout.mutations.checkout_line_delete."
-    "invalidate_checkout_prices",
-    wraps=invalidate_checkout_prices,
+    "saleor.graphql.checkout.mutations.checkout_line_delete.invalidate_checkout",
+    wraps=invalidate_checkout,
 )
 def test_checkout_line_delete(
-    mocked_invalidate_checkout_prices,
+    mocked_invalidate_checkout,
     mocked_update_shipping_method,
     user_api_client,
     checkout_line_with_reservation_in_many_stocks,
@@ -79,7 +80,7 @@ def test_checkout_line_delete(
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.last_change != previous_last_change
-    assert mocked_invalidate_checkout_prices.call_count == 1
+    assert mocked_invalidate_checkout.call_count == 1
 
 
 def test_checkout_lines_delete_with_not_applicable_voucher(
@@ -175,3 +176,25 @@ def test_with_active_problems_flow(
 
     # then
     assert not content["data"]["checkoutLineDelete"]["errors"]
+
+
+def test_checkout_line_delete_non_removable_gift(user_api_client, checkout_line):
+    # given
+    checkout = checkout_line.checkout
+    line = checkout_line
+    line.is_gift = True
+    line.save(update_fields=["is_gift"])
+    line_id = to_global_id_or_none(line)
+    variables = {"id": to_global_id_or_none(checkout), "lineId": line_id}
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINE_DELETE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["checkoutLineDelete"]
+    assert not data["checkout"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "lineId"
+    assert errors[0]["code"] == CheckoutErrorCode.NON_REMOVABLE_GIFT_LINE.name

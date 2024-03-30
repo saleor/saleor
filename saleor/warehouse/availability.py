@@ -8,6 +8,7 @@ from typing import (
     Optional,
 )
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db.models import F, QuerySet, Sum
 from django.db.models.functions import Coalesce
@@ -67,6 +68,7 @@ def check_stock_and_preorder_quantity(
     checkout_lines: Optional[list["CheckoutLine"]] = None,
     check_reservations: bool = False,
     order_line: Optional["OrderLine"] = None,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     """Validate if there is stock/preorder available for given variant.
 
@@ -75,7 +77,12 @@ def check_stock_and_preorder_quantity(
     """
     if variant.is_preorder_active():
         check_preorder_threshold_in_orders(
-            variant, quantity, channel_slug, checkout_lines, check_reservations
+            variant,
+            quantity,
+            channel_slug,
+            checkout_lines,
+            check_reservations,
+            database_connection_name=database_connection_name,
         )
     else:
         check_stock_quantity(
@@ -86,6 +93,7 @@ def check_stock_and_preorder_quantity(
             checkout_lines,
             check_reservations,
             order_line,
+            database_connection_name,
         )
 
 
@@ -97,6 +105,7 @@ def check_stock_quantity(
     checkout_lines: Optional[list["CheckoutLine"]] = None,
     check_reservations: bool = False,
     order_line: Optional["OrderLine"] = None,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     """Validate if there is stock available for given variant in given country.
 
@@ -104,9 +113,9 @@ def check_stock_quantity(
     exception.
     """
     if variant.track_inventory:
-        stocks = Stock.objects.get_variant_stocks_for_country(
-            country_code, channel_slug, variant
-        )
+        stocks = Stock.objects.using(
+            database_connection_name
+        ).get_variant_stocks_for_country(country_code, channel_slug, variant)
         if not stocks:
             raise InsufficientStock(
                 [
@@ -232,6 +241,7 @@ def check_stock_quantity_bulk(
     existing_lines: Optional[Iterable["CheckoutLineInfo"]] = None,
     replace=False,
     check_reservations: bool = False,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     """Validate if there is stock available for given variants in given country.
 
@@ -253,9 +263,11 @@ def check_stock_quantity_bulk(
         delivery_method_info.warehouse_pk if delivery_method_info else None
     )
     stocks = (
-        Stock.objects.for_channel_and_click_and_collect(channel_slug)
+        Stock.objects.using(database_connection_name).for_channel_and_click_and_collect(
+            channel_slug
+        )
         if collection_point
-        else Stock.objects.for_channel_and_country(
+        else Stock.objects.using(database_connection_name).for_channel_and_country(
             channel_slug, country_code, include_cc_warehouses
         )
     )
@@ -291,13 +303,16 @@ def check_stock_quantity_bulk(
         if quantity > 0:
             _check_quantity_limits(variant, quantity, global_quantity_limit)
 
+            if not variant.track_inventory:
+                continue
+
             if not stocks:
                 insufficient_stocks.append(
                     InsufficientStockData(
                         variant=variant, available_quantity=available_quantity
                     )
                 )
-            elif variant.track_inventory and quantity > available_quantity:
+            elif quantity > available_quantity:
                 insufficient_stocks.append(
                     InsufficientStockData(
                         variant=variant,
@@ -309,12 +324,14 @@ def check_stock_quantity_bulk(
         raise InsufficientStock(insufficient_stocks)
 
 
-def _get_variants_channel_availbility_info(
+def _get_variants_channel_availability_info(
     variants: Iterable["ProductVariant"],
     channel_slug: str,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> VariantsChannelAvailbilityInfo:
     all_variants_channel_listings = (
-        ProductVariantChannelListing.objects.filter(variant__in=variants)
+        ProductVariantChannelListing.objects.using(database_connection_name)
+        .filter(variant__in=variants)
         .annotate_preorder_quantity_allocated()
         .annotate(
             available_preorder_quantity=F("preorder_quantity_threshold")
@@ -357,6 +374,7 @@ def check_preorder_threshold_in_orders(
     channel_slug: str,
     checkout_lines: Optional[Iterable["CheckoutLine"]],
     check_reservations: bool,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     """Validate if there is preorder available for given variants in given country.
 
@@ -368,11 +386,15 @@ def check_preorder_threshold_in_orders(
         variants_global_allocations,
         all_variants_channel_listings,
         variant_channels,
-    ) = _get_variants_channel_availbility_info([variant], channel_slug)
+    ) = _get_variants_channel_availability_info(
+        [variant], channel_slug, database_connection_name=database_connection_name
+    )
 
     if check_reservations:
         listings_reservations = get_listings_reservations(
-            checkout_lines, all_variants_channel_listings
+            checkout_lines,
+            all_variants_channel_listings,
+            database_connection_name=database_connection_name,
         )
     else:
         listings_reservations = defaultdict(int)
@@ -436,7 +458,7 @@ def check_preorder_threshold_bulk(
         variants_global_allocations,
         all_variants_channel_listings,
         variant_channels,
-    ) = _get_variants_channel_availbility_info(variants, channel_slug)
+    ) = _get_variants_channel_availability_info(variants, channel_slug)
 
     if check_reservations:
         listings_reservations = get_listings_reservations(

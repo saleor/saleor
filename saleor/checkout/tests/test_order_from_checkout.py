@@ -673,11 +673,15 @@ def test_create_order_from_checkout_store_shipping_prices(
     assert order.base_shipping_price == expected_base_shipping_price
     assert order.shipping_price == expected_shipping_price
     manager.calculate_checkout_shipping.assert_called_once_with(
-        mock.ANY, lines, checkout.shipping_address
+        mock.ANY, lines, checkout.shipping_address, plugin_ids=None
     )
     assert order.shipping_tax_rate == expected_shipping_tax_rate
     manager.get_checkout_shipping_tax_rate.assert_called_once_with(
-        mock.ANY, lines, checkout.shipping_address, expected_shipping_price
+        mock.ANY,
+        lines,
+        checkout.shipping_address,
+        expected_shipping_price,
+        plugin_ids=None,
     )
 
 
@@ -772,11 +776,15 @@ def test_create_order_from_store_shipping_prices_with_free_shipping_voucher(
     assert order.base_shipping_price == expected_base_shipping_price
     assert order.shipping_price == expected_shipping_price
     manager.calculate_checkout_shipping.assert_called_once_with(
-        mock.ANY, lines, checkout.shipping_address
+        mock.ANY, lines, checkout.shipping_address, plugin_ids=None
     )
     assert order.shipping_tax_rate == expected_shipping_tax_rate
     manager.get_checkout_shipping_tax_rate.assert_called_once_with(
-        mock.ANY, lines, checkout.shipping_address, expected_shipping_price
+        mock.ANY,
+        lines,
+        checkout.shipping_address,
+        expected_shipping_price,
+        plugin_ids=None,
     )
 
 
@@ -909,7 +917,7 @@ def test_create_order_product_on_promotion(
     customer_user,
     shipping_method,
     app,
-    promotion_without_rules,
+    catalogue_promotion_without_rules,
 ):
     # given
     checkout = checkout_with_item_on_promotion

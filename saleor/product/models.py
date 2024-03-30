@@ -314,6 +314,7 @@ class ProductChannelListing(PublishableModel):
     discounted_price = MoneyField(
         amount_field="discounted_price_amount", currency_field="currency"
     )
+    discounted_price_dirty = models.BooleanField(default=False)
 
     class Meta:
         unique_together = [["product", "channel"]]

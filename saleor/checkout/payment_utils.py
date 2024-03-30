@@ -1,10 +1,13 @@
 """Checkout-related utility functions."""
+
 from collections.abc import Iterable
 from typing import Optional
 
+from django.conf import settings
 from django.db.models import Exists, Q
 from prices import Money
 
+from ..core.db.connection import allow_writer
 from ..core.taxes import zero_money
 from ..payment.models import TransactionItem
 from . import CheckoutAuthorizeStatus, CheckoutChargeStatus
@@ -83,12 +86,15 @@ def update_checkout_payment_statuses(
     checkout_has_lines: bool,
     checkout_transactions: Optional[Iterable["TransactionItem"]] = None,
     save: bool = True,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     current_authorize_status = checkout.authorize_status
     current_charge_status = checkout.charge_status
 
     if checkout_transactions is None:
-        checkout_transactions = checkout.payment_transactions.all()
+        checkout_transactions = checkout.payment_transactions.all().using(
+            database_connection_name
+        )
     total_authorized_amount, total_charged_amount = _get_payment_amount_for_checkout(
         checkout_transactions, checkout.currency
     )
@@ -110,7 +116,8 @@ def update_checkout_payment_statuses(
             fields_to_update.append("charge_status")
         if fields_to_update:
             fields_to_update.append("last_change")
-            checkout.save(update_fields=fields_to_update)
+            with allow_writer():
+                checkout.save(update_fields=fields_to_update)
 
 
 def update_refundable_for_checkout(checkout_pk):

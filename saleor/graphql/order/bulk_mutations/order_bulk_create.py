@@ -710,9 +710,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             object_storage[f"User.id.{user.id}"] = user
             object_storage[f"User.email.{user.email}"] = user
             if user.external_reference:
-                object_storage[
-                    f"User.external_reference.{user.external_reference}"
-                ] = user
+                object_storage[f"User.external_reference.{user.external_reference}"] = (
+                    user
+                )
 
         for variant in variants:
             object_storage[f"ProductVariant.id.{variant.id}"] = variant
@@ -733,9 +733,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             object_storage[f"GiftCard.code.{gift_card.code}"] = gift_card
 
         for order in orders:
-            object_storage[
-                f"Order.external_reference.{order.external_reference}"
-            ] = order
+            object_storage[f"Order.external_reference.{order.external_reference}"] = (
+                order
+            )
 
         for object in [*warehouses, *shipping_methods, *tax_classes, *apps]:
             object_storage[f"{object.__class__.__name__}.id.{object.pk}"] = object

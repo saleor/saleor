@@ -21,6 +21,7 @@ class Migration(migrations.Migration):
                     DROP TABLE discount_saletranslation;
                     DROP TABLE discount_sale;
                     """,
+                    reverse_sql=migrations.RunSQL.noop,
                 ),
             ]
         )

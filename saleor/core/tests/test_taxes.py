@@ -1,3 +1,4 @@
+import graphene
 import pytest
 from django.utils import timezone
 
@@ -16,6 +17,8 @@ from ...webhook.transport.utils import get_current_tax_app
 def app_factory():
     def factory(name, is_active, webhook_event_types, permissions):
         app = App.objects.create(name=name, is_active=is_active)
+        app.identifier = graphene.Node.to_global_id("App", app.pk)
+        app.save()
         webhook = Webhook.objects.create(
             name=f"{name} Webhook",
             app=app,

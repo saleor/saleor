@@ -11,7 +11,7 @@ interactions:
       Connection:
       - keep-alive
       User-Agent:
-      - python-requests/2.28.2
+      - Saleor/3.19
     method: GET
     uri: https://sandbox-rest.avatax.com/api/v2/definitions/taxcodes
   response:
@@ -23,18 +23,20 @@ interactions:
     headers:
       Connection:
       - keep-alive
-      Content-Length:
-      - '361'
       Content-Type:
       - application/json
       Date:
-      - Thu, 16 Feb 2023 12:53:49 GMT
+      - Mon, 12 Feb 2024 11:19:15 GMT
+      Transfer-Encoding:
+      - chunked
       X-Content-Type-Options:
       - nosniff
+      strict-transport-security:
+      - max-age=31536000; includeSubdomains; preload
       x-avalara-uid:
-      - 7ca9a8dc-f173-4109-b246-b63c4436ec54
+      - eab423e1-9e48-4cf2-be6e-27ea98d678e5
       x-correlation-id:
-      - 7ca9a8dc-f173-4109-b246-b63c4436ec54
+      - eab423e1-9e48-4cf2-be6e-27ea98d678e5
     status:
       code: 401
       message: Unauthorized

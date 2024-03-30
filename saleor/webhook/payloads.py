@@ -37,8 +37,9 @@ from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..order.utils import get_order_country
 from ..page.models import Page, PageMedia
 from ..payment import ChargeStatus
+from ..payment.models import Payment, TransactionItem
 from ..product import ProductMediaTypes
-from ..product.models import Collection, Product, ProductMedia
+from ..product.models import Collection, Product, ProductMedia, ProductVariant
 from ..shipping.interface import ShippingMethodData
 from ..tax.models import TaxClassCountryRate
 from ..tax.utils import get_charge_taxes_for_order
@@ -53,12 +54,6 @@ from .serializers import (
     serialize_product_attributes,
     serialize_variant_attributes,
 )
-
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from ..product.models import ProductVariant
-
-from ..payment.models import Payment, TransactionItem
 
 if TYPE_CHECKING:
     from ..discount.models import Promotion
@@ -713,6 +708,7 @@ def _get_charge_taxes_for_product(product: "Product") -> bool:
 def generate_product_payload(
     product: "Product", requestor: Optional["RequestorOrLazyObject"] = None
 ):
+    product = Product.objects.prefetched_for_webhook().get(pk=product.pk)
     serializer = PayloadSerializer(
         extra_model_fields={"ProductVariant": ("quantity", "quantity_allocated")}
     )
@@ -839,6 +835,14 @@ def generate_product_variant_payload(
     requestor: Optional["RequestorOrLazyObject"] = None,
     with_meta: bool = True,
 ):
+    if (
+        product_variants_with_prefetch
+        := ProductVariant.objects.prefetched_for_webhook().filter(
+            pk__in=[variant.pk for variant in product_variants]
+        )
+    ):
+        product_variants = product_variants_with_prefetch
+
     extra_dict_data = {
         "id": lambda v: v.get_global_id(),
         "attributes": lambda v: serialize_variant_attributes(v),
@@ -1135,15 +1139,7 @@ def generate_sample_payload(event_name: str) -> Optional[dict]:
         user = generate_fake_user()
         payload = generate_customer_payload(user)
     elif event_name == WebhookEventAsyncType.PRODUCT_CREATED:
-        product = _get_sample_object(
-            Product.objects.prefetch_related(
-                "category",
-                "collections",
-                "variants",
-                "attributevalues__value",
-                "product_type__attributeproduct__attribute",
-            )
-        )
+        product = _get_sample_object(Product.objects.all())
         payload = generate_product_payload(product) if product else None
     elif event_name in checkout_events:
         checkout = _get_sample_object(
@@ -1288,15 +1284,13 @@ def generate_checkout_payload_for_tax_calculation(
         user_id = graphene.Node.to_global_id("User", user.id)
         user_public_metadata = user.metadata
 
-    # Prepare discount data
-    # total_amount include the specific product and apply once per order discounts,
-    # so we need to attach only entire order discount here with once per order flag
-    # set to False
-    discount_not_included = (
-        checkout_info.voucher.type == VoucherType.ENTIRE_ORDER
-        and checkout_info.voucher.apply_once_per_order is False
-        if checkout_info.voucher
-        else False
+    # order promotion discount and entire_order voucher discount with
+    # apply_once_per_order set to False is not already included in the total price
+    discounted_object_promotion = bool(checkout_info.discounts)
+    discount_not_included = discounted_object_promotion or (
+        checkout_info.voucher
+        and checkout_info.voucher.type == VoucherType.ENTIRE_ORDER
+        and not checkout_info.voucher.apply_once_per_order
     )
     discount_amount = quantize_price(checkout.discount_amount, checkout.currency)
     discount_name = checkout.discount_name

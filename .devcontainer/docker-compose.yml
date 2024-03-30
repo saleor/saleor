@@ -6,7 +6,7 @@ services:
     build:
       context: ..
       dockerfile: .devcontainer/Dockerfile
-    command: /bin/sh -c "while sleep 1000; do :; done"
+    command: sleep infinity
     env_file:
       - common.env
       - backend.env

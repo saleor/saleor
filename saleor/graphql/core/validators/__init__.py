@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING, Optional
 from uuid import UUID
 
 import graphene
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django_prices.utils.formatting import get_currency_fraction
 from graphene.utils.str_converters import to_camel_case
@@ -95,13 +96,19 @@ def validate_decimal_max_value(value: "Decimal", max_value=10**9):
 
 
 def get_not_available_variants_in_channel(
-    variants_id: set, channel_id: int
+    variants_id: set,
+    channel_id: int,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> tuple[set[int], set[str]]:
-    available_variants = ProductVariantChannelListing.objects.filter(
-        variant__id__in=variants_id,
-        channel_id=channel_id,
-        price_amount__isnull=False,
-    ).values_list("variant_id", flat=True)
+    available_variants = (
+        ProductVariantChannelListing.objects.using(database_connection_name)
+        .filter(
+            variant__id__in=variants_id,
+            channel_id=channel_id,
+            price_amount__isnull=False,
+        )
+        .values_list("variant_id", flat=True)
+    )
     not_available_variants = variants_id - set(available_variants)
     not_available_graphql_ids = {
         graphene.Node.to_global_id("ProductVariant", pk)
@@ -114,12 +121,15 @@ def validate_variants_available_in_channel(
     variants_id: set,
     channel_id: int,
     error_code: str,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     """Validate available variants in specific channel."""
     (
         not_available_variants,
         not_available_graphql_ids,
-    ) = get_not_available_variants_in_channel(variants_id, channel_id)
+    ) = get_not_available_variants_in_channel(
+        variants_id, channel_id, database_connection_name
+    )
     if not_available_variants:
         raise ValidationError(
             {

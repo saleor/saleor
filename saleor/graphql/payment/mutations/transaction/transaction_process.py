@@ -17,14 +17,20 @@ from .....payment.utils import (
     get_final_session_statuses,
     handle_transaction_process_session,
 )
-from ....core.descriptions import ADDED_IN_313, ADDED_IN_316, PREVIEW_FEATURE
+from ....core.descriptions import (
+    ADDED_IN_313,
+    ADDED_IN_314,
+    ADDED_IN_316,
+    PREVIEW_FEATURE,
+)
 from ....core.doc_category import DOC_CATEGORY_PAYMENTS
 from ....core.mutations import BaseMutation
-from ....core.scalars import JSON
+from ....core.scalars import JSON, UUID
 from ....core.types import common as common_types
+from ....core.validators import validate_one_of_args_is_in_mutation
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import TransactionEvent, TransactionItem
-from .utils import clean_customer_ip_address
+from .utils import clean_customer_ip_address, get_transaction_item
 
 if TYPE_CHECKING:
     pass
@@ -44,8 +50,19 @@ class TransactionProcess(BaseMutation):
 
     class Arguments:
         id = graphene.ID(
-            description="The ID of the transaction to process.",
-            required=True,
+            description=(
+                "The ID of the transaction to process. "
+                "One of field id or token is required."
+            ),
+            required=False,
+        )
+        token = UUID(
+            description=(
+                "The token of the transaction to process. "
+                "One of field id or token is required."
+            )
+            + ADDED_IN_314,
+            required=False,
         )
         data = graphene.Argument(
             JSON, description="The data that will be passed to the payment gateway."
@@ -165,11 +182,11 @@ class TransactionProcess(BaseMutation):
         return app
 
     @classmethod
-    def perform_mutation(cls, root, info, *, id, data=None, customer_ip_address=None):
-        transaction_item = cls.get_node_or_error(
-            info, id, only_type="TransactionItem", field="token"
-        )
-        transaction_item = cast(payment_models.TransactionItem, transaction_item)
+    def perform_mutation(
+        cls, root, info, *, token=None, id=None, data=None, customer_ip_address=None
+    ):
+        validate_one_of_args_is_in_mutation("id", id, "token", token)
+        transaction_item = get_transaction_item(id, token)
         events = transaction_item.events.all()
         if processed_event := cls.get_already_processed_event(events):
             return cls(
@@ -181,7 +198,6 @@ class TransactionProcess(BaseMutation):
         source_object = cls.get_source_object(transaction_item)
         app = cls.clean_payment_app(transaction_item)
         app_identifier = app.identifier
-        app_identifier = cast(str, app_identifier)
         action = cls.get_action(request_event, source_object.channel)
         customer_ip_address = clean_customer_ip_address(
             info,

@@ -23,14 +23,21 @@ from ..core.filters import (
     ObjectTypeFilter,
     ObjectTypeWhereFilter,
     OperationObjectTypeWhereFilter,
+    WhereFilterSet,
 )
 from ..core.types import (
+    BaseInputObjectType,
     DateTimeFilterInput,
     DateTimeRangeInput,
     IntRangeInput,
+    NonNullList,
     StringFilterInput,
 )
-from ..core.types.filter_input import WhereInputObjectType
+from ..core.types.filter_input import (
+    DecimalFilterInput,
+    FilterInputDescriptions,
+    WhereInputObjectType,
+)
 from ..utils.filters import (
     filter_by_id,
     filter_by_ids,
@@ -38,7 +45,12 @@ from ..utils.filters import (
     filter_where_by_string_field,
     filter_where_range_field,
 )
-from .enums import DiscountStatusEnum, DiscountValueTypeEnum, VoucherDiscountType
+from .enums import (
+    DiscountStatusEnum,
+    DiscountValueTypeEnum,
+    PromotionTypeEnum,
+    VoucherDiscountType,
+)
 
 
 def filter_status(
@@ -87,7 +99,7 @@ def filter_started(qs, _, value):
 
 def filter_sale_type(qs, _, value):
     if value in [DiscountValueType.FIXED, DiscountValueType.PERCENTAGE]:
-        rules = PromotionRule.objects.filter(reward_value_type=value)
+        rules = PromotionRule.objects.using(qs.db).filter(reward_value_type=value)
         qs = qs.filter(Exists(rules.filter(promotion_id=OuterRef("pk"))))
     return qs
 
@@ -99,7 +111,7 @@ def filter_sale_search(qs, _, value):
         return qs.filter(
             Q(name__ilike=value) | Q(rules__reward_value_type__ilike=value)
         )
-    rules = PromotionRule.objects.filter(reward_value=value)
+    rules = PromotionRule.objects.using(qs.db).filter(reward_value=value)
     return qs.filter(Exists(rules.filter(promotion_id=OuterRef("pk"))))
 
 
@@ -108,7 +120,9 @@ def filter_voucher_search(qs, _, value):
         Q(name__ilike=value)
         | Q(
             Exists(
-                VoucherCode.objects.filter(code__ilike=value, voucher_id=OuterRef("pk"))
+                VoucherCode.objects.using(qs.db).filter(
+                    code__ilike=value, voucher_id=OuterRef("pk")
+                )
             )
         )
     )
@@ -150,6 +164,18 @@ class SaleFilter(MetadataFilterBase):
         fields = ["status", "sale_type", "started", "search"]
 
 
+class PromotionTypeEnumFilterInput(BaseInputObjectType):
+    eq = PromotionTypeEnum(description=FilterInputDescriptions.EQ, required=False)
+    one_of = NonNullList(
+        PromotionTypeEnum,
+        description=FilterInputDescriptions.ONE_OF,
+        required=False,
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_DISCOUNTS
+
+
 class PromotionWhere(MetadataWhereFilterBase):
     ids = GlobalIDMultipleChoiceWhereFilter(method=filter_by_ids("Promotion"))
     name = OperationObjectTypeWhereFilter(
@@ -168,6 +194,9 @@ class PromotionWhere(MetadataWhereFilterBase):
         help_text="Filter promotions by start date.",
     )
     is_old_sale = BooleanWhereFilter(method="filter_is_old_sale")
+    type = OperationObjectTypeWhereFilter(
+        input_class=PromotionTypeEnumFilterInput, method="filter_type"
+    )
 
     @staticmethod
     def filter_promotion_name(qs, _, value):
@@ -185,8 +214,34 @@ class PromotionWhere(MetadataWhereFilterBase):
     def filter_is_old_sale(qs, _, value):
         return qs.exclude(old_sale_id__isnull=value)
 
+    @staticmethod
+    def filter_type(qs, _, value):
+        return filter_where_by_string_field(qs, "type", value)
+
 
 class PromotionWhereInput(WhereInputObjectType):
     class Meta:
         doc_category = DOC_CATEGORY_DISCOUNTS
         filterset_class = PromotionWhere
+
+
+class DiscountedObjectWhere(WhereFilterSet):
+    base_subtotal_price = OperationObjectTypeWhereFilter(
+        input_class=DecimalFilterInput,
+        method="filter_base_subtotal_price",
+        help_text="Filter by the base subtotal price.",
+    )
+    base_total_price = OperationObjectTypeWhereFilter(
+        input_class=DecimalFilterInput,
+        method="filter_base_total_price",
+        help_text="Filter by the base total price.",
+    )
+
+    class Meta:
+        abstract = True
+
+
+class DiscountedObjectWhereInput(WhereInputObjectType):
+    class Meta:
+        doc_category = DOC_CATEGORY_DISCOUNTS
+        filterset_class = DiscountedObjectWhere

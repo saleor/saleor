@@ -122,9 +122,9 @@ DEFAULT_EMAIL_CONFIG_STRUCTURE = {
 def format_address(this, address, include_phone=True, inline=False, latin=False):
     address["name"] = f"{address.get('first_name', '')} {address.get('last_name', '')}"
     address["country_code"] = address["country"]
-    address[
-        "street_address"
-    ] = f"{address.get('street_address_1','')}\n {address.get('street_address_2','')}"
+    address["street_address"] = (
+        f"{address.get('street_address_1','')}\n {address.get('street_address_2','')}"
+    )
     address_lines = i18naddress.format_address(address, latin).split("\n")
     phone = address.get("phone")
     if include_phone and phone:

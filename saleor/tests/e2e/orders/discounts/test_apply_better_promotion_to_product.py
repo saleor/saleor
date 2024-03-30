@@ -1,5 +1,6 @@
 import pytest
 
+from .....product.tasks import recalculate_discounted_price_for_products_task
 from ... import DEFAULT_ADDRESS
 from ...product.utils import get_product
 from ...product.utils.preparing_product import prepare_product
@@ -18,18 +19,22 @@ def prepare_promotion_with_rules(
     channel_id,
     product_id,
 ):
-    promotion = create_promotion(e2e_staff_api_client, promotion_name)
+    promotion_type = "CATALOGUE"
+    promotion = create_promotion(e2e_staff_api_client, promotion_name, promotion_type)
     promotion_id = promotion["id"]
 
     catalogue_predicate = {"productPredicate": {"ids": [product_id]}}
+    input = {
+        "promotion": promotion_id,
+        "channels": [channel_id],
+        "name": rule_name,
+        "cataloguePredicate": catalogue_predicate,
+        "rewardValue": discount_value,
+        "rewardValueType": discount_type,
+    }
     promotion_rule = create_promotion_rule(
         e2e_staff_api_client,
-        promotion_id,
-        catalogue_predicate,
-        discount_type,
-        discount_value,
-        rule_name,
-        channel_id,
+        input,
     )
     product_predicate = promotion_rule["cataloguePredicate"]["productPredicate"]["ids"]
     assert promotion_rule["channels"][0]["id"] == channel_id
@@ -114,6 +119,10 @@ def test_apply_best_promotion_to_product_core_2105(
         channel_id,
         product_id,
     )
+
+    # prices are updated in the background, we need to force it to retrieve the correct
+    # ones
+    recalculate_discounted_price_for_products_task()
 
     # Step 1 - Get product and check if it is on promotion
     product_data = get_product(e2e_staff_api_client, product_id, channel_slug)

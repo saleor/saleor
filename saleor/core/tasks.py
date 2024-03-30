@@ -1,4 +1,3 @@
-import datetime
 import logging
 
 from botocore.exceptions import ClientError
@@ -26,7 +25,10 @@ def delete_from_storage_task(path):
 
 @app.task
 def delete_event_payloads_task(expiration_date=None):
-    expiration_date = expiration_date or timezone.now() + datetime.timedelta(minutes=60)
+    expiration_date = (
+        expiration_date
+        or timezone.now() + settings.EVENT_PAYLOAD_DELETE_TASK_TIME_LIMIT
+    )
     delete_period = timezone.now() - settings.EVENT_PAYLOAD_DELETE_PERIOD
     valid_deliveries = EventDelivery.objects.filter(created_at__gt=delete_period)
     payloads_to_delete = EventPayload.objects.filter(
@@ -39,7 +41,7 @@ def delete_event_payloads_task(expiration_date=None):
             qs.delete()
             delete_event_payloads_task.delay(expiration_date)
         else:
-            task_logger.warning("Task invocation time limit reached, aborting task")
+            task_logger.error("Task invocation time limit reached, aborting task")
 
 
 @app.task(

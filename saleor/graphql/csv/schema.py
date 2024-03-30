@@ -35,7 +35,9 @@ class CsvQueries(graphene.ObjectType):
 
     def resolve_export_files(self, info: ResolveInfo, **kwargs):
         qs = resolve_export_files(info)
-        qs = filter_connection_queryset(qs, kwargs)
+        qs = filter_connection_queryset(
+            qs, kwargs, allow_replica=info.context.allow_replica
+        )
         return create_connection_slice(qs, info, kwargs, ExportFileCountableConnection)
 
 

@@ -11,7 +11,7 @@ from .....checkout.models import Checkout
 from .....checkout.utils import (
     add_variant_to_checkout,
     add_voucher_to_checkout,
-    invalidate_checkout_prices,
+    invalidate_checkout,
 )
 from .....plugins.base_plugin import ExcludedShippingMethod
 from .....plugins.manager import get_plugins_manager
@@ -91,11 +91,11 @@ MUTATION_CHECKOUT_SHIPPING_ADDRESS_WITH_METADATA_UPDATE = """
 )
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_shipping_address_update."
-    "invalidate_checkout_prices",
-    wraps=invalidate_checkout_prices,
+    "invalidate_checkout",
+    wraps=invalidate_checkout,
 )
 def test_checkout_shipping_address_with_metadata_update(
-    mocked_invalidate_checkout_prices,
+    mocked_invalidate_checkout,
     mocked_update_shipping_method,
     user_api_client,
     checkout_with_item,
@@ -137,7 +137,7 @@ def test_checkout_shipping_address_with_metadata_update(
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.last_change != previous_last_change
-    assert mocked_invalidate_checkout_prices.call_count == 1
+    assert mocked_invalidate_checkout.call_count == 1
 
 
 @mock.patch(
@@ -989,3 +989,29 @@ def test_with_active_problems_flow(
 
     # then
     assert not content["data"]["checkoutShippingAddressUpdate"]["errors"]
+
+
+def test_checkout_shipping_address_update_with_collection_point_already_set(
+    user_api_client,
+    checkout_with_item,
+    graphql_address_data,
+    warehouse_for_cc,
+):
+    checkout = checkout_with_item
+    checkout.collection_point_id = warehouse_for_cc.id
+    checkout.save(update_fields=["collection_point_id"])
+
+    shipping_address = graphql_address_data
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "shippingAddress": shipping_address,
+    }
+
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutShippingAddressUpdate"]
+    errors = data["errors"]
+    assert errors[0]["code"] == CheckoutErrorCode.SHIPPING_CHANGE_FORBIDDEN.name
+    assert errors[0]["field"] == "shippingAddress"

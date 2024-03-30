@@ -4,6 +4,7 @@ import pytest
 from django.utils import timezone
 from freezegun import freeze_time
 
+from .....product.tasks import recalculate_discounted_price_for_products_task
 from ... import DEFAULT_ADDRESS
 from ...product.utils import get_product
 from ...product.utils.preparing_product import prepare_product
@@ -53,10 +54,16 @@ def test_order_promotion_not_applied_when_not_within_time_range_CORE_2110(
         e2e_staff_api_client, warehouse_id, channel_id, variant_price=20
     )
 
+    # prices are updated in the background, we need to force it to retrieve the correct
+    # ones
+    recalculate_discounted_price_for_products_task()
+
     # Step 1 - Create promotion lasting for a specific time range
+    promotion_type = "CATALOGUE"
     promotion_data = create_promotion(
         e2e_staff_api_client,
         promotion_name,
+        promotion_type,
         start_date=tomorrow,
         end_date=month_after,
     )
@@ -70,14 +77,17 @@ def test_order_promotion_not_applied_when_not_within_time_range_CORE_2110(
 
     catalogue_predicate = {"productPredicate": {"ids": [product_id]}}
 
+    input = {
+        "promotion": promotion_id,
+        "channels": [channel_id],
+        "name": promotion_rule_name,
+        "cataloguePredicate": catalogue_predicate,
+        "rewardValue": discount_value,
+        "rewardValueType": discount_type,
+    }
     promotion_rule = create_promotion_rule(
         e2e_staff_api_client,
-        promotion_id,
-        catalogue_predicate,
-        discount_type,
-        discount_value,
-        promotion_rule_name,
-        channel_id,
+        input,
     )
     product_predicate = promotion_rule["cataloguePredicate"]["productPredicate"]["ids"]
     assert promotion_rule["channels"][0]["id"] == channel_id

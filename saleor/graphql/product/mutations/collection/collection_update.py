@@ -1,5 +1,7 @@
 import graphene
+from django.db.models import Exists, OuterRef
 
+from .....discount.utils import mark_active_catalogue_promotion_rules_as_dirty
 from .....permission.enums import ProductPermissions
 from .....product import models
 from .....thumbnail import models as thumbnail_models
@@ -42,3 +44,16 @@ class CollectionUpdate(CollectionCreate):
         """Override this method with `pass` to avoid triggering product webhook."""
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.collection_updated, instance)
+
+        if "metadata" in cleaned_input:
+            collection_products = models.CollectionProduct.objects.filter(
+                collection_id=instance.id
+            )
+            channel_ids = set(
+                models.ProductChannelListing.objects.filter(
+                    Exists(
+                        collection_products.filter(product_id=OuterRef("product_id"))
+                    )
+                ).values_list("channel_id", flat=True)
+            )
+            cls.call_event(mark_active_catalogue_promotion_rules_as_dirty, channel_ids)

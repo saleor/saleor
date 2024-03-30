@@ -8,6 +8,10 @@ class TaxError(Exception):
     """Default tax error."""
 
 
+class TaxEmptyData(Exception):
+    """Empty tax data received from Tax App error."""
+
+
 def zero_money(currency: str) -> Money:
     """Return a money object set to zero.
 

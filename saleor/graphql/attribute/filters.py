@@ -42,11 +42,13 @@ def filter_attributes_by_product_types(qs, field, value, requestor, channel_slug
     if not value:
         return qs
 
-    product_qs = models.Product.objects.visible_to_user(requestor, channel_slug)
+    product_qs = models.Product.objects.using(qs.db).visible_to_user(
+        requestor, channel_slug
+    )
 
     if field == "in_category":
         _type, category_id = from_global_id_or_error(value, "Category")
-        category = models.Category.objects.filter(pk=category_id).first()
+        category = models.Category.objects.using(qs.db).filter(pk=category_id).first()
 
         if category is None:
             return qs.none()

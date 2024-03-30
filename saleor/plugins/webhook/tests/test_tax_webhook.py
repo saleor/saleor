@@ -29,10 +29,13 @@ def test_get_taxes_for_checkout_no_permission(
     # given
     plugin = webhook_plugin()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, plugin)
+    checkout_info = fetch_checkout_info(
+        checkout, lines, get_plugins_manager(allow_replica=False)
+    )
+    app_identifier = None
 
     # when
-    tax_data = plugin.get_taxes_for_checkout(checkout_info, lines, None)
+    tax_data = plugin.get_taxes_for_checkout(checkout_info, lines, app_identifier, None)
 
     # then
     assert mock_request.call_count == 0
@@ -55,9 +58,10 @@ def test_get_taxes_for_order(
     # given
     mock_request.return_value = tax_data_response
     plugin = webhook_plugin()
+    app_identifier = None
 
     # when
-    tax_data = plugin.get_taxes_for_order(order, None)
+    tax_data = plugin.get_taxes_for_order(order, app_identifier, None)
 
     # then
     payload = EventPayload.objects.get()
@@ -80,9 +84,10 @@ def test_get_taxes_for_order_no_permission(
 ):
     # given
     plugin = webhook_plugin()
+    app_identifier = None
 
     # when
-    tax_data = plugin.get_taxes_for_order(order, None)
+    tax_data = plugin.get_taxes_for_order(order, app_identifier, None)
 
     # then
     assert mock_request.call_count == 0
@@ -173,9 +178,10 @@ def test_get_taxes_for_order_with_sync_subscription(
         ),
     )
     webhook.events.create(event_type=WebhookEventSyncType.ORDER_CALCULATE_TAXES)
+    app_identifier = None
 
     # when
-    tax_data = plugin.get_taxes_for_order(order, None)
+    tax_data = plugin.get_taxes_for_order(order, app_identifier, None)
 
     # then
     payload = EventPayload.objects.get()
@@ -216,9 +222,10 @@ def test_get_taxes_for_checkout_with_sync_subscription(
         ),
     )
     webhook.events.create(event_type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES)
+    app_identifier = None
 
     # when
-    tax_data = plugin.get_taxes_for_checkout(checkout_info, [], None)
+    tax_data = plugin.get_taxes_for_checkout(checkout_info, [], app_identifier, None)
 
     # then
     payload = EventPayload.objects.get()

@@ -5,6 +5,7 @@ import pytest
 
 from .....order import OrderStatus
 from .....order import events as order_events
+from .....order.error_codes import OrderErrorCode
 from .....order.models import OrderEvent
 from .....product.models import ProductVariant
 from .....tests.utils import flush_post_commit_hooks
@@ -18,6 +19,7 @@ ORDER_LINE_UPDATE_MUTATION = """
             errors {
                 field
                 message
+                code
             }
             orderLine {
                 id
@@ -368,15 +370,50 @@ def test_invalid_order_when_updating_lines(
     staff_api_client,
     permission_group_manage_orders,
 ):
+    # given
     query = ORDER_LINE_UPDATE_MUTATION
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
     line = order.lines.first()
     line_id = graphene.Node.to_global_id("OrderLine", line.id)
     variables = {"lineId": line_id, "quantity": 1}
+
+    # when
     response = staff_api_client.post_graphql(query, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["orderLineUpdate"]
     assert data["errors"]
     order_update_webhook_mock.assert_not_called()
     draft_order_update_webhook_mock.assert_not_called()
+
+
+def test_order_line_update_quantity_gift(
+    order_with_lines,
+    staff_api_client,
+    permission_group_manage_orders,
+):
+    # given
+    query = ORDER_LINE_UPDATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
+    order.save(update_fields=["status"])
+    line = order.lines.first()
+    line.is_gift = True
+    line.save(update_fields=["is_gift"])
+    line_id = graphene.Node.to_global_id("OrderLine", line.id)
+    variables = {"lineId": line_id, "quantity": 1}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderLineUpdate"]
+    assert not data["orderLine"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "id"
+    assert errors[0]["code"] == OrderErrorCode.NON_EDITABLE_GIFT_LINE.name

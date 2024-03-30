@@ -1,11 +1,13 @@
 from collections import defaultdict
 
+from django.db.models import Exists, OuterRef
 from promise import Promise
 
 from ....attribute.models import (
     AssignedProductAttributeValue,
     AssignedVariantAttribute,
     AssignedVariantAttributeValue,
+    Attribute,
     AttributeProduct,
     AttributeVariant,
 )
@@ -22,24 +24,16 @@ class BaseProductAttributesByProductTypeIdLoader(DataLoader):
     model_name = None
     extra_fields = None
 
+    def get_queryset(self):
+        raise NotImplementedError()
+
     def batch_load(self, keys):
         if not self.model_name:
             raise ValueError("Provide a model_name for this dataloader.")
         if not self.extra_fields:
             self.extra_fields = []
 
-        requestor = get_user_or_app_from_context(self.context)
-        if (
-            requestor
-            and requestor.is_active
-            and requestor.has_perm(ProductPermissions.MANAGE_PRODUCTS)
-        ):
-            qs = self.model_name.objects.using(self.database_connection_name).all()
-        else:
-            qs = self.model_name.objects.using(self.database_connection_name).filter(
-                attribute__visible_in_storefront=True
-            )
-
+        qs = self.get_queryset()
         product_type_attribute_pairs = qs.filter(product_type_id__in=keys).values_list(
             "product_type_id", "attribute_id", *self.extra_fields
         )
@@ -69,23 +63,62 @@ class BaseProductAttributesByProductTypeIdLoader(DataLoader):
         )
 
 
-class ProductAttributesByProductTypeIdLoader(
+class ProductAttributesAllByProductTypeIdLoader(
     BaseProductAttributesByProductTypeIdLoader
 ):
-    """Loads product attributes by product type ID."""
-
-    context_key = "product_attributes_by_producttype"
+    context_key = "product_attributes_all_by_producttype"
     model_name = AttributeProduct
 
+    def get_queryset(self):
+        return self.model_name.objects.using(self.database_connection_name).all()
 
-class VariantAttributesByProductTypeIdLoader(
+
+class ProductAttributesVisibleInStorefrontByProductTypeIdLoader(
+    BaseProductAttributesByProductTypeIdLoader
+):
+    context_key = "product_attributes_visible_in_storefront_by_producttype"
+    model_name = AttributeProduct
+
+    def get_queryset(self):
+        return self.model_name.objects.using(self.database_connection_name).filter(
+            Exists(
+                Attribute.objects.filter(
+                    pk=OuterRef("attribute_id"), visible_in_storefront=True
+                ),
+            ),
+        )
+
+
+class VariantAttributesAllByProductTypeIdLoader(
     BaseProductAttributesByProductTypeIdLoader
 ):
     """Loads variant attributes by product type ID."""
 
-    context_key = "variant_attributes_by_producttype"
+    context_key = "variant_attributes_all_by_producttype"
     model_name = AttributeVariant
     extra_fields = ["variant_selection"]
+
+    def get_queryset(self):
+        return self.model_name.objects.using(self.database_connection_name).all()
+
+
+class VariantAttributesVisibleInStorefrontByProductTypeIdLoader(
+    BaseProductAttributesByProductTypeIdLoader
+):
+    """Loads variant attributes by product type ID."""
+
+    context_key = "variant_attributes_visible_in_storefront_by_producttype"
+    model_name = AttributeVariant
+    extra_fields = ["variant_selection"]
+
+    def get_queryset(self):
+        return self.model_name.objects.using(self.database_connection_name).filter(
+            Exists(
+                Attribute.objects.filter(
+                    pk=OuterRef("attribute_id"), visible_in_storefront=True
+                ),
+            ),
+        )
 
 
 class AttributeVariantsByProductTypeIdLoader(DataLoader):
@@ -167,8 +200,9 @@ class AttributeValuesByAssignedVariantAttributeIdLoader(DataLoader):
         )
 
 
-class AttributeValuesByProductIdLoader(DataLoader):
-    context_key = "attributevalues_by_productid"
+class BaseAttributeValuesByProductIdLoader(DataLoader):
+    def get_product_attributes_dataloader(self):
+        raise NotImplementedError()
 
     def batch_load(self, keys):
         # Using list + iterator is a small optimisation because iterator causes
@@ -216,7 +250,7 @@ class AttributeValuesByProductIdLoader(DataLoader):
                         )
                 return [assigned_product_map[key] for key in keys]
 
-            attributes = ProductAttributesByProductTypeIdLoader(self.context).load_many(
+            attributes = self.get_product_attributes_dataloader().load_many(
                 product_type_ids
             )
             values = AttributeValueByIdLoader(self.context).load_many(value_ids)
@@ -225,11 +259,36 @@ class AttributeValuesByProductIdLoader(DataLoader):
         return ProductByIdLoader(self.context).load_many(keys).then(with_products)
 
 
-class SelectedAttributesByProductIdLoader(DataLoader):
-    context_key = "selectedattributes_by_product"
+class AttributeValuesAllByProductIdLoader(BaseAttributeValuesByProductIdLoader):
+    context_key = "attributevalues_all_by_productid"
+
+    def get_product_attributes_dataloader(self):
+        return ProductAttributesAllByProductTypeIdLoader(self.context)
+
+
+class AttributeValuesVisibleInStorefrontByProductIdLoader(
+    BaseAttributeValuesByProductIdLoader
+):
+    context_key = "attributevalues_visible_in_storefront_by_productid"
+
+    def get_product_attributes_dataloader(self):
+        return ProductAttributesVisibleInStorefrontByProductTypeIdLoader(self.context)
+
+
+class SelectedAttributesAllByProductIdLoader(DataLoader):
+    context_key = "selectedattributes_all_by_product"
 
     def batch_load(self, product_ids):
-        return AttributeValuesByProductIdLoader(self.context).load_many(product_ids)
+        return AttributeValuesAllByProductIdLoader(self.context).load_many(product_ids)
+
+
+class SelectedAttributesVisibleInStorefrontByProductIdLoader(DataLoader):
+    context_key = "selectedattributes_visible_in_storefront_by_product"
+
+    def batch_load(self, product_ids):
+        return AttributeValuesVisibleInStorefrontByProductIdLoader(
+            self.context
+        ).load_many(product_ids)
 
 
 class SelectedAttributesByProductVariantIdLoader(DataLoader):

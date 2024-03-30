@@ -1,5 +1,6 @@
 import pytest
 
+from .....product.tasks import recalculate_discounted_price_for_products_task
 from ...product.utils.preparing_product import prepare_product
 from ...promotions.utils import create_promotion, create_promotion_rule
 from ...shop.utils.preparing_shop import prepare_default_shop
@@ -23,14 +24,16 @@ def prepare_promotion(
     e2e_staff_api_client,
     product_id,
     channel_id,
-    promotion_type,
     promotion_value,
+    promotion_value_type,
 ):
     promotion_name = "test_promotion"
+    promotion_type = "CATALOGUE"
 
     promotion_data = create_promotion(
         e2e_staff_api_client,
         promotion_name,
+        promotion_type,
     )
     promotion_id = promotion_data["id"]
 
@@ -41,15 +44,17 @@ def prepare_promotion(
     catalogue_predicate = {
         "productPredicate": {"ids": [product_id]},
     }
-
+    input = {
+        "promotion": promotion_id,
+        "channels": [channel_id],
+        "name": promotion_rule_name,
+        "cataloguePredicate": catalogue_predicate,
+        "rewardValue": promotion_value,
+        "rewardValueType": promotion_value_type,
+    }
     promotion_rule = create_promotion_rule(
         e2e_staff_api_client,
-        promotion_id,
-        catalogue_predicate,
-        promotion_type,
-        promotion_value,
-        promotion_rule_name,
-        channel_id,
+        input,
     )
     product_predicate = promotion_rule["cataloguePredicate"]["productPredicate"]["ids"]
     assert promotion_rule["channels"][0]["id"] == channel_id
@@ -104,7 +109,7 @@ def prepare_voucher(
     (
         "variant_price",
         "promotion_value",
-        "promotion_type",
+        "promotion_value_type",
         "expected_promotion_discount",
         "voucher_discount_value",
         "voucher_discount_type",
@@ -125,7 +130,7 @@ def test_checkout_with_promotion_and_voucher_CORE_2107(
     permission_manage_product_types_and_attributes,
     permission_manage_discounts,
     variant_price,
-    promotion_type,
+    promotion_value_type,
     promotion_value,
     expected_promotion_discount,
     voucher_discount_value,
@@ -162,8 +167,8 @@ def test_checkout_with_promotion_and_voucher_CORE_2107(
         e2e_staff_api_client,
         product_id,
         channel_id,
-        promotion_type,
         promotion_value,
+        promotion_value_type,
     )
 
     voucher_discount_value, voucher_code = prepare_voucher(
@@ -173,6 +178,10 @@ def test_checkout_with_promotion_and_voucher_CORE_2107(
         voucher_discount_type,
         voucher_discount_value,
     )
+
+    # prices are updated in the background, we need to force it to retrieve the correct
+    # ones
+    recalculate_discounted_price_for_products_task()
 
     # Step 1 - Create checkout for product with promotion
     lines = [

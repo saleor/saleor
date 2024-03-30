@@ -16,12 +16,51 @@ from ...enums import TransactionActionEnum
 
 MUTATION_TRANSACTION_REQUEST_ACTION = """
 mutation TransactionRequestAction(
-    $id: ID!,
-    $action_type: TransactionActionEnum!,
+    $id: ID
+    $action_type: TransactionActionEnum!
     $amount: PositiveDecimal
     ){
     transactionRequestAction(
             id: $id,
+            actionType: $action_type,
+            amount: $amount
+        ){
+        transaction{
+                id
+                actions
+                pspReference
+                modifiedAt
+                createdAt
+                authorizedAmount{
+                    amount
+                    currency
+                }
+                chargedAmount{
+                    currency
+                    amount
+                }
+                refundedAmount{
+                    currency
+                    amount
+                }
+        }
+        errors{
+            field
+            message
+            code
+        }
+    }
+}
+"""
+
+MUTATION_TRANSACTION_REQUEST_ACTION_BY_TOKEN = """
+mutation TransactionRequestAction(
+    $token: UUID
+    $action_type: TransactionActionEnum!
+    $amount: PositiveDecimal
+    ){
+    transactionRequestAction(
+            token: $token,
             actionType: $action_type,
             amount: $amount
         ){
@@ -195,6 +234,89 @@ def test_transaction_request_charge_for_order(
     # when
     response = app_api_client.post_graphql(
         MUTATION_TRANSACTION_REQUEST_ACTION,
+        variables,
+        permissions=[permission_manage_payments],
+    )
+
+    # then
+    get_graphql_content(response)
+
+    request_event = TransactionEvent.objects.filter(
+        type=TransactionEventType.CHARGE_REQUEST,
+    ).first()
+
+    assert request_event
+    assert mocked_is_active.called
+    mocked_payment_action_request.assert_called_once_with(
+        TransactionActionData(
+            transaction=transaction,
+            action_type=TransactionAction.CHARGE,
+            action_value=expected_called_charge_amount,
+            event=request_event,
+            transaction_app_owner=transaction_request_webhook.app,
+        ),
+        order_with_lines.channel.slug,
+    )
+
+    event = order_with_lines.events.first()
+    assert event.type == OrderEvents.TRANSACTION_CHARGE_REQUESTED
+    assert Decimal(event.parameters["amount"]) == expected_called_charge_amount
+    assert event.parameters["reference"] == transaction.psp_reference
+
+    assert TransactionEvent.objects.get(
+        transaction=transaction,
+        type=TransactionEventType.CHARGE_REQUEST,
+        amount_value=expected_called_charge_amount,
+    )
+
+
+@pytest.mark.parametrize(
+    ("charge_amount", "expected_called_charge_amount"),
+    [
+        (Decimal("8.00"), Decimal("8.00")),
+        (None, Decimal("10.00")),
+        (Decimal("100"), Decimal("10.00")),
+    ],
+)
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.transaction_charge_requested")
+def test_transaction_request_charge_for_order_via_token(
+    mocked_payment_action_request,
+    mocked_is_active,
+    charge_amount,
+    expected_called_charge_amount,
+    order_with_lines,
+    app_api_client,
+    permission_manage_payments,
+    transaction_request_webhook,
+    app,
+):
+    # given
+    transaction_request_webhook.events.create(
+        event_type=WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED
+    )
+    mocked_is_active.return_value = False
+
+    transaction = TransactionItem.objects.create(
+        name="Credit card",
+        psp_reference="PSP ref",
+        available_actions=["charge", "cancel"],
+        currency="USD",
+        order_id=order_with_lines.pk,
+        authorized_value=Decimal("10"),
+        app_identifier=transaction_request_webhook.app.identifier,
+        app=transaction_request_webhook.app,
+    )
+
+    variables = {
+        "token": transaction.token,
+        "action_type": TransactionActionEnum.CHARGE.name,
+        "amount": charge_amount,
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_REQUEST_ACTION_BY_TOKEN,
         variables,
         permissions=[permission_manage_payments],
     )

@@ -8,6 +8,7 @@ from ...order import models
 from ...permission.enums import OrderPermissions
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
+from ..core.context import get_database_connection_name
 from ..core.descriptions import ADDED_IN_310, DEPRECATED_IN_3X_FIELD
 from ..core.doc_category import DOC_CATEGORY_ORDERS
 from ..core.enums import ReportingPeriod
@@ -164,9 +165,12 @@ class OrderQueries(graphene.ObjectType):
         validate_one_of_args_is_in_query(
             "id", id, "external_reference", external_reference
         )
+        database_connection_name = get_database_connection_name(info.context)
         if not id:
             try:
-                id = ext_ref_to_global_id_or_error(models.Order, external_reference)
+                id = ext_ref_to_global_id_or_error(
+                    models.Order, external_reference, database_connection_name
+                )
             except ValidationError:
                 return None
         _, id = from_global_id_or_error(id, Order)
@@ -188,7 +192,9 @@ class OrderQueries(graphene.ObjectType):
                 {"direction": "-", "field": ["search_rank", "id"]}
             )
         qs = resolve_orders(info, channel)
-        qs = filter_connection_queryset(qs, kwargs)
+        qs = filter_connection_queryset(
+            qs, kwargs, allow_replica=info.context.allow_replica
+        )
         return create_connection_slice(qs, info, kwargs, OrderCountableConnection)
 
     @staticmethod
@@ -207,7 +213,9 @@ class OrderQueries(graphene.ObjectType):
                 {"direction": "-", "field": ["search_rank", "id"]}
             )
         qs = resolve_draft_orders(info)
-        qs = filter_connection_queryset(qs, kwargs)
+        qs = filter_connection_queryset(
+            qs, kwargs, allow_replica=info.context.allow_replica
+        )
         return create_connection_slice(qs, info, kwargs, OrderCountableConnection)
 
     @staticmethod

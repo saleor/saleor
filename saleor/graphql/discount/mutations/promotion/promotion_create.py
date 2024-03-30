@@ -3,20 +3,21 @@ from datetime import datetime
 
 import graphene
 import pytz
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.models import Q
 from graphql.error import GraphQLError
 
 from .....channel import models as channel_models
-from .....discount import events, models
+from .....discount import PromotionType, events, models
 from .....permission.enums import DiscountPermissions
 from .....plugins.manager import PluginsManager
-from .....product.tasks import update_products_discounted_prices_of_promotion_task
 from .....webhook.event_types import WebhookEventAsyncType
 from ....app.dataloaders import get_app_promise
 from ....channel.types import Channel
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_317, PREVIEW_FEATURE
+from ....core.descriptions import ADDED_IN_317, ADDED_IN_319, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import ModelMutation
 from ....core.scalars import JSON
@@ -25,9 +26,10 @@ from ....core.utils import WebhookEventInfo
 from ....core.validators import validate_end_is_after_start
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ....utils import get_nodes
-from ...enums import PromotionCreateErrorCode
+from ...enums import PromotionCreateErrorCode, PromotionTypeEnum
 from ...inputs import PromotionRuleBaseInput
 from ...types import Promotion
+from ..utils import promotion_rule_should_be_marked_with_dirty_variants
 from .validators import clean_promotion_rule
 
 
@@ -36,12 +38,30 @@ class PromotionCreateError(Error):
     index = graphene.Int(
         description="Index of an input list item that caused the error."
     )
+    rules_limit = graphene.Int(
+        description="Limit of rules with orderPredicate defined."
+    )
+    rules_limit_exceed_by = graphene.Int(
+        description="Number of rules with orderPredicate defined exceeding the limit."
+    )
+    gifts_limit = graphene.Int(description="Limit of gifts assigned to promotion rule.")
+    gifts_limit_exceed_by = graphene.Int(
+        description=(
+            "Number of gifts defined for this promotion rule exceeding the limit."
+        )
+    )
 
 
 class PromotionRuleInput(PromotionRuleBaseInput):
     channels = NonNullList(
         graphene.ID,
         description="List of channel ids to which the rule should apply to.",
+    )
+    gifts = NonNullList(
+        graphene.ID,
+        description="Product variant IDs available as a gift to choose."
+        + ADDED_IN_319
+        + PREVIEW_FEATURE,
     )
 
     class Meta:
@@ -60,6 +80,16 @@ class PromotionInput(BaseInputObjectType):
 
 class PromotionCreateInput(PromotionInput):
     name = graphene.String(description="Promotion name.", required=True)
+    type = PromotionTypeEnum(
+        description=(
+            "Defines the promotion type. Implicate the required promotion rules "
+            "predicate type and whether the promotion rules will give the catalogue "
+            "or order discount. "
+            "\n\nThe default value is `Catalogue`."
+            "\n\nThis field will be required from Saleor 3.20." + ADDED_IN_319
+        ),
+        required=False,
+    )
     rules = NonNullList(PromotionRuleInput, description="List of promotion rules.")
 
     class Meta:
@@ -105,8 +135,9 @@ class PromotionCreate(ModelMutation):
             error.code = PromotionCreateErrorCode.INVALID.value
             errors["end_date"].append(error)
 
+        promotion_type = cleaned_input.get("type", PromotionType.CATALOGUE)
         if rules := cleaned_input.get("rules"):
-            cleaned_rules, errors = cls.clean_rules(info, rules, errors)
+            cleaned_rules, errors = cls.clean_rules(info, rules, promotion_type, errors)
             cleaned_input["rules"] = cleaned_rules
 
         if errors:
@@ -119,14 +150,43 @@ class PromotionCreate(ModelMutation):
         cls,
         info: ResolveInfo,
         rules_data: dict,
+        promotion_type: str,
         errors: defaultdict[str, list[ValidationError]],
     ) -> tuple[list, defaultdict[str, list[ValidationError]]]:
         cleaned_rules = []
+        if promotion_type == PromotionType.ORDER:
+            rules_limit = settings.ORDER_RULES_LIMIT
+            order_rules_count = models.PromotionRule.objects.filter(
+                ~Q(order_predicate={})
+            ).count()
+            exceed_by = order_rules_count + len(rules_data) - int(rules_limit)
+            if exceed_by > 0:
+                raise ValidationError(
+                    {
+                        "rules": ValidationError(
+                            "Number of rules with orderPredicate has reached the limit",
+                            code=PromotionCreateErrorCode.RULES_NUMBER_LIMIT.value,
+                            params={
+                                "rules_limit": rules_limit,
+                                "rules_limit_exceed_by": exceed_by,
+                            },
+                        )
+                    }
+                )
+
         for index, rule_data in enumerate(rules_data):
             if channel_ids := rule_data.get("channels"):
                 channels = cls.clean_channels(info, channel_ids, index, errors)
                 rule_data["channels"] = channels
-            clean_promotion_rule(rule_data, errors, PromotionCreateErrorCode, index)
+            if gift_ids := rule_data.get("gifts"):
+                instances = cls.get_nodes_or_error(
+                    gift_ids, "gifts", schema=info.schema
+                )
+                rule_data["gifts"] = instances
+
+            clean_promotion_rule(
+                rule_data, promotion_type, errors, PromotionCreateErrorCode, index
+            )
             cleaned_rules.append(rule_data)
 
         return cleaned_rules, errors
@@ -176,7 +236,14 @@ class PromotionCreate(ModelMutation):
         if rules_data := cleaned_data.get("rules"):
             for rule_data in rules_data:
                 channels = rule_data.pop("channels", None)
+                gifts = rule_data.pop("gifts", None)
                 rule = models.PromotionRule(promotion=instance, **rule_data)
+                if promotion_rule_should_be_marked_with_dirty_variants(
+                    rule, instance.type, channels
+                ):
+                    rule.variants_dirty = True
+                if gifts:
+                    rule.gifts.set(gifts)
                 if channels:
                     rules_with_channels_to_add.append((rule, channels))
                 rules.append(rule)
@@ -200,7 +267,6 @@ class PromotionCreate(ModelMutation):
         cls.call_event(manager.promotion_created, instance)
         if has_started:
             cls.send_promotion_started_webhook(manager, instance)
-        update_products_discounted_prices_of_promotion_task.delay(instance.pk)
 
     @classmethod
     def has_started(cls, instance: models.Promotion) -> bool:

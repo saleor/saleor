@@ -850,9 +850,9 @@ def order_line_discount_event(
     if line_before_update:
         discount_parameters["old_value"] = line_before_update.unit_discount_value
         discount_parameters["old_value_type"] = line_before_update.unit_discount_type
-        discount_parameters[
-            "old_amount_value"
-        ] = line_before_update.unit_discount_amount
+        discount_parameters["old_amount_value"] = (
+            line_before_update.unit_discount_amount
+        )
 
     line_data = _line_per_quantity_to_line_object(line.quantity, line)
     line_data["discount"] = discount_parameters

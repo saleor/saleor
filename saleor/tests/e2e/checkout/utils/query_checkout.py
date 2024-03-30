@@ -19,6 +19,17 @@ query Checkout($checkoutId: ID!){
         amount
       }
     }
+    subtotalPrice {
+      gross {
+        amount
+      }
+      net {
+        amount
+      }
+      tax {
+        amount
+      }
+    }
     availablePaymentGateways{
       id
       name

@@ -25,7 +25,6 @@ for lid in sorted(locale_identifiers()):
         languages.append((lid.replace("_", "-"), Locale.parse(lid).english_name))
 """
 
-
 LANGUAGES = [
     ("af", "Afrikaans"),
     ("af-na", "Afrikaans (Namibia)"),

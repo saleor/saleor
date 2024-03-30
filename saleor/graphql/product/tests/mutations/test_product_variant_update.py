@@ -167,6 +167,51 @@ def test_update_product_variant_by_id(
     product_variant_created_webhook_mock.assert_not_called()
 
 
+def test_update_product_variant_marks_prices_as_dirty(
+    staff_api_client,
+    product,
+    size_attribute,
+    permission_manage_products,
+    catalogue_promotion,
+):
+    # given
+    query = """
+        mutation updateVariant (
+            $id: ID!
+            $sku: String!) {
+                productVariantUpdate(
+                    id: $id,
+                    input: {
+                        sku: $sku,
+                    }) {
+                    productVariant {
+                        name
+                        sku
+                    }
+                }
+            }
+    """
+    variant = product.variants.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    sku = "test sku"
+
+    variables = {
+        "id": variant_id,
+        "sku": sku,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    variant.refresh_from_db()
+    get_graphql_content(response)
+    flush_post_commit_hooks()
+    assert not catalogue_promotion.rules.filter(variants_dirty=False).exists()
+
+
 UPDATE_VARIANT_BY_SKU = """
  mutation updateVariant (
             $sku: String!,
@@ -878,7 +923,8 @@ def test_update_variant_with_boolean_attribute(
     }
 
     associate_attribute_values_to_instance(
-        variant, boolean_attribute, boolean_attribute.values.first()
+        variant,
+        {boolean_attribute.id: [boolean_attribute.values.first()]},
     )
 
     response = staff_api_client.post_graphql(
@@ -1113,7 +1159,7 @@ def test_update_variant_with_rich_text_attribute(
     rich_text_attribute_value.save()
     values_count = rich_text_attribute.values.count()
     associate_attribute_values_to_instance(
-        variant, rich_text_attribute, rich_text_attribute.values.first()
+        variant, {rich_text_attribute.id: [rich_text_attribute_value]}
     )
 
     response = staff_api_client.post_graphql(
@@ -1161,7 +1207,7 @@ def test_update_variant_with_plain_text_attribute(
     plain_text_attribute_value.save()
     values_count = plain_text_attribute.values.count()
     associate_attribute_values_to_instance(
-        variant, plain_text_attribute, plain_text_attribute.values.first()
+        variant, {plain_text_attribute.id: [plain_text_attribute_value]}
     )
 
     # when
@@ -1216,7 +1262,7 @@ def test_update_variant_with_plain_text_attribute_value_required(
 
     values_count = plain_text_attribute.values.count()
     associate_attribute_values_to_instance(
-        variant, plain_text_attribute, plain_text_attribute.values.first()
+        variant, {plain_text_attribute.id: [plain_text_attribute_value]}
     )
 
     # when
@@ -1259,7 +1305,7 @@ def test_update_variant_with_required_plain_text_attribute_no_value(
     plain_text_attribute_value.save()
 
     associate_attribute_values_to_instance(
-        variant, plain_text_attribute, plain_text_attribute.values.first()
+        variant, {plain_text_attribute.id: [plain_text_attribute_value]}
     )
 
     plain_text_attribute.value_required = True
@@ -1439,7 +1485,9 @@ def test_update_variant_with_numeric_attribute(
     attribute_value.slug = f"{variant.id}_{numeric_attribute.id}"
     attribute_value.save()
     values_count = numeric_attribute.values.count()
-    associate_attribute_values_to_instance(variant, numeric_attribute, attribute_value)
+    associate_attribute_values_to_instance(
+        variant, {numeric_attribute.id: [attribute_value]}
+    )
 
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
@@ -1557,10 +1605,11 @@ def test_update_product_variant_with_duplicated_attribute(
     variant2.sku = str(uuid4())[:12]
     variant2.save()
     associate_attribute_values_to_instance(
-        variant2, color_attribute, color_attribute.values.last()
-    )
-    associate_attribute_values_to_instance(
-        variant2, size_attribute, size_attribute.values.last()
+        variant2,
+        {
+            color_attribute.id: [color_attribute.values.last()],
+            size_attribute.id: [size_attribute.values.last()],
+        },
     )
 
     assert variant.attributes.first().values.first().slug == "red"
@@ -1639,9 +1688,10 @@ def test_update_product_variant_with_current_file_attribute(
     assert len(variant_data["attributes"]) == 1
     assert variant_data["attributes"][0]["attribute"]["slug"] == file_attribute.slug
     assert len(variant_data["attributes"][0]["values"]) == 1
-    assert variant_data["attributes"][0]["values"][0][
-        "slug"
-    ] == f"{slugify(second_value)}-2"
+    assert (
+        variant_data["attributes"][0]["values"][0]["slug"]
+        == f"{slugify(second_value)}-2"
+    )
 
 
 def test_update_product_variant_with_duplicated_file_attribute(
@@ -1659,7 +1709,9 @@ def test_update_product_variant_with_duplicated_file_attribute(
     variant2.sku = str(uuid4())[:12]
     variant2.save()
     file_attr_value = file_attribute.values.last()
-    associate_attribute_values_to_instance(variant2, file_attribute, file_attr_value)
+    associate_attribute_values_to_instance(
+        variant2, {file_attribute.id: [file_attr_value]}
+    )
 
     sku = str(uuid4())[:12]
     assert not variant.sku == sku
@@ -1951,10 +2003,13 @@ def test_update_product_variant_change_attribute_values_ordering(
 
     associate_attribute_values_to_instance(
         variant,
-        product_type_product_reference_attribute,
-        attr_value_3,
-        attr_value_2,
-        attr_value_1,
+        {
+            product_type_product_reference_attribute.id: [
+                attr_value_3,
+                attr_value_2,
+                attr_value_1,
+            ]
+        },
     )
 
     assert list(

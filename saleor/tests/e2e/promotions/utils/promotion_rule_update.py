@@ -15,6 +15,7 @@ mutation promotionRuleCreate($id: ID!, $input: PromotionRuleUpdateInput!) {
       rewardValueType
       rewardValue
       cataloguePredicate
+      orderPredicate
       channels {
         id
       }
@@ -24,7 +25,7 @@ mutation promotionRuleCreate($id: ID!, $input: PromotionRuleUpdateInput!) {
 """
 
 
-def update_promotion_rule(
+def raw_update_promotion_rule(
     staff_api_client,
     promotion_rule_id,
     input,
@@ -37,7 +38,23 @@ def update_promotion_rule(
     )
     content = get_graphql_content(response)
 
-    assert content["data"]["promotionRuleUpdate"]["errors"] == []
+    raw_data = content["data"]["promotionRuleUpdate"]
 
-    data = content["data"]["promotionRuleUpdate"]["promotionRule"]
+    return raw_data
+
+
+def update_promotion_rule(
+    staff_api_client,
+    promotion_rule_id,
+    input,
+):
+    response = raw_update_promotion_rule(
+        staff_api_client,
+        promotion_rule_id,
+        input,
+    )
+
+    assert response["errors"] == []
+
+    data = response["promotionRule"]
     return data

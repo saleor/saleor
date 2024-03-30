@@ -127,17 +127,20 @@ from ..dataloaders import (
     ImagesByProductVariantIdLoader,
     MediaByProductIdLoader,
     MediaByProductVariantIdLoader,
-    ProductAttributesByProductTypeIdLoader,
+    ProductAttributesAllByProductTypeIdLoader,
+    ProductAttributesVisibleInStorefrontByProductTypeIdLoader,
     ProductByIdLoader,
     ProductChannelListingByProductIdAndChannelSlugLoader,
     ProductChannelListingByProductIdLoader,
     ProductTypeByIdLoader,
     ProductVariantByIdLoader,
     ProductVariantsByProductIdLoader,
-    SelectedAttributesByProductIdLoader,
+    SelectedAttributesAllByProductIdLoader,
     SelectedAttributesByProductVariantIdLoader,
+    SelectedAttributesVisibleInStorefrontByProductIdLoader,
     ThumbnailByProductMediaIdSizeAndFormatLoader,
-    VariantAttributesByProductTypeIdLoader,
+    VariantAttributesAllByProductTypeIdLoader,
+    VariantAttributesVisibleInStorefrontByProductTypeIdLoader,
     VariantChannelListingByVariantIdAndChannelSlugLoader,
     VariantChannelListingByVariantIdLoader,
     VariantsChannelListingByProductIdAndChannelSlugLoader,
@@ -1277,15 +1280,39 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
                 None,
             )
 
-        return (
-            SelectedAttributesByProductIdLoader(info.context)
-            .load(root.node.id)
-            .then(get_selected_attribute_by_slug)
-        )
+        requestor = get_user_or_app_from_context(info.context)
+        if (
+            requestor
+            and requestor.is_active
+            and requestor.has_perm(ProductPermissions.MANAGE_PRODUCTS)
+        ):
+            return (
+                SelectedAttributesAllByProductIdLoader(info.context)
+                .load(root.node.id)
+                .then(get_selected_attribute_by_slug)
+            )
+        else:
+            return (
+                SelectedAttributesVisibleInStorefrontByProductIdLoader(info.context)
+                .load(root.node.id)
+                .then(get_selected_attribute_by_slug)
+            )
 
     @staticmethod
     def resolve_attributes(root: ChannelContext[models.Product], info):
-        return SelectedAttributesByProductIdLoader(info.context).load(root.node.id)
+        requestor = get_user_or_app_from_context(info.context)
+        if (
+            requestor
+            and requestor.is_active
+            and requestor.has_perm(ProductPermissions.MANAGE_PRODUCTS)
+        ):
+            return SelectedAttributesAllByProductIdLoader(info.context).load(
+                root.node.id
+            )
+        else:
+            return SelectedAttributesVisibleInStorefrontByProductIdLoader(
+                info.context
+            ).load(root.node.id)
 
     @staticmethod
     def resolve_media_by_id(root: ChannelContext[models.Product], info, *, id):
@@ -1694,11 +1721,23 @@ class ProductType(ModelObjectType[models.ProductType]):
         def unpack_attributes(attributes):
             return [attr for attr, *_ in attributes]
 
-        return (
-            ProductAttributesByProductTypeIdLoader(info.context)
-            .load(root.pk)
-            .then(unpack_attributes)
-        )
+        requestor = get_user_or_app_from_context(info.context)
+        if (
+            requestor
+            and requestor.is_active
+            and requestor.has_perm(ProductPermissions.MANAGE_PRODUCTS)
+        ):
+            return (
+                ProductAttributesAllByProductTypeIdLoader(info.context)
+                .load(root.pk)
+                .then(unpack_attributes)
+            )
+        else:
+            return (
+                ProductAttributesVisibleInStorefrontByProductTypeIdLoader(info.context)
+                .load(root.pk)
+                .then(unpack_attributes)
+            )
 
     @staticmethod
     @traced_resolver
@@ -1719,11 +1758,23 @@ class ProductType(ModelObjectType[models.ProductType]):
                 if (attr, variant_selection) not in variant_selection_attrs
             ]
 
-        return (
-            VariantAttributesByProductTypeIdLoader(info.context)
-            .load(root.pk)
-            .then(apply_variant_selection_filter)
-        )
+        requestor = get_user_or_app_from_context(info.context)
+        if (
+            requestor
+            and requestor.is_active
+            and requestor.has_perm(ProductPermissions.MANAGE_PRODUCTS)
+        ):
+            return (
+                VariantAttributesAllByProductTypeIdLoader(info.context)
+                .load(root.pk)
+                .then(apply_variant_selection_filter)
+            )
+        else:
+            return (
+                VariantAttributesVisibleInStorefrontByProductTypeIdLoader(info.context)
+                .load(root.pk)
+                .then(apply_variant_selection_filter)
+            )
 
     @staticmethod
     @traced_resolver
@@ -1750,29 +1801,47 @@ class ProductType(ModelObjectType[models.ProductType]):
                 if (attr, variant_selection) not in variant_selection_attrs
             ]
 
-        return (
-            VariantAttributesByProductTypeIdLoader(info.context)
-            .load(root.pk)
-            .then(apply_variant_selection_filter)
-        )
+        requestor = get_user_or_app_from_context(info.context)
+        if (
+            requestor
+            and requestor.is_active
+            and requestor.has_perm(ProductPermissions.MANAGE_PRODUCTS)
+        ):
+            return (
+                VariantAttributesAllByProductTypeIdLoader(info.context)
+                .load(root.pk)
+                .then(apply_variant_selection_filter)
+            )
+        else:
+            return (
+                VariantAttributesVisibleInStorefrontByProductTypeIdLoader(info.context)
+                .load(root.pk)
+                .then(apply_variant_selection_filter)
+            )
 
     @staticmethod
     def resolve_products(root: models.ProductType, info, *, channel=None, **kwargs):
         requestor = get_user_or_app_from_context(info.context)
         if channel is None:
-            channel = get_default_channel_slug_or_graphql_error()
-        qs = root.products.visible_to_user(requestor, channel)
+            channel = get_default_channel_slug_or_graphql_error(
+                allow_replica=info.context.allow_replica
+            )
+        qs = root.products.using(
+            get_database_connection_name(info.context)
+        ).visible_to_user(requestor, channel)
         qs = ChannelQsContext(qs=qs, channel_slug=channel)
         kwargs["channel"] = channel
         return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
 
     @staticmethod
     def resolve_available_attributes(root: models.ProductType, info, **kwargs):
-        qs = attribute_models.Attribute.objects.get_unassigned_product_type_attributes(
-            root.pk
-        ).using(get_database_connection_name(info.context))
+        qs = attribute_models.Attribute.objects.using(
+            get_database_connection_name(info.context)
+        ).get_unassigned_product_type_attributes(root.pk)
         qs = resolve_attributes(info, qs=qs)
-        qs = filter_connection_queryset(qs, kwargs, info.context)
+        qs = filter_connection_queryset(
+            qs, kwargs, info.context, allow_replica=info.context.allow_replica
+        )
         return create_connection_slice(qs, info, kwargs, AttributeCountableConnection)
 
     @staticmethod
@@ -1788,9 +1857,12 @@ class ProductType(ModelObjectType[models.ProductType]):
         )
 
     @staticmethod
-    def __resolve_references(roots: list["ProductType"], _info):
+    def __resolve_references(roots: list["ProductType"], info):
+        database_connection_name = get_database_connection_name(info.context)
         return resolve_federation_references(
-            ProductType, roots, models.ProductType.objects
+            ProductType,
+            roots,
+            models.ProductType.objects.using(database_connection_name),
         )
 
 
@@ -1855,9 +1927,12 @@ class ProductMedia(ModelObjectType[models.ProductMedia]):
         )
 
     @staticmethod
-    def __resolve_references(roots: list["ProductMedia"], _info):
+    def __resolve_references(roots: list["ProductMedia"], info):
+        database_connection_name = get_database_connection_name(info.context)
         return resolve_federation_references(
-            ProductMedia, roots, models.ProductMedia.objects
+            ProductMedia,
+            roots,
+            models.ProductMedia.objects.using(database_connection_name),
         )
 
     @staticmethod

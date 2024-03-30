@@ -64,7 +64,9 @@ class AccountRequestDeletion(BaseMutation):
             raise ValidationError(
                 {"redirect_url": error}, code=AccountErrorCode.INVALID.value
             )
-        channel_slug = clean_channel(channel, error_class=AccountErrorCode).slug
+        channel_slug = clean_channel(
+            channel, error_class=AccountErrorCode, allow_replica=False
+        ).slug
         manager = get_plugin_manager_promise(info.context).get()
         token = account_delete_token_generator.make_token(user)  # type: ignore
 
