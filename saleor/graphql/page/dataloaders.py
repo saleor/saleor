@@ -1,13 +1,12 @@
 from collections import defaultdict
 
+from django.db.models import Exists, OuterRef
 from promise import Promise
 
-from ...attribute.models import AssignedPageAttributeValue, AttributePage
+from ...attribute.models import AssignedPageAttributeValue, Attribute, AttributePage
 from ...page.models import Page, PageType, PageMedia
-from ...permission.enums import PagePermissions
 from ..attribute.dataloaders import AttributesByAttributeId, AttributeValueByIdLoader
 from ..core.dataloaders import DataLoader, BaseThumbnailBySizeAndFormatLoader
-from ..utils import get_user_or_app_from_context
 
 
 class PageByIdLoader(DataLoader):
