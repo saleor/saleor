@@ -315,6 +315,8 @@ class ProductChannelListing(PublishableModel):
         amount_field="discounted_price_amount", currency_field="currency"
     )
     discounted_price_dirty = models.BooleanField(default=False)
+    url = models.URLField(blank=True, null=True, help_text="Direct links to sales channels")
+    metadata = JSONField(default=dict, blank=True, help_text="Metadata for storing additional information")
 
     class Meta:
         unique_together = [["product", "channel"]]
@@ -508,6 +510,8 @@ class ProductVariantChannelListing(models.Model):
     )
 
     preorder_quantity_threshold = models.IntegerField(blank=True, null=True)
+    url = models.URLField(blank=True, null=True, help_text="Direct links to sales channels")
+    metadata = JSONField(default=dict, blank=True, help_text="Metadata for storing additional information")
 
     objects = managers.ProductVariantChannelListingManager()
 
