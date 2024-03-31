@@ -164,10 +164,11 @@ def _create_access_token_for_third_party_actions(
     user: "User",
     app: "App",
     extra: Optional[dict[str, Any]] = None,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     app_permission_enums = get_permission_names(permissions)
 
-    permissions = user.effective_permissions
+    permissions = user.effective_permissions.using(database_connection_name)
     user_permission_enums = get_permission_names(permissions)
     additional_payload = {
         APP_KEY_FIELD: graphene.Node.to_global_id("App", app.id),
@@ -188,7 +189,11 @@ def _create_access_token_for_third_party_actions(
     return jwt_encode(payload)
 
 
-def create_access_token_for_app(app: "App", user: "User"):
+def create_access_token_for_app(
+    app: "App",
+    user: "User",
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+):
     """Create access token for app.
 
     App can use user's JWT token to proceed given operation in Saleor.
@@ -198,7 +203,10 @@ def create_access_token_for_app(app: "App", user: "User"):
     """
     app_permissions = app.permissions.all()
     return _create_access_token_for_third_party_actions(
-        permissions=app_permissions, user=user, app=app
+        permissions=app_permissions,
+        user=user,
+        app=app,
+        database_connection_name=database_connection_name,
     )
 
 
@@ -207,6 +215,7 @@ def create_access_token_for_app_extension(
     permissions: Iterable["Permission"],
     user: "User",
     app: "App",
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     app_extension_id = graphene.Node.to_global_id("AppExtension", app_extension.id)
     return _create_access_token_for_third_party_actions(
@@ -214,4 +223,5 @@ def create_access_token_for_app_extension(
         user=user,
         app=app,
         extra={"app_extension": app_extension_id},
+        database_connection_name=database_connection_name,
     )

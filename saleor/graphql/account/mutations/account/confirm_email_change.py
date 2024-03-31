@@ -95,7 +95,9 @@ class ConfirmEmailChange(BaseMutation):
         user.email = new_email
         user.search_document = search.prepare_user_search_document_value(user)
         user.save(update_fields=["email", "search_document", "updated_at"])
-        channel_slug = clean_channel(channel, error_class=AccountErrorCode).slug
+        channel_slug = clean_channel(
+            channel, error_class=AccountErrorCode, allow_replica=False
+        ).slug
 
         cls.post_save_action(info, user, channel_slug, old_email)
 

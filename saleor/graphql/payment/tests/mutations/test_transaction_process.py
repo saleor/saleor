@@ -26,7 +26,7 @@ from ....tests.utils import assert_no_permission, get_graphql_content
 
 TRANSACTION_PROCESS = """
 mutation TransactionProcess(
-  $id: ID!,
+  $id: ID
   $data: JSON
   $customerIpAddress: String
 
@@ -39,6 +39,61 @@ mutation TransactionProcess(
     data
     transaction {
       id
+      authorizedAmount {
+        currency
+        amount
+      }
+      chargedAmount {
+        currency
+        amount
+      }
+      chargePendingAmount {
+        amount
+        currency
+      }
+      authorizePendingAmount {
+        amount
+        currency
+      }
+    }
+    transactionEvent {
+      id
+      amount {
+        currency
+        amount
+      }
+      type
+      createdBy {
+        ... on App {
+          id
+        }
+      }
+      pspReference
+      message
+      externalUrl
+    }
+    errors{
+      field
+      message
+      code
+    }
+  }
+}
+"""
+
+TRANSACTION_PROCESS_BY_TOKEN = """
+mutation TransactionProcess(
+  $token: UUID
+  $data: JSON
+) {
+  transactionProcess(
+    token: $token
+    data: $data
+  ) {
+    data
+    transaction {
+      id
+      token
       authorizedAmount {
         currency
         amount
@@ -359,6 +414,72 @@ def test_for_checkout_with_data(
         charged_value=expected_amount,
         data=expected_data,
         returned_data=expected_response["data"],
+    )
+    assert checkout.charge_status == CheckoutChargeStatus.PARTIAL
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.PARTIAL
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.transaction_process_session")
+def test_for_checkout_with_data_via_token(
+    mocked_process,
+    user_api_client,
+    checkout_with_prices,
+    webhook_app,
+    transaction_session_response,
+    transaction_item_generator,
+):
+    # given
+    expected_amount = Decimal("10.00")
+
+    checkout = checkout_with_prices
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    transaction_item = transaction_item_generator(
+        checkout_id=checkout_with_prices.pk, app=webhook_app
+    )
+    TransactionEvent.objects.create(
+        transaction=transaction_item,
+        amount_value=expected_amount,
+        currency=transaction_item.currency,
+        type=TransactionEventType.CHARGE_REQUEST,
+    )
+
+    expected_psp_reference = "ppp-123"
+    expected_response = transaction_session_response.copy()
+    expected_response["amount"] = expected_amount
+    expected_response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
+    expected_response["pspReference"] = expected_psp_reference
+    mocked_process.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
+    )
+    expected_data = {"some": "json-data"}
+    variables = {
+        "token": transaction_item.token,
+        "data": expected_data,
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_PROCESS_BY_TOKEN, variables)
+
+    # then
+    content = get_graphql_content(response)
+    checkout.refresh_from_db()
+    _assert_fields(
+        content=content,
+        source_object=checkout,
+        expected_amount=expected_amount,
+        expected_psp_reference=expected_psp_reference,
+        response_event_type=TransactionEventType.CHARGE_SUCCESS,
+        app_identifier=webhook_app.identifier,
+        mocked_process=mocked_process,
+        charged_value=expected_amount,
+        data=expected_data,
+        returned_data=expected_response["data"],
+    )
+    assert content["data"]["transactionProcess"]["transaction"]["token"] == str(
+        transaction_item.token
     )
     assert checkout.charge_status == CheckoutChargeStatus.PARTIAL
     assert checkout.authorize_status == CheckoutAuthorizeStatus.PARTIAL

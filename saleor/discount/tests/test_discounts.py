@@ -98,11 +98,11 @@ def test_valid_voucher_min_checkout_items_quantity(voucher):
 
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
-def test_percentage_discounts(product, channel_USD, promotion_without_rules):
+def test_percentage_discounts(product, channel_USD, catalogue_promotion_without_rules):
     # given
     variant = product.variants.get()
     reward_value = Decimal("50")
-    rule = promotion_without_rules.rules.create(
+    rule = catalogue_promotion_without_rules.rules.create(
         catalogue_predicate={
             "productPredicate": {
                 "ids": [graphene.Node.to_global_id("Product", variant.product.id)]
@@ -131,11 +131,11 @@ def test_percentage_discounts(product, channel_USD, promotion_without_rules):
 
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
-def test_fixed_discounts(product, channel_USD, promotion_without_rules):
+def test_fixed_discounts(product, channel_USD, catalogue_promotion_without_rules):
     # given
     variant = product.variants.get()
     reward_value = Decimal("5")
-    rule = promotion_without_rules.rules.create(
+    rule = catalogue_promotion_without_rules.rules.create(
         catalogue_predicate={
             "productPredicate": {
                 "ids": [graphene.Node.to_global_id("Product", variant.product.id)]
@@ -471,8 +471,9 @@ def test_validate_voucher_not_applicable_once_per_customer(
 date_time_now = timezone.now()
 
 
-def test_get_discount_name_only_rule_name(promotion):
+def test_get_discount_name_only_rule_name(catalogue_promotion):
     # given
+    promotion = catalogue_promotion
     promotion.name = ""
     promotion.save(update_fields=["name"])
 
@@ -485,8 +486,9 @@ def test_get_discount_name_only_rule_name(promotion):
     assert name == rule.name
 
 
-def test_get_discount_name_only_rule_promotion_name(promotion):
+def test_get_discount_name_only_rule_promotion_name(catalogue_promotion):
     # given
+    promotion = catalogue_promotion
     rule = promotion.rules.first()
     rule.name = ""
     rule.save(update_fields=["name"])
@@ -498,8 +500,9 @@ def test_get_discount_name_only_rule_promotion_name(promotion):
     assert name == promotion.name
 
 
-def test_get_discount_name_rule_and_promotion_name(promotion):
+def test_get_discount_name_rule_and_promotion_name(catalogue_promotion):
     # given
+    promotion = catalogue_promotion
     rule = promotion.rules.first()
 
     # when
@@ -509,8 +512,9 @@ def test_get_discount_name_rule_and_promotion_name(promotion):
     assert name == f"{promotion.name}: {rule.name}"
 
 
-def test_get_discount_name_empty_names(promotion):
+def test_get_discount_name_empty_names(catalogue_promotion):
     # given
+    promotion = catalogue_promotion
     rule = promotion.rules.first()
 
     rule.name = ""

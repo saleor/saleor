@@ -2,6 +2,7 @@ from collections.abc import Iterable
 from decimal import Decimal
 from typing import TYPE_CHECKING, Optional
 
+from django.conf import settings
 from prices import TaxedMoney
 
 from ...checkout import base_calculations
@@ -24,11 +25,14 @@ def update_checkout_prices_with_flat_rates(
     lines: Iterable["CheckoutLineInfo"],
     prices_entered_with_tax: bool,
     address: Optional["Address"] = None,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     country_code = get_active_country(checkout_info.channel, address)
-    default_country_rate_obj = TaxClassCountryRate.objects.filter(
-        country=country_code, tax_class=None
-    ).first()
+    default_country_rate_obj = (
+        TaxClassCountryRate.objects.using(database_connection_name)
+        .filter(country=country_code, tax_class=None)
+        .first()
+    )
     default_tax_rate = (
         default_country_rate_obj.rate if default_country_rate_obj else Decimal(0)
     )

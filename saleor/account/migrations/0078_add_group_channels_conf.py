@@ -25,6 +25,7 @@ class Migration(migrations.Migration):
                 ALTER TABLE account_group
                 ALTER COLUMN restricted_access_to_channels
                 SET DEFAULT false;
-            """
+            """,
+            reverse_sql=migrations.RunSQL.noop,
         ),
     ]

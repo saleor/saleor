@@ -56,12 +56,12 @@ query ($channel: String, $address: AddressInput) {
 
 
 def test_get_variant_pricing_on_promotion(
-    api_client, promotion_with_single_rule, product, channel_USD
+    api_client, catalogue_promotion_with_single_rule, product, channel_USD
 ):
     # given
     variant_listing = product.variants.first().channel_listings.get()
     price = variant_listing.price
-    promotion = promotion_with_single_rule
+    promotion = catalogue_promotion_with_single_rule
     rule = promotion.rules.first()
     discounted_value = rule.reward_value
     discounted_price = price.amount - discounted_value

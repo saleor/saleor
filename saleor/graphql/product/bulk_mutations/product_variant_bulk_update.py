@@ -4,13 +4,14 @@ from typing import cast
 import graphene
 from django.core.exceptions import ValidationError
 from django.db.models import F
+from django.utils import timezone
 from graphene.utils.str_converters import to_camel_case
 
 from ....core.tracing import traced_atomic_transaction
+from ....discount.utils import mark_active_catalogue_promotion_rules_as_dirty
 from ....permission.enums import ProductPermissions
 from ....product import models
 from ....product.error_codes import ProductErrorCode, ProductVariantBulkErrorCode
-from ....product.tasks import update_products_discounted_prices_for_promotion_task
 from ....warehouse import models as warehouse_models
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
@@ -23,6 +24,8 @@ from ...core.scalars import PositiveDecimal
 from ...core.types import BaseInputObjectType, NonNullList, ProductVariantBulkError
 from ...core.utils import get_duplicated_values
 from ...plugins.dataloaders import get_plugin_manager_promise
+from ...utils import get_user_or_app_from_context
+from ...webhook.subscription_payload import generate_pre_save_payloads
 from ..mutations.channels import ProductVariantChannelListingAddInput
 from ..mutations.product.product_create import StockInput, StockUpdateInput
 from ..utils import clean_variant_sku, get_used_variants_attribute_values
@@ -213,15 +216,15 @@ class ProductVariantBulkUpdate(BaseMutation):
         index_error_map,
     ):
         if listings_data := cleaned_input["channel_listings"].get("create"):
-            cleaned_input["channel_listings"][
-                "create"
-            ] = ProductVariantBulkCreate.clean_channel_listings(
-                listings_data,
-                product_channel_global_id_to_instance_map,
-                None,
-                variant_index,
-                index_error_map,
-                "channelListings.create",
+            cleaned_input["channel_listings"]["create"] = (
+                ProductVariantBulkCreate.clean_channel_listings(
+                    listings_data,
+                    product_channel_global_id_to_instance_map,
+                    None,
+                    variant_index,
+                    index_error_map,
+                    "channelListings.create",
+                )
             )
         if listings_data := cleaned_input["channel_listings"].get("update"):
             listings_to_update = []
@@ -688,7 +691,12 @@ class ProductVariantBulkUpdate(BaseMutation):
         models.ProductVariantChannelListing.objects.bulk_create(listings_to_create)
         models.ProductVariantChannelListing.objects.bulk_update(
             listings_to_update,
-            fields=["price_amount", "cost_price_amount", "preorder_quantity_threshold"],
+            fields=[
+                "price_amount",
+                "discounted_price_amount",
+                "cost_price_amount",
+                "preorder_quantity_threshold",
+            ],
         )
         warehouse_models.Stock.objects.filter(id__in=stocks_to_remove).delete()
         models.ProductVariantChannelListing.objects.filter(
@@ -696,23 +704,74 @@ class ProductVariantBulkUpdate(BaseMutation):
         ).delete()
 
     @classmethod
-    def post_save_actions(cls, info, instances, product):
+    def post_save_actions(
+        cls,
+        info,
+        instances,
+        product,
+        webhooks,
+        pre_save_payloads,
+        request_time,
+        impacted_channel_ids,
+    ):
+        if impacted_channel_ids:
+            cls.call_event(
+                mark_active_catalogue_promotion_rules_as_dirty, impacted_channel_ids
+            )
         manager = get_plugin_manager_promise(info.context).get()
-
-        # Recalculate the "discounted price" for the parent product
-        update_products_discounted_prices_for_promotion_task.delay([product.pk])
         product.search_index_dirty = True
         product.save(update_fields=["search_index_dirty"])
 
-        webhooks = get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED)
         for instance in instances:
             cls.call_event(
-                manager.product_variant_updated, instance.node, webhooks=webhooks
+                manager.product_variant_updated,
+                instance.node,
+                webhooks=webhooks,
+                pre_save_payloads=pre_save_payloads,
+                request_time=request_time,
             )
+
+    @classmethod
+    def _get_impacted_channels(cls, cleaned_inputs_map):
+        impacted_channel_ids = set()
+        channel_listing_ids_to_remove = set()
+        for cleaned_input in cleaned_inputs_map.values():
+            if not cleaned_input:
+                continue
+            if not cleaned_input.get("channel_listings"):
+                continue
+            if created_channels := cleaned_input["channel_listings"].get("create"):
+                impacted_channel_ids.update(
+                    [channel["channel"].id for channel in created_channels]
+                )
+            if updated_channels := cleaned_input["channel_listings"].get("update"):
+                impacted_channel_ids.update(
+                    [
+                        channel["channel_listings"].channel_id
+                        for channel in updated_channels
+                    ]
+                )
+
+            if removed_channel_listings := cleaned_input["channel_listings"].get(
+                "remove"
+            ):
+                channel_listing_ids_to_remove.update(removed_channel_listings)
+
+        if channel_listing_ids_to_remove:
+            impacted_channel_ids.update(
+                list(
+                    models.ProductVariantChannelListing.objects.filter(
+                        id__in=channel_listing_ids_to_remove
+                    ).values_list("channel_id", flat=True)
+                )
+            )
+        return impacted_channel_ids
 
     @classmethod
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
+        request_time = timezone.now()
+
         index_error_map: dict = defaultdict(list)
         error_policy = data.get("error_policy", ErrorPolicyEnum.REJECT_EVERYTHING.value)
         product = cast(
@@ -731,6 +790,12 @@ class ProductVariantBulkUpdate(BaseMutation):
             product,
             variants_global_id_to_instance_map,
             index_error_map,
+        )
+        impacted_channel_ids = cls._get_impacted_channels(cleaned_inputs_map)
+
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED)
+        pre_save_payloads = cls.generate_pre_save_payloads(
+            info, request_time, cleaned_inputs_map, webhooks
         )
 
         instances_data_with_errors_list = cls.update_variants(
@@ -756,6 +821,37 @@ class ProductVariantBulkUpdate(BaseMutation):
         instances = [
             result.product_variant for result in results if result.product_variant
         ]
-        cls.post_save_actions(info, instances, product)
+        cls.post_save_actions(
+            info,
+            instances,
+            product,
+            webhooks,
+            pre_save_payloads,
+            request_time,
+            impacted_channel_ids,
+        )
 
         return ProductVariantBulkCreate(count=len(instances), results=results)
+
+    @classmethod
+    def generate_pre_save_payloads(
+        cls, info, request_time, cleaned_inputs_map, webhooks
+    ):
+        # Take instances from cleaned_inputs_map to be updated in the mutation.
+        instances = [
+            clean_data["id"]
+            for clean_data in cleaned_inputs_map.values()
+            if clean_data and clean_data.get("id")
+        ]
+
+        requestor = get_user_or_app_from_context(info.context)
+        event_type = WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED
+
+        pre_save_payloads = generate_pre_save_payloads(
+            webhooks=webhooks,
+            instances=instances,
+            event_type=event_type,
+            requestor=requestor,
+            request_time=request_time,
+        )
+        return pre_save_payloads

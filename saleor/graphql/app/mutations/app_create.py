@@ -3,6 +3,7 @@ import graphene
 from ....app import models
 from ....permission.enums import AppPermission, get_permissions
 from ....webhook.event_types import WebhookEventAsyncType
+from ...core.descriptions import ADDED_IN_319
 from ...core.doc_category import DOC_CATEGORY_APPS
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelMutation
@@ -17,6 +18,12 @@ from ..utils import ensure_can_manage_permissions
 
 class AppInput(BaseInputObjectType):
     name = graphene.String(description="Name of the app.")
+    identifier = graphene.String(
+        description=(
+            "Canonical app ID. If not provided, "
+            "the identifier will be generated based on app.id." + ADDED_IN_319
+        )
+    )
     permissions = NonNullList(
         PermissionEnum,
         description="List of permission code names to assign to this app.",
@@ -84,7 +91,9 @@ class AppCreate(ModelMutation):
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
-        instance.identifier = graphene.Node.to_global_id("App", instance.pk)
         instance.save()
+        if not instance.identifier:
+            instance.identifier = graphene.Node.to_global_id("App", instance.pk)
+            instance.save(update_fields=["identifier"])
         _, auth_token = instance.tokens.create(name="Default")
         return auth_token

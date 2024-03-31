@@ -88,7 +88,9 @@ def test_page_delete_with_file_attribute(
     page_type = page.page_type
     page_type.page_attributes.add(page_file_attribute)
     existing_value = page_file_attribute.values.first()
-    associate_attribute_values_to_instance(page, page_file_attribute, existing_value)
+    associate_attribute_values_to_instance(
+        page, {page_file_attribute.pk: [existing_value]}
+    )
 
     variables = {"id": graphene.Node.to_global_id("Page", page.id)}
 
@@ -127,7 +129,7 @@ def test_page_delete_removes_reference_to_product(
     )
 
     associate_attribute_values_to_instance(
-        product, product_type_page_reference_attribute, attr_value
+        product, {product_type_page_reference_attribute.pk: [attr_value]}
     )
 
     reference_id = graphene.Node.to_global_id("Page", page.pk)
@@ -167,7 +169,7 @@ def test_page_delete_removes_reference_to_product_variant(
     )
 
     associate_attribute_values_to_instance(
-        variant, product_type_page_reference_attribute, attr_value
+        variant, {product_type_page_reference_attribute.pk: [attr_value]}
     )
 
     reference_id = graphene.Node.to_global_id("Page", page.pk)
@@ -209,7 +211,7 @@ def test_page_delete_removes_reference_to_page(
     )
 
     associate_attribute_values_to_instance(
-        page, page_type_page_reference_attribute, attr_value
+        page, {page_type_page_reference_attribute.pk: [attr_value]}
     )
 
     reference_id = graphene.Node.to_global_id("Page", page_ref.pk)

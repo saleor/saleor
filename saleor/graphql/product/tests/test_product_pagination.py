@@ -377,10 +377,10 @@ def products_for_pagination(
 
     product_attrib_values = color_attribute.values.all()
     associate_attribute_values_to_instance(
-        products[1], color_attribute, product_attrib_values[0]
+        products[1], {color_attribute.id: [product_attrib_values[0]]}
     )
     associate_attribute_values_to_instance(
-        products[3], color_attribute, product_attrib_values[1]
+        products[3], {color_attribute.id: [product_attrib_values[1]]}
     )
 
     variants = ProductVariant.objects.bulk_create(

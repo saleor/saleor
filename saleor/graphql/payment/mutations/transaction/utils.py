@@ -16,16 +16,19 @@ if TYPE_CHECKING:
     pass
 
 
-def get_transaction_item(id: str) -> payment_models.TransactionItem:
-    """Get transaction based on global ID.
+def get_transaction_item(id, token) -> payment_models.TransactionItem:
+    """Get transaction based on token or global ID.
 
     The transactions created before 3.13 were using the `id` field as a graphql ID.
     From 3.13, the `token` is used as a graphql ID. All transactionItems created
     before 3.13 will use an `int` id as an identification.
     """
-    _, db_id = from_global_id_or_error(
-        global_id=id, only_type=TransactionItem, raise_error=True
-    )
+    if token:
+        db_id = str(token)
+    else:
+        _, db_id = from_global_id_or_error(
+            global_id=id, only_type=TransactionItem, raise_error=True
+        )
     if db_id.isdigit():
         query_params = {"id": db_id, "use_old_id": True}
     else:

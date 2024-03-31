@@ -14,6 +14,7 @@ from ..validators import validate_possible_number
 
 @pytest.mark.parametrize("country", ["CN", "PL", "US", "IE"])
 def test_address_form_for_country(country):
+    # given
     data = {
         "first_name": "John",
         "last_name": "Doe",
@@ -21,10 +22,13 @@ def test_address_form_for_country(country):
         "phone": "123456789",
     }
 
+    # when
     form = forms.get_address_form(data, country_code=country)
     errors = form.errors
     rules = i18naddress.get_validation_rules({"country_code": country})
     required = rules.required_fields
+
+    # then
     if "street_address" in required:
         assert "street_address_1" in errors
     else:
@@ -48,15 +52,48 @@ def test_address_form_for_country(country):
 
 
 def test_address_form_postal_code_validation():
+    # given
     data = {
         "first_name": "John",
         "last_name": "Doe",
         "country": "PL",
         "postal_code": "XXX",
     }
+
+    # when
     form = forms.get_address_form(data, country_code="PL")
     errors = form.errors
+    # then
     assert "postal_code" in errors
+
+
+def test_address_form_long_street_address_validation():
+    # given
+    data = {
+        "city": "test",
+        "city_area": "test",
+        "company_name": "test",
+        "first_name": "Amelia",
+        "last_name": "Doe",
+        "country": "US",
+        "country_area": "IN",
+        "phone": "",
+        "postal_code": "46802",
+        "street_address_1": (
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut "
+            "labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris "
+            "nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit "
+            "esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt "
+            "in culpa qui officia deserunt mollit anim id est laborum"
+        ),
+    }
+
+    # when
+    form = forms.get_address_form(data, country_code="US")
+    errors = form.errors
+
+    # then
+    assert "street_address_1" in errors
 
 
 @pytest.mark.parametrize(
@@ -181,11 +218,6 @@ def test_copy_address(address):
     copied_address = address.get_copy()
     assert copied_address.pk != address.pk
     assert copied_address == address
-
-
-def test_compare_addresses(address):
-    copied_address = address.get_copy()
-    assert address == copied_address
 
 
 def test_compare_addresses_with_country_object(address):

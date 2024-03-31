@@ -2,6 +2,7 @@ from collections.abc import Iterable
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
+from django.conf import settings
 from prices import TaxedMoney
 
 from ...core.prices import quantize_price
@@ -24,6 +25,7 @@ def update_order_prices_with_flat_rates(
     order: "Order",
     lines: Iterable["OrderLine"],
     prices_entered_with_tax: bool,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     country_code = get_order_country(order)
     default_country_rate_obj = TaxClassCountryRate.objects.filter(
@@ -32,9 +34,6 @@ def update_order_prices_with_flat_rates(
     default_tax_rate = (
         default_country_rate_obj.rate if default_country_rate_obj else Decimal(0)
     )
-
-    # Apply order level discounts
-    base_calculations.apply_order_discounts(order, lines)
 
     # Calculate order line taxes.
     _, undiscounted_subtotal = update_taxes_for_order_lines(
@@ -69,16 +68,21 @@ def update_order_prices_with_flat_rates(
 
     # Calculate order total.
     order.undiscounted_total = undiscounted_subtotal + order.base_shipping_price
-    order.total = _calculate_order_total(order, lines)
+    order.total = _calculate_order_total(
+        order, lines, database_connection_name=database_connection_name
+    )
 
 
 def _calculate_order_total(
     order: "Order",
     lines: Iterable["OrderLine"],
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> TaxedMoney:
     currency = order.currency
 
-    default_value = base_calculations.base_order_total(order, lines)
+    default_value = base_calculations.base_order_total(
+        order, lines, database_connection_name=database_connection_name
+    )
     default_value = TaxedMoney(default_value, default_value)
     if default_value <= zero_taxed_money(currency):
         return quantize_price(default_value, currency)

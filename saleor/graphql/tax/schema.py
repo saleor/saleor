@@ -125,7 +125,8 @@ class TaxQueries(graphene.ObjectType):
         qs = models.TaxConfiguration.objects.using(
             get_database_connection_name(info.context)
         ).all()
-        qs = filter_connection_queryset(qs, kwargs)
+        allow_replica = getattr(info.context, "allow_replica", True)
+        qs = filter_connection_queryset(qs, kwargs, allow_replica=allow_replica)
         return create_connection_slice(
             qs, info, kwargs, TaxConfigurationCountableConnection
         )
@@ -144,7 +145,8 @@ class TaxQueries(graphene.ObjectType):
         qs = models.TaxClass.objects.using(
             get_database_connection_name(info.context)
         ).all()
-        qs = filter_connection_queryset(qs, kwargs)
+        allow_replica = getattr(info.context, "allow_replica", True)
+        qs = filter_connection_queryset(qs, kwargs, allow_replica=allow_replica)
         return create_connection_slice(qs, info, kwargs, TaxClassCountableConnection)
 
     @staticmethod

@@ -13,7 +13,7 @@ from ....checkout.fetch import (
 )
 from ....checkout.utils import (
     change_shipping_address_in_checkout,
-    invalidate_checkout_prices,
+    invalidate_checkout,
     is_shipping_required,
 )
 from ....core.tracing import traced_atomic_transaction
@@ -33,6 +33,7 @@ from ...site.dataloaders import get_site_promise
 from ..types import Checkout
 from .checkout_create import CheckoutAddressValidationRules
 from .utils import (
+    ERROR_CC_ADDRESS_CHANGE_FORBIDDEN,
     ERROR_DOES_NOT_SHIP,
     check_lines_quantity,
     get_checkout,
@@ -153,6 +154,16 @@ class CheckoutShippingAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixi
                     )
                 }
             )
+        # prevent from changing the shipping address when click and collect is used.
+        if checkout.collection_point_id:
+            raise ValidationError(
+                {
+                    "shipping_address": ValidationError(
+                        ERROR_CC_ADDRESS_CHANGE_FORBIDDEN,
+                        code=CheckoutErrorCode.SHIPPING_CHANGE_FORBIDDEN.value,
+                    )
+                }
+            )
         address_validation_rules = validation_rules or {}
         shipping_address_instance = cls.validate_address(
             shipping_address,
@@ -196,7 +207,7 @@ class CheckoutShippingAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixi
                 manager,
                 shipping_channel_listings,
             )
-        invalidate_prices_updated_fields = invalidate_checkout_prices(
+        invalidate_prices_updated_fields = invalidate_checkout(
             checkout_info, lines, manager, save=False
         )
         checkout.save(

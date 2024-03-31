@@ -19,6 +19,7 @@ from ..app.types import App
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader
 from ..core.connection import CountableConnection
+from ..core.context import get_database_connection_name
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
 from ..core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ..core.fields import PermissionsField
@@ -483,7 +484,13 @@ class GiftCard(ModelObjectType[models.GiftCard]):
             if event_type_value := event_filter.get("type"):
                 events = filter_events_by_type(events, event_type_value)
             if orders_value := event_filter.get("orders"):
-                events = filter_events_by_orders(events, orders_value)
+                events = filter_events_by_orders(
+                    events,
+                    orders_value,
+                    database_connection_name=get_database_connection_name(
+                        info.context.allow_replica
+                    ),
+                )
             return events
 
         return (

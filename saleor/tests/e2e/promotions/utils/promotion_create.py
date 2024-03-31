@@ -11,9 +11,23 @@ mutation CreatePromotion($input: PromotionCreateInput!) {
     promotion {
       id
       name
+      type
       startDate
       endDate
       description
+      rules {
+        orderPredicate
+        name
+        rewardType
+        rewardValue
+        rewardValueType
+        cataloguePredicate
+        channels {
+          id
+        }
+        id
+        description
+      }
       createdAt
       metadata {
         key
@@ -29,9 +43,11 @@ mutation CreatePromotion($input: PromotionCreateInput!) {
 """
 
 
-def create_promotion(
+def raw_create_promotion(
     staff_api_client,
     promotion_name,
+    promotion_type,
+    rules=None,
     start_date=None,
     end_date=None,
     description=None,
@@ -39,11 +55,22 @@ def create_promotion(
     variables = {
         "input": {
             "name": promotion_name,
+            "type": promotion_type,
+            "rules": rules,
             "startDate": start_date,
             "endDate": end_date,
             "description": description,
         }
     }
+
+    if rules is not None:
+        variables["input"]["rules"] = rules
+
+    if start_date is not None:
+        variables["input"]["startDate"] = start_date
+
+    if end_date is not None:
+        variables["input"]["endDate"] = end_date
 
     response = staff_api_client.post_graphql(
         PROMOTION_CREATE_MUTATION,
@@ -52,8 +79,30 @@ def create_promotion(
 
     content = get_graphql_content(response)
 
-    assert content["data"]["promotionCreate"]["errors"] == []
+    raw_data = content["data"]["promotionCreate"]
+    return raw_data
 
-    data = content["data"]["promotionCreate"]["promotion"]
+
+def create_promotion(
+    staff_api_client,
+    promotion_name,
+    promotion_type,
+    rules=None,
+    start_date=None,
+    end_date=None,
+    description=None,
+):
+    response = raw_create_promotion(
+        staff_api_client,
+        promotion_name,
+        promotion_type,
+        rules,
+        start_date,
+        end_date,
+        description,
+    )
+
+    data = response["promotion"]
+    assert response["errors"] == []
     assert data["id"] is not None
     return data

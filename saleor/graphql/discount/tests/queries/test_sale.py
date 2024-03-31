@@ -1,5 +1,7 @@
 import graphene
 
+from saleor.discount import DiscountValueType
+
 from ....tests.utils import (
     assert_no_permission,
     get_graphql_content,
@@ -188,3 +190,30 @@ def test_staff_query_sale_no_channel_provided(
     assert sale_data["type"] == rule.reward_value_type.upper()
     assert not sale_data["discountValue"]
     assert not sale_data["currency"]
+
+
+def test_query_sale_when_type_is_not_provided(
+    staff_api_client,
+    promotion_converted_from_sale,
+    permission_manage_discounts,
+    channel_USD,
+):
+    # given
+    promotion = promotion_converted_from_sale
+    rule = promotion.rules.first()
+    rule.reward_value_type = None
+    rule.save()
+    variables = {
+        "id": graphene.Node.to_global_id("Sale", promotion.old_sale_id),
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_SALE_BY_ID, variables, permissions=[permission_manage_discounts]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    sale_data = content["data"]["sale"]
+    assert sale_data["type"] == DiscountValueType.FIXED.upper()

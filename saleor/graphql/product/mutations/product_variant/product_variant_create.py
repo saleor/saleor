@@ -7,10 +7,10 @@ from django.utils.text import slugify
 from .....attribute import AttributeInputType
 from .....attribute import models as attribute_models
 from .....core.tracing import traced_atomic_transaction
+from .....discount.utils import mark_active_catalogue_promotion_rules_as_dirty
 from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.error_codes import ProductErrorCode
-from .....product.tasks import update_products_discounted_prices_for_promotion_task
 from .....product.utils.variants import generate_and_set_variant_name
 from ....attribute.types import AttributeValueInput
 from ....attribute.utils import AttributeAssignmentMixin, AttrValuesInput
@@ -214,6 +214,16 @@ class ProductVariantCreate(ModelMutation):
         else:
             # If the variant is getting created, no product type is associated yet,
             # retrieve it from the required "product" input field
+            product = cleaned_input["product"]
+            if not product:
+                raise ValidationError(
+                    {
+                        "product": ValidationError(
+                            "Product cannot be set empty.",
+                            code=ProductErrorCode.INVALID.value,
+                        )
+                    }
+                )
             product_type = cleaned_input["product"].product_type
             used_attribute_values = get_used_variants_attribute_values(
                 cleaned_input["product"]
@@ -314,10 +324,6 @@ class ProductVariantCreate(ModelMutation):
             if not instance.product.default_variant:
                 instance.product.default_variant = instance
                 instance.product.save(update_fields=["default_variant", "updated_at"])
-            # Recalculate the "discounted price" for the parent product
-            update_products_discounted_prices_for_promotion_task.delay(
-                [instance.product_id]
-            )
             stocks = cleaned_input.get("stocks")
             if stocks:
                 cls.create_variant_stocks(instance, stocks)
@@ -337,6 +343,14 @@ class ProductVariantCreate(ModelMutation):
                 else manager.product_variant_updated
             )
             cls.call_event(event_to_call, instance)
+
+    @classmethod
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
+        channel_ids = models.ProductChannelListing.objects.filter(
+            product_id=instance.product_id
+        ).values_list("channel_id", flat=True)
+        # This will recalculate discounted prices for products.
+        cls.call_event(mark_active_catalogue_promotion_rules_as_dirty, channel_ids)
 
     @classmethod
     def create_variant_stocks(cls, variant, stocks):

@@ -5,11 +5,11 @@ import pytz
 from django.core.exceptions import ValidationError
 
 from .....core.tracing import traced_atomic_transaction
-from .....discount import models
+from .....discount import PromotionType, models
 from .....discount.error_codes import DiscountErrorCode
 from .....discount.models import Promotion
+from .....discount.utils import mark_catalogue_promotion_rules_as_dirty
 from .....permission.enums import DiscountPermissions
-from .....product.tasks import update_products_discounted_prices_of_promotion_task
 from .....webhook.event_types import WebhookEventAsyncType
 from ....channel import ChannelContext
 from ....core import ResolveInfo
@@ -117,20 +117,22 @@ class SaleCreate(ModelMutation):
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         with traced_atomic_transaction():
+            input = data["input"]
+            reward_value_type = input.pop("type", None)
             response = super().perform_mutation(_root, info, **data)
             promotion: Promotion = response.sale.node
             promotion.assign_old_sale_id()
-            input = data["input"]
+            promotion.type = PromotionType.CATALOGUE
             predicate = cls.create_predicate(input)
             models.PromotionRule.objects.create(
                 name="",
                 promotion=promotion,
                 catalogue_predicate=predicate,
-                reward_value_type=input.get("type"),
+                reward_value_type=reward_value_type,
             )
             manager = get_plugin_manager_promise(info.context).get()
             cls.send_sale_notifications(manager, promotion, predicate)
-            update_products_discounted_prices_of_promotion_task.delay(promotion.pk)
+            cls.call_event(mark_catalogue_promotion_rules_as_dirty, [promotion.pk])
         return response
 
     @classmethod

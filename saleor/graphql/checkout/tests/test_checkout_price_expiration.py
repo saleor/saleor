@@ -7,7 +7,7 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from ....checkout.utils import invalidate_checkout_prices
+from ....checkout.utils import invalidate_checkout
 from ....plugins.manager import get_plugins_manager
 from ...tests.utils import get_graphql_content
 
@@ -23,9 +23,7 @@ mutation addCheckoutLines($checkoutId: ID!, $line: CheckoutLineInput!) {
 """
 
 
-@patch(
-    "saleor.graphql.checkout.mutations.checkout_lines_add.invalidate_checkout_prices"
-)
+@patch("saleor.graphql.checkout.mutations.checkout_lines_add.invalidate_checkout")
 def test_checkout_lines_add_invalidate_prices(
     mocked_function,
     api_client,
@@ -68,9 +66,7 @@ mutation updateCheckoutLines($token: UUID!, $line: CheckoutLineUpdateInput!) {
 """
 
 
-@patch(
-    "saleor.graphql.checkout.mutations.checkout_lines_add.invalidate_checkout_prices"
-)
+@patch("saleor.graphql.checkout.mutations.checkout_lines_add.invalidate_checkout")
 def test_checkout_lines_update_invalidate_prices(
     mocked_function,
     api_client,
@@ -113,9 +109,7 @@ mutation deleteCheckoutLines($token: UUID!, $lineId: ID!){
 """
 
 
-@patch(
-    "saleor.graphql.checkout.mutations.checkout_lines_delete.invalidate_checkout_prices"
-)
+@patch("saleor.graphql.checkout.mutations.checkout_lines_delete.invalidate_checkout")
 def test_checkout_lines_delete_invalidate_prices(
     mocked_function,
     api_client,
@@ -154,9 +148,7 @@ mutation deleteCheckoutLine($token: UUID!, $lineId: ID!){
 """
 
 
-@patch(
-    "saleor.graphql.checkout.mutations.checkout_line_delete.invalidate_checkout_prices"
-)
+@patch("saleor.graphql.checkout.mutations.checkout_line_delete.invalidate_checkout")
 def test_checkout_line_delete_invalidate_prices(
     mocked_function,
     api_client,
@@ -197,7 +189,7 @@ mutation UpdateCheckoutShippingAddress($token: UUID!, $address: AddressInput!) {
 
 @patch(
     "saleor.graphql.checkout.mutations.checkout_shipping_address_update"
-    ".invalidate_checkout_prices"
+    ".invalidate_checkout"
 )
 def test_checkout_shipping_address_update_invalidate_prices(
     mocked_function,
@@ -240,7 +232,7 @@ mutation UpdateCheckoutBillingAddress($token: UUID!, $address: AddressInput!) {
 
 @patch(
     "saleor.graphql.checkout.mutations.checkout_billing_address_update"
-    ".invalidate_checkout_prices"
+    ".invalidate_checkout"
 )
 def test_checkout_billing_address_update_invalidate_prices(
     mocked_function,
@@ -284,11 +276,11 @@ mutation updateCheckoutShippingOptions($token: UUID!, $shippingMethodId: ID) {
 
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_shipping_method_update."
-    "invalidate_checkout_prices",
-    wraps=invalidate_checkout_prices,
+    "invalidate_checkout",
+    wraps=invalidate_checkout,
 )
 def test_checkout_shipping_method_update_invalidate_prices(
-    mocked_invalidate_checkout_prices,
+    mocked_invalidate_checkout,
     api_client,
     checkout_with_shipping_address,
     shipping_method,
@@ -311,7 +303,7 @@ def test_checkout_shipping_method_update_invalidate_prices(
     # then
     checkout.refresh_from_db()
     assert not response["data"]["checkoutShippingMethodUpdate"]["errors"]
-    assert mocked_invalidate_checkout_prices.call_count == 1
+    assert mocked_invalidate_checkout.call_count == 1
 
 
 UPDATE_CHECKOUT_DELIVERY_METHOD = """
@@ -328,11 +320,11 @@ mutation updateCheckoutDeliveryOptions($token: UUID!, $deliveryMethodId: ID!) {
 
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_delivery_method_update."
-    "invalidate_checkout_prices",
-    wraps=invalidate_checkout_prices,
+    "invalidate_checkout",
+    wraps=invalidate_checkout,
 )
 def test_checkout_delivery_method_update_invalidate_prices(
-    mocked_invalidate_checkout_prices,
+    mocked_invalidate_checkout,
     api_client,
     checkout_with_shipping_address_for_cc,
     warehouses_for_cc,
@@ -354,11 +346,11 @@ def test_checkout_delivery_method_update_invalidate_prices(
     # then
     checkout.refresh_from_db()
     assert not response["data"]["checkoutDeliveryMethodUpdate"]["errors"]
-    assert mocked_invalidate_checkout_prices.call_count == 1
+    assert mocked_invalidate_checkout.call_count == 1
 
 
 @freeze_time("2020-12-12 12:00:00")
-def test_invalidate_checkout_prices_with_save(checkout, plugins_manager):
+def test_invalidate_checkout_with_save(checkout, plugins_manager):
     # given
     checkout.price_expiration = timezone.now() + timedelta(minutes=5)
     checkout.save(update_fields=["price_expiration"])
@@ -366,7 +358,7 @@ def test_invalidate_checkout_prices_with_save(checkout, plugins_manager):
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
 
     # when
-    updated_fields = invalidate_checkout_prices(
+    updated_fields = invalidate_checkout(
         checkout_info, lines, plugins_manager, save=True
     )
 
@@ -377,7 +369,7 @@ def test_invalidate_checkout_prices_with_save(checkout, plugins_manager):
 
 
 @freeze_time("2020-12-12 12:00:00")
-def test_invalidate_checkout_prices_without_save(checkout, plugins_manager):
+def test_invalidate_checkout_without_save(checkout, plugins_manager):
     # given
     original_expiration = checkout.price_expiration = timezone.now() + timedelta(
         minutes=5
@@ -387,7 +379,7 @@ def test_invalidate_checkout_prices_without_save(checkout, plugins_manager):
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
 
     # when
-    updated_fields = invalidate_checkout_prices(
+    updated_fields = invalidate_checkout(
         checkout_info, lines, plugins_manager, save=False
     )
 

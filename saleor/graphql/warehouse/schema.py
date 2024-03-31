@@ -71,7 +71,9 @@ class WarehouseQueries(graphene.ObjectType):
     @staticmethod
     def resolve_warehouses(_root, info: ResolveInfo, **kwargs):
         qs = resolve_warehouses(info)
-        qs = filter_connection_queryset(qs, kwargs)
+        qs = filter_connection_queryset(
+            qs, kwargs, allow_replica=info.context.allow_replica
+        )
         return create_connection_slice(qs, info, kwargs, WarehouseCountableConnection)
 
 
@@ -107,7 +109,9 @@ class StockQueries(graphene.ObjectType):
     @staticmethod
     def resolve_stocks(_root, info: ResolveInfo, **kwargs):
         qs = resolve_stocks(info)
-        qs = filter_connection_queryset(qs, kwargs)
+        qs = filter_connection_queryset(
+            qs, kwargs, allow_replica=info.context.allow_replica
+        )
         return create_connection_slice(qs, info, kwargs, StockCountableConnection)
 
 

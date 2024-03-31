@@ -3,6 +3,7 @@ from unittest.mock import patch
 import graphene
 
 from .....discount.error_codes import DiscountErrorCode
+from .....product.models import ProductChannelListing
 from ....tests.utils import get_graphql_content
 from ...utils import convert_migrated_sale_predicate_to_catalogue_info
 
@@ -22,11 +23,9 @@ SALE_CATALOGUES_REMOVE_MUTATION = """
 """
 
 
-@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
 def test_sale_remove_catalogues(
     updated_webhook_mock,
-    update_discounted_prices_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
     catalogue_predicate,
@@ -80,7 +79,8 @@ def test_sale_remove_catalogues(
     assert not content["data"]["saleCataloguesRemove"]["errors"]
     assert content["data"]["saleCataloguesRemove"]["sale"]["name"] == promotion.name
     promotion.refresh_from_db()
-    predicate = promotion.rules.first().catalogue_predicate
+    rule = promotion.rules.first()
+    predicate = rule.catalogue_predicate
     current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(predicate)
 
     assert collection_id not in current_catalogue["collections"]
@@ -93,14 +93,15 @@ def test_sale_remove_catalogues(
     updated_webhook_mock.assert_called_once_with(
         promotion, previous_catalogue, current_catalogue
     )
-    update_discounted_prices_task_mock.assert_called_once()
+    for listing in ProductChannelListing.objects.filter(
+        channel__in=rule.channels.all(), product=product
+    ):
+        assert listing.discounted_price_dirty is True
 
 
-@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
 def test_sale_remove_empty_catalogues(
     updated_webhook_mock,
-    update_discounted_prices_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
     catalogue_predicate,
@@ -146,7 +147,8 @@ def test_sale_remove_empty_catalogues(
     assert not content["data"]["saleCataloguesRemove"]["errors"]
     assert content["data"]["saleCataloguesRemove"]["sale"]["name"] == promotion.name
     promotion.refresh_from_db()
-    predicate = promotion.rules.first().catalogue_predicate
+    rule = promotion.rules.first()
+    predicate = rule.catalogue_predicate
     current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(predicate)
     assert current_catalogue == previous_catalogue
 
@@ -156,14 +158,15 @@ def test_sale_remove_empty_catalogues(
     assert variant_id in current_catalogue["variants"]
 
     updated_webhook_mock.assert_not_called()
-    update_discounted_prices_task_mock.assert_not_called()
+    for listing in ProductChannelListing.objects.filter(
+        channel__in=rule.channels.all(), product=product
+    ):
+        assert listing.discounted_price_dirty is False
 
 
-@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
 def test_sale_remove_empty_catalogues_from_sale_with_empty_catalogues(
     updated_webhook_mock,
-    update_discounted_prices_task_mock,
     staff_api_client,
     promotion_converted_from_sale_with_empty_predicate,
     permission_manage_discounts,
@@ -201,14 +204,11 @@ def test_sale_remove_empty_catalogues_from_sale_with_empty_catalogues(
     assert not current_catalogue["variants"]
 
     updated_webhook_mock.assert_not_called()
-    update_discounted_prices_task_mock.assert_not_called()
 
 
-@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
 def test_sale_remove_catalogues_no_product_changes(
     updated_webhook_mock,
-    update_discounted_prices_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
     catalogue_predicate,
@@ -241,7 +241,8 @@ def test_sale_remove_catalogues_no_product_changes(
     assert not content["data"]["saleCataloguesRemove"]["errors"]
     assert content["data"]["saleCataloguesRemove"]["sale"]["name"] == promotion.name
     promotion.refresh_from_db()
-    predicate = promotion.rules.first().catalogue_predicate
+    rule = promotion.rules.first()
+    predicate = rule.catalogue_predicate
     current_catalogue = convert_migrated_sale_predicate_to_catalogue_info(predicate)
 
     assert variant_id not in current_catalogue["variants"]
@@ -249,7 +250,10 @@ def test_sale_remove_catalogues_no_product_changes(
     updated_webhook_mock.assert_called_once_with(
         promotion, previous_catalogue, current_catalogue
     )
-    update_discounted_prices_task_mock.assert_not_called()
+    for listing in ProductChannelListing.objects.filter(
+        channel__in=rule.channels.all(), product=variant.product
+    ):
+        assert listing.discounted_price_dirty is False
 
 
 def test_sale_remove_catalogues_with_promotion_id(

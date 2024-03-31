@@ -27,6 +27,7 @@ from graphene import ObjectType
 from graphene.types.mutation import MutationOptions
 from graphql.error import GraphQLError
 
+from ...core.db.connection import allow_writer
 from ...core.error_codes import MetadataErrorCode
 from ...core.exceptions import PermissionDenied
 from ...core.utils.events import call_event
@@ -281,8 +282,7 @@ class BaseMutation(graphene.Mutation):
         only_type: type[ModelObjectType[MT]],
         qs: Any = None,
         code: str = "not_found",
-    ) -> MT:
-        ...
+    ) -> MT: ...
 
     @overload
     @classmethod
@@ -295,8 +295,7 @@ class BaseMutation(graphene.Mutation):
         only_type: type[ModelObjectType[MT]],
         qs: Any = None,
         code: str = "not_found",
-    ) -> Optional[MT]:
-        ...
+    ) -> Optional[MT]: ...
 
     @overload
     @classmethod
@@ -309,8 +308,7 @@ class BaseMutation(graphene.Mutation):
         only_type: None,
         qs: QuerySet[MT],
         code: str = "not_found",
-    ) -> MT:
-        ...
+    ) -> MT: ...
 
     @overload
     @classmethod
@@ -323,8 +321,7 @@ class BaseMutation(graphene.Mutation):
         only_type: None = None,
         qs: Any = None,
         code: str = "not_found",
-    ) -> Model:
-        ...
+    ) -> Model: ...
 
     @overload
     @classmethod
@@ -337,8 +334,7 @@ class BaseMutation(graphene.Mutation):
         only_type: Any = None,
         qs: Any = None,
         code: str = "not_found",
-    ) -> Optional[Model]:
-        ...
+    ) -> Optional[Model]: ...
 
     @classmethod
     def get_node_or_error(
@@ -404,15 +400,13 @@ class BaseMutation(graphene.Mutation):
     @classmethod
     def get_nodes_or_error(
         cls, ids, field, only_type: type[ModelObjectType[MT]], qs=None, schema=None
-    ) -> list[MT]:
-        ...
+    ) -> list[MT]: ...
 
     @overload
     @classmethod
     def get_nodes_or_error(
         cls, ids, field, only_type: Optional[ObjectType] = None, qs=None, schema=None
-    ) -> list[Model]:
-        ...
+    ) -> list[Model]: ...
 
     @classmethod
     def get_nodes_or_error(cls, ids, field, only_type=None, qs=None, schema=None):
@@ -432,9 +426,9 @@ class BaseMutation(graphene.Mutation):
         """
         for old_field, new_field in field_map.items():
             try:
-                validation_error.error_dict[
-                    new_field
-                ] = validation_error.error_dict.pop(old_field)
+                validation_error.error_dict[new_field] = (
+                    validation_error.error_dict.pop(old_field)
+                )
             except KeyError:
                 pass
 
@@ -518,6 +512,7 @@ class BaseMutation(graphene.Mutation):
         return one_of_permissions_or_auth_filter_required(context, all_permissions)
 
     @classmethod
+    @allow_writer()
     def mutate(cls, root, info: ResolveInfo, **data):
         disallow_replica_in_context(info.context)
         setup_context_user(info.context)
@@ -1050,6 +1045,7 @@ class BaseBulkMutation(BaseMutation):
         return count, errors
 
     @classmethod
+    @allow_writer()
     def mutate(cls, root, info: ResolveInfo, **data):
         disallow_replica_in_context(info.context)
         setup_context_user(info.context)

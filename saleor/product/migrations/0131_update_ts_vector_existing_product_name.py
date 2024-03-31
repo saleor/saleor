@@ -17,6 +17,7 @@ class Migration(migrations.Migration):
             setweight(
             to_tsvector('pg_catalog.english', coalesce(description_plaintext, '')), 'B'
             );
-            """
+            """,
+            reverse_sql=migrations.RunSQL.noop,
         ),
     ]

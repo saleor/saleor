@@ -3,6 +3,7 @@
 
 This module was moved for Django Auth directly to Saleor.
 """
+
 import getpass
 import os
 import sys

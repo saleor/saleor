@@ -84,6 +84,8 @@ def test_apply_order_discounts_voucher_entire_order(order_with_lines, voucher):
     # then
     assert discounted_shipping_price == shipping_price
     assert discounted_subtotal == subtotal - Money(discount_amount, currency)
+    assert order.subtotal_net_amount == discounted_subtotal.amount
+    assert order.subtotal_gross_amount == discounted_subtotal.amount
     assert order.total_net == discounted_subtotal + discounted_shipping_price
     assert order.total_gross == discounted_subtotal + discounted_shipping_price
     assert order.shipping_price_net == discounted_shipping_price

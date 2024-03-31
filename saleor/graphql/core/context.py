@@ -22,6 +22,11 @@ class SaleorContext(HttpRequest):
     requestor: Union[App, User, None]
     request_time: datetime.datetime
 
+    def __init__(self, *args, **kwargs):
+        if "dataloaders" in kwargs:
+            self.dataloaders = kwargs.pop("dataloaders")
+        super().__init__(*args, **kwargs)
+
 
 def disallow_replica_in_context(context: SaleorContext) -> None:
     """Set information in context to use database replicas or not.

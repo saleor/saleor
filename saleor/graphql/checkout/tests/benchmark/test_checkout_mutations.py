@@ -86,6 +86,7 @@ FRAGMENT_CHECKOUT_LINE = (
         fragment CheckoutLine on CheckoutLine {
           id
           quantity
+          isGift
           totalPrice {
             ...Price
           }
@@ -412,7 +413,7 @@ def test_create_checkout_with_reservations(
         }
     }
 
-    with django_assert_num_queries(61):
+    with django_assert_num_queries(66):
         response = api_client.post_graphql(query, variables)
         assert get_graphql_content(response)["data"]["checkoutCreate"]
         assert Checkout.objects.first().lines.count() == 1
@@ -430,10 +431,145 @@ def test_create_checkout_with_reservations(
         }
     }
 
-    with django_assert_num_queries(61):
+    with django_assert_num_queries(66):
         response = api_client.post_graphql(query, variables)
         assert get_graphql_content(response)["data"]["checkoutCreate"]
         assert Checkout.objects.first().lines.count() == 10
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_create_checkout_with_gift_promotion(
+    api_client,
+    graphql_address_data,
+    stock,
+    channel_USD,
+    product_with_default_variant,
+    product_with_single_variant,
+    product_with_two_variants,
+    gift_promotion_rule,
+    count_queries,
+):
+    checkout_counts = Checkout.objects.count()
+    variables = {
+        "checkoutInput": {
+            "channel": channel_USD.slug,
+            "email": "test@example.com",
+            "shippingAddress": graphql_address_data,
+            "lines": [
+                {
+                    "quantity": 1,
+                    "variantId": Node.to_global_id(
+                        "ProductVariant", stock.product_variant.pk
+                    ),
+                },
+                {
+                    "quantity": 2,
+                    "variantId": Node.to_global_id(
+                        "ProductVariant",
+                        product_with_default_variant.variants.first().pk,
+                    ),
+                },
+                {
+                    "quantity": 10,
+                    "variantId": Node.to_global_id(
+                        "ProductVariant",
+                        product_with_single_variant.variants.first().pk,
+                    ),
+                },
+                {
+                    "quantity": 3,
+                    "variantId": Node.to_global_id(
+                        "ProductVariant",
+                        product_with_two_variants.variants.first().pk,
+                    ),
+                },
+                {
+                    "quantity": 2,
+                    "variantId": Node.to_global_id(
+                        "ProductVariant",
+                        product_with_two_variants.variants.last().pk,
+                    ),
+                },
+            ],
+        }
+    }
+    data = get_graphql_content(
+        api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    )
+    assert checkout_counts + 1 == Checkout.objects.count()
+    assert data["data"]["checkoutCreate"]["checkout"]
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_create_checkout_with_order_promotion(
+    user_api_client,
+    order_promotion_with_rule,
+    channel_USD,
+    stock,
+    product_with_default_variant,
+    product_with_single_variant,
+    product_with_two_variants,
+    graphql_address_data,
+    django_assert_num_queries,
+    count_queries,
+    variant_with_many_stocks,
+):
+    # given
+    variables = {
+        "checkoutInput": {
+            "channel": channel_USD.slug,
+            "email": "test@example.com",
+            "shippingAddress": graphql_address_data,
+            "lines": [
+                {
+                    "quantity": 10,
+                    "variantId": Node.to_global_id(
+                        "ProductVariant", stock.product_variant.pk
+                    ),
+                },
+                {
+                    "quantity": 2,
+                    "variantId": Node.to_global_id(
+                        "ProductVariant",
+                        product_with_default_variant.variants.first().pk,
+                    ),
+                },
+                {
+                    "quantity": 10,
+                    "variantId": Node.to_global_id(
+                        "ProductVariant",
+                        product_with_single_variant.variants.first().pk,
+                    ),
+                },
+                {
+                    "quantity": 3,
+                    "variantId": Node.to_global_id(
+                        "ProductVariant",
+                        product_with_two_variants.variants.first().pk,
+                    ),
+                },
+                {
+                    "quantity": 2,
+                    "variantId": Node.to_global_id(
+                        "ProductVariant",
+                        product_with_two_variants.variants.last().pk,
+                    ),
+                },
+            ],
+        }
+    }
+
+    # when
+    with django_assert_num_queries(71):
+        response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+
+    # then
+    assert Checkout.objects.get().discounts.exists()
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutCreate"]
+    assert not data["errors"]
 
 
 @pytest.mark.django_db
@@ -681,7 +817,7 @@ def test_update_checkout_lines_with_reservations(
         reservation_length=5,
     )
 
-    with django_assert_num_queries(75):
+    with django_assert_num_queries(81):
         variant_id = graphene.Node.to_global_id("ProductVariant", variants[0].pk)
         variables = {
             "id": to_global_id_or_none(checkout),
@@ -695,7 +831,7 @@ def test_update_checkout_lines_with_reservations(
         assert not data["errors"]
 
     # Updating multiple lines in checkout has same query count as updating one
-    with django_assert_num_queries(75):
+    with django_assert_num_queries(81):
         variables = {
             "id": to_global_id_or_none(checkout),
             "lines": [],
@@ -940,7 +1076,7 @@ def test_add_checkout_lines_with_reservations(
         new_lines.append({"quantity": 2, "variantId": variant_id})
 
     # Adding multiple lines to checkout has same query count as adding one
-    with django_assert_num_queries(74):
+    with django_assert_num_queries(80):
         variables = {
             "id": Node.to_global_id("Checkout", checkout.pk),
             "lines": [new_lines[0]],
@@ -953,7 +1089,7 @@ def test_add_checkout_lines_with_reservations(
 
     checkout.lines.exclude(id=line.id).delete()
 
-    with django_assert_num_queries(74):
+    with django_assert_num_queries(80):
         variables = {
             "id": Node.to_global_id("Checkout", checkout.pk),
             "lines": new_lines,
@@ -963,6 +1099,74 @@ def test_add_checkout_lines_with_reservations(
         content = get_graphql_content(response)
         data = content["data"]["checkoutLinesAdd"]
         assert not data["errors"]
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_add_checkout_lines_order_discount_applies(
+    user_api_client,
+    order_promotion_with_rule,
+    checkout,
+    channel_USD,
+    django_assert_num_queries,
+    count_queries,
+    variant_with_many_stocks,
+):
+    # given
+    Stock.objects.update(quantity=100)
+    variant_id = graphene.Node.to_global_id(
+        "ProductVariant", variant_with_many_stocks.id
+    )
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [{"variantId": variant_id, "quantity": 10}],
+        "channelSlug": checkout.channel.slug,
+    }
+
+    # when
+    with django_assert_num_queries(75):
+        response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+
+    # then
+    assert checkout.discounts.exists()
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLinesAdd"]
+    assert not data["errors"]
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_add_checkout_lines_gift_discount_applies(
+    user_api_client,
+    gift_promotion_rule,
+    checkout,
+    channel_USD,
+    django_assert_num_queries,
+    count_queries,
+    variant_with_many_stocks,
+):
+    # given
+    Stock.objects.update(quantity=100)
+    variant_id = graphene.Node.to_global_id(
+        "ProductVariant", variant_with_many_stocks.id
+    )
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [{"variantId": variant_id, "quantity": 3}],
+        "channelSlug": checkout.channel.slug,
+    }
+
+    # when
+    with django_assert_num_queries(101):
+        response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+
+    # then
+    assert checkout.lines.count() == 2
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLinesAdd"]
+    assert not data["errors"]
 
 
 @pytest.mark.django_db
