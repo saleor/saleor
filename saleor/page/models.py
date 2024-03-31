@@ -73,7 +73,7 @@ class PageMedia(SortableModel, ModelWithMetadata):
     external_url = models.CharField(max_length=256, blank=True, null=True)
     oembed_data = JSONField(blank=True, default=dict)
 
-    class Meta:
+    class Meta(ModelWithMetadata.Meta):
         ordering = ("sort_order", "pk")
         app_label = "page"
 

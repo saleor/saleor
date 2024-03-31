@@ -68,6 +68,7 @@ def resolve_object_with_metadata_type(instance):
             order_models.OrderLine: order_types.OrderLine,
             page_models.Page: page_types.Page,
             page_models.PageType: page_types.PageType,
+            page_models.PageMedia: page_types.PageMedia,
             payment_models.Payment: payment_types.Payment,
             payment_models.TransactionItem: payment_types.TransactionItem,
             product_models.Category: product_types.Category,
