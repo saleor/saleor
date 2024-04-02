@@ -160,12 +160,16 @@ def get_permissions(
         codenames = get_permissions_codename()
     else:
         codenames = split_permission_codename(permissions)
-    return get_permissions_from_codenames(codenames)
+    return get_permissions_from_codenames(codenames, database_connection_name)
 
 
-def get_permissions_from_codenames(permission_codenames: list[str]) -> QuerySet:
+def get_permissions_from_codenames(
+    permission_codenames: list[str],
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+) -> QuerySet:
     return (
-        Permission.objects.filter(codename__in=permission_codenames)
+        Permission.objects.using(database_connection_name)
+        .filter(codename__in=permission_codenames)
         .prefetch_related("content_type")
         .order_by("codename")
     )
