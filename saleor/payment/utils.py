@@ -24,6 +24,7 @@ from ..checkout.actions import (
 from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..checkout.models import Checkout
 from ..checkout.payment_utils import update_refundable_for_checkout
+from ..core.db.connection import allow_writer
 from ..core.prices import quantize_price
 from ..core.tracing import traced_atomic_transaction
 from ..graphql.core.utils import str_to_enum
@@ -388,7 +389,8 @@ def create_payment(
         "metadata": {} if metadata is None else metadata,
     }
 
-    payment, _ = Payment.objects.get_or_create(defaults=defaults, **data)
+    with allow_writer():
+        payment, _ = Payment.objects.get_or_create(defaults=defaults, **data)
     return payment
 
 
@@ -1008,6 +1010,7 @@ def get_failed_type_based_on_event(event: TransactionEvent):
     return event.type
 
 
+@allow_writer()
 def create_failed_transaction_event(
     event: TransactionEvent,
     cause: str,
@@ -1485,7 +1488,8 @@ def create_manual_adjustment_events(
         user=user,
     )
     if events_to_create:
-        return TransactionEvent.objects.bulk_create(events_to_create)
+        with allow_writer():
+            return TransactionEvent.objects.bulk_create(events_to_create)
     return []
 
 
@@ -1512,6 +1516,7 @@ def get_transaction_item_params(
     }
 
 
+@allow_writer()
 def create_transaction_for_order(
     order: "Order",
     user: Optional["User"],
@@ -1540,6 +1545,7 @@ def create_transaction_for_order(
     return transaction_item
 
 
+@allow_writer()
 def handle_transaction_initialize_session(
     source_object: Union[Checkout, Order],
     payment_gateway_data: PaymentGatewayData,
