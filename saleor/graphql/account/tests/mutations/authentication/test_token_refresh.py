@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import pytest
 from django.urls import reverse
 from freezegun import freeze_time
 
@@ -269,3 +270,25 @@ def test_refresh_token_when_user_deactivated_token(api_client, customer_user):
     assert not data["token"]
     assert len(errors) == 1
     assert errors[0]["code"] == AccountErrorCode.JWT_INVALID_TOKEN.name
+
+
+@pytest.mark.parametrize("token", ["incorrect-token", ""])
+def test_refresh_token_incorrect_token_provided(api_client, customer_user, token):
+    # given
+    csrf_token = _get_new_csrf_token()
+    refresh_token = create_refresh_token(customer_user, {"csrfToken": csrf_token})
+    api_client.cookies[JWT_REFRESH_TOKEN_COOKIE_NAME] = refresh_token
+    api_client.cookies[JWT_REFRESH_TOKEN_COOKIE_NAME]["httponly"] = True
+
+    variables = {"token": token, "csrf_token": csrf_token}
+
+    # when
+    response = api_client.post_graphql(MUTATION_TOKEN_REFRESH, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["tokenRefresh"]
+    errors = data["errors"]
+    assert not data.get("token")
+    assert len(errors) == 1
+    assert errors[0]["code"] == AccountErrorCode.JWT_DECODE_ERROR.name
