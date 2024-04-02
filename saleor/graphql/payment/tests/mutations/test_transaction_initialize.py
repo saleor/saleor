@@ -16,10 +16,12 @@ from .....payment.interface import (
     TransactionProcessActionData,
     TransactionSessionData,
 )
+from .....payment.models import TransactionItem
 from ....channel.enums import TransactionFlowStrategyEnum
 from ....core.enums import TransactionInitializeErrorCode
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
+from ...mutations import TransactionSessionBase
 
 TRANSACTION_INITIALIZE = """
 mutation TransactionInitialize(
@@ -227,6 +229,39 @@ def test_for_checkout_without_payment_gateway_data(
     )
     assert checkout.charge_status == CheckoutChargeStatus.PARTIAL
     assert checkout.authorize_status == CheckoutAuthorizeStatus.PARTIAL
+
+
+def test_for_checkout_transactions_limit(user_api_client, checkout_with_prices):
+    # given
+    TransactionItem.objects.bulk_create(
+        [
+            TransactionItem(
+                checkout=checkout_with_prices, currency=checkout_with_prices.currency
+            )
+            for _ in range(TransactionSessionBase.TRANSACTION_ITEMS_LIMIT)
+        ]
+    )
+
+    variables = {
+        "action": None,
+        "amount": 99,
+        "id": to_global_id_or_none(checkout_with_prices),
+        "paymentGateway": {"id": "any", "data": None},
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["transactionInitialize"]
+    assert data["errors"]
+    error = data["errors"][0]
+    assert error["code"] == TransactionInitializeErrorCode.INVALID.name
+    assert error["message"] == (
+        "Checkout transactions limit of "
+        f"{TransactionSessionBase.TRANSACTION_ITEMS_LIMIT} reached."
+    )
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
