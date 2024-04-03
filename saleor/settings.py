@@ -29,6 +29,7 @@ from sentry_sdk.integrations.logging import ignore_logger
 from . import PatchedSubscriberExecutionContext, __version__
 from .core.languages import LANGUAGES as CORE_LANGUAGES
 from .core.schedules import initiated_promotion_webhook_schedule
+from .graphql.executor import patch_executor
 
 django_stubs_ext.monkeypatch()
 
@@ -877,6 +878,8 @@ PRODUCT_MAX_INDEXED_VARIANTS = 1000
 # to fix bug causing not returning errors for subscription queries.
 
 executor.SubscriberExecutionContext = PatchedSubscriberExecutionContext  # type: ignore
+
+patch_executor()
 
 # Optional queue names for Celery tasks.
 # Set None to route to the default queue, or a string value to use a separate one
