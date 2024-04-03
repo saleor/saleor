@@ -53,7 +53,7 @@ class VariantPromotionRuleInfo(NamedTuple):
 def fetch_variant_rules_info(
     variant_channel_listing: "ProductVariantChannelListing",
     translation_language_code: str,
-):
+) -> list[VariantPromotionRuleInfo]:
     listings_rules = (
         variant_channel_listing.variantlistingpromotionrule.all()
         if variant_channel_listing

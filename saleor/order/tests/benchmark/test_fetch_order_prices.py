@@ -32,7 +32,7 @@ def test_fetch_order_prices_catalogue_discount(
     tc.save()
 
     # when
-    with django_assert_num_queries(46):
+    with django_assert_num_queries(38):
         fetch_order_prices_if_expired(order, plugins_manager, None, True)
 
     # then

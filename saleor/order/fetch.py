@@ -114,9 +114,7 @@ def fetch_draft_order_lines_info(
     channel = order.channel
     for line in lines:
         variant = cast(ProductVariant, line.variant)
-        variant_channel_listing = ProductVariantChannelListing.objects.filter(
-            channel=channel, variant=variant
-        ).first()
+        variant_channel_listing = get_prefetched_variant_listing(variant, channel.id)
         if not variant_channel_listing:
             continue
 
@@ -136,3 +134,14 @@ def fetch_draft_order_lines_info(
             )
         )
     return lines_info
+
+
+def get_prefetched_variant_listing(
+    variant: ProductVariant, channel_id: int
+) -> Optional[ProductVariantChannelListing]:
+    variant_channel_listing = None
+    for channel_listing in variant.channel_listings.all():
+        if channel_listing.channel_id == channel_id:
+            variant_channel_listing = channel_listing
+            break
+    return variant_channel_listing
