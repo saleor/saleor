@@ -572,7 +572,7 @@ class CheckoutDiscount(BaseDiscount):
             GinIndex(fields=["voucher_code"], name="checkoutdiscount_voucher_idx"),
         ]
         ordering = ("created_at", "id")
-        unique_together = (("checkout_id", "promotion_rule_id"),)
+        unique_together = ("checkout_id", "promotion_rule_id")
         constraints = [
             models.UniqueConstraint(
                 fields=["checkout_id", "unique_type"],
