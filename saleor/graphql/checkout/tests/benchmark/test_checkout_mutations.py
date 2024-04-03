@@ -10,8 +10,11 @@ from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
 from .....checkout.utils import add_variants_to_checkout, set_external_shipping_id
 from .....discount import RewardValueType
+from .....discount.models import CheckoutLineDiscount, PromotionRule
 from .....plugins.manager import get_plugins_manager
-from .....product.models import ProductVariant, ProductVariantChannelListing
+from .....product.models import Product, ProductVariant, ProductVariantChannelListing
+from .....product.utils.variant_prices import update_discounted_prices_for_promotion
+from .....product.utils.variants import fetch_variants_for_promotion_rules
 from .....warehouse.models import Stock
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
@@ -1119,26 +1122,19 @@ def test_add_checkout_lines_catalogue_discount_applies(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
     # prepare promotion with 50% discount
-    reward_value = Decimal("50.00")
-    rule = catalogue_promotion_without_rules.rules.create(
-        catalogue_predicate={"variantPredicate": {"ids": [variant_id]}},
+    promotion = catalogue_promotion_without_rules
+    catalogue_predicate = {"variantPredicate": {"ids": [variant_id]}}
+    rule = promotion.rules.create(
+        name="Catalogue rule percentage 50",
+        catalogue_predicate=catalogue_predicate,
         reward_value_type=RewardValueType.PERCENTAGE,
-        reward_value=reward_value,
+        reward_value=Decimal(50),
     )
     rule.channels.add(channel_USD)
+    fetch_variants_for_promotion_rules(PromotionRule.objects.all())
 
-    variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
-    variant_unit_price = variant_channel_listing.price_amount
-    discount_amount = variant_unit_price * reward_value / 100
-    variant_channel_listing.discounted_price_amount = (
-        variant_unit_price - discount_amount
-    )
-    variant_channel_listing.save(update_fields=["discounted_price_amount"])
-    variant_channel_listing.variantlistingpromotionrule.create(
-        promotion_rule=rule,
-        discount_amount=discount_amount,
-        currency=channel_USD.currency_code,
-    )
+    # update prices
+    update_discounted_prices_for_promotion(Product.objects.all())
 
     variables = {
         "id": to_global_id_or_none(checkout),
@@ -1154,9 +1150,93 @@ def test_add_checkout_lines_catalogue_discount_applies(
     content = get_graphql_content(response)
     data = content["data"]["checkoutLinesAdd"]
     assert not data["errors"]
-    checkout_lines = checkout.lines.all()
-    assert len(checkout_lines) == 1
-    assert checkout_lines[0].discounts.count() == 1
+    assert checkout.lines.count() == 1
+    assert CheckoutLineDiscount.objects.count() == 1
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_add_checkout_lines_multiple_catalogue_discount_applies(
+    user_api_client,
+    catalogue_promotion_without_rules,
+    checkout,
+    channel_USD,
+    django_assert_num_queries,
+    count_queries,
+    product_variant_list,
+    warehouse,
+):
+    # given
+    variants = product_variant_list
+    variant_global_ids = [variant.get_global_id() for variant in variants]
+
+    channel_listing = variants[2].channel_listings.first()
+    channel_listing.channel = channel_USD
+    channel_listing.currency = channel_USD.currency_code
+    channel_listing.save(update_fields=["channel_id", "currency"])
+
+    Stock.objects.bulk_create(
+        [
+            Stock(product_variant=variant, warehouse=warehouse, quantity=1000)
+            for variant in variants
+        ]
+    )
+
+    # create many rules
+    promotion = catalogue_promotion_without_rules
+    rules = []
+    catalogue_predicate = {"variantPredicate": {"ids": variant_global_ids}}
+    for idx in range(5):
+        reward_value = 2 + idx
+        rules.append(
+            PromotionRule(
+                name=f"Catalogue rule fixed {reward_value}",
+                promotion=promotion,
+                catalogue_predicate=catalogue_predicate,
+                reward_value_type=RewardValueType.FIXED,
+                reward_value=Decimal(reward_value),
+            )
+        )
+    for idx in range(5):
+        reward_value = idx * 10 + 25
+        rules.append(
+            PromotionRule(
+                name=f"Catalogue rule percentage {reward_value}",
+                promotion=promotion,
+                catalogue_predicate=catalogue_predicate,
+                reward_value_type=RewardValueType.PERCENTAGE,
+                reward_value=Decimal(reward_value),
+            )
+        )
+    rules = PromotionRule.objects.bulk_create(rules)
+    for rule in rules:
+        rule.channels.add(channel_USD)
+    fetch_variants_for_promotion_rules(PromotionRule.objects.all())
+
+    # update prices
+    update_discounted_prices_for_promotion(Product.objects.all())
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [
+            {"variantId": variant_global_ids[0], "quantity": 4},
+            {"variantId": variant_global_ids[1], "quantity": 5},
+            {"variantId": variant_global_ids[2], "quantity": 6},
+            {"variantId": variant_global_ids[3], "quantity": 7},
+        ],
+        "channelSlug": checkout.channel.slug,
+    }
+
+    # when
+    with django_assert_num_queries(81):
+        response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLinesAdd"]
+    assert not data["errors"]
+    assert checkout.lines.count() == 4
+    assert CheckoutLineDiscount.objects.count() == 4
 
 
 @pytest.mark.django_db
