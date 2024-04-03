@@ -137,8 +137,10 @@ def fetch_draft_order_lines_info(
 
 
 def get_prefetched_variant_listing(
-    variant: ProductVariant, channel_id: int
+    variant: Optional[ProductVariant], channel_id: int
 ) -> Optional[ProductVariantChannelListing]:
+    if not variant:
+        return None
     for channel_listing in variant.channel_listings.all():
         if channel_listing.channel_id == channel_id:
             return channel_listing
