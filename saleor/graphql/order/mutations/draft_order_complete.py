@@ -111,7 +111,7 @@ class DraftOrderComplete(BaseMutation):
         cls.validate_order(order)
 
         country = get_order_country(order)
-        validate_draft_order(order, country, manager)
+        validate_draft_order(order, order.lines.all(), country, manager)
         with traced_atomic_transaction():
             cls.update_user_fields(order)
             order.status = OrderStatus.UNFULFILLED
