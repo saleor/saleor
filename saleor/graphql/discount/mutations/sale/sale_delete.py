@@ -1,4 +1,5 @@
 import graphene
+from django.db.models import Exists, OuterRef
 
 from .....core.tracing import traced_atomic_transaction
 from .....discount import models
@@ -56,8 +57,16 @@ class SaleDelete(ModelDeleteMutation):
         promotion = cls.get_promotion_instance(id)
         old_sale_id = promotion.old_sale_id
         promotion_id = promotion.id
-        rule = promotion.rules.first()
-        channels_ids = rule.channels.values_list("id", flat=True)
+
+        rules = promotion.rules.all()
+        rule = rules[0]
+
+        PromotionRuleChannel = rules.model.channels.through
+        channel_ids = list(
+            PromotionRuleChannel.objects.filter(
+                Exists(rules.filter(id=OuterRef("promotionrule_id")))
+            ).values_list("channel_id", flat=True)
+        )
         previous_catalogue = cls.get_catalogue_info(rule)
         product_ids = cls.get_product_ids(rule)
         with traced_atomic_transaction():
@@ -71,9 +80,8 @@ class SaleDelete(ModelDeleteMutation):
             cls.call_event(manager.sale_deleted, promotion, previous_catalogue)
             cls.call_event(
                 mark_products_in_channels_as_dirty,
-                {channel_id: product_ids for channel_id in channels_ids},
+                {channel_id: product_ids for channel_id in channel_ids},
             )
-
         return response
 
     @classmethod

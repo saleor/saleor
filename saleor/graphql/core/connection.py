@@ -345,13 +345,16 @@ def create_connection_slice(
     )
     args["sort_by"] = sort_by
 
-    slice = connection_from_queryset_slice(
-        queryset,
-        args,
-        connection_type,
-        edge_type or connection_type.Edge,
-        pageinfo_type or graphene.relay.PageInfo,
-    )
+    from ...core.db.connection import allow_writer_in_context
+
+    with allow_writer_in_context(info.context):
+        slice = connection_from_queryset_slice(
+            queryset,
+            args,
+            connection_type,
+            edge_type or connection_type.Edge,
+            pageinfo_type or graphene.relay.PageInfo,
+        )
 
     if isinstance(iterable, ChannelQsContext):
         edges_with_context = []
@@ -386,16 +389,16 @@ def _validate_slice_args(
     if max_limit:
         if first:
             assert first <= max_limit, (
-                "Requesting {} records on the `{}` connection exceeds the "
-                "`first` limit of {} records."
-            ).format(first, info.field_name, max_limit)
+                f"Requesting {first} records on the `{info.field_name}` connection "
+                f"exceeds the `first` limit of {max_limit} records."
+            )
             args["first"] = min(first, max_limit)
 
         if last:
             assert last <= max_limit, (
-                "Requesting {} records on the `{}` connection exceeds the "
-                "`last` limit of {} records."
-            ).format(last, info.field_name, max_limit)
+                f"Requesting {last} records on the `{info.field_name}` connection "
+                f"exceeds the `last` limit of {max_limit} records."
+            )
             args["last"] = min(last, max_limit)
 
 

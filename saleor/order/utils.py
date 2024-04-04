@@ -3,6 +3,7 @@ from decimal import Decimal
 from functools import wraps
 from typing import TYPE_CHECKING, Optional, cast
 
+from django.conf import settings
 from django.db.models import QuerySet, Sum
 from django.utils import timezone
 from prices import Money, TaxedMoney
@@ -605,21 +606,28 @@ def sum_order_totals(qs, currency_code):
 def get_all_shipping_methods_for_order(
     order: Order,
     shipping_channel_listings: Iterable["ShippingMethodChannelListing"],
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> list[ShippingMethodData]:
     if not order.is_shipping_required():
         return []
 
-    if not order.shipping_address:
+    shipping_address = order.shipping_address
+    if not shipping_address:
         return []
 
     all_methods = []
 
-    shipping_methods = ShippingMethod.objects.applicable_shipping_methods_for_instance(
-        order,
-        channel_id=order.channel_id,
-        price=order.subtotal.gross,
-        country_code=order.shipping_address.country.code,
-    ).prefetch_related("channel_listings")
+    shipping_methods = (
+        ShippingMethod.objects.using(database_connection_name)
+        .applicable_shipping_methods_for_instance(
+            order,
+            channel_id=order.channel_id,
+            price=order.subtotal.gross,
+            shipping_address=shipping_address,
+            country_code=shipping_address.country.code,
+        )
+        .prefetch_related("channel_listings")
+    )
 
     listing_map = {
         listing.shipping_method_id: listing for listing in shipping_channel_listings
@@ -637,9 +645,12 @@ def get_valid_shipping_methods_for_order(
     order: Order,
     shipping_channel_listings: Iterable["ShippingMethodChannelListing"],
     manager: "PluginsManager",
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> list[ShippingMethodData]:
     """Return a list of shipping methods according to Saleor's own business logic."""
-    valid_methods = get_all_shipping_methods_for_order(order, shipping_channel_listings)
+    valid_methods = get_all_shipping_methods_for_order(
+        order, shipping_channel_listings, database_connection_name
+    )
     if not valid_methods:
         return []
 
@@ -654,15 +665,19 @@ def is_shipping_required(lines: Iterable["OrderLine"]):
 
 
 def get_valid_collection_points_for_order(
-    lines: Iterable["OrderLine"], channel_id: int
+    lines: Iterable["OrderLine"],
+    channel_id: int,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     if not is_shipping_required(lines):
         return []
 
     line_ids = [line.id for line in lines]
-    qs = OrderLine.objects.filter(id__in=line_ids)
+    qs = OrderLine.objects.using(database_connection_name).filter(id__in=line_ids)
 
-    return Warehouse.objects.applicable_for_click_and_collect(qs, channel_id)
+    return Warehouse.objects.using(
+        database_connection_name
+    ).applicable_for_click_and_collect(qs, channel_id)
 
 
 def get_discounted_lines(lines, voucher):

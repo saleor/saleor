@@ -13,10 +13,12 @@ from ...account.models import Address
 from ...account.models import User as UserModel
 from ...checkout.utils import get_external_shipping_id
 from ...core.anonymize import obfuscate_address, obfuscate_email
+from ...core.db.connection import allow_writer_in_context
 from ...core.prices import quantize_price
 from ...core.taxes import zero_money
 from ...discount import DiscountType
 from ...graphql.checkout.types import DeliveryMethod
+from ...graphql.core.context import get_database_connection_name
 from ...graphql.core.federation.entities import federated_entity
 from ...graphql.core.federation.resolvers import resolve_federation_references
 from ...graphql.order.resolvers import resolve_orders
@@ -44,7 +46,6 @@ from ...permission.enums import (
 from ...permission.utils import has_one_of_permissions
 from ...product.models import ALL_PRODUCTS_PERMISSIONS, ProductMediaTypes
 from ...shipping.interface import ShippingMethodData
-from ...shipping.models import ShippingMethodChannelListing
 from ...shipping.utils import convert_to_shipping_method_data
 from ...tax.utils import get_display_gross_prices
 from ...thumbnail.utils import (
@@ -932,10 +933,16 @@ class OrderLine(ModelObjectType[models.OrderLine]):
     @traced_resolver
     @prevent_sync_event_circular_query
     def resolve_unit_price(root: models.OrderLine, info):
+        @allow_writer_in_context(info.context)
         def _resolve_unit_price(data):
             order, lines, manager = data
+            database_connection_name = get_database_connection_name(info.context)
             return calculations.order_line_unit(
-                order, root, manager, lines
+                order,
+                root,
+                manager,
+                lines,
+                database_connection_name=database_connection_name,
             ).price_with_discounts
 
         order = OrderByIdLoader(info.context).load(root.order_id)
@@ -951,10 +958,16 @@ class OrderLine(ModelObjectType[models.OrderLine]):
     @traced_resolver
     @prevent_sync_event_circular_query
     def resolve_undiscounted_unit_price(root: models.OrderLine, info):
+        @allow_writer_in_context(info.context)
         def _resolve_undiscounted_unit_price(data):
             order, lines, manager = data
+            database_connection_name = get_database_connection_name(info.context)
             return calculations.order_line_unit(
-                order, root, manager, lines
+                order,
+                root,
+                manager,
+                lines,
+                database_connection_name=database_connection_name,
             ).undiscounted_price
 
         order = OrderByIdLoader(info.context).load(root.order_id)
@@ -979,10 +992,16 @@ class OrderLine(ModelObjectType[models.OrderLine]):
     @staticmethod
     @traced_resolver
     def resolve_tax_rate(root: models.OrderLine, info):
+        @allow_writer_in_context(info.context)
         def _resolve_tax_rate(data):
             order, lines, manager = data
+            database_connection_name = get_database_connection_name(info.context)
             return calculations.order_line_tax_rate(
-                order, root, manager, lines
+                order,
+                root,
+                manager,
+                lines,
+                database_connection_name=database_connection_name,
             ) or Decimal(0)
 
         order = OrderByIdLoader(info.context).load(root.order_id)
@@ -994,10 +1013,16 @@ class OrderLine(ModelObjectType[models.OrderLine]):
     @traced_resolver
     @prevent_sync_event_circular_query
     def resolve_total_price(root: models.OrderLine, info):
+        @allow_writer_in_context(info.context)
         def _resolve_total_price(data):
             order, lines, manager = data
+            database_connection_name = get_database_connection_name(info.context)
             return calculations.order_line_total(
-                order, root, manager, lines
+                order,
+                root,
+                manager,
+                lines,
+                database_connection_name=database_connection_name,
             ).price_with_discounts
 
         order = OrderByIdLoader(info.context).load(root.order_id)
@@ -1009,10 +1034,16 @@ class OrderLine(ModelObjectType[models.OrderLine]):
     @traced_resolver
     @prevent_sync_event_circular_query
     def resolve_undiscounted_total_price(root: models.OrderLine, info):
+        @allow_writer_in_context(info.context)
         def _resolve_undiscounted_total_price(data):
             order, lines, manager = data
+            database_connection_name = get_database_connection_name(info.context)
             return calculations.order_line_total(
-                order, root, manager, lines
+                order,
+                root,
+                manager,
+                lines,
+                database_connection_name=database_connection_name,
             ).undiscounted_price
 
         order = OrderByIdLoader(info.context).load(root.order_id)
@@ -1616,9 +1647,13 @@ class Order(ModelObjectType[models.Order]):
     @traced_resolver
     @prevent_sync_event_circular_query
     def resolve_shipping_price(root: models.Order, info):
+        @allow_writer_in_context(info.context)
         def _resolve_shipping_price(data):
             lines, manager = data
-            return calculations.order_shipping(root, manager, lines)
+            database_connection_name = get_database_connection_name(info.context)
+            return calculations.order_shipping(
+                root, manager, lines, database_connection_name=database_connection_name
+            )
 
         lines = OrderLinesByOrderIdLoader(info.context).load(root.id)
         manager = get_plugin_manager_promise(info.context)
@@ -1628,10 +1663,12 @@ class Order(ModelObjectType[models.Order]):
     @traced_resolver
     @prevent_sync_event_circular_query
     def resolve_shipping_tax_rate(root: models.Order, info):
+        @allow_writer_in_context(info.context)
         def _resolve_shipping_tax_rate(data):
             lines, manager = data
+            database_connection_name = get_database_connection_name(info.context)
             return calculations.order_shipping_tax_rate(
-                root, manager, lines
+                root, manager, lines, database_connection_name=database_connection_name
             ) or Decimal(0)
 
         lines = OrderLinesByOrderIdLoader(info.context).load(root.id)
@@ -1660,9 +1697,16 @@ class Order(ModelObjectType[models.Order]):
     @staticmethod
     @traced_resolver
     def resolve_subtotal(root: models.Order, info):
+        @allow_writer_in_context(info.context)
         def _resolve_subtotal(data):
             order_lines, manager = data
-            return calculations.order_subtotal(root, manager, order_lines)
+            database_connection_name = get_database_connection_name(info.context)
+            return calculations.order_subtotal(
+                root,
+                manager,
+                order_lines,
+                database_connection_name=database_connection_name,
+            )
 
         order_lines = OrderLinesByOrderIdLoader(info.context).load(root.id)
         manager = get_plugin_manager_promise(info.context)
@@ -1674,8 +1718,12 @@ class Order(ModelObjectType[models.Order]):
     @prevent_sync_event_circular_query
     @plugin_manager_promise_callback
     def resolve_total(root: models.Order, info, manager):
+        @allow_writer_in_context(info.context)
         def _resolve_total(lines):
-            return calculations.order_total(root, manager, lines)
+            database_connection_name = get_database_connection_name(info.context)
+            return calculations.order_total(
+                root, manager, lines, database_connection_name=database_connection_name
+            )
 
         return (
             OrderLinesByOrderIdLoader(info.context).load(root.id).then(_resolve_total)
@@ -1685,9 +1733,13 @@ class Order(ModelObjectType[models.Order]):
     @traced_resolver
     @prevent_sync_event_circular_query
     def resolve_undiscounted_total(root: models.Order, info):
+        @allow_writer_in_context(info.context)
         def _resolve_undiscounted_total(lines_and_manager):
             lines, manager = lines_and_manager
-            return calculations.order_undiscounted_total(root, manager, lines)
+            database_connection_name = get_database_connection_name(info.context)
+            return calculations.order_undiscounted_total(
+                root, manager, lines, database_connection_name=database_connection_name
+            )
 
         lines = OrderLinesByOrderIdLoader(info.context).load(root.id)
         manager = get_plugin_manager_promise(info.context)
@@ -1885,8 +1937,14 @@ class Order(ModelObjectType[models.Order]):
 
             def _validate_draft_order(manager):
                 country = get_order_country(root)
+                database_connection_name = get_database_connection_name(info.context)
                 try:
-                    validate_draft_order(root, country, manager)
+                    validate_draft_order(
+                        root,
+                        country,
+                        manager,
+                        database_connection_name=database_connection_name,
+                    )
                 except ValidationError:
                     return False
                 return True
@@ -1964,14 +2022,21 @@ class Order(ModelObjectType[models.Order]):
                 ).load((shipping_method.id, channel.slug))
             )
 
-            def calculate_price(
-                listing: Optional[ShippingMethodChannelListing],
-            ) -> Optional[ShippingMethodData]:
+            tax_class = None
+            if shipping_method.tax_class_id:
+                tax_class = TaxClassByIdLoader(info.context).load(
+                    shipping_method.tax_class_id
+                )
+
+            def calculate_price(data) -> Optional[ShippingMethodData]:
+                listing, tax_class = data
                 if not listing:
                     return None
-                return convert_to_shipping_method_data(shipping_method, listing)
+                return convert_to_shipping_method_data(
+                    shipping_method, listing, tax_class
+                )
 
-            return listing.then(calculate_price)
+            return Promise.all([listing, tax_class]).then(calculate_price)
 
         shipping_method = ShippingMethodByIdLoader(info.context).load(
             int(root.shipping_method_id)
@@ -2000,10 +2065,15 @@ class Order(ModelObjectType[models.Order]):
     def resolve_shipping_methods(cls, root: models.Order, info):
         def with_channel(data):
             channel, manager = data
+            database_connection_name = get_database_connection_name(info.context)
 
+            @allow_writer_in_context(info.context)
             def with_listings(channel_listings):
                 return get_valid_shipping_methods_for_order(
-                    root, channel_listings, manager
+                    root,
+                    channel_listings,
+                    manager,
+                    database_connection_name=database_connection_name,
                 )
 
             return (
@@ -2030,7 +2100,10 @@ class Order(ModelObjectType[models.Order]):
     @traced_resolver
     def resolve_available_collection_points(cls, root: models.Order, info):
         def get_available_collection_points(lines):
-            return get_valid_collection_points_for_order(lines, root.channel_id)
+            database_connection_name = get_database_connection_name(info.context)
+            return get_valid_collection_points_for_order(
+                lines, root.channel_id, database_connection_name
+            )
 
         return cls.resolve_lines(root, info).then(get_available_collection_points)
 
@@ -2092,8 +2165,14 @@ class Order(ModelObjectType[models.Order]):
 
             def _validate_order(manager):
                 country = get_order_country(root)
+                database_connection_name = get_database_connection_name(info.context)
                 try:
-                    validate_draft_order(root, country, manager)
+                    validate_draft_order(
+                        root,
+                        country,
+                        manager,
+                        database_connection_name=database_connection_name,
+                    )
                 except ValidationError as e:
                     return validation_error_to_error_type(e, OrderError)
                 return []

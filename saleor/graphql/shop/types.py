@@ -324,7 +324,7 @@ class Shop(graphene.ObjectType):
         graphene.Boolean,
         description=(
             "Determines if user can login without confirmation when "
-            "`enableAccountConfrimation` is enabled." + ADDED_IN_315
+            "`enableAccountConfirmation` is enabled." + ADDED_IN_315
         ),
         permissions=[SitePermissions.MANAGE_SETTINGS],
     )
@@ -474,8 +474,9 @@ class Shop(graphene.ObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_permissions(_, _info):
-        permissions = get_permissions()
+    def resolve_permissions(_, info):
+        database_connection_name = get_database_connection_name(info.context)
+        permissions = get_permissions(database_connection_name=database_connection_name)
         return format_permissions_for_display(permissions)
 
     @staticmethod

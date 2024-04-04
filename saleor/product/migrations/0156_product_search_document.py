@@ -35,12 +35,14 @@ class Migration(migrations.Migration):
             """
             DROP TRIGGER IF EXISTS title_vector_update
             ON product_product
-        """
+            """,
+            reverse_sql=migrations.RunSQL.noop,
         ),
         migrations.RunSQL(
             """
             DROP TRIGGER IF EXISTS tsvectorupdate
             ON product_product
-        """
+            """,
+            reverse_sql=migrations.RunSQL.noop,
         ),
     ]

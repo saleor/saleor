@@ -38,7 +38,7 @@ class VariantMediaAssign(BaseMutation):
         media = cls.get_node_or_error(
             info, media_id, field="media_id", only_type=ProductMedia
         )
-        qs = models.ProductVariant.objects.prefetched_for_webhook()
+        qs = models.ProductVariant.objects.all()
         variant = cls.get_node_or_error(
             info, variant_id, field="variant_id", only_type=ProductVariant, qs=qs
         )

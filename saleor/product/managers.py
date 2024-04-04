@@ -2,7 +2,6 @@ import datetime
 from typing import Optional, Union
 
 import pytz
-from django.conf import settings
 from django.contrib.postgres.aggregates import StringAgg
 from django.db import models
 from django.db.models import (
@@ -34,15 +33,19 @@ class ProductsQueryset(models.QuerySet):
 
         today = datetime.datetime.now(pytz.UTC)
         if channel := (
-            Channel.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+            Channel.objects.using(self.db)
             .filter(slug=str(channel_slug), is_active=True)
             .first()
         ):
-            channel_listings = ProductChannelListing.objects.filter(
-                Q(published_at__lte=today) | Q(published_at__isnull=True),
-                channel_id=channel.id,
-                is_published=True,
-            ).values("id")
+            channel_listings = (
+                ProductChannelListing.objects.using(self.db)
+                .filter(
+                    Q(published_at__lte=today) | Q(published_at__isnull=True),
+                    channel_id=channel.id,
+                    is_published=True,
+                )
+                .values("id")
+            )
             return self.filter(
                 Exists(channel_listings.filter(product_id=OuterRef("pk")))
             )
@@ -60,13 +63,19 @@ class ProductsQueryset(models.QuerySet):
         from .models import ProductVariant, ProductVariantChannelListing
 
         if channel := (
-            Channel.objects.filter(slug=str(channel_slug), is_active=True).first()
+            Channel.objects.using(self.db)
+            .filter(slug=str(channel_slug), is_active=True)
+            .first()
         ):
-            variant_channel_listings = ProductVariantChannelListing.objects.filter(
-                channel_id=channel.id,
-                price_amount__isnull=False,
-            ).values("id")
-            variants = ProductVariant.objects.filter(
+            variant_channel_listings = (
+                ProductVariantChannelListing.objects.using(self.db)
+                .filter(
+                    channel_id=channel.id,
+                    price_amount__isnull=False,
+                )
+                .values("id")
+            )
+            variants = ProductVariant.objects.using(self.db).filter(
                 Exists(variant_channel_listings.filter(variant_id=OuterRef("pk")))
             )
             return self.published(channel_slug).filter(
@@ -81,10 +90,17 @@ class ProductsQueryset(models.QuerySet):
 
         if has_one_of_permissions(requestor, ALL_PRODUCTS_PERMISSIONS):
             if channel_slug:
-                if channel := Channel.objects.filter(slug=str(channel_slug)).first():
-                    channel_listings = ProductChannelListing.objects.filter(
-                        channel_id=channel.id
-                    ).values("id")
+                channel = (
+                    Channel.objects.using(self.db)
+                    .filter(slug=str(channel_slug))
+                    .first()
+                )
+                if channel:
+                    channel_listings = (
+                        ProductChannelListing.objects.using(self.db)
+                        .filter(channel_id=channel.id)
+                        .values("id")
+                    )
                     return self.filter(
                         Exists(channel_listings.filter(product_id=OuterRef("pk")))
                     )
@@ -103,9 +119,9 @@ class ProductsQueryset(models.QuerySet):
         from .models import ProductChannelListing
 
         query = Subquery(
-            ProductChannelListing.objects.filter(
-                product_id=OuterRef("pk"), channel__slug=str(channel_slug)
-            ).values_list("is_published")[:1]
+            ProductChannelListing.objects.using(self.db)
+            .filter(product_id=OuterRef("pk"), channel__slug=str(channel_slug))
+            .values_list("is_published")[:1]
         )
         return self.annotate(
             is_published=ExpressionWrapper(query, output_field=BooleanField())
@@ -115,9 +131,9 @@ class ProductsQueryset(models.QuerySet):
         from .models import ProductChannelListing
 
         query = Subquery(
-            ProductChannelListing.objects.filter(
-                product_id=OuterRef("pk"), channel__slug=str(channel_slug)
-            ).values_list("published_at")[:1]
+            ProductChannelListing.objects.using(self.db)
+            .filter(product_id=OuterRef("pk"), channel__slug=str(channel_slug))
+            .values_list("published_at")[:1]
         )
         return self.annotate(
             published_at=ExpressionWrapper(query, output_field=DateTimeField())
@@ -127,9 +143,9 @@ class ProductsQueryset(models.QuerySet):
         from .models import ProductChannelListing
 
         query = Subquery(
-            ProductChannelListing.objects.filter(
-                product_id=OuterRef("pk"), channel__slug=str(channel_slug)
-            ).values_list("visible_in_listings")[:1]
+            ProductChannelListing.objects.using(self.db)
+            .filter(product_id=OuterRef("pk"), channel__slug=str(channel_slug))
+            .values_list("visible_in_listings")[:1]
         )
         return self.annotate(
             visible_in_listings=ExpressionWrapper(query, output_field=BooleanField())
@@ -170,13 +186,13 @@ class ProductsQueryset(models.QuerySet):
                 # then consider the concatenated values as empty (non-null).
                 When(
                     Exists(
-                        AttributeProduct.objects.filter(
+                        AttributeProduct.objects.using(self.db).filter(
                             product_type_id=OuterRef("product_type_id"),
                             attribute_id=attribute_pk,
                         )
                     )
                     & ~Exists(
-                        AssignedProductAttributeValue.objects.filter(
+                        AssignedProductAttributeValue.objects.using(self.db).filter(
                             product_id=OuterRef("id"), value__attribute_id=attribute_pk
                         )
                     ),
@@ -227,7 +243,6 @@ class ProductsQueryset(models.QuerySet):
             "variants__stocks__allocations",
             "variants__channel_listings__channel",
             "channel_listings__channel",
-            "product_type__product_attributes__values",
             "product_type__attributeproduct",
         )
         if single_object:
@@ -253,7 +268,8 @@ class ProductVariantQueryset(models.QuerySet):
         from saleor.warehouse.models import Allocation
 
         allocations_subquery = (
-            Allocation.objects.filter(stock__product_variant=OuterRef("pk"))
+            Allocation.objects.using(self.db)
+            .filter(stock__product_variant=OuterRef("pk"))
             .values("stock__product_variant")
             .annotate(total_allocated=Coalesce(Sum("quantity_allocated"), 0))
             .values("total_allocated")

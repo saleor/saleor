@@ -231,6 +231,12 @@ MIDDLEWARE = [
     "saleor.core.middleware.jwt_refresh_token_middleware",
 ]
 
+ENABLE_RESTRICT_WRITER_MIDDLEWARE = get_bool_from_env(
+    "ENABLE_RESTRICT_WRITER_MIDDLEWARE", False
+)
+if ENABLE_RESTRICT_WRITER_MIDDLEWARE:
+    MIDDLEWARE = ["saleor.core.db.connection.log_writer_usage_middleware"] + MIDDLEWARE
+
 INSTALLED_APPS = [
     # External apps that need to go before django's
     "storages",
@@ -799,7 +805,8 @@ RESERVE_DURATION = 45
 #
 # If running locally, set:
 #   JAEGER_AGENT_HOST=localhost
-if "JAEGER_AGENT_HOST" in os.environ:
+JAEGER_HOST = os.environ.get("JAEGER_AGENT_HOST")
+if JAEGER_HOST:
     jaeger_client.Config(
         config={
             "sampler": {"type": "const", "param": 1},
@@ -807,7 +814,7 @@ if "JAEGER_AGENT_HOST" in os.environ:
                 "reporting_port": os.environ.get(
                     "JAEGER_AGENT_PORT", jaeger_client.config.DEFAULT_REPORTING_PORT
                 ),
-                "reporting_host": os.environ.get("JAEGER_AGENT_HOST"),
+                "reporting_host": JAEGER_HOST,
             },
             "logging": get_bool_from_env("JAEGER_LOGGING", False),
         },

@@ -1,10 +1,9 @@
 """Checkout-related ORM models."""
 
-from collections.abc import Iterable
 from datetime import date
 from decimal import Decimal
 from operator import attrgetter
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Optional
 from uuid import uuid4
 
 from django.conf import settings
@@ -19,19 +18,14 @@ from prices import Money
 from ..channel.models import Channel
 from ..core.models import ModelWithMetadata
 from ..core.taxes import zero_money
-from ..core.weight import zero_weight
 from ..giftcard.models import GiftCard
 from ..permission.enums import CheckoutPermissions
 from ..shipping.models import ShippingMethod
 from . import CheckoutAuthorizeStatus, CheckoutChargeStatus
 
 if TYPE_CHECKING:
-    from django_measurement import Weight
-
-    from ..order.fetch import OrderLineInfo
     from ..payment.models import Payment
     from ..product.models import ProductVariant
-    from .fetch import CheckoutLineInfo
 
 
 def get_default_country():
@@ -219,27 +213,20 @@ class Checkout(models.Model):
         """Return `True` if any of the lines requires shipping."""
         return any(line.is_shipping_required() for line in self)
 
-    def get_total_gift_cards_balance(self) -> Money:
+    def get_total_gift_cards_balance(
+        self, database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME
+    ) -> Money:
         """Return the total balance of the gift cards assigned to the checkout."""
-        balance = self.gift_cards.active(date=date.today()).aggregate(
-            models.Sum("current_balance_amount")
-        )["current_balance_amount__sum"]
+        balance = (
+            self.gift_cards.using(database_connection_name)
+            .active(date=date.today())
+            .aggregate(models.Sum("current_balance_amount"))[
+                "current_balance_amount__sum"
+            ]
+        )
         if balance is None:
             return zero_money(currency=self.currency)
         return Money(balance, self.currency)
-
-    def get_total_weight(
-        self, lines: Union[Iterable["CheckoutLineInfo"], Iterable["OrderLineInfo"]]
-    ) -> "Weight":
-        # FIXME: it does not make sense for this method to live in the Checkout model
-        # since it's used in the Order model as well. We should move it to a separate
-        # helper.
-        weights = zero_weight()
-        for checkout_line_info in lines:
-            line = checkout_line_info.line
-            if line.variant:
-                weights += line.variant.get_weight() * line.quantity
-        return weights
 
     def get_line(self, variant: "ProductVariant") -> Optional["CheckoutLine"]:
         """Return a line matching the given variant and data if any."""

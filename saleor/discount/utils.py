@@ -3,13 +3,7 @@ from collections import defaultdict, namedtuple
 from collections.abc import Iterable, Iterator
 from decimal import ROUND_HALF_UP, Decimal
 from functools import partial
-from typing import (
-    TYPE_CHECKING,
-    Callable,
-    Optional,
-    Union,
-    cast,
-)
+from typing import TYPE_CHECKING, Callable, Optional, Union, cast
 from uuid import UUID
 
 import graphene
@@ -27,6 +21,7 @@ from ..checkout.base_calculations import (
 )
 from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
 from ..checkout.models import Checkout
+from ..core.db.connection import allow_writer
 from ..core.exceptions import InsufficientStock
 from ..core.taxes import zero_money
 from ..core.utils.promo_code import InvalidPromoCode
@@ -356,9 +351,12 @@ def apply_discount_to_value(
 def create_or_update_discount_objects_from_promotion_for_checkout(
     checkout_info: "CheckoutInfo",
     lines_info: Iterable["CheckoutLineInfo"],
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     create_checkout_line_discount_objects_for_catalogue_promotions(lines_info)
-    create_checkout_discount_objects_for_order_promotions(checkout_info, lines_info)
+    create_checkout_discount_objects_for_order_promotions(
+        checkout_info, lines_info, database_connection_name=database_connection_name
+    )
 
 
 def create_checkout_line_discount_objects_for_catalogue_promotions(
@@ -375,22 +373,25 @@ def create_checkout_line_discount_objects_for_catalogue_promotions(
         updated_fields,
     ) = discount_data
 
-    new_line_discounts = []
-    if discounts_to_create_inputs:
-        new_line_discounts = [
-            CheckoutLineDiscount(**input) for input in discounts_to_create_inputs
-        ]
-        CheckoutLineDiscount.objects.bulk_create(new_line_discounts)
+    with allow_writer():
+        new_line_discounts = []
+        if discounts_to_create_inputs:
+            new_line_discounts = [
+                CheckoutLineDiscount(**input) for input in discounts_to_create_inputs
+            ]
+            CheckoutLineDiscount.objects.bulk_create(new_line_discounts)
 
-    if discounts_to_update and updated_fields:
-        CheckoutLineDiscount.objects.bulk_update(discounts_to_update, updated_fields)
+        if discounts_to_update and updated_fields:
+            CheckoutLineDiscount.objects.bulk_update(
+                discounts_to_update, updated_fields
+            )
 
-    if discount_ids_to_remove := [discount.id for discount in discount_to_remove]:
-        CheckoutLineDiscount.objects.filter(id__in=discount_ids_to_remove).delete()
+        if discount_ids_to_remove := [discount.id for discount in discount_to_remove]:
+            CheckoutLineDiscount.objects.filter(id__in=discount_ids_to_remove).delete()
 
-    _update_line_info_cached_discounts(
-        lines_info, new_line_discounts, discounts_to_update, discount_ids_to_remove
-    )
+        _update_line_info_cached_discounts(
+            lines_info, new_line_discounts, discounts_to_update, discount_ids_to_remove
+        )
 
 
 def prepare_line_discount_objects_for_catalogue_promotions(
@@ -610,6 +611,7 @@ def create_checkout_discount_objects_for_order_promotions(
     lines_info: Iterable["CheckoutLineInfo"],
     *,
     save: bool = False,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     # The base prices are required for order promotion discount qualification.
     _set_checkout_base_prices(checkout_info, lines_info)
@@ -622,12 +624,15 @@ def create_checkout_discount_objects_for_order_promotions(
         return
 
     channel = checkout_info.channel
-    rules = fetch_promotion_rules_for_checkout_or_order(checkout)
+    rules = fetch_promotion_rules_for_checkout_or_order(
+        checkout, database_connection_name
+    )
     rule_data = get_best_rule(
         rules=rules,
         channel=channel,
         country=checkout_info.get_country(),
         subtotal=checkout.base_subtotal,
+        database_connection_name=database_connection_name,
     )
     if not rule_data:
         _clear_checkout_discount(checkout_info, lines_info, save)
@@ -681,7 +686,11 @@ def create_checkout_discount_objects_for_order_promotions(
 
 
 def get_best_rule(
-    rules: Iterable["PromotionRule"], channel: "Channel", country: str, subtotal: Money
+    rules: Iterable["PromotionRule"],
+    channel: "Channel",
+    country: str,
+    subtotal: Money,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     RuleDiscount = namedtuple(
         "RuleDiscount", ["rule", "discount_amount", "gift_listing"]
@@ -701,7 +710,7 @@ def get_best_rule(
 
     if gift_rules:
         best_gift_rule, gift_listing = _get_best_gift_reward(
-            gift_rules, channel, country
+            gift_rules, channel, country, database_connection_name
         )
         if best_gift_rule and gift_listing:
             rule_discounts.append(
@@ -735,7 +744,8 @@ def _set_checkout_base_prices(checkout_info, lines_info):
     if is_update_needed:
         checkout.base_subtotal = subtotal
         checkout.base_total = total
-        checkout.save(update_fields=["base_total_amount", "base_subtotal_amount"])
+        with allow_writer():
+            checkout.save(update_fields=["base_total_amount", "base_subtotal_amount"])
 
 
 def _clear_checkout_discount(
@@ -775,14 +785,19 @@ def _clear_checkout_discount(
 
 
 def _get_best_gift_reward(
-    rules: Iterable["PromotionRule"], channel: "Channel", country: str
+    rules: Iterable["PromotionRule"],
+    channel: "Channel",
+    country: str,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> tuple[Optional[PromotionRule], Optional[ProductVariantChannelListing]]:
     from ..warehouse.availability import check_stock_quantity_bulk
 
     rule_ids = [rule.id for rule in rules]
     PromotionRuleGift = PromotionRule.gifts.through
-    rule_gifts = PromotionRuleGift.objects.filter(promotionrule_id__in=rule_ids)
-    variants = ProductVariant.objects.filter(
+    rule_gifts = PromotionRuleGift.objects.using(database_connection_name).filter(
+        promotionrule_id__in=rule_ids
+    )
+    variants = ProductVariant.objects.using(database_connection_name).filter(
         Exists(
             rule_gifts.values("productvariant_id").filter(
                 productvariant_id=OuterRef("id")
@@ -800,6 +815,7 @@ def _get_best_gift_reward(
             [1] * variants.count(),
             channel.slug,
             None,
+            database_connection_name=database_connection_name,
         )
     except InsufficientStock as error:
         variant_ids_with_insufficient_stock = {
@@ -815,13 +831,17 @@ def _get_best_gift_reward(
 
     # check if variant is available for purchase
     available_variant_ids = _get_available_for_purchase_variant_ids(
-        available_variant_ids, channel
+        available_variant_ids,
+        channel,
+        database_connection_name=database_connection_name,
     )
     if not available_variant_ids:
         return None, None
 
     # check variant channel availability
-    available_variant_listings = ProductVariantChannelListing.objects.filter(
+    available_variant_listings = ProductVariantChannelListing.objects.using(
+        database_connection_name
+    ).filter(
         variant_id__in=available_variant_ids,
         channel_id=channel.id,
         price_amount__isnull=False,
@@ -840,11 +860,17 @@ def _get_best_gift_reward(
 
 
 def _get_available_for_purchase_variant_ids(
-    available_variant_ids: set[int], channel: "Channel"
+    available_variant_ids: set[int],
+    channel: "Channel",
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     today = datetime.datetime.now(pytz.UTC)
-    variants = ProductVariant.objects.filter(id__in=available_variant_ids)
-    product_listings = ProductChannelListing.objects.filter(
+    variants = ProductVariant.objects.using(database_connection_name).filter(
+        id__in=available_variant_ids
+    )
+    product_listings = ProductChannelListing.objects.using(
+        database_connection_name
+    ).filter(
         Exists(variants.filter(product_id=OuterRef("product_id"))),
         available_for_purchase_at__lte=today,
         channel_id=channel.id,
@@ -908,6 +934,7 @@ def delete_gift_line(
             lines_info.remove(gift_line_info)  # type: ignore[attr-defined]
 
 
+@allow_writer()
 def _handle_gift_reward_for_checkout(
     checkout_info: CheckoutInfo,
     lines_info: Iterable[CheckoutLineInfo],
@@ -1026,7 +1053,9 @@ def get_variants_to_promotion_rules_map(
     """
     rules_info_per_variant: dict[int, list[PromotionRuleInfo]] = defaultdict(list)
 
-    promotions = Promotion.objects.active()
+    promotions = Promotion.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).active()
     PromotionRuleVariant = PromotionRule.variants.through
     promotion_rule_variants = PromotionRuleVariant.objects.using(
         settings.DATABASE_CONNECTION_REPLICA_NAME
@@ -1059,15 +1088,17 @@ def get_variants_to_promotion_rules_map(
     return rules_info_per_variant
 
 
-def fetch_promotion_rules_for_checkout_or_order(instance: Union["Checkout", "Order"]):
+def fetch_promotion_rules_for_checkout_or_order(
+    instance: Union["Checkout", "Order"],
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+):
     from ..graphql.discount.utils import PredicateObjectType, filter_qs_by_predicate
 
     applicable_rules = []
     promotions = Promotion.objects.active()
     rules = (
-        PromotionRule.objects.filter(
-            Exists(promotions.filter(id=OuterRef("promotion_id")))
-        )
+        PromotionRule.objects.using(database_connection_name)
+        .filter(Exists(promotions.filter(id=OuterRef("promotion_id"))))
         .exclude(order_predicate={})
         .prefetch_related("channels")
     )
@@ -1075,7 +1106,9 @@ def fetch_promotion_rules_for_checkout_or_order(instance: Union["Checkout", "Ord
 
     channel_id = instance.channel_id
     currency = instance.channel.currency_code
-    qs = instance._meta.model.objects.filter(pk=instance.pk)  # type: ignore[attr-defined]
+    qs = instance._meta.model.objects.using(database_connection_name).filter(  # type: ignore[attr-defined] # noqa: E501
+        pk=instance.pk
+    )
     for rule in rules.iterator():
         rule_channel_ids = rule_to_channel_ids_map.get(rule.id, [])
         if channel_id not in rule_channel_ids:
@@ -1170,9 +1203,12 @@ def update_rule_variant_relation(
 def create_or_update_discount_objects_from_promotion_for_order(
     order: "Order",
     lines_info: Iterable["DraftOrderLineInfo"],
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     create_order_line_discount_objects_for_catalogue_promotions(lines_info)
-    create_order_discount_objects_for_order_promotions(order, lines_info)
+    create_order_discount_objects_for_order_promotions(
+        order, lines_info, database_connection_name=database_connection_name
+    )
     _copy_unit_discount_data_to_order_line(lines_info)
 
 
@@ -1257,6 +1293,7 @@ def _update_base_unit_price_amount(lines_info: Iterable[DraftOrderLineInfo]):
 def create_order_discount_objects_for_order_promotions(
     order: "Order",
     lines_info: Iterable["DraftOrderLineInfo"],
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     from ..order.base_calculations import base_order_subtotal
     from ..order.utils import get_order_country
@@ -1272,12 +1309,13 @@ def create_order_discount_objects_for_order_promotions(
     lines = [line_info.line for line_info in lines_info]
     subtotal = base_order_subtotal(order, lines)
     channel = order.channel
-    rules = fetch_promotion_rules_for_checkout_or_order(order)
+    rules = fetch_promotion_rules_for_checkout_or_order(order, database_connection_name)
     rule_data = get_best_rule(
         rules=rules,
         channel=channel,
         country=get_order_country(order),
         subtotal=subtotal,
+        database_connection_name=database_connection_name,
     )
     if not rule_data:
         _clear_order_discount(order, lines_info)
@@ -1353,7 +1391,10 @@ def _set_order_base_prices(order: Order, lines_info: Iterable[DraftOrderLineInfo
     if order.total != TaxedMoney(net=total, gross=total):
         order.total = TaxedMoney(net=total, gross=total)
         update_fields.extend(["total_net_amount", "total_gross_amount"])
-    order.save(update_fields=update_fields)
+
+    if update_fields:
+        with allow_writer():
+            order.save(update_fields=update_fields)
 
 
 def _handle_order_promotion_for_order(
@@ -1383,6 +1424,7 @@ def _handle_order_promotion_for_order(
     delete_gift_line(order, lines_info)
 
 
+@allow_writer()
 def _handle_gift_reward_for_order(
     order: Order,
     lines_info: Iterable[DraftOrderLineInfo],

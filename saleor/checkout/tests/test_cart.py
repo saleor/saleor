@@ -10,7 +10,11 @@ from ...plugins.manager import get_plugins_manager
 from ...product.models import Category
 from .. import calculations, utils
 from ..models import Checkout
-from ..utils import add_variant_to_checkout, calculate_checkout_quantity
+from ..utils import (
+    add_variant_to_checkout,
+    calculate_checkout_quantity,
+    calculate_checkout_weight,
+)
 
 
 @pytest.fixture
@@ -283,4 +287,4 @@ def test_get_total_weight(checkout_with_item):
     line.quantity = 6
     line.save()
     lines, _ = fetch_checkout_lines(checkout_with_item)
-    assert checkout_with_item.get_total_weight(lines) == Weight(kg=60)
+    assert calculate_checkout_weight(lines) == Weight(kg=60)

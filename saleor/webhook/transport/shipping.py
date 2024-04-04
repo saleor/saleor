@@ -222,5 +222,5 @@ def get_cache_data_for_shipping_list_methods_for_checkout(payload: str) -> dict:
 
     # drop fields that change between requests but are not relevant for cache key
     key_data[0].pop("last_change")
-    key_data[0]["meta"].pop("issued_at")
+    key_data[0].pop("meta")
     return key_data
