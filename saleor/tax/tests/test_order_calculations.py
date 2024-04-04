@@ -77,7 +77,7 @@ def test_calculations_calculate_order_undiscounted_total(
 
     # then
     assert order.undiscounted_total == TaxedMoney(
-        net=Money("80.00", "USD"), gross=Money("80.00", "USD")
+        net=Money("65.04", "USD"), gross=Money("80.00", "USD")
     )
 
 

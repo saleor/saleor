@@ -966,11 +966,54 @@ def test_order_from_checkout_voucher_not_increase_uses_on_preprocess_creation_fa
     assert code.used == 0
 
 
+MUTATION_ORDER_CREATE_FROM_CHECKOUT_PROMOTIONS = """
+mutation orderCreateFromCheckout($id: ID!){
+    orderCreateFromCheckout(id: $id){
+        order{
+            id
+            total {
+                currency
+                net {
+                    amount
+                }
+                gross {
+                    amount
+                }
+            }
+            lines {
+                unitDiscount {
+                  amount
+                }
+                unitDiscountType
+                unitDiscountValue
+                isGift
+                quantity
+            }
+            discounts {
+                amount {
+                    amount
+                }
+                valueType
+                type
+            }
+        }
+        errors{
+            field
+            message
+            code
+            variants
+        }
+    }
+}
+"""
+
+
 def test_order_from_checkout_on_catalogue_promotion(
     app_api_client,
     checkout_with_item_on_promotion,
     permission_handle_checkouts,
     permission_manage_checkouts,
+    permission_manage_orders,
     address,
     shipping_method,
 ):
@@ -987,9 +1030,13 @@ def test_order_from_checkout_on_catalogue_promotion(
 
     # when
     response = app_api_client.post_graphql(
-        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT_PROMOTIONS,
         variables,
-        permissions=[permission_handle_checkouts, permission_manage_checkouts],
+        permissions=[
+            permission_handle_checkouts,
+            permission_manage_checkouts,
+            permission_manage_orders,
+        ],
     )
 
     # then
@@ -997,22 +1044,30 @@ def test_order_from_checkout_on_catalogue_promotion(
     data = content["data"]["orderCreateFromCheckout"]
     assert not data["errors"]
 
-    order = Order.objects.first()
-    assert order.status == OrderStatus.UNCONFIRMED
-    assert order.origin == OrderOrigin.CHECKOUT
-    assert not order.original
+    order_db = Order.objects.first()
+    assert order_db.status == OrderStatus.UNCONFIRMED
+    assert order_db.origin == OrderOrigin.CHECKOUT
+    assert not order_db.original
 
-    assert order.lines.count() == 1
-    line = order.lines.first()
-    assert line.sale_id
-    assert line.unit_discount_reason
-    assert line.discounts.count() == 1
-    discount = line.discounts.first()
+    assert order_db.lines.count() == 1
+    line_db = order_db.lines.first()
+    assert line_db.sale_id
+    assert line_db.unit_discount_reason
+    assert line_db.discounts.count() == 1
+    discount = line_db.discounts.first()
     assert discount.promotion_rule
     assert (
-        discount.amount_value == (order.undiscounted_total - order.total).gross.amount
+        discount.amount_value
+        == (order_db.undiscounted_total - order_db.total).gross.amount
     )
-    assert not order.discounts.first()
+    assert not order_db.discounts.first()
+
+    assert not data["order"]["discounts"]
+    assert len(data["order"]["lines"]) == 1
+    line = data["order"]["lines"][0]
+    assert line["unitDiscount"]["amount"] == discount.amount_value / line["quantity"]
+    assert line["unitDiscountType"] == RewardValueType.FIXED.upper()
+    assert line["unitDiscountValue"] == discount.amount_value / line["quantity"]
 
 
 def test_order_from_checkout_on_order_promotion(
@@ -1020,6 +1075,7 @@ def test_order_from_checkout_on_order_promotion(
     checkout_with_item_and_order_discount,
     permission_handle_checkouts,
     permission_manage_checkouts,
+    permission_manage_orders,
     address,
     shipping_method,
 ):
@@ -1036,9 +1092,13 @@ def test_order_from_checkout_on_order_promotion(
 
     # when
     response = app_api_client.post_graphql(
-        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT_PROMOTIONS,
         variables,
-        permissions=[permission_handle_checkouts, permission_manage_checkouts],
+        permissions=[
+            permission_handle_checkouts,
+            permission_manage_checkouts,
+            permission_manage_orders,
+        ],
     )
 
     # then
@@ -1059,6 +1119,12 @@ def test_order_from_checkout_on_order_promotion(
     )
     assert order_discount.type == DiscountType.ORDER_PROMOTION
 
+    discounts = data["order"]["discounts"]
+    assert len(discounts) == 1
+    assert discounts[0]["amount"]["amount"] == order_discount.amount_value
+    assert discounts[0]["type"] == DiscountType.ORDER_PROMOTION.upper()
+    assert discounts[0]["valueType"] == DiscountValueType.FIXED.upper()
+
 
 def test_order_from_checkout_on_gift_promotion(
     app_api_client,
@@ -1066,6 +1132,7 @@ def test_order_from_checkout_on_gift_promotion(
     gift_promotion_rule,
     permission_handle_checkouts,
     permission_manage_checkouts,
+    permission_manage_orders,
     address,
     shipping_method,
 ):
@@ -1083,9 +1150,13 @@ def test_order_from_checkout_on_gift_promotion(
 
     # when
     response = app_api_client.post_graphql(
-        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT_PROMOTIONS,
         variables,
-        permissions=[permission_handle_checkouts, permission_manage_checkouts],
+        permissions=[
+            permission_handle_checkouts,
+            permission_manage_checkouts,
+            permission_manage_orders,
+        ],
     )
 
     # then
@@ -1101,10 +1172,23 @@ def test_order_from_checkout_on_gift_promotion(
     assert not order.discounts.all()
     assert order.lines.count() == line_count
     gift_line = order.lines.get(is_gift=True)
+    gift_price = gift_line.variant.channel_listings.get(
+        channel=checkout.channel
+    ).discounted_price_amount
     assert gift_line.discounts.count() == 1
     line_discount = gift_line.discounts.first()
     assert line_discount.promotion_rule == gift_promotion_rule
     assert line_discount.type == DiscountType.ORDER_PROMOTION
+    assert line_discount.amount_value == gift_price
+    assert line_discount.value == gift_price
+
+    assert not data["order"]["discounts"]
+    lines = data["order"]["lines"]
+    assert len(lines) == 2
+    gift_line_api = [line for line in lines if line["isGift"]][0]
+    assert gift_line_api["unitDiscount"]["amount"] == gift_price
+    assert gift_line_api["unitDiscountValue"] == gift_price
+    assert gift_line_api["unitDiscountType"] == RewardValueType.FIXED.upper()
 
 
 def test_order_from_checkout_on_catalogue_and_gift_promotion(

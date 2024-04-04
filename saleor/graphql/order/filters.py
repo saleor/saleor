@@ -2,6 +2,7 @@ from uuid import UUID
 
 import django_filters
 import graphene
+from django.core.exceptions import ValidationError
 from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
 from graphql.error import GraphQLError
@@ -12,6 +13,7 @@ from ...order.models import Order, OrderLine
 from ...order.search import search_orders
 from ...payment import ChargeStatus
 from ...product.models import ProductVariant
+from ..channel.filters import get_currency_from_filter_data
 from ..core.filters import (
     GlobalIDMultipleChoiceFilter,
     ListObjectTypeFilter,
@@ -20,9 +22,10 @@ from ..core.filters import (
 )
 from ..core.types import DateRangeInput, DateTimeRangeInput
 from ..core.utils import from_global_id_or_error
+from ..discount.filters import DiscountedObjectWhere
 from ..payment.enums import PaymentChargeStatusEnum
 from ..utils import resolve_global_ids_to_primary_keys
-from ..utils.filters import filter_range_field
+from ..utils.filters import filter_range_field, filter_where_by_numeric_field
 from .enums import OrderAuthorizeStatusEnum, OrderChargeStatusEnum, OrderStatusFilter
 
 
@@ -224,3 +227,28 @@ class OrderFilter(DraftOrderFilter):
                 message="'ids' and 'numbers` are not allowed to use together in filter."
             )
         return super().is_valid()
+
+
+class OrderDiscountedObjectWhere(DiscountedObjectWhere):
+    class Meta:
+        model = Order
+        fields = ["subtotal_net_amount", "total_net_amount"]
+
+    def filter_base_subtotal_price(self, queryset, name, value):
+        currency = get_currency_from_filter_data(self.data)
+        return _filter_price(queryset, name, "subtotal_net_amount", value, currency)
+
+    def filter_base_total_price(self, queryset, name, value):
+        currency = get_currency_from_filter_data(self.data)
+        return _filter_price(queryset, name, "total_net_amount", value, currency)
+
+
+def _filter_price(qs, _, field_name, value, currency):
+    # We will have single channel/currency as the rule can be applied only
+    # on channels with the same currencies
+    if not currency:
+        raise ValidationError(
+            "You must provide a currency to filter by price field.", code="required"
+        )
+    qs = qs.filter(currency=currency)
+    return filter_where_by_numeric_field(qs, field_name, value)
