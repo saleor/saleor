@@ -449,14 +449,6 @@ def prepare_line_discount_objects_for_catalogue_promotions(
             line_discounts_to_remove.extend(discounts_to_update)
             continue
 
-        # delete the discount objects that are not valid anymore
-        line_discounts_to_remove.extend(
-            _get_discounts_that_are_not_valid_anymore(
-                line_info.rules_info,
-                rule_id_to_discount,  # type: ignore[arg-type]
-            )
-        )
-
         for rule_info in line_info.rules_info:
             rule = rule_info.rule
             discount_to_update = rule_id_to_discount.get(rule.id)
@@ -513,19 +505,6 @@ def _get_discount_amount(
 
     unit_discount = price_amount - discounted_price_amount
     return unit_discount * line_quantity
-
-
-def _get_discounts_that_are_not_valid_anymore(
-    rules_info: list["VariantPromotionRuleInfo"],
-    rule_id_to_discount: dict[int, Union["CheckoutLineDiscount", "OrderLineDiscount"]],
-):
-    rule_ids = {rule_info.rule.id for rule_info in rules_info}
-    discounts = [
-        discount
-        for rule_id, discount in rule_id_to_discount.items()
-        if rule_id not in rule_ids
-    ]
-    return discounts
 
 
 def _get_rule_discount_amount(
