@@ -426,11 +426,13 @@ def prepare_line_discount_objects_for_catalogue_promotions(
     for line_info in lines_info:
         line = line_info.line
 
-        # get the existing discounts for the line
-        discounts_to_update = line_info.get_catalogue_discounts()
-        rule_id_to_discount = {
-            discount.promotion_rule_id: discount for discount in discounts_to_update
-        }
+        # get the existing catalogue discount for the line
+        discount_to_update = None
+        if discounts_to_update := line_info.get_catalogue_discounts():
+            discount_to_update = discounts_to_update[0]
+            # Line should never have multiple catalogue discounts associated. Before
+            # introducing unique_type on discount models, there was such a possibility.
+            line_discounts_to_remove.extend(discounts_to_update[1:])
 
         # manual line discount do not stack with other discounts
         if [
@@ -449,9 +451,9 @@ def prepare_line_discount_objects_for_catalogue_promotions(
             line_discounts_to_remove.extend(discounts_to_update)
             continue
 
-        for rule_info in line_info.rules_info:
+        if line_info.rules_info:
+            rule_info = line_info.rules_info[0]
             rule = rule_info.rule
-            discount_to_update = rule_id_to_discount.get(rule.id)
             rule_discount_amount = _get_rule_discount_amount(
                 rule_info.variant_listing_promotion_rule, line.quantity
             )
