@@ -358,29 +358,45 @@ def create_or_update_discount_objects_from_promotion_for_checkout(
 def create_checkout_line_discount_objects_for_catalogue_promotions(
     lines_info: Iterable[CheckoutLineInfo],
 ):
-    discount_data = prepare_line_discount_objects_for_catalogue_promotions(lines_info)
-    if not discount_data:
+    if not lines_info:
         return
 
-    (
-        discounts_to_create_inputs,
-        discounts_to_update,
-        discount_to_remove,
-        updated_fields,
-    ) = discount_data
+    with transaction.atomic():
+        checkout_pk = lines_info[0].line.checkout_id  # type: ignore[index]
+        _checkout_lock = (
+            Checkout.objects.select_for_update().filter(pk=checkout_pk).first()
+        )
+        CheckoutLineDiscount.objects.filter(
+            line_id__in=[line_info.line.pk for line_info in lines_info]
+        ).exclude(promotion_rule__reward_type=RewardType.GIFT).delete()
 
-    new_line_discounts = []
-    if discounts_to_create_inputs:
-        new_line_discounts = [
-            CheckoutLineDiscount(**input) for input in discounts_to_create_inputs
-        ]
-        CheckoutLineDiscount.objects.bulk_create(new_line_discounts)
+        discount_data = prepare_line_discount_objects_for_catalogue_promotions(
+            lines_info
+        )
+        if not discount_data:
+            return
 
-    if discounts_to_update and updated_fields:
-        CheckoutLineDiscount.objects.bulk_update(discounts_to_update, updated_fields)
+        (
+            discounts_to_create_inputs,
+            discounts_to_update,
+            discount_to_remove,
+            updated_fields,
+        ) = discount_data
 
-    if discount_ids_to_remove := [discount.id for discount in discount_to_remove]:
-        CheckoutLineDiscount.objects.filter(id__in=discount_ids_to_remove).delete()
+        if discount_ids_to_remove := [discount.id for discount in discount_to_remove]:
+            CheckoutLineDiscount.objects.filter(id__in=discount_ids_to_remove).delete()
+
+        new_line_discounts = []
+        if discounts_to_create_inputs:
+            new_line_discounts = [
+                CheckoutLineDiscount(**input) for input in discounts_to_create_inputs
+            ]
+            CheckoutLineDiscount.objects.bulk_create(new_line_discounts)
+
+        if discounts_to_update and updated_fields:
+            CheckoutLineDiscount.objects.bulk_update(
+                discounts_to_update, updated_fields
+            )
 
     _update_line_info_cached_discounts(
         lines_info, new_line_discounts, discounts_to_update, discount_ids_to_remove
@@ -1178,29 +1194,41 @@ def create_or_update_discount_objects_from_promotion_for_order(
 def create_order_line_discount_objects_for_catalogue_promotions(
     lines_info: Iterable[DraftOrderLineInfo],
 ):
-    discount_data = prepare_line_discount_objects_for_catalogue_promotions(lines_info)
-    if not discount_data:
+    if not lines_info:
         return
 
-    (
-        discounts_to_create_inputs,
-        discounts_to_update,
-        discount_to_remove,
-        updated_fields,
-    ) = discount_data
+    with transaction.atomic():
+        order_pk = lines_info[0].line.order_id  # type: ignore[index]
+        _order_lock = Order.objects.select_for_update().filter(pk=order_pk).first()
+        OrderLineDiscount.objects.filter(
+            line_id__in=[line_info.line.pk for line_info in lines_info]
+        ).exclude(promotion_rule__reward_type=RewardType.GIFT).delete()
 
-    new_line_discounts = []
-    if discounts_to_create_inputs:
-        new_line_discounts = [
-            OrderLineDiscount(**input) for input in discounts_to_create_inputs
-        ]
-        OrderLineDiscount.objects.bulk_create(new_line_discounts)
+        discount_data = prepare_line_discount_objects_for_catalogue_promotions(
+            lines_info
+        )
+        if not discount_data:
+            return
 
-    if discounts_to_update and updated_fields:
-        OrderLineDiscount.objects.bulk_update(discounts_to_update, updated_fields)
+        (
+            discounts_to_create_inputs,
+            discounts_to_update,
+            discount_to_remove,
+            updated_fields,
+        ) = discount_data
 
-    if discount_ids_to_remove := [discount.id for discount in discount_to_remove]:
-        OrderLineDiscount.objects.filter(id__in=discount_ids_to_remove).delete()
+        if discount_ids_to_remove := [discount.id for discount in discount_to_remove]:
+            OrderLineDiscount.objects.filter(id__in=discount_ids_to_remove).delete()
+
+        new_line_discounts = []
+        if discounts_to_create_inputs:
+            new_line_discounts = [
+                OrderLineDiscount(**input) for input in discounts_to_create_inputs
+            ]
+            OrderLineDiscount.objects.bulk_create(new_line_discounts)
+
+        if discounts_to_update and updated_fields:
+            OrderLineDiscount.objects.bulk_update(discounts_to_update, updated_fields)
 
     _update_line_info_cached_discounts(
         lines_info, new_line_discounts, discounts_to_update, discount_ids_to_remove
