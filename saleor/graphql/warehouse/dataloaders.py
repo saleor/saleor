@@ -427,11 +427,14 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
             .filter(product_variant_id__in=variant_ids)
         )
 
+        ChannelShippingZone = ShippingZone.channels.through
+        WarehouseShippingZone = Warehouse.shipping_zones.through
+        WarehouseChannel = Warehouse.channels.through
+
         if country_code:
             shipping_zones = ShippingZone.objects.filter(
                 countries__contains=country_code
             )
-            WarehouseShippingZone = Warehouse.shipping_zones.through
             warehouses_shipping_zones = WarehouseShippingZone.objects.filter(
                 Exists(shipping_zones.filter(id=OuterRef("shippingzone_id")))
             )
@@ -445,46 +448,49 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
         if channel_slug:
             # click and collect warehouses don't have to be assigned to the shipping
             # zones, the others must
+
+            # warehouse__shipping_zones__channels__slug = channel_slug:
+            channel = Channel.objects.filter(slug=channel_slug)
+            channel_shipping_zones = ChannelShippingZone.objects.filter(
+                Exists(channel.filter(id=OuterRef("channel_id")))
+            )
+            shipping_zones = ShippingZone.objects.filter(
+                Exists(channel_shipping_zones.filter(shippingzone_id=OuterRef("id")))
+            )
+            warehouses_shipping_zones = WarehouseShippingZone.objects.filter(
+                Exists(shipping_zones.filter(id=OuterRef("shippingzone_id")))
+            )
+            warehouses_with_zone_in_channel = Warehouse.objects.filter(
+                Exists(warehouses_shipping_zones.filter(warehouse_id=OuterRef("id")))
+            ).values_list("id")
+
+            # warehouse__channels__slug = channel_slug,
+            warehouses_channels = WarehouseChannel.objects.filter(
+                Exists(channel.filter(id=OuterRef("channel_id")))
+            )
+            warehouses_in_channel = Warehouse.objects.filter(
+                Exists(warehouses_channels.filter(warehouse_id=OuterRef("id")))
+            ).values_list("id")
+
+            # warehouse__click_and_collect_option__in
+            warehouses_with_collect = Warehouse.objects.filter(
+                click_and_collect_option__in=[
+                    WarehouseClickAndCollectOption.LOCAL_STOCK,
+                    WarehouseClickAndCollectOption.ALL_WAREHOUSES,
+                ]
+            ).values_list("id")
+
             stocks = stocks.filter(
                 Q(
-                    warehouse__shipping_zones__channels__slug=channel_slug,
-                    warehouse__channels__slug=channel_slug,
+                    Q(warehouse_id__in=warehouses_in_channel)
+                    & Q(warehouse_id__in=warehouses_with_zone_in_channel)
                 )
                 | Q(
-                    warehouse__channels__slug=channel_slug,
-                    warehouse__click_and_collect_option__in=[
-                        WarehouseClickAndCollectOption.LOCAL_STOCK,
-                        WarehouseClickAndCollectOption.ALL_WAREHOUSES,
-                    ],
+                    Q(warehouse_id__in=warehouses_in_channel)
+                    & Q(warehouse_id__in=warehouses_with_collect)
                 )
             )
 
-        if False:
-            stocks = (
-                Stock.objects.all()
-                .using(self.database_connection_name)
-                .filter(product_variant_id__in=variant_ids)
-            )
-        if country_code and False:
-            stocks = stocks.filter(
-                warehouse__shipping_zones__countries__contains=country_code
-            )
-        if channel_slug and False:
-            # click and collect warehouses don't have to be assigned to the shipping
-            # zones, the others must
-            stocks = stocks.filter(
-                Q(
-                    warehouse__shipping_zones__channels__slug=channel_slug,
-                    warehouse__channels__slug=channel_slug,
-                )
-                | Q(
-                    warehouse__channels__slug=channel_slug,
-                    warehouse__click_and_collect_option__in=[
-                        WarehouseClickAndCollectOption.LOCAL_STOCK,
-                        WarehouseClickAndCollectOption.ALL_WAREHOUSES,
-                    ],
-                )
-            )
         stocks = stocks.annotate_available_quantity()
 
         stocks_by_variant_id_map: DefaultDict[int, List[Stock]] = defaultdict(list)
