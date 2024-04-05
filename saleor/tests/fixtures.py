@@ -127,6 +127,7 @@ from ..product.models import (
     ProductVariant,
     ProductVariantChannelListing,
     ProductVariantTranslation,
+    VariantChannelListingPromotionRule,
     VariantMedia,
 )
 from ..product.search import prepare_product_search_vector_value
@@ -467,6 +468,12 @@ def checkout_with_item_on_sale(checkout_with_item, promotion_converted_from_sale
     )
     channel_listing.save(update_fields=["discounted_price_amount"])
 
+    VariantChannelListingPromotionRule.objects.create(
+        variant_channel_listing=channel_listing,
+        promotion_rule=rule,
+        discount_amount=discount_amount,
+        currency=channel.currency_code,
+    )
     CheckoutLineDiscount.objects.create(
         line=line,
         promotion_rule=rule,
