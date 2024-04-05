@@ -54,6 +54,7 @@ def test_get_plugins_manager(settings):
     plugin_path = "saleor.plugins.tests.sample_plugins.PluginSample"
     settings.PLUGINS = [plugin_path]
     manager = get_plugins_manager(allow_replica=False)
+    manager.get_all_plugins()
     assert isinstance(manager, PluginsManager)
     assert len(manager.all_plugins) == 1
 
@@ -66,6 +67,8 @@ def test_manager_with_default_configuration_for_channel_plugins(
         "saleor.plugins.tests.sample_plugins.PluginSample",
     ]
     manager = get_plugins_manager(allow_replica=False)
+    manager.get_all_plugins()
+
     assert len(manager.global_plugins) == 1
     assert isinstance(manager.global_plugins[0], PluginSample)
     assert {channel_PLN.slug, channel_USD.slug} == set(
@@ -92,6 +95,7 @@ def test_manager_with_channel_plugins(
         "saleor.plugins.tests.sample_plugins.ChannelPluginSample",
     ]
     manager = get_plugins_manager(allow_replica=False)
+    manager.get_all_plugins()
 
     assert {channel_PLN.slug, channel_USD.slug} == set(
         manager.plugins_per_channel.keys()
@@ -1118,6 +1122,7 @@ def test_create_plugin_manager_initializes_requestor_lazily(channel_USD):
     manager = PluginsManager(
         plugins=plugins, requestor_getter=partial(fake_request_getter, user_mock)
     )
+    manager.get_all_plugins()
     user_mock.assert_not_called()
 
     plugin = manager.all_plugins.pop()

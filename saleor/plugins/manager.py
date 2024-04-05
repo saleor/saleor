@@ -133,62 +133,68 @@ class PluginsManager(PaymentInterface):
 
     def __init__(self, plugins: list[str], requestor_getter=None, allow_replica=True):
         with opentracing.global_tracer().start_active_span("PluginsManager.__init__"):
+            self.plugins = plugins
             self._allow_replica = allow_replica
             self.all_plugins = []
             self.global_plugins = []
             self.plugins_per_channel = defaultdict(list)
+            self.loaded_channels: set[str] = set()
+            self.loaded_global = False
+            self.requestor_getter = requestor_getter
 
-            channel_map = self._get_channel_map()
-            global_db_configs, channel_db_configs = self._get_db_plugin_configs(
-                channel_map
-            )
+    def _ensure_channel_plugins_loaded(
+        self, channel_slug: Optional[str], channel: Optional[Channel] = None
+    ):
+        if channel_slug is None and not self.loaded_global:
+            global_db_config = self._get_db_plugin_configs(None)
 
-            for plugin_path in plugins:
+            for plugin_path in self.plugins:
                 with opentracing.global_tracer().start_active_span(f"{plugin_path}"):
                     PluginClass = import_string(plugin_path)
                     if not getattr(PluginClass, "CONFIGURATION_PER_CHANNEL", False):
                         plugin = self._load_plugin(
                             PluginClass,
-                            global_db_configs,
-                            requestor_getter=requestor_getter,
-                            allow_replica=allow_replica,
+                            global_db_config,
+                            requestor_getter=self.requestor_getter,
+                            allow_replica=self._allow_replica,
                         )
                         self.global_plugins.append(plugin)
                         self.all_plugins.append(plugin)
-                    else:
-                        for channel in channel_map.values():
-                            channel_configs = channel_db_configs.get(channel, {})
-                            plugin = self._load_plugin(
-                                PluginClass,
-                                channel_configs,
-                                channel,
-                                requestor_getter,
-                                allow_replica,
-                            )
-                            self.plugins_per_channel[channel.slug].append(plugin)
-                            self.all_plugins.append(plugin)
+            self.loaded_global = True
 
-            for channel in channel_map.values():
-                self.plugins_per_channel[channel.slug].extend(self.global_plugins)
+        if channel_slug is not None and channel_slug not in self.loaded_channels:
+            if channel is None:
+                channel = Channel.objects.using(self.database).get(slug=channel_slug)
+            channel_db_config = self._get_db_plugin_configs(channel)
 
-    def _get_db_plugin_configs(self, channel_map):
+            for plugin_path in self.plugins:
+                with opentracing.global_tracer().start_active_span(f"{plugin_path}"):
+                    PluginClass = import_string(plugin_path)
+                    if getattr(PluginClass, "CONFIGURATION_PER_CHANNEL", False):
+                        plugin = self._load_plugin(
+                            PluginClass,
+                            channel_db_config,
+                            channel=channel,
+                            requestor_getter=self.requestor_getter,
+                            allow_replica=self._allow_replica,
+                        )
+                        self.plugins_per_channel[channel_slug].append(plugin)
+                        self.all_plugins.append(plugin)
+
+            self._ensure_channel_plugins_loaded(None)
+            self.plugins_per_channel[channel_slug].extend(self.global_plugins)
+            self.loaded_channels.add(channel_slug)
+
+    def _get_db_plugin_configs(self, channel: Optional[Channel]):
         with opentracing.global_tracer().start_active_span("_get_db_plugin_configs"):
             plugin_manager_configs = PluginConfiguration.objects.using(
                 self.database
-            ).all()
-            channel_configs: defaultdict[Channel, dict] = defaultdict(dict)
-            global_configs = {}
+            ).filter(channel=channel)
+            configs = {}
             for db_plugin_config in plugin_manager_configs.iterator():
-                channel = channel_map.get(db_plugin_config.channel_id)
-                if channel is None:
-                    global_configs[db_plugin_config.identifier] = db_plugin_config
-                else:
-                    db_plugin_config.channel = channel
-                    channel_configs[channel][
-                        db_plugin_config.identifier
-                    ] = db_plugin_config
+                configs[db_plugin_config.identifier] = db_plugin_config
 
-            return global_configs, channel_configs
+            return configs
 
     def __run_method_on_plugins(
         self,
@@ -1736,13 +1742,21 @@ class PluginsManager(PaymentInterface):
             "translation_updated", default_value, translation
         )
 
+    def get_all_plugins(self):
+        channels = Channel.objects.using(self.database).all()
+        for channel in channels.iterator():
+            self._ensure_channel_plugins_loaded(channel.slug, channel=channel)
+        return self.get_plugins()
+
     def get_plugins(
         self, channel_slug: Optional[str] = None, active_only=False
     ) -> list["BasePlugin"]:
         """Return list of plugins for a given channel."""
-        if channel_slug:
+        if channel_slug is not None:
+            self._ensure_channel_plugins_loaded(channel_slug)
             plugins = self.plugins_per_channel[channel_slug]
         else:
+            self._ensure_channel_plugins_loaded(None)
             plugins = self.all_plugins
 
         if active_only:
@@ -2114,6 +2128,7 @@ class PluginsManager(PaymentInterface):
     def is_event_active_for_any_plugin(
         self, event: str, channel_slug: Optional[str] = None
     ) -> bool:
+        self._ensure_channel_plugins_loaded(channel_slug)
         """Check if any plugin supports defined event."""
         plugins = (
             self.plugins_per_channel[channel_slug] if channel_slug else self.all_plugins

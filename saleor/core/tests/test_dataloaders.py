@@ -31,6 +31,7 @@ def test_plugins_manager_loader_requestor_in_plugin_when_no_app_and_user_in_req_
     handler.load_middleware()
     handler.get_response(request)
     manager = get_plugin_manager_promise(request).get()
+    manager.get_all_plugins()
     plugin = manager.all_plugins.pop()
 
     assert not plugin.requestor
