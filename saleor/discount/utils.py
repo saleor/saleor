@@ -483,6 +483,9 @@ def prepare_line_discount_objects_for_catalogue_promotions(
                     updated_fields,
                 )
                 line_discounts_to_update.append(discount_to_update)
+        else:
+            # Fallback against unlike mismatch between discount_amount and rules_info
+            line_discounts_to_remove.extend(discounts_to_update)
 
     return (
         line_discounts_to_create_inputs,
