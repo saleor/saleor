@@ -15,9 +15,7 @@ from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.types import BulkStockError, NonNullList
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ...plugins.dataloaders import get_plugin_manager_promise
-from ...warehouse.dataloaders import (
-    StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader,
-)
+from ...warehouse.dataloaders import StocksByProductVariantIdLoader
 from ...warehouse.types import Warehouse
 from ..mutations.product.product_create import StockInput
 from ..types import ProductVariant
@@ -81,9 +79,7 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
             manager = get_plugin_manager_promise(info.context).get()
             cls.update_or_create_variant_stocks(variant, stocks, warehouses, manager)
 
-        StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
-            info.context
-        ).clear((variant.id, None, None))
+        StocksByProductVariantIdLoader(info.context).clear(variant.id)
 
         variant = ChannelContext(node=variant, channel_slug=None)
         return cls(product_variant=variant)
