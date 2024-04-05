@@ -284,3 +284,53 @@ def test_product_variants_no_ids_list(user_api_client, variant, channel_USD):
     content = get_graphql_content(response)
     data = content["data"]["productVariants"]
     assert len(data["edges"]) == ProductVariant.objects.count()
+
+
+def test_ir_167(
+    staff_api_client,
+    variant,
+    channel_USD,
+    permission_manage_products,
+    permission_manage_orders,
+    product_variant_list,
+):
+    from django.db import connection
+    from django.test.utils import CaptureQueriesContext
+
+    query = """
+        query getProductVariants($ids: [ID!], $channel: String) {
+            productVariants(ids: $ids, first: 1, channel: $channel) {
+                edges {
+                    node {
+                        id
+                        name
+                        sku
+                        stocks {
+                            warehouse {
+                                name
+                            }
+                            quantity
+                        }
+                    }
+                }
+            }
+        }
+    """
+    variant_ids = [
+        graphene.Node.to_global_id("ProductVariant", variant.id)
+        for variant in product_variant_list
+    ]
+
+    variables = {"ids": variant_ids, "channel": channel_USD.slug}
+    with CaptureQueriesContext(connection) as ctx:
+        response = staff_api_client.post_graphql(
+            query,
+            variables,
+            permissions=[permission_manage_products, permission_manage_orders],
+        )
+
+    content = get_graphql_content(response)
+
+    data = content["data"]["productVariants"]
+    assert data["edges"][0]["node"]["id"] == variant_id
+    assert len(data["edges"]) == 1

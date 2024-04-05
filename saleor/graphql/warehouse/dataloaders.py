@@ -426,11 +426,50 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
             .using(self.database_connection_name)
             .filter(product_variant_id__in=variant_ids)
         )
+
         if country_code:
+            shipping_zones = ShippingZone.objects.filter(
+                countries__contains=country_code
+            )
+            WarehouseShippingZone = Warehouse.shipping_zones.through
+            warehouses_shipping_zones = WarehouseShippingZone.objects.filter(
+                Exists(shipping_zones.filter(id=OuterRef("shippingzone_id")))
+            )
+            warehouses = Warehouse.objects.filter(
+                Exists(warehouses_shipping_zones.filter(warehouse_id=OuterRef("id")))
+            )
+            stocks = stocks.filter(
+                Exists(warehouses.filter(id=OuterRef("warehouse_id")))
+            )
+
+        if channel_slug:
+            # click and collect warehouses don't have to be assigned to the shipping
+            # zones, the others must
+            stocks = stocks.filter(
+                Q(
+                    warehouse__shipping_zones__channels__slug=channel_slug,
+                    warehouse__channels__slug=channel_slug,
+                )
+                | Q(
+                    warehouse__channels__slug=channel_slug,
+                    warehouse__click_and_collect_option__in=[
+                        WarehouseClickAndCollectOption.LOCAL_STOCK,
+                        WarehouseClickAndCollectOption.ALL_WAREHOUSES,
+                    ],
+                )
+            )
+
+        if False:
+            stocks = (
+                Stock.objects.all()
+                .using(self.database_connection_name)
+                .filter(product_variant_id__in=variant_ids)
+            )
+        if country_code and False:
             stocks = stocks.filter(
                 warehouse__shipping_zones__countries__contains=country_code
             )
-        if channel_slug:
+        if channel_slug and False:
             # click and collect warehouses don't have to be assigned to the shipping
             # zones, the others must
             stocks = stocks.filter(
