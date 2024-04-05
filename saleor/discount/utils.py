@@ -362,13 +362,22 @@ def create_checkout_line_discount_objects_for_catalogue_promotions(
         return
 
     with transaction.atomic():
+        # To ensure we do not apply multiple catalogue discounts to single line
+        # as a workaround we delete all the discounts at first. It will be fixed
+        # in 3.20 when utilizing `unique_type`.
         checkout_pk = lines_info[0].line.checkout_id  # type: ignore[index]
         _checkout_lock = (
             Checkout.objects.select_for_update().filter(pk=checkout_pk).first()
         )
         CheckoutLineDiscount.objects.filter(
             line_id__in=[line_info.line.pk for line_info in lines_info]
-        ).exclude(promotion_rule__reward_type=RewardType.GIFT).delete()
+        ).filter(type__in=[DiscountType.PROMOTION, DiscountType.SALE]).delete()
+        for line_info in lines_info:
+            line_info.discounts = [
+                discount
+                for discount in line_info.discounts
+                if discount.type not in [DiscountType.PROMOTION, DiscountType.SALE]
+            ]
 
         discount_data = prepare_line_discount_objects_for_catalogue_promotions(
             lines_info
@@ -1198,11 +1207,20 @@ def create_order_line_discount_objects_for_catalogue_promotions(
         return
 
     with transaction.atomic():
+        # To ensure we do not apply multiple catalogue discounts to single line
+        # as a workaround we delete all the discounts at first. It will be fixed
+        # in 3.20 when utilizing `unique_type`.
         order_pk = lines_info[0].line.order_id  # type: ignore[index]
         _order_lock = Order.objects.select_for_update().filter(pk=order_pk).first()
         OrderLineDiscount.objects.filter(
             line_id__in=[line_info.line.pk for line_info in lines_info]
-        ).exclude(promotion_rule__reward_type=RewardType.GIFT).delete()
+        ).filter(type__in=[DiscountType.PROMOTION, DiscountType.SALE]).delete()
+        for line_info in lines_info:
+            line_info.discounts = [
+                discount
+                for discount in line_info.discounts
+                if discount.type not in [DiscountType.PROMOTION, DiscountType.SALE]
+            ]
 
         discount_data = prepare_line_discount_objects_for_catalogue_promotions(
             lines_info
