@@ -227,7 +227,7 @@ type Query {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   stock(
-    """ID of an warehouse"""
+    """ID of a stock"""
     id: ID!
   ): Stock @doc(category: "Products")
 
@@ -3810,6 +3810,25 @@ type Warehouse implements Node & ObjectWithMetadata @doc(category: "Products") {
     """
     last: Int
   ): ShippingZoneCountableConnection!
+
+  """Stocks belonging to this warehouse."""
+  stocks(
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): StockCountableConnection
 
   """
   External ID of this warehouse. 
@@ -8749,6 +8768,23 @@ type ProductTranslatableContent implements Node @doc(category: "Products") {
   attributeValues: [AttributeValueTranslatableContent!]!
 }
 
+type StockCountableConnection @doc(category: "Products") {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [StockCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type StockCountableEdge @doc(category: "Products") {
+  """The item at the end of the edge."""
+  node: Stock!
+
+  """A cursor for use in pagination."""
+  cursor: String!
+}
+
 type WarehouseCountableConnection @doc(category: "Products") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
@@ -10121,23 +10157,6 @@ type TaxCountryConfiguration @doc(category: "Taxes") {
 
   """List of tax class rates."""
   taxClassCountryRates: [TaxClassCountryRate!]!
-}
-
-type StockCountableConnection @doc(category: "Products") {
-  """Pagination data for this connection."""
-  pageInfo: PageInfo!
-  edges: [StockCountableEdge!]!
-
-  """A total count of items in the collection."""
-  totalCount: Int
-}
-
-type StockCountableEdge @doc(category: "Products") {
-  """The item at the end of the edge."""
-  node: Stock!
-
-  """A cursor for use in pagination."""
-  cursor: String!
 }
 
 input StockFilterInput @doc(category: "Products") {

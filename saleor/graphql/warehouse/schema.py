@@ -89,7 +89,7 @@ class StockQueries(graphene.ObjectType):
     stock = PermissionsField(
         Stock,
         description="Look up a stock by ID",
-        id=graphene.ID(required=True, description="ID of an warehouse"),
+        id=graphene.ID(required=True, description="ID of a stock"),
         permissions=[ProductPermissions.MANAGE_PRODUCTS],
         doc_category=DOC_CATEGORY_PRODUCTS,
     )

@@ -18,7 +18,7 @@ from ..core.descriptions import (
     DEPRECATED_IN_3X_INPUT,
 )
 from ..core.doc_category import DOC_CATEGORY_PRODUCTS
-from ..core.fields import ConnectionField, PermissionsField
+from ..core.fields import ConnectionField, FilterConnectionField, PermissionsField
 from ..core.types import (
     BaseInputObjectType,
     BaseObjectType,
@@ -114,6 +114,10 @@ class Warehouse(ModelObjectType[models.Warehouse]):
         required=True,
         description="Shipping zones supported by the warehouse.",
     )
+    stocks = FilterConnectionField(
+        "saleor.graphql.warehouse.types.StockCountableConnection",
+        description="Stocks belonging to this warehouse.",
+    )
     external_reference = graphene.String(
         description=f"External ID of this warehouse. {ADDED_IN_310}", required=False
     )
@@ -142,6 +146,11 @@ class Warehouse(ModelObjectType[models.Warehouse]):
         slice.edges = edges_with_context
 
         return slice
+
+    @staticmethod
+    def resolve_stocks(root, info: ResolveInfo, **kwargs):
+        stocks = root.stock_set.using(get_database_connection_name(info.context)).all()
+        return create_connection_slice(stocks, info, kwargs, StockCountableConnection)
 
     @staticmethod
     def resolve_address(root, info: ResolveInfo):
