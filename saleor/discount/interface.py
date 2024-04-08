@@ -62,7 +62,7 @@ def fetch_variant_rules_info(
 
     rules_info = []
     if listings_rules:
-        # Before introducing unique_type on discount models, there were possibility
+        # Before introducing unique_type on discount models, there was possibility
         # to have multiple catalogue discount associated with single line. In such a
         # case, we should pick the best discount (with the highest discount amount)
         listing_promotion_rule = max(
@@ -70,6 +70,7 @@ def fetch_variant_rules_info(
             key=lambda x: x.discount_amount,
         )
         promotion = listing_promotion_rule.promotion_rule.promotion
+
         promotion_translation, rule_translation = get_rule_translations(
             promotion, listing_promotion_rule.promotion_rule, translation_language_code
         )
