@@ -1544,21 +1544,3 @@ def test_plugin_manager_database(allow_replica, expected_connection_name):
         DATABASE_CONNECTION_DEFAULT_NAME="test default",
     ):
         assert manager.database == expected_connection_name
-
-
-def test_plugin_manager__get_channel_map(
-    channel_USD, channel_PLN, channel_JPY, other_channel_USD
-):
-    # given
-    manager = PluginsManager(["saleor.plugins.tests.sample_plugins.PluginSample"])
-
-    # when
-    channel_map = manager._get_channel_map()
-
-    # then
-    assert channel_map == {
-        channel_USD.pk: channel_USD,
-        channel_PLN.pk: channel_PLN,
-        channel_JPY.pk: channel_JPY,
-        other_channel_USD.pk: other_channel_USD,
-    }

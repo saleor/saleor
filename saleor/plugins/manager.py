@@ -2136,12 +2136,6 @@ class PluginsManager(PaymentInterface):
         only_active_plugins = [plugin for plugin in plugins if plugin.active]
         return any([plugin.is_event_active(event) for plugin in only_active_plugins])
 
-    def _get_channel_map(self):
-        return {
-            channel.pk: channel
-            for channel in Channel.objects.using(self.database).all().iterator()
-        }
-
 
 def get_plugins_manager(
     allow_replica: bool,

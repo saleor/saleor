@@ -57,6 +57,7 @@ def np_atobarai_plugin(settings, monkeypatch, channel_USD):
         )
 
         manager = get_plugins_manager(allow_replica=False)
+        manager.get_all_plugins()
         return manager.plugins_per_channel[channel_USD.slug][0]
 
     return fun

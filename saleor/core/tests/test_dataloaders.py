@@ -13,6 +13,7 @@ def test_plugins_manager_loader_loads_requestor_in_plugin(rf, customer_user, set
     handler.load_middleware()
     handler.get_response(request)
     manager = get_plugin_manager_promise(request).get()
+    manager.get_all_plugins()
     plugin = manager.all_plugins.pop()
 
     assert isinstance(plugin.requestor, type(customer_user))
