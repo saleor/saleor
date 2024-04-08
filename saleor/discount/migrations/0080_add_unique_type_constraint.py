@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-    atomic = False
     dependencies = [
         ("discount", "0079_add_index_for_unique_type"),
     ]
@@ -23,15 +22,6 @@ class Migration(migrations.Migration):
                         unique_checkoutline_discount_type;
                     """,
                 ),
-                # Create back the index introduced in 0079, which was converted to
-                # constraint
-                migrations.RunSQL(
-                    sql=migrations.RunSQL.noop,
-                    reverse_sql="""
-                        CREATE UNIQUE INDEX CONCURRENTLY checkoutlinediscount_line_id_unique_type_idx
-                        ON discount_checkoutlinediscount USING btree (line_id, unique_type);
-                    """,
-                ),
                 migrations.RunSQL(
                     sql="""
                         ALTER TABLE discount_orderlinediscount
@@ -41,15 +31,6 @@ class Migration(migrations.Migration):
                     reverse_sql="""
                         ALTER TABLE discount_orderlinediscount DROP CONSTRAINT IF EXISTS
                         unique_orderline_discount_type;
-                    """,
-                ),
-                # Create back the index introduced in 0079, which was converted to
-                # constraint
-                migrations.RunSQL(
-                    sql=migrations.RunSQL.noop,
-                    reverse_sql="""
-                        CREATE UNIQUE INDEX CONCURRENTLY orderlinediscount_line_id_unique_type_idx
-                        ON discount_orderlinediscount USING btree (line_id, unique_type);
                     """,
                 ),
             ],
