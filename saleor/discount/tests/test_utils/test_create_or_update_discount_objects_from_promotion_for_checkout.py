@@ -23,6 +23,7 @@ from ...models import CheckoutDiscount, CheckoutLineDiscount, PromotionRule
 from ...utils import (
     _get_best_gift_reward,
     create_checkout_discount_objects_for_order_promotions,
+    create_checkout_line_discount_objects_for_catalogue_promotions,
     create_or_update_discount_objects_from_promotion_for_checkout,
 )
 
@@ -129,9 +130,88 @@ def test_create_fixed_discount(
         == discount_from_db.translated_name
         == promotion_translation_fr.name
     )
+    assert (
+        discount_from_info.unique_type
+        == discount_from_db.unique_type
+        == DiscountType.PROMOTION
+    )
 
     for checkout_line_info in checkout_lines_info[1:]:
         assert not checkout_line_info.discounts
+
+
+@freeze_time("2020-12-12 12:00:00")
+def test_update_catalogue_discount(
+    checkout_info,
+    checkout_lines_info,
+    catalogue_promotion_without_rules,
+    promotion_translation_fr,
+):
+    # given
+    line_info1 = checkout_lines_info[0]
+    product_line1 = line_info1.product
+
+    actual_reward_value = Decimal("5")
+    discount_to_update = line_info1.line.discounts.create(
+        type=DiscountType.PROMOTION,
+        value_type=RewardValueType.FIXED,
+        value=actual_reward_value,
+        name="Fixed 5 catalogue discount",
+        currency=line_info1.channel.currency_code,
+        amount_value=actual_reward_value * line_info1.line.quantity,
+    )
+    checkout_lines_info[0].discounts.append(discount_to_update)
+
+    reward_value = Decimal("7")
+    assert reward_value > actual_reward_value
+    rule = catalogue_promotion_without_rules.rules.create(
+        name="Percentage promotion rule",
+        catalogue_predicate={
+            "productPredicate": {
+                "ids": [graphene.Node.to_global_id("Product", product_line1.id)]
+            }
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=reward_value,
+    )
+    rule.channels.add(line_info1.channel)
+
+    listing = line_info1.channel_listing
+    discounted_price = listing.price.amount - reward_value
+    listing.discounted_price_amount = discounted_price
+    listing.save(update_fields=["discounted_price_amount"])
+
+    listing_promotion_rule = VariantChannelListingPromotionRule.objects.create(
+        variant_channel_listing=listing,
+        promotion_rule=rule,
+        discount_amount=reward_value,
+        currency=line_info1.channel.currency_code,
+    )
+    line_info1.rules_info = [
+        VariantPromotionRuleInfo(
+            rule=rule,
+            variant_listing_promotion_rule=listing_promotion_rule,
+            promotion=catalogue_promotion_without_rules,
+            promotion_translation=promotion_translation_fr,
+            rule_translation=None,
+        )
+    ]
+
+    # when
+    create_or_update_discount_objects_from_promotion_for_checkout(
+        checkout_info, checkout_lines_info
+    )
+
+    # then
+    assert len(line_info1.discounts) == 1
+    assert CheckoutLineDiscount.objects.count() == 1
+
+    discount = line_info1.discounts[0]
+    assert discount.id == discount_to_update.id
+    assert discount.value == reward_value
+    assert discount.promotion_rule_id == rule.id
+    assert discount.amount_value == reward_value * line_info1.line.quantity
+    assert discount.unique_type == DiscountType.PROMOTION
 
 
 @freeze_time("2020-12-12 12:00:00")
@@ -473,127 +553,6 @@ def test_create_percentage_discount_multiple_quantity_in_lines(
     assert discount_from_info.voucher == discount_from_db.voucher is None
 
     for checkout_line_info in checkout_lines_with_multiple_quantity_info[1:]:
-        assert not checkout_line_info.discounts
-
-
-def test_create_discount_multiple_rules_applied(
-    checkout_info, checkout_lines_info, catalogue_promotion_without_rules
-):
-    # given
-    line_info1 = checkout_lines_info[0]
-    product_line1 = line_info1.product
-
-    reward_value_1 = Decimal("2")
-    reward_value_2 = Decimal("10")
-    rule_1, rule_2 = PromotionRule.objects.bulk_create(
-        [
-            PromotionRule(
-                name="Percentage promotion rule 1",
-                promotion=catalogue_promotion_without_rules,
-                reward_value_type=RewardValueType.FIXED,
-                reward_value=reward_value_1,
-                catalogue_predicate={
-                    "productPredicate": {
-                        "ids": [graphene.Node.to_global_id("Product", product_line1.id)]
-                    }
-                },
-            ),
-            PromotionRule(
-                name="Percentage promotion rule 2",
-                promotion=catalogue_promotion_without_rules,
-                reward_value_type=RewardValueType.PERCENTAGE,
-                reward_value=reward_value_2,
-                catalogue_predicate={
-                    "variantPredicate": {
-                        "ids": [
-                            graphene.Node.to_global_id(
-                                "ProductVariant", line_info1.variant.id
-                            )
-                        ]
-                    }
-                },
-            ),
-        ]
-    )
-
-    rule_1.channels.add(line_info1.channel)
-    rule_2.channels.add(line_info1.channel)
-
-    listing = line_info1.channel_listing
-    discount_amount_2 = reward_value_2 / 100 * listing.price.amount
-    discounted_price = listing.price.amount - reward_value_1 - discount_amount_2
-    listing.discounted_price_amount = discounted_price
-    listing.save(update_fields=["discounted_price_amount"])
-
-    (
-        listing_promotion_rule_1,
-        listing_promotion_rule_2,
-    ) = VariantChannelListingPromotionRule.objects.bulk_create(
-        [
-            VariantChannelListingPromotionRule(
-                variant_channel_listing=listing,
-                promotion_rule=rule_1,
-                discount_amount=reward_value_1,
-                currency=line_info1.channel.currency_code,
-            ),
-            VariantChannelListingPromotionRule(
-                variant_channel_listing=listing,
-                promotion_rule=rule_2,
-                discount_amount=discount_amount_2,
-                currency=line_info1.channel.currency_code,
-            ),
-        ]
-    )
-
-    line_info1.rules_info = [
-        VariantPromotionRuleInfo(
-            rule=rule_1,
-            variant_listing_promotion_rule=listing_promotion_rule_1,
-            promotion=catalogue_promotion_without_rules,
-            promotion_translation=None,
-            rule_translation=None,
-        ),
-        VariantPromotionRuleInfo(
-            rule=rule_2,
-            variant_listing_promotion_rule=listing_promotion_rule_2,
-            promotion=catalogue_promotion_without_rules,
-            promotion_translation=None,
-            rule_translation=None,
-        ),
-    ]
-
-    # when
-    create_or_update_discount_objects_from_promotion_for_checkout(
-        checkout_info, checkout_lines_info
-    )
-
-    # then
-    assert len(line_info1.discounts) == 2
-    discount_for_rule_1 = line_info1.line.discounts.get(promotion_rule=rule_1)
-    discount_for_rule_2 = line_info1.line.discounts.get(promotion_rule=rule_2)
-
-    assert discount_for_rule_1.line == line_info1.line
-    assert discount_for_rule_2.line == line_info1.line
-
-    assert discount_for_rule_1.type == DiscountType.PROMOTION
-    assert discount_for_rule_2.type == DiscountType.PROMOTION
-
-    assert discount_for_rule_1.value_type == RewardValueType.FIXED
-    assert discount_for_rule_2.value_type == RewardValueType.PERCENTAGE
-
-    assert discount_for_rule_1.value == reward_value_1
-    assert discount_for_rule_2.value == reward_value_2
-
-    assert discount_for_rule_1.amount_value == reward_value_1
-    assert discount_for_rule_2.amount_value == discount_amount_2
-
-    assert discount_for_rule_1.currency == "USD"
-    assert discount_for_rule_2.currency == "USD"
-
-    assert discount_for_rule_1.promotion_rule == rule_1
-    assert discount_for_rule_2.promotion_rule == rule_2
-
-    for checkout_line_info in checkout_lines_info[1:]:
         assert not checkout_line_info.discounts
 
 
@@ -2326,3 +2285,27 @@ def test_get_best_gift_reward_no_variants_in_channel(gift_promotion_rule, channe
     # then
     assert rule is None
     assert listing is None
+
+
+def test_create_checkout_line_discount_objects_for_catalogue_promotions_race_condition(
+    checkout_with_item_on_promotion,
+    plugins_manager,
+):
+    # given
+    checkout = checkout_with_item_on_promotion
+    CheckoutLineDiscount.objects.all().delete()
+
+    # when
+    def call_before_creating_catalogue_line_discount(*args, **kwargs):
+        lines_info, _ = fetch_checkout_lines(checkout)
+        create_checkout_line_discount_objects_for_catalogue_promotions(lines_info)
+
+    with before_after.before(
+        "saleor.discount.utils.prepare_line_discount_objects_for_catalogue_promotions",
+        call_before_creating_catalogue_line_discount,
+    ):
+        lines_info, _ = fetch_checkout_lines(checkout)
+        create_checkout_line_discount_objects_for_catalogue_promotions(lines_info)
+
+    # then
+    assert CheckoutLineDiscount.objects.count() == 1

@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+import before_after
 import graphene
 import pytest
 
@@ -1369,3 +1370,25 @@ def test_fetch_order_prices_manual_line_discount_and_catalogue_discount_flat_rat
     #     order.currency
     # )
     # assert line_1.total_price_net_amount == line_1_total_net_amount
+
+
+def test_fetch_order_prices_catalogue_discount_race_condition(
+    order_with_lines_and_catalogue_promotion,
+    plugins_manager,
+):
+    # given
+    order = order_with_lines_and_catalogue_promotion
+    OrderLineDiscount.objects.all().delete()
+
+    # when
+    def call_before_creating_catalogue_line_discount(*args, **kwargs):
+        calculations.fetch_order_prices_if_expired(order, plugins_manager, None, True)
+
+    with before_after.before(
+        "saleor.discount.utils.prepare_line_discount_objects_for_catalogue_promotions",
+        call_before_creating_catalogue_line_discount,
+    ):
+        calculations.fetch_order_prices_if_expired(order, plugins_manager, None, True)
+
+    # then
+    assert OrderLineDiscount.objects.count() == 1
