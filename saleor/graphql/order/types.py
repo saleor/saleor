@@ -1935,21 +1935,26 @@ class Order(ModelObjectType[models.Order]):
     def resolve_can_finalize(root: models.Order, info):
         if root.status == OrderStatus.DRAFT:
 
-            def _validate_draft_order(manager):
+            @allow_writer_in_context(info.context)
+            def _validate_draft_order(data):
+                lines, manager = data
                 country = get_order_country(root)
                 database_connection_name = get_database_connection_name(info.context)
                 try:
                     validate_draft_order(
-                        root,
-                        country,
-                        manager,
+                        order=root,
+                        lines=lines,
+                        country=country,
+                        manager=manager,
                         database_connection_name=database_connection_name,
                     )
                 except ValidationError:
                     return False
                 return True
 
-            return get_plugin_manager_promise(info.context).then(_validate_draft_order)
+            lines = OrderLinesByOrderIdLoader(info.context).load(root.id)
+            manager = get_plugin_manager_promise(info.context)
+            return Promise.all([lines, manager]).then(_validate_draft_order)
         return True
 
     @staticmethod
@@ -2163,21 +2168,26 @@ class Order(ModelObjectType[models.Order]):
     def resolve_errors(root: models.Order, info):
         if root.status == OrderStatus.DRAFT:
 
-            def _validate_order(manager):
+            @allow_writer_in_context(info.context)
+            def _validate_order(data):
+                lines, manager = data
                 country = get_order_country(root)
                 database_connection_name = get_database_connection_name(info.context)
                 try:
                     validate_draft_order(
-                        root,
-                        country,
-                        manager,
+                        order=root,
+                        lines=lines,
+                        country=country,
+                        manager=manager,
                         database_connection_name=database_connection_name,
                     )
                 except ValidationError as e:
                     return validation_error_to_error_type(e, OrderError)
                 return []
 
-            return get_plugin_manager_promise(info.context).then(_validate_order)
+            lines = OrderLinesByOrderIdLoader(info.context).load(root.id)
+            manager = get_plugin_manager_promise(info.context)
+            return Promise.all([lines, manager]).then(_validate_order)
 
         return []
 

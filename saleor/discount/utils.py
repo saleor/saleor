@@ -26,7 +26,7 @@ from ..core.exceptions import InsufficientStock
 from ..core.taxes import zero_money
 from ..core.utils.promo_code import InvalidPromoCode
 from ..order.fetch import DraftOrderLineInfo
-from ..order.models import Order
+from ..order.models import Order, OrderLine
 from ..product.models import (
     Product,
     ProductChannelListing,
@@ -285,19 +285,23 @@ def validate_voucher_for_checkout(
     )
 
 
-def validate_voucher_in_order(order: "Order"):
+def validate_voucher_in_order(
+    order: "Order", lines: Iterable["OrderLine"], channel: "Channel"
+):
     if not order.voucher:
         return
 
+    from ..order.utils import get_total_quantity
+
     subtotal = order.subtotal
-    quantity = order.get_total_quantity()
+    quantity = get_total_quantity(lines)
     customer_email = order.get_customer_email()
-    tax_configuration = order.channel.tax_configuration
+    tax_configuration = channel.tax_configuration
     prices_entered_with_tax = tax_configuration.prices_entered_with_tax
     value = subtotal.gross if prices_entered_with_tax else subtotal.net
 
     validate_voucher(
-        order.voucher, value, quantity, customer_email, order.channel, order.user
+        order.voucher, value, quantity, customer_email, channel, order.user
     )
 
 

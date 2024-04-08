@@ -14,6 +14,7 @@ from prices import TaxedMoney
 
 from ..channel.models import Channel
 from ..checkout import base_calculations
+from ..core.db.connection import allow_writer
 from ..core.models import EventDelivery
 from ..core.payments import PaymentInterface
 from ..core.prices import quantize_price
@@ -2219,4 +2220,8 @@ def get_plugins_manager(
     requestor_getter: Optional[Callable[[], "Requestor"]] = None,
 ) -> PluginsManager:
     with opentracing.global_tracer().start_active_span("get_plugins_manager"):
-        return PluginsManager(settings.PLUGINS, requestor_getter, allow_replica)
+        if allow_replica:
+            return PluginsManager(settings.PLUGINS, requestor_getter, allow_replica)
+        else:
+            with allow_writer():
+                return PluginsManager(settings.PLUGINS, requestor_getter, allow_replica)

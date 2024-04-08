@@ -664,6 +664,10 @@ def is_shipping_required(lines: Iterable["OrderLine"]):
     return any(line.is_shipping_required for line in lines)
 
 
+def get_total_quantity(lines: Iterable["OrderLine"]):
+    return sum([line.quantity for line in lines])
+
+
 def get_valid_collection_points_for_order(
     lines: Iterable["OrderLine"],
     channel_id: int,
@@ -741,7 +745,7 @@ def get_voucher_discount_for_order(order: Order) -> Money:
     """
     if not order.voucher:
         return zero_money(order.currency)
-    validate_voucher_in_order(order)
+    validate_voucher_in_order(order, order.lines.all(), order.channel)
     subtotal = order.subtotal
     if order.voucher.type == VoucherType.ENTIRE_ORDER:
         return order.voucher.get_discount_amount_for(subtotal.gross, order.channel)
