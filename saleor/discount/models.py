@@ -539,6 +539,13 @@ class OrderLineDiscount(BaseDiscount):
         null=True,
         on_delete=models.CASCADE,
     )
+    # Saleor in version 3.19 and below, doesn't have any unique constraint applied on
+    # discounts for checkout/order. To not have an impact on existing DB objects,
+    # the new field `unique_type` will be used for new discount records.
+    # This will ensure that we always apply a single specific discount type.
+    unique_type = models.CharField(
+        max_length=64, null=True, blank=True, choices=DiscountType.CHOICES
+    )
 
     class Meta:
         indexes = [
@@ -548,6 +555,12 @@ class OrderLineDiscount(BaseDiscount):
             GinIndex(fields=["voucher_code"], name="orderlinedisc_voucher_code_idx"),
         ]
         ordering = ("created_at", "id")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["line_id", "unique_type"],
+                name="unique_orderline_discount_type",
+            ),
+        ]
 
 
 class CheckoutDiscount(BaseDiscount):
@@ -578,6 +591,13 @@ class CheckoutLineDiscount(BaseDiscount):
         null=True,
         on_delete=models.CASCADE,
     )
+    # Saleor in version 3.19 and below, doesn't have any unique constraint applied on
+    # discounts for checkout/order. To not have an impact on existing DB objects,
+    # the new field `unique_type` will be used for new discount records.
+    # This will ensure that we always apply a single specific discount type.
+    unique_type = models.CharField(
+        max_length=64, null=True, blank=True, choices=DiscountType.CHOICES
+    )
 
     class Meta:
         indexes = [
@@ -587,6 +607,12 @@ class CheckoutLineDiscount(BaseDiscount):
             GinIndex(fields=["voucher_code"], name="checklinedisc_voucher_code_idx"),
         ]
         ordering = ("created_at", "id")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["line_id", "unique_type"],
+                name="unique_checkoutline_discount_type",
+            ),
+        ]
 
 
 class PromotionEvent(models.Model):
