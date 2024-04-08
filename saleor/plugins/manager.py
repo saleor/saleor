@@ -1652,7 +1652,7 @@ class PluginsManager(PaymentInterface):
         self,
         gateway: str,
         customer_id: str,
-        channel_slug: str,
+        channel_slug: Optional[str],
     ) -> list["CustomerSource"]:
         default_value: list = []
         gtw = self.get_plugin(gateway, channel_slug=channel_slug)
@@ -1750,13 +1750,13 @@ class PluginsManager(PaymentInterface):
             "translation_updated", default_value, translation
         )
 
-    def get_all_plugins(self):
+    def get_all_plugins(self, active_only=False):
         if not self.loaded_all_channels:
             channels = Channel.objects.using(self.database).all()
             for channel in channels.iterator():
                 self._ensure_channel_plugins_loaded(channel.slug, channel=channel)
             self.loaded_all_channels = True
-        return self.get_plugins()
+        return self.get_plugins(active_only=active_only)
 
     def get_plugins(
         self, channel_slug: Optional[str] = None, active_only=False
@@ -1782,7 +1782,17 @@ class PluginsManager(PaymentInterface):
         active_only: bool = True,
     ) -> list["PaymentGateway"]:
         channel_slug = checkout_info.channel.slug if checkout_info else channel_slug
-        plugins = self.get_plugins(channel_slug=channel_slug, active_only=active_only)
+
+        if channel_slug is not None:
+            plugins = self.get_plugins(
+                channel_slug=channel_slug, active_only=active_only
+            )
+        else:
+            # Backwards compatibility for: https://github.com/saleor/saleor/pull/15769/
+            # Load all channel plugins and global plugins if channel_slug is None, as
+            # it was done before the mentioned PR.
+            plugins = self.get_all_plugins(active_only=active_only)
+
         payment_plugins = [
             plugin for plugin in plugins if "process_payment" in type(plugin).__dict__
         ]
