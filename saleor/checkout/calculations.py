@@ -254,6 +254,7 @@ def _fetch_checkout_prices_if_expired(
                 address,
             )
         except TaxEmptyData as e:
+            _get_checkout_base_prices(checkout, checkout_info, lines)
             checkout.tax_error = str(e)
 
         if not should_charge_tax:
@@ -278,6 +279,7 @@ def _fetch_checkout_prices_if_expired(
                     address,
                 )
             except TaxEmptyData as e:
+                _get_checkout_base_prices(checkout, checkout_info, lines)
                 checkout.tax_error = str(e)
         else:
             # Calculate net prices without taxes.

@@ -634,6 +634,7 @@ def test_fetch_checkout_data_calls_inactive_plugin(
     fetch_checkout_data(**fetch_kwargs)
 
     # then
+    assert checkout.total.gross.amount > 0
     assert checkout_with_items.tax_error == "Empty tax data."
 
 
