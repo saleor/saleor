@@ -1946,7 +1946,7 @@ class PluginsManager(PaymentInterface):
                 return None
         else:
             channel = None
-            plugins = self.global_plugins
+            plugins = self.get_plugins()
 
         for plugin in plugins:
             if plugin.PLUGIN_ID == plugin_id:
