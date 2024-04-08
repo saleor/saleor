@@ -3981,7 +3981,7 @@ def test_get_order_shipping_tax_rate_skip_plugin(
 def test_get_plugin_configuration(settings, channel_USD):
     settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
     manager = get_plugins_manager(allow_replica=False)
-    plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID)
+    plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_slug=channel_USD.slug)
 
     configuration_fields = [
         configuration_item["name"] for configuration_item in plugin.configuration

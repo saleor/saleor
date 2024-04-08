@@ -1544,3 +1544,20 @@ def test_plugin_manager_database(allow_replica, expected_connection_name):
         DATABASE_CONNECTION_DEFAULT_NAME="test default",
     ):
         assert manager.database == expected_connection_name
+
+
+def test_loaded_all_channels(channel_USD, channel_PLN, django_assert_num_queries):
+    # given
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+    ]
+    manager = PluginsManager(plugins=plugins)
+
+    # then
+    with django_assert_num_queries(4):
+        plugins = manager.get_all_plugins()
+        assert plugins
+
+    with django_assert_num_queries(0):
+        plugins = manager.get_all_plugins()
+        assert plugins

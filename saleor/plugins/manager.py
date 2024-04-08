@@ -138,6 +138,7 @@ class PluginsManager(PaymentInterface):
             self.all_plugins = []
             self.global_plugins = []
             self.plugins_per_channel = defaultdict(list)
+            self.loaded_all_channels = False
             self.loaded_channels: set[str] = set()
             self.loaded_global = False
             self.requestor_getter = requestor_getter
@@ -1743,9 +1744,11 @@ class PluginsManager(PaymentInterface):
         )
 
     def get_all_plugins(self):
-        channels = Channel.objects.using(self.database).all()
-        for channel in channels.iterator():
-            self._ensure_channel_plugins_loaded(channel.slug, channel=channel)
+        if not self.loaded_all_channels:
+            channels = Channel.objects.using(self.database).all()
+            for channel in channels.iterator():
+                self._ensure_channel_plugins_loaded(channel.slug, channel=channel)
+            self.loaded_all_channels = True
         return self.get_plugins()
 
     def get_plugins(
