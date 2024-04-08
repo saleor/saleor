@@ -585,9 +585,10 @@ def _update_discount(
     if discount_to_update.reason != reason:
         discount_to_update.reason = reason
         updated_fields.append("reason")
-    if discount_to_update.unique_type is None:
-        discount_to_update.unique_type = DiscountType.PROMOTION
-        updated_fields.append("unique_type")
+    if hasattr(discount_to_update, "unique_type"):
+        if discount_to_update.unique_type is None:
+            discount_to_update.unique_type = DiscountType.PROMOTION
+            updated_fields.append("unique_type")
 
 
 def _update_line_info_cached_discounts(
