@@ -1561,3 +1561,19 @@ def test_loaded_all_channels(channel_USD, channel_PLN, django_assert_num_queries
     with django_assert_num_queries(0):
         plugins = manager.get_all_plugins()
         assert plugins
+
+
+def test_get_plugin_invalid_channel():
+    # given
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+    ]
+    manager = PluginsManager(plugins=plugins)
+
+    # when
+    plugin = manager.get_plugin(
+        "saleor.plugins.tests.sample_plugins.PluginSample", channel_slug="invalid"
+    )
+
+    # then
+    assert plugin is None

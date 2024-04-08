@@ -165,7 +165,14 @@ class PluginsManager(PaymentInterface):
 
         if channel_slug is not None and channel_slug not in self.loaded_channels:
             if channel is None:
-                channel = Channel.objects.using(self.database).get(slug=channel_slug)
+                channel = (
+                    Channel.objects.using(self.database)
+                    .filter(slug=channel_slug)
+                    .first()
+                )
+                if not channel:
+                    return
+
             channel_db_config = self._get_db_plugin_configs(channel)
 
             for plugin_path in self.plugins:
