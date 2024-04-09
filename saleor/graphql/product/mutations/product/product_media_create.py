@@ -2,6 +2,10 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.core.files import File
 
+from saleor.graphql.core.descriptions import ADDED_IN_320
+from saleor.graphql.meta.inputs import MetadataInput
+from saleor.graphql.core.types import common as common_types
+
 from .....core.http_client import HTTPClient
 from .....core.utils.validators import get_oembed_data
 from .....permission.enums import ProductPermissions
@@ -29,6 +33,22 @@ class ProductMediaCreateInput(BaseInputObjectType):
     )
     media_url = graphene.String(
         required=False, description="Represents an URL to an external media."
+    )
+
+    metadata = common_types.NonNullList(
+        MetadataInput,
+        description=(
+            "Fields required to update the product media metadata." + ADDED_IN_320
+        ),
+        required=False,
+    )
+    private_metadata = common_types.NonNullList(
+        MetadataInput,
+        description=(
+            "Fields required to update the product media private metadata."
+            + ADDED_IN_320
+        ),
+        required=False,
     )
 
     class Meta:
