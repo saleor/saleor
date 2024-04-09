@@ -1285,7 +1285,7 @@ def _copy_unit_discount_data_to_order_line(lines_info: Iterable[DraftOrderLineIn
             line = line_info.line
             discount_amount = sum([discount.amount_value for discount in discounts])
             unit_discount_amount = discount_amount / line.quantity
-            discount_reason = ";".join(
+            discount_reason = "; ".join(
                 [discount.reason for discount in discounts if discount.reason]
             )
             discount_type = (
