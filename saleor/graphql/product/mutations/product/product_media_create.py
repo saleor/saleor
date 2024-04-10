@@ -58,6 +58,8 @@ class ProductMediaCreateInput(BaseInputObjectType):
 class ProductMediaCreate(BaseMutation):
     product = graphene.Field(Product)
     media = graphene.Field(ProductMedia)
+    support_meta_field = True
+    support_private_meta_field = True
 
     class Arguments:
         input = ProductMediaCreateInput(
