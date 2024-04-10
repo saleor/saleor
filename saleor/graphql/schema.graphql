@@ -112,6 +112,18 @@ type Query {
   """B64 encoded Warehouse pdf files"""
   warehouseListsGenerate(orderIds: [ID!], filters: OrderFilterInput): WarehousePdfFiles
 
+  """Get invoices created between startDate and endDate"""
+  invoices(
+    """Start date"""
+    startDate: DateTime!
+
+    """End date"""
+    endDate: DateTime!
+
+    """Number of invoices (max 1000)"""
+    limit: Int
+  ): [Invoice]
+
   """Look for a mega pack SKU number"""
   productVariantsSkus(
     """SKU matcher to get product_variants_count"""
@@ -148,6 +160,58 @@ type Query {
     """Number of slugs to return"""
     pagesAmount: Int
   ): SitemapSlugs
+
+  """
+  List of the shop's products with filtering by warehouse location. Requires one of the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
+  """
+  productsExtended(
+    """First warehouse location of products."""
+    locationFrom: String
+
+    """Last warehouse location of products."""
+    locationTo: String
+
+    """Filtering options for products."""
+    filter: ProductFilterInput
+
+    """
+    Where filtering options.
+    
+    Added in Saleor 3.14.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    where: ProductWhereInput
+
+    """Sort products."""
+    sortBy: ProductOrder
+
+    """
+    Search products.
+    
+    Added in Saleor 3.14.
+    """
+    search: String
+
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): ProductCountableConnection @doc(category: "Products")
 
   """Generates an url to redirect to payment gateway and complete payment"""
   generatePaymentUrl(
@@ -14601,6 +14665,19 @@ type Mutation {
   ): ExtInvoiceCorrectionRequest @doc(category: "Orders")
 
   """
+  Generate a zip file with invoices from given period 
+  
+  Requires one of the following permissions: MANAGE_ORDERS.
+  """
+  extInvoicesZipRequest(
+    """End date"""
+    endDate: DateTime!
+
+    """Start date"""
+    startDate: DateTime!
+  ): ExtInvoicesZipRequest
+
+  """
   Export products to csv file. 
   
   Requires one of the following permissions: MANAGE_ORDERS.
@@ -19535,6 +19612,16 @@ type ExtInvoiceCorrectionRequest @doc(category: "Orders") {
   invoiceErrors: [InvoiceError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [InvoiceError!]!
   invoice: Invoice
+}
+
+"""
+Generate a zip file with invoices from given period 
+
+Requires one of the following permissions: MANAGE_ORDERS.
+"""
+type ExtInvoicesZipRequest {
+  invoiceErrors: [InvoiceError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [InvoiceError!]!
 }
 
 """
