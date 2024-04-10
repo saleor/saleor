@@ -1,5 +1,5 @@
 from typing import List, Optional
-
+from memory_profiler import profile
 import graphene
 from graphql import GraphQLError
 
@@ -538,6 +538,28 @@ class ProductQueries(graphene.ObjectType):
         return create_connection_slice(
             qs, info, kwargs, ProductVariantCountableConnection
         )
+
+        # @profile
+        # def jabadabadu( _root, info: ResolveInfo, ids=None, channel=None):
+        #     requestor = get_user_or_app_from_context(info.context)
+        #     has_required_permissions = has_one_of_permissions(
+        #         requestor, ALL_PRODUCTS_PERMISSIONS
+        #     )
+        #     if channel is None and not has_required_permissions:
+        #         channel = get_default_channel_slug_or_graphql_error()
+        #     qs = resolve_product_variants(
+        #         info,
+        #         ids=ids,
+        #         channel_slug=channel,
+        #         requestor_has_access_to_all=has_required_permissions,
+        #         requestor=requestor,
+        #     )
+        #     kwargs["channel"] = qs.channel_slug
+        #     qs = filter_connection_queryset(qs, kwargs)
+        #     return create_connection_slice(
+        #         qs, info, kwargs, ProductVariantCountableConnection
+        #     )
+        # return jabadabadu(_root, info, ids, channel)
 
     @staticmethod
     @traced_resolver
