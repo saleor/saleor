@@ -14,6 +14,7 @@ from prices import TaxedMoney
 
 from ..channel.models import Channel
 from ..checkout import base_calculations
+from ..core.db.connection import allow_writer
 from ..core.models import EventDelivery
 from ..core.payments import PaymentInterface
 from ..core.prices import quantize_price
@@ -2164,6 +2165,7 @@ class PluginsManager(PaymentInterface):
     def excluded_shipping_methods_for_checkout(
         self,
         checkout: "Checkout",
+        channel: "Channel",
         available_shipping_methods: list["ShippingMethodData"],
     ) -> list[ExcludedShippingMethod]:
         return self.__run_method_on_plugins(
@@ -2171,7 +2173,7 @@ class PluginsManager(PaymentInterface):
             [],
             checkout,
             available_shipping_methods,
-            channel_slug=checkout.channel.slug,
+            channel_slug=channel.slug,
         )
 
     def perform_mutation(
@@ -2218,4 +2220,8 @@ def get_plugins_manager(
     requestor_getter: Optional[Callable[[], "Requestor"]] = None,
 ) -> PluginsManager:
     with opentracing.global_tracer().start_active_span("get_plugins_manager"):
-        return PluginsManager(settings.PLUGINS, requestor_getter, allow_replica)
+        if allow_replica:
+            return PluginsManager(settings.PLUGINS, requestor_getter, allow_replica)
+        else:
+            with allow_writer():
+                return PluginsManager(settings.PLUGINS, requestor_getter, allow_replica)

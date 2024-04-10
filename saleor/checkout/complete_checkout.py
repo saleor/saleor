@@ -82,6 +82,7 @@ from .fetch import (
 )
 from .models import Checkout
 from .utils import (
+    calculate_checkout_weight,
     get_checkout_metadata,
     get_or_create_checkout_metadata,
     get_voucher_for_checkout_info,
@@ -145,6 +146,9 @@ def _process_shipping_data_for_order(
         if checkout_info.user.addresses.filter(pk=shipping_address.pk).exists():
             shipping_address = shipping_address.get_copy()
 
+    if shipping_address and delivery_method_info.warehouse_pk:
+        shipping_address = shipping_address.get_copy()
+
     shipping_method = delivery_method_info.delivery_method
     tax_class = getattr(shipping_method, "tax_class", None)
 
@@ -152,7 +156,7 @@ def _process_shipping_data_for_order(
         "shipping_address": shipping_address,
         "base_shipping_price": base_shipping_price,
         "shipping_price": shipping_price,
-        "weight": checkout_info.checkout.get_total_weight(lines),
+        "weight": calculate_checkout_weight(lines),
         **get_shipping_tax_class_kwargs_for_order(tax_class),
     }
     result.update(delivery_method_info.delivery_method_order_field)

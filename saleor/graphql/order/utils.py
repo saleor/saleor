@@ -12,7 +12,11 @@ from ...discount.interface import VariantPromotionRuleInfo
 from ...discount.models import NotApplicable
 from ...discount.utils import validate_voucher_in_order
 from ...order.error_codes import OrderErrorCode
-from ...order.utils import get_valid_shipping_methods_for_order
+from ...order.utils import (
+    get_total_quantity,
+    get_valid_shipping_methods_for_order,
+    is_shipping_required,
+)
 from ...plugins.manager import PluginsManager
 from ...product.models import Product, ProductChannelListing, ProductVariant
 from ...shipping.interface import ShippingMethodData
@@ -22,7 +26,7 @@ from ..core.validators import validate_variants_available_in_channel
 
 if TYPE_CHECKING:
     from ...channel.models import Channel
-    from ...order.models import Order
+    from ...order.models import Order, OrderLine
 
 from dataclasses import dataclass
 
@@ -39,8 +43,9 @@ class OrderLineData:
     rules_info: Optional[Iterable[VariantPromotionRuleInfo]] = None
 
 
-def validate_total_quantity(order: "Order", errors: T_ERRORS):
-    if order.get_total_quantity() == 0:
+def validate_total_quantity(lines: Iterable["OrderLine"], errors: T_ERRORS):
+    total_quantity = get_total_quantity(lines)
+    if total_quantity == 0:
         errors["lines"].append(
             ValidationError(
                 "Could not create order without any products.",
@@ -79,6 +84,7 @@ def get_shipping_method_availability_error(
 
 def validate_shipping_method(
     order: "Order",
+    channel: "Channel",
     errors: T_ERRORS,
     manager: "PluginsManager",
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
@@ -103,7 +109,7 @@ def validate_shipping_method(
             code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value,
         )
     else:
-        listing = order.channel.shipping_method_listings.filter(
+        listing = channel.shipping_method_listings.filter(
             shipping_method=order.shipping_method
         ).last()
         if not listing:
@@ -145,11 +151,13 @@ def validate_shipping_address(order: "Order", errors: T_ERRORS):
 
 def validate_order_lines(
     order: "Order",
+    lines: Iterable["OrderLine"],
+    channel: "Channel",
     country: str,
     errors: T_ERRORS,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
-    for line in order.lines.all():
+    for line in lines:
         if line.variant is None:
             errors["lines"].append(
                 ValidationError(
@@ -162,7 +170,7 @@ def validate_order_lines(
                 check_stock_and_preorder_quantity(
                     line.variant,
                     country,
-                    order.channel.slug,
+                    channel.slug,
                     line.quantity,
                     order_line=line,
                     database_connection_name=database_connection_name,
@@ -174,15 +182,16 @@ def validate_order_lines(
 
 
 def validate_variants_is_available(
-    order: "Order",
+    channel: "Channel",
+    lines: Iterable["OrderLine"],
     errors: T_ERRORS,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
-    variants_ids = {line.variant_id for line in order.lines.all()}
+    variants_ids = {line.variant_id for line in lines}
     try:
         validate_variants_available_in_channel(
             variants_ids,
-            order.channel_id,
+            channel.id,
             OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.value,
             database_connection_name=database_connection_name,
         )
@@ -191,15 +200,16 @@ def validate_variants_is_available(
 
 
 def validate_product_is_published(
-    order: "Order",
+    channel: "Channel",
+    lines: Iterable["OrderLine"],
     errors: T_ERRORS,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
-    variant_ids = [line.variant_id for line in order.lines.all()]
+    variant_ids = [line.variant_id for line in lines]
     unpublished_product = (
         Product.objects.using(database_connection_name)
         .filter(variants__id__in=variant_ids)
-        .not_published(order.channel.slug)
+        .not_published(channel.slug)
     )
     if unpublished_product.exists():
         errors["lines"].append(
@@ -272,18 +282,19 @@ def validate_variant_channel_listings(
 
 
 def validate_product_is_available_for_purchase(
-    order: "Order",
+    channel: "Channel",
+    lines: Iterable["OrderLine"],
     errors: T_ERRORS,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     invalid_lines = []
-    for line in order.lines.all():
+    for line in lines:
         variant = line.variant
         if not variant:
             continue
         product_channel_listing = (
             ProductChannelListing.objects.using(database_connection_name)
-            .filter(channel_id=order.channel_id, product_id=variant.product_id)
+            .filter(channel_id=channel.id, product_id=variant.product_id)
             .first()
         )
         if not (
@@ -311,10 +322,12 @@ def validate_channel_is_active(channel: "Channel", errors: T_ERRORS):
         )
 
 
-def _validate_voucher(order: "Order", errors: T_ERRORS):
-    if order.channel.include_draft_order_in_voucher_usage:
+def _validate_voucher(
+    order: "Order", lines: Iterable["OrderLine"], channel: "Channel", errors: T_ERRORS
+):
+    if channel.include_draft_order_in_voucher_usage:
         try:
-            validate_voucher_in_order(order)
+            validate_voucher_in_order(order, lines, channel)
         except NotApplicable as e:
             errors["voucher"].append(
                 ValidationError(
@@ -326,6 +339,7 @@ def _validate_voucher(order: "Order", errors: T_ERRORS):
 
 def validate_draft_order(
     order: "Order",
+    lines: Iterable["OrderLine"],
     country: str,
     manager: "PluginsManager",
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
@@ -341,18 +355,26 @@ def validate_draft_order(
 
     Returns a list of errors if any were found.
     """
+    channel = order.channel
+
     errors: T_ERRORS = defaultdict(list)
     validate_billing_address(order, errors)
-    if order.is_shipping_required():
+    if is_shipping_required(lines):
         validate_shipping_address(order, errors)
-        validate_shipping_method(order, errors, manager, database_connection_name)
-    validate_total_quantity(order, errors)
-    validate_order_lines(order, country, errors, database_connection_name)
-    validate_channel_is_active(order.channel, errors)
-    validate_product_is_published(order, errors, database_connection_name)
-    validate_product_is_available_for_purchase(order, errors, database_connection_name)
-    validate_variants_is_available(order, errors, database_connection_name)
-    _validate_voucher(order, errors)
+        validate_shipping_method(
+            order, channel, errors, manager, database_connection_name
+        )
+    validate_total_quantity(lines, errors)
+    validate_order_lines(
+        order, lines, channel, country, errors, database_connection_name
+    )
+    validate_channel_is_active(channel, errors)
+    validate_product_is_published(channel, lines, errors, database_connection_name)
+    validate_product_is_available_for_purchase(
+        channel, lines, errors, database_connection_name
+    )
+    validate_variants_is_available(channel, lines, errors, database_connection_name)
+    _validate_voucher(order, lines, channel, errors)
 
     if errors:
         raise ValidationError(errors)

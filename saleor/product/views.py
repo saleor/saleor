@@ -2,6 +2,7 @@ import mimetypes
 import os
 from typing import Union
 
+from django.conf import settings
 from django.http import FileResponse, HttpResponseNotFound
 from django.shortcuts import get_object_or_404
 
@@ -15,7 +16,9 @@ from .utils.digital_products import (
 def digital_product(request, token: str) -> Union[FileResponse, HttpResponseNotFound]:
     """Return the direct download link to content if given token is still valid."""
 
-    qs = DigitalContentUrl.objects.prefetch_related("line__order__user")
+    qs = DigitalContentUrl.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).prefetch_related("line__order__user")
     content_url = get_object_or_404(qs, token=token)  # type: DigitalContentUrl
     if not digital_content_url_is_valid(content_url):
         return HttpResponseNotFound("Url is not valid anymore")

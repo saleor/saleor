@@ -29,6 +29,7 @@ from sentry_sdk.integrations.logging import ignore_logger
 from . import PatchedSubscriberExecutionContext, __version__
 from .core.languages import LANGUAGES as CORE_LANGUAGES
 from .core.schedules import initiated_promotion_webhook_schedule
+from .graphql.executor import patch_executor
 
 django_stubs_ext.monkeypatch()
 
@@ -805,7 +806,8 @@ RESERVE_DURATION = 45
 #
 # If running locally, set:
 #   JAEGER_AGENT_HOST=localhost
-if "JAEGER_AGENT_HOST" in os.environ:
+JAEGER_HOST = os.environ.get("JAEGER_AGENT_HOST")
+if JAEGER_HOST:
     jaeger_client.Config(
         config={
             "sampler": {"type": "const", "param": 1},
@@ -813,7 +815,7 @@ if "JAEGER_AGENT_HOST" in os.environ:
                 "reporting_port": os.environ.get(
                     "JAEGER_AGENT_PORT", jaeger_client.config.DEFAULT_REPORTING_PORT
                 ),
-                "reporting_host": os.environ.get("JAEGER_AGENT_HOST"),
+                "reporting_host": JAEGER_HOST,
             },
             "logging": get_bool_from_env("JAEGER_LOGGING", False),
         },
@@ -876,6 +878,8 @@ PRODUCT_MAX_INDEXED_VARIANTS = 1000
 # to fix bug causing not returning errors for subscription queries.
 
 executor.SubscriberExecutionContext = PatchedSubscriberExecutionContext  # type: ignore
+
+patch_executor()
 
 # Optional queue names for Celery tasks.
 # Set None to route to the default queue, or a string value to use a separate one

@@ -127,7 +127,8 @@ class WarehouseQueryset(models.QuerySet["Warehouse"]):
         )
 
         stocks_qs = (
-            Stock.objects.annotate_available_quantity()
+            Stock.objects.using(self.db)
+            .annotate_available_quantity()
             .annotate(line_quantity=F("available_quantity") - Subquery(lines_quantity))
             .order_by("line_quantity")
             .filter(
