@@ -367,7 +367,7 @@ def test_filter_not_published_product_is_unpublished(product, channel_USD):
     channel_listing.is_published = False
     channel_listing.save(update_fields=["is_published"])
 
-    available_products = models.Product.objects.not_published(channel_USD.slug)
+    available_products = models.Product.objects.not_published(channel_USD)
     assert available_products.count() == 1
 
 
@@ -378,7 +378,7 @@ def test_filter_not_published_product_published_tomorrow(product, channel_USD):
     channel_listing.published_at = date_tomorrow
     channel_listing.save(update_fields=["is_published", "published_at"])
 
-    available_products = models.Product.objects.not_published(channel_USD.slug)
+    available_products = models.Product.objects.not_published(channel_USD)
     assert available_products.count() == 1
 
 
@@ -389,12 +389,12 @@ def test_filter_not_published_product_not_published_tomorrow(product, channel_US
     channel_listing.published_at = date_tomorrow
     channel_listing.save(update_fields=["is_published", "published_at"])
 
-    available_products = models.Product.objects.not_published(channel_USD.slug)
+    available_products = models.Product.objects.not_published(channel_USD)
     assert available_products.count() == 1
 
 
 def test_filter_not_published_product_is_published(product, channel_USD):
-    available_products = models.Product.objects.not_published(channel_USD.slug)
+    available_products = models.Product.objects.not_published(channel_USD)
     assert available_products.count() == 0
 
 
@@ -405,18 +405,18 @@ def test_filter_not_published_product_is_unpublished_other_channel(
         product=product, channel=channel_PLN, is_published=False
     )
 
-    available_products_usd = models.Product.objects.not_published(channel_USD.slug)
+    available_products_usd = models.Product.objects.not_published(channel_USD)
     assert available_products_usd.count() == 0
 
-    available_products_pln = models.Product.objects.not_published(channel_PLN.slug)
+    available_products_pln = models.Product.objects.not_published(channel_PLN)
     assert available_products_pln.count() == 1
 
 
 def test_filter_not_published_product_without_assigned_channel(
     product, channel_USD, channel_PLN
 ):
-    not_available_products_usd = models.Product.objects.not_published(channel_USD.slug)
+    not_available_products_usd = models.Product.objects.not_published(channel_USD)
     assert not_available_products_usd.count() == 0
 
-    not_available_products_pln = models.Product.objects.not_published(channel_PLN.slug)
+    not_available_products_pln = models.Product.objects.not_published(channel_PLN)
     assert not_available_products_pln.count() == 1

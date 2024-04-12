@@ -209,9 +209,9 @@ class ProductsQueryset(models.QuerySet["Product"]):
         ).values("id")
         return self.filter(Exists(channel_listings.filter(product_id=OuterRef("pk"))))
 
-    def not_published(self, channel_slug: str):
+    def not_published(self, channel: Channel):
         today = datetime.datetime.now(pytz.UTC)
-        return self.annotate_publication_info(channel_slug).filter(
+        return self.annotate_publication_info(channel.slug).filter(
             Q(published_at__gt=today) & Q(is_published=True)
             | Q(is_published=False)
             | Q(is_published__isnull=True)
