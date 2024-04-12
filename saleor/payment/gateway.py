@@ -489,7 +489,6 @@ def list_payment_sources(
     manager: "PluginsManager",
     channel_slug: Optional[str],
 ) -> list["CustomerSource"]:
-    manager.get_all_plugins()  # FIXME: if channel_slug is None, we actually want all channels
     return manager.list_payment_sources(gateway, customer_id, channel_slug=channel_slug)
 
 

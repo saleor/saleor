@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 
+from .....channel.models import Channel
 from .....payment.interface import (
     PaymentMethodTokenizationBaseRequestData,
     PaymentMethodTokenizationResponseData,
@@ -14,9 +15,12 @@ def handle_payment_method_action(
     manager_func_name: str,
     request_data: PaymentMethodTokenizationBaseRequestData,
     error_type_class,
+    channel: "Channel",
 ) -> tuple[PaymentMethodTokenizationResponseData, list[dict]]:
     manager = get_plugin_manager_promise(info.context).get()
-    is_active = manager.is_event_active_for_any_plugin(manager_func_name)
+    is_active = manager.is_event_active_for_any_plugin(
+        manager_func_name, channel_slug=channel.slug
+    )
 
     if not is_active:
         raise ValidationError(

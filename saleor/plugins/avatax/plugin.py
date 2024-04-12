@@ -785,31 +785,10 @@ class AvataxPlugin(BasePlugin):
                 )
         return base_rate
 
-    def assign_tax_code_to_object_meta(
-        self,
-        obj: "TaxClass",
-        tax_code: Optional[str],
-        previous_value: Any,
-    ):
-        if not self.active:
-            return previous_value
-
-        if tax_code is None and obj.pk:
-            obj.delete_value_from_metadata(META_CODE_KEY)
-            obj.delete_value_from_metadata(META_DESCRIPTION_KEY)
-            return previous_value
-
-        codes = get_cached_tax_codes_or_fetch(self.config)
-        if tax_code not in codes:
-            return previous_value
-
-        tax_description = codes.get(tax_code)
-        tax_item = {META_CODE_KEY: tax_code, META_DESCRIPTION_KEY: tax_description}
-        obj.store_value_in_metadata(items=tax_item)
-        return previous_value
-
     def get_tax_code_from_object_meta(
-        self, obj: Union["Product", "ProductType", "TaxClass"], previous_value: Any
+        self,
+        obj: Union["Product", "ProductType", "TaxClass"],
+        previous_value: Any,
     ) -> TaxType:
         if not self.active:
             return previous_value
@@ -829,11 +808,6 @@ class AvataxPlugin(BasePlugin):
             code=tax_code,
             description=tax_description,
         )
-
-    def show_taxes_on_storefront(self, previous_value: bool) -> bool:
-        if not self.active:
-            return previous_value
-        return False
 
     @classmethod
     def validate_authentication(cls, plugin_configuration: "PluginConfiguration"):
