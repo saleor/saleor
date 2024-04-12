@@ -192,11 +192,11 @@ def test_available_products_only_published(product_list, channel_USD):
     channel_listing.is_published = False
     channel_listing.save(update_fields=["is_published"])
 
-    available_products = models.Product.objects.published(channel_USD.slug)
+    available_products = models.Product.objects.published(channel_USD)
     assert available_products.count() == 2
     assert all(
         [
-            product.channel_listings.get(channel__slug=channel_USD.slug).is_published
+            product.channel_listings.get(channel__slug=channel_USD).is_published
             for product in available_products
         ]
     )
@@ -208,11 +208,11 @@ def test_available_products_only_available(product_list, channel_USD):
     channel_listing.published_at = date_tomorrow
     channel_listing.save(update_fields=["published_at"])
 
-    available_products = models.Product.objects.published(channel_USD.slug)
+    available_products = models.Product.objects.published(channel_USD)
     assert available_products.count() == 2
     assert all(
         [
-            product.channel_listings.get(channel__slug=channel_USD.slug).is_published
+            product.channel_listings.get(channel__slug=channel_USD).is_published
             for product in available_products
         ]
     )
@@ -224,11 +224,11 @@ def test_available_products_available_from_yesterday(product_list, channel_USD):
     channel_listing.published_at = date_tomorrow
     channel_listing.save(update_fields=["published_at"])
 
-    available_products = models.Product.objects.published(channel_USD.slug)
+    available_products = models.Product.objects.published(channel_USD)
     assert available_products.count() == 3
     assert all(
         [
-            product.channel_listings.get(channel__slug=channel_USD.slug).is_published
+            product.channel_listings.get(channel__slug=channel_USD).is_published
             for product in available_products
         ]
     )
@@ -237,7 +237,7 @@ def test_available_products_available_from_yesterday(product_list, channel_USD):
 def test_available_products_available_without_channel_listings(
     product_list, channel_PLN
 ):
-    available_products = models.Product.objects.published(channel_PLN.slug)
+    available_products = models.Product.objects.published(channel_PLN)
     assert available_products.count() == 0
 
 
@@ -248,9 +248,9 @@ def test_available_products_available_with_many_channels(
         product__in=product_list_with_many_channels, channel=channel_PLN
     ).update(is_published=False)
 
-    available_products = models.Product.objects.published(channel_PLN.slug)
+    available_products = models.Product.objects.published(channel_PLN)
     assert available_products.count() == 0
-    available_products = models.Product.objects.published(channel_USD.slug)
+    available_products = models.Product.objects.published(channel_USD)
     assert available_products.count() == 3
 
 

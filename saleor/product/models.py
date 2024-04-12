@@ -200,22 +200,14 @@ class ProductType(ModelWithMetadata):
 
 
 class ProductsQueryset(models.QuerySet["Product"]):
-    def published(self, channel_slug: str):
+    def published(self, channel: Channel):
         today = datetime.datetime.now(pytz.UTC)
-        if channel := (
-            Channel.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
-            .filter(slug=str(channel_slug), is_active=True)
-            .first()
-        ):
-            channel_listings = ProductChannelListing.objects.filter(
-                Q(published_at__lte=today) | Q(published_at__isnull=True),
-                channel_id=channel.id,
-                is_published=True,
-            ).values("id")
-            return self.filter(
-                Exists(channel_listings.filter(product_id=OuterRef("pk")))
-            )
-        return self.none()
+        channel_listings = ProductChannelListing.objects.filter(
+            Q(published_at__lte=today) | Q(published_at__isnull=True),
+            channel_id=channel.id,
+            is_published=True,
+        ).values("id")
+        return self.filter(Exists(channel_listings.filter(product_id=OuterRef("pk"))))
 
     def not_published(self, channel_slug: str):
         today = datetime.datetime.now(pytz.UTC)
@@ -236,7 +228,7 @@ class ProductsQueryset(models.QuerySet["Product"]):
             variants = ProductVariant.objects.filter(
                 Exists(variant_channel_listings.filter(variant_id=OuterRef("pk")))
             )
-            return self.published(channel_slug).filter(
+            return self.published(channel).filter(
                 Exists(variants.filter(product_id=OuterRef("pk")))
             )
         return self.none()
