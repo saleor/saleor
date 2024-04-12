@@ -2544,3 +2544,53 @@ def test_draft_order_create_product_on_promotion_flat_taxes(
     assert event_parameters["lines"][0]["item"] == str(order_lines[0])
     assert event_parameters["lines"][0]["line_pk"] == str(order_lines[0].pk)
     assert event_parameters["lines"][0]["quantity"] == quantity
+
+
+def test_draft_order_create_with_cc_warehouse_as_shipping_method(
+    app_api_client,
+    permission_manage_orders,
+    customer_user,
+    product_available_in_many_channels,
+    channel_PLN,
+    graphql_address_data,
+    warehouse_for_cc,
+):
+    # given
+    variant = product_available_in_many_channels.variants.first()
+    query = DRAFT_ORDER_CREATE_MUTATION
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    variant_list = [
+        {"variantId": variant_id, "quantity": 2},
+    ]
+    shipping_address = graphql_address_data
+    channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
+    redirect_url = "https://www.example.com"
+    cc_warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse_for_cc.id)
+
+    variables = {
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+            "billingAddress": shipping_address,
+            "shippingAddress": shipping_address,
+            "shippingMethod": cc_warehouse_id,
+            "channelId": channel_id,
+            "redirectUrl": redirect_url,
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderCreate"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == OrderErrorCode.INVALID.name
+    assert errors[0]["field"] == "shippingMethod"
