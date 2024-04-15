@@ -305,7 +305,9 @@ class OrderGrantRefundUpdate(BaseMutation):
                 params={"add_lines": add_errors},
             )
 
-        if grant_refund_for_shipping and shipping_costs_already_granted(order):
+        if grant_refund_for_shipping and shipping_costs_already_granted(
+            order, grant_refund_pk_to_exclude=granted_refund.pk
+        ):
             error_code = OrderGrantRefundUpdateErrorCode.SHIPPING_COSTS_ALREADY_GRANTED
             errors["grant_refund_for_shipping"] = ValidationError(
                 "Shipping costs have already been granted.",

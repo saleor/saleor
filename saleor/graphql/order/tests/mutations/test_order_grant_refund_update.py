@@ -492,8 +492,13 @@ def test_grant_refund_update_by_app_missing_input(
     assert errors[0]["field"] == "input"
 
 
+@pytest.mark.parametrize("current_include_shipping", [True, False])
 def test_grant_refund_update_include_grant_refund_for_shipping(
-    app_api_client, staff_user, permission_manage_orders, order_with_lines
+    current_include_shipping,
+    app_api_client,
+    staff_user,
+    permission_manage_orders,
+    order_with_lines,
 ):
     # given
     current_reason = "Granted refund reason."
@@ -503,6 +508,7 @@ def test_grant_refund_update_include_grant_refund_for_shipping(
         currency=order_with_lines.currency,
         reason=current_reason,
         user=staff_user,
+        shipping_costs_included=current_include_shipping,
     )
     granted_refund_id = to_global_id_or_none(granted_refund)
     app_api_client.app.permissions.set([permission_manage_orders])
