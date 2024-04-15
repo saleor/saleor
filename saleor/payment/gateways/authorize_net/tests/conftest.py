@@ -71,4 +71,5 @@ def authorize_net_plugin(_, settings, channel_USD, authorize_net_gateway_config)
     )
 
     manager = get_plugins_manager(allow_replica=False)
+    manager.get_all_plugins()
     return manager.plugins_per_channel[channel_USD.slug][0]

@@ -77,7 +77,7 @@ def test_payment_gateway_initialize_tokenization(
     assert response_data["data"] == expected_output_data
 
     mocked_is_event_active_for_any_plugin.assert_called_once_with(
-        "payment_gateway_initialize_tokenization"
+        "payment_gateway_initialize_tokenization", channel_slug=channel_USD.slug
     )
     mocked_payment_gateway_initialize_tokenization.assert_called_once_with(
         request_data=PaymentGatewayInitializeTokenizationRequestData(
@@ -168,7 +168,7 @@ def test_payment_gateway_initialize_tokenization_not_app_or_plugin_subscribed_to
     )
 
     mocked_is_event_active_for_any_plugin.assert_called_once_with(
-        "payment_gateway_initialize_tokenization"
+        "payment_gateway_initialize_tokenization", channel_slug=channel_USD.slug
     )
     assert not mocked_payment_gateway_initialize_tokenization.called
 
@@ -248,7 +248,7 @@ def test_payment_gateway_initialize_tokenization_failure_from_app(
     assert error["message"] == error_message
 
     mocked_is_event_active_for_any_plugin.assert_called_once_with(
-        "payment_gateway_initialize_tokenization"
+        "payment_gateway_initialize_tokenization", channel_slug=channel_USD.slug
     )
     mocked_payment_gateway_initialize_tokenization.assert_called_once_with(
         request_data=PaymentGatewayInitializeTokenizationRequestData(
