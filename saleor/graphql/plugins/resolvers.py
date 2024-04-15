@@ -43,7 +43,7 @@ def aggregate_plugins_configuration(
     plugins_per_channel: dict[str, list[BasePlugin]] = defaultdict(list)
     global_plugins: dict[str, BasePlugin] = {}
 
-    for plugin in manager.all_plugins:
+    for plugin in manager.get_all_plugins():
         hide_private_configuration_fields(plugin.configuration, plugin.CONFIG_STRUCTURE)
         if plugin.HIDDEN is True:
             continue

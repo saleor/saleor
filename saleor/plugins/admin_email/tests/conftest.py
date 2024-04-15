@@ -123,6 +123,7 @@ def admin_email_plugin(settings):
                 },
             )
         manager = get_plugins_manager(allow_replica=False)
+        manager.get_all_plugins()
         return manager.global_plugins[0]
 
     return fun

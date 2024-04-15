@@ -196,7 +196,7 @@ def test_promotion_create_order_promotion(
     }
 
     # when
-    with django_assert_num_queries(37):
+    with django_assert_num_queries(36):
         response = staff_api_client.post_graphql(PROMOTION_CREATE_MUTATION, variables)
 
     # then

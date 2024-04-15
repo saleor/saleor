@@ -72,7 +72,7 @@ class StoredPaymentMethodRequestDelete(BaseMutation):
 
         manager = get_plugin_manager_promise(info.context).get()
         is_active = manager.is_event_active_for_any_plugin(
-            "stored_payment_method_request_delete"
+            "stored_payment_method_request_delete", channel_slug=channel.slug
         )
         if not is_active:
             raise ValidationError(

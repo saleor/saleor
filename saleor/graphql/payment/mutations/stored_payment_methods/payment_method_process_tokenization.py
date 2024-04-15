@@ -66,6 +66,7 @@ class PaymentMethodProcessTokenization(BaseMutation):
                 id=id, user=user, channel=channel, data=data
             ),
             PaymentMethodProcessTokenizationErrorCode,
+            channel,
         )
         return cls(
             result=response.result, data=response.data, errors=errors, id=response.id
