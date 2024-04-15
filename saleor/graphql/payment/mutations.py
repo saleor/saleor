@@ -1845,6 +1845,8 @@ class TransactionSessionBase(BaseMutation):
     class Meta:
         abstract = True
 
+    TRANSACTION_ITEMS_LIMIT = 100
+
     @classmethod
     def clean_source_object(
         cls,
@@ -1899,6 +1901,18 @@ class TransactionSessionBase(BaseMutation):
                     )
                 }
             )
+
+        if source_object.payment_transactions.count() >= cls.TRANSACTION_ITEMS_LIMIT:
+            raise ValidationError(
+                {
+                    "transactions": ValidationError(
+                        f"{source_object_type} transactions limit of "
+                        f"{cls.TRANSACTION_ITEMS_LIMIT} reached.",
+                        code=TransactionInitializeErrorCode.INVALID.value,
+                    )
+                }
+            )
+
         return source_object
 
     @classmethod
