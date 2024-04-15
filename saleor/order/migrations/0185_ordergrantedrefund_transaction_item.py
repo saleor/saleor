@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
     dependencies = [
         ("payment", "0056_merge_20231213_0755"),
-        ("order", "0183_order_tax_error"),
+        ("order", "0184_merge_0182_merge_20240325_1338_0183_order_tax_error"),
     ]
 
     operations = [
