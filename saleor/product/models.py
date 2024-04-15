@@ -201,6 +201,8 @@ class ProductType(ModelWithMetadata):
 
 class ProductsQueryset(models.QuerySet["Product"]):
     def published(self, channel: Channel):
+        if not channel.is_active:
+            return self.none()
         today = datetime.datetime.now(pytz.UTC)
         channel_listings = ProductChannelListing.objects.filter(
             Q(published_at__lte=today) | Q(published_at__isnull=True),
@@ -217,21 +219,19 @@ class ProductsQueryset(models.QuerySet["Product"]):
             | Q(is_published__isnull=True)
         )
 
-    def published_with_variants(self, channel_slug: str):
-        if channel := (
-            Channel.objects.filter(slug=str(channel_slug), is_active=True).first()
-        ):
-            variant_channel_listings = ProductVariantChannelListing.objects.filter(
-                channel_id=channel.id,
-                price_amount__isnull=False,
-            ).values("id")
-            variants = ProductVariant.objects.filter(
-                Exists(variant_channel_listings.filter(variant_id=OuterRef("pk")))
-            )
-            return self.published(channel).filter(
-                Exists(variants.filter(product_id=OuterRef("pk")))
-            )
-        return self.none()
+    def published_with_variants(self, channel: Channel):
+        if not channel.is_active:
+            return self.none()
+        variant_channel_listings = ProductVariantChannelListing.objects.filter(
+            channel_id=channel.id,
+            price_amount__isnull=False,
+        ).values("id")
+        variants = ProductVariant.objects.filter(
+            Exists(variant_channel_listings.filter(variant_id=OuterRef("pk")))
+        )
+        return self.published(channel).filter(
+            Exists(variants.filter(product_id=OuterRef("pk")))
+        )
 
     def visible_to_user(self, requestor: Union["User", "App", None], channel_slug: str):
         if has_one_of_permissions(requestor, ALL_PRODUCTS_PERMISSIONS):
@@ -247,7 +247,10 @@ class ProductsQueryset(models.QuerySet["Product"]):
             return self.all()
         if not channel_slug:
             return self.none()
-        return self.published_with_variants(channel_slug)
+
+        if channel := Channel.objects.filter(slug=str(channel_slug)).first():
+            return self.published_with_variants(channel)
+        return self.none()
 
     def annotate_publication_info(self, channel_slug: str):
         return self.annotate_is_published(channel_slug).annotate_published_at(

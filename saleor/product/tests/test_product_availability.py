@@ -266,27 +266,21 @@ def test_available_products_with_variants(product_list, channel_USD):
     product = product_list[0]
     product.variants.all().delete()
 
-    available_products = models.Product.objects.published_with_variants(
-        channel_USD.slug
-    )
+    available_products = models.Product.objects.published_with_variants(channel_USD)
     assert available_products.count() == 2
 
 
 def test_available_products_with_variants_in_many_channels_usd(
     product_list_with_variants_many_channel, channel_USD
 ):
-    available_products = models.Product.objects.published_with_variants(
-        channel_USD.slug
-    )
+    available_products = models.Product.objects.published_with_variants(channel_USD)
     assert available_products.count() == 1
 
 
 def test_available_products_with_variants_in_many_channels_pln(
     product_list_with_variants_many_channel, channel_PLN
 ):
-    available_products = models.Product.objects.published_with_variants(
-        channel_PLN.slug
-    )
+    available_products = models.Product.objects.published_with_variants(channel_PLN)
     assert available_products.count() == 2
 
 
