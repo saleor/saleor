@@ -2585,7 +2585,9 @@ def test_checkout_with_stored_payment_methods_empty_response(
     # then
     content = get_graphql_content(response)
 
-    mocked_list_stored_payment_methods.assert_called_once_with(request_data)
+    mocked_list_stored_payment_methods.assert_called_once_with(
+        request_data, channel_slug=checkout_with_prices.channel.slug
+    )
     assert content["data"]["checkout"]["storedPaymentMethods"] == []
 
 
@@ -2656,7 +2658,9 @@ def test_checkout_with_stored_payment_methods(
     # then
     content = get_graphql_content(response)
 
-    mocked_list_stored_payment_methods.assert_called_once_with(request_data)
+    mocked_list_stored_payment_methods.assert_called_once_with(
+        request_data, channel_slug=checkout_with_prices.channel.slug
+    )
     assert content["data"]["checkout"]["storedPaymentMethods"] == [
         {
             "id": payment_method_id,

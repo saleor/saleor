@@ -54,6 +54,7 @@ def test_get_plugins_manager(settings):
     plugin_path = "saleor.plugins.tests.sample_plugins.PluginSample"
     settings.PLUGINS = [plugin_path]
     manager = get_plugins_manager(allow_replica=False)
+    manager.get_all_plugins()
     assert isinstance(manager, PluginsManager)
     assert len(manager.all_plugins) == 1
 
@@ -66,6 +67,8 @@ def test_manager_with_default_configuration_for_channel_plugins(
         "saleor.plugins.tests.sample_plugins.PluginSample",
     ]
     manager = get_plugins_manager(allow_replica=False)
+    manager.get_all_plugins()
+
     assert len(manager.global_plugins) == 1
     assert isinstance(manager.global_plugins[0], PluginSample)
     assert {channel_PLN.slug, channel_USD.slug} == set(
@@ -92,6 +95,7 @@ def test_manager_with_channel_plugins(
         "saleor.plugins.tests.sample_plugins.ChannelPluginSample",
     ]
     manager = get_plugins_manager(allow_replica=False)
+    manager.get_all_plugins()
 
     assert {channel_PLN.slug, channel_USD.slug} == set(
         manager.plugins_per_channel.keys()
@@ -535,14 +539,6 @@ def sample_none_data(obj):
 
 
 @pytest.mark.parametrize(
-    ("plugins", "show_taxes"),
-    [(["saleor.plugins.tests.sample_plugins.PluginSample"], True), ([], False)],
-)
-def test_manager_show_taxes_on_storefront(plugins, show_taxes):
-    assert show_taxes == PluginsManager(plugins=plugins).show_taxes_on_storefront()
-
-
-@pytest.mark.parametrize(
     ("plugins", "expected_tax_data"),
     [
         ([], sample_none_data),
@@ -811,7 +807,7 @@ def test_manager_webhook(rf):
     plugin_path = "/webhook/paid"
     request = rf.post(path=f"/plugins/{PluginSample.PLUGIN_ID}{plugin_path}")
 
-    response = manager.webhook(request, PluginSample.PLUGIN_ID)
+    response = manager.webhook(request, PluginSample.PLUGIN_ID, channel_slug=None)
     assert isinstance(response, JsonResponse)
     assert response.status_code == 200
     assert response.content.decode() == json.dumps({"received": True, "paid": True})
@@ -825,7 +821,7 @@ def test_manager_webhook_plugin_doesnt_have_webhook_support(rf):
     manager = PluginsManager(plugins=plugins)
     plugin_path = "/webhook/paid"
     request = rf.post(path=f"/plugins/{PluginInactive.PLUGIN_ID}{plugin_path}")
-    response = manager.webhook(request, PluginSample.PLUGIN_ID)
+    response = manager.webhook(request, PluginSample.PLUGIN_ID, channel_slug=None)
     assert isinstance(response, HttpResponseNotFound)
     assert response.status_code == 404
 
@@ -838,7 +834,7 @@ def test_manager_inncorrect_plugin(rf):
     manager = PluginsManager(plugins=plugins)
     plugin_path = "/webhook/paid"
     request = rf.post(path=f"/plugins/incorrect.plugin.id{plugin_path}")
-    response = manager.webhook(request, "incorrect.plugin.id")
+    response = manager.webhook(request, "incorrect.plugin.id", channel_slug=None)
     assert isinstance(response, HttpResponseNotFound)
     assert response.status_code == 404
 
@@ -959,8 +955,7 @@ def test_list_external_authentications_active_only(channel_USD):
 def test_run_method_on_plugins_default_value(plugins_manager):
     default_value = "default"
     value = plugins_manager._PluginsManager__run_method_on_plugins(
-        method_name="test_method",
-        default_value=default_value,
+        method_name="test_method", default_value=default_value, channel_slug=None
     )
 
     assert value == default_value
@@ -973,6 +968,7 @@ def test_run_method_on_plugins_default_value_when_not_existing_method_is_called(
     value = all_plugins_manager._PluginsManager__run_method_on_plugins(
         method_name="test_method",
         default_value=default_value,
+        channel_slug=channel_USD.slug,
     )
 
     assert value == default_value
@@ -985,6 +981,7 @@ def test_run_method_on_plugins_value_overridden_by_plugin_method(
     value = all_plugins_manager._PluginsManager__run_method_on_plugins(
         method_name="get_supported_currencies",
         default_value="default_value",
+        channel_slug=channel_USD.slug,
     )
 
     assert value == expected
@@ -999,6 +996,7 @@ def test_run_method_on_plugins_only_on_active_ones(
     all_plugins_manager._PluginsManager__run_method_on_plugins(
         method_name="test_method_name",
         default_value="default_value",
+        channel_slug=channel_USD.slug,
     )
     active_plugins_count = len(ACTIVE_PLUGINS)
 
@@ -1010,7 +1008,11 @@ def test_run_method_on_plugins_only_on_active_ones(
     assert mocked_method.call_count == active_plugins_count
 
     called_plugins_id = [arg.args[0].PLUGIN_ID for arg in mocked_method.call_args_list]
-    expected_active_plugins_id = [p.PLUGIN_ID for p in ACTIVE_PLUGINS]
+    expected_active_plugins_id = [
+        p.PLUGIN_ID
+        for p in all_plugins_manager.plugins_per_channel[channel_USD.slug]
+        if p.active
+    ]
 
     assert called_plugins_id == expected_active_plugins_id
 
@@ -1032,7 +1034,7 @@ def test_run_method_on_plugins_only_for_given_channel(
     )
     pln_plugin = ChannelPluginSample(active=True, channel=channel_PLN, configuration=[])
 
-    plugins_manager.plugins = [usd_plugin_1, usd_plugin_2, pln_plugin]
+    plugins_manager.all_plugins = [usd_plugin_1, usd_plugin_2, pln_plugin]
 
     plugins_manager.plugins_per_channel[channel_USD.slug] = [usd_plugin_1, usd_plugin_2]
     plugins_manager.plugins_per_channel[channel_PLN.slug] = [pln_plugin]
@@ -1118,6 +1120,7 @@ def test_create_plugin_manager_initializes_requestor_lazily(channel_USD):
     manager = PluginsManager(
         plugins=plugins, requestor_getter=partial(fake_request_getter, user_mock)
     )
+    manager.get_all_plugins()
     user_mock.assert_not_called()
 
     plugin = manager.all_plugins.pop()
@@ -1541,19 +1544,34 @@ def test_plugin_manager_database(allow_replica, expected_connection_name):
         assert manager.database == expected_connection_name
 
 
-def test_plugin_manager__get_channel_map(
-    channel_USD, channel_PLN, channel_JPY, other_channel_USD
-):
+def test_loaded_all_channels(channel_USD, channel_PLN, django_assert_num_queries):
     # given
-    manager = PluginsManager(["saleor.plugins.tests.sample_plugins.PluginSample"])
-
-    # when
-    channel_map = manager._get_channel_map()
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+    ]
+    manager = PluginsManager(plugins=plugins)
 
     # then
-    assert channel_map == {
-        channel_USD.pk: channel_USD,
-        channel_PLN.pk: channel_PLN,
-        channel_JPY.pk: channel_JPY,
-        other_channel_USD.pk: other_channel_USD,
-    }
+    with django_assert_num_queries(4):
+        plugins = manager.get_all_plugins()
+        assert plugins
+
+    with django_assert_num_queries(0):
+        plugins = manager.get_all_plugins()
+        assert plugins
+
+
+def test_get_plugin_invalid_channel():
+    # given
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+    ]
+    manager = PluginsManager(plugins=plugins)
+
+    # when
+    plugin = manager.get_plugin(
+        "saleor.plugins.tests.sample_plugins.PluginSample", channel_slug="invalid"
+    )
+
+    # then
+    assert plugin is None

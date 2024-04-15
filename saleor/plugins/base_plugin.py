@@ -244,9 +244,6 @@ class BasePlugin:
     # status is changed.
     app_status_changed: Callable[["App", None], None]
 
-    # Assign tax code dedicated to plugin.
-    assign_tax_code_to_object_meta: Callable[["TaxClass", Union[str, None], Any], Any]
-
     # Trigger when attribute is created.
     #
     # Overwrite this method if you need to trigger specific logic after an attribute is
@@ -625,7 +622,11 @@ class BasePlugin:
 
     # Return tax code from object meta.
     get_tax_code_from_object_meta: Callable[
-        [Union["Product", "ProductType", "TaxClass"], "TaxType"], "TaxType"
+        [
+            Union["Product", "ProductType", "TaxClass"],
+            "TaxType",
+        ],
+        "TaxType",
     ]
 
     # Return list of all tax categories.
@@ -1143,12 +1144,6 @@ class BasePlugin:
     # Overwrite this method if you need to trigger specific logic after a shipping zone
     # metadata is updated.
     shipping_zone_metadata_updated: Callable[["ShippingZone", None], None]
-
-    # Define if storefront should add info about taxes to the price.
-    #
-    # It is used only by the old storefront. The returned value determines if
-    # storefront should append info to the price about "including/excluding X% VAT".
-    show_taxes_on_storefront: Callable[[bool], bool]
 
     # Trigger when staff user is created.
     #
