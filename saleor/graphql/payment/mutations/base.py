@@ -8,6 +8,7 @@ from ....checkout import models as checkout_models
 from ....checkout.calculations import fetch_checkout_data
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....order import models as order_models
+from ...core.enums import TransactionInitializeErrorCode
 from ...core.mutations import BaseMutation
 from ...core.utils import from_global_id_or_error
 
@@ -18,6 +19,8 @@ if TYPE_CHECKING:
 class TransactionSessionBase(BaseMutation):
     class Meta:
         abstract = True
+
+    TRANSACTION_ITEMS_LIMIT = 100
 
     @classmethod
     def clean_source_object(
@@ -74,6 +77,18 @@ class TransactionSessionBase(BaseMutation):
                     )
                 }
             )
+
+        if source_object.payment_transactions.count() >= cls.TRANSACTION_ITEMS_LIMIT:
+            raise ValidationError(
+                {
+                    "transactions": ValidationError(
+                        f"{source_object_type} transactions limit of "
+                        f"{cls.TRANSACTION_ITEMS_LIMIT} reached.",
+                        code=TransactionInitializeErrorCode.INVALID.value,
+                    )
+                }
+            )
+
         return source_object
 
     @classmethod
