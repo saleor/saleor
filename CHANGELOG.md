@@ -6,6 +6,7 @@ All notable, unreleased changes to this project will be documented in this file.
 # 3.20.0 [Unreleased]
 
 ### Highlights
+- Include transaction item in refund flow - #15590 by @korycins
 
 ### Breaking changes
 
