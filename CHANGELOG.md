@@ -1,3 +1,4 @@
+
 # Changelog
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/saleor/saleor/releases) page.
@@ -9,6 +10,9 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Breaking changes
 
 ### GraphQL API
+- Add `translatableContent` to all translation types; add translated object id to all translatable content types - #15617 by @zedzior
+
+- Add a `taxConfiguration` to a `Channel` - #15610 by @Air-t
 
 ### Saleor Apps
 
@@ -54,6 +58,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - Added new input `AppInput.identifier`.
   - Added new parameter `identifier` for `create_app` command.
   - When `taxAppId` is provided for `TaxConfiguration` do not allow to finalize `checkoutComplete` or `draftOrderComplete` mutations if Tax App or Avatax plugin didn't respond.
+- Add `unique_type` to `OrderLineDiscount` and `CheckoutLineDiscount` models - #15774 by @zedzior
 
 # 3.18.0
 

@@ -349,7 +349,7 @@ def test_order_query(
 
     expected_methods = ShippingMethod.objects.applicable_shipping_methods(
         price=order.subtotal.gross,
-        weight=order.get_total_weight(),
+        weight=order.weight,
         country_code=order.shipping_address.country.code,
         channel_id=order.channel_id,
     )
@@ -997,7 +997,7 @@ def test_order_query_in_pln_channel(
 
     expected_methods = ShippingMethod.objects.applicable_shipping_methods(
         price=order.subtotal.gross,
-        weight=order.get_total_weight(),
+        weight=order.weight,
         country_code=order.shipping_address.country.code,
         channel_id=order.channel_id,
     )

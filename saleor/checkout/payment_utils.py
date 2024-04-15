@@ -7,6 +7,7 @@ from django.conf import settings
 from django.db.models import Exists, Q
 from prices import Money
 
+from ..core.db.connection import allow_writer
 from ..core.taxes import zero_money
 from ..payment.models import TransactionItem
 from . import CheckoutAuthorizeStatus, CheckoutChargeStatus
@@ -115,7 +116,8 @@ def update_checkout_payment_statuses(
             fields_to_update.append("charge_status")
         if fields_to_update:
             fields_to_update.append("last_change")
-            checkout.save(update_fields=fields_to_update)
+            with allow_writer():
+                checkout.save(update_fields=fields_to_update)
 
 
 def update_refundable_for_checkout(checkout_pk):

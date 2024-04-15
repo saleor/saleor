@@ -499,9 +499,6 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
     def total_balance(self):
         return self.total_charged - self.total.gross
 
-    def get_total_weight(self, _lines=None):
-        return self.weight
-
 
 class OrderLineQueryset(models.QuerySet["OrderLine"]):
     def digital(self):

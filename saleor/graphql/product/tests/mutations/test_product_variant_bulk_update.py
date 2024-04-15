@@ -410,9 +410,7 @@ def test_product_variant_bulk_update_channel_listings_input(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
     ProductChannelListing.objects.create(product=product, channel=channel_PLN)
-    existing_variant_listing = variant.channel_listings.exclude(
-        channel=channel_PLN
-    ).last()
+    existing_variant_listing = variant.channel_listings.get()
 
     assert variant.channel_listings.count() == 1
     product_id = graphene.Node.to_global_id("Product", product.pk)
@@ -452,8 +450,21 @@ def test_product_variant_bulk_update_channel_listings_input(
     )
     get_graphql_content(response, ignore_errors=True)
 
-    existing_variant_listing.refresh_from_db()
     # then
+    existing_variant_listing.refresh_from_db()
+    assert (
+        existing_variant_listing.price_amount == new_price_for_existing_variant_listing
+    )
+    assert (
+        existing_variant_listing.discounted_price_amount
+        == new_price_for_existing_variant_listing
+    )
+    new_variant_listing = variant.channel_listings.get(channel=channel_PLN)
+    assert new_variant_listing.price_amount == not_existing_variant_listing_price
+    assert (
+        new_variant_listing.discounted_price_amount
+        == not_existing_variant_listing_price
+    )
 
     # only promotions with created channel will be marked as dirty
     second_promotion_rule.refresh_from_db()
@@ -626,6 +637,72 @@ def test_product_variant_bulk_update_when_variant_not_exists(
     assert error["path"] == "id"
     assert error["field"] == "id"
     assert error["code"] == ProductVariantBulkErrorCode.INVALID.name
+
+
+@patch(
+    "saleor.graphql.product.bulk_mutations."
+    "product_variant_bulk_update.get_webhooks_for_event"
+)
+def test_product_variant_bulk_update_attributes(
+    mocked_get_webhooks_for_event,
+    staff_api_client,
+    variant_with_many_stocks,
+    permission_manage_products,
+    any_webhook,
+    settings,
+    multiselect_attribute,
+    color_attribute,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    # given
+    variant = variant_with_many_stocks
+    product_id = graphene.Node.to_global_id("Product", variant.product_id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    product = variant.product
+    product.product_type.variant_attributes.add(multiselect_attribute, color_attribute)
+    color_attribute_value = color_attribute.values.first()
+    color_attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.pk)
+    multiselect_attribute_id = graphene.Node.to_global_id(
+        "Attribute", multiselect_attribute.pk
+    )
+
+    # ensure that providing as a new value for an attribute, name of an existing value
+    # from another attribute will not raise an Error
+    variants = [
+        {
+            "id": variant_id,
+            "attributes": [
+                {"id": color_attribute_id, "dropdown": {"value": "new-value"}},
+                {
+                    "id": multiselect_attribute_id,
+                    "multiselect": [
+                        {"value": color_attribute_value.name},
+                        {"value": "test-value-2"},
+                    ],
+                },
+            ],
+        }
+    ]
+
+    variables = {"productId": product_id, "variants": variants}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_UPDATE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    flush_post_commit_hooks()
+    data = content["data"]["productVariantBulkUpdate"]
+
+    # then
+    assert not data["results"][0]["errors"]
+    assert data["count"] == 1
+    for rule in get_active_catalogue_promotion_rules():
+        assert rule.variants_dirty
 
 
 @override_settings(ENABLE_LIMITING_WEBHOOKS_FOR_IDENTICAL_PAYLOADS=True)

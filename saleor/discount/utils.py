@@ -21,6 +21,7 @@ from ..checkout.base_calculations import (
 )
 from ..checkout.fetch import CheckoutLineInfo, find_checkout_line_info
 from ..checkout.models import Checkout, CheckoutLine
+from ..core.db.connection import allow_writer
 from ..core.exceptions import InsufficientStock
 from ..core.taxes import zero_money
 from ..core.utils.promo_code import InvalidPromoCode
@@ -53,7 +54,7 @@ from .models import (
 if TYPE_CHECKING:
     from ..account.models import User
     from ..checkout.fetch import CheckoutInfo
-    from ..order.models import Order
+    from ..order.models import Order, OrderLine
     from ..plugins.manager import PluginsManager
     from ..product.managers import ProductVariantQueryset
     from ..product.models import VariantChannelListingPromotionRule
@@ -282,19 +283,23 @@ def validate_voucher_for_checkout(
     )
 
 
-def validate_voucher_in_order(order: "Order"):
+def validate_voucher_in_order(
+    order: "Order", lines: Iterable["OrderLine"], channel: "Channel"
+):
     if not order.voucher:
         return
 
+    from ..order.utils import get_total_quantity
+
     subtotal = order.subtotal
-    quantity = order.get_total_quantity()
+    quantity = get_total_quantity(lines)
     customer_email = order.get_customer_email()
-    tax_configuration = order.channel.tax_configuration
+    tax_configuration = channel.tax_configuration
     prices_entered_with_tax = tax_configuration.prices_entered_with_tax
     value = subtotal.gross if prices_entered_with_tax else subtotal.net
 
     validate_voucher(
-        order.voucher, value, quantity, customer_email, order.channel, order.user
+        order.voucher, value, quantity, customer_email, channel, order.user
     )
 
 
@@ -431,14 +436,17 @@ def create_discount_objects_for_catalogue_promotions(
 
                 line_discounts_to_update.append(discount_to_update)
 
-    if line_discounts_to_create:
-        CheckoutLineDiscount.objects.bulk_create(line_discounts_to_create)
-    if line_discounts_to_update and updated_fields:
-        CheckoutLineDiscount.objects.bulk_update(
-            line_discounts_to_update, updated_fields
-        )
-    if line_discount_ids_to_remove:
-        CheckoutLineDiscount.objects.filter(id__in=line_discount_ids_to_remove).delete()
+    with allow_writer():
+        if line_discounts_to_create:
+            CheckoutLineDiscount.objects.bulk_create(line_discounts_to_create)
+        if line_discounts_to_update and updated_fields:
+            CheckoutLineDiscount.objects.bulk_update(
+                line_discounts_to_update, updated_fields
+            )
+        if line_discount_ids_to_remove:
+            CheckoutLineDiscount.objects.filter(
+                id__in=line_discount_ids_to_remove
+            ).delete()
 
 
 def _get_discount_amount(
@@ -640,7 +648,8 @@ def _set_checkout_base_prices(checkout_info, lines_info):
     if is_update_needed:
         checkout.base_subtotal = subtotal
         checkout.base_total = total
-        checkout.save(update_fields=["base_total_amount", "base_subtotal_amount"])
+        with allow_writer():
+            checkout.save(update_fields=["base_total_amount", "base_subtotal_amount"])
 
 
 def _clear_checkout_discount(
@@ -833,6 +842,7 @@ def _create_or_update_checkout_discount(
         )
 
 
+@allow_writer()
 def _handle_order_promotion(
     checkout: "Checkout",
     checkout_info: "CheckoutInfo",
@@ -882,6 +892,7 @@ def delete_gift_line(checkout: "Checkout", lines_info: Iterable["CheckoutLineInf
             lines_info.remove(gift_line_info)  # type: ignore[attr-defined]
 
 
+@allow_writer()
 def _handle_gift_reward(
     checkout: "Checkout",
     checkout_info: "CheckoutInfo",

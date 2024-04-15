@@ -671,7 +671,7 @@ def update_delivery_method_lists_for_checkout_info(
         )
         # Filter shipping methods using sync webhooks
         excluded_methods = manager.excluded_shipping_methods_for_checkout(
-            checkout_info.checkout, all_methods
+            checkout_info.checkout, checkout_info.channel, all_methods
         )
         initialize_shipping_method_active_status(all_methods, excluded_methods)
         return all_methods
