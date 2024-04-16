@@ -316,6 +316,26 @@ def test_visible_to_customer_user_without_channel_slug(
         assert available_products.count() == 0
 
 
+def test_visible_to_customer_user_with_not_existing_channel_slug(
+    customer_user,
+    product_list,
+    channel_USD,
+    django_assert_num_queries,
+):
+    # given
+    product = product_list[0]
+    product.channel_listings.all().delete()
+
+    # when
+    available_products = models.Product.objects.visible_to_user(
+        customer_user, "not-existing"
+    )
+
+    # then
+    with django_assert_num_queries(0):
+        assert available_products.count() == 0
+
+
 def test_visible_to_staff_user(
     staff_user,
     product_list,
@@ -354,6 +374,27 @@ def test_visible_to_staff_user_with_channel(
 
     # then
     assert available_products.count() == len(product_list) - 1
+
+
+def test_visible_to_staff_user_with_not_existing_channel_slug(
+    staff_user,
+    product_list,
+    permission_manage_products,
+    channel_USD,
+):
+    # given
+    product = product_list[0]
+    product.channel_listings.all().delete()
+
+    staff_user.user_permissions.add(permission_manage_products)
+
+    # when
+    available_products = models.Product.objects.visible_to_user(
+        staff_user, "not-existing"
+    )
+
+    # then
+    assert available_products.count() == 0
 
 
 def test_filter_not_published_product_is_unpublished(product, channel_USD):
