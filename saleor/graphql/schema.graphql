@@ -3811,7 +3811,7 @@ type Warehouse implements Node & ObjectWithMetadata @doc(category: "Products") {
     last: Int
   ): ShippingZoneCountableConnection!
 
-  """Stocks belonging to this warehouse."""
+  """Stocks that belong to this warehouse."""
   stocks(
     """Return the elements in the list that come before the specified cursor."""
     before: String

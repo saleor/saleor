@@ -562,6 +562,19 @@ class StockByIdLoader(DataLoader):
         return [stocks.get(key) for key in keys]
 
 
+class StocksByWarehouseIdLoader(DataLoader):
+    context_key = "stocks_by_warehouse"
+
+    def batch_load(self, keys):
+        stocks = Stock.objects.using(self.database_connection_name).filter(
+            warehouse_id__in=keys
+        )
+        stocks_map = defaultdict(list)
+        for stock in stocks:
+            stocks_map[stock.warehouse_id].append(stock)
+        return [stocks_map.get(warehouse_id, []) for warehouse_id in keys]
+
+
 class WarehousesByChannelIdLoader(DataLoader):
     context_key = "warehouse_by_channel"
 

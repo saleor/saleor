@@ -18,7 +18,7 @@ from ..core.descriptions import (
     DEPRECATED_IN_3X_INPUT,
 )
 from ..core.doc_category import DOC_CATEGORY_PRODUCTS
-from ..core.fields import ConnectionField, FilterConnectionField, PermissionsField
+from ..core.fields import ConnectionField, PermissionsField
 from ..core.types import (
     BaseInputObjectType,
     BaseObjectType,
@@ -28,7 +28,7 @@ from ..core.types import (
 from ..meta.types import ObjectWithMetadata
 from ..product.dataloaders import ProductVariantByIdLoader
 from ..site.dataloaders import load_site_callback
-from .dataloaders import WarehouseByIdLoader
+from .dataloaders import StocksByWarehouseIdLoader, WarehouseByIdLoader
 from .enums import WarehouseClickAndCollectOptionEnum
 
 
@@ -114,9 +114,9 @@ class Warehouse(ModelObjectType[models.Warehouse]):
         required=True,
         description="Shipping zones supported by the warehouse.",
     )
-    stocks = FilterConnectionField(
+    stocks = ConnectionField(
         "saleor.graphql.warehouse.types.StockCountableConnection",
-        description="Stocks belonging to this warehouse.",
+        description="Stocks that belong to this warehouse.",
     )
     external_reference = graphene.String(
         description=f"External ID of this warehouse. {ADDED_IN_310}", required=False
@@ -149,8 +149,14 @@ class Warehouse(ModelObjectType[models.Warehouse]):
 
     @staticmethod
     def resolve_stocks(root, info: ResolveInfo, **kwargs):
-        stocks = root.stock_set.using(get_database_connection_name(info.context)).all()
-        return create_connection_slice(stocks, info, kwargs, StockCountableConnection)
+        def _resolve_stocks(stocks):
+            return create_connection_slice(
+                stocks, info, kwargs, StockCountableConnection
+            )
+
+        return (
+            StocksByWarehouseIdLoader(info.context).load(root.id).then(_resolve_stocks)
+        )
 
     @staticmethod
     def resolve_address(root, info: ResolveInfo):
