@@ -1,9 +1,10 @@
 import graphene
+import pytest
 from prices import TaxedMoney
 
 from .....core.prices import quantize_price
 from .....core.taxes import zero_money
-from .....discount import DiscountType, DiscountValueType
+from .....discount import DiscountType, DiscountValueType, RewardValueType
 from .....order import OrderStatus
 from .....order.error_codes import OrderErrorCode
 from .....order.models import OrderEvent
@@ -66,9 +67,15 @@ DRAFT_ORDER_UPDATE_MUTATION = """
                         gross {
                             amount
                         }
+                        net {
+                            amount
+                        }
                     }
                     subtotal {
                         gross {
+                            amount
+                        }
+                        net {
                             amount
                         }
                     }
@@ -76,6 +83,42 @@ DRAFT_ORDER_UPDATE_MUTATION = """
                         gross {
                             amount
                         }
+                        net {
+                            amount
+                        }
+                    }
+                    discounts {
+                        amount {
+                            amount
+                        }
+                        valueType
+                        type
+                        reason
+                    }
+                    lines {
+                        quantity
+                        unitDiscount {
+                          amount
+                        }
+                        undiscountedUnitPrice {
+                            net {
+                                amount
+                            }
+                        }
+                        unitPrice {
+                            net {
+                                amount
+                            }
+                        }
+                        totalPrice {
+                            net {
+                                amount
+                            }
+                        }
+                        unitDiscountReason
+                        unitDiscountType
+                        unitDiscountValue
+                        isGift
                     }
                 }
             }
@@ -535,6 +578,234 @@ def test_draft_order_update_voucher_including_drafts_in_voucher_usage_invalid_co
 
     assert error["code"] == OrderErrorCode.INVALID_VOUCHER.name
     assert error["field"] == "voucher"
+
+
+def test_draft_order_update_add_voucher_code_remove_order_promotion(
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines_and_order_promotion,
+    voucher,
+):
+    # given
+    order = order_with_lines_and_order_promotion
+    order.status = OrderStatus.DRAFT
+    order.save(update_fields=["status"])
+    order_discount = order.discounts.get()
+    assert order_discount.type == DiscountType.ORDER_PROMOTION
+
+    discount_amount = voucher.channel_listings.get(channel=order.channel).discount_value
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    variables = {
+        "id": order_id,
+        "input": {
+            "voucherCode": voucher.codes.first().code,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    assert not data["errors"]
+
+    with pytest.raises(order_discount._meta.model.DoesNotExist):
+        order_discount.refresh_from_db()
+
+    order.refresh_from_db()
+    voucher_discount = order.discounts.get()
+    assert voucher_discount.amount_value == discount_amount
+    assert voucher_discount.value == discount_amount
+    assert voucher_discount.type == DiscountType.VOUCHER
+
+    assert (
+        order.total_net_amount == order.undiscounted_total_net_amount - discount_amount
+    )
+
+
+def test_draft_order_update_add_voucher_code_remove_gift_promotion(
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines_and_gift_promotion,
+    voucher,
+):
+    # given
+    order = order_with_lines_and_gift_promotion
+    order.status = OrderStatus.DRAFT
+    order.save(update_fields=["status"])
+
+    assert order.lines.count() == 3
+    gift_line = order.lines.get(is_gift=True)
+    gift_discount = gift_line.discounts.get()
+
+    discount_amount = voucher.channel_listings.get(channel=order.channel).discount_value
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    variables = {
+        "id": order_id,
+        "input": {
+            "voucherCode": voucher.codes.first().code,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    assert not data["errors"]
+
+    with pytest.raises(gift_line._meta.model.DoesNotExist):
+        gift_line.refresh_from_db()
+
+    with pytest.raises(gift_discount._meta.model.DoesNotExist):
+        gift_discount.refresh_from_db()
+
+    order.refresh_from_db()
+    assert order.lines.count() == 2
+    voucher_discount = order.discounts.get()
+    assert voucher_discount.amount_value == discount_amount
+    assert voucher_discount.value == discount_amount
+    assert voucher_discount.type == DiscountType.VOUCHER
+
+    assert (
+        order.total_net_amount == order.undiscounted_total_net_amount - discount_amount
+    )
+
+
+def test_draft_order_update_remove_voucher_code_add_order_promotion(
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    voucher,
+    order_promotion_rule,
+):
+    # given
+    order = draft_order
+    order.voucher = voucher
+    order.save(update_fields=["voucher"])
+
+    voucher_listing = voucher.channel_listings.get(channel=order.channel)
+    discount_amount = voucher_listing.discount_value
+    voucher_discount = order.discounts.create(
+        voucher=voucher,
+        value=discount_amount,
+        type=DiscountType.VOUCHER,
+    )
+
+    order.total_gross_amount -= discount_amount
+    order.total_net_amount -= discount_amount
+    order.save(update_fields=["total_net_amount", "total_gross_amount"])
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    variables = {
+        "id": order_id,
+        "input": {
+            "voucherCode": None,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    assert not data["errors"]
+
+    with pytest.raises(voucher_discount._meta.model.DoesNotExist):
+        voucher_discount.refresh_from_db()
+
+    order.refresh_from_db()
+    order_discount = order.discounts.get()
+    reward_value = order_promotion_rule.reward_value
+    assert order_discount.value == reward_value
+    assert order_discount.value_type == order_promotion_rule.reward_value_type
+
+    undiscounted_subtotal = (
+        order.undiscounted_total_net_amount - order.base_shipping_price_amount
+    )
+    assert order_discount.amount.amount == reward_value / 100 * undiscounted_subtotal
+    assert (
+        order.total_net_amount
+        == order.undiscounted_total_net_amount - order_discount.amount.amount
+    )
+
+
+def test_draft_order_update_remove_voucher_code_add_gift_promotion(
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    voucher,
+    gift_promotion_rule,
+):
+    # given
+    order = draft_order
+    order.voucher = voucher
+    order.save(update_fields=["voucher"])
+    assert order.lines.count() == 2
+
+    voucher_listing = voucher.channel_listings.get(channel=order.channel)
+    discount_amount = voucher_listing.discount_value
+    voucher_discount = order.discounts.create(
+        voucher=voucher,
+        value=discount_amount,
+        type=DiscountType.VOUCHER,
+    )
+
+    order.total_gross_amount -= discount_amount
+    order.total_net_amount -= discount_amount
+    order.save(update_fields=["total_net_amount", "total_gross_amount"])
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    variables = {
+        "id": order_id,
+        "input": {
+            "voucherCode": None,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    assert not data["errors"]
+
+    with pytest.raises(voucher_discount._meta.model.DoesNotExist):
+        voucher_discount.refresh_from_db()
+
+    order.refresh_from_db()
+    assert order.lines.count() == 3
+    assert not order.discounts.exists()
+
+    gift_line = order.lines.filter(is_gift=True).first()
+    gift_discount = gift_line.discounts.get()
+    gift_price = gift_line.variant.channel_listings.get(
+        channel=order.channel
+    ).price_amount
+
+    assert gift_discount.value == gift_price
+    assert gift_discount.amount.amount == gift_price
+    assert gift_discount.value_type == DiscountValueType.FIXED
+
+    assert order.total_net_amount == order.undiscounted_total_net_amount
 
 
 def test_draft_order_update_with_non_draft_order(
@@ -1163,6 +1434,118 @@ def test_draft_order_update_no_shipping_method_channel_listings(
     assert len(errors) == 1
     assert errors[0]["code"] == OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
     assert errors[0]["field"] == "shippingMethod"
+
+
+def test_draft_order_update_order_promotion(
+    staff_api_client,
+    permission_group_manage_orders,
+    customer_user,
+    shipping_method,
+    graphql_address_data,
+    variant_with_many_stocks,
+    channel_USD,
+    draft_order,
+    order_promotion_rule,
+):
+    # given
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    rule = order_promotion_rule
+    promotion_id = graphene.Node.to_global_id("Promotion", rule.promotion_id)
+    assert rule.reward_value_type == RewardValueType.PERCENTAGE
+    reward_value = rule.reward_value
+
+    variables = {
+        "id": graphene.Node.to_global_id("Order", draft_order.pk),
+        "input": {
+            "billingAddress": graphql_address_data,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["draftOrderUpdate"]["errors"]
+    draft_order.refresh_from_db()
+    undiscounted_total = draft_order.undiscounted_total_net_amount
+    shipping_price = draft_order.base_shipping_price_amount
+    order = content["data"]["draftOrderUpdate"]["order"]
+    assert len(order["discounts"]) == 1
+    discount_amount = reward_value / 100 * (undiscounted_total - shipping_price)
+    assert order["discounts"][0]["amount"]["amount"] == discount_amount
+    assert order["discounts"][0]["reason"] == f"Promotion: {promotion_id}"
+    assert order["discounts"][0]["type"] == DiscountType.ORDER_PROMOTION.upper()
+    assert order["discounts"][0]["valueType"] == RewardValueType.PERCENTAGE.upper()
+
+    assert (
+        order["subtotal"]["net"]["amount"]
+        == undiscounted_total - discount_amount - shipping_price
+    )
+    assert order["total"]["net"]["amount"] == undiscounted_total - discount_amount
+    assert order["undiscountedTotal"]["net"]["amount"] == undiscounted_total
+
+
+def test_draft_order_update_gift_promotion(
+    staff_api_client,
+    permission_group_manage_orders,
+    customer_user,
+    shipping_method,
+    graphql_address_data,
+    variant_with_many_stocks,
+    channel_USD,
+    draft_order,
+    gift_promotion_rule,
+):
+    # given
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    rule = gift_promotion_rule
+    promotion_id = graphene.Node.to_global_id("Promotion", rule.promotion_id)
+
+    variables = {
+        "id": graphene.Node.to_global_id("Order", draft_order.pk),
+        "input": {
+            "billingAddress": graphql_address_data,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["draftOrderUpdate"]["errors"]
+
+    gift_line_db = [line for line in draft_order.lines.all() if line.is_gift][0]
+    gift_price = gift_line_db.variant.channel_listings.get(
+        channel=draft_order.channel
+    ).price_amount
+
+    order = content["data"]["draftOrderUpdate"]["order"]
+    lines = order["lines"]
+    assert len(lines) == 3
+    gift_line = [line for line in lines if line["isGift"]][0]
+
+    assert gift_line["totalPrice"]["net"]["amount"] == 0.00
+    assert gift_line["unitDiscount"]["amount"] == gift_price
+    assert gift_line["unitDiscountReason"] == f"Promotion: {promotion_id}"
+    assert gift_line["unitDiscountType"] == RewardValueType.FIXED.upper()
+    assert gift_line["unitDiscountValue"] == gift_price
+
+    assert (
+        order["subtotal"]["net"]["amount"]
+        == draft_order.undiscounted_total_net_amount
+        - draft_order.base_shipping_price_amount
+    )
+    assert order["total"]["net"]["amount"] == draft_order.undiscounted_total_net_amount
+    assert (
+        order["undiscountedTotal"]["net"]["amount"]
+        == draft_order.undiscounted_total_net_amount
+    )
 
 
 def test_draft_order_update_with_cc_warehouse_as_shipping_method(

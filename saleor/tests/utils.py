@@ -1,4 +1,6 @@
 import json
+import math
+from decimal import Decimal
 
 from django.db import connections, transaction
 
@@ -21,3 +23,11 @@ def flush_post_commit_hooks():
 def dummy_editorjs(text, json_format=False):
     data = {"blocks": [{"data": {"text": text}, "type": "paragraph"}]}
     return json.dumps(data) if json_format else data
+
+
+def round_down(price: Decimal) -> Decimal:
+    return Decimal(math.floor(price * 100)) / 100
+
+
+def round_up(price: Decimal) -> Decimal:
+    return Decimal(math.ceil(price * 100)) / 100
