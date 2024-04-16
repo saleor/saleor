@@ -254,6 +254,7 @@ def _fetch_checkout_prices_if_expired(
                 address,
             )
         except TaxEmptyData as e:
+            _set_checkout_base_prices(checkout, checkout_info, lines)
             checkout.tax_error = str(e)
 
         if not should_charge_tax:
@@ -278,10 +279,11 @@ def _fetch_checkout_prices_if_expired(
                     address,
                 )
             except TaxEmptyData as e:
+                _set_checkout_base_prices(checkout, checkout_info, lines)
                 checkout.tax_error = str(e)
         else:
             # Calculate net prices without taxes.
-            _get_checkout_base_prices(checkout, checkout_info, lines)
+            _set_checkout_base_prices(checkout, checkout_info, lines)
 
     checkout_update_fields = [
         "voucher_code",
@@ -502,7 +504,7 @@ def _apply_tax_data_from_plugins(
     )
 
 
-def _get_checkout_base_prices(
+def _set_checkout_base_prices(
     checkout: "Checkout",
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],

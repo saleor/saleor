@@ -691,7 +691,12 @@ class ProductVariantBulkUpdate(BaseMutation):
         models.ProductVariantChannelListing.objects.bulk_create(listings_to_create)
         models.ProductVariantChannelListing.objects.bulk_update(
             listings_to_update,
-            fields=["price_amount", "cost_price_amount", "preorder_quantity_threshold"],
+            fields=[
+                "price_amount",
+                "discounted_price_amount",
+                "cost_price_amount",
+                "preorder_quantity_threshold",
+            ],
         )
         warehouse_models.Stock.objects.filter(id__in=stocks_to_remove).delete()
         models.ProductVariantChannelListing.objects.filter(

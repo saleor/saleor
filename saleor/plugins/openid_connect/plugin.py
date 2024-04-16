@@ -5,7 +5,7 @@ from authlib.common.errors import AuthlibBaseError
 from django.core import signing
 from django.core.exceptions import ValidationError
 from django.core.handlers.wsgi import WSGIRequest
-from jwt import ExpiredSignatureError, InvalidTokenError
+from jwt import DecodeError, ExpiredSignatureError, InvalidTokenError
 from requests import HTTPError, PreparedRequest
 
 from ...account.models import User
@@ -292,14 +292,18 @@ class OpenIDConnectPlugin(BasePlugin):
                 }
             )
 
-        parsed_id_token = get_parsed_id_token(
-            token_data, self.config.json_web_key_set_url
-        )
-
-        user, user_created, user_updated = get_or_create_user_from_payload(
-            parsed_id_token,
-            self.config.authorization_url,
-        )
+        try:
+            parsed_id_token = get_parsed_id_token(
+                token_data, self.config.json_web_key_set_url
+            )
+            user, user_created, user_updated = get_or_create_user_from_payload(
+                parsed_id_token,
+                self.config.authorization_url,
+            )
+        except AuthenticationError as e:
+            raise ValidationError(
+                {"code": ValidationError(str(e), code=PluginErrorCode.INVALID.value)}
+            )
 
         user_permissions = []
         is_staff_user_email = self.is_staff_user_email(user)
@@ -498,8 +502,11 @@ class OpenIDConnectPlugin(BasePlugin):
             token, owner=self.PLUGIN_ID
         ):
             # Check if the token is created by this plugin
-            payload = jwt_decode(token)
-            user = get_user_from_access_payload(payload, request)
+            try:
+                payload = jwt_decode(token)
+                user = get_user_from_access_payload(payload, request)
+            except (InvalidTokenError, DecodeError):
+                return previous_value
             if user.is_staff:
                 assign_staff_to_default_group_and_update_permissions(
                     user, self.config.default_group_name
@@ -509,13 +516,16 @@ class OpenIDConnectPlugin(BasePlugin):
         staff_user_domains = get_staff_user_domains(self.config)
 
         if self.use_oauth_access_token:
-            user = get_user_from_oauth_access_token(
-                token,
-                self.config.json_web_key_set_url,
-                self.config.user_info_url,
-                self.config.use_scope_permissions,
-                self.config.audience,
-                staff_user_domains,
-                self.config.default_group_name,
-            )
+            try:
+                user = get_user_from_oauth_access_token(
+                    token,
+                    self.config.json_web_key_set_url,
+                    self.config.user_info_url,
+                    self.config.use_scope_permissions,
+                    self.config.audience,
+                    staff_user_domains,
+                    self.config.default_group_name,
+                )
+            except AuthenticationError:
+                return previous_value
         return user or previous_value
