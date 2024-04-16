@@ -65,14 +65,19 @@ class CheckoutLineInfo:
             discount
             for discount in self.discounts
             if discount.type
-            in [DiscountType.CATALOGUE_PROMOTION, DiscountType.ORDER_PROMOTION]
+            in [
+                DiscountType.CATALOGUE_PROMOTION,
+                DiscountType.PROMOTION,
+                DiscountType.ORDER_PROMOTION,
+            ]
         ]
 
     def get_catalogue_discounts(self) -> list["CheckoutLineDiscount"]:
         return [
             discount
             for discount in self.discounts
-            if discount.type == DiscountType.CATALOGUE_PROMOTION
+            if discount.type
+            in [DiscountType.PROMOTION, DiscountType.CATALOGUE_PROMOTION]
         ]
 
 
