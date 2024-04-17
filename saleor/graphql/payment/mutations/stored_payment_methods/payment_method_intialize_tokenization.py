@@ -82,6 +82,7 @@ class PaymentMethodInitializeTokenization(BaseMutation):
                 payment_flow_to_support=payment_flow_to_support,
             ),
             PaymentMethodInitializeTokenizationErrorCode,
+            channel,
         )
 
         return cls(

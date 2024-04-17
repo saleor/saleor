@@ -281,6 +281,7 @@ def test_plugin_manager_doesnt_load_email_templates_from_db(
 ):
     settings.PLUGINS = ["saleor.plugins.admin_email.plugin.AdminEmailPlugin"]
     manager = get_plugins_manager(allow_replica=False)
+    manager.get_all_plugins()
     plugin = manager.all_plugins[0]
 
     email_config_item = None

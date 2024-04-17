@@ -1249,7 +1249,9 @@ class Checkout(ModelObjectType[models.Checkout]):
                 user=user,
                 channel=channel,
             )
-            return manager.list_stored_payment_methods(request_data)
+            return manager.list_stored_payment_methods(
+                request_data, channel_slug=channel.slug
+            )
 
         manager = get_plugin_manager_promise(info.context)
         channel_loader = ChannelByIdLoader(info.context).load(root.channel_id)
