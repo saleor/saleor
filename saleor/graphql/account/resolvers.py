@@ -178,11 +178,13 @@ def resolve_address_validation_rules(
 
 
 @traced_resolver
-def resolve_payment_sources(_info, user: models.User, manager, channel_slug: str):
-    stored_customer_accounts = (
+def resolve_payment_sources(
+    _info, user: models.User, manager, channel_slug: Optional[str]
+):
+    stored_customer_accounts = [
         (gtw.id, fetch_customer_id(user, gtw.id))
         for gtw in gateway.list_gateways(manager, channel_slug)
-    )
+    ]
     return list(
         chain(
             *[

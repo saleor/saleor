@@ -133,7 +133,7 @@ def test_promotion_rule_create_gift(
     }
 
     # when
-    with django_assert_num_queries(17):
+    with django_assert_num_queries(16):
         content = get_graphql_content(
             staff_api_client.post_graphql(PROMOTION_RULE_CREATE_MUTATION, variables)
         )

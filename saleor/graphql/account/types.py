@@ -707,7 +707,9 @@ class User(ModelObjectType[models.User]):
                 user=root,
                 channel=channel_obj,
             )
-            return manager.list_stored_payment_methods(request_data)
+            return manager.list_stored_payment_methods(
+                request_data, channel_slug=channel
+            )
 
         return Promise.all(
             [
