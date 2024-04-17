@@ -405,11 +405,7 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
         def with_channels(channels):
             def with_zones(shipping_zones_by_channel):
                 def with_warehouses(data):
-                    (
-                        warehouses_by_channel,
-                        warehouses_by_zone,
-                        shipping_zones_by_channel_map,
-                    ) = data
+                    warehouses_by_channel, warehouses_by_zone = data
                     warehouses_by_channel_map = {
                         channel.slug: warehouses
                         for warehouses, channel in zip(warehouses_by_channel, channels)
@@ -445,13 +441,11 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
 
                 channel_ids = [channel.id for channel in channels]
                 shipping_zones_by_channel_map = {
-                    channel.slug: shipping_zones_flatten
+                    channel.slug: shipping_zones
                     for shipping_zones, channel in zip(
                         shipping_zones_by_channel, channels
                     )
-                    for shipping_zones_flatten in shipping_zones
                 }
-
                 shipping_zone_ids = [
                     shipping_zone.id
                     for channel, shipping_zones in shipping_zones_by_channel_map.items()
@@ -464,20 +458,16 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
                 warehouses_by_zone = WarehousesByShippingZoneIdLoader(
                     self.context
                 ).load_many(shipping_zone_ids)
-
-                return Promise.all(
-                    [
-                        warehouses_by_channel,
-                        warehouses_by_zone,
-                        shipping_zones_by_channel_map,
-                    ]
-                ).then(with_warehouses)
+                return Promise.all([warehouses_by_channel, warehouses_by_zone]).then(
+                    with_warehouses
+                )
 
             channel_ids = [channel.id for channel in set(channels)]
-            shipping_zones_by_channel = ShippingZonesByChannelIdLoader(
-                self.context
-            ).load_many(channel_ids)
-            return Promise.all([shipping_zones_by_channel]).then(with_zones)
+            return (
+                ShippingZonesByChannelIdLoader(self.context)
+                .load_many(channel_ids)
+                .then(with_zones)
+            )
 
         channel_slugs = list(set(key[2] for key in keys))
         return (
