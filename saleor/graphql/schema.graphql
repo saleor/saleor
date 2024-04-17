@@ -1282,7 +1282,7 @@ type Query {
   ): ExportFileCountableConnection
 
   """List of all tax rates available from tax gateway."""
-  taxTypes: [TaxType!] @doc(category: "Taxes")
+  taxTypes: [TaxType!] @doc(category: "Taxes") @deprecated(reason: "This field will be removed in Saleor 4.0. Use `taxClasses` field instead.")
 
   """
   Look up a checkout by id.
