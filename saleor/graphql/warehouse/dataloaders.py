@@ -461,7 +461,7 @@ class OldLoader(DataLoader[VariantIdCountryCodeChannelSlug, Iterable[Stock]]):
             for variant_id in variant_ids_set
         ]
 
-
+from time import time
 class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
     DataLoader[VariantIdCountryCodeChannelSlug, Iterable[Stock]]
 ):
@@ -474,10 +474,24 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
     context_key = "stocks_with_available_quantity_by_productvariant_country_and_channel"
 
     def batch_load(self, keys):
+        mid_1 = time()
         def with_channels(channels):
+            print(channels)
+            print("with_channels", time()-mid_1)
+
+            mid_2 = time()
             def with_zones(shipping_zones_by_channel):
+                print(shipping_zones_by_channel)
+                print("with_zones", time() - mid_2)
+                mid_3 = time()
                 def with_warehouses(warehouse_data):
+                    print(warehouse_data)
+                    print("with_warehouses", time() - mid_3)
+                    mid_4 = time()
                     def with_stocks(stocks_by_variant_and_warehouse_pairs):
+                        print(stocks_by_variant_and_warehouse_pairs)
+                        print("with_stocks", time() - mid_4)
+                        mid_5 = time()
                         stocks_by_key_map: {  # type: ignore[valid-type]
                             VariantIdCountryCodeChannelSlug: list[Stock]
                         } = defaultdict(list)
@@ -488,10 +502,11 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
                                 ]:
                                     if stock not in stocks_by_key_map[key]:
                                         stocks_by_key_map[key].append(stock)
-
+                        print("return", time() - mid_5)
                         return [stocks_by_key_map[key] for key in keys]
 
                     warehouses_by_channel, warehouses_by_zone = warehouse_data
+                    mid_6 = time()
                     warehouses_and_zones_by_channel_map = self.build_map(
                         warehouses_by_channel,
                         warehouses_by_zone,
@@ -499,7 +514,7 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
                         shipping_zone_ids,
                         shipping_zones_by_channel_map,
                     )
-
+                    print("build_map", time() - mid_6)
                     keys_by_variant_id_warehouse_id_pair: dict[
                         tuple[int, UUID], list[VariantIdCountryCodeChannelSlug]
                     ] = defaultdict(list)
