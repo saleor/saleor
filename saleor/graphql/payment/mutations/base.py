@@ -1,6 +1,7 @@
 from decimal import Decimal
 from typing import TYPE_CHECKING, Optional, Union
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from graphql import GraphQLError
 
@@ -19,8 +20,6 @@ if TYPE_CHECKING:
 class TransactionSessionBase(BaseMutation):
     class Meta:
         abstract = True
-
-    TRANSACTION_ITEMS_LIMIT = 100
 
     @classmethod
     def clean_source_object(
@@ -78,12 +77,15 @@ class TransactionSessionBase(BaseMutation):
                 }
             )
 
-        if source_object.payment_transactions.count() >= cls.TRANSACTION_ITEMS_LIMIT:
+        if (
+            source_object.payment_transactions.count()
+            >= settings.TRANSACTION_ITEMS_LIMIT
+        ):
             raise ValidationError(
                 {
-                    "transactions": ValidationError(
+                    "id": ValidationError(
                         f"{source_object_type} transactions limit of "
-                        f"{cls.TRANSACTION_ITEMS_LIMIT} reached.",
+                        f"{settings.TRANSACTION_ITEMS_LIMIT} reached.",
                         code=TransactionInitializeErrorCode.INVALID.value,
                     )
                 }

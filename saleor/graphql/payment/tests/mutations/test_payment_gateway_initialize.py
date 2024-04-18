@@ -1,10 +1,14 @@
 from decimal import Decimal
 from unittest import mock
 
+from django.conf import settings
+from django.test import override_settings
+
 from .....checkout.calculations import fetch_checkout_data
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....payment.interface import PaymentGatewayData
-from ....core.enums import PaymentGatewayConfigErrorCode
+from .....payment.models import TransactionItem
+from ....core.enums import PaymentGatewayConfigErrorCode, TransactionInitializeErrorCode
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
 
@@ -75,6 +79,40 @@ def test_for_checkout_without_payment_gateways(
         "errors": [],
     }
     mocked_initialize.assert_called_once_with(checkout.total.gross.amount, [], checkout)
+
+
+@override_settings(TRANSACTION_ITEMS_LIMIT=3)
+def test_for_checkout_transactions_limit_on_gateway_initialize(
+    user_api_client, checkout_with_prices
+):
+    # given
+    TransactionItem.objects.bulk_create(
+        [
+            TransactionItem(
+                checkout=checkout_with_prices, currency=checkout_with_prices.currency
+            )
+            for _ in range(settings.TRANSACTION_ITEMS_LIMIT)
+        ]
+    )
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_prices),
+        "paymentGateways": None,
+    }
+
+    # when
+    response = user_api_client.post_graphql(PAYMENT_GATEWAY_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["paymentGatewayInitialize"]
+    assert data["errors"]
+    error = data["errors"][0]
+    assert error["code"] == TransactionInitializeErrorCode.INVALID.name
+    assert error["field"] == "id"
+    assert error["message"] == (
+        "Checkout transactions limit of " f"{settings.TRANSACTION_ITEMS_LIMIT} reached."
+    )
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.payment_gateway_initialize_session")

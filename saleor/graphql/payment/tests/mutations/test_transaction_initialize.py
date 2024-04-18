@@ -3,6 +3,8 @@ from unittest import mock
 
 import pytest
 import pytz
+from django.conf import settings
+from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
 
@@ -23,7 +25,6 @@ from ....channel.enums import TransactionFlowStrategyEnum
 from ....core.enums import TransactionInitializeErrorCode
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
-from ...mutations.base import TransactionSessionBase
 
 TRANSACTION_INITIALIZE = """
 mutation TransactionInitialize(
@@ -236,14 +237,17 @@ def test_for_checkout_without_payment_gateway_data(
     assert checkout.authorize_status == CheckoutAuthorizeStatus.PARTIAL
 
 
-def test_for_checkout_transactions_limit(user_api_client, checkout_with_prices):
+@override_settings(TRANSACTION_ITEMS_LIMIT=3)
+def test_for_checkout_transactions_limit_on_transaction_initialize(
+    user_api_client, checkout_with_prices
+):
     # given
     TransactionItem.objects.bulk_create(
         [
             TransactionItem(
                 checkout=checkout_with_prices, currency=checkout_with_prices.currency
             )
-            for _ in range(TransactionSessionBase.TRANSACTION_ITEMS_LIMIT)
+            for _ in range(settings.TRANSACTION_ITEMS_LIMIT)
         ]
     )
 
@@ -263,9 +267,9 @@ def test_for_checkout_transactions_limit(user_api_client, checkout_with_prices):
     assert data["errors"]
     error = data["errors"][0]
     assert error["code"] == TransactionInitializeErrorCode.INVALID.name
+    assert error["field"] == "id"
     assert error["message"] == (
-        "Checkout transactions limit of "
-        f"{TransactionSessionBase.TRANSACTION_ITEMS_LIMIT} reached."
+        "Checkout transactions limit of " f"{settings.TRANSACTION_ITEMS_LIMIT} reached."
     )
 
 
