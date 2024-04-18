@@ -12,7 +12,7 @@ from .....attribute.tests.model_helpers import (
     get_product_attribute_values,
     get_product_attributes,
 )
-from .....discount.utils import get_active_catalogue_promotion_rules
+from .....discount.utils import get_active_promotion_rules
 from .....product.error_codes import ProductBulkCreateErrorCode
 from .....product.models import Product
 from .....product.tests.utils import create_image
@@ -154,7 +154,7 @@ def test_product_bulk_create_with_base_data(
         assert product.category == category
         assert product.product_type == product_type
 
-    for rule in get_active_catalogue_promotion_rules():
+    for rule in get_active_promotion_rules():
         assert rule.variants_dirty is True
 
 

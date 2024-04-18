@@ -139,10 +139,10 @@ def test_get_channel_to_products_map_from_rules_empty_rules_qs():
 
 
 def test_get_channel_to_products_when_single_rule_related(
-    catalogue_promotion, channel_USD, product
+    promotion, channel_USD, product
 ):
     # given
-    rule = catalogue_promotion.rules.first()
+    rule = promotion.rules.first()
     rule.variants.set([product.variants.first()])
     rule.channels.set([channel_USD])
 

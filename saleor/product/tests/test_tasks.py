@@ -100,21 +100,6 @@ def test_update_variant_relations_for_active_promotion_rules_task_when_not_valid
     ).count() == len(product_ids_in_category)
 
 
-@patch("saleor.product.tasks.PROMOTION_RULE_BATCH_SIZE", 1)
-def test_update_variant_relations_for_active_promotion_rules_task_with_order_predicate(
-    order_promotion_rule,
-):
-    # given
-    Promotion.objects.update(start_date=timezone.now() - timedelta(days=1))
-    PromotionRule.objects.update(catalogue_predicate={})
-
-    # when
-    update_variant_relations_for_active_promotion_rules_task()
-
-    # then
-    assert PromotionRule.objects.filter(variants_dirty=True).count() == 0
-
-
 @pytest.mark.parametrize("reward_value", [None, 0])
 @patch("saleor.product.tasks.PROMOTION_RULE_BATCH_SIZE", 1)
 @patch("saleor.product.tasks.recalculate_discounted_price_for_products_task.delay")

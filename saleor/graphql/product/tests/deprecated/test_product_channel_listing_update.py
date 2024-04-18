@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 import graphene
 import pytz
+from freezegun import freeze_time
 
 from .....product.error_codes import ProductErrorCode
 from .....product.models import ProductChannelListing

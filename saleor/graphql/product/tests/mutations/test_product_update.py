@@ -20,7 +20,7 @@ from .....attribute.tests.model_helpers import (
 )
 from .....attribute.utils import associate_attribute_values_to_instance
 from .....core.taxes import TaxType
-from .....discount.utils import get_active_catalogue_promotion_rules
+from .....discount.utils import get_active_promotion_rules
 from .....graphql.core.enums import AttributeErrorCode
 from .....graphql.tests.utils import get_graphql_content
 from .....plugins.manager import PluginsManager
@@ -283,7 +283,7 @@ def test_update_product_only_collections(
     assert not data["errors"]
     assert len(data["product"]["collections"]) == 1
     assert data["product"]["collections"][0]["name"] == collection.name
-    for rule in get_active_catalogue_promotion_rules():
+    for rule in get_active_promotion_rules():
         assert rule.variants_dirty is True
 
 

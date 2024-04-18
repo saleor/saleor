@@ -1,5 +1,5 @@
+from ....product.utils.product import get_channel_to_products_map_from_rules
 from ...models import PromotionRule
-from ...utils import get_channel_to_products_map_from_rules
 
 
 def test_get_channel_to_products_map_from_rules_empty_rules_qs():

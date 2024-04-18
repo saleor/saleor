@@ -31,7 +31,7 @@ from .models import (
     PromotionRule,
     VoucherCode,
 )
-from .utils import mark_catalogue_promotion_rules_as_dirty
+from .utils import mark_promotion_rules_as_dirty
 
 if TYPE_CHECKING:
     from uuid import UUID
@@ -96,9 +96,7 @@ def handle_promotion_toggle():
     if ending_promotions:
         clear_promotion_rule_variants_task.delay()
 
-    mark_catalogue_promotion_rules_as_dirty(
-        set(promotions.values_list("id", flat=True))
-    )
+    mark_promotion_rules_as_dirty(set(promotions.values_list("id", flat=True)))
 
     starting_promotion_ids = ", ".join(
         [str(staring_promo.id) for staring_promo in starting_promotions]

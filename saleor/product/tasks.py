@@ -14,13 +14,13 @@ from ..attribute.models import Attribute
 from ..celeryconf import app
 from ..core.exceptions import PreorderAllocationError
 from ..discount.models import Promotion, PromotionRule
-from ..discount.utils import mark_active_catalogue_promotion_rules_as_dirty
+from ..discount.utils import mark_active_promotion_rules_as_dirty
 from ..plugins.manager import get_plugins_manager
 from ..warehouse.management import deactivate_preorder_for_variant
 from ..webhook.event_types import WebhookEventAsyncType
 from ..webhook.utils import get_webhooks_for_event
 from .models import Product, ProductChannelListing, ProductType, ProductVariant
-from .search import PRODUCTS_BATCH_SIZE, update_products_search_vector
+from .search import update_products_search_vector
 from .utils.product import mark_products_in_channels_as_dirty
 from .utils.variant_prices import update_discounted_prices_for_promotion
 from .utils.variants import (
@@ -201,7 +201,7 @@ def update_products_discounted_prices_for_promotion_task(
     # dirty. This will make the same re-calculation as the old task.
     from ..channel.models import Channel
 
-    mark_active_catalogue_promotion_rules_as_dirty(
+    mark_active_promotion_rules_as_dirty(
         Channel.objects.all().values_list("id", flat=True)
     )
 

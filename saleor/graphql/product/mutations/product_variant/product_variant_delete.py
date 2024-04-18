@@ -7,7 +7,7 @@ from django.db.models import Exists, OuterRef
 from .....attribute import AttributeInputType
 from .....attribute import models as attribute_models
 from .....core.tracing import traced_atomic_transaction
-from .....discount.utils import mark_active_catalogue_promotion_rules_as_dirty
+from .....discount.utils import mark_active_promotion_rules_as_dirty
 from .....order import events as order_events
 from .....order import models as order_models
 from .....order.tasks import recalculate_orders_task
@@ -139,7 +139,7 @@ class ProductVariantDelete(ModelDeleteMutation, ModelWithExtRefMutation):
             cls.call_event(manager.product_variant_deleted, variant)
 
         # This will finally recalculate discounted prices for products.
-        cls.call_event(mark_active_catalogue_promotion_rules_as_dirty, channel_ids)
+        cls.call_event(mark_active_promotion_rules_as_dirty, channel_ids)
 
         return response
 

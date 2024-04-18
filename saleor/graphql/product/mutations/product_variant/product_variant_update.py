@@ -6,7 +6,7 @@ from django.utils.text import slugify
 
 from .....attribute import AttributeInputType
 from .....attribute import models as attribute_models
-from .....discount.utils import mark_active_catalogue_promotion_rules_as_dirty
+from .....discount.utils import mark_active_promotion_rules_as_dirty
 from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.models import ProductChannelListing
@@ -140,7 +140,7 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
         channel_ids = ProductChannelListing.objects.filter(
             product_id=instance.product_id
         ).values_list("channel_id", flat=True)
-        cls.call_event(mark_active_catalogue_promotion_rules_as_dirty, channel_ids)
+        cls.call_event(mark_active_promotion_rules_as_dirty, channel_ids)
 
     @classmethod
     def perform_mutation(  # type: ignore[override]

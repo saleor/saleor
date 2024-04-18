@@ -346,7 +346,6 @@ def test_convert_migrated_sale_predicate_to_catalogue_info(
     assert catalogue_info == expected_result
 
 
-
 @pytest.mark.parametrize(
     ("field", "field_value", "expected_result"),
     [

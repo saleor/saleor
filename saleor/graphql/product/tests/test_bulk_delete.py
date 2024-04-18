@@ -10,7 +10,7 @@ from ....attribute.models import AttributeValue
 from ....attribute.utils import associate_attribute_values_to_instance
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import add_variant_to_checkout, calculate_checkout_quantity
-from ....discount.utils import get_active_catalogue_promotion_rules
+from ....discount.utils import get_active_promotion_rules
 from ....order import OrderEvents, OrderStatus
 from ....order.models import OrderEvent, OrderLine
 from ....plugins.manager import get_plugins_manager
@@ -79,7 +79,7 @@ def test_delete_categories_invalidate_active_promotion_rules(
     category_list,
     product_list,
     permission_manage_products,
-    catalogue_promotion,
+    promotion,
 ):
     # given
     for product, category in zip(product_list, category_list):
@@ -103,7 +103,7 @@ def test_delete_categories_invalidate_active_promotion_rules(
 
     # then
     get_graphql_content(response)
-    assert not catalogue_promotion.rules.filter(variants_dirty=True).exists()
+    assert not promotion.rules.filter(variants_dirty=True).exists()
 
 
 @patch("saleor.product.utils.get_webhooks_for_event")
@@ -338,7 +338,7 @@ def test_delete_collections(
         id__in=[collection.id for collection in collection_list]
     ).exists()
 
-    for rule in get_active_catalogue_promotion_rules():
+    for rule in get_active_promotion_rules():
         assert rule.variants_dirty
 
 
@@ -1049,7 +1049,7 @@ def test_delete_product_variants_by_sku_task_for_recalculate_product_prices_call
         == content["data"]["productVariantBulkDelete"]["count"]
     )
     mocked_recalculate_orders_task.assert_not_called()
-    for rule in get_active_catalogue_promotion_rules():
+    for rule in get_active_promotion_rules():
         assert rule.variants_dirty
 
 
@@ -1167,7 +1167,7 @@ def test_delete_product_variants_task_for_recalculate_product_prices_called(
         == content["data"]["productVariantBulkDelete"]["count"]
     )
     mocked_recalculate_orders_task.assert_not_called()
-    for rule in get_active_catalogue_promotion_rules():
+    for rule in get_active_promotion_rules():
         assert rule.variants_dirty
 
 
@@ -1176,7 +1176,7 @@ def test_delete_product_variants_invalid_object_typed_of_given_ids(
     product_variant_list,
     permission_manage_products,
     staff_user,
-    catalogue_promotion,
+    promotion,
 ):
     query = PRODUCT_VARIANT_BULK_DELETE_MUTATION
     staff_user.user_permissions.add(permission_manage_products)
@@ -1195,7 +1195,7 @@ def test_delete_product_variants_invalid_object_typed_of_given_ids(
     assert errors[0]["code"] == ProductErrorCode.GRAPHQL_ERROR.name
     assert errors[0]["field"] == "ids"
     assert data["count"] == 0
-    assert not catalogue_promotion.rules.filter(variants_dirty=True).exists()
+    assert not promotion.rules.filter(variants_dirty=True).exists()
 
 
 def test_delete_product_variants_removes_checkout_lines(

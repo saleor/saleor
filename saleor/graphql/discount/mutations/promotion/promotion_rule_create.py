@@ -78,12 +78,9 @@ class PromotionRuleCreate(ModelMutation):
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
         products = get_products_for_rule(instance, update_rule_variants=True)
-        promotion = cleaned_input["promotion"]
         channel_ids = instance.channels.values_list("id", flat=True)
 
-        if promotion_rule_should_be_marked_with_dirty_variants(
-            instance, channel_ids
-        ):
+        if promotion_rule_should_be_marked_with_dirty_variants(instance, channel_ids):
             if product_ids := set(products.values_list("id", flat=True)):
                 cls.call_event(
                     mark_products_in_channels_as_dirty,

@@ -5,7 +5,7 @@ from graphql_relay import to_global_id
 
 from ....discount.models import Promotion, PromotionRule
 from ....discount.utils import (
-    get_active_catalogue_promotion_rules,
+    get_active_promotion_rules,
     get_current_products_for_rules,
 )
 from ....product.models import ProductChannelListing
@@ -47,7 +47,7 @@ def test_product_variant_delete_updates_discounted_price(
     content = get_graphql_content(response)
     data = content["data"]["productVariantDelete"]
     assert data["errors"] == []
-    for rule in get_active_catalogue_promotion_rules():
+    for rule in get_active_promotion_rules():
         assert rule.variants_dirty
     mocked_recalculate_orders_task.assert_not_called()
 
@@ -88,7 +88,7 @@ def test_category_delete_updates_discounted_price(
     data = content["data"]["categoryDelete"]
     assert data["errors"] == []
 
-    for rule in get_active_catalogue_promotion_rules():
+    for rule in get_active_promotion_rules():
         assert rule.variants_dirty
 
     for product in product_list:
@@ -132,7 +132,7 @@ def test_collection_add_products_updates_rule_variants_dirty(
     content = get_graphql_content(response)
     data = content["data"]["collectionAddProducts"]
     assert data["errors"] == []
-    for rule in get_active_catalogue_promotion_rules():
+    for rule in get_active_promotion_rules():
         assert rule.variants_dirty
 
 
@@ -172,7 +172,7 @@ def test_collection_remove_products_updates_rule_variants_dirty(
     content = get_graphql_content(response)
     data = content["data"]["collectionRemoveProducts"]
     assert data["errors"] == []
-    for rule in get_active_catalogue_promotion_rules():
+    for rule in get_active_promotion_rules():
         assert rule.variants_dirty
 
 

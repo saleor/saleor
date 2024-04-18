@@ -4,7 +4,7 @@ import graphene
 import pytest
 from prices import Money, TaxedMoney
 
-from .....discount.utils import get_active_catalogue_promotion_rules
+from .....discount.utils import get_active_promotion_rules
 from .....order import OrderEvents, OrderStatus
 from .....order.models import OrderEvent, OrderLine
 from .....product.models import ProductVariant
@@ -53,7 +53,7 @@ def test_delete_variant_by_sku(
     with pytest.raises(variant._meta.model.DoesNotExist):
         variant.refresh_from_db()
     mocked_recalculate_orders_task.assert_not_called()
-    for rule in get_active_catalogue_promotion_rules():
+    for rule in get_active_promotion_rules():
         assert rule.variants_dirty
 
 
@@ -95,7 +95,7 @@ def test_delete_variant(
     with pytest.raises(variant._meta.model.DoesNotExist):
         variant.refresh_from_db()
     mocked_recalculate_orders_task.assert_not_called()
-    for rule in get_active_catalogue_promotion_rules():
+    for rule in get_active_promotion_rules():
         assert rule.variants_dirty
 
 

@@ -3,7 +3,6 @@ from collections import defaultdict
 import graphene
 from django.db.models import QuerySet
 
-from ....discount import PromotionType
 from ....discount.models import Promotion, PromotionRule
 from ....discount.utils import CatalogueInfo, update_rule_variant_relation
 from ....product.models import ProductVariant

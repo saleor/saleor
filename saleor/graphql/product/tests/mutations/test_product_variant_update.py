@@ -172,7 +172,7 @@ def test_update_product_variant_marks_prices_as_dirty(
     product,
     size_attribute,
     permission_manage_products,
-    catalogue_promotion,
+    promotion,
 ):
     # given
     query = """
@@ -209,7 +209,7 @@ def test_update_product_variant_marks_prices_as_dirty(
     variant.refresh_from_db()
     get_graphql_content(response)
     flush_post_commit_hooks()
-    assert not catalogue_promotion.rules.filter(variants_dirty=False).exists()
+    assert not promotion.rules.filter(variants_dirty=False).exists()
 
 
 UPDATE_VARIANT_BY_SKU = """

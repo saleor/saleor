@@ -177,9 +177,7 @@ class PromotionCreate(ModelMutation):
             for rule_data in rules_data:
                 channels = rule_data.pop("channels", None)
                 rule = models.PromotionRule(promotion=instance, **rule_data)
-                if promotion_rule_should_be_marked_with_dirty_variants(
-                    rule, channels
-                ):
+                if promotion_rule_should_be_marked_with_dirty_variants(rule, channels):
                     rule.variants_dirty = True
                 if channels:
                     rules_with_channels_to_add.append((rule, channels))

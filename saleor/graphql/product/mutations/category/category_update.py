@@ -1,7 +1,7 @@
 import graphene
 from django.db.models import Exists, OuterRef
 
-from .....discount.utils import mark_active_catalogue_promotion_rules_as_dirty
+from .....discount.utils import mark_active_promotion_rules_as_dirty
 from .....permission.enums import ProductPermissions
 from .....product import models
 from .....thumbnail import models as thumbnail_models
@@ -49,4 +49,4 @@ class CategoryUpdate(CategoryCreate):
                     Exists(products.filter(id=OuterRef("product_id")))
                 ).values_list("channel_id", flat=True)
             )
-            cls.call_event(mark_active_catalogue_promotion_rules_as_dirty, channel_ids)
+            cls.call_event(mark_active_promotion_rules_as_dirty, channel_ids)
