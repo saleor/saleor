@@ -277,6 +277,7 @@ class TaxableObjectDiscount(BaseObjectType):
     amount = graphene.Field(
         Money, description="The amount of the discount.", required=True
     )
+    type = graphene.String(required=True, description="Type of the discount.")
 
     class Meta:
         doc_category = DOC_CATEGORY_TAXES
@@ -383,7 +384,13 @@ class TaxableObject(BaseObjectType):
                 checkout = checkout_info.checkout
                 discount_name = checkout.discount_name
                 return (
-                    [{"name": discount_name, "amount": checkout.discount}]
+                    [
+                        {
+                            "name": discount_name,
+                            "amount": checkout.discount,
+                            "type": checkout_info.voucher.type,
+                        }
+                    ]
                     if checkout.discount and not is_shipping_voucher
                     else []
                 )

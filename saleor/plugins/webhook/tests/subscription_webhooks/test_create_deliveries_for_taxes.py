@@ -40,6 +40,7 @@ subscription {
           amount {
             amount
           }
+          type
         }
 
         lines {
@@ -219,7 +220,9 @@ def test_checkout_calculate_taxes_with_voucher(
         "taxBase": {
             "address": None,
             "currency": "USD",
-            "discounts": [{"amount": {"amount": 20.0}}],
+            "discounts": [
+                {"amount": {"amount": 20.0}, "type": VoucherType.ENTIRE_ORDER}
+            ],
             "channel": {"id": to_global_id_or_none(checkout_with_voucher.channel)},
             "lines": [
                 {

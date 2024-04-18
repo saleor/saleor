@@ -36039,6 +36039,9 @@ type TaxableObjectDiscount @doc(category: "Taxes") {
 
   """The amount of the discount."""
   amount: Money!
+
+  """Type of the discount."""
+  type: String!
 }
 
 type TaxableObjectLine @doc(category: "Taxes") {
