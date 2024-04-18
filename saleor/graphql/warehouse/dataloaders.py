@@ -478,6 +478,8 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
         def with_channels(channels):
             def with_zones(shipping_zones_by_channel):
                 def with_warehouses(data):
+                    def with_stocks(stocks):
+                        pass
                     warehouses_by_channel, warehouses_by_zone = data
                     # build map
                     warehouses_by_channel_map = {
@@ -525,7 +527,6 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
                         }
 
                     variant_id_warehouse_id_pairs = []
-
                     for variant_id, country_code, channel_slug in keys:
                         if not channel_slug:
                             continue
@@ -568,7 +569,7 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
                         )
                         variant_id_warehouse_id_pairs.extend([(variant_id, warehouse_id) for warehouse_id in warehouse_ids])
 
-
+                    StocksByWarehouseIdAndVariantIdLoader(self.context).load_many(variant_id_warehouse_id_pairs).then(with_stocks)
 
                 channel_ids = [channel.id for channel in channels]
                 shipping_zones_by_channel_map = {
@@ -768,3 +769,21 @@ class WarehousesByShippingZoneIdLoader(DataLoader):
             .load_many({pk for pk, _ in warehouse_and_shipping_zone_in_pairs})
             .then(map_warehouses)
         )
+
+
+class StocksByWarehouseIdAndVariantIdLoader(DataLoader):
+    context_key = "stocks_by_warehouse_id_and_variant_id"
+
+    def batch_load(self, keys):
+        lookup = Q()
+        for key in keys:
+            variant_id, warehouse_id = key
+            lookup |= Q(product_variant_id=variant_id, warehouse_id=warehouse_id)
+
+        stocks = Stock.objects.using(self.database_connection_name).filter(lookup)
+        stocks.annotate_available_quantity().order_by("pk")
+        stocks_by_variant_id = defaultdict(list)
+        for stock in stocks:
+            stocks_by_variant_id[stock.product_variant_id].append(stock)
+
+        return [stocks_by_variant_id[key[0]] for key in keys]
