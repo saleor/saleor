@@ -1,1 +1,1 @@
-{"profiledFunctions": [{"file": "/Users/zedzior/dev/saleor-platform/saleor/saleor/graphql/warehouse/dataloaders.py", "lineNo": 577, "functionName": "batch_load_stocks_by_country", "profiledLines": []}], "unit": 1e-09}
+{"profiledFunctions": [{"file": "/Users/zedzior/dev/saleor-platform/saleor/saleor/graphql/warehouse/dataloaders.py", "lineNo": 608, "functionName": "batch_load_stocks_by_country", "profiledLines": []}], "unit": 1e-09}

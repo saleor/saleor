@@ -114,7 +114,8 @@ from ...utils import get_user_or_app_from_context
 from ...utils.filters import reporting_period_to_date
 from ...warehouse.dataloaders import (
     AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader,
-    OldLoader, PreorderQuantityReservedByVariantChannelListingIdLoader,
+    OldLoader,
+    PreorderQuantityReservedByVariantChannelListingIdLoader,
     StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader,
 )
 from ...warehouse.types import Stock
@@ -399,10 +400,10 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
         return StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
             info.context
         ).load((root.node.id, country_code, root.channel_slug))
-        print("OLD RESOLVER:")
-        return OldLoader(
-            info.context
-        ).load((root.node.id, country_code, root.channel_slug))
+        # print("OLD RESOLVER:")
+        # return OldLoader(
+        #     info.context
+        # ).load((root.node.id, country_code, root.channel_slug))
 
     @staticmethod
     @load_site_callback
