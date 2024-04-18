@@ -93,8 +93,8 @@ class TransactionInitialize(TransactionSessionBase):
         description = (
             "Initializes a transaction session. It triggers the webhook "
             "`TRANSACTION_INITIALIZE_SESSION`, to the requested `paymentGateways`. "
-            + ADDED_IN_313
-            + PREVIEW_FEATURE
+            "There is a limit of transaction items per checkout / order, configurable "
+            "in settings by TRANSACTION_ITEMS_LIMIT." + ADDED_IN_313 + PREVIEW_FEATURE
         )
         error_type_class = common_types.TransactionInitializeError
 

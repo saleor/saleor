@@ -65,7 +65,10 @@ class PaymentGatewayInitialize(TransactionSessionBase):
             "Initializes a payment gateway session. It triggers the webhook "
             "`PAYMENT_GATEWAY_INITIALIZE_SESSION`, to the requested `paymentGateways`. "
             "If `paymentGateways` is not provided, the webhook will be send to all "
-            "subscribed payment gateways." + ADDED_IN_313 + PREVIEW_FEATURE
+            "subscribed payment gateways. There is a limit of transaction items per"
+            "checkout / order, configurable in settings by TRANSACTION_ITEMS_LIMIT."
+            + ADDED_IN_313
+            + PREVIEW_FEATURE
         )
         error_type_class = common_types.PaymentGatewayInitializeError
 
