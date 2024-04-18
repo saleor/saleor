@@ -478,8 +478,18 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
         def with_channels(channels):
             def with_zones(shipping_zones_by_channel):
                 def with_warehouses(data):
-                    def with_stocks(stocks):
-                        pass
+                    def with_stocks(stocks_dupa):
+                        stocks_per_key_map = defaultdict(list)
+                        for stocks in stocks_dupa:
+                            for stock in stocks:
+                                for key in keys_per_variant_id_warehouse_id_pair[
+                                    (stock.product_variant_id, stock.warehouse_id)
+                                ]:
+                                    if stock not in stocks_per_key_map[key]:
+                                        stocks_per_key_map[key].append(stock)
+
+                        return [stocks_per_key_map[key] for key in keys]
+
                     warehouses_by_channel, warehouses_by_zone = data
                     # build map
                     warehouses_by_channel_map = {
@@ -509,7 +519,7 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
                         shipping_zones_in_channel = shipping_zones_by_channel_map.get(
                             channel.slug
                         )
-                        shipping_zones_with_warehouses = []
+                        shipping_zones_with_warehouse_ids = []
                         for shipping_zone in shipping_zones_in_channel:
                             warehouse_ids_in_shipping_zone = [
                                 warehouse.id
@@ -517,17 +527,18 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
                                     shipping_zone.id, []
                                 )
                             ]
-                            shipping_zones_with_warehouses.append(
+                            shipping_zones_with_warehouse_ids.append(
                                 (shipping_zone, warehouse_ids_in_shipping_zone)
                             )
 
                         warehouses_and_zones_per_channel_map[channel.slug] = {
                             "warehouses": warehouses_in_channel,
-                            "shipping_zones": shipping_zones_with_warehouses,
+                            "shipping_zones": shipping_zones_with_warehouse_ids,
                         }
 
-                    variant_id_warehouse_id_pairs = []
-                    for variant_id, country_code, channel_slug in keys:
+                    keys_per_variant_id_warehouse_id_pair = defaultdict(list)
+                    for key in keys:
+                        variant_id, country_code, channel_slug = key
                         if not channel_slug:
                             continue
 
@@ -559,17 +570,31 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
                             for warehouse, is_cc in warehouses_in_channel
                             if is_cc
                         ]
-                        warehouses_in_published_zones_ids = [
+                        warehouse_in_channel_ids = [
+                            warehouse_id for warehouse_id, _ in warehouses_in_channel
+                        ]
+                        warehouse_in_published_zones_and_channel_ids = [
                             warehouse_id
-                            for _, warehouse_ids in shipping_zones_with_warehouse_ids
-                            for warehouse_id in warehouse_ids
+                            for _, warehouse_in_zone_ids in shipping_zones_with_warehouse_ids
+                            for warehouse_id in warehouse_in_zone_ids
+                            if warehouse_id in warehouse_in_channel_ids
                         ]
                         warehouse_ids = list(
-                            set(cc_warehouse_ids + warehouses_in_published_zones_ids)
+                            set(
+                                cc_warehouse_ids
+                                + warehouse_in_published_zones_and_channel_ids
+                            )
                         )
-                        variant_id_warehouse_id_pairs.extend([(variant_id, warehouse_id) for warehouse_id in warehouse_ids])
+                        for warehouse_id in warehouse_ids:
+                            keys_per_variant_id_warehouse_id_pair[
+                                (variant_id, warehouse_id)
+                            ].append(key)
 
-                    StocksByWarehouseIdAndVariantIdLoader(self.context).load_many(variant_id_warehouse_id_pairs).then(with_stocks)
+                    return (
+                        StocksByWarehouseIdAndVariantIdLoader(self.context)
+                        .load_many(keys_per_variant_id_warehouse_id_pair.keys())
+                        .then(with_stocks)
+                    )
 
                 channel_ids = [channel.id for channel in channels]
                 shipping_zones_by_channel_map = {
