@@ -85,7 +85,7 @@ documentation = "https://docs.saleor.io/"
   stripe = "^3.0.0"
   text-unidecode = "^1.2"
   urllib3 = "^1.26.18"
-  uvicorn = {extras = ["standard"], version = "^0.23.1"}
+  uvicorn = {extras = ["standard"], version = "^0.29.0"}
   weasyprint = ">=53.0" # libpango >=1.44 is required
 
     [tool.poetry.dependencies.celery]
