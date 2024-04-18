@@ -13,6 +13,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `translatableContent` to all translation types; add translated object id to all translatable content types - #15617 by @zedzior
 - Add a `taxConfiguration` to a `Channel` - #15610 by @Air-t
 - Deprecate the `taxTypes` query - #15802 by @maarcingebala
+- Add voucher type to `TaxableObject` - #15810 by @tomaszszymanski129
 
 ### Saleor Apps
 
