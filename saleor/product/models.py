@@ -267,7 +267,7 @@ class ProductsQueryset(models.QuerySet["Product"]):
         return self.published_with_variants(channel)
 
     def annotate_publication_info(self, channel: Channel):
-        return self.annotate_is_published(channel).annotate_published_at(channel.slug)
+        return self.annotate_is_published(channel).annotate_published_at(channel)
 
     def annotate_is_published(self, channel: Channel):
         query = Subquery(
@@ -279,10 +279,10 @@ class ProductsQueryset(models.QuerySet["Product"]):
             is_published=ExpressionWrapper(query, output_field=BooleanField())
         )
 
-    def annotate_published_at(self, channel_slug: str):
+    def annotate_published_at(self, channel: Channel):
         query = Subquery(
             ProductChannelListing.objects.filter(
-                product_id=OuterRef("pk"), channel__slug=str(channel_slug)
+                product_id=OuterRef("pk"), channel_id=channel.id
             ).values_list("published_at")[:1]
         )
         return self.annotate(
