@@ -1,5 +1,6 @@
 import sys
 from collections import defaultdict
+from time import time
 from typing import (
     TYPE_CHECKING,
     DefaultDict,
@@ -461,7 +462,7 @@ class OldLoader(DataLoader[VariantIdCountryCodeChannelSlug, Iterable[Stock]]):
             for variant_id in variant_ids_set
         ]
 
-from time import time
+
 class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
     DataLoader[VariantIdCountryCodeChannelSlug, Iterable[Stock]]
 ):
@@ -475,21 +476,20 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
 
     def batch_load(self, keys):
         mid_1 = time()
-        def with_channels(channels):
-            print(channels)
-            print("with_channels", time()-mid_1)
 
+        def with_channels(channels):
+            print("with_channels", time() - mid_1)
             mid_2 = time()
+
             def with_zones(shipping_zones_by_channel):
-                print(shipping_zones_by_channel)
                 print("with_zones", time() - mid_2)
                 mid_3 = time()
+
                 def with_warehouses(warehouse_data):
-                    print(warehouse_data)
                     print("with_warehouses", time() - mid_3)
                     mid_4 = time()
+
                     def with_stocks(stocks_by_variant_and_warehouse_pairs):
-                        print(stocks_by_variant_and_warehouse_pairs)
                         print("with_stocks", time() - mid_4)
                         mid_5 = time()
                         stocks_by_key_map: {  # type: ignore[valid-type]
@@ -515,6 +515,7 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
                         shipping_zones_by_channel_map,
                     )
                     print("build_map", time() - mid_6)
+
                     keys_by_variant_id_warehouse_id_pair: dict[
                         tuple[int, UUID], list[VariantIdCountryCodeChannelSlug]
                     ] = defaultdict(list)
@@ -857,3 +858,29 @@ class StocksByWarehouseIdAndVariantIdLoader(DataLoader):
             stocks_by_variant_id[stock.product_variant_id].append(stock)
 
         return [stocks_by_variant_id[key[0]] for key in keys]
+
+
+class StocksByWarehouseIdLoader(DataLoader):
+    context_key = "stocks_by_warehouse"
+
+    def batch_load(self, keys):
+        stocks = Stock.objects.using(self.database_connection_name).filter(
+            warehouse_id__in=keys
+        )
+        stocks_map = defaultdict(list)
+        for stock in stocks:
+            stocks_map[stock.warehouse_id].append(stock)
+        return [stocks_map.get(warehouse_id, []) for warehouse_id in keys]
+
+
+class StocksByVariantIdLoader(DataLoader):
+    context_key = "stocks_by_variant"
+
+    def batch_load(self, keys):
+        stocks = Stock.objects.using(self.database_connection_name).filter(
+            product_variant_id__in=keys
+        )
+        stocks_map = defaultdict(list)
+        for stock in stocks:
+            stocks_map[stock.product_variant_id].append(stock)
+        return [stocks_map.get(product_variant_id, []) for product_variant_id in keys]
