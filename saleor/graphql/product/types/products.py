@@ -396,14 +396,17 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
     ):
         if address is not None:
             country_code = address.country
-        print("NEW RESOLVER:")
-        return StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
-            info.context
-        ).load((root.node.id, country_code, root.channel_slug))
-        # print("OLD RESOLVER:")
-        # return OldLoader(
-        #     info.context
-        # ).load((root.node.id, country_code, root.channel_slug))
+        x = 2
+        if x == 1:
+            print("NEW RESOLVER:")
+            return StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
+                info.context
+            ).load((root.node.id, country_code, root.channel_slug))
+        else:
+            print("OLD RESOLVER:")
+            return OldLoader(
+                info.context
+            ).load((root.node.id, country_code, root.channel_slug))
 
     @staticmethod
     @load_site_callback
