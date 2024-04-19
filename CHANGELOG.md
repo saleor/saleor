@@ -21,6 +21,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Don't raise InsufficientStock for track_inventory=False variants #15475 by @carlosa54
 - DB performance improvements in attribute dataloaders - #15474 by @AjmalPonneth
 - Calculate order promotions in draft orders - #15459 by @zedzior
+- Prevent name overwriting of Product Variants when Updating Product Types - #15670 by @teddyondieki
 
 # 3.19.0
 
