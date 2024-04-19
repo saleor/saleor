@@ -9,7 +9,6 @@ from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import (
     fetch_checkout_info,
     fetch_checkout_lines,
-    get_delivery_method_info,
 )
 from .....checkout.utils import PRIVATE_META_APP_SHIPPING_ID, invalidate_checkout
 from .....plugins.base_plugin import ExcludedShippingMethod
@@ -73,12 +72,6 @@ def test_checkout_shipping_method_update(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    checkout_info.delivery_method_info = get_delivery_method_info(
-        convert_to_shipping_method_data(
-            old_shipping_method, old_shipping_method.channel_listings.first()
-        ),
-        None,
-    )
     mock_clean_shipping.assert_called_once_with(
         checkout_info=checkout_info,
         lines=lines,

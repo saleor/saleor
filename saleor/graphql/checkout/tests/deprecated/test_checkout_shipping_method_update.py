@@ -6,7 +6,6 @@ from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import (
     fetch_checkout_info,
     fetch_checkout_lines,
-    get_delivery_method_info,
 )
 from .....plugins.manager import get_plugins_manager
 from .....shipping.utils import convert_to_shipping_method_data
@@ -45,7 +44,6 @@ def test_checkout_shipping_method_update_by_id(
     checkout_with_item_and_shipping_method,
 ):
     checkout = checkout_with_item_and_shipping_method
-    old_shipping_method = checkout.shipping_method
     query = MUTATION_UPDATE_SHIPPING_METHOD
     mock_clean_shipping.return_value = True
 
@@ -62,12 +60,6 @@ def test_checkout_shipping_method_update_by_id(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    checkout_info.delivery_method_info = get_delivery_method_info(
-        convert_to_shipping_method_data(
-            old_shipping_method, old_shipping_method.channel_listings.first()
-        ),
-        None,
-    )
 
     mock_clean_shipping.assert_called_once_with(
         checkout_info=checkout_info,
@@ -93,7 +85,6 @@ def test_checkout_shipping_method_update_by_token(
     checkout_with_item_and_shipping_method,
 ):
     checkout = checkout_with_item_and_shipping_method
-    old_shipping_method = checkout.shipping_method
     query = MUTATION_UPDATE_SHIPPING_METHOD
     mock_clean_shipping.return_value = True
 
@@ -110,12 +101,7 @@ def test_checkout_shipping_method_update_by_token(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    checkout_info.delivery_method_info = get_delivery_method_info(
-        convert_to_shipping_method_data(
-            old_shipping_method, old_shipping_method.channel_listings.first()
-        ),
-        None,
-    )
+
     mock_clean_shipping.assert_called_once_with(
         checkout_info=checkout_info,
         lines=lines,
@@ -189,7 +175,6 @@ def test_checkout_shipping_method_update_by_id_no_checkout_metadata(
 ):
     # given
     checkout = checkout_with_item_and_shipping_method
-    old_shipping_method = checkout.shipping_method
     query = MUTATION_UPDATE_SHIPPING_METHOD
     mock_clean_shipping.return_value = True
 
@@ -211,12 +196,6 @@ def test_checkout_shipping_method_update_by_id_no_checkout_metadata(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    checkout_info.delivery_method_info = get_delivery_method_info(
-        convert_to_shipping_method_data(
-            old_shipping_method, old_shipping_method.channel_listings.first()
-        ),
-        None,
-    )
 
     mock_clean_shipping.assert_called_once_with(
         checkout_info=checkout_info,
