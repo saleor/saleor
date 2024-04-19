@@ -19,7 +19,7 @@ class TransactionEventByTransactionIdLoader(DataLoader):
         return [event_map.get(transaction_id, []) for transaction_id in keys]
 
 
-class TransactionItemsByIDLoader(DataLoader):
+class TransactionItemByIDLoader(DataLoader):
     context_key = "transaction_items_by_id"
 
     def batch_load(self, keys):

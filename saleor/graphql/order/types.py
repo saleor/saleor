@@ -112,7 +112,7 @@ from ..meta.resolvers import check_private_metadata_privilege, resolve_metadata
 from ..meta.types import MetadataItem, ObjectWithMetadata
 from ..payment.dataloaders import (
     TransactionByPaymentIdLoader,
-    TransactionItemsByIDLoader,
+    TransactionItemByIDLoader,
 )
 from ..payment.enums import OrderAction
 from ..payment.types import (
@@ -160,7 +160,7 @@ from .dataloaders import (
     OrderGrantedRefundsByOrderIdLoader,
     OrderLineByIdLoader,
     OrderLinesByOrderIdLoader,
-    TransactionEventByOrderGrantedRefundIdLoader,
+    TransactionEventsByOrderGrantedRefundIdLoader,
     TransactionItemsByOrderIDLoader,
 )
 from .enums import (
@@ -333,7 +333,7 @@ class OrderGrantedRefund(ModelObjectType[models.OrderGrantedRefund]):
         [OrderPermissions.MANAGE_ORDERS, PaymentPermissions.HANDLE_PAYMENTS]
     )
     def resolve_transaction_events(root: models.OrderGrantedRefund, info):
-        return TransactionEventByOrderGrantedRefundIdLoader(info.context).load(root.id)
+        return TransactionEventsByOrderGrantedRefundIdLoader(info.context).load(root.id)
 
     @staticmethod
     @one_of_permissions_required(
@@ -342,7 +342,7 @@ class OrderGrantedRefund(ModelObjectType[models.OrderGrantedRefund]):
     def resolve_transaction(root: models.OrderGrantedRefund, info):
         if not root.transaction_item_id:
             return None
-        return TransactionItemsByIDLoader(info.context).load(root.transaction_item_id)
+        return TransactionItemByIDLoader(info.context).load(root.transaction_item_id)
 
 
 class OrderDiscount(BaseObjectType):

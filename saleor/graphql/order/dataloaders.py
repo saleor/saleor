@@ -236,7 +236,7 @@ class TransactionItemsByOrderIDLoader(DataLoader):
         return [transactions_map.get(order_id, []) for order_id in keys]
 
 
-class TransactionEventByOrderGrantedRefundIdLoader(DataLoader):
+class TransactionEventsByOrderGrantedRefundIdLoader(DataLoader):
     context_key = "transaction_event_by_order_granted_refund_id"
 
     def batch_load(self, keys):
