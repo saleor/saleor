@@ -3,7 +3,7 @@ from unittest import mock
 import graphene
 from django.utils import timezone
 
-from ..context import get_context_value
+from ..context import clear_context, get_context_value
 from .utils import get_graphql_content
 
 QUERY_ORDER_BY_ID = """
@@ -71,3 +71,22 @@ def test_get_context_value_uses_request_time_if_passed_already(rf):
 
     # then
     assert context.request_time == request_time
+
+
+# {'query': '{\n  me {\n    id\n  }\n}'}
+
+
+def test_clear_context(rf, staff_user, app):
+    # given
+    context = get_context_value(rf.request())
+    context.dataloaders = {"key": "value"}  # type: ignore
+    context.user = staff_user
+    context.app = app
+
+    # when
+    clear_context(context)
+
+    # then
+    assert context.dataloaders == {}
+    assert context.user is None
+    assert context.app is None

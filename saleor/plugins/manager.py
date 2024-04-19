@@ -143,6 +143,14 @@ class PluginsManager(PaymentInterface):
             self.loaded_global = False
             self.requestor_getter = requestor_getter
 
+    def __del__(self) -> None:
+        # remove references to plugins
+        self.all_plugins.clear()
+        self.global_plugins.clear()
+        for c in self.plugins_per_channel.values():
+            c.clear()
+        self.loaded_channels.clear()
+
     def _ensure_channel_plugins_loaded(
         self, channel_slug: Optional[str], channel: Optional[Channel] = None
     ):

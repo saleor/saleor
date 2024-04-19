@@ -26,6 +26,12 @@ def get_context_value(request: HttpRequest) -> SaleorContext:
     return request
 
 
+def clear_context(context: SaleorContext):
+    context.dataloaders.clear()
+    context.user = None
+    context.app = None
+
+
 class RequestWithUser(HttpRequest):
     _cached_user: Optional[User]
     app: Optional[App]
