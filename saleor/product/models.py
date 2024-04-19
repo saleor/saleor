@@ -213,7 +213,7 @@ class ProductsQueryset(models.QuerySet["Product"]):
 
     def not_published(self, channel: Channel):
         today = datetime.datetime.now(pytz.UTC)
-        return self.annotate_publication_info(channel.slug).filter(
+        return self.annotate_publication_info(channel).filter(
             Q(published_at__gt=today) & Q(is_published=True)
             | Q(is_published=False)
             | Q(is_published__isnull=True)
@@ -266,9 +266,9 @@ class ProductsQueryset(models.QuerySet["Product"]):
             return self.none()
         return self.published_with_variants(channel)
 
-    def annotate_publication_info(self, channel_slug: str):
-        return self.annotate_is_published(channel_slug).annotate_published_at(
-            channel_slug
+    def annotate_publication_info(self, channel: Channel):
+        return self.annotate_is_published(channel.slug).annotate_published_at(
+            channel.slug
         )
 
     def annotate_is_published(self, channel_slug: str):
