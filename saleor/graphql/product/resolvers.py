@@ -183,7 +183,7 @@ def resolve_product_variants(
     channel_slug = channel.slug if channel else None
     if not requestor_has_access_to_all:
         visible_products = visible_products.annotate_visible_in_listings(
-            channel_slug
+            channel
         ).exclude(visible_in_listings=False)
         qs = (
             qs.filter(product__in=visible_products)

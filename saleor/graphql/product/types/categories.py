@@ -176,13 +176,13 @@ class Category(ModelObjectType[models.Category]):
             if not has_required_permissions:
                 qs = (
                     qs.visible_to_user(requestor, channel_obj, channel_slug_passed)
-                    .annotate_visible_in_listings(channel)
+                    .annotate_visible_in_listings(channel_obj)
                     .exclude(
                         visible_in_listings=False,
                     )
                 )
-            if channel and has_required_permissions:
-                qs = qs.filter(channel_listings__channel__slug=channel)
+            if channel_obj and has_required_permissions:
+                qs = qs.filter(channel_listings__channel_id=channel_obj.id)
             qs = qs.filter(category__in=tree)
             qs = ChannelQsContext(qs=qs, channel_slug=channel)
 

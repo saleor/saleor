@@ -57,7 +57,7 @@ def filter_attributes_by_product_types(qs, field, value, requestor, channel_slug
         product_qs = product_qs.filter(category__in=tree)
 
         if not has_one_of_permissions(requestor, ALL_PRODUCTS_PERMISSIONS):
-            product_qs = product_qs.annotate_visible_in_listings(channel_slug).exclude(
+            product_qs = product_qs.annotate_visible_in_listings(channel).exclude(
                 visible_in_listings=False
             )
 

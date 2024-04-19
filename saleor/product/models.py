@@ -289,10 +289,14 @@ class ProductsQueryset(models.QuerySet["Product"]):
             published_at=ExpressionWrapper(query, output_field=DateTimeField())
         )
 
-    def annotate_visible_in_listings(self, channel_slug):
+    def annotate_visible_in_listings(self, channel: Optional[Channel]):
+        if not channel:
+            return self.annotate(
+                visible_in_listings=Value(False, output_field=BooleanField())
+            )
         query = Subquery(
             ProductChannelListing.objects.filter(
-                product_id=OuterRef("pk"), channel__slug=str(channel_slug)
+                product_id=OuterRef("pk"), channel_id=channel.id
             ).values_list("visible_in_listings")[:1]
         )
         return self.annotate(
