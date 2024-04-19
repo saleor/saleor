@@ -396,7 +396,7 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
     ):
         if address is not None:
             country_code = address.country
-        x = 2
+        x = 1
         if x == 1:
             print("NEW RESOLVER:")
             return StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
