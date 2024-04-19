@@ -64,6 +64,7 @@ from ..utils import format_permissions_for_display, get_user_or_app_from_context
 from .dataloaders import (
     AccessibleChannelsByGroupIdLoader,
     AccessibleChannelsByUserIdLoader,
+    AddressByIdLoader,
     CustomerEventsByUserLoader,
     RestrictedChannelAccessByUserIdLoader,
     ThumbnailByUserIdSizeAndFormatLoader,
@@ -706,7 +707,9 @@ class User(ModelObjectType[models.User]):
                 user=root,
                 channel=channel_obj,
             )
-            return manager.list_stored_payment_methods(request_data)
+            return manager.list_stored_payment_methods(
+                request_data, channel_slug=channel
+            )
 
         return Promise.all(
             [
@@ -714,6 +717,20 @@ class User(ModelObjectType[models.User]):
                 get_plugin_manager_promise(info.context),
             ]
         ).then(get_stored_payment_methods)
+
+    @staticmethod
+    def resolve_default_billing_address(root: models.User, info: ResolveInfo):
+        if root.default_billing_address_id:
+            return AddressByIdLoader(info.context).load(root.default_billing_address_id)
+        return None
+
+    @staticmethod
+    def resolve_default_shipping_address(root: models.User, info: ResolveInfo):
+        if root.default_shipping_address_id:
+            return AddressByIdLoader(info.context).load(
+                root.default_shipping_address_id
+            )
+        return None
 
 
 class UserCountableConnection(CountableConnection):
@@ -731,7 +748,7 @@ FORMAT_FILED_DESCRIPTION = (
     "\n\nMany fields in the JSON refer to address fields by one-letter "
     "abbreviations. These are defined as follows:\n\n"
     "- `N`: Name\n"
-    "- `O`: Organisation\n"
+    "- `O`: Organization\n"
     "- `A`: Street Address Line(s)\n"
     "- `D`: Dependent locality (may be an inner-city district or a suburb)\n"
     "- `C`: City or Locality\n"

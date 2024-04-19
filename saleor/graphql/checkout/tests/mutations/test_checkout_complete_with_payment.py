@@ -19,7 +19,7 @@ from .....checkout.models import Checkout, CheckoutLine
 from .....core.exceptions import InsufficientStock, InsufficientStockData
 from .....core.taxes import TaxError, zero_money, zero_taxed_money
 from .....discount import DiscountType, DiscountValueType, RewardValueType
-from .....discount.models import CheckoutLineDiscount, PromotionRule
+from .....discount.models import CheckoutLineDiscount
 from .....giftcard import GiftCardEvents
 from .....giftcard.models import GiftCard, GiftCardEvent
 from .....order import OrderOrigin, OrderStatus
@@ -29,7 +29,6 @@ from .....payment.gateways.dummy_credit_card import TOKEN_VALIDATION_MAPPING
 from .....payment.interface import GatewayResponse
 from .....payment.model_helpers import get_subtotal
 from .....plugins.manager import PluginsManager, get_plugins_manager
-from .....product.models import VariantChannelListingPromotionRule
 from .....tests.utils import flush_post_commit_hooks
 from .....warehouse.models import Reservation, Stock, WarehouseClickAndCollectOption
 from .....warehouse.tests.utils import get_available_quantity_for_stock
@@ -1679,186 +1678,6 @@ def test_checkout_complete_product_on_old_sale(
     ).exists(), "Checkout should have been deleted"
 
 
-def test_checkout_complete_multiple_rules_applied(
-    user_api_client,
-    checkout_with_item,
-    catalogue_promotion_without_rules,
-    payment_dummy,
-    address,
-    shipping_method,
-):
-    # given
-    checkout = checkout_with_item
-    checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
-    checkout.billing_address = address
-    checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
-    checkout.metadata_storage.store_value_in_private_metadata(
-        items={"accepted": "false"}
-    )
-    checkout.save()
-    checkout.metadata_storage.save()
-
-    checkout_line = checkout.lines.first()
-    checkout_line_quantity = checkout_line.quantity
-    checkout_line_variant = checkout_line.variant
-
-    channel = checkout.channel
-
-    reward_value_1 = Decimal("2")
-    reward_value_2 = Decimal("10")
-    rule_1, rule_2 = PromotionRule.objects.bulk_create(
-        [
-            PromotionRule(
-                name="Percentage promotion rule 1",
-                promotion=catalogue_promotion_without_rules,
-                reward_value_type=RewardValueType.FIXED,
-                reward_value=reward_value_1,
-                catalogue_predicate={
-                    "productPredicate": {
-                        "ids": [
-                            graphene.Node.to_global_id(
-                                "Product", checkout_line_variant.product_id
-                            )
-                        ]
-                    }
-                },
-            ),
-            PromotionRule(
-                name="Percentage promotion rule 2",
-                promotion=catalogue_promotion_without_rules,
-                reward_value_type=RewardValueType.PERCENTAGE,
-                reward_value=reward_value_2,
-                catalogue_predicate={
-                    "variantPredicate": {
-                        "ids": [
-                            graphene.Node.to_global_id(
-                                "ProductVariant", checkout_line_variant.id
-                            )
-                        ]
-                    }
-                },
-            ),
-        ]
-    )
-
-    rule_1.channels.add(channel)
-    rule_2.channels.add(channel)
-
-    variant_channel_listing = checkout_line_variant.channel_listings.get(
-        channel=channel
-    )
-    discount_amount_2 = reward_value_2 / 100 * variant_channel_listing.price.amount
-    discounted_price = (
-        variant_channel_listing.price.amount - reward_value_1 - discount_amount_2
-    )
-    variant_channel_listing.discounted_price_amount = discounted_price
-    variant_channel_listing.save(update_fields=["discounted_price_amount"])
-
-    VariantChannelListingPromotionRule.objects.bulk_create(
-        [
-            VariantChannelListingPromotionRule(
-                variant_channel_listing=variant_channel_listing,
-                promotion_rule=rule_1,
-                discount_amount=reward_value_1,
-                currency=channel.currency_code,
-            ),
-            VariantChannelListingPromotionRule(
-                variant_channel_listing=variant_channel_listing,
-                promotion_rule=rule_2,
-                discount_amount=discount_amount_2,
-                currency=channel.currency_code,
-            ),
-        ]
-    )
-
-    CheckoutLineDiscount.objects.bulk_create(
-        [
-            CheckoutLineDiscount(
-                line=checkout_line,
-                type=DiscountType.PROMOTION,
-                value_type=DiscountValueType.FIXED,
-                amount_value=reward_value_1,
-                currency=channel.currency_code,
-                promotion_rule=rule_1,
-            ),
-            CheckoutLineDiscount(
-                line=checkout_line,
-                type=DiscountType.PROMOTION,
-                value_type=DiscountValueType.FIXED,
-                amount_value=discount_amount_2,
-                currency=channel.currency_code,
-                promotion_rule=rule_2,
-            ),
-        ]
-    )
-
-    manager = get_plugins_manager(allow_replica=False)
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, manager)
-
-    total = calculations.checkout_total(
-        manager=manager,
-        checkout_info=checkout_info,
-        lines=lines,
-        address=address,
-    )
-    payment = payment_dummy
-    payment.is_active = True
-    payment.order = None
-    payment.total = total.gross.amount
-    payment.currency = total.gross.currency
-    payment.checkout = checkout
-    payment.save()
-    assert not payment.transactions.exists()
-
-    orders_count = Order.objects.count()
-    variables = {
-        "id": to_global_id_or_none(checkout),
-        "redirectUrl": "https://www.example.com",
-    }
-
-    # when
-    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
-
-    # then
-    content = get_graphql_content(response)
-    data = content["data"]["checkoutComplete"]
-    assert not data["errors"]
-
-    order_token = data["order"]["token"]
-    order_id = data["order"]["id"]
-    assert Order.objects.count() == orders_count + 1
-    order = Order.objects.first()
-    assert str(order.id) == order_token
-    assert order_id == graphene.Node.to_global_id("Order", order.id)
-    assert order.metadata == checkout.metadata_storage.metadata
-    assert order.private_metadata == checkout.metadata_storage.private_metadata
-
-    order_line = order.lines.first()
-    subtotal = get_subtotal(order.lines.all(), order.currency)
-    assert order.subtotal == subtotal
-    assert data["order"]["subtotal"]["gross"]["amount"] == subtotal.gross.amount
-    assert order.total == total
-    assert order.undiscounted_total == total + (
-        order_line.undiscounted_total_price - order_line.total_price
-    )
-    assert order_line.discounts.count() == 2
-
-    assert checkout_line_quantity == order_line.quantity
-    assert checkout_line_variant == order_line.variant
-    assert order.shipping_address == address
-    assert order.shipping_method == checkout.shipping_method
-    assert order.payments.exists()
-    order_payment = order.payments.first()
-    assert order_payment == payment
-    assert payment.transactions.count() == 1
-
-    assert not Checkout.objects.filter(
-        pk=checkout.pk
-    ).exists(), "Checkout should have been deleted"
-
-
 def test_checkout_with_voucher_on_specific_product_complete_with_product_on_promotion(
     user_api_client,
     checkout_with_item_and_voucher_specific_products,
@@ -3105,7 +2924,7 @@ def test_complete_checkout_for_local_click_and_collect(
     order_count = Order.objects.count()
     checkout = checkout_with_item_for_cc
     checkout.collection_point = warehouse_for_cc
-    checkout.shipping_address = None
+    checkout.shipping_address = warehouse_for_cc.address
     checkout.save(update_fields=["collection_point", "shipping_address"])
 
     variables = {
@@ -3147,7 +2966,8 @@ def test_complete_checkout_for_local_click_and_collect(
 
     assert order.collection_point == warehouse_for_cc
     assert order.shipping_method is None
-    assert order.shipping_address == warehouse_for_cc.address
+    assert order.shipping_address
+    assert order.shipping_address.id != warehouse_for_cc.address.id
     assert order.shipping_price == zero_taxed_money(payment.currency)
     assert order.lines.count() == 1
 
@@ -3215,7 +3035,8 @@ def test_complete_checkout_for_global_click_and_collect(
 
     assert order.collection_point == warehouse_for_cc
     assert order.shipping_method is None
-    assert order.shipping_address == warehouse_for_cc.address
+    assert order.shipping_address
+    assert order.shipping_address.id != warehouse_for_cc.address.id
     assert order.shipping_price == zero_taxed_money(payment.currency)
     assert order.lines.count() == 1
 

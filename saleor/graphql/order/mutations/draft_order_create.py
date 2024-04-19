@@ -481,7 +481,7 @@ class DraftOrderCreate(
             )
 
     @classmethod
-    def should_invalidate_prices(cls, instance, cleaned_input, is_new_instance) -> bool:
+    def should_invalidate_prices(cls, cleaned_input, is_new_instance) -> bool:
         # Force price recalculation for all new instances
         return is_new_instance
 
@@ -565,7 +565,7 @@ class DraftOrderCreate(
                     "display_gross_prices",
                 ]
             )
-            if cls.should_invalidate_prices(instance, cleaned_input, is_new_instance):
+            if cls.should_invalidate_prices(cleaned_input, is_new_instance):
                 invalidate_order_prices(instance)
                 updated_fields.extend(["should_refresh_prices"])
             recalculate_order_weight(instance)

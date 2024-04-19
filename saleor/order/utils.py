@@ -611,7 +611,8 @@ def get_all_shipping_methods_for_order(
     if not order.is_shipping_required():
         return []
 
-    if not order.shipping_address:
+    shipping_address = order.shipping_address
+    if not shipping_address:
         return []
 
     all_methods = []
@@ -622,7 +623,8 @@ def get_all_shipping_methods_for_order(
             order,
             channel_id=order.channel_id,
             price=order.subtotal.gross,
-            country_code=order.shipping_address.country.code,
+            shipping_address=shipping_address,
+            country_code=shipping_address.country.code,
         )
         .prefetch_related("channel_listings")
     )
@@ -660,6 +662,10 @@ def get_valid_shipping_methods_for_order(
 
 def is_shipping_required(lines: Iterable["OrderLine"]):
     return any(line.is_shipping_required for line in lines)
+
+
+def get_total_quantity(lines: Iterable["OrderLine"]):
+    return sum([line.quantity for line in lines])
 
 
 def get_valid_collection_points_for_order(
@@ -739,7 +745,7 @@ def get_voucher_discount_for_order(order: Order) -> Money:
     """
     if not order.voucher:
         return zero_money(order.currency)
-    validate_voucher_in_order(order)
+    validate_voucher_in_order(order, order.lines.all(), order.channel)
     subtotal = order.subtotal
     if order.voucher.type == VoucherType.ENTIRE_ORDER:
         return order.voucher.get_discount_amount_for(subtotal.gross, order.channel)
@@ -835,6 +841,9 @@ def update_discount_for_order_line(
     value: Optional[Decimal],
 ):
     """Update discount fields for order line. Apply discount to the price."""
+    # TODO: Move price calculation to fetch_order_prices_if_expired function.
+    # Here we should only create order line discount object
+    # https://github.com/saleor/saleor/issues/15517
     current_value = order_line.unit_discount_value
     current_value_type = order_line.unit_discount_type
     value = value or current_value
@@ -887,6 +896,52 @@ def update_discount_for_order_line(
     # from db
     order_line.save(update_fields=fields_to_update)
 
+    _update_manual_order_line_discount_object(
+        value, value_type, reason, order_line, order.currency
+    )
+
+
+def _update_manual_order_line_discount_object(
+    value, value_type, reason, order_line, currency
+):
+    discount_to_update = None
+    discount_to_delete_ids = []
+    discounts = order_line.discounts.all()
+    for discount in discounts:
+        if discount.type == DiscountType.MANUAL and not discount_to_update:
+            discount_to_update = discount
+        else:
+            discount_to_delete_ids.append(discount.pk)
+
+    if discount_to_delete_ids:
+        OrderLineDiscount.objects.filter(id__in=discount_to_delete_ids).delete()
+
+    amount_value = quantize_price(
+        order_line.unit_discount.amount * order_line.quantity, currency
+    )
+    if not discount_to_update:
+        order_line.discounts.create(
+            type=DiscountType.MANUAL,
+            value_type=value_type,
+            value=value,
+            amount_value=amount_value,
+            currency=currency,
+            reason=reason,
+        )
+    else:
+        update_fields = []
+        if discount_to_update.value_type != value_type:
+            discount_to_update.value_type = value_type
+            update_fields.append("value_type")
+        if discount_to_update.value != value:
+            discount_to_update.value = value
+            discount_to_update.amount_value = amount_value
+            update_fields.extend(["value", "amount_value"])
+        if discount_to_update.reason != reason:
+            discount_to_update.reason = reason
+            update_fields.append("reason")
+        discount_to_update.save(update_fields=update_fields)
+
 
 def remove_discount_from_order_line(order_line: OrderLine, order: "Order"):
     """Drop discount applied to order line. Restore undiscounted price."""
@@ -916,6 +971,7 @@ def remove_discount_from_order_line(order_line: OrderLine, order: "Order"):
             "tax_rate",
         ]
     )
+    order_line.discounts.all().delete()
 
 
 def update_order_charge_status(order: Order, granted_refund_amount: Decimal):

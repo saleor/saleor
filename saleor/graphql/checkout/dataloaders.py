@@ -22,6 +22,7 @@ from ...checkout.problems import (
     get_checkout_lines_problems,
     get_checkout_problems,
 )
+from ...core.db.connection import allow_writer_in_context
 from ...discount import VoucherType
 from ...discount.interface import VariantPromotionRuleInfo
 from ...payment.models import TransactionItem
@@ -91,6 +92,7 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader[str, list[CheckoutLineIn
 
             channel_pks = [checkout.channel_id for checkout in checkouts]
 
+            @allow_writer_in_context(self.context)
             def with_variants_products_collections(results):
                 (
                     variants,
@@ -554,16 +556,17 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
                             for listing in channel_listings
                             if listing.channel_id == channel.id
                         ]
-                        update_delivery_method_lists_for_checkout_info(
-                            checkout_info,
-                            shipping_method,
-                            collection_point,
-                            shipping_address,
-                            checkout_lines,
-                            manager,
-                            shipping_method_listings,
-                            database_connection_name=self.database_connection_name,
-                        )
+                        with allow_writer_in_context(self.context):
+                            update_delivery_method_lists_for_checkout_info(
+                                checkout_info,
+                                shipping_method,
+                                collection_point,
+                                shipping_address,
+                                checkout_lines,
+                                manager,
+                                shipping_method_listings,
+                                database_connection_name=self.database_connection_name,
+                            )
                         checkout_info_map[key] = checkout_info
 
                     return [checkout_info_map[key] for key in keys]

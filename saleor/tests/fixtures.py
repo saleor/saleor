@@ -488,8 +488,6 @@ def checkout_with_item_on_promotion(checkout_with_item):
 
     variant = line.variant
 
-    channel = checkout_with_item.channel
-
     reward_value = Decimal("5")
     rule = promotion.rules.create(
         catalogue_predicate={
@@ -1824,6 +1822,7 @@ def attribute_generator():
         slug="attr",
         name="Attr",
         type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.DROPDOWN,
         filterable_in_storefront=True,
         filterable_in_dashboard=True,
         available_in_grid=True,
@@ -1833,6 +1832,7 @@ def attribute_generator():
             slug=slug,
             name=name,
             type=type,
+            input_type=input_type,
             filterable_in_storefront=filterable_in_storefront,
             filterable_in_dashboard=filterable_in_dashboard,
             available_in_grid=available_in_grid,
@@ -1971,6 +1971,28 @@ def attribute_without_values():
         visible_in_storefront=True,
         entity_type=None,
     )
+
+
+@pytest.fixture
+def multiselect_attribute(db, attribute_generator, attribute_values_generator):
+    attribute = attribute_generator(
+        slug="multi",
+        name="Multi",
+        type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.MULTISELECT,
+        filterable_in_storefront=True,
+        filterable_in_dashboard=True,
+        available_in_grid=True,
+    )
+    slugs = ["choice-1", "choice-1"]
+    names = ["Choice 1", "Choice 2"]
+    attribute_values_generator(
+        attribute=attribute,
+        names=names,
+        slugs=slugs,
+    )
+
+    return attribute
 
 
 @pytest.fixture
@@ -5047,7 +5069,122 @@ def order_with_lines_for_cc(
 
 
 @pytest.fixture
-def order_fulfill_data(order_with_lines, warehouse):
+def order_with_lines_and_catalogue_promotion(
+    order_with_lines, channel_USD, catalogue_promotion_without_rules
+):
+    order = order_with_lines
+    promotion = catalogue_promotion_without_rules
+    line = order.lines.get(quantity=3)
+    variant = line.variant
+    reward_value = Decimal(3)
+    rule = promotion.rules.create(
+        name="Catalogue rule fixed",
+        catalogue_predicate={
+            "variantPredicate": {
+                "ids": [graphene.Node.to_global_id("ProductVariant", variant)]
+            }
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=reward_value,
+    )
+    rule.channels.add(channel_USD)
+
+    listing = variant.channel_listings.get(channel=channel_USD)
+    listing.discounted_price_amount = listing.price_amount - reward_value
+    listing.save(update_fields=["discounted_price_amount"])
+    listing.variantlistingpromotionrule.create(
+        promotion_rule=rule,
+        discount_amount=reward_value,
+        currency=order.currency,
+    )
+
+    line.discounts.create(
+        type=DiscountType.PROMOTION,
+        value_type=RewardValueType.FIXED,
+        value=reward_value,
+        amount_value=reward_value * line.quantity,
+        currency=order.currency,
+        promotion_rule=rule,
+    )
+    return order
+
+
+@pytest.fixture
+def order_with_lines_and_order_promotion(
+    order_with_lines,
+    channel_USD,
+    order_promotion_without_rules,
+):
+    order = order_with_lines
+    promotion = order_promotion_without_rules
+    rule = promotion.rules.create(
+        name="Fixed subtotal rule",
+        order_predicate={
+            "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 10}}}
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=Decimal(25),
+        reward_type=RewardType.SUBTOTAL_DISCOUNT,
+    )
+    rule.channels.add(channel_USD)
+
+    order.discounts.create(
+        promotion_rule=rule,
+        type=DiscountType.ORDER_PROMOTION,
+        value_type=rule.reward_value_type,
+        value=rule.reward_value,
+        amount_value=rule.reward_value,
+        currency=order.currency,
+    )
+    return order
+
+
+@pytest.fixture
+def order_with_lines_and_gift_promotion(
+    order_with_lines,
+    channel_USD,
+    order_promotion_without_rules,
+    variant_with_many_stocks,
+):
+    order = order_with_lines
+    variant = variant_with_many_stocks
+    variant_listing = variant.channel_listings.get(channel=channel_USD)
+    promotion = order_promotion_without_rules
+    rule = promotion.rules.create(
+        name="Gift subtotal rule",
+        order_predicate={
+            "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 10}}}
+        },
+        reward_type=RewardType.GIFT,
+    )
+    rule.channels.add(channel_USD)
+    rule.gifts.set([variant])
+
+    gift_line = order.lines.create(
+        quantity=1,
+        variant=variant,
+        is_gift=True,
+        currency=order.currency,
+        unit_price_net_amount=0,
+        unit_price_gross_amount=0,
+        total_price_net_amount=0,
+        total_price_gross_amount=0,
+        is_shipping_required=True,
+        is_gift_card=False,
+    )
+    gift_line.discounts.create(
+        promotion_rule=rule,
+        type=DiscountType.ORDER_PROMOTION,
+        value_type=RewardValueType.FIXED,
+        value=variant_listing.price_amount,
+        amount_value=variant_listing.price_amount,
+        currency=order.currency,
+    )
+    return order
+
+
+@pytest.fixture
+def order_fulfill_data(order_with_lines, warehouse, checkout):
     FulfillmentData = namedtuple("FulfillmentData", "order variables warehouse")
     order = order_with_lines
     order_id = graphene.Node.to_global_id("Order", order.id)

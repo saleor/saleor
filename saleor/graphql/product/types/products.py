@@ -1052,7 +1052,9 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
     def resolve_tax_type(root: ChannelContext[models.Product], info):
         def with_tax_class(data):
             tax_class, manager = data
-            tax_data = manager.get_tax_code_from_object_meta(tax_class)
+            tax_data = manager.get_tax_code_from_object_meta(
+                tax_class, channel_slug=root.channel_slug
+            )
             return TaxType(tax_code=tax_data.code, description=tax_data.description)
 
         if root.node.tax_class_id:

@@ -29,7 +29,7 @@ def test_voucher_code_bulk_delete_queries(
     variables = {"ids": ids[:1]}
 
     # when
-    with django_assert_num_queries(10):
+    with django_assert_num_queries(9):
         response = staff_api_client.post_graphql(
             VOUCHER_CODE_BULK_DELETE_MUTATION, variables
         )
@@ -38,7 +38,7 @@ def test_voucher_code_bulk_delete_queries(
 
     variables = {"ids": ids[1:]}
 
-    with django_assert_num_queries(10):
+    with django_assert_num_queries(9):
         response = staff_api_client.post_graphql(
             VOUCHER_CODE_BULK_DELETE_MUTATION, variables
         )

@@ -11,6 +11,7 @@ from django.conf import settings
 
 from ....celeryconf import app
 from ....core import EventDeliveryStatus
+from ....core.db.connection import allow_writer
 from ....core.models import EventDelivery, EventPayload
 from ....core.tracing import webhooks_opentracing_trace
 from ....core.utils import get_domain
@@ -129,8 +130,9 @@ def create_deliveries_for_subscriptions(
             )
         )
 
-    EventPayload.objects.bulk_create(event_payloads)
-    return EventDelivery.objects.bulk_create(event_deliveries)
+    with allow_writer():
+        EventPayload.objects.bulk_create(event_payloads)
+        return EventDelivery.objects.bulk_create(event_deliveries)
 
 
 def group_webhooks_by_subscription(webhooks):
@@ -140,6 +142,7 @@ def group_webhooks_by_subscription(webhooks):
     return regular, subscription
 
 
+@allow_writer()
 def create_event_delivery_list_for_webhooks(
     webhooks: Sequence["Webhook"],
     event_payload: "EventPayload",
@@ -190,14 +193,15 @@ def trigger_webhooks_async(
         elif data is None:
             raise NotImplementedError("No payload was provided for regular webhooks.")
 
-        payload = EventPayload.objects.create(payload=data)
-        deliveries.extend(
-            create_event_delivery_list_for_webhooks(
-                webhooks=regular_webhooks,
-                event_payload=payload,
-                event_type=event_type,
+        with allow_writer():
+            payload = EventPayload.objects.create(payload=data)
+            deliveries.extend(
+                create_event_delivery_list_for_webhooks(
+                    webhooks=regular_webhooks,
+                    event_payload=payload,
+                    event_type=event_type,
+                )
             )
-        )
     if subscription_webhooks:
         deliveries.extend(
             create_deliveries_for_subscriptions(

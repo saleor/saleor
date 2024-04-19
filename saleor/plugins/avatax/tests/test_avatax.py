@@ -74,6 +74,11 @@ def order_set_shipping_method(order, shipping_method):
     )
 
 
+def assign_tax_code_to_object_meta(obj: "TaxClass", tax_code: str):
+    tax_item = {META_CODE_KEY: tax_code}
+    obj.store_value_in_metadata(items=tax_item)
+
+
 @pytest.mark.vcr
 @pytest.mark.parametrize(
     ("expected_net", "expected_gross", "prices_entered_with_tax"),
@@ -1218,7 +1223,7 @@ def test_calculate_checkout_total_uses_default_calculation(
     line = checkout_with_item.lines.first()
     product = line.variant.product
     product.metadata = {}
-    manager.assign_tax_code_to_object_meta(product.product_type.tax_class, "PC040156")
+    assign_tax_code_to_object_meta(product.product_type.tax_class, "PC040156")
     product.save()
     product.product_type.save()
     product_with_single_variant.tax_class = tax_class_zero_rates
@@ -1286,7 +1291,7 @@ def test_calculate_checkout_total_uses_default_calculation_with_promotion(
     line = checkout.lines.first()
     product = line.variant.product
     product.metadata = {}
-    manager.assign_tax_code_to_object_meta(product.product_type.tax_class, "PC040156")
+    assign_tax_code_to_object_meta(product.product_type.tax_class, "PC040156")
     product.save()
     product.product_type.save()
     product_with_single_variant.tax_class = tax_class_zero_rates
@@ -1358,7 +1363,7 @@ def test_calculate_checkout_total(
     line = checkout_with_item.lines.first()
     product = line.variant.product
 
-    manager.assign_tax_code_to_object_meta(product.tax_class, "PS081282")
+    assign_tax_code_to_object_meta(product.tax_class, "PS081282")
     product.save()
     product.tax_class.save()
 
@@ -1418,7 +1423,7 @@ def test_calculate_checkout_total_with_order_promotion(
     line = checkout.lines.first()
     product = line.variant.product
 
-    manager.assign_tax_code_to_object_meta(product.tax_class, "PS081282")
+    assign_tax_code_to_object_meta(product.tax_class, "PS081282")
     product.save()
     product.tax_class.save()
 
@@ -1480,7 +1485,7 @@ def test_calculate_checkout_total_with_gift_promotion(
     line = checkout.lines.get(is_gift=False)
     product = line.variant.product
 
-    manager.assign_tax_code_to_object_meta(product.tax_class, "PS081282")
+    assign_tax_code_to_object_meta(product.tax_class, "PS081282")
     product.save()
     product.tax_class.save()
 
@@ -1559,7 +1564,7 @@ def test_calculate_checkout_total_with_promotion(
     line = checkout.lines.first()
     product = line.variant.product
 
-    manager.assign_tax_code_to_object_meta(product.tax_class, "PS081282")
+    assign_tax_code_to_object_meta(product.tax_class, "PS081282")
     product.save()
     product.tax_class.save()
 
@@ -1641,7 +1646,7 @@ def test_calculate_checkout_total_for_JPY(
     line = checkout.lines.first()
     product = line.variant.product
 
-    manager.assign_tax_code_to_object_meta(product.tax_class, "PS081282")
+    assign_tax_code_to_object_meta(product.tax_class, "PS081282")
     product.save()
     product.tax_class.save()
 
@@ -1715,7 +1720,7 @@ def test_calculate_checkout_total_for_JPY_with_promotion(
     variant = line.variant
     product = variant.product
 
-    manager.assign_tax_code_to_object_meta(product.tax_class, "PS081282")
+    assign_tax_code_to_object_meta(product.tax_class, "PS081282")
     product.save()
     product.tax_class.save()
 
@@ -2058,7 +2063,7 @@ def test_calculate_checkout_total_not_charged_product_and_shipping_with_0_price(
     variant = line.variant
     product = variant.product
     product.metadata = {}
-    manager.assign_tax_code_to_object_meta(product.product_type.tax_class, "PS081282")
+    assign_tax_code_to_object_meta(product.product_type.tax_class, "PS081282")
     product.save()
     product.product_type.save()
 
@@ -2463,6 +2468,56 @@ def test_calculate_order_total_for_JPY(
     # then
     price = quantize_price(price, price.currency)
     assert price == TaxedMoney(net=Money("3496", "JPY"), gross=Money("4300", "JPY"))
+
+
+@pytest.mark.vcr
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_order_total_order_promotion(
+    order_with_lines_and_order_promotion,
+    shipping_zone,
+    site_settings,
+    address,
+    plugin_configuration,
+):
+    plugin_configuration()
+    manager = get_plugins_manager(allow_replica=False)
+    order = order_with_lines_and_order_promotion
+    method = shipping_zone.shipping_methods.get()
+    order.shipping_address = order.billing_address.get_copy()
+    order_set_shipping_method(order, method)
+    order.save()
+
+    site_settings.company_address = address
+    site_settings.save()
+
+    price = manager.calculate_order_total(order, order.lines.all())
+    price = quantize_price(price, price.currency)
+    assert price == TaxedMoney(net=Money("44.71", "USD"), gross=Money("55.00", "USD"))
+
+
+@pytest.mark.vcr
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_order_total_gift_promotion(
+    order_with_lines_and_gift_promotion,
+    shipping_zone,
+    site_settings,
+    address,
+    plugin_configuration,
+):
+    plugin_configuration()
+    manager = get_plugins_manager(allow_replica=False)
+    order = order_with_lines_and_gift_promotion
+    method = shipping_zone.shipping_methods.get()
+    order.shipping_address = order.billing_address.get_copy()
+    order_set_shipping_method(order, method)
+    order.save()
+
+    site_settings.company_address = address
+    site_settings.save()
+
+    price = manager.calculate_order_total(order, order.lines.all())
+    price = quantize_price(price, price.currency)
+    assert price == TaxedMoney(net=Money("65.04", "USD"), gross=Money("80.00", "USD"))
 
 
 @pytest.mark.vcr
@@ -4358,7 +4413,7 @@ def test_get_order_shipping_tax_rate_skip_plugin(
 def test_get_plugin_configuration(settings, channel_USD):
     settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
     manager = get_plugins_manager(allow_replica=False)
-    plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID)
+    plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_slug=channel_USD.slug)
 
     configuration_fields = [
         configuration_item["name"] for configuration_item in plugin.configuration
@@ -4440,12 +4495,6 @@ def test_save_plugin_configuration_cannot_be_enabled_without_config(
         manager.save_plugin_configuration(
             AvataxPlugin.PLUGIN_ID, channel_USD.slug, {"active": True}
         )
-
-
-def test_show_taxes_on_storefront(plugin_configuration):
-    plugin_configuration()
-    manager = get_plugins_manager(allow_replica=False)
-    assert manager.show_taxes_on_storefront() is False
 
 
 @patch("saleor.plugins.avatax.plugin.api_post_request_task.delay")
@@ -4746,11 +4795,13 @@ def test_plugin_uses_configuration_from_db(
         manager.preprocess_order_creation(checkout_info, lines)
 
 
-def test_skip_disabled_plugin(settings, plugin_configuration):
+def test_skip_disabled_plugin(settings, plugin_configuration, channel_USD):
     plugin_configuration(username=None, password=None)
     settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
     manager = get_plugins_manager(allow_replica=False)
-    plugin: AvataxPlugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID)
+    plugin: AvataxPlugin = manager.get_plugin(
+        AvataxPlugin.PLUGIN_ID, channel_slug=channel_USD.slug
+    )
 
     assert (
         plugin._skip_plugin(
@@ -4760,14 +4811,18 @@ def test_skip_disabled_plugin(settings, plugin_configuration):
     )
 
 
-def test_get_tax_code_from_object_meta(product, settings, plugin_configuration):
+def test_get_tax_code_from_object_meta(
+    product, settings, plugin_configuration, channel_USD
+):
     product.tax_class.store_value_in_metadata(
         {META_CODE_KEY: "KEY", META_DESCRIPTION_KEY: "DESC"}
     )
     plugin_configuration(username=None, password=None)
     settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
     manager = get_plugins_manager(allow_replica=False)
-    tax_type = manager.get_tax_code_from_object_meta(product.tax_class)
+    tax_type = manager.get_tax_code_from_object_meta(
+        product.tax_class, channel_USD.slug
+    )
 
     assert isinstance(tax_type, TaxType)
     assert tax_type.code == "KEY"
@@ -5925,108 +5980,6 @@ def test_get_order_lines_data_adds_lines_with_taxes_disabled_for_line(
 
     # then
     assert len(lines_data) == len(order_with_lines.lines.all())
-
-
-def test_assign_tax_code_to_object_meta(
-    settings, channel_USD, plugin_configuration, product, monkeypatch
-):
-    # given
-    settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
-    plugin_configuration(channel=channel_USD)
-
-    tax_code = "standard"
-    description = "desc"
-
-    monkeypatch.setattr(
-        "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
-        lambda _: {tax_code: description},
-    )
-
-    manager = get_plugins_manager(allow_replica=False)
-
-    # when
-    manager.assign_tax_code_to_object_meta(product.tax_class, tax_code)
-
-    # then
-    assert product.tax_class.metadata == {
-        META_CODE_KEY: tax_code,
-        META_DESCRIPTION_KEY: description,
-    }
-
-
-def test_assign_tax_code_to_object_meta_none_as_tax_code(
-    settings, channel_USD, plugin_configuration, product, monkeypatch
-):
-    # given
-    settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
-    plugin_configuration(channel=channel_USD)
-
-    tax_code = None
-    description = "desc"
-
-    monkeypatch.setattr(
-        "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
-        lambda _: {"standard": description},
-    )
-    manager = get_plugins_manager(allow_replica=False)
-
-    # when
-    manager.assign_tax_code_to_object_meta(product.tax_class, tax_code)
-
-    # then
-    assert product.metadata == {}
-
-
-def test_assign_tax_code_to_object_meta_no_obj_id_and_none_as_tax_code(
-    settings, channel_USD, plugin_configuration, monkeypatch
-):
-    # given
-    settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
-    plugin_configuration(channel=channel_USD)
-
-    tax_code = None
-    description = "desc"
-
-    monkeypatch.setattr(
-        "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
-        lambda _: {"standard": description},
-    )
-
-    tax_class = TaxClass(name="A new tax class.")
-    manager = get_plugins_manager(allow_replica=False)
-
-    # when
-    manager.assign_tax_code_to_object_meta(tax_class, tax_code)
-
-    # then
-    assert tax_class.metadata == {}
-
-
-def test_assign_tax_code_to_object_meta_no_obj_id(
-    settings, channel_USD, plugin_configuration, monkeypatch
-):
-    # given
-    settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
-    plugin_configuration(channel=channel_USD)
-
-    tax_code = "standard"
-    description = "desc"
-
-    monkeypatch.setattr(
-        "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
-        lambda _: {tax_code: description},
-    )
-    tax_class = TaxClass(name="A new product.")
-    manager = get_plugins_manager(allow_replica=False)
-
-    # when
-    manager.assign_tax_code_to_object_meta(tax_class, tax_code)
-
-    # then
-    assert tax_class.metadata == {
-        META_CODE_KEY: tax_code,
-        META_DESCRIPTION_KEY: description,
-    }
 
 
 @patch("saleor.plugins.avatax.plugin.get_checkout_tax_data")
