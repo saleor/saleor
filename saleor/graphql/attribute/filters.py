@@ -4,6 +4,7 @@ from django.db.models import Q
 
 from ...attribute import AttributeInputType
 from ...attribute.models import Attribute, AttributeValue
+from ...channel.models import Channel
 from ...permission.utils import has_one_of_permissions
 from ...product import models
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
@@ -38,7 +39,12 @@ def filter_attributes_by_product_types(qs, field, value, requestor, channel_slug
     if not value:
         return qs
 
-    product_qs = models.Product.objects.visible_to_user(requestor, channel_slug)
+    channel = None
+    if channel_slug is not None:
+        channel = Channel.objects.filter(slug=str(channel_slug)).first()
+    product_qs = models.Product.objects.visible_to_user(
+        requestor, channel, False if channel_slug is None else True
+    )
 
     if field == "in_category":
         _type, category_id = from_global_id_or_error(value, "Category")

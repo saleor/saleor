@@ -12,6 +12,7 @@ from ....thumbnail.utils import (
     get_thumbnail_size,
 )
 from ...channel import ChannelContext, ChannelQsContext
+from ...channel.dataloaders import ChannelBySlugLoader
 from ...channel.types import ChannelContextType, ChannelContextTypeWithMetadata
 from ...core import ResolveInfo
 from ...core.connection import (
@@ -137,16 +138,28 @@ class Collection(ChannelContextTypeWithMetadata[models.Collection]):
         root: ChannelContext[models.Collection], info: ResolveInfo, **kwargs
     ):
         requestor = get_user_or_app_from_context(info.context)
-        qs = root.node.products.visible_to_user(  # type: ignore[attr-defined] # mypy does not properly resolve the related manager # noqa: E501
-            requestor, root.channel_slug
-        ).using(
-            get_database_connection_name(info.context)
-        )
-        qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
+        channel_slug_passed = False if root.channel_slug is None else True
 
-        kwargs["channel"] = root.channel_slug
-        qs = filter_connection_queryset(qs, kwargs)
-        return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
+        def _resolve_products(channel):
+            qs = root.node.products.visible_to_user(  # type: ignore[attr-defined] # mypy does not properly resolve the related manager # noqa: E501
+                requestor, channel, channel_slug_passed
+            ).using(
+                get_database_connection_name(info.context)
+            )
+            qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
+
+            kwargs["channel"] = root.channel_slug
+            qs = filter_connection_queryset(qs, kwargs)
+            return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
+
+        if root.channel_slug:
+            return (
+                ChannelBySlugLoader(info.context)
+                .load(str(root.channel_slug))
+                .then(_resolve_products)
+            )
+        else:
+            return _resolve_products(None)
 
     @staticmethod
     def resolve_channel_listings(root: ChannelContext[models.Collection], info):

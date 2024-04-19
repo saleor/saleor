@@ -233,10 +233,27 @@ class ProductsQueryset(models.QuerySet["Product"]):
             Exists(variants.filter(product_id=OuterRef("pk")))
         )
 
-    def visible_to_user(self, requestor: Union["User", "App", None], channel_slug: str):
+    def visible_to_user(
+        self,
+        requestor: Union["User", "App", None],
+        channel: Optional[Channel],
+        channel_slug_passed: bool,
+    ):
+        """Determine which products should be visible to user.
+
+        For user without permission we require channel to be passed to determine which
+        products are visible to user.
+        For user with permission we can return:
+        - all products if channel is not passed to query.
+            (channel=None, channel_slug_passed=False)
+        - no products if channel is passed but it does not exist.
+            (channel=None, channel_slug_passed=True)
+        - all products assigned to channel if channel is passed and exists.
+            (channel=Channel, channel_slug_passed=True)
+        """
         if has_one_of_permissions(requestor, ALL_PRODUCTS_PERMISSIONS):
-            if channel_slug:
-                if channel := Channel.objects.filter(slug=str(channel_slug)).first():
+            if channel_slug_passed:
+                if channel:
                     channel_listings = ProductChannelListing.objects.filter(
                         channel_id=channel.id
                     ).values("id")
@@ -245,12 +262,9 @@ class ProductsQueryset(models.QuerySet["Product"]):
                     )
                 return self.none()
             return self.all()
-        if not channel_slug:
+        if not channel:
             return self.none()
-
-        if channel := Channel.objects.filter(slug=str(channel_slug)).first():
-            return self.published_with_variants(channel)
-        return self.none()
+        return self.published_with_variants(channel)
 
     def annotate_publication_info(self, channel_slug: str):
         return self.annotate_is_published(channel_slug).annotate_published_at(

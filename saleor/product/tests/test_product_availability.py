@@ -291,32 +291,14 @@ def test_visible_to_customer_user(customer_user, product_list, channel_USD):
 
     # when
     available_products = models.Product.objects.visible_to_user(
-        customer_user, channel_USD.slug
+        customer_user, channel_USD, True
     )
 
     # then
     assert available_products.count() == len(product_list) - 1
 
 
-def test_visible_to_customer_user_without_channel_slug(
-    customer_user,
-    product_list,
-    channel_USD,
-    django_assert_num_queries,
-):
-    # given
-    product = product_list[0]
-    product.channel_listings.all().delete()
-
-    # when
-    available_products = models.Product.objects.visible_to_user(customer_user, None)
-
-    # then
-    with django_assert_num_queries(0):
-        assert available_products.count() == 0
-
-
-def test_visible_to_customer_user_with_not_existing_channel_slug(
+def test_visible_to_customer_user_without_channel(
     customer_user,
     product_list,
     channel_USD,
@@ -328,7 +310,27 @@ def test_visible_to_customer_user_with_not_existing_channel_slug(
 
     # when
     available_products = models.Product.objects.visible_to_user(
-        customer_user, "not-existing"
+        customer_user, None, False
+    )
+
+    # then
+    with django_assert_num_queries(0):
+        assert available_products.count() == 0
+
+
+def test_visible_to_customer_user_with_not_existing_channel_slug_passed(
+    customer_user,
+    product_list,
+    channel_USD,
+    django_assert_num_queries,
+):
+    # given
+    product = product_list[0]
+    product.channel_listings.all().delete()
+
+    # when
+    available_products = models.Product.objects.visible_to_user(
+        customer_user, None, True
     )
 
     # then
@@ -349,7 +351,7 @@ def test_visible_to_staff_user(
     staff_user.user_permissions.add(permission_manage_products)
 
     # when
-    available_products = models.Product.objects.visible_to_user(staff_user, None)
+    available_products = models.Product.objects.visible_to_user(staff_user, None, False)
 
     # then
     assert available_products.count() == len(product_list)
@@ -369,14 +371,14 @@ def test_visible_to_staff_user_with_channel(
 
     # when
     available_products = models.Product.objects.visible_to_user(
-        staff_user, channel_USD.slug
+        staff_user, channel_USD, True
     )
 
     # then
     assert available_products.count() == len(product_list) - 1
 
 
-def test_visible_to_staff_user_with_not_existing_channel_slug(
+def test_visible_to_staff_user_with_not_existing_channel_slug_passed(
     staff_user,
     product_list,
     permission_manage_products,
@@ -389,9 +391,7 @@ def test_visible_to_staff_user_with_not_existing_channel_slug(
     staff_user.user_permissions.add(permission_manage_products)
 
     # when
-    available_products = models.Product.objects.visible_to_user(
-        staff_user, "not-existing"
-    )
+    available_products = models.Product.objects.visible_to_user(staff_user, None, True)
 
     # then
     assert available_products.count() == 0
