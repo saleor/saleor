@@ -13,7 +13,6 @@ from ...checkout.calculations import fetch_checkout_data
 from ...checkout.utils import get_valid_collection_points_for_checkout
 from ...core.db.connection import allow_writer_in_context
 from ...core.taxes import zero_money, zero_taxed_money
-from ...core.utils.lazyobjects import unwrap_lazy
 from ...graphql.core.context import get_database_connection_name
 from ...payment.interface import ListStoredPaymentMethodsRequestData
 from ...permission.auth_filters import AuthorizationFilters
@@ -859,7 +858,7 @@ class Checkout(ModelObjectType[models.Checkout]):
     def resolve_shipping_methods(root: models.Checkout, info: ResolveInfo):
         @allow_writer_in_context(info.context)
         def with_checkout_info(checkout_info):
-            return unwrap_lazy(checkout_info.all_shipping_methods)
+            return checkout_info.all_shipping_methods
 
         return (
             CheckoutInfoByCheckoutTokenLoader(info.context)

@@ -75,7 +75,6 @@ def resolve_shipping_methods_for_checkout(
         lines,
         manager,
         shipping_channel_listings,
-        fetch_delivery_methods=False,
         database_connection_name=database_connection_name,
     )
     all_shipping_methods = get_all_shipping_methods_list(
