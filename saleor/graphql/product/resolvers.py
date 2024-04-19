@@ -152,8 +152,7 @@ def resolve_variant(
         product__id__in=visible_products
     )
     if not requestor_has_access_to_all:
-        channel_slug = channel.slug if channel else None
-        qs = qs.available_in_channel(channel_slug)
+        qs = qs.available_in_channel(channel)
     if id:
         _, id = from_global_id_or_error(id, "ProductVariant")
         return qs.filter(pk=id).first()
@@ -187,7 +186,7 @@ def resolve_product_variants(
         ).exclude(visible_in_listings=False)
         qs = (
             qs.filter(product__in=visible_products)
-            .available_in_channel(channel_slug)
+            .available_in_channel(channel)
             .using(connection_name)
         )
     if ids:

@@ -561,11 +561,13 @@ class ProductVariantQueryset(models.QuerySet["ProductVariant"]):
             ),
         )
 
-    def available_in_channel(self, channel_slug):
-        return self.filter(
-            channel_listings__price_amount__isnull=False,
-            channel_listings__channel__slug=str(channel_slug),
-        )
+    def available_in_channel(self, channel: Optional[Channel]):
+        if not channel:
+            return self.none()
+        channel_listings = ProductVariantChannelListing.objects.filter(
+            price_amount__isnull=False, channel_id=channel.id
+        ).values("id")
+        return self.filter(Exists(channel_listings.filter(variant_id=OuterRef("pk"))))
 
     def prefetched_for_webhook(self):
         return self.prefetch_related(
