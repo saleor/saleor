@@ -9,8 +9,12 @@ from .....checkout import calculations
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
 from .....checkout.utils import add_variants_to_checkout, set_external_shipping_id
+from .....discount import RewardValueType
+from .....discount.models import CheckoutLineDiscount, PromotionRule
 from .....plugins.manager import get_plugins_manager
-from .....product.models import ProductVariant, ProductVariantChannelListing
+from .....product.models import Product, ProductVariant, ProductVariantChannelListing
+from .....product.utils.variant_prices import update_discounted_prices_for_promotion
+from .....product.utils.variants import fetch_variants_for_promotion_rules
 from .....warehouse.models import Stock
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
@@ -413,7 +417,7 @@ def test_create_checkout_with_reservations(
         }
     }
 
-    with django_assert_num_queries(66):
+    with django_assert_num_queries(72):
         response = api_client.post_graphql(query, variables)
         assert get_graphql_content(response)["data"]["checkoutCreate"]
         assert Checkout.objects.first().lines.count() == 1
@@ -431,7 +435,7 @@ def test_create_checkout_with_reservations(
         }
     }
 
-    with django_assert_num_queries(66):
+    with django_assert_num_queries(72):
         response = api_client.post_graphql(query, variables)
         assert get_graphql_content(response)["data"]["checkoutCreate"]
         assert Checkout.objects.first().lines.count() == 10
@@ -562,7 +566,7 @@ def test_create_checkout_with_order_promotion(
     }
 
     # when
-    with django_assert_num_queries(71):
+    with django_assert_num_queries(77):
         response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
 
     # then
@@ -817,7 +821,7 @@ def test_update_checkout_lines_with_reservations(
         reservation_length=5,
     )
 
-    with django_assert_num_queries(81):
+    with django_assert_num_queries(91):
         variant_id = graphene.Node.to_global_id("ProductVariant", variants[0].pk)
         variables = {
             "id": to_global_id_or_none(checkout),
@@ -831,7 +835,7 @@ def test_update_checkout_lines_with_reservations(
         assert not data["errors"]
 
     # Updating multiple lines in checkout has same query count as updating one
-    with django_assert_num_queries(81):
+    with django_assert_num_queries(91):
         variables = {
             "id": to_global_id_or_none(checkout),
             "lines": [],
@@ -1076,7 +1080,7 @@ def test_add_checkout_lines_with_reservations(
         new_lines.append({"quantity": 2, "variantId": variant_id})
 
     # Adding multiple lines to checkout has same query count as adding one
-    with django_assert_num_queries(80):
+    with django_assert_num_queries(90):
         variables = {
             "id": Node.to_global_id("Checkout", checkout.pk),
             "lines": [new_lines[0]],
@@ -1089,7 +1093,7 @@ def test_add_checkout_lines_with_reservations(
 
     checkout.lines.exclude(id=line.id).delete()
 
-    with django_assert_num_queries(80):
+    with django_assert_num_queries(90):
         variables = {
             "id": Node.to_global_id("Checkout", checkout.pk),
             "lines": new_lines,
@@ -1099,6 +1103,140 @@ def test_add_checkout_lines_with_reservations(
         content = get_graphql_content(response)
         data = content["data"]["checkoutLinesAdd"]
         assert not data["errors"]
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_add_checkout_lines_catalogue_discount_applies(
+    user_api_client,
+    catalogue_promotion_without_rules,
+    checkout,
+    channel_USD,
+    django_assert_num_queries,
+    count_queries,
+    variant_with_many_stocks,
+):
+    # given
+    Stock.objects.update(quantity=100)
+    variant = variant_with_many_stocks
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    # prepare promotion with 50% discount
+    promotion = catalogue_promotion_without_rules
+    catalogue_predicate = {"variantPredicate": {"ids": [variant_id]}}
+    rule = promotion.rules.create(
+        name="Catalogue rule percentage 50",
+        catalogue_predicate=catalogue_predicate,
+        reward_value_type=RewardValueType.PERCENTAGE,
+        reward_value=Decimal(50),
+    )
+    rule.channels.add(channel_USD)
+    fetch_variants_for_promotion_rules(PromotionRule.objects.all())
+
+    # update prices
+    update_discounted_prices_for_promotion(Product.objects.all())
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [{"variantId": variant_id, "quantity": 3}],
+        "channelSlug": checkout.channel.slug,
+    }
+
+    # when
+    with django_assert_num_queries(82):
+        response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLinesAdd"]
+    assert not data["errors"]
+    assert checkout.lines.count() == 1
+    assert CheckoutLineDiscount.objects.count() == 1
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_add_checkout_lines_multiple_catalogue_discount_applies(
+    user_api_client,
+    catalogue_promotion_without_rules,
+    checkout,
+    channel_USD,
+    django_assert_num_queries,
+    count_queries,
+    product_variant_list,
+    warehouse,
+):
+    # given
+    variants = product_variant_list
+    variant_global_ids = [variant.get_global_id() for variant in variants]
+
+    channel_listing = variants[2].channel_listings.first()
+    channel_listing.channel = channel_USD
+    channel_listing.currency = channel_USD.currency_code
+    channel_listing.save(update_fields=["channel_id", "currency"])
+
+    Stock.objects.bulk_create(
+        [
+            Stock(product_variant=variant, warehouse=warehouse, quantity=1000)
+            for variant in variants
+        ]
+    )
+
+    # create many rules
+    promotion = catalogue_promotion_without_rules
+    rules = []
+    catalogue_predicate = {"variantPredicate": {"ids": variant_global_ids}}
+    for idx in range(5):
+        reward_value = 2 + idx
+        rules.append(
+            PromotionRule(
+                name=f"Catalogue rule fixed {reward_value}",
+                promotion=promotion,
+                catalogue_predicate=catalogue_predicate,
+                reward_value_type=RewardValueType.FIXED,
+                reward_value=Decimal(reward_value),
+            )
+        )
+    for idx in range(5):
+        reward_value = idx * 10 + 25
+        rules.append(
+            PromotionRule(
+                name=f"Catalogue rule percentage {reward_value}",
+                promotion=promotion,
+                catalogue_predicate=catalogue_predicate,
+                reward_value_type=RewardValueType.PERCENTAGE,
+                reward_value=Decimal(reward_value),
+            )
+        )
+    rules = PromotionRule.objects.bulk_create(rules)
+    for rule in rules:
+        rule.channels.add(channel_USD)
+    fetch_variants_for_promotion_rules(PromotionRule.objects.all())
+
+    # update prices
+    update_discounted_prices_for_promotion(Product.objects.all())
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [
+            {"variantId": variant_global_ids[0], "quantity": 4},
+            {"variantId": variant_global_ids[1], "quantity": 5},
+            {"variantId": variant_global_ids[2], "quantity": 6},
+            {"variantId": variant_global_ids[3], "quantity": 7},
+        ],
+        "channelSlug": checkout.channel.slug,
+    }
+
+    # when
+    with django_assert_num_queries(82):
+        response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLinesAdd"]
+    assert not data["errors"]
+    assert checkout.lines.count() == 4
+    assert CheckoutLineDiscount.objects.count() == 4
 
 
 @pytest.mark.django_db
@@ -1125,7 +1263,7 @@ def test_add_checkout_lines_order_discount_applies(
     }
 
     # when
-    with django_assert_num_queries(75):
+    with django_assert_num_queries(85):
         response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
 
     # then
@@ -1159,7 +1297,7 @@ def test_add_checkout_lines_gift_discount_applies(
     }
 
     # when
-    with django_assert_num_queries(101):
+    with django_assert_num_queries(112):
         response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
 
     # then

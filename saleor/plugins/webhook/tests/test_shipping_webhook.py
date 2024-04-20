@@ -412,9 +412,10 @@ def test_order_available_shipping_methods(
 ):
     # given
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    shipping_method = order_with_lines.shipping_method
 
     def respond(*args, **kwargs):
-        return webhook_response(order_with_lines.shipping_method)
+        return webhook_response(shipping_method)
 
     mocked_webhook.side_effect = respond
     permission_group_manage_orders.user_set.add(staff_api_client.user)

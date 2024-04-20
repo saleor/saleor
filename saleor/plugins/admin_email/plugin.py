@@ -1,4 +1,5 @@
 import logging
+from copy import deepcopy
 from dataclasses import asdict
 from typing import Union
 
@@ -143,7 +144,7 @@ class AdminEmailPlugin(BasePlugin):
             "label": "CSV export failed template",
         },
     }
-    CONFIG_STRUCTURE.update(DEFAULT_EMAIL_CONFIG_STRUCTURE)
+    CONFIG_STRUCTURE.update(deepcopy(DEFAULT_EMAIL_CONFIG_STRUCTURE))
     CONFIG_STRUCTURE["host"]["help_text"] += (
         " Leave it blank if you want to use system environment - EMAIL_HOST."
     )

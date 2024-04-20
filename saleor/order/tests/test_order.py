@@ -678,7 +678,9 @@ def test_get_voucher_discount_for_order_voucher_validation(
     quantity = order_with_lines.get_total_quantity()
     customer_email = order_with_lines.get_customer_email()
 
-    validate_voucher_in_order(order_with_lines)
+    validate_voucher_in_order(
+        order_with_lines, order_with_lines.lines.all(), order_with_lines.channel
+    )
 
     mock_validate_voucher.assert_called_once_with(
         voucher,
@@ -699,7 +701,9 @@ def test_validate_voucher_in_order_without_voucher(
 
     assert not order_with_lines.voucher
 
-    validate_voucher_in_order(order_with_lines)
+    validate_voucher_in_order(
+        order_with_lines, order_with_lines.lines.all(), order_with_lines.channel
+    )
     mock_validate_voucher.assert_not_called()
 
 
@@ -745,6 +749,7 @@ def test_value_voucher_order_discount(
         billing_address=address_usa,
         channel=channel_USD,
     )
+    order.lines = Mock(all=Mock(return_value=[]))
     discount = get_voucher_discount_for_order(order)
     assert discount == Money(expected_value, "USD")
 
@@ -784,6 +789,7 @@ def test_shipping_voucher_order_discount(
         voucher=voucher,
         channel=channel_USD,
     )
+    order.lines = Mock(all=Mock(return_value=[]))
     discount = get_voucher_discount_for_order(order)
     assert discount == Money(expected_value, "USD")
 
@@ -840,6 +846,7 @@ def test_shipping_voucher_checkout_discount_not_applicable_returns_zero(
         voucher=voucher,
         channel=channel_USD,
     )
+    order.lines = Mock(all=Mock(return_value=[]))
     with pytest.raises(NotApplicable):
         get_voucher_discount_for_order(order)
 

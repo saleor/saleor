@@ -83,7 +83,7 @@ def test_payment_method_process_tokenization(
     assert response_data["data"] == expected_output_data
     assert response_data["id"] == expected_payment_method_id
     mocked_is_event_active_for_any_plugin.assert_called_once_with(
-        "payment_method_process_tokenization"
+        "payment_method_process_tokenization", channel_slug=channel_USD.slug
     )
     mocked_payment_method_process_tokenization.assert_called_once_with(
         request_data=PaymentMethodProcessTokenizationRequestData(
@@ -177,7 +177,7 @@ def test_payment_method_process_tokenization_not_app_or_plugin_subscribed_to_eve
     )
 
     mocked_is_event_active_for_any_plugin.assert_called_once_with(
-        "payment_method_process_tokenization"
+        "payment_method_process_tokenization", channel_slug=channel_USD.slug
     )
     assert not mocked_payment_method_process_tokenization.called
 
@@ -256,7 +256,7 @@ def test_payment_method_process_tokenization_failure_from_app(
     assert error["message"] == error_message
 
     mocked_is_event_active_for_any_plugin.assert_called_once_with(
-        "payment_method_process_tokenization"
+        "payment_method_process_tokenization", channel_slug=channel_USD.slug
     )
     mocked_payment_method_process_tokenization.assert_called_once_with(
         request_data=PaymentMethodProcessTokenizationRequestData(

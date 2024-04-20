@@ -19,10 +19,6 @@ class Migration(migrations.Migration):
                     ALTER TABLE attribute_assignedproductattributevalue
                     ALTER COLUMN product_id SET NOT NULL;
 
-                    ALTER TABLE attribute_assignedproductattributevalue
-                    ADD CONSTRAINT attribute_assignedproduc_value_id_product_id_6f6deb31_uniq
-                    UNIQUE (value_id, product_id);
-
                     DROP TABLE attribute_assignedproductattribute;
                     """,
                     reverse_sql="""
@@ -31,9 +27,6 @@ class Migration(migrations.Migration):
 
                     ALTER TABLE attribute_assignedproductattributevalue
                     ALTER COLUMN product_id DROP NOT NULL;
-
-                    ALTER TABLE attribute_assignedproductattributevalue
-                    DROP CONSTRAINT IF EXISTS attribute_assignedproduc_value_id_product_id_6f6deb31_uniq;
 
                     CREATE TABLE attribute_assignedproductattribute (
                         id serial NOT NULL PRIMARY KEY,
@@ -50,10 +43,6 @@ class Migration(migrations.Migration):
                     ALTER TABLE attribute_assignedpageattributevalue
                     ALTER COLUMN page_id SET NOT NULL;
 
-                    ALTER TABLE attribute_assignedpageattributevalue
-                    ADD CONSTRAINT attribute_assignedpageat_value_id_page_id_851cd501_uniq
-                    UNIQUE (value_id, page_id);
-
                     DROP TABLE attribute_assignedpageattribute;
                     """,
                     reverse_sql="""
@@ -62,9 +51,6 @@ class Migration(migrations.Migration):
 
                     ALTER TABLE attribute_assignedpageattributevalue
                     ALTER COLUMN page_id DROP NOT NULL;
-
-                    ALTER TABLE attribute_assignedpageattributevalue
-                    DROP CONSTRAINT IF EXISTS attribute_assignedpageat_value_id_page_id_851cd501_uniq;
 
                     CREATE TABLE attribute_assignedpageattribute (
                         id serial NOT NULL PRIMARY KEY,

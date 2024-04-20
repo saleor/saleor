@@ -132,7 +132,7 @@ def test_update_product(
     monkeypatch.setattr(
         PluginsManager,
         "get_tax_code_from_object_meta",
-        lambda self, x: TaxType(description="", code=product_tax_rate),
+        lambda self, x, channel_slug: TaxType(description="", code=product_tax_rate),
     )
 
     attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.pk)

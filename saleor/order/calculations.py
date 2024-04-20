@@ -11,6 +11,7 @@ from ..core.db.connection import allow_writer
 from ..core.prices import quantize_price
 from ..core.taxes import TaxData, TaxEmptyData, TaxError, zero_taxed_money
 from ..discount import DiscountType
+from ..discount.utils import create_or_update_discount_objects_from_promotion_for_order
 from ..payment.model_helpers import get_subtotal
 from ..plugins import PLUGIN_IDENTIFIER_PREFIX
 from ..plugins.manager import PluginsManager
@@ -25,6 +26,7 @@ from ..tax.utils import (
 )
 from . import ORDER_EDITABLE_STATUS
 from .base_calculations import apply_order_discounts, base_order_line_total
+from .fetch import DraftOrderLineInfo, fetch_draft_order_lines_info
 from .interface import OrderTaxedPricesData
 from .models import Order, OrderLine
 
@@ -49,18 +51,18 @@ def fetch_order_prices_if_expired(
     if not force_update and not order.should_refresh_prices:
         return order, lines
 
-    if lines is None:
-        lines = list(
-            order.lines.using(database_connection_name).select_related(
-                "variant__product__product_type"
-            )
-        )
-    else:
-        prefetch_related_objects(lines, "variant__product__product_type")
-
-    order.should_refresh_prices = False
-
+    # handle promotions
+    lines_info: list[DraftOrderLineInfo] = fetch_draft_order_lines_info(order, lines)
+    create_or_update_discount_objects_from_promotion_for_order(
+        order, lines_info, database_connection_name
+    )
+    lines = [line_info.line for line_info in lines_info]
     _update_order_discount_for_voucher(order)
+
+    _clear_prefetched_discounts(order, lines)
+    prefetch_related_objects([order], "discounts")
+
+    # handle taxes
     _recalculate_prices(
         order,
         manager,
@@ -68,7 +70,7 @@ def fetch_order_prices_if_expired(
         database_connection_name=database_connection_name,
     )
 
-    order.subtotal = get_subtotal(lines, order.currency)
+    order.should_refresh_prices = False
     with transaction.atomic(savepoint=False):
         with allow_writer():
             order.save(
@@ -98,6 +100,11 @@ def fetch_order_prices_if_expired(
                     "undiscounted_total_price_net_amount",
                     "undiscounted_total_price_gross_amount",
                     "tax_rate",
+                    "unit_discount_amount",
+                    "unit_discount_reason",
+                    "unit_discount_type",
+                    "unit_discount_value",
+                    "base_unit_price_amount",
                 ],
             )
 
@@ -128,14 +135,14 @@ def _update_order_discount_for_voucher(order: Order):
                 voucher_code=order.voucher_code,
             )
 
-    # Prefetch has to be cleared and refreshed to avoid returning cached discounts
-    if (
-        hasattr(order, "_prefetched_objects_cache")
-        and "discounts" in order._prefetched_objects_cache
-    ):
-        del order._prefetched_objects_cache["discounts"]
 
-    prefetch_related_objects([order], "discounts")
+def _clear_prefetched_discounts(order, lines):
+    if hasattr(order, "_prefetched_objects_cache"):
+        order._prefetched_objects_cache.pop("discounts", None)
+
+    for line in lines:
+        if hasattr(line, "_prefetched_objects_cache"):
+            line._prefetched_objects_cache.pop("discounts", None)
 
 
 def _recalculate_prices(
@@ -338,6 +345,7 @@ def _recalculate_with_plugins(
     order.undiscounted_total = undiscounted_subtotal + TaxedMoney(
         net=order.base_shipping_price, gross=order.base_shipping_price
     )
+    order.subtotal = get_subtotal(lines, order.currency)
     order.total = manager.calculate_order_total(order, lines, plugin_ids=plugin_ids)
 
 
@@ -387,12 +395,14 @@ def _apply_tax_data(
         order_line.tax_rate = normalize_tax_rate_for_db(tax_line.tax_rate)
         subtotal += line_total_price
 
+    order.subtotal = subtotal
     order.total = shipping_price + subtotal
 
 
 def _remove_tax(order, lines):
     order.total_gross_amount = order.total_net_amount
     order.undiscounted_total_gross_amount = order.undiscounted_total_net_amount
+    order.subtotal_gross_amount = order.subtotal_net_amount
     order.shipping_price_gross_amount = order.shipping_price_net_amount
     order.shipping_tax_rate = Decimal("0.00")
 
