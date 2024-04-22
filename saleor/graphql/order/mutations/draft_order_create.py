@@ -193,7 +193,8 @@ class DraftOrderCreate(
         shipping_method_input = {}
         if "shipping_method" in data:
             shipping_method_input["shipping_method"] = get_shipping_model_by_object_id(
-                object_id=data.pop("shipping_method", None), raise_error=False
+                object_id=data.pop("shipping_method", None),
+                error_field="shipping_method",
             )
 
         if email := data.get("user_email", None):

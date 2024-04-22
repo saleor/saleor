@@ -1546,3 +1546,32 @@ def test_draft_order_update_gift_promotion(
         order["undiscountedTotal"]["net"]["amount"]
         == draft_order.undiscounted_total_net_amount
     )
+
+
+def test_draft_order_update_with_cc_warehouse_as_shipping_method(
+    staff_api_client, permission_group_manage_orders, order_with_lines, warehouse_for_cc
+):
+    # given
+    order = order_with_lines
+    order.status = OrderStatus.DRAFT
+    order.save()
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    cc_warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse_for_cc.id)
+
+    variables = {
+        "id": order_id,
+        "input": {"shippingMethod": cc_warehouse_id},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == OrderErrorCode.INVALID.name
+    assert errors[0]["field"] == "shippingMethod"
