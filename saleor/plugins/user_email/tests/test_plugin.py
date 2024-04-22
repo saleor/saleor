@@ -9,6 +9,7 @@ from django.core.mail.backends.smtp import EmailBackend
 from ....core.notify_events import NotifyEventType
 from ....graphql.tests.utils import get_graphql_content
 from ...email_common import DEFAULT_EMAIL_VALUE, get_email_template
+from ...error_codes import PluginErrorCode
 from ...manager import get_plugins_manager
 from ...models import PluginConfiguration
 from ..constants import (
@@ -32,7 +33,24 @@ from ..notify_events import (
     send_order_refund,
     send_payment_confirmation,
 )
-from ..plugin import get_user_event_map
+from ..plugin import UserEmailPlugin, get_user_event_map
+
+
+@pytest.fixture
+def validation_errors_dict():
+    return {
+        "host": "Missing SMTP host value.",
+        "port": "Missing SMTP port value.",
+        "username": "Missing SMTP username value.",
+        "password": "Missing SMTP password value.",
+        "sender_name": "Missing sender name value.",
+        "use_ssl": (
+            "You need to enable at least one of the security options (SSL or TLS)."
+        ),
+        "use_tls": (
+            "You need to enable at least one of the security options (SSL or TLS)."
+        ),
+    }
 
 
 def test_event_map():
@@ -313,3 +331,49 @@ def test_plugin_manager_doesnt_load_email_templates_from_db(
     # email template from DB but returns default email value.
     assert email_config_item
     assert email_config_item["value"] == DEFAULT_EMAIL_VALUE
+
+
+@pytest.mark.parametrize(
+    "configuration, keys_to_remove",
+    [
+        ({}, []),
+        ({"host": "test host"}, ["host"]),
+        ({"port": "test port"}, ["port"]),
+        ({"username": "test username"}, ["username"]),
+        ({"password": "test password"}, ["password"]),
+        ({"sender_name": "test sender name"}, ["sender_name"]),
+        ({"use_tls": True, "use_ssl": True}, []),
+        ({"use_tls": True}, ["use_tls", "use_ssl"]),
+        ({"use_ssl": True}, ["use_tls", "use_ssl"]),
+    ],
+)
+def test_plugin_validate_smtp_configuration(
+    validation_errors_dict, configuration, keys_to_remove
+):
+    # when
+    with pytest.raises(ValidationError) as validation_error:
+        UserEmailPlugin._validate_smtp_configuration(configuration)
+
+    # then
+    for key in keys_to_remove:
+        validation_errors_dict.pop(key)
+
+    assert len(validation_error.value.error_dict) == len(validation_errors_dict)
+
+    for field, message in validation_errors_dict.items():
+        error = validation_error.value.error_dict[field]
+        assert len(error) == 1
+        error = error[0]
+        assert error.code == PluginErrorCode.PLUGIN_MISCONFIGURED.value
+        assert error.message == message
+
+
+@patch("saleor.plugins.user_email.plugin.UserEmailPlugin._validate_smtp_configuration")
+def test_plugin_validate_smtp_configuration_called(
+    mock__validate_smtp_configuration, user_email_plugin
+):
+    # when
+    user_email_plugin()
+
+    # then
+    mock__validate_smtp_configuration.assert_called_once()

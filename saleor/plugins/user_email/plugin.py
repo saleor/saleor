@@ -2,6 +2,7 @@ import logging
 from dataclasses import asdict
 from typing import TYPE_CHECKING, List, Union
 
+from django.core.exceptions import ValidationError
 from promise.promise import Promise
 
 from ...core.notify_events import NotifyEventType, UserNotifyEvent
@@ -18,6 +19,7 @@ from ..email_common import (
     validate_default_email_configuration,
     validate_format_of_provided_templates,
 )
+from ..error_codes import PluginErrorCode
 from . import constants
 from .constants import TEMPLATE_FIELDS
 from .notify_events import (
@@ -411,6 +413,8 @@ class UserEmailPlugin(BasePlugin):
         configuration = plugin_configuration.configuration
         configuration = {item["name"]: item["value"] for item in configuration}
 
+        cls._validate_smtp_configuration(configuration)
+
         validate_default_email_configuration(plugin_configuration, configuration)
         email_templates_data = kwargs.get("email_templates_data", [])
         validate_format_of_provided_templates(
@@ -457,3 +461,57 @@ class UserEmailPlugin(BasePlugin):
             # Let's add a translated descriptions and labels
             cls._append_config_structure(plugin_configuration.configuration)
         return plugin_configuration
+
+    @staticmethod
+    def _validate_smtp_configuration(configuration):
+        errors = {}
+
+        if not configuration.get("host"):
+            errors["host"] = ValidationError(
+                "Missing SMTP host value.",
+                code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
+            )
+
+        if not configuration.get("port"):
+            errors["port"] = ValidationError(
+                "Missing SMTP port value.",
+                code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
+            )
+
+        if not configuration.get("username"):
+            errors["username"] = ValidationError(
+                "Missing SMTP username value.",
+                code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
+            )
+
+        if not configuration.get("password"):
+            errors["password"] = ValidationError(
+                "Missing SMTP password value.",
+                code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
+            )
+
+        if not configuration.get("sender_name"):
+            errors["sender_name"] = ValidationError(
+                "Missing sender name value.",
+                code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
+            )
+
+        if (
+            not configuration.get("use_ssl")
+            and not configuration.get("use_tls")
+            or configuration.get("use_ssl")
+            and configuration.get("use_tls")
+        ):
+            message = (
+                "You need to enable at least one of the security options (SSL or TLS)."
+            )
+            errors["use_ssl"] = ValidationError(
+                message, code=PluginErrorCode.PLUGIN_MISCONFIGURED.value
+            )
+            errors["use_tls"] = ValidationError(
+                message,
+                code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
+            )
+
+        if errors:
+            raise ValidationError(errors)
