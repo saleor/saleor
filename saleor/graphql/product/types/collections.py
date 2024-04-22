@@ -138,11 +138,11 @@ class Collection(ChannelContextTypeWithMetadata[models.Collection]):
         root: ChannelContext[models.Collection], info: ResolveInfo, **kwargs
     ):
         requestor = get_user_or_app_from_context(info.context)
-        channel_slug_passed = False if root.channel_slug is None else True
+        limited_channel_access = False if root.channel_slug is None else True
 
         def _resolve_products(channel):
             qs = root.node.products.visible_to_user(  # type: ignore[attr-defined] # mypy does not properly resolve the related manager # noqa: E501
-                requestor, channel, channel_slug_passed
+                requestor, channel, limited_channel_access
             ).using(
                 get_database_connection_name(info.context)
             )

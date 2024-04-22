@@ -166,7 +166,7 @@ class Category(ModelObjectType[models.Category]):
             requestor, ALL_PRODUCTS_PERMISSIONS
         )
         tree = root.get_descendants(include_self=True)
-        channel_slug_passed = False if channel is None else True
+        limited_channel_access = False if channel is None else True
         if channel is None and not has_required_permissions:
             channel = get_default_channel_slug_or_graphql_error()
         connection_name = get_database_connection_name(info.context)
@@ -175,7 +175,7 @@ class Category(ModelObjectType[models.Category]):
             qs = models.Product.objects.using(connection_name).all()
             if not has_required_permissions:
                 qs = (
-                    qs.visible_to_user(requestor, channel_obj, channel_slug_passed)
+                    qs.visible_to_user(requestor, channel_obj, limited_channel_access)
                     .annotate_visible_in_listings(channel_obj)
                     .exclude(
                         visible_in_listings=False,

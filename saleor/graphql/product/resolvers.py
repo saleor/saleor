@@ -73,12 +73,12 @@ def resolve_product(
     slug,
     external_reference,
     channel: Optional[Channel],
-    channel_slug_passed: bool,
+    limited_channel_access: bool,
     requestor,
 ):
     database_connection_name = get_database_connection_name(info.context)
     qs = models.Product.objects.using(database_connection_name).visible_to_user(
-        requestor, channel, channel_slug_passed
+        requestor, channel, limited_channel_access
     )
     if id:
         _type, id = from_global_id_or_error(id, "Product")
@@ -94,11 +94,11 @@ def resolve_products(
     info: ResolveInfo,
     requestor,
     channel: Optional[Channel],
-    channel_slug_passed: bool,
+    limited_channel_access: bool,
 ) -> ChannelQsContext:
     connection_name = get_database_connection_name(info.context)
     qs = models.Product.objects.using(connection_name).visible_to_user(
-        requestor, channel, channel_slug_passed
+        requestor, channel, limited_channel_access
     )
     if not has_one_of_permissions(requestor, ALL_PRODUCTS_PERMISSIONS):
         if channel:
@@ -138,13 +138,15 @@ def resolve_variant(
     external_reference,
     *,
     channel: Optional[Channel],
-    channel_slug_passed: bool,
+    limited_channel_access: bool,
     requestor,
     requestor_has_access_to_all
 ):
     connection_name = get_database_connection_name(info.context)
     visible_products = (
-        models.Product.objects.visible_to_user(requestor, channel, channel_slug_passed)
+        models.Product.objects.visible_to_user(
+            requestor, channel, limited_channel_access
+        )
         .using(connection_name)
         .values_list("pk", flat=True)
     )
@@ -169,11 +171,11 @@ def resolve_product_variants(
     requestor,
     ids=None,
     channel: Optional[Channel] = None,
-    channel_slug_passed: bool = False,
+    limited_channel_access: bool = False,
 ) -> ChannelQsContext:
     connection_name = get_database_connection_name(info.context)
     visible_products = models.Product.objects.visible_to_user(
-        requestor, channel, channel_slug_passed
+        requestor, channel, limited_channel_access
     ).using(connection_name)
     qs = models.ProductVariant.objects.using(connection_name).filter(
         product__id__in=visible_products

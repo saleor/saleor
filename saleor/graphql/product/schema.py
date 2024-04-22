@@ -422,7 +422,7 @@ class ProductQueries(graphene.ObjectType):
             requestor, ALL_PRODUCTS_PERMISSIONS
         )
 
-        channel_slug_passed = False if channel is None else True
+        limited_channel_access = False if channel is None else True
         if channel is None and not has_required_permissions:
             channel = get_default_channel_slug_or_graphql_error()
 
@@ -433,7 +433,7 @@ class ProductQueries(graphene.ObjectType):
                 slug=slug,
                 external_reference=external_reference,
                 channel=channel_obj,
-                channel_slug_passed=channel_slug_passed,
+                limited_channel_access=limited_channel_access,
                 requestor=requestor,
             )
 
@@ -475,12 +475,12 @@ class ProductQueries(graphene.ObjectType):
         has_required_permissions = has_one_of_permissions(
             requestor, ALL_PRODUCTS_PERMISSIONS
         )
-        channel_slug_passed = False if channel is None else True
+        limited_channel_access = False if channel is None else True
         if channel is None and not has_required_permissions:
             channel = get_default_channel_slug_or_graphql_error()
 
         def _resolve_products(channel_obj):
-            qs = resolve_products(info, requestor, channel_obj, channel_slug_passed)
+            qs = resolve_products(info, requestor, channel_obj, limited_channel_access)
             if search:
                 qs = ChannelQsContext(
                     qs=search_products(qs.qs, search), channel_slug=channel
@@ -528,7 +528,7 @@ class ProductQueries(graphene.ObjectType):
             requestor, ALL_PRODUCTS_PERMISSIONS
         )
 
-        channel_slug_passed = False if channel is None else True
+        limited_channel_access = False if channel is None else True
         if channel is None and not has_required_permissions:
             channel = get_default_channel_slug_or_graphql_error()
 
@@ -539,7 +539,7 @@ class ProductQueries(graphene.ObjectType):
                 sku,
                 external_reference,
                 channel=channel_obj,
-                channel_slug_passed=channel_slug_passed,
+                limited_channel_access=limited_channel_access,
                 requestor=requestor,
                 requestor_has_access_to_all=has_required_permissions,
             )
@@ -564,7 +564,7 @@ class ProductQueries(graphene.ObjectType):
         has_required_permissions = has_one_of_permissions(
             requestor, ALL_PRODUCTS_PERMISSIONS
         )
-        channel_slug_passed = False if channel is None else True
+        limited_channel_access = False if channel is None else True
         if channel is None and not has_required_permissions:
             channel = get_default_channel_slug_or_graphql_error()
 
@@ -573,7 +573,7 @@ class ProductQueries(graphene.ObjectType):
                 info,
                 ids=ids,
                 channel=channel_obj,
-                channel_slug_passed=channel_slug_passed,
+                limited_channel_access=limited_channel_access,
                 requestor_has_access_to_all=has_required_permissions,
                 requestor=requestor,
             )

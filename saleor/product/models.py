@@ -237,7 +237,7 @@ class ProductsQueryset(models.QuerySet["Product"]):
         self,
         requestor: Union["User", "App", None],
         channel: Optional[Channel],
-        channel_slug_passed: bool,
+        limited_channel_access: bool,
     ):
         """Determine which products should be visible to user.
 
@@ -245,14 +245,14 @@ class ProductsQueryset(models.QuerySet["Product"]):
         products are visible to user.
         For user with permission we can return:
         - all products if channel is not passed to query.
-            (channel=None, channel_slug_passed=False)
+            (channel=None, limited_channel_access=False)
         - no products if channel is passed but it does not exist.
-            (channel=None, channel_slug_passed=True)
+            (channel=None, limited_channel_access=True)
         - all products assigned to channel if channel is passed and exists.
-            (channel=Channel, channel_slug_passed=True)
+            (channel=Channel, limited_channel_access=True)
         """
         if has_one_of_permissions(requestor, ALL_PRODUCTS_PERMISSIONS):
-            if channel_slug_passed:
+            if limited_channel_access:
                 if channel:
                     channel_listings = ProductChannelListing.objects.filter(
                         channel_id=channel.id

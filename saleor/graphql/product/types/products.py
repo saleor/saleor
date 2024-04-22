@@ -776,14 +776,14 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
         variants = {}
         channels_map = Channel.objects.in_bulk(set(channels.keys()), field_name="slug")
         for channel_slug, ids in channels.items():
-            channel_slug_passed = False if channel_slug is None else True
+            limited_channel_access = False if channel_slug is None else True
             qs = resolve_product_variants(
                 info,
                 requestor_has_access_to_all,
                 requestor,
                 ids=ids,
                 channel=channels_map.get(channel_slug),
-                channel_slug_passed=channel_slug_passed,
+                limited_channel_access=limited_channel_access,
             ).qs
             for variant in qs:
                 global_id = graphene.Node.to_global_id("ProductVariant", variant.id)
@@ -1533,9 +1533,9 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
 
         channels_map = Channel.objects.in_bulk(set(channels.keys()), field_name="slug")
         for channel_slug, ids in channels.items():
-            channel_slug_passed = False if channel_slug is None else True
+            limited_channel_access = False if channel_slug is None else True
             queryset = resolve_products(
-                info, requestor, channels_map.get(channel_slug), channel_slug_passed
+                info, requestor, channels_map.get(channel_slug), limited_channel_access
             ).qs.filter(id__in=ids)
 
             for product in queryset:
@@ -1715,13 +1715,13 @@ class ProductType(ModelObjectType[models.ProductType]):
     @staticmethod
     def resolve_products(root: models.ProductType, info, *, channel=None, **kwargs):
         requestor = get_user_or_app_from_context(info.context)
-        channel_slug_passed = False if channel is None else True
+        limited_channel_access = False if channel is None else True
         if channel is None:
             channel = get_default_channel_slug_or_graphql_error()
 
         def _resolve_products(channel_obj):
             qs = root.products.visible_to_user(
-                requestor, channel_obj, channel_slug_passed
+                requestor, channel_obj, limited_channel_access
             )
             qs = ChannelQsContext(qs=qs, channel_slug=channel)
             kwargs["channel"] = channel

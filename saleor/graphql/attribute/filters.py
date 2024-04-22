@@ -42,8 +42,9 @@ def filter_attributes_by_product_types(qs, field, value, requestor, channel_slug
     channel = None
     if channel_slug is not None:
         channel = Channel.objects.filter(slug=str(channel_slug)).first()
+    limited_channel_access = False if channel_slug is None else True
     product_qs = models.Product.objects.visible_to_user(
-        requestor, channel, False if channel_slug is None else True
+        requestor, channel, limited_channel_access
     )
 
     if field == "in_category":
