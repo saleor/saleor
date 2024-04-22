@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "saleor"
-version = "3.14.62"
+version = "3.14.68"
 description = "A modular, high performance, headless e-commerce platform built with Python, GraphQL, Django, and React."
 authors = [ "Saleor Commerce <hello@saleor.io>" ]
 license = "BSD-3-Clause"
@@ -55,7 +55,7 @@ documentation = "https://docs.saleor.io/"
   django-redis = "^5.0.0"
   Adyen = "^4.0.0"
   google-cloud-pubsub = ">=1.7,<3.0"
-  gunicorn = "^20.0.4"
+  gunicorn = "^22.0.0"
   pybars3 = "^0.9.7"
   html2text = "^2020.1.16"
   authorizenet = "^1.1.3"

@@ -223,14 +223,13 @@ class RefreshToken(BaseMutation):
         cls, info: ResolveInfo, refresh_token: Optional[str] = None
     ) -> Optional[str]:
         request = info.context
-        refresh_token = refresh_token or request.COOKIES.get(
-            JWT_REFRESH_TOKEN_COOKIE_NAME, None
-        )
+        if refresh_token is None:
+            refresh_token = request.COOKIES.get(JWT_REFRESH_TOKEN_COOKIE_NAME, None)
         return refresh_token
 
     @classmethod
     def clean_refresh_token(cls, refresh_token):
-        if not refresh_token:
+        if refresh_token is None:
             raise ValidationError(
                 {
                     "refresh_token": ValidationError(

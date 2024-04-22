@@ -1846,6 +1846,8 @@ class TransactionSessionBase(BaseMutation):
     class Meta:
         abstract = True
 
+    TRANSACTION_ITEMS_LIMIT = 100
+
     @classmethod
     def clean_source_object(
         cls,
