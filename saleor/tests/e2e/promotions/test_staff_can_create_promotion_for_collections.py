@@ -1,7 +1,7 @@
 import pytest
 
-from ..channel.utils import create_channel
 from ....product.tasks import recalculate_discounted_price_for_products_task
+from ..channel.utils import create_channel
 from ..product.utils import (
     create_category,
     create_collection,
