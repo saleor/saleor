@@ -7,12 +7,26 @@ class Migration(migrations.Migration):
     dependencies = [
         ("discount", "0071_merge_20240307_1156"),
     ]
-
     operations = [
-        migrations.AddField(
-            model_name="promotionrule",
-            name="variants_dirty",
-            field=models.BooleanField(default=False),
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                migrations.RunSQL(
+                    """
+                    ALTER TABLE discount_promotionrule
+                    ADD COLUMN IF NOT EXISTS variants_dirty boolean
+                    """,
+                    reverse_sql="""
+                    ALTER TABLE discount_promotionrule DROP COLUMN variants_dirty
+                    """,
+                )
+            ],
+            state_operations=[
+                migrations.AddField(
+                    model_name="promotionrule",
+                    name="variants_dirty",
+                    field=models.BooleanField(default=False),
+                )
+            ],
         ),
         migrations.RunSQL(
             """
