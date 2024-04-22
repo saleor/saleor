@@ -41,10 +41,6 @@ from ..warehouse.models import Warehouse
 from ..warehouse.reservations import reserve_stocks_and_preorders
 from . import AddressType, base_calculations, calculations
 from .error_codes import CheckoutErrorCode
-from .fetch import (
-    update_checkout_info_delivery_method,
-    update_checkout_info_shipping_address,
-)
 from .models import Checkout, CheckoutLine, CheckoutMetadata
 
 if TYPE_CHECKING:
@@ -370,9 +366,7 @@ def change_shipping_address_in_checkout(
         if remove and checkout.shipping_address:
             checkout.shipping_address.delete()
         checkout.shipping_address = address
-        update_checkout_info_shipping_address(
-            checkout_info, address, lines, manager, shipping_channel_listings
-        )
+        checkout_info.shipping_address = address
         updated_fields = ["shipping_address", "last_change"]
     return updated_fields
 
@@ -855,7 +849,7 @@ def clear_delivery_method(checkout_info: "CheckoutInfo"):
     checkout = checkout_info.checkout
     checkout.collection_point = None
     checkout.shipping_method = None
-    update_checkout_info_delivery_method(checkout_info, None)
+    checkout_info.shipping_method = None
     delete_external_shipping_id(checkout=checkout)
     checkout.save(
         update_fields=[
