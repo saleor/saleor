@@ -893,3 +893,8 @@ COMMON_REQUESTS_TIMEOUT = (REQUESTS_CONN_EST_TIMEOUT, 18)
 
 WEBHOOK_TIMEOUT = (REQUESTS_CONN_EST_TIMEOUT, 18)
 WEBHOOK_SYNC_TIMEOUT = (REQUESTS_CONN_EST_TIMEOUT, 18)
+
+
+# Transaction items limit for PaymentGatewayInitialize / TransactionInitialize.
+# That setting limits the allowed number of transaction items for single entity.
+TRANSACTION_ITEMS_LIMIT = 100
