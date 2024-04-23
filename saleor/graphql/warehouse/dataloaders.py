@@ -35,8 +35,10 @@ from ...warehouse.models import (
 from ...warehouse.reservations import is_reservation_enabled
 from ..channel.dataloaders import ChannelBySlugLoader
 from ..core.dataloaders import DataLoader
-from ..shipping.dataloaders import ShippingZonesByChannelIdLoader, \
-    ShippingZonesByCountryLoader
+from ..shipping.dataloaders import (
+    ShippingZonesByChannelIdLoader,
+    ShippingZonesByCountryLoader,
+)
 from ..site.dataloaders import get_site_promise
 
 if TYPE_CHECKING:
@@ -380,6 +382,9 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
         return quantity_map
 
 
+from time import time
+
+
 class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
     DataLoader[VariantIdCountryCodeChannelSlug, Iterable[Stock]]
 ):
@@ -392,9 +397,12 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
     context_key = "stocks_with_available_quantity_by_productvariant_country_and_channel"
 
     def batch_load(self, keys):
+        start_time = time()
+
         def with_channels(channels):
             def with_shipping_zones(data):
                 def with_warehouses(warehouse_data):
+                    mid_time = time()
                     warehouses_by_channel, warehouses_by_zone = warehouse_data
                     # Split the list of keys by country first. A typical query will only
                     # touch a handful of unique countries but may access thousands of
@@ -408,26 +416,29 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
                         ].append(variant_id)
 
                     shipping_zones_by_channel_map = {
-                        channel.slug: shipping_zones
-                        for shipping_zones, channel
-                        in zip(shipping_zones_by_channel, channels)
+                        channel.slug: set(shipping_zones)
+                        for shipping_zones, channel in zip(
+                            shipping_zones_by_channel, channels
+                        )
                     }
                     shipping_zones_by_country_map = {
-                        channel.slug: shipping_zones
-                        for shipping_zones, channel
-                        in zip(shipping_zones_by_country, channels)
+                        channel.slug: set(shipping_zones)
+                        for shipping_zones, channel in zip(
+                            shipping_zones_by_country, channels
+                        )
                     }
                     warehouses_by_channel_map = {
-                        channel.slug: warehouses
-                        for warehouses, channel
-                        in zip(warehouses_by_channel, channels)
+                        channel.slug: set(warehouses)
+                        for warehouses, channel in zip(warehouses_by_channel, channels)
                     }
                     warehouses_by_zone_map = {
-                        shipping_zone_id: warehouses
-                        for warehouses, shipping_zone_id
-                        in zip(warehouses_by_zone, shipping_zone_ids)
+                        shipping_zone_id: set(warehouses)
+                        for warehouses, shipping_zone_id in zip(
+                            warehouses_by_zone, shipping_zone_ids
+                        )
                     }
-
+                    print("maps", time() - mid_time)
+                    mid_time = time()
                     warehouse_ids_by_country_and_channel_map = (
                         self.get_relevant_warehouses(
                             variant_ids_by_country_and_channel_map,
@@ -437,33 +448,52 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
                             warehouses_by_zone_map,
                         )
                     )
-
+                    print("filter", time() - mid_time)
+                    mid_time = time()
                     variant_ids = list(set(key[0] for key in keys))
-                    warehouse_ids = {
-                        warehouse_id
-                        for warehouse_ids in warehouse_ids_by_country_and_channel_map.values()  # noqa: E501
-                        for warehouse_id in warehouse_ids
-                    }
-                    stocks = Stock.objects.using(self.database_connection_name).filter(
+                    stocks_qs = Stock.objects.using(
+                        self.database_connection_name
+                    ).filter(
                         product_variant_id__in=variant_ids,
-                        warehouse_id__in=warehouse_ids,
                     )
+                    if (None, None) not in keys:
+                        warehouse_ids = {
+                            warehouse_id
+                            for warehouse_ids in warehouse_ids_by_country_and_channel_map.values()  # noqa: E501
+                            for warehouse_id in warehouse_ids
+                        }
+                        stocks_qs.filter(warehouse_id__in=warehouse_ids)
 
+                    stocks_qs = stocks_qs.annotate_available_quantity().order_by("pk")
+                    print("prepare_query", time() - mid_time)
+                    mid_time = time()
+                    list(stocks_qs)
+                    print("query", time() - mid_time)
+                    mid_time = time()
                     results = []
                     for variant_id, country_code, channel_slug in keys:
                         warehouse_ids = warehouse_ids_by_country_and_channel_map[
                             (country_code, channel_slug)
                         ]
-                        results.append(
-                            [
+                        stocks = [
+                            stock
+                            for stock in stocks_qs
+                            if stock.product_variant_id == variant_id
+                        ]
+                        if country_code is not None and channel_slug is not None:
+                            stocks = [
                                 stock
                                 for stock in stocks
-                                if stock.product_variant_id == variant_id
-                                and stock.warehouse_id in warehouse_ids
+                                if stock.warehouse_id in warehouse_ids
                             ]
-                        )
+                        results.append(stocks)
+
+                    print("final_map", time() - mid_time)
+                    print("total", time() - start_time)
+                    print(len(results))
                     return results
 
+                mid_time = time()
                 shipping_zones_by_channel, shipping_zones_by_country = data
                 channel_ids = [channel.id for channel in channels]
 
@@ -477,7 +507,9 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
                     for shipping_zones in shipping_zones_by_country
                     for shipping_zone in shipping_zones
                 }
-                shipping_zone_ids = shipping_zone_by_channel_ids | shipping_zone_by_country_ids
+                shipping_zone_ids = (
+                    shipping_zone_by_channel_ids | shipping_zone_by_country_ids
+                )
 
                 warehouses_by_channel = WarehousesByChannelIdLoader(
                     self.context
@@ -485,18 +517,25 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
                 warehouses_by_zone = WarehousesByShippingZoneIdLoader(
                     self.context
                 ).load_many(shipping_zone_ids)
-
+                print("zones", time() - mid_time)
                 return Promise.all([warehouses_by_channel, warehouses_by_zone]).then(
                     with_warehouses
                 )
 
+            mid_time = time()
             channel_ids = [channel.id for channel in set(channels)]
-            shipping_zones_by_channel = ShippingZonesByChannelIdLoader(self.context).load_many(channel_ids)
+            shipping_zones_by_channel = ShippingZonesByChannelIdLoader(
+                self.context
+            ).load_many(channel_ids)
 
             country_codes = list(set(key[1] for key in keys if key[1]))
-            shipping_zones_by_country = ShippingZonesByCountryLoader(self.context).load_many(country_codes)
-
-            return Promise.all([shipping_zones_by_channel, shipping_zones_by_country]).then(with_shipping_zones)
+            shipping_zones_by_country = ShippingZonesByCountryLoader(
+                self.context
+            ).load_many(country_codes)
+            print("channels", time() - mid_time)
+            return Promise.all(
+                [shipping_zones_by_channel, shipping_zones_by_country]
+            ).then(with_shipping_zones)
 
         channel_slugs = list(set(key[2] for key in keys if key[2]))
         return (
@@ -518,41 +557,40 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
             country_code,
             channel_slug,
         ), variant_ids in variant_ids_by_country_and_channel_map.items():
-            if not channel_slug:
-                continue
-
+            warehouse_ids = set()
             if country_code:
-                warehouses_and_zones_in_channel["shipping_zones"] = [
-                    (zone, warehouse_ids)
-                    for (
-                        zone,
-                        warehouse_ids,
-                    ) in warehouses_and_zones_in_channel["shipping_zones"]
-                    if country_code in zone.countries
-                ]
+                shipping_zones_in_country = shipping_zones_by_country_map[country_code]
+                for zone in shipping_zones_in_country:
+                    warehouse_ids |= warehouses_by_zone_map[zone.id]
 
-            # click and collect warehouses don't have to be assigned to the
-            # shipping zones, the others must
-            warehouses_in_channel = warehouses_and_zones_in_channel["warehouses"]
-            cc_warehouse_ids = {
-                warehouse.id for warehouse, is_cc in warehouses_in_channel if is_cc
-            }
-            warehouse_in_channel_ids = {
-                warehouse_id for warehouse_id, _ in warehouses_in_channel
-            }
-            warehouse_in_published_zones_and_channel_ids = set()
-            for zone, warehouse_in_zone_ids in warehouses_and_zones_in_channel[
-                "shipping_zones"
-            ]:
-                warehouse_in_published_zones_and_channel_ids |= (
-                    warehouse_in_zone_ids & warehouse_in_channel_ids
+            if channel_slug:
+                warehouses_in_channel = warehouses_by_channel_map[channel_slug]
+                shipping_zones_in_channel = shipping_zones_by_channel_map[channel_slug]
+                cc_options = [
+                    WarehouseClickAndCollectOption.LOCAL_STOCK,
+                    WarehouseClickAndCollectOption.ALL_WAREHOUSES,
+                ]
+                cc_warehouse_in_channel_ids = {
+                    warehouse.id
+                    for warehouse in warehouses_in_channel
+                    if warehouse.click_and_collect_option in cc_options
+                }
+                warehouse_with_zone_in_channel_ids = set()
+                for zone in shipping_zones_in_channel:
+                    warehouse_with_zone_in_channel_ids |= warehouses_by_zone_map[
+                        zone.id
+                    ]
+
+                warehouse_ids &= (
+                    cc_warehouse_in_channel_ids | warehouse_with_zone_in_channel_ids
                 )
 
             warehouse_ids_by_country_and_channel_map[
                 (country_code, channel_slug)
-            ] = list(cc_warehouse_ids | warehouse_in_published_zones_and_channel_ids)
+            ] = list(warehouse_ids)
 
         return warehouse_ids_by_country_and_channel_map
+
 
 class StocksReservationsByCheckoutTokenLoader(DataLoader):
     context_key = "stock_reservations_by_checkout_token"
@@ -716,19 +754,88 @@ class WarehousesByShippingZoneIdLoader(DataLoader):
         )
 
 
-class StocksByWarehouseIdAndVariantIdLoader(DataLoader):
-    context_key = "stocks_by_warehouse_id_and_variant_id"
+class OldLoader(DataLoader[VariantIdCountryCodeChannelSlug, Iterable[Stock]]):
+    """Return stocks with available quantity based on variant ID, country code, channel.
+
+    For each country code, for each shipping zone supporting that country and channel,
+    return stocks with maximum available quantity.
+    """
+
+    context_key = "stocks_with_available_quantity_by_productvariant_country_and_channel"
 
     def batch_load(self, keys):
-        lookup = Q()
-        for key in keys:
-            variant_id, warehouse_id = key
-            lookup |= Q(product_variant_id=variant_id, warehouse_id=warehouse_id)
+        # Split the list of keys by country first. A typical query will only touch
+        # a handful of unique countries but may access thousands of product variants
+        # so it's cheaper to execute one query per country.
+        start_time = time()
+        variants_by_country_and_channel: defaultdict[
+            tuple[CountryCode, str], list[int]
+        ] = defaultdict(list)
+        for variant_id, country_code, channel_slug in keys:
+            variants_by_country_and_channel[(country_code, channel_slug)].append(
+                variant_id
+            )
 
-        stocks = Stock.objects.using(self.database_connection_name).filter(lookup)
-        stocks.annotate_available_quantity().order_by("pk")
-        stocks_by_variant_id = defaultdict(list)
+        # For each country code execute a single query for all product variants.
+        stocks_by_variant_and_country: defaultdict[
+            VariantIdCountryCodeChannelSlug, list[Stock]
+        ] = defaultdict(list)
+        for key, variant_ids in variants_by_country_and_channel.items():
+            country_code, channel_slug = key
+            variant_ids_stocks = self.batch_load_stocks_by_country(
+                country_code, channel_slug, variant_ids
+            )
+            for variant_id, stocks in variant_ids_stocks:
+                stocks_by_variant_and_country[
+                    (variant_id, country_code, channel_slug)
+                ].extend(stocks)
+        results = [stocks_by_variant_and_country[key] for key in keys]
+        print("total", time() - start_time)
+        print(len(results))
+        return results
+
+    def batch_load_stocks_by_country(
+        self,
+        country_code: Optional[CountryCode],
+        channel_slug: Optional[str],
+        variant_ids: Iterable[int],
+    ) -> Iterable[tuple[int, list[Stock]]]:
+        # convert to set to not return the same stocks for the same variant twice
+        variant_ids_set = set(variant_ids)
+        stocks = (
+            Stock.objects.all()
+            .using(self.database_connection_name)
+            .filter(product_variant_id__in=variant_ids_set)
+        )
+        if country_code:
+            stocks = stocks.filter(
+                warehouse__shipping_zones__countries__contains=country_code
+            )
+        if channel_slug:
+            # click and collect warehouses don't have to be assigned to the shipping
+            # zones, the others must
+            stocks = stocks.filter(
+                Q(
+                    warehouse__shipping_zones__channels__slug=channel_slug,
+                    warehouse__channels__slug=channel_slug,
+                )
+                | Q(
+                    warehouse__channels__slug=channel_slug,
+                    warehouse__click_and_collect_option__in=[
+                        WarehouseClickAndCollectOption.LOCAL_STOCK,
+                        WarehouseClickAndCollectOption.ALL_WAREHOUSES,
+                    ],
+                )
+            )
+        stocks = stocks.annotate_available_quantity().order_by("pk")
+
+        stocks_by_variant_id_map: defaultdict[int, list[Stock]] = defaultdict(list)
         for stock in stocks:
-            stocks_by_variant_id[stock.product_variant_id].append(stock)
-
-        return [stocks_by_variant_id[key[0]] for key in keys]
+            stocks_by_variant_id_map[stock.product_variant_id].append(stock)
+        return [
+            (
+                variant_id,
+                stocks_by_variant_id_map[variant_id],
+            )
+            for variant_id in variant_ids_set
+        ]
