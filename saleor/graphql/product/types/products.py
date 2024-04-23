@@ -114,8 +114,8 @@ from ...utils import get_user_or_app_from_context
 from ...utils.filters import reporting_period_to_date
 from ...warehouse.dataloaders import (
     AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader,
-    OldLoader,
     PreorderQuantityReservedByVariantChannelListingIdLoader,
+    StocksByProductVariantIdLoader,
     StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader,
 )
 from ...warehouse.types import Stock
@@ -396,19 +396,16 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
     ):
         if address is not None:
             country_code = address.country
-        x = 2
-        if x == 1:
-            print("NEW RESOLVER:")
-            return StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
+        channle_slug = root.channel_slug
+
+        if channle_slug or country_code:
+            return StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(  # noqa: E501
                 info.context
             ).load(
                 (root.node.id, country_code, root.channel_slug)
             )
         else:
-            print("OLD RESOLVER:")
-            return OldLoader(info.context).load(
-                (root.node.id, country_code, root.channel_slug)
-            )
+            return StocksByProductVariantIdLoader(info.context).load(root.node.id)
 
     @staticmethod
     @load_site_callback
