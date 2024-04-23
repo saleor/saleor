@@ -466,13 +466,8 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
                             stock
                             for stock in stocks_qs
                             if stock.product_variant_id == variant_id
+                            and stock.warehouse_id in warehouse_ids
                         ]
-                        if country_code is not None and channel_slug is not None:
-                            stocks = [
-                                stock
-                                for stock in stocks
-                                if stock.warehouse_id in warehouse_ids
-                            ]
                         results.append(stocks)
 
                     return results
@@ -540,6 +535,7 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
         ), variant_ids in variant_ids_by_country_and_channel_map.items():
             warehouses = set()
             warehouses_in_country = set()
+            # get warehouses from shipping zones in specific country
             if country_code:
                 shipping_zones_in_country = shipping_zones_by_country_map[country_code]
                 for zone in shipping_zones_in_country:
@@ -552,11 +548,14 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
                     WarehouseClickAndCollectOption.LOCAL_STOCK,
                     WarehouseClickAndCollectOption.ALL_WAREHOUSES,
                 ]
+                # get click & collect warehouses available in channel
                 cc_warehouses_in_channel = {
-                    warehouse.id
+                    warehouse
                     for warehouse in warehouses_in_channel
                     if warehouse.click_and_collect_option in cc_options
                 }
+
+                # get warehouses with shipping zone, both available in channel
                 warehouses_with_zone_in_channel = set()
                 for zone in shipping_zones_in_channel:
                     warehouses_with_zone_in_channel |= (

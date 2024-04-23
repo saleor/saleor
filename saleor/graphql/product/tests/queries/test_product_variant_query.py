@@ -3,6 +3,7 @@ from django.contrib.sites.models import Site
 from measurement.measures import Weight
 
 from .....core.units import WeightUnits
+from .....warehouse import WarehouseClickAndCollectOption
 from ....core.enums import WeightUnitsEnum
 from ....tests.utils import assert_no_permission, get_graphql_content
 
@@ -165,6 +166,41 @@ def test_fetch_variant_no_stocks(
     assert (
         channel_listing_data["costPrice"]["amount"] == channel_listing.cost_price_amount
     )
+
+
+def test_fetch_variant_stocks_from_click_and_collect_warehouse(
+    staff_api_client,
+    product,
+    permission_manage_products,
+    channel_USD,
+):
+    # given
+    query = QUERY_VARIANT
+    variant = product.variants.first()
+    stocks_count = variant.stocks.count()
+    warehouse = variant.stocks.first().warehouse
+
+    # remove the warehouse shipping zones and mark it as click and collect
+    # the stocks for this warehouse should be still returned
+    warehouse.shipping_zones.clear()
+    warehouse.click_and_collect_option = WarehouseClickAndCollectOption.LOCAL_STOCK
+    warehouse.save(update_fields=["click_and_collect_option"])
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    variables = {"id": variant_id, "countryCode": "EU", "channel": channel_USD.slug}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productVariant"]
+    assert data["name"] == variant.name
+    assert data["created"] == variant.created_at.isoformat()
+
+    assert len(data["stocksByAddress"]) == stocks_count
+    assert not data["deprecatedStocksByCountry"]
 
 
 QUERY_PRODUCT_VARIANT_CHANNEL_LISTING = """
