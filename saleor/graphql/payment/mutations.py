@@ -3,6 +3,7 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Dict, List, Optional, Union, cast
 
 import graphene
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.db import transaction
@@ -1902,12 +1903,15 @@ class TransactionSessionBase(BaseMutation):
                 }
             )
 
-        if source_object.payment_transactions.count() >= cls.TRANSACTION_ITEMS_LIMIT:
+        if (
+            source_object.payment_transactions.count()
+            >= settings.TRANSACTION_ITEMS_LIMIT
+        ):
             raise ValidationError(
                 {
-                    "transactions": ValidationError(
+                    "id": ValidationError(
                         f"{source_object_type} transactions limit of "
-                        f"{cls.TRANSACTION_ITEMS_LIMIT} reached.",
+                        f"{settings.TRANSACTION_ITEMS_LIMIT} reached.",
                         code=TransactionInitializeErrorCode.INVALID.value,
                     )
                 }
@@ -1964,7 +1968,9 @@ class PaymentGatewayInitialize(TransactionSessionBase):
             "Initializes a payment gateway session. It triggers the webhook "
             "`PAYMENT_GATEWAY_INITIALIZE_SESSION`, to the requested `paymentGateways`. "
             "If `paymentGateways` is not provided, the webhook will be send to all "
-            "subscribed payment gateways." + ADDED_IN_313 + PREVIEW_FEATURE
+            "subscribed payment gateways. There is a limit of "
+            f"{settings.TRANSACTION_ITEMS_LIMIT} transaction items per checkout / "
+            "order." + ADDED_IN_313 + PREVIEW_FEATURE
         )
         error_type_class = common_types.PaymentGatewayInitializeError
 
@@ -2102,8 +2108,8 @@ class TransactionInitialize(TransactionSessionBase):
         description = (
             "Initializes a transaction session. It triggers the webhook "
             "`TRANSACTION_INITIALIZE_SESSION`, to the requested `paymentGateways`. "
-            + ADDED_IN_313
-            + PREVIEW_FEATURE
+            f"There is a limit of {settings.TRANSACTION_ITEMS_LIMIT} transaction "
+            "items per checkout / order." + ADDED_IN_313 + PREVIEW_FEATURE
         )
         error_type_class = common_types.TransactionInitializeError
 

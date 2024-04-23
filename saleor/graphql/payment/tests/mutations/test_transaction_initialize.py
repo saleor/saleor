@@ -3,6 +3,8 @@ from decimal import Decimal
 
 import mock
 import pytest
+from django.conf import settings
+from django.test import override_settings
 from freezegun import freeze_time
 
 from .....channel import TransactionFlowStrategy
@@ -229,6 +231,42 @@ def test_for_checkout_without_payment_gateway_data(
     )
     assert checkout.charge_status == CheckoutChargeStatus.PARTIAL
     assert checkout.authorize_status == CheckoutAuthorizeStatus.PARTIAL
+
+
+@override_settings(TRANSACTION_ITEMS_LIMIT=3)
+def test_for_checkout_transactions_limit_on_transaction_initialize(
+    user_api_client, checkout_with_prices
+):
+    # given
+    TransactionItem.objects.bulk_create(
+        [
+            TransactionItem(
+                checkout=checkout_with_prices, currency=checkout_with_prices.currency
+            )
+            for _ in range(settings.TRANSACTION_ITEMS_LIMIT)
+        ]
+    )
+
+    variables = {
+        "action": None,
+        "amount": 99,
+        "id": to_global_id_or_none(checkout_with_prices),
+        "paymentGateway": {"id": "any", "data": None},
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["transactionInitialize"]
+    assert data["errors"]
+    error = data["errors"][0]
+    assert error["code"] == TransactionInitializeErrorCode.INVALID.name
+    assert error["field"] == "id"
+    assert error["message"] == (
+        "Checkout transactions limit of " f"{settings.TRANSACTION_ITEMS_LIMIT} reached."
+    )
 
 
 def test_for_checkout_transactions_limit(user_api_client, checkout_with_prices):
