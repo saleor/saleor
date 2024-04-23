@@ -925,3 +925,8 @@ GIFTS_LIMIT_PER_RULE = os.environ.get("GIFTS_LIMIT_PER_RULE", 500)
 ENABLE_LIMITING_WEBHOOKS_FOR_IDENTICAL_PAYLOADS = get_bool_from_env(
     "ENABLE_LIMITING_WEBHOOKS_FOR_IDENTICAL_PAYLOADS", False
 )
+
+
+# Transaction items limit for PaymentGatewayInitialize / TransactionInitialize.
+# That setting limits the allowed number of transaction items for single entity.
+TRANSACTION_ITEMS_LIMIT = 100
