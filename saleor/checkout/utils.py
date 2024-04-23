@@ -528,13 +528,18 @@ def get_voucher_for_checkout(
         except VoucherCode.DoesNotExist:
             return None, None
 
-        voucher = (
-            Voucher.objects.active_in_channel(
-                date=timezone.now(), channel_slug=channel_slug
+        # The voucher validation should be performed only when the voucher
+        # usage for this checkout hasn't been increased.
+        if checkout.is_voucher_usage_increased:
+            voucher = Voucher.objects.filter(id=code.voucher_id).first()
+        else:
+            voucher = (
+                Voucher.objects.active_in_channel(
+                    date=timezone.now(), channel_slug=channel_slug
+                )
+                .filter(id=code.voucher_id)
+                .first()
             )
-            .filter(id=code.voucher_id)
-            .first()
-        )
 
         if not voucher:
             return None, None
