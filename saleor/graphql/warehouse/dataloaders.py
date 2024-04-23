@@ -398,9 +398,8 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
             def with_shipping_zones(data):
                 def with_warehouses(warehouse_data):
                     warehouses_by_channel, warehouses_by_zone = warehouse_data
-                    # Split the list of keys by country first. A typical query will only
-                    # touch a handful of unique countries but may access thousands of
-                    # product variants.
+
+                    # build maps
                     variant_ids_by_country_and_channel_map: defaultdict[
                         tuple[CountryCode, str], list[int]
                     ] = defaultdict(list)
@@ -416,9 +415,9 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
                         )
                     }
                     shipping_zones_by_country_map = {
-                        channel.slug: set(shipping_zones)
-                        for shipping_zones, channel in zip(
-                            shipping_zones_by_country, channels
+                        country_code: set(shipping_zones)
+                        for shipping_zones, country_code in zip(
+                            shipping_zones_by_country, country_codes
                         )
                     }
                     warehouses_by_channel_map = {
@@ -431,6 +430,8 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
                             warehouses_by_zone, shipping_zone_ids
                         )
                     }
+
+                    # filter warehouses
                     warehouse_ids_by_country_and_channel_map = (
                         self.get_relevant_warehouses(
                             variant_ids_by_country_and_channel_map,
@@ -537,11 +538,12 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
             country_code,
             channel_slug,
         ), variant_ids in variant_ids_by_country_and_channel_map.items():
-            warehouse_ids = set()
+            warehouses = set()
+            warehouses_in_country = set()
             if country_code:
                 shipping_zones_in_country = shipping_zones_by_country_map[country_code]
                 for zone in shipping_zones_in_country:
-                    warehouse_ids |= warehouses_by_zone_map[zone.id]
+                    warehouses_in_country |= warehouses_by_zone_map[zone.id]
 
             if channel_slug:
                 warehouses_in_channel = warehouses_by_channel_map[channel_slug]
@@ -550,24 +552,24 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
                     WarehouseClickAndCollectOption.LOCAL_STOCK,
                     WarehouseClickAndCollectOption.ALL_WAREHOUSES,
                 ]
-                cc_warehouse_in_channel_ids = {
+                cc_warehouses_in_channel = {
                     warehouse.id
                     for warehouse in warehouses_in_channel
                     if warehouse.click_and_collect_option in cc_options
                 }
-                warehouse_with_zone_in_channel_ids = set()
+                warehouses_with_zone_in_channel = set()
                 for zone in shipping_zones_in_channel:
-                    warehouse_with_zone_in_channel_ids |= warehouses_by_zone_map[
-                        zone.id
-                    ]
+                    warehouses_with_zone_in_channel |= (
+                        warehouses_by_zone_map[zone.id] & warehouses_in_channel
+                    )
 
-                warehouse_ids &= (
-                    cc_warehouse_in_channel_ids | warehouse_with_zone_in_channel_ids
-                )
+                warehouses = cc_warehouses_in_channel | warehouses_with_zone_in_channel
+                if country_code:
+                    warehouses &= warehouses_in_country
 
-            warehouse_ids_by_country_and_channel_map[
-                (country_code, channel_slug)
-            ] = list(warehouse_ids)
+            warehouse_ids_by_country_and_channel_map[(country_code, channel_slug)] = [
+                warehouse.id for warehouse in warehouses
+            ]
 
         return warehouse_ids_by_country_and_channel_map
 

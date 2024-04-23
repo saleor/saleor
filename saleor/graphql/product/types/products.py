@@ -397,7 +397,6 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
         if address is not None:
             country_code = address.country
         channle_slug = root.channel_slug
-
         if channle_slug or country_code:
             return StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(  # noqa: E501
                 info.context

@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from django.db.models import Exists, F, OuterRef
+from django.db.models import Exists, F, OuterRef, Q
 
 from ...channel.models import Channel
 from ...shipping.models import (
@@ -223,8 +223,17 @@ class ShippingZonesByCountryLoader(DataLoader):
     context_key = "shippingzones_by_country"
 
     def batch_load(self, keys):
+        lookup = Q()
+        for key in keys:
+            lookup |= Q(countries__contains=key)
         shipping_zones = ShippingZone.objects.using(
             self.database_connection_name
-        ).filter(countries__in=[keys]).in_bulk(keys)
-        return [shipping_zones.get(key) for key in keys]
+        ).filter(lookup)
 
+        shipping_zones_by_country = defaultdict(list)
+        for shipping_zone in shipping_zones:
+            for country_code in keys:
+                if country_code in shipping_zone.countries:
+                    shipping_zones_by_country[country_code].append(shipping_zone)
+
+        return [shipping_zones_by_country[key] for key in keys]
