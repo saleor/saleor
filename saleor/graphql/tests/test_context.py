@@ -76,17 +76,13 @@ def test_get_context_value_uses_request_time_if_passed_already(rf):
 # {'query': '{\n  me {\n    id\n  }\n}'}
 
 
-def test_clear_context(rf, staff_user, app):
+def test_clear_context(rf):
     # given
     context = get_context_value(rf.request())
     context.dataloaders = {"key": "value"}  # type: ignore
-    context.user = staff_user
-    context.app = app
 
     # when
     clear_context(context)
 
     # then
     assert context.dataloaders == {}
-    assert context.user is None
-    assert context.app is None

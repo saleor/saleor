@@ -28,8 +28,6 @@ def get_context_value(request: HttpRequest) -> SaleorContext:
 
 def clear_context(context: SaleorContext):
     context.dataloaders.clear()
-    context.user = None
-    context.app = None
 
 
 class RequestWithUser(HttpRequest):

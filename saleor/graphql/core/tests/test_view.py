@@ -354,4 +354,3 @@ def test_graphql_view_clears_context(rf, staff_user, product):
     assert json_data["data"]["product"]["category"]["name"] == product.category.name
     assert response.status_code == 200
     assert request.dataloaders == {}
-    assert request.user is None

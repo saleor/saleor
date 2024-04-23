@@ -64,18 +64,15 @@ class CheckoutLineInfo:
 
 @dataclass
 class CheckoutInfo:
-    # compare=False used to avoid comparing the manager attribute as it's irrelevant
-    # for the equality checkout infos; this is used in tests
     manager: "PluginsManager" = field(compare=False)
-    lines: Iterable[CheckoutLineInfo] = field(compare=False)
-
     checkout: "Checkout"
     user: Optional["User"]
     channel: "Channel"
     billing_address: Optional["Address"]
     shipping_address: Optional["Address"]
     tax_configuration: "TaxConfiguration"
-    shipping_channel_listings: Iterable["ShippingMethodChannelListing"]
+    lines: Iterable[CheckoutLineInfo]
+    shipping_channel_listings: list["ShippingMethodChannelListing"]
     shipping_method: Optional["ShippingMethod"] = None
     collection_point: Optional["Warehouse"] = None
     voucher: Optional["Voucher"] = None
@@ -97,7 +94,7 @@ class CheckoutInfo:
         initialize_shipping_method_active_status(all_methods, excluded_methods)
         return all_methods
 
-    @cached_property
+    @property
     def valid_pick_up_points(self) -> Iterable["Warehouse"]:
         from .utils import get_valid_collection_points_for_checkout
 
@@ -589,3 +586,19 @@ def get_all_shipping_methods_list(
             ),
         )
     )
+
+
+def update_delivery_method_lists_for_checkout_info(
+    checkout_info: "CheckoutInfo",
+    shipping_method: Optional["ShippingMethod"],
+    collection_point: Optional["Warehouse"],
+    shipping_address: Optional["Address"],
+    lines: Iterable[CheckoutLineInfo],
+    shipping_channel_listings: Iterable[ShippingMethodChannelListing],
+):
+    # Update checkout info fields with new data
+    checkout_info.shipping_method = shipping_method
+    checkout_info.collection_point = collection_point
+    checkout_info.shipping_address = shipping_address
+    checkout_info.lines = lines
+    checkout_info.shipping_channel_listings = list(shipping_channel_listings)
