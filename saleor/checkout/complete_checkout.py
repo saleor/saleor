@@ -116,12 +116,48 @@ def _process_voucher_data_for_order(checkout_info: "CheckoutInfo") -> dict:
         return {}
 
     customer_email = cast(str, checkout_info.get_customer_email())
-    increase_voucher_usage(voucher, voucher_code, customer_email)
 
+    _increase_checkout_voucher_usage(checkout, voucher_code, voucher, customer_email)
     return {
         "voucher": voucher,
         "voucher_code": voucher_code.code,
     }
+
+
+@traced_atomic_transaction()
+def _increase_checkout_voucher_usage(
+    checkout: "Checkout",
+    voucher_code: "VoucherCode",
+    voucher: "Voucher",
+    customer_email: str,
+):
+    # Prevent race condition when two different threads are processing the same checkout
+    # with limited usage voucher assigned, both threads increasing the
+    # voucher usage which causing `NotApplicable` error for voucher.
+    if checkout.is_voucher_usage_increased:
+        return
+    increase_voucher_usage(voucher, voucher_code, customer_email)
+    checkout.is_voucher_usage_increased = True
+    checkout.save(update_fields=["is_voucher_usage_increased"])
+
+
+@traced_atomic_transaction()
+def _release_checkout_voucher_usage(
+    checkout: "Checkout",
+    voucher_code: Optional["VoucherCode"],
+    voucher: Optional["Voucher"],
+    user_email: Optional[str],
+):
+    if not checkout.is_voucher_usage_increased or not voucher_code:
+        return
+
+    release_voucher_code_usage(
+        voucher_code,
+        voucher,
+        user_email,
+    )
+    checkout.is_voucher_usage_increased = False
+    checkout.save(update_fields=["is_voucher_usage_increased"])
 
 
 def _process_shipping_data_for_order(
@@ -525,7 +561,8 @@ def _prepare_order_data(
     try:
         manager.preprocess_order_creation(checkout_info, lines)
     except TaxError:
-        release_voucher_code_usage(
+        _release_checkout_voucher_usage(
+            checkout,
             checkout_info.voucher_code,
             checkout_info.voucher,
             order_data.get("user_email"),
@@ -816,6 +853,7 @@ def _get_order_data(
 
 
 def _process_payment(
+    checkout: Checkout,
     payment: Payment,
     customer_id: Optional[str],
     store_source: bool,
@@ -850,10 +888,8 @@ def _process_payment(
         if not txn.is_success:
             raise PaymentError(txn.error)
     except PaymentError as e:
-        release_voucher_code_usage(
-            voucher_code,
-            voucher,
-            order_data.get("user_email"),
+        _release_checkout_voucher_usage(
+            checkout, voucher_code, voucher, order_data.get("user_email")
         )
         raise ValidationError(str(e), code=CheckoutErrorCode.PAYMENT_ERROR.value)
     return txn
@@ -929,7 +965,8 @@ def complete_checkout_post_payment_part(
         action_required = txn.action_required
         if action_required:
             action_data = txn.action_required_data
-            release_voucher_code_usage(
+            _release_checkout_voucher_usage(
+                checkout_info.checkout,
                 checkout_info.voucher_code,
                 checkout_info.voucher,
                 order_data.get("user_email"),
@@ -952,7 +989,8 @@ def complete_checkout_post_payment_part(
             # remove checkout after order is successfully created
             checkout_info.checkout.delete()
         except InsufficientStock as e:
-            release_voucher_code_usage(
+            _release_checkout_voucher_usage(
+                checkout_info.checkout,
                 checkout_info.voucher_code,
                 checkout_info.voucher,
                 order_data.get("user_email"),
@@ -963,7 +1001,8 @@ def complete_checkout_post_payment_part(
             error = prepare_insufficient_stock_checkout_validation_error(e)
             raise error
         except GiftCardNotApplicable as e:
-            release_voucher_code_usage(
+            _release_checkout_voucher_usage(
+                checkout_info.checkout,
                 checkout_info.voucher_code,
                 checkout_info.voucher,
                 order_data.get("user_email"),
@@ -1002,8 +1041,9 @@ def _increase_voucher_code_usage_value(checkout_info: "CheckoutInfo"):
         return None
 
     customer_email = cast(str, checkout_info.get_customer_email())
-    increase_voucher_usage(voucher, code, customer_email)
 
+    checkout = checkout_info.checkout
+    _increase_checkout_voucher_usage(checkout, code, voucher, customer_email)
     return code
 
 
@@ -1368,17 +1408,13 @@ def create_order_from_checkout(
                 checkout_info.checkout.delete()
             return order
         except InsufficientStock:
-            release_voucher_code_usage(
-                code,
-                voucher,
-                checkout_info.checkout.get_customer_email(),
+            _release_checkout_voucher_usage(
+                checkout, code, voucher, checkout_info.checkout.get_customer_email()
             )
             raise
         except GiftCardNotApplicable:
-            release_voucher_code_usage(
-                code,
-                voucher,
-                checkout_info.checkout.get_customer_email(),
+            _release_checkout_voucher_usage(
+                checkout, code, voucher, checkout_info.checkout.get_customer_email()
             )
             raise
 
@@ -1557,9 +1593,17 @@ def complete_checkout_with_payment(
     voucher_code = checkout_info.voucher_code
     if payment:
         with transaction_with_commit_on_errors():
-            Checkout.objects.select_for_update().filter(pk=checkout_pk).first()
+            checkout = (
+                Checkout.objects.select_for_update().filter(pk=checkout_pk).first()
+            )
+
+            if not checkout:
+                order = Order.objects.get_by_checkout_token(checkout_pk)
+                return order, False, {}
+
             payment = Payment.objects.select_for_update().get(id=payment.id)
             txn = _process_payment(
+                checkout=checkout,
                 payment=payment,
                 customer_id=customer_id,
                 store_source=store_source,
