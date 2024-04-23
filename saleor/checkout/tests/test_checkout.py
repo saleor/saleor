@@ -41,6 +41,7 @@ from ..utils import (
     get_checkout_metadata,
     get_external_shipping_id,
     get_voucher_discount_for_checkout,
+    get_voucher_for_checkout,
     get_voucher_for_checkout_info,
     is_fully_paid,
     recalculate_checkout_discount,
@@ -1137,6 +1138,52 @@ def test_get_voucher_for_checkout_info_no_voucher_code(checkout):
     checkout_info = fetch_checkout_info(checkout, [], manager)
     checkout_voucher = get_voucher_for_checkout_info(checkout_info)
     assert checkout_voucher is None
+
+
+def test_get_voucher_for_checkout(checkout_with_voucher, voucher):
+    # given
+    checkout = checkout_with_voucher
+    voucher.usage_limit = 1
+    voucher.save(update_fields=["usage_limit"])
+
+    # when
+    checkout_voucher = get_voucher_for_checkout(checkout, checkout.channel.slug)
+
+    # then
+    assert checkout_voucher == voucher
+
+
+def test_get_voucher_for_checkout_voucher_used(checkout_with_voucher, voucher):
+    # given
+    checkout = checkout_with_voucher
+    voucher.usage_limit = 1
+    voucher.used = 1
+    voucher.save(update_fields=["usage_limit", "used"])
+
+    # when
+    checkout_voucher = get_voucher_for_checkout(checkout, checkout.channel.slug)
+
+    # then
+    assert checkout_voucher is None
+
+
+def test_get_voucher_for_checkout_voucher_used_voucher_usage_already_increased(
+    checkout_with_voucher, voucher
+):
+    # given
+    checkout = checkout_with_voucher
+    checkout.is_voucher_usage_increased = True
+    checkout.save(update_fields=["is_voucher_usage_increased"])
+
+    voucher.usage_limit = 1
+    voucher.used = 1
+    voucher.save(update_fields=["usage_limit", "used"])
+
+    # when
+    checkout_voucher = get_voucher_for_checkout(checkout, checkout.channel.slug)
+
+    # then
+    assert checkout_voucher == voucher
 
 
 def test_remove_voucher_from_checkout(checkout_with_voucher, voucher_translation_fr):
