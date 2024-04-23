@@ -625,7 +625,22 @@ def test_fetch_variant_without_sku_anonymous(api_client, product, variant, chann
     assert data["product"]["id"] == product_id
 
 
-def test_query_product_variant_for_federation(api_client, variant, channel_USD):
+QUERY_PRODUCT_VARIANT_IN_FEDERATION = """
+query GetProductVariantInFederation($representations: [_Any]) {
+  _entities(representations: $representations) {
+    __typename
+    ... on ProductVariant {
+      id
+      name
+    }
+  }
+}
+"""
+
+
+def test_query_product_variant_for_federation_as_customer(
+    api_client, variant, channel_USD
+):
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     variables = {
         "representations": [
@@ -636,19 +651,173 @@ def test_query_product_variant_for_federation(api_client, variant, channel_USD):
             },
         ],
     }
-    query = """
-      query GetProductVariantInFederation($representations: [_Any]) {
-        _entities(representations: $representations) {
-          __typename
-          ... on ProductVariant {
-            id
-            name
-          }
-        }
-      }
-    """
 
-    response = api_client.post_graphql(query, variables)
+    response = api_client.post_graphql(QUERY_PRODUCT_VARIANT_IN_FEDERATION, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["_entities"] == [
+        {
+            "__typename": "ProductVariant",
+            "id": variant_id,
+            "name": variant.name,
+        }
+    ]
+
+
+def test_query_product_variant_for_federation_as_customer_not_existing_channel(
+    api_client, variant
+):
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    variables = {
+        "representations": [
+            {
+                "__typename": "ProductVariant",
+                "id": variant_id,
+                "channel": "not-existing-channel",
+            },
+        ],
+    }
+
+    response = api_client.post_graphql(QUERY_PRODUCT_VARIANT_IN_FEDERATION, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["_entities"] == [None]
+
+
+def test_query_product_variant_for_federation_as_customer_channel_not_active(
+    api_client, variant, channel_USD
+):
+    channel_USD.is_active = False
+    channel_USD.save()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    variables = {
+        "representations": [
+            {
+                "__typename": "ProductVariant",
+                "id": variant_id,
+                "channel": channel_USD.slug,
+            },
+        ],
+    }
+
+    response = api_client.post_graphql(QUERY_PRODUCT_VARIANT_IN_FEDERATION, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["_entities"] == [None]
+
+
+def test_query_product_variant_for_federation_as_customer_without_channel(
+    api_client, variant
+):
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    variables = {
+        "representations": [
+            {
+                "__typename": "ProductVariant",
+                "id": variant_id,
+            },
+        ],
+    }
+
+    response = api_client.post_graphql(QUERY_PRODUCT_VARIANT_IN_FEDERATION, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["_entities"] == [None]
+
+
+def test_query_product_variant_for_federation_as_staff_user(
+    staff_api_client, staff_user, variant, channel_USD, permission_manage_products
+):
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    variables = {
+        "representations": [
+            {
+                "__typename": "ProductVariant",
+                "id": variant_id,
+                "channel": channel_USD.slug,
+            },
+        ],
+    }
+
+    staff_user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCT_VARIANT_IN_FEDERATION, variables
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["_entities"] == [
+        {
+            "__typename": "ProductVariant",
+            "id": variant_id,
+            "name": variant.name,
+        }
+    ]
+
+
+def test_query_product_variant_for_federation_as_staff_user_not_existing_channel(
+    staff_api_client, staff_user, variant, permission_manage_products
+):
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    variables = {
+        "representations": [
+            {
+                "__typename": "ProductVariant",
+                "id": variant_id,
+                "channel": "not-existing-channel",
+            },
+        ],
+    }
+
+    staff_user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCT_VARIANT_IN_FEDERATION, variables
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["_entities"] == [None]
+
+
+def test_query_product_variant_for_federation_as_staff_user_channel_not_active(
+    staff_api_client, staff_user, variant, channel_USD, permission_manage_products
+):
+    channel_USD.is_active = False
+    channel_USD.save()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    variables = {
+        "representations": [
+            {
+                "__typename": "ProductVariant",
+                "id": variant_id,
+                "channel": channel_USD.slug,
+            },
+        ],
+    }
+
+    staff_user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCT_VARIANT_IN_FEDERATION, variables
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["_entities"] == [
+        {
+            "__typename": "ProductVariant",
+            "id": variant_id,
+            "name": variant.name,
+        }
+    ]
+
+
+def test_query_product_variant_for_federation_as_staff_user_without_chanel(
+    staff_api_client, staff_user, variant, channel_USD, permission_manage_products
+):
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    variables = {
+        "representations": [
+            {
+                "__typename": "ProductVariant",
+                "id": variant_id,
+            },
+        ],
+    }
+
+    staff_user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCT_VARIANT_IN_FEDERATION, variables
+    )
     content = get_graphql_content(response)
     assert content["data"]["_entities"] == [
         {
