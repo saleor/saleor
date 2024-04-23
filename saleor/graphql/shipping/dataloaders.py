@@ -217,3 +217,14 @@ class ChannelsByShippingZoneIdLoader(DataLoader):
             .load_many({pk for pk, _ in channel_and_zone_is_pairs})
             .then(map_channels)
         )
+
+
+class ShippingZonesByCountryLoader(DataLoader):
+    context_key = "shippingzones_by_country"
+
+    def batch_load(self, keys):
+        shipping_zones = ShippingZone.objects.using(
+            self.database_connection_name
+        ).filter(countries__in=[keys]).in_bulk(keys)
+        return [shipping_zones.get(key) for key in keys]
+
