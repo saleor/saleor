@@ -555,17 +555,6 @@ def get_valid_internal_shipping_method_list_for_checkout_info(
     return valid_shipping_methods
 
 
-def get_valid_external_shipping_method_list_for_checkout_info(
-    checkout_info: "CheckoutInfo",
-    shipping_address: Optional["Address"],
-    lines: Iterable[CheckoutLineInfo],
-    manager: "PluginsManager",
-) -> list["ShippingMethodData"]:
-    return manager.list_shipping_methods_for_checkout(
-        checkout=checkout_info.checkout, channel_slug=checkout_info.channel.slug
-    )
-
-
 def get_all_shipping_methods_list(
     checkout_info,
     shipping_address,
@@ -581,8 +570,8 @@ def get_all_shipping_methods_list(
                 lines,
                 shipping_channel_listings,
             ),
-            get_valid_external_shipping_method_list_for_checkout_info(
-                checkout_info, shipping_address, lines, manager
+            manager.list_shipping_methods_for_checkout(
+                checkout=checkout_info.checkout, channel_slug=checkout_info.channel.slug
             ),
         )
     )
@@ -602,3 +591,9 @@ def update_delivery_method_lists_for_checkout_info(
     checkout_info.shipping_address = shipping_address
     checkout_info.lines = lines
     checkout_info.shipping_channel_listings = list(shipping_channel_listings)
+
+    # Clear cached property if it was already calculated, so it can be recalculated.
+    try:
+        del checkout_info.all_shipping_methods
+    except AttributeError:
+        pass
