@@ -652,7 +652,7 @@ def test_external_shipping_method_called_only_once_during_tax_calculations(
     mock_send_webhook_request_sync.side_effect = (
         [
             {
-                "amount": 1337.0,
+                "amount": "1337.0",
                 "currency": "USD",
                 "id": external_method_id,
                 "name": "Shipping app method 1",
@@ -660,10 +660,10 @@ def test_external_shipping_method_called_only_once_during_tax_calculations(
         ],
         {
             "lines": [
-                {"tax_rate": 0, "total_gross_amount": 21.6, "total_net_amount": 20}
+                {"tax_rate": 0, "total_gross_amount": "21.6", "total_net_amount": 20}
             ],
-            "shipping_price_gross_amount": 1443.96,
-            "shipping_price_net_amount": 1337,
+            "shipping_price_gross_amount": "1443.96",
+            "shipping_price_net_amount": "1337",
             "shipping_tax_rate": 0,
         },
     )
