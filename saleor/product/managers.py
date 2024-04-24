@@ -299,9 +299,11 @@ class ProductVariantQueryset(models.QuerySet):
 
         if not channel:
             return self.none()
-        channel_listings = ProductVariantChannelListing.objects.filter(
-            price_amount__isnull=False, channel_id=channel.id
-        ).values("id")
+        channel_listings = (
+            ProductVariantChannelListing.objects.using(self.db)
+            .filter(price_amount__isnull=False, channel_id=channel.id)
+            .values("id")
+        )
         return self.filter(Exists(channel_listings.filter(variant_id=OuterRef("pk"))))
 
     def prefetched_for_webhook(self):

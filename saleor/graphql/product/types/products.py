@@ -809,7 +809,10 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
             channels[root.channel].add(root.id)
 
         variants = {}
-        channels_map = Channel.objects.in_bulk(set(channels.keys()), field_name="slug")
+        database_connection_name = get_database_connection_name(info.context)
+        channels_map = Channel.objects.using(database_connection_name).in_bulk(
+            set(channels.keys()), field_name="slug"
+        )
         for channel_slug, ids in channels.items():
             limited_channel_access = False if channel_slug is None else True
             qs = resolve_product_variants(
@@ -1605,7 +1608,10 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
 
         products = {}
 
-        channels_map = Channel.objects.in_bulk(set(channels.keys()), field_name="slug")
+        database_connection_name = get_database_connection_name(info.context)
+        channels_map = Channel.objects.using(database_connection_name).in_bulk(
+            set(channels.keys()), field_name="slug"
+        )
         for channel_slug, ids in channels.items():
             limited_channel_access = False if channel_slug is None else True
             queryset = resolve_products(
