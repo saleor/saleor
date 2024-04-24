@@ -14,6 +14,7 @@ class Migration(migrations.Migration):
                     """
                     ALTER TABLE discount_promotionrule
                     ADD COLUMN IF NOT EXISTS variants_dirty boolean
+                    DEFAULT false;
                     """,
                     reverse_sql="""
                     ALTER TABLE discount_promotionrule DROP COLUMN variants_dirty
@@ -27,13 +28,5 @@ class Migration(migrations.Migration):
                     field=models.BooleanField(default=False),
                 )
             ],
-        ),
-        migrations.RunSQL(
-            """
-            ALTER TABLE discount_promotionrule
-            ALTER COLUMN variants_dirty
-            SET DEFAULT false;
-            """,
-            migrations.RunSQL.noop,
         ),
     ]
