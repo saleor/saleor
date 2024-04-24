@@ -2268,3 +2268,20 @@ def test_release_checkout_voucher_usage_checkout_usage_not_increased(
     checkout_with_voucher.refresh_from_db()
     assert checkout_with_voucher.is_voucher_usage_increased is False
     release_voucher_usage_mock.assert_not_called()
+
+
+@mock.patch("saleor.discount.utils.decrease_voucher_usage")
+def test_release_checkout_voucher_usage_no_voucher(
+    decrease_voucher_usage_mock, checkout_with_voucher
+):
+    # given
+    checkout_with_voucher.is_voucher_usage_increased = True
+    checkout_with_voucher.save(update_fields=["is_voucher_usage_increased"])
+
+    # when
+    _release_checkout_voucher_usage(checkout_with_voucher, None, None, None)
+
+    # then
+    checkout_with_voucher.refresh_from_db()
+    assert checkout_with_voucher.is_voucher_usage_increased is False
+    decrease_voucher_usage_mock.assert_not_called()

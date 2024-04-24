@@ -142,7 +142,7 @@ def _increase_checkout_voucher_usage(
     # Prevent race condition when two different threads are processing the same checkout
     # with limited usage voucher assigned, both threads increasing the
     # voucher usage which causing `NotApplicable` error for voucher.
-    if checkout.is_voucher_usage_increased:
+    if checkout.is_voucher_usage_increased or not voucher:
         return
 
     if voucher.usage_limit:
@@ -160,7 +160,7 @@ def _release_checkout_voucher_usage(
     voucher: Optional["Voucher"],
     user_email: Optional[str],
 ):
-    if not checkout.is_voucher_usage_increased or not voucher_code:
+    if not checkout.is_voucher_usage_increased:
         return
 
     release_voucher_usage(
