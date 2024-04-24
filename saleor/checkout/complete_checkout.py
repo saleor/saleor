@@ -134,6 +134,7 @@ def _increase_checkout_voucher_usage(
     # voucher usage which causing `NotApplicable` error for voucher.
     if checkout.is_voucher_usage_increased:
         return
+
     increase_voucher_usage(voucher, voucher_code, customer_email)
     checkout.is_voucher_usage_increased = True
     checkout.save(update_fields=["is_voucher_usage_increased"])
@@ -146,16 +147,18 @@ def _release_checkout_voucher_usage(
     voucher: Optional["Voucher"],
     user_email: Optional[str],
 ):
-    if not checkout.is_voucher_usage_increased or not voucher_code:
+    if not checkout.is_voucher_usage_increased:
         return
 
-    release_voucher_code_usage(
-        voucher_code,
-        voucher,
-        user_email,
-    )
     checkout.is_voucher_usage_increased = False
     checkout.save(update_fields=["is_voucher_usage_increased"])
+
+    if voucher_code:
+        release_voucher_code_usage(
+            voucher_code,
+            voucher,
+            user_email,
+        )
 
 
 def _process_shipping_data_for_order(
