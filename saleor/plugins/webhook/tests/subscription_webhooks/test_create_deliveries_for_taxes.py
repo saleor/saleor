@@ -190,7 +190,7 @@ def test_checkout_calculate_taxes_with_free_shipping_voucher(
 
 
 @freeze_time("2020-03-18 12:00:00")
-def test_checkout_calculate_taxes_with_voucher(
+def test_checkout_calculate_taxes_with_entire_order_voucher(
     checkout_with_voucher,
     webhook_app,
     permission_handle_taxes,
@@ -231,6 +231,64 @@ def test_checkout_calculate_taxes_with_voucher(
                     },
                     "totalPrice": {"amount": 30.0},
                     "unitPrice": {"amount": 10.0},
+                    "variantName": "",
+                }
+            ],
+            "pricesEnteredWithTax": True,
+            "shippingPrice": {"amount": 0.0},
+            "sourceObject": {
+                "id": to_global_id_or_none(checkout_with_voucher),
+                "__typename": "Checkout",
+            },
+        },
+    }
+
+
+@freeze_time("2020-03-18 12:00:00")
+def test_checkout_calculate_taxes_with_entire_order_voucher_once_per_order(
+    voucher,
+    checkout_with_voucher,
+    webhook_app,
+    permission_handle_taxes,
+):
+    # given
+    webhook_app.permissions.add(permission_handle_taxes)
+    webhook = Webhook.objects.create(
+        name="Webhook",
+        app=webhook_app,
+        target_url="http://www.example.com/any",
+        subscription_query=TAXES_SUBSCRIPTION_QUERY,
+    )
+    event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
+    webhook.events.create(event_type=event_type)
+    voucher.apply_once_per_order = True
+    voucher.save()
+
+    # when
+    deliveries = create_delivery_for_subscription_sync_event(
+        event_type, checkout_with_voucher, webhook
+    )
+
+    # then
+    assert json.loads(deliveries.payload.payload) == {
+        "__typename": "CalculateTaxes",
+        "taxBase": {
+            "address": None,
+            "currency": "USD",
+            "discounts": [],
+            "channel": {"id": to_global_id_or_none(checkout_with_voucher.channel)},
+            "lines": [
+                {
+                    "chargeTaxes": True,
+                    "productName": "Test product",
+                    "productSku": "123",
+                    "quantity": 3,
+                    "sourceLine": {
+                        "id": to_global_id_or_none(checkout_with_voucher.lines.first()),
+                        "__typename": "CheckoutLine",
+                    },
+                    "totalPrice": {"amount": 20.0},
+                    "unitPrice": {"amount": 6.67},
                     "variantName": "",
                 }
             ],
