@@ -320,3 +320,25 @@ class StockUpdatePolicy:
         (UPDATE, "Only do update, if there is enough stocks."),
         (FORCE, "Force update, if there is not enough stocks."),
     ]
+
+
+class OrderGrantedRefundStatus:
+    """Represents the status of a granted refund.
+
+    NONE - the refund on related transactionItem is not processed
+    PENDING - the refund on related transactionItem is pending
+    FULL - the refund on related transactionItem is fully processed
+    FAIL - the refund on related transactionItem failed
+    """
+
+    NONE = "none"
+    PENDING = "pending"
+    SUCCESS = "success"
+    FAILURE = "failure"
+
+    CHOICES = [
+        (NONE, "The refund on related transactionItem is not processed"),
+        (PENDING, "The refund on related transactionItem is pending"),
+        (SUCCESS, "The refund on related transactionItem is successfully processed"),
+        (FAILURE, "The refund on related transactionItem failed"),
+    ]

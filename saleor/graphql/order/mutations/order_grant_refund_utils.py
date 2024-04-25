@@ -9,8 +9,13 @@ from ....order import models
 from ...core.utils import from_global_id_or_error
 
 
-def shipping_costs_already_granted(order: models.Order):
-    if order.granted_refunds.filter(shipping_costs_included=True):
+def shipping_costs_already_granted(
+    order: models.Order, grant_refund_pk_to_exclude=None
+):
+    qs = order.granted_refunds.filter(shipping_costs_included=True)
+    if grant_refund_pk_to_exclude:
+        qs = qs.exclude(pk=grant_refund_pk_to_exclude)
+    if qs.exists():
         return True
     return False
 

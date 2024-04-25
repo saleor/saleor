@@ -13079,6 +13079,27 @@ type OrderGrantedRefund @doc(category: "Orders") {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   lines: [OrderGrantedRefundLine!]
+
+  """
+  Status of the granted refund calculated based on transactionItem assigned to granted refund.
+  
+  Added in Saleor 3.20.
+  """
+  status: OrderGrantedRefundStatusEnum!
+
+  """
+  List of refund events associated with the granted refund.
+  
+  Added in Saleor 3.20.
+  """
+  transactionEvents: [TransactionEvent!]
+
+  """
+  The transaction assigned to the granted refund.
+  
+  Added in Saleor 3.20.
+  """
+  transaction: TransactionItem
 }
 
 """
@@ -13099,6 +13120,21 @@ type OrderGrantedRefundLine {
 
   """Reason for refunding the line."""
   reason: String
+}
+
+"""
+Represents the status of a granted refund.
+
+    NONE - the refund on related transactionItem is not processed
+    PENDING - the refund on related transactionItem is pending
+    FULL - the refund on related transactionItem is fully processed
+    FAIL - the refund on related transactionItem failed
+"""
+enum OrderGrantedRefundStatusEnum @doc(category: "Orders") {
+  NONE
+  PENDING
+  SUCCESS
+  FAILURE
 }
 
 """Represents transaction's event."""
@@ -16864,13 +16900,13 @@ type Mutation {
     """The ID of the granted refund."""
     grantedRefundId: ID!
 
-    """The ID of the transaction. One of field id or token is required."""
+    """
+    The ID of the transaction. One of field id or token is required, if `transactionItem` is not already assigned to the `orderGrantedRefund`. If `transactionItem` is already assigned to the grantedRefund the field will be ignored.
+    """
     id: ID
 
     """
-    The token of the transaction. One of field id or token is required.
-    
-    Added in Saleor 3.14.
+    The token of the transaction. One of field id or token is required, if `transactionItem` is not already assigned to the `orderGrantedRefund`. If `transactionItem` is already assigned to the grantedRefund the field will be ignored.
     """
     token: UUID
   ): TransactionRequestRefundForGrantedRefund @doc(category: "Payments")
@@ -16922,7 +16958,7 @@ type Mutation {
   ): TransactionEventReport @doc(category: "Payments")
 
   """
-  Initializes a payment gateway session. It triggers the webhook `PAYMENT_GATEWAY_INITIALIZE_SESSION`, to the requested `paymentGateways`. If `paymentGateways` is not provided, the webhook will be send to all subscribed payment gateways.
+  Initializes a payment gateway session. It triggers the webhook `PAYMENT_GATEWAY_INITIALIZE_SESSION`, to the requested `paymentGateways`. If `paymentGateways` is not provided, the webhook will be send to all subscribed payment gateways. There is a limit of 100 transaction items per checkout / order.
   
   Added in Saleor 3.13.
   
@@ -16942,7 +16978,7 @@ type Mutation {
   ): PaymentGatewayInitialize @doc(category: "Payments")
 
   """
-  Initializes a transaction session. It triggers the webhook `TRANSACTION_INITIALIZE_SESSION`, to the requested `paymentGateways`. 
+  Initializes a transaction session. It triggers the webhook `TRANSACTION_INITIALIZE_SESSION`, to the requested `paymentGateways`. There is a limit of 100 transaction items per checkout / order.
   
   Added in Saleor 3.13.
   
@@ -24734,7 +24770,10 @@ enum TransactionRequestRefundForGrantedRefundErrorCode @doc(category: "Payments"
   INVALID
   GRAPHQL_ERROR
   NOT_FOUND
+  AMOUNT_GREATER_THAN_AVAILABLE
   MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK
+  REFUND_ALREADY_PROCESSED
+  REFUND_IS_PENDING
 }
 
 """
@@ -24783,7 +24822,7 @@ enum TransactionEventReportErrorCode @doc(category: "Payments") {
 }
 
 """
-Initializes a payment gateway session. It triggers the webhook `PAYMENT_GATEWAY_INITIALIZE_SESSION`, to the requested `paymentGateways`. If `paymentGateways` is not provided, the webhook will be send to all subscribed payment gateways.
+Initializes a payment gateway session. It triggers the webhook `PAYMENT_GATEWAY_INITIALIZE_SESSION`, to the requested `paymentGateways`. If `paymentGateways` is not provided, the webhook will be send to all subscribed payment gateways. There is a limit of 100 transaction items per checkout / order.
 
 Added in Saleor 3.13.
 
@@ -24853,7 +24892,7 @@ input PaymentGatewayToInitialize @doc(category: "Payments") {
 }
 
 """
-Initializes a transaction session. It triggers the webhook `TRANSACTION_INITIALIZE_SESSION`, to the requested `paymentGateways`. 
+Initializes a transaction session. It triggers the webhook `TRANSACTION_INITIALIZE_SESSION`, to the requested `paymentGateways`. There is a limit of 100 transaction items per checkout / order.
 
 Added in Saleor 3.13.
 
@@ -25994,6 +26033,7 @@ enum OrderGrantRefundCreateErrorCode @doc(category: "Orders") {
   GRAPHQL_ERROR
   NOT_FOUND
   SHIPPING_COSTS_ALREADY_GRANTED
+  AMOUNT_GREATER_THAN_AVAILABLE
   REQUIRED
   INVALID
 }
@@ -26047,6 +26087,15 @@ input OrderGrantRefundCreateInput @doc(category: "Orders") {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   grantRefundForShipping: Boolean
+
+  """
+  The ID of the transaction item related to the granted refund. If `amount` provided in the input, the transaction.chargedAmount needs to be equal or greater than provided `amount`.If `amount` is not provided in the input and calculated automatically by Saleor, the `min(calculatedAmount, transaction.chargedAmount)` will be used.Field will be required starting from Saleor 3.21.
+  
+  Added in Saleor 3.20.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  transactionId: ID
 }
 
 input OrderGrantRefundCreateLineInput @doc(category: "Orders") {
@@ -26115,6 +26164,7 @@ enum OrderGrantRefundUpdateErrorCode @doc(category: "Orders") {
   NOT_FOUND
   REQUIRED
   INVALID
+  AMOUNT_GREATER_THAN_AVAILABLE
   SHIPPING_COSTS_ALREADY_GRANTED
 }
 
@@ -26176,6 +26226,15 @@ input OrderGrantRefundUpdateInput @doc(category: "Orders") {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   grantRefundForShipping: Boolean
+
+  """
+  The ID of the transaction item related to the granted refund. If `amount` provided in the input, the transaction.chargedAmount needs to be equal or greater than provided `amount`.If `amount` is not provided in the input and calculated automatically by Saleor, the `min(calculatedAmount, transaction.chargedAmount)` will be used.Field will be required starting from Saleor 3.21.
+  
+  Added in Saleor 3.20.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  transactionId: ID
 }
 
 input OrderGrantRefundUpdateLineAddInput @doc(category: "Orders") {
