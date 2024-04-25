@@ -52,8 +52,9 @@ class ProductUpdate(ProductCreate, ModelWithExtRefMutation):
         product = models.Product.objects.prefetched_for_webhook(single_object=True).get(
             pk=instance.pk
         )
-        listings = product.channel_listings.all()
-        channel_ids = [listing.channel_id for listing in listings]
+        channel_ids = set(
+            product.channel_listings.all().values_list("channel_id", flat=True)
+        )
         cls.call_event(mark_active_promotion_rules_as_dirty, channel_ids)
 
         manager = get_plugin_manager_promise(info.context).get()
