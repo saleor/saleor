@@ -170,7 +170,7 @@ def validate_product_is_published(order: "Order", errors: T_ERRORS):
     variant_ids = [line.variant_id for line in order.lines.all()]
     unpublished_product = Product.objects.filter(
         variants__id__in=variant_ids
-    ).not_published(order.channel.slug)
+    ).not_published(order.channel)
     if unpublished_product.exists():
         errors["lines"].append(
             ValidationError(
@@ -194,7 +194,7 @@ def validate_product_is_published_in_channel(
         )
     variant_ids = [variant.id for variant in variants]
     unpublished_product = list(
-        Product.objects.filter(variants__id__in=variant_ids).not_published(channel.slug)
+        Product.objects.filter(variants__id__in=variant_ids).not_published(channel)
     )
     if unpublished_product:
         unpublished_variants = ProductVariant.objects.filter(
@@ -313,9 +313,9 @@ def prepare_insufficient_stock_order_validation_errors(exc):
                 "Insufficient product stock.",
                 code=OrderErrorCode.INSUFFICIENT_STOCK.value,
                 params={
-                    "order_lines": [order_line_global_id]
-                    if order_line_global_id
-                    else [],
+                    "order_lines": (
+                        [order_line_global_id] if order_line_global_id else []
+                    ),
                     "warehouse": warehouse_global_id,
                 },
             )
