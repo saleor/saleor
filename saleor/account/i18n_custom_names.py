@@ -1,13 +1,15 @@
+from enum import Enum
+
 from ..graphql.account.enums import CountryCodeEnum
 
 
-class AddressFieldsToSubstitute:
+class AddressFieldsToSubstitute(Enum):
     CITY = "city"
     CITY_AREA = "city_area"
     COUNTRY_AREA = "country_area"
 
 
-IE_country_area = {
+IE_COUNTRY_AREA = {
     "Carlow": "Co. Carlow",
     "Cavan": "Co. Cavan",
     "Clare": "Co. Clare",
@@ -36,6 +38,8 @@ IE_country_area = {
     "Wicklow": "Co. Wicklow",
 }
 
-custom_address_names_map = {
-    CountryCodeEnum.IE.value: {AddressFieldsToSubstitute.COUNTRY_AREA: IE_country_area}
+CUSTOM_ADDRESS_NAME_MAP: dict[CountryCodeEnum, dict[str, dict[str, str]]] = {
+    CountryCodeEnum.IE.value: {
+        AddressFieldsToSubstitute.COUNTRY_AREA.value: IE_COUNTRY_AREA
+    }
 }

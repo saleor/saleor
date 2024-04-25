@@ -5,6 +5,7 @@ import graphene
 import pytest
 from django.utils.functional import SimpleLazyObject
 
+from .....account.i18n_custom_names import CUSTOM_ADDRESS_NAME_MAP
 from .....account.models import Address
 from .....core.utils.json_serializer import CustomJsonEncoder
 from .....warehouse.error_codes import WarehouseErrorCode
@@ -23,6 +24,7 @@ mutation createWarehouse($input: WarehouseCreateInput!) {
             externalReference
             address {
                 id
+                countryArea
                 metadata {
                     key
                     value
@@ -341,3 +343,49 @@ def test_create_warehouse_with_non_unique_external_reference(
     assert error["field"] == "externalReference"
     assert error["code"] == WarehouseErrorCode.UNIQUE.name
     assert error["message"] == "Warehouse with this External reference already exists."
+
+
+def test_create_warehouse_with_address_item_from_custom_address_map(
+    staff_api_client, permission_manage_products, shipping_zone
+):
+    # given
+    country_area = "Dublin"
+    cleaned_country_area = "Co. Dublin"
+    address = {
+        "country": "IE",
+        "countryArea": country_area,
+        "streetAddress1": "1 Anglesea St",
+        "postalCode": "D02 FK84",
+        "city": "Dublin",
+    }
+
+    custom_ireland_country_areas = CUSTOM_ADDRESS_NAME_MAP["IE"]["country_area"]
+    assert country_area in custom_ireland_country_areas
+    assert custom_ireland_country_areas[country_area] == cleaned_country_area
+
+    variables = {
+        "input": {
+            "name": "Test warehouse",
+            "slug": "test-warhouse",
+            "email": "test-admin@example.com",
+            "address": address,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_CREATE_WAREHOUSE,
+        variables=variables,
+        permissions=[permission_manage_products],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["createWarehouse"]["errors"]
+    assert Warehouse.objects.count() == 1
+
+    address = content["data"]["createWarehouse"]["warehouse"]["address"]
+    assert address["countryArea"] == cleaned_country_area
+
+    address_db = Warehouse.objects.first().address
+    assert address_db.country_area == cleaned_country_area
