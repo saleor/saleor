@@ -4,7 +4,6 @@ from ..graphql.account.enums import CountryCodeEnum
 
 
 class AddressFieldsToSubstitute(Enum):
-    CITY = "city"
     CITY_AREA = "city_area"
     COUNTRY_AREA = "country_area"
 
@@ -38,7 +37,7 @@ IE_COUNTRY_AREA = {
     "Wicklow": "Co. Wicklow",
 }
 
-VALID_ADDRESS_EXTENSION_MAP: dict[CountryCodeEnum, dict[str, dict[str, str]]] = {
+VALID_ADDRESS_EXTENSION_MAP: dict[str, dict[str, dict[str, str]]] = {
     CountryCodeEnum.IE.value: {
         AddressFieldsToSubstitute.COUNTRY_AREA.value: IE_COUNTRY_AREA
     }
