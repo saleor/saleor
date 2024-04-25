@@ -475,7 +475,6 @@ def fetch_checkout_info(
     shipping_channel_listings: Optional[
         Iterable["ShippingMethodChannelListing"]
     ] = None,
-    fetch_delivery_methods=True,
     voucher: Optional["Voucher"] = None,
     voucher_code: Optional["VoucherCode"] = None,
 ) -> CheckoutInfo:

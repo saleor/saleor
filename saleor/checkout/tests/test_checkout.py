@@ -1636,6 +1636,43 @@ def test_change_address_in_checkout_from_user_address_to_other(
     assert checkout_info.shipping_address == other_address
 
 
+def test_change_address_in_checkout_invalidates_shipping_methods(
+    checkout_with_items, address, shipping_method, shipping_zone
+):
+    # given
+    checkout = checkout_with_items
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(
+        checkout=checkout,
+        lines=lines,
+        manager=manager,
+        shipping_channel_listings=shipping_method.channel_listings.all(),
+    )
+
+    all_shipping_methods = checkout_info.all_shipping_methods
+    assert all_shipping_methods == []
+
+    # when
+    shipping_updated_fields = change_shipping_address_in_checkout(
+        checkout_info,
+        address,
+        lines,
+        manager,
+        checkout.channel.shipping_method_listings.all(),
+    )
+    billing_updated_fields = change_billing_address_in_checkout(checkout, address)
+    checkout.save(update_fields=shipping_updated_fields + billing_updated_fields)
+    checkout.refresh_from_db()
+
+    # then
+    assert checkout.shipping_address == address
+    assert checkout.billing_address == address
+    assert checkout_info.shipping_address == address
+    assert checkout_info.all_shipping_methods
+
+
 def test_add_voucher_to_checkout(checkout_with_item, voucher):
     assert checkout_with_item.voucher_code is None
     manager = get_plugins_manager(allow_replica=False)
