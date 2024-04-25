@@ -17,7 +17,7 @@ def get_page_attributes(page: Page):
 
     return Attribute.objects.filter(
         Exists(page_attributes.filter(attribute_id=OuterRef("id")))
-    ).order_by("attributepage__sort_order")
+    ).order_by("attributepage__sort_order", "attributepage__pk")
 
 
 def get_page_attribute_values(page: Page, attribute: Attribute):
@@ -26,7 +26,7 @@ def get_page_attribute_values(page: Page, attribute: Attribute):
     values = AttributeValue.objects.filter(attribute_id=attribute.pk)
     return values.filter(
         Exists(assigned_values.filter(value_id=OuterRef("id"))),
-    ).order_by("pagevalueassignment__sort_order")
+    ).order_by("pagevalueassignment__sort_order", "pagevalueassignment__pk")
 
 
 def get_product_attributes(product: Product):
