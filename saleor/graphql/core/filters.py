@@ -92,10 +92,12 @@ def filter_status(qs, _, value):
 
 def filter_metadata(qs, _, value):
     for metadata_item in value:
-        if metadata_item.value:
-            qs = qs.filter(metadata__contains={metadata_item.key: metadata_item.value})
+        metadata_value = metadata_item.get("value")
+        metadata_key = metadata_item.get("key")
+        if metadata_value:
+            qs = qs.filter(metadata__contains={metadata_key: metadata_value})
         else:
-            qs = qs.filter(metadata__has_key=metadata_item.key)
+            qs = qs.filter(metadata__has_key=metadata_key)
     return qs
 
 

@@ -1,5 +1,6 @@
 import pytest
 
+from ......product.tasks import recalculate_discounted_price_for_products_task
 from ....product.utils import get_product
 from ....product.utils.preparing_product import prepare_product
 from ....promotions.utils import create_promotion, create_promotion_rule
@@ -74,6 +75,10 @@ def test_checkout_with_fixed_promotion_should_not_result_in_negative_price_CORE_
     product_predicate = promotion_rule["cataloguePredicate"]["productPredicate"]["ids"]
     assert promotion_rule["channels"][0]["id"] == result_channel_id
     assert product_predicate[0] == product_id
+
+    # prices are updated in the background, we need to force it to retrieve the correct
+    # ones
+    recalculate_discounted_price_for_products_task()
 
     # Step 2 - Get product and check if it is on promotion
     product_data = get_product(e2e_staff_api_client, product_id, result_channel_slug)

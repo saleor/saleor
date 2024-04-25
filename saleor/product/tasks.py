@@ -1,4 +1,5 @@
 import logging
+from collections import defaultdict
 from collections.abc import Iterable
 from typing import Optional
 from uuid import UUID
@@ -6,20 +7,20 @@ from uuid import UUID
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Exists, OuterRef, Q
+from django.db.models import Exists, OuterRef, Q, QuerySet
 from django.utils import timezone
 
 from ..attribute.models import Attribute
 from ..celeryconf import app
 from ..core.exceptions import PreorderAllocationError
 from ..discount.models import Promotion, PromotionRule
-from ..discount.utils import get_current_products_for_rules
 from ..plugins.manager import get_plugins_manager
 from ..warehouse.management import deactivate_preorder_for_variant
 from ..webhook.event_types import WebhookEventAsyncType
 from ..webhook.utils import get_webhooks_for_event
-from .models import Product, ProductType, ProductVariant
+from .models import Product, ProductChannelListing, ProductType, ProductVariant
 from .search import update_products_search_vector
+from .utils.product import mark_products_in_channels_as_dirty
 from .utils.variant_prices import update_discounted_prices_for_promotion
 from .utils.variants import (
     fetch_variants_for_promotion_rules,
@@ -34,8 +35,8 @@ PRODUCTS_BATCH_SIZE = 300
 VARIANTS_UPDATE_BATCH = 500
 # Results in update time ~0.2s
 DISCOUNTED_PRODUCT_BATCH = 2000
-# Results in update time ~1.5s
-PROMOTION_RULE_BATCH_SIZE = 250
+# Results in update time ~2s when 600 channels exist
+PROMOTION_RULE_BATCH_SIZE = 100
 
 
 def _variants_in_batches(variants_qs):
@@ -89,17 +90,101 @@ def update_variants_names(product_type_pk: int, saved_attributes_ids: list[int])
 
 @app.task
 def update_products_discounted_prices_of_promotion_task(promotion_pk: UUID):
-    from ..graphql.discount.utils import get_products_for_promotion
+    # FIXME: Should be removed in Saleor 3.21
 
-    try:
-        promotion = Promotion.objects.get(pk=promotion_pk)
-    except ObjectDoesNotExist:
-        logging.warning(f"Cannot find promotion with id: {promotion_pk}.")
-        return
-    previous_products = get_current_products_for_rules(promotion.rules.all())
-    products = get_products_for_promotion(promotion, update_rule_variants=True)
-    products |= previous_products
-    update_discounted_prices_task.delay(list(products.values_list("id", flat=True)))
+    # In case of triggering this task by old server worker, mark promotion
+    # as dirty. The reclacultion will happen in the background
+    PromotionRule.objects.filter(promotion_id=promotion_pk).update(variants_dirty=True)
+
+
+def _get_channel_to_products_map(rule_to_variant_list):
+    variant_ids = set(
+        [rule_to_variant.productvariant_id for rule_to_variant in rule_to_variant_list]
+    )
+    variant_id_with_product_id_qs = (
+        ProductVariant.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(id__in=variant_ids)
+        .values_list("id", "product_id")
+    )
+    variant_id_to_product_id_map = {}
+    for variant_id, product_id in variant_id_with_product_id_qs:
+        variant_id_to_product_id_map[variant_id] = product_id
+
+    rule_ids = set(
+        [rule_to_variant.promotionrule_id for rule_to_variant in rule_to_variant_list]
+    )
+    PromotionChannel = PromotionRule.channels.through
+    promotion_channel_qs = (
+        PromotionChannel.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(promotionrule_id__in=rule_ids)
+        .values_list("promotionrule_id", "channel_id")
+    )
+
+    rule_to_channels_map = defaultdict(set)
+    for promotionrule_id, channel_id in promotion_channel_qs.iterator():
+        rule_to_channels_map[promotionrule_id].add(channel_id)
+    channel_to_products_map = defaultdict(set)
+    for rule_to_variant in rule_to_variant_list:
+        channel_ids = rule_to_channels_map[rule_to_variant.promotionrule_id]
+        for channel_id in channel_ids:
+            product_id = variant_id_to_product_id_map[rule_to_variant.productvariant_id]
+            channel_to_products_map[channel_id].add(product_id)
+
+    return channel_to_products_map
+
+
+def _get_existing_rule_variant_list(rules: QuerySet[PromotionRule]):
+    PromotionRuleVariant = PromotionRule.variants.through
+    existing_rules_variants = (
+        PromotionRuleVariant.objects.filter(
+            Exists(rules.filter(pk=OuterRef("promotionrule_id")))
+        )
+        .all()
+        .values_list(
+            "promotionrule_id",
+            "productvariant_id",
+        )
+    )
+    return [
+        PromotionRuleVariant(promotionrule_id=rule_id, productvariant_id=variant_id)
+        for rule_id, variant_id in existing_rules_variants
+    ]
+
+
+@app.task
+def update_variant_relations_for_active_promotion_rules_task():
+    promotions = Promotion.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).active()
+
+    rules = (
+        PromotionRule.objects.order_by("id")
+        .using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(
+            Exists(promotions.filter(id=OuterRef("promotion_id"))), variants_dirty=True
+        )
+        .exclude(Q(reward_value__isnull=True) | Q(reward_value=0))[
+            :PROMOTION_RULE_BATCH_SIZE
+        ]
+    )
+    if ids := list(rules.values_list("pk", flat=True)):
+        # fetch rules to get a qs without slicing
+        rules = PromotionRule.objects.using(
+            settings.DATABASE_CONNECTION_REPLICA_NAME
+        ).filter(pk__in=ids)
+
+        # Fetch existing variant relations to also mark products which are no longer
+        # in the promotion as dirty
+        existing_variant_relation = _get_existing_rule_variant_list(rules)
+
+        new_rule_to_variant_list = fetch_variants_for_promotion_rules(rules=rules)
+        channel_to_product_map = _get_channel_to_products_map(
+            existing_variant_relation + new_rule_to_variant_list
+        )
+
+        PromotionRule.objects.filter(pk__in=ids).update(variants_dirty=False)
+        mark_products_in_channels_as_dirty(channel_to_product_map, allow_replica=True)
+        update_variant_relations_for_active_promotion_rules_task.delay()
 
 
 @app.task
@@ -109,48 +194,47 @@ def update_products_discounted_prices_for_promotion_task(
     *,
     rule_ids: Optional[list[UUID]] = None,
 ):
-    """Update the product discounted prices for given product ids.
+    # FIXME: Should be removed in Saleor 3.21
 
-    Firstly the promotion rule variants are recalculated, then the products discounted
-    prices are calculated.
-    """
-    promotions = Promotion.objects.using(
-        settings.DATABASE_CONNECTION_REPLICA_NAME
-    ).active()
-    kwargs = {"id__gt": start_id} if start_id else {}
-    if rule_ids:
-        kwargs["id__in"] = rule_ids  # type: ignore[assignment]
-    rules = (
-        PromotionRule.objects.order_by("id")
-        .using(settings.DATABASE_CONNECTION_REPLICA_NAME)
-        .filter(Exists(promotions.filter(id=OuterRef("promotion_id"))), **kwargs)
-        .exclude(Q(reward_value__isnull=True) | Q(reward_value=0))[
-            :PROMOTION_RULE_BATCH_SIZE
-        ]
+    # In case of triggered the task by old server worker, mark all active promotions as
+    # dirty. This will make the same re-calculation as the old task.
+    PromotionRule.objects.filter(variants_dirty=False).update(variants_dirty=True)
+
+
+@app.task
+def recalculate_discounted_price_for_products_task():
+    """Recalculate discounted price for products."""
+    listings = (
+        ProductChannelListing.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(discounted_price_dirty=True)
+        .order_by("id")[:DISCOUNTED_PRODUCT_BATCH]
     )
-    if ids := list(rules.values_list("pk", flat=True)):
-        qs = PromotionRule.objects.filter(pk__in=ids).exclude(
-            Q(reward_value__isnull=True) | Q(reward_value=0)
+    listing_details = listings.values_list(
+        "id",
+        "product_id",
+    )
+    products_ids = set([product_id for _, product_id in listing_details])
+    listing_ids = set([listing_id for listing_id, _ in listing_details])
+    if products_ids:
+        products = Product.objects.using(
+            settings.DATABASE_CONNECTION_REPLICA_NAME
+        ).filter(id__in=products_ids)
+        update_discounted_prices_for_promotion(products, only_dirty_products=True)
+        ProductChannelListing.objects.filter(id__in=listing_ids).update(
+            discounted_price_dirty=False
         )
-        fetch_variants_for_promotion_rules(rules=qs)
-        update_products_discounted_prices_for_promotion_task.delay(
-            product_ids, ids[-1], rule_ids=rule_ids
-        )
-    else:
-        # when all promotion rules variants are up to date, call discounted prices
-        # recalculation for products
-        update_discounted_prices_task.delay(product_ids)
+        recalculate_discounted_price_for_products_task.delay()
 
 
 @app.task
 def update_discounted_prices_task(product_ids: Iterable[int]):
-    """Update the product discounted prices for given product ids."""
-    ids = sorted(product_ids)[:DISCOUNTED_PRODUCT_BATCH]
-    qs = Product.objects.filter(pk__in=ids)
-    if ids:
-        update_discounted_prices_for_promotion(qs)
-        remaining_ids = list(set(product_ids) - set(ids))
-        update_discounted_prices_task.delay(remaining_ids)
+    # FIXME: Should be removed in Saleor 3.21
+
+    # in case triggering the task by old server worker, we will just mark the products
+    # as dirty. The recalculation will happen in the backgorund
+    ProductChannelListing.objects.filter(product_id__in=product_ids).update(
+        discounted_price_dirty=True
+    )
 
 
 @app.task

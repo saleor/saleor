@@ -18,10 +18,9 @@ from .....attribute.tests.model_helpers import (
     get_product_attribute_values,
     get_product_attributes,
 )
-from .....attribute.utils import (
-    associate_attribute_values_to_instance,
-)
+from .....attribute.utils import associate_attribute_values_to_instance
 from .....core.taxes import TaxType
+from .....discount.utils import get_active_promotion_rules
 from .....graphql.core.enums import AttributeErrorCode
 from .....graphql.tests.utils import get_graphql_content
 from .....plugins.manager import PluginsManager
@@ -92,15 +91,11 @@ MUTATION_UPDATE_PRODUCT = """
 """
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
 @patch("saleor.plugins.manager.PluginsManager.product_created")
 def test_update_product(
     created_webhook_mock,
     updated_webhook_mock,
-    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     category,
     non_default_category,
@@ -194,16 +189,9 @@ def test_update_product(
 
     updated_webhook_mock.assert_called_once_with(product)
     created_webhook_mock.assert_not_called()
-    update_products_discounted_prices_for_promotion_task_mock.assert_called_once_with(
-        [product.id]
-    )
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
 def test_update_and_search_product_by_description(
-    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     category,
     non_default_category,
@@ -239,16 +227,9 @@ def test_update_and_search_product_by_description(
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
     assert data["product"]["description"] == other_description_json
-    update_products_discounted_prices_for_promotion_task_mock.assert_called_once_with(
-        [product.id]
-    )
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
 def test_update_product_only_description(
-    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     product,
     other_description_json,
@@ -273,14 +254,9 @@ def test_update_product_only_description(
     data = content["data"]["productUpdate"]
     assert not data["errors"]
     assert data["product"]["description"] == other_description_json
-    update_products_discounted_prices_for_promotion_task_mock.assert_not_called()
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
 def test_update_product_only_collections(
-    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     product,
     collection,
@@ -288,7 +264,6 @@ def test_update_product_only_collections(
     permission_manage_products,
 ):
     query = MUTATION_UPDATE_PRODUCT
-    other_description_json = json.dumps(other_description_json)
 
     product_id = graphene.Node.to_global_id("Product", product.pk)
     collection_id = graphene.Node.to_global_id("Collection", collection.pk)
@@ -308,9 +283,8 @@ def test_update_product_only_collections(
     assert not data["errors"]
     assert len(data["product"]["collections"]) == 1
     assert data["product"]["collections"][0]["name"] == collection.name
-    update_products_discounted_prices_for_promotion_task_mock.assert_called_once_with(
-        [product.id]
-    )
+    for rule in get_active_promotion_rules():
+        assert rule.variants_dirty is True
 
 
 def test_update_product_clear_description_plaintext_when_description_is_none(

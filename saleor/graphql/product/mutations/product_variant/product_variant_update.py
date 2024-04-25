@@ -6,8 +6,10 @@ from django.utils.text import slugify
 
 from .....attribute import AttributeInputType
 from .....attribute import models as attribute_models
+from .....discount.utils import mark_active_promotion_rules_as_dirty
 from .....permission.enums import ProductPermissions
 from .....product import models
+from .....product.models import ProductChannelListing
 from ....attribute.utils import AttributeAssignmentMixin, AttrValuesInput
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_38, ADDED_IN_310
@@ -131,6 +133,14 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
         track_inventory = cleaned_input.get("track_inventory")
         if track_inventory is not None:
             instance.track_inventory = track_inventory
+
+    @classmethod
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
+        super().post_save_action(info, instance, cleaned_input)
+        channel_ids = ProductChannelListing.objects.filter(
+            product_id=instance.product_id
+        ).values_list("channel_id", flat=True)
+        cls.call_event(mark_active_promotion_rules_as_dirty, channel_ids)
 
     @classmethod
     def perform_mutation(  # type: ignore[override]

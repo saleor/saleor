@@ -12,6 +12,7 @@ from .....attribute.tests.model_helpers import (
     get_product_attribute_values,
     get_product_attributes,
 )
+from .....discount.utils import get_active_promotion_rules
 from .....product.error_codes import ProductBulkCreateErrorCode
 from .....product.models import Product
 from .....product.tests.utils import create_image
@@ -83,11 +84,7 @@ PRODUCT_BULK_CREATE_MUTATION = """
 """
 
 
-@patch(
-    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
-)
 def test_product_bulk_create_with_base_data(
-    update_products_discounted_price_task_mock,
     staff_api_client,
     product_type,
     collection,
@@ -157,9 +154,8 @@ def test_product_bulk_create_with_base_data(
         assert product.category == category
         assert product.product_type == product_type
 
-    update_products_discounted_price_task_mock.assert_called_once()
-    args = set(update_products_discounted_price_task_mock.call_args.args[0])
-    assert args == {product.id for product in products}
+    for rule in get_active_promotion_rules():
+        assert rule.variants_dirty is True
 
 
 def test_product_bulk_create_with_base_data_and_collections(
@@ -1696,9 +1692,11 @@ def test_product_bulk_create_with_variants_and_invalid_stock(
     "saleor.graphql.product.bulk_mutations."
     "product_bulk_create.get_webhooks_for_event"
 )
-@patch("saleor.plugins.manager.PluginsManager.channel_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_created")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_created")
 def test_product_bulk_create_with_variants_and_channel_listings(
-    channel_updated_webhook_mock,
+    product_variant_created_mock,
+    product_created_mock,
     mocked_get_webhooks_for_event,
     staff_api_client,
     product_type,
@@ -1828,11 +1826,8 @@ def test_product_bulk_create_with_variants_and_channel_listings(
     assert product_1_variant.channel_listings.last().channel_id == channel_USD.id
     assert product_2_variant.channel_listings.last().channel_id == channel_USD.id
 
-    # 2 product channel listing and 2 variant channel listing were created but
-    # all are using same channel so only one event should be sent
-    channel_updated_webhook_mock.assert_called_once_with(
-        channel_USD, webhooks=[any_webhook]
-    )
+    assert product_variant_created_mock.called
+    assert product_created_mock.called
 
 
 def test_product_bulk_create_with_variants_and_channel_listings_with_wrong_price(

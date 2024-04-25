@@ -2,16 +2,11 @@ from collections import defaultdict
 from collections.abc import Iterable, Iterator
 from decimal import ROUND_HALF_UP, Decimal
 from functools import partial
-from typing import (
-    TYPE_CHECKING,
-    Callable,
-    Optional,
-    Union,
-    cast,
-)
+from typing import TYPE_CHECKING, Callable, Optional, Union, cast
 from uuid import UUID
 
 import graphene
+from django.conf import settings
 from django.db import transaction
 from django.db.models import Exists, F, OuterRef, QuerySet
 from django.utils import timezone
@@ -527,15 +522,17 @@ def get_variants_to_promotions_map(
 
     promotions = Promotion.objects.active()
     PromotionRuleVariant = PromotionRule.variants.through
-    promotion_rule_variants = PromotionRuleVariant.objects.filter(
-        Exists(variant_qs.filter(id=OuterRef("productvariant_id")))
-    )
+    promotion_rule_variants = PromotionRuleVariant.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).filter(Exists(variant_qs.filter(id=OuterRef("productvariant_id"))))
 
     # fetch rules only for active promotions
-    rules = PromotionRule.objects.filter(
+    rules = PromotionRule.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).filter(
         Exists(promotions.filter(id=OuterRef("promotion_id"))),
         Exists(promotion_rule_variants.filter(promotionrule_id=OuterRef("pk"))),
-    ).prefetch_related("channels")
+    )
     rule_to_channel_ids_map = _get_rule_to_channel_ids_map(rules)
     rules_in_bulk = rules.in_bulk()
 
@@ -559,9 +556,9 @@ def get_variants_to_promotions_map(
 def _get_rule_to_channel_ids_map(rules: QuerySet):
     rule_to_channel_ids_map = defaultdict(list)
     PromotionRuleChannel = PromotionRule.channels.through
-    promotion_rule_channels = PromotionRuleChannel.objects.filter(
-        Exists(rules.filter(id=OuterRef("promotionrule_id")))
-    )
+    promotion_rule_channels = PromotionRuleChannel.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).filter(Exists(rules.filter(id=OuterRef("promotionrule_id"))))
     for promotion_rule_channel in promotion_rule_channels:
         rule_id = promotion_rule_channel.promotionrule_id
         channel_id = promotion_rule_channel.channel_id
@@ -624,3 +621,53 @@ def update_rule_variant_relation(
         PromotionRuleVariant.objects.bulk_create(
             rules_variants_to_add, ignore_conflicts=True
         )
+
+
+def get_active_promotion_rules(
+    allow_replica: bool = False,
+) -> "QuerySet[PromotionRule]":
+    promotions = Promotion.objects.active()
+    if allow_replica:
+        promotions = promotions.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+    rules = (
+        PromotionRule.objects.order_by("id")
+        .filter(
+            Exists(promotions.filter(id=OuterRef("promotion_id"))),
+        )
+        .exclude(catalogue_predicate={})
+    )
+    if allow_replica:
+        rules = rules.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+    return rules
+
+
+def mark_active_promotion_rules_as_dirty(channel_ids: Iterable[int]):
+    """Force promotion rule to recalculate.
+
+    The rules which are marked as dirty, will be recalculated in background.
+    Products related to these rules will be recalculated as well.
+    """
+
+    if not channel_ids:
+        return
+
+    rules = get_active_promotion_rules()
+    PromotionRuleChannel = PromotionRule.channels.through
+    promotion_rules = PromotionRuleChannel.objects.filter(channel_id__in=channel_ids)
+    rules = rules.filter(
+        Exists(promotion_rules.filter(promotionrule_id=OuterRef("id")))
+    )
+    rules.update(variants_dirty=True)
+
+
+def mark_promotion_rules_as_dirty(promotion_pks: Iterable[UUID]):
+    """Mark rules for promotions as dirty.
+
+    The rules which are marked as dirty, will be recalculated in background.
+    Products related to these rules will be recalculated as well.
+    """
+    if not promotion_pks:
+        return
+    PromotionRule.objects.filter(promotion_id__in=promotion_pks).update(
+        variants_dirty=True
+    )

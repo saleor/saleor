@@ -1,5 +1,7 @@
 import graphene
+from django.db.models import Exists, OuterRef
 
+from .....discount.utils import mark_active_promotion_rules_as_dirty
 from .....permission.enums import ProductPermissions
 from .....product import models
 from .....thumbnail import models as thumbnail_models
@@ -36,6 +38,15 @@ class CategoryUpdate(CategoryCreate):
         return super().construct_instance(instance, cleaned_data)
 
     @classmethod
-    def post_save_action(cls, info: ResolveInfo, instance, _cleaned_input):
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.category_updated, instance)
+
+        if "metadata" in cleaned_input:
+            products = models.Product.objects.filter(category_id=instance.id)
+            channel_ids = set(
+                models.ProductChannelListing.objects.filter(
+                    Exists(products.filter(id=OuterRef("product_id")))
+                ).values_list("channel_id", flat=True)
+            )
+            cls.call_event(mark_active_promotion_rules_as_dirty, channel_ids)

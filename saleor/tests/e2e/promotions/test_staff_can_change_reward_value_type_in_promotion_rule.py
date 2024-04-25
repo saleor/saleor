@@ -1,5 +1,6 @@
 import pytest
 
+from ....product.tasks import recalculate_discounted_price_for_products_task
 from ..product.utils import get_product
 from ..product.utils.preparing_product import prepare_product
 from ..shop.utils.preparing_shop import prepare_shop
@@ -70,6 +71,10 @@ def test_staff_can_change_reward_value_type_in_promotion_rule_core_2117(
         channel_id=channel_id,
     )
 
+    # prices are updated in the background, we need to force it to retrieve the correct
+    # ones
+    recalculate_discounted_price_for_products_task()
+
     # Step 1 - Get product and check prices
     product_data = get_product(e2e_staff_api_client, product_id, channel_slug)
     variant = product_data["variants"][0]
@@ -84,6 +89,10 @@ def test_staff_can_change_reward_value_type_in_promotion_rule_core_2117(
     rule_data = update_promotion_rule(e2e_staff_api_client, promotion_rule_id, input)
     assert rule_data["rewardValueType"] == "FIXED"
     assert rule_data["rewardValue"] == fixed_reward_value
+
+    # prices are updated in the background, we need to force it to retrieve the correct
+    # ones
+    recalculate_discounted_price_for_products_task()
 
     # Step 3 - Get product and check prices
     product_data = get_product(e2e_staff_api_client, product_id, channel_slug)

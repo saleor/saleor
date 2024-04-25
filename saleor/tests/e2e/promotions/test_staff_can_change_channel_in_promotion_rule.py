@@ -1,5 +1,6 @@
 import pytest
 
+from ....product.tasks import recalculate_discounted_price_for_products_task
 from ..channel.utils import create_channel
 from ..product.utils import (
     get_product,
@@ -123,6 +124,10 @@ def test_staff_can_change_promotion_rule_channel_core_2113(
             "cataloguePredicate": predicate_input,
         },
     )
+
+    # prices are updated in the background, we need to force it to retrieve the correct
+    # ones
+    recalculate_discounted_price_for_products_task()
 
     # Step 2 Check if promotion is applied for product on second channel
     product_data_channel_2 = get_product(
