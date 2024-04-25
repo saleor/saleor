@@ -12,6 +12,7 @@ from ....thumbnail.utils import (
     get_thumbnail_size,
 )
 from ...channel import ChannelQsContext
+from ...channel.dataloaders import ChannelBySlugLoader
 from ...channel.utils import get_default_channel_slug_or_graphql_error
 from ...core.connection import (
     CountableConnection,
@@ -171,26 +172,38 @@ class Category(ModelObjectType[models.Category]):
             requestor, ALL_PRODUCTS_PERMISSIONS
         )
         tree = root.get_descendants(include_self=True)
+        limited_channel_access = False if channel is None else True
         if channel is None and not has_required_permissions:
             channel = get_default_channel_slug_or_graphql_error()
         connection_name = get_database_connection_name(info.context)
-        qs = models.Product.objects.using(connection_name).all()
-        if not has_required_permissions:
-            qs = (
-                qs.visible_to_user(requestor, channel)
-                .annotate_visible_in_listings(channel)
-                .exclude(
-                    visible_in_listings=False,
-                )
-            )
-        if channel and has_required_permissions:
-            qs = qs.filter(channel_listings__channel__slug=channel)
-        qs = qs.filter(category__in=tree)
-        qs = ChannelQsContext(qs=qs, channel_slug=channel)
 
-        kwargs["channel"] = channel
-        qs = filter_connection_queryset(qs, kwargs)
-        return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
+        def _resolve_products(channel_obj):
+            qs = models.Product.objects.using(connection_name).all()
+            if not has_required_permissions:
+                qs = (
+                    qs.visible_to_user(requestor, channel_obj, limited_channel_access)
+                    .annotate_visible_in_listings(channel_obj)
+                    .exclude(
+                        visible_in_listings=False,
+                    )
+                )
+            if channel_obj and has_required_permissions:
+                qs = qs.filter(channel_listings__channel_id=channel_obj.id)
+            qs = qs.filter(category__in=tree)
+            qs = ChannelQsContext(qs=qs, channel_slug=channel)
+
+            kwargs["channel"] = channel
+            qs = filter_connection_queryset(qs, kwargs)
+            return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
+
+        if channel:
+            return (
+                ChannelBySlugLoader(info.context)
+                .load(str(channel))
+                .then(_resolve_products)
+            )
+        else:
+            return _resolve_products(None)
 
     @staticmethod
     def __resolve_references(roots: List["Category"], _info):
