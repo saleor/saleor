@@ -38,7 +38,7 @@ IE_COUNTRY_AREA = {
     "Wicklow": "Co. Wicklow",
 }
 
-CUSTOM_ADDRESS_NAME_MAP: dict[CountryCodeEnum, dict[str, dict[str, str]]] = {
+VALID_ADDRESS_EXTENSION_MAP: dict[CountryCodeEnum, dict[str, dict[str, str]]] = {
     CountryCodeEnum.IE.value: {
         AddressFieldsToSubstitute.COUNTRY_AREA.value: IE_COUNTRY_AREA
     }

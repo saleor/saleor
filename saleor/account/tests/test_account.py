@@ -9,7 +9,7 @@ from django_countries.fields import Country
 
 from ...order.models import Order
 from .. import forms, i18n
-from ..i18n_custom_names import CUSTOM_ADDRESS_NAME_MAP
+from ..i18n_valid_address_extension import VALID_ADDRESS_EXTENSION_MAP
 from ..models import User
 from ..validators import validate_possible_number
 
@@ -325,7 +325,7 @@ def test_customers_show_staff_with_order(admin_user, channel_USD):
     ],
 )
 @patch.dict(
-    CUSTOM_ADDRESS_NAME_MAP,
+    VALID_ADDRESS_EXTENSION_MAP,
     {"IE": {"country_area": {"Dublin": "Co. Dublin"}, "city_area": {"dummy": "dummy"}}},
 )
 def test_substitute_invalid_values(country_area_input, country_area_output, is_valid):
@@ -348,3 +348,5 @@ def test_substitute_invalid_values(country_area_input, country_area_output, is_v
     assert form.cleaned_data.get("country_area") == country_area_output
     if not is_valid:
         assert "country_area" in errors
+    else:
+        assert not errors

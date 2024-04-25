@@ -7,7 +7,7 @@ from django.forms import BoundField
 from django.forms.models import ModelFormMetaclass
 from django_countries import countries
 
-from .i18n_custom_names import CUSTOM_ADDRESS_NAME_MAP
+from .i18n_valid_address_extension import VALID_ADDRESS_EXTENSION_MAP
 from .models import Address
 from .validators import validate_possible_number
 from .widgets import DatalistTextWidget
@@ -199,7 +199,7 @@ class CountryAwareAddressForm(AddressForm):
         country_code = data["country_code"]
         if not country_code:
             return
-        if custom_names := CUSTOM_ADDRESS_NAME_MAP.get(country_code):
+        if custom_names := VALID_ADDRESS_EXTENSION_MAP.get(country_code):
             for field_name, mapping in custom_names.items():
                 actual_value = data.get(field_name)
                 if actual_value in mapping:

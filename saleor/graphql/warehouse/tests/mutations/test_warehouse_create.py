@@ -5,7 +5,7 @@ import graphene
 import pytest
 from django.utils.functional import SimpleLazyObject
 
-from .....account.i18n_custom_names import CUSTOM_ADDRESS_NAME_MAP
+from .....account.i18n_valid_address_extension import VALID_ADDRESS_EXTENSION_MAP
 from .....account.models import Address
 from .....core.utils.json_serializer import CustomJsonEncoder
 from .....warehouse.error_codes import WarehouseErrorCode
@@ -345,7 +345,7 @@ def test_create_warehouse_with_non_unique_external_reference(
     assert error["message"] == "Warehouse with this External reference already exists."
 
 
-def test_create_warehouse_with_address_item_from_custom_address_map(
+def test_create_warehouse_with_address_item_from_valid_address_extension_map(
     staff_api_client, permission_manage_products, shipping_zone
 ):
     # given
@@ -359,9 +359,9 @@ def test_create_warehouse_with_address_item_from_custom_address_map(
         "city": "Dublin",
     }
 
-    custom_ireland_country_areas = CUSTOM_ADDRESS_NAME_MAP["IE"]["country_area"]
-    assert country_area in custom_ireland_country_areas
-    assert custom_ireland_country_areas[country_area] == cleaned_country_area
+    ireland_country_areas_extension = VALID_ADDRESS_EXTENSION_MAP["IE"]["country_area"]
+    assert country_area in ireland_country_areas_extension
+    assert ireland_country_areas_extension[country_area] == cleaned_country_area
 
     variables = {
         "input": {
