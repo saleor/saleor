@@ -125,8 +125,7 @@ class CheckoutInfo:
                 )
 
         elif external_shipping_method_id := get_external_shipping_id(self.checkout):
-            # A local function is used to delay evaluation
-            # of the lazy `all_shipping_methods` attribute
+
             def _resolve_external_method():
                 methods = {method.id: method for method in self.all_shipping_methods}
                 if method := methods.get(external_shipping_method_id):

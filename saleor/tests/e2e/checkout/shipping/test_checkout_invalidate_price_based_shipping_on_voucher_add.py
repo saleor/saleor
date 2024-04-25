@@ -92,7 +92,7 @@ def prepare_shop_with_shipping_with_order_limits(e2e_staff_api_client):
 
 
 @pytest.mark.e2e
-def test_checkout_invalidate_price_based_shipping_on_voucher_add(
+def test_checkout_should_invalidate_shipping_methods_when_adding_entire_order_voucher_0116(
     e2e_not_logged_api_client,
     e2e_staff_api_client,
     permission_manage_products,
