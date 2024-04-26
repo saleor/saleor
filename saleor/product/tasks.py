@@ -7,6 +7,7 @@ from uuid import UUID
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import transaction
 from django.db.models import Exists, OuterRef, Q, QuerySet
 from django.utils import timezone
 
@@ -181,8 +182,12 @@ def update_variant_relations_for_active_promotion_rules_task():
         channel_to_product_map = _get_channel_to_products_map(
             existing_variant_relation + new_rule_to_variant_list
         )
+        with transaction.atomic():
+            _promotion_rules = list(
+                PromotionRule.objects.select_for_update(of=("self",)).filter(pk__in=ids)
+            )
+            PromotionRule.objects.filter(pk__in=ids).update(variants_dirty=False)
 
-        PromotionRule.objects.filter(pk__in=ids).update(variants_dirty=False)
         mark_products_in_channels_as_dirty(channel_to_product_map, allow_replica=True)
         update_variant_relations_for_active_promotion_rules_task.delay()
 
@@ -220,9 +225,15 @@ def recalculate_discounted_price_for_products_task():
             settings.DATABASE_CONNECTION_REPLICA_NAME
         ).filter(id__in=products_ids)
         update_discounted_prices_for_promotion(products, only_dirty_products=True)
-        ProductChannelListing.objects.filter(id__in=listing_ids).update(
-            discounted_price_dirty=False
-        )
+        with transaction.atomic():
+            _channel_listings = list(
+                ProductChannelListing.objects.select_for_update(of=("self",)).filter(
+                    id__in=listing_ids
+                )
+            )
+            ProductChannelListing.objects.filter(id__in=listing_ids).update(
+                discounted_price_dirty=False
+            )
         recalculate_discounted_price_for_products_task.delay()
 
 

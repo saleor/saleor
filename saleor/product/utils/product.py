@@ -1,6 +1,7 @@
 from collections import defaultdict
 
 from django.conf import settings
+from django.db import transaction
 from django.db.models import Exists, OuterRef, QuerySet
 
 from ...discount.models import PromotionRule
@@ -121,6 +122,12 @@ def mark_products_in_channels_as_dirty(
             listing_ids_to_update.append(id)
 
     if listing_ids_to_update:
-        ProductChannelListing.objects.filter(id__in=listing_ids_to_update).update(
-            discounted_price_dirty=True
-        )
+        with transaction.atomic():
+            _channel_listings = list(
+                ProductChannelListing.objects.select_for_update(of=("self",)).filter(
+                    id__in=listing_ids_to_update
+                )
+            )
+            ProductChannelListing.objects.filter(id__in=listing_ids_to_update).update(
+                discounted_price_dirty=True
+            )
