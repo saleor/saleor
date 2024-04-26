@@ -84,11 +84,14 @@ class ProductsQueryset(models.QuerySet):
         For user without permission we require channel to be passed to determine which
         products are visible to user.
         For user with permission we can return:
-        - all products if channel is not passed to query.
+        - all products if the channel is not passed and the query is not limited
+          to the provided channel.
             (channel=None, limited_channel_access=False)
-        - no products if channel is passed but it does not exist.
+        - no products if the channel is not passed and the query is limited
+          to the provided channel.
             (channel=None, limited_channel_access=True)
-        - all products assigned to channel if channel is passed and exists.
+        - all products assigned to the channel if the channel is passed and
+          the query is limited to the provided channel.
             (channel=Channel, limited_channel_access=True)
         """
         from .models import ALL_PRODUCTS_PERMISSIONS, ProductChannelListing
