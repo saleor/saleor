@@ -322,6 +322,10 @@ def test_customers_show_staff_with_order(admin_user, channel_USD):
         ("Dublin", "Co. Dublin", True),
         ("Co. Dublin", "Co. Dublin", True),
         ("Dummy Area", None, False),
+        ("dublin", "Co. Dublin", True),
+        (" dublin ", "Co. Dublin", True),
+        ("", "", True),
+        (None, "", True),
     ],
 )
 @patch.dict(

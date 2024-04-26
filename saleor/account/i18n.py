@@ -201,9 +201,10 @@ class CountryAwareAddressForm(AddressForm):
             return
         if custom_names := VALID_ADDRESS_EXTENSION_MAP.get(country_code):
             for field_name, mapping in custom_names.items():
-                actual_value = data.get(field_name)
-                if actual_value in mapping:
-                    data[field_name] = mapping[actual_value]
+                actual_value = data.get(field_name, "").strip().lower()
+                mapping_adjusted = {k.strip().lower(): v for k, v in mapping.items()}
+                if actual_value in mapping_adjusted:
+                    data[field_name] = mapping_adjusted[actual_value]
 
 
 def get_address_form_class(country_code):
