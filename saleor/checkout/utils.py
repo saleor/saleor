@@ -538,9 +538,12 @@ def get_voucher_for_checkout(
     """Return voucher assigned to checkout."""
     if checkout.voucher_code is not None:
         vouchers = Voucher.objects
-        vouchers = vouchers.active_in_channel(
-            date=timezone.now(), channel_slug=channel_slug
-        )
+        # The voucher validation should be performed only when the voucher
+        # usage for this checkout hasn't been increased.
+        if not checkout.is_voucher_usage_increased:
+            vouchers = vouchers.active_in_channel(
+                date=timezone.now(), channel_slug=channel_slug
+            )
         if with_prefetch:
             vouchers.prefetch_related(
                 "products", "collections", "categories", "variants", "channel_listings"
