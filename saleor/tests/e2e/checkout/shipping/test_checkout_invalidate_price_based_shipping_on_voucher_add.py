@@ -220,8 +220,6 @@ def test_checkout_should_invalidate_shipping_methods_when_adding_entire_order_vo
     assert order_data["discounts"][0]["type"] == "VOUCHER"
     assert order_data["discounts"][0]["value"] == voucher_amount
     assert order_data["voucher"]["code"] == voucher_code
-    # assert order_data["total"]["gross"]["amount"] == subtotal_amount
+    assert order_data["total"]["gross"]["amount"] == total_gross_amount
     assert order_data["deliveryMethod"]["id"] == shipping_method_id
     assert order_data["shippingPrice"]["gross"]["amount"] == shipping_price
-    # order_line = order_data["lines"][0]
-    # assert order_line["unitPrice"]["gross"]["amount"] == float(product_variant_price)

@@ -73,9 +73,6 @@ def test_get_context_value_uses_request_time_if_passed_already(rf):
     assert context.request_time == request_time
 
 
-# {'query': '{\n  me {\n    id\n  }\n}'}
-
-
 def test_clear_context(rf):
     # given
     context = get_context_value(rf.request())
