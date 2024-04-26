@@ -184,9 +184,9 @@ class Checkout(models.Model):
     gift_cards = models.ManyToManyField(GiftCard, blank=True, related_name="checkouts")
     voucher_code = models.CharField(max_length=255, blank=True, null=True)
 
-    # The field is to prevent race condition when two different threads are processing
-    # the same checkout with limited usage voucher assigned, both threads increasing the
-    # voucher usage which causing `NotApplicable` error for voucher
+    # The field prevents race condition when two different threads are processing
+    # the same checkout with limited usage voucher assigned. Both threads increasing the
+    # voucher usage would cause `NotApplicable` error for voucher.
     is_voucher_usage_increased = models.BooleanField(default=False)
 
     redirect_url = models.URLField(blank=True, null=True)
