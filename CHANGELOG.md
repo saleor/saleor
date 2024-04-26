@@ -23,6 +23,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - DB performance improvements in attribute dataloaders - #15474 by @AjmalPonneth
 - Calculate order promotions in draft orders - #15459 by @zedzior
 - Prevent name overwriting of Product Variants when Updating Product Types - #15670 by @teddyondieki
+- Added support for the `BrokerProperties` custom header to webhooks to support Azure Service Bus - #15899 by @patrys
 
 # 3.19.0
 

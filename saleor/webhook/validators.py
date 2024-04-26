@@ -39,11 +39,13 @@ def custom_headers_validator(headers: dict[str, str]) -> dict[str, str]:
             raise ValidationError(f'Value "{value}" contains invalid character.')
 
         if not (
-            key.lower().startswith("x-") or key.lower().startswith("authorization")
+            key.lower().startswith("x-")
+            or key.lower().startswith("authorization")
+            or key.lower() == "brokerproperties"
         ):
             raise ValidationError(
                 f'"{key}" does not match allowed key pattern: '
-                f'"X-*" or "Authorization*".'
+                f'"X-*", "Authorization*", or "BrokerProperties".'
             )
 
     return {k.lower(): v for k, v in headers.items()}
