@@ -94,7 +94,7 @@ class CheckoutInfo:
         initialize_shipping_method_active_status(all_methods, excluded_methods)
         return all_methods
 
-    @property
+    @cached_property
     def valid_pick_up_points(self) -> Iterable["Warehouse"]:
         from .utils import get_valid_collection_points_for_checkout
 
@@ -590,8 +590,14 @@ def update_delivery_method_lists_for_checkout_info(
     checkout_info.lines = lines
     checkout_info.shipping_channel_listings = list(shipping_channel_listings)
 
-    # Clear cached property if it was already calculated, so it can be recalculated.
+    # Clear cached properties if they were already calculated, so they can be
+    # recalculated.
     try:
         del checkout_info.all_shipping_methods
+    except AttributeError:
+        pass
+
+    try:
+        del checkout_info.valid_pick_up_points
     except AttributeError:
         pass
