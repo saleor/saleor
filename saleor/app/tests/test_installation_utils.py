@@ -595,7 +595,7 @@ def test_install_app_webhook_incorrect_custom_headers(
     assert "webhooks" in error_dict
     assert error_dict["webhooks"][0].message == (
         'Invalid custom headers: "InvalidKey" '
-        'does not match allowed key pattern: "X-*" or "Authorization*".'
+        'does not match allowed key pattern: "X-*", "Authorization*", or "BrokerProperties".'
     )
 
 
