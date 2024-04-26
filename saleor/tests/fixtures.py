@@ -8341,6 +8341,20 @@ def action_required_gateway_response():
 
 
 @pytest.fixture
+def success_gateway_response():
+    return GatewayResponse(
+        is_success=True,
+        action_required=False,
+        action_required_data={},
+        kind=TransactionKind.CAPTURE,
+        amount=Decimal("10.0"),
+        currency="usd",
+        transaction_id="1234",
+        error=None,
+    )
+
+
+@pytest.fixture
 def product_media_image(product, image, media_root):
     return ProductMedia.objects.create(
         product=product,
