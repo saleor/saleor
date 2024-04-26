@@ -123,11 +123,12 @@ def mark_products_in_channels_as_dirty(
 
     if listing_ids_to_update:
         with transaction.atomic():
-            _channel_listings = list(
-                ProductChannelListing.objects.select_for_update(of=("self",)).filter(
-                    id__in=listing_ids_to_update
-                )
+            channel_listing_ids = list(
+                ProductChannelListing.objects.select_for_update(of=("self",))
+                .filter(id__in=listing_ids_to_update, discounted_price_dirty=False)
+                .order_by("pk")
+                .values_list("id", flat=True)
             )
-            ProductChannelListing.objects.filter(id__in=listing_ids_to_update).update(
+            ProductChannelListing.objects.filter(id__in=channel_listing_ids).update(
                 discounted_price_dirty=True
             )
