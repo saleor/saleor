@@ -82,6 +82,4 @@ def test_clean_tax_code_when_tax_class_does_not_exists():
     clean_tax_code(data, manager)
 
     # then
-    assert TaxClass.objects.count() == 1
-    tax_class = TaxClass.objects.first()
-    assert data["tax_class"] == tax_class
+    assert data["tax_class"] is None

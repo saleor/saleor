@@ -9,12 +9,18 @@ from ....order import models
 from ....order.utils import update_order_charge_data
 from ....permission.enums import OrderPermissions
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_313, ADDED_IN_315, PREVIEW_FEATURE
+from ...core.descriptions import (
+    ADDED_IN_313,
+    ADDED_IN_315,
+    ADDED_IN_320,
+    PREVIEW_FEATURE,
+)
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.scalars import Decimal
 from ...core.types import BaseInputObjectType
 from ...core.types.common import Error, NonNullList
+from ...payment.mutations.transaction.utils import get_transaction_item
 from ..enums import OrderGrantRefundCreateErrorCode, OrderGrantRefundCreateLineErrorCode
 from ..types import Order, OrderGrantedRefund
 from .order_grant_refund_utils import (
@@ -79,6 +85,20 @@ class OrderGrantRefundCreateInput(BaseInputObjectType):
         description="Determine if granted refund should include shipping costs."
         + ADDED_IN_315
         + PREVIEW_FEATURE,
+        required=False,
+    )
+    transaction_id = graphene.ID(
+        description=(
+            "The ID of the transaction item related to the granted refund. "
+            "If `amount` provided in the input, the transaction.chargedAmount needs to "
+            "be equal or greater than provided `amount`."
+            "If `amount` is not provided in the input and calculated automatically by "
+            "Saleor, the `min(calculatedAmount, transaction.chargedAmount)` will be "
+            "used."
+            "Field will be required starting from Saleor 3.21."
+            + ADDED_IN_320
+            + PREVIEW_FEATURE
+        ),
         required=False,
     )
 
@@ -179,11 +199,13 @@ class OrderGrantRefundCreate(BaseMutation):
     @classmethod
     def clean_input(
         cls,
+        info: ResolveInfo,
         order: models.Order,
         input: dict[str, Any],
     ):
         amount = input.get("amount")
         reason = input.get("reason") or ""
+        transaction_id = input.get("transaction_id")
         input_lines = input.get("lines", [])
         grant_refund_for_shipping = input.get("grant_refund_for_shipping", None)
 
@@ -191,14 +213,16 @@ class OrderGrantRefundCreate(BaseMutation):
 
         cleaned_input_lines: list[models.OrderGrantedRefundLine] = []
         if input_lines:
-            cleaned_input_lines, errors = cls.clean_input_lines(order, input_lines)
-            if errors:
+            cleaned_input_lines, lines_errors = cls.clean_input_lines(
+                order, input_lines
+            )
+            if lines_errors:
                 raise ValidationError(
                     {
                         "lines": ValidationError(
                             "Provided input for lines is invalid.",
                             code=OrderGrantRefundCreateErrorCode.INVALID.value,
-                            params={"lines": errors},
+                            params={"lines": lines_errors},
                         ),
                     }
                 )
@@ -213,9 +237,35 @@ class OrderGrantRefundCreate(BaseMutation):
                 }
             )
 
+        max_grant_amount = None
+        transaction_item = None
+        if transaction_id is not None:
+            transaction_item = get_transaction_item(
+                id=transaction_id,
+                token=None,
+                error_field_name="transaction_id",
+                qs=order.payment_transactions.all(),
+            )
+            max_grant_amount = transaction_item.charged_value
+
         if amount is None:
             amount = cls.calculate_amount(
                 order, cleaned_input_lines, grant_refund_for_shipping
+            )
+            if max_grant_amount is not None:
+                amount = min(amount, max_grant_amount)
+        elif max_grant_amount is not None and amount > max_grant_amount:
+            error_code = (
+                OrderGrantRefundCreateErrorCode.AMOUNT_GREATER_THAN_AVAILABLE.value
+            )
+            raise ValidationError(
+                {
+                    "amount": ValidationError(
+                        "Amount cannot be greater than the charged amount of provided "
+                        "transaction.",
+                        code=error_code,
+                    )
+                }
             )
 
         return {
@@ -223,6 +273,7 @@ class OrderGrantRefundCreate(BaseMutation):
             "reason": reason,
             "lines": cleaned_input_lines,
             "grant_refund_for_shipping": grant_refund_for_shipping,
+            "transaction_item": transaction_item,
         }
 
     @classmethod
@@ -230,11 +281,12 @@ class OrderGrantRefundCreate(BaseMutation):
         cls, _root, info: ResolveInfo, /, *, id, input
     ):
         order = cls.get_node_or_error(info, id, only_type=Order)
-        cleaned_input = cls.clean_input(order, input)
+        cleaned_input = cls.clean_input(info, order, input)
         amount = cleaned_input["amount"]
         reason = cleaned_input["reason"]
         cleaned_input_lines = cleaned_input["lines"]
         grant_refund_for_shipping = cleaned_input["grant_refund_for_shipping"]
+        transaction_item = cleaned_input["transaction_item"]
 
         with transaction.atomic():
             granted_refund = order.granted_refunds.create(
@@ -244,6 +296,7 @@ class OrderGrantRefundCreate(BaseMutation):
                 user=info.context.user,
                 app=info.context.app,
                 shipping_costs_included=grant_refund_for_shipping or False,
+                transaction_item=transaction_item,
             )
             if cleaned_input_lines:
                 for line in cleaned_input_lines:

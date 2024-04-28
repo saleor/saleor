@@ -15,7 +15,6 @@ from ..celeryconf import app
 from ..core.exceptions import PreorderAllocationError
 from ..discount import PromotionType
 from ..discount.models import Promotion, PromotionRule
-from ..discount.utils import mark_active_catalogue_promotion_rules_as_dirty
 from ..plugins.manager import get_plugins_manager
 from ..warehouse.management import deactivate_preorder_for_variant
 from ..webhook.event_types import WebhookEventAsyncType
@@ -37,8 +36,8 @@ PRODUCTS_BATCH_SIZE = 300
 VARIANTS_UPDATE_BATCH = 500
 # Results in update time ~0.2s
 DISCOUNTED_PRODUCT_BATCH = 2000
-# Results in update time ~1.5s
-PROMOTION_RULE_BATCH_SIZE = 250
+# Results in update time ~2s when 600 channels exist
+PROMOTION_RULE_BATCH_SIZE = 100
 
 
 def _variants_in_batches(variants_qs):
@@ -58,8 +57,8 @@ def _variants_in_batches(variants_qs):
 def _update_variants_names(instance: ProductType, saved_attributes: Iterable):
     """Product variant names are created from names of assigned attributes.
 
-    After change in attribute value name, for all product variants using this
-    attributes we need to update the names.
+    After change in attribute value name, we update the names for all product variants
+    that lack names and use these attributes.
     """
     initial_attributes = set(instance.variant_attributes.all())
     attributes_changed = initial_attributes.intersection(saved_attributes)
@@ -67,6 +66,7 @@ def _update_variants_names(instance: ProductType, saved_attributes: Iterable):
         return
 
     variants = ProductVariant.objects.filter(
+        name="",
         product__in=instance.products.all(),
         product__product_type__variant_attributes__in=attributes_changed,
     )
@@ -116,15 +116,15 @@ def _get_channel_to_products_map(rule_to_variant_list):
         [rule_to_variant.promotionrule_id for rule_to_variant in rule_to_variant_list]
     )
     PromotionChannel = PromotionRule.channels.through
-    promotion_channel_qs = PromotionChannel.objects.using(
-        settings.DATABASE_CONNECTION_REPLICA_NAME
-    ).filter(promotionrule_id__in=rule_ids)
-    rule_to_channels_map = defaultdict(set)
-    for promotion_channel in promotion_channel_qs:
-        rule_to_channels_map[promotion_channel.promotionrule_id].add(
-            promotion_channel.channel_id
-        )
+    promotion_channel_qs = (
+        PromotionChannel.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(promotionrule_id__in=rule_ids)
+        .values_list("promotionrule_id", "channel_id")
+    )
 
+    rule_to_channels_map = defaultdict(set)
+    for promotionrule_id, channel_id in promotion_channel_qs.iterator():
+        rule_to_channels_map[promotionrule_id].add(channel_id)
     channel_to_products_map = defaultdict(set)
     for rule_to_variant in rule_to_variant_list:
         channel_ids = rule_to_channels_map[rule_to_variant.promotionrule_id]
@@ -202,11 +202,7 @@ def update_products_discounted_prices_for_promotion_task(
 
     # In case of triggered the task by old server worker, mark all active promotions as
     # dirty. This will make the same re-calculation as the old task.
-    from ..channel.models import Channel
-
-    mark_active_catalogue_promotion_rules_as_dirty(
-        Channel.objects.all().values_list("id", flat=True)
-    )
+    PromotionRule.objects.filter(variants_dirty=False).update(variants_dirty=True)
 
 
 @app.task

@@ -24,7 +24,7 @@ from ..base_calculations import (
 from ..calculations import (
     _apply_tax_data,
     _calculate_and_add_tax,
-    _get_checkout_base_prices,
+    _set_checkout_base_prices,
     fetch_checkout_data,
 )
 from ..fetch import CheckoutLineInfo, fetch_checkout_info, fetch_checkout_lines
@@ -269,7 +269,7 @@ def test_fetch_checkout_data_flat_rates_and_no_tax_calc_strategy(
     assert checkout.shipping_tax_rate == Decimal("0.2300")
 
 
-def test_get_checkout_base_prices_no_charge_taxes_with_voucher(
+def test_set_checkout_base_prices_no_charge_taxes_with_voucher(
     checkout_with_item, voucher_percentage
 ):
     # given
@@ -312,7 +312,7 @@ def test_get_checkout_base_prices_no_charge_taxes_with_voucher(
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     # when
-    _get_checkout_base_prices(checkout, checkout_info, lines)
+    _set_checkout_base_prices(checkout, checkout_info, lines)
     checkout.save()
     checkout.lines.bulk_update(
         [line_info.line for line_info in lines],
@@ -339,7 +339,7 @@ def test_get_checkout_base_prices_no_charge_taxes_with_voucher(
     assert line.total_price == checkout.total
 
 
-def test_get_checkout_base_prices_no_charge_taxes_with_order_promotion(
+def test_set_checkout_base_prices_no_charge_taxes_with_order_promotion(
     checkout_with_item_and_order_discount,
 ):
     # given
@@ -359,7 +359,7 @@ def test_get_checkout_base_prices_no_charge_taxes_with_order_promotion(
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     # when
-    _get_checkout_base_prices(checkout, checkout_info, lines)
+    _set_checkout_base_prices(checkout, checkout_info, lines)
     checkout.save()
     checkout.lines.bulk_update(
         [line_info.line for line_info in lines],
@@ -634,6 +634,7 @@ def test_fetch_checkout_data_calls_inactive_plugin(
     fetch_checkout_data(**fetch_kwargs)
 
     # then
+    assert checkout.total.gross.amount > 0
     assert checkout_with_items.tax_error == "Empty tax data."
 
 
@@ -651,7 +652,7 @@ def test_external_shipping_method_called_only_once_during_tax_calculations(
     mock_send_webhook_request_sync.side_effect = (
         [
             {
-                "amount": 1337.0,
+                "amount": "1337.0",
                 "currency": "USD",
                 "id": external_method_id,
                 "name": "Shipping app method 1",
@@ -659,10 +660,10 @@ def test_external_shipping_method_called_only_once_during_tax_calculations(
         ],
         {
             "lines": [
-                {"tax_rate": 0, "total_gross_amount": 21.6, "total_net_amount": 20}
+                {"tax_rate": 0, "total_gross_amount": "21.6", "total_net_amount": 20}
             ],
-            "shipping_price_gross_amount": 1443.96,
-            "shipping_price_net_amount": 1337,
+            "shipping_price_gross_amount": "1443.96",
+            "shipping_price_net_amount": "1337",
             "shipping_tax_rate": 0,
         },
     )

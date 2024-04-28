@@ -193,7 +193,8 @@ class DraftOrderCreate(
         shipping_method_input = {}
         if "shipping_method" in data:
             shipping_method_input["shipping_method"] = get_shipping_model_by_object_id(
-                object_id=data.pop("shipping_method", None), raise_error=False
+                object_id=data.pop("shipping_method", None),
+                error_field="shipping_method",
             )
 
         if email := data.get("user_email", None):
@@ -481,7 +482,7 @@ class DraftOrderCreate(
             )
 
     @classmethod
-    def should_invalidate_prices(cls, instance, cleaned_input, is_new_instance) -> bool:
+    def should_invalidate_prices(cls, cleaned_input, is_new_instance) -> bool:
         # Force price recalculation for all new instances
         return is_new_instance
 
@@ -565,7 +566,7 @@ class DraftOrderCreate(
                     "display_gross_prices",
                 ]
             )
-            if cls.should_invalidate_prices(instance, cleaned_input, is_new_instance):
+            if cls.should_invalidate_prices(cleaned_input, is_new_instance):
                 invalidate_order_prices(instance)
                 updated_fields.extend(["should_refresh_prices"])
             recalculate_order_weight(instance)

@@ -8,7 +8,11 @@ from django.core.mail.backends.smtp import EmailBackend
 
 from ....core.notify_events import NotifyEventType
 from ....graphql.tests.utils import get_graphql_content
-from ...email_common import DEFAULT_EMAIL_VALUE, get_email_template
+from ...email_common import (
+    DEFAULT_EMAIL_CONFIG_STRUCTURE,
+    DEFAULT_EMAIL_VALUE,
+    get_email_template,
+)
 from ...manager import get_plugins_manager
 from ...models import PluginConfiguration
 from ..constants import (
@@ -24,7 +28,7 @@ from ..notify_events import (
     send_staff_order_confirmation,
     send_staff_reset_password,
 )
-from ..plugin import get_admin_event_map
+from ..plugin import AdminEmailPlugin, get_admin_event_map
 
 
 def test_event_map():
@@ -281,6 +285,7 @@ def test_plugin_manager_doesnt_load_email_templates_from_db(
 ):
     settings.PLUGINS = ["saleor.plugins.admin_email.plugin.AdminEmailPlugin"]
     manager = get_plugins_manager(allow_replica=False)
+    manager.get_all_plugins()
     plugin = manager.all_plugins[0]
 
     email_config_item = None
@@ -292,3 +297,30 @@ def test_plugin_manager_doesnt_load_email_templates_from_db(
     # email template from DB but returns default email value.
     assert email_config_item
     assert email_config_item["value"] == DEFAULT_EMAIL_VALUE
+
+
+def test_plugin_dont_change_default_help_text_config_value():
+    assert (
+        AdminEmailPlugin.CONFIG_STRUCTURE["host"]["help_text"]
+        != DEFAULT_EMAIL_CONFIG_STRUCTURE["host"]["help_text"]
+    )
+    assert (
+        AdminEmailPlugin.CONFIG_STRUCTURE["port"]["help_text"]
+        != DEFAULT_EMAIL_CONFIG_STRUCTURE["port"]["help_text"]
+    )
+    assert (
+        AdminEmailPlugin.CONFIG_STRUCTURE["username"]["help_text"]
+        != DEFAULT_EMAIL_CONFIG_STRUCTURE["username"]["help_text"]
+    )
+    assert (
+        AdminEmailPlugin.CONFIG_STRUCTURE["password"]["help_text"]
+        != DEFAULT_EMAIL_CONFIG_STRUCTURE["password"]["help_text"]
+    )
+    assert (
+        AdminEmailPlugin.CONFIG_STRUCTURE["use_tls"]["help_text"]
+        != DEFAULT_EMAIL_CONFIG_STRUCTURE["use_tls"]["help_text"]
+    )
+    assert (
+        AdminEmailPlugin.CONFIG_STRUCTURE["use_ssl"]["help_text"]
+        != DEFAULT_EMAIL_CONFIG_STRUCTURE["use_ssl"]["help_text"]
+    )

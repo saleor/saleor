@@ -24,7 +24,7 @@ from ..validators import (
         ),
         (
             {"Key": "Value"},
-            '"Key" does not match allowed key pattern: "X-*" or "Authorization*".',
+            '"Key" does not match allowed key pattern: "X-*", "Authorization*", or "BrokerProperties".',
         ),
         (
             {"X-Key": 123},
@@ -49,12 +49,12 @@ from ..validators import (
         ),
         (
             {"ABCX-Key": "Value"},
-            '"ABCX-Key" does not match allowed key pattern: "X-*" or "Authorization*".',
+            '"ABCX-Key" does not match allowed key pattern: "X-*", "Authorization*", or "BrokerProperties".',
         ),
         (
             {"ABCAuthorization-Key": "Value"},
             '"ABCAuthorization-Key" does not match allowed key pattern:'
-            ' "X-*" or "Authorization*".',
+            ' "X-*", "Authorization*", or "BrokerProperties".',
         ),
     ],
 )

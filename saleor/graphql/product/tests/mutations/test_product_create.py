@@ -119,7 +119,7 @@ def test_create_product(
     monkeypatch.setattr(
         PluginsManager,
         "get_tax_code_from_object_meta",
-        lambda self, x: TaxType(description="", code=product_tax_rate),
+        lambda self, x, channel_slug: TaxType(description="", code=product_tax_rate),
     )
 
     # Default attribute defined in product_type fixture

@@ -3,6 +3,7 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Optional, Union
 
 from django.conf import settings
+from django.contrib.postgres.indexes import GinIndex
 from django.db import models
 from django.db.models import OuterRef, Q, Subquery
 from django_countries.fields import CountryField
@@ -99,6 +100,14 @@ class ShippingZone(ModelWithMetadata):
         permissions = (
             (ShippingPermissions.MANAGE_SHIPPING.codename, "Manage shipping."),
         )
+        indexes = [
+            *ModelWithMetadata.Meta.indexes,
+            GinIndex(
+                fields=["countries"],
+                name="s_z_countries_idx",
+                opclasses=["gin_trgm_ops"],
+            ),
+        ]
 
 
 class ShippingMethodQueryset(models.QuerySet["ShippingMethod"]):

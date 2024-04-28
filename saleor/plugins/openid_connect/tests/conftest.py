@@ -86,6 +86,7 @@ def openid_plugin(settings, plugin_configuration):
             },
         )
         manager = get_plugins_manager(allow_replica=False)
+        manager.get_all_plugins()
         return manager.all_plugins[0]
 
     return fun

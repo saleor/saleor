@@ -35,6 +35,7 @@ from ..discount.utils import (
 from ..giftcard import events as gift_card_events
 from ..giftcard.models import GiftCard
 from ..giftcard.search import mark_gift_cards_search_index_as_dirty
+from ..payment import TransactionEventType
 from ..payment.model_helpers import get_total_authorized
 from ..product.utils.digital_products import get_default_digital_content_settings
 from ..shipping.interface import ShippingMethodData
@@ -56,6 +57,7 @@ from . import (
     FulfillmentStatus,
     OrderAuthorizeStatus,
     OrderChargeStatus,
+    OrderGrantedRefundStatus,
     OrderStatus,
     events,
 )
@@ -841,6 +843,9 @@ def update_discount_for_order_line(
     value: Optional[Decimal],
 ):
     """Update discount fields for order line. Apply discount to the price."""
+    # TODO: Move price calculation to fetch_order_prices_if_expired function.
+    # Here we should only create order line discount object
+    # https://github.com/saleor/saleor/issues/15517
     current_value = order_line.unit_discount_value
     current_value_type = order_line.unit_discount_type
     value = value or current_value
@@ -893,6 +898,52 @@ def update_discount_for_order_line(
     # from db
     order_line.save(update_fields=fields_to_update)
 
+    _update_manual_order_line_discount_object(
+        value, value_type, reason, order_line, order.currency
+    )
+
+
+def _update_manual_order_line_discount_object(
+    value, value_type, reason, order_line, currency
+):
+    discount_to_update = None
+    discount_to_delete_ids = []
+    discounts = order_line.discounts.all()
+    for discount in discounts:
+        if discount.type == DiscountType.MANUAL and not discount_to_update:
+            discount_to_update = discount
+        else:
+            discount_to_delete_ids.append(discount.pk)
+
+    if discount_to_delete_ids:
+        OrderLineDiscount.objects.filter(id__in=discount_to_delete_ids).delete()
+
+    amount_value = quantize_price(
+        order_line.unit_discount.amount * order_line.quantity, currency
+    )
+    if not discount_to_update:
+        order_line.discounts.create(
+            type=DiscountType.MANUAL,
+            value_type=value_type,
+            value=value,
+            amount_value=amount_value,
+            currency=currency,
+            reason=reason,
+        )
+    else:
+        update_fields = []
+        if discount_to_update.value_type != value_type:
+            discount_to_update.value_type = value_type
+            update_fields.append("value_type")
+        if discount_to_update.value != value:
+            discount_to_update.value = value
+            discount_to_update.amount_value = amount_value
+            update_fields.extend(["value", "amount_value"])
+        if discount_to_update.reason != reason:
+            discount_to_update.reason = reason
+            update_fields.append("reason")
+        discount_to_update.save(update_fields=update_fields)
+
 
 def remove_discount_from_order_line(order_line: OrderLine, order: "Order"):
     """Drop discount applied to order line. Restore undiscounted price."""
@@ -922,6 +973,7 @@ def remove_discount_from_order_line(order_line: OrderLine, order: "Order"):
             "tax_rate",
         ]
     )
+    order_line.discounts.all().delete()
 
 
 def update_order_charge_status(order: Order, granted_refund_amount: Decimal):
@@ -1106,3 +1158,42 @@ def update_order_display_gross_prices(order: "Order"):
     order.display_gross_prices = get_display_gross_prices(
         tax_configuration, country_tax_configuration
     )
+
+
+def calculate_order_granted_refund_status(
+    granted_refund: OrderGrantedRefund,
+    with_save: bool = True,
+):
+    """Update the status for the granted refund.
+
+    The status is calculated based on last transaction event related to refund action.
+    """
+
+    last_event = (
+        granted_refund.transaction_events.filter(
+            transaction_id=granted_refund.transaction_item_id,
+            type__in=[
+                TransactionEventType.REFUND_REQUEST,
+                TransactionEventType.REFUND_SUCCESS,
+                TransactionEventType.REFUND_REVERSE,
+                TransactionEventType.REFUND_FAILURE,
+            ],
+        )
+        .order_by("created_at")
+        .last()
+    )
+
+    current_granted_refund_status = granted_refund.status
+    if not last_event:
+        return
+    if last_event.type == TransactionEventType.REFUND_SUCCESS:
+        granted_refund.status = OrderGrantedRefundStatus.SUCCESS
+    elif last_event.type == TransactionEventType.REFUND_REQUEST:
+        granted_refund.status = OrderGrantedRefundStatus.PENDING
+    elif last_event.type == TransactionEventType.REFUND_FAILURE:
+        granted_refund.status = OrderGrantedRefundStatus.FAILURE
+    else:
+        granted_refund.status = OrderGrantedRefundStatus.NONE
+
+    if with_save and current_granted_refund_status != granted_refund.status:
+        granted_refund.save(update_fields=["status"])

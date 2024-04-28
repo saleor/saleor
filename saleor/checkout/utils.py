@@ -32,8 +32,8 @@ from ..discount.models import (
     VoucherCode,
 )
 from ..discount.utils import (
-    create_discount_objects_for_catalogue_promotions,
-    create_discount_objects_for_order_promotions,
+    create_checkout_discount_objects_for_order_promotions,
+    create_checkout_line_discount_objects_for_catalogue_promotions,
     delete_gift_line,
     get_products_voucher_discount,
     get_voucher_code_instance,
@@ -96,7 +96,7 @@ def recalculate_checkout_discounts(
     Update line and checkout discounts from vouchers and promotions.
     Create or remove gift line if needed.
     """
-    create_discount_objects_for_catalogue_promotions(lines)
+    create_checkout_line_discount_objects_for_catalogue_promotions(lines)
     recalculate_checkout_discount(manager, checkout_info, lines)
 
 
@@ -574,12 +574,21 @@ def get_voucher_for_checkout(
         except VoucherCode.DoesNotExist:
             return None, None
 
-        voucher = (
-            Voucher.objects.using(database_connection_name)
-            .active_in_channel(date=timezone.now(), channel_slug=channel_slug)
-            .filter(id=code.voucher_id)
-            .first()
-        )
+        # The voucher validation should be performed only when the voucher
+        # usage for this checkout hasn't been increased.
+        if checkout.is_voucher_usage_increased:
+            voucher = (
+                Voucher.objects.using(database_connection_name)
+                .filter(id=code.voucher_id)
+                .first()
+            )
+        else:
+            voucher = (
+                Voucher.objects.using(database_connection_name)
+                .active_in_channel(date=timezone.now(), channel_slug=channel_slug)
+                .filter(id=code.voucher_id)
+                .first()
+            )
 
         if not voucher:
             return None, None
@@ -692,7 +701,9 @@ def recalculate_checkout_discount(
     else:
         remove_voucher_from_checkout(checkout)
 
-    create_discount_objects_for_order_promotions(checkout_info, lines, save=True)
+    create_checkout_discount_objects_for_order_promotions(
+        checkout_info, lines, save=True
+    )
 
 
 def add_promo_code_to_checkout(
