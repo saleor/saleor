@@ -117,11 +117,13 @@ def _update_or_create_listings(
 ):
     if changed_products_listings_to_update:
         ProductChannelListing.objects.bulk_update(
-            changed_products_listings_to_update, ["discounted_price_amount"]
+            sorted(changed_products_listings_to_update, key=lambda listing: listing.id),
+            ["discounted_price_amount"],
         )
     if changed_variants_listings_to_update:
         ProductVariantChannelListing.objects.bulk_update(
-            changed_variants_listings_to_update, ["discounted_price_amount"]
+            sorted(changed_variants_listings_to_update, key=lambda listing: listing.id),
+            ["discounted_price_amount"],
         )
     if changed_variant_listing_promotion_rule_to_create:
         _create_variant_listing_promotion_rule(
@@ -129,7 +131,11 @@ def _update_or_create_listings(
         )
     if changed_variant_listing_promotion_rule_to_update:
         VariantChannelListingPromotionRule.objects.bulk_update(
-            changed_variant_listing_promotion_rule_to_update, ["discount_amount"]
+            sorted(
+                changed_variant_listing_promotion_rule_to_update,
+                key=lambda listing: listing.id,
+            ),
+            ["discount_amount"],
         )
 
 

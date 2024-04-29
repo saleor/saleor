@@ -1532,10 +1532,20 @@ def mark_active_catalogue_promotion_rules_as_dirty(channel_ids: Iterable[int]):
     rules = get_active_catalogue_promotion_rules()
     PromotionRuleChannel = PromotionRule.channels.through
     promotion_rules = PromotionRuleChannel.objects.filter(channel_id__in=channel_ids)
-    rules = rules.filter(
+    rule_ids = rules.filter(
         Exists(promotion_rules.filter(promotionrule_id=OuterRef("id")))
-    )
-    rules.update(variants_dirty=True)
+    ).values_list("id", flat=True)
+
+    with transaction.atomic():
+        rule_ids_to_update = list(
+            PromotionRule.objects.select_for_update(of=("self",))
+            .filter(id__in=rule_ids, variants_dirty=False)
+            .order_by("pk")
+            .values_list("id", flat=True)
+        )
+        PromotionRule.objects.filter(id__in=rule_ids_to_update).update(
+            variants_dirty=True
+        )
 
 
 def mark_catalogue_promotion_rules_as_dirty(promotion_pks: Iterable[UUID]):
@@ -1546,6 +1556,13 @@ def mark_catalogue_promotion_rules_as_dirty(promotion_pks: Iterable[UUID]):
     """
     if not promotion_pks:
         return
-    PromotionRule.objects.filter(promotion_id__in=promotion_pks).update(
-        variants_dirty=True
-    )
+    with transaction.atomic():
+        rule_ids_to_update = list(
+            PromotionRule.objects.select_for_update(of=(["self"]))
+            .filter(promotion_id__in=promotion_pks, variants_dirty=False)
+            .order_by("pk")
+            .values_list("id", flat=True)
+        )
+        PromotionRule.objects.filter(id__in=rule_ids_to_update).update(
+            variants_dirty=True
+        )
