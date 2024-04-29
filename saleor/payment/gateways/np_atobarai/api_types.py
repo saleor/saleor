@@ -18,10 +18,11 @@ from .const import (
 class NPResponse(NamedTuple):
     result: dict
     error_codes: list[str]
+    raw_response: dict
 
 
 def error_np_response(error_message: str) -> NPResponse:
-    return NPResponse({}, [error_message])
+    return NPResponse({}, [error_message], {})
 
 
 @dataclass
@@ -51,11 +52,15 @@ class PaymentResult:
 
 
 def error_payment_result(error_message: str) -> PaymentResult:
-    return PaymentResult(status=PaymentStatus.FAILED, errors=[error_message])
+    return PaymentResult(
+        status=PaymentStatus.FAILED, errors=[error_message], raw_response={}
+    )
 
 
-def errors_payment_result(errors: list[str]) -> PaymentResult:
-    return PaymentResult(status=PaymentStatus.FAILED, errors=errors)
+def errors_payment_result(errors: list[str], response: dict) -> PaymentResult:
+    return PaymentResult(
+        status=PaymentStatus.FAILED, errors=errors, raw_response=response
+    )
 
 
 def get_api_config(connection_params: dict) -> ApiConfig:
