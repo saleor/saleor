@@ -375,16 +375,16 @@ class TaxableObject(BaseObjectType):
         if isinstance(root, Checkout):
 
             def calculate_checkout_discounts(checkout_info):
-                is_shipping_voucher = (
-                    checkout_info.voucher.type == VoucherType.SHIPPING
-                    if checkout_info.voucher
-                    else False
-                )
                 checkout = checkout_info.checkout
                 discount_name = checkout.discount_name
                 return (
                     [{"name": discount_name, "amount": checkout.discount}]
-                    if checkout.discount and not is_shipping_voucher
+                    if checkout.discount
+                    and (
+                        checkout_info.voucher
+                        and checkout_info.voucher.type == VoucherType.ENTIRE_ORDER
+                        and not checkout_info.voucher.apply_once_per_order
+                    )
                     else []
                 )
 
