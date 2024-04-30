@@ -13,6 +13,7 @@ from ....thumbnail.utils import (
     get_thumbnail_size,
 )
 from ...channel import ChannelContext, ChannelQsContext
+from ...channel.dataloaders import ChannelBySlugLoader
 from ...channel.types import ChannelContextType, ChannelContextTypeWithMetadata
 from ...core import ResolveInfo
 from ...core.connection import (
@@ -142,22 +143,34 @@ class Collection(ChannelContextTypeWithMetadata[models.Collection]):
         search = kwargs.get("search")
 
         requestor = get_user_or_app_from_context(info.context)
-        qs = root.node.products.using(
-            get_database_connection_name(info.context)
-        ).visible_to_user(requestor, root.channel_slug)
+        limited_channel_access = False if root.channel_slug is None else True
 
-        if search:
-            qs = ChannelQsContext(
-                qs=search_products(qs.qs, search), channel_slug=root.channel_slug
+        def _resolve_products(channel):
+            qs = root.node.products.using(
+                get_database_connection_name(info.context)
+            ).visible_to_user(requestor, channel, limited_channel_access)
+
+            if search:
+                qs = ChannelQsContext(
+                    qs=search_products(qs.qs, search), channel_slug=root.channel_slug
+                )
+            else:
+                qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
+
+            kwargs["channel"] = root.channel_slug
+            qs = filter_connection_queryset(
+                qs, kwargs, allow_replica=info.context.allow_replica
+            )
+            return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
+
+        if root.channel_slug:
+            return (
+                ChannelBySlugLoader(info.context)
+                .load(str(root.channel_slug))
+                .then(_resolve_products)
             )
         else:
-            qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
-
-        kwargs["channel"] = root.channel_slug
-        qs = filter_connection_queryset(
-            qs, kwargs, allow_replica=info.context.allow_replica
-        )
-        return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
+            return _resolve_products(None)
 
     @staticmethod
     def resolve_channel_listings(root: ChannelContext[models.Collection], info):
