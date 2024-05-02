@@ -501,8 +501,14 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
                         collection_point.id: collection_point
                         for collection_point in collection_points
                     }
-                    voucher_map = {voucher.code: voucher for voucher in vouchers}
-                    voucher_code_map = {code.code: code for code in voucher_codes}
+                    voucher_map = {
+                        voucher.code: voucher for voucher in vouchers if voucher
+                    }
+                    voucher_code_map = {
+                        voucher_code.code: voucher_code
+                        for voucher_code in voucher_codes
+                        if voucher_code
+                    }
                     tax_configuration_by_channel_map = {
                         tax_configuration.channel_id: tax_configuration
                         for tax_configuration in tax_configurations
