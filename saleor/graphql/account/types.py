@@ -15,6 +15,7 @@ from ...order import OrderStatus
 from ...payment.interface import ListStoredPaymentMethodsRequestData
 from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import AccountPermissions, AppPermission, OrderPermissions
+from ...plugins.manager import PluginsManager
 from ...thumbnail.utils import (
     get_image_or_proxy_url,
     get_thumbnail_format,
@@ -696,15 +697,13 @@ class User(ModelObjectType[models.User]):
         if not requestor or requestor.id != root.id:
             return []
 
-        def get_stored_payment_methods(data):
+        def get_stored_payment_methods(data: tuple[Channel, "PluginsManager"]):
             channel_obj, manager = data
             request_data = ListStoredPaymentMethodsRequestData(
                 user=root,
                 channel=channel_obj,
             )
-            return manager.list_stored_payment_methods(
-                request_data, channel_slug=channel
-            )
+            return manager.list_stored_payment_methods(request_data)
 
         return Promise.all(
             [
