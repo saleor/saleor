@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Optional
 import graphene
 from promise import Promise
 
+from ...account.models import User
 from ...checkout import calculations, models, problems
 from ...checkout.base_calculations import (
     calculate_undiscounted_base_line_total_price,
@@ -1282,15 +1283,15 @@ class Checkout(ModelObjectType[models.Checkout]):
         if not requestor or requestor.id != root.user_id:
             return []
 
-        def _resolve_stored_payment_methods(data):
+        def _resolve_stored_payment_methods(
+            data: tuple["Channel", "User", "PluginsManager"],
+        ):
             channel, user, manager = data
             request_data = ListStoredPaymentMethodsRequestData(
                 user=user,
                 channel=channel,
             )
-            return manager.list_stored_payment_methods(
-                request_data, channel_slug=channel.slug
-            )
+            return manager.list_stored_payment_methods(request_data)
 
         manager = get_plugin_manager_promise(info.context)
         channel_loader = ChannelByIdLoader(info.context).load(root.channel_id)
