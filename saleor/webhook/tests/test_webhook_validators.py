@@ -39,8 +39,8 @@ from ..validators import (
             'Key "ke:y" contains invalid character.',
         ),
         (
-            {"Key": "Val:ue"},
-            'Value "Val:ue" contains invalid character.',
+            {"Key": "ż"},
+            'Value "ż" contains invalid character.',
         ),
         (
             {"Key": "X" * HEADERS_LENGTH_LIMIT},
