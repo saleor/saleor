@@ -24,7 +24,7 @@ from ..core.exceptions import PermissionDenied, ReadOnlyException
 from ..core.utils import is_valid_ipv4, is_valid_ipv6
 from ..webhook import observability
 from .api import API_PATH, schema
-from .context import get_context_value
+from .context import clear_context, get_context_value
 from .core.validators.query_cost import validate_query_cost
 from .query_cost_map import COST_MAP
 from .utils import format_error, query_fingerprint, query_identifier
@@ -352,6 +352,8 @@ class GraphQLView(View):
                 if str(e).startswith(INT_ERROR_MSG) or isinstance(e, ValueError):
                     e = GraphQLError(str(e))
                 return ExecutionResult(errors=[e], invalid=True)
+            finally:
+                clear_context(context)
 
     @staticmethod
     def parse_body(request: HttpRequest):

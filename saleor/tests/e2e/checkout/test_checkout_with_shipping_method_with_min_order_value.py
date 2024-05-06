@@ -129,7 +129,7 @@ def test_checkout_with_shipping_method_with_min_order_value_CORE_0501(
         shipping_method_id,
         channel_id,
         price="5.00",
-        minimumOrderPrice=minimum_order_price,
+        minimum_order_price=minimum_order_price,
     )
     shipping_method_min_order_value = data["channelListings"][0]["minimumOrderPrice"][
         "amount"
