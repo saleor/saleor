@@ -8034,7 +8034,7 @@ def checkout_with_prices(
     channel = checkout_with_items.channel
     lines = checkout_with_items.lines.all()
     lines_info, _ = fetch_checkout_lines(checkout_with_items)
-    checkout_info = fetch_checkout_info(checkout_with_items, lines, manager)
+    checkout_info = fetch_checkout_info(checkout_with_items, lines_info, manager)
 
     for line, line_info in zip(lines, lines_info):
         line.total_price_net_amount = base_calculations.calculate_base_line_total_price(

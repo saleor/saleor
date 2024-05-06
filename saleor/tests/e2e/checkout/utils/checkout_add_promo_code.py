@@ -20,6 +20,16 @@ mutation AddCheckoutPromoCode($checkoutId: ID!, $promoCode: String!) {
           amount
         }
       }
+      shippingMethods {
+        id
+        name
+      }
+      deliveryMethod {
+        ... on ShippingMethod {
+          id
+          name
+        }
+      }
       voucherCode
       discount {
         amount
