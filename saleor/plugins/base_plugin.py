@@ -155,6 +155,12 @@ class BasePlugin:
         self.db_config = db_config
         self.allow_replica = allow_replica
 
+    def __del__(self) -> None:
+        self.channel = None
+        self.db_config = None
+        self.configuration.clear()
+        self.requestor = None
+
     def __str__(self):
         return self.PLUGIN_NAME
 
