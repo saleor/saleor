@@ -227,8 +227,6 @@ def test_transaction_create_for_order_by_app_metadata_null_value(
     )
 
     # then
-    available_actions = list(set(available_actions))
-
     transaction = order_with_lines.payment_transactions.first()
     content = get_graphql_content(response)
     data = content["data"]["transactionCreate"]["transaction"]
@@ -440,8 +438,6 @@ def test_transaction_create_for_checkout_by_app_metadata_null_value(
     checkout_with_items.refresh_from_db()
     assert checkout_with_items.charge_status == CheckoutChargeStatus.NONE
     assert checkout_with_items.authorize_status == CheckoutAuthorizeStatus.PARTIAL
-
-    available_actions = list(set(available_actions))
 
     transaction = checkout_with_items.payment_transactions.first()
     content = get_graphql_content(response)
