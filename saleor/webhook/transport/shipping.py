@@ -76,7 +76,7 @@ def parse_list_shipping_methods_response(
                 maximum_delivery_days=method_maximum_delivery_days,
                 minimum_delivery_days=method_minimum_delivery_days,
                 description=method_description,
-                metadata=method_metadata
+                metadata=method_metadata,
             )
         )
     return shipping_methods

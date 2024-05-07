@@ -134,10 +134,7 @@ def test_is_valid_delivery_method_external_method_with_metadata_and_description(
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     assert not shipping_app.identifier
     response_method_id = "abcd"
-    metadata = {
-                "key": "value",
-                "key_2": "value_2"
-            }
+    metadata = {"key": "value", "key_2": "value_2"}
     description = "Shipping Method Description"
     mock_json_response = [
         {
@@ -148,7 +145,7 @@ def test_is_valid_delivery_method_external_method_with_metadata_and_description(
             "maximum_delivery_days": "7",
             "minimum_delivery_days": "1",
             "description": description,
-            "metadata": metadata
+            "metadata": metadata,
         }
     ]
     method_id = graphene.Node.to_global_id(
