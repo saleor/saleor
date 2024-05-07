@@ -39,11 +39,6 @@ class DataLoader(BaseLoader, Generic[K, R]):
             self.database_connection_name = get_database_connection_name(context)
             super().__init__()
 
-    def __del__(self):
-        self._promise_cache.clear()
-        self._queue.clear()
-        self._scheduler = None
-
     def batch_load_fn(  # pylint: disable=method-hidden
         self, keys: Iterable[K]
     ) -> Promise[list[R]]:
