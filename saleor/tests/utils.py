@@ -2,7 +2,35 @@ import json
 import math
 from decimal import Decimal
 
+from django.conf import settings
 from django.db import connections, transaction
+
+
+class TestDBConnectionWrapper:
+    def __init__(self, conn, default_conn):
+        self._wrapped_conn = conn
+        self._default_conn = default_conn
+
+    def cursor(self, *args, **kwargs):
+        cursor = self._default_conn.cursor(*args, **kwargs)
+        cursor.db = self
+        return cursor
+
+    def chunked_cursor(self, *args, **kwargs):
+        cursor = self._default_conn.chunked_cursor(*args, **kwargs)
+        cursor.db = self
+        return cursor
+
+    def __getattr__(self, attr):
+        if attr in ["alias", "settings_dict"]:
+            return getattr(self._wrapped_conn, attr)
+        return getattr(self._default_conn, attr)
+
+
+def prepare_test_db_connections():
+    replica = settings.DATABASE_CONNECTION_REPLICA_NAME
+    default_conn = connections[settings.DATABASE_CONNECTION_DEFAULT_NAME]
+    connections[replica] = TestDBConnectionWrapper(connections[replica], default_conn)
 
 
 def flush_post_commit_hooks():
@@ -10,14 +38,13 @@ def flush_post_commit_hooks():
 
     Forces all `on_commit()` hooks to run even if the transaction was not committed yet.
     """
-    for alias in connections:
-        connection = transaction.get_connection(alias)
-        was_atomic = connection.in_atomic_block
-        was_commit_on_exit = connection.commit_on_exit
-        connection.in_atomic_block = False
-        connection.run_and_clear_commit_hooks()
-        connection.in_atomic_block = was_atomic
-        connection.commit_on_exit = was_commit_on_exit
+    connection = transaction.get_connection(settings.DATABASE_CONNECTION_DEFAULT_NAME)
+    was_atomic = connection.in_atomic_block
+    was_commit_on_exit = connection.commit_on_exit
+    connection.in_atomic_block = False
+    connection.run_and_clear_commit_hooks()
+    connection.in_atomic_block = was_atomic
+    connection.commit_on_exit = was_commit_on_exit
 
 
 def dummy_editorjs(text, json_format=False):
