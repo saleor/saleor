@@ -501,6 +501,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
                     voucher_code_map = {
                         voucher_code.code: voucher_code
                         for voucher_code in voucher_codes
+                        if voucher_code
                     }
                     tax_configuration_by_channel_map = {
                         tax_configuration.channel_id: tax_configuration
