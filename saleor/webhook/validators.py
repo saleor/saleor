@@ -7,7 +7,7 @@ KEY_CHARS_ALLOWED = (
     "[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
 )
 VALUE_CHARS_ALLOWED = (
-    "!\"#$%&'()*+,-./0123456789;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    "!\"#$%&'()*+,-./0123456789;:<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     "[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~ \t"
 )
 

@@ -72,7 +72,7 @@ class WebhookCreateInput(BaseInputObjectType):
         description=f"Custom headers, which will be added to HTTP request. "
         f"There is a limitation of {HEADERS_NUMBER_LIMIT} headers per webhook "
         f"and {HEADERS_LENGTH_LIMIT} characters per header."
-        f'Only "X-*" and "Authorization*" keys are allowed.'
+        f"Only `X-*`, `Authorization*`, and `BrokerProperties` keys are allowed."
         + ADDED_IN_312
         + PREVIEW_FEATURE,
         required=False,
