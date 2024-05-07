@@ -349,7 +349,7 @@ def test_create_warehouse_with_address_item_from_valid_address_extension_map(
     staff_api_client, permission_manage_products, shipping_zone
 ):
     # given
-    country_area = "Dublin"
+    country_area = "dublin"
     cleaned_country_area = "Co. Dublin"
     address = {
         "country": "IE",
