@@ -14,9 +14,7 @@ from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.mutations import BaseMutation
 from ...core.types import BulkStockError, NonNullList
 from ...plugins.dataloaders import get_plugin_manager_promise
-from ...warehouse.dataloaders import (
-    StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader,
-)
+from ...warehouse.dataloaders import StocksByProductVariantIdLoader
 from ...warehouse.types import Warehouse
 from ..mutations.product.product_create import StockInput
 from ..types import ProductVariant
@@ -69,9 +67,7 @@ class ProductVariantStocksCreate(BaseMutation):
                     manager.product_variant_back_in_stock, stock, webhooks=webhooks
                 )
 
-        StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
-            info.context
-        ).clear((variant.id, None, None))
+        StocksByProductVariantIdLoader(info.context).clear(variant.id)
 
         variant = ChannelContext(node=variant, channel_slug=None)
         return cls(product_variant=variant)
