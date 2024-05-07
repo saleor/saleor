@@ -36,6 +36,7 @@ IE_COUNTRY_AREA = {
     "Wexford": "Co. Wexford",
     "Wicklow": "Co. Wicklow",
 }
+IE_COUNTRY_AREA = {k.strip().lower(): v for k, v in IE_COUNTRY_AREA.items()}
 
 VALID_ADDRESS_EXTENSION_MAP: dict[str, dict[str, dict[str, str]]] = {
     CountryCodeEnum.IE.value: {

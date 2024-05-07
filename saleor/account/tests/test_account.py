@@ -330,7 +330,7 @@ def test_customers_show_staff_with_order(admin_user, channel_USD):
 )
 @patch.dict(
     VALID_ADDRESS_EXTENSION_MAP,
-    {"IE": {"country_area": {"Dublin": "Co. Dublin"}, "city_area": {"dummy": "dummy"}}},
+    {"IE": {"country_area": {"dublin": "Co. Dublin"}, "city_area": {"dummy": "dummy"}}},
 )
 def test_substitute_invalid_values(country_area_input, country_area_output, is_valid):
     # given
