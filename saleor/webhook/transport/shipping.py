@@ -64,6 +64,9 @@ def parse_list_shipping_methods_response(
         method_amount = shipping_method_data.get("amount")
         method_currency = shipping_method_data.get("currency")
         method_maximum_delivery_days = shipping_method_data.get("maximum_delivery_days")
+        method_minimum_delivery_days = shipping_method_data.get("minimum_delivery_days")
+        method_description = shipping_method_data.get("description")
+        method_metadata = shipping_method_data.get("metadata")
 
         shipping_methods.append(
             ShippingMethodData(
@@ -71,6 +74,9 @@ def parse_list_shipping_methods_response(
                 name=method_name,
                 price=Money(method_amount, method_currency),
                 maximum_delivery_days=method_maximum_delivery_days,
+                minimum_delivery_days=method_minimum_delivery_days,
+                description=method_description,
+                metadata=method_metadata
             )
         )
     return shipping_methods
