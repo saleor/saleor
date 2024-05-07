@@ -121,6 +121,35 @@ def test_warehouse_query_as_staff_with_manage_orders(
     assert queried_address["postalCode"] == address.postal_code
 
 
+QUERY_WAREHOUSE_WITHOUT_STOCKS = """
+query warehouse($id: ID!){
+    warehouse(id: $id) {
+        id
+        name
+        companyName
+        email
+        shippingZones(first: 100) {
+            edges {
+                node {
+                    name
+                    countries {
+                        country
+                    }
+                }
+            }
+        }
+        address {
+            streetAddress1
+            streetAddress2
+            postalCode
+            city
+            phone
+        }
+    }
+}
+"""
+
+
 def test_warehouse_query_as_staff_with_manage_shipping(
     staff_api_client, warehouse_for_cc, permission_manage_shipping
 ):
@@ -129,7 +158,7 @@ def test_warehouse_query_as_staff_with_manage_shipping(
 
     # when
     response = staff_api_client.post_graphql(
-        QUERY_WAREHOUSE,
+        QUERY_WAREHOUSE_WITHOUT_STOCKS,
         variables={"id": warehouse_id},
         permissions=[permission_manage_shipping],
     )
@@ -148,16 +177,27 @@ def test_warehouse_query_as_staff_with_manage_shipping(
     assert queried_shipping_zone["name"] == shipping_zone.name
     assert len(queried_shipping_zone["countries"]) == len(shipping_zone.countries)
 
-    stocks = queried_warehouse["stocks"]["edges"]
-    assert len(stocks) == warehouse_for_cc.stock_set.count()
-    stock_ids = set(warehouse_for_cc.stock_set.values_list("id", flat=True))
-    for stock in stocks:
-        assert int(from_global_id_or_error(stock["node"]["id"])[1]) in stock_ids
-
     address = warehouse_for_cc.address
     queried_address = queried_warehouse["address"]
     assert queried_address["streetAddress1"] == address.street_address_1
     assert queried_address["postalCode"] == address.postal_code
+
+
+def test_warehouse_query_as_staff_with_manage_shipping_no_access_to_stocks(
+    staff_api_client, warehouse_for_cc, permission_manage_shipping
+):
+    # given
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse_for_cc.pk)
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_WAREHOUSE,
+        variables={"id": warehouse_id},
+        permissions=[permission_manage_shipping],
+    )
+
+    # then
+    assert_no_permission(response)
 
 
 def test_warehouse_query_as_staff_with_manage_apps(

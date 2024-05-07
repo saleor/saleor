@@ -117,6 +117,10 @@ class Warehouse(ModelObjectType[models.Warehouse]):
     stocks = ConnectionField(
         "saleor.graphql.warehouse.types.StockCountableConnection",
         description="Stocks that belong to this warehouse.",
+        permissions=[
+            ProductPermissions.MANAGE_PRODUCTS,
+            OrderPermissions.MANAGE_ORDERS,
+        ],
     )
     external_reference = graphene.String(
         description=f"External ID of this warehouse. {ADDED_IN_310}", required=False
