@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Optional
 import graphene
 from promise import Promise
 
+from ...account.models import User
 from ...checkout import calculations, models, problems
 from ...checkout.base_calculations import (
     calculate_undiscounted_base_line_total_price,
@@ -12,7 +13,6 @@ from ...checkout.base_calculations import (
 from ...checkout.calculations import fetch_checkout_data
 from ...checkout.utils import get_valid_collection_points_for_checkout
 from ...core.taxes import zero_money, zero_taxed_money
-from ...core.utils.lazyobjects import unwrap_lazy
 from ...payment.interface import ListStoredPaymentMethodsRequestData
 from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import (
@@ -855,7 +855,7 @@ class Checkout(ModelObjectType[models.Checkout]):
         return (
             CheckoutInfoByCheckoutTokenLoader(info.context)
             .load(root.token)
-            .then(lambda checkout_info: unwrap_lazy(checkout_info.all_shipping_methods))
+            .then(lambda checkout_info: checkout_info.all_shipping_methods)
         )
 
     @staticmethod
@@ -1243,15 +1243,15 @@ class Checkout(ModelObjectType[models.Checkout]):
         if not requestor or requestor.id != root.user_id:
             return []
 
-        def _resolve_stored_payment_methods(data):
+        def _resolve_stored_payment_methods(
+            data: tuple["Channel", "User", "PluginsManager"],
+        ):
             channel, user, manager = data
             request_data = ListStoredPaymentMethodsRequestData(
                 user=user,
                 channel=channel,
             )
-            return manager.list_stored_payment_methods(
-                request_data, channel_slug=channel.slug
-            )
+            return manager.list_stored_payment_methods(request_data)
 
         manager = get_plugin_manager_promise(info.context)
         channel_loader = ChannelByIdLoader(info.context).load(root.channel_id)

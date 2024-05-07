@@ -375,9 +375,7 @@ def test_me_query_stored_payment_methods(
     )
 
     # then
-    mocked_list_stored_payment_methods.assert_called_once_with(
-        request_data, channel_slug=channel_USD.slug
-    )
+    mocked_list_stored_payment_methods.assert_called_once_with(request_data)
     content = get_graphql_content(response)
 
     data = content["data"]["me"]

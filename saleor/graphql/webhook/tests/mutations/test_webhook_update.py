@@ -301,7 +301,7 @@ def test_webhook_update_invalid_custom_headers(
     assert error["field"] == "customHeaders"
     assert (
         error["message"] == '"DisallowedKey" does not match allowed key pattern: '
-        '"X-*" or "Authorization*".'
+        '"X-*", "Authorization*", or "BrokerProperties".'
     )
     assert error["code"] == WebhookErrorCode.INVALID_CUSTOM_HEADERS.name
 
