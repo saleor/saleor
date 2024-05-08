@@ -9,6 +9,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Include transaction item in refund flow - #15590 by @korycins
 
 ### Breaking changes
+- Remove the `anonymize` plugin. Use `saleor/core/utils/anonymization` code instead. - by @aniav
 
 ### GraphQL API
 - Add `translatableContent` to all translation types; add translated object id to all translatable content types - #15617 by @zedzior
