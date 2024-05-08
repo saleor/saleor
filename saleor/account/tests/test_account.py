@@ -1,3 +1,4 @@
+from unittest.mock import patch
 from urllib.parse import urlencode
 
 import i18naddress
@@ -8,6 +9,7 @@ from django_countries.fields import Country
 
 from ...order.models import Order
 from .. import forms, i18n
+from ..i18n_valid_address_extension import VALID_ADDRESS_EXTENSION_MAP
 from ..models import User
 from ..validators import validate_possible_number
 
@@ -312,3 +314,43 @@ def test_customers_show_staff_with_order(admin_user, channel_USD):
         channel=channel_USD,
     )
     assert User.objects.customers().count() == 1
+
+
+@pytest.mark.parametrize(
+    ("country_area_input", "country_area_output", "is_valid"),
+    [
+        ("Dublin", "Co. Dublin", True),
+        ("Co. Dublin", "Co. Dublin", True),
+        ("Dummy Area", None, False),
+        ("dublin", "Co. Dublin", True),
+        (" dublin ", "Co. Dublin", True),
+        ("", "", True),
+        (None, "", True),
+    ],
+)
+@patch.dict(
+    VALID_ADDRESS_EXTENSION_MAP,
+    {"IE": {"country_area": {"dublin": "Co. Dublin"}, "city_area": {"dummy": "dummy"}}},
+)
+def test_substitute_invalid_values(country_area_input, country_area_output, is_valid):
+    # given
+    data = {
+        "first_name": "John",
+        "last_name": "Doe",
+        "country": "IE",
+        "country_area": country_area_input,
+        "city": "Dublin",
+        "street_address_1": "1 Anglesea St",
+        "postal_code": "D02 FK84",
+    }
+
+    # when
+    form = forms.get_address_form(data, country_code="PL")
+    errors = form.errors
+
+    # then
+    assert form.cleaned_data.get("country_area") == country_area_output
+    if not is_valid:
+        assert "country_area" in errors
+    else:
+        assert not errors
