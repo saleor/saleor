@@ -25,7 +25,7 @@ from ..core.exceptions import InsufficientStock
 from ..core.taxes import zero_money
 from ..core.utils.promo_code import InvalidPromoCode
 from ..order.fetch import DraftOrderLineInfo
-from ..order.models import Order, OrderLine
+from ..order.models import Order
 from ..product.models import (
     Product,
     ProductChannelListing,
@@ -284,23 +284,19 @@ def validate_voucher_for_checkout(
     )
 
 
-def validate_voucher_in_order(
-    order: "Order", lines: Iterable["OrderLine"], channel: "Channel"
-):
+def validate_voucher_in_order(order: "Order"):
     if not order.voucher:
         return
 
-    from ..order.utils import get_total_quantity
-
     subtotal = order.subtotal
-    quantity = get_total_quantity(lines)
+    quantity = order.get_total_quantity()
     customer_email = order.get_customer_email()
-    tax_configuration = channel.tax_configuration
+    tax_configuration = order.channel.tax_configuration
     prices_entered_with_tax = tax_configuration.prices_entered_with_tax
     value = subtotal.gross if prices_entered_with_tax else subtotal.net
 
     validate_voucher(
-        order.voucher, value, quantity, customer_email, channel, order.user
+        order.voucher, value, quantity, customer_email, order.channel, order.user
     )
 
 
@@ -374,35 +370,29 @@ def create_checkout_line_discount_objects_for_catalogue_promotions(
     ) = discount_data
 
     new_line_discounts = []
-    with allow_writer():
-        with transaction.atomic():
-            # Protect against potential thread race. CheckoutLine object can have only
-            # single catalogue discount applied.
-            checkout_id = lines_info[0].line.checkout_id  # type: ignore[index]
-            _checkout_lock = list(
-                Checkout.objects.filter(pk=checkout_id).select_for_update(of=(["self"]))
+    with transaction.atomic():
+        # Protect against potential thread race. CheckoutLine object can have only
+        # single catalogue discount applied.
+        checkout_id = lines_info[0].line.checkout_id  # type: ignore[index]
+        _checkout_lock = list(
+            Checkout.objects.filter(pk=checkout_id).select_for_update(of=(["self"]))
+        )
+
+        if discount_ids_to_remove := [discount.id for discount in discount_to_remove]:
+            CheckoutLineDiscount.objects.filter(id__in=discount_ids_to_remove).delete()
+
+        if discounts_to_create_inputs:
+            new_line_discounts = [
+                CheckoutLineDiscount(**input) for input in discounts_to_create_inputs
+            ]
+            CheckoutLineDiscount.objects.bulk_create(
+                new_line_discounts, ignore_conflicts=True
             )
 
-            if discount_ids_to_remove := [
-                discount.id for discount in discount_to_remove
-            ]:
-                CheckoutLineDiscount.objects.filter(
-                    id__in=discount_ids_to_remove
-                ).delete()
-
-            if discounts_to_create_inputs:
-                new_line_discounts = [
-                    CheckoutLineDiscount(**input)
-                    for input in discounts_to_create_inputs
-                ]
-                CheckoutLineDiscount.objects.bulk_create(
-                    new_line_discounts, ignore_conflicts=True
-                )
-
-            if discounts_to_update and updated_fields:
-                CheckoutLineDiscount.objects.bulk_update(
-                    discounts_to_update, updated_fields
-                )
+        if discounts_to_update and updated_fields:
+            CheckoutLineDiscount.objects.bulk_update(
+                discounts_to_update, updated_fields
+            )
 
     _update_line_info_cached_discounts(
         lines_info, new_line_discounts, discounts_to_update, discount_ids_to_remove
@@ -633,7 +623,6 @@ def create_checkout_discount_objects_for_order_promotions(
         channel=channel,
         country=checkout_info.get_country(),
         subtotal=checkout.base_subtotal,
-        database_connection_name=database_connection_name,
     )
     if not rule_data:
         _clear_checkout_discount(checkout_info, lines_info, save)
@@ -794,10 +783,8 @@ def _get_best_gift_reward(
 
     rule_ids = [rule.id for rule in rules]
     PromotionRuleGift = PromotionRule.gifts.through
-    rule_gifts = PromotionRuleGift.objects.using(database_connection_name).filter(
-        promotionrule_id__in=rule_ids
-    )
-    variants = ProductVariant.objects.using(database_connection_name).filter(
+    rule_gifts = PromotionRuleGift.objects.filter(promotionrule_id__in=rule_ids)
+    variants = ProductVariant.objects.filter(
         Exists(
             rule_gifts.values("productvariant_id").filter(
                 productvariant_id=OuterRef("id")
@@ -1188,12 +1175,9 @@ def update_rule_variant_relation(
 def create_or_update_discount_objects_from_promotion_for_order(
     order: "Order",
     lines_info: Iterable["DraftOrderLineInfo"],
-    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     create_order_line_discount_objects_for_catalogue_promotions(lines_info)
-    create_order_discount_objects_for_order_promotions(
-        order, lines_info, database_connection_name=database_connection_name
-    )
+    create_order_discount_objects_for_order_promotions(order, lines_info)
     _copy_unit_discount_data_to_order_line(lines_info)
 
 
@@ -1212,32 +1196,27 @@ def create_order_line_discount_objects_for_catalogue_promotions(
     ) = discount_data
 
     new_line_discounts = []
-    with allow_writer():
-        with transaction.atomic():
-            # Protect against potential thread race. OrderLine object can have only
-            # single catalogue discount applied.
-            order_id = lines_info[0].line.order_id  # type: ignore[index]
-            _order_lock = list(
-                Order.objects.filter(id=order_id).select_for_update(of=(["self"]))
+    with transaction.atomic():
+        # Protect against potential thread race. OrderLine object can have only
+        # single catalogue discount applied.
+        order_id = lines_info[0].line.order_id  # type: ignore[index]
+        _order_lock = list(
+            Order.objects.filter(id=order_id).select_for_update(of=(["self"]))
+        )
+
+        if discount_ids_to_remove := [discount.id for discount in discount_to_remove]:
+            OrderLineDiscount.objects.filter(id__in=discount_ids_to_remove).delete()
+
+        if discounts_to_create_inputs:
+            new_line_discounts = [
+                OrderLineDiscount(**input) for input in discounts_to_create_inputs
+            ]
+            OrderLineDiscount.objects.bulk_create(
+                new_line_discounts, ignore_conflicts=True
             )
 
-            if discount_ids_to_remove := [
-                discount.id for discount in discount_to_remove
-            ]:
-                OrderLineDiscount.objects.filter(id__in=discount_ids_to_remove).delete()
-
-            if discounts_to_create_inputs:
-                new_line_discounts = [
-                    OrderLineDiscount(**input) for input in discounts_to_create_inputs
-                ]
-                OrderLineDiscount.objects.bulk_create(
-                    new_line_discounts, ignore_conflicts=True
-                )
-
-            if discounts_to_update and updated_fields:
-                OrderLineDiscount.objects.bulk_update(
-                    discounts_to_update, updated_fields
-                )
+        if discounts_to_update and updated_fields:
+            OrderLineDiscount.objects.bulk_update(discounts_to_update, updated_fields)
 
     _update_line_info_cached_discounts(
         lines_info, new_line_discounts, discounts_to_update, discount_ids_to_remove
@@ -1293,7 +1272,6 @@ def _update_base_unit_price_amount(lines_info: Iterable[DraftOrderLineInfo]):
 def create_order_discount_objects_for_order_promotions(
     order: "Order",
     lines_info: Iterable["DraftOrderLineInfo"],
-    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     from ..order.base_calculations import base_order_subtotal
     from ..order.utils import get_order_country
@@ -1309,13 +1287,12 @@ def create_order_discount_objects_for_order_promotions(
     lines = [line_info.line for line_info in lines_info]
     subtotal = base_order_subtotal(order, lines)
     channel = order.channel
-    rules = fetch_promotion_rules_for_checkout_or_order(order, database_connection_name)
+    rules = fetch_promotion_rules_for_checkout_or_order(order)
     rule_data = get_best_rule(
         rules=rules,
         channel=channel,
         country=get_order_country(order),
         subtotal=subtotal,
-        database_connection_name=database_connection_name,
     )
     if not rule_data:
         _clear_order_discount(order, lines_info)
@@ -1393,8 +1370,7 @@ def _set_order_base_prices(order: Order, lines_info: Iterable[DraftOrderLineInfo
         update_fields.extend(["total_net_amount", "total_gross_amount"])
 
     if update_fields:
-        with allow_writer():
-            order.save(update_fields=update_fields)
+        order.save(update_fields=update_fields)
 
 
 def _handle_order_promotion_for_order(
@@ -1424,7 +1400,6 @@ def _handle_order_promotion_for_order(
     delete_gift_line(order, lines_info)
 
 
-@allow_writer()
 def _handle_gift_reward_for_order(
     order: Order,
     lines_info: Iterable[DraftOrderLineInfo],
@@ -1509,10 +1484,20 @@ def mark_active_catalogue_promotion_rules_as_dirty(channel_ids: Iterable[int]):
     rules = get_active_catalogue_promotion_rules()
     PromotionRuleChannel = PromotionRule.channels.through
     promotion_rules = PromotionRuleChannel.objects.filter(channel_id__in=channel_ids)
-    rules = rules.filter(
+    rule_ids = rules.filter(
         Exists(promotion_rules.filter(promotionrule_id=OuterRef("id")))
-    )
-    rules.update(variants_dirty=True)
+    ).values_list("id", flat=True)
+
+    with transaction.atomic():
+        rule_ids_to_update = list(
+            PromotionRule.objects.select_for_update(of=("self",))
+            .filter(id__in=rule_ids, variants_dirty=False)
+            .order_by("pk")
+            .values_list("id", flat=True)
+        )
+        PromotionRule.objects.filter(id__in=rule_ids_to_update).update(
+            variants_dirty=True
+        )
 
 
 def mark_catalogue_promotion_rules_as_dirty(promotion_pks: Iterable[UUID]):

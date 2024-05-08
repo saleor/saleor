@@ -2,25 +2,6 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/saleor/saleor/releases) page.
 
-# 3.20.0 [Unreleased]
-
-### Highlights
-
-### Breaking changes
-
-### GraphQL API
-- Add `translatableContent` to all translation types; add translated object id to all translatable content types - #15617 by @zedzior
-
-- Add a `taxConfiguration` to a `Channel` - #15610 by @Air-t
-
-### Saleor Apps
-
-### Other changes
-- Remove `prefetched_for_webhook` to legacy payload generators - #15369 by @AjmalPonneth
-- Don't raise InsufficientStock for track_inventory=False variants #15475 by @carlosa54
-- DB performance improvements in attribute dataloaders - #15474 by @AjmalPonneth
-- Calculate order promotions in draft orders - #15459 by @zedzior
-
 # 3.19.0
 
 ### Highlights
