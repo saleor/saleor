@@ -215,6 +215,63 @@ def test_transaction_create_for_order_by_app(
     assert transaction.external_url == external_url
 
 
+def test_transaction_create_for_order_by_app_metadata_null_value(
+    order_with_lines, permission_manage_payments, app_api_client
+):
+    # given
+    name = "Credit Card"
+    psp_reference = "PSP reference - 123"
+    available_actions = [
+        TransactionActionEnum.CHARGE.name,
+        TransactionActionEnum.CHARGE.name,
+    ]
+    authorized_value = Decimal("10")
+    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
+
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
+        "transaction": {
+            "name": name,
+            "pspReference": psp_reference,
+            "availableActions": available_actions,
+            "amountAuthorized": {
+                "amount": authorized_value,
+                "currency": "USD",
+            },
+            "metadata": None,
+            "privateMetadata": None,
+            "externalUrl": external_url,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    available_actions = list(set(available_actions))
+
+    transaction = order_with_lines.payment_transactions.first()
+    content = get_graphql_content(response)
+    data = content["data"]["transactionCreate"]["transaction"]
+    assert data["actions"] == available_actions
+    assert data["pspReference"] == psp_reference
+    assert data["authorizedAmount"]["amount"] == authorized_value
+    assert data["externalUrl"] == external_url
+    assert data["createdBy"]["id"] == to_global_id_or_none(app_api_client.app)
+
+    assert available_actions == list(map(str.upper, transaction.available_actions))
+    assert psp_reference == transaction.psp_reference
+    assert authorized_value == transaction.authorized_value
+    assert transaction.metadata == {}
+    assert transaction.private_metadata == {}
+    assert transaction.app_identifier == app_api_client.app.identifier
+    assert transaction.app == app_api_client.app
+    assert transaction.user is None
+    assert transaction.external_url == external_url
+
+
 def test_transaction_create_for_order_updates_order_total_authorized_by_app(
     order_with_lines, permission_manage_payments, app_api_client
 ):
@@ -372,6 +429,67 @@ def test_transaction_create_for_checkout_by_app(
     assert transaction.private_metadata == {
         private_metadata["key"]: private_metadata["value"]
     }
+    assert transaction.external_url == external_url
+    assert transaction.app_identifier == app_api_client.app.identifier
+    assert transaction.app == app_api_client.app
+    assert transaction.user is None
+
+
+def test_transaction_create_for_checkout_by_app_metadata_null_value(
+    checkout_with_items, permission_manage_payments, app_api_client
+):
+    # given
+    name = "Credit Card"
+    psp_reference = "PSP reference - 123"
+    available_actions = [
+        TransactionActionEnum.CHARGE.name,
+        TransactionActionEnum.CHARGE.name,
+    ]
+    authorized_value = Decimal("10")
+    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
+
+    variables = {
+        "id": graphene.Node.to_global_id("Checkout", checkout_with_items.pk),
+        "transaction": {
+            "name": name,
+            "pspReference": psp_reference,
+            "availableActions": available_actions,
+            "amountAuthorized": {
+                "amount": authorized_value,
+                "currency": "USD",
+            },
+            "metadata": None,
+            "privateMetadata": None,
+            "externalUrl": external_url,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    checkout_with_items.refresh_from_db()
+    assert checkout_with_items.charge_status == CheckoutChargeStatus.NONE
+    assert checkout_with_items.authorize_status == CheckoutAuthorizeStatus.PARTIAL
+
+    available_actions = list(set(available_actions))
+
+    transaction = checkout_with_items.payment_transactions.first()
+    content = get_graphql_content(response)
+    data = content["data"]["transactionCreate"]["transaction"]
+    assert data["actions"] == available_actions
+    assert data["pspReference"] == psp_reference
+    assert data["authorizedAmount"]["amount"] == authorized_value
+    assert data["externalUrl"] == external_url
+    assert data["createdBy"]["id"] == to_global_id_or_none(app_api_client.app)
+
+    assert available_actions == list(map(str.upper, transaction.available_actions))
+    assert psp_reference == transaction.psp_reference
+    assert authorized_value == transaction.authorized_value
+    assert transaction.metadata == {}
+    assert transaction.private_metadata == {}
     assert transaction.external_url == external_url
     assert transaction.app_identifier == app_api_client.app.identifier
     assert transaction.app == app_api_client.app

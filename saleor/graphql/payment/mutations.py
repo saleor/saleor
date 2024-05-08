@@ -844,6 +844,8 @@ class TransactionCreate(BaseMutation):
     def validate_metadata_keys(  # type: ignore[override]
         cls, metadata_list: List[dict], field_name, error_code
     ):
+        if not metadata_list:
+            return
         if metadata_contains_empty_key(metadata_list):
             raise ValidationError(
                 {

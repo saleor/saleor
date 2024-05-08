@@ -285,6 +285,31 @@ def test_transaction_update_metadata_by_app(
     assert transaction_item_created_by_app.metadata == {meta_key: meta_value}
 
 
+def test_transaction_update_metadata_by_app_null_value(
+    transaction_item_created_by_app, permission_manage_payments, app_api_client
+):
+    # given
+    transaction = transaction_item_created_by_app
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "transaction": {
+            "metadata": None,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    transaction.refresh_from_db()
+    content = get_graphql_content(response)
+    data = content["data"]["transactionUpdate"]["transaction"]
+    assert len(data["metadata"]) == 0
+
+
 def test_transaction_update_metadata_incorrect_key_by_app(
     transaction_item_created_by_app, permission_manage_payments, app_api_client
 ):
@@ -342,6 +367,33 @@ def test_transaction_update_private_metadata_by_app(
     assert data["privateMetadata"][0]["key"] == meta_key
     assert data["privateMetadata"][0]["value"] == meta_value
     assert transaction_item_created_by_app.private_metadata == {meta_key: meta_value}
+
+
+def test_transaction_update_private_metadata_by_app_null_value(
+    transaction_item_created_by_app, permission_manage_payments, app_api_client
+):
+    # given
+    transaction = transaction_item_created_by_app
+    transaction.private_metadata = {"key": "value"}
+    transaction.save(update_fields=["private_metadata"])
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "transaction": {
+            "privateMetadata": None,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    transaction.refresh_from_db()
+    content = get_graphql_content(response)
+    data = content["data"]["transactionUpdate"]["transaction"]
+    assert len(data["privateMetadata"]) == 1
 
 
 def test_transaction_update_private_metadata_incorrect_key_by_app(
