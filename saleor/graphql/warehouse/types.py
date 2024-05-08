@@ -14,6 +14,7 @@ from ..core.context import get_database_connection_name
 from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_310,
+    ADDED_IN_320,
     DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_INPUT,
 )
@@ -116,7 +117,7 @@ class Warehouse(ModelObjectType[models.Warehouse]):
     )
     stocks = ConnectionField(
         "saleor.graphql.warehouse.types.StockCountableConnection",
-        description="Stocks that belong to this warehouse.",
+        description="Stocks that belong to this warehouse." + ADDED_IN_320,
         permissions=[
             ProductPermissions.MANAGE_PRODUCTS,
             OrderPermissions.MANAGE_ORDERS,

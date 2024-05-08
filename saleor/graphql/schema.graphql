@@ -3814,6 +3814,8 @@ type Warehouse implements Node & ObjectWithMetadata @doc(category: "Products") {
   """
   Stocks that belong to this warehouse.
   
+  Added in Saleor 3.20.
+  
   Requires one of the following permissions: MANAGE_PRODUCTS, MANAGE_ORDERS.
   """
   stocks(
