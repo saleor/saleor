@@ -29,10 +29,11 @@ def test_refund_payment(
     payment_data.amount = payment_dummy.captured_amount
     psp_reference = "18121200001"
     payment_data.psp_reference = psp_reference
+    response_value = {"results": [{"np_transaction_id": psp_reference}]}
     response = Mock(
         spec=requests.Response,
         status_code=200,
-        json=Mock(return_value={"results": [{"np_transaction_id": psp_reference}]}),
+        json=Mock(return_value=response_value),
     )
     mocked_request.return_value = response
 
@@ -41,6 +42,7 @@ def test_refund_payment(
 
     # then
     assert gateway_response.is_success
+    assert gateway_response.raw_response == response_value
 
 
 def test_refund_payment_no_order(np_atobarai_plugin, np_payment_data, payment_dummy):
@@ -58,17 +60,18 @@ def test_refund_payment_no_order(np_atobarai_plugin, np_payment_data, payment_du
 
 
 @patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
-def test_refund_payment_payment_not_created(
+def test_refund_payment_no_psp_reference_payment_not_created(
     mocked_request, np_atobarai_plugin, np_payment_data, payment_dummy
 ):
     # given
     plugin = np_atobarai_plugin()
     payment_data = np_payment_data
     payment_data.amount = payment_dummy.captured_amount
+    response_value = {"results": [{"np_transaction_id": "18121200001"}]}
     response = Mock(
         spec=requests.Response,
         status_code=200,
-        json=Mock(return_value={"results": [{"np_transaction_id": "18121200001"}]}),
+        json=Mock(return_value=response_value),
     )
     mocked_request.return_value = response
 
@@ -77,6 +80,7 @@ def test_refund_payment_payment_not_created(
 
     # then
     assert not gateway_response.is_success
+    assert not gateway_response.raw_response
 
 
 @patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
@@ -209,10 +213,11 @@ def test_report_fulfillment(mocked_request, config, fulfillment, payment_dummy):
     psp_reference = "18121200001"
     payment_dummy.psp_reference = psp_reference
     payment_dummy.save(update_fields=["psp_reference"])
+    response_value = {"results": [{"np_transaction_id": psp_reference}]}
     response = Mock(
         spec=requests.Response,
         status_code=200,
-        json=Mock(return_value={"results": [{"np_transaction_id": psp_reference}]}),
+        json=Mock(return_value=response_value),
     )
     mocked_request.return_value = response
 
@@ -234,10 +239,11 @@ def test_report_fulfillment_invalid_shipping_company_code(
     psp_reference = "18121200001"
     payment_dummy.psp_reference = psp_reference
     payment_dummy.save(update_fields=["psp_reference"])
+    response_value = {"results": [{"np_transaction_id": psp_reference}]}
     response = Mock(
         spec=requests.Response,
         status_code=200,
-        json=Mock(return_value={"results": [{"np_transaction_id": psp_reference}]}),
+        json=Mock(return_value=response_value),
     )
     mocked_request.return_value = response
     fulfillment.store_value_in_private_metadata(
@@ -297,10 +303,11 @@ def test_report_fulfillment_np_errors(
     payment_dummy.psp_reference = psp_reference
     payment_dummy.save(update_fields=["psp_reference"])
     error_codes = ["EPRO0101", "EPRO0102"]
+    response_value = {"errors": [{"codes": error_codes}]}
     response = Mock(
         spec=requests.Response,
         status_code=400,
-        json=Mock(return_value={"errors": [{"codes": error_codes}]}),
+        json=Mock(return_value=response_value),
     )
     mocked_request.return_value = response
 
@@ -347,10 +354,11 @@ def test_report_fulfillment_already_captured(
 ):
     # given
     payment_dummy.psp_reference = "123123123"
+    response_value = {"errors": [{"codes": ["E0100115"]}]}
     response = Mock(
         spec=requests.Response,
         status_code=400,
-        json=Mock(return_value={"errors": [{"codes": ["E0100115"]}]}),
+        json=Mock(return_value=response_value),
     )
     mocked_request.return_value = response
 
@@ -495,19 +503,18 @@ def test_change_transaction_success(
     mocked_request, config, payment_dummy, np_payment_data
 ):
     # given
+    response_value = {
+        "results": [
+            {
+                "authori_result": "00",
+                "np_transaction_id": payment_dummy.psp_reference,
+            }
+        ]
+    }
     response = Mock(
         spec=requests.Response,
         status_code=200,
-        json=Mock(
-            return_value={
-                "results": [
-                    {
-                        "authori_result": "00",
-                        "np_transaction_id": payment_dummy.psp_reference,
-                    }
-                ]
-            }
-        ),
+        json=Mock(return_value=response_value),
     )
     mocked_request.return_value = response
 
@@ -518,6 +525,8 @@ def test_change_transaction_success(
 
     # then
     assert payment_response.status == PaymentStatus.SUCCESS
+    assert payment_response.raw_response == response_value
+    assert payment_response.raw_response == response_value
 
 
 @patch("saleor.payment.gateways.np_atobarai.api.cancel")
@@ -527,23 +536,22 @@ def test_change_transaction_pending(
 ):
     # given
     transaction_id = "123"
+    response_value = {
+        "results": [
+            {
+                "authori_result": "10",
+                "np_transaction_id": transaction_id,
+                "authori_hold": [
+                    "RE009",
+                    "REE021",
+                ],
+            }
+        ]
+    }
     response = Mock(
         spec=requests.Response,
         status_code=200,
-        json=Mock(
-            return_value={
-                "results": [
-                    {
-                        "authori_result": "10",
-                        "np_transaction_id": transaction_id,
-                        "authori_hold": [
-                            "RE009",
-                            "REE021",
-                        ],
-                    }
-                ]
-            }
-        ),
+        json=Mock(return_value=response_value),
     )
     mocked_request.return_value = response
 
@@ -555,6 +563,7 @@ def test_change_transaction_pending(
     # then
     mocked_cancel.assert_called_once_with(config, transaction_id)
     assert payment_response.status == PaymentStatus.FAILED
+    assert payment_response.raw_response == response_value
 
 
 @patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
@@ -562,10 +571,11 @@ def test_change_transaction_post_fulfillment(
     mocked_request, config, payment_dummy, np_payment_data
 ):
     # given
+    response_value = {"errors": [{"codes": ["E0100115"]}]}
     response = Mock(
         spec=requests.Response,
         status_code=200,
-        json=Mock(return_value={"errors": [{"codes": ["E0100115"]}]}),
+        json=Mock(return_value=response_value),
     )
     mocked_request.return_value = response
 
@@ -576,6 +586,7 @@ def test_change_transaction_post_fulfillment(
 
     # then
     assert payment_response.status == PaymentStatus.FOR_REREGISTRATION
+    assert payment_response.raw_response == response_value
 
 
 @patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
@@ -583,10 +594,11 @@ def test_change_transaction_failed(
     mocked_request, config, payment_dummy, np_payment_data
 ):
     # given
+    response_value = {"errors": [{"codes": ["E0100050"]}]}
     response = Mock(
         spec=requests.Response,
         status_code=200,
-        json=Mock(return_value={"errors": [{"codes": ["E0100050"]}]}),
+        json=Mock(return_value=response_value),
     )
     mocked_request.return_value = response
 
@@ -598,6 +610,7 @@ def test_change_transaction_failed(
     # then
     assert payment_response.status == PaymentStatus.FAILED
     assert payment_response.errors
+    assert payment_response.raw_response == response_value
 
 
 @patch("saleor.payment.gateways.np_atobarai.api.report")
@@ -616,14 +629,29 @@ def test_reregister_transaction_success(
     shipping_company_code = "50000"
     payment_dummy.psp_reference = "123"
     new_psp_reference = "234"
-    mocked_cancel.return_value = NPResponse(result={}, error_codes=[])
+    mocked_cancel.return_value = NPResponse(result={}, error_codes=[], raw_response={})
+    transaction_id = "18121200001"
+    register_response_value = {
+        "results": [
+            {
+                "shop_transaction_id": "abc1234567890",
+                "np_transaction_id": transaction_id,
+                "authori_result": "00",
+                "authori_required_date": "2018-12-12T12:00:00+09:00",
+            }
+        ]
+    }
     mocked_register.return_value = NPResponse(
         result={
             "np_transaction_id": new_psp_reference,
         },
         error_codes=[],
+        raw_response=register_response_value,
     )
-    mocked_report.return_value = NPResponse(result={}, error_codes=[])
+    report_response_value = {"results": [{"np_transaction_id": transaction_id}]}
+    mocked_report.return_value = NPResponse(
+        result={}, error_codes=[], raw_response=report_response_value
+    )
 
     # when
     goods, billed_amount = get_goods_with_refunds(
@@ -652,6 +680,7 @@ def test_reregister_transaction_success(
     )
     assert payment_response.status == PaymentStatus.SUCCESS
     assert payment_response.psp_reference == new_psp_reference
+    assert payment_response.raw_response == report_response_value
 
 
 def test_reregister_transaction_no_psp_reference(payment_dummy, np_payment_data):
@@ -678,7 +707,9 @@ def test_reregister_transaction_cancel_error(
     # given
     payment_dummy.psp_reference = "123"
     error_codes = ["1", "2", "3"]
-    mocked_cancel.return_value = NPResponse(result={}, error_codes=error_codes)
+    mocked_cancel.return_value = NPResponse(
+        result={}, error_codes=error_codes, raw_response={}
+    )
 
     # when
     payment_response = api.reregister_transaction_for_partial_return(
@@ -707,14 +738,17 @@ def test_reregister_transaction_report_error(
     payment_dummy.psp_reference = "123"
     new_psp_reference = "234"
     error_codes = ["1", "2", "3"]
-    mocked_cancel.return_value = NPResponse(result={}, error_codes=[])
+    mocked_cancel.return_value = NPResponse(result={}, error_codes=[], raw_response={})
     mocked_register.return_value = NPResponse(
         result={
             "np_transaction_id": new_psp_reference,
         },
         error_codes=[],
+        raw_response={},
     )
-    mocked_report.return_value = NPResponse(result={}, error_codes=error_codes)
+    mocked_report.return_value = NPResponse(
+        result={}, error_codes=error_codes, raw_response={}
+    )
 
     # when
     payment_response = api.reregister_transaction_for_partial_return(
@@ -743,9 +777,11 @@ def test_reregister_transaction_general_error(
 ):
     # given
     payment_dummy.psp_reference = "123"
-    mocked_cancel.return_value = NPResponse(result={}, error_codes=[])
+    mocked_cancel.return_value = NPResponse(result={}, error_codes=[], raw_response={})
     error_codes = ["1", "2", "3"]
-    mocked_register.return_value = NPResponse(result={}, error_codes=error_codes)
+    mocked_register.return_value = NPResponse(
+        result={}, error_codes=error_codes, raw_response={}
+    )
 
     # when
     payment_response = api.reregister_transaction_for_partial_return(
@@ -770,8 +806,10 @@ def test_register_transaction_pending(
         "np_transaction_id": transaction_id,
         "authori_hold": errors,
     }
-    mocked_register.return_value = NPResponse(result=register_result, error_codes=[])
-    mocked_cancel.return_value = NPResponse(result={}, error_codes=[])
+    mocked_register.return_value = NPResponse(
+        result=register_result, error_codes=[], raw_response={}
+    )
+    mocked_cancel.return_value = NPResponse(result={}, error_codes=[], raw_response={})
 
     # when
     payment_response = api.register_transaction(config, np_payment_data)
@@ -796,9 +834,13 @@ def test_register_transaction_pending_unrecoverable(
         "np_transaction_id": transaction_id,
         "authori_hold": errors,
     }
-    mocked_register.return_value = NPResponse(result=register_result, error_codes=[])
+    mocked_register.return_value = NPResponse(
+        result=register_result, error_codes=[], raw_response=register_result
+    )
     cancel_errors = ["1", "2", "3"]
-    mocked_cancel.return_value = NPResponse(result={}, error_codes=cancel_errors)
+    mocked_cancel.return_value = NPResponse(
+        result={}, error_codes=cancel_errors, raw_response={}
+    )
 
     # when
     payment_response = api.register_transaction(config, np_payment_data)
@@ -809,6 +851,7 @@ def test_register_transaction_pending_unrecoverable(
     assert payment_response.status == PaymentStatus.PENDING
     assert payment_response.errors == [f"TR#{e}" for e in errors]
     assert caplog.record_tuples == [(ANY, logging.ERROR, ANY)]
+    assert payment_response.raw_response == register_result
 
 
 def test_cancel_transaction_no_payment(np_payment_data):
