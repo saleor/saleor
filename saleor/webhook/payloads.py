@@ -1407,6 +1407,9 @@ def generate_order_payload_for_tax_calculation(order: "Order"):
     discounts = order.discounts.all()
     discounts_dict = []
     for discount in discounts:
+        if discount.voucher and discount.voucher.type == VoucherType.ENTIRE_ORDER:
+            if discount.voucher.apply_once_per_order:
+                continue
         quantize_price_fields(discount, ("amount_value",), order.currency)
         discount_amount = quantize_price(discount.amount_value, order.currency)
         discounts_dict.append({"name": discount.name, "amount": discount_amount})
