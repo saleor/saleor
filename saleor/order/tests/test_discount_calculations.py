@@ -13,6 +13,7 @@ from ...order.base_calculations import (
     base_order_total,
 )
 from ...order.interface import OrderTaxedPricesData
+from ..models import OrderLine
 
 
 def test_base_order_total(order_with_lines):
@@ -222,12 +223,16 @@ def test_apply_order_discounts_manual_discount(order_with_lines):
     assert order_discount.amount_value == discount_amount
 
 
-def test_apply_order_discounts_manual_discount_and_zero_order_total(order):
+def test_apply_order_discounts_zero_discount(order_with_lines):
     # given
+    order = order_with_lines
     lines = order.lines.all()
-    assert not lines
-
     currency = order.currency
+    undiscounted_total = order.base_shipping_price_amount + sum(
+        line.undiscounted_total_price_net_amount for line in lines
+    )
+    undiscounted_total = Money(undiscounted_total, currency)
+
     order.discounts.create(
         type=DiscountType.MANUAL,
         value_type=DiscountValueType.FIXED,
@@ -236,6 +241,53 @@ def test_apply_order_discounts_manual_discount_and_zero_order_total(order):
         translated_name="StaffDiscountPL",
         currency=currency,
         amount_value=0,
+    )
+
+    # when
+    discounted_subtotal, discounted_shipping_price = apply_order_discounts(order, lines)
+
+    # then
+    assert discounted_subtotal + discounted_shipping_price == undiscounted_total
+
+
+def test_apply_order_discounts_subtotal_zero(order_with_lines):
+    # given
+    order = order_with_lines
+    lines = order.lines.all()
+    for line in lines:
+        line.base_unit_price_amount = Decimal(0)
+    OrderLine.objects.bulk_update(lines, fields=["base_unit_price_amount"])
+
+    currency = order.currency
+    order.discounts.create(
+        type=DiscountType.MANUAL,
+        value_type=DiscountValueType.FIXED,
+        value=10,
+        name="StaffDiscount",
+        translated_name="StaffDiscountPL",
+        currency=currency,
+    )
+
+    # when
+    discounted_subtotal, discounted_shipping_price = apply_order_discounts(order, lines)
+
+    # then
+    assert discounted_subtotal + discounted_shipping_price == zero_money(currency)
+
+
+def test_apply_order_discounts_manual_discount_no_lines(order):
+    # given
+    lines = order.lines.all()
+    assert not lines
+
+    currency = order.currency
+    order.discounts.create(
+        type=DiscountType.MANUAL,
+        value_type=DiscountValueType.FIXED,
+        value=10,
+        name="StaffDiscount",
+        translated_name="StaffDiscountPL",
+        currency=currency,
     )
 
     # when
