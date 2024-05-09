@@ -30,6 +30,7 @@ from ...product.models import ProductTranslation, ProductVariantTranslation
 from ...tests.utils import flush_post_commit_hooks
 from .. import calculations
 from ..complete_checkout import (
+    _complete_checkout_fail_handler,
     _create_order,
     _increase_checkout_voucher_usage,
     _prepare_order_data,
@@ -1451,6 +1452,8 @@ def test_complete_checkout_action_required_voucher_once_per_customer(
     mocked_create_order.assert_not_called()
     checkout.refresh_from_db()
     assert checkout.is_voucher_usage_increased is False
+    checkout.refresh_from_db()
+    assert not checkout.completing_started_at
 
 
 @mock.patch("saleor.checkout.complete_checkout._create_order")
@@ -1501,6 +1504,8 @@ def test_complete_checkout_order_not_created_when_the_refund_is_ongoing(
     # then
     assert not order
     mocked_create_order.assert_not_called()
+    checkout.refresh_from_db()
+    assert not checkout.completing_started_at
 
 
 @mock.patch("saleor.checkout.complete_checkout._create_order")
@@ -2339,3 +2344,113 @@ def test_release_checkout_voucher_usage_no_voucher(
     checkout_with_voucher.refresh_from_db()
     assert checkout_with_voucher.is_voucher_usage_increased is False
     decrease_voucher_usage_mock.assert_not_called()
+
+
+@mock.patch("saleor.checkout.complete_checkout.gateway.payment_refund_or_void")
+@mock.patch("saleor.checkout.complete_checkout._release_checkout_voucher_usage")
+def test_complete_checkout_fail_handler(
+    _release_checkout_voucher_usage_mock,
+    _payment_refund_or_void_mock,
+    checkout_with_item,
+):
+    # given
+    checkout = checkout_with_item
+    checkout.completing_started_at = timezone.now()
+    checkout.save(update_fields=["completing_started_at"])
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    # when
+    _complete_checkout_fail_handler(checkout_info, manager)
+
+    # then
+    checkout.refresh_from_db()
+    assert not checkout.completing_started_at
+    _payment_refund_or_void_mock.assert_not_called()
+    _release_checkout_voucher_usage_mock.assert_not_called()
+
+
+@mock.patch("saleor.checkout.complete_checkout.gateway.payment_refund_or_void")
+@mock.patch("saleor.checkout.complete_checkout._release_checkout_voucher_usage")
+def test_complete_checkout_fail_handler_with_voucher(
+    _release_checkout_voucher_usage_mock,
+    _payment_refund_or_void_mock,
+    checkout_with_voucher,
+    voucher,
+):
+    # given
+    checkout = checkout_with_voucher
+    checkout.completing_started_at = timezone.now()
+    checkout.save(update_fields=["completing_started_at"])
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    # when
+    _complete_checkout_fail_handler(checkout_info, manager, voucher=voucher)
+
+    # then
+    checkout.refresh_from_db()
+    assert not checkout.completing_started_at
+    _payment_refund_or_void_mock.assert_not_called()
+    _release_checkout_voucher_usage_mock.assert_called_once()
+
+
+@mock.patch("saleor.checkout.complete_checkout.gateway.payment_refund_or_void")
+@mock.patch("saleor.checkout.complete_checkout._release_checkout_voucher_usage")
+def test_complete_checkout_fail_handler_with_payment(
+    _release_checkout_voucher_usage_mock,
+    _payment_refund_or_void_mock,
+    checkout_with_item,
+    payment,
+):
+    # given
+    checkout = checkout_with_item
+    checkout.completing_started_at = timezone.now()
+    checkout.save(update_fields=["completing_started_at"])
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    # when
+    _complete_checkout_fail_handler(checkout_info, manager, payment=payment)
+
+    # then
+    checkout.refresh_from_db()
+    assert not checkout.completing_started_at
+    _payment_refund_or_void_mock.assert_called_once()
+    _release_checkout_voucher_usage_mock.assert_not_called()
+
+
+@mock.patch("saleor.checkout.complete_checkout.gateway.payment_refund_or_void")
+@mock.patch("saleor.checkout.complete_checkout._release_checkout_voucher_usage")
+def test_complete_checkout_fail_handler_with_voucher_and_payment(
+    _release_checkout_voucher_usage_mock,
+    _payment_refund_or_void_mock,
+    checkout_with_voucher,
+    payment,
+    voucher,
+):
+    # given
+    checkout = checkout_with_voucher
+    checkout.completing_started_at = timezone.now()
+    checkout.save(update_fields=["completing_started_at"])
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    # when
+    _complete_checkout_fail_handler(
+        checkout_info, manager, voucher=voucher, payment=payment
+    )
+
+    # then
+    checkout.refresh_from_db()
+    assert not checkout.completing_started_at
+    _payment_refund_or_void_mock.assert_called_once()
+    _release_checkout_voucher_usage_mock.assert_called_once()

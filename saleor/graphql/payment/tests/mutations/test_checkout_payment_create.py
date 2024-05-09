@@ -4,6 +4,7 @@ from unittest.mock import patch
 import before_after
 import graphene
 import pytest
+from django.utils import timezone
 
 from .....checkout import calculations
 from .....checkout.error_codes import CheckoutErrorCode
@@ -807,3 +808,81 @@ def test_with_active_problems_flow(
 
     # then
     assert not content["data"]["checkoutPaymentCreate"]["errors"]
+
+
+def test_checkout_payment_create_checkout_locked(
+    user_api_client, checkout_without_shipping_required, address, customer_user
+):
+    # given
+    checkout = checkout_without_shipping_required
+    checkout.billing_address = address
+    checkout.email = "old@example"
+    checkout.user = customer_user
+    checkout.completing_started_at = timezone.now()
+    checkout.save()
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+    return_url = "https://www.example.com"
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "input": {
+            "gateway": DUMMY_GATEWAY,
+            "token": "sample-token",
+            "amount": total.gross.amount,
+            "returnUrl": return_url,
+        },
+    }
+
+    # when
+    response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutPaymentCreate"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] is None
+    assert errors[0]["code"] == PaymentErrorCode.CHECKOUT_COMPLETION_IN_PROGRESS.name
+
+
+def test_checkout_payment_create_checkout_locked_time_pass(
+    user_api_client, checkout_without_shipping_required, address, customer_user
+):
+    # given
+    checkout = checkout_without_shipping_required
+    checkout.billing_address = address
+    checkout.email = "old@example"
+    checkout.user = customer_user
+    checkout.completing_started_at = timezone.now() - timezone.timedelta(minutes=10)
+    checkout.save()
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+    return_url = "https://www.example.com"
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "input": {
+            "gateway": DUMMY_GATEWAY,
+            "token": "sample-token",
+            "amount": total.gross.amount,
+            "returnUrl": return_url,
+        },
+    }
+
+    # when
+    response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutPaymentCreate"]
+    assert not data["errors"]
+    assert data["payment"]

@@ -876,6 +876,11 @@ OAUTH_UPDATE_LAST_LOGIN_THRESHOLD = parse(
     os.environ.get("OAUTH_UPDATE_LAST_LOGIN_THRESHOLD", "15 minutes")
 )
 
+# Max lock time for checkout processing.
+# It prevents locking checkout when unhandled issue appears.
+CHECKOUT_COMPLETION_LOCK_TIME = parse(
+    os.environ.get("CHECKOUT_COMPLETION_LOCK_TIME", "3 minutes")
+)
 
 # Default timeout (sec) for establishing a connection when performing external requests.
 REQUESTS_CONN_EST_TIMEOUT = 2
