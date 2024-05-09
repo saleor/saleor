@@ -20,7 +20,7 @@ from ...checkout import base_calculations
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...core.prices import quantize_price
 from ...core.utils.json_serializer import CustomJsonEncoder
-from ...discount import DiscountType, DiscountValueType
+from ...discount import DiscountType, DiscountValueType, VoucherType
 from ...graphql.utils import get_user_or_app_from_context
 from ...order import FulfillmentLineData, OrderOrigin
 from ...order.actions import fulfill_order_lines
@@ -306,6 +306,7 @@ def test_generate_order_payload_for_tax_calculation(
     order_for_payload,
     prices_entered_with_tax,
 ):
+    # given
     order = order_for_payload
 
     tax_configuration = order.channel.tax_configuration
@@ -320,7 +321,10 @@ def test_generate_order_payload_for_tax_calculation(
     discount_1, discount_2 = list(order.discounts.all())
     user = order.user
 
+    # when
     payload = json.loads(generate_order_payload_for_tax_calculation(order))[0]
+
+    # then
     currency = order.currency
 
     assert payload == {
@@ -361,6 +365,82 @@ def test_generate_order_payload_for_tax_calculation(
                 "name": discount_1.name,
                 "amount": str(quantize_price(discount_1.amount_value, currency)),
             },
+            {
+                "name": discount_2.name,
+                "amount": str(quantize_price(discount_2.amount_value, currency)),
+            },
+        ],
+        "lines": json.loads(order_lines),
+    }
+    mocked_order_lines.assert_called_once()
+
+
+@freeze_time()
+@pytest.mark.parametrize("prices_entered_with_tax", [True, False])
+@mock.patch("saleor.webhook.payloads._generate_order_lines_payload_for_tax_calculation")
+def test_generate_order_payload_for_tax_calculation_voucher_discounts(
+    mocked_order_lines, order_for_payload, prices_entered_with_tax, voucher
+):
+    # given
+    order = order_for_payload
+
+    tax_configuration = order.channel.tax_configuration
+    tax_configuration.prices_entered_with_tax = prices_entered_with_tax
+    tax_configuration.save(update_fields=["prices_entered_with_tax"])
+    tax_configuration.country_exceptions.all().delete()
+
+    order_lines = '"order_lines"'
+    mocked_order_lines.return_value = order_lines
+
+    order = order_for_payload
+    discount_1, discount_2 = list(order.discounts.all())
+    voucher.type = VoucherType.ENTIRE_ORDER
+    voucher.apply_once_per_order = True
+    voucher.save()
+    discount_1.voucher = voucher
+    discount_1.save()
+    user = order.user
+
+    # when
+    payload = json.loads(generate_order_payload_for_tax_calculation(order))[0]
+
+    # then
+    currency = order.currency
+
+    assert payload == {
+        "type": "Order",
+        "id": graphene.Node.to_global_id("Order", order.id),
+        "channel": {
+            "id": graphene.Node.to_global_id("Channel", order.channel_id),
+            "type": "Channel",
+            "slug": order.channel.slug,
+            "currency_code": order.channel.currency_code,
+        },
+        "address": {
+            "id": graphene.Node.to_global_id("Address", order.shipping_address_id),
+            "type": "Address",
+            "first_name": order.shipping_address.first_name,
+            "last_name": order.shipping_address.last_name,
+            "company_name": order.shipping_address.company_name,
+            "street_address_1": order.shipping_address.street_address_1,
+            "street_address_2": order.shipping_address.street_address_2,
+            "city": order.shipping_address.city,
+            "city_area": order.shipping_address.city_area,
+            "postal_code": order.shipping_address.postal_code,
+            "country": order.shipping_address.country.code,
+            "country_area": order.shipping_address.country_area,
+            "phone": str(order.shipping_address.phone),
+        },
+        "user_id": graphene.Node.to_global_id("User", user.pk),
+        "user_public_metadata": user.metadata,
+        "included_taxes_in_prices": prices_entered_with_tax,
+        "currency": order.currency,
+        "shipping_name": order.shipping_method.name,
+        "shipping_amount": str(
+            quantize_price(order.base_shipping_price_amount, currency)
+        ),
+        "metadata": order.metadata,
+        "discounts": [
             {
                 "name": discount_2.name,
                 "amount": str(quantize_price(discount_2.amount_value, currency)),
