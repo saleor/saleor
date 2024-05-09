@@ -42,6 +42,7 @@ class Checkout(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     last_change = models.DateTimeField(auto_now=True, db_index=True)
+    completing_started_at = models.DateTimeField(blank=True, null=True)
 
     # Denormalized modified_at for the latest modified transactionItem assigned to
     # checkout
@@ -206,6 +207,15 @@ class Checkout(models.Model):
     def is_shipping_required(self) -> bool:
         """Return `True` if any of the lines requires shipping."""
         return any(line.is_shipping_required() for line in self)
+
+    def is_checkout_locked(self) -> bool:
+        return bool(
+            self.completing_started_at
+            and (
+                (timezone.now() - self.completing_started_at).seconds
+                < settings.CHECKOUT_COMPLETION_LOCK_TIME
+            )
+        )
 
     def get_total_gift_cards_balance(self) -> Money:
         """Return the total balance of the gift cards assigned to the checkout."""
