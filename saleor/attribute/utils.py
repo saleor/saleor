@@ -69,8 +69,9 @@ def validate_attribute_owns_values(attr_val_map: dict[int, list]) -> None:
     values = AttributeValue.objects.filter(lookup)
 
     for value in values:
-        values_map[value.attribute_id].add(value.slug)
-        slug_value_to_value_map[value.slug] = value
+        attr_id = value.attribute_id
+        values_map[attr_id].add(value.slug)
+        slug_value_to_value_map[attr_id, value.slug] = value
 
     for attribute_id, attr_values in attr_val_map.items():
         if values_map[attribute_id] != {v.slug for v in attr_values}:
@@ -79,7 +80,7 @@ def validate_attribute_owns_values(attr_val_map: dict[int, list]) -> None:
         # id set. This is needed as `ignore_conflicts=True` flag in `bulk_create
         # is used in `AttributeValueManager`
         attr_val_map[attribute_id] = [
-            slug_value_to_value_map[v.slug] for v in attr_values
+            slug_value_to_value_map[attribute_id, v.slug] for v in attr_values
         ]
 
 
