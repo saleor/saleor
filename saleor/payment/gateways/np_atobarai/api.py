@@ -44,11 +44,11 @@ def register_transaction(
     reason for pending is returned as error message.
     """
     action = TRANSACTION_REGISTRATION
-    result, error_codes = register(config, payment_information)
+    result, error_codes, raw_response = register(config, payment_information)
 
     if error_codes:
         error_messages = get_error_messages_from_codes(action, error_codes=error_codes)
-        return errors_payment_result(error_messages)
+        return errors_payment_result(error_messages, result)
 
     status = result["authori_result"]
     transaction_id = result["np_transaction_id"]
@@ -67,6 +67,7 @@ def register_transaction(
         status=status,
         psp_reference=transaction_id,
         errors=error_messages,
+        raw_response=raw_response,
     )
 
 
@@ -81,13 +82,13 @@ def cancel_transaction(
             add_action_to_code(action, error_code=NO_PSP_REFERENCE)
         )
 
-    result, error_codes = cancel(config, psp_reference)
+    _result, error_codes, raw_response = cancel(config, psp_reference)
 
     if error_codes:
         error_messages = get_error_messages_from_codes(action, error_codes=error_codes)
-        return errors_payment_result(error_messages)
+        return errors_payment_result(error_messages, raw_response)
 
-    return PaymentResult(status=PaymentStatus.SUCCESS)
+    return PaymentResult(status=PaymentStatus.SUCCESS, raw_response=raw_response)
 
 
 def change_transaction(
@@ -115,7 +116,9 @@ def change_transaction(
         ]
     }
 
-    result, error_codes = np_request(config, "patch", "/transactions/update", json=data)
+    result, error_codes, raw_response = np_request(
+        config, "patch", "/transactions/update", json=data
+    )
 
     if not error_codes:
         status = result["authori_result"]
@@ -127,23 +130,23 @@ def change_transaction(
                     payment.order, "cancel", transaction_id, cancel_error_codes
                 )
             error_messages = result["authori_hold"]
-            return errors_payment_result(error_messages)
+            return errors_payment_result(error_messages, raw_response)
 
-        return PaymentResult(
-            status=PaymentStatus.SUCCESS,
-        )
+        return PaymentResult(status=PaymentStatus.SUCCESS, raw_response=raw_response)
 
     if PRE_FULFILLMENT_ERROR_CODE in error_codes:
         logger.info(
             "Fulfillment for payment with id %s was reported",
             payment_information.graphql_payment_id,
         )
-        return PaymentResult(status=PaymentStatus.FOR_REREGISTRATION)
+        return PaymentResult(
+            status=PaymentStatus.FOR_REREGISTRATION, raw_response=raw_response
+        )
 
     error_messages = get_error_messages_from_codes(
         action=TRANSACTION_CHANGE, error_codes=error_codes
     )
-    return errors_payment_result(error_messages)
+    return errors_payment_result(error_messages, raw_response)
 
 
 def reregister_transaction_for_partial_return(
@@ -171,13 +174,14 @@ def reregister_transaction_for_partial_return(
             )
         )
 
-    if cancel_error_codes := cancel(config, psp_reference).error_codes:
+    result, cancel_error_codes, raw_response = cancel(config, psp_reference)
+    if cancel_error_codes:
         error_messages = get_error_messages_from_codes(
             action=TRANSACTION_CANCELLATION, error_codes=cancel_error_codes
         )
-        return errors_payment_result(error_messages)
+        return errors_payment_result(error_messages, raw_response)
 
-    result, error_codes = register(
+    result, error_codes, raw_response = register(
         config,
         payment_information,
         format_price(billed_amount, payment_information.currency),
@@ -187,7 +191,7 @@ def reregister_transaction_for_partial_return(
     if not error_codes:
         new_psp_reference = result["np_transaction_id"]
 
-        result, error_codes = report(
+        result, error_codes, raw_response = report(
             config, shipping_company_code, new_psp_reference, tracking_number
         )
 
@@ -195,16 +199,17 @@ def reregister_transaction_for_partial_return(
             error_messages = get_error_messages_from_codes(
                 FULFILLMENT_REPORT, error_codes=error_codes
             )
-            return errors_payment_result(error_messages)
+            return errors_payment_result(error_messages, raw_response)
 
         return PaymentResult(
             status=PaymentStatus.SUCCESS,
             psp_reference=new_psp_reference,
+            raw_response=raw_response,
         )
 
     error_messages = get_error_messages_from_codes(action, error_codes=error_codes)
 
-    return errors_payment_result(error_messages)
+    return errors_payment_result(error_messages, raw_response)
 
 
 def report_fulfillment(
@@ -216,7 +221,7 @@ def report_fulfillment(
     """
     shipping_company_code = get_shipping_company_code(config, fulfillment)
 
-    result, error_codes = report(
+    _result, error_codes, _raw_response = report(
         config,
         shipping_company_code,
         payment.psp_reference,
