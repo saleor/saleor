@@ -25,6 +25,7 @@ from .....giftcard.models import GiftCard, GiftCardEvent
 from .....order import OrderOrigin, OrderStatus
 from .....order.models import Fulfillment, Order
 from .....payment import ChargeStatus, PaymentError, TransactionKind
+from .....payment.error_codes import PaymentErrorCode
 from .....payment.gateways.dummy_credit_card import TOKEN_VALIDATION_MAPPING
 from .....payment.interface import GatewayResponse
 from .....plugins.manager import PluginsManager, get_plugins_manager
@@ -3894,7 +3895,8 @@ def test_checkout_complete_payment_create_create_run_in_meantime(
     variables = {"id": to_global_id_or_none(checkout), "redirectUrl": redirect_url}
 
     # Call CheckoutPaymentCreate mutation during the CheckoutComplete call processing.
-    # It should cause deactivation of current payment and creation of new one.
+    # CheckoutPaymentCreate should raise an error and do not influence
+    # the CheckoutComplete call.
     def call_payment_create_mutation(*args, **kwargs):
         from ....payment.tests.mutations.test_checkout_payment_create import (
             CREATE_PAYMENT_MUTATION,
@@ -3910,12 +3912,79 @@ def test_checkout_complete_payment_create_create_run_in_meantime(
             },
         }
 
-        user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
+        response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
+        data = get_graphql_content(response)["data"]["checkoutPaymentCreate"]
+        assert len(data["errors"]) == 1
+        assert (
+            data["errors"][0]["code"]
+            == PaymentErrorCode.CHECKOUT_COMPLETION_IN_PROGRESS.name
+        )
 
     # when
     with before_after.after(
         "saleor.checkout.complete_checkout._process_payment",
         call_payment_create_mutation,
+    ):
+        response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    errors = data["errors"]
+    assert not errors
+    assert data["order"]
+
+
+@pytest.mark.django_db(transaction=True)
+def test_checkout_complete_payment_payment_deactivated_in_meantime(
+    site_settings,
+    user_api_client,
+    checkout_without_shipping_required,
+    gift_card,
+    payment_dummy,
+    address,
+    shipping_method,
+):
+    # given
+    checkout = checkout_without_shipping_required
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
+    checkout.metadata_storage.store_value_in_private_metadata(
+        items={"accepted": "false"}
+    )
+    checkout.save()
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+    channel = checkout.channel
+    channel.automatically_confirm_all_new_orders = True
+    channel.save()
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    assert not payment.transactions.exists()
+
+    redirect_url = "https://www.example.com"
+    variables = {"id": to_global_id_or_none(checkout), "redirectUrl": redirect_url}
+
+    def deactivate_payment(*args, **kwargs):
+        payment.is_active = False
+        payment.save(update_fields=["is_active"])
+
+    # when
+    with before_after.after(
+        "saleor.checkout.complete_checkout._process_payment",
+        deactivate_payment,
     ):
         response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 

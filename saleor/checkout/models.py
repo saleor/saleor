@@ -207,6 +207,15 @@ class Checkout(models.Model):
         """Return `True` if any of the lines requires shipping."""
         return any(line.is_shipping_required() for line in self)
 
+    def is_checkout_locked(self) -> bool:
+        return bool(
+            self.completing_started_at
+            and (
+                (timezone.now() - self.completing_started_at).seconds
+                < settings.CHECKOUT_COMPLETION_LOCK_TIME
+            )
+        )
+
     def get_total_gift_cards_balance(self) -> Money:
         """Return the total balance of the gift cards assigned to the checkout."""
         balance = self.gift_cards.active(  # type: ignore[attr-defined] # problem with django-stubs detecting the correct manager # noqa: E501
