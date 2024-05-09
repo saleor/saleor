@@ -25,6 +25,7 @@ from .....giftcard.models import GiftCard, GiftCardEvent
 from .....order import OrderOrigin, OrderStatus
 from .....order.models import Fulfillment, Order
 from .....payment import ChargeStatus, PaymentError, TransactionKind
+from .....payment.error_codes import PaymentErrorCode
 from .....payment.gateways.dummy_credit_card import TOKEN_VALIDATION_MAPPING
 from .....payment.interface import GatewayResponse
 from .....plugins.manager import PluginsManager, get_plugins_manager
@@ -143,6 +144,8 @@ def test_checkout_complete_with_inactive_channel(
     data = content["data"]["checkoutComplete"]
     assert data["errors"][0]["code"] == CheckoutErrorCode.CHANNEL_INACTIVE.name
     assert data["errors"][0]["field"] == "channel"
+    checkout.refresh_from_db()
+    assert not checkout.completing_started_at
 
 
 @pytest.mark.integration
@@ -774,6 +777,8 @@ def test_checkout_complete_with_variant_without_price(
     assert errors[0]["code"] == CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.name
     assert errors[0]["field"] == "lines"
     assert errors[0]["variants"] == [variant_id]
+    checkout.refresh_from_db()
+    assert not checkout.completing_started_at
 
 
 @patch("saleor.order.calculations._recalculate_order_prices")
@@ -1544,6 +1549,8 @@ def test_checkout_with_voucher_not_increase_uses_on_preprocess_order_creation_fa
     assert Checkout.objects.filter(
         pk=checkout.pk
     ).exists(), "Checkout shouldn't have been deleted"
+    checkout.refresh_from_db()
+    assert not checkout.completing_started_at
 
 
 @pytest.mark.integration
@@ -1669,6 +1676,8 @@ def test_checkout_complete_checkout_without_lines(
     assert len(errors) == 1
     assert errors[0]["field"] == "lines"
     assert errors[0]["code"] == CheckoutErrorCode.NO_LINES.name
+    checkout.refresh_from_db()
+    assert not checkout.completing_started_at
 
 
 @pytest.mark.integration
@@ -1730,6 +1739,8 @@ def test_checkout_complete_error_in_gateway_response_for_dummy_credit_card(
     assert data["errors"][0]["message"] == error
     assert payment.transactions.count() == 1
     assert Order.objects.count() == orders_count
+    checkout.refresh_from_db()
+    assert not checkout.completing_started_at
 
 
 ERROR_GATEWAY_RESPONSE = GatewayResponse(
@@ -1814,6 +1825,8 @@ def test_checkout_complete_does_not_delete_checkout_after_unsuccessful_payment(
     assert Checkout.objects.filter(
         pk=checkout.pk
     ).exists(), "Checkout should not have been deleted"
+    checkout.refresh_from_db()
+    assert not checkout.completing_started_at
 
     mocked_process_payment.assert_called_once()
 
@@ -1850,6 +1863,8 @@ def test_checkout_complete_no_payment(
         "Provided payment methods can not cover the checkout's total amount"
     )
     assert orders_count == Order.objects.count()
+    checkout.refresh_from_db()
+    assert not checkout.completing_started_at
 
 
 @patch.object(PluginsManager, "process_payment")
@@ -1862,6 +1877,7 @@ def test_checkout_complete_confirmation_needed(
     shipping_method,
     action_required_gateway_response,
 ):
+    # given
     mocked_process_payment.return_value = action_required_gateway_response
 
     checkout = checkout_with_item
@@ -1890,7 +1906,10 @@ def test_checkout_complete_confirmation_needed(
     }
     orders_count = Order.objects.count()
 
+    # when
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
     assert not data["errors"]
@@ -1905,6 +1924,9 @@ def test_checkout_complete_confirmation_needed(
     assert payment_dummy.to_confirm
 
     mocked_process_payment.assert_called_once()
+
+    checkout.refresh_from_db()
+    assert not checkout.completing_started_at
 
 
 @patch.object(PluginsManager, "confirm_payment")
@@ -1999,6 +2021,9 @@ def test_checkout_complete_insufficient_stock(
     assert data["errors"][0]["message"] == "Insufficient product stock: 123"
     assert orders_count == Order.objects.count()
 
+    checkout.refresh_from_db()
+    assert not checkout.completing_started_at
+
 
 @patch("saleor.checkout.complete_checkout.gateway.refund")
 def test_checkout_complete_insufficient_stock_payment_refunded(
@@ -2057,6 +2082,9 @@ def test_checkout_complete_insufficient_stock_payment_refunded(
     gateway_refund_mock.assert_called_once_with(
         payment, ANY, channel_slug=checkout_info.channel.slug
     )
+
+    checkout.refresh_from_db()
+    assert not checkout.completing_started_at
 
 
 @patch("saleor.checkout.complete_checkout.gateway.void")
@@ -2117,6 +2145,9 @@ def test_checkout_complete_insufficient_stock_payment_voided(
         payment, ANY, channel_slug=checkout_info.channel.slug
     )
 
+    checkout.refresh_from_db()
+    assert not checkout.completing_started_at
+
 
 def test_checkout_complete_insufficient_stock_reserved_by_other_user(
     site_settings_with_reservations,
@@ -2175,6 +2206,8 @@ def test_checkout_complete_insufficient_stock_reserved_by_other_user(
     data = content["data"]["checkoutComplete"]
     assert data["errors"][0]["message"] == "Insufficient product stock: 123"
     assert orders_count == Order.objects.count()
+    checkout.refresh_from_db()
+    assert not checkout.completing_started_at
 
 
 def test_checkout_complete_own_reservation(
@@ -2367,6 +2400,8 @@ def test_checkout_complete_payment_payment_total_different_than_checkout(
 
     assert data["errors"][0]["code"] == CheckoutErrorCode.CHECKOUT_NOT_FULLY_PAID.name
     assert orders_count == Order.objects.count()
+    checkout.refresh_from_db()
+    assert not checkout.completing_started_at
 
     gateway_refund_or_void_mock.assert_called_with(
         payment, ANY, channel_slug=checkout_info.channel.slug
@@ -2433,6 +2468,8 @@ def test_create_order_raises_insufficient_stock(
     data = content["data"]["checkoutComplete"]
     assert data["errors"][0]["code"] == CheckoutErrorCode.INSUFFICIENT_STOCK.name
     assert mocked_create_order.called
+    checkout.refresh_from_db()
+    assert not checkout.completing_started_at
 
     payment.refresh_from_db()
     assert payment.charge_status == ChargeStatus.FULLY_REFUNDED
@@ -2898,6 +2935,8 @@ def test_checkout_complete_raises_InvalidShippingMethod_when_warehouse_disabled(
         content["errors"][0]["code"] == CheckoutErrorCode.INVALID_SHIPPING_METHOD.name
     )
     assert Order.objects.count() == initial_order_count
+    checkout.refresh_from_db()
+    assert not checkout.completing_started_at
 
 
 @pytest.mark.integration
@@ -3050,6 +3089,8 @@ def test_checkout_complete_with_click_collect_preorder_fails_for_disabled_wareho
         content["errors"][0]["code"] == CheckoutErrorCode.INVALID_SHIPPING_METHOD.name
     )
     assert Order.objects.count() == initial_order_count
+    checkout.refresh_from_db()
+    assert not checkout.completing_started_at
 
 
 def test_checkout_complete_variant_channel_listing_does_not_exist(
@@ -3112,6 +3153,8 @@ def test_checkout_complete_variant_channel_listing_does_not_exist(
 
     assert Order.objects.count() == orders_count
     assert Checkout.objects.filter(pk=checkout.pk).exists()
+    checkout.refresh_from_db()
+    assert not checkout.completing_started_at
 
 
 def test_checkout_complete_variant_channel_listing_no_price(
@@ -3179,6 +3222,8 @@ def test_checkout_complete_variant_channel_listing_no_price(
 
     assert Order.objects.count() == orders_count
     assert Checkout.objects.filter(pk=checkout.pk).exists()
+    checkout.refresh_from_db()
+    assert not checkout.completing_started_at
 
 
 def test_checkout_complete_product_channel_listing_does_not_exist(
@@ -3242,6 +3287,8 @@ def test_checkout_complete_product_channel_listing_does_not_exist(
 
     assert Order.objects.count() == orders_count
     assert Checkout.objects.filter(pk=checkout.pk).exists()
+    checkout.refresh_from_db()
+    assert not checkout.completing_started_at
 
 
 @pytest.mark.parametrize(
@@ -3311,6 +3358,8 @@ def test_checkout_complete_product_channel_listing_not_available_for_purchase(
 
     assert Order.objects.count() == orders_count
     assert Checkout.objects.filter(pk=checkout.pk).exists()
+    checkout.refresh_from_db()
+    assert not checkout.completing_started_at
 
 
 def test_checkout_complete_error_when_shipping_address_doesnt_have_all_required_fields(
@@ -3371,6 +3420,8 @@ def test_checkout_complete_error_when_shipping_address_doesnt_have_all_required_
     assert data["errors"][0]["code"] == "REQUIRED"
     assert data["errors"][0]["field"] == "postalCode"
     assert Order.objects.count() == orders_count
+    checkout.refresh_from_db()
+    assert not checkout.completing_started_at
 
 
 def test_checkout_complete_error_when_shipping_address_doesnt_have_all_valid_fields(
@@ -3432,6 +3483,8 @@ def test_checkout_complete_error_when_shipping_address_doesnt_have_all_valid_fie
     assert data["errors"][0]["code"] == "INVALID"
     assert data["errors"][0]["field"] == "postalCode"
     assert Order.objects.count() == orders_count
+    checkout.refresh_from_db()
+    assert not checkout.completing_started_at
 
 
 def test_checkout_complete_error_when_billing_address_doesnt_have_all_required_fields(
@@ -3491,6 +3544,8 @@ def test_checkout_complete_error_when_billing_address_doesnt_have_all_required_f
     assert data["errors"][0]["code"] == "REQUIRED"
     assert data["errors"][0]["field"] == "postalCode"
     assert Order.objects.count() == orders_count
+    checkout.refresh_from_db()
+    assert not checkout.completing_started_at
 
 
 def test_checkout_complete_error_when_billing_address_doesnt_have_all_valid_fields(
@@ -3552,6 +3607,8 @@ def test_checkout_complete_error_when_billing_address_doesnt_have_all_valid_fiel
     assert data["errors"][0]["code"] == "INVALID"
     assert data["errors"][0]["field"] == "postalCode"
     assert Order.objects.count() == orders_count
+    checkout.refresh_from_db()
+    assert not checkout.completing_started_at
 
 
 def test_checkout_complete_with_not_normalized_shipping_address(
@@ -3836,7 +3893,8 @@ def test_checkout_complete_payment_create_create_run_in_meantime(
     variables = {"id": to_global_id_or_none(checkout), "redirectUrl": redirect_url}
 
     # Call CheckoutPaymentCreate mutation during the CheckoutComplete call processing.
-    # It should cause deactivation of current payment and creation of new one.
+    # CheckoutPaymentCreate should raise an error and do not influence
+    # the CheckoutComplete call.
     def call_payment_create_mutation(*args, **kwargs):
         from ....payment.tests.mutations.test_checkout_payment_create import (
             CREATE_PAYMENT_MUTATION,
@@ -3852,7 +3910,13 @@ def test_checkout_complete_payment_create_create_run_in_meantime(
             },
         }
 
-        user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
+        response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
+        data = get_graphql_content(response)["data"]["checkoutPaymentCreate"]
+        assert len(data["errors"]) == 1
+        assert (
+            data["errors"][0]["code"]
+            == PaymentErrorCode.CHECKOUT_COMPLETION_IN_PROGRESS.name
+        )
 
     # when
     with before_after.after(
@@ -3865,8 +3929,71 @@ def test_checkout_complete_payment_create_create_run_in_meantime(
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
     errors = data["errors"]
+    assert not errors
+    assert data["order"]
+
+
+@pytest.mark.django_db(transaction=True)
+def test_checkout_complete_payment_payment_deactivated_in_meantime(
+    site_settings,
+    user_api_client,
+    checkout_without_shipping_required,
+    gift_card,
+    payment_dummy,
+    address,
+    shipping_method,
+):
+    # given
+    checkout = checkout_without_shipping_required
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
+    checkout.metadata_storage.store_value_in_private_metadata(
+        items={"accepted": "false"}
+    )
+    checkout.save()
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+    channel = checkout.channel
+    channel.automatically_confirm_all_new_orders = True
+    channel.save()
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    assert not payment.transactions.exists()
+
+    redirect_url = "https://www.example.com"
+    variables = {"id": to_global_id_or_none(checkout), "redirectUrl": redirect_url}
+
+    def deactivate_payment(*args, **kwargs):
+        payment.is_active = False
+        payment.save(update_fields=["is_active"])
+
+    # when
+    with before_after.after(
+        "saleor.checkout.complete_checkout._process_payment",
+        deactivate_payment,
+    ):
+        response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    errors = data["errors"]
     assert len(errors) == 1
     assert errors[0]["code"] == CheckoutErrorCode.INACTIVE_PAYMENT.name
+    checkout.refresh_from_db()
+    assert not checkout.completing_started_at
 
 
 @pytest.mark.integration
