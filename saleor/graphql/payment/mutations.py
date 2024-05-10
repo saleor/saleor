@@ -299,13 +299,6 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         token=None,
     ):
         checkout = get_checkout(cls, info, checkout_id=checkout_id, token=token, id=id)
-        if checkout.is_checkout_locked():
-            raise ValidationError(
-                "Payment cannot be created - the checkout completion is currently "
-                "in progress. Please wait until the process is finished "
-                f"(max {settings.CHECKOUT_COMPLETION_LOCK_TIME} seconds).",
-                code=PaymentErrorCode.CHECKOUT_COMPLETION_IN_PROGRESS.value,
-            )
 
         cls.validate_checkout_email(checkout)
 
@@ -385,6 +378,14 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
                 raise ValidationError(
                     "Checkout doesn't exist anymore.",
                     code=PaymentErrorCode.NOT_FOUND.value,
+                )
+
+            if checkout.is_checkout_locked():
+                raise ValidationError(
+                    "Payment cannot be created - the checkout completion is currently "
+                    "in progress. Please wait until the process is finished "
+                    f"(max {settings.CHECKOUT_COMPLETION_LOCK_TIME} seconds).",
+                    code=PaymentErrorCode.CHECKOUT_COMPLETION_IN_PROGRESS.value,
                 )
 
             cancel_active_payments(checkout)
