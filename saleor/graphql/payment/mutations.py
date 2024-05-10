@@ -2191,6 +2191,9 @@ class TransactionInitialize(TransactionSessionBase):
             TransactionInitializeErrorCode.NOT_FOUND.value,
             manager=manager,
         )
+        if isinstance(source_object, checkout_models.Checkout):
+            cls.validate_checkout(source_object)
+
         action = cls.clean_action(info, action, source_object.channel)
 
         amount = cls.get_amount(
@@ -2199,30 +2202,53 @@ class TransactionInitialize(TransactionSessionBase):
         )
         app = cls.clean_app_from_payment_gateway(payment_gateway_data)
 
-        try:
-            transaction, event, data = handle_transaction_initialize_session(
-                source_object=source_object,
-                payment_gateway=payment_gateway_data,
-                amount=amount,
-                action=action,
-                app=app,
-                manager=manager,
-                idempotency_key=idempotency_key,
+        with traced_atomic_transaction():
+            if isinstance(source_object, checkout_models.Checkout):
+                # Deactivate active payment objects to avoid processing checkout
+                # with use of two different flows.
+                cancel_active_payments(source_object)
+            try:
+                transaction, event, data = handle_transaction_initialize_session(
+                    source_object=source_object,
+                    payment_gateway=payment_gateway_data,
+                    amount=amount,
+                    action=action,
+                    app=app,
+                    manager=manager,
+                    idempotency_key=idempotency_key,
+                )
+            except TransactionItemIdempotencyUniqueError:
+                raise ValidationError(
+                    {
+                        "idempotency_key": ValidationError(
+                            message=(
+                                "Different transaction with provided idempotency key "
+                                "already exists."
+                            ),
+                            code=TransactionInitializeErrorCode.UNIQUE.value,
+                        )
+                    }
+                )
+
+        return cls(transaction=transaction, transaction_event=event, data=data)
+
+    @staticmethod
+    def validate_checkout(checkout: checkout_models.Checkout) -> None:
+        if checkout.is_checkout_locked():
+            error_code = (
+                TransactionInitializeErrorCode.CHECKOUT_COMPLETION_IN_PROGRESS.value
             )
-        except TransactionItemIdempotencyUniqueError:
             raise ValidationError(
                 {
-                    "idempotency_key": ValidationError(
-                        message=(
-                            "Different transaction with provided idempotency key "
-                            "already exists."
-                        ),
-                        code=TransactionInitializeErrorCode.UNIQUE.value,
+                    "id": ValidationError(
+                        "Transaction cannot be initialized - the checkout completion "
+                        "is currently in progress. Please wait until the process is "
+                        f"finished (max {settings.CHECKOUT_COMPLETION_LOCK_TIME} "
+                        "seconds).",
+                        code=error_code,
                     )
                 }
             )
-
-        return cls(transaction=transaction, transaction_event=event, data=data)
 
 
 class TransactionProcess(BaseMutation):
@@ -2373,22 +2399,50 @@ class TransactionProcess(BaseMutation):
             )
         request_event = cls.get_request_event(events)
         source_object = cls.get_source_object(transaction_item)
+
+        if isinstance(source_object, checkout_models.Checkout):
+            cls.validate_checkout(source_object)
+
         app = cls.clean_payment_app(transaction_item)
         app_identifier = app.identifier
         app_identifier = cast(str, app_identifier)
         action = cls.get_action(request_event, source_object.channel)
         manager = get_plugin_manager_promise(info.context).get()
-        event, data = handle_transaction_process_session(
-            transaction_item=transaction_item,
-            source_object=source_object,
-            payment_gateway=PaymentGatewayData(
-                app_identifier=app_identifier, data=data
-            ),
-            app=app,
-            action=action,
-            manager=manager,
-            request_event=request_event,
-        )
+        with traced_atomic_transaction():
+            if isinstance(source_object, checkout_models.Checkout):
+                # Deactivate active payment objects to avoid processing checkout
+                # with use of two different flows.
+                cancel_active_payments(source_object)
+
+            event, data = handle_transaction_process_session(
+                transaction_item=transaction_item,
+                source_object=source_object,
+                payment_gateway=PaymentGatewayData(
+                    app_identifier=app_identifier, data=data
+                ),
+                app=app,
+                action=action,
+                manager=manager,
+                request_event=request_event,
+            )
 
         transaction_item.refresh_from_db()
         return cls(transaction=transaction_item, transaction_event=event, data=data)
+
+    @staticmethod
+    def validate_checkout(checkout: checkout_models.Checkout) -> None:
+        if checkout.is_checkout_locked():
+            error_code = (
+                TransactionProcessErrorCode.CHECKOUT_COMPLETION_IN_PROGRESS.value
+            )
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Transaction cannot be processed - the checkout completion is "
+                        "currently in progress. Please wait until the process is "
+                        f"finished (max {settings.CHECKOUT_COMPLETION_LOCK_TIME} "
+                        "seconds).",
+                        code=error_code,
+                    )
+                }
+            )
