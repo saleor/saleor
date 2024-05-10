@@ -9,4 +9,5 @@ class Migration(migrations.Migration):
     ]
 
     # left to keep migration compatibility
+    # the logic moved to 0074_add_index_for_unique_type
     operations = []
