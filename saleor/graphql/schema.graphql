@@ -7983,6 +7983,15 @@ input AddressInput {
   Added in Saleor 3.15.
   """
   metadata: [MetadataInput!]
+
+  """
+  Determine if the address should be validated. By default, Saleor accepts only address inputs matching ruleset from [Google Address Data]{https://chromium-i18n.appspot.com/ssl-address), using [i18naddress](https://github.com/mirumee/google-i18n-address) library. Some mutations may require additional permissions to use the the field. More info about permissions can be found in relevant mutation.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  skipValidation: Boolean = false
 }
 
 input MetadataInput {
@@ -18932,6 +18941,8 @@ type Mutation {
   """
   Create a new checkout.
   
+  `skipValidation` field requires HANDLE_CHECKOUTS and AUTHENTICATED_APP permissions.
+  
   Triggers the following webhook events:
   - CHECKOUT_CREATED (async): A checkout was created.
   """
@@ -29244,6 +29255,8 @@ type CheckoutComplete @doc(category: "Checkout") @webhookEventsInfo(asyncEvents:
 """
 Create a new checkout.
 
+`skipValidation` field requires HANDLE_CHECKOUTS and AUTHENTICATED_APP permissions.
+
 Triggers the following webhook events:
 - CHECKOUT_CREATED (async): A checkout was created.
 """
@@ -29270,11 +29283,13 @@ input CheckoutCreateInput @doc(category: "Checkout") {
   email: String
 
   """
-  The mailing address to where the checkout will be shipped. Note: the address will be ignored if the checkout doesn't contain shippable items.
+  The mailing address to where the checkout will be shipped. Note: the address will be ignored if the checkout doesn't contain shippable items. `skipValidation` requires HANDLE_CHECKOUTS and AUTHENTICATED_APP permissions.
   """
   shippingAddress: AddressInput
 
-  """Billing address of the customer."""
+  """
+  Billing address of the customer. `skipValidation` requires HANDLE_CHECKOUTS and AUTHENTICATED_APP permissions.
+  """
   billingAddress: AddressInput
 
   """Checkout language code."""

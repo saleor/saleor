@@ -130,6 +130,9 @@ def test_logged_customer_update_addresses(user_api_client, graphql_address_data)
     assert user.default_billing_address.metadata == {"public": "public_value"}
     assert user.default_shipping_address.metadata == {"public": "public_value"}
 
+    assert user.default_billing_address.validation_skipped is False
+    assert user.default_shipping_address.validation_skipped is False
+
 
 def test_logged_customer_update_addresses_invalid_shipping_address(
     user_api_client, graphql_address_data
@@ -220,3 +223,25 @@ def test_logged_customer_update_names_trigger_gift_card_search_vector_update(
     for card in gift_cards:
         card.refresh_from_db()
         assert card.search_index_dirty is True
+
+
+def test_logged_customer_update_address_skip_validation(
+    user_api_client,
+    graphql_address_data_skipped_validation,
+):
+    # given
+    query = ACCOUNT_UPDATE_QUERY
+    address_data = graphql_address_data_skipped_validation
+    invalid_postal_code = "invalid_postal_code"
+    address_data["postalCode"] = invalid_postal_code
+    variables = {"shipping": address_data, "billing": address_data}
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["accountUpdate"]
+    assert not data["user"]
+    assert data["errors"][0]["field"] == "skipValidation"
+    assert data["errors"][0]["code"] == "INVALID"

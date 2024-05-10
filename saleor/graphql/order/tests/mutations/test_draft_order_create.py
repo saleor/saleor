@@ -242,6 +242,8 @@ def test_draft_order_create_with_voucher(
     assert order.shipping_address
     assert order.billing_address.metadata == stored_metadata
     assert order.shipping_address.metadata == stored_metadata
+    assert order.billing_address.validation_skipped is False
+    assert order.shipping_address.validation_skipped is False
     assert order.search_vector
     assert order.external_reference == external_reference
     shipping_total = shipping_method.channel_listings.get(
@@ -2161,6 +2163,58 @@ def test_draft_order_create_invalid_shipping_address(
     assert errors[0]["field"] == "country"
     assert errors[0]["code"] == OrderErrorCode.REQUIRED.name
     assert errors[0]["addressType"] == AddressType.SHIPPING.upper()
+
+
+def test_draft_order_create_invalid_address_skip_validation(
+    staff_api_client,
+    permission_group_manage_orders,
+    customer_user,
+    shipping_method,
+    variant,
+    channel_USD,
+    graphql_address_data_skipped_validation,
+):
+    # given
+    query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variant_list = [{"variantId": variant_id, "quantity": 2}]
+
+    address_data = graphql_address_data_skipped_validation
+    invalid_postal_code = "invalid_postal_code"
+    address_data["postalCode"] = invalid_postal_code
+
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    redirect_url = "https://www.example.com"
+
+    variables = {
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+            "billingAddress": address_data,
+            "shippingAddress": address_data,
+            "shippingMethod": shipping_id,
+            "channelId": channel_id,
+            "redirectUrl": redirect_url,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["draftOrderCreate"]
+    assert not data["errors"]
+    assert data["order"]["shippingAddress"]["postalCode"] == invalid_postal_code
+    assert data["order"]["billingAddress"]["postalCode"] == invalid_postal_code
+    order = Order.objects.last()
+    assert order.shipping_address.postal_code == invalid_postal_code
+    assert order.shipping_address.validation_skipped is True
+    assert order.billing_address.postal_code == invalid_postal_code
+    assert order.billing_address.validation_skipped is True
 
 
 @patch("saleor.order.calculations.fetch_order_prices_if_expired")
