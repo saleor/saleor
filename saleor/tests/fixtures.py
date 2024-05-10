@@ -1199,6 +1199,12 @@ def graphql_address_data():
 
 
 @pytest.fixture
+def graphql_address_data_skipped_validation(graphql_address_data):
+    graphql_address_data["skipValidation"] = True
+    return graphql_address_data
+
+
+@pytest.fixture
 def customer_user(address):  # pylint: disable=W0613
     default_address = address.get_copy()
     user = User.objects.create_user(

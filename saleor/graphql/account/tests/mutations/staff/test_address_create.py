@@ -27,6 +27,7 @@ ADDRESS_CREATE_MUTATION = """
                     key
                     value
                 }
+                postalCode
             }
             user {
                 id
@@ -173,3 +174,30 @@ def test_create_address_validation_fails(
     assert len(data["errors"]) == 1
     assert data["errors"][0]["field"] == "postalCode"
     assert data["address"] is None
+
+
+def test_create_address_skip_validation(
+    staff_api_client,
+    customer_user,
+    graphql_address_data_skipped_validation,
+    permission_manage_users,
+    address,
+):
+    # given
+    query = ADDRESS_CREATE_MUTATION
+    address_data = graphql_address_data_skipped_validation
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    wrong_postal_code = "wrong postal code"
+    address_data["postalCode"] = wrong_postal_code
+    variables = {"user": user_id, "address": address_data}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["addressCreate"]
+    assert not data["errors"]
+    assert data["address"]["postalCode"] == wrong_postal_code

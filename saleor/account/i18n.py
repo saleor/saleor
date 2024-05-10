@@ -107,6 +107,7 @@ class AddressForm(forms.ModelForm):
         autocomplete_type = kwargs.pop("autocomplete_type", None)
         self.enable_normalization = kwargs.pop("enable_normalization", True)
         super().__init__(*args, **kwargs)
+        self.skip_validation = self.data.get("skip_validation", False)
         # countries order was taken as defined in the model,
         # not being sorted accordingly to the selected language
         self.fields["country"].choices = sorted(  # type: ignore[attr-defined] # raw access to fields # noqa: E501
@@ -171,6 +172,9 @@ class CountryAwareAddressForm(AddressForm):
                 self.add_error(field, ValidationError(error_msg, code=error_code))
 
     def validate_address(self, data):
+        if self.skip_validation:
+            return data
+
         try:
             data["country_code"] = data.get("country", "")
 
