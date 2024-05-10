@@ -1,7 +1,44 @@
 import pytest
 
 from ...product.models import ProductType
-from ..utils import associate_attribute_values_to_instance
+from .. import AttributeInputType, AttributeType
+from ..models import Attribute, AttributeValue
+from ..utils import (
+    associate_attribute_values_to_instance,
+    validate_attribute_owns_values,
+)
+
+
+@pytest.fixture
+def attribute_1():
+    attr = Attribute.objects.create(
+        slug="attribute-1",
+        name="Attribute 1",
+        input_type=AttributeInputType.DROPDOWN,
+        type=AttributeType.PRODUCT_TYPE,
+    )
+    AttributeValue.objects.create(
+        attribute=attr,
+        name="Value 1",
+        slug="value-1",
+    )
+    return attr
+
+
+@pytest.fixture
+def attribute_2():
+    attr = Attribute.objects.create(
+        slug="attribute-2",
+        name="Attribute 2",
+        input_type=AttributeInputType.DROPDOWN,
+        type=AttributeType.PRODUCT_TYPE,
+    )
+    AttributeValue.objects.create(
+        attribute=attr,
+        name="Value 1",
+        slug="value-1",
+    )
+    return attr
 
 
 def test_associate_attribute_to_non_product_instance(color_attribute):
@@ -162,3 +199,20 @@ def test_associate_attribute_to_instance_duplicated_values(
     new_assignment = product.attributes.last()
     # Ensure the new assignment was created and ordered correctly
     assert new_assignment.values.count() == 1
+
+
+def test_validate_attribute_owns_values(attribute_1, attribute_2):
+    # given
+    attr_val_map = {
+        attribute_1.id: [attribute_1.values.first()],
+        attribute_2.id: [attribute_2.values.first()],
+    }
+
+    # when
+    validate_attribute_owns_values(attr_val_map)
+
+    # then
+    assert attr_val_map == {
+        attribute_1.id: [attribute_1.values.first()],
+        attribute_2.id: [attribute_2.values.first()],
+    }
