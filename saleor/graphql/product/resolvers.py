@@ -23,7 +23,7 @@ def resolve_categories(info: ResolveInfo, level=None):
     ).prefetch_related("children")
     if level is not None:
         qs = qs.filter(level=level)
-    return qs.distinct()
+    return qs
 
 
 def resolve_collection_by_id(info: ResolveInfo, id, channel_slug, requestor):
