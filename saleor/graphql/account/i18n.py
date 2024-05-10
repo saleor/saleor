@@ -32,6 +32,7 @@ class I18nMixin:
         required_check=True,
         enable_normalization=True,
     ):
+        skip_validation = address_data.get("skip_validation")
         phone = address_data.get("phone", None)
         params = {"address_type": address_type} if address_type else {}
         if phone:
@@ -55,7 +56,7 @@ class I18nMixin:
             instance=instance,
             enable_normalization=enable_normalization,
         )
-        if not address_form.is_valid():
+        if not address_form.is_valid() and not skip_validation:
             errors = cls.attach_params_to_address_form_errors(
                 address_form, params, format_check, required_check
             )

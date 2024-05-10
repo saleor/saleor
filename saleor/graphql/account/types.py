@@ -36,6 +36,7 @@ from ..core.descriptions import (
     ADDED_IN_310,
     ADDED_IN_314,
     ADDED_IN_315,
+    ADDED_IN_320,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -91,10 +92,16 @@ class AddressInput(BaseInputObjectType):
             "[libphonenumber](https://github.com/google/libphonenumber) library."
         )
     )
-
     metadata = graphene.List(
         graphene.NonNull(MetadataInput),
         description="Address public metadata." + ADDED_IN_315,
+        required=False,
+    )
+    skip_validation = graphene.Boolean(
+        description="Determine if the address should be validated."
+        + ADDED_IN_320
+        + PREVIEW_FEATURE,
+        default=False,
         required=False,
     )
 

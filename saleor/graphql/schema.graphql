@@ -7956,6 +7956,15 @@ input AddressInput {
   Added in Saleor 3.15.
   """
   metadata: [MetadataInput!]
+
+  """
+  Determine if the address should be validated.
+  
+  Added in Saleor 3.20.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  skipValidation: Boolean
 }
 
 input MetadataInput {
