@@ -59,8 +59,3 @@ class WarehouseMixin:
                 },
             )
         return cleaned_input
-
-    @classmethod
-    def construct_instance(cls, instance, cleaned_data):
-        cleaned_data["address"] = cls.prepare_address(cleaned_data, instance)  # type: ignore[attr-defined] # mixing # noqa: E501
-        return super().construct_instance(instance, cleaned_data)  # type: ignore[misc] # mixing # noqa: E501

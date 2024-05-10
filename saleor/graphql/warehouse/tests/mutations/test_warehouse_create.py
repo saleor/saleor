@@ -25,6 +25,7 @@ mutation createWarehouse($input: WarehouseCreateInput!) {
             address {
                 id
                 countryArea
+                postalCode
                 metadata {
                     key
                     value
@@ -92,6 +93,7 @@ def test_mutation_create_warehouse(
     assert created_warehouse["externalReference"] == warehouse.external_reference
     assert created_warehouse["address"]["metadata"] == metadata
     assert address.metadata == {"public": "public_value"}
+    assert address.validation_skipped is False
 
 
 def test_mutation_create_warehouse_shipping_zone_provided(
@@ -389,3 +391,38 @@ def test_create_warehouse_with_address_item_from_valid_address_extension_map(
 
     address_db = Warehouse.objects.first().address
     assert address_db.country_area == cleaned_country_area
+
+
+def test_create_warehouse_invalid_address_skip_validation(
+    staff_api_client,
+    permission_manage_products,
+    graphql_address_data_skipped_validation,
+):
+    # given
+    address_data = graphql_address_data_skipped_validation
+    invalid_postal_code = "invalid_postal_code"
+    address_data["postalCode"] = invalid_postal_code
+    variables = {
+        "input": {
+            "name": "Test warehouse",
+            "email": "test-admin@example.com",
+            "address": address_data,
+        }
+    }
+    assert not Address.objects.exists()
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_CREATE_WAREHOUSE,
+        variables=variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["createWarehouse"]
+    assert not data["errors"]
+    assert data["warehouse"]["address"]["postalCode"] == invalid_postal_code
+    address = Address.objects.get()
+    assert address.postal_code == invalid_postal_code
+    assert address.validation_skipped is True

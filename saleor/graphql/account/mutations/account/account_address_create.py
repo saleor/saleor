@@ -67,7 +67,9 @@ class AccountAddressCreate(AddressMetadataMixin, ModelMutation, I18nMixin):
         user = cast(models.User, user)
         cleaned_input = cls.clean_input(info=info, instance=Address(), data=input)
         with traced_atomic_transaction():
-            address = cls.validate_address(cleaned_input, address_type=address_type)
+            address = cls.validate_address(
+                cleaned_input, address_type=address_type, info=info
+            )
             cls.clean_instance(info, address)
             cls.save(info, address, cleaned_input)
             cls._save_m2m(info, address, cleaned_input)

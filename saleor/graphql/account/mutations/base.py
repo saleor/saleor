@@ -96,7 +96,7 @@ class BaseAddressUpdate(ModelMutation, I18nMixin):
             info=info, instance=instance, data=data.get("input")
         )
         cls.update_metadata(instance, cleaned_input.pop("metadata", list()))
-        address = cls.validate_address(cleaned_input, instance=instance)
+        address = cls.validate_address(cleaned_input, instance=instance, info=info)
         cls.clean_instance(info, address)
         cls.save(info, address, cleaned_input)
         cls._save_m2m(info, address, cleaned_input)
