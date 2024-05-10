@@ -245,6 +245,69 @@ def test_order_line_update(
     assert data["errors"][0]["field"] == "quantity"
 
 
+@patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+def test_order_line_update_no_allocation(
+    order_updated_webhook_mock,
+    draft_order_updated_webhook_mock,
+    order_with_lines,
+    permission_group_manage_orders,
+    staff_api_client,
+    staff_user,
+):
+    query = ORDER_LINE_UPDATE_MUTATION
+    order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
+    order.save(update_fields=["status"])
+    line = order.lines.first()
+    line.allocations.all().delete()
+    new_quantity = 1
+    removed_quantity = 2
+    line_id = graphene.Node.to_global_id("OrderLine", line.id)
+    variables = {"lineId": line_id, "quantity": new_quantity}
+
+    # Ensure the line has the expected quantity
+    assert line.quantity == 3
+
+    # No event should exist yet
+    assert not OrderEvent.objects.exists()
+
+    # mutation should fail without proper permissions
+    response = staff_api_client.post_graphql(query, variables)
+    assert_no_permission(response)
+    order_updated_webhook_mock.assert_not_called()
+    draft_order_updated_webhook_mock.assert_not_called()
+
+    # assign permissions
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["orderLineUpdate"]
+    assert data["orderLine"]["quantity"] == new_quantity
+    assert_proper_webhook_called_once(
+        order,
+        order.status,
+        draft_order_updated_webhook_mock,
+        order_updated_webhook_mock,
+    )
+    removed_items_event = OrderEvent.objects.last()  # type: OrderEvent
+    assert removed_items_event.type == order_events.OrderEvents.REMOVED_PRODUCTS
+    assert removed_items_event.user == staff_user
+    assert removed_items_event.parameters == {
+        "lines": [
+            {"quantity": removed_quantity, "line_pk": str(line.pk), "item": str(line)}
+        ]
+    }
+
+    # mutation should fail when quantity is lower than 1
+    variables = {"lineId": line_id, "quantity": 0}
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["orderLineUpdate"]
+    assert data["errors"]
+    assert data["errors"][0]["field"] == "quantity"
+
+
 def test_order_line_update_by_user_no_channel_access(
     order_with_lines,
     permission_group_all_perms_channel_USD_only,
