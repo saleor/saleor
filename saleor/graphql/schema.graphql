@@ -10976,7 +10976,7 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   token: UUID!
 
   """
-  The sum of the the checkout line prices, with all the taxes,shipping costs, and discounts included.
+  The sum of the checkout line prices, with all the taxes,shipping costs, and discounts included.
   
   Triggers the following webhook events:
   - CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.

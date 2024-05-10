@@ -699,7 +699,7 @@ class Checkout(ModelObjectType[models.Checkout]):
     total_price = BaseField(
         TaxedMoney,
         description=(
-            "The sum of the the checkout line prices, with all the taxes,"
+            "The sum of the checkout line prices, with all the taxes,"
             "shipping costs, and discounts included."
         ),
         required=True,
