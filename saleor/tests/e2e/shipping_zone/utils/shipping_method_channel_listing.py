@@ -28,8 +28,8 @@ def create_shipping_method_channel_listing(
     shipping_method_id,
     channel_id,
     price="10.00",
-    minimumOrderPrice=None,
-    maximumOrderPrice=None,
+    minimum_order_price=None,
+    maximum_order_price=None,
 ):
     variables = {
         "id": shipping_method_id,
@@ -38,8 +38,8 @@ def create_shipping_method_channel_listing(
                 {
                     "channelId": channel_id,
                     "price": price,
-                    "maximumOrderPrice": maximumOrderPrice,
-                    "minimumOrderPrice": minimumOrderPrice,
+                    "maximumOrderPrice": maximum_order_price,
+                    "minimumOrderPrice": minimum_order_price,
                 }
             ]
         },

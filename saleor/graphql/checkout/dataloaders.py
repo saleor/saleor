@@ -8,8 +8,6 @@ from ...checkout.fetch import (
     CheckoutInfo,
     CheckoutLineInfo,
     apply_voucher_to_checkout_line,
-    get_delivery_method_info,
-    update_delivery_method_lists_for_checkout_info,
 )
 from ...checkout.models import Checkout, CheckoutLine, CheckoutMetadata
 from ...checkout.problems import (
@@ -503,6 +501,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
                     voucher_code_map = {
                         voucher_code.code: voucher_code
                         for voucher_code in voucher_codes
+                        if voucher_code
                     }
                     tax_configuration_by_channel_map = {
                         tax_configuration.channel_id: tax_configuration
@@ -519,11 +518,15 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
                         collection_point = collection_points_map.get(
                             checkout.collection_point_id
                         )
-                        shipping_address = address_map.get(checkout.shipping_address_id)
-                        delivery_method_info = get_delivery_method_info(
-                            None, shipping_address
-                        )
                         voucher_code = voucher_code_map.get(checkout.voucher_code)
+
+                        shipping_channel_listings = [
+                            listing
+                            for channel_listings in listings_for_channels
+                            for listing in channel_listings
+                            if listing.channel_id == channel.id
+                        ]
+
                         checkout_info = CheckoutInfo(
                             checkout=checkout,
                             user=user_map.get(checkout.user_id),
@@ -534,29 +537,16 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
                             shipping_address=address_map.get(
                                 checkout.shipping_address_id
                             ),
-                            delivery_method_info=delivery_method_info,
                             tax_configuration=tax_configuration_by_channel_map[
                                 channel.id
                             ],
-                            valid_pick_up_points=[],
-                            all_shipping_methods=[],
+                            lines=checkout_lines,
+                            manager=manager,
+                            shipping_channel_listings=shipping_channel_listings,
+                            shipping_method=shipping_method,
+                            collection_point=collection_point,
                             voucher=voucher_code.voucher if voucher_code else None,
                             voucher_code=voucher_code,
-                        )
-                        shipping_method_listings = [
-                            listing
-                            for channel_listings in listings_for_channels
-                            for listing in channel_listings
-                            if listing.channel_id == channel.id
-                        ]
-                        update_delivery_method_lists_for_checkout_info(
-                            checkout_info,
-                            shipping_method,
-                            collection_point,
-                            shipping_address,
-                            checkout_lines,
-                            manager,
-                            shipping_method_listings,
                         )
                         checkout_info_map[key] = checkout_info
 

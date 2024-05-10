@@ -1575,3 +1575,40 @@ def test_get_plugin_invalid_channel():
 
     # then
     assert plugin is None
+
+
+@pytest.mark.parametrize(
+    ("plugins", "calls"),
+    [
+        ([], 0),
+        (["saleor.plugins.tests.sample_plugins.PluginInactive"], 0),
+        (["saleor.plugins.tests.sample_plugins.PluginSample"], 1),
+        (
+            [
+                "saleor.plugins.tests.sample_plugins.PluginInactive",
+                "saleor.plugins.tests.sample_plugins.PluginSample",
+            ],
+            1,
+        ),
+    ],
+)
+def test_run_plugin_method_until_first_success_for_active_plugins_only(
+    channel_USD, plugins, calls
+):
+    # given
+    manager = PluginsManager(plugins=plugins)
+    manager._ensure_channel_plugins_loaded(channel_slug=channel_USD.slug)
+
+    # when
+    with patch.object(
+        PluginsManager,
+        "_PluginsManager__run_method_on_single_plugin",
+        return_value=None,
+    ) as mock_run_method:
+        result = manager._PluginsManager__run_plugin_method_until_first_success(
+            "some_method", channel_slug=None
+        )
+
+    # then
+    assert result is None
+    assert mock_run_method.call_count == calls
