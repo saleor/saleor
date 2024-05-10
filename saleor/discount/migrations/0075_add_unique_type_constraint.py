@@ -13,12 +13,19 @@ class Migration(migrations.Migration):
             database_operations=[
                 migrations.RunSQL(
                     sql="""
-                        ALTER TABLE discount_checkoutlinediscount
-                        DROP CONSTRAINT IF EXISTS unique_checkoutline_discount_type;
-
-                        ALTER TABLE discount_checkoutlinediscount
-                        ADD CONSTRAINT unique_checkoutline_discount_type
-                        UNIQUE USING INDEX checkoutlinediscount_line_id_unique_type_idx;
+                        DO
+                        $do$
+                        BEGIN
+                        IF NOT EXISTS (
+                            SELECT FROM pg_catalog.pg_constraint
+                            WHERE conname LIKE 'unique_checkoutline_discount_type'
+                        ) THEN
+                            ALTER TABLE discount_checkoutlinediscount
+                            ADD CONSTRAINT unique_checkoutline_discount_type
+                            UNIQUE USING INDEX checkoutlinediscount_line_id_unique_type_idx;
+                        END IF;
+                        END
+                        $do$
                     """,
                     reverse_sql="""
                         ALTER TABLE discount_checkoutlinediscount
@@ -27,12 +34,19 @@ class Migration(migrations.Migration):
                 ),
                 migrations.RunSQL(
                     sql="""
-                        ALTER TABLE discount_orderlinediscount
-                        DROP CONSTRAINT IF EXISTS unique_orderline_discount_type;
-
-                        ALTER TABLE discount_orderlinediscount
-                        ADD CONSTRAINT unique_orderline_discount_type
-                        UNIQUE USING INDEX orderlinediscount_line_id_unique_type_idx;
+                        DO
+                        $do$
+                        BEGIN
+                        IF NOT EXISTS (
+                            SELECT FROM pg_catalog.pg_constraint
+                            WHERE conname LIKE 'unique_orderline_discount_type'
+                        ) THEN
+                            ALTER TABLE discount_orderlinediscount
+                            ADD CONSTRAINT unique_orderline_discount_type
+                            UNIQUE USING INDEX orderlinediscount_line_id_unique_type_idx;
+                        END IF;
+                        END
+                        $do$
                     """,
                     reverse_sql="""
                         ALTER TABLE discount_orderlinediscount
