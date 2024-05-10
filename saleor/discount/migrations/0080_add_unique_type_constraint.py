@@ -9,4 +9,5 @@ class Migration(migrations.Migration):
     ]
 
     # left to keep migration compatibility
+    # the logic moved to 0075_add_unique_type_constraint
     operations = []
