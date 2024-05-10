@@ -822,7 +822,6 @@ def _process_payment(
     customer_id: Optional[str],
     store_source: bool,
     payment_data: Optional[dict],
-    order_data: dict,
     manager: "PluginsManager",
     channel_slug: str,
 ) -> Transaction:
@@ -1527,7 +1526,6 @@ def complete_checkout_with_payment(
                 customer_id=customer_id,
                 store_source=store_source,
                 payment_data=payment_data,
-                order_data=order_data,
                 manager=manager,
                 channel_slug=channel_slug,
             )
