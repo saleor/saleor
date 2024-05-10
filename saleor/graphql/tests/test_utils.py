@@ -1,9 +1,13 @@
 import re
 
+import pytest
 from django.test import override_settings
+from graphql import GraphQLError
 from graphql.utils import schema_printer
 
+from ..api import backend, schema
 from ..utils import ALLOWED_ERRORS, INTERNAL_ERROR_MESSAGE, format_error
+from ..utils.validators import check_if_query_contains_only_schema
 from .utils import get_graphql_content
 
 
@@ -49,3 +53,173 @@ def test_format_error_prints_internal_error_msg_in_debug_mode():
     error = ValueError("Example error")
     result = format_error(error, ())
     assert result["message"] == str(error)
+
+
+def test_check_if_query_contains_only_schema_with_schema_query():
+    # given
+    query = """
+    query {
+        __schema {
+            __typename
+        }
+    }
+    """
+    document = backend.document_from_string(schema, query)
+
+    # when
+    result = check_if_query_contains_only_schema(document)
+
+    # then
+    assert result is True
+
+
+def test_check_if_query_contains_only_schema_with_mixed_query():
+    # given
+    query = """
+    query {
+        __schema {
+            __typename
+        }
+        shop {
+            name
+        }
+    }
+    """
+    document = backend.document_from_string(schema, query)
+
+    # then
+    with pytest.raises(GraphQLError):
+        check_if_query_contains_only_schema(document)
+
+
+def test_check_if_query_contains_only_schema_with_mixed_query_and_fragments():
+    # given
+    query = """
+    query {
+        ... {
+            __schema {
+                __typename
+            }
+        }
+        ... {
+            shop {
+                name
+            }
+        }
+    }
+    """
+    document = backend.document_from_string(schema, query)
+
+    # then
+    with pytest.raises(GraphQLError):
+        check_if_query_contains_only_schema(document)
+
+
+def test_check_if_query_contains_only_schema_with_fragments():
+    # given
+    query = """
+    fragment ShopFragment on Shop {
+        ... on Node {
+            __typename
+        }
+    }
+
+    query {
+        shop {
+            ...ShopFragment
+        }
+    }
+    """
+    document = backend.document_from_string(schema, query)
+
+    # when
+    result = check_if_query_contains_only_schema(document)
+
+    # then
+    assert result is False
+
+
+def test_check_if_query_contains_only_schema_with_schema_query_and_inline_fragment():
+    # given
+    query = """
+    query {
+        ... on Query {
+            __schema {
+                __typename
+            }
+        }
+    }
+    """
+    document = backend.document_from_string(schema, query)
+
+    # when
+    result = check_if_query_contains_only_schema(document)
+
+    # then
+    assert result is True
+
+
+def test_check_if_query_contains_only_schema_with_schema_query_and_unconditional_inline_fragment():
+    # given
+    query = """
+    query {
+        ... {
+            __schema {
+                __typename
+            }
+        }
+    }
+    """
+    document = backend.document_from_string(schema, query)
+
+    # when
+    result = check_if_query_contains_only_schema(document)
+
+    # then
+    assert result is True
+
+
+def test_check_if_query_contains_only_schema_with_schema_query_and_named_fragment():
+    # given
+    query = """
+    fragment SchemaFragment on Query {
+        __schema {
+            __typename
+        }
+    }
+
+    query {
+        ...SchemaFragment
+    }
+    """
+    document = backend.document_from_string(schema, query)
+
+    # when
+    result = check_if_query_contains_only_schema(document)
+
+    # then
+    assert result is True
+
+
+def test_check_if_query_contains_only_schema_with_schema_query_and_fragments():
+    # given
+    query = """
+    fragment SchemaFragment on Query {
+        ... {
+            __schema {
+                __typename
+            }
+        }
+    }
+
+    query {
+        ...SchemaFragment
+    }
+    """
+    document = backend.document_from_string(schema, query)
+
+    # when
+    result = check_if_query_contains_only_schema(document)
+
+    # then
+    assert result is True
