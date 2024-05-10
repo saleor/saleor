@@ -31,7 +31,6 @@ from ...core.descriptions import (
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.federation import federated_entity, resolve_federation_references
 from ...core.fields import ConnectionField, FilterConnectionField, JSONString
-from ...core.tracing import traced_resolver
 from ...core.types import Image, ModelObjectType, ThumbnailField
 from ...meta.types import ObjectWithMetadata
 from ...translations.fields import TranslationField
@@ -172,7 +171,6 @@ class Category(ModelObjectType[models.Category]):
         return ""
 
     @staticmethod
-    @traced_resolver
     def resolve_products(root: models.Category, info, *, channel=None, **kwargs):
         requestor = get_user_or_app_from_context(info.context)
         has_required_permissions = has_one_of_permissions(
