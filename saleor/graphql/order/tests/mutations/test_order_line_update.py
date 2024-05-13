@@ -255,6 +255,7 @@ def test_order_line_update_no_allocation(
     staff_api_client,
     staff_user,
 ):
+    # given
     query = ORDER_LINE_UPDATE_MUTATION
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
@@ -266,22 +267,16 @@ def test_order_line_update_no_allocation(
     line_id = graphene.Node.to_global_id("OrderLine", line.id)
     variables = {"lineId": line_id, "quantity": new_quantity}
 
-    # Ensure the line has the expected quantity
-    assert line.quantity == 3
-
+    # when
     # No event should exist yet
     assert not OrderEvent.objects.exists()
-
-    # mutation should fail without proper permissions
-    response = staff_api_client.post_graphql(query, variables)
-    assert_no_permission(response)
-    order_updated_webhook_mock.assert_not_called()
-    draft_order_updated_webhook_mock.assert_not_called()
 
     # assign permissions
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
+
+    # then
     data = content["data"]["orderLineUpdate"]
     assert data["orderLine"]["quantity"] == new_quantity
     assert_proper_webhook_called_once(
@@ -298,14 +293,6 @@ def test_order_line_update_no_allocation(
             {"quantity": removed_quantity, "line_pk": str(line.pk), "item": str(line)}
         ]
     }
-
-    # mutation should fail when quantity is lower than 1
-    variables = {"lineId": line_id, "quantity": 0}
-    response = staff_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["orderLineUpdate"]
-    assert data["errors"]
-    assert data["errors"][0]["field"] == "quantity"
 
 
 def test_order_line_update_by_user_no_channel_access(

@@ -132,6 +132,7 @@ def test_order_line_remove_no_line_allocations(
     permission_group_manage_orders,
     staff_api_client,
 ):
+    # given
     query = ORDER_LINE_DELETE_MUTATION
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
@@ -142,7 +143,10 @@ def test_order_line_remove_no_line_allocations(
     line_id = graphene.Node.to_global_id("OrderLine", line.id)
     variables = {"id": line_id}
 
+    # when
     response = staff_api_client.post_graphql(query, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["orderLineDelete"]
     assert OrderEvent.objects.count() == 1
