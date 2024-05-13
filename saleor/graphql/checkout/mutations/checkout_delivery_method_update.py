@@ -104,6 +104,11 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             checkout_info, lines, shipping_method=delivery_method, collection_point=None
         )
 
+        # Clear checkout shipping address if it was C&C before.
+        if checkout.collection_point_id:
+            checkout.shipping_address = None
+            checkout.save(update_fields=["shipping_address"])
+
         cls._update_delivery_method(
             manager,
             checkout_info,
@@ -143,6 +148,11 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         cls._check_delivery_method(
             checkout_info, lines, shipping_method=delivery_method, collection_point=None
         )
+
+        # Clear checkout shipping address if it was C&C before.
+        if checkout.collection_point_id:
+            checkout.shipping_address = None
+            checkout.save(update_fields=["shipping_address"])
 
         cls._update_delivery_method(
             manager,

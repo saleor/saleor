@@ -22,6 +22,9 @@ MUTATION_UPDATE_DELIVERY_METHOD = """
             deliveryMethodId: $deliveryMethodId) {
             checkout {
             id
+            shippingAddress {
+                id
+            }
             deliveryMethod {
                 __typename
                 ... on ShippingMethod {
@@ -807,3 +810,44 @@ def test_checkout_delivery_method_update_valid_with_not_valid_address_data_for_c
 
     assert not errors
     assert getattr(checkout, attribute_name) == delivery_method
+
+
+def test_checkout_delivery_method_update_only_with_token_cleans_shipping_address(
+    api_client,
+    checkout_with_item_for_cc,
+    warehouse,
+):
+    # given
+    checkout_with_item_for_cc.collection_point_id = warehouse.id
+    checkout_with_item_for_cc.save(update_fields=["collection_point_id"])
+
+    checkout = checkout_with_item_for_cc
+
+    query = MUTATION_UPDATE_DELIVERY_METHOD
+
+    response = api_client.post_graphql(query, {"id": to_global_id_or_none(checkout)})
+    data = get_graphql_content(response)["data"]["checkoutDeliveryMethodUpdate"]
+    assert not data["errors"]
+    assert data["checkout"]["shippingAddress"] is None
+
+
+def test_checkout_delivery_method_update_switch_from_cc_cleans_shipping_address(
+    api_client, checkout_with_item_for_cc, warehouse, shipping_method
+):
+    # given
+    checkout = checkout_with_item_for_cc
+    checkout.shipping_method = shipping_method
+    checkout.save()
+    checkout.collection_point_id = warehouse.id
+    checkout.save(update_fields=["collection_point_id"])
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+
+    query = MUTATION_UPDATE_DELIVERY_METHOD
+    response = api_client.post_graphql(
+        query, {"id": to_global_id_or_none(checkout), "deliveryMethodId": method_id}
+    )
+
+    response = api_client.post_graphql(query, {"id": to_global_id_or_none(checkout)})
+    data = get_graphql_content(response)["data"]["checkoutDeliveryMethodUpdate"]
+    assert not data["errors"]
+    assert data["checkout"]["shippingAddress"] is None
