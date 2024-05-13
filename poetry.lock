@@ -3232,12 +3232,13 @@ testing = ["pytest", "pytest-benchmark"]
 
 [[package]]
 name = "posuto"
-version = "2023.12.0"
+version = "2024.5.0"
 description = "Japanese Postal Code Data"
 optional = false
 python-versions = "*"
 files = [
-    {file = "posuto-2023.12.0.tar.gz", hash = "sha256:e7d94462a7171bea63b645680e5bb1a3bab1d1fadc20dba34bc384e991491907"},
+    {file = "posuto-2024.5.0-py3-none-any.whl", hash = "sha256:8e8e11bec188dcaf50980bffc1b2bae1da6bb3751b2d6855e1f0c272839e466d"},
+    {file = "posuto-2024.5.0.tar.gz", hash = "sha256:dc7dba29c75f3176f82049fe14c122ac64769bc41c0fe4a7f845bd937ced9bf6"},
 ]
 
 [[package]]
@@ -5402,4 +5403,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.9"
-content-hash = "1363addca1d09bfe3f1716c221ebfc88014c9584ad943b94a9f866ac9a8f3ff6"
+content-hash = "7656314c0cc8349f2850317f34a2082c9f49feff353e2e19a23996cbe556b37b"
