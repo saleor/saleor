@@ -927,15 +927,17 @@ def parse_transaction_action_data(
     returns TransactionRequestResponse with all details.
     If unable to parse, None will be returned.
     """
+
+    msg: str
     psp_reference: str = response_data.get("pspReference")
     if not psp_reference and not psp_reference_is_optional:
-        msg: str = "Missing `pspReference` field in the response."
+        msg = "Missing `pspReference` field in the response."
         logger.error(msg)
         return None, msg
 
     if psp_reference:
         if len(psp_reference) > 512:
-            msg: str = "Maximum length for `pspReference` is 512."
+            msg = "Maximum length for `pspReference` is 512."
             logger.error(msg)
             return None, msg
 

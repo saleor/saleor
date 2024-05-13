@@ -131,7 +131,8 @@ class TransactionCreate(BaseMutation):
             raise ValidationError(
                 {
                     field_name: ValidationError(
-                        "Maximum length for `pspReference` is 512.", code=error_code,
+                        "Maximum length for `pspReference` is 512.",
+                        code=error_code,
                     )
                 }
             )
@@ -237,7 +238,7 @@ class TransactionCreate(BaseMutation):
         cls,
         instance: Union[checkout_models.Checkout, order_models.Order],
         transaction,
-        transaction_event,
+        transaction_event: Optional[TransactionEventInput],
     ) -> Union[checkout_models.Checkout, order_models.Order]:
         currency = instance.currency
 

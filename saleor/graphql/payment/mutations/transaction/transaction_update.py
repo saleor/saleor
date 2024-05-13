@@ -108,46 +108,42 @@ class TransactionUpdate(TransactionCreate):
 
     @classmethod
     def validate_transaction_input(
-        cls,
-        instance: payment_models.TransactionItem,
-        transaction_data,
-        transaction_event_data
+        cls, instance: payment_models.TransactionItem, transaction, transaction_event
     ):
         currency = instance.currency
-        if transaction_data.get("available_actions") is not None:
-            transaction_data["available_actions"] = list(
-                set(transaction_data.get("available_actions", []))
+        if transaction.get("available_actions") is not None:
+            transaction["available_actions"] = list(
+                set(transaction.get("available_actions", []))
             )
 
-
-        if transaction_data:
+        if transaction:
             cls.validate_psp_reference(
-                transaction_data.get("psp_reference"),
+                transaction.get("psp_reference"),
                 field_name="transaction",
                 error_code=TransactionUpdateErrorCode.INVALID.value,
             )
             cls.validate_money_input(
-                transaction_data,
+                transaction,
                 currency,
                 TransactionUpdateErrorCode.INCORRECT_CURRENCY.value,
             )
             cls.validate_metadata_keys(
-                transaction_data.get("metadata", []),
+                transaction.get("metadata", []),
                 field_name="metadata",
                 error_code=TransactionUpdateErrorCode.METADATA_KEY_REQUIRED.value,
             )
             cls.validate_metadata_keys(
-                transaction_data.get("private_metadata", []),
+                transaction.get("private_metadata", []),
                 field_name="privateMetadata",
                 error_code=TransactionUpdateErrorCode.METADATA_KEY_REQUIRED.value,
             )
             cls.validate_external_url(
-                transaction_data.get("external_url"),
+                transaction.get("external_url"),
                 error_code=TransactionCreateErrorCode.INVALID.value,
             )
-        if transaction_event_data:
+        if transaction_event:
             cls.validate_psp_reference(
-                transaction_event_data.get("psp_reference"),
+                transaction_event.get("psp_reference"),
                 field_name="transactionEvent",
                 error_code=TransactionUpdateErrorCode.INVALID.value,
             )
