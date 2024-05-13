@@ -219,6 +219,7 @@ def test_create_order_discount_gift(
     # given
     order = order_with_lines
     variant = variant_with_many_stocks
+    product = variant.product
     channel = order.channel
     promotion = order_promotion_without_rules
     promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
@@ -269,6 +270,8 @@ def test_create_order_discount_gift(
     assert gift_line.unit_discount_amount == Decimal(0)
     assert gift_line.unit_discount_type == RewardValueType.FIXED
     assert gift_line.unit_discount_value == Decimal(0)
+    assert gift_line.product_name == product.name
+    assert gift_line.product_sku == variant.sku
 
 
 def test_multiple_rules_subtotal_and_catalogue_discount_applied(
