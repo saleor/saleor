@@ -123,6 +123,44 @@ def test_order_line_remove(
     )
 
 
+@patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+def test_order_line_remove_no_line_allocations(
+    order_updated_webhook_mock,
+    draft_order_updated_webhook_mock,
+    order_with_lines,
+    permission_group_manage_orders,
+    staff_api_client,
+):
+    # given
+    query = ORDER_LINE_DELETE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
+    order.save(update_fields=["status"])
+    line = order.lines.first()
+    line.allocations.all().delete()
+    line_id = graphene.Node.to_global_id("OrderLine", line.id)
+    variables = {"id": line_id}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderLineDelete"]
+    assert OrderEvent.objects.count() == 1
+    assert OrderEvent.objects.last().type == order_events.OrderEvents.REMOVED_PRODUCTS
+    assert data["orderLine"]["id"] == line_id
+    assert line not in order.lines.all()
+    assert_proper_webhook_called_once(
+        order,
+        order.status,
+        draft_order_updated_webhook_mock,
+        order_updated_webhook_mock,
+    )
+
+
 def test_order_line_remove_by_usr_no_channel_access(
     order_with_lines,
     permission_group_all_perms_channel_USD_only,
