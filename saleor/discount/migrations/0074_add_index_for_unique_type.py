@@ -12,22 +12,22 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunSQL(
             sql="""
-                CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS checkoutlinediscount_line_id_unique_type_idx
+                CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS unique_checkoutline_discount_type
                 ON discount_checkoutlinediscount USING btree (line_id, unique_type);
             """,
             reverse_sql="""
                 DROP INDEX CONCURRENTLY IF EXISTS
-                checkoutlinediscount_line_id_unique_type_idx;
+                unique_checkoutline_discount_type;
             """,
         ),
         migrations.RunSQL(
             sql="""
-                CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS orderlinediscount_line_id_unique_type_idx
+                CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS unique_orderline_discount_type
                 ON discount_orderlinediscount USING btree (line_id, unique_type);
             """,
             reverse_sql="""
                 DROP INDEX CONCURRENTLY IF EXISTS
-                orderlinediscount_line_id_unique_type_idx;
+                unique_orderline_discount_type;
             """,
         ),
     ]

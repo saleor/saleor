@@ -17,12 +17,12 @@ class Migration(migrations.Migration):
                         $do$
                         BEGIN
                         IF NOT EXISTS (
-                            SELECT FROM pg_catalog.pg_constraint
+                            SELECT 1 FROM pg_catalog.pg_constraint
                             WHERE conname LIKE 'unique_checkoutline_discount_type'
                         ) THEN
                             ALTER TABLE discount_checkoutlinediscount
                             ADD CONSTRAINT unique_checkoutline_discount_type
-                            UNIQUE USING INDEX checkoutlinediscount_line_id_unique_type_idx;
+                            UNIQUE USING INDEX unique_checkoutline_discount_type;
                         END IF;
                         END
                         $do$
@@ -38,12 +38,12 @@ class Migration(migrations.Migration):
                         $do$
                         BEGIN
                         IF NOT EXISTS (
-                            SELECT FROM pg_catalog.pg_constraint
+                            SELECT 1 FROM pg_catalog.pg_constraint
                             WHERE conname LIKE 'unique_orderline_discount_type'
                         ) THEN
                             ALTER TABLE discount_orderlinediscount
                             ADD CONSTRAINT unique_orderline_discount_type
-                            UNIQUE USING INDEX orderlinediscount_line_id_unique_type_idx;
+                            UNIQUE USING INDEX unique_orderline_discount_type;
                         END IF;
                         END
                         $do$
