@@ -818,14 +818,16 @@ def test_checkout_delivery_method_update_only_with_token_cleans_shipping_address
     warehouse,
 ):
     # given
-    checkout_with_item_for_cc.collection_point_id = warehouse.id
-    checkout_with_item_for_cc.save(update_fields=["collection_point_id"])
-
     checkout = checkout_with_item_for_cc
+    checkout.collection_point_id = warehouse.id
+    checkout.save(update_fields=["collection_point_id"])
 
     query = MUTATION_UPDATE_DELIVERY_METHOD
 
+    # when
     response = api_client.post_graphql(query, {"id": to_global_id_or_none(checkout)})
+
+    # then
     data = get_graphql_content(response)["data"]["checkoutDeliveryMethodUpdate"]
     assert not data["errors"]
     assert data["checkout"]["shippingAddress"] is None
@@ -836,17 +838,18 @@ def test_checkout_delivery_method_update_switch_from_cc_cleans_shipping_address(
 ):
     # given
     checkout = checkout_with_item_for_cc
-    checkout.shipping_method = shipping_method
-    checkout.save()
     checkout.collection_point_id = warehouse.id
-    checkout.save(update_fields=["collection_point_id"])
-    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    checkout.shipping_method_id = shipping_method
+    checkout.save(update_fields=["collection_point_id", "shipping_method_id"])
 
+    # when
     query = MUTATION_UPDATE_DELIVERY_METHOD
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
     response = api_client.post_graphql(
         query, {"id": to_global_id_or_none(checkout), "deliveryMethodId": method_id}
     )
 
+    # then
     response = api_client.post_graphql(query, {"id": to_global_id_or_none(checkout)})
     data = get_graphql_content(response)["data"]["checkoutDeliveryMethodUpdate"]
     assert not data["errors"]
