@@ -23,6 +23,8 @@ mutation createWarehouse($input: WarehouseCreateInput!) {
             externalReference
             address {
                 id
+                city
+                countryArea
                 metadata {
                     key
                     value
@@ -341,3 +343,38 @@ def test_create_warehouse_with_non_unique_external_reference(
     assert error["field"] == "externalReference"
     assert error["code"] == WarehouseErrorCode.UNIQUE.name
     assert error["message"] == "Warehouse with this External reference already exists."
+
+
+
+def test_create_warehouse_invalid_address_skip_validation(
+    staff_api_client,
+    permission_manage_products,
+    graphql_address_data_skipped_validation,
+):
+    # given
+    address_data = graphql_address_data_skipped_validation
+    invalid_city_name = "wrong city"
+    address_data["city"] = invalid_city_name
+    variables = {
+        "input": {
+            "name": "Test warehouse",
+            "email": "test-admin@example.com",
+            "address": address_data,
+        }
+    }
+    assert not Address.objects.exists()
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_CREATE_WAREHOUSE,
+        variables=variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["createWarehouse"]
+    assert not data["errors"]
+    assert data["warehouse"]["address"]["city"] == invalid_city_name
+    address = Address.objects.get()
+    assert address.city == invalid_city_name

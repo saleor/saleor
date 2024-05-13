@@ -32,6 +32,7 @@ mutation updateWarehouse($input: WarehouseUpdateInput!, $id: ID!) {
                 id
                 streetAddress1
                 streetAddress2
+                city
                 metadata {
                     key
                     value
@@ -578,3 +579,39 @@ def test_update_product_external_reference_not_existing(
         data["errors"][0]["message"]
         == f"Couldn't resolve to a node: {external_reference}"
     )
+
+
+def test_update_warehouse_invalid_address_skip_validation(
+    staff_api_client,
+    warehouse,
+    permission_manage_products,
+    graphql_address_data_skipped_validation,
+):
+    # given
+    address_data = graphql_address_data_skipped_validation
+    invalid_city_name = "wrong city"
+    address_data["city"] = invalid_city_name
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+
+    variables = {
+        "id": warehouse_id,
+        "input": {
+            "name": warehouse.name,
+            "address": address_data,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_WAREHOUSE,
+        variables=variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["updateWarehouse"]
+    assert not data["errors"]
+    assert data["warehouse"]["address"]["city"] == invalid_city_name
+    warehouse.refresh_from_db()
+    assert warehouse.address.city == invalid_city_name

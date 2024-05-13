@@ -21,6 +21,9 @@ ADDRESS_UPDATE_MUTATION = """
             user {
                 id
             }
+            errors {
+                code
+            }
         }
     }
 """
@@ -137,3 +140,32 @@ def test_customer_update_address_for_other(
     }
     response = user_api_client.post_graphql(ADDRESS_UPDATE_MUTATION, variables)
     assert_no_permission(response)
+
+
+def test_address_update_skip_validation(
+    staff_api_client,
+    customer_user,
+    permission_manage_users,
+    graphql_address_data_skipped_validation,
+):
+    # given
+    query = ADDRESS_UPDATE_MUTATION
+    address_obj = customer_user.addresses.first()
+    address_data = graphql_address_data_skipped_validation
+    invalid_city = "wrong city"
+    address_data["city"] = invalid_city
+    variables = {
+        "addressId": graphene.Node.to_global_id("Address", address_obj.id),
+        "address": address_data,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["addressUpdate"]
+    assert not data["errors"]
+    assert data["address"]["city"] == invalid_city

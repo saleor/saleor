@@ -864,6 +864,40 @@ def test_draft_order_update_invalid_address(
     assert {error["field"] for error in data["errors"]} == {"postalCode"}
 
 
+def test_draft_order_update_invalid_address_skip_validation(
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    graphql_address_data_skipped_validation,
+):
+    # given
+    order = draft_order
+    address_data = graphql_address_data_skipped_validation
+    invalid_city_name = "wrong city"
+    address_data["city"] = invalid_city_name
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    variables = {
+        "id": order_id,
+        "input": {
+            "shippingAddress": address_data,
+            "billingAddress": address_data,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["draftOrderUpdate"]
+    assert not data["errors"]
+    assert data["order"]["shippingAddress"]["city"] == invalid_city_name
+    assert data["order"]["billingAddress"]["city"] == invalid_city_name
+
+
 def test_draft_order_update_by_user_no_channel_access(
     staff_api_client,
     permission_group_all_perms_channel_USD_only,
