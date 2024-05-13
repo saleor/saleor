@@ -1457,7 +1457,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         try:
             assert order_data.order
             order = TransactionCreate.validate_input(
-                order_data.order, transaction_input
+                order_data.order, transaction_input, None
             )
             transaction_data = {
                 **transaction_input,

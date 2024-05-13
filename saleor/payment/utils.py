@@ -935,11 +935,10 @@ def parse_transaction_action_data(
         logger.error(msg)
         return None, msg
 
-    if psp_reference:
-        if len(psp_reference) > 512:
-            msg = "Maximum length for `pspReference` is 512."
-            logger.error(msg)
-            return None, msg
+    if psp_reference and len(psp_reference) > 512:
+        msg = "Maximum length for `pspReference` is 512."
+        logger.error(msg)
+        return None, msg
 
     available_actions = response_data.get("actions", None)
     if available_actions is not None:
