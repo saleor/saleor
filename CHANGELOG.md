@@ -453,7 +453,6 @@ Shipping methods can be removed by the user after it has been assigned to a chec
 - Add Index for 'Created' field of the Order Model - #13682 by @ritanjandawn
 - Add missing descriptions to giftcard module - #14847 by @devilsautumn
 
-
 # 3.14.0
 
 ### Breaking changes
