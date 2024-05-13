@@ -36,12 +36,15 @@ class OrderErrorCode(Enum):
     CHANNEL_INACTIVE = "channel_inactive"
     INVALID_VOUCHER = "invalid_voucher"
     INVALID_VOUCHER_CODE = "invalid_voucher_code"
+    NON_EDITABLE_GIFT_LINE = "non_editable_gift_line"
+    NON_REMOVABLE_GIFT_LINE = "non_removable_gift_line"
 
 
 class OrderGrantRefundCreateErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     NOT_FOUND = "not_found"
     SHIPPING_COSTS_ALREADY_GRANTED = "shipping_costs_already_granted"
+    AMOUNT_GREATER_THAN_AVAILABLE = "amount_greater_than_available"
     REQUIRED = "required"
     INVALID = "invalid"
 
@@ -51,6 +54,7 @@ class OrderGrantRefundUpdateErrorCode(Enum):
     NOT_FOUND = "not_found"
     REQUIRED = "required"
     INVALID = "invalid"
+    AMOUNT_GREATER_THAN_AVAILABLE = "amount_greater_than_available"
     SHIPPING_COSTS_ALREADY_GRANTED = "shipping_costs_already_granted"
 
 

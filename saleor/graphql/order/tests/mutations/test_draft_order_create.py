@@ -8,8 +8,9 @@ import pytz
 from prices import Money
 
 from .....checkout import AddressType
+from .....core.prices import quantize_price
 from .....core.taxes import TaxError, zero_taxed_money
-from .....discount import DiscountType, DiscountValueType
+from .....discount import DiscountType, DiscountValueType, RewardType, RewardValueType
 from .....discount.models import VoucherChannelListing, VoucherCustomer
 from .....order import OrderStatus
 from .....order import events as order_events
@@ -18,6 +19,7 @@ from .....order.models import Order, OrderEvent
 from .....payment.model_helpers import get_subtotal
 from .....product.models import ProductVariant
 from .....tax import TaxCalculationStrategy
+from .....tests.utils import round_up
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 DRAFT_ORDER_CREATE_MUTATION = """
@@ -40,6 +42,14 @@ DRAFT_ORDER_CREATE_MUTATION = """
                         amount
                     }
                     discountName
+                    discounts {
+                        amount {
+                            amount
+                        }
+                        valueType
+                        type
+                        reason
+                    }
                     redirectUrl
                     lines {
                         productName
@@ -116,6 +126,7 @@ DRAFT_ORDER_CREATE_MUTATION = """
                         unitDiscountReason
                         unitDiscountType
                         unitDiscountValue
+                        isGift
                     }
                 }
             }
@@ -2289,19 +2300,19 @@ def test_draft_order_create_with_custom_price_in_order_line(
     assert order_line_1.undiscounted_base_unit_price_amount == expected_price_variant_1
 
 
-def test_draft_order_create_product_on_promotion(
+def test_draft_order_create_product_catalogue_promotion(
     staff_api_client,
     permission_group_manage_orders,
     staff_user,
     customer_user,
     shipping_method,
     variant,
-    promotion,
+    catalogue_promotion,
     channel_USD,
     graphql_address_data,
 ):
     # given
-    variant = variant
+    promotion = catalogue_promotion
     query = DRAFT_ORDER_CREATE_MUTATION
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
@@ -2415,19 +2426,19 @@ def test_draft_order_create_product_on_promotion(
     assert event_parameters["lines"][0]["quantity"] == quantity
 
 
-def test_draft_order_create_product_on_promotion_flat_taxes(
+def test_draft_order_create_product_catalogue_promotion_flat_taxes(
     staff_api_client,
     permission_group_manage_orders,
     staff_user,
     customer_user,
     shipping_method,
     variant,
-    promotion,
+    catalogue_promotion,
     channel_USD,
     graphql_address_data,
 ):
     # given
-    variant = variant
+    promotion = catalogue_promotion
     query = DRAFT_ORDER_CREATE_MUTATION
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
@@ -2544,3 +2555,297 @@ def test_draft_order_create_product_on_promotion_flat_taxes(
     assert event_parameters["lines"][0]["item"] == str(order_lines[0])
     assert event_parameters["lines"][0]["line_pk"] == str(order_lines[0].pk)
     assert event_parameters["lines"][0]["quantity"] == quantity
+
+
+def test_draft_order_create_order_promotion_flat_rates(
+    staff_api_client,
+    permission_group_manage_orders,
+    customer_user,
+    shipping_method,
+    graphql_address_data,
+    order_promotion_rule,
+    variant_with_many_stocks,
+    channel_USD,
+):
+    # given
+    query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    currency = channel_USD.currency_code
+
+    tc = channel_USD.tax_configuration
+    tc.country_exceptions.all().delete()
+    tc.tax_calculation_strategy = TaxCalculationStrategy.FLAT_RATES
+    tc.prices_entered_with_tax = False
+    tc.save()
+    tax_rate = Decimal("1.23")
+
+    rule = order_promotion_rule
+    promotion_id = graphene.Node.to_global_id("Promotion", rule.promotion_id)
+    assert rule.reward_value_type == RewardValueType.PERCENTAGE
+    reward_value = rule.reward_value
+    assert rule.reward_value == Decimal("25")
+
+    variant = variant_with_many_stocks
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    quantity = 4
+    variant_list = [
+        {"variantId": variant_id, "quantity": quantity},
+    ]
+
+    # calculate expected values
+    variant_price = variant.channel_listings.get(
+        channel=channel_USD
+    ).discounted_price_amount
+    undiscounted_subtotal_net = Decimal(quantity * variant_price)
+    discount_amount = quantize_price(
+        reward_value / 100 * undiscounted_subtotal_net, currency
+    )
+    subtotal_net = undiscounted_subtotal_net - discount_amount
+    subtotal_gross = quantize_price(tax_rate * subtotal_net, currency)
+    shipping_price_net = shipping_method.channel_listings.get(
+        channel=channel_USD
+    ).price_amount
+    shipping_price_gross = quantize_price(tax_rate * shipping_price_net, currency)
+    total_gross = quantize_price(subtotal_gross + shipping_price_gross, currency)
+
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    redirect_url = "https://www.example.com"
+
+    variables = {
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+            "billingAddress": shipping_address,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "channelId": channel_id,
+            "redirectUrl": redirect_url,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["draftOrderCreate"]["errors"]
+    order = content["data"]["draftOrderCreate"]["order"]
+    assert order["status"] == OrderStatus.DRAFT.upper()
+    assert order["subtotal"]["gross"]["amount"] == float(subtotal_gross)
+    assert order["total"]["gross"]["amount"] == float(total_gross)
+    assert order["shippingPrice"]["gross"]["amount"] == float(shipping_price_gross)
+
+    assert len(order["discounts"]) == 1
+    assert order["discounts"][0]["amount"]["amount"] == discount_amount
+    assert order["discounts"][0]["reason"] == f"Promotion: {promotion_id}"
+    assert order["discounts"][0]["type"] == DiscountType.ORDER_PROMOTION.upper()
+    assert order["discounts"][0]["valueType"] == RewardValueType.PERCENTAGE.upper()
+
+    assert len(order["lines"]) == 1
+    assert order["lines"][0]["quantity"] == quantity
+    assert order["lines"][0]["totalPrice"]["gross"]["amount"] == float(subtotal_gross)
+    assert order["lines"][0]["undiscountedUnitPrice"]["gross"]["amount"] == float(
+        quantize_price(undiscounted_subtotal_net * tax_rate / quantity, currency)
+    )
+    assert order["lines"][0]["unitPrice"]["gross"]["amount"] == float(
+        round_up(subtotal_gross / quantity)
+    )
+
+    order_db = Order.objects.get()
+    assert order_db.total_gross_amount == total_gross
+    assert order_db.subtotal_gross_amount == subtotal_gross
+    assert order_db.shipping_price_gross_amount == shipping_price_gross
+
+    line_db = order_db.lines.get()
+    assert line_db.total_price_gross_amount == subtotal_gross
+    assert line_db.undiscounted_unit_price_gross_amount == quantize_price(
+        undiscounted_subtotal_net * tax_rate / quantity, currency
+    )
+    assert line_db.unit_price_net_amount == quantize_price(
+        subtotal_net / quantity, currency
+    )
+    assert line_db.unit_price_gross_amount == round_up(subtotal_gross / quantity)
+
+    discount_db = order_db.discounts.get()
+    assert discount_db.amount_value == discount_amount
+    assert discount_db.reason == f"Promotion: {promotion_id}"
+    assert discount_db.value == reward_value
+    assert discount_db.value_type == RewardValueType.PERCENTAGE
+
+
+def test_draft_order_create_gift_promotion_flat_rates(
+    staff_api_client,
+    permission_group_manage_orders,
+    customer_user,
+    shipping_method,
+    graphql_address_data,
+    gift_promotion_rule,
+    variant_with_many_stocks,
+    channel_USD,
+):
+    # given
+    query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    currency = channel_USD.currency_code
+
+    tc = channel_USD.tax_configuration
+    tc.country_exceptions.all().delete()
+    tc.tax_calculation_strategy = TaxCalculationStrategy.FLAT_RATES
+    tc.prices_entered_with_tax = False
+    tc.save()
+    tax_rate = Decimal("1.23")
+
+    rule = gift_promotion_rule
+    promotion_id = graphene.Node.to_global_id("Promotion", rule.promotion_id)
+    assert rule.reward_type == RewardType.GIFT
+
+    variant = variant_with_many_stocks
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    quantity = 4
+    variant_list = [
+        {"variantId": variant_id, "quantity": quantity},
+    ]
+
+    # calculate expected values
+    variant_price = variant.channel_listings.get(
+        channel=channel_USD
+    ).discounted_price_amount
+    subtotal_net = quantity * variant_price
+    subtotal_gross = quantize_price(tax_rate * subtotal_net, currency)
+    shipping_price_net = shipping_method.channel_listings.get(
+        channel=channel_USD
+    ).price_amount
+    shipping_price_gross = quantize_price(tax_rate * shipping_price_net, currency)
+    total_gross = quantize_price(subtotal_gross + shipping_price_gross, currency)
+
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    redirect_url = "https://www.example.com"
+
+    variables = {
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+            "billingAddress": shipping_address,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "channelId": channel_id,
+            "redirectUrl": redirect_url,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["draftOrderCreate"]["errors"]
+    order = content["data"]["draftOrderCreate"]["order"]
+
+    assert order["status"] == OrderStatus.DRAFT.upper()
+    assert order["subtotal"]["gross"]["amount"] == float(subtotal_gross)
+    assert Decimal(order["total"]["gross"]["amount"]) == float(total_gross)
+    assert Decimal(order["shippingPrice"]["gross"]["amount"]) == float(
+        shipping_price_gross
+    )
+
+    assert not order["discounts"]
+
+    assert len(order["lines"]) == 2
+    line = [line for line in order["lines"] if line["quantity"] == 4][0]
+    gift_line = [line for line in order["lines"] if line["isGift"]][0]
+
+    assert line["totalPrice"]["gross"]["amount"] == float(subtotal_gross)
+    assert line["undiscountedUnitPrice"]["gross"]["amount"] == float(
+        subtotal_gross / quantity
+    )
+    assert line["unitPrice"]["gross"]["amount"] == float(subtotal_gross / quantity)
+    assert line["unitDiscount"]["amount"] == 0.00
+
+    order_db = Order.objects.get()
+    assert order_db.total_gross_amount == total_gross
+    assert order_db.subtotal_gross_amount == subtotal_gross
+    assert order_db.shipping_price_gross_amount == shipping_price_gross
+
+    lines_db = order_db.lines.all()
+    assert len(lines_db) == 2
+    gift_line_db = [line for line in lines_db if line.is_gift][0]
+    gift_price = gift_line_db.variant.channel_listings.get(
+        channel=channel_USD
+    ).price_amount
+
+    assert gift_line_db.total_price_gross_amount == Decimal(0)
+    assert gift_line_db.undiscounted_unit_price_gross_amount == Decimal(0)
+    assert gift_line_db.unit_price_gross_amount == Decimal(0)
+    assert gift_line_db.base_unit_price_amount == Decimal(0)
+    assert gift_line_db.unit_discount_value == gift_price
+
+    assert gift_line["totalPrice"]["gross"]["amount"] == 0.00
+    assert gift_line["undiscountedUnitPrice"]["gross"]["amount"] == 0.00
+    assert gift_line["unitPrice"]["gross"]["amount"] == 0.00
+    assert gift_line["unitDiscount"]["amount"] == gift_price
+    assert gift_line["unitDiscountReason"] == f"Promotion: {promotion_id}"
+    assert gift_line["unitDiscountType"] == RewardValueType.FIXED.upper()
+    assert gift_line["unitDiscountValue"] == gift_price
+
+    discount_db = gift_line_db.discounts.get()
+    assert discount_db.amount_value == gift_price
+    assert discount_db.reason == f"Promotion: {promotion_id}"
+    assert discount_db.type == DiscountType.ORDER_PROMOTION
+
+
+def test_draft_order_create_with_cc_warehouse_as_shipping_method(
+    app_api_client,
+    permission_manage_orders,
+    customer_user,
+    product_available_in_many_channels,
+    channel_PLN,
+    graphql_address_data,
+    warehouse_for_cc,
+):
+    # given
+    variant = product_available_in_many_channels.variants.first()
+    query = DRAFT_ORDER_CREATE_MUTATION
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    variant_list = [
+        {"variantId": variant_id, "quantity": 2},
+    ]
+    shipping_address = graphql_address_data
+    channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
+    redirect_url = "https://www.example.com"
+    cc_warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse_for_cc.id)
+
+    variables = {
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+            "billingAddress": shipping_address,
+            "shippingAddress": shipping_address,
+            "shippingMethod": cc_warehouse_id,
+            "channelId": channel_id,
+            "redirectUrl": redirect_url,
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderCreate"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == OrderErrorCode.INVALID.name
+    assert errors[0]["field"] == "shippingMethod"

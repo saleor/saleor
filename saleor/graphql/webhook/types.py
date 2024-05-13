@@ -133,7 +133,9 @@ class EventDelivery(ModelObjectType[core_models.EventDelivery]):
         qs = core_models.EventDeliveryAttempt.objects.using(
             get_database_connection_name(info.context)
         ).filter(delivery=root)
-        qs = filter_connection_queryset(qs, kwargs)
+        qs = filter_connection_queryset(
+            qs, kwargs, allow_replica=info.context.allow_replica
+        )
         return create_connection_slice(
             qs, info, kwargs, EventDeliveryAttemptCountableConnection
         )
@@ -246,7 +248,9 @@ class Webhook(ModelObjectType[models.Webhook]):
         qs = core_models.EventDelivery.objects.using(
             get_database_connection_name(info.context)
         ).filter(webhook_id=root.pk)
-        qs = filter_connection_queryset(qs, kwargs)
+        qs = filter_connection_queryset(
+            qs, kwargs, allow_replica=info.context.allow_replica
+        )
         return create_connection_slice(
             qs, info, kwargs, EventDeliveryCountableConnection
         )

@@ -7,6 +7,7 @@ from django.forms import BoundField
 from django.forms.models import ModelFormMetaclass
 from django_countries import countries
 
+from .i18n_valid_address_extension import VALID_ADDRESS_EXTENSION_MAP
 from .models import Address
 from .validators import validate_possible_number
 from .widgets import DatalistTextWidget
@@ -173,10 +174,13 @@ class CountryAwareAddressForm(AddressForm):
     def validate_address(self, data):
         try:
             data["country_code"] = data.get("country", "")
-            if data["street_address_1"] or data["street_address_2"]:
-                data[
-                    "street_address"
-                ] = f'{data["street_address_1"]}\n{data["street_address_2"]}'
+
+            street_address_1 = data.get("street_address_1", "")
+            street_address_2 = data.get("street_address_2", "")
+            if street_address_1 or street_address_2:
+                data["street_address"] = f"{street_address_1}\n{street_address_2}"
+
+            self.substitute_invalid_values(data)
             normalized_data = i18naddress.normalize_address(data)
             if getattr(self, "enable_normalization", True):
                 data = normalized_data
@@ -188,6 +192,18 @@ class CountryAwareAddressForm(AddressForm):
     def clean(self):
         data = super().clean()
         return self.validate_address(data)
+
+    @staticmethod
+    def substitute_invalid_values(data):
+        """Map invalid address names to the values accepted by i18naddress package."""
+        country_code = data["country_code"]
+        if not country_code:
+            return
+        if custom_names := VALID_ADDRESS_EXTENSION_MAP.get(country_code):
+            for field_name, mapping in custom_names.items():
+                actual_value = data.get(field_name, "").strip().lower()
+                if actual_value in mapping:
+                    data[field_name] = mapping[actual_value]
 
 
 def get_address_form_class(country_code):

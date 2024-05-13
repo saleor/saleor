@@ -16,7 +16,7 @@ def test_promotion_rule_update(
     permission_group_manage_discounts,
     channel_USD,
     channel_PLN,
-    promotion,
+    catalogue_promotion,
     product_list,
     collection,
     count_queries,
@@ -24,6 +24,7 @@ def test_promotion_rule_update(
     # given
     staff_api_client.user.groups.add(permission_group_manage_discounts)
 
+    promotion = catalogue_promotion
     rule = promotion.rules.first()
     rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
 

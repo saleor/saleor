@@ -44,7 +44,7 @@ def fetch_voucher_info(voucher: Voucher) -> VoucherInfo:
 
 class VariantPromotionRuleInfo(NamedTuple):
     rule: "PromotionRule"
-    variant_listing_promotion_rule: "VariantChannelListingPromotionRule"
+    variant_listing_promotion_rule: Optional["VariantChannelListingPromotionRule"]
     promotion: "Promotion"
     promotion_translation: Optional["PromotionTranslation"]
     rule_translation: Optional["PromotionRuleTranslation"]
@@ -53,31 +53,27 @@ class VariantPromotionRuleInfo(NamedTuple):
 def fetch_variant_rules_info(
     variant_channel_listing: "ProductVariantChannelListing",
     translation_language_code: str,
-):
+) -> list[VariantPromotionRuleInfo]:
     listings_rules = (
         variant_channel_listing.variantlistingpromotionrule.all()
         if variant_channel_listing
         else []
     )
+
     rules_info = []
-    for listing_promotion_rule in listings_rules:
-        promotion = listing_promotion_rule.promotion_rule.promotion
-        promotion_translations = [
-            translation
-            for translation in promotion.translations.all()
-            if translation.language_code == translation_language_code
-        ]
-        promotion_translation = (
-            promotion_translations[0] if promotion_translations else None
+    if listings_rules:
+        # Before introducing unique_type on discount models, there was possibility
+        # to have multiple catalogue discount associated with single line. In such a
+        # case, we should pick the best discount (with the highest discount amount)
+        listing_promotion_rule = max(
+            list(listings_rules),
+            key=lambda x: x.discount_amount,
         )
+        promotion = listing_promotion_rule.promotion_rule.promotion
 
-        rule_translations = [
-            translation
-            for translation in listing_promotion_rule.promotion_rule.translations.all()
-            if translation.language_code == translation_language_code
-        ]
-        rule_translation = rule_translations[0] if rule_translations else None
-
+        promotion_translation, rule_translation = get_rule_translations(
+            promotion, listing_promotion_rule.promotion_rule, translation_language_code
+        )
         rules_info.append(
             VariantPromotionRuleInfo(
                 rule=listing_promotion_rule.promotion_rule,
@@ -88,3 +84,25 @@ def fetch_variant_rules_info(
             )
         )
     return rules_info
+
+
+def get_rule_translations(
+    promotion: "Promotion", rule: "PromotionRule", translation_language_code: str
+):
+    promotion_translations = [
+        translation
+        for translation in promotion.translations.all()
+        if translation.language_code == translation_language_code
+    ]
+    promotion_translation = (
+        promotion_translations[0] if promotion_translations else None
+    )
+
+    rule_translations = [
+        translation
+        for translation in rule.translations.all()
+        if translation.language_code == translation_language_code
+    ]
+    rule_translation = rule_translations[0] if rule_translations else None
+
+    return promotion_translation, rule_translation

@@ -1,5 +1,6 @@
 import pytest
 
+from ....product.tasks import recalculate_discounted_price_for_products_task
 from ..product.utils import (
     get_product,
     raw_create_product_channel_listing,
@@ -24,20 +25,24 @@ def prepare_promotion(
     channel_id=None,
 ):
     promotion_name = "Promotion Test"
-    promotion_data = create_promotion(e2e_staff_api_client, promotion_name)
+    promotion_type = "CATALOGUE"
+    promotion_data = create_promotion(
+        e2e_staff_api_client, promotion_name, promotion_type
+    )
     promotion_id = promotion_data["id"]
 
-    promotion_rule_data = create_promotion_rule(
-        e2e_staff_api_client,
-        promotion_id,
-        predicate_input,
-        discount_type,
-        discount_value,
-        promotion_rule_name,
-        channel_id,
-    )
-    promotion_rule_id = promotion_rule_data["id"]
-    discount_value = promotion_rule_data["rewardValue"]
+    input = {
+        "promotion": promotion_id,
+        "channels": [channel_id],
+        "name": promotion_rule_name,
+        "cataloguePredicate": predicate_input,
+        "rewardValue": discount_value,
+        "rewardValueType": "PERCENTAGE",
+    }
+
+    promotion_rule = create_promotion_rule(e2e_staff_api_client, input)
+    promotion_rule_id = promotion_rule["id"]
+    discount_value = promotion_rule["rewardValue"]
 
     return promotion_rule_id
 
@@ -150,6 +155,10 @@ def test_staff_can_change_promotion_rule_channel_core_2113(
             "cataloguePredicate": predicate_input,
         },
     )
+
+    # prices are updated in the background, we need to force it to retrieve the correct
+    # ones
+    recalculate_discounted_price_for_products_task()
 
     # Step 2 Check if promotion is applied for product on second channel
     product_data_channel_2 = get_product(

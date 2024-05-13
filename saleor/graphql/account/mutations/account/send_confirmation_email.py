@@ -99,7 +99,9 @@ class SendConfirmationEmail(BaseMutation):
         user = cls.clean_user(site, redirect_url, info)
 
         channel = clean_channel(
-            data.get("channel"), error_class=SendConfirmationEmailErrorCode
+            data.get("channel"),
+            error_class=SendConfirmationEmailErrorCode,
+            allow_replica=False,
         ).slug
         manager = get_plugin_manager_promise(info.context).get()
         token = default_token_generator.make_token(user)

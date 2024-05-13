@@ -6,7 +6,7 @@ from ....checkout.fetch import (
     fetch_checkout_lines,
     update_delivery_method_lists_for_checkout_info,
 )
-from ....checkout.utils import add_variants_to_checkout, invalidate_checkout_prices
+from ....checkout.utils import add_variants_to_checkout, invalidate_checkout
 from ....warehouse.reservations import get_reservation_length, is_reservation_enabled
 from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
@@ -29,6 +29,7 @@ from .utils import (
     get_checkout,
     get_variants_and_total_quantities,
     group_lines_input_on_add,
+    update_checkout_external_shipping_method_if_invalid,
     update_checkout_shipping_method_if_invalid,
     validate_variants_are_published,
     validate_variants_available_for_purchase,
@@ -164,13 +165,12 @@ class CheckoutLinesAdd(BaseMutation):
         lines, _ = fetch_checkout_lines(checkout)
         shipping_channel_listings = checkout.channel.shipping_method_listings.all()
         update_delivery_method_lists_for_checkout_info(
-            checkout_info,
-            checkout_info.checkout.shipping_method,
-            checkout_info.checkout.collection_point,
-            checkout_info.shipping_address,
-            lines,
-            manager,
-            shipping_channel_listings,
+            checkout_info=checkout_info,
+            shipping_method=checkout_info.checkout.shipping_method,
+            collection_point=checkout_info.checkout.collection_point,
+            shipping_address=checkout_info.shipping_address,
+            lines=lines,
+            shipping_channel_listings=shipping_channel_listings,
         )
         return lines
 
@@ -197,12 +197,10 @@ class CheckoutLinesAdd(BaseMutation):
         checkout_info = fetch_checkout_info(
             checkout, [], manager, shipping_channel_listings
         )
-
         existing_lines_info, _ = fetch_checkout_lines(
             checkout, skip_lines_with_unavailable_variants=False
         )
         input_lines_data = cls._get_grouped_lines_data(lines, existing_lines_info)
-
         lines = cls.clean_input(
             info,
             checkout,
@@ -213,8 +211,10 @@ class CheckoutLinesAdd(BaseMutation):
             manager,
             replace,
         )
+
+        update_checkout_external_shipping_method_if_invalid(checkout_info, lines)
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
-        invalidate_checkout_prices(checkout_info, lines, manager, save=True)
+        invalidate_checkout(checkout_info, lines, manager, save=True)
         cls.call_event(manager.checkout_updated, checkout)
 
         return CheckoutLinesAdd(checkout=checkout)

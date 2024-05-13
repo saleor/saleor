@@ -28,11 +28,12 @@ QUERY_PROMOTIONS = """
 def test_sorting_promotions_by_name(
     direction,
     staff_api_client,
-    promotion,
+    catalogue_promotion,
     promotion_list,
     permission_manage_discounts,
 ):
     # given
+    promotion = catalogue_promotion
     promotion_list.insert(0, promotion)
     variables = {
         "sortBy": {
@@ -61,11 +62,12 @@ def test_sorting_promotions_by_name(
 def test_sorting_promotions_by_end_date(
     direction,
     staff_api_client,
-    promotion,
+    catalogue_promotion,
     promotion_list,
     permission_manage_discounts,
 ):
     # given
+    promotion = catalogue_promotion
     promotion_list.insert(2, promotion)
     variables = {
         "sortBy": {
@@ -94,11 +96,12 @@ def test_sorting_promotions_by_end_date(
 def test_sorting_promotions_by_start_date(
     direction,
     staff_api_client,
-    promotion,
+    catalogue_promotion,
     promotion_list,
     permission_manage_discounts,
 ):
     # given
+    promotion = catalogue_promotion
     promotion.start_date = timezone.now() + timedelta(days=3)
     promotion.save(update_fields=["start_date"])
     promotion_list.insert(1, promotion)

@@ -1,5 +1,6 @@
 import graphene
 
+from ....core.utils import from_global_id_or_error
 from ....tests.utils import (
     assert_no_permission,
     get_graphql_content,
@@ -20,6 +21,13 @@ query warehouse($id: ID!){
                     countries {
                         country
                     }
+                }
+            }
+        }
+        stocks(first: 50){
+            edges{
+                node{
+                    id
                 }
             }
         }
@@ -56,9 +64,15 @@ def test_warehouse_query(staff_api_client, warehouse, permission_manage_products
     shipping_zones = queried_warehouse["shippingZones"]["edges"]
     assert len(shipping_zones) == warehouse.shipping_zones.count()
     queried_shipping_zone = shipping_zones[0]["node"]
-    shipipng_zone = warehouse.shipping_zones.first()
-    assert queried_shipping_zone["name"] == shipipng_zone.name
-    assert len(queried_shipping_zone["countries"]) == len(shipipng_zone.countries)
+    shipping_zone = warehouse.shipping_zones.first()
+    assert queried_shipping_zone["name"] == shipping_zone.name
+    assert len(queried_shipping_zone["countries"]) == len(shipping_zone.countries)
+
+    stocks = queried_warehouse["stocks"]["edges"]
+    assert len(stocks) == warehouse.stock_set.count()
+    stock_ids = set(warehouse.stock_set.values_list("id", flat=True))
+    for stock in stocks:
+        assert int(from_global_id_or_error(stock["node"]["id"])[1]) in stock_ids
 
     address = warehouse.address
     queried_address = queried_warehouse["address"]
@@ -89,14 +103,49 @@ def test_warehouse_query_as_staff_with_manage_orders(
     shipping_zones = queried_warehouse["shippingZones"]["edges"]
     assert len(shipping_zones) == warehouse.shipping_zones.count()
     queried_shipping_zone = shipping_zones[0]["node"]
-    shipipng_zone = warehouse.shipping_zones.first()
-    assert queried_shipping_zone["name"] == shipipng_zone.name
-    assert len(queried_shipping_zone["countries"]) == len(shipipng_zone.countries)
+    shipping_zone = warehouse.shipping_zones.first()
+    assert queried_shipping_zone["name"] == shipping_zone.name
+    assert len(queried_shipping_zone["countries"]) == len(shipping_zone.countries)
+
+    stocks = queried_warehouse["stocks"]["edges"]
+    assert len(stocks) == warehouse.stock_set.count()
+    stock_ids = set(warehouse.stock_set.values_list("id", flat=True))
+    for stock in stocks:
+        assert int(from_global_id_or_error(stock["node"]["id"])[1]) in stock_ids
 
     address = warehouse.address
     queried_address = queried_warehouse["address"]
     assert queried_address["streetAddress1"] == address.street_address_1
     assert queried_address["postalCode"] == address.postal_code
+
+
+QUERY_WAREHOUSE_WITHOUT_STOCKS = """
+query warehouse($id: ID!){
+    warehouse(id: $id) {
+        id
+        name
+        companyName
+        email
+        shippingZones(first: 100) {
+            edges {
+                node {
+                    name
+                    countries {
+                        country
+                    }
+                }
+            }
+        }
+        address {
+            streetAddress1
+            streetAddress2
+            postalCode
+            city
+            phone
+        }
+    }
+}
+"""
 
 
 def test_warehouse_query_as_staff_with_manage_shipping(
@@ -107,7 +156,7 @@ def test_warehouse_query_as_staff_with_manage_shipping(
 
     # when
     response = staff_api_client.post_graphql(
-        QUERY_WAREHOUSE,
+        QUERY_WAREHOUSE_WITHOUT_STOCKS,
         variables={"id": warehouse_id},
         permissions=[permission_manage_shipping],
     )
@@ -122,14 +171,31 @@ def test_warehouse_query_as_staff_with_manage_shipping(
     shipping_zones = queried_warehouse["shippingZones"]["edges"]
     assert len(shipping_zones) == warehouse.shipping_zones.count()
     queried_shipping_zone = shipping_zones[0]["node"]
-    shipipng_zone = warehouse.shipping_zones.first()
-    assert queried_shipping_zone["name"] == shipipng_zone.name
-    assert len(queried_shipping_zone["countries"]) == len(shipipng_zone.countries)
+    shipping_zone = warehouse.shipping_zones.first()
+    assert queried_shipping_zone["name"] == shipping_zone.name
+    assert len(queried_shipping_zone["countries"]) == len(shipping_zone.countries)
 
     address = warehouse.address
     queried_address = queried_warehouse["address"]
     assert queried_address["streetAddress1"] == address.street_address_1
     assert queried_address["postalCode"] == address.postal_code
+
+
+def test_warehouse_query_as_staff_with_manage_shipping_no_access_to_stocks(
+    staff_api_client, warehouse, permission_manage_shipping
+):
+    # given
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_WAREHOUSE,
+        variables={"id": warehouse_id},
+        permissions=[permission_manage_shipping],
+    )
+
+    # then
+    assert_no_permission(response)
 
 
 def test_warehouse_query_as_staff_with_manage_apps(

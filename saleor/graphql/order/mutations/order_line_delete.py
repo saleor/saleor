@@ -3,6 +3,7 @@ import graphene
 from ....core.taxes import zero_taxed_money
 from ....core.tracing import traced_atomic_transaction
 from ....order import events
+from ....order.error_codes import OrderErrorCode
 from ....order.fetch import OrderLineInfo
 from ....order.search import update_order_search_vector
 from ....order.utils import (
@@ -16,6 +17,7 @@ from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
+from ...core.utils import raise_validation_error
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Order, OrderLine
 from .utils import EditableOrderValidationMixin, get_webhook_handler_by_order_status
@@ -48,13 +50,13 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
             only_type=OrderLine,
         )
         order = line.order
-        cls.check_channel_permissions(info, [order.channel_id])
-        cls.validate_order(line.order)
+        cls.validate(info, order, line)
 
         db_id = line.id
+        line_allocation = line.allocations.first()
         warehouse_pk = (
-            line.allocations.first().stock.warehouse.pk
-            if order.is_unconfirmed()
+            line_allocation.stock.warehouse.pk
+            if line_allocation and order.is_unconfirmed()
             else None
         )
         with traced_atomic_transaction():
@@ -99,3 +101,14 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
             func = get_webhook_handler_by_order_status(order.status, manager)
             cls.call_event(func, order)
         return OrderLineDelete(order=order, order_line=line)
+
+    @classmethod
+    def validate(cls, info, order, line):
+        cls.check_channel_permissions(info, [order.channel_id])
+        cls.validate_order(line.order)
+        if line.is_gift:
+            raise_validation_error(
+                message="Order line marked as gift can't be deleted.",
+                field="id",
+                code=OrderErrorCode.NON_REMOVABLE_GIFT_LINE.value,
+            )

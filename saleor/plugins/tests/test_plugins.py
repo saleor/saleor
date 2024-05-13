@@ -1,4 +1,3 @@
-from ..anonymize.plugin import AnonymizePlugin
 from ..base_plugin import ConfigurationTypeField
 from ..manager import get_plugins_manager
 from ..tests.sample_plugins import PluginSample
@@ -231,17 +230,3 @@ def test_base_plugin__append_config_structure_to_config(settings):
     ]
     plugin._append_config_structure(config)
     assert config == config_with_structure
-
-
-def test_change_user_address_in_anonymize_plugin_reset_phone(address, settings):
-    settings.PLUGINS = ["saleor.plugins.anonymize.plugin.AnonymizePlugin"]
-    manager = get_plugins_manager(allow_replica=False)
-    anonymize_plugin = manager.get_plugin(AnonymizePlugin.PLUGIN_ID)
-
-    # ensure that phone is set
-    assert address.phone
-
-    new_address = anonymize_plugin.change_user_address(
-        address=address, address_type=None, user=None, save=True, previous_value=address
-    )
-    assert not new_address.phone

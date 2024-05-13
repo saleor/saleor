@@ -8,6 +8,7 @@ from promise import Promise
 from ...channel.models import Channel
 from ...discount.interface import VoucherInfo
 from ...discount.models import (
+    CheckoutDiscount,
     CheckoutLineDiscount,
     OrderDiscount,
     Promotion,
@@ -17,6 +18,7 @@ from ...discount.models import (
     VoucherChannelListing,
     VoucherCode,
 )
+from ...product.models import ProductVariant
 from ..channel.dataloaders import ChannelBySlugLoader
 from ..core.dataloaders import DataLoader
 
@@ -125,9 +127,9 @@ class VoucherChannelListingByVoucherIdAndChanneSlugLoader(DataLoader):
                 voucher_channel_listing.voucher_id,
                 voucher_channel_listing.channel_slug,
             )
-            voucher_channel_listings_by_voucher_and_channel_map[
-                key
-            ] = voucher_channel_listing
+            voucher_channel_listings_by_voucher_and_channel_map[key] = (
+                voucher_channel_listing
+            )
         return [
             voucher_channel_listings_by_voucher_and_channel_map.get(key) for key in keys
         ]
@@ -241,6 +243,21 @@ class CheckoutLineDiscountsByCheckoutLineIdLoader(DataLoader):
         for discount in discounts:
             discount_map[discount.line_id].append(discount)
         return [discount_map.get(checkout_line_id, []) for checkout_line_id in keys]
+
+
+class CheckoutDiscountByCheckoutIdLoader(DataLoader):
+    context_key = "checkout_discount_by_checkout_id"
+
+    def batch_load(self, keys):
+        checkout_line_discounts = CheckoutDiscount.objects.using(
+            self.database_connection_name
+        ).filter(checkout_id__in=keys)
+        checkout_line_discounts_map = defaultdict(list)
+        for discount in checkout_line_discounts:
+            checkout_line_discounts_map[discount.checkout_id].append(discount)
+        return [
+            checkout_line_discounts_map.get(checkout_id, []) for checkout_id in keys
+        ]
 
 
 class PromotionRulesByPromotionIdLoader(DataLoader):
@@ -433,3 +450,26 @@ class PredicateByPromotionIdLoader(DataLoader):
             .load_many(keys)
             .then(with_rules)
         )
+
+
+class GiftsByPromotionRuleIDLoader(DataLoader):
+    context_key = "gifts_by_promotion_rule"
+
+    def batch_load(self, keys):
+        PromotionRuleGift = PromotionRule.gifts.through
+        rule_gifts = (
+            PromotionRuleGift.objects.using(self.database_connection_name)
+            .filter(promotionrule_id__in=keys)
+            .order_by("pk")
+        )
+        gifts = (
+            ProductVariant.objects.using(self.database_connection_name)
+            .filter(Exists(rule_gifts.filter(productvariant_id=OuterRef("id"))))
+            .in_bulk()
+        )
+        rule_to_gifts_map = defaultdict(list)
+        for rule_id, variant_id in rule_gifts.values_list(
+            "promotionrule_id", "productvariant_id"
+        ):
+            rule_to_gifts_map[rule_id].append(gifts.get(variant_id))
+        return [rule_to_gifts_map.get(rule_id, []) for rule_id in keys]

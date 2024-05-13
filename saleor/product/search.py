@@ -1,20 +1,16 @@
 from collections import defaultdict
+from collections.abc import Iterable
 from typing import TYPE_CHECKING, Union
 
 from django.conf import settings
 from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.db.models import F, Q, Value, prefetch_related_objects
-from django.db.models.expressions import Exists, OuterRef
 
 from ..attribute import AttributeInputType
-from ..attribute.models import (
-    AssignedProductAttributeValue,
-    Attribute,
-    AttributeProduct,
-)
+from ..attribute.models import Attribute
 from ..core.postgres import FlatConcatSearchVector, NoValidationSearchVector
 from ..core.utils.editorjs import clean_editor_js
-from .models import Product
+from ..product.models import Product
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
@@ -22,20 +18,20 @@ if TYPE_CHECKING:
 PRODUCT_SEARCH_FIELDS = ["name", "description_plaintext"]
 PRODUCT_FIELDS_TO_PREFETCH = [
     "variants__attributes__values",
-    "variants__attributes",
+    "variants__attributes__assignment__attribute",
     "attributevalues__value",
     "product_type__attributeproduct__attribute",
 ]
 
-PRODUCTS_BATCH_SIZE = 300
-# Setting threshold to 300 results in about 350MB of memory usage
-# when testing locally. Should be adjusted after some time by running
-# update task on a large dataset and measuring the total time, memory usage
-# and time of a single SQL statement.
+PRODUCTS_BATCH_SIZE = 100
+# Setting threshold to 100 results in about 766.98MB of memory usage
+# when testing locally with multiple attributes of different types assigned to product
+# and product variants.
 
 
 def _prep_product_search_vector_index(products):
     prefetch_related_objects(products, *PRODUCT_FIELDS_TO_PREFETCH)
+
     for product in products:
         product.search_vector = FlatConcatSearchVector(
             *prepare_product_search_vector_value(product, already_prefetched=True)
@@ -47,17 +43,39 @@ def _prep_product_search_vector_index(products):
     )
 
 
-def update_products_search_vector(products: "QuerySet", use_batches=True):
-    if use_batches:
-        last_id = 0
-        while True:
-            products_batch = list(products.filter(id__gt=last_id)[:PRODUCTS_BATCH_SIZE])
-            if not products_batch:
-                break
-            last_id = products_batch[-1].id
-            _prep_product_search_vector_index(products_batch)
-    else:
-        _prep_product_search_vector_index(products)
+def queryset_in_batches(queryset):
+    """Slice a queryset into batches.
+
+    Input queryset should be sorted be pk.
+    """
+    start_pk = 0
+
+    while True:
+        qs = queryset.filter(pk__gt=start_pk)[:PRODUCTS_BATCH_SIZE]
+        pks = list(qs.values_list("pk", flat=True))
+
+        if not pks:
+            break
+
+        yield pks
+
+        start_pk = pks[-1]
+
+
+def update_products_search_vector(product_ids: Iterable[int]):
+    product_ids = list(product_ids)
+    products = (
+        Product.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(pk__in=product_ids)
+        .order_by("pk")
+    )
+    for product_pks in queryset_in_batches(products):
+        products_batch = list(
+            Product.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME).filter(
+                id__in=product_pks
+            )
+        )
+        _prep_product_search_vector_index(products_batch)
 
 
 def prepare_product_search_vector_value(
@@ -108,19 +126,14 @@ def generate_attributes_search_vector_value(
 
     Method should receive assigned attributes with prefetched `values`
     """
-    product_attributes = AttributeProduct.objects.filter(
-        product_type_id=product.product_type_id
-    )
-    attributes = Attribute.objects.filter(
-        Exists(product_attributes.filter(attribute_id=OuterRef("id")))
-    ).order_by("attributeproduct__sort_order")[
-        : settings.PRODUCT_MAX_INDEXED_ATTRIBUTES
-    ]
+    product_attributes = product.product_type.attributeproduct.all()
 
-    assigned_values = AssignedProductAttributeValue.objects.filter(
-        product_id=product.pk
-    )
-    prefetch_related_objects(assigned_values, "value")
+    attributes = []
+    for product_attribute in product_attributes:
+        attributes.append(product_attribute.attribute)  # type: ignore
+    attributes = attributes[: settings.PRODUCT_MAX_INDEXED_ATTRIBUTES]
+
+    assigned_values = product.attributevalues.all()
 
     search_vectors = []
 

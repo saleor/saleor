@@ -4,6 +4,7 @@ from typing import Optional
 
 from django.db.models import F
 
+from ....core.db.connection import allow_writer_in_context
 from ....product import ProductMediaTypes
 from ....product.models import (
     Category,
@@ -19,7 +20,10 @@ from ....product.models import (
     VariantChannelListingPromotionRule,
     VariantMedia,
 )
-from ...core.dataloaders import BaseThumbnailBySizeAndFormatLoader, DataLoader
+from ...core.dataloaders import (
+    BaseThumbnailBySizeAndFormatLoader,
+    DataLoader,
+)
 
 ProductIdAndChannelSlug = tuple[int, str]
 VariantIdAndChannelSlug = tuple[int, str]
@@ -131,9 +135,9 @@ class ProductChannelListingByProductIdAndChannelSlugLoader(
 
         product_channel_listings_map: dict[int, ProductChannelListing] = {}
         for product_channel_listing in product_channel_listings.iterator():
-            product_channel_listings_map[
-                product_channel_listing.product_id
-            ] = product_channel_listing
+            product_channel_listings_map[product_channel_listing.product_id] = (
+                product_channel_listing
+            )
 
         return [
             (products_id, product_channel_listings_map.get(products_id))
@@ -331,9 +335,9 @@ class VariantChannelListingByVariantIdAndChannelLoader(
 
         variant_channel_listings_map: dict[int, ProductVariantChannelListing] = {}
         for variant_channel_listing in variant_channel_listings.iterator():
-            variant_channel_listings_map[
-                variant_channel_listing.variant_id
-            ] = variant_channel_listing
+            variant_channel_listings_map[variant_channel_listing.variant_id] = (
+                variant_channel_listing
+            )
 
         return [
             (variant_id, variant_channel_listings_map.get(variant_id))
@@ -402,9 +406,9 @@ class VariantsChannelListingByProductIdAndChannelSlugLoader(
             .order_by("pk")
         )
 
-        variants_channel_listings_map: dict[
-            int, list[ProductVariantChannelListing]
-        ] = defaultdict(list)
+        variants_channel_listings_map: dict[int, list[ProductVariantChannelListing]] = (
+            defaultdict(list)
+        )
         for variant_channel_listing in variants_channel_listings.iterator():
             variants_channel_listings_map[
                 getattr(variant_channel_listing, "product_id")  # annotation
@@ -556,6 +560,7 @@ class ProductTypeByProductIdLoader(DataLoader):
     context_key = "producttype_by_product_id"
 
     def batch_load(self, keys):
+        @allow_writer_in_context(self.context)
         def with_products(products):
             product_ids = {p.id for p in products}
             product_types_map = (
@@ -627,9 +632,9 @@ class CollectionChannelListingByCollectionIdAndChannelSlugLoader(DataLoader):
                 collections_channel_listing.collection_id,
                 collections_channel_listing.channel_slug,
             )
-            collections_channel_listings_by_collection_and_channel_map[
-                key
-            ] = collections_channel_listing
+            collections_channel_listings_by_collection_and_channel_map[key] = (
+                collections_channel_listing
+            )
         return [
             collections_channel_listings_by_collection_and_channel_map.get(key, None)
             for key in keys

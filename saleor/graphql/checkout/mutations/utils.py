@@ -14,8 +14,11 @@ from typing import (
 
 import graphene
 import pytz
+from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.db.models import Q, QuerySet
+from django.db import transaction
+from django.db.models import Exists, OuterRef, Q, QuerySet
+from prices import Money
 
 from ....checkout import models
 from ....checkout.error_codes import CheckoutErrorCode
@@ -23,9 +26,18 @@ from ....checkout.fetch import CheckoutInfo, CheckoutLineInfo
 from ....checkout.utils import (
     calculate_checkout_quantity,
     clear_delivery_method,
+    delete_external_shipping_id,
+    get_external_shipping_id,
     is_shipping_required,
 )
 from ....core.exceptions import InsufficientStock, PermissionDenied
+from ....discount import DiscountType, DiscountValueType
+from ....discount.models import CheckoutLineDiscount, PromotionRule
+from ....discount.utils import (
+    create_gift_line,
+    fetch_promotion_rules_for_checkout_or_order,
+    get_best_rule,
+)
 from ....permission.enums import CheckoutPermissions
 from ....product import models as product_models
 from ....product.models import ProductChannelListing, ProductVariant
@@ -41,6 +53,10 @@ if TYPE_CHECKING:
 
 
 ERROR_DOES_NOT_SHIP = "This checkout doesn't need shipping"
+ERROR_CC_ADDRESS_CHANGE_FORBIDDEN = (
+    "Can't change shipping address manually. "
+    "For click and collect delivery, address is set to a warehouse address."
+)
 
 
 @dataclass
@@ -85,6 +101,21 @@ def clean_delivery_method(
 
     valid_methods = checkout_info.valid_delivery_methods
     return method in valid_methods
+
+
+def _is_external_shipping_valid(checkout_info: "CheckoutInfo") -> bool:
+    if external_shipping_id := get_external_shipping_id(checkout_info.checkout):
+        return external_shipping_id in [
+            method.id for method in checkout_info.valid_delivery_methods
+        ]
+    return True
+
+
+def update_checkout_external_shipping_method_if_invalid(
+    checkout_info: "CheckoutInfo", lines: Iterable[CheckoutLineInfo]
+):
+    if not _is_external_shipping_valid(checkout_info):
+        delete_external_shipping_id(checkout_info.checkout, save=True)
 
 
 def update_checkout_shipping_method_if_invalid(
@@ -415,6 +446,7 @@ def group_lines_input_data_on_update(
         variant_id = cast(str, line.get("variant_id"))
         line_id = cast(str, line.get("line_id"))
 
+        line_db_id, variant_db_id = None, None
         if line_id:
             _, line_db_id = graphene.Node.from_global_id(line_id)
 
@@ -425,7 +457,7 @@ def group_lines_input_data_on_update(
             )
 
         if not line_db_id:
-            line_data = checkout_lines_data_map[variant_db_id]
+            line_data = checkout_lines_data_map[variant_db_id]  # type: ignore[index]
             line_data.variant_id = variant_db_id
         else:
             line_data = checkout_lines_data_map[line_db_id]
@@ -502,3 +534,75 @@ def find_variant_id_when_line_parameter_used(
 
     line_info = list(filter(lambda x: (str(x.line.pk) == line_db_id), lines_info))
     return str(line_info[0].line.variant_id)
+
+
+def apply_gift_reward_if_applicable_on_checkout_creation(
+    checkout: "models.Checkout",
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+) -> None:
+    """Apply gift reward if applicable on newly created checkout.
+
+    This method apply the gift reward if any gift promotion exists and
+    when it's giving the best discount on the current checkout.
+    """
+    PromotionRuleChannel = PromotionRule.channels.through
+    rule_channels = PromotionRuleChannel.objects.filter(channel_id=checkout.channel_id)
+    if not PromotionRule.objects.filter(
+        Exists(rule_channels.filter(promotionrule_id=OuterRef("pk"))),
+        gifts__isnull=False,
+    ).exists():
+        return
+
+    _set_checkout_base_subtotal_and_total_on_checkout_creation(checkout)
+    rules = fetch_promotion_rules_for_checkout_or_order(checkout)
+    best_rule_data = get_best_rule(
+        rules,
+        checkout.channel,
+        checkout.get_country(),
+        checkout.base_subtotal,
+        database_connection_name,
+    )
+    if not best_rule_data:
+        return
+
+    best_rule, best_discount_amount, gift_listing = best_rule_data
+    if not gift_listing:
+        return
+
+    with transaction.atomic():
+        line, _line_created = create_gift_line(checkout, gift_listing.variant_id)
+        CheckoutLineDiscount.objects.create(
+            type=DiscountType.ORDER_PROMOTION,
+            line=line,
+            amount_value=best_discount_amount,
+            value_type=DiscountValueType.FIXED,
+            value=best_discount_amount,
+            promotion_rule=best_rule,
+            currency=checkout.currency,
+        )
+
+
+def _set_checkout_base_subtotal_and_total_on_checkout_creation(
+    checkout: "models.Checkout",
+):
+    """Calculate and set base subtotal and total for newly created checkout."""
+    variants_id = [line.variant_id for line in checkout.lines.all()]
+    variant_id_to_discounted_price = {
+        variant_id: discounted_price or price
+        for variant_id, discounted_price, price in product_models.ProductVariantChannelListing.objects.filter(
+            variant_id__in=variants_id,
+            channel_id=checkout.channel_id,
+        ).values_list("variant_id", "discounted_price_amount", "price_amount")
+    }
+    subtotal = Decimal("0")
+    for line in checkout.lines.all():
+        if price_amount := line.price_override:
+            price = price_amount
+        else:
+            price = variant_id_to_discounted_price.get(line.variant_id) or Decimal("0")
+        subtotal += price * line.quantity
+    checkout.base_subtotal = Money(subtotal, checkout.currency)
+    # base total and subtotal is the same, as there is no option to set the
+    # delivery method during checkout creation
+    checkout.base_total = checkout.base_subtotal
+    checkout.save(update_fields=["base_subtotal_amount", "base_total_amount"])

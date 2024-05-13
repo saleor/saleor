@@ -16,13 +16,18 @@ from .core import SaleorContext
 
 def get_context_value(request: HttpRequest) -> SaleorContext:
     request = cast(SaleorContext, request)
-    request.dataloaders = {}
+    if not hasattr(request, "dataloaders"):
+        request.dataloaders = {}
     request.allow_replica = getattr(request, "allow_replica", True)
-    request.request_time = timezone.now()
+    request.request_time = getattr(request, "request_time", timezone.now())
     set_app_on_context(request)
     set_auth_on_context(request)
     set_decoded_auth_token(request)
     return request
+
+
+def clear_context(context: SaleorContext):
+    context.dataloaders.clear()
 
 
 class RequestWithUser(HttpRequest):

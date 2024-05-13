@@ -1,17 +1,22 @@
 from decimal import Decimal
 
 import graphene
+import pytest
 
-from ....discount import RewardValueType
+from ....discount import PromotionType, RewardValueType
 from ....discount.models import Promotion, PromotionRule
+from ..mutations.utils import promotion_rule_should_be_marked_with_dirty_variants
 from ..utils import (
+    _predicate_to_snake_case,
     convert_migrated_sale_predicate_to_catalogue_info,
-    get_variants_for_predicate,
+    get_variants_for_catalogue_predicate,
     get_variants_for_promotion,
 )
 
 
-def test_get_variants_for_predicate_with_or(product_with_two_variants, variant):
+def test_get_variants_for_catalogue_predicate_with_or(
+    product_with_two_variants, variant
+):
     # given
     catalogue_predicate = {
         "OR": [
@@ -33,7 +38,7 @@ def test_get_variants_for_predicate_with_or(product_with_two_variants, variant):
     }
 
     # when
-    variants = get_variants_for_predicate(catalogue_predicate)
+    variants = get_variants_for_catalogue_predicate(catalogue_predicate)
 
     # then
     assert variant in variants
@@ -41,7 +46,7 @@ def test_get_variants_for_predicate_with_or(product_with_two_variants, variant):
         assert variant in variants
 
 
-def test_get_variants_for_predicate_with_and(collection, product_list):
+def test_get_variants_for_catalogue_predicate_with_and(collection, product_list):
     # given
     product_in_collection = product_list[1]
     collection.products.add(product_in_collection)
@@ -64,7 +69,7 @@ def test_get_variants_for_predicate_with_and(collection, product_list):
     }
 
     # when
-    variants = get_variants_for_predicate(catalogue_predicate)
+    variants = get_variants_for_catalogue_predicate(catalogue_predicate)
 
     # then
     assert len(variants) == product_in_collection.variants.count()
@@ -81,7 +86,7 @@ def test_get_variants_for_product_predicate(product_with_two_variants, variant):
     }
 
     # when
-    variants = get_variants_for_predicate(catalogue_predicate)
+    variants = get_variants_for_catalogue_predicate(catalogue_predicate)
 
     # then
     assert len(variants) == product_with_two_variants.variants.count()
@@ -102,7 +107,7 @@ def test_get_variants_for_variant_predicate(product_with_two_variants, variant):
     }
 
     # when
-    variants = get_variants_for_predicate(catalogue_predicate)
+    variants = get_variants_for_catalogue_predicate(catalogue_predicate)
 
     # then
     assert len(variants) == product_with_two_variants.variants.count()
@@ -125,7 +130,7 @@ def test_get_variants_for_category_predicate(
     product.save(update_fields=["category"])
 
     # when
-    variants = get_variants_for_predicate(catalogue_predicate)
+    variants = get_variants_for_catalogue_predicate(catalogue_predicate)
 
     # then
     assert len(variants) == product.variants.count()
@@ -147,7 +152,7 @@ def test_get_variants_for_collection_predicate(
     collection.products.add(product)
 
     # when
-    variants = get_variants_for_predicate(catalogue_predicate)
+    variants = get_variants_for_catalogue_predicate(catalogue_predicate)
 
     # then
     assert len(variants) == product.variants.count()
@@ -174,7 +179,7 @@ def test_get_variants_for_variant_and_empty_list_of_other_predicates(
     }
 
     # when
-    variants = get_variants_for_predicate(catalogue_predicate)
+    variants = get_variants_for_catalogue_predicate(catalogue_predicate)
 
     # then
     assert len(variants) == 0
@@ -207,14 +212,14 @@ def test_get_variants_for_variant_or_operator_and_empty_list_of_other_predicates
     }
 
     # when
-    variants = get_variants_for_predicate(catalogue_predicate)
+    variants = get_variants_for_catalogue_predicate(catalogue_predicate)
 
     # then
     assert len(variants) == product_with_two_variants.variants.count()
     assert variant not in variants
 
 
-def test_get_variants_for_predicate_with_nested_conditions(
+def test_get_variants_for_catalogue_predicate_with_nested_conditions(
     product_list, collection, variant
 ):
     # given
@@ -250,7 +255,7 @@ def test_get_variants_for_predicate_with_nested_conditions(
     }
 
     # when
-    variants = get_variants_for_predicate(catalogue_predicate)
+    variants = get_variants_for_catalogue_predicate(catalogue_predicate)
 
     # then
     assert len(variants) == product_in_collection.variants.count() + 1
@@ -266,7 +271,7 @@ def test_get_variants_for_variant_predicate_empty_predicate_data(
     catalogue_predicate = {}
 
     # when
-    variants = get_variants_for_predicate(catalogue_predicate)
+    variants = get_variants_for_catalogue_predicate(catalogue_predicate)
 
     # then
     assert len(variants) == 0
@@ -342,3 +347,136 @@ def test_convert_migrated_sale_predicate_to_catalogue_info(
 
     # then
     assert catalogue_info == expected_result
+
+
+def test_predicate_to_snake_case():
+    order_predicate = {
+        "AND": [
+            {
+                "discountedObjectPredicate": {
+                    "OR": [
+                        {
+                            "discountedObjectPredicate": {
+                                "userPredicate": {"isStaff": True}
+                            }
+                        },
+                        {
+                            "discountedObjectPredicate": {
+                                "subtotalPrice": {"range": {"gte": 100}}
+                            }
+                        },
+                    ]
+                }
+            },
+            {
+                "discountedLineObjectPredicate": {
+                    "OR": [
+                        {
+                            "discountedLineObjectPredicate": {
+                                "quantityAvailable": {"range": {"gte": 3}}
+                            }
+                        },
+                        {"discountedLineObjectPredicate": {"name": {"eq": "Shirt"}}},
+                        {
+                            "discountedLineObjectPredicate": {
+                                "mainTitle": {"oneOf": [1, "ABC", "Yo"]}
+                            }
+                        },
+                    ]
+                }
+            },
+        ]
+    }
+    assert _predicate_to_snake_case(order_predicate) == {
+        "AND": [
+            {
+                "discounted_object_predicate": {
+                    "OR": [
+                        {
+                            "discounted_object_predicate": {
+                                "user_predicate": {"is_staff": True}
+                            }
+                        },
+                        {
+                            "discounted_object_predicate": {
+                                "subtotal_price": {"range": {"gte": 100}}
+                            }
+                        },
+                    ]
+                }
+            },
+            {
+                "discounted_line_object_predicate": {
+                    "OR": [
+                        {
+                            "discounted_line_object_predicate": {
+                                "quantity_available": {"range": {"gte": 3}}
+                            }
+                        },
+                        {"discounted_line_object_predicate": {"name": {"eq": "Shirt"}}},
+                        {
+                            "discounted_line_object_predicate": {
+                                "main_title": {"oneOf": [1, "ABC", "Yo"]}
+                            }
+                        },
+                    ]
+                }
+            },
+        ]
+    }
+
+
+@pytest.mark.parametrize(
+    ("field", "field_value", "expected_result"),
+    [
+        ("reward_value", None, False),
+        ("reward_value", 0, False),
+        ("reward_value", 1, True),
+        ("catalogue_predicate", {}, False),
+        ("reward_value_type", None, False),
+        ("reward_value_type", "fixed", True),
+    ],
+)
+def test_promotion_rule_should_be_marked_with_dirty_variants(
+    field, field_value, expected_result, promotion_rule
+):
+    # given
+    setattr(promotion_rule, field, field_value)
+
+    # when
+    result = promotion_rule_should_be_marked_with_dirty_variants(
+        promotion_rule, PromotionType.CATALOGUE, promotion_rule.channels.all()
+    )
+
+    # then
+    assert result == expected_result
+
+
+def test_promotion_rule_should_be_marked_with_dirty_variants_incorrect_promotion_type(
+    promotion_rule,
+):
+    # given
+    promotion_type = PromotionType.ORDER
+
+    # when
+    result = promotion_rule_should_be_marked_with_dirty_variants(
+        promotion_rule, promotion_type, promotion_rule.channels.all()
+    )
+
+    # then
+    assert not result
+
+
+def test_promotion_rule_should_be_marked_with_dirty_variants_missing_channels(
+    promotion_rule,
+):
+    # given
+    promotion_rule.channels.set([])
+
+    # when
+    result = promotion_rule_should_be_marked_with_dirty_variants(
+        promotion_rule, PromotionType.CATALOGUE, promotion_rule.channels.all()
+    )
+
+    # then
+    assert not result

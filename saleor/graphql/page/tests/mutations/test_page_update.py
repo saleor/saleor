@@ -316,7 +316,9 @@ def test_update_page_with_file_attribute_new_value_is_not_created(
         "Attribute", page_file_attribute.pk
     )
     existing_value = page_file_attribute.values.first()
-    associate_attribute_values_to_instance(page, page_file_attribute, existing_value)
+    associate_attribute_values_to_instance(
+        page, {page_file_attribute.pk: [existing_value]}
+    )
 
     page_id = graphene.Node.to_global_id("Page", page.id)
     domain = site_settings.site.domain
@@ -356,14 +358,23 @@ def test_update_page_with_file_attribute_new_value_is_not_created(
     assert updated_attribute in data["page"]["attributes"]
 
 
-def test_update_page_clear_values(staff_api_client, permission_manage_pages, page):
+def test_update_page_clear_file_attribute_values(
+    staff_api_client, permission_manage_pages, page, page_file_attribute
+):
     # given
     query = UPDATE_PAGE_MUTATION
 
-    page_attr = get_page_attributes(page).first()
-    assert page_attr is not None
+    page_type = page.page_type
+    page_type.page_attributes.add(page_file_attribute)
+    page_file_attribute_id = graphene.Node.to_global_id(
+        "Attribute", page_file_attribute.pk
+    )
+    existing_value = page_file_attribute.values.first()
+    associate_attribute_values_to_instance(
+        page, {page_file_attribute.pk: [existing_value]}
+    )
 
-    attribute = page_attr
+    attribute = page_file_attribute
     attribute.value_required = False
     attribute.save(update_fields=["value_required"])
 
@@ -384,12 +395,15 @@ def test_update_page_clear_values(staff_api_client, permission_manage_pages, pag
     # then
     content = get_graphql_content(response)
     data = content["data"]["pageUpdate"]
-
     assert not data["errors"]
     assert data["page"]
-    assert not data["page"]["attributes"][0]["values"]
-
-    assert not get_page_attribute_values(page, page_attr).exists()
+    attr_data = [
+        attr
+        for attr in data["page"]["attributes"]
+        if attr["attribute"]["slug"] == attribute.slug
+    ][0]
+    assert not attr_data["values"]
+    assert not get_page_attribute_values(page, page_file_attribute).exists()
 
 
 def test_update_page_with_page_reference_attribute_new_value(
@@ -469,7 +483,7 @@ def test_update_page_with_page_reference_attribute_existing_value(
         reference_page=ref_page,
     )
     associate_attribute_values_to_instance(
-        page, page_type_page_reference_attribute, attr_value
+        page, {page_type_page_reference_attribute.pk: [attr_value]}
     )
 
     values_count = page_type_page_reference_attribute.values.count()
@@ -751,7 +765,7 @@ def test_update_page_with_product_reference_attribute_existing_value(
         reference_product=product,
     )
     associate_attribute_values_to_instance(
-        page, page_type_product_reference_attribute, attr_value
+        page, {page_type_product_reference_attribute.pk: [attr_value]}
     )
 
     values_count = page_type_product_reference_attribute.values.count()
@@ -871,7 +885,7 @@ def test_update_page_with_variant_reference_attribute_existing_value(
         reference_variant=variant,
     )
     associate_attribute_values_to_instance(
-        page, page_type_variant_reference_attribute, attr_value
+        page, {page_type_variant_reference_attribute.pk: [attr_value]}
     )
 
     values_count = page_type_variant_reference_attribute.values.count()
@@ -1090,10 +1104,13 @@ def test_update_page_change_attribute_values_ordering(
 
     associate_attribute_values_to_instance(
         page,
-        page_type_product_reference_attribute,
-        attr_value_3,
-        attr_value_2,
-        attr_value_1,
+        {
+            page_type_product_reference_attribute.pk: [
+                attr_value_3,
+                attr_value_2,
+                attr_value_1,
+            ]
+        },
     )
 
     attribute = get_page_attributes(page).first()

@@ -24,10 +24,11 @@ from ..core.exceptions import PermissionDenied
 from ..core.utils import is_valid_ipv4, is_valid_ipv6
 from ..webhook import observability
 from .api import API_PATH, schema
-from .context import get_context_value
+from .context import clear_context, get_context_value
 from .core.validators.query_cost import validate_query_cost
 from .query_cost_map import COST_MAP
 from .utils import format_error, query_fingerprint, query_identifier
+from .utils.validators import check_if_query_contains_only_schema
 
 INT_ERROR_MSG = "Int cannot represent non 32-bit signed integer value"
 
@@ -250,20 +251,6 @@ class GraphQLView(View):
         except (ValueError, GraphQLSyntaxError) as e:
             return None, ExecutionResult(errors=[e], invalid=True)
 
-    def check_if_query_contains_only_schema(self, document: GraphQLDocument):
-        query_with_schema = False
-        for definition in document.document_ast.definitions:
-            selections = definition.selection_set.selections
-            selection_count = len(selections)
-            for selection in selections:
-                selection_name = str(selection.name.value)
-                if selection_name == "__schema":
-                    query_with_schema = True
-                    if selection_count > 1:
-                        msg = "`__schema` must be fetched in separate query"
-                        raise GraphQLError(msg)
-        return query_with_schema
-
     def execute_graphql_request(self, request: HttpRequest, data: dict):
         with opentracing.global_tracer().start_active_span("graphql_query") as scope:
             span = scope.span
@@ -288,9 +275,7 @@ class GraphQLView(View):
             span.set_tag("graphql.query_identifier", query_identifier(document))
             span.set_tag("graphql.query_fingerprint", query_fingerprint(document))
             try:
-                query_contains_schema = self.check_if_query_contains_only_schema(
-                    document
-                )
+                query_contains_schema = check_if_query_contains_only_schema(document)
             except GraphQLError as e:
                 return ExecutionResult(errors=[e], invalid=True)
 
@@ -350,6 +335,8 @@ class GraphQLView(View):
                 if str(e).startswith(INT_ERROR_MSG) or isinstance(e, ValueError):
                     e = GraphQLError(str(e))
                 return ExecutionResult(errors=[e], invalid=True)
+            finally:
+                clear_context(context)
 
     @staticmethod
     def parse_body(request: HttpRequest):

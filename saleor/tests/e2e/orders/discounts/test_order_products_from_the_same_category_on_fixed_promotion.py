@@ -1,5 +1,6 @@
 import pytest
 
+from .....product.tasks import recalculate_discounted_price_for_products_task
 from ... import DEFAULT_ADDRESS
 from ...product.utils import (
     create_category,
@@ -94,21 +95,26 @@ def prepare_product(
         variant_price_2,
     )
 
-    promotion_data = create_promotion(e2e_staff_api_client, promotion_name)
+    promotion_type = "CATALOGUE"
+    promotion_data = create_promotion(
+        e2e_staff_api_client, promotion_name, promotion_type
+    )
     promotion_id = promotion_data["id"]
 
     catalogue_predicate = {
         "categoryPredicate": {"ids": category_ids},
     }
-
+    input = {
+        "promotion": promotion_id,
+        "channels": [channel_id],
+        "name": promotion_rule_name,
+        "cataloguePredicate": catalogue_predicate,
+        "rewardValue": discount_value,
+        "rewardValueType": discount_type,
+    }
     promotion_rule = create_promotion_rule(
         e2e_staff_api_client,
-        promotion_id,
-        catalogue_predicate,
-        discount_type,
-        discount_value,
-        promotion_rule_name,
-        channel_id,
+        input,
     )
     category_predicate = promotion_rule["cataloguePredicate"]["categoryPredicate"][
         "ids"
@@ -171,6 +177,10 @@ def test_order_products_from_category_on_fixed_promotion_CORE_2106(
         discount_type,
         promotion_rule_name,
     )
+
+    # prices are updated in the background, we need to force it to retrieve the correct
+    # ones
+    recalculate_discounted_price_for_products_task()
 
     # Step 1 - Create a draft order for a product with fixed promotion
     input = {

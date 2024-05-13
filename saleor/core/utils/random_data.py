@@ -55,6 +55,7 @@ from ...discount.models import (
 )
 from ...giftcard import events as gift_card_events
 from ...giftcard.models import GiftCard, GiftCardTag
+from ...graphql.discount.enums import RewardTypeEnum
 from ...menu.models import Menu, MenuItem
 from ...order import OrderStatus
 from ...order.models import Fulfillment, Order, OrderLine
@@ -86,7 +87,10 @@ from ...product.models import (
     VariantMedia,
 )
 from ...product.search import update_products_search_vector
-from ...product.tasks import update_products_discounted_prices_of_promotion_task
+from ...product.tasks import (
+    recalculate_discounted_price_for_products_task,
+    update_variant_relations_for_active_promotion_rules_task,
+)
 from ...shipping.models import (
     ShippingMethod,
     ShippingMethodChannelListing,
@@ -451,7 +455,7 @@ def create_products_by_schema(placeholder_dir, create_images):
     assign_products_to_collections(associations=types["product.collectionproduct"])
 
     all_products_qs = Product.objects.all()
-    update_products_search_vector(all_products_qs)
+    update_products_search_vector(all_products_qs.values_list("id", flat=True))
 
 
 class SaleorProvider(BaseProvider):
@@ -602,10 +606,10 @@ def create_order_lines(order, how_many=10):
     for line in lines:
         variant = cast(ProductVariant, line.variant)
         unit_price_data = manager.calculate_order_line_unit(
-            order, line, variant, variant.product
+            order, line, variant, variant.product, lines
         )
         total_price_data = manager.calculate_order_line_total(
-            order, line, variant, variant.product
+            order, line, variant, variant.product, lines
         )
         line.unit_price = unit_price_data.price_with_discounts
         line.total_price = total_price_data.price_with_discounts
@@ -656,10 +660,10 @@ def create_order_lines_with_preorder(order, how_many=1):
     for line in lines:
         variant = cast(ProductVariant, line.variant)
         unit_price_data = manager.calculate_order_line_unit(
-            order, line, variant, variant.product
+            order, line, variant, variant.product, lines
         )
         total_price_data = manager.calculate_order_line_total(
-            order, line, variant, variant.product
+            order, line, variant, variant.product, lines
         )
         line.unit_price = unit_price_data.price_with_discounts
         line.total_price = total_price_data.price_with_discounts
@@ -828,7 +832,7 @@ def create_fake_order(max_order_lines=5, create_preorder_lines=False):
     return order
 
 
-def create_fake_promotion():
+def create_fake_catalogue_promotion():
     promotion = Promotion.objects.create(
         name=f"Happy {fake.word()} day!",
     )
@@ -838,6 +842,7 @@ def create_fake_promotion():
                 promotion=promotion,
                 reward_value_type=RewardValueType.PERCENTAGE,
                 reward_value=random.choice([10, 20, 30, 40, 50]),
+                variants_dirty=True,
                 catalogue_predicate={
                     "productPredicate": {
                         "ids": [
@@ -851,6 +856,7 @@ def create_fake_promotion():
                 promotion=promotion,
                 reward_value_type=RewardValueType.PERCENTAGE,
                 reward_value=random.choice([10, 20, 30, 40, 50]),
+                variants_dirty=True,
                 catalogue_predicate={
                     "variantPredicate": {
                         "ids": [
@@ -859,6 +865,43 @@ def create_fake_promotion():
                                 :2
                             ]
                         ]
+                    }
+                },
+            ),
+        ]
+    )
+    channels = Channel.objects.all()
+    for rule in rules:
+        rule.channels.add(*channels)
+
+    return promotion
+
+
+def create_fake_order_promotion():
+    promotion = Promotion.objects.create(
+        name=f"Happy {fake.word()} day!",
+    )
+    rules = PromotionRule.objects.bulk_create(
+        [
+            PromotionRule(
+                promotion=promotion,
+                reward_value_type=RewardValueType.PERCENTAGE,
+                reward_value=random.choice([10, 20, 30, 40, 50]),
+                reward_type=RewardTypeEnum.SUBTOTAL_DISCOUNT.name,
+                order_predicate={
+                    "discountedObjectPredicate": {
+                        "baseSubtotalPrice": {"range": {"gte": "200"}}
+                    }
+                },
+            ),
+            PromotionRule(
+                promotion=promotion,
+                reward_value_type=RewardValueType.FIXED,
+                reward_value=random.choice([10, 20, 30, 40, 50]),
+                reward_type=RewardTypeEnum.SUBTOTAL_DISCOUNT.name,
+                order_predicate={
+                    "discountedObjectPredicate": {
+                        "baseSubtotalPrice": {"range": {"gte": "100"}}
                     }
                 },
             ),
@@ -973,10 +1016,19 @@ def create_orders(how_many=10):
         yield f"Order: {order}"
 
 
-def create_product_promotions(how_many=5):
+def create_catalogue_promotions(how_many=5):
     for _ in range(how_many):
-        promotion = create_fake_promotion()
-        update_products_discounted_prices_of_promotion_task.delay(promotion.pk)
+        promotion = create_fake_catalogue_promotion()
+        yield f"Promotion: {promotion}"
+    # recalculation is handled by celery beat, so we trigger it manually, to receive the
+    # correct amounts in random data created by saleor.
+    update_variant_relations_for_active_promotion_rules_task()
+    recalculate_discounted_price_for_products_task()
+
+
+def create_order_promotions(how_many=5):
+    for _ in range(how_many):
+        promotion = create_fake_order_promotion()
         yield f"Promotion: {promotion}"
 
 

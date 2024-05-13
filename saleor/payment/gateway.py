@@ -487,7 +487,7 @@ def list_payment_sources(
     gateway: str,
     customer_id: str,
     manager: "PluginsManager",
-    channel_slug: str,
+    channel_slug: Optional[str],
 ) -> list["CustomerSource"]:
     return manager.list_payment_sources(gateway, customer_id, channel_slug=channel_slug)
 

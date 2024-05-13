@@ -1,5 +1,6 @@
 import datetime
 import itertools
+import random
 import uuid
 from collections import namedtuple
 from contextlib import contextmanager
@@ -54,11 +55,14 @@ from ..discount import (
     DiscountType,
     DiscountValueType,
     PromotionEvents,
+    PromotionType,
+    RewardType,
     RewardValueType,
     VoucherType,
 )
 from ..discount.interface import VariantPromotionRuleInfo
 from ..discount.models import (
+    CheckoutDiscount,
     CheckoutLineDiscount,
     NotApplicable,
     Promotion,
@@ -153,6 +157,125 @@ from ..webhook.models import Webhook, WebhookEvent
 from ..webhook.observability import WebhookData
 from ..webhook.transport.utils import WebhookResponse, to_payment_app_id
 from .utils import dummy_editorjs
+
+CALCULATE_TAXES_SUBSCRIPTION_QUERY = """
+subscription CalculateTaxes {
+  event {
+    ...CalculateTaxesEvent
+  }
+}
+
+fragment CalculateTaxesEvent on Event {
+  __typename
+  ... on CalculateTaxes {
+    taxBase {
+      ...TaxBase
+    }
+    recipient {
+      privateMetadata {
+        key
+        value
+      }
+    }
+  }
+}
+
+fragment TaxBase on TaxableObject {
+  pricesEnteredWithTax
+  currency
+  channel {
+    slug
+  }
+  discounts {
+    ...TaxDiscount
+  }
+  address {
+    ...Address
+  }
+  shippingPrice {
+    amount
+  }
+  lines {
+    ...TaxBaseLine
+  }
+  sourceObject {
+    __typename
+    ... on Checkout {
+      avataxEntityCode: metafield(key: "avataxEntityCode")
+      user {
+        ...User
+      }
+    }
+    ... on Order {
+      avataxEntityCode: metafield(key: "avataxEntityCode")
+      user {
+        ...User
+      }
+    }
+  }
+}
+
+fragment TaxDiscount on TaxableObjectDiscount {
+  name
+  amount {
+    amount
+  }
+}
+
+fragment Address on Address {
+  streetAddress1
+  streetAddress2
+  city
+  countryArea
+  postalCode
+  country {
+    code
+  }
+}
+
+fragment TaxBaseLine on TaxableObjectLine {
+  sourceLine {
+    __typename
+    ... on CheckoutLine {
+      id
+      checkoutProductVariant: variant {
+        id
+        product {
+          taxClass {
+            id
+            name
+          }
+        }
+      }
+    }
+    ... on OrderLine {
+      id
+      orderProductVariant: variant {
+        id
+        product {
+          taxClass {
+            id
+            name
+          }
+        }
+      }
+    }
+  }
+  quantity
+  unitPrice {
+    amount
+  }
+  totalPrice {
+    amount
+  }
+}
+
+fragment User on User {
+  id
+  email
+  avataxCustomerCode: metafield(key: "avataxCustomerCode")
+}
+"""
 
 
 class CaptureQueriesContext(BaseCaptureQueriesContext):
@@ -365,8 +488,6 @@ def checkout_with_item_on_promotion(checkout_with_item):
 
     variant = line.variant
 
-    channel = checkout_with_item.channel
-
     reward_value = Decimal("5")
     rule = promotion.rules.create(
         catalogue_predicate={
@@ -399,6 +520,69 @@ def checkout_with_item_on_promotion(checkout_with_item):
         amount_value=reward_value * line.quantity,
         currency=channel.currency_code,
         promotion_rule=rule,
+    )
+
+    return checkout_with_item
+
+
+@pytest.fixture
+def checkout_with_item_and_order_discount(
+    checkout_with_item, catalogue_promotion_without_rules
+):
+    channel = checkout_with_item.channel
+
+    reward_value = Decimal("5")
+
+    rule = catalogue_promotion_without_rules.rules.create(
+        order_predicate={
+            "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 20}}}
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=reward_value,
+        reward_type=RewardType.SUBTOTAL_DISCOUNT,
+    )
+    rule.channels.add(channel)
+
+    CheckoutDiscount.objects.create(
+        checkout=checkout_with_item,
+        promotion_rule=rule,
+        type=DiscountType.ORDER_PROMOTION,
+        value_type=rule.reward_value_type,
+        value=rule.reward_value,
+        amount_value=rule.reward_value,
+        currency=channel.currency_code,
+    )
+    checkout_with_item.discount_amount = reward_value
+    checkout_with_item.save(update_fields=["discount_amount"])
+
+    return checkout_with_item
+
+
+@pytest.fixture
+def checkout_with_item_and_gift_promotion(checkout_with_item, gift_promotion_rule):
+    channel = checkout_with_item.channel
+    variants = gift_promotion_rule.gifts.all()
+    variant_listings = ProductVariantChannelListing.objects.filter(variant__in=variants)
+    top_price, variant_id = max(
+        variant_listings.values_list("discounted_price_amount", "variant")
+    )
+
+    line = CheckoutLine.objects.create(
+        checkout=checkout_with_item,
+        quantity=1,
+        variant_id=variant_id,
+        is_gift=True,
+        currency="USD",
+    )
+
+    CheckoutLineDiscount.objects.create(
+        line=line,
+        promotion_rule=gift_promotion_rule,
+        type=DiscountType.ORDER_PROMOTION,
+        value_type=RewardValueType.FIXED,
+        value=top_price,
+        amount_value=top_price,
+        currency=channel.currency_code,
     )
 
     return checkout_with_item
@@ -1638,6 +1822,7 @@ def attribute_generator():
         slug="attr",
         name="Attr",
         type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.DROPDOWN,
         filterable_in_storefront=True,
         filterable_in_dashboard=True,
         available_in_grid=True,
@@ -1647,6 +1832,7 @@ def attribute_generator():
             slug=slug,
             name=name,
             type=type,
+            input_type=input_type,
             filterable_in_storefront=filterable_in_storefront,
             filterable_in_dashboard=filterable_in_dashboard,
             available_in_grid=available_in_grid,
@@ -1785,6 +1971,28 @@ def attribute_without_values():
         visible_in_storefront=True,
         entity_type=None,
     )
+
+
+@pytest.fixture
+def multiselect_attribute(db, attribute_generator, attribute_values_generator):
+    attribute = attribute_generator(
+        slug="multi",
+        name="Multi",
+        type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.MULTISELECT,
+        filterable_in_storefront=True,
+        filterable_in_dashboard=True,
+        available_in_grid=True,
+    )
+    slugs = ["choice-1", "choice-1"]
+    names = ["Choice 1", "Choice 2"]
+    attribute_values_generator(
+        attribute=attribute,
+        names=names,
+        slugs=slugs,
+    )
+
+    return attribute
 
 
 @pytest.fixture
@@ -2461,7 +2669,7 @@ def categories_tree(db, product_type, channel_USD):  # pylint: disable=W0613
         visible_in_listings=True,
     )
 
-    associate_attribute_values_to_instance(product, product_attr, attr_value)
+    associate_attribute_values_to_instance(product, {product_attr.pk: [attr_value]})
     return parent
 
 
@@ -2673,7 +2881,9 @@ def product(product_type, category, warehouse, channel_USD, default_tax_class):
         available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
     )
 
-    associate_attribute_values_to_instance(product, product_attr, product_attr_value)
+    associate_attribute_values_to_instance(
+        product, {product_attr.pk: [product_attr_value]}
+    )
 
     variant_attr = product_type.variant_attributes.first()
     variant_attr_value = variant_attr.values.first()
@@ -2689,7 +2899,9 @@ def product(product_type, category, warehouse, channel_USD, default_tax_class):
     )
     Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=10)
 
-    associate_attribute_values_to_instance(variant, variant_attr, variant_attr_value)
+    associate_attribute_values_to_instance(
+        variant, {variant_attr.pk: [variant_attr_value]}
+    )
 
     return product
 
@@ -2859,7 +3071,9 @@ def product_with_rich_text_attribute(
         available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
     )
 
-    associate_attribute_values_to_instance(product, product_attr, product_attr_value)
+    associate_attribute_values_to_instance(
+        product, {product_attr.pk: [product_attr_value]}
+    )
 
     variant_attr = product_type_with_rich_text_attribute.variant_attributes.first()
     variant_attr_value = variant_attr.values.first()
@@ -2875,7 +3089,9 @@ def product_with_rich_text_attribute(
     )
     Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=10)
 
-    associate_attribute_values_to_instance(variant, variant_attr, variant_attr_value)
+    associate_attribute_values_to_instance(
+        variant, {variant_attr.pk: [variant_attr_value]}
+    )
     return [product, variant]
 
 
@@ -3029,10 +3245,10 @@ def product_with_variant_with_two_attributes(
     )
 
     associate_attribute_values_to_instance(
-        variant, color_attribute, color_attribute.values.first()
+        variant, {color_attribute.pk: [color_attribute.values.first()]}
     )
     associate_attribute_values_to_instance(
-        variant, size_attribute, size_attribute.values.first()
+        variant, {size_attribute.pk: [size_attribute.values.first()]}
     )
 
     return product
@@ -3092,10 +3308,10 @@ def product_with_variant_with_external_media(
     )
 
     associate_attribute_values_to_instance(
-        variant, color_attribute, color_attribute.values.first()
+        variant, {color_attribute.pk: [color_attribute.values.first()]}
     )
     associate_attribute_values_to_instance(
-        variant, size_attribute, size_attribute.values.first()
+        variant, {size_attribute.pk: [size_attribute.values.first()]}
     )
 
     return product
@@ -3143,7 +3359,7 @@ def product_with_variant_with_file_attribute(
     )
 
     associate_attribute_values_to_instance(
-        variant, file_attribute, file_attribute.values.first()
+        variant, {file_attribute.pk: [file_attribute.values.first()]}
     )
 
     return product
@@ -3168,7 +3384,9 @@ def product_with_multiple_values_attributes(product, product_type) -> Product:
     product_type.product_attributes.clear()
     product_type.product_attributes.add(attribute)
 
-    associate_attribute_values_to_instance(product, attribute, attr_val_1, attr_val_2)
+    associate_attribute_values_to_instance(
+        product, {attribute.pk: [attr_val_1, attr_val_2]}
+    )
     return product
 
 
@@ -3646,7 +3864,7 @@ def product_list(
     Stock.objects.bulk_create(stocks)
 
     for product in products:
-        associate_attribute_values_to_instance(product, product_attr, attr_value)
+        associate_attribute_values_to_instance(product, {product_attr.pk: [attr_value]})
         product.search_vector = FlatConcatSearchVector(
             *prepare_product_search_vector_value(product)
         )
@@ -3929,7 +4147,9 @@ def unavailable_product_with_variant(
     )
     Stock.objects.create(product_variant=variant, warehouse=warehouse, quantity=10)
 
-    associate_attribute_values_to_instance(variant, variant_attr, variant_attr_value)
+    associate_attribute_values_to_instance(
+        variant, {variant_attr.pk: [variant_attr_value]}
+    )
     return product
 
 
@@ -4139,12 +4359,12 @@ def order_line(order, variant):
 
 
 @pytest.fixture
-def order_line_on_promotion(order_line, promotion):
+def order_line_on_promotion(order_line, catalogue_promotion):
     variant = order_line.variant
 
     channel = order_line.order.channel
     reward_value = Decimal("1.0")
-    rule = promotion.rules.first()
+    rule = catalogue_promotion.rules.first()
     variant_channel_listing = variant.channel_listings.get(channel=channel)
 
     variant_channel_listing.discounted_price_amount = (
@@ -4849,7 +5069,122 @@ def order_with_lines_for_cc(
 
 
 @pytest.fixture
-def order_fulfill_data(order_with_lines, warehouse):
+def order_with_lines_and_catalogue_promotion(
+    order_with_lines, channel_USD, catalogue_promotion_without_rules
+):
+    order = order_with_lines
+    promotion = catalogue_promotion_without_rules
+    line = order.lines.get(quantity=3)
+    variant = line.variant
+    reward_value = Decimal(3)
+    rule = promotion.rules.create(
+        name="Catalogue rule fixed",
+        catalogue_predicate={
+            "variantPredicate": {
+                "ids": [graphene.Node.to_global_id("ProductVariant", variant)]
+            }
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=reward_value,
+    )
+    rule.channels.add(channel_USD)
+
+    listing = variant.channel_listings.get(channel=channel_USD)
+    listing.discounted_price_amount = listing.price_amount - reward_value
+    listing.save(update_fields=["discounted_price_amount"])
+    listing.variantlistingpromotionrule.create(
+        promotion_rule=rule,
+        discount_amount=reward_value,
+        currency=order.currency,
+    )
+
+    line.discounts.create(
+        type=DiscountType.PROMOTION,
+        value_type=RewardValueType.FIXED,
+        value=reward_value,
+        amount_value=reward_value * line.quantity,
+        currency=order.currency,
+        promotion_rule=rule,
+    )
+    return order
+
+
+@pytest.fixture
+def order_with_lines_and_order_promotion(
+    order_with_lines,
+    channel_USD,
+    order_promotion_without_rules,
+):
+    order = order_with_lines
+    promotion = order_promotion_without_rules
+    rule = promotion.rules.create(
+        name="Fixed subtotal rule",
+        order_predicate={
+            "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 10}}}
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=Decimal(25),
+        reward_type=RewardType.SUBTOTAL_DISCOUNT,
+    )
+    rule.channels.add(channel_USD)
+
+    order.discounts.create(
+        promotion_rule=rule,
+        type=DiscountType.ORDER_PROMOTION,
+        value_type=rule.reward_value_type,
+        value=rule.reward_value,
+        amount_value=rule.reward_value,
+        currency=order.currency,
+    )
+    return order
+
+
+@pytest.fixture
+def order_with_lines_and_gift_promotion(
+    order_with_lines,
+    channel_USD,
+    order_promotion_without_rules,
+    variant_with_many_stocks,
+):
+    order = order_with_lines
+    variant = variant_with_many_stocks
+    variant_listing = variant.channel_listings.get(channel=channel_USD)
+    promotion = order_promotion_without_rules
+    rule = promotion.rules.create(
+        name="Gift subtotal rule",
+        order_predicate={
+            "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 10}}}
+        },
+        reward_type=RewardType.GIFT,
+    )
+    rule.channels.add(channel_USD)
+    rule.gifts.set([variant])
+
+    gift_line = order.lines.create(
+        quantity=1,
+        variant=variant,
+        is_gift=True,
+        currency=order.currency,
+        unit_price_net_amount=0,
+        unit_price_gross_amount=0,
+        total_price_net_amount=0,
+        total_price_gross_amount=0,
+        is_shipping_required=True,
+        is_gift_card=False,
+    )
+    gift_line.discounts.create(
+        promotion_rule=rule,
+        type=DiscountType.ORDER_PROMOTION,
+        value_type=RewardValueType.FIXED,
+        value=variant_listing.price_amount,
+        amount_value=variant_listing.price_amount,
+        currency=order.currency,
+    )
+    return order
+
+
+@pytest.fixture
+def order_fulfill_data(order_with_lines, warehouse, checkout):
     FulfillmentData = namedtuple("FulfillmentData", "order variables warehouse")
     order = order_with_lines
     order_id = graphene.Node.to_global_id("Order", order.id)
@@ -5531,9 +5866,10 @@ def dummy_webhook_app_payment_data(dummy_payment_data, payment_app):
 
 
 @pytest.fixture
-def promotion(channel_USD, product, collection):
+def catalogue_promotion(channel_USD, product, collection):
     promotion = Promotion.objects.create(
         name="Promotion",
+        type=PromotionType.CATALOGUE,
         description=dummy_editorjs("Test description."),
         end_date=timezone.now() + timedelta(days=30),
     )
@@ -5576,18 +5912,32 @@ def promotion(channel_USD, product, collection):
 
 
 @pytest.fixture
-def promotion_without_rules(db):
+def catalogue_promotion_without_rules(db):
     promotion = Promotion.objects.create(
         name="Promotion",
         description=dummy_editorjs("Test description."),
         end_date=timezone.now() + timedelta(days=30),
+        type=PromotionType.CATALOGUE,
     )
     return promotion
 
 
 @pytest.fixture
-def promotion_with_single_rule(catalogue_predicate, channel_USD):
-    promotion = Promotion.objects.create(name="Promotion with single rule")
+def order_promotion_without_rules(db):
+    promotion = Promotion.objects.create(
+        name="Promotion",
+        description=dummy_editorjs("Test description."),
+        end_date=timezone.now() + timedelta(days=30),
+        type=PromotionType.ORDER,
+    )
+    return promotion
+
+
+@pytest.fixture
+def catalogue_promotion_with_single_rule(catalogue_predicate, channel_USD):
+    promotion = Promotion.objects.create(
+        name="Promotion with single rule", type=PromotionType.CATALOGUE
+    )
     rule = PromotionRule.objects.create(
         name="Sale rule",
         promotion=promotion,
@@ -5600,24 +5950,46 @@ def promotion_with_single_rule(catalogue_predicate, channel_USD):
 
 
 @pytest.fixture
+def order_promotion_with_rule(channel_USD):
+    promotion = Promotion.objects.create(
+        name="Promotion with order rule", type=PromotionType.ORDER
+    )
+    rule = PromotionRule.objects.create(
+        name="Promotion rule",
+        promotion=promotion,
+        order_predicate={
+            "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 100}}}
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=Decimal(5),
+        reward_type=RewardType.SUBTOTAL_DISCOUNT,
+    )
+    rule.channels.add(channel_USD)
+    return promotion
+
+
+@pytest.fixture
 def promotion_list(channel_USD, product, collection):
     collection.products.add(product)
     promotions = Promotion.objects.bulk_create(
         [
             Promotion(
                 name="Promotion 1",
+                type=PromotionType.CATALOGUE,
                 description=dummy_editorjs("Promotion 1 description."),
                 start_date=timezone.now() + timedelta(days=1),
                 end_date=timezone.now() + timedelta(days=10),
             ),
             Promotion(
                 name="Promotion 2",
+                type=PromotionType.CATALOGUE,
                 description=dummy_editorjs("Promotion 2 description."),
                 start_date=timezone.now() + timedelta(days=5),
                 end_date=timezone.now() + timedelta(days=20),
             ),
             Promotion(
                 name="Promotion 3",
+                type=PromotionType.CATALOGUE,
                 description=dummy_editorjs("TePromotion 3 description."),
                 start_date=timezone.now() + timedelta(days=15),
                 end_date=timezone.now() + timedelta(days=30),
@@ -5691,10 +6063,10 @@ def promotion_list(channel_USD, product, collection):
 
 
 @pytest.fixture
-def promotion_rule(channel_USD, promotion, product):
+def promotion_rule(channel_USD, catalogue_promotion, product):
     rule = PromotionRule.objects.create(
         name="Promotion rule name",
-        promotion=promotion,
+        promotion=catalogue_promotion,
         description=dummy_editorjs("Test description for percentage promotion rule."),
         catalogue_predicate={
             "productPredicate": {
@@ -5705,6 +6077,37 @@ def promotion_rule(channel_USD, promotion, product):
         reward_value=Decimal("25"),
     )
     rule.channels.add(channel_USD)
+    return rule
+
+
+@pytest.fixture
+def order_promotion_rule(channel_USD, order_promotion_without_rules):
+    rule = PromotionRule.objects.create(
+        name="Order promotion rule",
+        promotion=order_promotion_without_rules,
+        order_predicate={
+            "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 20}}}
+        },
+        reward_value_type=RewardValueType.PERCENTAGE,
+        reward_value=Decimal("25"),
+        reward_type=RewardType.SUBTOTAL_DISCOUNT,
+    )
+    rule.channels.add(channel_USD)
+    return rule
+
+
+@pytest.fixture
+def gift_promotion_rule(channel_USD, order_promotion_without_rules, product_list):
+    rule = PromotionRule.objects.create(
+        name="Order promotion rule",
+        promotion=order_promotion_without_rules,
+        order_predicate={
+            "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 20}}}
+        },
+        reward_type=RewardType.GIFT,
+    )
+    rule.channels.add(channel_USD)
+    rule.gifts.set([product.variants.first() for product in product_list[:2]])
     return rule
 
 
@@ -5749,7 +6152,7 @@ def catalogue_predicate(product, category, collection, variant):
 
 @pytest.fixture
 def promotion_converted_from_sale(catalogue_predicate, channel_USD):
-    promotion = Promotion.objects.create(name="Sale")
+    promotion = Promotion.objects.create(name="Sale", type=PromotionType.CATALOGUE)
     promotion.assign_old_sale_id()
 
     rule = PromotionRule.objects.create(
@@ -5785,7 +6188,9 @@ def promotion_converted_from_sale_with_many_channels(
 
 @pytest.fixture
 def promotion_converted_from_sale_with_empty_predicate(channel_USD):
-    promotion = Promotion.objects.create(name="Sale with empty predicate")
+    promotion = Promotion.objects.create(
+        name="Sale with empty predicate", type=PromotionType.CATALOGUE
+    )
     promotion.assign_old_sale_id()
     rule = PromotionRule.objects.create(
         name="Sale with empty predicate rule",
@@ -5800,7 +6205,8 @@ def promotion_converted_from_sale_with_empty_predicate(channel_USD):
 
 
 @pytest.fixture
-def promotion_events(promotion, staff_user):
+def promotion_events(catalogue_promotion, staff_user):
+    promotion = catalogue_promotion
     rule_id = promotion.rules.first().pk
     events = PromotionEvent.objects.bulk_create(
         [
@@ -6222,7 +6628,9 @@ def page(db, page_type, size_page_attribute):
 
     # associate attribute value
     page_attr_value = size_page_attribute.values.get(slug="10")
-    associate_attribute_values_to_instance(page, size_page_attribute, page_attr_value)
+    associate_attribute_values_to_instance(
+        page, {size_page_attribute.pk: [page_attr_value]}
+    )
 
     return page
 
@@ -6241,10 +6649,10 @@ def page_with_rich_text_attribute(
     page = Page.objects.create(**data)
 
     # associate attribute value
-    page_attr_value = rich_text_attribute_page_type.values.first()
-    associate_attribute_values_to_instance(
-        page, rich_text_attribute_page_type, page_attr_value
-    )
+    page_attr = page_type_with_rich_text_attribute.page_attributes.first()
+    page_attr_value = page_attr.values.first()
+
+    associate_attribute_values_to_instance(page, {page_attr.pk: [page_attr_value]})
 
     return page
 
@@ -6381,7 +6789,7 @@ def translated_page_unique_attribute_value(page, rich_text_attribute_page_type):
     page_type.page_attributes.add(rich_text_attribute_page_type)
     attribute_value = rich_text_attribute_page_type.values.first()
     associate_attribute_values_to_instance(
-        page, rich_text_attribute_page_type, attribute_value
+        page, {rich_text_attribute_page_type.id: [attribute_value]}
     )
     return AttributeValueTranslation.objects.create(
         language_code="fr",
@@ -6396,7 +6804,7 @@ def translated_product_unique_attribute_value(product, rich_text_attribute):
     product_type.product_attributes.add(rich_text_attribute)
     attribute_value = rich_text_attribute.values.first()
     associate_attribute_values_to_instance(
-        product, rich_text_attribute, attribute_value
+        product, {rich_text_attribute.id: [attribute_value]}
     )
     return AttributeValueTranslation.objects.create(
         language_code="fr",
@@ -6411,7 +6819,7 @@ def translated_variant_unique_attribute_value(variant, rich_text_attribute):
     product_type.variant_attributes.add(rich_text_attribute)
     attribute_value = rich_text_attribute.values.first()
     associate_attribute_values_to_instance(
-        variant, rich_text_attribute, attribute_value
+        variant, {rich_text_attribute.id: [attribute_value]}
     )
     return AttributeValueTranslation.objects.create(
         language_code="fr",
@@ -6484,10 +6892,10 @@ def shipping_method_translation_fr(shipping_method):
 
 
 @pytest.fixture
-def promotion_translation_fr(promotion):
+def promotion_translation_fr(catalogue_promotion):
     return PromotionTranslation.objects.create(
         language_code="fr",
-        promotion=promotion,
+        promotion=catalogue_promotion,
         name="French promotion name",
         description=dummy_editorjs("French promotion description."),
     )
@@ -7083,6 +7491,39 @@ def shipping_app(db, permission_manage_shipping):
 
 
 @pytest.fixture
+def shipping_app_with_subscription(db, permission_manage_shipping):
+    app = App.objects.create(name="Shipping App with subscription", is_active=True)
+    app.tokens.create(name="Default")
+    app.permissions.add(permission_manage_shipping)
+
+    webhook = Webhook.objects.create(
+        name="shipping-webhook-1",
+        app=app,
+        target_url="https://shipping-app.com/api/",
+        subscription_query="""
+        subscription {
+  event {
+    ... on ShippingListMethodsForCheckout {
+      __typename
+    }
+  }
+}
+
+        """,
+    )
+    webhook.events.bulk_create(
+        [
+            WebhookEvent(event_type=event_type, webhook=webhook)
+            for event_type in [
+                WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+                WebhookEventAsyncType.FULFILLMENT_CREATED,
+            ]
+        ]
+    )
+    return app
+
+
+@pytest.fixture
 def list_stored_payment_methods_app(db, permission_manage_payments):
     app = App.objects.create(
         name="List payment methods app",
@@ -7196,6 +7637,30 @@ def tax_app(db, permission_handle_taxes):
         name="tax-webhook-1",
         app=app,
         target_url="https://tax-app.com/api/",
+        subscription_query=CALCULATE_TAXES_SUBSCRIPTION_QUERY,
+    )
+    webhook.events.bulk_create(
+        [
+            WebhookEvent(event_type=event_type, webhook=webhook)
+            for event_type in [
+                WebhookEventSyncType.ORDER_CALCULATE_TAXES,
+                WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
+            ]
+        ]
+    )
+    return app
+
+
+@pytest.fixture
+def tax_app_with_subscription_webhooks(db, permission_handle_taxes):
+    app = App.objects.create(name="Tax App with subscription", is_active=True)
+    app.permissions.add(permission_handle_taxes)
+
+    webhook = Webhook.objects.create(
+        name="tax-subscription-webhook-1",
+        app=app,
+        target_url="https://tax-app.com/api/",
+        subscription_query=CALCULATE_TAXES_SUBSCRIPTION_QUERY,
     )
     webhook.events.bulk_create(
         [
@@ -7569,7 +8034,7 @@ def checkout_with_prices(
     channel = checkout_with_items.channel
     lines = checkout_with_items.lines.all()
     lines_info, _ = fetch_checkout_lines(checkout_with_items)
-    checkout_info = fetch_checkout_info(checkout_with_items, lines, manager)
+    checkout_info = fetch_checkout_info(checkout_with_items, lines_info, manager)
 
     for line, line_info in zip(lines, lines_info):
         line.total_price_net_amount = base_calculations.calculate_base_line_total_price(
@@ -8145,6 +8610,20 @@ def action_required_gateway_response():
 
 
 @pytest.fixture
+def success_gateway_response():
+    return GatewayResponse(
+        is_success=True,
+        action_required=False,
+        action_required_data={},
+        kind=TransactionKind.CAPTURE,
+        amount=Decimal("10.0"),
+        currency="usd",
+        transaction_id="1234",
+        error=None,
+    )
+
+
+@pytest.fixture
 def product_media_image(product, image, media_root):
     return ProductMedia.objects.create(
         product=product,
@@ -8698,7 +9177,7 @@ def async_subscription_webhooks_with_root_objects(
 
 
 @pytest.fixture
-def lots_of_products_with_variants(product_type):
+def lots_of_products_with_variants(product_type, channel_USD):
     def chunks(iterable, size):
         it = iter(iterable)
         chunk = tuple(itertools.islice(it, size))
@@ -8713,19 +9192,41 @@ def lots_of_products_with_variants(product_type):
     for batch in chunks(range(products_count), 500):
         batch_len = len(batch)
         variants = []
-        for product in Product.objects.bulk_create(
-            [
-                Product(
-                    name=i,
-                    slug=next(slug_generator),
-                    product_type_id=product_type.pk,
+        product_listings = []
+        products = [
+            Product(
+                name=i,
+                slug=next(slug_generator),
+                product_type_id=product_type.pk,
+            )
+            for i in range(batch_len)
+        ]
+        for product in Product.objects.bulk_create(products):
+            product_listings.append(
+                ProductChannelListing(
+                    channel=channel_USD,
+                    product=product,
+                    visible_in_listings=True,
+                    available_for_purchase_at="2022-01-01",
+                    currency=channel_USD.currency_code,
                 )
-                for i in range(batch_len)
-            ]
-        ):
+            )
             for x in range(variants_per_product):
                 variant = ProductVariant(name=x, product_id=product.id)
                 variants.append(variant)
         ProductVariant.objects.bulk_create(variants)
-
+        variant_listings = []
+        for variant in variants:
+            price = random.randint(1, 100)
+            variant_listings.append(
+                ProductVariantChannelListing(
+                    variant=variant,
+                    channel=channel_USD,
+                    currency=channel_USD.currency_code,
+                    price_amount=price,
+                    discounted_price_amount=price,
+                )
+            )
+        ProductVariantChannelListing.objects.bulk_create(variant_listings)
+        ProductChannelListing.objects.bulk_create(product_listings)
     return Product.objects.all()

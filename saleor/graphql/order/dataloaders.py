@@ -13,7 +13,7 @@ from ...order.models import (
     OrderGrantedRefundLine,
     OrderLine,
 )
-from ...payment.models import TransactionItem
+from ...payment.models import TransactionEvent, TransactionItem
 from ...warehouse.models import Allocation
 from ..core.dataloaders import DataLoader
 
@@ -234,3 +234,18 @@ class TransactionItemsByOrderIDLoader(DataLoader):
         for transaction in transactions:
             transactions_map[transaction.order_id].append(transaction)
         return [transactions_map.get(order_id, []) for order_id in keys]
+
+
+class TransactionEventsByOrderGrantedRefundIdLoader(DataLoader):
+    context_key = "transaction_event_by_order_granted_refund_id"
+
+    def batch_load(self, keys):
+        events = (
+            TransactionEvent.objects.using(self.database_connection_name)
+            .filter(related_granted_refund__in=keys)
+            .order_by("-created_at")
+        )
+        event_map = defaultdict(list)
+        for event in events:
+            event_map[event.related_granted_refund_id].append(event)
+        return [event_map.get(granted_refund_id, []) for granted_refund_id in keys]

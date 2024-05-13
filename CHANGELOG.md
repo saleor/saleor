@@ -1,13 +1,46 @@
+
 # Changelog
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/saleor/saleor/releases) page.
 
-# 3.19.0 [Unreleased]
+# 3.20.0 [Unreleased]
 
 ### Highlights
+- Include transaction item in refund flow - #15590 by @korycins
+
+### Breaking changes
+- Remove the `anonymize` plugin. Use `saleor/core/utils/anonymization` code instead. - by @aniav
+
+### GraphQL API
+- Add `translatableContent` to all translation types; add translated object id to all translatable content types - #15617 by @zedzior
+- Add a `taxConfiguration` to a `Channel` - #15610 by @Air-t
+- Add `stocks` to a `Warehouse` - #15771 by @teddyondieki
+- Deprecate the `taxTypes` query - #15802 by @maarcingebala
+
+### Saleor Apps
+
+### Other changes
+- Remove `prefetched_for_webhook` to legacy payload generators - #15369 by @AjmalPonneth
+- Don't raise InsufficientStock for track_inventory=False variants #15475 by @carlosa54
+- DB performance improvements in attribute dataloaders - #15474 by @AjmalPonneth
+- Calculate order promotions in draft orders - #15459 by @zedzior
+- Prevent name overwriting of Product Variants when Updating Product Types - #15670 by @teddyondieki
+- Added support for the `BrokerProperties` custom header to webhooks to support Azure Service Bus - #15899 by @patrys
+- Extend valid address values - #15877 by @zedzior
+- Fixed a rare crash in the introspection query detection code - #15966 by @patrys
+- Fix transaction create mutation's psp_reference max length issue - #12696 by @ssuraliya
+
+# 3.19.0
+
+### Highlights
+- Introduce `order` promotion rules that allow applying discounts during checkout calculations when the checkout meets certain conditions. - #14696 by @IKarbowiak, @zedzior
+- Introduce gift reward as `order` promotion rule reward - #15259 by @zedzior, @IKarbowiak
+- New environment variable `EVENT_PAYLOAD_DELETE_TASK_TIME_LIMIT` to control time limit of `delete_event_payloads_task` - #15396 by @wcislo-saleor
 
 ### Breaking changes
 - Drop `OrderBulkCreateInput.voucher` field. Use `OrderBulkCreateInput.voucherCode` instead. - #14553 by @zedzior
+- Add new `type` field to `PromotionCreateInput`, the field will be required from 3.20 - #14696 by @IKarbowiak, @zedzior
+- Do not stack promotion rules within the promotion. Only the best promotion rule will be applied within the promotion. Previously discounts from all rules within the promotion that gives the best discount were applied to the variant's price - #15309 by @korycins
 
 ### GraphQL API
 
@@ -22,11 +55,19 @@ All notable, unreleased changes to this project will be documented in this file.
 - Unify how undiscounted prices are handled in orders and checkouts - #14780 by @jakubkuc
 - Drop demo - #14835 by @fowczarek
 - Add JSON serialization immediately after creating observability events to eliminate extra cPickle serialization and deserialization steps - #14992 by @przlada
-
 - Added caching of GraphQL documents for common queries to improve performance - #14843 by @patrys
 - Added `VOUCHER_CODES_CREATED` and `VOUCHER_CODES_DELETED` webhooks events. - #14652 by @SzymJ
-- Fix transaction create mutation's psp_reference max length issue - #12696 by @ssuraliya
+- Fixed validation for streetAddress1 or streetAddress2 are too long - #13973 by sonbui00
+- Clear db leftovers after attribute refactor - #15372 by @IKarbowiak
 
+- Added possibility to break checkout/draft order completion: #15292 by @kadewu
+  - Added new field `Shop.availableTaxApps`.
+  - Added new input `taxAppId` for `TaxConfigurationUpdateInput` and `TaxConfigurationPerCountryInput`.
+  - Added new field `taxAppId` in `TaxConfiguration` and `TaxConfigurationPerCountry`.
+  - Added new input `AppInput.identifier`.
+  - Added new parameter `identifier` for `create_app` command.
+  - When `taxAppId` is provided for `TaxConfiguration` do not allow to finalize `checkoutComplete` or `draftOrderComplete` mutations if Tax App or Avatax plugin didn't respond.
+- Add `unique_type` to `OrderLineDiscount` and `CheckoutLineDiscount` models - #15774 by @zedzior
 
 # 3.18.0
 

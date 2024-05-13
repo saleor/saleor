@@ -10,12 +10,12 @@ from ..mutations.test_promotion_rule_delete import PROMOTION_RULE_DELETE_MUTATIO
 def test_promotion_rule_delete(
     staff_api_client,
     permission_group_manage_discounts,
-    promotion,
+    catalogue_promotion,
     count_queries,
 ):
     # given
     staff_api_client.user.groups.add(permission_group_manage_discounts)
-    rule = promotion.rules.first()
+    rule = catalogue_promotion.rules.first()
     variables = {"id": graphene.Node.to_global_id("PromotionRule", rule.id)}
 
     # when

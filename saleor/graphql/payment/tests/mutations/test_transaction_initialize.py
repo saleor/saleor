@@ -1,8 +1,11 @@
-import datetime
 from decimal import Decimal
 from unittest import mock
 
 import pytest
+import pytz
+from django.conf import settings
+from django.test import override_settings
+from django.utils import timezone
 from freezegun import freeze_time
 
 from .....channel import TransactionFlowStrategy
@@ -17,6 +20,7 @@ from .....payment.interface import (
     TransactionSessionData,
     TransactionSessionResult,
 )
+from .....payment.models import TransactionItem
 from ....channel.enums import TransactionFlowStrategyEnum
 from ....core.enums import TransactionInitializeErrorCode
 from ....core.utils import to_global_id_or_none
@@ -231,6 +235,42 @@ def test_for_checkout_without_payment_gateway_data(
     )
     assert checkout.charge_status == CheckoutChargeStatus.PARTIAL
     assert checkout.authorize_status == CheckoutAuthorizeStatus.PARTIAL
+
+
+@override_settings(TRANSACTION_ITEMS_LIMIT=3)
+def test_for_checkout_transactions_limit_on_transaction_initialize(
+    user_api_client, checkout_with_prices
+):
+    # given
+    TransactionItem.objects.bulk_create(
+        [
+            TransactionItem(
+                checkout=checkout_with_prices, currency=checkout_with_prices.currency
+            )
+            for _ in range(settings.TRANSACTION_ITEMS_LIMIT)
+        ]
+    )
+
+    variables = {
+        "action": None,
+        "amount": 99,
+        "id": to_global_id_or_none(checkout_with_prices),
+        "paymentGateway": {"id": "any", "data": None},
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["transactionInitialize"]
+    assert data["errors"]
+    error = data["errors"][0]
+    assert error["code"] == TransactionInitializeErrorCode.INVALID.name
+    assert error["field"] == "id"
+    assert error["message"] == (
+        "Checkout transactions limit of " f"{settings.TRANSACTION_ITEMS_LIMIT} reached."
+    )
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
@@ -1899,7 +1939,7 @@ def test_customer_ip_address_ipv6(
 @freeze_time("2023-03-18 12:00:00")
 @pytest.mark.parametrize(
     "previous_last_transaction_modified_at",
-    [None, datetime.datetime(2020, 1, 1)],
+    [None, timezone.datetime(2020, 1, 1, tzinfo=pytz.UTC)],
 )
 @mock.patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
 @mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")

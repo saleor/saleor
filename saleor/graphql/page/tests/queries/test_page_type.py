@@ -1,4 +1,5 @@
 import graphene
+import pytest
 
 from ....tests.utils import (
     assert_no_permission,
@@ -300,3 +301,102 @@ def test_query_page_types_for_federation(api_client, page_type):
             "name": page_type.name,
         }
     ]
+
+
+PAGE_TYPE_ATTRIBUTES_QUERY = """
+    query PageType($id: ID!) {
+        pageType(id: $id) {
+            attributes {
+                id
+                slug
+            }
+        }
+    }
+"""
+
+
+def test_page_type_attribute_not_visible_in_storefront_for_customer_is_not_returned(
+    user_api_client, page_type
+):
+    # given
+    attribute = page_type.page_attributes.first()
+    attribute.visible_in_storefront = False
+    attribute.save(update_fields=["visible_in_storefront"])
+    visible_attrs_count = page_type.page_attributes.filter(
+        visible_in_storefront=True
+    ).count()
+
+    # when
+    variables = {
+        "id": graphene.Node.to_global_id("PageType", page_type.pk),
+    }
+    response = user_api_client.post_graphql(
+        PAGE_TYPE_ATTRIBUTES_QUERY,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert len(content["data"]["pageType"]["attributes"]) == visible_attrs_count
+    attr_data = {
+        "id": graphene.Node.to_global_id("Attribute", attribute.pk),
+        "slug": attribute.slug,
+    }
+    assert attr_data not in content["data"]["pageType"]["attributes"]
+
+
+def test_page_type_attribute_visible_in_storefront_for_customer_is_returned(
+    user_api_client, page_type
+):
+    # given
+    attribute = page_type.page_attributes.first()
+    attribute.visible_in_storefront = True
+    attribute.save(update_fields=["visible_in_storefront"])
+
+    # when
+    variables = {
+        "id": graphene.Node.to_global_id("PageType", page_type.pk),
+    }
+    response = user_api_client.post_graphql(
+        PAGE_TYPE_ATTRIBUTES_QUERY,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    attr_data = {
+        "id": graphene.Node.to_global_id("Attribute", attribute.pk),
+        "slug": attribute.slug,
+    }
+    assert attr_data in content["data"]["pageType"]["attributes"]
+
+
+@pytest.mark.parametrize("visible_in_storefront", [False, True])
+def test_page_type_attribute_visible_in_storefront_for_staff_is_always_returned(
+    visible_in_storefront,
+    staff_api_client,
+    page_type,
+    permission_manage_pages,
+):
+    # given
+    attribute = page_type.page_attributes.first()
+    attribute.visible_in_storefront = visible_in_storefront
+    attribute.save(update_fields=["visible_in_storefront"])
+
+    # when
+    variables = {
+        "id": graphene.Node.to_global_id("PageType", page_type.pk),
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_pages)
+    response = staff_api_client.post_graphql(
+        PAGE_TYPE_ATTRIBUTES_QUERY,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    attr_data = {
+        "id": graphene.Node.to_global_id("Attribute", attribute.pk),
+        "slug": attribute.slug,
+    }
+    assert attr_data in content["data"]["pageType"]["attributes"]

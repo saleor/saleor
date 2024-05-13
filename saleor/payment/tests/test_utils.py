@@ -8,7 +8,7 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from ...order import OrderAuthorizeStatus, OrderChargeStatus
+from ...order import OrderAuthorizeStatus, OrderChargeStatus, OrderGrantedRefundStatus
 from ...plugins.manager import get_plugins_manager
 from ...tests.utils import flush_post_commit_hooks
 from .. import TransactionEventType
@@ -189,7 +189,7 @@ def test_get_channel_slug_from_payment_with_checkout(checkout_with_payments):
     assert get_channel_slug_from_payment(payment) == expected
 
 
-def test_get_channel_slug_from_payment_without_checkout_and_order(
+def test_get_channel_slug_from_payment_without_order(
     checkout_with_payments,
 ):
     payment = checkout_with_payments.payments.first()
@@ -1292,6 +1292,105 @@ def test_create_event_from_request_and_webhook_success_event_calculate_refundabl
     transaction.refresh_from_db()
     assert transaction.last_refund_success is True
     assert checkout.automatically_refundable is True
+
+
+@pytest.mark.parametrize(
+    ("event_type", "expected_status"),
+    [
+        (TransactionEventType.REFUND_SUCCESS, OrderGrantedRefundStatus.SUCCESS),
+        (TransactionEventType.REFUND_FAILURE, OrderGrantedRefundStatus.FAILURE),
+    ],
+)
+def test_create_event_from_request_and_webhook_success_updated_granted_refund_status(
+    event_type,
+    expected_status,
+    transaction_item_generator,
+    order,
+    app,
+):
+    # given
+    transaction = transaction_item_generator(
+        order_id=order.pk, charged_value=Decimal(100)
+    )
+
+    granted_refund = order.granted_refunds.create(
+        amount_value=Decimal(100),
+        currency="USD",
+        transaction_item_id=transaction.id,
+        status=OrderGrantedRefundStatus.NONE,
+    )
+    with freeze_time("2022-11-18T12:25:58"):
+        request_event = TransactionEvent.objects.create(
+            type=TransactionEventType.REFUND_REQUEST,
+            amount_value=Decimal(11.00),
+            currency="USD",
+            transaction_id=transaction.id,
+            related_granted_refund=granted_refund,
+        )
+
+    event_amount = 12.00
+    event_type = event_type
+    event_time = "2022-11-18T13:25:58.169685+00:00"
+    event_url = "http://localhost:3000/event/ref123"
+    event_cause = "No cause"
+
+    response_data = {
+        "pspReference": "123",
+        "amount": event_amount,
+        "result": event_type.upper(),
+        "time": event_time,
+        "externalUrl": event_url,
+        "message": event_cause,
+        "actions": ["CHARGE", "CHARGE", "CANCEL"],
+    }
+
+    # when
+    create_transaction_event_from_request_and_webhook_response(
+        request_event, app, response_data
+    )
+
+    # then
+    granted_refund.refresh_from_db()
+    assert granted_refund.status == expected_status
+
+
+def test_create_event_from_request_and_webhook_success_granted_refund_status_only_psp(
+    transaction_item_generator,
+    order,
+    app,
+):
+    # given
+    transaction = transaction_item_generator(
+        order_id=order.pk, charged_value=Decimal(100)
+    )
+
+    granted_refund = order.granted_refunds.create(
+        amount_value=Decimal(100),
+        currency="USD",
+        transaction_item_id=transaction.id,
+        status=OrderGrantedRefundStatus.NONE,
+    )
+    with freeze_time("2022-11-18T12:25:58"):
+        request_event = TransactionEvent.objects.create(
+            type=TransactionEventType.REFUND_REQUEST,
+            amount_value=Decimal(11.00),
+            currency="USD",
+            transaction_id=transaction.id,
+            related_granted_refund=granted_refund,
+        )
+
+    response_data = {
+        "pspReference": "123",
+    }
+
+    # when
+    create_transaction_event_from_request_and_webhook_response(
+        request_event, app, response_data
+    )
+
+    # then
+    granted_refund.refresh_from_db()
+    assert granted_refund.status == OrderGrantedRefundStatus.PENDING
 
 
 def test_create_event_from_request_and_webhook_pending_event_calculate_refundable(

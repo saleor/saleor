@@ -8,8 +8,6 @@ from ...checkout.fetch import (
     CheckoutInfo,
     CheckoutLineInfo,
     apply_voucher_to_checkout_line,
-    get_delivery_method_info,
-    update_delivery_method_lists_for_checkout_info,
 )
 from ...checkout.models import Checkout, CheckoutLine, CheckoutMetadata
 from ...checkout.problems import (
@@ -22,6 +20,7 @@ from ...checkout.problems import (
     get_checkout_lines_problems,
     get_checkout_problems,
 )
+from ...core.db.connection import allow_writer_in_context
 from ...discount import VoucherType
 from ...discount.interface import VariantPromotionRuleInfo
 from ...payment.models import TransactionItem
@@ -31,6 +30,7 @@ from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..channel.dataloaders import ChannelByIdLoader
 from ..core.dataloaders import DataLoader
 from ..discount.dataloaders import (
+    CheckoutDiscountByCheckoutIdLoader,
     CheckoutLineDiscountsByCheckoutLineIdLoader,
     PromotionByRuleIdLoader,
     PromotionRuleByIdLoader,
@@ -90,6 +90,7 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader[str, list[CheckoutLineIn
 
             channel_pks = [checkout.channel_id for checkout in checkouts]
 
+            @allow_writer_in_context(self.context)
             def with_variants_products_collections(results):
                 (
                     variants,
@@ -160,7 +161,6 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader[str, list[CheckoutLineIn
                     ):
                         apply_voucher_to_checkout_line(
                             voucher_info=voucher_info,
-                            checkout=checkout,
                             lines_info=lines_info_map[checkout.pk],
                         )
                 return [lines_info_map[key] for key in keys]
@@ -421,7 +421,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
 
     def batch_load(self, keys):
         def with_checkout(data):
-            checkouts, checkout_line_infos, manager = data
+            checkouts, checkout_line_infos, checkout_discounts, manager = data
             from ..channel.dataloaders import ChannelByIdLoader
 
             channel_pks = [checkout.channel_id for checkout in checkouts]
@@ -503,6 +503,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
                     voucher_code_map = {
                         voucher_code.code: voucher_code
                         for voucher_code in voucher_codes
+                        if voucher_code
                     }
                     tax_configuration_by_channel_map = {
                         tax_configuration.channel_id: tax_configuration
@@ -510,8 +511,12 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
                     }
 
                     checkout_info_map = {}
-                    for key, checkout, channel, checkout_lines in zip(
-                        keys, checkouts, channels, checkout_line_infos
+                    for key, checkout, channel, checkout_lines, discounts in zip(
+                        keys,
+                        checkouts,
+                        channels,
+                        checkout_line_infos,
+                        checkout_discounts,
                     ):
                         shipping_method = shipping_method_map.get(
                             checkout.shipping_method_id
@@ -519,11 +524,15 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
                         collection_point = collection_points_map.get(
                             checkout.collection_point_id
                         )
-                        shipping_address = address_map.get(checkout.shipping_address_id)
-                        delivery_method_info = get_delivery_method_info(
-                            None, shipping_address
-                        )
                         voucher_code = voucher_code_map.get(checkout.voucher_code)
+
+                        shipping_channel_listings = [
+                            listing
+                            for channel_listings in listings_for_channels
+                            for listing in channel_listings
+                            if listing.channel_id == channel.id
+                        ]
+
                         checkout_info = CheckoutInfo(
                             checkout=checkout,
                             user=user_map.get(checkout.user_id),
@@ -534,29 +543,17 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
                             shipping_address=address_map.get(
                                 checkout.shipping_address_id
                             ),
-                            delivery_method_info=delivery_method_info,
                             tax_configuration=tax_configuration_by_channel_map[
                                 channel.id
                             ],
-                            valid_pick_up_points=[],
-                            all_shipping_methods=[],
+                            discounts=discounts,
+                            lines=checkout_lines,
+                            manager=manager,
+                            shipping_channel_listings=shipping_channel_listings,
+                            shipping_method=shipping_method,
+                            collection_point=collection_point,
                             voucher=voucher_code.voucher if voucher_code else None,
                             voucher_code=voucher_code,
-                        )
-                        shipping_method_listings = [
-                            listing
-                            for channel_listings in listings_for_channels
-                            for listing in channel_listings
-                            if listing.channel_id == channel.id
-                        ]
-                        update_delivery_method_lists_for_checkout_info(
-                            checkout_info,
-                            shipping_method,
-                            collection_point,
-                            shipping_address,
-                            checkout_lines,
-                            manager,
-                            shipping_method_listings,
                         )
                         checkout_info_map[key] = checkout_info
 
@@ -584,8 +581,9 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
         checkout_line_infos = CheckoutLinesInfoByCheckoutTokenLoader(
             self.context
         ).load_many(keys)
+        discounts = CheckoutDiscountByCheckoutIdLoader(self.context).load_many(keys)
         manager = get_plugin_manager_promise(self.context)
-        return Promise.all([checkouts, checkout_line_infos, manager]).then(
+        return Promise.all([checkouts, checkout_line_infos, discounts, manager]).then(
             with_checkout
         )
 

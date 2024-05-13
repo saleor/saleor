@@ -16,25 +16,33 @@ if TYPE_CHECKING:
     pass
 
 
-def get_transaction_item(id: str) -> payment_models.TransactionItem:
-    """Get transaction based on global ID.
+def get_transaction_item(
+    id, token, error_field_name="id", qs=None
+) -> payment_models.TransactionItem:
+    """Get transaction based on token or global ID.
 
     The transactions created before 3.13 were using the `id` field as a graphql ID.
     From 3.13, the `token` is used as a graphql ID. All transactionItems created
     before 3.13 will use an `int` id as an identification.
     """
-    _, db_id = from_global_id_or_error(
-        global_id=id, only_type=TransactionItem, raise_error=True
-    )
+    if token:
+        db_id = str(token)
+    else:
+        _, db_id = from_global_id_or_error(
+            global_id=id, only_type=TransactionItem, raise_error=True
+        )
     if db_id.isdigit():
         query_params = {"id": db_id, "use_old_id": True}
     else:
         query_params = {"token": db_id}
-    instance = payment_models.TransactionItem.objects.filter(**query_params).first()
+    if qs is None:
+        qs = payment_models.TransactionItem.objects
+
+    instance = qs.filter(**query_params).first()
     if not instance:
         raise ValidationError(
             {
-                "id": ValidationError(
+                error_field_name: ValidationError(
                     f"Couldn't resolve to a node: {id}",
                     code=TransactionUpdateErrorCode.NOT_FOUND.value,
                 )

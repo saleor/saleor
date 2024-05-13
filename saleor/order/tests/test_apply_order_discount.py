@@ -1,7 +1,7 @@
 from decimal import Decimal
 
 import pytest
-from prices import Money, TaxedMoney
+from prices import Money
 
 from ...core.prices import quantize_price
 from ...core.taxes import zero_money
@@ -9,51 +9,8 @@ from ...discount import DiscountType, DiscountValueType
 from ...order.base_calculations import (
     apply_order_discounts,
     apply_subtotal_discount_to_order_lines,
-    base_order_line_total,
-    base_order_total,
 )
-from ...order.interface import OrderTaxedPricesData
-
-
-def test_base_order_total(order_with_lines):
-    # given
-    order = order_with_lines
-    lines = order.lines.all()
-    shipping_price = order.shipping_price.net
-    subtotal = zero_money(order.currency)
-    for line in lines:
-        subtotal += line.base_unit_price * line.quantity
-    undiscounted_total = subtotal + shipping_price
-
-    # when
-    order_total = base_order_total(order, lines)
-
-    # then
-    assert order_total == undiscounted_total
-
-
-def test_base_order_line_total(order_with_lines):
-    # given
-    line = order_with_lines.lines.all().first()
-
-    # when
-    order_total = base_order_line_total(line)
-
-    # then
-    base_line_unit_price = line.base_unit_price
-    quantity = line.quantity
-    expected_price_with_discount = (
-        TaxedMoney(base_line_unit_price, base_line_unit_price) * quantity
-    )
-    base_line_undiscounted_unit_price = line.undiscounted_base_unit_price
-    expected_undiscounted_price = (
-        TaxedMoney(base_line_undiscounted_unit_price, base_line_undiscounted_unit_price)
-        * quantity
-    )
-    assert order_total == OrderTaxedPricesData(
-        price_with_discounts=expected_price_with_discount,
-        undiscounted_price=expected_undiscounted_price,
-    )
+from ..models import OrderLine
 
 
 def test_apply_order_discounts_voucher_entire_order(order_with_lines, voucher):
@@ -84,6 +41,8 @@ def test_apply_order_discounts_voucher_entire_order(order_with_lines, voucher):
     # then
     assert discounted_shipping_price == shipping_price
     assert discounted_subtotal == subtotal - Money(discount_amount, currency)
+    assert order.subtotal_net_amount == discounted_subtotal.amount
+    assert order.subtotal_gross_amount == discounted_subtotal.amount
     assert order.total_net == discounted_subtotal + discounted_shipping_price
     assert order.total_gross == discounted_subtotal + discounted_shipping_price
     assert order.shipping_price_net == discounted_shipping_price
@@ -220,12 +179,16 @@ def test_apply_order_discounts_manual_discount(order_with_lines):
     assert order_discount.amount_value == discount_amount
 
 
-def test_apply_order_discounts_manual_discount_and_zero_order_total(order):
+def test_apply_order_discounts_zero_discount(order_with_lines):
     # given
+    order = order_with_lines
     lines = order.lines.all()
-    assert not lines
-
     currency = order.currency
+    undiscounted_total = order.base_shipping_price_amount + sum(
+        line.undiscounted_total_price_net_amount for line in lines
+    )
+    undiscounted_total = Money(undiscounted_total, currency)
+
     order.discounts.create(
         type=DiscountType.MANUAL,
         value_type=DiscountValueType.FIXED,
@@ -234,6 +197,53 @@ def test_apply_order_discounts_manual_discount_and_zero_order_total(order):
         translated_name="StaffDiscountPL",
         currency=currency,
         amount_value=0,
+    )
+
+    # when
+    discounted_subtotal, discounted_shipping_price = apply_order_discounts(order, lines)
+
+    # then
+    assert discounted_subtotal + discounted_shipping_price == undiscounted_total
+
+
+def test_apply_order_discounts_subtotal_zero(order_with_lines):
+    # given
+    order = order_with_lines
+    lines = order.lines.all()
+    for line in lines:
+        line.base_unit_price_amount = Decimal(0)
+    OrderLine.objects.bulk_update(lines, fields=["base_unit_price_amount"])
+
+    currency = order.currency
+    order.discounts.create(
+        type=DiscountType.MANUAL,
+        value_type=DiscountValueType.FIXED,
+        value=10,
+        name="StaffDiscount",
+        translated_name="StaffDiscountPL",
+        currency=currency,
+    )
+
+    # when
+    discounted_subtotal, discounted_shipping_price = apply_order_discounts(order, lines)
+
+    # then
+    assert discounted_subtotal + discounted_shipping_price == zero_money(currency)
+
+
+def test_apply_order_discounts_manual_discount_no_lines(order):
+    # given
+    lines = order.lines.all()
+    assert not lines
+
+    currency = order.currency
+    order.discounts.create(
+        type=DiscountType.MANUAL,
+        value_type=DiscountValueType.FIXED,
+        value=10,
+        name="StaffDiscount",
+        translated_name="StaffDiscountPL",
+        currency=currency,
     )
 
     # when

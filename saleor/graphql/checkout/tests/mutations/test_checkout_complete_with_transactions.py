@@ -1845,7 +1845,7 @@ def test_checkout_with_voucher_complete_product_on_sale(
     user_api_client,
     checkout_with_voucher_percentage,
     voucher_percentage,
-    promotion_without_rules,
+    catalogue_promotion_without_rules,
     address,
     shipping_method,
     transaction_events_generator,
@@ -1866,15 +1866,15 @@ def test_checkout_with_voucher_complete_product_on_sale(
     voucher_percentage.save(update_fields=["usage_limit"])
 
     old_sale_id = 1
-    promotion_without_rules.old_sale_id = old_sale_id
-    promotion_without_rules.save(update_fields=["old_sale_id"])
+    catalogue_promotion_without_rules.old_sale_id = old_sale_id
+    catalogue_promotion_without_rules.save(update_fields=["old_sale_id"])
 
     checkout_line = checkout.lines.first()
     checkout_line_variant = checkout_line.variant
 
     channel = checkout.channel
     reward_value = Decimal("5")
-    rule = promotion_without_rules.rules.create(
+    rule = catalogue_promotion_without_rules.rules.create(
         catalogue_predicate={
             "productPredicate": {
                 "ids": [
@@ -1910,10 +1910,11 @@ def test_checkout_with_voucher_complete_product_on_sale(
         amount_value=reward_value,
         currency=channel.currency_code,
         promotion_rule=rule,
+        reason=f"Sale: {graphene.Node.to_global_id('Sale', old_sale_id)}",
     )
 
-    promotion_without_rules.name = ""
-    promotion_without_rules.save(update_fields=["name"])
+    catalogue_promotion_without_rules.name = ""
+    catalogue_promotion_without_rules.save(update_fields=["name"])
 
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
@@ -1953,7 +1954,7 @@ def test_checkout_with_voucher_complete_product_on_sale(
         order_line.undiscounted_total_price - order_line.total_price
     )
     assert order_line.sale_id == graphene.Node.to_global_id(
-        "Sale", promotion_without_rules.old_sale_id
+        "Sale", catalogue_promotion_without_rules.old_sale_id
     )
     assert order_line.unit_discount_reason == f"Sale: {order_line.sale_id}"
 
@@ -2047,7 +2048,7 @@ def test_checkout_with_voucher_on_specific_product_complete(
 def test_checkout_complete_product_on_promotion(
     user_api_client,
     checkout_with_item,
-    promotion_without_rules,
+    catalogue_promotion_without_rules,
     address,
     shipping_method,
     transaction_events_generator,
@@ -2069,7 +2070,7 @@ def test_checkout_complete_product_on_promotion(
     channel = checkout.channel
 
     reward_value = Decimal("5")
-    rule = promotion_without_rules.rules.create(
+    rule = catalogue_promotion_without_rules.rules.create(
         catalogue_predicate={
             "productPredicate": {
                 "ids": [
@@ -2145,7 +2146,7 @@ def test_checkout_complete_product_on_promotion(
         order_line.undiscounted_total_price - order_line.total_price
     )
     assert order_line.sale_id == graphene.Node.to_global_id(
-        "Promotion", promotion_without_rules.id
+        "Promotion", catalogue_promotion_without_rules.id
     )
     assert not Checkout.objects.filter(
         pk=checkout.pk
@@ -2157,7 +2158,7 @@ def test_checkout_complete_multiple_rules_applied(
     checkout_with_item,
     address,
     shipping_method,
-    promotion_without_rules,
+    catalogue_promotion_without_rules,
     transaction_events_generator,
     transaction_item_generator,
 ):
@@ -2182,7 +2183,7 @@ def test_checkout_complete_multiple_rules_applied(
         [
             PromotionRule(
                 name="Percentage promotion rule 1",
-                promotion=promotion_without_rules,
+                promotion=catalogue_promotion_without_rules,
                 reward_value_type=RewardValueType.FIXED,
                 reward_value=reward_value_1,
                 catalogue_predicate={
@@ -2197,7 +2198,7 @@ def test_checkout_complete_multiple_rules_applied(
             ),
             PromotionRule(
                 name="Percentage promotion rule 2",
-                promotion=promotion_without_rules,
+                promotion=catalogue_promotion_without_rules,
                 reward_value_type=RewardValueType.PERCENTAGE,
                 reward_value=reward_value_2,
                 catalogue_predicate={
@@ -2303,7 +2304,7 @@ def test_checkout_complete_multiple_rules_applied(
     )
 
     assert order_line.sale_id == graphene.Node.to_global_id(
-        "Promotion", promotion_without_rules.id
+        "Promotion", catalogue_promotion_without_rules.id
     )
     assert not Checkout.objects.filter(
         pk=checkout.pk
@@ -2314,7 +2315,7 @@ def test_checkout_with_voucher_on_specific_product_complete_with_product_on_prom
     user_api_client,
     checkout_with_item_and_voucher_specific_products,
     voucher_specific_product_type,
-    promotion_with_single_rule,
+    catalogue_promotion_with_single_rule,
     address,
     shipping_method,
     transaction_events_generator,
@@ -2340,7 +2341,7 @@ def test_checkout_with_voucher_on_specific_product_complete_with_product_on_prom
         "ProductVariant", checkout_line_variant.id
     )
 
-    rule = promotion_with_single_rule.rules.first()
+    rule = catalogue_promotion_with_single_rule.rules.first()
     predicate = {"variantPredicate": {"ids": [checkout_line_variant_id]}}
     rule.catalogue_predicate = predicate
     rule.save(update_fields=["catalogue_predicate"])
@@ -2772,7 +2773,8 @@ def test_complete_checkout_for_local_click_and_collect(
 
     assert order.collection_point == warehouse_for_cc
     assert order.shipping_method is None
-    assert order.shipping_address == warehouse_for_cc.address
+    assert order.shipping_address
+    assert order.shipping_address.id != warehouse_for_cc.address.id
     assert order.shipping_price == zero_taxed_money(order.channel.currency_code)
     assert order.lines.count() == 1
 
@@ -2832,7 +2834,8 @@ def test_complete_checkout_for_global_click_and_collect(
 
     assert order.collection_point == warehouse_for_cc
     assert order.shipping_method is None
-    assert order.shipping_address == warehouse_for_cc.address
+    assert order.shipping_address
+    assert order.shipping_address.id != warehouse_for_cc.address.id
     assert order.shipping_price == zero_taxed_money(order.channel.currency_code)
     assert order.lines.count() == 1
 

@@ -2,6 +2,7 @@ from collections.abc import Iterable
 from decimal import Decimal
 from typing import TYPE_CHECKING, Optional
 
+from django.conf import settings
 from prices import TaxedMoney
 
 from ..core.utils.country import get_active_country
@@ -65,54 +66,32 @@ def get_tax_calculation_strategy(
     ) or TaxCalculationStrategy.FLAT_RATES
 
 
-def get_charge_taxes_for_order(order: "Order") -> bool:
-    """Get charge_taxes value for order."""
-    channel = order.channel
-    tax_configuration = channel.tax_configuration
-    country_code = get_active_country(
-        channel,
-        order.shipping_address,
-        order.billing_address,
+def get_tax_app_id(
+    channel_tax_configuration: "TaxConfiguration",
+    country_tax_configuration: Optional["TaxConfigurationPerCountry"],
+) -> Optional[str]:
+    """Get tax_app_id value for tax channel configuration.
+
+    :param channel_tax_configuration: Channel-specific tax configuration.
+    :param country_tax_configuration: Country-specific tax configuration for the given
+    channel.
+    """
+    return (
+        country_tax_configuration.tax_app_id
+        if country_tax_configuration and country_tax_configuration.tax_app_id
+        else channel_tax_configuration.tax_app_id
     )
-    country_tax_configuration = next(
-        (
-            tc
-            for tc in tax_configuration.country_exceptions.all()
-            if tc.country.code == country_code
-        ),
-        None,
-    )
-    return get_charge_taxes(tax_configuration, country_tax_configuration)
 
 
-def get_tax_calculation_strategy_for_order(order: "Order"):
-    """Get tax_calculation_strategy value for order."""
-    channel = order.channel
-    tax_configuration = channel.tax_configuration
-    country_code = get_active_country(
-        channel,
-        order.shipping_address,
-        order.billing_address,
-    )
-    country_tax_configuration = next(
-        (
-            tc
-            for tc in tax_configuration.country_exceptions.all()
-            if tc.country.code == country_code
-        ),
-        None,
-    )
-    return get_tax_calculation_strategy(tax_configuration, country_tax_configuration)
-
-
-def _get_tax_configuration_for_checkout(
-    checkout_info: "CheckoutInfo", lines: Iterable["CheckoutLineInfo"]
+def _get_tax_configuration_for_order(
+    order: "Order",
 ) -> tuple["TaxConfiguration", Optional["TaxConfigurationPerCountry"]]:
-    tax_configuration = checkout_info.tax_configuration
+    channel = order.channel
+    tax_configuration = channel.tax_configuration
     country_code = get_active_country(
-        checkout_info.channel,
-        checkout_info.shipping_address,
-        checkout_info.billing_address,
+        channel,
+        order.shipping_address,
+        order.billing_address,
     )
     country_tax_configuration = next(
         (
@@ -125,24 +104,88 @@ def _get_tax_configuration_for_checkout(
     return tax_configuration, country_tax_configuration
 
 
+def get_charge_taxes_for_order(order: "Order") -> bool:
+    """Get charge_taxes value for order."""
+    tax_configuration, country_tax_configuration = _get_tax_configuration_for_order(
+        order
+    )
+    return get_charge_taxes(tax_configuration, country_tax_configuration)
+
+
+def get_tax_calculation_strategy_for_order(order: "Order"):
+    """Get tax_calculation_strategy value for order."""
+    tax_configuration, country_tax_configuration = _get_tax_configuration_for_order(
+        order
+    )
+    return get_tax_calculation_strategy(tax_configuration, country_tax_configuration)
+
+
+def get_tax_app_identifier_for_order(order: "Order"):
+    """Get tax_app_id value for order."""
+    tax_configuration, country_tax_configuration = _get_tax_configuration_for_order(
+        order
+    )
+    return get_tax_app_id(tax_configuration, country_tax_configuration)
+
+
+def _get_tax_configuration_for_checkout(
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+) -> tuple["TaxConfiguration", Optional["TaxConfigurationPerCountry"]]:
+    tax_configuration = checkout_info.tax_configuration
+    country_code = get_active_country(
+        checkout_info.channel,
+        checkout_info.shipping_address,
+        checkout_info.billing_address,
+    )
+    country_tax_configuration = next(
+        (
+            tc
+            for tc in tax_configuration.country_exceptions.using(
+                database_connection_name
+            ).all()
+            if tc.country.code == country_code
+        ),
+        None,
+    )
+    return tax_configuration, country_tax_configuration
+
+
 def get_charge_taxes_for_checkout(
-    checkout_info: "CheckoutInfo", lines: Iterable["CheckoutLineInfo"]
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     """Get charge_taxes value for checkout."""
     tax_configuration, country_tax_configuration = _get_tax_configuration_for_checkout(
-        checkout_info, lines
+        checkout_info, lines, database_connection_name=database_connection_name
     )
     return get_charge_taxes(tax_configuration, country_tax_configuration)
 
 
 def get_tax_calculation_strategy_for_checkout(
-    checkout_info: "CheckoutInfo", lines: Iterable["CheckoutLineInfo"]
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     """Get tax_calculation_strategy value for checkout."""
     tax_configuration, country_tax_configuration = _get_tax_configuration_for_checkout(
-        checkout_info, lines
+        checkout_info, lines, database_connection_name=database_connection_name
     )
     return get_tax_calculation_strategy(tax_configuration, country_tax_configuration)
+
+
+def get_tax_app_identifier_for_checkout(
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+):
+    """Get tax_app_id value for checkout."""
+    tax_configuration, country_tax_configuration = _get_tax_configuration_for_checkout(
+        checkout_info, lines, database_connection_name=database_connection_name
+    )
+    return get_tax_app_id(tax_configuration, country_tax_configuration)
 
 
 def normalize_tax_rate_for_db(tax_rate: Decimal) -> Decimal:

@@ -3,6 +3,7 @@ from decimal import Decimal
 import pytest
 
 from .....core.prices import quantize_price
+from .....product.tasks import recalculate_discounted_price_for_products_task
 from ... import DEFAULT_ADDRESS
 from ...product.utils.preparing_product import prepare_product
 from ...promotions.utils import create_promotion, create_promotion_rule
@@ -54,24 +55,33 @@ def test_order_products_on_promotion_and_manual_order_discount_CORE_2108(
     discount_type = "PERCENTAGE"
     promotion_rule_name = "rule for product"
 
-    promotion_data = create_promotion(e2e_staff_api_client, promotion_name)
+    promotion_type = "CATALOGUE"
+    promotion_data = create_promotion(
+        e2e_staff_api_client, promotion_name, promotion_type
+    )
     promotion_id = promotion_data["id"]
 
     catalogue_predicate = {"productPredicate": {"ids": [product_id]}}
-
+    input = {
+        "promotion": promotion_id,
+        "channels": [channel_id],
+        "name": promotion_rule_name,
+        "cataloguePredicate": catalogue_predicate,
+        "rewardValue": promotion_discount_value,
+        "rewardValueType": discount_type,
+    }
     promotion_rule = create_promotion_rule(
         e2e_staff_api_client,
-        promotion_id,
-        catalogue_predicate,
-        discount_type,
-        promotion_discount_value,
-        promotion_rule_name,
-        channel_id,
+        input,
     )
     product_predicate = promotion_rule["cataloguePredicate"]["productPredicate"]["ids"]
     assert promotion_rule["channels"][0]["id"] == channel_id
     assert product_predicate[0] == product_id
     currency = "USD"
+
+    # prices are updated in the background, we need to force it to retrieve the correct
+    # ones
+    recalculate_discounted_price_for_products_task()
 
     # Step 1 - Create a draft order for a product with fixed promotion
     input = {
@@ -151,8 +161,8 @@ def test_order_products_on_promotion_and_manual_order_discount_CORE_2108(
     )
     assert product_price == product_variant_price
     assert order_line["unitDiscount"]["amount"] == promotion_value
-    assert order_line["unitDiscountType"] == "FIXED"
-    assert order_line["unitDiscountValue"] == promotion_value
+    assert order_line["unitDiscountType"] == "PERCENTAGE"
+    assert order_line["unitDiscountValue"] == promotion_discount_value
     assert order_line["unitDiscountReason"] == promotion_reason
     product_discounted_price = product_price - promotion_value
     shipping_amount = quantize_price(

@@ -358,7 +358,7 @@ def test_get_payment_gateways_with_transactions_and_app_without_identifier(
 ):
     # given
     app_name = "Payment App 2"
-    app_identifier = None
+    app_identifier = ""
     app = App.objects.create(name=app_name, is_active=True, identifier=app_identifier)
     app.permissions.add(permission_manage_payments)
     webhook = Webhook.objects.create(

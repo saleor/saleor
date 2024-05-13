@@ -32,7 +32,7 @@ class ExternalNotificationTriggerInput(graphene.InputObjectType):
     extra_payload = JSONString(
         description=(
             "Additional payload that will be merged with "
-            "the one based on the bussines object ID."
+            "the one based on the business object ID."
         )
     )
     external_event_type = graphene.String(

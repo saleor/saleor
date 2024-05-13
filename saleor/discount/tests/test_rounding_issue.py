@@ -113,6 +113,7 @@ def test_rounding_issue_with_percentage_promotion(
 
     # when
     create_or_update_discount_objects_from_promotion_for_checkout(
+        checkout_info,
         lines_info,
     )
 

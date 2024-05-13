@@ -6,6 +6,7 @@ from django.db.models import Sum
 
 from .....order import OrderStatus
 from .....order import events as order_events
+from .....order.error_codes import OrderErrorCode
 from .....order.models import OrderEvent
 from .....warehouse.models import Stock
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -17,6 +18,7 @@ ORDER_LINE_DELETE_MUTATION = """
             errors {
                 field
                 message
+                code
             }
             orderLine {
                 id
@@ -118,6 +120,44 @@ def test_order_line_remove(
     assert line not in order.lines.all()
     assert_proper_webhook_called_once(
         order, status, draft_order_updated_webhook_mock, order_updated_webhook_mock
+    )
+
+
+@patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+def test_order_line_remove_no_line_allocations(
+    order_updated_webhook_mock,
+    draft_order_updated_webhook_mock,
+    order_with_lines,
+    permission_group_manage_orders,
+    staff_api_client,
+):
+    # given
+    query = ORDER_LINE_DELETE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
+    order.save(update_fields=["status"])
+    line = order.lines.first()
+    line.allocations.all().delete()
+    line_id = graphene.Node.to_global_id("OrderLine", line.id)
+    variables = {"id": line_id}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderLineDelete"]
+    assert OrderEvent.objects.count() == 1
+    assert OrderEvent.objects.last().type == order_events.OrderEvents.REMOVED_PRODUCTS
+    assert data["orderLine"]["id"] == line_id
+    assert line not in order.lines.all()
+    assert_proper_webhook_called_once(
+        order,
+        order.status,
+        draft_order_updated_webhook_mock,
+        order_updated_webhook_mock,
     )
 
 
@@ -232,3 +272,31 @@ def test_draft_order_properly_recalculate_total_after_shipping_product_removed(
     assert data["order"]["total"]["net"]["amount"] == float(
         line.total_price_net_amount
     ) + float(order.shipping_price_net_amount)
+
+
+def test_order_line_delete_non_removable_gift(
+    draft_order,
+    permission_group_manage_orders,
+    staff_api_client,
+):
+    # given
+    query = ORDER_LINE_DELETE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = draft_order
+    line = order.lines.first()
+    line.is_gift = True
+    line.save(update_fields=["is_gift"])
+    line_id = graphene.Node.to_global_id("OrderLine", line.id)
+    variables = {"id": line_id}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["orderLineDelete"]
+    assert not data["orderLine"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "id"
+    assert errors[0]["code"] == OrderErrorCode.NON_REMOVABLE_GIFT_LINE.name

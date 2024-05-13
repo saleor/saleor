@@ -4,6 +4,7 @@ from django.db.models import Q
 
 from ...attribute import AttributeInputType
 from ...attribute.models import Attribute, AttributeValue
+from ...channel.models import Channel
 from ...permission.utils import has_one_of_permissions
 from ...product import models
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
@@ -42,11 +43,17 @@ def filter_attributes_by_product_types(qs, field, value, requestor, channel_slug
     if not value:
         return qs
 
-    product_qs = models.Product.objects.visible_to_user(requestor, channel_slug)
+    channel = None
+    if channel_slug is not None:
+        channel = Channel.objects.using(qs.db).filter(slug=str(channel_slug)).first()
+    limited_channel_access = False if channel_slug is None else True
+    product_qs = models.Product.objects.using(qs.db).visible_to_user(
+        requestor, channel, limited_channel_access
+    )
 
     if field == "in_category":
         _type, category_id = from_global_id_or_error(value, "Category")
-        category = models.Category.objects.filter(pk=category_id).first()
+        category = models.Category.objects.using(qs.db).filter(pk=category_id).first()
 
         if category is None:
             return qs.none()
@@ -55,7 +62,7 @@ def filter_attributes_by_product_types(qs, field, value, requestor, channel_slug
         product_qs = product_qs.filter(category__in=tree)
 
         if not has_one_of_permissions(requestor, ALL_PRODUCTS_PERMISSIONS):
-            product_qs = product_qs.annotate_visible_in_listings(channel_slug).exclude(
+            product_qs = product_qs.annotate_visible_in_listings(channel).exclude(
                 visible_in_listings=False
             )
 

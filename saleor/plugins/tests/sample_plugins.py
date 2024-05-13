@@ -178,9 +178,6 @@ class PluginSample(BasePlugin):
     def get_tax_rate_type_choices(self, previous_value):
         return [TaxType(code="123", description="abc")]
 
-    def show_taxes_on_storefront(self, previous_value: bool) -> bool:
-        return True
-
     def external_authentication_url(
         self, data: dict, request: WSGIRequest, previous_value
     ) -> dict:
@@ -296,12 +293,12 @@ class PluginSample(BasePlugin):
         return Decimal("0.080").quantize(Decimal(".01"))
 
     def get_taxes_for_checkout(
-        self, checkout_info: "CheckoutInfo", lines, previous_value
+        self, checkout_info: "CheckoutInfo", lines, app_identifier, previous_value
     ) -> Optional["TaxData"]:
         return sample_tax_data(checkout_info.checkout)
 
     def get_taxes_for_order(
-        self, order: "Order", previous_value
+        self, order: "Order", app_identifier, previous_value
     ) -> Optional["TaxData"]:
         return sample_tax_data(order)
 
@@ -480,6 +477,7 @@ class SampleAuthorizationPlugin(BasePlugin):
     PLUGIN_ID = "saleor.sample.authorization"
     PLUGIN_NAME = "SampleAuthorization"
     DEFAULT_ACTIVE = True
+    CONFIGURATION_PER_CHANNEL = False
 
     def authenticate_user(self, request, previous_value) -> Optional[User]:
         # This function will be mocked in test

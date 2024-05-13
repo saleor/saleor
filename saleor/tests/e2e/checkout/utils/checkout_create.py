@@ -19,6 +19,15 @@ mutation CreateCheckout($input: CheckoutCreateInput!) {
       channel {
         slug
       }
+      discountName
+      discount {
+        amount
+      }
+      shippingPrice {
+        gross {
+          amount
+        }
+      }
       totalPrice {
         gross {
           amount
@@ -27,6 +36,11 @@ mutation CreateCheckout($input: CheckoutCreateInput!) {
           amount
         }
         tax {
+          amount
+        }
+      }
+      subtotalPrice {
+        gross {
           amount
         }
       }

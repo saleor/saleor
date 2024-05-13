@@ -1,7 +1,9 @@
 from unittest import mock
 
 import graphene
+from django.utils import timezone
 
+from ..context import clear_context, get_context_value
 from .utils import get_graphql_content
 
 QUERY_ORDER_BY_ID = """
@@ -41,3 +43,43 @@ def test_user_is_cached_on_request(
     data = content["data"]["order"]
     assert len(data["lines"]) > 1
     mocked_authenticate_user.assert_called_once()
+
+
+def test_get_context_value_not_override_dataloaders_if_passed_already(rf):
+    # given
+    request = rf.request()
+    dataloaders = {}
+    dataloaders_id = id(dataloaders)
+    request.dataloaders = dataloaders
+
+    # when
+    context = get_context_value(request)
+
+    # then
+    assert context.dataloaders is dataloaders
+    assert id(context.dataloaders) == dataloaders_id
+
+
+def test_get_context_value_uses_request_time_if_passed_already(rf):
+    # given
+    request = rf.request()
+    request_time = timezone.now()
+    request.request_time = request_time
+
+    # when
+    context = get_context_value(request)
+
+    # then
+    assert context.request_time == request_time
+
+
+def test_clear_context(rf):
+    # given
+    context = get_context_value(rf.request())
+    context.dataloaders = {"key": "value"}  # type: ignore
+
+    # when
+    clear_context(context)
+
+    # then
+    assert context.dataloaders == {}

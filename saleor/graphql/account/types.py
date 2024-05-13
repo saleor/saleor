@@ -15,6 +15,7 @@ from ...order import OrderStatus
 from ...payment.interface import ListStoredPaymentMethodsRequestData
 from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import AccountPermissions, AppPermission, OrderPermissions
+from ...plugins.manager import PluginsManager
 from ...thumbnail.utils import (
     get_image_or_proxy_url,
     get_thumbnail_format,
@@ -64,6 +65,7 @@ from ..utils import format_permissions_for_display, get_user_or_app_from_context
 from .dataloaders import (
     AccessibleChannelsByGroupIdLoader,
     AccessibleChannelsByUserIdLoader,
+    AddressByIdLoader,
     CustomerEventsByUserLoader,
     RestrictedChannelAccessByUserIdLoader,
     ThumbnailByUserIdSizeAndFormatLoader,
@@ -459,8 +461,11 @@ class User(ModelObjectType[models.User]):
         return root.addresses.annotate_default(root).all()
 
     @staticmethod
-    def resolve_checkout(root: models.User, _info: ResolveInfo):
-        return get_user_checkout(root)
+    def resolve_checkout(root: models.User, info: ResolveInfo):
+        database_connection_name = get_database_connection_name(info.context)
+        return get_user_checkout(
+            root, database_connection_name=database_connection_name
+        )
 
     @staticmethod
     @traced_resolver
@@ -537,18 +542,19 @@ class User(ModelObjectType[models.User]):
         )
 
     @staticmethod
-    def resolve_user_permissions(root: models.User, _info: ResolveInfo):
+    def resolve_user_permissions(root: models.User, info: ResolveInfo):
         from .resolvers import resolve_permissions
 
-        return resolve_permissions(root)
+        return resolve_permissions(root, info)
 
     @staticmethod
     def resolve_permission_groups(root: models.User, info: ResolveInfo):
         return root.groups.using(get_database_connection_name(info.context)).all()
 
     @staticmethod
-    def resolve_editable_groups(root: models.User, _info: ResolveInfo):
-        return get_groups_which_user_can_manage(root)
+    def resolve_editable_groups(root: models.User, info: ResolveInfo):
+        database_connection_name = get_database_connection_name(info.context)
+        return get_groups_which_user_can_manage(root, database_connection_name)
 
     @staticmethod
     def resolve_accessible_channels(root: models.Group, info: ResolveInfo):
@@ -696,7 +702,7 @@ class User(ModelObjectType[models.User]):
         if not requestor or requestor.id != root.id:
             return []
 
-        def get_stored_payment_methods(data):
+        def get_stored_payment_methods(data: tuple[Channel, "PluginsManager"]):
             channel_obj, manager = data
             request_data = ListStoredPaymentMethodsRequestData(
                 user=root,
@@ -710,6 +716,20 @@ class User(ModelObjectType[models.User]):
                 get_plugin_manager_promise(info.context),
             ]
         ).then(get_stored_payment_methods)
+
+    @staticmethod
+    def resolve_default_billing_address(root: models.User, info: ResolveInfo):
+        if root.default_billing_address_id:
+            return AddressByIdLoader(info.context).load(root.default_billing_address_id)
+        return None
+
+    @staticmethod
+    def resolve_default_shipping_address(root: models.User, info: ResolveInfo):
+        if root.default_shipping_address_id:
+            return AddressByIdLoader(info.context).load(
+                root.default_shipping_address_id
+            )
+        return None
 
 
 class UserCountableConnection(CountableConnection):
@@ -727,7 +747,7 @@ FORMAT_FILED_DESCRIPTION = (
     "\n\nMany fields in the JSON refer to address fields by one-letter "
     "abbreviations. These are defined as follows:\n\n"
     "- `N`: Name\n"
-    "- `O`: Organisation\n"
+    "- `O`: Organization\n"
     "- `A`: Street Address Line(s)\n"
     "- `D`: Dependent locality (may be an inner-city district or a suburb)\n"
     "- `C`: City or Locality\n"
@@ -926,13 +946,17 @@ class Group(ModelObjectType[models.Group]):
         doc_category = DOC_CATEGORY_USERS
 
     @staticmethod
-    def resolve_users(root: models.Group, _info: ResolveInfo):
-        return root.user_set.all()  # type: ignore[attr-defined]
+    def resolve_users(root: models.Group, info: ResolveInfo):
+        database_connection_name = get_database_connection_name(info.context)
+        return root.user_set.using(database_connection_name).all()  # type: ignore[attr-defined]
 
     @staticmethod
-    def resolve_permissions(root: models.Group, _info: ResolveInfo):
-        permissions = root.permissions.prefetch_related("content_type").order_by(
-            "codename"
+    def resolve_permissions(root: models.Group, info: ResolveInfo):
+        database_connection_name = get_database_connection_name(info.context)
+        permissions = (
+            root.permissions.using(database_connection_name)
+            .prefetch_related("content_type")
+            .order_by("codename")
         )
         return format_permissions_for_display(permissions)
 

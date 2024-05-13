@@ -22,6 +22,7 @@ from requests_hardened.ip_filter import InvalidIPAddress
 
 from ...app.headers import AppHeaders, DeprecatedAppHeaders
 from ...app.models import App
+from ...core.db.connection import allow_writer
 from ...core.http_client import HTTPClient
 from ...core.models import (
     EventDelivery,
@@ -378,6 +379,7 @@ def catch_duration_time():
     yield lambda: time() - start
 
 
+@allow_writer()
 def create_attempt(
     delivery: "EventDelivery",
     task_id: Optional[str] = None,
@@ -394,6 +396,7 @@ def create_attempt(
     return attempt
 
 
+@allow_writer()
 def attempt_update(
     attempt: "EventDeliveryAttempt",
     webhook_response: "WebhookResponse",
@@ -416,6 +419,7 @@ def attempt_update(
     )
 
 
+@allow_writer()
 def clear_successful_delivery(delivery: "EventDelivery"):
     if delivery.status == EventDeliveryStatus.SUCCESS:
         payload_id = delivery.payload_id
@@ -424,6 +428,7 @@ def clear_successful_delivery(delivery: "EventDelivery"):
             EventPayload.objects.filter(pk=payload_id, deliveries__isnull=True).delete()
 
 
+@allow_writer()
 def delivery_update(delivery: "EventDelivery", status: str):
     delivery.status = status
     delivery.save(update_fields=["status"])
@@ -486,13 +491,14 @@ def trigger_transaction_request(
         payload = generate_transaction_action_request_payload(
             transaction_data, requestor
         )
-        event_payload = EventPayload.objects.create(payload=payload)
-        delivery = EventDelivery.objects.create(
-            status=EventDeliveryStatus.PENDING,
-            event_type=event_type,
-            payload=event_payload,
-            webhook=webhook,
-        )
+        with allow_writer():
+            event_payload = EventPayload.objects.create(payload=payload)
+            delivery = EventDelivery.objects.create(
+                status=EventDeliveryStatus.PENDING,
+                event_type=event_type,
+                payload=event_payload,
+                webhook=webhook,
+            )
     call_event(
         handle_transaction_request_task.delay,
         delivery.id,

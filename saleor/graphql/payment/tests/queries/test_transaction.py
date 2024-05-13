@@ -1,8 +1,8 @@
-from datetime import datetime
 from decimal import Decimal
 
 import graphene
 import pytest
+from django.utils import timezone
 from freezegun import freeze_time
 
 from .....payment import TransactionEventType
@@ -276,7 +276,7 @@ def test_transaction_created_by_app_marked_to_remove(
 ):
     # given
     app.is_active = False
-    app.removed_at = datetime.now()
+    app.removed_at = timezone.now()
     app.save()
 
     webhook_app.identifier = app.identifier
@@ -727,7 +727,7 @@ def test_transaction_event_by_app_marked_to_remove(
     identifier = "app.identifier"
     app.identifier = identifier
     app.is_active = False
-    app.removed_at = datetime.now()
+    app.removed_at = timezone.now()
     app.save()
     webhook_app.identifier = identifier
     webhook_app.save()

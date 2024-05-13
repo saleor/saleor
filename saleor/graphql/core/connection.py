@@ -339,16 +339,22 @@ def create_connection_slice(
     else:
         queryset = iterable
 
-    queryset, sort_by = sort_queryset_for_connection(iterable=queryset, args=args)
+    allow_replica = getattr(info.context, "allow_replica", False)
+    queryset, sort_by = sort_queryset_for_connection(
+        iterable=queryset, args=args, allow_replica=allow_replica
+    )
     args["sort_by"] = sort_by
 
-    slice = connection_from_queryset_slice(
-        queryset,
-        args,
-        connection_type,
-        edge_type or connection_type.Edge,
-        pageinfo_type or graphene.relay.PageInfo,
-    )
+    from ...core.db.connection import allow_writer_in_context
+
+    with allow_writer_in_context(info.context):
+        slice = connection_from_queryset_slice(
+            queryset,
+            args,
+            connection_type,
+            edge_type or connection_type.Edge,
+            pageinfo_type or graphene.relay.PageInfo,
+        )
 
     if isinstance(iterable, ChannelQsContext):
         edges_with_context = []
@@ -383,16 +389,16 @@ def _validate_slice_args(
     if max_limit:
         if first:
             assert first <= max_limit, (
-                "Requesting {} records on the `{}` connection exceeds the "
-                "`first` limit of {} records."
-            ).format(first, info.field_name, max_limit)
+                f"Requesting {first} records on the `{info.field_name}` connection "
+                f"exceeds the `first` limit of {max_limit} records."
+            )
             args["first"] = min(first, max_limit)
 
         if last:
             assert last <= max_limit, (
-                "Requesting {} records on the `{}` connection exceeds the "
-                "`last` limit of {} records."
-            ).format(last, info.field_name, max_limit)
+                f"Requesting {last} records on the `{info.field_name}` connection "
+                f"exceeds the `last` limit of {max_limit} records."
+            )
             args["last"] = min(last, max_limit)
 
 
@@ -444,7 +450,9 @@ def slice_connection_iterable(
     return slice
 
 
-def filter_connection_queryset(iterable, args, request=None, root=None):
+def filter_connection_queryset(
+    iterable, args, request=None, root=None, allow_replica=False
+):
     update_args_with_channel(args, root)
     if args.get(args[FILTERS_NAME]) and args.get(args[WHERE_NAME]):
         raise GraphQLError(
@@ -460,7 +468,9 @@ def filter_connection_queryset(iterable, args, request=None, root=None):
         filter_func = where_filter_qs
 
     if filter_input:
-        return filter_func(iterable, args, filterset_class, filter_input, request)
+        return filter_func(
+            iterable, args, filterset_class, filter_input, request, allow_replica
+        )
 
     return iterable
 
@@ -471,7 +481,9 @@ def update_args_with_channel(args, root):
         args["channel"] = root.channel_slug
 
 
-def filter_qs(iterable, args, filterset_class, filter_input, request):
+def filter_qs(
+    iterable, args, filterset_class, filter_input, request, allow_replica=False
+):
     try:
         filter_channel = str(filter_input["channel"])
     except (NoDefaultChannel, ChannelNotDefined, GraphQLError, KeyError):
@@ -479,7 +491,7 @@ def filter_qs(iterable, args, filterset_class, filter_input, request):
     filter_input["channel"] = (
         args.get("channel")
         or filter_channel
-        or get_default_channel_slug_or_graphql_error()
+        or get_default_channel_slug_or_graphql_error(allow_replica)
     )
 
     if isinstance(iterable, ChannelQsContext):
@@ -497,7 +509,9 @@ def filter_qs(iterable, args, filterset_class, filter_input, request):
     return filterset.qs
 
 
-def where_filter_qs(iterable, args, filterset_class, filter_input, request):
+def where_filter_qs(
+    iterable, args, filterset_class, filter_input, request, allow_replica=False
+):
     """Filter queryset by complex statement provided in where argument.
 
     Handle `AND`, `OR`, `NOT` operators, as well as flat filter input.
@@ -544,12 +558,12 @@ def where_filter_qs(iterable, args, filterset_class, filter_input, request):
 
     if and_filter_input:
         queryset = _handle_and_filter_input(
-            and_filter_input, queryset, args, filterset_class, request
+            and_filter_input, queryset, args, filterset_class, request, allow_replica
         )
 
     if or_filter_input:
         queryset = _handle_or_filter_input(
-            or_filter_input, queryset, args, filterset_class, request
+            or_filter_input, queryset, args, filterset_class, request, allow_replica
         )
 
     # TODO: needs optimization
@@ -560,7 +574,7 @@ def where_filter_qs(iterable, args, filterset_class, filter_input, request):
 
     if filter_input:
         qs_to_combine = filter_qs(
-            iterable, args, filterset_class, filter_input, request
+            iterable, args, filterset_class, filter_input, request, allow_replica
         )
         if isinstance(qs_to_combine, ChannelQsContext):
             queryset &= qs_to_combine.qs
@@ -578,18 +592,26 @@ def contains_filter_operator(input: dict[str, Union[dict, str]]):
     return any([operator in input for operator in ["AND", "OR", "NOT"]])
 
 
-def _handle_and_filter_input(filter_input, queryset, args, filterset_class, request):
+def _handle_and_filter_input(
+    filter_input, queryset, args, filterset_class, request, allow_replica
+):
     for input in filter_input:
         if contains_filter_operator(input):
             # when the input contains the operator run the where_filter_qs method again
             # to properly handle the nested input
-            queryset &= where_filter_qs(queryset, args, filterset_class, input, request)
+            queryset &= where_filter_qs(
+                queryset, args, filterset_class, input, request, allow_replica
+            )
         else:
-            queryset &= filter_qs(queryset, args, filterset_class, input, request)
+            queryset &= filter_qs(
+                queryset, args, filterset_class, input, request, allow_replica
+            )
     return queryset
 
 
-def _handle_or_filter_input(filter_input, queryset, args, filterset_class, request):
+def _handle_or_filter_input(
+    filter_input, queryset, args, filterset_class, request, allow_replica
+):
     # for the OR operator the instanced that passed one of specified condition are
     # found, then the return queryset is joined with the use of AND operator with
     # main qs
@@ -598,9 +620,13 @@ def _handle_or_filter_input(filter_input, queryset, args, filterset_class, reque
         if contains_filter_operator(input):
             # when the input contains the operator run the where_filter_qs method again
             # to properly handle the nested input
-            qs |= where_filter_qs(queryset, args, filterset_class, input, request)
+            qs |= where_filter_qs(
+                queryset, args, filterset_class, input, request, allow_replica
+            )
         else:
-            qs |= filter_qs(queryset, args, filterset_class, input, request)
+            qs |= filter_qs(
+                queryset, args, filterset_class, input, request, allow_replica
+            )
     queryset &= qs
     return queryset
 

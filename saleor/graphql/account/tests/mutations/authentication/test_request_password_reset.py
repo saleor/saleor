@@ -350,3 +350,59 @@ def test_account_reset_password_event_triggered(
 
     # then
     mocked_trigger_webhooks_async.assert_called()
+
+
+@freeze_time("2018-05-31 12:00:01")
+@patch("saleor.plugins.manager.PluginsManager.notify")
+@patch("saleor.plugins.manager.PluginsManager.account_set_password_requested")
+def test_account_reset_password_for_not_confirmed_user(
+    mocked_account_set_password_requested,
+    mocked_notify,
+    user_api_client,
+    customer_user,
+    channel_PLN,
+    channel_USD,
+    site_settings,
+):
+    # given
+    customer_user.is_confirmed = False
+    customer_user.save(update_fields=["is_confirmed"])
+
+    redirect_url = "https://www.example.com"
+    variables = {
+        "email": customer_user.email,
+        "redirectUrl": redirect_url,
+        "channel": channel_PLN.slug,
+    }
+
+    # when
+    response = user_api_client.post_graphql(REQUEST_PASSWORD_RESET_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["requestPasswordReset"]
+    assert not data["errors"]
+    token = default_token_generator.make_token(customer_user)
+    params = urlencode({"email": customer_user.email, "token": token})
+    reset_url = prepare_url(params, redirect_url)
+    expected_payload = {
+        "user": get_default_user_payload(customer_user),
+        "reset_url": reset_url,
+        "token": token,
+        "recipient_email": customer_user.email,
+        "channel_slug": channel_PLN.slug,
+        **get_site_context_payload(site_settings.site),
+    }
+
+    mocked_notify.assert_called_once_with(
+        NotifyEventType.ACCOUNT_PASSWORD_RESET,
+        payload=expected_payload,
+        channel_slug=channel_PLN.slug,
+    )
+    user = user_api_client.user
+    user.refresh_from_db()
+    assert user.last_password_reset_request == timezone.now()
+
+    mocked_account_set_password_requested.assert_called_once_with(
+        user, channel_PLN.slug, token, reset_url
+    )

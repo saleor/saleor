@@ -1,14 +1,44 @@
 from ...utils import get_graphql_content
 
 CHECKOUT_LINES_UPDATE_MUTATION = """
-mutation checkoutLinesUpdate($checkoutId: ID!, $lines: [CheckoutLineUpdateInput!]! ){
+mutation checkoutLinesUpdate($checkoutId: ID!, $lines: [CheckoutLineUpdateInput!]!) {
   checkoutLinesUpdate(lines: $lines, checkoutId: $checkoutId) {
     checkout {
+      discountName
+      discount {
+        amount
+      }
+      subtotalPrice {
+        gross {
+          amount
+        }
+      }
+      totalPrice {
+        gross {
+          amount
+        }
+      }
       lines {
         quantity
+        undiscountedTotalPrice {
+          amount
+        }
         variant {
           id
           quantityLimitPerCustomer
+        }
+        unitPrice {
+          gross {
+            amount
+          }
+        }
+        undiscountedUnitPrice {
+          amount
+        }
+        totalPrice {
+          gross {
+            amount
+          }
         }
       }
     }

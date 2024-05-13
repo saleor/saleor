@@ -24,13 +24,18 @@ from ..checkout.actions import (
 from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..checkout.models import Checkout
 from ..checkout.payment_utils import update_refundable_for_checkout
+from ..core.db.connection import allow_writer
 from ..core.prices import quantize_price
 from ..core.tracing import traced_atomic_transaction
 from ..graphql.core.utils import str_to_enum
 from ..order.fetch import fetch_order_info
-from ..order.models import Order
+from ..order.models import Order, OrderGrantedRefund
 from ..order.search import update_order_search_vector
-from ..order.utils import update_order_authorize_data, updates_amounts_for_order
+from ..order.utils import (
+    calculate_order_granted_refund_status,
+    update_order_authorize_data,
+    updates_amounts_for_order,
+)
 from ..plugins.manager import PluginsManager, get_plugins_manager
 from . import (
     ChargeStatus,
@@ -388,7 +393,8 @@ def create_payment(
         "metadata": {} if metadata is None else metadata,
     }
 
-    payment, _ = Payment.objects.get_or_create(defaults=defaults, **data)
+    with allow_writer():
+        payment, _ = Payment.objects.get_or_create(defaults=defaults, **data)
     return payment
 
 
@@ -416,8 +422,7 @@ def create_transaction(
     gateway_response: Optional[GatewayResponse] = None,
     error_msg=None,
     is_success=False,
-) -> Transaction:
-    ...
+) -> Transaction: ...
 
 
 @overload
@@ -430,8 +435,7 @@ def create_transaction(
     gateway_response: GatewayResponse,
     error_msg=None,
     is_success=False,
-) -> Transaction:
-    ...
+) -> Transaction: ...
 
 
 def create_transaction(
@@ -749,13 +753,17 @@ def try_void_or_refund_inactive_payment(
         )
 
 
-def payment_owned_by_user(payment_pk: int, user) -> bool:
+def payment_owned_by_user(
+    payment_pk: int,
+    user,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+) -> bool:
     if not user:
         return False
     return (
-        Payment.objects.filter(
-            (Q(order__user=user) | Q(checkout__user=user)) & Q(pk=payment_pk)
-        ).first()
+        Payment.objects.using(database_connection_name)
+        .filter((Q(order__user=user) | Q(checkout__user=user)) & Q(pk=payment_pk))
+        .first()
         is not None
     )
 
@@ -1012,6 +1020,7 @@ def get_failed_type_based_on_event(event: TransactionEvent):
     return event.type
 
 
+@allow_writer()
 def create_failed_transaction_event(
     event: TransactionEvent,
     cause: str,
@@ -1024,6 +1033,7 @@ def create_failed_transaction_event(
         message=cause,
         include_in_calculations=False,
         psp_reference=event.psp_reference,
+        related_granted_refund_id=event.related_granted_refund_id,
     )
 
 
@@ -1109,6 +1119,7 @@ def _create_event_from_response(
     app: App,
     transaction_id: int,
     currency: str,
+    related_granted_refund_id: Optional[int] = None,
 ) -> tuple[Optional[TransactionEvent], Optional[error_msg]]:
     app_identifier = None
     if app and app.identifier:
@@ -1125,6 +1136,7 @@ def _create_event_from_response(
         app_identifier=app_identifier,
         app=app,
         include_in_calculations=True,
+        related_granted_refund_id=related_granted_refund_id,
     )
     with transaction.atomic():
         event, error_msg = deduplicate_event(event, app)
@@ -1299,6 +1311,12 @@ def create_transaction_event_for_transaction_session(
     return event
 
 
+def update_order_granted_status_if_needed(request_event: TransactionEvent):
+    if request_event.related_granted_refund_id:
+        granted_refund = cast(OrderGrantedRefund, request_event.related_granted_refund)
+        calculate_order_granted_refund_status(granted_refund)
+
+
 def create_transaction_event_from_request_and_webhook_response(
     request_event: TransactionEvent,
     app: App,
@@ -1311,7 +1329,11 @@ def create_transaction_event_from_request_and_webhook_response(
     transaction_item = request_event.transaction
     if not transaction_request_response:
         recalculate_refundable_for_checkout(transaction_item, request_event)
-        return create_failed_transaction_event(request_event, cause=error_msg or "")
+        failure_event = create_failed_transaction_event(
+            request_event, cause=error_msg or ""
+        )
+        update_order_granted_status_if_needed(request_event)
+        return failure_event
 
     psp_reference = transaction_request_response.psp_reference
     request_event.psp_reference = psp_reference
@@ -1324,10 +1346,15 @@ def create_transaction_event_from_request_and_webhook_response(
             app=app,
             transaction_id=request_event.transaction_id,
             currency=request_event.currency,
+            related_granted_refund_id=request_event.related_granted_refund_id,
         )
         if error_msg:
             recalculate_refundable_for_checkout(transaction_item, request_event)
-            return create_failed_transaction_event(request_event, cause=error_msg)
+            failure_event = create_failed_transaction_event(
+                request_event, cause=error_msg
+            )
+            update_order_granted_status_if_needed(request_event)
+            return failure_event
 
     transaction_item = request_event.transaction
     previous_authorized_value = transaction_item.authorized_value
@@ -1371,6 +1398,12 @@ def create_transaction_event_from_request_and_webhook_response(
             previous_charged_value=previous_charged_value,
             previous_refunded_value=previous_refunded_value,
         )
+        if request_event.related_granted_refund_id:
+            granted_refund = cast(
+                OrderGrantedRefund, request_event.related_granted_refund
+            )
+            calculate_order_granted_refund_status(granted_refund)
+
     elif transaction_item.checkout_id:
         manager = get_plugins_manager(allow_replica=True)
         recalculate_refundable_for_checkout(transaction_item, request_event, event)
@@ -1489,7 +1522,8 @@ def create_manual_adjustment_events(
         user=user,
     )
     if events_to_create:
-        return TransactionEvent.objects.bulk_create(events_to_create)
+        with allow_writer():
+            return TransactionEvent.objects.bulk_create(events_to_create)
     return []
 
 
@@ -1516,6 +1550,7 @@ def get_transaction_item_params(
     }
 
 
+@allow_writer()
 def create_transaction_for_order(
     order: "Order",
     user: Optional["User"],
@@ -1544,6 +1579,7 @@ def create_transaction_for_order(
     return transaction_item
 
 
+@allow_writer()
 def handle_transaction_initialize_session(
     source_object: Union[Checkout, Order],
     payment_gateway_data: PaymentGatewayData,

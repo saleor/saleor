@@ -1,5 +1,6 @@
 import pytest
 
+from ....product.tasks import recalculate_discounted_price_for_products_task
 from ..promotions.utils import (
     create_promotion,
     create_promotion_rule,
@@ -45,23 +46,33 @@ def test_product_no_longer_on_promotion_when_promotion_is_removed_CORE_2114(
     discount_value = 5
     discount_type = "FIXED"
     promotion_rule_name = "rule for product"
-    promotion_data = create_promotion(e2e_staff_api_client, promotion_name)
+    promotion_type = "CATALOGUE"
+    promotion_data = create_promotion(
+        e2e_staff_api_client, promotion_name, promotion_type
+    )
     promotion_id = promotion_data["id"]
 
     catalogue_predicate = {"productPredicate": {"ids": [product_id]}}
 
+    input = {
+        "promotion": promotion_id,
+        "channels": [channel_id],
+        "name": promotion_rule_name,
+        "cataloguePredicate": catalogue_predicate,
+        "rewardValue": discount_value,
+        "rewardValueType": discount_type,
+    }
     promotion_rule = create_promotion_rule(
         e2e_staff_api_client,
-        promotion_id,
-        catalogue_predicate,
-        discount_type,
-        discount_value,
-        promotion_rule_name,
-        channel_id,
+        input,
     )
     product_predicate = promotion_rule["cataloguePredicate"]["productPredicate"]["ids"]
     assert promotion_rule["channels"][0]["id"] == channel_id
     assert product_predicate[0] == product_id
+
+    # prices are updated in the background, we need to force it to retrieve the correct
+    # ones
+    recalculate_discounted_price_for_products_task()
 
     # Step 1 - Check product is on promotion
     product_data = get_product(e2e_staff_api_client, product_id, channel_slug)
@@ -76,6 +87,10 @@ def test_product_no_longer_on_promotion_when_promotion_is_removed_CORE_2114(
     delete_promotion(e2e_staff_api_client, promotion_id)
     data = promotion_query(e2e_staff_api_client, promotion_id)
     assert data["promotion"] is None
+
+    # prices are updated in the background, we need to force it to retrieve the correct
+    # ones
+    recalculate_discounted_price_for_products_task()
 
     # Step 3 - Check product in no longer on promotion
     product_data = get_product(e2e_staff_api_client, product_id, channel_slug)

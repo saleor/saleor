@@ -1,3 +1,4 @@
+from unittest.mock import patch
 from urllib.parse import urlencode
 
 import i18naddress
@@ -8,12 +9,14 @@ from django_countries.fields import Country
 
 from ...order.models import Order
 from .. import forms, i18n
+from ..i18n_valid_address_extension import VALID_ADDRESS_EXTENSION_MAP
 from ..models import User
 from ..validators import validate_possible_number
 
 
 @pytest.mark.parametrize("country", ["CN", "PL", "US", "IE"])
 def test_address_form_for_country(country):
+    # given
     data = {
         "first_name": "John",
         "last_name": "Doe",
@@ -21,10 +24,13 @@ def test_address_form_for_country(country):
         "phone": "123456789",
     }
 
+    # when
     form = forms.get_address_form(data, country_code=country)
     errors = form.errors
     rules = i18naddress.get_validation_rules({"country_code": country})
     required = rules.required_fields
+
+    # then
     if "street_address" in required:
         assert "street_address_1" in errors
     else:
@@ -48,15 +54,48 @@ def test_address_form_for_country(country):
 
 
 def test_address_form_postal_code_validation():
+    # given
     data = {
         "first_name": "John",
         "last_name": "Doe",
         "country": "PL",
         "postal_code": "XXX",
     }
+
+    # when
     form = forms.get_address_form(data, country_code="PL")
     errors = form.errors
+    # then
     assert "postal_code" in errors
+
+
+def test_address_form_long_street_address_validation():
+    # given
+    data = {
+        "city": "test",
+        "city_area": "test",
+        "company_name": "test",
+        "first_name": "Amelia",
+        "last_name": "Doe",
+        "country": "US",
+        "country_area": "IN",
+        "phone": "",
+        "postal_code": "46802",
+        "street_address_1": (
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut "
+            "labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris "
+            "nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit "
+            "esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt "
+            "in culpa qui officia deserunt mollit anim id est laborum"
+        ),
+    }
+
+    # when
+    form = forms.get_address_form(data, country_code="US")
+    errors = form.errors
+
+    # then
+    assert "street_address_1" in errors
 
 
 @pytest.mark.parametrize(
@@ -183,11 +222,6 @@ def test_copy_address(address):
     assert copied_address == address
 
 
-def test_compare_addresses(address):
-    copied_address = address.get_copy()
-    assert address == copied_address
-
-
 def test_compare_addresses_with_country_object(address):
     copied_address = address.get_copy()
     copied_address.country = Country("PL")
@@ -280,3 +314,43 @@ def test_customers_show_staff_with_order(admin_user, channel_USD):
         channel=channel_USD,
     )
     assert User.objects.customers().count() == 1
+
+
+@pytest.mark.parametrize(
+    ("country_area_input", "country_area_output", "is_valid"),
+    [
+        ("Dublin", "Co. Dublin", True),
+        ("Co. Dublin", "Co. Dublin", True),
+        ("Dummy Area", None, False),
+        ("dublin", "Co. Dublin", True),
+        (" dublin ", "Co. Dublin", True),
+        ("", "", True),
+        (None, "", True),
+    ],
+)
+@patch.dict(
+    VALID_ADDRESS_EXTENSION_MAP,
+    {"IE": {"country_area": {"dublin": "Co. Dublin"}, "city_area": {"dummy": "dummy"}}},
+)
+def test_substitute_invalid_values(country_area_input, country_area_output, is_valid):
+    # given
+    data = {
+        "first_name": "John",
+        "last_name": "Doe",
+        "country": "IE",
+        "country_area": country_area_input,
+        "city": "Dublin",
+        "street_address_1": "1 Anglesea St",
+        "postal_code": "D02 FK84",
+    }
+
+    # when
+    form = forms.get_address_form(data, country_code="PL")
+    errors = form.errors
+
+    # then
+    assert form.cleaned_data.get("country_area") == country_area_output
+    if not is_valid:
+        assert "country_area" in errors
+    else:
+        assert not errors

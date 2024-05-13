@@ -7,7 +7,7 @@ from ....checkout.fetch import (
     fetch_checkout_lines,
     update_delivery_method_lists_for_checkout_info,
 )
-from ....checkout.utils import add_promo_code_to_checkout, invalidate_checkout_prices
+from ....checkout.utils import add_promo_code_to_checkout, invalidate_checkout
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
@@ -104,17 +104,16 @@ class CheckoutAddPromoCode(BaseMutation):
         )
 
         update_delivery_method_lists_for_checkout_info(
-            checkout_info,
-            checkout_info.checkout.shipping_method,
-            checkout_info.checkout.collection_point,
-            checkout_info.shipping_address,
-            lines,
-            manager,
-            shipping_channel_listings,
+            checkout_info=checkout_info,
+            shipping_method=checkout_info.checkout.shipping_method,
+            collection_point=checkout_info.checkout.collection_point,
+            shipping_address=checkout_info.shipping_address,
+            lines=lines,
+            shipping_channel_listings=shipping_channel_listings,
         )
 
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
-        invalidate_checkout_prices(
+        invalidate_checkout(
             checkout_info,
             lines,
             manager,
