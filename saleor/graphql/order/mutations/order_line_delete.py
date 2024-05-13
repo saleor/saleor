@@ -53,9 +53,10 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
         cls.validate(info, order, line)
 
         db_id = line.id
+        line_allocation = line.allocations.first()
         warehouse_pk = (
-            line.allocations.first().stock.warehouse.pk
-            if order.is_unconfirmed()
+            line_allocation.stock.warehouse.pk
+            if line_allocation and order.is_unconfirmed()
             else None
         )
         with traced_atomic_transaction():
