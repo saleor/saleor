@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
     atomic = False
 
     dependencies = [
-        ("product", "0192_merge_20240405_1154"),
+        ("product", "0186_alter_productmedia_alt"),
     ]
 
     operations = [
