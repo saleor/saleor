@@ -418,7 +418,8 @@ def test_parse_transaction_action_data_with_missing_mandatory_event_fields():
     # then
     assert parsed_data is None
 
-def test_parse_transaction_action_data_with_psp_reference_max_length_exceed():    
+
+def test_parse_transaction_action_data_with_psp_reference_max_length_exceed():
     # given
     expected_psp_reference = "a" * 513
     event_amount = 12.00
