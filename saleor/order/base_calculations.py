@@ -212,7 +212,9 @@ def propagate_order_discount_on_order_lines_prices(
     elif lines_count > 1:
         remaining_discount = subtotal_discount
         for idx, line in enumerate(lines):
-            if idx < lines_count - 1:
+            if not base_subtotal.amount:
+                yield line, zero_money(base_subtotal.currency)
+            elif idx < lines_count - 1:
                 share = (
                     line.base_unit_price_amount * line.quantity / base_subtotal.amount
                 )
