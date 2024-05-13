@@ -1373,18 +1373,29 @@ def complete_checkout(
     metadata_list: Optional[List] = None,
     private_metadata_list: Optional[List] = None,
 ) -> Tuple[Optional[Order], bool, dict]:
-    transactions = checkout_info.checkout.payment_transactions.all()
+    checkout = checkout_info.checkout
+    transactions = checkout.payment_transactions.all()
     fetch_checkout_data(checkout_info, manager, lines)
 
+    active_payment = checkout.get_last_active_payment()
+    is_checkout_fully_authorized = (
+        checkout.authorize_status == CheckoutAuthorizeStatus.FULL
+    )
+    mark_as_paid_strategy = checkout_info.channel.order_mark_as_paid_strategy
     # When checkout is zero, we don't need any transaction to cover the checkout total.
     # We check if checkout is zero, and we also check what flow for marking an order as
     # paid is used. In case when we have TRANSACTION_FLOW we use transaction flow to
     # finalize the checkout.
-    checkout_is_zero = checkout_info.checkout.total.gross.amount == Decimal(0)
-    if transactions or (
-        checkout_is_zero
-        and checkout_info.channel.order_mark_as_paid_strategy
-        == MarkAsPaidStrategy.TRANSACTION_FLOW
+    # When checkout is not fully authorized and contains active payment, we use the
+    # payment flow to finalize the checkout.
+    checkout_is_zero = checkout.total.gross.amount == Decimal(0)
+    if (
+        is_checkout_fully_authorized
+        or (transactions and not active_payment)
+        or (
+            checkout_is_zero
+            and mark_as_paid_strategy == MarkAsPaidStrategy.TRANSACTION_FLOW
+        )
     ):
         order = complete_checkout_with_transaction(
             manager=manager,
