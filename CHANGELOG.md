@@ -28,6 +28,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Added support for the `BrokerProperties` custom header to webhooks to support Azure Service Bus - #15899 by @patrys
 - Extend valid address values - #15877 by @zedzior
 - Fixed a rare crash in the introspection query detection code - #15966 by @patrys
+- Fix transaction create mutation's psp_reference max length issue - #12696 by @ssuraliya
 
 # 3.19.0
 
@@ -451,7 +452,6 @@ Shipping methods can be removed by the user after it has been assigned to a chec
 - Fix `NOTIFY_USER` allow to create webhook with only one event - #13584 by @Air-t
 - Add Index for 'Created' field of the Order Model - #13682 by @ritanjandawn
 - Add missing descriptions to giftcard module - #14847 by @devilsautumn
-- Fix transaction create mutation's psp_reference max length issue - #12696 by @ssuraliya
 
 
 # 3.14.0
