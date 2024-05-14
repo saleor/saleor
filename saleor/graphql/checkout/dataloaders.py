@@ -554,6 +554,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
                             collection_point=collection_point,
                             voucher=voucher_code.voucher if voucher_code else None,
                             voucher_code=voucher_code,
+                            database_connection_name=self.database_connection_name,
                         )
                         checkout_info_map[key] = checkout_info
 

@@ -221,6 +221,8 @@ def test_checkout_available_payment_gateways_valid_info_sent(
     api_client.post_graphql(query, variables)
 
     # then
+    checkout_info.manager = mock.ANY
+    checkout_info.database_connection_name = mock.ANY
     mocked_list_gateways.assert_called_with(
         currency=currency,
         checkout_info=checkout_info,

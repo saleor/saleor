@@ -60,7 +60,9 @@ def fetch_order_prices_if_expired(
     _update_order_discount_for_voucher(order)
 
     _clear_prefetched_discounts(order, lines)
-    prefetch_related_objects([order], "discounts")
+    with allow_writer():
+        # TODO: Load discounts with a dataloader and pass as argument
+        prefetch_related_objects([order], "discounts")
 
     # handle taxes
     _recalculate_prices(
@@ -111,11 +113,11 @@ def fetch_order_prices_if_expired(
         return order, lines
 
 
+@allow_writer()
 def _update_order_discount_for_voucher(order: Order):
     """Create or delete OrderDiscount instances."""
     if not order.voucher_id:
-        with allow_writer():
-            order.discounts.filter(type=DiscountType.VOUCHER).delete()
+        order.discounts.filter(type=DiscountType.VOUCHER).delete()
 
     elif (
         order.voucher_id

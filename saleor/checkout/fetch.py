@@ -92,6 +92,7 @@ class CheckoutInfo:
     collection_point: Optional["Warehouse"] = None
     voucher: Optional["Voucher"] = None
     voucher_code: Optional["VoucherCode"] = None
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME
 
     @cached_property
     def all_shipping_methods(self) -> list["ShippingMethodData"]:
@@ -101,6 +102,7 @@ class CheckoutInfo:
             self.lines,
             self.shipping_channel_listings,
             self.manager,
+            self.database_connection_name,
         )
         # Filter shipping methods using sync webhooks
         excluded_methods = self.manager.excluded_shipping_methods_for_checkout(
@@ -534,6 +536,7 @@ def fetch_checkout_info(
         collection_point=checkout.collection_point,
         voucher=voucher,
         voucher_code=voucher_code,
+        database_connection_name=database_connection_name,
     )
     return checkout_info
 
