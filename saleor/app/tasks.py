@@ -18,7 +18,13 @@ logger = logging.getLogger(__name__)
 
 @celeryconf.app.task
 def install_app_task(job_id, activate=False):
-    app_installation = AppInstallation.objects.get(id=job_id)
+    try:
+        app_installation = AppInstallation.objects.get(id=job_id)
+    except AppInstallation.DoesNotExist:
+        logger.warning(
+            "Failed to install app. AppInstallation not found for job_id: %s.", job_id
+        )
+        return
     try:
         app, _ = install_app(app_installation, activate=activate)
         app_installation.delete()

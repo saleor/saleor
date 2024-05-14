@@ -24,6 +24,16 @@ def test_install_app_task(app_installation):
 
 
 @pytest.mark.vcr
+def test_install_app_task_job_id_does_not_exist():
+    # given & when
+    nonexistent_job_id = 5435435345
+    install_app_task(nonexistent_job_id, activate=True)
+
+    # then
+    assert not App.objects.exists()
+
+
+@pytest.mark.vcr
 def test_install_app_task_wrong_format_of_target_token_url():
     app_installation = AppInstallation.objects.create(
         app_name="External App",
