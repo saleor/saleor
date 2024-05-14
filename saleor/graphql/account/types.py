@@ -14,7 +14,11 @@ from ...graphql.meta.inputs import MetadataInput
 from ...order import OrderStatus
 from ...payment.interface import ListStoredPaymentMethodsRequestData
 from ...permission.auth_filters import AuthorizationFilters
-from ...permission.enums import AccountPermissions, AppPermission, OrderPermissions
+from ...permission.enums import (
+    AccountPermissions,
+    AppPermission,
+    OrderPermissions,
+)
 from ...plugins.manager import PluginsManager
 from ...thumbnail.utils import (
     get_image_or_proxy_url,

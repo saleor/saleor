@@ -5,7 +5,16 @@ from django.core.exceptions import ValidationError
 from ...account.forms import get_address_form
 from ...account.models import Address
 from ...account.validators import validate_possible_number
+from ...permission.enums import AccountPermissions, BasePermissionEnum, OrderPermissions
 from ..core import ResolveInfo
+from ..utils import get_user_or_app_from_context
+
+SKIP_ADDRESS_VALIDATION_PERMISSION_MAP: dict[str, list[BasePermissionEnum]] = {
+    "addressCreate": [AccountPermissions.MANAGE_USERS],
+    "addressUpdate": [AccountPermissions.MANAGE_USERS],
+    "draftOrderCreate": [OrderPermissions.MANAGE_ORDERS],
+    "draftOrderUpdate": [OrderPermissions.MANAGE_ORDERS],
+}
 
 
 class I18nMixin:
@@ -111,6 +120,8 @@ class I18nMixin:
         required_check=True,
         enable_normalization=True,
     ):
+        if address_data.get("skip_validation"):
+            cls.can_skip_address_validation(info)
         if address_data.get("country") is None:
             params = {"address_type": address_type} if address_type else {}
             raise ValidationError(
@@ -133,3 +144,28 @@ class I18nMixin:
         cls.construct_instance(instance, address_form.cleaned_data)
         cls.clean_instance(info, instance)
         return instance
+
+    @classmethod
+    def can_skip_address_validation(cls, info: ResolveInfo):
+        requester = get_user_or_app_from_context(info.context)
+        mutation_name = info.field_name
+        required_permissions = SKIP_ADDRESS_VALIDATION_PERMISSION_MAP.get(mutation_name)
+        if not required_permissions:
+            raise ValidationError(
+                {
+                    "skip_validation": ValidationError(
+                        "This mutation doesn't allow to skip address validation.",
+                        code="invalid",
+                    )
+                }
+            )
+        elif not requester or not requester.has_perms(required_permissions):
+            raise ValidationError(
+                {
+                    "skip_validation": ValidationError(
+                        f"To skip address validation, you need following permissions: "
+                        f"{','.join(perm.name for perm in required_permissions)}.",
+                        code="required",
+                    )
+                }
+            )

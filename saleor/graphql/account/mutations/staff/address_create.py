@@ -55,7 +55,7 @@ class AddressCreate(AddressMetadataMixin, ModelMutation, I18nMixin):
         data = data.get("input")
         with traced_atomic_transaction():
             cleaned_input = cls.clean_input(info, instance, data)
-            instance = cls.validate_address(cleaned_input, instance=instance)
+            instance = cls.validate_address(cleaned_input, instance=instance, info=info)
             cls.clean_instance(info, instance)
             cls.save(info, instance, cleaned_input)
             cls.post_save_action(info, instance, cleaned_input)
