@@ -98,7 +98,8 @@ class DraftOrderLineInfo:
 
 
 def fetch_draft_order_lines_info(
-    order: "Order", lines: Optional[Iterable["OrderLine"]] = None
+    order: "Order",
+    lines: Optional[Iterable["OrderLine"]] = None,
 ) -> list[DraftOrderLineInfo]:
     prefetch_related_fields = [
         "discounts__promotion_rule__promotion",

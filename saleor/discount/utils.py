@@ -889,6 +889,7 @@ def _get_available_for_purchase_variant_ids(
     return set(available_variant_ids)
 
 
+@allow_writer()
 def _handle_order_promotion_for_checkout(
     checkout_info: CheckoutInfo,
     lines_info: Iterable[CheckoutLineInfo],
@@ -932,6 +933,7 @@ def _handle_order_promotion_for_checkout(
     delete_gift_line(checkout, lines_info)
 
 
+@allow_writer()
 def delete_gift_line(
     order_or_checkout: Union[Checkout, Order],
     lines_info: Iterable[Union["CheckoutLineInfo", "DraftOrderLineInfo"]],
@@ -1102,6 +1104,10 @@ def fetch_promotion_rules_for_checkout_or_order(
 ):
     from ..graphql.discount.utils import PredicateObjectType, filter_qs_by_predicate
 
+    with allow_writer():
+        # TODO: channel should be loaded using dataloader
+        currency = instance.channel.currency_code
+
     applicable_rules = []
     promotions = Promotion.objects.active()
     rules = (
@@ -1113,7 +1119,6 @@ def fetch_promotion_rules_for_checkout_or_order(
     rule_to_channel_ids_map = _get_rule_to_channel_ids_map(rules)
 
     channel_id = instance.channel_id
-    currency = instance.channel.currency_code
     qs = instance._meta.model.objects.using(database_connection_name).filter(  # type: ignore[attr-defined] # noqa: E501
         pk=instance.pk
     )
@@ -1322,9 +1327,12 @@ def create_order_discount_objects_for_order_promotions(
     from ..order.utils import get_order_country
 
     # If voucher is set or manual discount applied, then skip order promotions
-    if order.voucher_code or order.discounts.filter(type=DiscountType.MANUAL):
-        _clear_order_discount(order, lines_info)
-        return
+    with allow_writer():
+        # TODO: country and order discounts should be loaded with dataloader
+        country = get_order_country(order)
+        if order.voucher_code or order.discounts.filter(type=DiscountType.MANUAL):
+            _clear_order_discount(order, lines_info)
+            return
 
     # The base prices are required for order promotion discount qualification.
     _set_order_base_prices(order, lines_info)
@@ -1336,7 +1344,7 @@ def create_order_discount_objects_for_order_promotions(
     rule_data = get_best_rule(
         rules=rules,
         channel=channel,
-        country=get_order_country(order),
+        country=country,
         subtotal=subtotal,
         database_connection_name=database_connection_name,
     )
@@ -1389,6 +1397,7 @@ def create_order_discount_objects_for_order_promotions(
         )
 
 
+@allow_writer()
 def _clear_order_discount(
     order_or_checkout: Union[Checkout, Order],
     lines_info: Iterable[DraftOrderLineInfo],
