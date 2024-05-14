@@ -13,17 +13,15 @@ def fix_invalid_atobarai_payments(apps, schema_editor):
         captured_amount=0,
         gateway="saleor.payments.np-atobarai",
     )
-    payments = list(
-        Payment.objects.filter(
-            Exists(not_charged_active_payments.filter(order_id=OuterRef("order_id"))),
-            is_active=False,
-            charge_status__in=[
-                "fully-charged",
-                "partially-charged",
-            ],
-            captured_amount__gt=0,
-            gateway="saleor.payments.np-atobarai",
-        )
+    payments = Payment.objects.filter(
+        Exists(not_charged_active_payments.filter(order_id=OuterRef("order_id"))),
+        is_active=False,
+        charge_status__in=[
+            "fully-charged",
+            "partially-charged",
+        ],
+        captured_amount__gt=0,
+        gateway="saleor.payments.np-atobarai",
     )
     for ids in queryset_in_batches(payments):
         payments_to_activate = Payment.objects.filter(pk__in=ids)
