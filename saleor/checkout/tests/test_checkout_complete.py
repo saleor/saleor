@@ -119,7 +119,7 @@ def test_create_order_captured_payment_creates_expected_events(
     assert payment_captured_event.order is order
     # ensure a date was set
     assert payment_captured_event.date
-    # should not have any additional parameters
+    # should have additional parameters
     assert "amount" in payment_captured_event.parameters.keys()
     assert "payment_id" in payment_captured_event.parameters.keys()
     assert "payment_gateway" in payment_captured_event.parameters.keys()
@@ -133,8 +133,8 @@ def test_create_order_captured_payment_creates_expected_events(
     assert order_fully_paid_event.order is order
     # ensure a date was set
     assert order_fully_paid_event.date
-    # should not have any additional parameters
-    assert not order_fully_paid_event.parameters
+    # should have payment_gateway in additional parameters
+    assert "payment_gateway" in order_fully_paid_event.parameters
 
     expected_order_payload = {
         "order": get_default_order_payload(order, checkout.redirect_url),
@@ -267,7 +267,7 @@ def test_create_order_captured_payment_creates_expected_events_anonymous_user(
     assert payment_captured_event.order is order
     # ensure a date was set
     assert payment_captured_event.date
-    # should not have any additional parameters
+    # should have additional parameters
     assert "amount" in payment_captured_event.parameters.keys()
     assert "payment_id" in payment_captured_event.parameters.keys()
     assert "payment_gateway" in payment_captured_event.parameters.keys()
@@ -281,8 +281,8 @@ def test_create_order_captured_payment_creates_expected_events_anonymous_user(
     assert order_fully_paid_event.order is order
     # ensure a date was set
     assert order_fully_paid_event.date
-    # should not have any additional parameters
-    assert not order_fully_paid_event.parameters
+    # should have payment_gateway in additional parameters
+    assert "payment_gateway" in order_fully_paid_event.parameters
 
     expected_order_payload = {
         "order": get_default_order_payload(order, checkout.redirect_url),
