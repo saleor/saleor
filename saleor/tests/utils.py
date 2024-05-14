@@ -30,7 +30,7 @@ class TestDBConnectionWrapper:
 def prepare_test_db_connections():
     replica = settings.DATABASE_CONNECTION_REPLICA_NAME
     default_conn = connections[settings.DATABASE_CONNECTION_DEFAULT_NAME]
-    connections[replica] = TestDBConnectionWrapper(connections[replica], default_conn)
+    connections[replica] = TestDBConnectionWrapper(connections[replica], default_conn)  # type: ignore
 
 
 def flush_post_commit_hooks():
