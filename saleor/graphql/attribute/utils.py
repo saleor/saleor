@@ -559,7 +559,7 @@ class AttributeAssignmentMixin:
                     raise ValidationError(
                         "Attribute value with given externalReference can't be found"
                     )
-                return value
+                attribute_values.append(value)
 
             if attr_value.id:
                 _, attr_value_id = from_global_id_or_error(attr_value.id)
