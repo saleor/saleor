@@ -21,6 +21,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add taxes to undiscounted prices - #14095 by @jakubkuc
 - Mark as deprecated: `ordersTotal`, `reportProductSales` and `homepageEvents` - #14806 by @8r2y5
 - Add `identifier` field to App graphql object. Identifier field is the same as Manifest.id field (explicit ID set by the app).
+- Add `skipValidation` field to `AddressInput` - #15985 by @zedzior
 
 ### Other changes
 
@@ -41,6 +42,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - Added new parameter `identifier` for `create_app` command.
   - When `taxAppId` is provided for `TaxConfiguration` do not allow to finalize `checkoutComplete` or `draftOrderComplete` mutations if Tax App or Avatax plugin didn't respond.
 - Add `unique_type` to `OrderLineDiscount` and `CheckoutLineDiscount` models - #15774 by @zedzior
+- Allow to skip address validation - #15985 by @zedzior
 
 # 3.18.0
 
