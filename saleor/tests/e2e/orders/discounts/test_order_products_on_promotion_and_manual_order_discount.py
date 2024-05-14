@@ -161,8 +161,8 @@ def test_order_products_on_promotion_and_manual_order_discount_CORE_2108(
     )
     assert product_price == product_variant_price
     assert order_line["unitDiscount"]["amount"] == promotion_value
-    assert order_line["unitDiscountType"] == "FIXED"
-    assert order_line["unitDiscountValue"] == promotion_value
+    assert order_line["unitDiscountType"] == "PERCENTAGE"
+    assert order_line["unitDiscountValue"] == promotion_discount_value
     assert order_line["unitDiscountReason"] == promotion_reason
     product_discounted_price = product_price - promotion_value
     shipping_amount = quantize_price(
