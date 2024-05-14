@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 
+from ...account.i18n import I18nMixin
 from ....warehouse import WarehouseClickAndCollectOption
 from ....warehouse.error_codes import WarehouseErrorCode
 from ...core import ResolveInfo
@@ -9,7 +10,7 @@ from ...core.validators import (
 )
 
 
-class WarehouseMixin:
+class WarehouseMixin(I18nMixin):
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
         cleaned_input = super().clean_input(  # type: ignore[misc] # mixin
@@ -58,9 +59,24 @@ class WarehouseMixin:
                     )
                 },
             )
+        cleaned_input["address"] = cls.prepare_address(cleaned_input, info)
         return cleaned_input
 
     @classmethod
+    def prepare_address(cls, cleaned_input, info):
+        address_data = cleaned_input.get("address", {})
+        if not address_data:
+            # TODO zedzior check it
+            return None
+        address_instance = cls.validate_address(address_data, info=info)
+        # address_metadata = address_data.pop("metadata", list())
+        # if address_metadata:
+        #     address_instance.store_value_in_metadata(
+        #         {data.key: data.value for data in address_metadata}
+        #     )
+        return address_instance
+
+    @classmethod
     def construct_instance(cls, instance, cleaned_data):
-        cleaned_data["address"] = cls.prepare_address(cleaned_data, instance)  # type: ignore[attr-defined] # mixing # noqa: E501
-        return super().construct_instance(instance, cleaned_data)  # type: ignore[misc] # mixing # noqa: E501
+        cls.update_metadata(instance, cleaned_data.pop("metadata", list()))  # type: ignore[attr-defined] # noqa: E501
+        return cls.construct_instance(instance, cleaned_data)  # type: ignore[misc] # noqa: E501
