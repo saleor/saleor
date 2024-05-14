@@ -154,7 +154,7 @@ def _release_checkout_voucher_usage(
     checkout: "Checkout",
     voucher: Optional["Voucher"],
     user_email: Optional[str],
-    update_fields: Optional[list[str]] = None,
+    checkout_update_fields: Optional[list[str]] = None,
 ):
     if not checkout.is_voucher_usage_increased:
         return
@@ -165,10 +165,10 @@ def _release_checkout_voucher_usage(
     )
 
     checkout.is_voucher_usage_increased = False
-    if update_fields is None:
+    if checkout_update_fields is None:
         checkout.save(update_fields=["is_voucher_usage_increased"])
     else:
-        update_fields.append("is_voucher_usage_increased")
+        checkout_update_fields.append("is_voucher_usage_increased")
 
 
 def _process_shipping_data_for_order(
