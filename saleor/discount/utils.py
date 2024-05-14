@@ -1002,8 +1002,16 @@ def _get_defaults_for_gift_line(
             "currency": order_or_checkout.currency,
         }
     else:
+        variant = (
+            ProductVariant.objects.filter(id=variant_id)
+            .select_related("product")
+            .only("sku", "product__name")
+            .first()
+        )
         return {
             "variant_id": variant_id,
+            "product_name": variant.product.name if variant else "",
+            "product_sku": variant.sku if variant else "",
             "quantity": 1,
             "currency": order_or_checkout.currency,
             "unit_price_net_amount": Decimal(0),
