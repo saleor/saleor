@@ -72,9 +72,11 @@ class OrderLineUpdate(
     @classmethod
     def save(cls, info: ResolveInfo, instance, cleaned_input):
         manager = get_plugin_manager_promise(info.context).get()
+
+        line_allocation = instance.allocations.first()
         warehouse_pk = (
-            instance.allocations.first().stock.warehouse.pk
-            if instance.order.is_unconfirmed()
+            line_allocation.stock.warehouse.pk
+            if line_allocation and instance.order.is_unconfirmed()
             else None
         )
         app = get_app_promise(info.context).get()
