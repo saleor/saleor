@@ -1005,6 +1005,7 @@ def _get_defaults_for_gift_line(
         variant = (
             ProductVariant.objects.filter(id=variant_id)
             .select_related("product")
+            .only("sku", "product__name")
             .first()
         )
         return {
