@@ -996,6 +996,7 @@ class Checkout(ModelObjectType[models.Checkout]):
             root.token
         )
 
+        @allow_writer_in_context(info.context)
         def get_available_payment_gateways(results):
             (checkout_info, lines_info) = results
             return manager.list_payment_gateways(

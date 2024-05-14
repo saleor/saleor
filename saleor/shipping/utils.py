@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, Optional
 
 from django_countries import countries
 
+from ..core.db.connection import allow_writer
 from ..plugins.base_plugin import ExcludedShippingMethod
 from .interface import ShippingMethodData
 
@@ -41,7 +42,9 @@ def convert_to_shipping_method_data(
 
     if not tax_class:
         # Tax class should be passed as argument, this is a fallback.
-        tax_class = shipping_method.tax_class
+        # TODO: load tax_class with data loader and pass as an argument
+        with allow_writer():
+            tax_class = shipping_method.tax_class
 
     return ShippingMethodData(
         id=str(shipping_method.id),

@@ -1573,6 +1573,7 @@ class Order(ModelObjectType[models.Order]):
 
     @staticmethod
     def resolve_discounts(root: models.Order, info):
+        @allow_writer_in_context(info.context)
         def with_manager(manager):
             fetch_order_prices_if_expired(root, manager)
             return OrderDiscountsByOrderIDLoader(info.context).load(root.id)

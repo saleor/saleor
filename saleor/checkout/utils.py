@@ -1046,8 +1046,10 @@ def get_or_create_checkout_metadata(checkout: "Checkout") -> CheckoutMetadata:
         return CheckoutMetadata.objects.create(checkout=checkout)
 
 
+@allow_writer()
 def get_checkout_metadata(checkout: "Checkout"):
     if hasattr(checkout, "metadata_storage"):
+        # TODO: load metadata_storage with dataloader and pass as an argument
         return checkout.metadata_storage
     else:
         return CheckoutMetadata(checkout=checkout)

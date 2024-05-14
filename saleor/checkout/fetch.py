@@ -536,6 +536,7 @@ def fetch_checkout_info(
         collection_point=checkout.collection_point,
         voucher=voucher,
         voucher_code=voucher_code,
+        database_connection_name=database_connection_name,
     )
     return checkout_info
 

@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Optional
 from django.conf import settings
 from prices import Money, TaxedMoney
 
+from ..core.db.connection import allow_writer
 from ..core.prices import quantize_price
 from ..core.taxes import zero_money
 from ..discount import DiscountType, DiscountValueType, VoucherType
@@ -329,7 +330,12 @@ def undiscounted_order_shipping(
     """Return shipping price without any discounts."""
     # TODO: add undiscounted_shipping_price field to order model.
     # https://github.com/saleor/saleor/issues/14915
-    if shipping_method := order.shipping_method:
+
+    with allow_writer():
+        # TODO: load shipping_method with dataloader and pass as an argument
+        shipping_method = order.shipping_method
+
+    if shipping_method:
         if (
             listing := ShippingMethodChannelListing.objects.using(
                 database_connection_name

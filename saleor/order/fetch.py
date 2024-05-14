@@ -6,6 +6,7 @@ from uuid import UUID
 from django.db.models import prefetch_related_objects
 
 from ..channel.models import Channel
+from ..core.db.connection import allow_writer
 from ..discount import DiscountType
 from ..discount.interface import VariantPromotionRuleInfo, fetch_variant_rules_info
 from ..discount.models import OrderLineDiscount, Voucher
@@ -107,12 +108,18 @@ def fetch_draft_order_lines_info(
         "variant__channel_listings__variantlistingpromotionrule__promotion_rule__translations",
     ]
     if lines is None:
-        lines = list(order.lines.prefetch_related(*prefetch_related_fields))
+        with allow_writer():
+            # TODO: load lines with dataloader and pass as an argument
+            lines = list(order.lines.prefetch_related(*prefetch_related_fields))
     else:
         prefetch_related_objects(lines, *prefetch_related_fields)
 
     lines_info = []
-    channel = order.channel
+
+    with allow_writer():
+        # TODO: load channel with dataloader and pass as an argument
+        channel = order.channel
+
     for line in lines:
         variant = cast(ProductVariant, line.variant)
         variant_channel_listing = get_prefetched_variant_listing(variant, channel.id)
