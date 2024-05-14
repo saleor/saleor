@@ -7,6 +7,7 @@ from ....attribute import AttributeInputType
 from ....attribute.models import AttributeValue
 from ....page.error_codes import PageErrorCode
 from ....product.error_codes import ProductErrorCode
+from ..enums import AttributeValueBulkActionEnum
 from ..utils import (
     AttributeAssignmentMixin,
     AttrValuesForSelectableFieldInput,
@@ -2163,3 +2164,34 @@ def test_prepare_attribute_values_that_gives_the_same_slug(color_attribute):
     assert result[0] == existing_value
     assert result[1].name == new_value
     assert result[2].name == new_value_2
+
+
+def test_attribute_assignment_mixin_pre_save_multiselect_external_reference_action(
+    color_attribute,
+):
+    # given
+    color_attribute.input_type = AttributeInputType.MULTISELECT
+    color_attribute.save(update_fields=["input_type"])
+
+    values = AttrValuesInput(
+        global_id=graphene.Node.to_global_id("Attribute", color_attribute.pk),
+        content_type=None,
+        references=[],
+        multiselect=[
+            AttrValuesForSelectableFieldInput(
+                external_reference=value.external_reference
+            )
+            for value in color_attribute.values.all()
+        ],
+    )
+
+    # when
+    result = AttributeAssignmentMixin._pre_save_multiselect_values(
+        None, color_attribute, values
+    )
+
+    # then
+    assert result == [
+        (AttributeValueBulkActionEnum.NONE, value)
+        for value in color_attribute.values.all()
+    ]
