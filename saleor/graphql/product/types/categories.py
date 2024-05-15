@@ -31,13 +31,13 @@ from ...core.descriptions import (
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.federation import federated_entity, resolve_federation_references
 from ...core.fields import ConnectionField, FilterConnectionField, JSONString
-from ...core.tracing import traced_resolver
 from ...core.types import Image, ModelObjectType, ThumbnailField
 from ...meta.types import ObjectWithMetadata
 from ...translations.fields import TranslationField
 from ...translations.types import CategoryTranslation
 from ...utils import get_user_or_app_from_context
 from ..dataloaders import (
+    CategoryByIdLoader,
     CategoryChildrenByCategoryIdLoader,
     ThumbnailByCategoryIdSizeAndFormatLoader,
 )
@@ -161,11 +161,16 @@ class Category(ModelObjectType[models.Category]):
         )
 
     @staticmethod
+    def resolve_parent(root: models.Category, info):
+        if root.parent_id:
+            return CategoryByIdLoader(info.context).load(root.parent_id)
+        return None
+
+    @staticmethod
     def resolve_url(root: models.Category, _info):
         return ""
 
     @staticmethod
-    @traced_resolver
     def resolve_products(root: models.Category, info, *, channel=None, **kwargs):
         requestor = get_user_or_app_from_context(info.context)
         has_required_permissions = has_one_of_permissions(
