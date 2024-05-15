@@ -20,6 +20,7 @@ SKIP_ADDRESS_VALIDATION_PERMISSION_MAP: dict[str, list[BasePermissionEnum]] = {
     "draftOrderCreate": [OrderPermissions.MANAGE_ORDERS],
     "draftOrderUpdate": [OrderPermissions.MANAGE_ORDERS],
     "createWarehouse": [ProductPermissions.MANAGE_PRODUCTS],
+    "updateWarehouse": [ProductPermissions.MANAGE_PRODUCTS],
 }
 
 
