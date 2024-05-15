@@ -5,14 +5,15 @@ from django.core.exceptions import ValidationError
 from ...account.forms import get_address_form
 from ...account.models import Address
 from ...account.validators import validate_possible_number
+from ...core.exceptions import PermissionDenied
 from ...permission.enums import (
     AccountPermissions,
     BasePermissionEnum,
     OrderPermissions,
     ProductPermissions,
 )
+from ...permission.utils import all_permissions_required
 from ..core import ResolveInfo
-from ..utils import get_user_or_app_from_context
 
 SKIP_ADDRESS_VALIDATION_PERMISSION_MAP: dict[str, list[BasePermissionEnum]] = {
     "addressCreate": [AccountPermissions.MANAGE_USERS],
@@ -21,6 +22,8 @@ SKIP_ADDRESS_VALIDATION_PERMISSION_MAP: dict[str, list[BasePermissionEnum]] = {
     "draftOrderUpdate": [OrderPermissions.MANAGE_ORDERS],
     "createWarehouse": [ProductPermissions.MANAGE_PRODUCTS],
     "updateWarehouse": [ProductPermissions.MANAGE_PRODUCTS],
+    "accountAddressCreate": [AccountPermissions.IMPERSONATE_USER],
+    "accountAddressUpdate": [AccountPermissions.IMPERSONATE_USER],
 }
 
 
@@ -153,8 +156,10 @@ class I18nMixin:
         return instance
 
     @classmethod
-    def can_skip_address_validation(cls, info: ResolveInfo):
-        requester = get_user_or_app_from_context(info.context)
+    def can_skip_address_validation(cls, info: Optional[ResolveInfo]):
+        if not info:
+            raise PermissionDenied("Address validation can't be skipped.")
+
         mutation_name = info.field_name
         required_permissions = SKIP_ADDRESS_VALIDATION_PERMISSION_MAP.get(mutation_name)
         if not required_permissions:
@@ -166,13 +171,8 @@ class I18nMixin:
                     )
                 }
             )
-        elif not requester or not requester.has_perms(required_permissions):
-            raise ValidationError(
-                {
-                    "skip_validation": ValidationError(
-                        f"To skip address validation, you need following permissions: "
-                        f"{','.join(perm.name for perm in required_permissions)}.",
-                        code="required",
-                    )
-                }
+        elif not all_permissions_required(info.context, required_permissions):
+            raise PermissionDenied(
+                f"To skip address validation, you need following permissions: "
+                f"{','.join(perm.name for perm in required_permissions)}.",
             )

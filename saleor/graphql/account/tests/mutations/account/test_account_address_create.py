@@ -31,6 +31,7 @@ mutation($addressInput: AddressInput!, $addressType: AddressTypeEnum) {
         code
         field
         addressType
+        message
     }
   }
 }
@@ -202,11 +203,10 @@ def test_address_not_created_after_validation_fails(
 
 
 def test_customer_create_address_skip_validation(
-    user_api_client, graphql_address_data_skipped_validation
+    user_api_client,
+    graphql_address_data_skipped_validation,
 ):
     # given
-    user = user_api_client.user
-    user_addresses_count = user.addresses.count()
     query = ACCOUNT_ADDRESS_CREATE_MUTATION
     address_data = graphql_address_data_skipped_validation
     invalid_city_name = "wrong city"
@@ -215,10 +215,30 @@ def test_customer_create_address_skip_validation(
 
     # when
     response = user_api_client.post_graphql(query, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+def test_staff_create_address_skip_validation(
+    staff_api_client,
+    graphql_address_data_skipped_validation,
+    permission_impersonate_user,
+):
+    # given
+    query = ACCOUNT_ADDRESS_CREATE_MUTATION
+    address_data = graphql_address_data_skipped_validation
+    invalid_city_name = "wrong city"
+    address_data["city"] = invalid_city_name
+    variables = {"addressInput": address_data}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_impersonate_user]
+    )
     content = get_graphql_content(response)
 
     # then
     data = content["data"]["accountAddressCreate"]
     assert not data["errors"]
     assert data["address"]["city"] == invalid_city_name
-    assert user.addresses.count() == user_addresses_count + 1
