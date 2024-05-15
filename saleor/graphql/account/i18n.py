@@ -13,6 +13,7 @@ from ...permission.enums import (
     CheckoutPermissions,
     OrderPermissions,
     ProductPermissions,
+    SitePermissions,
 )
 from ...permission.utils import all_permissions_required
 from ..core import ResolveInfo
@@ -26,6 +27,7 @@ SKIP_ADDRESS_VALIDATION_PERMISSION_MAP: dict[str, list[BasePermissionEnum]] = {
     "updateWarehouse": [ProductPermissions.MANAGE_PRODUCTS],
     "accountAddressCreate": [AccountPermissions.IMPERSONATE_USER],
     "accountAddressUpdate": [AccountPermissions.IMPERSONATE_USER],
+    "accountUpdate": [AccountPermissions.IMPERSONATE_USER],
     "checkoutCreate": [
         CheckoutPermissions.MANAGE_CHECKOUTS,
         AuthorizationFilters.AUTHENTICATED_APP,
@@ -38,12 +40,10 @@ SKIP_ADDRESS_VALIDATION_PERMISSION_MAP: dict[str, list[BasePermissionEnum]] = {
         CheckoutPermissions.MANAGE_CHECKOUTS,
         AuthorizationFilters.AUTHENTICATED_APP,
     ],
+    "shopAddressUpdate": [SitePermissions.MANAGE_SETTINGS],
 }
-
-# accountUpdate
 # orderBulkCreate
 # orderUpdate
-# shopAddressUpdate
 
 
 class I18nMixin:

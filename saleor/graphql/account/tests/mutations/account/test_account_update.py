@@ -40,6 +40,7 @@ ACCOUNT_UPDATE_QUERY = """
                         key
                         value
                     }
+                    city
                 }
                 defaultShippingAddress {
                     id
@@ -47,6 +48,7 @@ ACCOUNT_UPDATE_QUERY = """
                         key
                         value
                     }
+                    city
                 }
                 languageCode
                 metadata {
@@ -220,3 +222,46 @@ def test_logged_customer_update_names_trigger_gift_card_search_vector_update(
     for card in gift_cards:
         card.refresh_from_db()
         assert card.search_index_dirty is True
+
+
+def test_logged_customer_update_address_skip_validation(
+    user_api_client,
+    graphql_address_data_skipped_validation,
+):
+    # given
+    query = ACCOUNT_UPDATE_QUERY
+    address_data = graphql_address_data_skipped_validation
+    invalid_city_name = "wrong city"
+    address_data["city"] = invalid_city_name
+    variables = {"shipping": address_data, "billing": address_data}
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+def test_staff_update_address_skip_validation(
+    staff_api_client,
+    graphql_address_data_skipped_validation,
+    permission_impersonate_user,
+):
+    # given
+    query = ACCOUNT_UPDATE_QUERY
+    address_data = graphql_address_data_skipped_validation
+    invalid_city_name = "wrong city"
+    address_data["city"] = invalid_city_name
+    variables = {"shipping": address_data, "billing": address_data}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_impersonate_user]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["accountUpdate"]
+    assert not data["errors"]
+    assert data["user"]["defaultShippingAddress"]["city"] == invalid_city_name
+    assert data["user"]["defaultBillingAddress"]["city"] == invalid_city_name

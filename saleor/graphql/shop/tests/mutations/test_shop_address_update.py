@@ -92,3 +92,28 @@ def test_mutation_update_company_address_remove_address_without_address(
 
     site_settings.refresh_from_db()
     assert not site_settings.company_address
+
+
+def test_shop_address_update_skip_validation(
+    staff_api_client,
+    graphql_address_data_skipped_validation,
+    permission_manage_settings,
+    site_settings,
+):
+    # given
+    query = MUTATION_SHOP_ADDRESS_UPDATE
+    address_data = graphql_address_data_skipped_validation
+    invalid_city_name = "wrong city"
+    address_data["city"] = invalid_city_name
+    variables = {"input": address_data}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_settings]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert "errors" not in content["data"]
+    site_settings.refresh_from_db()
+    assert site_settings.company_address.city == invalid_city_name
