@@ -139,16 +139,25 @@ def test_categories_children(api_client, categories_with_children, count_queries
         categories(first: 30) {
           edges {
             node {
+              parent {
+                name
+              }
               children(first: 30) {
                 edges {
                   node {
                     id
                     name
-                    children(first: 30) {
+                    parent {
+                      name
+                    }
+                    children(first: 20) {
                       edges {
                         node {
                           id
                           name
+                          parent {
+                            name
+                          }
                         }
                       }
                     }
