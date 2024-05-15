@@ -5,7 +5,12 @@ from django.core.exceptions import ValidationError
 from ...account.forms import get_address_form
 from ...account.models import Address
 from ...account.validators import validate_possible_number
-from ...permission.enums import AccountPermissions, BasePermissionEnum, OrderPermissions
+from ...permission.enums import (
+    AccountPermissions,
+    BasePermissionEnum,
+    OrderPermissions,
+    ProductPermissions,
+)
 from ..core import ResolveInfo
 from ..utils import get_user_or_app_from_context
 
@@ -14,6 +19,7 @@ SKIP_ADDRESS_VALIDATION_PERMISSION_MAP: dict[str, list[BasePermissionEnum]] = {
     "addressUpdate": [AccountPermissions.MANAGE_USERS],
     "draftOrderCreate": [OrderPermissions.MANAGE_ORDERS],
     "draftOrderUpdate": [OrderPermissions.MANAGE_ORDERS],
+    "createWarehouse": [ProductPermissions.MANAGE_PRODUCTS],
 }
 
 
