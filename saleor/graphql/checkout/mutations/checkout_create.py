@@ -239,7 +239,9 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         return variants, checkout_lines_data
 
     @classmethod
-    def retrieve_shipping_address(cls, user, data: dict) -> Optional["Address"]:
+    def retrieve_shipping_address(
+        cls, user, data: dict, info: ResolveInfo
+    ) -> Optional["Address"]:
         address_validation_rules = data.get("validation_rules", {}).get(
             "shipping_address", {}
         )
@@ -254,11 +256,14 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                 enable_normalization=address_validation_rules.get(
                     "enable_fields_normalization", True
                 ),
+                info=info,
             )
         return None
 
     @classmethod
-    def retrieve_billing_address(cls, user, data: dict) -> Optional["Address"]:
+    def retrieve_billing_address(
+        cls, user, data: dict, info: ResolveInfo
+    ) -> Optional["Address"]:
         address_validation_rules = data.get("validation_rules", {}).get(
             "billing_address", {}
         )
@@ -273,6 +278,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                 enable_normalization=address_validation_rules.get(
                     "enable_fields_normalization", True
                 ),
+                info=info,
             )
         return None
 
@@ -294,8 +300,8 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             if data.get("billing_address")
             else None
         )
-        shipping_address = cls.retrieve_shipping_address(user, data)
-        billing_address = cls.retrieve_billing_address(user, data)
+        shipping_address = cls.retrieve_shipping_address(user, data, info)
+        billing_address = cls.retrieve_billing_address(user, data, info)
         if shipping_address:
             cls.update_metadata(shipping_address, shipping_address_metadata)
         if billing_address:

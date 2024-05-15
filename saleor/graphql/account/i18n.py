@@ -6,9 +6,11 @@ from ...account.forms import get_address_form
 from ...account.models import Address
 from ...account.validators import validate_possible_number
 from ...core.exceptions import PermissionDenied
+from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import (
     AccountPermissions,
     BasePermissionEnum,
+    CheckoutPermissions,
     OrderPermissions,
     ProductPermissions,
 )
@@ -24,7 +26,24 @@ SKIP_ADDRESS_VALIDATION_PERMISSION_MAP: dict[str, list[BasePermissionEnum]] = {
     "updateWarehouse": [ProductPermissions.MANAGE_PRODUCTS],
     "accountAddressCreate": [AccountPermissions.IMPERSONATE_USER],
     "accountAddressUpdate": [AccountPermissions.IMPERSONATE_USER],
+    "checkoutCreate": [
+        CheckoutPermissions.MANAGE_CHECKOUTS,
+        AuthorizationFilters.AUTHENTICATED_APP,
+    ],
+    "checkoutShippingAddressUpdate": [
+        CheckoutPermissions.MANAGE_CHECKOUTS,
+        AuthorizationFilters.AUTHENTICATED_APP,
+    ],
+    "checkoutBillingAddressUpdate": [
+        CheckoutPermissions.MANAGE_CHECKOUTS,
+        AuthorizationFilters.AUTHENTICATED_APP,
+    ],
 }
+
+# accountUpdate
+# orderBulkCreate
+# orderUpdate
+# shopAddressUpdate
 
 
 class I18nMixin:
@@ -174,5 +193,5 @@ class I18nMixin:
         elif not all_permissions_required(info.context, required_permissions):
             raise PermissionDenied(
                 f"To skip address validation, you need following permissions: "
-                f"{','.join(perm.name for perm in required_permissions)}.",
+                f"{', '.join(perm.name for perm in required_permissions)}.",
             )

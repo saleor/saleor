@@ -106,35 +106,6 @@ def test_checkout_create_with_default_channel(
     )
 
 
-def test_checkout_create_with_variant_without_sku(
-    api_client, stock, graphql_address_data, channel_USD
-):
-    variant = stock.product_variant
-    variant.sku = None
-    variant.save()
-    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
-    test_email = "test@example.com"
-    shipping_address = graphql_address_data
-    quantity = 1
-    variables = {
-        "checkoutInput": {
-            "channel": channel_USD.slug,
-            "lines": [{"quantity": quantity, "variantId": variant_id}],
-            "email": test_email,
-            "shippingAddress": shipping_address,
-        }
-    }
-    assert not Checkout.objects.exists()
-    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
-    get_graphql_content(response)["data"]["checkoutCreate"]
-
-    new_checkout = Checkout.objects.first()
-    lines, _ = fetch_checkout_lines(new_checkout)
-    assert new_checkout.channel == channel_USD
-    assert calculate_checkout_quantity(lines) == quantity
-    assert lines[0].variant.sku is None
-
-
 def test_checkout_create_with_inactive_channel(
     api_client, stock, graphql_address_data, channel_USD
 ):
@@ -437,6 +408,35 @@ def test_checkout_create_with_multiple_channel_with_channel_slug(
     checkout_line = new_checkout.lines.first()
     assert checkout_line.variant == variant
     assert checkout_line.quantity == 1
+
+
+def test_checkout_create_with_variant_without_sku(
+    api_client, stock, graphql_address_data, channel_USD
+):
+    variant = stock.product_variant
+    variant.sku = None
+    variant.save()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    test_email = "test@example.com"
+    shipping_address = graphql_address_data
+    quantity = 1
+    variables = {
+        "checkoutInput": {
+            "channel": channel_USD.slug,
+            "lines": [{"quantity": quantity, "variantId": variant_id}],
+            "email": test_email,
+            "shippingAddress": shipping_address,
+        }
+    }
+    assert not Checkout.objects.exists()
+    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    get_graphql_content(response)["data"]["checkoutCreate"]
+
+    new_checkout = Checkout.objects.first()
+    lines, _ = fetch_checkout_lines(new_checkout)
+    assert new_checkout.channel == channel_USD
+    assert calculate_checkout_quantity(lines) == quantity
+    assert lines[0].variant.sku is None
 
 
 def test_checkout_create_with_existing_checkout_in_other_channel(
@@ -2404,3 +2404,155 @@ def test_checkout_create_with_disabled_fields_normalization_raises_required_erro
     assert len(data["errors"]) == 1
     assert data["errors"][0]["field"] == "postalCode"
     assert data["errors"][0]["code"] == "REQUIRED"
+
+
+MUTATION_CHECKOUT_CREATE_WITH_ADDRESSES = """
+    mutation createCheckout($checkoutInput: CheckoutCreateInput!) {
+      checkoutCreate(input: $checkoutInput) {
+        checkout {
+          id
+          shippingAddress {
+            city
+          }
+          billingAddress {
+            city
+          }
+        }
+        errors {
+          field
+          message
+          code
+        }
+      }
+    }
+"""
+
+
+def test_checkout_create_skip_validation_shipping_address_by_customer(
+    api_client, stock, graphql_address_data_skipped_validation, channel_USD
+):
+    # given
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    shipping_address = graphql_address_data_skipped_validation
+    invalid_city_name = "wrong city"
+    shipping_address["city"] = invalid_city_name
+
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "email": "test@example.com",
+            "shippingAddress": shipping_address,
+            "channel": channel_USD.slug,
+        }
+    }
+
+    # when
+    response = api_client.post_graphql(
+        MUTATION_CHECKOUT_CREATE_WITH_ADDRESSES, variables
+    )
+
+    # then
+    assert_no_permission(response)
+
+
+def test_checkout_create_skip_validation_shipping_address_by_app(
+    app_api_client,
+    stock,
+    graphql_address_data_skipped_validation,
+    channel_USD,
+    permission_manage_checkouts,
+):
+    # given
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    shipping_address = graphql_address_data_skipped_validation
+    invalid_city_name = "wrong city"
+    shipping_address["city"] = invalid_city_name
+
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "email": "test@example.com",
+            "shippingAddress": shipping_address,
+            "channel": channel_USD.slug,
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_CHECKOUT_CREATE_WITH_ADDRESSES,
+        variables,
+        permissions=[permission_manage_checkouts],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["checkoutCreate"]
+    assert not data["errors"]
+    assert data["checkout"]["shippingAddress"]["city"] == invalid_city_name
+
+
+def test_checkout_create_skip_validation_billing_address_by_customer(
+    api_client, stock, graphql_address_data_skipped_validation, channel_USD
+):
+    # given
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    billing_address = graphql_address_data_skipped_validation
+    invalid_city_name = "wrong city"
+    billing_address["city"] = invalid_city_name
+
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "email": "test@example.com",
+            "billingAddress": billing_address,
+            "channel": channel_USD.slug,
+        }
+    }
+
+    # when
+    response = api_client.post_graphql(
+        MUTATION_CHECKOUT_CREATE_WITH_ADDRESSES, variables
+    )
+
+    # then
+    assert_no_permission(response)
+
+
+def test_checkout_create_skip_validation_billing_address_by_app(
+    app_api_client,
+    stock,
+    graphql_address_data_skipped_validation,
+    channel_USD,
+    permission_manage_checkouts,
+):
+    # given
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    billing_address = graphql_address_data_skipped_validation
+    invalid_city_name = "wrong city"
+    billing_address["city"] = invalid_city_name
+
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "email": "test@example.com",
+            "billingAddress": billing_address,
+            "channel": channel_USD.slug,
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_CHECKOUT_CREATE_WITH_ADDRESSES,
+        variables,
+        permissions=[permission_manage_checkouts],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["checkoutCreate"]
+    assert not data["errors"]
+    assert data["checkout"]["billingAddress"]["city"] == invalid_city_name
