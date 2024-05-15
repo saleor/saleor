@@ -954,6 +954,9 @@ class TransactionCreate(BaseMutation):
                 if "cancel" not in available_actions:
                     available_actions.append("cancel")
                 transaction["available_actions"] = available_actions
+        elif "available_actions" in transaction:
+            # null available_actions is provided, removing it from keys
+            transaction.pop("available_actions")
         return instance
 
     @classmethod

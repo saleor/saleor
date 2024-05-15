@@ -2193,3 +2193,36 @@ def test_transaction_create_for_checkout_updates_last_transaction_modified_at(
     transaction = checkout_with_items.payment_transactions.first()
 
     assert checkout_with_items.last_transaction_modified_at == transaction.modified_at
+
+
+def test_transaction_create_null_available_actions(
+    order_with_lines, permission_manage_payments, app_api_client
+):
+    # given
+    authorized_value = Decimal("10")
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
+        "transaction": {
+            "status": "Authorized for 10$",
+            "type": "Credit Card",
+            "pspReference": "PSP reference - 123",
+            "availableActions": None,
+            "amountAuthorized": {
+                "amount": authorized_value,
+                "currency": "USD",
+            },
+            "externalUrl": f"http://{TEST_SERVER_DOMAIN}/external-url",
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    get_graphql_content(response)
+    order_with_lines.refresh_from_db()
+    assert order_with_lines.total_authorized.amount == authorized_value
+    assert order_with_lines.authorize_status == OrderAuthorizeStatus.PARTIAL
+    assert order_with_lines.search_vector
