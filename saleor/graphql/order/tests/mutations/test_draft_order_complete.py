@@ -129,6 +129,58 @@ def test_draft_order_complete(
     )
 
 
+def test_draft_order_complete_no_automatically_confirm_all_new_orders(
+    staff_api_client,
+    permission_group_manage_orders,
+    staff_user,
+    draft_order,
+    channel_USD,
+):
+    # given
+    channel_USD.automatically_confirm_all_new_orders = False
+    channel_USD.save()
+    order = draft_order
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # Ensure no events were created
+    assert not OrderEvent.objects.exists()
+
+    # Ensure no allocation were created
+    assert not Allocation.objects.filter(order_line__order=order).exists()
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+
+    # when
+    response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderComplete"]["order"]
+    order.refresh_from_db()
+    assert data["status"] == order.status.upper()
+    assert data["origin"] == OrderOrigin.DRAFT.upper()
+    assert order.search_vector
+
+    for line in order.lines.all():
+        allocation = line.allocations.get()
+        assert allocation.quantity_allocated == line.quantity_unfulfilled
+
+    # ensure there are only 1 event with correct type
+    event_params = {
+        "user": staff_user,
+        "type__in": [
+            order_events.OrderEvents.PLACED_FROM_DRAFT,
+            order_events.OrderEvents.CONFIRMED,
+        ],
+        "parameters": {},
+    }
+    matching_events = OrderEvent.objects.filter(**event_params)
+    assert matching_events.count() == 1
+    assert matching_events[0].type == order_events.OrderEvents.PLACED_FROM_DRAFT
+    assert not OrderEvent.objects.exclude(**event_params).exists()
+
+
 def test_draft_order_complete_by_user_no_channel_access(
     staff_api_client,
     permission_group_all_perms_channel_USD_only,
