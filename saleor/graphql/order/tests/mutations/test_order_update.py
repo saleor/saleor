@@ -450,3 +450,56 @@ def test_order_update_with_non_unique_external_reference(
     assert error["field"] == "externalReference"
     assert error["code"] == OrderErrorCode.UNIQUE.name
     assert error["message"] == "Order with this External reference already exists."
+
+
+ORDER_UPDATE_MUTATION_WITH_ADDRESS = """
+    mutation orderUpdate($id: ID!, $address: AddressInput) {
+        orderUpdate(
+            id: $id,
+            input: {
+                shippingAddress: $address,
+                billingAddress: $address
+                }
+            ) {
+            errors {
+                field
+                code
+            }
+            order {
+                shippingAddress {
+                    city
+                }
+                billingAddress {
+                    city
+                }
+            }
+        }
+    }
+"""
+
+
+def test_order_update_invalid_address_skip_validation(
+    staff_api_client,
+    permission_group_manage_orders,
+    order,
+    graphql_address_data_skipped_validation,
+):
+    # given
+    address_data = graphql_address_data_skipped_validation
+    invalid_city_name = "wrong city"
+    address_data["city"] = invalid_city_name
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    query = ORDER_UPDATE_MUTATION_WITH_ADDRESS
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    variables = {"id": order_id, "address": address_data}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["orderUpdate"]
+    assert not data["errors"]
+    assert data["order"]["shippingAddress"]["city"] == invalid_city_name
+    assert data["order"]["billingAddress"]["city"] == invalid_city_name

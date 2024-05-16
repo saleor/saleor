@@ -3714,3 +3714,41 @@ def test_order_bulk_create_error_invalid_status(
     assert error["message"] == "Invalid order status."
     assert error["path"] == "status"
     assert error["code"] == OrderBulkCreateErrorCode.INVALID.name
+
+
+def test_order_bulk_create_skip_address_validation(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+    graphql_address_data_skipped_validation,
+):
+    # given
+    orders_count = Order.objects.count()
+
+    order = order_bulk_input
+    invalid_postal_code = "invalid_postal_code"
+    address_data = graphql_address_data_skipped_validation
+    address_data["postalCode"] = invalid_postal_code
+    order["billingAddress"] = address_data
+    order["shippingAddress"] = address_data
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["orderBulkCreate"]["results"][0]
+    assert not data["errors"]
+    assert data["order"]["shippingAddress"]["postalCode"] == invalid_postal_code
+    assert data["order"]["billingAddress"]["postalCode"] == invalid_postal_code
+    assert Order.objects.count() == orders_count + 1

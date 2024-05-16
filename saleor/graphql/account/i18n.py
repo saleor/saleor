@@ -23,11 +23,14 @@ SKIP_ADDRESS_VALIDATION_PERMISSION_MAP: dict[str, list[BasePermissionEnum]] = {
     "addressUpdate": [AccountPermissions.MANAGE_USERS],
     "draftOrderCreate": [OrderPermissions.MANAGE_ORDERS],
     "draftOrderUpdate": [OrderPermissions.MANAGE_ORDERS],
+    "orderUpdate": [OrderPermissions.MANAGE_ORDERS],
+    "orderBulkCreate": [OrderPermissions.MANAGE_ORDERS_IMPORT],
     "createWarehouse": [ProductPermissions.MANAGE_PRODUCTS],
     "updateWarehouse": [ProductPermissions.MANAGE_PRODUCTS],
     "accountAddressCreate": [AccountPermissions.IMPERSONATE_USER],
     "accountAddressUpdate": [AccountPermissions.IMPERSONATE_USER],
     "accountUpdate": [AccountPermissions.IMPERSONATE_USER],
+    "shopAddressUpdate": [SitePermissions.MANAGE_SETTINGS],
     "checkoutCreate": [
         CheckoutPermissions.MANAGE_CHECKOUTS,
         AuthorizationFilters.AUTHENTICATED_APP,
@@ -40,10 +43,7 @@ SKIP_ADDRESS_VALIDATION_PERMISSION_MAP: dict[str, list[BasePermissionEnum]] = {
         CheckoutPermissions.MANAGE_CHECKOUTS,
         AuthorizationFilters.AUTHENTICATED_APP,
     ],
-    "shopAddressUpdate": [SitePermissions.MANAGE_SETTINGS],
 }
-# orderBulkCreate
-# orderUpdate
 
 
 class I18nMixin:
