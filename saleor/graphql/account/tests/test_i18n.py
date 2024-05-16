@@ -1,7 +1,11 @@
+from unittest import mock
+
+import graphene
 import pytest
 from django.core.exceptions import ValidationError
 
 from ....checkout import AddressType
+from ...tests.utils import assert_no_permission, get_graphql_content
 from ..i18n import I18nMixin
 
 
@@ -95,3 +99,71 @@ def test_validate_address_no_city():
 
     # then
     assert len(error.value.error_dict["city"]) == 1
+
+
+ADDRESS_CREATE_MUTATION = """
+    mutation CreateUserAddress($user: ID!, $address: AddressInput!) {
+        addressCreate(userId: $user, input: $address) {
+            errors {
+                field
+                code
+                message
+            }
+            address {
+                city
+            }
+        }
+    }
+"""
+
+
+@mock.patch("saleor.graphql.account.i18n.SKIP_ADDRESS_VALIDATION_PERMISSION_MAP", {})
+def test_skip_address_validation_mutation_not_supported(
+    staff_api_client,
+    customer_user,
+    graphql_address_data_skipped_validation,
+    permission_manage_users,
+):
+    # given
+    query = ADDRESS_CREATE_MUTATION
+    address_data = graphql_address_data_skipped_validation
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    wrong_postal_code = "wrong postal code"
+    address_data["postalCode"] = wrong_postal_code
+    variables = {"user": user_id, "address": address_data}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["addressCreate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "skipValidation"
+    assert errors[0]["code"] == "INVALID"
+    assert (
+        errors[0]["message"]
+        == "This mutation doesn't allow to skip address validation."
+    )
+
+
+def test_skip_address_validation_no_permissions(
+    staff_api_client,
+    customer_user,
+    graphql_address_data_skipped_validation,
+):
+    # given
+    query = ADDRESS_CREATE_MUTATION
+    address_data = graphql_address_data_skipped_validation
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    wrong_postal_code = "wrong postal code"
+    address_data["postalCode"] = wrong_postal_code
+    variables = {"user": user_id, "address": address_data}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    assert_no_permission(response)

@@ -176,11 +176,13 @@ class I18nMixin:
 
     @classmethod
     def can_skip_address_validation(cls, info: Optional[ResolveInfo]):
-        if not info:
-            raise PermissionDenied("Address validation can't be skipped.")
+        required_permissions = None
+        if info:
+            mutation_name = info.field_name
+            required_permissions = SKIP_ADDRESS_VALIDATION_PERMISSION_MAP.get(
+                mutation_name
+            )
 
-        mutation_name = info.field_name
-        required_permissions = SKIP_ADDRESS_VALIDATION_PERMISSION_MAP.get(mutation_name)
         if not required_permissions:
             raise ValidationError(
                 {
@@ -190,7 +192,7 @@ class I18nMixin:
                     )
                 }
             )
-        elif not all_permissions_required(info.context, required_permissions):
+        elif info and not all_permissions_required(info.context, required_permissions):
             raise PermissionDenied(
                 f"To skip address validation, you need following permissions: "
                 f"{', '.join(perm.name for perm in required_permissions)}.",
