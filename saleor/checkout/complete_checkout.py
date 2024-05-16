@@ -159,6 +159,7 @@ def _release_checkout_voucher_usage(
     voucher_code: Optional["VoucherCode"],
     voucher: Optional["Voucher"],
     user_email: Optional[str],
+    checkout_update_fields: Optional[list[str]] = None,
 ):
     if not checkout.is_voucher_usage_increased:
         return
@@ -169,7 +170,10 @@ def _release_checkout_voucher_usage(
         user_email,
     )
     checkout.is_voucher_usage_increased = False
-    checkout.save(update_fields=["is_voucher_usage_increased"])
+    if checkout_update_fields is None:
+        checkout.save(update_fields=["is_voucher_usage_increased"])
+    else:
+        checkout_update_fields.append("is_voucher_usage_increased")
 
 
 def _process_shipping_data_for_order(
@@ -843,12 +847,11 @@ def _get_order_data(
 
 
 def _process_payment(
-    checkout: Checkout,
+    checkout_info: CheckoutInfo,
     payment: Payment,
     customer_id: Optional[str],
     store_source: bool,
     payment_data: Optional[dict],
-    order_data: dict,
     manager: "PluginsManager",
     channel_slug: str,
     voucher_code: Optional["VoucherCode"] = None,
@@ -878,9 +881,7 @@ def _process_payment(
         if not txn.is_success:
             raise PaymentError(txn.error)
     except PaymentError as e:
-        _release_checkout_voucher_usage(
-            checkout, voucher_code, voucher, order_data.get("user_email")
-        )
+        _complete_checkout_fail_handler(checkout_info, manager)
         raise ValidationError(str(e), code=CheckoutErrorCode.PAYMENT_ERROR.value)
     return txn
 
@@ -905,7 +906,6 @@ def complete_checkout_pre_payment_part(
     fetch_checkout_data(checkout_info, manager, lines)
 
     checkout = checkout_info.checkout
-    channel_slug = checkout_info.channel.slug
     payment = checkout.get_last_active_payment()
     try:
         _prepare_checkout_with_payment(
@@ -916,13 +916,13 @@ def complete_checkout_pre_payment_part(
             payment=payment,
         )
     except ValidationError as exc:
-        gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
+        _complete_checkout_fail_handler(checkout_info, manager, payment=payment)
         raise exc
 
     try:
         order_data = _get_order_data(manager, checkout_info, lines, site_settings)
     except ValidationError as exc:
-        gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
+        _complete_checkout_fail_handler(checkout_info, manager, payment=payment)
         raise exc
 
     customer_id = None
@@ -979,26 +979,22 @@ def complete_checkout_post_payment_part(
             # remove checkout after order is successfully created
             checkout_info.checkout.delete()
         except InsufficientStock as e:
-            _release_checkout_voucher_usage(
-                checkout_info.checkout,
-                checkout_info.voucher_code,
-                checkout_info.voucher,
-                order_data.get("user_email"),
-            )
-            gateway.payment_refund_or_void(
-                payment, manager, channel_slug=checkout_info.channel.slug
+            _complete_checkout_fail_handler(
+                checkout_info,
+                manager,
+                voucher_code=checkout_info.voucher_code,
+                voucher=checkout_info.voucher,
+                payment=payment,
             )
             error = prepare_insufficient_stock_checkout_validation_error(e)
             raise error
         except GiftCardNotApplicable as e:
-            _release_checkout_voucher_usage(
-                checkout_info.checkout,
-                checkout_info.voucher_code,
-                checkout_info.voucher,
-                order_data.get("user_email"),
-            )
-            gateway.payment_refund_or_void(
-                payment, manager, channel_slug=checkout_info.channel.slug
+            _complete_checkout_fail_handler(
+                checkout_info,
+                manager,
+                voucher_code=checkout_info.voucher_code,
+                voucher=checkout_info.voucher,
+                payment=payment,
             )
             raise ValidationError(code=e.code, message=e.message)
 
@@ -1374,19 +1370,19 @@ def create_order_from_checkout(
                 checkout_info.checkout.delete()
             return order
         except InsufficientStock:
-            _release_checkout_voucher_usage(
-                checkout,
-                checkout_info.voucher_code,
-                checkout_info.voucher,
-                checkout_info.checkout.get_customer_email(),
+            _complete_checkout_fail_handler(
+                checkout_info,
+                manager,
+                voucher_code=checkout_info.voucher_code,
+                voucher=checkout_info.voucher,
             )
             raise
         except GiftCardNotApplicable:
-            _release_checkout_voucher_usage(
-                checkout,
-                checkout_info.voucher_code,
-                checkout_info.voucher,
-                checkout_info.checkout.get_customer_email(),
+            _complete_checkout_fail_handler(
+                checkout_info,
+                manager,
+                voucher_code=checkout_info.voucher_code,
+                voucher=checkout_info.voucher,
             )
             raise
 
@@ -1528,6 +1524,9 @@ def complete_checkout_with_payment(
             order = Order.objects.get_by_checkout_token(checkout_pk)
             return order, False, {}
 
+        checkout.completing_started_at = timezone.now()
+        checkout.save(update_fields=["completing_started_at"])
+
         # Fetching checkout info inside the transaction block with select_for_update
         # enure that we are processing checkout on the current data.
         lines, _ = fetch_checkout_lines(checkout)
@@ -1563,12 +1562,11 @@ def complete_checkout_with_payment(
 
             payment = Payment.objects.select_for_update().get(id=payment.id)
             txn = _process_payment(
-                checkout=checkout,
+                checkout_info=checkout_info,
                 payment=payment,
                 customer_id=customer_id,
                 store_source=store_source,
                 payment_data=payment_data,
-                order_data=order_data,
                 manager=manager,
                 channel_slug=channel_slug,
                 voucher_code=checkout_info.voucher_code,
@@ -1580,8 +1578,11 @@ def complete_checkout_with_payment(
             # refund the payment.
             payment.refresh_from_db()
             if not payment.is_active:
-                gateway.payment_refund_or_void(
-                    payment, manager, channel_slug=channel_slug
+                _complete_checkout_fail_handler(
+                    checkout_info,
+                    manager,
+                    voucher=order_data.get("voucher"),
+                    payment=payment,
                 )
                 raise ValidationError(
                     f"The payment with pspReference: {payment.psp_reference} is "
@@ -1621,6 +1622,9 @@ def complete_checkout_with_payment(
             metadata_list=metadata_list,
             private_metadata_list=private_metadata_list,
         )
+        if checkout.pk:
+            checkout.completing_started_at = None
+            checkout.save(update_fields=["completing_started_at"])
 
     return order, action_required, action_data
 
@@ -1656,3 +1660,43 @@ def _reserve_stocks_without_availability_check(
             )
     Reservation.objects.bulk_create(reservations)
     return reservations
+
+
+def _complete_checkout_fail_handler(
+    checkout_info: "CheckoutInfo",
+    manager: "PluginsManager",
+    *,
+    voucher_code: Optional["VoucherCode"] = None,
+    voucher: Optional["Voucher"] = None,
+    payment: Optional[Payment] = None,
+) -> None:
+    """Handle the case when the checkout completion failed.
+
+    - Release the checkout processing indicator.
+    - Release the voucher usage.
+    - Refund or void the payment.
+    """
+    checkout = checkout_info.checkout
+    update_fields = []
+    if checkout.completing_started_at is not None:
+        # release the checkout processing indicator
+        checkout.completing_started_at = None
+        update_fields.append("completing_started_at")
+
+    # release the voucher usage
+    if voucher:
+        _release_checkout_voucher_usage(
+            checkout,
+            voucher_code,
+            voucher,
+            checkout.get_customer_email(),
+            update_fields,
+        )
+
+    if update_fields:
+        checkout.save(update_fields=update_fields)
+
+    if payment:
+        gateway.payment_refund_or_void(
+            payment, manager, channel_slug=checkout_info.channel.slug
+        )
