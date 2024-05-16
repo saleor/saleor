@@ -239,6 +239,8 @@ class TransactionCreate(BaseMutation):
             transaction.get("external_url"),
             error_code=TransactionCreateErrorCode.INVALID.value,
         )
+        if "available_actions" in transaction and not transaction["available_actions"]:
+            transaction.pop("available_actions")
         return instance
 
     @classmethod
