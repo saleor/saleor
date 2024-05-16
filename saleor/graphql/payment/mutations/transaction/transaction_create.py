@@ -239,6 +239,8 @@ class TransactionCreate(BaseMutation):
             transaction.get("external_url"),
             error_code=TransactionCreateErrorCode.INVALID.value,
         )
+        if "available_actions" in transaction and not transaction["available_actions"]:
+            transaction.pop("available_actions")
         return instance
 
     @classmethod
@@ -357,11 +359,6 @@ class TransactionCreate(BaseMutation):
                     reference=transaction_event.get("psp_reference"),
                     message=transaction_event.get("message", ""),
                 )
-        if (
-            "available_actions" in transaction_data
-            and not transaction_data["available_actions"]
-        ):
-            transaction_data.pop("available_actions")
         money_data = cls.get_money_data_from_input(transaction_data)
         new_transaction = cls.create_transaction(transaction_data, user=user, app=app)
         if money_data:
