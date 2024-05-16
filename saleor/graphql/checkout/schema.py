@@ -1,6 +1,10 @@
 import graphene
 
-from ...permission.enums import AccountPermissions, CheckoutPermissions
+from ...permission.enums import (
+    AccountPermissions,
+    CheckoutPermissions,
+    PaymentPermissions,
+)
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import (
@@ -51,6 +55,7 @@ class CheckoutQueries(graphene.ObjectType):
             "query checkouts that belong to other users: "
             f"{CheckoutPermissions.MANAGE_CHECKOUTS.name}, "
             f"{AccountPermissions.IMPERSONATE_USER.name}. "
+            f"{PaymentPermissions.HANDLE_PAYMENTS.name}. "
         ),
         id=graphene.Argument(
             graphene.ID, description="The checkout's ID." + ADDED_IN_34
@@ -75,6 +80,7 @@ class CheckoutQueries(graphene.ObjectType):
         ),
         permissions=[
             CheckoutPermissions.MANAGE_CHECKOUTS,
+            PaymentPermissions.HANDLE_PAYMENTS,
         ],
         description="List of checkouts.",
         doc_category=DOC_CATEGORY_CHECKOUT,
