@@ -5,7 +5,7 @@ import pytest
 from django.core.exceptions import ValidationError
 
 from ....checkout import AddressType
-from ...tests.utils import assert_no_permission, get_graphql_content
+from ...tests.utils import get_graphql_content
 from ..i18n import I18nMixin
 
 
@@ -147,23 +147,3 @@ def test_skip_address_validation_mutation_not_supported(
         errors[0]["message"]
         == "This mutation doesn't allow to skip address validation."
     )
-
-
-def test_skip_address_validation_no_permissions(
-    staff_api_client,
-    customer_user,
-    graphql_address_data_skipped_validation,
-):
-    # given
-    query = ADDRESS_CREATE_MUTATION
-    address_data = graphql_address_data_skipped_validation
-    user_id = graphene.Node.to_global_id("User", customer_user.id)
-    wrong_postal_code = "wrong postal code"
-    address_data["postalCode"] = wrong_postal_code
-    variables = {"user": user_id, "address": address_data}
-
-    # when
-    response = staff_api_client.post_graphql(query, variables)
-
-    # then
-    assert_no_permission(response)

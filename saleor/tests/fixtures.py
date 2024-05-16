@@ -1194,7 +1194,6 @@ def graphql_address_data():
         "countryArea": "",
         "phone": "+48321321888",
         "metadata": [{"key": "public", "value": "public_value"}],
-        "skipValidation": False,
     }
 
 

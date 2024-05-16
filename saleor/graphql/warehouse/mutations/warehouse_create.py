@@ -26,10 +26,7 @@ class WarehouseCreate(AddressMetadataMixin, WarehouseMixin, ModelMutation, I18nM
 
     @classmethod
     def prepare_address(cls, cleaned_input, info):
-        address_data = cleaned_input.get("address", {})
-        if not address_data:
-            # TODO zedzior test it
-            return None
+        address_data = cleaned_input["address"]
         address_instance = cls.validate_address(address_data, info=info)
         address_instance.save()
         return address_instance
