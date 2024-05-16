@@ -27,9 +27,9 @@ SKIP_ADDRESS_VALIDATION_PERMISSION_MAP: dict[str, list[BasePermissionEnum]] = {
     "orderBulkCreate": [OrderPermissions.MANAGE_ORDERS_IMPORT],
     "createWarehouse": [ProductPermissions.MANAGE_PRODUCTS],
     "updateWarehouse": [ProductPermissions.MANAGE_PRODUCTS],
-    "accountAddressCreate": [AccountPermissions.IMPERSONATE_USER],
-    "accountAddressUpdate": [AccountPermissions.IMPERSONATE_USER],
-    "accountUpdate": [AccountPermissions.IMPERSONATE_USER],
+    # "accountAddressCreate": [],
+    # "accountAddressUpdate": [],
+    # "accountUpdate": [],
     "shopAddressUpdate": [SitePermissions.MANAGE_SETTINGS],
     "checkoutCreate": [
         CheckoutPermissions.MANAGE_CHECKOUTS,
