@@ -7958,13 +7958,13 @@ input AddressInput {
   metadata: [MetadataInput!]
 
   """
-  Determine if the address should be validated.By default, Saleor accepts only address inputs matching ruleset from [Google Address Data]{https://chromium-i18n.appspot.com/ssl-address), using [i18naddress](https://github.com/mirumee/google-i18n-address) library.
+  Determine if the address should be validated. By default, Saleor accepts only address inputs matching ruleset from [Google Address Data]{https://chromium-i18n.appspot.com/ssl-address), using [i18naddress](https://github.com/mirumee/google-i18n-address) library.
   
   Added in Saleor 3.19.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
-  skipValidation: Boolean
+  skipValidation: Boolean = false
 }
 
 input MetadataInput {

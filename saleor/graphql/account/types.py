@@ -103,7 +103,7 @@ class AddressInput(BaseInputObjectType):
     )
     skip_validation = graphene.Boolean(
         description=(
-            "Determine if the address should be validated."
+            "Determine if the address should be validated. "
             "By default, Saleor accepts only address inputs matching ruleset from "
             "[Google Address Data]{https://chromium-i18n.appspot.com/ssl-address), "
             "using [i18naddress](https://github.com/mirumee/google-i18n-address) "
@@ -111,7 +111,7 @@ class AddressInput(BaseInputObjectType):
         )
         + ADDED_IN_319
         + PREVIEW_FEATURE,
-        default=False,
+        default_value=False,
         required=False,
     )
 
