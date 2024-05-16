@@ -2461,7 +2461,7 @@ def test_checkout_create_skip_validation_shipping_address_by_app(
     stock,
     graphql_address_data_skipped_validation,
     channel_USD,
-    permission_manage_checkouts,
+    permission_handle_checkouts,
 ):
     # given
     variant = stock.product_variant
@@ -2483,7 +2483,7 @@ def test_checkout_create_skip_validation_shipping_address_by_app(
     response = app_api_client.post_graphql(
         MUTATION_CHECKOUT_CREATE_WITH_ADDRESSES,
         variables,
-        permissions=[permission_manage_checkouts],
+        permissions=[permission_handle_checkouts],
     )
     content = get_graphql_content(response)
 
@@ -2526,7 +2526,7 @@ def test_checkout_create_skip_validation_billing_address_by_app(
     stock,
     graphql_address_data_skipped_validation,
     channel_USD,
-    permission_manage_checkouts,
+    permission_handle_checkouts,
 ):
     # given
     variant = stock.product_variant
@@ -2548,7 +2548,7 @@ def test_checkout_create_skip_validation_billing_address_by_app(
     response = app_api_client.post_graphql(
         MUTATION_CHECKOUT_CREATE_WITH_ADDRESSES,
         variables,
-        permissions=[permission_manage_checkouts],
+        permissions=[permission_handle_checkouts],
     )
     content = get_graphql_content(response)
 

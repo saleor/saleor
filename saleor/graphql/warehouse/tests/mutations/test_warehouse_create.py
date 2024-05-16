@@ -345,7 +345,6 @@ def test_create_warehouse_with_non_unique_external_reference(
     assert error["message"] == "Warehouse with this External reference already exists."
 
 
-
 def test_create_warehouse_invalid_address_skip_validation(
     staff_api_client,
     permission_manage_products,
