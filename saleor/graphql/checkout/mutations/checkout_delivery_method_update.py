@@ -20,7 +20,6 @@ from ....checkout.utils import (
 from ....shipping import interface as shipping_interface
 from ....shipping import models as shipping_models
 from ....shipping.utils import convert_to_shipping_method_data
-from ....warehouse import WarehouseClickAndCollectOption
 from ....warehouse import models as warehouse_models
 from ....webhook.const import APP_ID_PREFIX
 from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
@@ -171,20 +170,12 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
     @classmethod
     def perform_on_collection_point(
         cls,
-        info: ResolveInfo,
-        collection_point_id,
+        collection_point,
         checkout_info,
         lines,
         checkout,
         manager,
     ):
-        collection_point = cls.get_node_or_error(
-            info,
-            collection_point_id,
-            only_type=Warehouse,
-            field="delivery_method_id",
-            qs=warehouse_models.Warehouse.objects.select_related("address"),
-        )
         cls._check_delivery_method(
             checkout_info,
             lines,
@@ -248,13 +239,15 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             )
         else:
             delete_external_shipping_id(checkout=checkout)
+
+        # Clear checkout shipping address if it was switched from C&C.
+        if checkout.collection_point_id and not collection_point:
+            checkout.shipping_address = None
+            checkout_fields_to_update += ["shipping_address"]
+
         checkout.shipping_method = shipping_method
         checkout.collection_point = collection_point
-        if (
-            collection_point is not None
-            and collection_point.click_and_collect_option
-            == WarehouseClickAndCollectOption.LOCAL_STOCK
-        ):
+        if collection_point is not None:
             checkout.shipping_address = collection_point.address.get_copy()
             checkout_info.shipping_address = checkout.shipping_address
             checkout_fields_to_update += ["shipping_address"]
@@ -287,6 +280,18 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             )
 
         return str_type
+
+    @staticmethod
+    def validate_collection_point(checkout_info, collection_point):
+        if collection_point not in checkout_info.valid_pick_up_points:
+            raise ValidationError(
+                {
+                    "delivery_method_id": ValidationError(
+                        "This pick up point is not applicable.",
+                        code=CheckoutErrorCode.DELIVERY_METHOD_NOT_APPLICABLE.value,
+                    )
+                }
+            )
 
     @classmethod
     def perform_mutation(
@@ -333,8 +338,16 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         type_name = cls._resolve_delivery_method_type(delivery_method_id)
         checkout_info = fetch_checkout_info(checkout, lines, manager)
         if type_name == "Warehouse":
+            collection_point = cls.get_node_or_error(
+                info,
+                delivery_method_id,
+                only_type=Warehouse,
+                field="delivery_method_id",
+                qs=warehouse_models.Warehouse.objects.select_related("address"),
+            )
+            cls.validate_collection_point(checkout_info, collection_point)
             return cls.perform_on_collection_point(
-                info, delivery_method_id, checkout_info, lines, checkout, manager
+                collection_point, checkout_info, lines, checkout, manager
             )
         if type_name == "ShippingMethod":
             return cls.perform_on_shipping_method(
