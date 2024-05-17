@@ -13,7 +13,6 @@ from celery.exceptions import MaxRetriesExceededError
 from celery.exceptions import Retry as CeleryTaskRetryError
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.models import Site
-from django.core.files.base import ContentFile
 from django.core.serializers import serialize
 from django.utils import timezone
 from freezegun import freeze_time
@@ -1709,13 +1708,8 @@ def test_create_event_payload_reference_with_error(
     webhook.target_url = "testy"
     webhook.save()
     expected_data = serialize("json", [order_with_lines])
-    event_payload = EventPayload.objects.create()
-    event_payload.payload_file.save(
-        f"payload-{event_payload.pk}-{event_payload.created_at}",
-        ContentFile(expected_data),
-    )
     trigger_webhooks_async(
-        event_payload,
+        expected_data,
         WebhookEventAsyncType.ORDER_CREATED,
         [webhook],
         allow_replica=False,
@@ -1723,6 +1717,7 @@ def test_create_event_payload_reference_with_error(
     delivery = EventDelivery.objects.first()
     send_webhook_request_async(delivery.id)
     attempt = EventDeliveryAttempt.objects.first()
+    payload = EventPayload.objects.first()
 
     assert delivery
     assert attempt
@@ -1732,6 +1727,8 @@ def test_create_event_payload_reference_with_error(
     assert delivery.status == "failed"
     assert attempt.task_id == ANY
     assert attempt.duration == ANY
+    assert payload.get_payload() == expected_data
+    assert payload.payload_file
 
 
 @freeze_time("1914-06-28 10:50")
