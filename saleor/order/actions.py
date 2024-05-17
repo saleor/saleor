@@ -120,7 +120,7 @@ def order_created(
         )
 
     channel = order_info.channel
-    if channel.automatically_confirm_all_new_orders or from_draft:
+    if channel.automatically_confirm_all_new_orders:
         order_confirmed(order, user, app, manager)
 
 
