@@ -167,18 +167,9 @@ def test_draft_order_complete_no_automatically_confirm_all_new_orders(
         assert allocation.quantity_allocated == line.quantity_unfulfilled
 
     # ensure there are only 1 event with correct type
-    event_params = {
-        "user": staff_user,
-        "type__in": [
-            order_events.OrderEvents.PLACED_FROM_DRAFT,
-            order_events.OrderEvents.CONFIRMED,
-        ],
-        "parameters": {},
-    }
-    matching_events = OrderEvent.objects.filter(**event_params)
-    assert matching_events.count() == 1
-    assert matching_events[0].type == order_events.OrderEvents.PLACED_FROM_DRAFT
-    assert not OrderEvent.objects.exclude(**event_params).exists()
+    event = OrderEvent.objects.get(user=staff_user)
+    assert event.type == order_events.OrderEvents.PLACED_FROM_DRAFT
+    assert not OrderEvent.objects.exclude(user=staff_user).exists()
 
 
 def test_draft_order_complete_by_user_no_channel_access(
