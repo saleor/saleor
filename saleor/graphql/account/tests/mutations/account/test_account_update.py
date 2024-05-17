@@ -40,7 +40,6 @@ ACCOUNT_UPDATE_QUERY = """
                         key
                         value
                     }
-                    city
                 }
                 defaultShippingAddress {
                     id
@@ -48,7 +47,6 @@ ACCOUNT_UPDATE_QUERY = """
                         key
                         value
                     }
-                    city
                 }
                 languageCode
                 metadata {

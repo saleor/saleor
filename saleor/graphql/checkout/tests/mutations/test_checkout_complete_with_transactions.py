@@ -3727,6 +3727,11 @@ def test_checkout_complete_with_invalid_address(
     address,
     shipping_method,
 ):
+    """Check if checkout can be completed with invalid address.
+
+    After introducing `AddressInput.skip_validation`, Saleor may have invalid address
+    stored in database.
+    """
     # given
     checkout = checkout_with_item
 

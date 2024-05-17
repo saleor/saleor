@@ -4281,6 +4281,11 @@ def test_checkout_complete_line_deleted_in_the_meantime(
 def test_checkout_complete_with_invalid_address(
     api_client, checkout_with_item, address, payment_dummy, shipping_method
 ):
+    """Check if checkout can be completed with invalid address.
+
+    After introducing `AddressInput.skip_validation`, Saleor may have invalid address
+    stored in database.
+    """
     # given
     checkout = checkout_with_item
     variables = {

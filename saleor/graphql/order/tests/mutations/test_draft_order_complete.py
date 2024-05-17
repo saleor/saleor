@@ -1418,9 +1418,8 @@ def test_draft_order_complete_with_invalid_address(
     """Check if draft order can be completed with invalid address.
 
     After introducing `AddressInput.skip_validation`, Saleor may have invalid address
-    stored in database.'''
+    stored in database.
     """
-
     # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order

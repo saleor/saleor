@@ -43,6 +43,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - When `taxAppId` is provided for `TaxConfiguration` do not allow to finalize `checkoutComplete` or `draftOrderComplete` mutations if Tax App or Avatax plugin didn't respond.
 - Add `unique_type` to `OrderLineDiscount` and `CheckoutLineDiscount` models - #15774 by @zedzior
 - Allow to skip address validation - #15985 by @zedzior
+  - Added new field `Address.validation_skipped`.
 
 # 3.18.0
 
