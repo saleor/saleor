@@ -1,6 +1,6 @@
 import graphene
 
-from ...permission.enums import CheckoutPermissions
+from ...permission.enums import CheckoutPermissions, PaymentPermissions
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import (
@@ -70,6 +70,7 @@ class CheckoutQueries(graphene.ObjectType):
         ),
         permissions=[
             CheckoutPermissions.MANAGE_CHECKOUTS,
+            PaymentPermissions.HANDLE_PAYMENTS,
         ],
         description="List of checkouts.",
         doc_category=DOC_CATEGORY_CHECKOUT,

@@ -1212,7 +1212,7 @@ type Query {
   """
   List of checkouts.
   
-  Requires one of the following permissions: MANAGE_CHECKOUTS.
+  Requires one of the following permissions: MANAGE_CHECKOUTS, HANDLE_PAYMENTS.
   """
   checkouts(
     """
