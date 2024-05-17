@@ -590,8 +590,8 @@ def test_checkout_billing_address_skip_validation_by_customer(
 ):
     # given
     address_data = graphql_address_data_skipped_validation
-    invalid_city_name = "wrong city"
-    address_data["city"] = invalid_city_name
+    invalid_postal_code = "invalid_postal_code"
+    address_data["postalCode"] = invalid_postal_code
 
     variables = {
         "id": to_global_id_or_none(checkout_with_items),
@@ -616,8 +616,8 @@ def test_checkout_billing_address_skip_validation_by_app(
     # given
     checkout = checkout_with_items
     address_data = graphql_address_data_skipped_validation
-    invalid_city_name = "wrong city"
-    address_data["city"] = invalid_city_name
+    invalid_postal_code = "invalid_postal_code"
+    address_data["postalCode"] = invalid_postal_code
 
     variables = {
         "id": to_global_id_or_none(checkout_with_items),
@@ -636,5 +636,5 @@ def test_checkout_billing_address_skip_validation_by_app(
     data = content["data"]["checkoutBillingAddressUpdate"]
     assert not data["errors"]
     checkout.refresh_from_db()
-    assert checkout.billing_address.city == invalid_city_name
+    assert checkout.billing_address.postal_code == invalid_postal_code
     assert checkout.billing_address.validation_skipped is True

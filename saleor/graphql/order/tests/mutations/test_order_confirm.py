@@ -390,15 +390,15 @@ def test_order_confirm_skip_address_validation(
     payment_txn_preauth.save(update_fields=["order", "captured_amount", "total"])
 
     address_data = graphql_address_data
-    invalid_city_name = "wrong city"
-    address_data["city"] = invalid_city_name
+    invalid_postal_code = "invalid_postal_code"
+    address_data["postalCode"] = invalid_postal_code
 
     shipping_address = order.shipping_address
-    shipping_address.city = invalid_city_name
-    shipping_address.save(update_fields=["city"])
+    shipping_address.postal_code = invalid_postal_code
+    shipping_address.save(update_fields=["postal_code"])
     billing_address = order.billing_address
-    billing_address.city = invalid_city_name
-    billing_address.save(update_fields=["city"])
+    billing_address.postal_code = invalid_postal_code
+    billing_address.save(update_fields=["postal_code"])
 
     order.total_charged = order.total.gross
     order.save(update_fields=["total_charged_amount"])
@@ -416,6 +416,6 @@ def test_order_confirm_skip_address_validation(
     data = content["data"]["orderConfirm"]
     assert not data["errors"]
     order.refresh_from_db()
-    assert order.shipping_address.city == invalid_city_name
-    assert order.billing_address.city == invalid_city_name
+    assert order.shipping_address.postal_code == invalid_postal_code
+    assert order.billing_address.postal_code == invalid_postal_code
     assert order.status == OrderStatus.UNFULFILLED

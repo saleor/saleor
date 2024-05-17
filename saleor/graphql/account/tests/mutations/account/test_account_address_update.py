@@ -157,8 +157,8 @@ def test_customer_update_address_skip_validation(
     query = ACCOUNT_ADDRESS_UPDATE_MUTATION
     address_obj = customer_user.addresses.first()
     address_data = graphql_address_data_skipped_validation
-    invalid_city_name = "wrong city"
-    address_data["city"] = invalid_city_name
+    invalid_postal_code = "invalid_postal_code"
+    address_data["postalCode"] = invalid_postal_code
 
     variables = {
         "addressId": graphene.Node.to_global_id("Address", address_obj.id),

@@ -209,8 +209,8 @@ def test_customer_create_address_skip_validation(
     # given
     query = ACCOUNT_ADDRESS_CREATE_MUTATION
     address_data = graphql_address_data_skipped_validation
-    invalid_city_name = "wrong city"
-    address_data["city"] = invalid_city_name
+    invalid_postal_code = "invalid_postal_code"
+    address_data["postalCode"] = invalid_postal_code
     variables = {"addressInput": address_data}
 
     # when

@@ -469,10 +469,10 @@ ORDER_UPDATE_MUTATION_WITH_ADDRESS = """
             }
             order {
                 shippingAddress {
-                    city
+                    postalCode
                 }
                 billingAddress {
-                    city
+                    postalCode
                 }
             }
         }
@@ -488,8 +488,8 @@ def test_order_update_invalid_address_skip_validation(
 ):
     # given
     address_data = graphql_address_data_skipped_validation
-    invalid_city_name = "wrong city"
-    address_data["city"] = invalid_city_name
+    invalid_postal_code = "invalid_postal_code"
+    address_data["postalCode"] = invalid_postal_code
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     query = ORDER_UPDATE_MUTATION_WITH_ADDRESS
     order_id = graphene.Node.to_global_id("Order", order.id)
@@ -503,10 +503,10 @@ def test_order_update_invalid_address_skip_validation(
     # then
     data = content["data"]["orderUpdate"]
     assert not data["errors"]
-    assert data["order"]["shippingAddress"]["city"] == invalid_city_name
-    assert data["order"]["billingAddress"]["city"] == invalid_city_name
+    assert data["order"]["shippingAddress"]["postalCode"] == invalid_postal_code
+    assert data["order"]["billingAddress"]["postalCode"] == invalid_postal_code
     order.refresh_from_db()
-    assert order.shipping_address.city == invalid_city_name
+    assert order.shipping_address.postal_code == invalid_postal_code
     assert order.shipping_address.validation_skipped is True
-    assert order.billing_address.city == invalid_city_name
+    assert order.billing_address.postal_code == invalid_postal_code
     assert order.billing_address.validation_skipped is True

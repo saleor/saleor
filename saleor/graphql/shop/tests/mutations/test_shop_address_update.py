@@ -104,8 +104,8 @@ def test_shop_address_update_skip_validation(
     # given
     query = MUTATION_SHOP_ADDRESS_UPDATE
     address_data = graphql_address_data_skipped_validation
-    invalid_city_name = "wrong city"
-    address_data["city"] = invalid_city_name
+    invalid_postal_code = "invalid_postal_code"
+    address_data["postalCode"] = invalid_postal_code
     variables = {"input": address_data}
 
     # when
@@ -117,5 +117,5 @@ def test_shop_address_update_skip_validation(
     # then
     assert "errors" not in content["data"]
     site_settings.refresh_from_db()
-    assert site_settings.company_address.city == invalid_city_name
+    assert site_settings.company_address.postal_code == invalid_postal_code
     assert site_settings.company_address.validation_skipped is True

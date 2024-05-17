@@ -2106,8 +2106,8 @@ def test_draft_order_create_invalid_address_skip_validation(
     variant_list = [{"variantId": variant_id, "quantity": 2}]
 
     address_data = graphql_address_data_skipped_validation
-    invalid_city_name = "wrong city"
-    address_data["city"] = invalid_city_name
+    invalid_postal_code = "invalid_postal_code"
+    address_data["postalCode"] = invalid_postal_code
 
     shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
@@ -2132,12 +2132,12 @@ def test_draft_order_create_invalid_address_skip_validation(
     # then
     data = content["data"]["draftOrderCreate"]
     assert not data["errors"]
-    assert data["order"]["shippingAddress"]["city"] == invalid_city_name
-    assert data["order"]["billingAddress"]["city"] == invalid_city_name
+    assert data["order"]["shippingAddress"]["postalCode"] == invalid_postal_code
+    assert data["order"]["billingAddress"]["postalCode"] == invalid_postal_code
     order = Order.objects.last()
-    assert order.shipping_address.city == invalid_city_name
+    assert order.shipping_address.postal_code == invalid_postal_code
     assert order.shipping_address.validation_skipped is True
-    assert order.billing_address.city == invalid_city_name
+    assert order.billing_address.postal_code == invalid_postal_code
     assert order.billing_address.validation_skipped is True
 
 

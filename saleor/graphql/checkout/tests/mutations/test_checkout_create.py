@@ -2415,10 +2415,10 @@ MUTATION_CHECKOUT_CREATE_WITH_ADDRESSES = """
         checkout {
           id
           shippingAddress {
-            city
+            postalCode
           }
           billingAddress {
-            city
+            postalCode
           }
         }
         errors {
@@ -2438,8 +2438,8 @@ def test_checkout_create_skip_validation_shipping_address_by_customer(
     variant = stock.product_variant
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     shipping_address = graphql_address_data_skipped_validation
-    invalid_city_name = "wrong city"
-    shipping_address["city"] = invalid_city_name
+    invalid_postal_code = "invalid_postal_code"
+    shipping_address["postalCode"] = invalid_postal_code
 
     variables = {
         "checkoutInput": {
@@ -2470,8 +2470,8 @@ def test_checkout_create_skip_validation_shipping_address_by_app(
     variant = stock.product_variant
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     shipping_address = graphql_address_data_skipped_validation
-    invalid_city_name = "wrong city"
-    shipping_address["city"] = invalid_city_name
+    invalid_postal_code = "invalid_postal_code"
+    shipping_address["postalCode"] = invalid_postal_code
 
     variables = {
         "checkoutInput": {
@@ -2493,9 +2493,9 @@ def test_checkout_create_skip_validation_shipping_address_by_app(
     # then
     data = content["data"]["checkoutCreate"]
     assert not data["errors"]
-    assert data["checkout"]["shippingAddress"]["city"] == invalid_city_name
-    new_checkout = Checkout.objects.last()
-    assert new_checkout.shipping_address.city == invalid_city_name
+    assert data["checkout"]["shippingAddress"]["postalCode"] == invalid_postal_code
+    new_checkout = Checkout.objects.first()
+    assert new_checkout.shipping_address.postal_code == invalid_postal_code
     assert new_checkout.shipping_address.validation_skipped is True
 
 
@@ -2506,8 +2506,8 @@ def test_checkout_create_skip_validation_billing_address_by_customer(
     variant = stock.product_variant
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     billing_address = graphql_address_data_skipped_validation
-    invalid_city_name = "wrong city"
-    billing_address["city"] = invalid_city_name
+    invalid_postal_code = "invalid_postal_code"
+    billing_address["postalCode"] = invalid_postal_code
 
     variables = {
         "checkoutInput": {
@@ -2538,8 +2538,8 @@ def test_checkout_create_skip_validation_billing_address_by_app(
     variant = stock.product_variant
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     billing_address = graphql_address_data_skipped_validation
-    invalid_city_name = "wrong city"
-    billing_address["city"] = invalid_city_name
+    invalid_postal_code = "invalid_postal_code"
+    billing_address["postalCode"] = invalid_postal_code
 
     variables = {
         "checkoutInput": {
@@ -2561,7 +2561,7 @@ def test_checkout_create_skip_validation_billing_address_by_app(
     # then
     data = content["data"]["checkoutCreate"]
     assert not data["errors"]
-    assert data["checkout"]["billingAddress"]["city"] == invalid_city_name
-    new_checkout = Checkout.objects.last()
-    assert new_checkout.billing_address.city == invalid_city_name
+    assert data["checkout"]["billingAddress"]["postalCode"] == invalid_postal_code
+    new_checkout = Checkout.objects.first()
+    assert new_checkout.billing_address.postal_code == invalid_postal_code
     assert new_checkout.billing_address.validation_skipped is True

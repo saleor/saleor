@@ -32,7 +32,7 @@ mutation updateWarehouse($input: WarehouseUpdateInput!, $id: ID!) {
                 id
                 streetAddress1
                 streetAddress2
-                city
+                postalCode
                 metadata {
                     key
                     value
@@ -590,8 +590,8 @@ def test_update_warehouse_invalid_address_skip_validation(
 ):
     # given
     address_data = graphql_address_data_skipped_validation
-    invalid_city_name = "wrong city"
-    address_data["city"] = invalid_city_name
+    invalid_postal_code = "invalid_postal_code"
+    address_data["postalCode"] = invalid_postal_code
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
 
     variables = {
@@ -613,7 +613,7 @@ def test_update_warehouse_invalid_address_skip_validation(
     # then
     data = content["data"]["updateWarehouse"]
     assert not data["errors"]
-    assert data["warehouse"]["address"]["city"] == invalid_city_name
+    assert data["warehouse"]["address"]["postalCode"] == invalid_postal_code
     warehouse.refresh_from_db()
-    assert warehouse.address.city == invalid_city_name
+    assert warehouse.address.postal_code == invalid_postal_code
     assert warehouse.address.validation_skipped is True

@@ -12,6 +12,7 @@ ADDRESS_UPDATE_MUTATION = """
     mutation updateUserAddress($addressId: ID!, $address: AddressInput!) {
         addressUpdate(id: $addressId, input: $address) {
             address {
+                postalCode
                 city
                 metadata {
                     key
@@ -153,8 +154,8 @@ def test_address_update_skip_validation(
     query = ADDRESS_UPDATE_MUTATION
     address_obj = customer_user.addresses.first()
     address_data = graphql_address_data_skipped_validation
-    invalid_city = "wrong city"
-    address_data["city"] = invalid_city
+    invalid_postal_code = "invalid_postal_code"
+    address_data["postalCode"] = invalid_postal_code
     variables = {
         "addressId": graphene.Node.to_global_id("Address", address_obj.id),
         "address": address_data,
@@ -169,7 +170,7 @@ def test_address_update_skip_validation(
     # then
     data = content["data"]["addressUpdate"]
     assert not data["errors"]
-    assert data["address"]["city"] == invalid_city
+    assert data["address"]["postalCode"] == invalid_postal_code
     address_obj.refresh_from_db()
-    assert address_obj.city == invalid_city
+    assert address_obj.postal_code == invalid_postal_code
     assert address_obj.validation_skipped is True

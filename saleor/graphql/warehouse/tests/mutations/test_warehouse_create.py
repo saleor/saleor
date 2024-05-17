@@ -23,8 +23,7 @@ mutation createWarehouse($input: WarehouseCreateInput!) {
             externalReference
             address {
                 id
-                city
-                countryArea
+                postalCode
                 metadata {
                     key
                     value
@@ -353,8 +352,8 @@ def test_create_warehouse_invalid_address_skip_validation(
 ):
     # given
     address_data = graphql_address_data_skipped_validation
-    invalid_city_name = "wrong city"
-    address_data["city"] = invalid_city_name
+    invalid_postal_code = "invalid_postal_code"
+    address_data["postalCode"] = invalid_postal_code
     variables = {
         "input": {
             "name": "Test warehouse",
@@ -375,7 +374,7 @@ def test_create_warehouse_invalid_address_skip_validation(
     # then
     data = content["data"]["createWarehouse"]
     assert not data["errors"]
-    assert data["warehouse"]["address"]["city"] == invalid_city_name
+    assert data["warehouse"]["address"]["postalCode"] == invalid_postal_code
     address = Address.objects.get()
-    assert address.city == invalid_city_name
+    assert address.postal_code == invalid_postal_code
     assert address.validation_skipped is True
