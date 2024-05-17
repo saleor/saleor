@@ -540,6 +540,7 @@ def test_customers_bulk_update_with_address(
     address_data = convert_dict_keys_to_camel_case(address.as_data())
     address_data.pop("metadata")
     address_data.pop("privateMetadata")
+    address_data.pop("validationSkipped")
 
     new_street_address = "Updated street address"
     address_data["streetAddress1"] = new_street_address
@@ -599,6 +600,7 @@ def test_customers_bulk_update_with_address_when_no_default(
     customer_id = graphene.Node.to_global_id("User", customer_user.pk)
 
     address_data = convert_dict_keys_to_camel_case(shipping_address.as_data())
+    address_data.pop("validationSkipped")
     address_data.pop("metadata")
     address_data.pop("privateMetadata")
 
@@ -649,6 +651,7 @@ def test_customers_bulk_update_with_invalid_address(
     customer_id = graphene.Node.to_global_id("User", customer_user.pk)
 
     address_data = convert_dict_keys_to_camel_case(address.as_data())
+    address_data.pop("validationSkipped")
     address_data.pop("metadata")
     address_data.pop("privateMetadata")
     address_data.pop("country")

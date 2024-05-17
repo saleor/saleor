@@ -317,7 +317,7 @@ class AddressData:
     phone: str
     metadata: Optional[dict]
     private_metadata: Optional[dict]
-    validation_skipped: bool
+    validation_skipped: bool = False
 
 
 class StorePaymentMethodEnum(str, Enum):
