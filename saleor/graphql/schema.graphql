@@ -1240,7 +1240,7 @@ type Query {
   """
   Look up a checkout by id.
   
-  Requires one of the following permissions to query checkouts that belong to other users: MANAGE_CHECKOUTS, IMPERSONATE_USER. HANDLE_PAYMENTS.
+  Requires one of the following permissions to query a checkout, if a checkout is in inactive channel: MANAGE_CHECKOUTS, IMPERSONATE_USER, HANDLE_PAYMENTS.
   """
   checkout(
     """

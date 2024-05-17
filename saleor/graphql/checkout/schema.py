@@ -51,10 +51,10 @@ class CheckoutQueries(graphene.ObjectType):
     checkout = BaseField(
         Checkout,
         description=(
-            "Look up a checkout by id.\n\nRequires one of the following permissions to "
-            "query checkouts that belong to other users: "
+            "Look up a checkout by id.\n\nRequires one of the following permissions "
+            "to query a checkout, if a checkout is in inactive channel: "
             f"{CheckoutPermissions.MANAGE_CHECKOUTS.name}, "
-            f"{AccountPermissions.IMPERSONATE_USER.name}. "
+            f"{AccountPermissions.IMPERSONATE_USER.name}, "
             f"{PaymentPermissions.HANDLE_PAYMENTS.name}. "
         ),
         id=graphene.Argument(
