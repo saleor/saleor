@@ -21,6 +21,7 @@ from ..core import ResolveInfo
 SKIP_ADDRESS_VALIDATION_PERMISSION_MAP: dict[str, list[BasePermissionEnum]] = {
     "addressCreate": [AccountPermissions.MANAGE_USERS],
     "addressUpdate": [AccountPermissions.MANAGE_USERS],
+    "customerBulkUpdate": [AccountPermissions.MANAGE_USERS],
     "draftOrderCreate": [OrderPermissions.MANAGE_ORDERS],
     "draftOrderUpdate": [OrderPermissions.MANAGE_ORDERS],
     "orderUpdate": [OrderPermissions.MANAGE_ORDERS],
@@ -58,7 +59,7 @@ class I18nMixin:
         pass
 
     @classmethod
-    def validate_address_form(
+    def _validate_address_form(
         cls,
         address_data: dict,
         address_type: Optional[str] = None,
@@ -157,7 +158,7 @@ class I18nMixin:
                     )
                 }
             )
-        address_form = cls.validate_address_form(
+        address_form = cls._validate_address_form(
             address_data,
             address_type,
             format_check=format_check,
