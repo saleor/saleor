@@ -67,6 +67,7 @@ class Address(ModelWithMetadata):
     country = CountryField()
     country_area = models.CharField(max_length=128, blank=True)
     phone = PossiblePhoneNumberField(blank=True, default="", db_index=True)
+    validation_skipped = models.BooleanField(default=False)
 
     objects = AddressManager()
 
