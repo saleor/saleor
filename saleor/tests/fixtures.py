@@ -8398,7 +8398,7 @@ def app_manifest_webhook():
 
 
 @pytest.fixture
-def event_payload():
+def event_payload(media_root):
     """Return event payload."""
     event_payload = EventPayload.objects.create()
     event_payload.payload_file.save(
