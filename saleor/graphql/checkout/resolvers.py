@@ -46,16 +46,12 @@ def resolve_checkout(info, token, id):
         return checkout
 
     # resolve checkout for staff or app
-    requester = get_user_or_app_from_context(info.context)
-
-    if not requester:
-        return None
-
-    has_manage_checkout = requester.has_perm(CheckoutPermissions.MANAGE_CHECKOUTS)
-    has_impersonate_user = requester.has_perm(AccountPermissions.IMPERSONATE_USER)
-    has_handle_payments = requester.has_perm(PaymentPermissions.HANDLE_PAYMENTS)
-    if has_manage_checkout or has_impersonate_user or has_handle_payments:
-        return checkout
+    if requester := get_user_or_app_from_context(info.context):
+        has_manage_checkout = requester.has_perm(CheckoutPermissions.MANAGE_CHECKOUTS)
+        has_impersonate_user = requester.has_perm(AccountPermissions.IMPERSONATE_USER)
+        has_handle_payments = requester.has_perm(PaymentPermissions.HANDLE_PAYMENTS)
+        if has_manage_checkout or has_impersonate_user or has_handle_payments:
+            return checkout
 
     raise PermissionDenied(
         permissions=[

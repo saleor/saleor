@@ -1352,6 +1352,76 @@ def test_query_checkout_as_app_with_no_permission_for_inactive_channel(
     assert_no_permission(response)
 
 
+@pytest.mark.parametrize("permission", ["checkouts", "user", "payments"])
+def test_query_checkout_as_staff_with_permission_for_inactive_channel(
+    staff_api_client,
+    checkout,
+    customer_user,
+    permission_manage_payments,
+    permission_manage_checkouts,
+    permission_impersonate_user,
+    permission,
+):
+    # given
+    permissions = {
+        "checkouts": permission_manage_checkouts,
+        "user": permission_impersonate_user,
+        "payments": permission_manage_payments,
+    }
+    query = QUERY_CHECKOUT
+    checkout.user = customer_user
+    checkout.save(update_fields=["user"])
+    channel = checkout.channel
+    channel.is_active = False
+    channel.save(update_fields=["is_active"])
+    variables = {"id": to_global_id_or_none(checkout)}
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[permissions.get(permission)],
+        check_no_permissions=False,
+    )
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["checkout"]
+
+
+@pytest.mark.parametrize("permission", ["checkouts", "user", "payments"])
+def test_query_checkout_as_app_with_permission_for_inactive_channel(
+    app_api_client,
+    checkout,
+    customer_user,
+    permission_manage_payments,
+    permission_manage_checkouts,
+    permission_impersonate_user,
+    permission,
+):
+    # given
+    permissions = {
+        "checkouts": permission_manage_checkouts,
+        "user": permission_impersonate_user,
+        "payments": permission_manage_payments,
+    }
+    query = QUERY_CHECKOUT
+    checkout.user = customer_user
+    checkout.save(update_fields=["user"])
+    channel = checkout.channel
+    channel.is_active = False
+    channel.save(update_fields=["is_active"])
+    variables = {"id": to_global_id_or_none(checkout)}
+    # when
+    response = app_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[permissions.get(permission)],
+        check_no_permissions=False,
+    )
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["checkout"]
+
+
 QUERY_CHECKOUT = """
     query getCheckout($id: ID) {
         checkout(id: $id) {
