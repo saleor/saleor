@@ -514,6 +514,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                 "country_area",
                 "phone",
                 "metadata",
+                "validation_skipped",
             ],
         )
 

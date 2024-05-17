@@ -236,6 +236,8 @@ def test_draft_order_update_with_voucher(
     order.refresh_from_db()
     assert order.billing_address.metadata == stored_metadata
     assert order.shipping_address.metadata == stored_metadata
+    assert order.billing_address.validation_skipped is False
+    assert order.shipping_address.validation_skipped is False
     assert order.voucher_code == voucher.code
     assert order.customer_note == customer_note
     assert order.search_vector
@@ -896,6 +898,11 @@ def test_draft_order_update_invalid_address_skip_validation(
     assert not data["errors"]
     assert data["order"]["shippingAddress"]["city"] == invalid_city_name
     assert data["order"]["billingAddress"]["city"] == invalid_city_name
+    order.refresh_from_db()
+    assert order.shipping_address.city == invalid_city_name
+    assert order.shipping_address.validation_skipped is True
+    assert order.billing_address.city == invalid_city_name
+    assert order.billing_address.validation_skipped is True
 
 
 def test_draft_order_update_by_user_no_channel_access(

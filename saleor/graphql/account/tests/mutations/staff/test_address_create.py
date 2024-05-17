@@ -60,6 +60,7 @@ def test_create_address_mutation(
 
     assert address_obj.metadata == {"public": "public_value"}
     assert address_obj.user_addresses.first() == customer_user
+    assert address_obj.validation_skipped is False
     assert data["user"]["id"] == user_id
 
     customer_user.refresh_from_db()
@@ -181,7 +182,6 @@ def test_create_address_skip_validation(
     customer_user,
     graphql_address_data_skipped_validation,
     permission_manage_users,
-    address,
 ):
     # given
     query = ADDRESS_CREATE_MUTATION
@@ -201,3 +201,6 @@ def test_create_address_skip_validation(
     data = content["data"]["addressCreate"]
     assert not data["errors"]
     assert data["address"]["postalCode"] == wrong_postal_code
+    new_address = Address.objects.last()
+    assert new_address.postal_code == wrong_postal_code
+    assert new_address.validation_skipped is True

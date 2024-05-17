@@ -92,6 +92,7 @@ def test_mutation_create_warehouse(
     assert created_warehouse["externalReference"] == warehouse.external_reference
     assert created_warehouse["address"]["metadata"] == metadata
     assert address.metadata == {"public": "public_value"}
+    assert address.validation_skipped is False
 
 
 def test_mutation_create_warehouse_shipping_zone_provided(
@@ -377,3 +378,4 @@ def test_create_warehouse_invalid_address_skip_validation(
     assert data["warehouse"]["address"]["city"] == invalid_city_name
     address = Address.objects.get()
     assert address.city == invalid_city_name
+    assert address.validation_skipped is True

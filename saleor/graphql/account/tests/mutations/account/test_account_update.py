@@ -132,6 +132,9 @@ def test_logged_customer_update_addresses(user_api_client, graphql_address_data)
     assert user.default_billing_address.metadata == {"public": "public_value"}
     assert user.default_shipping_address.metadata == {"public": "public_value"}
 
+    assert user.default_billing_address.validation_skipped is False
+    assert user.default_shipping_address.validation_skipped is False
+
 
 def test_logged_customer_update_addresses_invalid_shipping_address(
     user_api_client, graphql_address_data

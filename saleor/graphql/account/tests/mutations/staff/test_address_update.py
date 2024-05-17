@@ -48,6 +48,7 @@ def test_address_update_mutation(
     assert data["address"]["city"] == graphql_address_data["city"].upper()
     address_obj.refresh_from_db()
     assert address_obj.city == graphql_address_data["city"].upper()
+    assert address_obj.validation_skipped is False
     customer_user.refresh_from_db()
     assert (
         generate_address_search_document_value(address_obj)
@@ -169,3 +170,6 @@ def test_address_update_skip_validation(
     data = content["data"]["addressUpdate"]
     assert not data["errors"]
     assert data["address"]["city"] == invalid_city
+    address_obj.refresh_from_db()
+    assert address_obj.city == invalid_city
+    assert address_obj.validation_skipped is True

@@ -173,6 +173,7 @@ class CountryAwareAddressForm(AddressForm):
 
     def validate_address(self, data):
         if self.skip_validation:
+            data["validation_skipped"] = True
             return data
 
         try:

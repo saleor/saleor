@@ -52,6 +52,7 @@ def test_customer_update_own_address(
     address_obj.refresh_from_db()
     assert address_obj.city == address_data["city"].upper()
     assert address_obj.metadata == {"public": "public_value"}
+    assert address_obj.validation_skipped is False
     user.refresh_from_db()
     assert generate_address_search_document_value(address_obj) in user.search_document
 

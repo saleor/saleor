@@ -132,6 +132,7 @@ def test_checkout_shipping_address_with_metadata_update(
     assert checkout.shipping_address.postal_code == shipping_address["postalCode"]
     assert checkout.shipping_address.country == shipping_address["country"]
     assert checkout.shipping_address.city == shipping_address["city"].upper()
+    assert checkout.shipping_address.validation_skipped is False
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
@@ -1069,3 +1070,4 @@ def test_checkout_shipping_address_skip_validation_by_app(
     assert not data["errors"]
     checkout.refresh_from_db()
     assert checkout.shipping_address.city == invalid_city_name
+    assert checkout.shipping_address.validation_skipped is True

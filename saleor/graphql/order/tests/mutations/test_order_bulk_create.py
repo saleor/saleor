@@ -594,6 +594,8 @@ def test_order_bulk_create(
     assert db_order.private_metadata["pmd key"] == "pmd value"
     assert db_order.total_authorized_amount == Decimal("10")
     assert db_order.authorize_status == OrderAuthorizeStatus.PARTIAL.lower()
+    assert db_order.shipping_address.validation_skipped is False
+    assert db_order.billing_address.validation_skipped is False
 
     order_line = order["lines"][0]
     assert order_line["variant"]["id"] == graphene.Node.to_global_id(
@@ -3724,8 +3726,6 @@ def test_order_bulk_create_skip_address_validation(
     graphql_address_data_skipped_validation,
 ):
     # given
-    orders_count = Order.objects.count()
-
     order = order_bulk_input
     invalid_postal_code = "invalid_postal_code"
     address_data = graphql_address_data_skipped_validation
@@ -3751,4 +3751,8 @@ def test_order_bulk_create_skip_address_validation(
     assert not data["errors"]
     assert data["order"]["shippingAddress"]["postalCode"] == invalid_postal_code
     assert data["order"]["billingAddress"]["postalCode"] == invalid_postal_code
-    assert Order.objects.count() == orders_count + 1
+    db_order = Order.objects.last()
+    assert db_order.shipping_address.postal_code == invalid_postal_code
+    assert db_order.shipping_address.validation_skipped is True
+    assert db_order.billing_address.postal_code == invalid_postal_code
+    assert db_order.billing_address.validation_skipped is True

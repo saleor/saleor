@@ -47,6 +47,7 @@ def test_mutation_update_company_address(
     assert site_settings.company_address.city == address.city
     assert site_settings.company_address.country.code == address.country.code
     assert site_settings.company_address.metadata == {"meta": "data"}
+    assert site_settings.company_address.validation_skipped is False
 
 
 def test_mutation_update_company_address_remove_address(
@@ -117,3 +118,4 @@ def test_shop_address_update_skip_validation(
     assert "errors" not in content["data"]
     site_settings.refresh_from_db()
     assert site_settings.company_address.city == invalid_city_name
+    assert site_settings.company_address.validation_skipped is True

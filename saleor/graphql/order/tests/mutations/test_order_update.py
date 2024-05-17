@@ -75,6 +75,8 @@ def test_order_update(
     order.billing_address.refresh_from_db()
     assert order.shipping_address.first_name == graphql_address_data["firstName"]
     assert order.billing_address.last_name == graphql_address_data["lastName"]
+    assert order.shipping_address.validation_skipped is False
+    assert order.billing_address.validation_skipped is False
     assert order.user_email == email
     assert order.user is None
     assert order.status == OrderStatus.UNFULFILLED
@@ -503,3 +505,8 @@ def test_order_update_invalid_address_skip_validation(
     assert not data["errors"]
     assert data["order"]["shippingAddress"]["city"] == invalid_city_name
     assert data["order"]["billingAddress"]["city"] == invalid_city_name
+    order.refresh_from_db()
+    assert order.shipping_address.city == invalid_city_name
+    assert order.shipping_address.validation_skipped is True
+    assert order.billing_address.city == invalid_city_name
+    assert order.billing_address.validation_skipped is True

@@ -55,9 +55,9 @@ def test_customer_create_address(user_api_client, graphql_address_data):
 
     user.refresh_from_db()
 
-    assert user.addresses.exclude(id__in=user_addresses_ids).first().metadata == {
-        "public": "public_value"
-    }
+    address = user.addresses.exclude(id__in=user_addresses_ids).first()
+    assert address.metadata == {"public": "public_value"}
+    assert address.validation_skipped is False
     assert user.addresses.count() == user_addresses_count + 1
     assert (
         generate_address_search_document_value(user.addresses.last())

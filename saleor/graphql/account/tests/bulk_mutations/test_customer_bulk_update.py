@@ -943,6 +943,7 @@ def test_customers_bulk_update_skip_address_validation(
             "id": customer_id,
             "input": {
                 "defaultBillingAddress": address_data,
+                "defaultShippingAddress": address_data,
             },
         }
     ]
@@ -960,3 +961,9 @@ def test_customers_bulk_update_skip_address_validation(
     customer_data = data["results"][0]["customer"]
     assert customer_data["defaultShippingAddress"]["postalCode"] == wrong_postal_code
     assert customer_data["defaultBillingAddress"]["postalCode"] == wrong_postal_code
+    shipping_address.refresh_from_db()
+    assert shipping_address.postal_code == wrong_postal_code
+    assert shipping_address.validation_skipped is True
+    billing_address.refresh_from_db()
+    assert billing_address.postal_code == wrong_postal_code
+    assert billing_address.validation_skipped is True

@@ -547,6 +547,9 @@ def test_checkout_create(api_client, stock, graphql_address_data, channel_USD):
     assert new_checkout.shipping_address.metadata == {"shipping": "shipping_value"}
     assert new_checkout.billing_address.metadata == {"billing": "billing_value"}
 
+    assert new_checkout.billing_address.validation_skipped is False
+    assert new_checkout.shipping_address.validation_skipped is False
+
 
 def test_checkout_create_with_custom_price(
     app_api_client,
@@ -2491,6 +2494,9 @@ def test_checkout_create_skip_validation_shipping_address_by_app(
     data = content["data"]["checkoutCreate"]
     assert not data["errors"]
     assert data["checkout"]["shippingAddress"]["city"] == invalid_city_name
+    new_checkout = Checkout.objects.last()
+    assert new_checkout.shipping_address.city == invalid_city_name
+    assert new_checkout.shipping_address.validation_skipped is True
 
 
 def test_checkout_create_skip_validation_billing_address_by_customer(
@@ -2556,3 +2562,6 @@ def test_checkout_create_skip_validation_billing_address_by_app(
     data = content["data"]["checkoutCreate"]
     assert not data["errors"]
     assert data["checkout"]["billingAddress"]["city"] == invalid_city_name
+    new_checkout = Checkout.objects.last()
+    assert new_checkout.billing_address.city == invalid_city_name
+    assert new_checkout.billing_address.validation_skipped is True
