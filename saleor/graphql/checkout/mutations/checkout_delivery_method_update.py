@@ -158,6 +158,16 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             checkout_info, lines, shipping_method=delivery_method, collection_point=None
         )
 
+        if delivery_method and delivery_method.price.currency != checkout.currency:
+            raise ValidationError(
+                {
+                    "delivery_method_id": ValidationError(
+                        "Cannot choose shipping method with different currency than the checkout.",
+                        code=CheckoutErrorCode.DELIVERY_METHOD_NOT_APPLICABLE.value,
+                    )
+                }
+            )
+
         cls._update_delivery_method(
             manager,
             checkout_info,
