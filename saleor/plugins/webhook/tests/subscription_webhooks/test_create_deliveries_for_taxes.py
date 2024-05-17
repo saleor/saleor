@@ -276,7 +276,7 @@ def test_checkout_calculate_taxes_with_entire_order_voucher_once_per_order(
     )
 
     # then
-    assert json.loads(deliveries.payload.payload) == {
+    assert json.loads(deliveries.payload.get_payload()) == {
         "__typename": "CalculateTaxes",
         "taxBase": {
             "address": None,

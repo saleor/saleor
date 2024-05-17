@@ -85,7 +85,7 @@ def test_trigger_transaction_request(
         == WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED
     )
     assert generated_delivery.webhook == webhook
-    assert generated_delivery.get_payload() == generated_payload
+    assert generated_delivery.payload == generated_payload
 
     mocked_task.assert_called_once_with(generated_delivery.id, event.id)
 
@@ -166,7 +166,7 @@ def test_trigger_transaction_request_with_webhook_subscription(
     )
     assert generated_delivery.webhook == webhook
 
-    assert generated_delivery.payload.get_payload() == generated_payload
+    assert generated_delivery.payload == generated_payload
 
     mocked_task.assert_called_once_with(generated_delivery.id, event.id)
 
