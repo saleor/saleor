@@ -42,6 +42,14 @@ MUTATION_UPDATE_DELIVERY_METHOD = """
                    id
                 }
             }
+            totalPrice {
+                gross {
+                    amount
+                }
+                net {
+                    amount
+                }
+            }
         }
         errors {
             field
@@ -259,6 +267,50 @@ def test_checkout_delivery_method_update_external_shipping(
             PRIVATE_META_APP_SHIPPING_ID
             not in checkout.metadata_storage.private_metadata
         )
+
+
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+def test_checkout_delivery_method_update_external_shipping_invalid_currency(
+    mock_send_request,
+    api_client,
+    checkout_with_item_for_cc,
+    settings,
+    shipping_app,
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    checkout = checkout_with_item_for_cc
+    response_method_id = "abcd"
+    mock_json_response = [
+        {
+            "id": response_method_id,
+            "name": "Provider - Economy",
+            "amount": "10",
+            "currency": "AUD",  # checkout currency is USD
+            "maximum_delivery_days": "7",
+        }
+    ]
+    mock_send_request.return_value = mock_json_response
+    method_id = graphene.Node.to_global_id(
+        "app", f"{shipping_app.id}:{response_method_id}"
+    )
+    query = MUTATION_UPDATE_DELIVERY_METHOD
+
+    # when
+    response = api_client.post_graphql(
+        query, {"id": to_global_id_or_none(checkout), "deliveryMethodId": method_id}
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutDeliveryMethodUpdate"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "deliveryMethodId"
+    assert errors[0]["code"] == CheckoutErrorCode.DELIVERY_METHOD_NOT_APPLICABLE.name
+    assert (
+        errors[0]["message"]
+        == "Cannot choose shipping method with different currency than the checkout."
+    )
 
 
 @patch(
