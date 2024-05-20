@@ -8402,7 +8402,7 @@ def event_payload(media_root):
     """Return event payload."""
     event_payload = EventPayload.objects.create()
     event_payload.payload_file.save(
-        f"payload-{event_payload.pk}-{event_payload.created_at}",
+        f"payload-{event_payload.pk}-{event_payload.created_at}.json",
         ContentFile('{"payload_key": "payload_value"}'),
     )
     return event_payload

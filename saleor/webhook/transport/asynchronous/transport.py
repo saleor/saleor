@@ -140,7 +140,7 @@ def create_deliveries_for_subscriptions(
             created_event_payloads, event_payloads_data
         ):
             event_payload.payload_file.save(
-                f"payload-{event_payload.pk}-{event_payload.created_at}",
+                f"payload-{event_payload.pk}-{event_payload.created_at}.json",
                 ContentFile(payload_data),
             )
         return EventDelivery.objects.bulk_create(event_deliveries)
@@ -207,7 +207,7 @@ def trigger_webhooks_async(
         with allow_writer():
             payload = EventPayload.objects.create()
             payload.payload_file.save(
-                f"payload-{payload.pk}-{payload.created_at}",
+                f"payload-{payload.pk}-{payload.created_at}.json",
                 ContentFile(data),
             )
             deliveries.extend(

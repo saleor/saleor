@@ -396,7 +396,7 @@ def test_handle_transaction_request_task_missing_delivery_updates_refundable_che
     payload = generate_transaction_action_request_payload(transaction_data, staff_user)
     event_payload = EventPayload.objects.create()
     event_payload.payload_file.save(
-        f"payload-{event_payload.pk}-{event_payload.created_at}",
+        f"payload-{event_payload.pk}-{event_payload.created_at}.json",
         ContentFile(payload),
     )
     delivery = EventDelivery.objects.create(
@@ -463,7 +463,7 @@ def test_handle_transaction_request_task_with_only_psp_reference(
     payload = generate_transaction_action_request_payload(transaction_data, staff_user)
     event_payload = EventPayload.objects.create()
     event_payload.payload_file.save(
-        f"payload-{event_payload.pk}-{event_payload.created_at}",
+        f"payload-{event_payload.pk}-{event_payload.created_at}.json",
         ContentFile(payload),
     )
     delivery = EventDelivery.objects.create(
@@ -535,7 +535,7 @@ def test_handle_transaction_request_task_with_server_error(
     payload = generate_transaction_action_request_payload(transaction_data, staff_user)
     event_payload = EventPayload.objects.create()
     event_payload.payload_file.save(
-        f"payload-{event_payload.pk}-{event_payload.created_at}",
+        f"payload-{event_payload.pk}-{event_payload.created_at}.json",
         ContentFile(payload),
     )
     delivery = EventDelivery.objects.create(
@@ -592,7 +592,7 @@ def test_handle_transaction_request_task_with_missing_psp_reference(
     payload = generate_transaction_action_request_payload(transaction_data, staff_user)
     event_payload = EventPayload.objects.create()
     event_payload.payload_file.save(
-        f"payload-{event_payload.pk}-{event_payload.created_at}",
+        f"payload-{event_payload.pk}-{event_payload.created_at}.json",
         ContentFile(payload),
     )
     delivery = EventDelivery.objects.create(
@@ -680,7 +680,7 @@ def test_handle_transaction_request_task_with_missing_required_event_field(
     payload = generate_transaction_action_request_payload(transaction_data, staff_user)
     event_payload = EventPayload.objects.create()
     event_payload.payload_file.save(
-        f"payload-{event_payload.pk}-{event_payload.created_at}",
+        f"payload-{event_payload.pk}-{event_payload.created_at}.json",
         ContentFile(payload),
     )
     delivery = EventDelivery.objects.create(
@@ -777,7 +777,7 @@ def test_handle_transaction_request_task_with_result_event(
     payload = generate_transaction_action_request_payload(transaction_data, staff_user)
     event_payload = EventPayload.objects.create()
     event_payload.payload_file.save(
-        f"payload-{event_payload.pk}-{event_payload.created_at}",
+        f"payload-{event_payload.pk}-{event_payload.created_at}.json",
         ContentFile(payload),
     )
     delivery = EventDelivery.objects.create(
@@ -873,7 +873,7 @@ def test_handle_transaction_request_task_with_only_required_fields_for_result_ev
     payload = generate_transaction_action_request_payload(transaction_data, staff_user)
     event_payload = EventPayload.objects.create()
     event_payload.payload_file.save(
-        f"payload-{event_payload.pk}-{event_payload.created_at}",
+        f"payload-{event_payload.pk}-{event_payload.created_at}.json",
         ContentFile(payload),
     )
     delivery = EventDelivery.objects.create(
@@ -982,7 +982,7 @@ def test_handle_transaction_request_task_calls_recalculation_of_amounts(
     payload = generate_transaction_action_request_payload(transaction_data, staff_user)
     event_payload = EventPayload.objects.create()
     event_payload.payload_file.save(
-        f"payload-{event_payload.pk}-{event_payload.created_at}",
+        f"payload-{event_payload.pk}-{event_payload.created_at}.json",
         ContentFile(payload),
     )
     delivery = EventDelivery.objects.create(
@@ -1050,7 +1050,7 @@ def test_handle_transaction_request_task_with_available_actions(
     payload = generate_transaction_action_request_payload(transaction_data, staff_user)
     event_payload = EventPayload.objects.create()
     event_payload.payload_file.save(
-        f"payload-{event_payload.pk}-{event_payload.created_at}",
+        f"payload-{event_payload.pk}-{event_payload.created_at}.json",
         ContentFile(payload),
     )
     delivery = EventDelivery.objects.create(
@@ -1150,7 +1150,7 @@ def test_handle_transaction_request_task_request_event_included_in_calculations(
     payload = generate_transaction_action_request_payload(transaction_data, staff_user)
     event_payload = EventPayload.objects.create()
     event_payload.payload_file.save(
-        f"payload-{event_payload.pk}-{event_payload.created_at}",
+        f"payload-{event_payload.pk}-{event_payload.created_at}.json",
         ContentFile(payload),
     )
     delivery = EventDelivery.objects.create(
