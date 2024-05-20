@@ -78,3 +78,49 @@ def test_webhook_delivery_attempt_query(
         attempts_response[0]["node"]["responseStatusCode"]
         == event_attempt.response_status_code
     )
+
+
+def test_webhook_delivery_attempt_query_deprecated_payload_in_database(
+    event_attempt_payload_in_database, staff_api_client, permission_manage_apps
+):
+    # given
+    event_attempt = event_attempt_payload_in_database
+    webhook_id = graphene.Node.to_global_id(
+        "Webhook", event_attempt.delivery.webhook.pk
+    )
+    staff_api_client.user.user_permissions.add(permission_manage_apps)
+    variables = {"id": webhook_id, "first": 3}
+    delivery = event_attempt.delivery
+    delivery_id = graphene.Node.to_global_id("EventDelivery", delivery.pk)
+
+    # when
+    response = staff_api_client.post_graphql(EVENT_DELIVERY_QUERY, variables=variables)
+    content = get_graphql_content(response)
+    delivery_response = content["data"]["webhook"]["eventDeliveries"]["edges"][0][
+        "node"
+    ]
+    attempts_response = delivery_response["attempts"]["edges"]
+
+    # then
+    assert delivery_response["id"] == delivery_id
+    assert delivery_response["status"] == EventDeliveryStatus.PENDING.upper()
+    assert delivery_response["eventType"] == WebhookEventAsyncType.ANY.upper()
+    assert (
+        delivery_response["payload"]
+        == delivery.payload.get_payload()
+        == delivery.payload.payload
+    )
+    assert len(attempts_response) == 1
+    assert attempts_response[0]["node"]["response"] == event_attempt.response
+    assert attempts_response[0]["node"]["duration"] == event_attempt.duration
+    assert (
+        attempts_response[0]["node"]["requestHeaders"] == event_attempt.request_headers
+    )
+    assert (
+        attempts_response[0]["node"]["responseHeaders"]
+        == event_attempt.response_headers
+    )
+    assert (
+        attempts_response[0]["node"]["responseStatusCode"]
+        == event_attempt.response_status_code
+    )
