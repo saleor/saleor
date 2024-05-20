@@ -106,6 +106,7 @@ def test_draft_order_complete(
     assert data["status"] == order.status.upper()
     assert data["origin"] == OrderOrigin.DRAFT.upper()
     assert order.search_vector
+    assert order.status == OrderStatus.UNFULFILLED
 
     for line in order.lines.all():
         allocation = line.allocations.get()
@@ -161,6 +162,7 @@ def test_draft_order_complete_no_automatically_confirm_all_new_orders(
     assert data["status"] == order.status.upper()
     assert data["origin"] == OrderOrigin.DRAFT.upper()
     assert order.search_vector
+    assert order.status == OrderStatus.UNCONFIRMED
 
     for line in order.lines.all():
         allocation = line.allocations.get()
