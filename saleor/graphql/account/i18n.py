@@ -147,8 +147,6 @@ class I18nMixin:
         required_check=True,
         enable_normalization=True,
     ):
-        if address_data.get("skip_validation"):
-            cls.can_skip_address_validation(info)
         if address_data.get("country") is None:
             params = {"address_type": address_type} if address_type else {}
             raise ValidationError(
@@ -158,17 +156,24 @@ class I18nMixin:
                     )
                 }
             )
-        address_form = cls._validate_address_form(
-            address_data,
-            address_type,
-            format_check=format_check,
-            required_check=required_check,
-            enable_normalization=enable_normalization,
-        )
+
+        if skip_validation := address_data.get("skip_validation", False):
+            cls.can_skip_address_validation(info)
+        else:
+            address_form = cls._validate_address_form(
+                address_data,
+                address_type,
+                format_check=format_check,
+                required_check=required_check,
+                enable_normalization=enable_normalization,
+            )
+            address_data = address_form.cleaned_data
+
+        address_data["validation_skipped"] = skip_validation
         if not instance:
             instance = Address()
 
-        cls.construct_instance(instance, address_form.cleaned_data)
+        cls.construct_instance(instance, address_data)
         cls.clean_instance(info, instance)
         return instance
 
