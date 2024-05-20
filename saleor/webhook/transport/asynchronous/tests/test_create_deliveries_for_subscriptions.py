@@ -22,7 +22,9 @@ SUBSCRIPTION_QUERY = """
 
 
 @override_settings(ENABLE_LIMITING_WEBHOOKS_FOR_IDENTICAL_PAYLOADS=True)
-def test_create_deliveries_different_pre_save_payloads(webhook_app, variant):
+def test_create_deliveries_different_pre_save_payloads(
+    webhook_app, variant, media_root
+):
     # given
     webhook = Webhook.objects.create(
         name="Webhook",
@@ -52,7 +54,7 @@ def test_create_deliveries_different_pre_save_payloads(webhook_app, variant):
 
 
 @override_settings(ENABLE_LIMITING_WEBHOOKS_FOR_IDENTICAL_PAYLOADS=True)
-def test_skip_delivery_creation_no_payload_changes(webhook_app, variant):
+def test_skip_delivery_creation_no_payload_changes(webhook_app, variant, media_root):
     # given
     webhook = Webhook.objects.create(
         name="Webhook",
@@ -78,7 +80,9 @@ def test_skip_delivery_creation_no_payload_changes(webhook_app, variant):
 
 
 @override_settings(ENABLE_LIMITING_WEBHOOKS_FOR_IDENTICAL_PAYLOADS=False)
-def test_create_deliveries_no_payload_changes_limiting_disabled(webhook_app, variant):
+def test_create_deliveries_no_payload_changes_limiting_disabled(
+    webhook_app, variant, media_root
+):
     # given
     webhook = Webhook.objects.create(
         name="Webhook",
@@ -114,7 +118,7 @@ def test_create_deliveries_no_payload_changes_limiting_disabled(webhook_app, var
     wraps=generate_payload_from_subscription,
 )
 def test_create_deliveries_reuse_request_for_webhooks(
-    mock_generate_payload_from_subscription, webhook_app, variant
+    mock_generate_payload_from_subscription, webhook_app, variant, media_root
 ):
     # given
     event_type = WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED
