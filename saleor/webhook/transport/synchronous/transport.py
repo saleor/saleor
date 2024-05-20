@@ -259,7 +259,7 @@ def create_delivery_for_subscription_sync_event(
     with allow_writer():
         event_payload = EventPayload.objects.create()
         event_payload.payload_file.save(
-            f"payload-{event_payload.pk}-{event_payload.created_at}",
+            f"payload-{event_payload.pk}-{event_payload.created_at}.json",
             ContentFile(json.dumps({**data})),
         )
         event_delivery = EventDelivery.objects.create(
@@ -297,7 +297,7 @@ def trigger_webhook_sync(
         with allow_writer():
             event_payload = EventPayload.objects.create()
             event_payload.payload_file.save(
-                f"payload-{event_payload.pk}-{event_payload.created_at}",
+                f"payload-{event_payload.pk}-{event_payload.created_at}.json",
                 ContentFile(payload),
             )
             delivery = EventDelivery.objects.create(
@@ -357,7 +357,7 @@ def trigger_all_webhooks_sync(
                 if event_payload is None:
                     event_payload = EventPayload.objects.create()
                     event_payload.payload_file.save(
-                        f"payload-{event_payload.pk}-{event_payload.created_at}",
+                        f"payload-{event_payload.pk}-{event_payload.created_at}.json",
                         ContentFile(generate_payload()),
                     )
                 delivery = EventDelivery.objects.create(
