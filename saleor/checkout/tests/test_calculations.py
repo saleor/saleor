@@ -646,6 +646,7 @@ def test_external_shipping_method_called_only_once_during_tax_calculations(
     tax_app_with_subscription_webhooks,
     shipping_app_with_subscription,
     address,
+    media_root,
 ):
     # given
     external_method_id = "method-1-from-shipping-app"

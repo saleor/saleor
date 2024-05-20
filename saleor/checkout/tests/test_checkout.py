@@ -91,7 +91,7 @@ def test_is_valid_delivery_method(checkout_with_item, address, shipping_zone):
 
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_is_valid_delivery_method_external_method(
-    mock_send_request, checkout_with_item, address, settings, shipping_app
+    mock_send_request, checkout_with_item, address, settings, shipping_app, media_root
 ):
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     assert not shipping_app.identifier
@@ -128,7 +128,7 @@ def test_is_valid_delivery_method_external_method(
 
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_is_valid_delivery_method_external_method_shipping_app_id_with_identifier(
-    mock_send_request, checkout_with_item, address, settings, shipping_app
+    mock_send_request, checkout_with_item, address, settings, shipping_app, media_root
 ):
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
 
@@ -168,7 +168,7 @@ def test_is_valid_delivery_method_external_method_shipping_app_id_with_identifie
 
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_is_valid_delivery_method_external_method_old_shipping_app_id(
-    mock_send_request, checkout_with_item, address, settings, shipping_app
+    mock_send_request, checkout_with_item, address, settings, shipping_app, media_root
 ):
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
 
@@ -208,7 +208,7 @@ def test_is_valid_delivery_method_external_method_old_shipping_app_id(
 
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_is_valid_delivery_method_external_method_no_longer_available(
-    mock_send_request, checkout_with_item, address, settings, shipping_app
+    mock_send_request, checkout_with_item, address, settings, shipping_app, media_root
 ):
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     mock_json_response = [
