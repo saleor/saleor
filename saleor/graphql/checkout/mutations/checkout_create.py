@@ -147,10 +147,16 @@ class CheckoutCreateInput(BaseInputObjectType):
         description=(
             "The mailing address to where the checkout will be shipped. "
             "Note: the address will be ignored if the checkout "
-            "doesn't contain shippable items."
+            "doesn't contain shippable items. `skipValidation` requires "
+            "HANDLE_CHECKOUTS and AUTHENTICATED_APP permissions."
         )
     )
-    billing_address = AddressInput(description="Billing address of the customer.")
+    billing_address = AddressInput(
+        description=(
+            "Billing address of the customer. `skipValidation` requires "
+            "HANDLE_CHECKOUTS and AUTHENTICATED_APP permissions."
+        )
+    )
     language_code = graphene.Argument(
         LanguageCodeEnum, required=False, description="Checkout language code."
     )
