@@ -1,6 +1,10 @@
 import graphene
 
-from ...permission.enums import CheckoutPermissions, PaymentPermissions
+from ...permission.enums import (
+    AccountPermissions,
+    CheckoutPermissions,
+    PaymentPermissions,
+)
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import (
@@ -46,7 +50,13 @@ from .types import (
 class CheckoutQueries(graphene.ObjectType):
     checkout = BaseField(
         Checkout,
-        description="Look up a checkout by token and slug of channel.",
+        description=(
+            "Look up a checkout by id.\n\nRequires one of the following permissions "
+            "to query a checkout, if a checkout is in inactive channel: "
+            f"{CheckoutPermissions.MANAGE_CHECKOUTS.name}, "
+            f"{AccountPermissions.IMPERSONATE_USER.name}, "
+            f"{PaymentPermissions.HANDLE_PAYMENTS.name}. "
+        ),
         id=graphene.Argument(
             graphene.ID, description="The checkout's ID." + ADDED_IN_34
         ),
