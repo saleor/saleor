@@ -495,7 +495,7 @@ def trigger_transaction_request(
         with allow_writer():
             event_payload = EventPayload.objects.create()
             event_payload.payload_file.save(
-                f"payload-{event_payload.pk}-{event_payload.created_at}",
+                f"payload-{event_payload.pk}-{event_payload.created_at}.json",
                 ContentFile(payload),
             )
             delivery = EventDelivery.objects.create(

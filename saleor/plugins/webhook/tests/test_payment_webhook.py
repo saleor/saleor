@@ -269,7 +269,7 @@ def test_send_webhook_request_sync_invalid_scheme(webhook, app):
     target_url = "gcpubsub://cloud.google.com/projects/saleor/topics/test"
     event_payload = EventPayload.objects.create()
     event_payload.payload_file.save(
-        f"payload-{event_payload.pk}-{event_payload.created_at}",
+        f"payload-{event_payload.pk}-{event_payload.created_at}.json",
         ContentFile("fake_content"),
     )
     webhook.target_url = target_url
