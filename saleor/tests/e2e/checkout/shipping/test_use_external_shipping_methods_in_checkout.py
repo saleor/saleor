@@ -25,6 +25,7 @@ def test_use_external_shipping_methods_in_checkout_core_1652(
     permission_manage_product_types_and_attributes,
     permission_manage_apps,
     settings,
+    media_root,
     vcr_cassette_dir,
 ):
     # Before
