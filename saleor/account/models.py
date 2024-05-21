@@ -111,7 +111,7 @@ class Address(ModelWithMetadata):
         data = model_to_dict(self, exclude=["id", "user"])
         if isinstance(data["country"], Country):
             data["country"] = data["country"].code
-        if isinstance(data["phone"], PhoneNumber):
+        if isinstance(data["phone"], PhoneNumber) and not data["validation_skipped"]:
             data["phone"] = data["phone"].as_e164
         return data
 

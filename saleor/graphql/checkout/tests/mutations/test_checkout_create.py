@@ -2418,7 +2418,7 @@ MUTATION_CHECKOUT_CREATE_WITH_ADDRESSES = """
             postalCode
           }
           billingAddress {
-            postalCode
+            phone
           }
         }
         errors {
@@ -2538,8 +2538,8 @@ def test_checkout_create_skip_validation_billing_address_by_app(
     variant = stock.product_variant
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     billing_address = graphql_address_data_skipped_validation
-    invalid_postal_code = "invalid_postal_code"
-    billing_address["postalCode"] = invalid_postal_code
+    invalid_phone = "invalid_phone"
+    billing_address["phone"] = invalid_phone
 
     variables = {
         "checkoutInput": {
@@ -2561,7 +2561,7 @@ def test_checkout_create_skip_validation_billing_address_by_app(
     # then
     data = content["data"]["checkoutCreate"]
     assert not data["errors"]
-    assert data["checkout"]["billingAddress"]["postalCode"] == invalid_postal_code
+    assert data["checkout"]["billingAddress"]["phone"] == invalid_phone
     new_checkout = Checkout.objects.first()
-    assert new_checkout.billing_address.postal_code == invalid_postal_code
+    assert new_checkout.billing_address.phone == invalid_phone
     assert new_checkout.billing_address.validation_skipped is True

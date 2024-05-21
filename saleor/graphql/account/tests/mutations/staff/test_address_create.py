@@ -205,6 +205,7 @@ def test_create_address_skip_validation(
     new_address = Address.objects.last()
     assert new_address.postal_code == wrong_postal_code
     assert new_address.validation_skipped is True
+    assert new_address.metadata == {"public": "public_value"}
 
 
 def test_create_address_skip_validation_only_country_provided(
