@@ -188,7 +188,10 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         )
 
     class Meta:
-        description = "Create a new checkout."
+        description = (
+            "Create a new checkout.\n\n`skipValidation` field requires "
+            "HANDLE_CHECKOUTS and AUTHENTICATED_APP permissions."
+        )
         doc_category = DOC_CATEGORY_CHECKOUT
         model = models.Checkout
         object_type = Checkout

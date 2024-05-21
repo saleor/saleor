@@ -7958,7 +7958,7 @@ input AddressInput {
   metadata: [MetadataInput!]
 
   """
-  Determine if the address should be validated. By default, Saleor accepts only address inputs matching ruleset from [Google Address Data]{https://chromium-i18n.appspot.com/ssl-address), using [i18naddress](https://github.com/mirumee/google-i18n-address) library.
+  Determine if the address should be validated. By default, Saleor accepts only address inputs matching ruleset from [Google Address Data]{https://chromium-i18n.appspot.com/ssl-address), using [i18naddress](https://github.com/mirumee/google-i18n-address) library. Some mutations may require additional permissions to use the the field. More info about permissions can be found in relevant mutation.
   
   Added in Saleor 3.19.
   
@@ -18871,6 +18871,8 @@ type Mutation {
   """
   Create a new checkout.
   
+  `skipValidation` field requires HANDLE_CHECKOUTS and AUTHENTICATED_APP permissions.
+  
   Triggers the following webhook events:
   - CHECKOUT_CREATED (async): A checkout was created.
   """
@@ -29156,6 +29158,8 @@ type CheckoutComplete @doc(category: "Checkout") @webhookEventsInfo(asyncEvents:
 
 """
 Create a new checkout.
+
+`skipValidation` field requires HANDLE_CHECKOUTS and AUTHENTICATED_APP permissions.
 
 Triggers the following webhook events:
 - CHECKOUT_CREATED (async): A checkout was created.

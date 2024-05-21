@@ -107,7 +107,8 @@ class AddressInput(BaseInputObjectType):
             "By default, Saleor accepts only address inputs matching ruleset from "
             "[Google Address Data]{https://chromium-i18n.appspot.com/ssl-address), "
             "using [i18naddress](https://github.com/mirumee/google-i18n-address) "
-            "library."
+            "library. Some mutations may require additional permissions to use the "
+            "the field. More info about permissions can be found in relevant mutation."
         )
         + ADDED_IN_319
         + PREVIEW_FEATURE,
