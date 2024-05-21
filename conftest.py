@@ -10,8 +10,12 @@ from django.test.testcases import TransactionTestCase
 
 from saleor.tests.utils import prepare_test_db_connections
 
-django.test.TransactionTestCase.databases = "__all__"
-django.test.TestCase.databases = "__all__"
+TEST_DATABASES = {
+    settings.DATABASE_CONNECTION_DEFAULT_NAME,
+    settings.DATABASE_CONNECTION_REPLICA_NAME,
+}
+django.test.TransactionTestCase.databases = TEST_DATABASES
+django.test.TestCase.databases = TEST_DATABASES
 
 prepare_test_db_connections()
 
