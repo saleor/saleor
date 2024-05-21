@@ -138,6 +138,7 @@ def test_webhook_trigger_fail(
     order,
     subscription_order_created_webhook,
     webhook_response_failed,
+    media_root,
 ):
     # given
     query = WEBHOOK_TRIGGER_MUTATION
