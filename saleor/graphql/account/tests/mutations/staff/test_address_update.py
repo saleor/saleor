@@ -18,6 +18,7 @@ ADDRESS_UPDATE_MUTATION = """
                     key
                     value
                 }
+                phone
             }
             user {
                 id
@@ -174,3 +175,38 @@ def test_address_update_skip_validation(
     address_obj.refresh_from_db()
     assert address_obj.postal_code == invalid_postal_code
     assert address_obj.validation_skipped is True
+
+
+def test_address_update_address_with_skipped_validation(
+    staff_api_client,
+    customer_user,
+    permission_manage_users,
+    graphql_address_data,
+):
+    # given
+    query = ADDRESS_UPDATE_MUTATION
+    address_obj = customer_user.addresses.first()
+    address_obj.phone = "invalid phone number"
+    address_obj.validation_skipped = True
+    address_obj.save(update_fields=["phone", "validation_skipped"])
+
+    address_data = graphql_address_data
+    valid_phone = address_data["phone"]
+    variables = {
+        "addressId": graphene.Node.to_global_id("Address", address_obj.id),
+        "address": address_data,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["addressUpdate"]
+    assert not data["errors"]
+    assert data["address"]["phone"] == valid_phone
+    address_obj.refresh_from_db()
+    assert address_obj.phone == valid_phone
+    assert address_obj.validation_skipped is False
