@@ -16,6 +16,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add a `taxConfiguration` to a `Channel` - #15610 by @Air-t
 - Add `stocks` to a `Warehouse` - #15771 by @teddyondieki
 - Deprecate the `taxTypes` query - #15802 by @maarcingebala
+- Change permissions for `checkout` and `checkouts` queries. Add `HANDLE_PAYMENTS` to required permissions - #16010 by @Air-t
 
 ### Saleor Apps
 

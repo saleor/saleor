@@ -1,5 +1,10 @@
 from ...checkout import models
-from ...permission.enums import AccountPermissions, CheckoutPermissions
+from ...core.exceptions import PermissionDenied
+from ...permission.enums import (
+    AccountPermissions,
+    CheckoutPermissions,
+    PaymentPermissions,
+)
 from ..core.context import get_database_connection_name
 from ..core.tracing import traced_resolver
 from ..core.utils import from_global_id_or_error
@@ -34,30 +39,24 @@ def resolve_checkout(info, token, id):
         .filter(token=token)
         .first()
     )
-
     if checkout is None:
         return None
-
-    # resolve checkout in active channel
+    # always return checkout for active channel
     if checkout.channel.is_active:
-        # resolve checkout for anonymous customer
-        if not checkout.user:
-            return checkout
-
-        # resolve checkout for logged-in customer
-        user = info.context.user
-        if user and checkout.user == user:
-            return checkout
-
-    # resolve checkout for staff user
-    requester = get_user_or_app_from_context(info.context)
-
-    if not requester:
-        return None
-
-    has_manage_checkout = requester.has_perm(CheckoutPermissions.MANAGE_CHECKOUTS)
-    has_impersonate_user = requester.has_perm(AccountPermissions.IMPERSONATE_USER)
-    if has_manage_checkout or has_impersonate_user:
         return checkout
 
-    return None
+    # resolve checkout for staff or app
+    if requester := get_user_or_app_from_context(info.context):
+        has_manage_checkout = requester.has_perm(CheckoutPermissions.MANAGE_CHECKOUTS)
+        has_impersonate_user = requester.has_perm(AccountPermissions.IMPERSONATE_USER)
+        has_handle_payments = requester.has_perm(PaymentPermissions.HANDLE_PAYMENTS)
+        if has_manage_checkout or has_impersonate_user or has_handle_payments:
+            return checkout
+
+    raise PermissionDenied(
+        permissions=[
+            CheckoutPermissions.MANAGE_CHECKOUTS,
+            AccountPermissions.IMPERSONATE_USER,
+            PaymentPermissions.HANDLE_PAYMENTS,
+        ]
+    )
