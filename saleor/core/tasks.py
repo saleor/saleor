@@ -1,6 +1,5 @@
 import logging
 
-from botocore.exceptions import ClientError
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.core.files.storage import default_storage
@@ -42,16 +41,6 @@ def delete_event_payloads_task(expiration_date=None):
             delete_event_payloads_task.delay(expiration_date)
         else:
             task_logger.error("Task invocation time limit reached, aborting task")
-
-
-@app.task(
-    autoretry_for=(ClientError,),
-    retry_backoff=10,
-    retry_kwargs={"max_retries": 5},
-)
-def delete_product_media_task(media_id):
-    # TODO: to delete
-    pass
 
 
 @app.task
