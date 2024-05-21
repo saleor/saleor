@@ -413,7 +413,8 @@ class UserEmailPlugin(BasePlugin):
         configuration = plugin_configuration.configuration
         configuration = {item["name"]: item["value"] for item in configuration}
 
-        cls._validate_smtp_configuration(configuration)
+        if plugin_configuration.active:
+            cls._validate_smtp_configuration(configuration)
 
         validate_default_email_configuration(plugin_configuration, configuration)
         email_templates_data = kwargs.get("email_templates_data", [])

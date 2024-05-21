@@ -369,11 +369,22 @@ def test_plugin_validate_smtp_configuration(
 
 
 @patch("saleor.plugins.user_email.plugin.UserEmailPlugin._validate_smtp_configuration")
-def test_plugin_validate_smtp_configuration_called(
+def test_plugin_validate_smtp_configuration_called_when_plugin_is_active(
     mock__validate_smtp_configuration, user_email_plugin
 ):
     # when
-    user_email_plugin()
+    user_email_plugin(active=True)
 
     # then
     mock__validate_smtp_configuration.assert_called_once()
+
+
+@patch("saleor.plugins.user_email.plugin.UserEmailPlugin._validate_smtp_configuration")
+def test_plugin_validate_smtp_configuration_not_called_when_plugin_is_inactive(
+    mock__validate_smtp_configuration, user_email_plugin
+):
+    # when
+    user_email_plugin(active=False)
+
+    # then
+    mock__validate_smtp_configuration.assert_not_called()
