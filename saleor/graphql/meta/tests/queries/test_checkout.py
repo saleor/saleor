@@ -44,7 +44,7 @@ def test_query_public_meta_for_other_customer_checkout_as_anonymous_user(
     content = get_graphql_content(response)
 
     # then
-    assert not content["data"]["checkout"]
+    assert content["data"]["checkout"]
 
 
 def test_query_public_meta_for_checkout_as_customer(user_api_client, checkout):
@@ -148,10 +148,9 @@ def test_query_private_meta_for_other_customer_checkout_as_anonymous_user(
 
     # when
     response = api_client.post_graphql(QUERY_CHECKOUT_PRIVATE_META, variables)
-    content = get_graphql_content(response)
 
     # then
-    assert not content["data"]["checkout"]
+    assert_no_permission(response)
 
 
 def test_query_private_meta_for_checkout_as_customer(user_api_client, checkout):
