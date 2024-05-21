@@ -162,7 +162,8 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             raise ValidationError(
                 {
                     "delivery_method_id": ValidationError(
-                        "Cannot choose shipping method with different currency than the checkout.",
+                        "Cannot choose shipping method with different currency "
+                        "than the checkout.",
                         code=CheckoutErrorCode.DELIVERY_METHOD_NOT_APPLICABLE.value,
                     )
                 }
