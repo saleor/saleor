@@ -111,10 +111,8 @@ DATABASES = {
         # and we need to update docs.
         # default="postgres://saleor_read_only:saleor@localhost:5432/saleor",
         conn_max_age=DB_CONN_MAX_AGE,
+        test_options={"MIRROR": DATABASE_CONNECTION_DEFAULT_NAME},
     ),
-}
-DATABASES[DATABASE_CONNECTION_REPLICA_NAME]["TEST"] = {
-    "MIRROR": DATABASE_CONNECTION_DEFAULT_NAME
 }
 
 DATABASE_ROUTERS = ["saleor.core.db_routers.PrimaryReplicaRouter"]
