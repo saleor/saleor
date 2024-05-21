@@ -5,32 +5,35 @@ from decimal import Decimal
 from django.conf import settings
 from django.db import connections, transaction
 
+from ..core.db.connection import allow_writer
 
-class TestDBConnectionWrapper:
-    def __init__(self, conn, default_conn):
-        self._wrapped_conn = conn
-        self._default_conn = default_conn
+
+class FakeDbReplicaConnection:
+    def __init__(self, replica_conn):
+        self.replica_conn = replica_conn
+        self.writer_conn = connections[settings.DATABASE_CONNECTION_DEFAULT_NAME]
 
     def cursor(self, *args, **kwargs):
-        cursor = self._default_conn.cursor(*args, **kwargs)
-        cursor.db = self
+        with allow_writer():
+            cursor = self.writer_conn.cursor(*args, **kwargs)
+            cursor.db = self
         return cursor
 
     def chunked_cursor(self, *args, **kwargs):
-        cursor = self._default_conn.chunked_cursor(*args, **kwargs)
-        cursor.db = self
+        with allow_writer():
+            cursor = self.writer_conn.chunked_cursor(*args, **kwargs)
+            cursor.db = self
         return cursor
 
     def __getattr__(self, attr):
-        if attr in ["alias", "settings_dict"]:
-            return getattr(self._wrapped_conn, attr)
-        return getattr(self._default_conn, attr)
+        if attr == "alias":
+            return getattr(self.replica_conn, attr)
+        return getattr(self.writer_conn, attr)
 
 
 def prepare_test_db_connections():
     replica = settings.DATABASE_CONNECTION_REPLICA_NAME
-    default_conn = connections[settings.DATABASE_CONNECTION_DEFAULT_NAME]
-    connections[replica] = TestDBConnectionWrapper(connections[replica], default_conn)  # type: ignore
+    connections[replica] = FakeDbReplicaConnection(connections[replica])  # type: ignore
 
 
 def flush_post_commit_hooks():
