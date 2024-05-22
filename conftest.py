@@ -14,6 +14,9 @@ TEST_DATABASES = {
     settings.DATABASE_CONNECTION_DEFAULT_NAME,
     settings.DATABASE_CONNECTION_REPLICA_NAME,
 }
+# Here, we trick Django test cases into using multiple databases.
+# Thanks to this, we do not have to mark all tests
+# with @pytest.mark.django_db(databases=['default', 'replica'])
 django.test.TransactionTestCase.databases = TEST_DATABASES
 django.test.TestCase.databases = TEST_DATABASES
 
