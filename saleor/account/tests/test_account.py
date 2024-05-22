@@ -211,6 +211,7 @@ def test_address_as_data(address):
         "phone": "+48713988102",
         "metadata": {},
         "private_metadata": {},
+        "validation_skipped": False,
     }
 
 

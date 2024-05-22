@@ -4403,3 +4403,57 @@ def test_checkout_complete_line_deleted_in_the_meantime(
     assert not data["errors"]
     assert Order.objects.count() == orders_count + 1
     assert not Checkout.objects.filter(pk=checkout.pk).exists()
+
+
+def test_checkout_complete_with_invalid_address(
+    api_client, checkout_with_item, address, payment_dummy, shipping_method
+):
+    """Check if checkout can be completed with invalid address.
+
+    After introducing `AddressInput.skip_validation`, Saleor may have invalid address
+    stored in database.
+    """
+    # given
+    checkout = checkout_with_item
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "redirectUrl": "https://www.example.com",
+    }
+
+    invalid_phone = "invalid phone"
+    address.phone = invalid_phone
+    address.validation_skipped = True
+    address.save(update_fields=["validation_skipped", "phone"])
+
+    checkout.billing_address = address
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.save(
+        update_fields=["billing_address", "shipping_address", "shipping_method"]
+    )
+
+    # Create a dummy payment to charge
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    assert not payment.transactions.exists()
+
+    # when
+    response = api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    content = get_graphql_content(response)["data"]["checkoutComplete"]
+
+    # then
+    assert not content["errors"]
+    order = Order.objects.get(checkout_token=checkout.token)
+    assert order.shipping_address.phone == invalid_phone
+    assert order.billing_address.phone == invalid_phone

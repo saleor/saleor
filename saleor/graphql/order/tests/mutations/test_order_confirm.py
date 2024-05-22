@@ -366,3 +366,56 @@ def test_order_confirm_by_app(
     handle_fully_paid_order_mock.assert_called_once_with(
         ANY, order_info, None, app_api_client.app, site_settings
     )
+
+
+@patch("saleor.order.actions.handle_fully_paid_order")
+@patch("saleor.plugins.manager.PluginsManager.notify")
+@patch("saleor.payment.gateway.capture")
+def test_order_confirm_skip_address_validation(
+    capture_mock,
+    mocked_notify,
+    handle_fully_paid_order_mock,
+    staff_api_client,
+    order_unconfirmed,
+    permission_group_manage_orders,
+    payment_txn_preauth,
+    site_settings,
+    graphql_address_data,
+):
+    # given
+    order = order_unconfirmed
+    payment_txn_preauth.order = order
+    payment_txn_preauth.captured_amount = order.total.gross.amount
+    payment_txn_preauth.total = order.total.gross.amount
+    payment_txn_preauth.save(update_fields=["order", "captured_amount", "total"])
+
+    address_data = graphql_address_data
+    invalid_postal_code = "invalid_postal_code"
+    address_data["postalCode"] = invalid_postal_code
+
+    shipping_address = order.shipping_address
+    shipping_address.postal_code = invalid_postal_code
+    shipping_address.save(update_fields=["postal_code"])
+    billing_address = order.billing_address
+    billing_address.postal_code = invalid_postal_code
+    billing_address.save(update_fields=["postal_code"])
+
+    order.total_charged = order.total.gross
+    order.save(update_fields=["total_charged_amount"])
+    updates_amounts_for_order(order)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(
+        ORDER_CONFIRM_MUTATION,
+        {"id": graphene.Node.to_global_id("Order", order.id)},
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["orderConfirm"]
+    assert not data["errors"]
+    order.refresh_from_db()
+    assert order.shipping_address.postal_code == invalid_postal_code
+    assert order.billing_address.postal_code == invalid_postal_code
+    assert order.status == OrderStatus.UNFULFILLED
