@@ -1,6 +1,8 @@
+import logging
 from decimal import Decimal
 from typing import TYPE_CHECKING, Iterable, Optional
 
+import graphene
 from prices import TaxedMoney
 
 from ...checkout import base_calculations
@@ -14,6 +16,8 @@ if TYPE_CHECKING:
     from ...account.models import Address
     from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ...checkout.models import Checkout
+
+logger = logging.getLogger(__name__)
 
 
 def update_checkout_prices_with_flat_rates(
@@ -53,6 +57,12 @@ def update_checkout_prices_with_flat_rates(
         )
         line.total_price = line_total_price
         line.tax_rate = normalize_tax_rate_for_db(tax_rate)
+        logger.warning(
+            "The checkout line total price is 0. "
+            "Checkout line id: %s, checkout id: %s.",
+            graphene.Node.to_global_id("CheckoutLine", line.id),
+            graphene.Node.to_global_id("Checkout", checkout_info.checkout.token),
+        )
 
     # Calculate shipping price.
     shipping_method = checkout_info.delivery_method_info.delivery_method
