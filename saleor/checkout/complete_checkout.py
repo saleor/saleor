@@ -303,6 +303,12 @@ def _create_line_for_order(
         checkout_line_info=checkout_line_info,
     )
 
+    if total_line_price == zero_taxed_money(total_line_price.currency):
+        logger.warning(
+            "The checkout completed with 0 line total price for checkout: %s.",
+            graphene.Node.to_global_id("Checkout", checkout_info.checkout.token),
+        )
+
     discount = checkout_line_info.get_sale_discount()
     sale_id = discount.sale_id if discount and discount.sale_id else None
 
@@ -316,7 +322,7 @@ def _create_line_for_order(
     else:
         discount_amount = discount_price.net
 
-    if discount_amount.amount > 0 and not sale_id or not voucher_code:
+    if discount_amount.amount > 0 and not sale_id and not voucher_code:
         logger.warning(
             "Unknown discount reason for checkout: %s.",
             graphene.Node.to_global_id("Checkout", checkout_info.checkout.token),
