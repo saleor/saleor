@@ -424,7 +424,7 @@ def fetch_catalogue_info(instance: Sale) -> CatalogueInfo:
 
 def apply_discount_to_value(
     value: Decimal,
-    value_type: str,
+    value_type: Optional[str],
     currency: str,
     price_to_discount: Union[Money, TaxedMoney],
 ):
