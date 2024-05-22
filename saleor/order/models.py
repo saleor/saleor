@@ -669,6 +669,8 @@ class OrderLine(ModelWithMetadata):
         blank=True, null=True, default=dict, encoder=CustomJsonEncoder
     )
 
+    is_price_overridden = models.BooleanField(default=False)
+
     # Fulfilled when voucher code was used for product in the line
     voucher_code = models.CharField(max_length=255, null=True, blank=True)
 

@@ -27,4 +27,17 @@ class Migration(migrations.Migration):
             """,
             migrations.RunSQL.noop,
         ),
+        migrations.AddField(
+            model_name="orderline",
+            name="is_price_overridden",
+            field=models.BooleanField(default=False),
+        ),
+        migrations.RunSQL(
+            """
+            ALTER TABLE order_orderline
+            ALTER COLUMN unit_discount_type
+            SET DEFAULT false;
+            """,
+            migrations.RunSQL.noop,
+        ),
     ]
