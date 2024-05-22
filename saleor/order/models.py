@@ -545,7 +545,8 @@ class OrderLine(ModelWithMetadata):
     unit_discount_type = models.CharField(
         max_length=10,
         choices=DiscountValueType.CHOICES,
-        default=DiscountValueType.FIXED,
+        null=True,
+        blank=True,
     )
     unit_discount_reason = models.TextField(blank=True, null=True)
 
