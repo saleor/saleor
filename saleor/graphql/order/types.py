@@ -757,6 +757,9 @@ class OrderLine(ModelObjectType[models.OrderLine]):
         description="Price of the order line without discounts.",
         required=True,
     )
+    is_price_overridden = graphene.Boolean(
+        description="Returns True, if the line unit price was overridden.",
+    )
     variant = graphene.Field(
         ProductVariant,
         required=False,
