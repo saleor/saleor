@@ -304,7 +304,7 @@ def _create_line_for_order(
     )
 
     discount = checkout_line_info.get_sale_discount()
-    sale_id = discount.sale.id if discount and discount.sale else None
+    sale_id = discount.sale_id if discount and discount.sale_id else None
 
     voucher_code = None
     if checkout_line_info.voucher:
@@ -316,9 +316,17 @@ def _create_line_for_order(
     else:
         discount_amount = discount_price.net
 
+    if discount_amount.amount > 0 and not sale_id or not voucher_code:
+        logger.warning(
+            "Unknown discount reason for checkout: %s.",
+            graphene.Node.to_global_id("Checkout", checkout_info.checkout.token),
+        )
+
     unit_discount_reason = None
-    if sale_id:
-        unit_discount_reason = f'Sale: {graphene.Node.to_global_id("Sale", sale_id)}'
+    if discount:
+        unit_discount_reason = "Sale: "
+        if sale_id:
+            unit_discount_reason += graphene.Node.to_global_id("Sale", sale_id)
     if voucher_code:
         if unit_discount_reason:
             unit_discount_reason += f" & Voucher code: {voucher_code}"
@@ -1299,7 +1307,6 @@ def create_order_from_checkout(
 
     :raises: InsufficientStock, GiftCardNotApplicable
     """
-
     voucher = None
     if voucher := checkout_info.voucher:
         with transaction.atomic():
