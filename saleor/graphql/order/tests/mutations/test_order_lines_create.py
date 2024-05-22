@@ -60,9 +60,7 @@ ORDER_LINES_CREATE_MUTATION = """
                 unitDiscount {
                   amount
                 }
-                unitDiscountType
-                unitDiscountValue
-                isGift
+                isPriceOverridden
             }
             order {
                 total {
@@ -1008,3 +1006,4 @@ def test_order_lines_create_with_custom_price(
     assert data["orderLines"][0]["productSku"] == variant.sku
     assert data["orderLines"][0]["productVariantId"] == variant.get_global_id()
     assert data["orderLines"][0]["quantity"] == quantity
+    assert data["orderLines"][0]["isPriceOverridden"] is True
