@@ -310,7 +310,7 @@ def _create_line_for_order(
         )
 
     discount = checkout_line_info.get_sale_discount()
-    sale_id = discount.sale_id if discount and discount.sale_id else None
+    sale_id = discount.sale_id if discount else None
 
     voucher_code = None
     if checkout_line_info.voucher:
