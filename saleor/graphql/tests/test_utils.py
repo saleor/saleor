@@ -223,3 +223,112 @@ def test_check_if_query_contains_only_schema_with_schema_query_and_fragments():
 
     # then
     assert result is True
+
+
+def test_check_if_query_contains_only_schema_with_introspection():
+    # given
+    query = """
+        query IntrospectionQuery {
+            __schema {
+                queryType { name }
+                mutationType { name }
+                subscriptionType { name }
+                types {
+                    ...FullType
+                }
+                directives {
+                    name
+                    description
+                    locations
+                    args {
+                        ...InputValue
+                    }
+                }
+            }
+        }
+        fragment FullType on __Type {
+            kind
+            name
+            description
+            fields(includeDeprecated: true) {
+                name
+                description
+                args {
+                    ...InputValue
+                }
+                type {
+                    ...TypeRef
+                }
+                isDeprecated
+                deprecationReason
+            }
+            inputFields {
+                ...InputValue
+            }
+            interfaces {
+                ...TypeRef
+            }
+            enumValues(includeDeprecated: true) {
+                name
+                description
+                isDeprecated
+                deprecationReason
+            }
+            possibleTypes {
+                ...TypeRef
+            }
+        }
+        fragment InputValue on __InputValue {
+            name
+            description
+            type { ...TypeRef }
+            defaultValue
+        }
+        fragment TypeRef on __Type {
+            kind
+            name
+            ofType {
+                kind
+                name
+                ofType {
+                    kind
+                    name
+                    ofType {
+                        kind
+                        name
+                        ofType {
+                            kind
+                            name
+                            ofType {
+                                kind
+                                name
+                                ofType {
+                                    kind
+                                    name
+                                    ofType {
+                                        kind
+                                        name
+                                        ofType {
+                                            kind
+                                            name
+                                            ofType {
+                                                kind
+                                                name
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    """
+    document = backend.document_from_string(schema, query)
+
+    # when
+    result = check_if_query_contains_only_schema(document)
+
+    # then
+    assert result is True
