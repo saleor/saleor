@@ -923,11 +923,11 @@ class WebhookPlugin(BasePlugin):
                 legacy_data_generator=order_data_generator,
             )
 
-    def order_expired(self, order: "Order", previous_value: Any) -> Any:
+    def order_expired(self, order: "Order", previous_value: Any, webhooks=None) -> Any:
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.ORDER_EXPIRED
-        if webhooks := get_webhooks_for_event(event_type):
+        if webhooks := self._get_webhooks_for_event(event_type, webhooks):
             order_data_generator = partial(
                 generate_order_payload, order, self.requestor
             )
