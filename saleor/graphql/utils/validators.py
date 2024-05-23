@@ -78,8 +78,11 @@ def __queries_or_introspection_in_operation_definition(definition: OperationDefi
 
 def __queries_or_introspection_in_fragment_definition(definition: FragmentDefinition):
     selections = definition.selection_set.selections
-    if definition.type_condition and definition.type_condition.name.value == "Query":
-        return __queries_or_introspection_in_selections(selections, is_query=True)
+    if definition.type_condition:
+        if definition.type_condition.name.value == "Query":
+            return __queries_or_introspection_in_selections(selections, is_query=True)
+        if definition.type_condition.name.value.startswith("__"):
+            return False, True
     return __queries_or_introspection_in_selections(selections, is_query=False)
 
 
