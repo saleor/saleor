@@ -1,5 +1,6 @@
 from collections import ChainMap
 
+from django.conf import settings
 from django.db.models import Value as V
 from django.db.models.functions import Concat
 
@@ -70,17 +71,23 @@ def get_attributes_headers(export_info: dict[str, list]) -> list[str]:
     if not attribute_ids:
         return []
 
-    attributes = Attribute.objects.filter(pk__in=attribute_ids).order_by("slug")
+    attributes = (
+        Attribute.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(pk__in=attribute_ids)
+        .order_by("slug")
+    )
 
     products_headers = (
-        attributes.filter(product_types__isnull=False)
+        attributes.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(product_types__isnull=False)
         .distinct()
         .annotate(header=Concat("slug", V(" (product attribute)")))
         .values_list("header", flat=True)
     )
 
     variant_headers = (
-        attributes.filter(product_variant_types__isnull=False)
+        attributes.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(product_variant_types__isnull=False)
         .distinct()
         .annotate(header=Concat("slug", V(" (variant attribute)")))
         .values_list("header", flat=True)
@@ -99,7 +106,8 @@ def get_warehouses_headers(export_info: dict[str, list]) -> list[str]:
         return []
 
     warehouses_headers = (
-        Warehouse.objects.filter(pk__in=warehouse_ids)
+        Warehouse.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(pk__in=warehouse_ids)
         .order_by("slug")
         .annotate(header=Concat("slug", V(" (warehouse quantity)")))
         .values_list("header", flat=True)
@@ -124,7 +132,8 @@ def get_channels_headers(export_info: dict[str, list]) -> list[str]:
         return []
 
     channels_slugs = (
-        Channel.objects.filter(pk__in=channel_ids)
+        Channel.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(pk__in=channel_ids)
         .order_by("slug")
         .values_list("slug", flat=True)
     )

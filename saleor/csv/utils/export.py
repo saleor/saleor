@@ -4,6 +4,7 @@ from tempfile import NamedTemporaryFile
 from typing import IO, TYPE_CHECKING, Any, Optional, Union
 
 import petl as etl
+from django.conf import settings
 from django.utils import timezone
 
 from ...discount.models import VoucherCode
@@ -99,11 +100,15 @@ def export_voucher_codes(
 ):
     file_name = get_filename("voucher_code", file_type)
 
-    qs = VoucherCode.objects.all()
+    qs = VoucherCode.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME).all()
     if voucher_id:
-        qs = VoucherCode.objects.filter(voucher_id=voucher_id)
+        qs = VoucherCode.objects.using(
+            settings.DATABASE_CONNECTION_REPLICA_NAME
+        ).filter(voucher_id=voucher_id)
     if ids:
-        qs = VoucherCode.objects.filter(id__in=ids)
+        qs = VoucherCode.objects.using(
+            settings.DATABASE_CONNECTION_REPLICA_NAME
+        ).filter(id__in=ids)
 
     export_fields = ["code"]
     temporary_file = create_file_with_headers(export_fields, delimiter, file_type)
@@ -129,9 +134,11 @@ def get_filename(model_name: str, file_type: str) -> str:
 
 
 def get_queryset(model, filter, scope: dict[str, Union[str, dict]]) -> "QuerySet":
-    queryset = model.objects.all()
+    queryset = model.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME).all()
     if "ids" in scope:
-        queryset = model.objects.filter(pk__in=scope["ids"])
+        queryset = model.objects.using(
+            settings.DATABASE_CONNECTION_REPLICA_NAME
+        ).filter(pk__in=scope["ids"])
     elif "filter" in scope:
         queryset = filter(data=parse_input(scope["filter"]), queryset=queryset).qs
 
@@ -196,13 +203,17 @@ def export_products_in_batches(
     channels = export_info.get("channels")
 
     for batch_pks in queryset_in_batches(queryset):
-        product_batch = Product.objects.filter(pk__in=batch_pks).prefetch_related(
-            "attributevalues",
-            "variants",
-            "collections",
-            "media",
-            "product_type",
-            "category",
+        product_batch = (
+            Product.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+            .filter(pk__in=batch_pks)
+            .prefetch_related(
+                "attributevalues",
+                "variants",
+                "collections",
+                "media",
+                "product_type",
+                "category",
+            )
         )
 
         export_data = get_products_data(
@@ -220,7 +231,9 @@ def export_gift_cards_in_batches(
     file_type: str,
 ):
     for batch_pks in queryset_in_batches(queryset):
-        gift_card_batch = GiftCard.objects.filter(pk__in=batch_pks)
+        gift_card_batch = GiftCard.objects.using(
+            settings.DATABASE_CONNECTION_REPLICA_NAME
+        ).filter(pk__in=batch_pks)
 
         export_data = list(gift_card_batch.values(*export_fields))
 
@@ -235,7 +248,9 @@ def export_voucher_codes_in_batches(
     file_type: str,
 ):
     for batch_pks in queryset_in_batches(queryset):
-        voucher_codes_batch = VoucherCode.objects.filter(pk__in=batch_pks)
+        voucher_codes_batch = VoucherCode.objects.using(
+            settings.DATABASE_CONNECTION_REPLICA_NAME
+        ).filter(pk__in=batch_pks)
 
         export_data = list(voucher_codes_batch.values(*export_fields))
 
