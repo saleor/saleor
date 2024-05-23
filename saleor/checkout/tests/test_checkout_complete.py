@@ -3,6 +3,7 @@ from decimal import Decimal
 from unittest import mock
 
 import before_after
+import graphene
 import pytest
 from django.core.exceptions import ValidationError
 from django.test import override_settings
@@ -37,6 +38,7 @@ from ..complete_checkout import (
     _process_shipping_data_for_order,
     _release_checkout_voucher_usage,
     complete_checkout,
+    logger,
 )
 from ..fetch import fetch_checkout_info, fetch_checkout_lines
 from ..models import Checkout
@@ -1227,9 +1229,11 @@ def test_complete_checkout_0_total_with_transaction_for_mark_as_paid(
     assert order.charge_status == OrderChargeStatus.FULL
 
 
+@mock.patch.object(logger, "warning")
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
-def test_complete_checkout_0_total_captured_payment_creates_expected_events(
+def test_complete_checkout_0_total_captured_payment_creates_expected_events_and_logs(
     mock_notify,
+    mocked_logger,
     checkout_with_item_total_0,
     customer_user,
     channel_USD,
@@ -1238,6 +1242,7 @@ def test_complete_checkout_0_total_captured_payment_creates_expected_events(
 ):
     checkout = checkout_with_item_total_0
     checkout_user = customer_user
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
     channel = checkout.channel
     channel.order_mark_as_paid_strategy = MarkAsPaidStrategy.PAYMENT_FLOW
@@ -1338,6 +1343,10 @@ def test_complete_checkout_0_total_captured_payment_creates_expected_events(
     assert placement_event.order == order  # check the associated order is valid
     assert placement_event.date  # ensure a date was set
     assert not placement_event.parameters  # should not have any additional parameters
+
+    mocked_logger.assert_called_with(
+        "The checkout completed with 0 line total price for checkout: %s.", checkout_id
+    )
 
 
 @mock.patch("saleor.checkout.complete_checkout._create_order")

@@ -12,6 +12,7 @@ from django.utils import timezone
 from .....account.models import Address
 from .....channel import MarkAsPaidStrategy
 from .....checkout import calculations
+from .....checkout.complete_checkout import logger
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout, CheckoutLine
@@ -1662,6 +1663,8 @@ def test_checkout_with_voucher_complete_product_on_sale(
         order_line.undiscounted_total_price - order_line.total_price
     )
     assert order_line.sale_id == graphene.Node.to_global_id("Sale", sale.id)
+    assert order_line.unit_discount_reason
+    assert order_line.sale_id in order_line.unit_discount_reason
 
     voucher_percentage.refresh_from_db()
     assert voucher_percentage.used == voucher_used_count + 1
@@ -1669,6 +1672,96 @@ def test_checkout_with_voucher_complete_product_on_sale(
     assert not Checkout.objects.filter(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
+
+
+@patch.object(logger, "warning")
+def test_checkout_with_voucher_complete_product_on_sale_deleted_sale_instance(
+    mocked_logger,
+    user_api_client,
+    checkout_with_voucher_percentage,
+    voucher_percentage,
+    discount_info,
+    sale,
+    address,
+    shipping_method,
+    transaction_events_generator,
+    transaction_item_generator,
+):
+    # given
+    checkout = prepare_checkout_for_test(
+        checkout_with_voucher_percentage,
+        address,
+        address,
+        shipping_method,
+        transaction_item_generator,
+        transaction_events_generator,
+    )
+    voucher_used_count = voucher_percentage.used
+    voucher_percentage.usage_limit = voucher_used_count + 1
+    voucher_percentage.save(update_fields=["usage_limit"])
+
+    checkout_line = checkout.lines.first()
+    checkout_line_variant = checkout_line.variant
+
+    discount_info.variants_ids.add(checkout_line_variant.id)
+    sale.variants.add(checkout_line_variant)
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    total = calculations.checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=address,
+    )
+    checkout_id = to_global_id_or_none(checkout)
+    variables = {
+        "id": checkout_id,
+        "redirectUrl": "https://www.example.com",
+    }
+
+    def delete_sale(*args, **kwargs):
+        Sale.objects.get(id=sale.id).delete()
+
+    # when
+    with before_after.before(
+        "saleor.checkout.complete_checkout.create_order_from_checkout",
+        delete_sale,
+    ):
+        response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+
+    order_token = data["order"]["token"]
+    order_id = data["order"]["id"]
+    assert Order.objects.count() == 1
+    order = Order.objects.first()
+    assert str(order.id) == order_token
+    assert order_id == graphene.Node.to_global_id("Order", order.id)
+
+    order_line = order.lines.first()
+    assert order.total == total
+    assert order.undiscounted_total == total + (
+        order_line.undiscounted_total_price - order_line.total_price
+    )
+    assert not order_line.sale_id
+    assert order_line.unit_discount_reason == "Sale: "
+
+    voucher_percentage.refresh_from_db()
+    assert voucher_percentage.used == voucher_used_count + 1
+
+    assert not Checkout.objects.filter(
+        pk=checkout.pk
+    ).exists(), "Checkout should have been deleted"
+
+    mocked_logger.assert_called_with(
+        "Unknown discount reason for checkout: %s.", checkout_id
+    )
 
 
 def test_checkout_with_voucher_on_specific_product_complete(
@@ -1735,6 +1828,8 @@ def test_checkout_with_voucher_on_specific_product_complete(
         order_discount.amount_value
         == (order.undiscounted_total - order.total).gross.amount
     )
+    assert order_line.unit_discount_reason
+    assert voucher_specific_product_type.code in order_line.unit_discount_reason
 
     voucher_specific_product_type.refresh_from_db()
     assert voucher_specific_product_type.used == voucher_used_count + 1

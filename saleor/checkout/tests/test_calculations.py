@@ -12,6 +12,7 @@ from ...core.prices import quantize_price
 from ...core.taxes import TaxData, TaxLineData, zero_taxed_money
 from ...plugins.manager import get_plugins_manager
 from ...tax import TaxCalculationStrategy
+from ...tax.calculations.checkout import logger as checkout_logger
 from ...tax.calculations.checkout import update_checkout_prices_with_flat_rates
 from ..base_calculations import (
     base_checkout_delivery_price,
@@ -21,6 +22,7 @@ from ..calculations import (
     _apply_tax_data,
     _get_checkout_base_prices,
     fetch_checkout_data,
+    logger,
 )
 from ..fetch import CheckoutLineInfo, fetch_checkout_info, fetch_checkout_lines
 
@@ -224,6 +226,84 @@ def test_fetch_checkout_data_flat_rates(
     mocked_update_checkout_prices_with_flat_rates.assert_called_once()
     assert line.tax_rate == Decimal("0.2300")
     assert checkout.shipping_tax_rate == Decimal("0.2300")
+
+
+@freeze_time("2020-12-12 12:00:00")
+@patch.object(logger, "warning")
+@patch("saleor.checkout.calculations._apply_tax_data")
+def test_fetch_checkout_data_plugins_0_for_line_total_logs_warning(
+    _mocked_from_app,
+    mocked_logger,
+    plugins_manager,
+    fetch_kwargs,
+    checkout_with_items,
+    tax_data,
+):
+    # given
+    checkout_with_items.price_expiration = timezone.now()
+    checkout_with_items.save(update_fields=["price_expiration"])
+    currency = checkout_with_items.currency
+    plugins_manager.get_taxes_for_checkout = Mock(return_value=None)
+
+    zero_money = zero_taxed_money(currency)
+    plugins_manager.calculate_checkout_line_total = Mock(return_value=zero_money)
+    plugins_manager.get_checkout_line_tax_rate = Mock(return_value=0)
+
+    shipping_price = get_taxed_money(tax_data, "shipping_price", currency)
+    plugins_manager.calculate_checkout_shipping = Mock(return_value=shipping_price)
+
+    shipping_tax_rate = tax_data.shipping_tax_rate / 100
+    plugins_manager.get_checkout_shipping_tax_rate = Mock(
+        return_value=shipping_tax_rate
+    )
+
+    # when
+    fetch_checkout_data(**fetch_kwargs)
+
+    # then
+    checkout_with_items.refresh_from_db()
+    for checkout_line, tax_line in zip(checkout_with_items.lines.all(), tax_data.lines):
+        assert checkout_line.total_price == zero_money
+
+    assert mocked_logger.call_count == len(tax_data.lines)
+
+
+@patch.object(checkout_logger, "warning")
+@patch("saleor.tax.calculations.checkout.calculate_checkout_line_total")
+@patch(
+    "saleor.checkout.calculations.update_checkout_prices_with_flat_rates",
+    wraps=update_checkout_prices_with_flat_rates,
+)
+@pytest.mark.parametrize("prices_entered_with_tax", [True, False])
+def test_fetch_checkout_data_flat_rates_0_for_line_total_logs_warning(
+    mocked_update_checkout_prices_with_flat_rates,
+    mocked_calculate_checkout_line_total,
+    mocked_logger,
+    checkout_with_items_and_shipping,
+    fetch_kwargs,
+    prices_entered_with_tax,
+):
+    # given
+    checkout = checkout_with_items_and_shipping
+    tc = checkout.channel.tax_configuration
+    tc.country_exceptions.all().delete()
+    tc.prices_entered_with_tax = prices_entered_with_tax
+    tc.tax_calculation_strategy = TaxCalculationStrategy.FLAT_RATES
+    tc.save()
+
+    mocked_calculate_checkout_line_total.return_value = zero_taxed_money(
+        checkout.currency
+    )
+
+    # when
+    fetch_checkout_data(**fetch_kwargs)
+    checkout.refresh_from_db()
+    line = checkout.lines.first()
+
+    # then
+    mocked_update_checkout_prices_with_flat_rates.assert_called_once()
+    assert line.total_price == zero_taxed_money(checkout.currency)
+    assert mocked_logger.call_count == checkout.lines.count()
 
 
 @patch(
