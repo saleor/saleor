@@ -1560,7 +1560,7 @@ type Query {
   ): Address @doc(category: "Users")
 
   """
-  List of the shop's customers.
+  List of the shop's customers. This list includes all users who registered through the accountRegister mutation. Additionally, staff users who have placed an order using their account will also appear in this list.
   
   Requires one of the following permissions: MANAGE_ORDERS, MANAGE_USERS.
   """

@@ -138,7 +138,7 @@ class AccountQueries(graphene.ObjectType):
         UserCountableConnection,
         filter=CustomerFilterInput(description="Filtering options for customers."),
         sort_by=UserSortingInput(description="Sort customers."),
-        description="List of the shop's customers.",
+        description="List of the shop's customers. This list includes all users who registered through the accountRegister mutation. Additionally, staff users who have placed an order using their account will also appear in this list.",
         permissions=[OrderPermissions.MANAGE_ORDERS, AccountPermissions.MANAGE_USERS],
         doc_category=DOC_CATEGORY_USERS,
     )
