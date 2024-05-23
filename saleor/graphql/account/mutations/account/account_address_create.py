@@ -38,15 +38,31 @@ class AccountAddressCreate(AddressMetadataMixin, ModelMutation, I18nMixin):
                 "of that type."
             ),
         )
+        customer_id = graphene.ID(
+            required=False,
+            description=(
+                "ID of customer the application is impersonating. "
+                "The field can be used and is required by apps only. "
+                "Requires IMPERSONATE_USER and AUTHENTICATED_APP permission."
+            ),
+        )
 
     class Meta:
-        description = "Create a new address for the customer."
+        auto_permission_message = False
+        description = (
+            "Create a new address for the customer.\n\n"
+            "Requires one of following set of permissions: "
+            "AUTHENTICATED_USER or AUTHENTICATED_APP + IMPERSONATE_USER."
+        )
         doc_category = DOC_CATEGORY_USERS
         model = models.Address
         object_type = Address
         error_type_class = AccountError
         error_type_field = "account_errors"
-        permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
+        permissions = (
+            AuthorizationFilters.AUTHENTICATED_USER,
+            AuthorizationFilters.AUTHENTICATED_APP,
+        )
         webhook_events_info = [
             WebhookEventInfo(
                 type=WebhookEventAsyncType.CUSTOMER_UPDATED,
