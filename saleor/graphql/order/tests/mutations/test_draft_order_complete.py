@@ -1071,6 +1071,7 @@ def test_draft_order_complete_force_tax_calculation_when_tax_error_was_saved(
     channel_USD,
     tax_app,
     tax_data_response,  # noqa: F811
+    media_root,
 ):
     # given
     mock_request.return_value = tax_data_response
@@ -1116,6 +1117,7 @@ def test_draft_order_complete_calls_correct_tax_app(
     channel_USD,
     tax_app,
     tax_data_response,  # noqa: F811
+    media_root,
 ):
     # given
     mock_request.return_value = tax_data_response
