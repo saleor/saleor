@@ -148,6 +148,7 @@ def test_product_variant_bulk_update_stocks(
     permission_manage_products,
     any_webhook,
     settings,
+    media_root,
 ):
     # given
     mocked_get_webhooks_for_event.return_value = [any_webhook]
@@ -652,6 +653,7 @@ def test_product_variant_bulk_update_attributes(
     settings,
     multiselect_attribute,
     color_attribute,
+    media_root,
 ):
     # given
     mocked_get_webhooks_for_event.return_value = [any_webhook]

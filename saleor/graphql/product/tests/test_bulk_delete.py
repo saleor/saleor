@@ -195,6 +195,7 @@ def test_delete_categories_trigger_product_updated_webhook(
     permission_manage_products,
     any_webhook,
     settings,
+    media_root,
 ):
     # given
     mocked_get_webhooks_for_event.return_value = [any_webhook]
@@ -436,6 +437,7 @@ def test_delete_collections_trigger_product_updated_webhook(
     permission_manage_products,
     any_webhook,
     settings,
+    media_root,
 ):
     # given
     mocked_get_webhooks_for_event.return_value = [any_webhook]
