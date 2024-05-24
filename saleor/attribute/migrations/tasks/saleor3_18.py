@@ -8,6 +8,12 @@ BATCH = 1000
 @app.task()
 def copy_product_id():
     with connection.cursor() as cursor:
+        # The query will group by pair of values with the idea of getting duplicates
+        # in that pair and then copy the id to the temporary field, tricks used:
+        # min(id) - we need one pair of values with the id, we take the oldest one, but
+        # max would have also worked
+        # AVG(PRODUCT_UNIQ) - if value is not null it means we already have one value
+        # in the database with copied id to temporary field
         cursor.execute(
             """
             UPDATE ATTRIBUTE_ASSIGNEDPRODUCTATTRIBUTEVALUE aa
@@ -41,6 +47,12 @@ def copy_product_id():
 @app.task()
 def copy_page_id():
     with connection.cursor() as cursor:
+        # The query will group by pair of values with the idea of getting duplicates
+        # in that pair and then copy the id to the temporary field, tricks used:
+        # min(id) - we need one pair of values with the id, we take the oldest one, but
+        # max would have also worked
+        # AVG(PAGE_UNIQ) - if value is not null it means we already have one value
+        # in the database with copied id to temporary field
         cursor.execute(
             """
             UPDATE ATTRIBUTE_ASSIGNEDPAGEATTRIBUTEVALUE aa

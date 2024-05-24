@@ -114,8 +114,8 @@ def _associate_attribute_to_instance(
             instance, instance_attrs_ids, AssignedVariantAttribute, instance_field_name
         )
 
-    # workaround for checking uniqness using database check
-    # will be removed in next versions
+    # workaround for checking uniqness using database check for zero-downtime
+    # compatibility
     temporary_fields = {
         "page": "page_uniq",
         "product": "product_uniq",
@@ -209,7 +209,7 @@ def _overwrite_values(
     # Spend on db query to check values that are in the db so that we can use bulk_create
     # to set the new assignments
     # This code will be able to use bulk_create option ignore_conflicts once
-    # unique_together is set for product + value on AssignedProductAttributeValue
+    # unique_together is set for instance_id + value on value_assigment_model
     values_order_map = defaultdict(list)
     assigned_attr_values_instances = []
     for attr_id, values in attr_val_map.items():
@@ -223,7 +223,7 @@ def _overwrite_values(
             params = {"value": value, **instance_field_kwarg}
             if assignment:
                 params["assignment_id"] = assignment.id
-            # temporary save to ensure uniqness
+            # save to ensure uniqness for zero-downtime compatibility
             if temporary_instance_field_name:
                 params[temporary_instance_field_name] = instance.pk
             assigned_attr_values_instances.append(value_assignment_model(**params))
