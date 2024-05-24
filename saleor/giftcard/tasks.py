@@ -28,7 +28,9 @@ def deactivate_expired_cards_task():
     expires=settings.BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC,
 )
 def update_gift_cards_search_vector_task():
-    gift_cards = GiftCard.objects.filter(search_index_dirty=True)
+    gift_cards = GiftCard.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).filter(search_index_dirty=True)
     if not gift_cards:
         return
     gift_cards_batch = list(gift_cards[:GIFT_CARD_BATCH_SIZE])
