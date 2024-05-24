@@ -1,4 +1,5 @@
-from unittest.mock import Mock
+import logging
+from unittest.mock import ANY, Mock
 
 import pytest
 from django.utils import timezone
@@ -23,11 +24,19 @@ def test_install_app_task(app_installation):
     assert app.is_installed
 
 
-@pytest.mark.vcr
-def test_install_app_task_job_id_does_not_exist():
+def test_install_app_task_job_id_does_not_exist(caplog):
     # given & when
     nonexistent_job_id = 5435435345
     install_app_task(nonexistent_job_id, activate=True)
+
+    assert caplog.record_tuples == [
+        (
+            ANY,
+            logging.WARNING,
+            "Failed to install app. AppInstallation not found for job_id: "
+            f"{nonexistent_job_id}.",
+        )
+    ]
 
     # then
     assert not App.objects.exists()
@@ -62,7 +71,7 @@ def test_install_app_task_request_timeout(monkeypatch, app_installation):
 
 
 @pytest.mark.vcr
-def test_install_app_task_wrong_response_code(monkeypatch):
+def test_install_app_task_wrong_response_code():
     app_installation = AppInstallation.objects.create(
         app_name="External App",
         manifest_url="http://localhost:3000/manifest-wrong1",
