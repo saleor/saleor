@@ -15,7 +15,7 @@ def quantize_price(price: PriceType, currency: str) -> PriceType:
     precision = get_currency_precision(currency)
     number_places = Decimal(10) ** -precision
     if not price:
-        return Decimal(0)  # type: ignore[return-value]
+        return Decimal(0)
     return price.quantize(number_places)
 
 
