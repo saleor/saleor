@@ -99,8 +99,8 @@ class PaymentQueries(graphene.ObjectType):
         if token:
             return resolve_transaction(info, str(token))
         _, id = from_global_id_or_error(
-            global_id=id, only_type=TransactionItem, raise_error=True
-        )  # type: ignore[arg-type]
+            global_id=str(id), only_type=TransactionItem, raise_error=True
+        )
         return resolve_transaction(info, id)
 
 
