@@ -269,7 +269,7 @@ def test_checkout_delivery_method_update_external_shipping(
         )
 
 
-@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 def test_checkout_delivery_method_update_external_shipping_invalid_currency(
     mock_send_request,
     api_client,
