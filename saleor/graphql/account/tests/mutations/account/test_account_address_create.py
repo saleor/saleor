@@ -14,8 +14,10 @@ from .....tests.utils import assert_no_permission, get_graphql_content
 from ..utils import generate_address_webhook_call_args
 
 ACCOUNT_ADDRESS_CREATE_MUTATION = """
-mutation($addressInput: AddressInput!, $addressType: AddressTypeEnum) {
-  accountAddressCreate(input: $addressInput, type: $addressType) {
+mutation($addressInput: AddressInput!, $addressType: AddressTypeEnum, $customerId: ID) {
+  accountAddressCreate(
+    input: $addressInput, type: $addressType, customerId: $customerId
+  ) {
     address {
         id,
         city
@@ -222,3 +224,110 @@ def test_customer_create_address_skip_validation(
     assert not data["user"]
     assert data["errors"][0]["field"] == "skipValidation"
     assert data["errors"][0]["code"] == "INVALID"
+
+
+def test_account_address_create_by_app(
+    app_api_client, graphql_address_data, permission_impersonate_user, customer_user
+):
+    # given
+    customer_id = graphene.Node.to_global_id("User", customer_user.pk)
+    new_first_name = "Andrew"
+    graphql_address_data["firstName"] = new_first_name
+    variables = {"addressInput": graphql_address_data, "customerId": customer_id}
+
+    # when
+    response = app_api_client.post_graphql(
+        ACCOUNT_ADDRESS_CREATE_MUTATION,
+        variables,
+        permissions=[permission_impersonate_user],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["accountAddressCreate"]
+    assert not data["errors"]
+    assert data["address"]["firstName"] == new_first_name
+
+
+def test_account_address_create_by_app_no_permssions(
+    app_api_client, graphql_address_data, customer_user
+):
+    # given
+    customer_id = graphene.Node.to_global_id("User", customer_user.pk)
+    variables = {"addressInput": graphql_address_data, "customerId": customer_id}
+
+    # when
+    response = app_api_client.post_graphql(ACCOUNT_ADDRESS_CREATE_MUTATION, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+def test_account_address_create_by_user_with_customer_id(
+    user_api_client, graphql_address_data, customer_user
+):
+    # given
+    customer_id = graphene.Node.to_global_id("User", customer_user.pk)
+    variables = {"addressInput": graphql_address_data, "customerId": customer_id}
+
+    # when
+    response = user_api_client.post_graphql(
+        ACCOUNT_ADDRESS_CREATE_MUTATION,
+        variables,
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["accountAddressCreate"]
+    assert not data["address"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "customerId"
+    assert errors[0]["code"] == AccountErrorCode.INVALID.name
+
+
+def test_account_address_create_by_app_invalid_customer_id(
+    app_api_client, graphql_address_data, permission_impersonate_user, customer_user
+):
+    # given
+    customer_id = graphene.Node.to_global_id("Address", customer_user.pk)
+    variables = {"addressInput": graphql_address_data, "customerId": customer_id}
+
+    # when
+    response = app_api_client.post_graphql(
+        ACCOUNT_ADDRESS_CREATE_MUTATION,
+        variables,
+        permissions=[permission_impersonate_user],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["accountAddressCreate"]
+    assert not data["address"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "customerId"
+    assert errors[0]["code"] == AccountErrorCode.GRAPHQL_ERROR.name
+
+
+def test_account_address_create_by_app_no_customer_id(
+    app_api_client, graphql_address_data, permission_impersonate_user
+):
+    # given
+    variables = {"addressInput": graphql_address_data}
+
+    # when
+    response = app_api_client.post_graphql(
+        ACCOUNT_ADDRESS_CREATE_MUTATION,
+        variables,
+        permissions=[permission_impersonate_user],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["accountAddressCreate"]
+    assert not data["address"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "customerId"
+    assert errors[0]["code"] == AccountErrorCode.REQUIRED.name
