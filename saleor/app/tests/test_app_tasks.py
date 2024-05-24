@@ -25,10 +25,14 @@ def test_install_app_task(app_installation):
 
 
 def test_install_app_task_job_id_does_not_exist(caplog):
-    # given & when
+    # given
     nonexistent_job_id = 5435435345
+
+    # when
     install_app_task(nonexistent_job_id, activate=True)
 
+    # then
+    assert not App.objects.exists()
     assert caplog.record_tuples == [
         (
             ANY,
@@ -37,9 +41,6 @@ def test_install_app_task_job_id_does_not_exist(caplog):
             f"{nonexistent_job_id}.",
         )
     ]
-
-    # then
-    assert not App.objects.exists()
 
 
 @pytest.mark.vcr
