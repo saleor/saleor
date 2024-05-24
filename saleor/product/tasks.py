@@ -66,7 +66,9 @@ def _update_variants_names(instance: ProductType, saved_attributes: Iterable):
     if not attributes_changed:
         return
 
-    variants = ProductVariant.objects.filter(
+    variants = ProductVariant.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).filter(
         name="",
         product__in=instance.products.all(),
         product__product_type__variant_attributes__in=attributes_changed,
@@ -83,11 +85,15 @@ def _update_variants_names(instance: ProductType, saved_attributes: Iterable):
 @app.task
 def update_variants_names(product_type_pk: int, saved_attributes_ids: list[int]):
     try:
-        instance = ProductType.objects.get(pk=product_type_pk)
+        instance = ProductType.objects.using(
+            settings.DATABASE_CONNECTION_REPLICA_NAME
+        ).get(pk=product_type_pk)
     except ObjectDoesNotExist:
         logging.warning(f"Cannot find product type with id: {product_type_pk}.")
         return
-    saved_attributes = Attribute.objects.filter(pk__in=saved_attributes_ids)
+    saved_attributes = Attribute.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).filter(pk__in=saved_attributes_ids)
     _update_variants_names(instance, saved_attributes)
 
 
@@ -252,7 +258,7 @@ def update_discounted_prices_task(product_ids: Iterable[int]):
     # FIXME: Should be removed in Saleor 3.21
 
     # in case triggering the task by old server worker, we will just mark the products
-    # as dirty. The recalculation will happen in the backgorund
+    # as dirty. The recalculation will happen in the background.
     ProductChannelListing.objects.filter(product_id__in=product_ids).update(
         discounted_price_dirty=True
     )
