@@ -75,6 +75,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Improved GraphQL ID validation messages - #14447 by @patrys
 - Add `voucher` to `checkout` query - #14512 by @zedzior
 - Fix draft order voucher assignment - #14336 by @IKarbowiak
+- `getTransaction` will now return an error when queried with an ID of a wrong type - #16042 by @aniav
 
 ### Other changes
 
