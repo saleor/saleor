@@ -269,7 +269,9 @@ def test_checkout_delivery_method_update_external_shipping(
         )
 
 
+@patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 def test_checkout_delivery_method_update_external_shipping_invalid_currency(
+    mock_send_request,
     api_client,
     checkout_with_item_for_cc,
     settings,
@@ -279,6 +281,16 @@ def test_checkout_delivery_method_update_external_shipping_invalid_currency(
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     checkout = checkout_with_item_for_cc
     response_method_id = "abcd"
+    mock_json_response = [
+        {
+            "id": response_method_id,
+            "name": "Provider - Economy",
+            "amount": "10",
+            "currency": "AUD",  # checkout currency is USD
+            "maximum_delivery_days": "7",
+        }
+    ]
+    mock_send_request.return_value = mock_json_response
     method_id = graphene.Node.to_global_id(
         "app", f"{shipping_app.id}:{response_method_id}"
     )
