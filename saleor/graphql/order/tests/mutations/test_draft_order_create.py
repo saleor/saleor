@@ -356,6 +356,79 @@ def test_draft_order_create_with_voucher_and_voucher_code(
     )
 
 
+def test_draft_order_create_with_voucher_code_in_voucher_input(
+    staff_api_client,
+    permission_group_manage_orders,
+    customer_user,
+    product_without_shipping,
+    shipping_method,
+    variant,
+    voucher,
+    channel_USD,
+    graphql_address_data,
+):
+    # given
+    variant_0 = variant
+    query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # Ensure no events were created yet
+    assert not OrderEvent.objects.exists()
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_0_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
+    variant_0_qty = 2
+    variant_1 = product_without_shipping.variants.first()
+    variant_1_qty = 1
+    variant_1.quantity = variant_1_qty
+    variant_1.save()
+
+    variant_1_id = graphene.Node.to_global_id("ProductVariant", variant_1.id)
+    discount = "10"
+    customer_note = "Test note"
+    variant_list = [
+        {"variantId": variant_0_id, "quantity": variant_0_qty},
+        {"variantId": variant_1_id, "quantity": variant_1_qty},
+    ]
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    voucher_code_id = graphene.Node.to_global_id(
+        "VoucherCode", voucher.codes.first().pk
+    )
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    redirect_url = "https://www.example.com"
+    external_reference = "test-ext-ref"
+
+    variables = {
+        "input": {
+            "user": user_id,
+            "discount": discount,
+            "lines": variant_list,
+            "billingAddress": shipping_address,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "voucher": voucher_code_id,
+            "customerNote": customer_note,
+            "channelId": channel_id,
+            "redirectUrl": redirect_url,
+            "externalReference": external_reference,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    error = content["data"]["draftOrderCreate"]["errors"][0]
+    assert error["field"] == "voucher"
+    assert error["code"] == OrderErrorCode.INVALID_VOUCHER.name
+    assert (
+        error["message"] == "You cannot use voucherCode in the voucher input. "
+        "Please use voucherCode instead."
+    )
+
+
 def test_draft_order_create_with_voucher_code(
     staff_api_client,
     permission_group_manage_orders,
