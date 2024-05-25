@@ -279,7 +279,7 @@ class DraftOrderCreate(
                 {
                     "voucher": ValidationError(
                         "You cannot use voucherCode in the voucher input. "
-                        "Please use voucherCode instead.",
+                        "Please use voucherCode input instead with a valid voucher code.",
                         code=OrderErrorCode.INVALID_VOUCHER.value,
                     )
                 }

@@ -425,7 +425,7 @@ def test_draft_order_create_with_voucher_code_in_voucher_input(
     assert error["code"] == OrderErrorCode.INVALID_VOUCHER.name
     assert (
         error["message"] == "You cannot use voucherCode in the voucher input. "
-        "Please use voucherCode instead."
+        "Please use voucherCode input instead with a valid voucher code."
     )
 
 
