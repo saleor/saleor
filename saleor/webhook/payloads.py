@@ -1314,13 +1314,16 @@ def generate_checkout_payload_for_tax_calculation(
         and checkout_info.voucher.type == VoucherType.ENTIRE_ORDER
         and not checkout_info.voucher.apply_once_per_order
     )
-    discount_amount = quantize_price(checkout.discount_amount, checkout.currency)
-    discount_name = checkout.discount_name
-    discounts = (
-        [{"name": discount_name, "amount": discount_amount}]
-        if discount_amount and discount_not_included
-        else []
-    )
+    if not checkout.discount_amount:
+        discounts = []
+    else:
+        discount_amount = quantize_price(checkout.discount_amount, checkout.currency)
+        discount_name = checkout.discount_name
+        discounts = (
+            [{"name": discount_name, "amount": discount_amount}]
+            if discount_amount and discount_not_included
+            else []
+        )
 
     # Prepare shipping data
     shipping_method = checkout.shipping_method
