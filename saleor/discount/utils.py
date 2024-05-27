@@ -67,7 +67,7 @@ CATALOGUE_FIELDS = ["categories", "collections", "products", "variants"]
 def increase_voucher_usage(
     voucher: "Voucher",
     code: "VoucherCode",
-    customer_email: str,
+    customer_email: Optional[str],
     increase_voucher_customer_usage: bool = True,
 ) -> None:
     if voucher.usage_limit:
@@ -102,7 +102,12 @@ def activate_voucher_code(code: "VoucherCode") -> None:
     code.save(update_fields=["is_active"])
 
 
-def add_voucher_usage_by_customer(code: "VoucherCode", customer_email: str) -> None:
+def add_voucher_usage_by_customer(
+    code: "VoucherCode", customer_email: Optional[str]
+) -> None:
+    if not customer_email:
+        raise NotApplicable("This offer is only valid for signed-in users.")
+
     _, created = VoucherCustomer.objects.get_or_create(
         voucher_code=code, customer_email=customer_email
     )

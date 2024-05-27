@@ -582,6 +582,6 @@ class DraftOrderCreate(
             increase_voucher_usage(
                 voucher,
                 code_instance,
-                instance.user_email or instance.user.email,
+                instance.user_email or instance.user and instance.user.email,
                 increase_voucher_customer_usage=False,
             )
