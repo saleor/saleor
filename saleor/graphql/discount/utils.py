@@ -4,6 +4,7 @@ from enum import Enum
 from typing import Any, Optional, Union, cast
 
 import graphene
+from django.conf import settings
 from django.db.models import Exists, OuterRef, QuerySet
 from graphene.utils.str_converters import to_snake_case
 
@@ -167,12 +168,14 @@ PREDICATE_TO_HANDLE_METHOD = {
 
 
 def get_variants_for_catalogue_predicate(
-    predicate, queryset: Optional[ProductVariantQueryset] = None
+    predicate,
+    queryset: Optional[ProductVariantQueryset] = None,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     if not predicate:
         return ProductVariant.objects.none()
     if queryset is None:
-        queryset = ProductVariant.objects.all()
+        queryset = ProductVariant.objects.using(database_connection_name).all()
     return filter_qs_by_predicate(predicate, queryset, PredicateObjectType.CATALOGUE)
 
 
