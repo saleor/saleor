@@ -273,6 +273,18 @@ class DraftOrderCreate(
         if voucher is None:
             cleaned_input["voucher_code"] = None
             return
+
+        if isinstance(voucher, VoucherCode):
+            raise ValidationError(
+                {
+                    "voucher": ValidationError(
+                        "You cannot use voucherCode in the voucher input. "
+                        "Please use voucherCode input instead with a valid voucher code.",
+                        code=OrderErrorCode.INVALID_VOUCHER.value,
+                    )
+                }
+            )
+
         code_instance = None
         if channel.include_draft_order_in_voucher_usage:
             # Validate voucher when it's included in voucher usage calculation
