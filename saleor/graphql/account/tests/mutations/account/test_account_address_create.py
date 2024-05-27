@@ -249,7 +249,7 @@ def test_account_address_create_by_app(
     assert data["address"]["firstName"] == new_first_name
 
 
-def test_account_address_create_by_app_no_permssions(
+def test_account_address_create_by_app_no_permissions(
     app_api_client, graphql_address_data, customer_user
 ):
     # given

@@ -174,3 +174,33 @@ def test_customer_update_address_skip_validation(
     assert not data["user"]
     assert data["errors"][0]["field"] == "skipValidation"
     assert data["errors"][0]["code"] == "INVALID"
+
+
+def test_account_address_update_by_app(
+    app_api_client, customer_user, graphql_address_data, permission_manage_users
+):
+    # given
+    query = ACCOUNT_ADDRESS_UPDATE_MUTATION
+    address_obj = customer_user.addresses.first()
+    address_data = graphql_address_data
+    new_city = "Poznań"
+    address_data["city"] = new_city
+    assert address_data["city"] != address_obj.city
+
+    variables = {
+        "addressId": graphene.Node.to_global_id("Address", address_obj.id),
+        "address": address_data,
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["accountAddressUpdate"]
+    assert data["address"]["city"] == address_data["city"].upper()
+    address_obj.refresh_from_db()
+    assert address_obj.city == address_data["city"].upper()
+    assert address_obj.validation_skipped is False
