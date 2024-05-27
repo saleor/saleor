@@ -489,10 +489,13 @@ def filter_qs(
     except (NoDefaultChannel, ChannelNotDefined, GraphQLError, KeyError):
         filter_channel = None
     filter_input["channel"] = (
-        args.get("channel")
+        args.pop("channel", None)
         or filter_channel
         or get_default_channel_slug_or_graphql_error(allow_replica)
     )
+
+    for arg_name, arg_value in args.items():
+        filter_input[arg_name] = arg_value
 
     if isinstance(iterable, ChannelQsContext):
         queryset = iterable.qs
