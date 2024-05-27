@@ -25,6 +25,7 @@ mutation($addressInput: AddressInput!, $addressType: AddressTypeEnum, $customerI
             key
             value
         }
+        firstName
     }
     user {
         email

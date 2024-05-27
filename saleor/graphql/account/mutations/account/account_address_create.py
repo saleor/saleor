@@ -3,30 +3,27 @@ from typing import cast
 import graphene
 
 from .....account import models, search, utils
-from .....account.error_codes import AccountErrorCode
 from .....account.utils import (
     remove_the_oldest_user_address_if_address_limit_is_reached,
 )
-from .....app.models import App
-from .....core.exceptions import PermissionDenied
 from .....core.tracing import traced_atomic_transaction
 from .....permission.auth_filters import AuthorizationFilters
-from .....permission.enums import AccountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import ModelMutation
 from ....core.types import AccountError
-from ....core.utils import WebhookEventInfo, raise_validation_error
+from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
-from ....utils import get_user_or_app_from_context
 from ...enums import AddressTypeEnum
 from ...i18n import I18nMixin
-from ...mixins import AddressMetadataMixin
+from ...mixins import AddressMetadataMixin, AppImpersonateMixin
 from ...types import Address, AddressInput, User
 
 
-class AccountAddressCreate(AddressMetadataMixin, ModelMutation, I18nMixin):
+class AccountAddressCreate(
+    AddressMetadataMixin, ModelMutation, I18nMixin, AppImpersonateMixin
+):
     user = graphene.Field(
         User, description="A user instance for which the address was created."
     )
@@ -111,32 +108,3 @@ class AccountAddressCreate(AddressMetadataMixin, ModelMutation, I18nMixin):
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.customer_updated, user)
         cls.call_event(manager.address_created, instance)
-
-    @classmethod
-    def get_user_instance(cls, info, customer_id):
-        requester = get_user_or_app_from_context(info.context)
-        user = None
-        if isinstance(requester, models.User):
-            if customer_id:
-                raise_validation_error(
-                    field="customerId",
-                    code=AccountErrorCode.INVALID,
-                    message="This field can be used by apps only.",
-                )
-            user = requester
-        elif isinstance(requester, App):
-            if not requester.has_perm(AccountPermissions.IMPERSONATE_USER):
-                raise PermissionDenied(
-                    permissions=[AccountPermissions.IMPERSONATE_USER]
-                )
-            if not customer_id:
-                raise_validation_error(
-                    field="customerId",
-                    code=AccountErrorCode.REQUIRED,
-                    message="This field is required when the mutation is run by app.",
-                )
-            else:
-                user = cls.get_node_or_error(  # type: ignore[assignment]
-                    info, customer_id, only_type="User", field="customerId"
-                )
-        return user

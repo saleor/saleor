@@ -1,5 +1,7 @@
 from unittest.mock import patch
 
+import graphene
+
 from ......account.error_codes import AccountErrorCode
 from ......account.models import User
 from ......checkout import AddressType
@@ -14,6 +16,7 @@ ACCOUNT_UPDATE_QUERY = """
         $lastName: String
         $languageCode: LanguageCodeEnum
         $metadata: [MetadataInput!]
+        $customerId: ID
     ) {
         accountUpdate(
           input: {
@@ -22,8 +25,10 @@ ACCOUNT_UPDATE_QUERY = """
             firstName: $firstName,
             lastName: $lastName,
             languageCode: $languageCode,
-            metadata: $metadata
-        }) {
+            metadata: $metadata,
+          },
+          customerId: $customerId
+        ) {
             errors {
                 field
                 code
@@ -40,6 +45,7 @@ ACCOUNT_UPDATE_QUERY = """
                         key
                         value
                     }
+                    city
                 }
                 defaultShippingAddress {
                     id
@@ -245,3 +251,110 @@ def test_logged_customer_update_address_skip_validation(
     assert not data["user"]
     assert data["errors"][0]["field"] == "skipValidation"
     assert data["errors"][0]["code"] == "INVALID"
+
+
+def test_account_update_by_app(
+    app_api_client, customer_user, permission_impersonate_user, graphql_address_data
+):
+    # given
+    new_city = "WARSZAWA"
+    address_input = graphql_address_data
+    address_input["city"] = new_city
+    user = customer_user
+    user_id = graphene.Node.to_global_id("User", user.pk)
+    assert user.default_billing_address.city != new_city
+    variables = {"billing": address_input, "customerId": user_id}
+
+    # when
+    response = app_api_client.post_graphql(
+        ACCOUNT_UPDATE_QUERY, variables, permissions=[permission_impersonate_user]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["accountUpdate"]
+    assert not data["errors"]
+    assert data["user"]["defaultBillingAddress"]["city"] == new_city
+    user.refresh_from_db()
+    assert user.default_billing_address.city == new_city
+
+
+def test_account_update_by_app_no_permissions(
+    app_api_client, graphql_address_data, customer_user
+):
+    # given
+    customer_id = graphene.Node.to_global_id("User", customer_user.pk)
+    variables = {"billing": graphql_address_data, "customerId": customer_id}
+
+    # when
+    response = app_api_client.post_graphql(ACCOUNT_UPDATE_QUERY, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+def test_account_update_by_user_with_customer_id(
+    user_api_client, graphql_address_data, customer_user
+):
+    # given
+    customer_id = graphene.Node.to_global_id("User", customer_user.pk)
+    variables = {"billing": graphql_address_data, "customerId": customer_id}
+
+    # when
+    response = user_api_client.post_graphql(ACCOUNT_UPDATE_QUERY, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["accountUpdate"]
+    assert not data["user"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "customerId"
+    assert errors[0]["code"] == AccountErrorCode.INVALID.name
+
+
+def test_account_address_create_by_app_invalid_customer_id(
+    app_api_client, graphql_address_data, permission_impersonate_user, customer_user
+):
+    # given
+    customer_id = graphene.Node.to_global_id("Address", customer_user.pk)
+    variables = {"addressInput": graphql_address_data, "customerId": customer_id}
+
+    # when
+    response = app_api_client.post_graphql(
+        ACCOUNT_UPDATE_QUERY,
+        variables,
+        permissions=[permission_impersonate_user],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["accountUpdate"]
+    assert not data["user"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "customerId"
+    assert errors[0]["code"] == AccountErrorCode.GRAPHQL_ERROR.name
+
+
+def test_account_address_create_by_app_no_customer_id(
+    app_api_client, graphql_address_data, permission_impersonate_user
+):
+    # given
+    variables = {"billing": graphql_address_data}
+
+    # when
+    response = app_api_client.post_graphql(
+        ACCOUNT_UPDATE_QUERY,
+        variables,
+        permissions=[permission_impersonate_user],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["accountUpdate"]
+    assert not data["user"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "customerId"
+    assert errors[0]["code"] == AccountErrorCode.REQUIRED.name
