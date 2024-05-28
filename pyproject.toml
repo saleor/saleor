@@ -87,6 +87,9 @@ documentation = "https://docs.saleor.io/"
   urllib3 = "^1.26.18"
   uvicorn = {extras = ["standard"], version = "^0.23.1"}
   weasyprint = ">=53.0" # libpango >=1.44 is required
+  opentelemetry-api = "^1.24.0"
+  opentelemetry-sdk = "^1.24.0"
+  opentelemetry-exporter-otlp-proto-http = "^1.24.0"
 
     [tool.poetry.dependencies.celery]
     version = ">=4.4.5,<6.0.0"
