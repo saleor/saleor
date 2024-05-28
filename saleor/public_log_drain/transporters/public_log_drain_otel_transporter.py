@@ -10,12 +10,14 @@ from opentelemetry.trace.span import TraceFlags
 from ..public_log_drain import LogDrainAttributes, LogLevel
 from . import LogDrainTransporter
 
+SERVICE_NAME = "Saleor"
+
 
 class LogDrainOtelTransporter(LogDrainTransporter):
     LEVEL_TO_SEVERITY_NUMBER_MAP = {
-        LogLevel.INFO: SeverityNumber.INFO,
-        LogLevel.WARN: SeverityNumber.WARN,
-        LogLevel.ERROR: SeverityNumber.ERROR,
+        LogLevel.INFO.name: SeverityNumber.INFO,
+        LogLevel.WARN.name: SeverityNumber.WARN,
+        LogLevel.ERROR.name: SeverityNumber.ERROR,
     }
 
     def __init__(self, endpoint: str):
@@ -26,7 +28,7 @@ class LogDrainOtelTransporter(LogDrainTransporter):
         self.exporter = OTLPLogExporter(endpoint=self.endpoint)
         self.resource = Resource.create(
             {
-                "service.name": "Saleor",
+                "service.name": SERVICE_NAME,
             }
         )
 
@@ -40,7 +42,7 @@ class LogDrainOtelTransporter(LogDrainTransporter):
         return self.endpoint
 
     def emit(self, logger_name: str, trace_id: int, attributes: LogDrainAttributes):
-        level = LogDrainAttributes.level
+        level = attributes.level
         log_record = LogRecord(
             timestamp=int(timezone.now().timestamp()),
             observed_timestamp=int(timezone.now().timestamp()),

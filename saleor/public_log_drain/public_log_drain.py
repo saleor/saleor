@@ -23,13 +23,15 @@ class LogDrainAttributes:
     level: LogLevel
     api_url: str
     message: str
-    checkout_id: Optional[str]
-    order_id: Optional[str]
+    checkout_id: Optional[str] = None
+    order_id: Optional[str] = None
 
 
 class PublicLogDrain:
-    def __init__(self):
-        self.transporters: list[LogDrainTransporter] = []
+    def __init__(self, transporters=None):
+        if transporters is None:
+            transporters = []
+        self.transporters: list[LogDrainTransporter] = transporters
 
     def add_transporter(self, transporter):
         self.transporters.append(transporter)
