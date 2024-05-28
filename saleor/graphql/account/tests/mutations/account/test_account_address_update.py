@@ -168,13 +168,9 @@ def test_customer_update_address_skip_validation(
 
     # when
     response = user_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
 
     # then
-    data = content["data"]["accountAddressUpdate"]
-    assert not data["user"]
-    assert data["errors"][0]["field"] == "skipValidation"
-    assert data["errors"][0]["code"] == "INVALID"
+    assert_no_permission(response)
 
 
 def test_account_address_update_by_app(
