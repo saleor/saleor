@@ -127,5 +127,5 @@ def _log_writer_usage(execute, sql, params, many, context):
             f"{error_msg} SQL: {sql} \n"
             f"Traceback: \n{''.join(traceback.format_list(stack_trace))}"
         )
-        logger.error(log_msg)
+        logger.warning(log_msg)
     return execute(sql, params, many, context)

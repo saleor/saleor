@@ -1098,10 +1098,14 @@ class PluginsManager(PaymentInterface):
             webhooks=webhooks,
         )
 
-    def order_expired(self, order: "Order"):
+    def order_expired(self, order: "Order", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "order_expired", default_value, order, channel_slug=order.channel.slug
+            "order_expired",
+            default_value,
+            order,
+            channel_slug=order.channel.slug,
+            webhooks=webhooks,
         )
 
     def order_fulfilled(self, order: "Order"):

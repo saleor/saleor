@@ -170,7 +170,9 @@ def test_trigger_transaction_request_with_webhook_subscription(
 
 
 @freeze_time("2022-06-11 12:50")
-@mock.patch("saleor.plugins.webhook.tasks.handle_transaction_request_task.delay")
+@mock.patch(
+    "saleor.webhook.transport.synchronous.transport.handle_transaction_request_task.delay"
+)
 def test_trigger_transaction_request_missing_app_owner_updates_refundable_checkout(
     mocked_task,
     transaction_item_created_by_app,
@@ -237,7 +239,9 @@ def test_trigger_transaction_request_missing_app_owner_updates_refundable_checko
 
 
 @freeze_time("2022-06-11 12:50")
-@mock.patch("saleor.plugins.webhook.tasks.handle_transaction_request_task.delay")
+@mock.patch(
+    "saleor.webhook.transport.synchronous.transport.handle_transaction_request_task.delay"
+)
 def test_trigger_transaction_request_missing_webhook_updates_refundable_checkout(
     mocked_task,
     transaction_item_created_by_app,
@@ -281,7 +285,9 @@ def test_trigger_transaction_request_missing_webhook_updates_refundable_checkout
 
 
 @freeze_time("2022-06-11 12:50")
-@mock.patch("saleor.plugins.webhook.tasks.handle_transaction_request_task.delay")
+@mock.patch(
+    "saleor.webhook.transport.synchronous.transport.handle_transaction_request_task.delay"
+)
 def test_trigger_transaction_request_incorrect_subscription_updates_refundable_checkout(
     mocked_task,
     transaction_item_created_by_app,
