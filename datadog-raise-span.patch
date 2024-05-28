@@ -1,0 +1,25 @@
+diff --git a/saleor/graphql/views.py b/saleor/graphql/views.py
+index 9c1e124b1e..62d33027df 100644
+--- a/saleor/graphql/views.py
++++ b/saleor/graphql/views.py
+@@ -6,6 +6,7 @@ from typing import Any, Optional, Union
+ 
+ import opentracing
+ import opentracing.tags
++from ddtrace.constants import MANUAL_KEEP_KEY
+ from django.conf import settings
+ from django.core.cache import cache
+ from django.db import connection
+@@ -289,6 +290,12 @@ class GraphQLView(View):
+             span.set_tag("graphql.query", raw_query_string)
+             span.set_tag("graphql.query_identifier", query_identifier(document))
+             span.set_tag("graphql.query_fingerprint", query_fingerprint(document))
++            if query_identifier(
++                document
++            ) == "collectionAddProducts" and connection.schema_name.startswith(
++                "pcdiga"
++            ):
++                span.set_tag(MANUAL_KEEP_KEY, "true")
+             try:
+                 query_contains_schema = self.check_if_query_contains_only_schema(
+                     document

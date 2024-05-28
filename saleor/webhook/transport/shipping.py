@@ -52,6 +52,15 @@ def convert_to_app_id_with_identifier(shipping_app_id: str):
     return to_shipping_app_id(app, splitted_id[2])
 
 
+def method_metadata_is_valid(metadata) -> bool:
+    if not isinstance(metadata, dict):
+        return False
+    for key, value in metadata.items():
+        if not isinstance(key, str) or not isinstance(value, str) or not key.strip():
+            return False
+    return True
+
+
 def parse_list_shipping_methods_response(
     response_data: Any, app: "App"
 ) -> list["ShippingMethodData"]:
@@ -67,6 +76,10 @@ def parse_list_shipping_methods_response(
         method_minimum_delivery_days = shipping_method_data.get("minimum_delivery_days")
         method_description = shipping_method_data.get("description")
         method_metadata = shipping_method_data.get("metadata")
+        if method_metadata:
+            method_metadata = (
+                method_metadata if method_metadata_is_valid(method_metadata) else None
+            )
 
         shipping_methods.append(
             ShippingMethodData(
