@@ -41,6 +41,18 @@ SKIP_ADDRESS_VALIDATION_PERMISSION_MAP: dict[str, list[BasePermissionEnum]] = {
         CheckoutPermissions.HANDLE_CHECKOUTS,
         AuthorizationFilters.AUTHENTICATED_APP,
     ],
+    "accountAddressCreate": [
+        AuthorizationFilters.AUTHENTICATED_APP,
+        AccountPermissions.IMPERSONATE_USER,
+    ],
+    "accountUpdate": [
+        AuthorizationFilters.AUTHENTICATED_APP,
+        AccountPermissions.IMPERSONATE_USER,
+    ],
+    "accountAddressUpdate": [
+        AccountPermissions.MANAGE_USERS,
+        AuthorizationFilters.AUTHENTICATED_APP,
+    ],
 }
 
 

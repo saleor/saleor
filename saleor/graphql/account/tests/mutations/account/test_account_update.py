@@ -46,6 +46,7 @@ ACCOUNT_UPDATE_QUERY = """
                         value
                     }
                     city
+                    postalCode
                 }
                 defaultShippingAddress {
                     id
@@ -53,6 +54,7 @@ ACCOUNT_UPDATE_QUERY = """
                         key
                         value
                     }
+                    postalCode
                 }
                 languageCode
                 metadata {
@@ -244,13 +246,9 @@ def test_logged_customer_update_address_skip_validation(
 
     # when
     response = user_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
 
     # then
-    data = content["data"]["accountUpdate"]
-    assert not data["user"]
-    assert data["errors"][0]["field"] == "skipValidation"
-    assert data["errors"][0]["code"] == "INVALID"
+    assert_no_permission(response)
 
 
 def test_account_update_by_app(
@@ -358,3 +356,63 @@ def test_account_address_create_by_app_no_customer_id(
     assert len(errors) == 1
     assert errors[0]["field"] == "customerId"
     assert errors[0]["code"] == AccountErrorCode.REQUIRED.name
+
+
+def test_account_update_address_by_app_skip_validation(
+    app_api_client,
+    customer_user,
+    graphql_address_data_skipped_validation,
+    permission_impersonate_user,
+):
+    # given
+    query = ACCOUNT_UPDATE_QUERY
+    customer_id = graphene.Node.to_global_id("User", customer_user.pk)
+    address_data = graphql_address_data_skipped_validation
+    invalid_postal_code = "invalid_postal_code"
+    address_data["postalCode"] = invalid_postal_code
+    variables = {
+        "shipping": address_data,
+        "billing": address_data,
+        "customerId": customer_id,
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_impersonate_user]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["accountUpdate"]
+    assert not data["errors"]
+    assert data["user"]["defaultBillingAddress"]["postalCode"] == invalid_postal_code
+    assert data["user"]["defaultShippingAddress"]["postalCode"] == invalid_postal_code
+    customer_user.refresh_from_db()
+    assert customer_user.default_billing_address.postal_code == invalid_postal_code
+    assert customer_user.default_billing_address.validation_skipped is True
+    assert customer_user.default_shipping_address.postal_code == invalid_postal_code
+    assert customer_user.default_shipping_address.validation_skipped is True
+
+
+def test_account_update_address_by_app_skip_validation_no_permissions(
+    app_api_client,
+    customer_user,
+    graphql_address_data_skipped_validation,
+):
+    # given
+    query = ACCOUNT_UPDATE_QUERY
+    customer_id = graphene.Node.to_global_id("User", customer_user.pk)
+    address_data = graphql_address_data_skipped_validation
+    invalid_postal_code = "invalid_postal_code"
+    address_data["postalCode"] = invalid_postal_code
+    variables = {
+        "shipping": address_data,
+        "billing": address_data,
+        "customerId": customer_id,
+    }
+
+    # when
+    response = app_api_client.post_graphql(query, variables)
+
+    # then
+    assert_no_permission(response)
