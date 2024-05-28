@@ -1073,3 +1073,22 @@ def get_checkout_line_weight(line_info: "CheckoutLineInfo"):
         or line_info.product.weight
         or line_info.product_type.weight
     )
+
+
+def log_address_if_validation_skipped_for_checkout(
+    checkout_info: "CheckoutInfo", logger
+):
+    address = get_address_for_checkout_taxes(checkout_info)
+    if address and address.validation_skipped:
+        logger.warning(
+            "Fetching tax data for checkout with address validation skipped. "
+            "Address ID: %s",
+            address.id,
+        )
+
+
+def get_address_for_checkout_taxes(
+    checkout_info: "CheckoutInfo",
+) -> Optional["Address"]:
+    shipping_address = checkout_info.delivery_method_info.shipping_address
+    return shipping_address or checkout_info.billing_address
