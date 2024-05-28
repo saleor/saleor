@@ -98,7 +98,6 @@ def _emit_webhook_public_log_if_applicable(
         drain_attributes = LogDrainAttributes(
             type=LogType.WEBHOOK_SENT,
             level=LogLevel.INFO.name,
-            api_url=webhook.target_url,
             checkout_id=json_data["taxBase"]["sourceObject"]["id"],
             version=json_data["version"],
             message=f"Sending payload to {webhook.target_url}",
@@ -107,6 +106,7 @@ def _emit_webhook_public_log_if_applicable(
             emit_public_log(
                 logger_name="webhook",
                 trace_id=span.context.trace_id,
+                span_id=span.span_id,
                 attributes=drain_attributes,
             )
 

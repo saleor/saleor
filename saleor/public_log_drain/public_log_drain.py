@@ -21,7 +21,6 @@ class LogLevel(Enum):
 class LogDrainAttributes:
     type: str  # LogType
     level: str  # LogLevel
-    api_url: str
     message: str
     version: str
     checkout_id: Optional[str] = None
@@ -37,9 +36,15 @@ class PublicLogDrain:
     def add_transporter(self, transporter):
         self.transporters.append(transporter)
 
-    def emit_log(self, logger_name: str, trace_id: int, attributes: LogDrainAttributes):
+    def emit_log(
+        self,
+        logger_name: str,
+        trace_id: int,
+        span_id: int,
+        attributes: LogDrainAttributes,
+    ):
         for transporter in self.transporters:
-            transporter.emit(logger_name, trace_id, attributes)
+            transporter.emit(logger_name, trace_id, span_id, attributes)
 
     def get_transporters(self):
         return self.transporters

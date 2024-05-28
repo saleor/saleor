@@ -41,7 +41,13 @@ class LogDrainOtelTransporter(LogDrainTransporter):
     def get_endpoint(self):
         return self.endpoint
 
-    def emit(self, logger_name: str, trace_id: int, attributes: LogDrainAttributes):
+    def emit(
+        self,
+        logger_name: str,
+        trace_id: int,
+        span_id: int,
+        attributes: LogDrainAttributes,
+    ):
         level = attributes.level
 
         log_attributes = {}
@@ -54,13 +60,12 @@ class LogDrainOtelTransporter(LogDrainTransporter):
             timestamp=int(timezone.now().timestamp()),
             observed_timestamp=int(timezone.now().timestamp()),
             trace_id=trace_id,
-            span_id=0,
+            span_id=span_id,
             trace_flags=TraceFlags.get_default(),
             severity_text="WARN",
             severity_number=self.LEVEL_TO_SEVERITY_NUMBER_MAP[level],
             body=attributes.message,
             attributes={
-                "api_url": attributes.api_url,
                 "version": attributes.version,
                 **log_attributes,
             },

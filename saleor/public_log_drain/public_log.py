@@ -5,7 +5,9 @@ from .transporters.public_log_drain_http_transporter import LogDrainHTTPTranspor
 from .transporters.public_log_drain_otel_transporter import LogDrainOtelTransporter
 
 
-def emit_public_log(logger_name: str, trace_id: int, attributes: LogDrainAttributes):
+def emit_public_log(
+    logger_name: str, trace_id: int, span_id: int, attributes: LogDrainAttributes
+):
     transports = []
     if otl_endpoint := settings.OTEL_TRANSPORTED_ENDPOINT:
         transports.append(LogDrainOtelTransporter(endpoint=otl_endpoint))
@@ -13,4 +15,4 @@ def emit_public_log(logger_name: str, trace_id: int, attributes: LogDrainAttribu
         transports.append(LogDrainHTTPTransporter(endpoint=otl_endpoint))
     if not transports:
         return
-    PublicLogDrain(transports).emit_log(logger_name, trace_id, attributes)
+    PublicLogDrain(transports).emit_log(logger_name, trace_id, span_id, attributes)
