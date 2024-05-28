@@ -61,6 +61,7 @@ class LogDrainOtelTransporter(LogDrainTransporter):
             body=attributes.message,
             attributes={
                 "api_url": attributes.api_url,
+                "version": attributes.version,
                 **log_attributes,
             },
             resource=self.resource,

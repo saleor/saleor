@@ -23,6 +23,7 @@ class LogDrainAttributes:
     level: str  # LogLevel
     api_url: str
     message: str
+    version: str
     checkout_id: Optional[str] = None
     order_id: Optional[str] = None
 

@@ -4,6 +4,7 @@ from json import JSONDecodeError
 from typing import TYPE_CHECKING, Any, Callable, Optional, TypeVar
 from urllib.parse import urlparse
 
+import opentracing
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.core.cache import cache
@@ -24,6 +25,8 @@ from ....payment.utils import (
     create_transaction_event_from_request_and_webhook_response,
     recalculate_refundable_for_checkout,
 )
+from ....public_log_drain.public_log import emit_public_log
+from ....public_log_drain.public_log_drain import LogDrainAttributes, LogLevel, LogType
 from ... import observability
 from ...const import WEBHOOK_CACHE_DEFAULT_TIMEOUT
 from ...event_types import WebhookEventSyncType
@@ -85,6 +88,29 @@ def handle_transaction_request_task(self, delivery_id, request_event_id):
     )
 
 
+def _emit_webhook_public_log_if_applicable(
+    delivery: "EventDelivery",
+    data: str,
+    webhook: "Webhook",
+):
+    if delivery.event_type == WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES:
+        json_data = json.loads(data)
+        drain_attributes = LogDrainAttributes(
+            type=LogType.WEBHOOK_SENT,
+            level=LogLevel.INFO.name,
+            api_url=webhook.target_url,
+            checkout_id=json_data["taxBase"]["sourceObject"]["id"],
+            version=json_data["version"],
+            message=f"Sending payload to {webhook.target_url}",
+        )
+        with opentracing.global_tracer().active_span as span:
+            emit_public_log(
+                logger_name="webhook",
+                trace_id=span.context.trace_id,
+                attributes=drain_attributes,
+            )
+
+
 def _send_webhook_request_sync(
     delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT, attempt=None
 ) -> tuple[WebhookResponse, Optional[dict[Any, Any]]]:
@@ -123,6 +149,7 @@ def _send_webhook_request_sync(
                 timeout=timeout,
                 custom_headers=webhook.custom_headers,
             )
+            _emit_webhook_public_log_if_applicable(delivery, data, webhook)
             response_data = json.loads(response.content)
 
     except JSONDecodeError as e:
