@@ -11,6 +11,8 @@ from .....checkout.utils import PRIVATE_META_APP_SHIPPING_ID, invalidate_checkou
 from .....plugins.manager import get_plugins_manager
 from .....shipping import models as shipping_models
 from .....shipping.utils import convert_to_shipping_method_data
+from .....warehouse import WarehouseClickAndCollectOption
+from .....warehouse.models import Stock
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
 
@@ -22,6 +24,10 @@ MUTATION_UPDATE_DELIVERY_METHOD = """
             deliveryMethodId: $deliveryMethodId) {
             checkout {
             id
+            shippingAddress {
+                id
+                firstName
+            }
             deliveryMethod {
                 __typename
                 ... on ShippingMethod {
@@ -34,6 +40,14 @@ MUTATION_UPDATE_DELIVERY_METHOD = """
                 ... on Warehouse {
                    name
                    id
+                }
+            }
+            totalPrice {
+                gross {
+                    amount
+                }
+                net {
+                    amount
                 }
             }
         }
@@ -253,6 +267,50 @@ def test_checkout_delivery_method_update_external_shipping(
             PRIVATE_META_APP_SHIPPING_ID
             not in checkout.metadata_storage.private_metadata
         )
+
+
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+def test_checkout_delivery_method_update_external_shipping_invalid_currency(
+    mock_send_request,
+    api_client,
+    checkout_with_item_for_cc,
+    settings,
+    shipping_app,
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    checkout = checkout_with_item_for_cc
+    response_method_id = "abcd"
+    mock_json_response = [
+        {
+            "id": response_method_id,
+            "name": "Provider - Economy",
+            "amount": "10",
+            "currency": "AUD",  # checkout currency is USD
+            "maximum_delivery_days": "7",
+        }
+    ]
+    mock_send_request.return_value = mock_json_response
+    method_id = graphene.Node.to_global_id(
+        "app", f"{shipping_app.id}:{response_method_id}"
+    )
+    query = MUTATION_UPDATE_DELIVERY_METHOD
+
+    # when
+    response = api_client.post_graphql(
+        query, {"id": to_global_id_or_none(checkout), "deliveryMethodId": method_id}
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutDeliveryMethodUpdate"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "deliveryMethodId"
+    assert errors[0]["code"] == CheckoutErrorCode.DELIVERY_METHOD_NOT_APPLICABLE.name
+    assert (
+        errors[0]["message"]
+        == "Cannot choose shipping method with different currency than the checkout."
+    )
 
 
 @patch(
@@ -834,3 +892,113 @@ def test_with_active_problems_flow(
 
     # then
     assert not content["data"]["checkoutDeliveryMethodUpdate"]["errors"]
+
+
+def test_checkout_delivery_method_update_only_with_token_cleans_shipping_address(
+    api_client,
+    checkout_with_item_for_cc,
+    warehouse,
+):
+    # given
+    warehouse.click_and_collect_option = WarehouseClickAndCollectOption.LOCAL_STOCK
+    warehouse.save(update_fields=["click_and_collect_option"])
+    checkout = checkout_with_item_for_cc
+    checkout.collection_point_id = warehouse.id
+    checkout.save(update_fields=["collection_point_id"])
+
+    # when
+    query = MUTATION_UPDATE_DELIVERY_METHOD
+    response = api_client.post_graphql(query, {"id": to_global_id_or_none(checkout)})
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutDeliveryMethodUpdate"]
+    assert not data["errors"]
+    assert data["checkout"]["shippingAddress"] is None
+
+
+def test_checkout_delivery_method_update_from_cc_cleans_shipping_address(
+    api_client, checkout_with_item_for_cc, warehouse, shipping_method
+):
+    # given
+    warehouse.click_and_collect_option = WarehouseClickAndCollectOption.LOCAL_STOCK
+    warehouse.save(update_fields=["click_and_collect_option"])
+    checkout = checkout_with_item_for_cc
+    checkout.collection_point_id = warehouse.id
+    checkout.save(update_fields=["collection_point_id"])
+
+    # when
+    query = MUTATION_UPDATE_DELIVERY_METHOD
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    response = api_client.post_graphql(
+        query, {"id": to_global_id_or_none(checkout), "deliveryMethodId": method_id}
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutDeliveryMethodUpdate"]
+    assert not data["errors"]
+    assert data["checkout"]["shippingAddress"] is None
+    assert data["checkout"]["deliveryMethod"]["id"] == method_id
+
+
+def test_checkout_delivery_method_update_from_cc_to_all_warehouses_update_address(
+    api_client, checkout_with_item_for_cc, warehouses_for_cc
+):
+    # given
+    warehouse_cc_local = warehouses_for_cc[2]
+    warehouse_cc_all = warehouses_for_cc[1]
+    test_address_name = "Jimmy"
+    warehouse_cc_all_address = warehouse_cc_all.address
+    warehouse_cc_all_address.first_name = test_address_name
+    warehouse_cc_all_address.save(update_fields=["first_name"])
+    checkout = checkout_with_item_for_cc
+    checkout.collection_point_id = warehouse_cc_local.id
+    checkout.save(update_fields=["collection_point_id", "shipping_method_id"])
+    Stock.objects.create(
+        warehouse=warehouse_cc_all,
+        product_variant=checkout.lines.first().variant,
+        quantity=1,
+    )
+
+    # when
+    query = MUTATION_UPDATE_DELIVERY_METHOD
+    method_id = graphene.Node.to_global_id("Warehouse", warehouse_cc_all.id)
+    response = api_client.post_graphql(
+        query, {"id": to_global_id_or_none(checkout), "deliveryMethodId": method_id}
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutDeliveryMethodUpdate"]
+    assert not data["errors"]
+    assert data["checkout"]["shippingAddress"]["firstName"] == test_address_name
+
+
+def test_checkout_delivery_method_update_from_cc_to_all_warehouses_disabled_cc(
+    api_client, checkout_with_item_for_cc, warehouses_for_cc
+):
+    # given
+    warehouse_cc_local = warehouses_for_cc[2]
+    warehouse_cc_all = warehouses_for_cc[1]
+    warehouse_cc_all.click_and_collect_option = WarehouseClickAndCollectOption.DISABLED
+    warehouse_cc_all.save(update_fields=["click_and_collect_option"])
+    checkout = checkout_with_item_for_cc
+    checkout.collection_point_id = warehouse_cc_local.id
+    checkout.save(update_fields=["collection_point_id", "shipping_method_id"])
+    Stock.objects.create(
+        warehouse=warehouse_cc_all,
+        product_variant=checkout.lines.first().variant,
+        quantity=1,
+    )
+
+    # when
+    query = MUTATION_UPDATE_DELIVERY_METHOD
+    method_id = graphene.Node.to_global_id("Warehouse", warehouse_cc_all.id)
+    response = api_client.post_graphql(
+        query, {"id": to_global_id_or_none(checkout), "deliveryMethodId": method_id}
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutDeliveryMethodUpdate"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "deliveryMethodId"
+    assert errors[0]["code"] == CheckoutErrorCode.DELIVERY_METHOD_NOT_APPLICABLE.name

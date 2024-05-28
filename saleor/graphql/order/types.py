@@ -23,6 +23,7 @@ from ...graphql.order.resolvers import resolve_orders
 from ...graphql.utils import get_user_or_app_from_context
 from ...graphql.warehouse.dataloaders import StockByIdLoader, WarehouseByIdLoader
 from ...order import OrderStatus, calculations, models
+from ...order.calculations import fetch_order_prices_if_expired
 from ...order.models import FulfillmentStatus
 from ...order.utils import (
     get_order_country,
@@ -1495,7 +1496,11 @@ class Order(ModelObjectType[models.Order]):
 
     @staticmethod
     def resolve_discounts(root: models.Order, info):
-        return OrderDiscountsByOrderIDLoader(info.context).load(root.id)
+        def with_manager(manager):
+            fetch_order_prices_if_expired(root, manager)
+            return OrderDiscountsByOrderIDLoader(info.context).load(root.id)
+
+        return get_plugin_manager_promise(info.context).then(with_manager)
 
     @staticmethod
     @traced_resolver

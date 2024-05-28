@@ -31,6 +31,7 @@ mutation($addressInput: AddressInput!, $addressType: AddressTypeEnum) {
         code
         field
         addressType
+        message
     }
   }
 }
@@ -54,9 +55,9 @@ def test_customer_create_address(user_api_client, graphql_address_data):
 
     user.refresh_from_db()
 
-    assert user.addresses.exclude(id__in=user_addresses_ids).first().metadata == {
-        "public": "public_value"
-    }
+    address = user.addresses.exclude(id__in=user_addresses_ids).first()
+    assert address.metadata == {"public": "public_value"}
+    assert address.validation_skipped is False
     assert user.addresses.count() == user_addresses_count + 1
     assert (
         generate_address_search_document_value(user.addresses.last())
@@ -199,3 +200,25 @@ def test_address_not_created_after_validation_fails(
     assert data["errors"][0]["addressType"] == address_type
     user.refresh_from_db()
     assert user.addresses.count() == user_addresses_count
+
+
+def test_customer_create_address_skip_validation(
+    user_api_client,
+    graphql_address_data_skipped_validation,
+):
+    # given
+    query = ACCOUNT_ADDRESS_CREATE_MUTATION
+    address_data = graphql_address_data_skipped_validation
+    invalid_postal_code = "invalid_postal_code"
+    address_data["postalCode"] = invalid_postal_code
+    variables = {"addressInput": address_data}
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["accountAddressCreate"]
+    assert not data["user"]
+    assert data["errors"][0]["field"] == "skipValidation"
+    assert data["errors"][0]["code"] == "INVALID"
