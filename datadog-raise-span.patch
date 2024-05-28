@@ -3,7 +3,7 @@ index 9c1e124b1e..62d33027df 100644
 --- a/saleor/graphql/views.py
 +++ b/saleor/graphql/views.py
 @@ -6,6 +6,7 @@ from typing import Any, Optional, Union
- 
+
  import opentracing
  import opentracing.tags
 +from ddtrace.constants import MANUAL_KEEP_KEY
