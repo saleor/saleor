@@ -19,8 +19,8 @@ class LogLevel(Enum):
 
 @dataclass
 class LogDrainAttributes:
-    type: LogType
-    level: LogLevel
+    type: str  # LogType
+    level: str  # LogLevel
     api_url: str
     message: str
     checkout_id: Optional[str] = None

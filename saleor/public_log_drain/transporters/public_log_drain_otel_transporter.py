@@ -43,19 +43,25 @@ class LogDrainOtelTransporter(LogDrainTransporter):
 
     def emit(self, logger_name: str, trace_id: int, attributes: LogDrainAttributes):
         level = attributes.level
+
+        log_attributes = {}
+        if attributes.checkout_id:
+            log_attributes["checkout_id"] = attributes.checkout_id
+        if attributes.order_id:
+            log_attributes["order_id"] = attributes.order_id
+
         log_record = LogRecord(
             timestamp=int(timezone.now().timestamp()),
             observed_timestamp=int(timezone.now().timestamp()),
             trace_id=trace_id,
             span_id=0,
-            trace_flags=TraceFlags.DEFAULT,
+            trace_flags=TraceFlags.get_default(),
             severity_text="WARN",
             severity_number=self.LEVEL_TO_SEVERITY_NUMBER_MAP[level],
             body=attributes.message,
             attributes={
                 "api_url": attributes.api_url,
-                "checkout_id": attributes.checkout_id,
-                "order_id": attributes.order_id,
+                **log_attributes,
             },
             resource=self.resource,
         )
