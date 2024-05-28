@@ -20073,6 +20073,8 @@ type Mutation {
   accountAddressCreate(
     """
     ID of customer the application is impersonating. The field can be used and is required by apps only. Requires IMPERSONATE_USER and AUTHENTICATED_APP permission.
+    
+    Added in Saleor 3.19.
     """
     customerId: ID
 
@@ -20151,6 +20153,8 @@ type Mutation {
   accountUpdate(
     """
     ID of customer the application is impersonating. The field can be used and is required by apps only. Requires IMPERSONATE_USER and AUTHENTICATED_APP permission.
+    
+    Added in Saleor 3.19.
     """
     customerId: ID
 

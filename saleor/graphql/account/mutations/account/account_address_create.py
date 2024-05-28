@@ -10,6 +10,7 @@ from .....core.tracing import traced_atomic_transaction
 from .....permission.auth_filters import AuthorizationFilters
 from .....webhook.event_types import WebhookEventAsyncType
 from ....core import ResolveInfo
+from ....core.descriptions import ADDED_IN_319
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import ModelMutation
 from ....core.types import AccountError
@@ -46,6 +47,7 @@ class AccountAddressCreate(
                 "ID of customer the application is impersonating. "
                 "The field can be used and is required by apps only. "
                 "Requires IMPERSONATE_USER and AUTHENTICATED_APP permission."
+                + ADDED_IN_319
             ),
         )
 
