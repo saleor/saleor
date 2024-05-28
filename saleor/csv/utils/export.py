@@ -7,6 +7,7 @@ import petl as etl
 from django.conf import settings
 from django.utils import timezone
 
+from ...core.db.connection import allow_writer
 from ...discount.models import VoucherCode
 from ...giftcard.models import GiftCard
 from ...product.models import Product
@@ -56,7 +57,6 @@ def export_products(
 
     save_csv_file_in_export_file(export_file, temporary_file, file_name)
     temporary_file.close()
-
     send_export_download_link_notification(export_file, "products")
 
 
@@ -87,7 +87,6 @@ def export_gift_cards(
 
     save_csv_file_in_export_file(export_file, temporary_file, file_name)
     temporary_file.close()
-
     send_export_download_link_notification(export_file, "gift cards")
 
 
@@ -291,6 +290,7 @@ def append_to_file(
         etl.io.xlsx.appendxlsx(table, temporary_file.name)
 
 
+@allow_writer()
 def save_csv_file_in_export_file(
     export_file: "ExportFile", temporary_file: IO[bytes], file_name: str
 ):

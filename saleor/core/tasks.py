@@ -7,6 +7,7 @@ from django.db.models import Exists, OuterRef
 from django.utils import timezone
 
 from ..celeryconf import app
+from ..core.db.connection import allow_writer
 from .models import EventDelivery, EventPayload
 
 task_logger: logging.Logger = get_task_logger(__name__)
@@ -30,14 +31,16 @@ def delete_event_payloads_task(expiration_date=None):
     )
     delete_period = timezone.now() - settings.EVENT_PAYLOAD_DELETE_PERIOD
     valid_deliveries = EventDelivery.objects.filter(created_at__gt=delete_period)
-    payloads_to_delete = EventPayload.objects.filter(
-        ~Exists(valid_deliveries.filter(payload_id=OuterRef("id")))
-    ).order_by("-pk")
-    ids = payloads_to_delete.values_list("pk", flat=True)[:BATCH_SIZE]
-    qs = EventPayload.objects.filter(pk__in=ids)
+    payloads_to_delete = (
+        EventPayload.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(~Exists(valid_deliveries.filter(payload_id=OuterRef("id"))))
+        .order_by("-pk")
+    )
+    ids = list(payloads_to_delete.values_list("pk", flat=True)[:BATCH_SIZE])
     if ids:
         if expiration_date > timezone.now():
-            qs.delete()
+            with allow_writer():
+                EventPayload.objects.filter(pk__in=ids).delete()
             delete_event_payloads_task.delay(expiration_date)
         else:
             task_logger.error("Task invocation time limit reached, aborting task")
