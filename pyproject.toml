@@ -87,7 +87,7 @@ documentation = "https://docs.saleor.io/"
   uvicorn = {extras = ["standard"], version = "^0.23.1"}
   weasyprint = ">=53.0" # libpango >=1.44 is required
   setuptools = "^70.1.0"
-  psycopg = "^3.1.8"
+  psycopg = {version = "^3.1.8", extras = ["binary"]}
 
     [tool.poetry.dependencies.celery]
     version = ">=4.4.5,<6.0.0"
