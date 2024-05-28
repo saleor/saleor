@@ -44,6 +44,8 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 task_logger = get_task_logger(__name__)
 
+OBSERVABILITY_QUEUE_NAME = "observability"
+
 
 def create_deliveries_for_subscriptions(
     event_type,
@@ -330,7 +332,7 @@ def send_observability_events(webhooks: list[WebhookData], events: list[bytes]):
         )
 
 
-@app.task
+@app.task(queue=OBSERVABILITY_QUEUE_NAME)
 def observability_send_events():
     with observability.opentracing_trace("send_events_task", "task"):
         if webhooks := observability.get_webhooks():
@@ -341,7 +343,7 @@ def observability_send_events():
                     send_observability_events(webhooks, events)
 
 
-@app.task
+@app.task(queue=OBSERVABILITY_QUEUE_NAME)
 def observability_reporter_task():
     with observability.opentracing_trace("reporter_task", "task"):
         if webhooks := observability.get_webhooks():

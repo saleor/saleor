@@ -545,14 +545,6 @@ CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", None)
-CELERY_TASK_ROUTES = {
-    "saleor.plugins.webhook.tasks.observability_reporter_task": {
-        "queue": "observability"
-    },
-    "saleor.plugins.webhook.tasks.observability_send_events": {
-        "queue": "observability"
-    },
-}
 
 # Expire orders task setting
 BEAT_EXPIRE_ORDERS_AFTER_TIMEDELTA = timedelta(
@@ -696,7 +688,7 @@ OBSERVABILITY_BUFFER_TIMEOUT = timedelta(
 )
 if OBSERVABILITY_ACTIVE:
     CELERY_BEAT_SCHEDULE["observability-reporter"] = {
-        "task": "saleor.plugins.webhook.tasks.observability_reporter_task",
+        "task": "saleor.webhook.transport.asynchronous.transport.observability_reporter_task",  # noqa
         "schedule": OBSERVABILITY_REPORT_PERIOD,
         "options": {"expires": OBSERVABILITY_REPORT_PERIOD.total_seconds()},
     }
