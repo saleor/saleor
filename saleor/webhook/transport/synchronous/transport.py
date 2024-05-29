@@ -26,7 +26,7 @@ from ....payment.utils import (
     recalculate_refundable_for_checkout,
 )
 from ....public_log_drain.public_log_drain import LogDrainAttributes, LogLevel, LogType
-from ....public_log_drain.tasks import emit_public_log
+from ....public_log_drain.tasks import emit_public_log_task
 from ... import observability
 from ...const import WEBHOOK_CACHE_DEFAULT_TIMEOUT
 from ...event_types import WebhookEventSyncType
@@ -116,11 +116,11 @@ def _emit_webhook_public_log_if_applicable(
             message=f"Sending payload to {webhook.target_url}",
         )
     with opentracing.global_tracer().active_span as span:
-        emit_public_log(
+        emit_public_log_task(
             logger_name="webhook",
             trace_id=span.context.trace_id,
             span_id=span.span_id,
-            attributes=drain_attributes,
+            attributes=drain_attributes.__dict__,
         )
 
 
@@ -149,11 +149,11 @@ def _emit_webhook_failed_public_log(
         message=f"Failed to send webhook to {webhook.target_url}",
     )
     with opentracing.global_tracer().active_span as span:
-        emit_public_log(
+        emit_public_log_task(
             logger_name="webhook",
             trace_id=span.context.trace_id,
             span_id=span.span_id,
-            attributes=drain_attributes,
+            attributes=drain_attributes.__dict__,
         )
 
 
@@ -178,11 +178,11 @@ def _emit_webhook_success_public_log(
         message=f"Received response from {webhook.target_url}",
     )
     with opentracing.global_tracer().active_span as span:
-        emit_public_log(
+        emit_public_log_task(
             logger_name="webhook",
             trace_id=span.context.trace_id,
             span_id=span.span_id,
-            attributes=drain_attributes,
+            attributes=drain_attributes.__dict__,
         )
 
 

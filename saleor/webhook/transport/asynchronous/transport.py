@@ -24,7 +24,7 @@ from ....graphql.webhook.subscription_payload import (
 )
 from ....graphql.webhook.subscription_types import WEBHOOK_TYPES_MAP
 from ....public_log_drain.public_log_drain import LogDrainAttributes, LogLevel, LogType
-from ....public_log_drain.tasks import emit_public_log
+from ....public_log_drain.tasks import emit_public_log_task
 from ... import observability
 from ...event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...observability import WebhookData
@@ -236,11 +236,11 @@ def _emit_webhook_retry_public_log(
         version=version,
         message=f"Webhook {event} retry {retries}",
     )
-    emit_public_log(
+    emit_public_log_task(
         logger_name="webhook",
         trace_id=span.context.trace_id,
         span_id=span.span_id,
-        attributes=drain_attributes,
+        attributes=drain_attributes.__dict__,
     )
 
 
@@ -253,11 +253,11 @@ def _emit_webhook_public_log_if_applicable(delivery, span, order_id, version):
             version=version,
             message="Order confirmed",
         )
-        emit_public_log(
+        emit_public_log_task(
             logger_name="webhook",
             trace_id=span.context.trace_id,
             span_id=span.span_id,
-            attributes=drain_attributes,
+            attributes=drain_attributes.__dict__,
         )
 
 

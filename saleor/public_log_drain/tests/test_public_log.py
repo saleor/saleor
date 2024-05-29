@@ -3,7 +3,7 @@ from unittest.mock import patch
 from django.test import override_settings
 
 from ..public_log_drain import LogDrainAttributes, LogLevel, LogType
-from ..tasks import emit_public_log
+from ..tasks import emit_public_log_task
 
 
 @override_settings(OTEL_TRANSPORTED_ENDPOINT=None, HTTP_TRANSPORTED_ENDPOINT=None)
@@ -22,7 +22,7 @@ def test_emit_public_log_no_transporters(mocked_emit_log):
         order_id=None,
     )
     # when
-    emit_public_log(logger_name, trace_id, span_id, attributes.__dict__)
+    emit_public_log_task(logger_name, trace_id, span_id, attributes.__dict__)
     # then
     mocked_emit_log.assert_not_called()
 
@@ -45,7 +45,7 @@ def test_emit_public_log_otel(mocked_emit_log):
         order_id=None,
     )
     # when
-    emit_public_log(logger_name, trace_id, span_id, attributes.__dict__)
+    emit_public_log_task(logger_name, trace_id, span_id, attributes.__dict__)
     # then
     mocked_emit_log.assert_called_once_with(logger_name, trace_id, span_id, attributes)
 
@@ -68,7 +68,7 @@ def test_emit_public_log_http(mocked_emit_log):
         order_id=None,
     )
     # when
-    emit_public_log(logger_name, trace_id, span_id, attributes.__dict__)
+    emit_public_log_task(logger_name, trace_id, span_id, attributes.__dict__)
     # then
     mocked_emit_log.assert_called_once_with(logger_name, trace_id, span_id, attributes)
 
@@ -92,6 +92,6 @@ def test_emit_public_log_otel_and_http(mocked_emit_log):
         order_id=None,
     )
     # when
-    emit_public_log(logger_name, trace_id, span_id, attributes.__dict__)
+    emit_public_log_task(logger_name, trace_id, span_id, attributes.__dict__)
     # then
     mocked_emit_log.assert_called_once_with(logger_name, trace_id, span_id, attributes)

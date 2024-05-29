@@ -6,9 +6,11 @@ from .public_log_drain import LogDrainAttributes, PublicLogDrain
 from .transporters import LogDrainTransporter
 from .transporters.public_log_drain_http_transporter import LogDrainHTTPTransporter
 from .transporters.public_log_drain_otel_transporter import LogDrainOtelTransporter
+from ..celeryconf import app
 
 
-def emit_public_log(
+@app.task
+def emit_public_log_task(
     logger_name: str, trace_id: int, span_id: int, attributes: dict[Any, Any]
 ):
     attributes = LogDrainAttributes(**attributes)
