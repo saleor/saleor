@@ -950,8 +950,9 @@ TRANSACTION_ITEMS_LIMIT = 100
 
 # Public log drain configuration
 OTEL_TRANSPORTED_ENDPOINT = os.environ.get(
-    "OTEL_TRANSPORTED_ENDPOINT", "http://192.168.1.108:4317/v1/logs"
+    "OTEL_TRANSPORTED_ENDPOINT", "http://192.168.1.108:4318/v1/logs"
 )
 HTTP_TRANSPORTED_ENDPOINT = os.environ.get(
-    "HTTP_TRANSPORTED_ENDPOINT", "http://192.168.1.108:4318/v1/logs"
+    "HTTP_TRANSPORTED_ENDPOINT",
+    "https://saleor-app-logs-debugger.vercel.app/api/ingest",
 )

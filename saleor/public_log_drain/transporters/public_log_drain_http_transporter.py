@@ -15,6 +15,7 @@ class LogDrainHTTPTransporter(LogDrainTransporter):
 
         self.headers = {
             "Content-Type": "application/json",
+            "Authorization": "Bearer 7fa3b2d1d5057cba09625395e6e7ac67",
             AppHeaders.DOMAIN: build_absolute_uri(reverse("api")),
         }
 
