@@ -20062,15 +20062,22 @@ type Mutation {
   ): ConfirmEmailChange @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_UPDATED, NOTIFY_USER, ACCOUNT_EMAIL_CHANGED], syncEvents: [])
 
   """
-  Create a new address for the customer. 
+  Create a new address for the customer.
   
-  Requires one of the following permissions: AUTHENTICATED_USER.
+  Requires one of following set of permissions: AUTHENTICATED_USER or AUTHENTICATED_APP + IMPERSONATE_USER.
   
   Triggers the following webhook events:
   - CUSTOMER_UPDATED (async): A customer account was updated.
   - ADDRESS_CREATED (async): An address was created.
   """
   accountAddressCreate(
+    """
+    ID of customer the application is impersonating. The field can be used and is required by apps only. Requires IMPERSONATE_USER and AUTHENTICATED_APP permission.
+    
+    Added in Saleor 3.19.
+    """
+    customerId: ID
+
     """Fields required to create address."""
     input: AddressInput!
 
@@ -20135,15 +20142,22 @@ type Mutation {
   ): AccountRegister @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_CREATED, NOTIFY_USER, ACCOUNT_CONFIRMATION_REQUESTED], syncEvents: [])
 
   """
-  Updates the account of the logged-in user. 
+  Updates the account of the logged-in user.
   
-  Requires one of the following permissions: AUTHENTICATED_USER.
+  Requires one of following set of permissions: AUTHENTICATED_USER or AUTHENTICATED_APP + IMPERSONATE_USER.
   
   Triggers the following webhook events:
   - CUSTOMER_UPDATED (async): A customer account was updated.
   - CUSTOMER_METADATA_UPDATED (async): Optionally called when customer's metadata was updated.
   """
   accountUpdate(
+    """
+    ID of customer the application is impersonating. The field can be used and is required by apps only. Requires IMPERSONATE_USER and AUTHENTICATED_APP permission.
+    
+    Added in Saleor 3.19.
+    """
+    customerId: ID
+
     """Fields required to update the account of the logged-in user."""
     input: AccountInput!
   ): AccountUpdate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_UPDATED, CUSTOMER_METADATA_UPDATED], syncEvents: [])
@@ -31365,9 +31379,9 @@ type ConfirmEmailChange @doc(category: "Users") @webhookEventsInfo(asyncEvents: 
 }
 
 """
-Create a new address for the customer. 
+Create a new address for the customer.
 
-Requires one of the following permissions: AUTHENTICATED_USER.
+Requires one of following set of permissions: AUTHENTICATED_USER or AUTHENTICATED_APP + IMPERSONATE_USER.
 
 Triggers the following webhook events:
 - CUSTOMER_UPDATED (async): A customer account was updated.
@@ -31470,9 +31484,9 @@ input AccountRegisterInput @doc(category: "Users") {
 }
 
 """
-Updates the account of the logged-in user. 
+Updates the account of the logged-in user.
 
-Requires one of the following permissions: AUTHENTICATED_USER.
+Requires one of following set of permissions: AUTHENTICATED_USER or AUTHENTICATED_APP + IMPERSONATE_USER.
 
 Triggers the following webhook events:
 - CUSTOMER_UPDATED (async): A customer account was updated.
