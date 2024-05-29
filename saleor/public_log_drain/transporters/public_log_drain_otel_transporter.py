@@ -62,7 +62,7 @@ class LogDrainOtelTransporter(LogDrainTransporter):
             trace_id=trace_id,
             span_id=span_id,
             trace_flags=TraceFlags.get_default(),
-            severity_text="WARN",
+            severity_text=level,
             severity_number=self.LEVEL_TO_SEVERITY_NUMBER_MAP[level],
             body=attributes.message,
             attributes={
