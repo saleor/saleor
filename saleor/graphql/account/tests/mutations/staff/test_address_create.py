@@ -16,6 +16,7 @@ ADDRESS_CREATE_MUTATION = """
             errors {
                 field
                 message
+                code
             }
             address {
                 id
@@ -206,71 +207,3 @@ def test_create_address_skip_validation(
     assert new_address.postal_code == wrong_postal_code
     assert new_address.validation_skipped is True
     assert new_address.metadata == {"public": "public_value"}
-
-
-def test_create_address_skip_validation_only_country_provided(
-    staff_api_client,
-    customer_user,
-    permission_manage_users,
-):
-    # given
-    query = ADDRESS_CREATE_MUTATION
-    user_id = graphene.Node.to_global_id("User", customer_user.id)
-    address_data = {"country": "PL", "skipValidation": True}
-    variables = {"user": user_id, "address": address_data}
-
-    # when
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_users]
-    )
-    content = get_graphql_content(response)
-
-    # then
-    data = content["data"]["addressCreate"]
-    assert not data["errors"]
-    assert data["address"]["country"]["code"] == "PL"
-
-
-def test_create_address_skip_validation_multiple_invalid_fields(
-    staff_api_client,
-    customer_user,
-    permission_manage_users,
-):
-    # given
-    query = ADDRESS_CREATE_MUTATION
-    user_id = graphene.Node.to_global_id("User", customer_user.id)
-    invalid_name = "invalid name"
-    address_data = {
-        "firstName": invalid_name,
-        "lastName": invalid_name,
-        "companyName": invalid_name,
-        "streetAddress1": invalid_name,
-        "streetAddress2": invalid_name,
-        "postalCode": invalid_name,
-        "country": "US",
-        "city": invalid_name,
-        "countryArea": invalid_name,
-        "phone": invalid_name,
-        "metadata": [{"key": "public", "value": "public_value"}],
-        "skipValidation": True,
-    }
-    variables = {"user": user_id, "address": address_data}
-
-    # when
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_users]
-    )
-    content = get_graphql_content(response)
-
-    # then
-    data = content["data"]["addressCreate"]
-    assert not data["errors"]
-    assert data["address"]["country"]["code"] == "US"
-    assert data["address"]["phone"] == invalid_name
-    assert data["address"]["postalCode"] == invalid_name
-    db_address = Address.objects.get(first_name=invalid_name)
-    assert db_address.phone == invalid_name
-    assert db_address.postal_code == invalid_name
-    assert db_address.country_area == invalid_name
-    assert db_address.city == invalid_name
-    assert db_address.validation_skipped is True

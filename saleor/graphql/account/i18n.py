@@ -172,15 +172,16 @@ class I18nMixin:
         if skip_validation := address_data.get("skip_validation", False):
             cls.can_skip_address_validation(info)
             cls._meta.exclude.append("phone")  # type: ignore[attr-defined]
-        else:
-            address_form = cls._validate_address_form(
-                address_data,
-                address_type,
-                format_check=format_check,
-                required_check=required_check,
-                enable_normalization=enable_normalization,
-            )
-            address_data = address_form.cleaned_data
+            format_check = False
+
+        address_form = cls._validate_address_form(
+            address_data,
+            address_type,
+            format_check=format_check,
+            required_check=required_check,
+            enable_normalization=enable_normalization,
+        )
+        address_data = address_form.cleaned_data
 
         address_data["validation_skipped"] = skip_validation
         if not instance:
