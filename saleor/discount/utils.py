@@ -106,7 +106,7 @@ def add_voucher_usage_by_customer(
     code: "VoucherCode", customer_email: Optional[str]
 ) -> None:
     if not customer_email:
-        raise NotApplicable("This offer is only valid for signed-in users.")
+        raise NotApplicable("Unable to apply voucher as customer details are missing.")
 
     _, created = VoucherCustomer.objects.get_or_create(
         voucher_code=code, customer_email=customer_email
