@@ -316,12 +316,9 @@ def _handle_checkout_predicate(
 ):
     predicate_data = _predicate_to_snake_case(predicate_data)
     if predicate := predicate_data.get("discounted_object_predicate"):
-        if currency:
-            predicate["currency"] = currency
-
         checkouts = where_filter_qs(
             Checkout.objects.filter(pk__in=base_qs.values("pk")),
-            {},
+            {"currency": currency} if currency else {},
             CheckoutDiscountedObjectWhere,
             predicate,
             None,
@@ -342,12 +339,9 @@ def _handle_order_predicate(
 ):
     predicate_data = _predicate_to_snake_case(predicate_data)
     if predicate := predicate_data.get("discounted_object_predicate"):
-        if currency:
-            predicate["currency"] = currency
-
         orders = where_filter_qs(
             Order.objects.filter(pk__in=base_qs.values("pk")),
-            {},
+            {"currency": currency} if currency else {},
             OrderDiscountedObjectWhere,
             predicate,
             None,
