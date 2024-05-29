@@ -256,7 +256,7 @@ def send_webhook_request_async(self, event_delivery_id):
                 json_data = json.loads(data)
                 order_id = json_data["order"]["id"]
                 drain_attributes = LogDrainAttributes(
-                    type=LogType.WEBHOOK_SENT,
+                    type=LogType.WEBHOOK_SENT.name,
                     level=LogLevel.INFO.name,
                     order_id=order_id,
                     version=json_data["version"],

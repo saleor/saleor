@@ -101,7 +101,7 @@ def _emit_webhook_public_log_if_applicable(
     json_data = json.loads(data)
     if delivery.event_type == WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES:
         drain_attributes = LogDrainAttributes(
-            type=LogType.WEBHOOK_SENT,
+            type=LogType.WEBHOOK_SENT.name,
             level=LogLevel.INFO.name,
             checkout_id=json_data["taxBase"]["sourceObject"]["id"],
             version=json_data["version"],
@@ -109,7 +109,7 @@ def _emit_webhook_public_log_if_applicable(
         )
     if delivery.event_type == WebhookEventSyncType.ORDER_CALCULATE_TAXES:
         drain_attributes = LogDrainAttributes(
-            type=LogType.WEBHOOK_SENT,
+            type=LogType.WEBHOOK_SENT.name,
             level=LogLevel.INFO.name,
             order_id=json_data["taxBase"]["sourceObject"]["id"],
             version=json_data["version"],
