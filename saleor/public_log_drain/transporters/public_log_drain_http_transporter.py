@@ -15,6 +15,7 @@ class LogDrainHTTPTransporter(LogDrainTransporter):
 
         self.headers = {
             "Content-Type": "application/json",
+            # This is a temporary token for a demo purpose
             "Authorization": "Bearer 7fa3b2d1d5057cba09625395e6e7ac67",
             AppHeaders.DOMAIN: build_absolute_uri(reverse("api")),
         }
@@ -32,11 +33,16 @@ class LogDrainHTTPTransporter(LogDrainTransporter):
         attributes: LogDrainAttributes,
     ):
         data = attributes.__dict__
+        data_attributes = {
+            "saleorApiUrl": "",
+            "eventType": data.pop("type"),
+        }
         data.update(
             timestamp=int(timezone.now().timestamp()),
             trace_id=trace_id,
             instrumentation_scope=logger_name,
             span_id=span_id,
+            attributes=data_attributes,
         )
         return data
 
