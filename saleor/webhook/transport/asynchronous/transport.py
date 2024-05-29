@@ -222,6 +222,45 @@ def trigger_webhooks_async(
         send_webhook_request_async.delay(delivery.id)
 
 
+def _emit_webhook_retry_public_log(
+    retries: int,
+    event: str,
+    span,
+    version: str,
+    order_id: Optional[str] = None,
+):
+    drain_attributes = LogDrainAttributes(
+        type=LogType.WEBHOOK_RETRIED.name,
+        level=LogLevel.INFO.name,
+        order_id=order_id,
+        version=version,
+        message=f"Webhook {event} retry {retries}",
+    )
+    emit_public_log(
+        logger_name="webhook",
+        trace_id=span.context.trace_id,
+        span_id=span.span_id,
+        attributes=drain_attributes,
+    )
+
+
+def _emit_webhook_public_log_if_applicable(delivery, span, order_id, version):
+    if delivery.event_type == WebhookEventAsyncType.ORDER_CONFIRMED:
+        drain_attributes = LogDrainAttributes(
+            type=LogType.WEBHOOK_SENT.name,
+            level=LogLevel.INFO.name,
+            order_id=order_id,
+            version=version,
+            message="Order confirmed",
+        )
+        emit_public_log(
+            logger_name="webhook",
+            trace_id=span.context.trace_id,
+            span_id=span.span_id,
+            attributes=drain_attributes,
+        )
+
+
 @app.task(
     queue=settings.WEBHOOK_CELERY_QUEUE_NAME,
     bind=True,
@@ -244,6 +283,18 @@ def send_webhook_request_async(self, event_delivery_id):
             )
         data = delivery.payload.payload
         with webhooks_opentracing_trace(delivery.event_type, domain, app=webhook.app):
+            json_data = json.loads(data)
+            active_span = opentracing.global_tracer().active_span
+            order_id = json_data.get("order", {}).get("id")
+            version = json_data.get("version")
+            if self.request.retries > 0:
+                _emit_webhook_retry_public_log(
+                    self.request.retries,
+                    delivery.event_type,
+                    active_span,
+                    version,
+                    order_id,
+                )
             response = send_webhook_using_scheme_method(
                 webhook.target_url,
                 domain,
@@ -252,23 +303,9 @@ def send_webhook_request_async(self, event_delivery_id):
                 data,
                 webhook.custom_headers,
             )
-            if delivery.event_type == WebhookEventAsyncType.ORDER_CONFIRMED:
-                json_data = json.loads(data)
-                order_id = json_data["order"]["id"]
-                drain_attributes = LogDrainAttributes(
-                    type=LogType.WEBHOOK_SENT.name,
-                    level=LogLevel.INFO.name,
-                    order_id=order_id,
-                    version=json_data["version"],
-                    message=f"Order confirmed {order_id}",
-                )
-                with opentracing.global_tracer().active_span as span:
-                    emit_public_log(
-                        logger_name="webhook",
-                        trace_id=span.context.trace_id,
-                        span_id=span.span_id,
-                        attributes=drain_attributes,
-                    )
+            _emit_webhook_public_log_if_applicable(
+                delivery, active_span, order_id, version
+            )
 
         attempt_update(attempt, response)
         if response.status == EventDeliveryStatus.FAILED:
