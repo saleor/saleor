@@ -2,11 +2,11 @@ from typing import Any
 
 from django.conf import settings
 
+from ..celeryconf import app
 from .public_log_drain import LogDrainAttributes, PublicLogDrain
 from .transporters import LogDrainTransporter
 from .transporters.public_log_drain_http_transporter import LogDrainHTTPTransporter
 from .transporters.public_log_drain_otel_transporter import LogDrainOtelTransporter
-from ..celeryconf import app
 
 
 @app.task
