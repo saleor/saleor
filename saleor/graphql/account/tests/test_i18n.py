@@ -156,7 +156,7 @@ def test_skip_address_validation_mutation_not_supported(
     )
 
 
-def test_create_address_skip_validation_multiple_invalid_fields(
+def test_skip_validation_multiple_invalid_fields(
     staff_api_client,
     customer_user,
     permission_manage_users,
@@ -202,7 +202,7 @@ def test_create_address_skip_validation_multiple_invalid_fields(
 
 
 @pytest.mark.parametrize("street", [None, "", " "])
-def test_create_address_skip_validation_missing_required_fields(
+def test_skip_address_validation_missing_required_fields(
     street,
     staff_api_client,
     customer_user,
@@ -231,7 +231,7 @@ def test_create_address_skip_validation_missing_required_fields(
     assert errors[0]["code"] == "REQUIRED"
 
 
-def test_create_address_skip_validation_with_correct_input_run_normalization(
+def test_skip_address_validation_with_correct_input_run_normalization(
     staff_api_client,
     customer_user,
     permission_manage_users,
@@ -259,4 +259,39 @@ def test_create_address_skip_validation_with_correct_input_run_normalization(
     address_db = Address.objects.get(id=id)
     assert address_db.city != address_data["city"]
     assert address_db.city == address_data["city"].upper()
+    assert address_db.validation_skipped is True
+
+
+def test_skip_address_validation_with_incorrect_input_skip_normalization(
+    staff_api_client,
+    customer_user,
+    permission_manage_users,
+    graphql_address_data_skipped_validation,
+):
+    # given
+    query = ADDRESS_CREATE_MUTATION
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    address_data = graphql_address_data_skipped_validation
+    invalid_name = "invalid name"
+    address_data["postalCode"] = invalid_name
+    variables = {"user": user_id, "address": address_data}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["addressCreate"]
+    assert not data["errors"]
+    assert data["address"]["city"] != address_data["city"].upper()
+    assert data["address"]["city"] == address_data["city"]
+    assert data["address"]["postalCode"] == invalid_name
+    global_id = data["address"]["id"]
+    _, id = graphene.Node.from_global_id(global_id)
+    address_db = Address.objects.get(id=id)
+    assert address_db.city != address_data["city"].upper()
+    assert address_db.city == address_data["city"]
+    assert address_db.postal_code == invalid_name
     assert address_db.validation_skipped is True
