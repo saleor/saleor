@@ -31,7 +31,13 @@ class LogDrainHTTPTransporter(LogDrainTransporter):
         )
         return data
 
-    def emit(self, logger_name: str, trace_id: int, attributes: LogDrainAttributes):
+    def emit(
+        self,
+        logger_name: str,
+        trace_id: int,
+        span_id: int,
+        attributes: LogDrainAttributes,
+    ):
         HTTPClient.send_request(
             "POST",
             self.get_endpoint(),
