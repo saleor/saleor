@@ -2,8 +2,8 @@ from unittest.mock import patch
 
 from django.test import override_settings
 
-from ..public_log import emit_public_log
 from ..public_log_drain import LogDrainAttributes, LogLevel, LogType
+from ..tasks import emit_public_log
 
 
 @override_settings(OTEL_TRANSPORTED_ENDPOINT=None, HTTP_TRANSPORTED_ENDPOINT=None)

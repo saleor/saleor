@@ -23,8 +23,8 @@ from ....graphql.webhook.subscription_payload import (
     initialize_request,
 )
 from ....graphql.webhook.subscription_types import WEBHOOK_TYPES_MAP
-from ....public_log_drain.public_log import emit_public_log
 from ....public_log_drain.public_log_drain import LogDrainAttributes, LogLevel, LogType
+from ....public_log_drain.tasks import emit_public_log
 from ... import observability
 from ...event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...observability import WebhookData

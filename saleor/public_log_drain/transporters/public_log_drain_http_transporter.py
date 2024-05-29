@@ -23,11 +23,19 @@ class LogDrainHTTPTransporter(LogDrainTransporter):
     def get_endpoint(self):
         return self.endpoint
 
-    def get_payload(self, trace_id: int, attributes: LogDrainAttributes):
+    def get_payload(
+        self,
+        logger_name: str,
+        trace_id: int,
+        span_id: int,
+        attributes: LogDrainAttributes,
+    ):
         data = attributes.__dict__
         data.update(
             timestamp=int(timezone.now().timestamp()),
             trace_id=trace_id,
+            instrumentation_scope=logger_name,
+            span_id=span_id,
         )
         return data
 
@@ -41,7 +49,7 @@ class LogDrainHTTPTransporter(LogDrainTransporter):
         HTTPClient.send_request(
             "POST",
             self.get_endpoint(),
-            json=self.get_payload(trace_id, attributes),
+            json=self.get_payload(logger_name, trace_id, span_id, attributes),
             headers=self.headers,
             allow_redirects=False,
         )

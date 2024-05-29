@@ -25,8 +25,8 @@ from ....payment.utils import (
     create_transaction_event_from_request_and_webhook_response,
     recalculate_refundable_for_checkout,
 )
-from ....public_log_drain.public_log import emit_public_log
 from ....public_log_drain.public_log_drain import LogDrainAttributes, LogLevel, LogType
+from ....public_log_drain.tasks import emit_public_log
 from ... import observability
 from ...const import WEBHOOK_CACHE_DEFAULT_TIMEOUT
 from ...event_types import WebhookEventSyncType
