@@ -139,8 +139,8 @@ def _emit_webhook_failed_public_log(
         checkout_id = data["taxBase"]["sourceObject"]["id"]
     drain_attributes = LogDrainAttributes(
         type=LogType.WEBHOOK_FAILED_4XX.name
-        if webhook_reponse.response_status_code >= 400
-        and webhook_reponse.response_status_code < 500
+        if webhook_reponse.response_status_code >= 400  # type: ignore[operator]
+        and webhook_reponse.response_status_code < 500  # type: ignore[operator]
         else LogType.WEBHOOK_FAILED_5XX.name,
         level=LogLevel.ERROR.name,
         order_id=order_id,
