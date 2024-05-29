@@ -5,6 +5,7 @@ from collections.abc import Sequence
 from typing import TYPE_CHECKING, Optional
 from urllib.parse import urlparse
 
+import opentracing
 from celery import group
 from celery.utils.log import get_task_logger
 from django.conf import settings
@@ -22,6 +23,8 @@ from ....graphql.webhook.subscription_payload import (
     initialize_request,
 )
 from ....graphql.webhook.subscription_types import WEBHOOK_TYPES_MAP
+from ....public_log_drain.public_log import emit_public_log
+from ....public_log_drain.public_log_drain import LogDrainAttributes, LogLevel, LogType
 from ... import observability
 from ...event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...observability import WebhookData
@@ -249,6 +252,23 @@ def send_webhook_request_async(self, event_delivery_id):
                 data,
                 webhook.custom_headers,
             )
+            if delivery.event_type == WebhookEventAsyncType.ORDER_CONFIRMED:
+                json_data = json.loads(data)
+                order_id = json_data["order"]["id"]
+                drain_attributes = LogDrainAttributes(
+                    type=LogType.WEBHOOK_SENT,
+                    level=LogLevel.INFO.name,
+                    order_id=order_id,
+                    version=json_data["version"],
+                    message=f"Order confirmed {order_id}",
+                )
+                with opentracing.global_tracer().active_span as span:
+                    emit_public_log(
+                        logger_name="webhook",
+                        trace_id=span.context.trace_id,
+                        span_id=span.span_id,
+                        attributes=drain_attributes,
+                    )
 
         attempt_update(attempt, response)
         if response.status == EventDeliveryStatus.FAILED:

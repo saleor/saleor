@@ -93,8 +93,13 @@ def _emit_webhook_public_log_if_applicable(
     data: str,
     webhook: "Webhook",
 ):
+    if delivery.event_type not in (
+        WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
+        WebhookEventSyncType.ORDER_CALCULATE_TAXES,
+    ):
+        return
+    json_data = json.loads(data)
     if delivery.event_type == WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES:
-        json_data = json.loads(data)
         drain_attributes = LogDrainAttributes(
             type=LogType.WEBHOOK_SENT,
             level=LogLevel.INFO.name,
@@ -102,13 +107,21 @@ def _emit_webhook_public_log_if_applicable(
             version=json_data["version"],
             message=f"Sending payload to {webhook.target_url}",
         )
-        with opentracing.global_tracer().active_span as span:
-            emit_public_log(
-                logger_name="webhook",
-                trace_id=span.context.trace_id,
-                span_id=span.span_id,
-                attributes=drain_attributes,
-            )
+    if delivery.event_type == WebhookEventSyncType.ORDER_CALCULATE_TAXES:
+        drain_attributes = LogDrainAttributes(
+            type=LogType.WEBHOOK_SENT,
+            level=LogLevel.INFO.name,
+            order_id=json_data["taxBase"]["sourceObject"]["id"],
+            version=json_data["version"],
+            message=f"Sending payload to {webhook.target_url}",
+        )
+    with opentracing.global_tracer().active_span as span:
+        emit_public_log(
+            logger_name="webhook",
+            trace_id=span.context.trace_id,
+            span_id=span.span_id,
+            attributes=drain_attributes,
+        )
 
 
 def _send_webhook_request_sync(
