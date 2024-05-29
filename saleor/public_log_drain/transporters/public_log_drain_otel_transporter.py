@@ -50,11 +50,11 @@ class LogDrainOtelTransporter(LogDrainTransporter):
     ):
         level = attributes.level
 
-        log_attributes = {}
-        if attributes.checkout_id:
-            log_attributes["checkout_id"] = attributes.checkout_id
-        if attributes.order_id:
-            log_attributes["order_id"] = attributes.order_id
+        log_attributes = attributes.__dict__
+        if not attributes.checkout_id:
+            log_attributes.pop("checkout_id")
+        if not attributes.order_id:
+            log_attributes.pop("order_id")
 
         log_record = LogRecord(
             timestamp=int(timezone.now().timestamp()),
