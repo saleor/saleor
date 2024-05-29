@@ -236,7 +236,7 @@ def _emit_webhook_retry_public_log(
         version=version,
         message=f"Webhook {event} retry {retries}",
     )
-    emit_public_log_task(
+    emit_public_log_task.delay(
         logger_name="webhook",
         trace_id=span.context.trace_id,
         span_id=span.span_id,
@@ -253,7 +253,7 @@ def _emit_webhook_public_log_if_applicable(delivery, span, order_id, version):
             version=version,
             message="Order confirmed",
         )
-        emit_public_log_task(
+        emit_public_log_task.delay(
             logger_name="webhook",
             trace_id=span.context.trace_id,
             span_id=span.span_id,

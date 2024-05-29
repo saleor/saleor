@@ -1,5 +1,8 @@
+from unittest.mock import patch
+
 import pytest
 import vcr
+from opentracing import Span, SpanContext, Tracer
 
 from ...apps.utils import add_app
 from ...product.utils.preparing_product import prepare_product
@@ -28,6 +31,11 @@ def test_use_external_shipping_methods_in_checkout_core_1652(
     vcr_cassette_dir,
 ):
     # Before
+    span_context = SpanContext()
+    span_context.trace_id = 1
+    span = Span(Tracer(), span_context)
+    span.span_id = 1
+
     settings.PLUGINS = [
         "saleor.plugins.webhook.plugin.WebhookPlugin",
         "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin",
@@ -74,7 +82,6 @@ def test_use_external_shipping_methods_in_checkout_core_1652(
         variant_price=9.99,
     )
     product_variant_price = float(product_variant_price)
-
     # Step 1 - Create checkout for product
     lines = [
         {
@@ -84,18 +91,20 @@ def test_use_external_shipping_methods_in_checkout_core_1652(
     ]
     my_vcr = vcr.VCR()
     my_vcr.register_matcher("shipping_cassette", request_matcher)
-    with my_vcr.use_cassette(
-        f"{vcr_cassette_dir}/test_use_external_shipping_methods_in_checkout_core_1652.yaml",
-        match_on=["shipping_cassette"],
-    ):
-        checkout_data = checkout_create(
-            e2e_not_logged_api_client,
-            lines,
-            channel_slug,
-            email="testEmail@example.com",
-            set_default_billing_address=True,
-            set_default_shipping_address=True,
-        )
+
+    with patch.object(Tracer, "active_span", span):
+        with my_vcr.use_cassette(
+            f"{vcr_cassette_dir}/test_use_external_shipping_methods_in_checkout_core_1652.yaml",
+            match_on=["shipping_cassette"],
+        ):
+            checkout_data = checkout_create(
+                e2e_not_logged_api_client,
+                lines,
+                channel_slug,
+                email="testEmail@example.com",
+                set_default_billing_address=True,
+                set_default_shipping_address=True,
+            )
     checkout_id = checkout_data["id"]
     assert checkout_data["isShippingRequired"] is True
     calculated_subtotal = product_variant_price * 4
@@ -116,13 +125,13 @@ def test_use_external_shipping_methods_in_checkout_core_1652(
 
     external_shipping_2_id = external_shipping_2["id"]
     shipping_price = external_shipping_2["price"]["amount"]
-
     # Step 2 - Set DeliveryMethod for checkout.
-    checkout_data = checkout_delivery_method_update(
-        e2e_not_logged_api_client,
-        checkout_id,
-        external_shipping_2_id,
-    )
+    with patch.object(Tracer, "active_span", span):
+        checkout_data = checkout_delivery_method_update(
+            e2e_not_logged_api_client,
+            checkout_id,
+            external_shipping_2_id,
+        )
     assert checkout_data["deliveryMethod"]["id"] == external_shipping_2_id
     total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
     calculated_total = calculated_subtotal + shipping_price

@@ -22,7 +22,7 @@ def test_emit_public_log_no_transporters(mocked_emit_log):
         order_id=None,
     )
     # when
-    emit_public_log_task(logger_name, trace_id, span_id, attributes.__dict__)
+    emit_public_log_task.delay(logger_name, trace_id, span_id, attributes.__dict__)
     # then
     mocked_emit_log.assert_not_called()
 
@@ -45,7 +45,7 @@ def test_emit_public_log_otel(mocked_emit_log):
         order_id=None,
     )
     # when
-    emit_public_log_task(logger_name, trace_id, span_id, attributes.__dict__)
+    emit_public_log_task.delay(logger_name, trace_id, span_id, attributes.__dict__)
     # then
     mocked_emit_log.assert_called_once_with(logger_name, trace_id, span_id, attributes)
 
@@ -68,7 +68,7 @@ def test_emit_public_log_http(mocked_emit_log):
         order_id=None,
     )
     # when
-    emit_public_log_task(logger_name, trace_id, span_id, attributes.__dict__)
+    emit_public_log_task.delay(logger_name, trace_id, span_id, attributes.__dict__)
     # then
     mocked_emit_log.assert_called_once_with(logger_name, trace_id, span_id, attributes)
 
