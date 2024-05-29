@@ -23,7 +23,7 @@ services:
       - 9000:80
 
   db:
-    image: library/postgres:13-alpine
+    image: library/postgres:15-alpine
     restart: unless-stopped
     volumes:
       - saleor-db:/var/lib/postgresql/data
