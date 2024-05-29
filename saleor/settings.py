@@ -92,7 +92,9 @@ INTERNAL_IPS = get_list(os.environ.get("INTERNAL_IPS", "127.0.0.1"))
 # Maximum time in seconds Django can keep the database connections opened.
 # Set the value to 0 to disable connection persistence, database connections
 # will be closed after each request.
-DB_CONN_MAX_AGE = 0  # int(os.environ.get("DB_CONN_MAX_AGE", 600))
+# For Django 4, the default value was changed to 0 as persistent DB connections
+# are not supported.
+DB_CONN_MAX_AGE = int(os.environ.get("DB_CONN_MAX_AGE", 0))
 
 DATABASE_CONNECTION_DEFAULT_NAME = "default"
 # TODO: For local envs will be activated in separate PR.
