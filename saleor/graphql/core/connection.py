@@ -494,6 +494,9 @@ def filter_qs(
         or get_default_channel_slug_or_graphql_error(allow_replica)
     )
 
+    if currency := args.get("currency"):
+        filter_input["currency"] = currency
+
     if isinstance(iterable, ChannelQsContext):
         queryset = iterable.qs
     else:
