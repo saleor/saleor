@@ -118,8 +118,8 @@ def _emit_webhook_public_log_if_applicable(
     with opentracing.global_tracer().active_span as span:
         emit_public_log_task.delay(
             logger_name="webhook",
-            trace_id=span.context.trace_id,
-            span_id=span.span_id,
+            trace_id=getattr(span.context, "trace_id", 0),
+            span_id=getattr(span, "span_id", 0),
             attributes=drain_attributes.__dict__,
         )
 
@@ -148,12 +148,11 @@ def _emit_webhook_failed_public_log(
         version=data["version"],
         message=f"Failed to send webhook to {webhook.target_url}",
     )
-    breakpoint()
     with opentracing.global_tracer().active_span as span:
         emit_public_log_task.delay(
             logger_name="webhook",
-            trace_id=span.context.trace_id,
-            span_id=span.span_id,
+            trace_id=getattr(span.context, "trace_id", 0),
+            span_id=getattr(span, "span_id", 0),
             attributes=drain_attributes.__dict__,
         )
 

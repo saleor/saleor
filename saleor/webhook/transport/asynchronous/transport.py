@@ -255,8 +255,8 @@ def _emit_webhook_public_log_if_applicable(delivery, span, order_id, version):
         )
         emit_public_log_task.delay(
             logger_name="webhook",
-            trace_id=span.context.trace_id,
-            span_id=span.span_id,
+            trace_id=getattr(span.context, "trace_id", 0),
+            span_id=getattr(span, "span_id", 0),
             attributes=drain_attributes.__dict__,
         )
 
