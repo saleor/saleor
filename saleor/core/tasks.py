@@ -1,8 +1,10 @@
 import logging
 
+from celery import Task
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.core.files.storage import default_storage
+from django.db import connections
 from django.db.models import Exists, OuterRef
 from django.utils import timezone
 
@@ -11,6 +13,32 @@ from ..core.db.connection import allow_writer
 from .models import EventDelivery, EventPayload
 
 task_logger: logging.Logger = get_task_logger(__name__)
+
+
+class RestrictWriterDBTask(Task):
+    """Celery task that checks usage of unrestricted queries to the writer database.
+
+    A base class for Celery tasks that protects from unrestricted usages of DB queries
+    in the writer DB, that are not explicitly allowed by the `allow_writer` context
+    manager. Depending on the `CELERY_RESTRICT_WRITER_METHOD` setting, the task will
+    either log a warning (suitable for production) or raise an exception (suitable for
+    tests).
+    """
+
+    def __call__(self, *args, **kwargs):
+        from django.utils.module_loading import import_string
+
+        func_path = settings.CELERY_RESTRICT_WRITER_METHOD
+        if not func_path:
+            return
+
+        wrapper_fun = import_string(func_path)
+
+        with connections[settings.DATABASE_CONNECTION_DEFAULT_NAME].execute_wrapper(
+            wrapper_fun
+        ):
+            return super().__call__(*args, **kwargs)
+
 
 # Batch size was tested on db with 1mln payloads and deliveries, each delivery
 # had multiple attempts. One task took less than 0,5 second, memory usage didn't raise

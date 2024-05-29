@@ -7,9 +7,10 @@ from django.db.models import Q
 from django.db.models.expressions import Exists, OuterRef
 from django.utils import timezone
 
-from ..celeryconf import RestrictWriterDBTask, app
+from ..celeryconf import app
 from ..core import JobStatus
 from ..core.db.connection import allow_writer
+from ..core.tasks import RestrictWriterDBTask
 from . import events
 from .models import ExportEvent, ExportFile
 from .notifications import send_export_failed_info

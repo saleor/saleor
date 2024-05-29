@@ -1,31 +1,13 @@
 import logging
 import os
 
-from celery import Celery, Task
+from celery import Celery
 from celery.signals import setup_logging
 from django.conf import settings
-from django.db import connections
 
 from .plugins import discover_plugins_modules
 
 CELERY_LOGGER_NAME = "celery"
-
-
-class RestrictWriterDBTask(Task):
-    """Task that restricts write operations to the writer database.
-
-    Depending on the configuration, this task logs warning or raises an error when it
-    detects a writer DB query that is not wrapped in `allow_writer` context manager.
-    """
-
-    def __call__(self, *args, **kwargs):
-        from saleor.core.db.connection import _restrict_writer
-
-        # TODO: Make the wrapper configurable to either log a warning or raise an error
-        with connections[settings.DATABASE_CONNECTION_DEFAULT_NAME].execute_wrapper(
-            _restrict_writer
-        ):
-            return super().__call__(*args, **kwargs)
 
 
 @setup_logging.connect
@@ -41,7 +23,7 @@ def setup_celery_logging(loglevel=None, **kwargs):
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "saleor.settings")
 
-app = Celery("saleor", task_cls=RestrictWriterDBTask)
+app = Celery("saleor", task_cls="saleor.core.tasks:RestrictWriterDBTask")
 
 app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks()
