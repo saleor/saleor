@@ -897,6 +897,11 @@ def test_checkout_with_voucher_complete(
     order_payment = order.payments.first()
     assert order_payment == payment
     assert payment.transactions.count() == 1
+    assert (
+        order_line.unit_discount_amount
+        == (discount_amount / checkout_line_quantity).amount
+    )
+    assert order_line.unit_discount_reason
 
     voucher_percentage.refresh_from_db()
     assert voucher_percentage.used == voucher_used_count + 1
