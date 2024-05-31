@@ -306,9 +306,12 @@ def _create_line_for_order(
         prices_entered_with_tax,
     )
 
-    voucher_code = None
+    line_voucher_code = None
     if checkout_line_info.voucher:
-        voucher_code = checkout_line_info.voucher.code
+        line_voucher_code = checkout_line_info.voucher.code
+    order_voucher_code = None
+    if checkout_info.voucher:
+        order_voucher_code = checkout_info.voucher.code
 
     discount_price = undiscounted_unit_price - unit_price
     if prices_entered_with_tax:
@@ -316,9 +319,9 @@ def _create_line_for_order(
     else:
         discount_amount = discount_price.net
 
-    unit_discount_reason = None
-    if voucher_code:
-        unit_discount_reason = f"Voucher code: {voucher_code}"
+    unit_discount_reason = _get_unit_discount_reason(
+        line_voucher_code, order_voucher_code
+    )
 
     tax_class = None
     if product.tax_class_id:
@@ -343,7 +346,7 @@ def _create_line_for_order(
         undiscounted_total_price=undiscounted_total_price,  # money field not supported by mypy_django_plugin # noqa: E501
         total_price=total_line_price,
         tax_rate=tax_rate,
-        voucher_code=voucher_code,
+        voucher_code=line_voucher_code,
         unit_discount=discount_amount,  # money field not supported by mypy_django_plugin # noqa: E501
         unit_discount_reason=unit_discount_reason,
         unit_discount_value=discount_amount.amount,  # we store value as fixed discount
@@ -382,6 +385,26 @@ def _create_line_for_order(
     )
 
     return line_info
+
+
+def _get_unit_discount_reason(
+    line_voucher_code: Optional[str],
+    order_voucher_code: Optional[str],
+) -> Optional[str]:
+    unit_discount_reason = None
+    if line_voucher_code:
+        if unit_discount_reason:
+            unit_discount_reason += f" & Voucher code: {line_voucher_code}"
+        else:
+            unit_discount_reason = f"Voucher code: {line_voucher_code}"
+    elif order_voucher_code:
+        if unit_discount_reason:
+            msg = f" & Entire order voucher code: {order_voucher_code}"
+            unit_discount_reason += msg
+        else:
+            unit_discount_reason = f"Entire order voucher code: {order_voucher_code}"
+
+    return unit_discount_reason
 
 
 def _create_order_line_discounts(
