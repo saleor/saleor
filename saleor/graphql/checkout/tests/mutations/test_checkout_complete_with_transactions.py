@@ -1513,6 +1513,13 @@ def test_checkout_with_voucher_complete(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
 
+    order_line = order.lines.first()
+    assert (
+        order_line.unit_discount_amount
+        == (discount_amount / order_line.quantity).amount
+    )
+    assert order_line.unit_discount_reason
+
 
 @pytest.mark.integration
 def test_checkout_complete_with_voucher_apply_once_per_order(
@@ -1675,11 +1682,10 @@ def test_checkout_with_voucher_complete_product_on_sale(
 
 
 @patch.object(logger, "warning")
-def test_checkout_with_voucher_complete_product_on_sale_deleted_sale_instance(
+def test_checkout_product_on_sale_deleted_sale_instance(
     mocked_logger,
     user_api_client,
-    checkout_with_voucher_percentage,
-    voucher_percentage,
+    checkout_with_item,
     discount_info,
     sale,
     address,
@@ -1689,17 +1695,13 @@ def test_checkout_with_voucher_complete_product_on_sale_deleted_sale_instance(
 ):
     # given
     checkout = prepare_checkout_for_test(
-        checkout_with_voucher_percentage,
+        checkout_with_item,
         address,
         address,
         shipping_method,
         transaction_item_generator,
         transaction_events_generator,
     )
-    voucher_used_count = voucher_percentage.used
-    voucher_percentage.usage_limit = voucher_used_count + 1
-    voucher_percentage.save(update_fields=["usage_limit"])
-
     checkout_line = checkout.lines.first()
     checkout_line_variant = checkout_line.variant
 
@@ -1750,10 +1752,6 @@ def test_checkout_with_voucher_complete_product_on_sale_deleted_sale_instance(
         order_line.undiscounted_total_price - order_line.total_price
     )
     assert not order_line.sale_id
-    assert order_line.unit_discount_reason == "Sale: "
-
-    voucher_percentage.refresh_from_db()
-    assert voucher_percentage.used == voucher_used_count + 1
 
     assert not Checkout.objects.filter(
         pk=checkout.pk

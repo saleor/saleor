@@ -96,7 +96,7 @@ from .utils import (
 
 if TYPE_CHECKING:
     from ..app.models import App
-    from ..discount.models import Voucher
+    from ..discount.models import CheckoutLineDiscount, Voucher
     from ..plugins.manager import PluginsManager
     from ..site.models import SiteSettings
 
@@ -312,9 +312,12 @@ def _create_line_for_order(
     discount = checkout_line_info.get_sale_discount()
     sale_id = discount.sale_id if discount else None
 
-    voucher_code = None
+    line_voucher_code = None
     if checkout_line_info.voucher:
-        voucher_code = checkout_line_info.voucher.code
+        line_voucher_code = checkout_line_info.voucher.code
+    order_voucher_code = None
+    if checkout_info.voucher:
+        order_voucher_code = checkout_info.voucher.code
 
     discount_price = undiscounted_unit_price - unit_price
     if prices_entered_with_tax:
@@ -322,22 +325,20 @@ def _create_line_for_order(
     else:
         discount_amount = discount_price.net
 
-    if discount_amount.amount > 0 and not sale_id and not voucher_code:
+    if (
+        discount_amount.amount > 0
+        and not sale_id
+        and not line_voucher_code
+        and not order_voucher_code
+    ):
         logger.warning(
             "Unknown discount reason for checkout: %s.",
             graphene.Node.to_global_id("Checkout", checkout_info.checkout.token),
         )
 
-    unit_discount_reason = None
-    if discount:
-        unit_discount_reason = "Sale: "
-        if sale_id:
-            unit_discount_reason += graphene.Node.to_global_id("Sale", sale_id)
-    if voucher_code:
-        if unit_discount_reason:
-            unit_discount_reason += f" & Voucher code: {voucher_code}"
-        else:
-            unit_discount_reason = f"Voucher code: {voucher_code}"
+    unit_discount_reason = _get_unit_discount_reason(
+        discount, sale_id, line_voucher_code, order_voucher_code
+    )
 
     tax_class = None
     if product.tax_class_id:
@@ -362,7 +363,7 @@ def _create_line_for_order(
         total_price=total_line_price,
         tax_rate=tax_rate,
         sale_id=graphene.Node.to_global_id("Sale", sale_id) if sale_id else None,
-        voucher_code=voucher_code,
+        voucher_code=line_voucher_code,
         unit_discount=discount_amount,  # money field not supported by mypy_django_plugin # noqa: E501
         unit_discount_reason=unit_discount_reason,
         unit_discount_value=discount_amount.amount,  # we store value as fixed discount
@@ -383,6 +384,32 @@ def _create_line_for_order(
     )
 
     return line_info
+
+
+def _get_unit_discount_reason(
+    discount: Optional["CheckoutLineDiscount"],
+    sale_id: Optional[int],
+    line_voucher_code: Optional[str],
+    order_voucher_code: Optional[str],
+) -> Optional[str]:
+    unit_discount_reason = None
+    if discount:
+        unit_discount_reason = "Sale: "
+        if sale_id:
+            unit_discount_reason += graphene.Node.to_global_id("Sale", sale_id)
+    if line_voucher_code:
+        if unit_discount_reason:
+            unit_discount_reason += f" & Voucher code: {line_voucher_code}"
+        else:
+            unit_discount_reason = f"Voucher code: {line_voucher_code}"
+    elif order_voucher_code:
+        if unit_discount_reason:
+            msg = f" & Entire order voucher code: {order_voucher_code}"
+            unit_discount_reason += msg
+        else:
+            unit_discount_reason = f"Entire order voucher code: {order_voucher_code}"
+
+    return unit_discount_reason
 
 
 def _create_lines_for_order(
