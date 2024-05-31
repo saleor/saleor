@@ -30,7 +30,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="orderline",
             name="is_price_overridden",
-            field=models.BooleanField(default=False),
+            field=models.BooleanField(blank=True, default=False, null=True),
         ),
         migrations.RunSQL(
             """
