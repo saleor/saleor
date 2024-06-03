@@ -103,4 +103,4 @@ ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME = "order_events_queue"
 
 # Raise error when using writer DB in Celery tasks, without explicit "allow_writer"
 # context manager.
-CELERY_RESTRICT_WRITER_METHOD = "saleor.core.db.connection._restrict_writer"
+CELERY_RESTRICT_WRITER_METHOD = "saleor.core.db.connection.restrict_writer"

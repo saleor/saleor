@@ -18,11 +18,14 @@ task_logger: logging.Logger = get_task_logger(__name__)
 class RestrictWriterDBTask(Task):
     """Celery task that checks usage of unrestricted queries to the writer database.
 
-    A base class for Celery tasks that protects from unrestricted usages of DB queries
-    in the writer DB, that are not explicitly allowed by the `allow_writer` context
-    manager. Depending on the `CELERY_RESTRICT_WRITER_METHOD` setting, the task will
-    either log a warning (suitable for production) or raise an exception (suitable for
-    tests).
+    A base class for Celery tasks that protects from inexplicit usages of DB queries
+    to the writer DB. Depending on the `CELERY_RESTRICT_WRITER_METHOD` setting, the task
+    will either log a warning (suitable for production) or raise an exception (suitable
+    for tests).
+
+    The `CELERY_RESTRICT_WRITER_METHOD` setting should point to one of the following:
+    - `saleor.core.db.connection.log_writer_usage` - logs a warning
+    - `saleor.core.db.connection.restrict_writer` - raises an exception
     """
 
     def __call__(self, *args, **kwargs):
@@ -32,7 +35,14 @@ class RestrictWriterDBTask(Task):
         if not func_path:
             return
 
-        wrapper_fun = import_string(func_path)
+        try:
+            wrapper_fun = import_string(func_path)
+        except ImportError:
+            task_logger.error(
+                f"Could not import the function {func_path}. "
+                f"Check if the path is correct."
+            )
+            return super().__call__(*args, **kwargs)
 
         with connections[settings.DATABASE_CONNECTION_DEFAULT_NAME].execute_wrapper(
             wrapper_fun
