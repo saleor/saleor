@@ -2903,3 +2903,45 @@ def test_draft_order_create_with_cc_warehouse_as_shipping_method(
     assert len(errors) == 1
     assert errors[0]["code"] == OrderErrorCode.INVALID.name
     assert errors[0]["field"] == "shippingMethod"
+
+
+def test_draft_order_create_with_voucher_without_user(
+    voucher_percentage,
+    app_api_client,
+    permission_manage_orders,
+    product_available_in_many_channels,
+    graphql_address_data,
+    channel_USD,
+):
+    # given
+    variant = product_available_in_many_channels.variants.first()
+    query = DRAFT_ORDER_CREATE_MUTATION
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variant_list = [
+        {"variantId": variant_id, "quantity": 2},
+    ]
+    shipping_address = graphql_address_data
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "input": {
+            "lines": variant_list,
+            "billingAddress": shipping_address,
+            "shippingAddress": shipping_address,
+            "channelId": channel_id,
+            "voucherCode": voucher_percentage.code,
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderCreate"]
+    assert len(data["errors"]) == 0
+    order = Order.objects.get(id=graphene.Node.from_global_id(data["order"]["id"])[1])
+    assert order.user is None
+    assert data["order"]["voucherCode"] == voucher_percentage.code == order.voucher_code
+    assert data["order"]["status"] == OrderStatus.DRAFT.upper() == order.status.upper()

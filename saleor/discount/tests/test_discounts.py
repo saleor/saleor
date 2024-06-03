@@ -277,6 +277,15 @@ def test_add_voucher_usage_by_customer_raise_not_applicable(voucher_customer):
         add_voucher_usage_by_customer(code, customer_email)
 
 
+def test_add_voucher_usage_by_customer_without_customer_email(voucher):
+    # given
+    code = voucher.codes.first()
+
+    # when & then
+    with pytest.raises(NotApplicable):
+        add_voucher_usage_by_customer(code, None)
+
+
 def test_remove_voucher_usage_by_customer(voucher_customer):
     # given
     voucher_customer_count = VoucherCustomer.objects.all().count()
