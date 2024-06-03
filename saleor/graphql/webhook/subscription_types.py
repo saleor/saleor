@@ -2781,7 +2781,6 @@ SYNC_WEBHOOK_TYPES_MAP = {
     ),
     WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION: TransactionInitializeSession,
     WebhookEventSyncType.TRANSACTION_PROCESS_SESSION: TransactionProcessSession,
-    WebhookEventAsyncType.SHOP_METADATA_UPDATED: ShopMetadataUpdated,
     WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS: ListStoredPaymentMethods,
     WebhookEventSyncType.STORED_PAYMENT_METHOD_DELETE_REQUESTED: (
         StoredPaymentMethodDeleteRequested
@@ -2919,6 +2918,7 @@ ASYNC_WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.SHIPPING_ZONE_UPDATED: ShippingZoneUpdated,
     WebhookEventAsyncType.SHIPPING_ZONE_DELETED: ShippingZoneDeleted,
     WebhookEventAsyncType.SHIPPING_ZONE_METADATA_UPDATED: ShippingZoneMetadataUpdated,
+    WebhookEventAsyncType.SHOP_METADATA_UPDATED: ShopMetadataUpdated,
     WebhookEventAsyncType.STAFF_CREATED: StaffCreated,
     WebhookEventAsyncType.STAFF_UPDATED: StaffUpdated,
     WebhookEventAsyncType.STAFF_DELETED: StaffDeleted,
