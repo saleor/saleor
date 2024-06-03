@@ -83,6 +83,7 @@ class TransactionInitializeErrorCode(Enum):
     INVALID = "invalid"
     NOT_FOUND = "not_found"
     UNIQUE = "unique"
+    CHECKOUT_COMPLETION_IN_PROGRESS = "checkout_completion_in_progress"
 
 
 class TransactionProcessErrorCode(Enum):
@@ -92,6 +93,7 @@ class TransactionProcessErrorCode(Enum):
     TRANSACTION_ALREADY_PROCESSED = "transaction_already_processed"
     MISSING_PAYMENT_APP_RELATION = "missing_payment_app_relation"
     MISSING_PAYMENT_APP = "missing_payment_app"
+    CHECKOUT_COMPLETION_IN_PROGRESS = "checkout_completion_in_progress"
 
 
 class StoredPaymentMethodRequestDeleteErrorCode(Enum):
