@@ -99,7 +99,12 @@ def test_order_confirm(
     )
     order_info = fetch_order_info(order_unconfirmed)
     handle_fully_paid_order_mock.assert_called_once_with(
-        ANY, order_info, staff_api_client.user, None, site_settings
+        ANY,
+        order_info,
+        staff_api_client.user,
+        None,
+        site_settings,
+        payment_txn_preauth.gateway,
     )
 
 
@@ -364,5 +369,10 @@ def test_order_confirm_by_app(
     )
     order_info = fetch_order_info(order_unconfirmed)
     handle_fully_paid_order_mock.assert_called_once_with(
-        ANY, order_info, None, app_api_client.app, site_settings
+        ANY,
+        order_info,
+        None,
+        app_api_client.app,
+        site_settings,
+        payment_txn_preauth.gateway,
     )

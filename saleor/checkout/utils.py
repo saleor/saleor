@@ -909,7 +909,7 @@ def is_fully_paid(
     return total_paid >= checkout_total.amount
 
 
-def cancel_active_payments(checkout: Checkout):
+def cancel_active_payments(checkout: Checkout) -> None:
     checkout.payments.filter(is_active=True).update(is_active=False)
 
 
