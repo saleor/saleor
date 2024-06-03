@@ -30,13 +30,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="orderline",
             name="is_price_overridden",
-            field=models.BooleanField(blank=True, default=False, null=True),
+            field=models.BooleanField(blank=True, null=True),
         ),
         migrations.RunSQL(
             """
             ALTER TABLE order_orderline
             ALTER COLUMN unit_discount_type
-            SET DEFAULT false;
+            SET DEFAULT null;
             """,
             migrations.RunSQL.noop,
         ),
