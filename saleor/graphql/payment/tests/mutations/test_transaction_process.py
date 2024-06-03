@@ -5,6 +5,7 @@ import graphene
 import mock
 import pytest
 import pytz
+from django.utils import timezone
 from freezegun import freeze_time
 
 from .....channel import TransactionFlowStrategy
@@ -19,7 +20,7 @@ from .....payment.interface import (
     TransactionSessionData,
     TransactionSessionResult,
 )
-from .....payment.models import TransactionEvent
+from .....payment.models import Payment, TransactionEvent
 from ....core.enums import TransactionProcessErrorCode
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -1446,7 +1447,6 @@ def test_transaction_process_for_disabled_app(
 
     # then
     content = get_graphql_content(response)
-    content = get_graphql_content(response)
     data = content["data"]["transactionProcess"]
     assert (
         data["errors"][0]["code"]
@@ -1527,3 +1527,140 @@ def test_updates_checkout_last_transaction_modified_at(
     assert (
         checkout.last_transaction_modified_at != previous_last_transaction_modified_at
     )
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.transaction_process_session")
+def test_for_locked_checkout(
+    mocked_process,
+    user_api_client,
+    checkout_with_prices,
+    webhook_app,
+    transaction_session_response,
+    transaction_item_generator,
+):
+    # given
+    expected_amount = Decimal("10.00")
+
+    checkout = checkout_with_prices
+    checkout.completing_started_at = timezone.now()
+    checkout.save(update_fields=["completing_started_at"])
+
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    transaction_item = transaction_item_generator(
+        checkout_id=checkout_with_prices.pk, app=webhook_app
+    )
+    TransactionEvent.objects.create(
+        transaction=transaction_item,
+        amount_value=expected_amount,
+        currency=transaction_item.currency,
+        type=TransactionEventType.CHARGE_REQUEST,
+    )
+
+    expected_psp_reference = "ppp-123"
+    expected_response = transaction_session_response.copy()
+    expected_response["amount"] = expected_amount
+    expected_response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
+    expected_response["pspReference"] = expected_psp_reference
+    mocked_process.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
+    )
+    expected_data = {"some": "json-data"}
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction_item.token),
+        "data": expected_data,
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_PROCESS, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["transactionProcess"]
+    assert len(data["errors"]) == 1
+    assert (
+        data["errors"][0]["code"]
+        == TransactionProcessErrorCode.CHECKOUT_COMPLETION_IN_PROGRESS.name
+    )
+    assert data["errors"][0]["field"] == "id"
+    mocked_process.assert_not_called()
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.transaction_process_session")
+def test_for_checkout_with_payments(
+    mocked_process,
+    user_api_client,
+    checkout_with_prices,
+    webhook_app,
+    transaction_session_response,
+    transaction_item_generator,
+):
+    # given
+    expected_amount = Decimal("10.00")
+
+    checkout = checkout_with_prices
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    # create payments
+    payments = Payment.objects.bulk_create(
+        [
+            Payment(
+                gateway="mirumee.payments.dummy", is_active=True, checkout=checkout
+            ),
+            Payment(
+                gateway="mirumee.payments.dummy", is_active=False, checkout=checkout
+            ),
+        ]
+    )
+
+    transaction_item = transaction_item_generator(
+        checkout_id=checkout_with_prices.pk, app=webhook_app
+    )
+    TransactionEvent.objects.create(
+        transaction=transaction_item,
+        amount_value=expected_amount,
+        currency=transaction_item.currency,
+        type=TransactionEventType.CHARGE_REQUEST,
+    )
+
+    expected_psp_reference = "ppp-123"
+    expected_response = transaction_session_response.copy()
+    expected_response["amount"] = expected_amount
+    expected_response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
+    expected_response["pspReference"] = expected_psp_reference
+    mocked_process.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
+    )
+    expected_data = {"some": "json-data"}
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction_item.token),
+        "data": expected_data,
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_PROCESS, variables)
+
+    # then
+    content = get_graphql_content(response)
+    checkout.refresh_from_db()
+    _assert_fields(
+        content=content,
+        source_object=checkout,
+        expected_amount=expected_amount,
+        expected_psp_reference=expected_psp_reference,
+        response_event_type=TransactionEventType.CHARGE_SUCCESS,
+        app_identifier=webhook_app.identifier,
+        mocked_process=mocked_process,
+        charged_value=expected_amount,
+        data=expected_data,
+        returned_data=expected_response["data"],
+    )
+    assert checkout.charge_status == CheckoutChargeStatus.PARTIAL
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.PARTIAL
+    for payment in payments:
+        payment.refresh_from_db()
+        assert payment.is_active is False

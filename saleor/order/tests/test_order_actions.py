@@ -150,6 +150,25 @@ def test_handle_fully_paid_order_no_email(mock_send_payment_confirmation, order)
     assert not mock_send_payment_confirmation.called
 
 
+@patch("saleor.order.actions.send_payment_confirmation")
+def test_handle_fully_paid_order_with_gateway(mock_send_payment_confirmation, order):
+    # given
+    manager = get_plugins_manager(allow_replica=False)
+
+    order.payments.add(Payment.objects.create())
+    order_info = fetch_order_info(order)
+
+    # when
+    handle_fully_paid_order(manager, order_info, gateway="mirumee.payments.dummy")
+
+    # then
+    event_order_paid = order.events.get()
+    assert event_order_paid.type == OrderEvents.ORDER_FULLY_PAID
+    assert event_order_paid.parameters == {"payment_gateway": "mirumee.payments.dummy"}
+
+    mock_send_payment_confirmation.assert_called_once_with(order_info, manager)
+
+
 @patch("saleor.giftcard.utils.send_gift_card_notification")
 @patch("saleor.order.actions.send_payment_confirmation")
 def test_handle_fully_paid_order_gift_cards_created(
