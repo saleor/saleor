@@ -235,9 +235,7 @@ def test_get_nodes(product_list):
         nonexistent_item.type, nonexistent_item.pk
     )
     global_ids.append(nonexistent_item_global_id)
-    msg = "There is no node of type {} with pk {}".format(
-        nonexistent_item.type, nonexistent_item.pk
-    )
+    msg = f"There is no node of type {nonexistent_item.type} with pk {nonexistent_item.pk}"
     with pytest.raises(AssertionError) as exc:
         get_nodes(global_ids, Product)
 
