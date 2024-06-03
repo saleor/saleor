@@ -231,7 +231,7 @@ def test_is_valid_delivery_method_external_method_with_invalid_metadata(
     delivery_method_info = checkout_info.delivery_method_info
 
     # then
-    assert delivery_method_info.delivery_method.metadata is None
+    assert delivery_method_info.delivery_method.metadata == {}
     assert delivery_method_info.delivery_method.description == description
     assert delivery_method_info.is_method_in_valid_methods(checkout_info)
 

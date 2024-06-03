@@ -78,7 +78,7 @@ def parse_list_shipping_methods_response(
         method_metadata = shipping_method_data.get("metadata")
         if method_metadata:
             method_metadata = (
-                method_metadata if method_metadata_is_valid(method_metadata) else None
+                method_metadata if method_metadata_is_valid(method_metadata) else {}
             )
 
         shipping_methods.append(
