@@ -178,6 +178,9 @@ def test_draft_order_create(
     assert event_parameters["lines"][1]["line_pk"] == str(order_lines[1].pk)
     assert event_parameters["lines"][1]["quantity"] == 1
 
+    for line in order_lines:
+        assert line.is_price_overridden is False
+
 
 def test_draft_order_create_by_user_no_channel_access(
     staff_api_client,
@@ -1486,10 +1489,12 @@ def test_draft_order_create_with_custom_price_in_order_line(
     order_line_0 = order.lines.get(variant=variant_0)
     assert order_line_0.base_unit_price_amount == expected_price_variant_0
     assert order_line_0.undiscounted_base_unit_price_amount == expected_price_variant_0
+    assert order_line_0.is_price_overridden is True
 
     order_line_1 = order.lines.get(variant=variant_1)
     assert order_line_1.base_unit_price_amount == expected_price_variant_1
     assert order_line_1.undiscounted_base_unit_price_amount == expected_price_variant_1
+    assert order_line_1.is_price_overridden is True
 
 
 def test_draft_order_create_with_cc_warehouse_as_shipping_method(
