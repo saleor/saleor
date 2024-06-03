@@ -374,10 +374,21 @@ def order_manually_marked_as_paid_event(
 
 
 def order_fully_paid_event(
-    *, order: Order, user: Optional[User], app: Optional[App]
+    *,
+    order: Order,
+    user: Optional[User],
+    app: Optional[App],
+    gateway: Optional[str] = None
 ) -> OrderEvent:
+    parameters = {}
+    if gateway:
+        parameters = {"payment_gateway": gateway}
     return OrderEvent.objects.create(
-        order=order, type=OrderEvents.ORDER_FULLY_PAID, user=user, app=app
+        order=order,
+        type=OrderEvents.ORDER_FULLY_PAID,
+        user=user,
+        app=app,
+        parameters=parameters,
     )
 
 
