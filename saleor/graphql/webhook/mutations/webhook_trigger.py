@@ -15,7 +15,7 @@ from ...core.mutations import BaseMutation
 from ...core.types.common import WebhookTriggerError
 from ...core.utils import raise_validation_error
 from ..subscription_query import SubscriptionQuery
-from ..subscription_types import WEBHOOK_TYPES_MAP
+from ..subscription_types import ASYNC_WEBHOOK_TYPES_MAP
 from ..types import EventDelivery
 
 
@@ -63,10 +63,10 @@ class WebhookTrigger(BaseMutation):
 
     @classmethod
     def validate_event_type(cls, event_type, object_id):
-        event = WEBHOOK_TYPES_MAP[event_type] if event_type else None
+        event = cls._get_async_event_or_raise_error(event_type)
         model, _ = graphene.Node.from_global_id(object_id)
-        model_name = event._meta.root_type  # type: ignore[union-attr]
-        enable_dry_run = event._meta.enable_dry_run  # type: ignore[union-attr]
+        model_name = event._meta.root_type
+        enable_dry_run = event._meta.enable_dry_run
 
         if not (model_name or enable_dry_run) and event_type:
             event_name = event_type[0].upper() + to_camel_case(event_type)[1:]
@@ -81,6 +81,22 @@ class WebhookTrigger(BaseMutation):
                 message="ObjectId doesn't match event type.",
                 code=WebhookTriggerErrorCode.INVALID_ID,
             )
+
+    @classmethod
+    def _get_async_event_or_raise_error(cls, event_type):
+        if event := ASYNC_WEBHOOK_TYPES_MAP.get(event_type):
+            return event
+        event_name = (
+            event_type[0].upper() + to_camel_case(event_type)[1:] if event_type else ""
+        )
+        raise_validation_error(
+            message=(
+                f"Event type: {event_name}, "
+                f"which was parsed from webhook's "
+                f"subscription query, is not supported."
+            ),
+            code=WebhookTriggerErrorCode.TYPE_NOT_SUPPORTED,
+        )
 
     @classmethod
     def validate_permissions(cls, info, event_type):
