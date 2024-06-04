@@ -263,7 +263,7 @@ def test_skip_address_validation_with_correct_input_run_normalization(
     address_db = Address.objects.get(id=id)
     assert address_db.city != address_data["city"]
     assert address_db.city == address_data["city"].upper()
-    assert address_db.validation_skipped is True
+    assert address_db.validation_skipped is False
 
 
 def test_skip_address_validation_with_incorrect_input_skip_normalization(

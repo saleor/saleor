@@ -103,7 +103,9 @@ class I18nMixin:
             instance=instance,
             enable_normalization=enable_normalization,
         )
+        validation_skipped = False
         if not address_form.is_valid():
+            validation_skipped = True
             errors = cls.attach_params_to_address_form_errors(
                 address_form, params, format_check, required_check
             )
@@ -114,6 +116,7 @@ class I18nMixin:
             address_form.cleaned_data["metadata"] = {}
         if address_form.cleaned_data["private_metadata"] is None:
             address_form.cleaned_data["private_metadata"] = {}
+        address_form.cleaned_data["validation_skipped"] = validation_skipped
 
         return address_form
 
@@ -169,7 +172,7 @@ class I18nMixin:
                 }
             )
 
-        if skip_validation := address_data.get("skip_validation", False):
+        if address_data.get("skip_validation"):
             cls.can_skip_address_validation(info)
             cls._meta.exclude.append("phone")  # type: ignore[attr-defined]
             format_check = False
@@ -183,7 +186,6 @@ class I18nMixin:
         )
         address_data = address_form.cleaned_data
 
-        address_data["validation_skipped"] = skip_validation
         if not instance:
             instance = Address()
 
