@@ -27,7 +27,10 @@ from .validators import validate_possible_number
 
 
 class PossiblePhoneNumberField(PhoneNumberField):
-    """Less strict field for phone numbers written to database."""
+    """Less strict field for phone numbers written to database.
+
+    Not used since version 3.19. Left to keep migration history.
+    """
 
     default_validators = [validate_possible_number]
 
@@ -66,7 +69,7 @@ class Address(ModelWithMetadata):
     postal_code = models.CharField(max_length=20, blank=True)
     country = CountryField()
     country_area = models.CharField(max_length=128, blank=True)
-    phone = PossiblePhoneNumberField(blank=True, default="", db_index=True)
+    phone = models.CharField(max_length=128, blank=True, default="", db_index=True)
     validation_skipped = models.BooleanField(default=False)
 
     objects = AddressManager()
