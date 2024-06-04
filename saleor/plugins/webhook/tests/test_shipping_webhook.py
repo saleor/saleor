@@ -938,3 +938,24 @@ def test_parse_list_shipping_methods_response_response_incorrect_format(app):
     )
     # then
     assert result == []
+
+
+def test_parse_list_shipping_methods_with_metadata(app):
+    # given
+    response_data_with_meta = [
+        {
+            "id": 123,
+            "amount": 10,
+            "currency": "USD",
+            "name": "shipping",
+            "description": "Description",
+            "maximum_delivery_days": 10,
+            "minimum_delivery_days": 2,
+            "metadata": {"field": "value"},
+        }
+    ]
+    # when
+    response = parse_list_shipping_methods_response(response_data_with_meta, app)
+    # then
+    assert response[0].metadata == response_data_with_meta[0]["metadata"]
+    assert response[0].description == response_data_with_meta[0]["description"]
