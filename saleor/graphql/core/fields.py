@@ -121,9 +121,9 @@ class ConnectionField(PermissionsField):
                 "UPGRADE-v2.0.md#node-connections"
             )
 
-        assert issubclass(connection_type, Connection), (
-            '{} type have to be a subclass of Connection. Received "{}".'
-        ).format(self.__class__.__name__, connection_type)
+        assert issubclass(
+            connection_type, Connection
+        ), f'{self.__class__.__name__} type have to be a subclass of Connection. Received "{connection_type}".'
         return type
 
 
