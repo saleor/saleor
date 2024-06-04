@@ -1,3 +1,4 @@
+import logging
 from collections import defaultdict
 
 import i18naddress
@@ -13,6 +14,7 @@ from .widgets import DatalistTextWidget
 
 COUNTRY_FORMS = {}
 UNKNOWN_COUNTRIES = set()
+ADDRESS_FIELDS_TO_LOG = ["country_area", "city_area", "city", "postal_code"]
 
 AREA_TYPE = {
     "area": "Area",
@@ -36,6 +38,8 @@ AREA_TYPE = {
     "village_township": "Village/township",
     "zip": "ZIP code",
 }
+
+logger = logging.getLogger(__name__)
 
 
 class PossiblePhoneNumberFormField(forms.CharField):
@@ -185,11 +189,22 @@ class CountryAwareAddressForm(AddressForm):
                 del data["sorting_code"]
         except i18naddress.InvalidAddressError as exc:
             self.add_field_errors(exc.errors)
+            self.log_errors()
         return data
 
     def clean(self):
         data = super().clean()
         return self.validate_address(data)
+
+    def log_errors(self):
+        errors = self.errors
+        fields = {}
+        for field, _ in errors.items():
+            fields[field] = (
+                self.data.get(field) if field in ADDRESS_FIELDS_TO_LOG else "invalid"
+            )
+        fields["skip_validation"] = self.data.get("skip_validation")
+        logger.warning("Invalid address input: %s", fields)
 
 
 def get_address_form_class(country_code):

@@ -1,13 +1,17 @@
+import logging
 from unittest import mock
 
 import graphene
 import pytest
 from django.core.exceptions import ValidationError
 
+from ....account.i18n import ADDRESS_FIELDS_TO_LOG
 from ....account.models import Address
 from ....checkout import AddressType
 from ...tests.utils import get_graphql_content
 from ..i18n import I18nMixin
+
+logger = logging.getLogger(__name__)
 
 
 def test_validate_address():
@@ -295,3 +299,38 @@ def test_skip_address_validation_with_incorrect_input_skip_normalization(
     assert address_db.city == address_data["city"]
     assert address_db.postal_code == invalid_name
     assert address_db.validation_skipped is True
+
+
+def test_skip_address_validation_logging(
+    staff_api_client,
+    customer_user,
+    permission_manage_users,
+    graphql_address_data_skipped_validation,
+    caplog,
+):
+    # given
+    query = ADDRESS_CREATE_MUTATION
+    caplog.set_level(logging.WARNING)
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    address_data = graphql_address_data_skipped_validation
+    invalid_name = "wrong name"
+    address_data["country"] = "IE"
+    address_data["postalCode"] = invalid_name
+    address_data["countryArea"] = invalid_name
+    address_data["phone"] = invalid_name
+    variables = {"user": user_id, "address": address_data}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["addressCreate"]
+    assert not data["errors"]
+    assert "'country_area': 'wrong name'" in caplog.text
+    assert "'postal_code': 'wrong name'" in caplog.text
+    assert "'skip_validation': True" in caplog.text
+    assert "phone" not in ADDRESS_FIELDS_TO_LOG
+    assert "'phone': 'invalid'" in caplog.text
