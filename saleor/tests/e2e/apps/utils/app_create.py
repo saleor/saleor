@@ -12,6 +12,7 @@ mutation AppCreate($input: AppInput!) {
     app {
       id
       isActive
+      identifier
     }
   }
 }
