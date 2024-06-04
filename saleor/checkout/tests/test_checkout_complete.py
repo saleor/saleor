@@ -12,6 +12,7 @@ from prices import TaxedMoney
 from ...account import CustomerEvents
 from ...account.models import CustomerEvent
 from ...channel import MarkAsPaidStrategy
+from ...checkout import CheckoutAuthorizeStatus
 from ...core.exceptions import InsufficientStock
 from ...core.notify_events import NotifyEventType
 from ...core.taxes import zero_money, zero_taxed_money
@@ -118,7 +119,7 @@ def test_create_order_captured_payment_creates_expected_events(
     assert payment_captured_event.order is order
     # ensure a date was set
     assert payment_captured_event.date
-    # should not have any additional parameters
+    # should have additional parameters
     assert "amount" in payment_captured_event.parameters.keys()
     assert "payment_id" in payment_captured_event.parameters.keys()
     assert "payment_gateway" in payment_captured_event.parameters.keys()
@@ -132,8 +133,8 @@ def test_create_order_captured_payment_creates_expected_events(
     assert order_fully_paid_event.order is order
     # ensure a date was set
     assert order_fully_paid_event.date
-    # should not have any additional parameters
-    assert not order_fully_paid_event.parameters
+    # should have payment_gateway in additional parameters
+    assert "payment_gateway" in order_fully_paid_event.parameters
 
     expected_order_payload = {
         "order": get_default_order_payload(order, checkout.redirect_url),
@@ -266,7 +267,7 @@ def test_create_order_captured_payment_creates_expected_events_anonymous_user(
     assert payment_captured_event.order is order
     # ensure a date was set
     assert payment_captured_event.date
-    # should not have any additional parameters
+    # should have additional parameters
     assert "amount" in payment_captured_event.parameters.keys()
     assert "payment_id" in payment_captured_event.parameters.keys()
     assert "payment_gateway" in payment_captured_event.parameters.keys()
@@ -280,8 +281,8 @@ def test_create_order_captured_payment_creates_expected_events_anonymous_user(
     assert order_fully_paid_event.order is order
     # ensure a date was set
     assert order_fully_paid_event.date
-    # should not have any additional parameters
-    assert not order_fully_paid_event.parameters
+    # should have payment_gateway in additional parameters
+    assert "payment_gateway" in order_fully_paid_event.parameters
 
     expected_order_payload = {
         "order": get_default_order_payload(order, checkout.redirect_url),
@@ -2137,6 +2138,65 @@ def test_checkout_complete_pick_transaction_flow_when_checkout_total_zero(
     )
 
 
+@mock.patch("saleor.checkout.complete_checkout.complete_checkout_with_transaction")
+def test_checkout_complete_pick_transaction_flow_not_authorized_no_active_payment(
+    mocked_flow,
+    order,
+    checkout_ready_to_complete,
+    customer_user,
+    transaction_item_generator,
+    payment,
+):
+    # given
+    checkout = checkout_ready_to_complete
+    checkout.user = customer_user
+    checkout.billing_address = customer_user.default_billing_address
+    checkout.shipping_address = customer_user.default_billing_address
+    checkout.tracking_code = ""
+    checkout.redirect_url = "https://www.example.com"
+
+    # checkout is not fully authorized
+    checkout.authorize_status = CheckoutAuthorizeStatus.PARTIAL
+
+    # transaction item exists
+    transaction_item_generator(checkout_id=checkout.pk)
+    assert checkout.payment_transactions.exists()
+
+    # there is no active payments
+    payment.checkout = checkout
+    payment.is_active = False
+    payment.save(update_fields=["checkout", "is_active"])
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    transaction_item_generator(checkout_id=checkout.pk)
+    mocked_flow.return_value = order, False, {}
+
+    # when
+    order, action_required, _ = complete_checkout(
+        checkout_info=checkout_info,
+        manager=manager,
+        lines=lines,
+        payment_data={},
+        store_source=False,
+        user=customer_user,
+        app=None,
+    )
+
+    # then
+    mocked_flow.assert_called_once_with(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        user=customer_user,
+        app=None,
+        redirect_url=None,
+        metadata_list=None,
+        private_metadata_list=None,
+    )
+
+
 @mock.patch("saleor.checkout.complete_checkout.complete_checkout_with_payment")
 def test_checkout_complete_pick_payment_flow(
     mocked_flow, order, checkout_ready_to_complete, customer_user
@@ -2166,6 +2226,66 @@ def test_checkout_complete_pick_payment_flow(
         checkout_info=checkout_info,
         lines=lines,
         manager=manager,
+        payment_data={},
+        store_source=False,
+        user=customer_user,
+        app=None,
+    )
+
+    # then
+    mocked_flow.assert_called_once_with(
+        manager=manager,
+        checkout_pk=checkout.pk,
+        payment_data={},
+        store_source=False,
+        user=customer_user,
+        app=None,
+        site_settings=None,
+        redirect_url=None,
+        metadata_list=None,
+        private_metadata_list=None,
+    )
+
+
+@mock.patch("saleor.checkout.complete_checkout.complete_checkout_with_payment")
+def test_checkout_complete_pick_payment_flow_not_authorized_active_payment(
+    mocked_flow,
+    order,
+    checkout_ready_to_complete,
+    customer_user,
+    transaction_item_generator,
+    payment,
+):
+    # given
+    checkout = checkout_ready_to_complete
+    checkout.user = customer_user
+    checkout.billing_address = customer_user.default_billing_address
+    checkout.shipping_address = customer_user.default_billing_address
+    checkout.tracking_code = ""
+    checkout.redirect_url = "https://www.example.com"
+
+    # checkout is not fully authorized
+    checkout.authorize_status = CheckoutAuthorizeStatus.PARTIAL
+
+    # transaction item exists
+    transaction_item_generator(checkout_id=checkout.pk)
+    assert checkout.payment_transactions.exists()
+
+    # there is no active payments
+    payment.checkout = checkout
+    payment.save(update_fields=["checkout"])
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    transaction_item_generator(checkout_id=checkout.pk)
+    mocked_flow.return_value = order, False, {}
+
+    # when
+    order, action_required, _ = complete_checkout(
+        checkout_info=checkout_info,
+        manager=manager,
+        lines=lines,
         payment_data={},
         store_source=False,
         user=customer_user,

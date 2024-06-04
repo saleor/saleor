@@ -144,9 +144,9 @@ def get_nodes(
         old_id_field = "number" if str(graphene_type) == "Order" else "old_id"
         nodes_pk_list.extend([str(getattr(node, old_id_field)) for node in nodes])
     for pk in pks:
-        assert pk in nodes_pk_list, "There is no node of type {} with pk {}".format(
-            graphene_type, pk
-        )
+        assert (
+            pk in nodes_pk_list
+        ), f"There is no node of type {graphene_type} with pk {pk}"
     return nodes
 
 
