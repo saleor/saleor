@@ -40,17 +40,28 @@ jobs:
         run: |
           python -m pip install poetry==1.7.0
 
-      - name: Cache the venv
-        id: cached-poetry-dependencies
-        uses: actions/cache@v4
+      - name: Restore venv from cache
+        id: cached-poetry-dependencies-restore
+        uses: actions/cache/restore@v4
         with:
-          path: ~/.venv
+          path: ~/.cache/pypoetry/virtualenvs
           key: ${{ runner.os }}-venv-${{ hashFiles('**/poetry.lock') }}
+          # If no cache hit occurs for the key, fall back to a partial match
+          # of the most recently created artifact from the default branch
+          restore-keys: ${{ runner.os }}-venv-
 
+      # Sync dependencies if cache is not hit or there is a partial key match
       - name: Install dependencies
+        if: steps.cached-poetry-dependencies-restore.outputs.cache-hit != 'true'
         run: |
-          python -m poetry install --no-root
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+          python -m poetry install --sync --no-root
+
+      - name: Cache venv
+        uses: actions/cache/save@v4
+        if: steps.cached-poetry-dependencies-restore.outputs.cache-hit != 'true'
+        with:
+          path: ~/.cache/pypoetry/virtualenvs
+          key: ${{ steps.cached-poetry-dependencies-restore.outputs.cache-primary-key }}
 
       - name: Migrate
         run: |
@@ -61,6 +72,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github['base_ref'] }}
+
+      # Sync dependencies to ensure consistency with base branch
+      - name: Synchronize dependencies
+        run: |
+          python -m poetry install --sync --no-root
 
       - name: Run tests
         run: |
