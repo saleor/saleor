@@ -23577,6 +23577,7 @@ enum TransactionInitializeErrorCode @doc(category: "Payments") {
   INVALID
   NOT_FOUND
   UNIQUE
+  CHECKOUT_COMPLETION_IN_PROGRESS
 }
 
 """
@@ -23619,6 +23620,7 @@ enum TransactionProcessErrorCode @doc(category: "Payments") {
   TRANSACTION_ALREADY_PROCESSED
   MISSING_PAYMENT_APP_RELATION
   MISSING_PAYMENT_APP
+  CHECKOUT_COMPLETION_IN_PROGRESS
 }
 
 """
