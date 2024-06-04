@@ -202,7 +202,7 @@ def test_webhook_trigger_invalid_subscription_query(
     assert 'Unknown type "UndefinedEvent"' in error["message"]
 
 
-def test_webhook_trigger_event_not_supported(
+def test_webhook_trigger_synchronous_event_not_supported(
     staff_api_client,
     permission_manage_orders,
     order,
