@@ -32911,6 +32911,28 @@ type ShippingZoneMetadataUpdated implements Event @doc(category: "Shipping") {
 }
 
 """
+Event sent when shop metadata is updated.
+
+Added in Saleor 3.15.
+"""
+type ShopMetadataUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """Shop data."""
+  shop: Shop
+}
+
+"""
 Event sent when new staff user is created.
 
 Added in Saleor 3.5.
@@ -33873,28 +33895,6 @@ type TransactionProcessSession implements Event @doc(category: "Payments") {
 
   """Action to proceed for the transaction"""
   action: TransactionProcessAction!
-}
-
-"""
-Event sent when shop metadata is updated.
-
-Added in Saleor 3.15.
-"""
-type ShopMetadataUpdated implements Event {
-  """Time of the event."""
-  issuedAt: DateTime
-
-  """Saleor version that triggered the event."""
-  version: String
-
-  """The user or application that triggered the event."""
-  issuingPrincipal: IssuingPrincipal
-
-  """The application receiving the webhook."""
-  recipient: App
-
-  """Shop data."""
-  shop: Shop
 }
 
 """
