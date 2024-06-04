@@ -116,6 +116,7 @@ def order_created(
             payment=payment,
             manager=manager,
             site_settings=site_settings,
+            gateway=payment.gateway if payment else None,
         )
 
     channel = order_info.channel
@@ -146,11 +147,12 @@ def handle_fully_paid_order(
     user: Optional[User] = None,
     app: Optional["App"] = None,
     site_settings: Optional["SiteSettings"] = None,
+    gateway: Optional[str] = None,
 ):
     from ..giftcard.utils import fulfill_non_shippable_gift_cards
 
     order = order_info.order
-    events.order_fully_paid_event(order=order, user=user, app=app)
+    events.order_fully_paid_event(order=order, user=user, app=app, gateway=gateway)
     if order_info.customer_email:
         send_payment_confirmation(order_info, manager)
         if utils.order_needs_automatic_fulfillment(order_info.lines_data):
@@ -353,6 +355,7 @@ def order_charged(
     payment: Optional["Payment"],
     manager: "PluginsManager",
     site_settings: Optional["SiteSettings"] = None,
+    gateway: Optional[str] = None,
 ):
     order = order_info.order
     if payment and amount is not None:
@@ -361,7 +364,7 @@ def order_charged(
         )
     call_event(manager.order_paid, order)
     if order.charge_status in [OrderChargeStatus.FULL, OrderChargeStatus.OVERCHARGED]:
-        handle_fully_paid_order(manager, order_info, user, app, site_settings)
+        handle_fully_paid_order(manager, order_info, user, app, site_settings, gateway)
     else:
         call_event(manager.order_updated, order)
 
