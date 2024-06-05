@@ -3032,6 +3032,7 @@ class WebhookPlugin(BasePlugin):
         app_identifier: str,
         payload_gen: Callable,
         subscriptable_object=None,
+        subscription_payload=None,
     ):
         app = (
             App.objects.filter(
@@ -3065,12 +3066,23 @@ class WebhookPlugin(BasePlugin):
             subscribable_object=subscriptable_object,
             request=request_context,
             requestor=self.requestor,
+            subscription_payload=subscription_payload,
         )
         return parse_tax_data(response)
 
     def get_taxes_for_checkout(
-        self, checkout_info, lines, app_identifier, previous_value
+        self,
+        checkout_info,
+        lines,
+        app_identifier,
+        previous_value,
+        subscription_payload=None,
     ) -> Optional["TaxData"]:
+        print("checkout_info", checkout_info)
+        print("lines", lines)
+        print("app_identifier", app_identifier)
+        print("previous_value", previous_value)
+        print("subscription_payload", subscription_payload)
         event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
         if app_identifier:
             return self.__run_tax_webhook(
@@ -3080,6 +3092,7 @@ class WebhookPlugin(BasePlugin):
                     checkout_info, lines
                 ),
                 checkout_info.checkout,
+                subscription_payload=subscription_payload,
             )
         else:
             return trigger_all_webhooks_sync(

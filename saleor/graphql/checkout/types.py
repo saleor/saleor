@@ -897,6 +897,11 @@ class Checkout(ModelObjectType[models.Checkout]):
         @allow_writer_in_context(info.context)
         def calculate_total_price(data):
             address, lines, checkout_info, manager = data
+            import inspect
+
+            print(len(inspect.stack(0)))
+            # sample_payload = {} #Sample Payload from Dataloader
+            sample_payload = None
             database_connection_name = get_database_connection_name(info.context)
             taxed_total = calculations.calculate_checkout_total_with_gift_cards(
                 manager=manager,
@@ -904,6 +909,7 @@ class Checkout(ModelObjectType[models.Checkout]):
                 lines=lines,
                 address=address,
                 database_connection_name=database_connection_name,
+                subscription_payload=sample_payload,
             )
             return max(taxed_total, zero_taxed_money(root.currency))
 
@@ -1100,11 +1106,11 @@ class Checkout(ModelObjectType[models.Checkout]):
             CheckoutMetadataByCheckoutIdLoader(info.context)
             .load(root.pk)
             .then(
-                lambda metadata_storage: MetaResolvers.resolve_metadata(
-                    metadata_storage.metadata
+                lambda metadata_storage: (
+                    MetaResolvers.resolve_metadata(metadata_storage.metadata)
+                    if metadata_storage
+                    else {}
                 )
-                if metadata_storage
-                else {}
             )
         )
 
@@ -1114,9 +1120,9 @@ class Checkout(ModelObjectType[models.Checkout]):
             CheckoutMetadataByCheckoutIdLoader(info.context)
             .load(root.pk)
             .then(
-                lambda metadata_storage: metadata_storage.metadata.get(key)
-                if metadata_storage
-                else None
+                lambda metadata_storage: (
+                    metadata_storage.metadata.get(key) if metadata_storage else None
+                )
             )
         )
 
@@ -1126,11 +1132,11 @@ class Checkout(ModelObjectType[models.Checkout]):
             CheckoutMetadataByCheckoutIdLoader(info.context)
             .load(root.pk)
             .then(
-                lambda metadata_storage: _filter_metadata(
-                    metadata_storage.metadata, keys
+                lambda metadata_storage: (
+                    _filter_metadata(metadata_storage.metadata, keys)
+                    if metadata_storage
+                    else {}
                 )
-                if metadata_storage
-                else {}
             )
         )
 
@@ -1140,11 +1146,11 @@ class Checkout(ModelObjectType[models.Checkout]):
             CheckoutMetadataByCheckoutIdLoader(info.context)
             .load(root.pk)
             .then(
-                lambda metadata_storage: MetaResolvers.resolve_private_metadata(
-                    metadata_storage, info
+                lambda metadata_storage: (
+                    MetaResolvers.resolve_private_metadata(metadata_storage, info)
+                    if metadata_storage
+                    else {}
                 )
-                if metadata_storage
-                else {}
             )
         )
 
@@ -1158,11 +1164,11 @@ class Checkout(ModelObjectType[models.Checkout]):
             CheckoutMetadataByCheckoutIdLoader(info.context)
             .load(root.pk)
             .then(
-                lambda metadata_storage: resolve_private_metafield_with_privilege_check(
-                    metadata_storage
+                lambda metadata_storage: (
+                    resolve_private_metafield_with_privilege_check(metadata_storage)
+                    if metadata_storage
+                    else None
                 )
-                if metadata_storage
-                else None
             )
         )
 
@@ -1176,11 +1182,11 @@ class Checkout(ModelObjectType[models.Checkout]):
             CheckoutMetadataByCheckoutIdLoader(info.context)
             .load(root.pk)
             .then(
-                lambda metadata_storage: resolve_private_metafields_with_privilege(
-                    metadata_storage
+                lambda metadata_storage: (
+                    resolve_private_metafields_with_privilege(metadata_storage)
+                    if metadata_storage
+                    else {}
                 )
-                if metadata_storage
-                else {}
             )
         )
 
