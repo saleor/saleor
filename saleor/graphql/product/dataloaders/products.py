@@ -2,7 +2,7 @@ from collections import defaultdict
 from collections.abc import Iterable
 from typing import Optional
 
-from django.db.models import F
+from django.db.models import Exists, F, OuterRef, Q
 
 from ....product import ProductMediaTypes
 from ....product.models import (
@@ -211,27 +211,33 @@ class ProductVariantsByProductIdAndChannel(
     context_key = "productvariant_by_product_and_channel"
 
     def batch_load(self, keys: Iterable[tuple[int, str]]):
-        product_ids, channel_slugs = zip(*keys)
+        _, channel_slugs = zip(*keys)
+
+        product_ids_by_channel = defaultdict(list)
+        for product_id, channel_slug in keys:
+            product_ids_by_channel[channel_slug].append(product_id)
 
         def with_channels(channels):
-            channel_map = {c.id: c.slug for c in channels}
-            variants_filter = self.get_variants_filter(
-                product_ids, [c.id for c in channels if c]
-            )
-
-            variants = (
-                ProductVariant.objects.using(self.database_connection_name)
-                .filter(**variants_filter)
-                .annotate(channel_id=F("channel_listings__channel_id"))
-                .order_by("sort_order", "sku")
-            )
+            channel_map = {c.slug: c for c in channels}
             variant_map: defaultdict[
                 tuple[int, str], list[ProductVariant]
             ] = defaultdict(list)
-            for variant in variants.iterator():
-                channel_slug = channel_map[variant.channel_id]
-                key = (variant.product_id, channel_slug)
-                variant_map[key].append(variant)
+
+            for channel_slug in product_ids_by_channel.keys():
+                channel = channel_map[channel_slug]
+                product_ids = product_ids_by_channel[channel_slug]
+                variants_filter = self.get_variants_filter(channel.id)
+
+                variants = (
+                    ProductVariant.objects.using(self.database_connection_name)
+                    .filter(variants_filter)
+                    .filter(product_id__in=product_ids)
+                    .order_by("sort_order", "sku")
+                )
+
+                for variant in variants.iterator():
+                    key = (variant.product_id, channel.slug)
+                    variant_map[key].append(variant)
 
             return [variant_map.get(key, []) for key in keys]
 
@@ -241,13 +247,11 @@ class ProductVariantsByProductIdAndChannel(
             .then(with_channels)
         )
 
-    def get_variants_filter(
-        self, products_ids: Iterable[int], channel_ids: Iterable[int]
-    ):
-        return {
-            "product_id__in": products_ids,
-            "channel_listings__channel_id__in": channel_ids,
-        }
+    def get_variants_filter(self, channel_id: int):
+        variant_channel_listings = ProductVariantChannelListing.objects.filter(
+            channel_id=channel_id
+        )
+        return Q(Exists(variant_channel_listings.filter(variant_id=OuterRef("id"))))
 
 
 class AvailableProductVariantsByProductIdAndChannel(
@@ -255,12 +259,11 @@ class AvailableProductVariantsByProductIdAndChannel(
 ):
     context_key = "available_productvariant_by_product_and_channel"
 
-    def get_variants_filter(self, products_ids, channel_ids):
-        return {
-            "product_id__in": products_ids,
-            "channel_listings__channel_id__in": channel_ids,
-            "channel_listings__price_amount__isnull": False,
-        }
+    def get_variants_filter(self, channel_id: int):
+        variant_channel_listings = ProductVariantChannelListing.objects.filter(
+            channel_id=channel_id, price_amount__isnull=False
+        )
+        return Q(Exists(variant_channel_listings.filter(variant_id=OuterRef("id"))))
 
 
 class ProductVariantChannelListingByIdLoader(DataLoader):
