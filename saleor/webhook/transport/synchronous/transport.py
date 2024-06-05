@@ -212,6 +212,7 @@ def create_delivery_for_subscription_sync_event(
     requestor=None,
     request=None,
     allow_replica=False,
+    payload=None,
 ) -> Optional[EventDelivery]:
     """Generate webhook payload based on subscription query and create delivery object.
 
@@ -239,13 +240,17 @@ def create_delivery_for_subscription_sync_event(
             event_type=event_type,
             allow_replica=allow_replica,
         )
-    data = generate_payload_from_subscription(
-        event_type=event_type,
-        subscribable_object=subscribable_object,
-        subscription_query=webhook.subscription_query,
-        request=request,
-        app=webhook.app,
-    )
+    if not payload:
+        data = generate_payload_from_subscription(
+            event_type=event_type,
+            subscribable_object=subscribable_object,
+            subscription_query=webhook.subscription_query,
+            request=request,
+            app=webhook.app,
+        )
+    else:
+        data = payload
+
     if not data:
         logger.info(
             "No payload was generated with subscription for event: %s", event_type
@@ -274,6 +279,7 @@ def trigger_webhook_sync(
     timeout=None,
     request=None,
     requestor=None,
+    subscription_payload=None,
 ) -> Optional[dict[Any, Any]]:
     """Send a synchronous webhook request."""
     if webhook.subscription_query:
@@ -284,6 +290,7 @@ def trigger_webhook_sync(
             requestor=requestor,
             request=request,
             allow_replica=allow_replica,
+            payload=subscription_payload,
         )
         if not delivery:
             return None
@@ -320,6 +327,7 @@ def trigger_all_webhooks_sync(
     If no webhook responds with expected response,
     this function returns None.
     """
+    # TODO Owczar: Adjust flow to handle pre-generated payloads
     webhooks = get_webhooks_for_event(event_type)
     request_context = None
     event_payload = None
