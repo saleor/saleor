@@ -40,8 +40,44 @@ def copy_product_id():
             );
             """
         )
-        if cursor.fetchone() is True:
-            copy_product_id.delay()
+        result = cursor.fetchone()
+
+    if result and result[0]:
+        copy_product_id.delay()
+    else:
+        remove_product_id_duplicates.delay()
+
+
+@app.task()
+def remove_product_id_duplicates():
+    with connection.cursor() as cursor:
+        # We can remove duplicates. Using raw delete for better performance.
+        cursor.execute(
+            """
+            DELETE FROM ATTRIBUTE_ASSIGNEDPRODUCTATTRIBUTEVALUE aa
+            WHERE aa.id IN (
+	            SELECT tt.id FROM ATTRIBUTE_ASSIGNEDPRODUCTATTRIBUTEVALUE tt
+	            WHERE tt.product_uniq IS NULL
+	            ORDER BY tt.id
+	            LIMIT %s
+            );
+            """,
+            [BATCH],
+        )
+
+        cursor.execute(
+            """
+            SELECT EXISTS(
+                SELECT 1 FROM ATTRIBUTE_ASSIGNEDPRODUCTATTRIBUTEVALUE
+                WHERE product_uniq IS NULL
+            );
+            """
+        )
+
+        result = cursor.fetchone()
+
+    if result and result[0]:
+        remove_product_id_duplicates.delay()
 
 
 @app.task()
@@ -79,5 +115,41 @@ def copy_page_id():
             );
             """
         )
-        if cursor.fetchone() is True:
-            copy_page_id.delay()
+        result = cursor.fetchone()
+
+    if result and result[0]:
+        copy_page_id.delay()
+    else:
+        remove_page_id_duplicates.delay()
+
+
+@app.task()
+def remove_page_id_duplicates():
+    with connection.cursor() as cursor:
+        # We can remove duplicates. Using raw delete for better performance.
+        cursor.execute(
+            """
+            DELETE FROM ATTRIBUTE_ASSIGNEDPAGEATTRIBUTEVALUE aa
+            WHERE aa.id IN (
+	            SELECT tt.id FROM ATTRIBUTE_ASSIGNEDPAGEATTRIBUTEVALUE tt
+	            WHERE tt.page_uniq IS NULL
+	            ORDER BY tt.id
+	            LIMIT %s
+            );
+            """,
+            [BATCH],
+        )
+
+        cursor.execute(
+            """
+            SELECT EXISTS(
+                SELECT 1 FROM ATTRIBUTE_ASSIGNEDPAGEATTRIBUTEVALUE
+                WHERE page_uniq IS NULL
+            );
+            """
+        )
+
+        result = cursor.fetchone()
+
+    if result and result[0]:
+        remove_page_id_duplicates.delay()
