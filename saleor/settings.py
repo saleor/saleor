@@ -147,6 +147,18 @@ EMAIL_BACKEND: str = email_config.get("EMAIL_BACKEND", "")
 EMAIL_USE_TLS: bool = email_config.get("EMAIL_USE_TLS", False)
 EMAIL_USE_SSL: bool = email_config.get("EMAIL_USE_SSL", False)
 
+# providing USER_EMAIL_URL not necessary when UserPluginEmail has SMTP configuration is
+# provided
+user_email_config = dj_email_url.parse(os.environ.get("USER_EMAIL_URL", ""))
+
+USER_EMAIL_HOST_USER: str = user_email_config.get("EMAIL_HOST_USER") or ""
+USER_EMAIL_HOST_PASSWORD: str = user_email_config.get("EMAIL_HOST_PASSWORD") or ""
+USER_EMAIL_HOST: str = user_email_config.get("EMAIL_HOST") or ""
+USER_EMAIL_PORT: str = str(user_email_config.get("EMAIL_PORT") or "")
+
+USER_EMAIL_USE_TLS: bool = user_email_config.get("EMAIL_USE_TLS", False)
+USER_EMAIL_USE_SSL: bool = user_email_config.get("EMAIL_USE_SSL", False)
+
 ENABLE_SSL: bool = get_bool_from_env("ENABLE_SSL", False)
 
 # URL on which Saleor is hosted (e.g., https://api.example.com/). This has precedence
