@@ -236,3 +236,63 @@ def test_get_taxes_for_checkout_with_sync_subscription(
     mock_request.assert_called_once_with(delivery)
     mock_fetch.assert_not_called()
     assert tax_data == parse_tax_data(tax_data_response)
+
+
+@mock.patch("saleor.webhook.transport.synchronous.transport.trigger_all_webhooks_sync")
+def test_get_taxes_for_order_log_address_if_validation_skipped(
+    mock_webhook_trigger,
+    webhook_plugin,
+    address,
+    order,
+    tax_app,
+    caplog,
+):
+    # given
+    plugin = webhook_plugin()
+    app_identifier = None
+
+    address.validation_skipped = True
+    address.postal_code = "invalid postal code"
+    address.save(update_fields=["postal_code", "validation_skipped"])
+    order.shipping_address = address
+    order.billing_address = address
+    order.save(update_fields=["shipping_address", "billing_address"])
+
+    # when
+    plugin.get_taxes_for_order(order, app_identifier, None)
+
+    # then
+    assert (
+        f"Fetching tax data for order with address validation skipped. "
+        f"Address ID: {address.pk}" in caplog.text
+    )
+
+
+@mock.patch("saleor.webhook.transport.synchronous.transport.trigger_all_webhooks_sync")
+def test_get_taxes_for_checkout_log_address_if_validation_skipped(
+    mock_webhook_trigger,
+    webhook_plugin,
+    address,
+    checkout_info,
+    tax_app,
+    caplog,
+):
+    # given
+    plugin = webhook_plugin()
+    app_identifier = None
+
+    address.validation_skipped = True
+    address.postal_code = "invalid postal code"
+    address.save(update_fields=["postal_code", "validation_skipped"])
+
+    checkout_info.shipping_address = address
+    checkout_info.billing_address = address
+
+    # when
+    plugin.get_taxes_for_checkout(checkout_info, None, app_identifier, None)
+
+    # then
+    assert (
+        f"Fetching tax data for checkout with address validation skipped. "
+        f"Address ID: {address.pk}" in caplog.text
+    )
