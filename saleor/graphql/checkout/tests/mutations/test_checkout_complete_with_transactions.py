@@ -1622,6 +1622,13 @@ def test_checkout_with_voucher_complete(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
 
+    order_line = order.lines.first()
+    assert (
+        order_line.unit_discount_amount
+        == (discount_amount / order_line.quantity).amount
+    )
+    assert order_line.unit_discount_reason
+
 
 @pytest.mark.integration
 def test_checkout_complete_with_voucher_apply_once_per_order(
