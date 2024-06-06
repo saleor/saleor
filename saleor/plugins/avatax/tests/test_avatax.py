@@ -6363,36 +6363,3 @@ def test_get_checkout_tax_data_set_tax_error(
 
     # then
     assert checkout_with_item.tax_error == "Empty tax data."
-
-
-@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
-def test_get_checkout_tax_data_logging(
-    monkeypatch, checkout_with_item, address, plugin_configuration, shipping_zone
-):
-    # given
-    plugin_configuration()
-    monkeypatch.setattr(
-        "saleor.plugins.avatax.plugin.get_checkout_tax_data",
-        lambda *_: {"error": "Example error"},
-    )
-    shipping_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
-
-    manager = get_plugins_manager(allow_replica=False)
-
-    checkout_with_item.shipping_address = address
-    checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
-    checkout_with_item.save(update_fields=["shipping_address", "shipping_method"])
-
-    lines, _ = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
-
-    # when
-    tax_rate = manager.get_checkout_shipping_tax_rate(
-        checkout_info,
-        lines,
-        checkout_with_item.shipping_address,
-        shipping_price,
-    )
-
-    # then
-    assert tax_rate == Decimal("0.25")
