@@ -334,3 +334,4 @@ def test_skip_address_validation_logging(
     assert "'skip_validation': True" in caplog.text
     assert "phone" not in ADDRESS_FIELDS_TO_LOG
     assert "'phone': 'invalid'" in caplog.text
+    assert "'country': 'IE'" in caplog.text

@@ -204,6 +204,7 @@ class CountryAwareAddressForm(AddressForm):
                 self.data.get(field) if field in ADDRESS_FIELDS_TO_LOG else "invalid"
             )
         fields["skip_validation"] = self.data.get("skip_validation")
+        fields["country"] = self.data.get("country")
         logger.warning("Invalid address input: %s", fields)
 
 
