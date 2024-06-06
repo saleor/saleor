@@ -19,6 +19,7 @@ from django.conf import settings
 from ...app.models import App
 from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
 from ...checkout.models import Checkout
+from ...checkout.utils import log_address_if_validation_skipped_for_checkout
 from ...core import EventDeliveryStatus
 from ...core.models import EventDelivery
 from ...core.notify_events import NotifyEventType
@@ -28,6 +29,7 @@ from ...core.utils.json_serializer import CustomJsonEncoder
 from ...csv.notifications import get_default_export_payload
 from ...graphql.core.context import SaleorContext
 from ...graphql.webhook.subscription_payload import initialize_request
+from ...order.utils import log_address_if_validation_skipped_for_order
 from ...payment import PaymentError, TransactionKind
 from ...payment.interface import (
     GatewayResponse,
@@ -3049,6 +3051,7 @@ class WebhookPlugin(BasePlugin):
         self, checkout_info, lines, app_identifier, previous_value
     ) -> Optional["TaxData"]:
         event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
+        log_address_if_validation_skipped_for_checkout(checkout_info, logger)
         if app_identifier:
             return self.__run_tax_webhook(
                 event_type,
@@ -3074,6 +3077,7 @@ class WebhookPlugin(BasePlugin):
         self, order: "Order", app_identifier, previous_value
     ) -> Optional["TaxData"]:
         event_type = WebhookEventSyncType.ORDER_CALCULATE_TAXES
+        log_address_if_validation_skipped_for_order(order, logger)
         if app_identifier:
             return self.__run_tax_webhook(
                 event_type,

@@ -15,12 +15,16 @@ from requests.auth import HTTPBasicAuth
 
 from ...account.models import Address
 from ...checkout import base_calculations
-from ...checkout.utils import is_shipping_required
+from ...checkout.utils import get_address_for_checkout_taxes, is_shipping_required
 from ...core.http_client import HTTPClient
 from ...core.taxes import TaxError
 from ...discount import DiscountType, VoucherType
 from ...order import base_calculations as base_order_calculations
-from ...order.utils import get_total_order_discount_excluding_shipping
+from ...order.utils import (
+    get_address_for_order_taxes,
+    get_total_order_discount_excluding_shipping,
+    log_address_if_validation_skipped_for_order,
+)
 from ...shipping.models import ShippingMethod
 from ...tax.utils import get_charge_taxes_for_checkout
 from ...warehouse.models import Warehouse
@@ -530,11 +534,6 @@ def generate_request_data_from_checkout(
     return data
 
 
-def get_address_for_checkout_taxes(checkout_info: "CheckoutInfo") -> Optional[Address]:
-    shipping_address = checkout_info.delivery_method_info.shipping_address
-    return shipping_address or checkout_info.billing_address
-
-
 def _get_checkout_discount_amount(checkout_info, lines):
     """Return the discount amount for the checkout.
 
@@ -644,14 +643,6 @@ def get_order_request_data(order: "Order", config: AvataxConfiguration):
     return data
 
 
-def get_address_for_order_taxes(order: "Order"):
-    if order.collection_point_id:
-        address = order.collection_point.address  # type: ignore[union-attr]
-    else:
-        address = order.shipping_address or order.billing_address
-    return address
-
-
 def get_order_tax_data(
     order: "Order", config: AvataxConfiguration, force_refresh=False
 ) -> dict[str, Any]:
@@ -668,19 +659,9 @@ def get_order_tax_data(
             error_code,
             msg,
         )
-        log_address_if_validation_skipped(order)
+        log_address_if_validation_skipped_for_order(order, logger)
         raise TaxError(response.get("error"))
     return response
-
-
-def log_address_if_validation_skipped(order: "Order"):
-    address = get_address_for_order_taxes(order)
-    if address and address.validation_skipped:
-        logger.warning(
-            "Fetching tax data for order with address validation skipped. "
-            "Address ID: %s",
-            address.id,
-        )
 
 
 def generate_tax_codes_dict(response: dict[str, Any]) -> dict[str, str]:

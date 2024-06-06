@@ -15,6 +15,7 @@ from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from ...checkout import base_calculations
 from ...checkout.fetch import fetch_checkout_lines
+from ...checkout.utils import log_address_if_validation_skipped_for_checkout
 from ...core.taxes import TaxError, TaxType, zero_taxed_money
 from ...order import base_calculations as order_base_calculation
 from ...order.interface import OrderTaxedPricesData
@@ -44,7 +45,6 @@ from . import (
     api_get_request,
     api_post_request,
     generate_request_data_from_checkout,
-    get_address_for_checkout_taxes,
     get_api_url,
     get_cached_tax_codes_or_fetch,
     get_checkout_tax_data,
@@ -362,20 +362,10 @@ class AvataxPlugin(BasePlugin):
                 error_code,
                 msg,
             )
-            self.log_address_if_validation_skipped(checkout_info)
+            log_address_if_validation_skipped_for_checkout(checkout_info, logger)
             customer_msg = CustomerErrors.get_error_msg(response.get("error", {}))
             raise TaxError(customer_msg)
         return previous_value
-
-    @staticmethod
-    def log_address_if_validation_skipped(checkout_info: "CheckoutInfo"):
-        address = get_address_for_checkout_taxes(checkout_info)
-        if address and address.validation_skipped:
-            logger.warning(
-                "Fetching tax data for checkout with address validation skipped. "
-                "Address ID: %s",
-                address.id,
-            )
 
     def order_confirmed(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:

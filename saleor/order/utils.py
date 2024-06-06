@@ -1137,3 +1137,21 @@ def update_order_display_gross_prices(order: "Order"):
     order.display_gross_prices = get_display_gross_prices(
         tax_configuration, country_tax_configuration
     )
+
+
+def log_address_if_validation_skipped_for_order(order: "Order", logger):
+    address = get_address_for_order_taxes(order)
+    if address and address.validation_skipped:
+        logger.warning(
+            "Fetching tax data for order with address validation skipped. "
+            "Address ID: %s",
+            address.id,
+        )
+
+
+def get_address_for_order_taxes(order: "Order"):
+    if order.collection_point_id:
+        address = order.collection_point.address  # type: ignore[union-attr]
+    else:
+        address = order.shipping_address or order.billing_address
+    return address
