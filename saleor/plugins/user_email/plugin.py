@@ -2,6 +2,7 @@ import logging
 from dataclasses import asdict
 from typing import TYPE_CHECKING, List, Union
 
+from django.conf import settings
 from promise.promise import Promise
 
 from ...core.notify_events import NotifyEventType, UserNotifyEvent
@@ -401,6 +402,7 @@ class UserEmailPlugin(BasePlugin):
 
         event_func = event_map[event]
         config = asdict(self.config)
+        self._add_missing_configuration(config)
         event_func(payload, config, self)
 
     @classmethod
@@ -410,6 +412,8 @@ class UserEmailPlugin(BasePlugin):
         """Validate if provided configuration is correct."""
         configuration = plugin_configuration.configuration
         configuration = {item["name"]: item["value"] for item in configuration}
+
+        cls._add_missing_configuration(configuration)
 
         validate_default_email_configuration(plugin_configuration, configuration)
         email_templates_data = kwargs.get("email_templates_data", [])
@@ -457,3 +461,21 @@ class UserEmailPlugin(BasePlugin):
             # Let's add a translated descriptions and labels
             cls._append_config_structure(plugin_configuration.configuration)
         return plugin_configuration
+
+    @staticmethod
+    def _add_missing_configuration(configuration):
+        configuration["host"] = configuration["host"] or settings.USER_EMAIL_HOST
+        configuration["port"] = configuration["port"] or settings.USER_EMAIL_PORT
+        configuration["username"] = (
+            configuration["username"] or settings.USER_EMAIL_HOST_USER or ""
+        )
+        configuration["password"] = (
+            configuration["password"] or settings.USER_EMAIL_HOST_PASSWORD or ""
+        )
+
+        configuration["use_tls"] = (
+            configuration["use_tls"] or settings.USER_EMAIL_USE_TLS
+        )
+        configuration["use_ssl"] = (
+            configuration["use_ssl"] or settings.USER_EMAIL_USE_SSL
+        )
