@@ -508,8 +508,7 @@ def generate_request_data_from_checkout(
     transaction_token=None,
     transaction_type=TransactionType.ORDER,
 ):
-    shipping_address = checkout_info.delivery_method_info.shipping_address
-    address = shipping_address or checkout_info.billing_address
+    address = get_address_for_checkout_taxes(checkout_info)
     lines = generate_request_data_from_checkout_lines(checkout_info, lines_info, config)
     if not lines:
         return {}
@@ -529,6 +528,11 @@ def generate_request_data_from_checkout(
         currency=currency,
     )
     return data
+
+
+def get_address_for_checkout_taxes(checkout_info: "CheckoutInfo") -> Optional[Address]:
+    shipping_address = checkout_info.delivery_method_info.shipping_address
+    return shipping_address or checkout_info.billing_address
 
 
 def _get_checkout_discount_amount(checkout_info, lines):
@@ -615,11 +619,7 @@ def get_checkout_tax_data(
 
 
 def get_order_request_data(order: "Order", config: AvataxConfiguration):
-    if order.collection_point_id:
-        address: Address = order.collection_point.address  # type: ignore
-    else:
-        address = order.shipping_address or order.billing_address  # type: ignore
-
+    address = get_address_for_order_taxes(order)
     transaction = (
         TransactionType.INVOICE
         if not (order.is_draft() or order.is_unconfirmed())
@@ -644,6 +644,14 @@ def get_order_request_data(order: "Order", config: AvataxConfiguration):
     return data
 
 
+def get_address_for_order_taxes(order: "Order"):
+    if order.collection_point_id:
+        address = order.collection_point.address  # type: ignore[union-attr]
+    else:
+        address = order.shipping_address or order.billing_address
+    return address
+
+
 def get_order_tax_data(
     order: "Order", config: AvataxConfiguration, force_refresh=False
 ) -> dict[str, Any]:
@@ -652,8 +660,27 @@ def get_order_tax_data(
         data, f"order_{order.id}", config, force_refresh
     )
     if response and "error" in response:
+        msg = response.get("error", {}).get("message", "")
+        error_code = response.get("error", {}).get("code", "")
+        logger.warning(
+            "Unable to calculate taxes for order %s, error_code: %s, " "error_msg: %s",
+            order.id,
+            error_code,
+            msg,
+        )
+        log_address_if_validation_skipped(order)
         raise TaxError(response.get("error"))
     return response
+
+
+def log_address_if_validation_skipped(order: "Order"):
+    address = get_address_for_order_taxes(order)
+    if address and address.validation_skipped:
+        logger.warning(
+            "Fetching tax data for order with address validation skipped. "
+            "Address ID: %s",
+            address.id,
+        )
 
 
 def generate_tax_codes_dict(response: dict[str, Any]) -> dict[str, str]:
