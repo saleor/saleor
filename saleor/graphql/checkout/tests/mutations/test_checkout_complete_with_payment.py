@@ -897,6 +897,11 @@ def test_checkout_with_voucher_complete(
     order_payment = order.payments.first()
     assert order_payment == payment
     assert payment.transactions.count() == 1
+    assert (
+        order_line.unit_discount_amount
+        == (discount_amount / checkout_line_quantity).amount
+    )
+    assert order_line.unit_discount_reason
 
     code.refresh_from_db()
     assert code.used == voucher_used_count + 1
@@ -1149,7 +1154,9 @@ def test_checkout_with_voucher_complete_product_on_promotion(
     assert order_line.sale_id == graphene.Node.to_global_id(
         "Promotion", promotion_without_rules.id
     )
-    assert order_line.unit_discount_reason == f"Promotion: {order_line.sale_id}"
+    assert order_line.unit_discount_reason == (
+        f"Entire order voucher code: {code.code} & Promotion: {order_line.sale_id}"
+    )
 
     assert checkout_line_quantity == order_line.quantity
     assert checkout_line_variant == order_line.variant
