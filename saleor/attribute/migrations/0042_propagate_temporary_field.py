@@ -2,7 +2,7 @@ from django.apps import apps as registry
 from django.db import migrations
 from django.db.models.signals import post_migrate
 
-from .tasks.saleor3_18 import copy_page_id, copy_product_id
+from .tasks.saleor3_19 import copy_page_id, copy_product_id
 
 
 def copy_values_to_temporary_fields(apps, _schema_editor):
