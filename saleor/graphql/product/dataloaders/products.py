@@ -211,8 +211,6 @@ class ProductVariantsByProductIdAndChannel(
     context_key = "productvariant_by_product_and_channel"
 
     def batch_load(self, keys: Iterable[tuple[int, str]]):
-        _, channel_slugs = zip(*keys)
-
         product_ids_by_channel = defaultdict(list)
         for product_id, channel_slug in keys:
             product_ids_by_channel[channel_slug].append(product_id)
@@ -243,7 +241,7 @@ class ProductVariantsByProductIdAndChannel(
 
         return (
             ChannelBySlugLoader(self.context)
-            .load_many(channel_slugs)
+            .load_many(product_ids_by_channel.keys())
             .then(with_channels)
         )
 
