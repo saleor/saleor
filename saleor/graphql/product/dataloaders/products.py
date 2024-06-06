@@ -2,7 +2,7 @@ from collections import defaultdict
 from collections.abc import Iterable
 from typing import Optional
 
-from django.db.models import F
+from django.db.models import Exists, F, OuterRef, Q
 
 from ....core.db.connection import allow_writer_in_context
 from ....product import ProductMediaTypes
@@ -20,13 +20,12 @@ from ....product.models import (
     VariantChannelListingPromotionRule,
     VariantMedia,
 )
-from ...core.dataloaders import (
-    BaseThumbnailBySizeAndFormatLoader,
-    DataLoader,
-)
+from ...channel.dataloaders import ChannelBySlugLoader
+from ...core.dataloaders import BaseThumbnailBySizeAndFormatLoader, DataLoader
 
 ProductIdAndChannelSlug = tuple[int, str]
 VariantIdAndChannelSlug = tuple[int, str]
+VariantIdAndChannelId = tuple[int, int]
 
 
 class CategoryByIdLoader(DataLoader[int, Category]):
@@ -213,32 +212,45 @@ class ProductVariantsByProductIdAndChannel(
     context_key = "productvariant_by_product_and_channel"
 
     def batch_load(self, keys: Iterable[tuple[int, str]]):
-        product_ids, channel_slugs = zip(*keys)
-        variants_filter = self.get_variants_filter(product_ids, channel_slugs)
+        product_ids_by_channel = defaultdict(list)
+        for product_id, channel_slug in keys:
+            product_ids_by_channel[channel_slug].append(product_id)
 
-        variants = (
-            ProductVariant.objects.using(self.database_connection_name)
-            .filter(**variants_filter)
-            .annotate(channel_slug=F("channel_listings__channel__slug"))
-            .order_by("sort_order", "sku")
+        def with_channels(channels):
+            channel_map = {c.slug: c for c in channels}
+            variant_map: defaultdict[tuple[int, str], list[ProductVariant]] = (
+                defaultdict(list)
+            )
+
+            for channel_slug in product_ids_by_channel.keys():
+                channel = channel_map[channel_slug]
+                product_ids = product_ids_by_channel[channel_slug]
+                variants_filter = self.get_variants_filter(channel.id)
+
+                variants = (
+                    ProductVariant.objects.using(self.database_connection_name)
+                    .filter(variants_filter)
+                    .filter(product_id__in=product_ids)
+                    .order_by("sort_order", "sku")
+                )
+
+                for variant in variants.iterator():
+                    key = (variant.product_id, channel.slug)
+                    variant_map[key].append(variant)
+
+            return [variant_map.get(key, []) for key in keys]
+
+        return (
+            ChannelBySlugLoader(self.context)
+            .load_many(product_ids_by_channel.keys())
+            .then(with_channels)
         )
-        variant_map: defaultdict[tuple[int, str], list[ProductVariant]] = defaultdict(
-            list
+
+    def get_variants_filter(self, channel_id: int):
+        variant_channel_listings = ProductVariantChannelListing.objects.filter(
+            channel_id=channel_id
         )
-        for variant in variants.iterator():
-            variant_map[
-                (variant.product_id, getattr(variant, "channel_slug", ""))  # annotation
-            ].append(variant)
-
-        return [variant_map.get(key, []) for key in keys]
-
-    def get_variants_filter(self, products_ids, channel_slugs):
-        return {
-            "product_id__in": products_ids,
-            "channel_listings__channel__slug__in": [
-                str(slug) for slug in channel_slugs
-            ],
-        }
+        return Q(Exists(variant_channel_listings.filter(variant_id=OuterRef("id"))))
 
 
 class AvailableProductVariantsByProductIdAndChannel(
@@ -246,14 +258,11 @@ class AvailableProductVariantsByProductIdAndChannel(
 ):
     context_key = "available_productvariant_by_product_and_channel"
 
-    def get_variants_filter(self, products_ids, channel_slugs):
-        return {
-            "product_id__in": products_ids,
-            "channel_listings__channel__slug__in": [
-                str(slug) for slug in channel_slugs
-            ],
-            "channel_listings__price_amount__isnull": False,
-        }
+    def get_variants_filter(self, channel_id: int):
+        variant_channel_listings = ProductVariantChannelListing.objects.filter(
+            channel_id=channel_id, price_amount__isnull=False
+        )
+        return Q(Exists(variant_channel_listings.filter(variant_id=OuterRef("id"))))
 
 
 class ProductVariantChannelListingByIdLoader(DataLoader):
@@ -288,40 +297,64 @@ class VariantChannelListingByVariantIdLoader(DataLoader):
         ]
 
 
-class VariantChannelListingByVariantIdAndChannelLoader(
+class VariantChannelListingByVariantIdAndChannelSlugLoader(
     DataLoader[VariantIdAndChannelSlug, ProductVariantChannelListing]
 ):
-    context_key = "variantchannelisting_by_variant_and_channel"
-    field = ""
+    context_key = "variantchannelisting_by_variant_and_channelslug"
+
+    def batch_load(self, keys):
+        channel_slugs = [channel_slug for _, channel_slug in keys]
+
+        def with_channels(channels):
+            channel_map = {c.slug: c.id for c in channels}
+            variant_id_channel_id_keys = [
+                (variant_id, channel_map[channel_slug])
+                for (variant_id, channel_slug) in keys
+            ]
+            return VariantChannelListingByVariantIdAndChannelIdLoader(
+                self.context
+            ).load_many(variant_id_channel_id_keys)
+
+        return (
+            ChannelBySlugLoader(self.context)
+            .load_many(channel_slugs)
+            .then(with_channels)
+        )
+
+
+class VariantChannelListingByVariantIdAndChannelIdLoader(
+    DataLoader[VariantIdAndChannelId, ProductVariantChannelListing]
+):
+    context_key = "variantchannelisting_by_variant_and_channelid"
 
     def batch_load(self, keys):
         # Split the list of keys by channel first. A typical query will only touch
         # a handful of unique countries but may access thousands of product variants
         # so it's cheaper to execute one query per channel.
-        variant_channel_listing_by_channel: defaultdict[str, list[int]] = defaultdict(
+        variant_channel_listing_by_channel: defaultdict[int, list[int]] = defaultdict(
             list
         )
-        for variant_id, channel in keys:
-            variant_channel_listing_by_channel[channel].append(variant_id)
+        for variant_id, channel_id in keys:
+            variant_channel_listing_by_channel[channel_id].append(variant_id)
 
         # For each channel execute a single query for all product variants.
         variant_channel_listing_by_variant_and_channel: defaultdict[
-            VariantIdAndChannelSlug, Optional[ProductVariantChannelListing]
+            VariantIdAndChannelId, Optional[ProductVariantChannelListing]
         ] = defaultdict()
-        for channel, variant_ids in variant_channel_listing_by_channel.items():
-            variant_channel_listings = self.batch_load_channel(channel, variant_ids)
+        for channel_id, variant_ids in variant_channel_listing_by_channel.items():
+            variant_channel_listings = self.batch_load_channel(channel_id, variant_ids)
             for variant_id, variant_channel_listing in variant_channel_listings:
                 variant_channel_listing_by_variant_and_channel[
-                    (variant_id, channel)
+                    (variant_id, channel_id)
                 ] = variant_channel_listing
 
         return [variant_channel_listing_by_variant_and_channel[key] for key in keys]
 
     def batch_load_channel(
-        self, channel: str, variant_ids: Iterable[int]
+        self, channel_id: int, variant_ids: Iterable[int]
     ) -> Iterable[tuple[int, Optional[ProductVariantChannelListing]]]:
         filter = {
-            f"channel__{self.field}": channel,
+            "channel_id": channel_id,
             "variant_id__in": variant_ids,
             "price_amount__isnull": False,
         }
@@ -343,20 +376,6 @@ class VariantChannelListingByVariantIdAndChannelLoader(
             (variant_id, variant_channel_listings_map.get(variant_id))
             for variant_id in variant_ids
         ]
-
-
-class VariantChannelListingByVariantIdAndChannelSlugLoader(
-    VariantChannelListingByVariantIdAndChannelLoader
-):
-    context_key = "variantchannelisting_by_variant_and_channelslug"
-    field = "slug"
-
-
-class VariantChannelListingByVariantIdAndChannelIdLoader(
-    VariantChannelListingByVariantIdAndChannelLoader
-):
-    context_key = "variantchannelisting_by_variant_and_channelid"
-    field = "id"
 
 
 class VariantsChannelListingByProductIdAndChannelSlugLoader(
