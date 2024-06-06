@@ -3542,6 +3542,47 @@ def test_preprocess_order_creation_shipping_voucher_no_tax_class_on_delivery_met
 
 
 @pytest.mark.vcr
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_preprocess_order_creation_address_error_logging(
+    checkout_with_item,
+    monkeypatch,
+    address,
+    shipping_zone,
+    plugin_configuration,
+    caplog,
+):
+    # given
+    checkout = checkout_with_item
+    plugin_configuration()
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
+        lambda _: {"PC040156": "desc"},
+    )
+    manager = get_plugins_manager(allow_replica=False)
+
+    address.validation_skipped = True
+    address.postal_code = "invalid postal code"
+    address.save(update_fields=["postal_code", "validation_skipped"])
+
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_zone.shipping_methods.get()
+    checkout.save()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    # when
+    with pytest.raises(TaxError):
+        manager.preprocess_order_creation(checkout_info, lines)
+
+    # then
+    assert f"Unable to calculate taxes for checkout {checkout.pk}" in caplog.text
+    assert (
+        f"Fetching tax data for checkout with address validation skipped. "
+        f"Address ID: {address.pk}" in caplog.text
+    )
+
+
+@pytest.mark.vcr
 def test_get_cached_tax_codes_or_fetch(monkeypatch, avatax_config):
     monkeypatch.setattr("saleor.plugins.avatax.cache.get", lambda x, y: {})
     config = avatax_config
@@ -5425,6 +5466,39 @@ def test_get_order_tax_data_raised_error(
     assert e._excinfo[1].args[0] == return_value["error"]
 
 
+@pytest.mark.vcr
+@patch("saleor.plugins.avatax.cache.set")
+def test_get_order_tax_data_address_error_logging(
+    mock_cache_set,
+    order_line,
+    avatax_config,
+    address,
+    caplog,
+):
+    # given
+    order = order_line.order
+    invalid_postal_code = "invalid postal code"
+    address.validation_skipped = True
+    address.postal_code = invalid_postal_code
+    address.save(update_fields=["postal_code", "validation_skipped"])
+    order.shipping_address = address
+    order.billing_address = address
+    order.save(update_fields=["shipping_address", "billing_address"])
+
+    avatax_config.from_postal_code = invalid_postal_code
+
+    # when
+    with pytest.raises(TaxError):
+        get_order_tax_data(order, avatax_config)
+
+    # then
+    assert f"Unable to calculate taxes for order {order.pk}" in caplog.text
+    assert (
+        f"Fetching tax data for order with address validation skipped. "
+        f"Address ID: {address.pk}" in caplog.text
+    )
+
+
 @pytest.mark.parametrize(
     (
         "shipping_address_none",
@@ -6289,3 +6363,36 @@ def test_get_checkout_tax_data_set_tax_error(
 
     # then
     assert checkout_with_item.tax_error == "Empty tax data."
+
+
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_get_checkout_tax_data_logging(
+    monkeypatch, checkout_with_item, address, plugin_configuration, shipping_zone
+):
+    # given
+    plugin_configuration()
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.plugin.get_checkout_tax_data",
+        lambda *_: {"error": "Example error"},
+    )
+    shipping_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
+
+    manager = get_plugins_manager(allow_replica=False)
+
+    checkout_with_item.shipping_address = address
+    checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
+    checkout_with_item.save(update_fields=["shipping_address", "shipping_method"])
+
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
+
+    # when
+    tax_rate = manager.get_checkout_shipping_tax_rate(
+        checkout_info,
+        lines,
+        checkout_with_item.shipping_address,
+        shipping_price,
+    )
+
+    # then
+    assert tax_rate == Decimal("0.25")
