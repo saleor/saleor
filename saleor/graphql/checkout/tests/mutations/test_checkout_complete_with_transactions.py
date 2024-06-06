@@ -1672,6 +1672,13 @@ def test_checkout_with_voucher_complete(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
 
+    order_line = order.lines.first()
+    assert (
+        order_line.unit_discount_amount
+        == (discount_amount / order_line.quantity).amount
+    )
+    assert order_line.unit_discount_reason
+
 
 @pytest.mark.integration
 def test_checkout_complete_with_voucher_apply_once_per_order(
@@ -1956,7 +1963,9 @@ def test_checkout_with_voucher_complete_product_on_sale(
     assert order_line.sale_id == graphene.Node.to_global_id(
         "Sale", catalogue_promotion_without_rules.old_sale_id
     )
-    assert order_line.unit_discount_reason == f"Sale: {order_line.sale_id}"
+    assert order_line.unit_discount_reason == (
+        f"Entire order voucher code: {code.code} & Sale: {order_line.sale_id}"
+    )
 
     code.refresh_from_db()
     assert code.used == voucher_used_count + 1
