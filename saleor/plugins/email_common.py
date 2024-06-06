@@ -264,6 +264,24 @@ def validate_default_email_configuration(
                 ),
             }
         )
+
+    errors = []
+    for field in ("host", "port"):
+        if not configuration[field]:
+            errors.append(
+                ValidationError(
+                    {
+                        field: ValidationError(
+                            f"Missing {field} value.",
+                            code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
+                        )
+                    }
+                )
+            )
+
+    if errors:
+        raise ValidationError(errors)
+
     config = EmailConfig(
         host=configuration["host"],
         port=configuration["port"],
