@@ -264,4 +264,6 @@ def test_checkout_with_promotion_and_voucher_CORE_2107(
     assert order_line["undiscountedUnitPrice"]["gross"]["amount"] == float(
         product_variant_price
     )
-    assert order_line["unitDiscountReason"] == f"Promotion: {promotion_id}"
+    assert order_line["unitDiscountReason"] == (
+        f"Entire order voucher code: {voucher_code} & Promotion: {promotion_id}"
+    )

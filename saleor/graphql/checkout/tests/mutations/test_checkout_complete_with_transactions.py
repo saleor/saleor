@@ -1859,7 +1859,6 @@ def test_checkout_with_voucher_complete_product_on_sale(
     voucher_used_count = code.used
     voucher_percentage.usage_limit = voucher_used_count + 1
     voucher_percentage.save(update_fields=["usage_limit"])
-    code = checkout_with_voucher_percentage.voucher_code
 
     old_sale_id = 1
     promotion_without_rules.old_sale_id = old_sale_id
@@ -1951,7 +1950,7 @@ def test_checkout_with_voucher_complete_product_on_sale(
         "Sale", promotion_without_rules.old_sale_id
     )
     assert order_line.unit_discount_reason == (
-        f"Entire order voucher code: {code} & Sale: {order_line.sale_id}"
+        f"Entire order voucher code: {code.code} & Sale: {order_line.sale_id}"
     )
 
     code.refresh_from_db()
