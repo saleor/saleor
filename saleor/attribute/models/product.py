@@ -20,7 +20,6 @@ class AssignedProductAttributeValue(SortableModel):
         blank=False,
         db_index=False,
     )
-    product_uniq = models.IntegerField(null=True)
 
     class Meta:
         unique_together = (("value", "product"),)

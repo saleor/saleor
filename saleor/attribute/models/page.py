@@ -20,7 +20,6 @@ class AssignedPageAttributeValue(SortableModel):
         blank=False,
         db_index=False,
     )
-    page_uniq = models.IntegerField(null=True)
 
     class Meta:
         unique_together = (("value", "page"),)
