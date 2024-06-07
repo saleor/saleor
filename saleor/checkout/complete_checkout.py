@@ -353,6 +353,7 @@ def _create_line_for_order(
         unit_discount=discount_amount,  # money field not supported by mypy_django_plugin # noqa: E501
         unit_discount_reason=unit_discount_reason,
         unit_discount_value=discount_amount.amount,  # we store value as fixed discount
+        unit_discount_type=DiscountValueType.FIXED,
         base_unit_price=base_unit_price,  # money field not supported by mypy_django_plugin # noqa: E501
         undiscounted_base_unit_price=undiscounted_base_unit_price,  # money field not supported by mypy_django_plugin # noqa: E501
         is_price_overridden=is_price_overridden,
@@ -397,17 +398,9 @@ def _get_unit_discount_reason(
 ) -> Optional[str]:
     unit_discount_reason = None
     if line_voucher_code:
-        if unit_discount_reason:
-            unit_discount_reason += f" & Voucher code: {line_voucher_code}"
-        else:
-            unit_discount_reason = f"Voucher code: {line_voucher_code}"
+        unit_discount_reason = f"Voucher code: {line_voucher_code}"
     elif order_voucher_code:
-        if unit_discount_reason:
-            msg = f" & Entire order voucher code: {order_voucher_code}"
-            unit_discount_reason += msg
-        else:
-            unit_discount_reason = f"Entire order voucher code: {order_voucher_code}"
-
+        unit_discount_reason = f"Entire order voucher code: {order_voucher_code}"
     return unit_discount_reason
 
 
