@@ -13,7 +13,7 @@ from ..core.tracing import traced_atomic_transaction
 from ..core.utils.country import get_active_country
 from ..core.utils.translations import get_translation
 from ..core.weight import zero_weight
-from ..discount import DiscountType
+from ..discount import DiscountType, DiscountValueType
 from ..discount.models import (
     NotApplicable,
     OrderDiscount,
@@ -300,6 +300,7 @@ def create_order_line(
         else:
             discount_amount = unit_discount.net
         line.unit_discount = discount_amount
+        line.unit_discount_type = DiscountValueType.FIXED
         line.unit_discount_value = discount_amount.amount
 
         line.save(
@@ -307,6 +308,7 @@ def create_order_line(
                 "unit_discount_amount",
                 "unit_discount_value",
                 "unit_discount_reason",
+                "unit_discount_type",
                 "sale_id",
             ]
         )
