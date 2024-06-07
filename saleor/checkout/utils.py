@@ -808,12 +808,8 @@ def remove_promo_code_from_checkout_or_error(
         remove_gift_card_code_from_checkout_or_error(checkout_info.checkout, promo_code)
     else:
         raise ValidationError(
-            {
-                "promo_code": ValidationError(
-                    "Promo code does not exists.",
-                    code=CheckoutErrorCode.NOT_FOUND.value,
-                )
-            }
+            "Promo code does not exists.",
+            code=CheckoutErrorCode.NOT_FOUND.value,
         )
 
 
@@ -828,12 +824,8 @@ def remove_voucher_code_from_checkout_or_error(
         checkout_info.voucher = None
     else:
         raise ValidationError(
-            {
-                "promo_code": ValidationError(
-                    "Cannot remove a voucher not attached to this checkout.",
-                    code=CheckoutErrorCode.VOUCHER_NOT_APPLICABLE.value,
-                )
-            }
+            "Cannot remove a voucher not attached to this checkout.",
+            code=CheckoutErrorCode.VOUCHER_NOT_APPLICABLE.value,
         )
 
 

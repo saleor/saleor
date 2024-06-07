@@ -90,7 +90,10 @@ class CheckoutRemovePromoCode(BaseMutation):
         checkout_info = fetch_checkout_info(checkout, [], manager)
 
         if promo_code:
-            remove_promo_code_from_checkout_or_error(checkout_info, promo_code)
+            try:
+                remove_promo_code_from_checkout_or_error(checkout_info, promo_code)
+            except ValidationError as error:
+                raise ValidationError({"promo_code": error})
         else:
             object_type, promo_code_pk = cls.clean_promo_code_id(promo_code_id)
             cls.remove_promo_code_by_id_or_error(

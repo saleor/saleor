@@ -147,12 +147,11 @@ def test_remove_gift_card_code_from_checkout_no_checkout_gift_cards(
         remove_gift_card_code_from_checkout_or_error(checkout, gift_card.code)
 
     # then
-    validation_error = error.value.args[0]["promo_code"]
     assert checkout.gift_cards.count() == 0
-    assert validation_error.message == (
+    assert error.value.message == (
         "Cannot remove a gift card not attached to this checkout."
     )
-    assert validation_error.code == CheckoutErrorCode.GIFT_CARD_NOT_APPLICABLE.value
+    assert error.value.code == CheckoutErrorCode.GIFT_CARD_NOT_APPLICABLE.value
 
 
 @pytest.mark.parametrize(

@@ -65,12 +65,8 @@ def remove_gift_card_code_from_checkout_or_error(
         checkout.save(update_fields=["last_change"])
     else:
         raise ValidationError(
-            {
-                "promo_code": ValidationError(
-                    "Cannot remove a gift card not attached to this checkout.",
-                    code=CheckoutErrorCode.GIFT_CARD_NOT_APPLICABLE.value,
-                )
-            }
+            "Cannot remove a gift card not attached to this checkout.",
+            code=CheckoutErrorCode.GIFT_CARD_NOT_APPLICABLE.value,
         )
 
 
