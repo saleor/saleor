@@ -2168,7 +2168,7 @@ def test_draft_order_create_update_display_gross_prices(
     content = get_graphql_content(response)
     assert not content["data"]["draftOrderCreate"]["errors"]
     order_id = content["data"]["draftOrderCreate"]["order"]["id"]
-    _, order_pk = graphene.Nwode.from_global_id(order_id)
+    _, order_pk = graphene.Node.from_global_id(order_id)
 
     order = Order.objects.get(id=order_pk)
     assert not order.display_gross_prices

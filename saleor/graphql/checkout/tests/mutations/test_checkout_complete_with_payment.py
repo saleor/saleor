@@ -1640,7 +1640,7 @@ def test_checkout_complete_product_on_promotion_deleted_promotion_instance(
     )
     assert not order_line.sale_id
     assert order_line.unit_discount_reason
-    assert order_line.unit_discount_reason == "Sale: "
+    assert order_line.unit_discount_reason == "Promotion: "
     assert checkout_line_quantity == order_line.quantity
     assert checkout_line_variant == order_line.variant
 
@@ -1673,6 +1673,7 @@ def test_checkout_complete_price_override(
     checkout.metadata_storage.store_value_in_private_metadata(
         items={"accepted": "false"}
     )
+    checkout.tax_exemption = True
     checkout.save()
     checkout.metadata_storage.save()
 
@@ -1683,56 +1684,15 @@ def test_checkout_complete_price_override(
     checkout_line_quantity = checkout_line.quantity
     checkout_line_variant = checkout_line.variant
 
-    channel = checkout.channel
-    reward_value = Decimal("5")
-    rule = promotion_without_rules.rules.create(
-        catalogue_predicate={
-            "productPredicate": {
-                "ids": [
-                    graphene.Node.to_global_id(
-                        "Product", checkout_line_variant.product.id
-                    )
-                ]
-            }
-        },
-        reward_value_type=RewardValueType.FIXED,
-        reward_value=reward_value,
-    )
-    rule.channels.add(channel)
-
-    variant_channel_listing = checkout_line_variant.channel_listings.get(
-        channel=channel
-    )
-
-    variant_channel_listing.discounted_price_amount = (
-        variant_channel_listing.price_amount - reward_value
-    )
-    variant_channel_listing.save(update_fields=["discounted_price_amount"])
-
-    variant_channel_listing.variantlistingpromotionrule.create(
-        promotion_rule=rule,
-        discount_amount=reward_value,
-        currency=channel.currency_code,
-    )
-    CheckoutLineDiscount.objects.create(
-        line=checkout_line,
-        type=DiscountType.PROMOTION,
-        value_type=DiscountValueType.FIXED,
-        amount_value=reward_value,
-        currency=channel.currency_code,
-        promotion_rule=rule,
-    )
-
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-
-    total = calculations.checkout_total(
-        manager=manager,
-        checkout_info=checkout_info,
-        lines=lines,
-        address=address,
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
     )
+    channel = checkout.channel
+    channel.automatically_confirm_all_new_orders = True
+    channel.save()
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
