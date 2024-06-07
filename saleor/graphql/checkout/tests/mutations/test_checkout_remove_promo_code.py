@@ -78,6 +78,10 @@ def test_checkout_remove_voucher_code(api_client, checkout_with_voucher):
 def test_checkout_remove_voucher_code_with_inactive_channel(
     api_client, checkout_with_voucher
 ):
+    checkout_with_voucher.price_expiration = timezone.now() + timedelta(days=2)
+    checkout_with_voucher.save(update_fields=["price_expiration"])
+    previous_checkout_last_change = checkout_with_voucher.last_change
+
     channel = checkout_with_voucher.channel
     channel.is_active = False
     channel.save()
@@ -89,10 +93,14 @@ def test_checkout_remove_voucher_code_with_inactive_channel(
 
     data = _mutate_checkout_remove_promo_code(api_client, variables)
 
+    assert data["errors"][0]["field"] == "promoCode"
+    assert data["errors"][0]["code"] == CheckoutErrorCode.VOUCHER_NOT_APPLICABLE.name
+    assert data["errors"][0]["message"] == (
+        "Cannot remove a voucher not attached to this checkout."
+    )
+
     checkout_with_voucher.refresh_from_db()
-    assert not data["errors"]
-    assert data["checkout"]["token"] == str(checkout_with_voucher.token)
-    assert data["checkout"]["voucherCode"] == checkout_with_voucher.voucher_code
+    assert checkout_with_voucher.last_change == previous_checkout_last_change
 
 
 def test_checkout_remove_gift_card_code(api_client, checkout_with_gift_card):
@@ -111,6 +119,31 @@ def test_checkout_remove_gift_card_code(api_client, checkout_with_gift_card):
     assert not checkout_with_gift_card.gift_cards.all().exists()
     checkout_with_gift_card.refresh_from_db()
     assert checkout_with_gift_card.last_change != previous_checkout_last_change
+
+
+def test_checkout_remove_gift_card_code_from_wrong_checkout(
+    api_client, checkout_with_gift_card, gift_card_with_metadata
+):
+    assert checkout_with_gift_card.gift_cards.count() == 1
+    previous_checkout_last_change = checkout_with_gift_card.last_change
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_gift_card),
+        "promoCode": gift_card_with_metadata.code,
+    }
+
+    data = _mutate_checkout_remove_promo_code(api_client, variables)
+
+    assert data["errors"][0]["field"] == "promoCode"
+    assert data["errors"][0]["code"] == CheckoutErrorCode.GIFT_CARD_NOT_APPLICABLE.name
+    assert data["errors"][0]["message"] == (
+        "Cannot remove a gift card not attached to this checkout."
+    )
+
+    assert checkout_with_gift_card.gift_cards.count() == 1
+
+    checkout_with_gift_card.refresh_from_db()
+    assert checkout_with_gift_card.last_change == previous_checkout_last_change
 
 
 def test_checkout_remove_one_of_gift_cards(
@@ -148,8 +181,10 @@ def test_checkout_remove_promo_code_invalid_promo_code(api_client, checkout_with
 
     data = _mutate_checkout_remove_promo_code(api_client, variables)
 
-    assert not data["errors"]
-    assert data["checkout"]["token"] == str(checkout_with_item.token)
+    assert data["errors"][0]["field"] == "promoCode"
+    assert data["errors"][0]["code"] == CheckoutErrorCode.NOT_FOUND.name
+    assert data["errors"][0]["message"] == "Promo code does not exists."
+
     checkout_with_item.refresh_from_db()
     assert checkout_with_item.last_change == previous_checkout_last_change
 
