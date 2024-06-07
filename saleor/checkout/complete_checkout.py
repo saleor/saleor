@@ -97,7 +97,7 @@ from .utils import (
 
 if TYPE_CHECKING:
     from ..app.models import App
-    from ..discount.models import Voucher
+    from ..discount.models import CheckoutLineDiscount, Voucher
     from ..plugins.manager import PluginsManager
     from ..site.models import SiteSettings
 
@@ -321,7 +321,7 @@ def _create_line_for_order(
         discount_amount = discount_price.net
 
     unit_discount_reason = _get_unit_discount_reason(
-        line_voucher_code, order_voucher_code
+        discount, sale_id, line_voucher_code, order_voucher_code
     )
 
     tax_class = None
@@ -353,6 +353,7 @@ def _create_line_for_order(
         unit_discount=discount_amount,  # money field not supported by mypy_django_plugin # noqa: E501
         unit_discount_reason=unit_discount_reason,
         unit_discount_value=discount_amount.amount,  # we store value as fixed discount
+        unit_discount_type=DiscountValueType.FIXED,
         base_unit_price=base_unit_price,  # money field not supported by mypy_django_plugin # noqa: E501
         undiscounted_base_unit_price=undiscounted_base_unit_price,  # money field not supported by mypy_django_plugin # noqa: E501
         is_price_overridden=is_price_overridden,
@@ -362,10 +363,6 @@ def _create_line_for_order(
     )
 
     line_discounts = _create_order_line_discounts(checkout_line_info, line)
-    if line_discounts:
-        line.unit_discount_reason = (
-            f'Sale: {graphene.Node.to_global_id("Sale", sale_id)}'
-        )
 
     is_digital = line.is_digital
     line_info = OrderLineInfo(
@@ -382,10 +379,16 @@ def _create_line_for_order(
 
 
 def _get_unit_discount_reason(
+    discount: Optional["CheckoutLineDiscount"],
+    sale_id: Optional[int],
     line_voucher_code: Optional[str],
     order_voucher_code: Optional[str],
 ) -> Optional[str]:
     unit_discount_reason = None
+    if discount:
+        unit_discount_reason = "Sale: "
+        if sale_id:
+            unit_discount_reason += graphene.Node.to_global_id("Sale", sale_id)
     if line_voucher_code:
         if unit_discount_reason:
             unit_discount_reason += f" & Voucher code: {line_voucher_code}"
@@ -397,7 +400,6 @@ def _get_unit_discount_reason(
             unit_discount_reason += msg
         else:
             unit_discount_reason = f"Entire order voucher code: {order_voucher_code}"
-
     return unit_discount_reason
 
 
