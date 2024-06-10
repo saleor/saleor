@@ -261,6 +261,75 @@ def test_products_query_with_filter_boolean_attributes(
     }
 
 
+@pytest.mark.parametrize(
+    "filter_value",
+    [
+        False,
+        True,
+    ],
+)
+def test_products_query_with_filter_non_existing_boolean_attributes(
+    filter_value,
+    query_products_with_filter,
+    staff_api_client,
+    product,
+    permission_manage_products,
+):
+    # given
+
+    variables = {
+        "filter": {
+            "attributes": [{"slug": "non-existing-atr", "boolean": filter_value}]
+        }
+    }
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # when
+    response = staff_api_client.post_graphql(query_products_with_filter, variables)
+
+    # then
+    content = get_graphql_content(response)
+    products = content["data"]["products"]["edges"]
+    assert len(products) == 0
+
+
+@pytest.mark.parametrize(
+    "filter_value",
+    [
+        False,
+        True,
+    ],
+)
+def test_products_query_with_filter_boolean_attributes_not_assigned_to_product(
+    filter_value,
+    query_products_with_filter,
+    staff_api_client,
+    product,
+    category,
+    boolean_attribute,
+    permission_manage_products,
+):
+    # given
+    boolean_attribute.values.all().delete()
+    product.product_type.product_attributes.add(boolean_attribute)
+
+    variables = {
+        "filter": {
+            "attributes": [{"slug": boolean_attribute.slug, "boolean": filter_value}]
+        }
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # when
+    response = staff_api_client.post_graphql(query_products_with_filter, variables)
+
+    # then
+    content = get_graphql_content(response)
+    products = content["data"]["products"]["edges"]
+    assert len(products) == 0
+
+
 def test_products_query_with_filter_by_attributes_values_and_range(
     query_products_with_filter,
     staff_api_client,
