@@ -206,10 +206,14 @@ def _clean_product_attributes_boolean_filter_input(filter_value, queries):
         for attr in attributes
     }
 
-    for attr_slug, val in filter_value:
-        attr_pk = values_map[attr_slug]["pk"]
-        value_pk = values_map[attr_slug]["values"].get(val)
-        if value_pk:
+    for attr_slug, value in filter_value:
+        if attr_slug not in values_map:
+            raise ValueError(f"Unknown attribute name: {attr_slug}")
+        attr_pk = values_map[attr_slug].get("pk")
+        value_pk = values_map[attr_slug]["values"].get(value)
+        if not value_pk:
+            raise ValueError(f"Requested value for attribute {attr_slug} doesn't exist")
+        if attr_pk and value_pk:
             queries[attr_pk] += [value_pk]
 
 
