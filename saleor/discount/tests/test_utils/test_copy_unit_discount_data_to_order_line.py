@@ -92,5 +92,5 @@ def test_copy_unit_discount_data_to_order_line_no_discount(order_with_lines):
     line = lines_info[0].line
     assert line.unit_discount_amount == Decimal(0)
     assert not line.unit_discount_reason
-    assert line.unit_discount_type == DiscountValueType.FIXED
+    assert line.unit_discount_type is None
     assert line.unit_discount_value == Decimal(0)
