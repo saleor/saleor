@@ -318,6 +318,7 @@ class AddressData:
     metadata: Optional[dict]
     private_metadata: Optional[dict]
     validation_skipped: bool = False
+    invalid_format: bool = False
 
 
 class StorePaymentMethodEnum(str, Enum):

@@ -104,8 +104,10 @@ class I18nMixin:
             enable_normalization=enable_normalization,
         )
         validation_skipped = False
+        invalid_format = False
         if not address_form.is_valid():
             validation_skipped = True
+            invalid_format = True
             errors = cls.attach_params_to_address_form_errors(
                 address_form, params, format_check, required_check
             )
@@ -117,6 +119,7 @@ class I18nMixin:
         if address_form.cleaned_data["private_metadata"] is None:
             address_form.cleaned_data["private_metadata"] = {}
         address_form.cleaned_data["validation_skipped"] = validation_skipped
+        address_form.cleaned_data["invalid_format"] = invalid_format
 
         return address_form
 

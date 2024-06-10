@@ -1027,13 +1027,11 @@ def get_checkout_metadata(checkout: "Checkout"):
         return CheckoutMetadata(checkout=checkout)
 
 
-def log_address_if_validation_skipped_for_checkout(
-    checkout_info: "CheckoutInfo", logger
-):
+def log_address_with_invalid_format_for_checkout(checkout_info: "CheckoutInfo", logger):
     address = get_address_for_checkout_taxes(checkout_info)
-    if address and address.validation_skipped:
+    if address and (address.validation_skipped or address.invalid_format):
         logger.warning(
-            "Fetching tax data for checkout with address validation skipped. "
+            "Fetching tax data for checkout with invalid format in address. "
             "Address ID: %s",
             address.id,
         )

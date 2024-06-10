@@ -15,7 +15,7 @@ from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from ...checkout import base_calculations
 from ...checkout.fetch import fetch_checkout_lines
-from ...checkout.utils import log_address_if_validation_skipped_for_checkout
+from ...checkout.utils import log_address_with_invalid_format_for_checkout
 from ...core.taxes import TaxError, TaxType, zero_taxed_money
 from ...order import base_calculations as order_base_calculation
 from ...order.interface import OrderTaxedPricesData
@@ -362,7 +362,7 @@ class AvataxPlugin(BasePlugin):
                 error_code,
                 msg,
             )
-            log_address_if_validation_skipped_for_checkout(checkout_info, logger)
+            log_address_with_invalid_format_for_checkout(checkout_info, logger)
             customer_msg = CustomerErrors.get_error_msg(response.get("error", {}))
             raise TaxError(customer_msg)
         return previous_value

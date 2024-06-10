@@ -23,7 +23,7 @@ from ...order import base_calculations as base_order_calculations
 from ...order.utils import (
     get_address_for_order_taxes,
     get_total_order_discount_excluding_shipping,
-    log_address_if_validation_skipped_for_order,
+    log_address_with_invalid_format_for_order,
 )
 from ...shipping.models import ShippingMethod
 from ...tax.utils import get_charge_taxes_for_checkout
@@ -659,7 +659,7 @@ def get_order_tax_data(
             error_code,
             msg,
         )
-        log_address_if_validation_skipped_for_order(order, logger)
+        log_address_with_invalid_format_for_order(order, logger)
         raise TaxError(response.get("error"))
     return response
 

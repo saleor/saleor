@@ -1139,11 +1139,11 @@ def update_order_display_gross_prices(order: "Order"):
     )
 
 
-def log_address_if_validation_skipped_for_order(order: "Order", logger):
+def log_address_with_invalid_format_for_order(order: "Order", logger):
     address = get_address_for_order_taxes(order)
-    if address and address.validation_skipped:
+    if address and (address.validation_skipped or address.invalid_format):
         logger.warning(
-            "Fetching tax data for order with address validation skipped. "
+            "Fetching tax data for order with invalid format in address. "
             "Address ID: %s",
             address.id,
         )
