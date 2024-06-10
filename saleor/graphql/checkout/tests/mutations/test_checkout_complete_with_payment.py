@@ -1549,7 +1549,7 @@ def test_checkout_complete_product_on_promotion(
 def test_checkout_complete_product_on_promotion_deleted_promotion_instance(
     user_api_client,
     checkout_with_item,
-    promotion_without_rules,
+    catalogue_promotion_without_rules,
     payment_dummy,
     address,
     shipping_method,
@@ -1572,7 +1572,7 @@ def test_checkout_complete_product_on_promotion_deleted_promotion_instance(
 
     channel = checkout.channel
     reward_value = Decimal("5")
-    rule = promotion_without_rules.rules.create(
+    rule = catalogue_promotion_without_rules.rules.create(
         catalogue_predicate={
             "productPredicate": {
                 "ids": [
@@ -1586,6 +1586,9 @@ def test_checkout_complete_product_on_promotion_deleted_promotion_instance(
         reward_value=reward_value,
     )
     rule.channels.add(channel)
+    promotion_id = graphene.Node.to_global_id(
+        "Promotion", catalogue_promotion_without_rules.id
+    )
 
     variant_channel_listing = checkout_line_variant.channel_listings.get(
         channel=channel
@@ -1637,7 +1640,7 @@ def test_checkout_complete_product_on_promotion_deleted_promotion_instance(
     }
 
     def delete_promotion(*args, **kwargs):
-        Promotion.objects.get(id=promotion_without_rules.id).delete()
+        Promotion.objects.get(id=catalogue_promotion_without_rules.id).delete()
 
     # when
     with before_after.before(
@@ -1667,7 +1670,7 @@ def test_checkout_complete_product_on_promotion_deleted_promotion_instance(
     )
     assert not order_line.sale_id
     assert order_line.unit_discount_reason
-    assert order_line.unit_discount_reason == "Promotion: "
+    assert order_line.unit_discount_reason == f"Promotion: {promotion_id}"
     assert checkout_line_quantity == order_line.quantity
     assert checkout_line_variant == order_line.variant
 
@@ -1686,7 +1689,7 @@ def test_checkout_complete_product_on_promotion_deleted_promotion_instance(
 def test_checkout_complete_price_override(
     user_api_client,
     checkout_with_item,
-    promotion_without_rules,
+    catalogue_promotion_without_rules,
     payment_dummy,
     address,
     shipping_method,
