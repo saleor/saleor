@@ -1,7 +1,7 @@
 exclude: ^.semgrep/
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v4.6.0
     hooks:
       - id: trailing-whitespace
         exclude: ^templates/templated_email/compiled/
@@ -11,25 +11,25 @@ repos:
         exclude_types: [svg]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.3.4
+    rev: v0.4.8
     hooks:
       - id: ruff
       - id: ruff-format
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.9.0
+    rev: v1.10.0
     hooks:
       - id: mypy
         language: system
         exclude: tests/
 
   - repo: https://github.com/fpgmaas/deptry.git
-    rev: "0.15.0"
+    rev: "0.16.1"
     hooks:
       - id: deptry
 
   - repo: https://github.com/returntocorp/semgrep
-    rev: v1.66.2
+    rev: v1.73.0
     hooks:
     - id: semgrep
       language_version: python3.9
