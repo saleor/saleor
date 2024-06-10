@@ -3738,7 +3738,8 @@ def test_checkout_complete_with_invalid_address(
     invalid_postal_code = "invalid postal code"
     address.postal_code = invalid_postal_code
     address.validation_skipped = True
-    address.save(update_fields=["validation_skipped", "postal_code"])
+    address.invalid_format = True
+    address.save(update_fields=["validation_skipped", "postal_code", "invalid_format"])
 
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method

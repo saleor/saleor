@@ -139,7 +139,9 @@ def test_logged_customer_update_addresses(user_api_client, graphql_address_data)
     assert user.default_shipping_address.metadata == {"public": "public_value"}
 
     assert user.default_billing_address.validation_skipped is False
+    assert user.default_billing_address.invalid_format is False
     assert user.default_shipping_address.validation_skipped is False
+    assert user.default_shipping_address.invalid_format is False
 
 
 def test_logged_customer_update_addresses_invalid_shipping_address(
@@ -390,8 +392,10 @@ def test_account_update_address_by_app_skip_validation(
     customer_user.refresh_from_db()
     assert customer_user.default_billing_address.postal_code == invalid_postal_code
     assert customer_user.default_billing_address.validation_skipped is True
+    assert customer_user.default_billing_address.invalid_format is True
     assert customer_user.default_shipping_address.postal_code == invalid_postal_code
     assert customer_user.default_shipping_address.validation_skipped is True
+    assert customer_user.default_shipping_address.invalid_format is True
 
 
 def test_account_update_address_by_app_skip_validation_no_permissions(

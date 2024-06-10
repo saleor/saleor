@@ -54,6 +54,7 @@ def test_customer_update_own_address(
     assert address_obj.city == address_data["city"].upper()
     assert address_obj.metadata == {"public": "public_value"}
     assert address_obj.validation_skipped is False
+    assert address_obj.invalid_format is False
     user.refresh_from_db()
     assert generate_address_search_document_value(address_obj) in user.search_document
 
@@ -201,6 +202,7 @@ def test_account_address_update_by_app(
     address_obj.refresh_from_db()
     assert address_obj.city == address_data["city"].upper()
     assert address_obj.validation_skipped is False
+    assert address_obj.invalid_format is False
 
 
 def test_account_address_update_by_app_skip_validation(
@@ -233,6 +235,7 @@ def test_account_address_update_by_app_skip_validation(
     address_obj.refresh_from_db()
     assert address_obj.postal_code == invalid_postal_code
     assert address_obj.validation_skipped is True
+    assert address_obj.invalid_format is True
 
 
 def test_account_address_update_by_app_skip_validation_no_permissions(

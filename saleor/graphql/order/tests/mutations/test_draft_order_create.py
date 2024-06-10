@@ -243,7 +243,9 @@ def test_draft_order_create_with_voucher(
     assert order.billing_address.metadata == stored_metadata
     assert order.shipping_address.metadata == stored_metadata
     assert order.billing_address.validation_skipped is False
+    assert order.billing_address.invalid_format is False
     assert order.shipping_address.validation_skipped is False
+    assert order.shipping_address.invalid_format is False
     assert order.search_vector
     assert order.external_reference == external_reference
     shipping_total = shipping_method.channel_listings.get(
@@ -2137,8 +2139,10 @@ def test_draft_order_create_invalid_address_skip_validation(
     order = Order.objects.last()
     assert order.shipping_address.postal_code == invalid_postal_code
     assert order.shipping_address.validation_skipped is True
+    assert order.shipping_address.invalid_format is True
     assert order.billing_address.postal_code == invalid_postal_code
     assert order.billing_address.validation_skipped is True
+    assert order.billing_address.invalid_format is True
 
 
 @patch("saleor.order.calculations.fetch_order_prices_if_expired")

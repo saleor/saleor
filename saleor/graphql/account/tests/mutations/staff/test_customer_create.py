@@ -110,6 +110,7 @@ def test_customer_create(
     address_data["metadata"] = metadata
     address_data.pop("privateMetadata")
     address_data.pop("validationSkipped")
+    address_data.pop("invalidFormat")
 
     redirect_url = "https://www.example.com"
     external_reference = "test-ext-ref"
@@ -223,6 +224,7 @@ def test_customer_create_as_app(
     address_data["metadata"] = metadata
     address_data.pop("privateMetadata")
     address_data.pop("validationSkipped")
+    address_data.pop("invalidFormat")
 
     redirect_url = "https://www.example.com"
     external_reference = "test-ext-ref"
@@ -375,6 +377,7 @@ def test_customer_create_empty_metadata_key(
     address_data.pop("metadata")
     address_data.pop("privateMetadata")
     address_data.pop("validationSkipped")
+    address_data.pop("invalidFormat")
 
     redirect_url = "https://www.example.com"
     external_reference = "test-ext-ref"
@@ -518,6 +521,7 @@ def test_customer_create_webhook_event_triggered(
     address_data = convert_dict_keys_to_camel_case(address.as_data())
     address_data.pop("privateMetadata")
     address_data.pop("validationSkipped")
+    address_data.pop("invalidFormat")
 
     variables = {
         "email": email,

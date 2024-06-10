@@ -237,7 +237,9 @@ def test_draft_order_update_with_voucher(
     assert order.billing_address.metadata == stored_metadata
     assert order.shipping_address.metadata == stored_metadata
     assert order.billing_address.validation_skipped is False
+    assert order.billing_address.invalid_format is False
     assert order.shipping_address.validation_skipped is False
+    assert order.shipping_address.invalid_format is False
     assert order.voucher_code == voucher.code
     assert order.customer_note == customer_note
     assert order.search_vector
@@ -901,8 +903,10 @@ def test_draft_order_update_invalid_address_skip_validation(
     order.refresh_from_db()
     assert order.shipping_address.postal_code == invalid_postal_code
     assert order.shipping_address.validation_skipped is True
+    assert order.shipping_address.invalid_format is True
     assert order.billing_address.postal_code == invalid_postal_code
     assert order.billing_address.validation_skipped is True
+    assert order.billing_address.invalid_format is True
 
 
 def test_draft_order_update_by_user_no_channel_access(

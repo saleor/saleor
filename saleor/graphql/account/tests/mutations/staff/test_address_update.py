@@ -51,6 +51,7 @@ def test_address_update_mutation(
     address_obj.refresh_from_db()
     assert address_obj.city == graphql_address_data["city"].upper()
     assert address_obj.validation_skipped is False
+    assert address_obj.invalid_format is False
     customer_user.refresh_from_db()
     assert (
         generate_address_search_document_value(address_obj)
@@ -175,6 +176,7 @@ def test_address_update_skip_validation(
     address_obj.refresh_from_db()
     assert address_obj.postal_code == invalid_postal_code
     assert address_obj.validation_skipped is True
+    assert address_obj.invalid_format is True
 
 
 def test_address_update_address_with_skipped_validation(
@@ -188,7 +190,8 @@ def test_address_update_address_with_skipped_validation(
     address_obj = customer_user.addresses.first()
     address_obj.phone = "invalid phone number"
     address_obj.validation_skipped = True
-    address_obj.save(update_fields=["phone", "validation_skipped"])
+    address_obj.invalid_format = True
+    address_obj.save(update_fields=["phone", "validation_skipped", "invalid_format"])
 
     address_data = graphql_address_data
     valid_phone = address_data["phone"]
@@ -210,3 +213,4 @@ def test_address_update_address_with_skipped_validation(
     address_obj.refresh_from_db()
     assert address_obj.phone == valid_phone
     assert address_obj.validation_skipped is False
+    assert address_obj.invalid_format is False

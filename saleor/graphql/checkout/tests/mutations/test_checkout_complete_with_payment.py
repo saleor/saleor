@@ -4423,7 +4423,8 @@ def test_checkout_complete_with_invalid_address(
     invalid_phone = "invalid phone"
     address.phone = invalid_phone
     address.validation_skipped = True
-    address.save(update_fields=["validation_skipped", "phone"])
+    address.invalid_format = True
+    address.save(update_fields=["validation_skipped", "phone", "invalid_format"])
 
     checkout.billing_address = address
     checkout.shipping_address = address

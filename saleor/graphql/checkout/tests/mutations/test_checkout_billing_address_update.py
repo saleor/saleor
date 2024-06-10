@@ -65,6 +65,7 @@ def test_checkout_billing_address_update_by_id(
     assert checkout.billing_address.country == billing_address["country"]
     assert checkout.billing_address.city == billing_address["city"].upper()
     assert checkout.billing_address.validation_skipped is False
+    assert checkout.billing_address.invalid_format is False
 
 
 def test_checkout_billing_address_update_by_id_without_required_fields(
@@ -638,3 +639,4 @@ def test_checkout_billing_address_skip_validation_by_app(
     checkout.refresh_from_db()
     assert checkout.billing_address.postal_code == invalid_postal_code
     assert checkout.billing_address.validation_skipped is True
+    assert checkout.billing_address.invalid_format is True

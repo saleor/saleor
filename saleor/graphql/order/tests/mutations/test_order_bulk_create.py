@@ -595,7 +595,9 @@ def test_order_bulk_create(
     assert db_order.total_authorized_amount == Decimal("10")
     assert db_order.authorize_status == OrderAuthorizeStatus.PARTIAL.lower()
     assert db_order.shipping_address.validation_skipped is False
+    assert db_order.shipping_address.invalid_format is False
     assert db_order.billing_address.validation_skipped is False
+    assert db_order.billing_address.invalid_format is False
 
     order_line = order["lines"][0]
     assert order_line["variant"]["id"] == graphene.Node.to_global_id(
@@ -3754,5 +3756,7 @@ def test_order_bulk_create_skip_address_validation(
     db_order = Order.objects.last()
     assert db_order.shipping_address.postal_code == invalid_postal_code
     assert db_order.shipping_address.validation_skipped is True
+    assert db_order.shipping_address.invalid_format is True
     assert db_order.billing_address.postal_code == invalid_postal_code
     assert db_order.billing_address.validation_skipped is True
+    assert db_order.billing_address.invalid_format is True

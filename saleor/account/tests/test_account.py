@@ -212,6 +212,7 @@ def test_address_as_data(address):
         "metadata": {},
         "private_metadata": {},
         "validation_skipped": False,
+        "invalid_format": False,
     }
 
 

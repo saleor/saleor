@@ -3561,8 +3561,9 @@ def test_preprocess_order_creation_address_error_logging(
     manager = get_plugins_manager(allow_replica=False)
 
     address.validation_skipped = True
+    address.invalid_format = True
     address.postal_code = "invalid postal code"
-    address.save(update_fields=["postal_code", "validation_skipped"])
+    address.save(update_fields=["postal_code", "validation_skipped", "invalid_format"])
 
     checkout.shipping_address = address
     checkout.shipping_method = shipping_zone.shipping_methods.get()
@@ -3577,7 +3578,7 @@ def test_preprocess_order_creation_address_error_logging(
     # then
     assert f"Unable to calculate taxes for checkout {checkout.pk}" in caplog.text
     assert (
-        f"Fetching tax data for checkout with address validation skipped. "
+        f"Fetching tax data for checkout with invalid format in address. "
         f"Address ID: {address.pk}" in caplog.text
     )
 
@@ -5479,8 +5480,9 @@ def test_get_order_tax_data_address_error_logging(
     order = order_line.order
     invalid_postal_code = "invalid postal code"
     address.validation_skipped = True
+    address.invalid_format = True
     address.postal_code = invalid_postal_code
-    address.save(update_fields=["postal_code", "validation_skipped"])
+    address.save(update_fields=["postal_code", "validation_skipped", "invalid_format"])
     order.shipping_address = address
     order.billing_address = address
     order.save(update_fields=["shipping_address", "billing_address"])
@@ -5494,7 +5496,7 @@ def test_get_order_tax_data_address_error_logging(
     # then
     assert f"Unable to calculate taxes for order {order.pk}" in caplog.text
     assert (
-        f"Fetching tax data for order with address validation skipped. "
+        f"Fetching tax data for order with invalid format in address. "
         f"Address ID: {address.pk}" in caplog.text
     )
 

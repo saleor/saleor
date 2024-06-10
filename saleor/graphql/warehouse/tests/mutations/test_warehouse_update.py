@@ -78,6 +78,7 @@ def test_mutation_update_warehouse(
     ]
     assert warehouse.address.metadata == {"public": "public_value"}
     assert warehouse.address.validation_skipped is False
+    assert warehouse.address.invalid_format is False
     assert not (warehouse.name == warehouse_old_name)
     assert warehouse.name == "New name"
     assert warehouse.slug == warehouse_slug
@@ -617,3 +618,4 @@ def test_update_warehouse_invalid_address_skip_validation(
     warehouse.refresh_from_db()
     assert warehouse.address.postal_code == invalid_postal_code
     assert warehouse.address.validation_skipped is True
+    assert warehouse.address.invalid_format is True

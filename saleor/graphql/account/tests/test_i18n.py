@@ -202,6 +202,7 @@ def test_skip_validation_multiple_invalid_fields(
     assert db_address.country_area == invalid_name
     assert db_address.city == invalid_name
     assert db_address.validation_skipped is True
+    assert db_address.invalid_format is True
 
 
 @pytest.mark.parametrize("street", [None, "", " "])
@@ -263,6 +264,7 @@ def test_skip_address_validation_with_correct_input_run_normalization(
     assert address_db.city != address_data["city"]
     assert address_db.city == address_data["city"].upper()
     assert address_db.validation_skipped is False
+    assert address_db.invalid_format is False
 
 
 def test_skip_address_validation_with_incorrect_input_skip_normalization(
@@ -298,6 +300,7 @@ def test_skip_address_validation_with_incorrect_input_skip_normalization(
     assert address_db.city == address_data["city"]
     assert address_db.postal_code == invalid_name
     assert address_db.validation_skipped is True
+    assert address_db.invalid_format is True
 
 
 def test_skip_address_validation_logging(

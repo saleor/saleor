@@ -62,6 +62,7 @@ def test_customer_create_address(user_api_client, graphql_address_data):
     address = user.addresses.exclude(id__in=user_addresses_ids).first()
     assert address.metadata == {"public": "public_value"}
     assert address.validation_skipped is False
+    assert address.invalid_format is False
     assert user.addresses.count() == user_addresses_count + 1
     assert (
         generate_address_search_document_value(user.addresses.last())
@@ -364,6 +365,7 @@ def test_account_address_create_by_app_skip_validation(
     customer_user.refresh_from_db()
     assert customer_user.default_shipping_address.postal_code == invalid_postal_code
     assert customer_user.default_shipping_address.validation_skipped is True
+    assert customer_user.default_shipping_address.invalid_format is True
 
 
 def test_account_address_create_by_app_skip_validation_no_permissions(

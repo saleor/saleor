@@ -92,6 +92,7 @@ def test_mutation_create_warehouse(
     assert created_warehouse["address"]["metadata"] == metadata
     assert address.metadata == {"public": "public_value"}
     assert address.validation_skipped is False
+    assert address.invalid_format is False
 
 
 def test_mutation_create_warehouse_shipping_zone_provided(
@@ -378,3 +379,4 @@ def test_create_warehouse_invalid_address_skip_validation(
     address = Address.objects.get()
     assert address.postal_code == invalid_postal_code
     assert address.validation_skipped is True
+    assert address.invalid_format is True
