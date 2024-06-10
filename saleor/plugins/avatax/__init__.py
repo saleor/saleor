@@ -654,7 +654,7 @@ def get_order_tax_data(
         msg = response.get("error", {}).get("message", "")
         error_code = response.get("error", {}).get("code", "")
         logger.warning(
-            "Unable to calculate taxes for order %s, error_code: %s, " "error_msg: %s",
+            "Unable to calculate taxes for order %s, error_code: %s, error_msg: %s",
             order.id,
             error_code,
             msg,
