@@ -5,9 +5,11 @@ from unittest.mock import patch
 import graphene
 import pytest
 from dateutil.relativedelta import relativedelta
+from django.core.exceptions import ValidationError
 from django.utils import timezone
 from freezegun import freeze_time
 
+from ...checkout.error_codes import CheckoutErrorCode
 from ...core import TimePeriodType
 from ...core.exceptions import GiftCardNotApplicable
 from ...core.utils.json_serializer import CustomJsonEncoder
@@ -32,7 +34,7 @@ from ..utils import (
     gift_cards_create,
     is_gift_card_expired,
     order_has_gift_card_lines,
-    remove_gift_card_code_from_checkout,
+    remove_gift_card_code_from_checkout_or_error,
 )
 
 
@@ -128,7 +130,7 @@ def test_remove_gift_card_code_from_checkout(checkout, gift_card):
     assert checkout.gift_cards.count() == 1
 
     # when
-    remove_gift_card_code_from_checkout(checkout, gift_card.code)
+    remove_gift_card_code_from_checkout_or_error(checkout, gift_card.code)
 
     # then
     assert checkout.gift_cards.count() == 0
@@ -141,10 +143,15 @@ def test_remove_gift_card_code_from_checkout_no_checkout_gift_cards(
     assert checkout.gift_cards.count() == 0
 
     # when
-    remove_gift_card_code_from_checkout(checkout, gift_card.code)
+    with pytest.raises(ValidationError) as error:
+        remove_gift_card_code_from_checkout_or_error(checkout, gift_card.code)
 
     # then
     assert checkout.gift_cards.count() == 0
+    assert error.value.message == (
+        "Cannot remove a gift card not attached to this checkout."
+    )
+    assert error.value.code == CheckoutErrorCode.GIFT_CARD_NOT_APPLICABLE.value
 
 
 @pytest.mark.parametrize(

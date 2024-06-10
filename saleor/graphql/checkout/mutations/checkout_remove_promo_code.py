@@ -9,7 +9,7 @@ from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import (
     invalidate_checkout,
-    remove_promo_code_from_checkout,
+    remove_promo_code_from_checkout_or_error,
     remove_voucher_from_checkout,
 )
 from ....webhook.event_types import WebhookEventAsyncType
@@ -84,31 +84,31 @@ class CheckoutRemovePromoCode(BaseMutation):
             "promo_code", promo_code, "promo_code_id", promo_code_id
         )
 
-        object_type, promo_code_pk = cls.clean_promo_code_id(promo_code_id)
-
         checkout = get_checkout(cls, info, checkout_id=checkout_id, token=token, id=id)
 
         manager = get_plugin_manager_promise(info.context).get()
         checkout_info = fetch_checkout_info(checkout, [], manager)
 
-        removed = False
         if promo_code:
-            removed = remove_promo_code_from_checkout(checkout_info, promo_code)
+            try:
+                remove_promo_code_from_checkout_or_error(checkout_info, promo_code)
+            except ValidationError as error:
+                raise ValidationError({"promo_code": error})
         else:
-            removed = cls.remove_promo_code_by_id(
+            object_type, promo_code_pk = cls.clean_promo_code_id(promo_code_id)
+            cls.remove_promo_code_by_id_or_error(
                 info, checkout, object_type, promo_code_pk
             )
-
-        if removed:
-            lines, _ = fetch_checkout_lines(checkout)
-            invalidate_checkout(
-                checkout_info,
-                lines,
-                manager,
-                recalculate_discount=True,
-                save=True,
-            )
-            cls.call_event(manager.checkout_updated, checkout)
+        # if this step is reached, it means promo code was removed
+        lines, _ = fetch_checkout_lines(checkout)
+        invalidate_checkout(
+            checkout_info,
+            lines,
+            manager,
+            recalculate_discount=True,
+            save=True,
+        )
+        cls.call_event(manager.checkout_updated, checkout)
 
         return CheckoutRemovePromoCode(checkout=checkout)
 
@@ -142,19 +142,15 @@ class CheckoutRemovePromoCode(BaseMutation):
         return object_type, promo_code_pk
 
     @classmethod
-    def remove_promo_code_by_id(
+    def remove_promo_code_by_id_or_error(
         cls,
         info: ResolveInfo,
         checkout: models.Checkout,
         object_type: str,
         promo_code_pk: int,
-    ) -> bool:
-        """Detach promo code from the checkout based on the id.
+    ) -> None:
+        """Detach promo code from the checkout based on the id or raise an error."""
 
-        Return a boolean value that indicates whether this function changed
-        the checkout object which then controls whether hooks such as
-        `checkout_updated` are triggered.
-        """
         if object_type == str(Voucher) and checkout.voucher_code is not None:
             node = cls._get_node_by_pk(info, graphene_type=Voucher, pk=promo_code_pk)
             if node is None:
@@ -168,9 +164,14 @@ class CheckoutRemovePromoCode(BaseMutation):
                 )
             if checkout.voucher_code == node.code:
                 remove_voucher_from_checkout(checkout)
-                return True
+            else:
+                raise ValidationError(
+                    {
+                        "promo_code_id": ValidationError(
+                            "Couldn't remove a promo code from a checkout.",
+                            code=CheckoutErrorCode.NOT_FOUND.value,
+                        )
+                    }
+                )
         else:
             checkout.gift_cards.remove(promo_code_pk)
-            return True
-
-        return False
