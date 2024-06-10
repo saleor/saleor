@@ -900,8 +900,7 @@ class Checkout(ModelObjectType[models.Checkout]):
             import inspect
 
             print(len(inspect.stack(0)))
-            # sample_payload = {} #Sample Payload from Dataloader
-            sample_payload = None
+            sample_payloads = {} #Sample Payload from Dataloader
             database_connection_name = get_database_connection_name(info.context)
             taxed_total = calculations.calculate_checkout_total_with_gift_cards(
                 manager=manager,
@@ -909,7 +908,7 @@ class Checkout(ModelObjectType[models.Checkout]):
                 lines=lines,
                 address=address,
                 database_connection_name=database_connection_name,
-                subscription_payload=sample_payload,
+                pregenerated_subscription_payloads=sample_payloads,
             )
             return max(taxed_total, zero_taxed_money(root.currency))
 

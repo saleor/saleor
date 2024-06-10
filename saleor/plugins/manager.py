@@ -251,7 +251,9 @@ class PluginsManager(PaymentInterface):
         plugin_method = getattr(plugin, method_name, NotImplemented)
         if plugin_method == NotImplemented:
             return previous_value
-        returned_value = plugin_method(*args, **kwargs, previous_value=previous_value)  # type:ignore
+        returned_value = plugin_method(
+            *args, **kwargs, previous_value=previous_value
+        )  # type:ignore
         if returned_value == NotImplemented:
             return previous_value
         return returned_value
@@ -652,14 +654,18 @@ class PluginsManager(PaymentInterface):
         )
 
     def get_taxes_for_checkout(
-        self, checkout_info, lines, app_identifier, subscription_payload=None
+        self,
+        checkout_info,
+        lines,
+        app_identifier,
+        pregenerated_subscription_payloads: Optional[dict] = {},
     ) -> Optional[TaxData]:
         return self.__run_plugin_method_until_first_success(
             "get_taxes_for_checkout",
             checkout_info,
             lines,
             app_identifier,
-            subscription_payload=subscription_payload,
+            pregenerated_subscription_payloads=pregenerated_subscription_payloads,
             channel_slug=checkout_info.channel.slug,
         )
 
