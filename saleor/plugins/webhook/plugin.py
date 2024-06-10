@@ -28,6 +28,7 @@ from ...core.utils.json_serializer import CustomJsonEncoder
 from ...csv.notifications import get_default_export_payload
 from ...graphql.core.context import SaleorContext
 from ...graphql.webhook.subscription_payload import initialize_request
+from ...graphql.webhook.utils import get_pregenerated_subscription_payload
 from ...payment import PaymentError, TransactionKind
 from ...payment.interface import (
     GatewayResponse,
@@ -3039,7 +3040,7 @@ class WebhookPlugin(BasePlugin):
         app_identifier: str,
         payload_gen: Callable,
         subscriptable_object=None,
-        subscription_payload=None,
+        pregenerated_subscription_payloads: Optional[dict] = {},
     ):
         app = (
             App.objects.filter(
@@ -3065,6 +3066,10 @@ class WebhookPlugin(BasePlugin):
             allow_replica=False,
             event_type=event_type,
         )
+
+        pregenerated_subscription_payload = get_pregenerated_subscription_payload(
+            webhook, subscriptable_object, pregenerated_subscription_payloads
+        )
         response = trigger_webhook_sync(
             event_type=event_type,
             webhook=webhook,
@@ -3073,7 +3078,7 @@ class WebhookPlugin(BasePlugin):
             subscribable_object=subscriptable_object,
             request=request_context,
             requestor=self.requestor,
-            subscription_payload=subscription_payload,
+            pregenerated_subscription_payload=pregenerated_subscription_payload,
         )
         return parse_tax_data(response)
 
@@ -3083,15 +3088,20 @@ class WebhookPlugin(BasePlugin):
         lines,
         app_identifier,
         previous_value,
-        subscription_payload=None,
+        pregenerated_subscription_payloads={},
     ) -> Optional["TaxData"]:
         print("checkout_info", checkout_info)
         print("lines", lines)
         print("app_identifier", app_identifier)
         print("previous_value", previous_value)
-        print("subscription_payload", subscription_payload)
+        from pprint import pprint
+
+        print("pregenerated_subscription_payloads", "!" * 50)
+        pprint(pregenerated_subscription_payloads)
+        print("\n\n")
         event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
         if app_identifier:
+
             return self.__run_tax_webhook(
                 event_type,
                 app_identifier,
@@ -3099,7 +3109,7 @@ class WebhookPlugin(BasePlugin):
                     checkout_info, lines
                 ),
                 checkout_info.checkout,
-                subscription_payload=subscription_payload,
+                pregenerated_subscription_payloads=pregenerated_subscription_payloads,
             )
         else:
             return trigger_all_webhooks_sync(
@@ -3111,6 +3121,7 @@ class WebhookPlugin(BasePlugin):
                 parse_tax_data,
                 checkout_info.checkout,
                 self.requestor,
+                pregenerated_subscription_payloads=pregenerated_subscription_payloads,
             )
 
     def get_taxes_for_order(

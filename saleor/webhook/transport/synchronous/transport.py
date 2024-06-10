@@ -18,6 +18,7 @@ from ....graphql.webhook.subscription_payload import (
     initialize_request,
 )
 from ....graphql.webhook.subscription_types import WEBHOOK_TYPES_MAP
+from ....graphql.webhook.utils import get_pregenerated_subscription_payload
 from ....payment.models import TransactionEvent
 from ....payment.utils import (
     create_transaction_event_from_request_and_webhook_response,
@@ -181,6 +182,7 @@ def trigger_webhook_sync_if_not_cached(
     - Fetch response from cache if it is still valid.
     """
 
+    # TODO Owczar: Task for issue with 2 webhooks for same url, same event and different query.
     cache_key = generate_cache_key_for_webhook(
         cache_data, webhook.target_url, event_type, webhook.app_id
     )
@@ -212,7 +214,7 @@ def create_delivery_for_subscription_sync_event(
     requestor=None,
     request=None,
     allow_replica=False,
-    payload=None,
+    pregenerated_payload: Optional[dict] = None,
 ) -> Optional[EventDelivery]:
     """Generate webhook payload based on subscription query and create delivery object.
 
@@ -227,6 +229,7 @@ def create_delivery_for_subscription_sync_event(
     :return: List of event deliveries to send via webhook tasks.
     :param allow_replica: use replica database.
     """
+    # TODO Owczar: Adjust docstring to new solution
     if event_type not in WEBHOOK_TYPES_MAP:
         logger.info(
             "Skipping subscription webhook. Event %s is not subscribable.", event_type
@@ -240,7 +243,7 @@ def create_delivery_for_subscription_sync_event(
             event_type=event_type,
             allow_replica=allow_replica,
         )
-    if not payload:
+    if not pregenerated_payload:
         data = generate_payload_from_subscription(
             event_type=event_type,
             subscribable_object=subscribable_object,
@@ -249,7 +252,7 @@ def create_delivery_for_subscription_sync_event(
             app=webhook.app,
         )
     else:
-        data = payload
+        data = pregenerated_payload
 
     if not data:
         logger.info(
@@ -279,7 +282,7 @@ def trigger_webhook_sync(
     timeout=None,
     request=None,
     requestor=None,
-    subscription_payload=None,
+    pregenerated_subscription_payload: Optional[dict] = None,
 ) -> Optional[dict[Any, Any]]:
     """Send a synchronous webhook request."""
     if webhook.subscription_query:
@@ -290,7 +293,7 @@ def trigger_webhook_sync(
             requestor=requestor,
             request=request,
             allow_replica=allow_replica,
-            payload=subscription_payload,
+            pregenerated_payload=pregenerated_subscription_payload,
         )
         if not delivery:
             return None
@@ -318,6 +321,7 @@ def trigger_all_webhooks_sync(
     subscribable_object=None,
     requestor=None,
     allow_replica=False,
+    pregenerated_subscription_payloads: Optional[dict] = {},
 ) -> Optional[R]:
     """Send all synchronous webhook request for given event type.
 
@@ -341,12 +345,17 @@ def trigger_all_webhooks_sync(
                     event_type=event_type,
                 )
 
+            pregenerated_payload = get_pregenerated_subscription_payload(
+                webhook, subscribable_object, pregenerated_subscription_payloads
+            )
+
             delivery = create_delivery_for_subscription_sync_event(
                 event_type=event_type,
                 subscribable_object=subscribable_object,
                 webhook=webhook,
                 request=request_context,
                 requestor=requestor,
+                pregenerated_payload=pregenerated_payload,
             )
             if not delivery:
                 return None
