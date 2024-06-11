@@ -4420,10 +4420,10 @@ def test_checkout_complete_with_invalid_address(
         "redirectUrl": "https://www.example.com",
     }
 
-    invalid_phone = "invalid phone"
-    address.phone = invalid_phone
+    invalid_postal_code = "invalid postal code"
+    address.postal_code = invalid_postal_code
     address.validation_skipped = True
-    address.save(update_fields=["validation_skipped", "phone"])
+    address.save(update_fields=["validation_skipped", "postal_code"])
 
     checkout.billing_address = address
     checkout.shipping_address = address
@@ -4455,5 +4455,5 @@ def test_checkout_complete_with_invalid_address(
     # then
     assert not content["errors"]
     order = Order.objects.get(checkout_token=checkout.token)
-    assert order.shipping_address.phone == invalid_phone
-    assert order.billing_address.phone == invalid_phone
+    assert order.shipping_address.postal_code == invalid_postal_code
+    assert order.billing_address.postal_code == invalid_postal_code

@@ -175,7 +175,6 @@ def test_skip_validation_multiple_invalid_fields(
         "country": "US",
         "city": invalid_name,
         "countryArea": invalid_name,
-        "phone": invalid_name,
         "metadata": [{"key": "public", "value": "public_value"}],
         "skipValidation": True,
     }
@@ -191,10 +190,8 @@ def test_skip_validation_multiple_invalid_fields(
     data = content["data"]["addressCreate"]
     assert not data["errors"]
     assert data["address"]["country"]["code"] == "US"
-    assert data["address"]["phone"] == invalid_name
     assert data["address"]["postalCode"] == invalid_name
     db_address = Address.objects.get(first_name=invalid_name)
-    assert db_address.phone == invalid_name
     assert db_address.postal_code == invalid_name
     assert db_address.country_area == invalid_name
     assert db_address.city == invalid_name
