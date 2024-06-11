@@ -1236,3 +1236,47 @@ def test_fetch_order_data_calls_inactive_plugin(
 
     # then
     assert order_with_lines.tax_error == "Empty tax data."
+
+
+@pytest.mark.parametrize("tax_app_id", [None, "test.app"])
+def test_recalculate_prices_empty_tax_data_logging_address(
+    tax_app_id, draft_order, order_lines, address, caplog
+):
+    """Test that discounts are properly updated when shipping price changes."""
+    # given
+    order = draft_order
+
+    address.validation_skipped = True
+    address.postal_code = "invalid postal code"
+    address.save(update_fields=["postal_code", "validation_skipped"])
+
+    order.shipping_address = address
+    order.billing_address = address
+    order.save(update_fields=["billing_address", "shipping_address"])
+
+    order.channel.tax_configuration.tax_app_id = tax_app_id
+    order.channel.tax_configuration.save()
+
+    zero_money = zero_taxed_money(order.currency)
+    zero_prices = OrderTaxedPricesData(
+        undiscounted_price=zero_money,
+        price_with_discounts=zero_money,
+    )
+    manager_methods = {
+        "calculate_order_line_unit": Mock(side_effect=TaxError()),
+        "calculate_order_line_total": Mock(return_value=zero_prices),
+        "get_order_shipping_tax_rate": Mock(return_value=Decimal("0.00")),
+        "get_order_line_tax_rate": Mock(return_value=Decimal("0.00")),
+        "calculate_order_shipping": Mock(return_value=zero_money),
+        "get_taxes_for_order": Mock(return_value=None),
+    }
+    manager = Mock(**manager_methods)
+
+    # when
+    calculations._recalculate_prices(order, manager, order_lines)
+
+    # then
+    assert (
+        f"Fetching tax data for order with address validation skipped. "
+        f"Address ID: {address.pk}" in caplog.text
+    )

@@ -29,7 +29,6 @@ from ...core.utils.json_serializer import CustomJsonEncoder
 from ...csv.notifications import get_default_export_payload
 from ...graphql.core.context import SaleorContext
 from ...graphql.webhook.subscription_payload import initialize_request
-from ...order.utils import log_address_if_validation_skipped_for_order
 from ...payment import PaymentError, TransactionKind
 from ...payment.interface import (
     GatewayResponse,
@@ -3077,7 +3076,6 @@ class WebhookPlugin(BasePlugin):
         self, order: "Order", app_identifier, previous_value
     ) -> Optional["TaxData"]:
         event_type = WebhookEventSyncType.ORDER_CALCULATE_TAXES
-        log_address_if_validation_skipped_for_order(order, logger)
         if app_identifier:
             return self.__run_tax_webhook(
                 event_type,

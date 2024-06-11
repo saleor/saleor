@@ -1,3 +1,4 @@
+import logging
 from collections.abc import Iterable
 from decimal import Decimal
 from typing import Optional
@@ -27,6 +28,9 @@ from .base_calculations import apply_order_discounts, base_order_line_total
 from .fetch import DraftOrderLineInfo, fetch_draft_order_lines_info
 from .interface import OrderTaxedPricesData
 from .models import Order, OrderLine
+from .utils import log_address_if_validation_skipped_for_order
+
+logger = logging.getLogger(__name__)
 
 
 def fetch_order_prices_if_expired(
@@ -247,6 +251,7 @@ def _call_plugin_or_tax_app(
     else:
         tax_data = manager.get_taxes_for_order(order, tax_app_identifier)
         if tax_data is None:
+            log_address_if_validation_skipped_for_order(order, logger)
             raise TaxEmptyData("Empty tax data.")
         _apply_tax_data(order, lines, tax_data)
 
@@ -347,6 +352,7 @@ def _apply_tax_data(
 ) -> None:
     """Apply all prices from tax data to order and order lines."""
     if not tax_data:
+        log_address_if_validation_skipped_for_order(order, logger)
         return
 
     currency = order.currency
