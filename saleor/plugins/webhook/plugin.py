@@ -19,7 +19,6 @@ from django.conf import settings
 from ...app.models import App
 from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
 from ...checkout.models import Checkout
-from ...checkout.utils import log_address_if_validation_skipped_for_checkout
 from ...core import EventDeliveryStatus
 from ...core.models import EventDelivery
 from ...core.notify_events import NotifyEventType
@@ -3050,7 +3049,6 @@ class WebhookPlugin(BasePlugin):
         self, checkout_info, lines, app_identifier, previous_value
     ) -> Optional["TaxData"]:
         event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
-        log_address_if_validation_skipped_for_checkout(checkout_info, logger)
         if app_identifier:
             return self.__run_tax_webhook(
                 event_type,

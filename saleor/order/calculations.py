@@ -211,6 +211,8 @@ def _calculate_and_add_tax(
             _recalculate_with_plugins(manager, order, lines, prices_entered_with_tax)
             # Get the taxes calculated with apps and apply to order.
             tax_data = manager.get_taxes_for_order(order, tax_app_identifier)
+            if not tax_data:
+                log_address_if_validation_skipped_for_order(order, logger)
             _apply_tax_data(order, lines, tax_data)
         else:
             _call_plugin_or_tax_app(
@@ -352,7 +354,6 @@ def _apply_tax_data(
 ) -> None:
     """Apply all prices from tax data to order and order lines."""
     if not tax_data:
-        log_address_if_validation_skipped_for_order(order, logger)
         return
 
     currency = order.currency

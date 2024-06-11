@@ -1242,7 +1242,6 @@ def test_fetch_order_data_calls_inactive_plugin(
 def test_recalculate_prices_empty_tax_data_logging_address(
     tax_app_id, draft_order, order_lines, address, caplog
 ):
-    """Test that discounts are properly updated when shipping price changes."""
     # given
     order = draft_order
 
