@@ -23,6 +23,7 @@ from ..utils import (
     get_discount_name,
     get_discount_translated_name,
     increase_voucher_code_usage_value,
+    is_order_level_voucher,
     remove_voucher_usage_by_customer,
     validate_voucher,
 )
@@ -588,3 +589,51 @@ def test_get_discount_translated_name_no_translations(rule_info):
 
     # then
     assert translated_name is None
+
+
+def test_is_order_level_voucher(voucher):
+    # given
+    voucher.type = VoucherType.ENTIRE_ORDER
+    voucher.save(update_fields=["type"])
+
+    # when
+    result = is_order_level_voucher(voucher)
+
+    # then
+    assert result is True
+
+
+def test_is_order_level_voucher_apply_once_per_order(voucher):
+    # given
+    voucher.type = VoucherType.ENTIRE_ORDER
+    voucher.apply_once_per_order = True
+    voucher.save(update_fields=["type", "apply_once_per_order"])
+
+    # when
+    result = is_order_level_voucher(voucher)
+
+    # then
+    assert result is False
+
+
+def test_is_order_level_voucher_no_voucher(voucher):
+    # when
+    result = is_order_level_voucher(None)
+
+    # then
+    assert result is False
+
+
+@pytest.mark.parametrize(
+    "voucher_type", [VoucherType.SPECIFIC_PRODUCT, VoucherType.SHIPPING]
+)
+def test_is_order_level_voucher_another_type(voucher_type, voucher):
+    # given
+    voucher.type = voucher_type
+    voucher.save(update_fields=["type"])
+
+    # when
+    result = is_order_level_voucher(voucher)
+
+    # then
+    assert result is False
