@@ -1276,6 +1276,6 @@ def test_recalculate_prices_empty_tax_data_logging_address(
 
     # then
     assert (
-        f"Fetching tax data for order with address validation skipped. "
+        f"Fetching tax data for order with invalid format in address. "
         f"Address ID: {address.pk}" in caplog.text
     )

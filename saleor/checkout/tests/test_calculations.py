@@ -750,6 +750,6 @@ def test_calculate_and_add_tax_empty_tax_data_logging_address(
 
     # then
     assert (
-        f"Fetching tax data for checkout with address validation skipped. "
+        f"Fetching tax data for checkout with invalid format in address. "
         f"Address ID: {address.pk}" in caplog.text
     )
