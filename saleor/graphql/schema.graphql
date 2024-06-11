@@ -36054,7 +36054,9 @@ type TaxableObject @doc(category: "Taxes") {
   """The currency of the object."""
   currency: String!
 
-  """The price of shipping method."""
+  """
+  The price of shipping method, includes shipping voucher discount if applied.
+  """
   shippingPrice: Money!
 
   """The address data."""

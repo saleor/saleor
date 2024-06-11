@@ -294,7 +294,12 @@ class TaxableObject(BaseObjectType):
     )
     currency = graphene.String(required=True, description="The currency of the object.")
     shipping_price = graphene.Field(
-        Money, required=True, description="The price of shipping method."
+        Money,
+        required=True,
+        description=(
+            "The price of shipping method, includes shipping voucher discount "
+            "if applied."
+        ),
     )
     address = graphene.Field(
         "saleor.graphql.account.types.Address",
@@ -368,7 +373,20 @@ class TaxableObject(BaseObjectType):
                 ]
             ).then(calculate_shipping_price)
 
-        return root.base_shipping_price
+        # TODO: after adding `undiscounted_base_shipping_price` to Order model,
+        # the `root.base_shipping_price` should be used
+        def shipping_price_with_discount(tax_config):
+            return (
+                root.shipping_price_gross
+                if tax_config.prices_entered_with_tax
+                else root.shipping_price_net
+            )
+
+        return (
+            TaxConfigurationByChannelId(info.context)
+            .load(root.channel_id)
+            .then(shipping_price_with_discount)
+        )
 
     @staticmethod
     def resolve_discounts(root: Union[Checkout, Order], info: ResolveInfo):

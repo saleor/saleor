@@ -81,12 +81,14 @@ def propagate_order_discount_on_order_prices(
     discount.
     """
     base_subtotal = base_order_subtotal(order, lines)
+    # TODO: add undiscounted_base_shipping_price field to Order model, and use it here
     base_shipping_price = order.base_shipping_price
     subtotal = base_subtotal
     shipping_price = base_shipping_price
     currency = order.currency
     order_discounts_to_update = []
 
+    shipping_voucher_discount = None
     for order_discount in order.discounts.all():
         subtotal_before_discount = subtotal
         shipping_price_before_discount = shipping_price
@@ -99,6 +101,8 @@ def propagate_order_discount_on_order_prices(
                     currency=currency,
                     price_to_discount=subtotal,
                 )
+            elif voucher and voucher.type == VoucherType.SHIPPING:
+                shipping_voucher_discount = order_discount
         elif order_discount.type == DiscountType.ORDER_PROMOTION:
             subtotal = apply_discount_to_value(
                 value=order_discount.value,
@@ -146,6 +150,15 @@ def propagate_order_discount_on_order_prices(
 
     if order_discounts_to_update:
         OrderDiscount.objects.bulk_update(order_discounts_to_update, ["amount_value"])
+
+    # Apply shipping voucher discount
+    if shipping_voucher_discount:
+        shipping_price = apply_discount_to_value(
+            value=shipping_voucher_discount.value,
+            value_type=shipping_voucher_discount.value_type,
+            currency=currency,
+            price_to_discount=shipping_price,
+        )
 
     return subtotal, shipping_price
 
@@ -294,6 +307,9 @@ def assign_order_prices(
     subtotal: Money,
     shipping_price: Money,
 ):
+    # TODO: set order.base_shipping_price as this price should include
+    # the shipping discount - must be done together with adding
+    # undiscounted_base_shipping_price to Order model
     order.shipping_price_net_amount = shipping_price.amount
     order.shipping_price_gross_amount = shipping_price.amount
     order.total_net_amount = subtotal.amount + shipping_price.amount
