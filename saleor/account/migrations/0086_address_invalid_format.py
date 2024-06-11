@@ -22,11 +22,4 @@ class Migration(migrations.Migration):
             """,
             reverse_sql=migrations.RunSQL.noop,
         ),
-        migrations.RunSQL(
-            """
-                UPDATE account_address
-                SET invalid_format = validation_skipped;
-            """,
-            reverse_sql=migrations.RunSQL.noop,
-        ),
     ]
