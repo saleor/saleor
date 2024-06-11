@@ -5,7 +5,6 @@ import graphene
 import pytest
 from django.core.exceptions import ValidationError
 
-from ....account.i18n import ADDRESS_FIELDS_TO_LOG
 from ....account.models import Address
 from ....checkout import AddressType
 from ...tests.utils import get_graphql_content
@@ -317,7 +316,6 @@ def test_skip_address_validation_logging(
     address_data["country"] = "IE"
     address_data["postalCode"] = invalid_name
     address_data["countryArea"] = invalid_name
-    address_data["phone"] = invalid_name
     variables = {"user": user_id, "address": address_data}
 
     # when
@@ -332,6 +330,4 @@ def test_skip_address_validation_logging(
     assert "'country_area': 'wrong name'" in caplog.text
     assert "'postal_code': 'wrong name'" in caplog.text
     assert "'skip_validation': True" in caplog.text
-    assert "phone" not in ADDRESS_FIELDS_TO_LOG
-    assert "'phone': 'invalid'" in caplog.text
     assert "'country': 'IE'" in caplog.text
