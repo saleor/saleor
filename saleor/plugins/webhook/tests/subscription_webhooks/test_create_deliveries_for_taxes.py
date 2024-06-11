@@ -511,8 +511,7 @@ def test_order_calculate_taxes_free_shipping_voucher(
         "taxBase": {
             "address": {"id": to_global_id_or_none(order.shipping_address)},
             "currency": "USD",
-            # FIXME
-            "discounts": [{"amount": {"amount": 0.0}}],
+            "discounts": [],
             "channel": {"id": to_global_id_or_none(order.channel)},
             "lines": ANY,
             "pricesEnteredWithTax": True,
