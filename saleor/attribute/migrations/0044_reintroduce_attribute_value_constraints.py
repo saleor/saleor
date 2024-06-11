@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
                     """,
                     reverse_sql="""
                     DROP INDEX CONCURRENTLY IF EXISTS
-                    attribute_assignedpageat_value_id_page_id_851cd501_uniq
+                    attribute_assignedpageat_value_id_page_id_851cd501_uniq;
                     """,
                 ),
                 migrations.RunSQL(
@@ -56,7 +56,7 @@ class Migration(migrations.Migration):
                     """,
                     reverse_sql="""
                     DROP INDEX CONCURRENTLY IF EXISTS
-                    attribute_assignedproduc_value_id_product_id_6f6deb31_uniq
+                    attribute_assignedproduc_value_id_product_id_6f6deb31_uniq;
                     """,
                 ),
                 migrations.RunSQL(
