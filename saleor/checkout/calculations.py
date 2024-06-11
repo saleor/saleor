@@ -333,7 +333,7 @@ def _calculate_and_add_tax(
     prices_entered_with_tax: bool,
     address: Optional["Address"] = None,
 ):
-    from .utils import log_address_if_validation_skipped_for_checkout
+    from .utils import log_address_with_invalid_format_for_checkout
 
     if tax_calculation_strategy == TaxCalculationStrategy.TAX_APP:
         # If taxAppId is not configured run all active plugins and tax apps.
@@ -349,7 +349,7 @@ def _calculate_and_add_tax(
                 checkout_info, lines, tax_app_identifier
             )
             if not tax_data:
-                log_address_if_validation_skipped_for_checkout(checkout_info, logger)
+                log_address_with_invalid_format_for_checkout(checkout_info, logger)
             _apply_tax_data(checkout, lines, tax_data)
         else:
             _call_plugin_or_tax_app(
@@ -375,7 +375,7 @@ def _call_plugin_or_tax_app(
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"] = None,
 ):
-    from .utils import log_address_if_validation_skipped_for_checkout
+    from .utils import log_address_with_invalid_format_for_checkout
 
     if tax_app_identifier.startswith(PLUGIN_IDENTIFIER_PREFIX):
         plugin_ids = [tax_app_identifier.replace(PLUGIN_IDENTIFIER_PREFIX, "")]
@@ -401,7 +401,7 @@ def _call_plugin_or_tax_app(
             checkout_info, lines, tax_app_identifier
         )
         if tax_data is None:
-            log_address_if_validation_skipped_for_checkout(checkout_info, logger)
+            log_address_with_invalid_format_for_checkout(checkout_info, logger)
             raise TaxEmptyData("Empty tax data.")
         _apply_tax_data(checkout, lines, tax_data)
 

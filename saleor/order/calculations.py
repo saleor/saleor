@@ -28,7 +28,7 @@ from .base_calculations import apply_order_discounts, base_order_line_total
 from .fetch import DraftOrderLineInfo, fetch_draft_order_lines_info
 from .interface import OrderTaxedPricesData
 from .models import Order, OrderLine
-from .utils import log_address_if_validation_skipped_for_order
+from .utils import log_address_with_invalid_format_for_order
 
 logger = logging.getLogger(__name__)
 
@@ -212,7 +212,7 @@ def _calculate_and_add_tax(
             # Get the taxes calculated with apps and apply to order.
             tax_data = manager.get_taxes_for_order(order, tax_app_identifier)
             if not tax_data:
-                log_address_if_validation_skipped_for_order(order, logger)
+                log_address_with_invalid_format_for_order(order, logger)
             _apply_tax_data(order, lines, tax_data)
         else:
             _call_plugin_or_tax_app(
@@ -253,7 +253,7 @@ def _call_plugin_or_tax_app(
     else:
         tax_data = manager.get_taxes_for_order(order, tax_app_identifier)
         if tax_data is None:
-            log_address_if_validation_skipped_for_order(order, logger)
+            log_address_with_invalid_format_for_order(order, logger)
             raise TaxEmptyData("Empty tax data.")
         _apply_tax_data(order, lines, tax_data)
 
