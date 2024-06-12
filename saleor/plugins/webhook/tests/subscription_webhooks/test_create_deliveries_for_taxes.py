@@ -10,7 +10,11 @@ from prices import Money, TaxedMoney, fixed_discount
 from .....core.prices import quantize_price
 from .....discount import DiscountValueType, VoucherType
 from .....graphql.core.utils import to_global_id_or_none
+from .....order import OrderStatus
+from .....order.calculations import fetch_order_prices_if_expired
 from .....order.models import Order
+from .....order.utils import update_discount_for_order_line
+from .....plugins.manager import get_plugins_manager
 from .....tests.fixtures import recalculate_order
 from .....webhook.event_types import WebhookEventSyncType
 from .....webhook.models import Webhook
@@ -480,6 +484,260 @@ def test_order_calculate_taxes(
 
 
 @freeze_time("2020-03-18 12:00:00")
+def test_order_calculate_taxes_line_discount(
+    order_line,
+    webhook_app,
+    permission_handle_taxes,
+    shipping_zone,
+    voucher_specific_product_type,
+):
+    # given
+    order = order_line.order
+    expected_shipping_price = Money("2.00", order.currency)
+    order.base_shipping_price = expected_shipping_price
+    order.shipping_price = TaxedMoney(
+        net=expected_shipping_price, gross=expected_shipping_price
+    )
+    order.status = OrderStatus.DRAFT
+    order.save(
+        update_fields=[
+            "base_shipping_price_amount",
+            "shipping_price_net_amount",
+            "shipping_price_gross_amount",
+            "status",
+        ]
+    )
+
+    discount_value = Decimal("5")
+    update_discount_for_order_line(
+        order_line, order, "test discount", DiscountValueType.FIXED, discount_value
+    )
+    manager = get_plugins_manager(allow_replica=False)
+    fetch_order_prices_if_expired(order, manager, order.lines.all(), True)
+
+    shipping_method = shipping_zone.shipping_methods.first()
+    order.shipping_method = shipping_method
+    webhook_app.permissions.add(permission_handle_taxes)
+    webhook = Webhook.objects.create(
+        name="Webhook",
+        app=webhook_app,
+        target_url="http://www.example.com/any",
+        subscription_query=TAXES_SUBSCRIPTION_QUERY,
+    )
+    event_type = WebhookEventSyncType.ORDER_CALCULATE_TAXES
+    webhook.events.create(event_type=event_type)
+
+    # when
+    deliveries = create_delivery_for_subscription_sync_event(event_type, order, webhook)
+
+    # then
+    expected_total_price_amount = (
+        order_line.undiscounted_base_unit_price_amount - discount_value
+    ) * order_line.quantity
+    assert json.loads(deliveries.payload.payload) == {
+        "__typename": "CalculateTaxes",
+        "taxBase": {
+            "address": {"id": to_global_id_or_none(order.shipping_address)},
+            "currency": "USD",
+            "discounts": [],
+            "channel": {"id": to_global_id_or_none(order.channel)},
+            "lines": [
+                {
+                    "chargeTaxes": True,
+                    "productName": order_line.product_name,
+                    "productSku": "SKU_A",
+                    "quantity": order_line.quantity,
+                    "sourceLine": {
+                        "__typename": "OrderLine",
+                        "id": to_global_id_or_none(order_line),
+                    },
+                    "totalPrice": {"amount": float(expected_total_price_amount)},
+                    "unitPrice": {
+                        "amount": float(
+                            expected_total_price_amount / order_line.quantity
+                        )
+                    },
+                    "variantName": order_line.variant_name,
+                }
+            ],
+            "pricesEnteredWithTax": True,
+            "shippingPrice": {"amount": float(expected_shipping_price.amount)},
+            "sourceObject": {
+                "__typename": "Order",
+                "id": to_global_id_or_none(order),
+            },
+        },
+    }
+
+
+@freeze_time("2020-03-18 12:00:00")
+def test_order_calculate_taxes_entire_order_voucher(
+    draft_order_with_voucher, webhook_app, permission_handle_taxes, shipping_zone
+):
+    # given
+    order = draft_order_with_voucher
+    expected_shipping_price = Money("2.00", order.currency)
+
+    voucher = draft_order_with_voucher.voucher
+    voucher.type = VoucherType.ENTIRE_ORDER
+    voucher.save(update_fields=["type"])
+
+    discount_amount = Decimal("10")
+    order_discount = order.discounts.first()
+    order_discount.value = discount_amount
+    order_discount.save(update_fields=["value"])
+
+    order.base_shipping_price = expected_shipping_price
+    order.shipping_price = TaxedMoney(
+        net=expected_shipping_price, gross=expected_shipping_price
+    )
+    order.save(
+        update_fields=[
+            "base_shipping_price_amount",
+            "shipping_price_net_amount",
+            "shipping_price_gross_amount",
+        ]
+    )
+
+    manager = get_plugins_manager(allow_replica=False)
+    fetch_order_prices_if_expired(order, manager, order.lines.all(), True)
+
+    shipping_method = shipping_zone.shipping_methods.first()
+    order.shipping_method = shipping_method
+    webhook_app.permissions.add(permission_handle_taxes)
+    webhook = Webhook.objects.create(
+        name="Webhook",
+        app=webhook_app,
+        target_url="http://www.example.com/any",
+        subscription_query=TAXES_SUBSCRIPTION_QUERY,
+    )
+    event_type = WebhookEventSyncType.ORDER_CALCULATE_TAXES
+    webhook.events.create(event_type=event_type)
+
+    # when
+    deliveries = create_delivery_for_subscription_sync_event(event_type, order, webhook)
+
+    # then
+    assert json.loads(deliveries.payload.payload) == {
+        "__typename": "CalculateTaxes",
+        "taxBase": {
+            "address": {"id": to_global_id_or_none(order.shipping_address)},
+            "currency": "USD",
+            "discounts": [{"amount": {"amount": float(discount_amount)}}],
+            "channel": {"id": to_global_id_or_none(order.channel)},
+            "lines": [
+                {
+                    "chargeTaxes": True,
+                    "productName": line.product_name,
+                    "productSku": line.product_sku,
+                    "quantity": line.quantity,
+                    "sourceLine": {
+                        "__typename": "OrderLine",
+                        "id": to_global_id_or_none(line),
+                    },
+                    "totalPrice": {
+                        "amount": float(line.base_unit_price_amount * line.quantity)
+                    },
+                    "unitPrice": {"amount": float(line.base_unit_price_amount)},
+                    "variantName": line.variant_name,
+                }
+                for line in order.lines.all()
+            ],
+            "pricesEnteredWithTax": True,
+            "shippingPrice": {"amount": float(expected_shipping_price.amount)},
+            "sourceObject": {
+                "__typename": "Order",
+                "id": to_global_id_or_none(order),
+            },
+        },
+    }
+
+
+@freeze_time("2020-03-18 12:00:00")
+def test_order_calculate_taxes_apply_once_per_order_voucher(
+    draft_order_with_voucher, webhook_app, permission_handle_taxes, shipping_zone
+):
+    # given
+    order = draft_order_with_voucher
+    expected_shipping_price = Money("2.00", order.currency)
+
+    voucher = draft_order_with_voucher.voucher
+    voucher.type = VoucherType.ENTIRE_ORDER
+    voucher.apply_once_per_order = True
+    voucher.save(update_fields=["type", "apply_once_per_order"])
+
+    discount_amount = Decimal("10")
+    order_discount = order.discounts.first()
+    order_discount.value = discount_amount
+    order_discount.save(update_fields=["value"])
+
+    order.base_shipping_price = expected_shipping_price
+    order.shipping_price = TaxedMoney(
+        net=expected_shipping_price, gross=expected_shipping_price
+    )
+    order.save(
+        update_fields=[
+            "base_shipping_price_amount",
+            "shipping_price_net_amount",
+            "shipping_price_gross_amount",
+        ]
+    )
+
+    manager = get_plugins_manager(allow_replica=False)
+    fetch_order_prices_if_expired(order, manager, order.lines.all(), True)
+
+    shipping_method = shipping_zone.shipping_methods.first()
+    order.shipping_method = shipping_method
+    webhook_app.permissions.add(permission_handle_taxes)
+    webhook = Webhook.objects.create(
+        name="Webhook",
+        app=webhook_app,
+        target_url="http://www.example.com/any",
+        subscription_query=TAXES_SUBSCRIPTION_QUERY,
+    )
+    event_type = WebhookEventSyncType.ORDER_CALCULATE_TAXES
+    webhook.events.create(event_type=event_type)
+
+    # when
+    deliveries = create_delivery_for_subscription_sync_event(event_type, order, webhook)
+
+    # then
+    assert json.loads(deliveries.payload.payload) == {
+        "__typename": "CalculateTaxes",
+        "taxBase": {
+            "address": {"id": to_global_id_or_none(order.shipping_address)},
+            "currency": "USD",
+            "discounts": [{"amount": {"amount": float(discount_amount)}}],
+            "channel": {"id": to_global_id_or_none(order.channel)},
+            "lines": [
+                {
+                    "chargeTaxes": True,
+                    "productName": line.product_name,
+                    "productSku": line.product_sku,
+                    "quantity": line.quantity,
+                    "sourceLine": {
+                        "__typename": "OrderLine",
+                        "id": to_global_id_or_none(line),
+                    },
+                    "totalPrice": {
+                        "amount": float(line.base_unit_price_amount * line.quantity)
+                    },
+                    "unitPrice": {"amount": float(line.base_unit_price_amount)},
+                    "variantName": line.variant_name,
+                }
+                for line in order.lines.all()
+            ],
+            "pricesEnteredWithTax": True,
+            "shippingPrice": {"amount": float(expected_shipping_price.amount)},
+            "sourceObject": {
+                "__typename": "Order",
+                "id": to_global_id_or_none(order),
+            },
+        },
+    }
+
+
+@freeze_time("2020-03-18 12:00:00")
 @pytest.mark.parametrize("charge_taxes", [True, False])
 def test_order_calculate_taxes_free_shipping_voucher(
     draft_order_with_free_shipping_voucher,
@@ -525,7 +783,7 @@ def test_order_calculate_taxes_free_shipping_voucher(
 
 
 @freeze_time("2020-03-18 12:00:00")
-def test_order_calculate_taxes_with_discounts(
+def test_order_calculate_taxes_with_manual_discount(
     order_line,
     webhook_app,
     permission_handle_taxes,
