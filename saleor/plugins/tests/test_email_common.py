@@ -65,7 +65,7 @@ def test_validate_default_email_configuration_backend_raises(
 
 @pytest.mark.parametrize(
     "config, expected_fields",
-    (
+    [
         ({"host": ""}, ["host"]),
         ({"port": ""}, ["port"]),
         ({"sender_address": ""}, ["sender_address"]),
@@ -80,7 +80,7 @@ def test_validate_default_email_configuration_backend_raises(
             {"host": None, "port": None, "sender_address": None},
             ["host", "port", "sender_address"],
         ),
-    ),
+    ],
 )
 def test_validate_default_email_configuration_missing_smtp_values(
     config, expected_fields, plugin_configuration, email_configuration
