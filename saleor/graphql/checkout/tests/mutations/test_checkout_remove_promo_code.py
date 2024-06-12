@@ -4,12 +4,13 @@ from unittest.mock import patch
 
 import graphene
 from django.utils import timezone
+from prices import Money
 
 from .....checkout import base_calculations
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....discount import RewardValueType
-from .....discount.models import Voucher
+from .....discount.models import Voucher, VoucherChannelListing, VoucherCode
 from .....plugins.manager import get_plugins_manager
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
@@ -69,6 +70,37 @@ def test_checkout_remove_voucher_code(
     variables = {
         "id": to_global_id_or_none(checkout_with_voucher),
         "promoCode": checkout_with_voucher.voucher_code,
+    }
+
+    # when
+    data = _mutate_checkout_remove_promo_code(api_client, variables)
+
+    # then
+    checkout_with_voucher.refresh_from_db()
+    assert not data["errors"]
+    assert data["checkout"]["token"] == str(checkout_with_voucher.token)
+    assert data["checkout"]["voucherCode"] is None
+    assert checkout_with_voucher.voucher_code is None
+    assert checkout_with_voucher.last_change != previous_checkout_last_change
+    checkout_updated_webhook_mock.assert_called_once_with(checkout_with_voucher)
+
+
+@patch("saleor.plugins.manager.PluginsManager.checkout_updated")
+def test_checkout_remove_voucher_code_from_voucher_with_multiple_codes(
+    checkout_updated_webhook_mock,
+    api_client,
+    checkout_with_voucher,
+    voucher_with_many_codes,
+):
+    # given
+    assert checkout_with_voucher.voucher_code is not None
+    previous_checkout_last_change = checkout_with_voucher.last_change
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_voucher),
+        "promoCodeId": graphene.Node.to_global_id(
+            "Voucher", voucher_with_many_codes.id
+        ),
     }
 
     # when
@@ -160,7 +192,7 @@ def test_checkout_remove_voucher_code_with_inactive_channel(
 
     # then
     assert data["errors"][0]["field"] == "promoCode"
-    assert data["errors"][0]["code"] == CheckoutErrorCode.VOUCHER_NOT_APPLICABLE.name
+    assert data["errors"][0]["code"] == CheckoutErrorCode.INVALID.name
     assert data["errors"][0]["message"] == (
         "Cannot remove a voucher not attached to this checkout."
     )
@@ -216,7 +248,7 @@ def test_checkout_remove_gift_card_code_from_wrong_checkout(
 
     # then
     assert data["errors"][0]["field"] == "promoCode"
-    assert data["errors"][0]["code"] == CheckoutErrorCode.GIFT_CARD_NOT_APPLICABLE.name
+    assert data["errors"][0]["code"] == CheckoutErrorCode.INVALID.name
     assert data["errors"][0]["message"] == (
         "Cannot remove a gift card not attached to this checkout."
     )
@@ -314,6 +346,84 @@ def test_checkout_remove_voucher_code_by_id(
     variables = {
         "id": to_global_id_or_none(checkout_with_voucher),
         "promoCodeId": graphene.Node.to_global_id("Voucher", voucher.id),
+    }
+
+    # when
+    data = _mutate_checkout_remove_promo_code(api_client, variables)
+
+    # then
+    checkout_with_voucher.refresh_from_db()
+    assert not data["errors"]
+    assert data["checkout"]["token"] == str(checkout_with_voucher.token)
+    assert data["checkout"]["voucherCode"] is None
+    assert len(data["checkout"]["giftCards"]) == 1
+    assert checkout_with_voucher.voucher_code is None
+    checkout_updated_webhook_mock.assert_called_once_with(checkout_with_voucher)
+
+
+@patch("saleor.plugins.manager.PluginsManager.checkout_updated")
+def test_checkout_remove_voucher_code_by_id_wrong_voucher(
+    checkout_updated_webhook_mock,
+    api_client,
+    checkout_with_voucher,
+    voucher,
+    gift_card,
+    channel_USD,
+):
+    # given
+    assert checkout_with_voucher.voucher_code is not None
+    checkout_with_voucher.gift_cards.add(gift_card)
+    checkout_with_voucher.price_expiration = timezone.now() + timedelta(days=2)
+    checkout_with_voucher.save(update_fields=["price_expiration"])
+    previous_checkout_last_change = checkout_with_voucher.last_change
+
+    wrong_voucher = Voucher.objects.create()
+    VoucherCode.objects.create(code="voucher", voucher=wrong_voucher)
+    VoucherChannelListing.objects.create(
+        voucher=wrong_voucher,
+        channel=channel_USD,
+        discount=Money(20, channel_USD.currency_code),
+    )
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_voucher),
+        "promoCodeId": graphene.Node.to_global_id("Voucher", wrong_voucher.id),
+    }
+
+    # when
+    data = _mutate_checkout_remove_promo_code(api_client, variables)
+
+    # then
+    checkout_with_voucher.refresh_from_db()
+
+    # then
+    assert data["errors"][0]["field"] == "promoCodeId"
+    assert data["errors"][0]["code"] == CheckoutErrorCode.NOT_FOUND.name
+    assert data["errors"][0]["message"] == (
+        "Couldn't remove a promo code from a checkout."
+    )
+
+    assert checkout_with_voucher.last_change == previous_checkout_last_change
+    checkout_updated_webhook_mock.assert_not_called()
+
+
+@patch("saleor.plugins.manager.PluginsManager.checkout_updated")
+def test_checkout_remove_voucher_with_multiple_codes_by_id(
+    checkout_updated_webhook_mock,
+    api_client,
+    checkout_with_voucher,
+    voucher_with_many_codes,
+    gift_card,
+):
+    # given
+    assert checkout_with_voucher.voucher_code is not None
+    checkout_with_voucher.gift_cards.add(gift_card)
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_voucher),
+        "promoCodeId": graphene.Node.to_global_id(
+            "Voucher", voucher_with_many_codes.id
+        ),
     }
 
     # when
