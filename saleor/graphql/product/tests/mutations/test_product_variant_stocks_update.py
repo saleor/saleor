@@ -16,17 +16,18 @@ from ...utils import create_stocks
 VARIANT_STOCKS_UPDATE_MUTATIONS = """
     mutation ProductVariantStocksUpdate($variantId: ID!, $stocks: [StockInput!]!){
         productVariantStocksUpdate(variantId: $variantId, stocks: $stocks){
-            productVariant{
-                stocks{
+            productVariant {
+                quantityAvailable
+                stocks {
                     quantity
                     quantityAllocated
                     id
-                    warehouse{
+                    warehouse {
                         slug
                     }
                 }
             }
-            errors{
+            errors {
                 code
                 field
                 message
@@ -38,8 +39,12 @@ VARIANT_STOCKS_UPDATE_MUTATIONS = """
 
 
 def test_product_variant_stocks_update(
-    staff_api_client, variant, warehouse, permission_manage_products
+    staff_api_client,
+    preorder_variant_global_threshold,
+    warehouse,
+    permission_manage_products,
 ):
+    variant = preorder_variant_global_threshold
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     second_warehouse = Warehouse.objects.get(pk=warehouse.pk)
     second_warehouse.slug = "second warehouse"
