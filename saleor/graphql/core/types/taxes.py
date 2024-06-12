@@ -75,10 +75,24 @@ class TaxableObjectLine(BaseObjectType):
     product_sku = graphene.String(description="The product sku.")
 
     unit_price = graphene.Field(
-        Money, description="Price of the single item in the order line.", required=True
+        Money,
+        description=(
+            "Price of the single item in the order line. "
+            "The price includes catalogue promotions, specific product "
+            "and applied once per order voucher discounts. "
+            "The price does not include the entire order discount."
+        ),
+        required=True,
     )
     total_price = graphene.Field(
-        Money, description="Price of the order line.", required=True
+        Money,
+        description=(
+            "Price of the order line. "
+            "The price includes catalogue promotions, specific product "
+            "and applied once per order voucher discounts. "
+            "The price does not include the entire order discount."
+        ),
+        required=True,
     )
 
     class Meta:
@@ -415,6 +429,9 @@ class TaxableObject(BaseObjectType):
                 for discount in discounts
                 if (
                     discount.type == DiscountType.MANUAL
+                    # TODO: apply_once_per_order voucher are included for now, as the
+                    # discount for such vouchers is currently not propagated to the
+                    # draft order lines
                     or (
                         discount.voucher
                         and discount.voucher.type == VoucherType.ENTIRE_ORDER
