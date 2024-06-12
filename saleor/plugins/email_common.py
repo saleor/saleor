@@ -265,23 +265,6 @@ def validate_default_email_configuration(
             }
         )
 
-    errors = []
-    for field in ("host", "port"):
-        if not configuration[field]:
-            errors.append(
-                ValidationError(
-                    {
-                        field: ValidationError(
-                            f"Missing {field} value.",
-                            code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
-                        )
-                    }
-                )
-            )
-
-    if errors:
-        raise ValidationError(errors)
-
     config = EmailConfig(
         host=configuration["host"],
         port=configuration["port"],
@@ -293,15 +276,16 @@ def validate_default_email_configuration(
         use_ssl=configuration["use_ssl"],
     )
 
-    if not config.sender_address:
-        raise ValidationError(
-            {
-                "sender_address": ValidationError(
-                    "Missing sender address value.",
-                    code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
-                )
-            }
-        )
+    errors = {}
+    for field in ("host", "port", "sender_address"):
+        if not getattr(config, field):
+            errors[field] = ValidationError(
+                f"Missing {field.replace('_', ' ')} value.",
+                code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
+            )
+
+    if errors:
+        raise ValidationError(errors)
 
     EmailValidator(
         message={  # type: ignore[arg-type] # the code below is a hack
