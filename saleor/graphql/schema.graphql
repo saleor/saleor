@@ -11718,7 +11718,11 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
   """Price of the order line without discounts."""
   undiscountedTotalPrice: TaxedMoney!
 
-  """Returns True, if the line unit price was overridden."""
+  """
+  Returns True, if the line unit price was overridden.
+  
+  Added in Saleor 3.14.
+  """
   isPriceOverridden: Boolean
 
   """
