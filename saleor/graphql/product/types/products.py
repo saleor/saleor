@@ -10,6 +10,7 @@ from promise import Promise
 
 from ....attribute import models as attribute_models
 from ....channel.models import Channel
+from ....core.db.connection import allow_writer_in_context
 from ....core.utils import build_absolute_uri
 from ....core.utils.country import get_active_country
 from ....core.weight import convert_weight_to_default_weight_unit
@@ -457,7 +458,11 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
         if address is not None:
             country_code = address.country
         channel_slug = str(root.channel_slug) if root.channel_slug else None
-        global_quantity_limit_per_checkout = site.settings.limit_quantity_per_checkout
+
+        with allow_writer_in_context(info.context):
+            global_quantity_limit_per_checkout = (
+                site.settings.limit_quantity_per_checkout
+            )
 
         if root.node.is_preorder_active():
             variant = root.node

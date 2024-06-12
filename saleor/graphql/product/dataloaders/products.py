@@ -25,7 +25,7 @@ from ...core.dataloaders import BaseThumbnailBySizeAndFormatLoader, DataLoader
 
 ProductIdAndChannelSlug = tuple[int, str]
 VariantIdAndChannelSlug = tuple[int, str]
-VariantIdAndChannelId = tuple[int, int]
+VariantIdAndChannelId = tuple[int, Optional[int]]
 
 
 class CategoryByIdLoader(DataLoader[int, Category]):
@@ -303,12 +303,12 @@ class VariantChannelListingByVariantIdAndChannelSlugLoader(
     context_key = "variantchannelisting_by_variant_and_channelslug"
 
     def batch_load(self, keys):
-        channel_slugs = [channel_slug for _, channel_slug in keys]
+        channel_slugs = [channel_slug for _, channel_slug in keys if channel_slug]
 
         def with_channels(channels):
             channel_map = {c.slug: c.id for c in channels}
             variant_id_channel_id_keys = [
-                (variant_id, channel_map[channel_slug])
+                (variant_id, channel_map.get(channel_slug, None))
                 for (variant_id, channel_slug) in keys
             ]
             return VariantChannelListingByVariantIdAndChannelIdLoader(
@@ -331,8 +331,8 @@ class VariantChannelListingByVariantIdAndChannelIdLoader(
         # Split the list of keys by channel first. A typical query will only touch
         # a handful of unique countries but may access thousands of product variants
         # so it's cheaper to execute one query per channel.
-        variant_channel_listing_by_channel: defaultdict[int, list[int]] = defaultdict(
-            list
+        variant_channel_listing_by_channel: defaultdict[Optional[int], list[int]] = (
+            defaultdict(list)
         )
         for variant_id, channel_id in keys:
             variant_channel_listing_by_channel[channel_id].append(variant_id)
@@ -351,7 +351,7 @@ class VariantChannelListingByVariantIdAndChannelIdLoader(
         return [variant_channel_listing_by_variant_and_channel[key] for key in keys]
 
     def batch_load_channel(
-        self, channel_id: int, variant_ids: Iterable[int]
+        self, channel_id: Optional[int], variant_ids: Iterable[int]
     ) -> Iterable[tuple[int, Optional[ProductVariantChannelListing]]]:
         filter = {
             "channel_id": channel_id,
