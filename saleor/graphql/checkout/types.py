@@ -32,7 +32,7 @@ from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader
 from ..channel.types import Channel
 from ..checkout.dataloaders import (
-    ChannelByCheckoutLineIDLoader,
+    ChannelByCheckoutIDLoader,
     CheckoutLinesProblemsByCheckoutIdLoader,
     CheckoutProblemsByCheckoutIdDataloader,
 )
@@ -269,7 +269,7 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
     @staticmethod
     def resolve_variant(root: models.CheckoutLine, info: ResolveInfo):
         variant = ProductVariantByIdLoader(info.context).load(root.variant_id)
-        channel = ChannelByCheckoutLineIDLoader(info.context).load(root.id)
+        channel = ChannelByCheckoutIDLoader(info.context).load(root.checkout_id)
 
         return Promise.all([variant, channel]).then(
             lambda data: ChannelContext(node=data[0], channel_slug=data[1].slug)
