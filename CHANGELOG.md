@@ -15,6 +15,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Drop `OrderBulkCreateInput.voucher` field. Use `OrderBulkCreateInput.voucherCode` instead. - #14553 by @zedzior
 - Add new `type` field to `PromotionCreateInput`, the field will be required from 3.20 - #14696 by @IKarbowiak, @zedzior
 - Do not stack promotion rules within the promotion. Only the best promotion rule will be applied within the promotion. Previously discounts from all rules within the promotion that gives the best discount were applied to the variant's price - #15309 by @korycins
+- Disable the `order.discounts` field in sync events to prevent circular calls - #16111 by @zedzior
 
 ### GraphQL API
 

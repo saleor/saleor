@@ -1495,6 +1495,7 @@ class Order(ModelObjectType[models.Order]):
         return root.id
 
     @staticmethod
+    @prevent_sync_event_circular_query
     def resolve_discounts(root: models.Order, info):
         def with_manager(manager):
             fetch_order_prices_if_expired(root, manager)
