@@ -68,10 +68,18 @@ def test_validate_default_email_configuration_backend_raises(
     (
         ({"host": ""}, ["host"]),
         ({"port": ""}, ["port"]),
-        ({"host": "", "port": ""}, ["host", "port"]),
+        ({"sender_address": ""}, ["sender_address"]),
+        (
+            {"host": "", "port": "", "sender_address": ""},
+            ["host", "port", "sender_address"],
+        ),
         ({"host": None}, ["host"]),
         ({"port": None}, ["port"]),
-        ({"host": None, "port": None}, ["host", "port"]),
+        ({"sender_address": None}, ["sender_address"]),
+        (
+            {"host": None, "port": None, "sender_address": None},
+            ["host", "port", "sender_address"],
+        ),
     ),
 )
 def test_validate_default_email_configuration_missing_smtp_values(
