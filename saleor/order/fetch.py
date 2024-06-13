@@ -6,9 +6,14 @@ from uuid import UUID
 from django.db.models import prefetch_related_objects
 
 from ..channel.models import Channel
-from ..discount import DiscountType
-from ..discount.interface import VariantPromotionRuleInfo, fetch_variant_rules_info
+from ..discount import DiscountType, VoucherType
+from ..discount.interface import (
+    VariantPromotionRuleInfo,
+    fetch_variant_rules_info,
+    fetch_voucher_info,
+)
 from ..discount.models import OrderLineDiscount, Voucher
+from ..discount.utils import apply_voucher_to_line
 from ..payment.models import Payment
 from ..product.models import (
     DigitalContent,
@@ -133,6 +138,12 @@ def fetch_draft_order_lines_info(
                 channel=channel,
             )
         )
+    voucher = order.voucher
+    if voucher and (
+        voucher.type == VoucherType.SPECIFIC_PRODUCT or voucher.apply_once_per_order
+    ):
+        voucher_info = fetch_voucher_info(voucher)
+        apply_voucher_to_line(voucher_info, lines_info)
     return lines_info
 
 
