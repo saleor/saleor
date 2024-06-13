@@ -127,6 +127,116 @@ def test_is_valid_delivery_method_external_method(
 
 
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+def test_is_valid_delivery_method_external_method_with_metadata_and_description(
+    mock_send_request, checkout_with_item, address, settings, shipping_app
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    assert not shipping_app.identifier
+    response_method_id = "abcd"
+    metadata = {"key": "value", "key_2": "value_2"}
+    description = "Shipping Method Description"
+    mock_response = [
+        {
+            "id": response_method_id,
+            "name": "Provider - Economy",
+            "amount": "10",
+            "currency": "USD",
+            "maximum_delivery_days": "7",
+            "minimum_delivery_days": "1",
+            "description": description,
+            "metadata": metadata,
+        }
+    ]
+    method_id = graphene.Node.to_global_id(
+        "app", f"{shipping_app.id}:{response_method_id}"
+    )
+
+    mock_send_request.return_value = mock_response
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.metadata_storage.private_metadata = {
+        PRIVATE_META_APP_SHIPPING_ID: method_id
+    }
+    checkout.save()
+    checkout.metadata_storage.save()
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+
+    # when
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    delivery_method_info = checkout_info.delivery_method_info
+
+    # then
+    assert delivery_method_info.delivery_method.metadata == metadata
+    assert delivery_method_info.delivery_method.description == description
+    assert delivery_method_info.is_method_in_valid_methods(checkout_info)
+
+
+@pytest.mark.parametrize(
+    "invalid_metadata",
+    [
+        ("invalid", "format", "tuple"),
+        {9: "invalid key"},
+        ("", "invalid empty key"),
+        "invalid format string",
+    ],
+)
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+def test_is_valid_delivery_method_external_method_with_invalid_metadata(
+    mock_send_request,
+    invalid_metadata,
+    checkout_with_item,
+    address,
+    settings,
+    shipping_app,
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    assert not shipping_app.identifier
+    response_method_id = "abcd"
+    metadata = invalid_metadata
+    description = "Shipping Method Description"
+    mock_response = [
+        {
+            "id": response_method_id,
+            "name": "Provider - Economy",
+            "amount": "10",
+            "currency": "USD",
+            "maximum_delivery_days": "7",
+            "minimum_delivery_days": "1",
+            "description": description,
+            "metadata": metadata,
+        }
+    ]
+    method_id = graphene.Node.to_global_id(
+        "app", f"{shipping_app.id}:{response_method_id}"
+    )
+
+    mock_send_request.return_value = mock_response
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.metadata_storage.private_metadata = {
+        PRIVATE_META_APP_SHIPPING_ID: method_id
+    }
+    checkout.save()
+    checkout.metadata_storage.save()
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+
+    # when
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    delivery_method_info = checkout_info.delivery_method_info
+
+    # then
+    assert delivery_method_info.delivery_method.metadata == {}
+    assert delivery_method_info.delivery_method.description == description
+    assert delivery_method_info.is_method_in_valid_methods(checkout_info)
+
+
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_is_valid_delivery_method_external_method_shipping_app_id_with_identifier(
     mock_send_request, checkout_with_item, address, settings, shipping_app
 ):
