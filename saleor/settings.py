@@ -147,8 +147,8 @@ EMAIL_BACKEND: str = email_config.get("EMAIL_BACKEND", "")
 EMAIL_USE_TLS: bool = email_config.get("EMAIL_USE_TLS", False)
 EMAIL_USE_SSL: bool = email_config.get("EMAIL_USE_SSL", False)
 
-# providing USER_EMAIL_URL not necessary when UserPluginEmail has SMTP configuration is
-# provided
+# SMTP configuration for UserEmailPlugin can be achieved by setting USER_EMAIL_URL.
+# Providing that variable means that SMTP configuration for this plugin is not required.
 user_email_config = dj_email_url.parse(os.environ.get("USER_EMAIL_URL", ""))
 
 USER_EMAIL_HOST_USER: str = user_email_config.get("EMAIL_HOST_USER") or ""
