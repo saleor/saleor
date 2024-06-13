@@ -637,27 +637,17 @@ class CheckoutMetadataByCheckoutIdLoader(DataLoader[str, CheckoutMetadata]):
         return [checkout_metadata.get(checkout_id) for checkout_id in keys]
 
 
-class ChannelByCheckoutLineIDLoader(DataLoader):
-    context_key = "channel_by_checkout_line"
+class ChannelByCheckoutIDLoader(DataLoader):
+    context_key = "channel_by_checkout"
 
     def batch_load(self, keys):
-        def channel_by_lines(checkout_lines):
-            checkout_ids = [line.checkout_id for line in checkout_lines]
+        def with_checkouts(checkouts):
+            channel_ids = [
+                checkout.channel_id if checkout else None for checkout in checkouts
+            ]
+            return ChannelByIdLoader(self.context).load_many(channel_ids)
 
-            def channels_by_checkout(checkouts):
-                channel_ids = [checkout.channel_id for checkout in checkouts]
-
-                return ChannelByIdLoader(self.context).load_many(channel_ids)
-
-            return (
-                CheckoutByTokenLoader(self.context)
-                .load_many(checkout_ids)
-                .then(channels_by_checkout)
-            )
-
-        return (
-            CheckoutLineByIdLoader(self.context).load_many(keys).then(channel_by_lines)
-        )
+        return CheckoutByTokenLoader(self.context).load_many(keys).then(with_checkouts)
 
 
 class CheckoutLinesProblemsByCheckoutIdLoader(

@@ -29,7 +29,7 @@ class ChannelByOrderIdLoader(DataLoader):
 
     def batch_load(self, keys):
         def with_orders(orders):
-            channel_ids = [order.channel_id for order in orders]
+            channel_ids = [order.channel_id if order else None for order in orders]
             return ChannelByIdLoader(self.context).load_many(channel_ids)
 
         return OrderByIdLoader(self.context).load_many(keys).then(with_orders)
