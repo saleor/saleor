@@ -160,6 +160,10 @@ class GraphQLView(View):
                 opentracing.tags.HTTP_URL,
                 request.build_absolute_uri(request.get_full_path()),
             )
+            accepted_encoding = request.META.get("HTTP_ACCEPT_ENCODING", "")
+            span.set_tag(
+                "http.compression", "gzip" if "gzip" in accepted_encoding else "none"
+            )
             span.set_tag("http.useragent", request.META.get("HTTP_USER_AGENT", ""))
             span.set_tag("span.type", "web")
 
