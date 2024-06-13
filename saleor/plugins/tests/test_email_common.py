@@ -63,6 +63,36 @@ def test_validate_default_email_configuration_backend_raises(
         )
 
 
+@pytest.mark.parametrize(
+    "config, expected_fields",
+    (
+        ({"host": ""}, ["host"]),
+        ({"port": ""}, ["port"]),
+        ({"sender_address": ""}, ["sender_address"]),
+        (
+            {"host": "", "port": "", "sender_address": ""},
+            ["host", "port", "sender_address"],
+        ),
+        ({"host": None}, ["host"]),
+        ({"port": None}, ["port"]),
+        ({"sender_address": None}, ["sender_address"]),
+        (
+            {"host": None, "port": None, "sender_address": None},
+            ["host", "port", "sender_address"],
+        ),
+    ),
+)
+def test_validate_default_email_configuration_missing_smtp_values(
+    config, expected_fields, plugin_configuration, email_configuration
+):
+    email_configuration.update(config)
+
+    with pytest.raises(ValidationError) as e:
+        validate_default_email_configuration(plugin_configuration, email_configuration)
+
+    assert list(e.value.error_dict.keys()) == expected_fields
+
+
 def test_get_product_image_thumbnail(product_with_image):
     # given
     image_data = {"original": get_image_payload(product_with_image.media.first())}
