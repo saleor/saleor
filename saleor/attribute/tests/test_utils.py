@@ -263,3 +263,21 @@ def test_validate_attribute_owns_values(attribute_1, attribute_2):
         attribute_1.id: [attribute_1.values.first()],
         attribute_2.id: [attribute_2.values.first()],
     }
+
+
+def test_associate_attribute_to_instance_uniqness(
+    product,
+    color_attribute,
+):
+    # given
+    product.product_type.product_attributes.add(color_attribute)
+    color_attribute_value = color_attribute.values.first()
+
+    # when
+    associate_attribute_values_to_instance(
+        product, {color_attribute.id: [color_attribute_value]}
+    )
+
+    # then
+    product.refresh_from_db()
+    assert len(product.product_type.product_attributes.all()) == 1
