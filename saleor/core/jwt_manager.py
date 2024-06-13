@@ -1,5 +1,6 @@
 import json
 import logging
+from functools import cache
 from os.path import exists, join
 from typing import Optional, Union, cast
 
@@ -74,6 +75,7 @@ class JWTManager(JWTManagerBase):
         return get_domain()
 
     @classmethod
+    @cache
     def get_private_key(cls) -> rsa.RSAPrivateKey:
         pem = settings.RSA_PRIVATE_KEY
         if not pem:
@@ -130,6 +132,7 @@ class JWTManager(JWTManagerBase):
         return private_key
 
     @classmethod
+    @cache
     def get_public_key(cls) -> rsa.RSAPublicKey:
         global PUBLIC_KEY
 
@@ -211,6 +214,8 @@ class JWTManager(JWTManagerBase):
                 )
                 logger.warning(color_style().WARNING(msg))
 
+        cls.get_private_key.cache_clear()
+        cls.get_public_key.cache_clear()
         try:
             cls.get_private_key()
         except Exception as e:
@@ -221,5 +226,6 @@ class JWTManager(JWTManagerBase):
         return build_absolute_uri(reverse("api"), domain=cls.get_domain())
 
 
+@cache
 def get_jwt_manager() -> JWTManagerBase:
     return import_string(settings.JWT_MANAGER_PATH)
