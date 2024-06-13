@@ -17,6 +17,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `stocks` to a `Warehouse` - #15771 by @teddyondieki
 - Deprecate the `taxTypes` query - #15802 by @maarcingebala
 - Change permissions for `checkout` and `checkouts` queries. Add `HANDLE_PAYMENTS` to required permissions - #16010 by @Air-t
+- Change the `CheckoutRemovePromoCode` mutation behavior to throw a `ValidationError` when the promo code is not detached from the checkout. - #16109 by @Air-t
 
 ### Saleor Apps
 

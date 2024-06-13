@@ -42,7 +42,7 @@ from ..discount.utils import (
 )
 from ..giftcard.utils import (
     add_gift_card_code_to_checkout,
-    remove_gift_card_code_from_checkout,
+    remove_gift_card_code_from_checkout_or_error,
 )
 from ..plugins.manager import PluginsManager
 from ..product import models as product_models
@@ -815,33 +815,35 @@ def add_voucher_to_checkout(
         delete_gift_line(checkout_info.checkout, lines)
 
 
-def remove_promo_code_from_checkout(
+def remove_promo_code_from_checkout_or_error(
     checkout_info: "CheckoutInfo", promo_code: str
-) -> bool:
-    """Remove gift card or voucher data from checkout.
+) -> None:
+    """Remove gift card or voucher data from checkout or raise an error."""
 
-    Return information whether promo code was removed.
-    """
     if promo_code_is_voucher(promo_code):
-        return remove_voucher_code_from_checkout(checkout_info, promo_code)
+        remove_voucher_code_from_checkout_or_error(checkout_info, promo_code)
     elif promo_code_is_gift_card(promo_code):
-        return remove_gift_card_code_from_checkout(checkout_info.checkout, promo_code)
-    return False
+        remove_gift_card_code_from_checkout_or_error(checkout_info.checkout, promo_code)
+    else:
+        raise ValidationError(
+            "Promo code does not exists.",
+            code=CheckoutErrorCode.NOT_FOUND.value,
+        )
 
 
-def remove_voucher_code_from_checkout(
+def remove_voucher_code_from_checkout_or_error(
     checkout_info: "CheckoutInfo", voucher_code: str
-) -> bool:
-    """Remove voucher data from checkout by code.
+) -> None:
+    """Remove voucher data from checkout by code or raise an error."""
 
-    Return information whether promo code was removed.
-    """
-    existing_voucher = checkout_info.voucher
-    if existing_voucher and existing_voucher.code == voucher_code:
+    if checkout_info.voucher and voucher_code in checkout_info.voucher.promo_codes:
         remove_voucher_from_checkout(checkout_info.checkout)
         checkout_info.voucher = None
-        return True
-    return False
+    else:
+        raise ValidationError(
+            "Cannot remove a voucher not attached to this checkout.",
+            code=CheckoutErrorCode.INVALID.value,
+        )
 
 
 def remove_voucher_from_checkout(checkout: Checkout):
