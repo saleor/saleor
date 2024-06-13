@@ -484,7 +484,7 @@ def test_order_calculate_taxes(
 
 
 @freeze_time("2020-03-18 12:00:00")
-def test_order_calculate_taxes_line_discount(
+def test_draft_order_calculate_taxes_line_discount(
     order_line,
     webhook_app,
     permission_handle_taxes,
@@ -571,11 +571,12 @@ def test_order_calculate_taxes_line_discount(
 
 
 @freeze_time("2020-03-18 12:00:00")
-def test_order_calculate_taxes_entire_order_voucher(
-    draft_order_with_voucher, webhook_app, permission_handle_taxes, shipping_zone
+def test_draft_order_calculate_taxes_entire_order_voucher(
+    draft_order_with_voucher, subscription_calculate_taxes_for_order, shipping_zone
 ):
     # given
     order = draft_order_with_voucher
+    webhook = subscription_calculate_taxes_for_order
     expected_shipping_price = Money("2.00", order.currency)
 
     voucher = draft_order_with_voucher.voucher
@@ -604,18 +605,14 @@ def test_order_calculate_taxes_entire_order_voucher(
 
     shipping_method = shipping_zone.shipping_methods.first()
     order.shipping_method = shipping_method
-    webhook_app.permissions.add(permission_handle_taxes)
-    webhook = Webhook.objects.create(
-        name="Webhook",
-        app=webhook_app,
-        target_url="http://www.example.com/any",
-        subscription_query=TAXES_SUBSCRIPTION_QUERY,
-    )
-    event_type = WebhookEventSyncType.ORDER_CALCULATE_TAXES
-    webhook.events.create(event_type=event_type)
+
+    webhook.subscription_query = TAXES_SUBSCRIPTION_QUERY
+    webhook.save(update_fields=["subscription_query"])
 
     # when
-    deliveries = create_delivery_for_subscription_sync_event(event_type, order, webhook)
+    deliveries = create_delivery_for_subscription_sync_event(
+        WebhookEventSyncType.ORDER_CALCULATE_TAXES, order, webhook
+    )
 
     # then
     assert json.loads(deliveries.payload.payload) == {
@@ -654,11 +651,12 @@ def test_order_calculate_taxes_entire_order_voucher(
 
 
 @freeze_time("2020-03-18 12:00:00")
-def test_order_calculate_taxes_apply_once_per_order_voucher(
-    draft_order_with_voucher, webhook_app, permission_handle_taxes, shipping_zone
+def test_draft_order_calculate_taxes_apply_once_per_order_voucher(
+    draft_order_with_voucher, subscription_calculate_taxes_for_order, shipping_zone
 ):
     # given
     order = draft_order_with_voucher
+    webhook = subscription_calculate_taxes_for_order
     expected_shipping_price = Money("2.00", order.currency)
 
     voucher = draft_order_with_voucher.voucher
@@ -688,18 +686,14 @@ def test_order_calculate_taxes_apply_once_per_order_voucher(
 
     shipping_method = shipping_zone.shipping_methods.first()
     order.shipping_method = shipping_method
-    webhook_app.permissions.add(permission_handle_taxes)
-    webhook = Webhook.objects.create(
-        name="Webhook",
-        app=webhook_app,
-        target_url="http://www.example.com/any",
-        subscription_query=TAXES_SUBSCRIPTION_QUERY,
-    )
-    event_type = WebhookEventSyncType.ORDER_CALCULATE_TAXES
-    webhook.events.create(event_type=event_type)
+
+    webhook.subscription_query = TAXES_SUBSCRIPTION_QUERY
+    webhook.save(update_fields=["subscription_query"])
 
     # when
-    deliveries = create_delivery_for_subscription_sync_event(event_type, order, webhook)
+    deliveries = create_delivery_for_subscription_sync_event(
+        WebhookEventSyncType.ORDER_CALCULATE_TAXES, order, webhook
+    )
 
     # then
     assert json.loads(deliveries.payload.payload) == {
@@ -739,29 +733,25 @@ def test_order_calculate_taxes_apply_once_per_order_voucher(
 
 @freeze_time("2020-03-18 12:00:00")
 @pytest.mark.parametrize("charge_taxes", [True, False])
-def test_order_calculate_taxes_free_shipping_voucher(
+def test_draft_order_calculate_taxes_free_shipping_voucher(
     draft_order_with_free_shipping_voucher,
-    webhook_app,
-    permission_handle_taxes,
+    subscription_calculate_taxes_for_order,
     shipping_zone,
     charge_taxes,
 ):
     # given
     order = draft_order_with_free_shipping_voucher
+    webhook = subscription_calculate_taxes_for_order
     shipping_method = shipping_zone.shipping_methods.first()
     order.shipping_method = shipping_method
-    webhook_app.permissions.add(permission_handle_taxes)
-    webhook = Webhook.objects.create(
-        name="Webhook",
-        app=webhook_app,
-        target_url="http://www.example.com/any",
-        subscription_query=TAXES_SUBSCRIPTION_QUERY,
-    )
-    event_type = WebhookEventSyncType.ORDER_CALCULATE_TAXES
-    webhook.events.create(event_type=event_type)
+
+    webhook.subscription_query = TAXES_SUBSCRIPTION_QUERY
+    webhook.save(update_fields=["subscription_query"])
 
     # when
-    deliveries = create_delivery_for_subscription_sync_event(event_type, order, webhook)
+    deliveries = create_delivery_for_subscription_sync_event(
+        WebhookEventSyncType.ORDER_CALCULATE_TAXES, order, webhook
+    )
 
     # then
     assert json.loads(deliveries.payload.payload) == {
@@ -785,8 +775,7 @@ def test_order_calculate_taxes_free_shipping_voucher(
 @freeze_time("2020-03-18 12:00:00")
 def test_order_calculate_taxes_with_manual_discount(
     order_line,
-    webhook_app,
-    permission_handle_taxes,
+    subscription_calculate_taxes_for_order,
 ):
     # given
     order = order_line.order
@@ -807,18 +796,14 @@ def test_order_calculate_taxes_with_manual_discount(
     recalculate_order(order)
     order.refresh_from_db()
 
-    webhook_app.permissions.add(permission_handle_taxes)
-    webhook = Webhook.objects.create(
-        name="Webhook",
-        app=webhook_app,
-        target_url="http://www.example.com/any",
-        subscription_query=TAXES_SUBSCRIPTION_QUERY,
-    )
-    event_type = WebhookEventSyncType.ORDER_CALCULATE_TAXES
-    webhook.events.create(event_type=event_type)
+    webhook = subscription_calculate_taxes_for_order
+    webhook.subscription_query = TAXES_SUBSCRIPTION_QUERY
+    webhook.save(update_fields=["subscription_query"])
 
     # when
-    deliveries = create_delivery_for_subscription_sync_event(event_type, order, webhook)
+    deliveries = create_delivery_for_subscription_sync_event(
+        WebhookEventSyncType.ORDER_CALCULATE_TAXES, order, webhook
+    )
 
     # then
     assert json.loads(deliveries.payload.payload) == {

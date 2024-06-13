@@ -214,7 +214,8 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
         currency_field="currency",
     )
     # Price with applied shipping voucher discount
-    # (for draft order - price without discount - TO FIX)
+    # (for draft order - price without discount)
+    # FIXME (SHOPX-875)
     base_shipping_price_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,

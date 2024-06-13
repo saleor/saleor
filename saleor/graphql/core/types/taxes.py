@@ -388,8 +388,8 @@ class TaxableObject(BaseObjectType):
                 ]
             ).then(calculate_shipping_price)
 
-        # TODO: after adding `undiscounted_base_shipping_price` to Order model,
-        # the `root.base_shipping_price` should be used
+        # TODO (SHOPX-875): after adding `undiscounted_base_shipping_price` to
+        # Order model, the `root.base_shipping_price` should be used
         def shipping_price_with_discount(tax_config):
             return (
                 root.shipping_price_gross
@@ -429,9 +429,9 @@ class TaxableObject(BaseObjectType):
                 for discount in discounts
                 if (
                     discount.type == DiscountType.MANUAL
-                    # TODO: apply_once_per_order voucher are included for now, as the
-                    # discount for such vouchers is currently not propagated to the
-                    # draft order lines
+                    # TODO (SHOPX-873): apply_once_per_order voucher are included
+                    # for now, as the discount for such vouchers is currently not
+                    # propagated to the draft order lines
                     or (
                         discount.voucher
                         and discount.voucher.type == VoucherType.ENTIRE_ORDER

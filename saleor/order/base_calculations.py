@@ -81,7 +81,8 @@ def propagate_order_discount_on_order_prices(
     discount.
     """
     base_subtotal = base_order_subtotal(order, lines)
-    # TODO: add undiscounted_base_shipping_price field to Order model, and use it here
+    # TODO (SHOPX-875): add undiscounted_base_shipping_price field to Order model,
+    # and use it here
     base_shipping_price = order.base_shipping_price
     subtotal = base_subtotal
     shipping_price = base_shipping_price
@@ -307,7 +308,7 @@ def assign_order_prices(
     subtotal: Money,
     shipping_price: Money,
 ):
-    # TODO: set order.base_shipping_price as this price should include
+    # TODO (SHOPX-875): set order.base_shipping_price as this price should include
     # the shipping discount - must be done together with adding
     # undiscounted_base_shipping_price to Order model
     order.shipping_price_net_amount = shipping_price.amount
