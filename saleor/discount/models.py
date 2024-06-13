@@ -133,6 +133,10 @@ class Voucher(ModelWithMetadata):
         code_instance = self.codes.last()
         return code_instance.code if code_instance else None
 
+    @property
+    def promo_codes(self):
+        return list(self.codes.values_list("code", flat=True))
+
     def get_discount(self, channel: Channel):
         """Return proper discount amount for given channel.
 
