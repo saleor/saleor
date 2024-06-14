@@ -85,6 +85,7 @@ from ..tax.dataloaders import (
 from ..utils import get_user_or_app_from_context
 from ..warehouse.dataloaders import StocksReservationsByCheckoutTokenLoader
 from ..warehouse.types import Warehouse
+from ..webhook.dataloaders import PregeneratedSubscriptionPayloadsByCheckoutTokenLoader
 from .dataloaders import (
     CheckoutByTokenLoader,
     CheckoutInfoByCheckoutTokenLoader,
@@ -103,7 +104,7 @@ if TYPE_CHECKING:
 
 
 def get_dataloaders_for_fetching_checkout_data(
-    root: models.Checkout, info: ResolveInfo
+    root: models.Checkout, info: ResolveInfo, extra_data: bool = False
 ) -> tuple[
     Optional[Promise["Address"]],
     Promise[list["CheckoutLineInfo"]],
@@ -115,6 +116,11 @@ def get_dataloaders_for_fetching_checkout_data(
     lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
     checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(root.token)
     manager = get_plugin_manager_promise(info.context)
+    payloads = PregeneratedSubscriptionPayloadsByCheckoutTokenLoader(info.context).load(
+        root.token
+    )
+    if extra_data:
+        return address, lines, checkout_info, manager, payloads
     return address, lines, checkout_info, manager
 
 
@@ -896,11 +902,11 @@ class Checkout(ModelObjectType[models.Checkout]):
     def resolve_total_price(root: models.Checkout, info: ResolveInfo):
         @allow_writer_in_context(info.context)
         def calculate_total_price(data):
-            address, lines, checkout_info, manager = data
+            address, lines, checkout_info, manager, payloads = data
+            # address, lines, checkout_info, manager = data
             import inspect
 
             print(len(inspect.stack(0)))
-            sample_payloads = {} #Sample Payload from Dataloader
             database_connection_name = get_database_connection_name(info.context)
             taxed_total = calculations.calculate_checkout_total_with_gift_cards(
                 manager=manager,
@@ -908,11 +914,13 @@ class Checkout(ModelObjectType[models.Checkout]):
                 lines=lines,
                 address=address,
                 database_connection_name=database_connection_name,
-                pregenerated_subscription_payloads=sample_payloads,
+                pregenerated_subscription_payloads=payloads,
             )
             return max(taxed_total, zero_taxed_money(root.currency))
 
-        dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
+        dataloaders = list(
+            get_dataloaders_for_fetching_checkout_data(root, info, extra_data=True)
+        )
         return Promise.all(dataloaders).then(calculate_total_price)
 
     @staticmethod

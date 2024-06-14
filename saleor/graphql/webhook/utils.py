@@ -26,8 +26,6 @@ def get_pregenerated_subscription_payload(
         return None
 
     query_hash = get_subscription_query_hash(webhook.subscription_query)
-    return (
-        pregenerated_subscription_payloads.get(webhook.app_id, {})
-        .get(query_hash, {})
-        .get(str(subscriptable_object.pk), None)
+    return pregenerated_subscription_payloads.get(webhook.app_id, {}).get(
+        query_hash, None
     )

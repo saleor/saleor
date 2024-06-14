@@ -128,7 +128,7 @@ def get_tax_app_identifier_for_order(order: "Order"):
     return get_tax_app_id(tax_configuration, country_tax_configuration)
 
 
-def _get_tax_configuration_for_checkout(
+def get_tax_configuration_for_checkout(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
@@ -158,7 +158,7 @@ def get_charge_taxes_for_checkout(
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     """Get charge_taxes value for checkout."""
-    tax_configuration, country_tax_configuration = _get_tax_configuration_for_checkout(
+    tax_configuration, country_tax_configuration = get_tax_configuration_for_checkout(
         checkout_info, lines, database_connection_name=database_connection_name
     )
     return get_charge_taxes(tax_configuration, country_tax_configuration)
@@ -170,7 +170,7 @@ def get_tax_calculation_strategy_for_checkout(
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     """Get tax_calculation_strategy value for checkout."""
-    tax_configuration, country_tax_configuration = _get_tax_configuration_for_checkout(
+    tax_configuration, country_tax_configuration = get_tax_configuration_for_checkout(
         checkout_info, lines, database_connection_name=database_connection_name
     )
     return get_tax_calculation_strategy(tax_configuration, country_tax_configuration)
@@ -182,7 +182,7 @@ def get_tax_app_identifier_for_checkout(
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     """Get tax_app_id value for checkout."""
-    tax_configuration, country_tax_configuration = _get_tax_configuration_for_checkout(
+    tax_configuration, country_tax_configuration = get_tax_configuration_for_checkout(
         checkout_info, lines, database_connection_name=database_connection_name
     )
     return get_tax_app_id(tax_configuration, country_tax_configuration)
