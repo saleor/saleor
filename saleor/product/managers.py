@@ -300,6 +300,48 @@ class ProductVariantQueryset(models.QuerySet):
             "variant_media__media",
         )
 
+    def visible_to_user(
+        self,
+        requestor: Union["User", "App", None],
+        channel: Optional[Channel],
+        limited_channel_access: bool,
+    ):
+        from .models import ALL_PRODUCTS_PERMISSIONS, ProductVariant
+
+        # User with product permissions can see all variants. If channel is given,
+        # filter variants with product channel listings for this channel.
+        if has_one_of_permissions(requestor, ALL_PRODUCTS_PERMISSIONS):
+            if limited_channel_access:
+                if channel:
+                    return self.filter(product__channel_listings__channel_id=channel.id)
+                return self.none()
+            return self.all()
+
+        # If user has no permissions (customer) and channel is not given or is inactive,
+        # return no variants.
+        if not channel or not channel.is_active:
+            return self.none()
+
+        # If user has no permissions (customer) and channel is given, return variants
+        # that:
+        # - have a variant channel listing for this channel and the price is not null
+        # - have a product channel listing for this channel and the product is published
+        #  and visible in listings
+        variants = ProductVariant.objects.filter(
+            channel_listings__channel_id=channel.id,
+            channel_listings__price_amount__isnull=False,
+        )
+
+        today = datetime.datetime.now(pytz.UTC)
+        variants = variants.filter(
+            Q(product__channel_listings__published_at__lte=today)
+            | Q(product__channel_listings__published_at__isnull=True),
+            product__channel_listings__is_published=True,
+            product__channel_listings__channel_id=channel.id,
+            product__channel_listings__visible_in_listings=True,
+        )
+        return variants
+
 
 ProductVariantManager = models.Manager.from_queryset(ProductVariantQueryset)
 

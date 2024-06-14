@@ -167,35 +167,24 @@ def resolve_variant(
 @traced_resolver
 def resolve_product_variants(
     info: ResolveInfo,
-    requestor_has_access_to_all,
     requestor,
     ids=None,
     channel: Optional[Channel] = None,
     limited_channel_access: bool = False,
 ) -> ChannelQsContext:
     connection_name = get_database_connection_name(info.context)
-    visible_products = models.Product.objects.visible_to_user(
+
+    qs = models.ProductVariant.objects.using(connection_name).visible_to_user(
         requestor, channel, limited_channel_access
-    ).using(connection_name)
-    qs = models.ProductVariant.objects.using(connection_name).filter(
-        product__id__in=visible_products
     )
 
-    channel_slug = channel.slug if channel else None
-    if not requestor_has_access_to_all:
-        visible_products = visible_products.annotate_visible_in_listings(
-            channel
-        ).exclude(visible_in_listings=False)
-        qs = (
-            qs.filter(product__in=visible_products)
-            .available_in_channel(channel)
-            .using(connection_name)
-        )
     if ids:
         db_ids = [
             from_global_id_or_error(node_id, "ProductVariant")[1] for node_id in ids
         ]
         qs = qs.filter(pk__in=db_ids)
+
+    channel_slug = channel.slug if channel else None
     return ChannelQsContext(qs=qs, channel_slug=channel_slug)
 
 
