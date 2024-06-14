@@ -269,7 +269,6 @@ def _fetch_checkout_prices_if_expired(
 
     checkout.tax_error = None
     if prices_entered_with_tax:
-        # TODO Owczar: Cover this flow
         # If prices are entered with tax, we need to always calculate it anyway, to
         # display the tax rate to the user.
         try:
@@ -283,6 +282,7 @@ def _fetch_checkout_prices_if_expired(
                 prices_entered_with_tax,
                 address,
                 database_connection_name=database_connection_name,
+                pregenerated_subscription_payloads=pregenerated_subscription_payloads,
             )
         except TaxEmptyData as e:
             _set_checkout_base_prices(checkout, checkout_info, lines)
