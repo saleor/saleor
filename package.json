@@ -1,6 +1,6 @@
 {
   "name": "saleor",
-  "version": "3.16.52",
+  "version": "3.16.53",
   "engines": {
     "node": ">=16 <17",
     "npm": ">=7"
