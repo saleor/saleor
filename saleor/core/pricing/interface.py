@@ -47,3 +47,12 @@ class LineInfo:
             for discount in self.discounts
             if discount.type == DiscountType.PROMOTION
         ]
+
+    def get_voucher_discounts(
+        self,
+    ) -> list[Union["OrderLineDiscount", "CheckoutLineDiscount"]]:
+        return [
+            discount
+            for discount in self.discounts
+            if discount.type == DiscountType.VOUCHER
+        ]

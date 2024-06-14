@@ -34,6 +34,7 @@ def base_order_subtotal(order: "Order", lines: Iterable["OrderLine"]) -> Money:
         quantity = line.quantity
         base_line_total = line.base_unit_price * quantity
         subtotal += base_line_total
+
     return quantize_price(subtotal, currency)
 
 
@@ -95,7 +96,11 @@ def propagate_order_discount_on_order_prices(
         shipping_price_before_discount = shipping_price
         if order_discount.type == DiscountType.VOUCHER:
             voucher = order_discount.voucher
-            if voucher and voucher.type == VoucherType.ENTIRE_ORDER:
+            if (
+                voucher
+                and voucher.type == VoucherType.ENTIRE_ORDER
+                and not voucher.apply_once_per_order
+            ):
                 subtotal = apply_discount_to_value(
                     value=order_discount.value,
                     value_type=order_discount.value_type,
