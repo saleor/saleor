@@ -261,6 +261,9 @@ def test_draft_order_create(
     assert order_discount.value == voucher_listing.discount_value
     assert order_discount.amount_value == voucher_listing.discount_value
 
+    for line in order_lines:
+        assert line.is_price_overridden is False
+
 
 def test_draft_order_create_by_user_no_channel_access(
     staff_api_client,
@@ -1573,10 +1576,12 @@ def test_draft_order_create_with_custom_price_in_order_line(
     order_line_0 = order.lines.get(variant=variant_0)
     assert order_line_0.base_unit_price_amount == expected_price_variant_0
     assert order_line_0.undiscounted_base_unit_price_amount == expected_price_variant_0
+    assert order_line_0.is_price_overridden is True
 
     order_line_1 = order.lines.get(variant=variant_1)
     assert order_line_1.base_unit_price_amount == expected_price_variant_1
     assert order_line_1.undiscounted_base_unit_price_amount == expected_price_variant_1
+    assert order_line_1.is_price_overridden is True
 
 
 def test_draft_order_create_product_on_promotion(

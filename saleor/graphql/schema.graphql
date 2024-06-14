@@ -12028,6 +12028,13 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
   undiscountedTotalPrice: TaxedMoney!
 
   """
+  Returns True, if the line unit price was overridden.
+  
+  Added in Saleor 3.14.
+  """
+  isPriceOverridden: Boolean
+
+  """
   A purchased product variant. Note: this field may be null if the variant has been removed from stock at all. Requires one of the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
   """
   variant: ProductVariant

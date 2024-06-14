@@ -550,7 +550,8 @@ class OrderLine(ModelWithMetadata):
     unit_discount_type = models.CharField(
         max_length=10,
         choices=DiscountValueType.CHOICES,
-        default=DiscountValueType.FIXED,
+        null=True,
+        blank=True,
     )
     unit_discount_reason = models.TextField(blank=True, null=True)
 
@@ -672,6 +673,8 @@ class OrderLine(ModelWithMetadata):
     tax_class_metadata = JSONField(
         blank=True, null=True, default=dict, encoder=CustomJsonEncoder
     )
+
+    is_price_overridden = models.BooleanField(null=True, blank=True)
 
     # Fulfilled when voucher code was used for product in the line
     voucher_code = models.CharField(max_length=255, null=True, blank=True)
