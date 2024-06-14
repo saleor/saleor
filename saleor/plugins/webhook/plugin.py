@@ -3090,18 +3090,8 @@ class WebhookPlugin(BasePlugin):
         previous_value,
         pregenerated_subscription_payloads={},
     ) -> Optional["TaxData"]:
-        print("checkout_info", checkout_info)
-        print("lines", lines)
-        print("app_identifier", app_identifier)
-        print("previous_value", previous_value)
-        from pprint import pprint
-
-        print("pregenerated_subscription_payloads", "!" * 50)
-        pprint(pregenerated_subscription_payloads)
-        print("\n\n")
         event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
         if app_identifier:
-
             return self.__run_tax_webhook(
                 event_type,
                 app_identifier,

@@ -251,7 +251,15 @@ def create_delivery_for_subscription_sync_event(
             request=request,
             app=webhook.app,
         )
+        print("Payload generated from subscription!!!!!!!")
+        print("webhook", webhook.pk)
+        print("app", webhook.app_id)
+        print("subscribable_object", subscribable_object)
+        print("subscribable_object_id", subscribable_object.pk)
+        print("data", data)
     else:
+        print("Using pregenerated payload")
+        print("For checkout", subscribable_object.token)
         data = pregenerated_payload
 
     if not data:
