@@ -225,7 +225,9 @@ def test_checkout_calculate_discount_for_sale_and_voucher_1014(
     order_line = order_data["lines"][0]
     assert order_line["unitDiscountType"] == "FIXED"
     assert order_line["unitPrice"]["gross"]["amount"] == expected_unit_price
-    assert order_line["unitDiscountReason"] == f"Sale: {sale_id}"
+    assert order_line["unitDiscountReason"] == (
+        f"Sale: {sale_id} & Entire order voucher code: {voucher_code}"
+    )
     assert order_data["total"]["gross"]["amount"] == total_gross_amount
     assert order_data["subtotal"]["gross"]["amount"] == subtotal_amount
     assert order_line["undiscountedUnitPrice"]["gross"]["amount"] == float(
