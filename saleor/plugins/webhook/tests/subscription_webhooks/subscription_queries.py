@@ -1966,6 +1966,21 @@ TRANSACTION_ITEM_METADATA_UPDATED = """
     """
 
 
+LIST_STORED_PAYMENT_METHODS = """
+  subscription {
+    event {
+      ... on ListStoredPaymentMethods {
+        issuingPrincipal {
+          ... on Node {
+            id
+          }
+        }
+      }
+    }
+  }
+"""
+
+
 MULTIPLE_EVENTS = """
 subscription{
   event{
