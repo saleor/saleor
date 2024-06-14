@@ -268,7 +268,7 @@ def test_create_order_discount_gift(
     assert gift_line.unit_price_net_amount == Decimal(0)
     assert gift_line.base_unit_price_amount == Decimal(0)
     assert gift_line.unit_discount_amount == Decimal(0)
-    assert gift_line.unit_discount_type == RewardValueType.FIXED
+    assert gift_line.unit_discount_type is None
     assert gift_line.unit_discount_value == Decimal(0)
     assert gift_line.product_name == product.name
     assert gift_line.product_sku == variant.sku
