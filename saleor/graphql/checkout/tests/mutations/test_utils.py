@@ -205,6 +205,7 @@ def test_get_the_cheapest_line(checkout_with_items, channel_USD):
             rules_info=[],
             product_type=line.variant.product.product_type,
             channel=channel_USD,
+            voucher=None,
         )
         for line in checkout_with_items.lines.all()
     ]

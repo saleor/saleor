@@ -3,7 +3,7 @@ from collections import defaultdict, namedtuple
 from collections.abc import Iterable, Iterator
 from decimal import ROUND_HALF_UP, Decimal
 from functools import partial
-from typing import TYPE_CHECKING, Callable, Optional, Union, cast, overload
+from typing import TYPE_CHECKING, Callable, Optional, Union, cast
 from uuid import UUID
 
 import graphene
@@ -57,6 +57,7 @@ from .models import (
 if TYPE_CHECKING:
     from ..account.models import User
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
+    from ..core.pricing.interface import LineInfo
     from ..order.fetch import DraftOrderLineInfo
     from ..plugins.manager import PluginsManager
     from ..product.managers import ProductVariantQueryset
@@ -187,25 +188,9 @@ def get_voucher_code_instance(
     return code_instance
 
 
-@overload
 def apply_voucher_to_line(
     voucher_info: "VoucherInfo",
-    lines_info: Iterable["CheckoutLineInfo"],
-):
-    ...
-
-
-@overload
-def apply_voucher_to_line(
-    voucher_info: "VoucherInfo",
-    lines_info: Iterable["DraftOrderLineInfo"],
-):
-    ...
-
-
-def apply_voucher_to_line(
-    voucher_info,
-    lines_info,
+    lines_info: Iterable["LineInfo"],
 ):
     """Attach voucher to valid checkout or order lines info.
 
@@ -215,7 +200,7 @@ def apply_voucher_to_line(
     from .utils import get_discounted_lines
 
     voucher = voucher_info.voucher
-    discounted_lines_by_voucher: list["CheckoutLineInfo"] = []
+    discounted_lines_by_voucher: list["LineInfo"] = []
     lines_included_in_discount = lines_info
     if voucher.type == VoucherType.SPECIFIC_PRODUCT:
         discounted_lines_by_voucher.extend(
@@ -231,21 +216,9 @@ def apply_voucher_to_line(
             line_info.voucher = voucher
 
 
-@overload
 def get_discounted_lines(
-    lines: Iterable["CheckoutLineInfo"], voucher_info: "VoucherInfo"
-) -> Iterable["CheckoutLineInfo"]:
-    ...
-
-
-@overload
-def get_discounted_lines(
-    lines: Iterable["DraftOrderLineInfo"], voucher_info: "VoucherInfo"
-) -> Iterable["DraftOrderLineInfo"]:
-    ...
-
-
-def get_discounted_lines(lines, voucher_info):
+    lines: Iterable["LineInfo"], voucher_info: "VoucherInfo"
+) -> Iterable["LineInfo"]:
     discounted_lines = []
     if (
         voucher_info.product_pks
@@ -258,7 +231,9 @@ def get_discounted_lines(lines, voucher_info):
                 continue
             line_variant = line_info.variant
             line_product = line_info.product
-            line_category = line_info.product.category
+            if not line_variant or not line_product:
+                continue
+            line_category = line_product.category
             line_collections = set(
                 [collection.pk for collection in line_info.collections]
             )
@@ -277,21 +252,9 @@ def get_discounted_lines(lines, voucher_info):
     return discounted_lines
 
 
-@overload
 def _get_the_cheapest_line(
-    lines_info: Optional[Iterable["CheckoutLineInfo"]],
-) -> Optional["CheckoutLineInfo"]:
-    ...
-
-
-@overload
-def _get_the_cheapest_line(
-    lines_info: Optional[Iterable["DraftOrderLineInfo"]],
-) -> Optional["DraftOrderLineInfo"]:
-    ...
-
-
-def _get_the_cheapest_line(lines_info):
+    lines_info: Optional[Iterable["LineInfo"]],
+) -> Optional["LineInfo"]:
     if not lines_info:
         return None
     return min(
@@ -1093,6 +1056,7 @@ def _handle_gift_reward_for_checkout(
             "product": variant.product,
             "product_type": variant.product.product_type,
             "collections": [],
+            "voucher": None,
         }
 
         gift_line_info = CheckoutLineInfo(**init_values)
@@ -1310,12 +1274,12 @@ def update_rule_variant_relation(
         )
 
 
-def create_or_update_discount_objects_for_order(
-    order: "Order", lines_info: Iterable["DraftOrderLineInfo"]
-):
-    create_or_update_discount_objects_from_promotion_for_order(order, lines_info)
-    # create_or_update_discount_objects_from_voucher(order, lines_info)
-    _copy_unit_discount_data_to_order_line(lines_info)
+# def create_or_update_discount_objects_for_order(
+#     order: "Order", lines_info: Iterable["DraftOrderLineInfo"]
+# ):
+#     create_or_update_discount_objects_from_promotion_for_order(order, lines_info)
+#     # create_or_update_discount_objects_from_voucher(order, lines_info)
+#     _copy_unit_discount_data_to_order_line(lines_info)
 
 
 def create_or_update_discount_objects_from_promotion_for_order(
@@ -1324,6 +1288,7 @@ def create_or_update_discount_objects_from_promotion_for_order(
 ):
     create_order_line_discount_objects_for_catalogue_promotions(lines_info)
     create_order_discount_objects_for_order_promotions(order, lines_info)
+    _copy_unit_discount_data_to_order_line(lines_info)
 
 
 def create_order_line_discount_objects_for_catalogue_promotions(
@@ -1585,10 +1550,13 @@ def _handle_gift_reward_for_order(
         init_values = {
             "line": line,
             "variant": variant,
+            "product": variant.product,
+            "collections": list(variant.product.collections.all()),
             "channel_listing": gift_listing,
             "discounts": [line_discount],
             "rules_info": [rule_info],
             "channel": order.channel_id,
+            "voucher": None,
         }
         gift_line_info = DraftOrderLineInfo(**init_values)
         lines_info.append(gift_line_info)  # type: ignore[attr-defined]

@@ -141,6 +141,7 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader[str, list[CheckoutLineIn
                                 tax_class=tax_class_map[line.variant_id],
                                 channel=channels[checkout.channel_id],
                                 rules_info=rules_info_map[line.id],
+                                voucher=None,
                             )
                             for line in lines
                         ]

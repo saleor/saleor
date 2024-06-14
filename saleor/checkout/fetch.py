@@ -11,7 +11,8 @@ from typing import (
 )
 from uuid import UUID
 
-from ..discount import DiscountType, VoucherType
+from ..core.pricing.interface import LineInfo
+from ..discount import VoucherType
 from ..discount.interface import fetch_variant_rules_info, fetch_voucher_info
 from ..shipping.interface import ShippingMethodData
 from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
@@ -25,7 +26,7 @@ from ..warehouse.models import Warehouse
 if TYPE_CHECKING:
     from ..account.models import Address, User
     from ..channel.models import Channel
-    from ..discount.interface import VariantPromotionRuleInfo
+    from ..checkout.models import CheckoutLine
     from ..discount.models import (
         CheckoutDiscount,
         CheckoutLineDiscount,
@@ -34,7 +35,6 @@ if TYPE_CHECKING:
     )
     from ..plugins.manager import PluginsManager
     from ..product.models import (
-        Collection,
         Product,
         ProductChannelListing,
         ProductType,
@@ -42,36 +42,16 @@ if TYPE_CHECKING:
         ProductVariantChannelListing,
     )
     from ..tax.models import TaxClass, TaxConfiguration
-    from .models import Checkout, CheckoutLine
+    from .models import Checkout
 
 
 @dataclass
-class CheckoutLineInfo:
+class CheckoutLineInfo(LineInfo):
     line: "CheckoutLine"
-    variant: "ProductVariant"
-    channel_listing: "ProductVariantChannelListing"
     product: "Product"
     product_type: "ProductType"
-    collections: list["Collection"]
     discounts: list["CheckoutLineDiscount"]
-    rules_info: list["VariantPromotionRuleInfo"]
-    channel: "Channel"
     tax_class: Optional["TaxClass"] = None
-    voucher: Optional["Voucher"] = None
-
-    def get_promotion_discounts(self) -> list["CheckoutLineDiscount"]:
-        return [
-            discount
-            for discount in self.discounts
-            if discount.type in [DiscountType.PROMOTION, DiscountType.ORDER_PROMOTION]
-        ]
-
-    def get_catalogue_discounts(self) -> list["CheckoutLineDiscount"]:
-        return [
-            discount
-            for discount in self.discounts
-            if discount.type == DiscountType.PROMOTION
-        ]
 
 
 @dataclass
@@ -370,6 +350,7 @@ def fetch_checkout_lines(
                         discounts=discounts,
                         rules_info=rules_info,
                         channel=channel,
+                        voucher=None,
                     )
                 )
             continue
@@ -386,6 +367,7 @@ def fetch_checkout_lines(
                 discounts=discounts,
                 rules_info=rules_info,
                 channel=channel,
+                voucher=None,
             )
         )
 
