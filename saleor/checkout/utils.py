@@ -818,14 +818,13 @@ def remove_voucher_code_from_checkout_or_error(
 ) -> None:
     """Remove voucher data from checkout by code or raise an error."""
 
-    existing_voucher = checkout_info.voucher
-    if existing_voucher and existing_voucher.code == voucher_code:
+    if checkout_info.voucher and voucher_code in checkout_info.voucher.promo_codes:
         remove_voucher_from_checkout(checkout_info.checkout)
         checkout_info.voucher = None
     else:
         raise ValidationError(
             "Cannot remove a voucher not attached to this checkout.",
-            code=CheckoutErrorCode.VOUCHER_NOT_APPLICABLE.value,
+            code=CheckoutErrorCode.INVALID.value,
         )
 
 
