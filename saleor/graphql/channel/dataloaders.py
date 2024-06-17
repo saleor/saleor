@@ -29,8 +29,19 @@ class ChannelByOrderIdLoader(DataLoader):
 
     def batch_load(self, keys):
         def with_orders(orders):
-            channel_ids = [order.channel_id if order else None for order in orders]
-            return ChannelByIdLoader(self.context).load_many(channel_ids)
+            def with_channels(channels):
+                channel_map = {channel.id: channel for channel in channels}
+                return [
+                    channel_map.get(order.channel_id) if order else None
+                    for order in orders
+                ]
+
+            channel_ids = set(order.channel_id if order else None for order in orders)
+            return (
+                ChannelByIdLoader(self.context)
+                .load_many(channel_ids)
+                .then(with_channels)
+            )
 
         return OrderByIdLoader(self.context).load_many(keys).then(with_orders)
 

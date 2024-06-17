@@ -642,10 +642,21 @@ class ChannelByCheckoutIDLoader(DataLoader):
 
     def batch_load(self, keys):
         def with_checkouts(checkouts):
-            channel_ids = [
+            def with_channels(channels):
+                channel_map = {channel.id: channel for channel in channels}
+                return [
+                    channel_map.get(checkout.channel_id) if checkout else None
+                    for checkout in checkouts
+                ]
+
+            channel_ids = set(
                 checkout.channel_id if checkout else None for checkout in checkouts
-            ]
-            return ChannelByIdLoader(self.context).load_many(channel_ids)
+            )
+            return (
+                ChannelByIdLoader(self.context)
+                .load_many(channel_ids)
+                .then(with_channels)
+            )
 
         return CheckoutByTokenLoader(self.context).load_many(keys).then(with_checkouts)
 
