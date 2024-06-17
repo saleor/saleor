@@ -2399,6 +2399,7 @@ class WebhookPlugin(BasePlugin):
                 channel=request_delete_data.channel,
             ),
             timeout=WEBHOOK_SYNC_TIMEOUT,
+            requestor=self.requestor,
         )
         if response_data:
             invalidate_cache_for_stored_payment_methods(
@@ -2436,6 +2437,7 @@ class WebhookPlugin(BasePlugin):
                     subscribable_object=list_payment_method_data,
                     request_timeout=WEBHOOK_SYNC_TIMEOUT,
                     cache_timeout=WEBHOOK_CACHE_DEFAULT_TIMEOUT,
+                    requestor=self.requestor,
                 )
                 if response_data:
                     previous_value.extend(
@@ -2470,6 +2472,7 @@ class WebhookPlugin(BasePlugin):
             False,
             subscribable_object=request_data,
             timeout=WEBHOOK_SYNC_TIMEOUT,
+            requestor=self.requestor,
         )
         return response_data
 
@@ -2702,6 +2705,7 @@ class WebhookPlugin(BasePlugin):
                 webhook,
                 False,
                 subscribable_object=payment,
+                requestor=self.requestor,
             )
             if response_data is None:
                 continue
@@ -2754,6 +2758,7 @@ class WebhookPlugin(BasePlugin):
             allow_replica=False,
             subscribable_object=subscribable_object,
             request=request,
+            requestor=self.requestor,
         )
         error_msg = None
         if response_data is None:
@@ -2841,6 +2846,7 @@ class WebhookPlugin(BasePlugin):
             webhook=webhook,
             allow_replica=False,
             subscribable_object=transaction_session_data,
+            requestor=self.requestor,
         )
         error_msg = None
         if response_data is None:
@@ -2897,6 +2903,7 @@ class WebhookPlugin(BasePlugin):
                 webhook=webhook,
                 allow_replica=False,
                 subscribable_object=checkout,
+                requestor=self.requestor,
             )
             if response_data:
                 app_gateways = parse_list_payment_gateways_response(
@@ -3042,6 +3049,7 @@ class WebhookPlugin(BasePlugin):
             allow_replica=False,
             subscribable_object=subscriptable_object,
             request=request_context,
+            requestor=self.requestor,
         )
         return parse_tax_data(response)
 
@@ -3109,6 +3117,7 @@ class WebhookPlugin(BasePlugin):
                     subscribable_object=checkout,
                     request_timeout=WEBHOOK_SYNC_TIMEOUT,
                     cache_timeout=CACHE_TIME_SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+                    requestor=self.requestor,
                 )
 
                 if response_data:
