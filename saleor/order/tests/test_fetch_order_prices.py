@@ -1357,19 +1357,21 @@ def test_fetch_order_prices_manual_line_discount_and_catalogue_discount_flat_rat
 
     line_1 = [line for line in lines if line.quantity == 3][0]
 
-    assert line_1.base_unit_price_amount == variant_1_listing.price_amount
+    assert (
+        line_1.base_unit_price_amount
+        == variant_1_listing.price_amount - manual_discount_value
+    )
     assert manual_discount.line == line_1
     assert manual_discount.value == manual_discount_value
     assert manual_discount.value_type == manual_discount_value_type
     assert manual_discount.type == DiscountType.MANUAL
     assert manual_discount.reason == manual_discount_reason
 
-    # TODO https://github.com/saleor/saleor/issues/15517
-    # line_1_total_net_amount = quantize_price(
-    #     (variant_1_listing.price_amount - manual_discount_value) * line_1.quantity,
-    #     order.currency
-    # )
-    # assert line_1.total_price_net_amount == line_1_total_net_amount
+    line_1_total_net_amount = quantize_price(
+        (variant_1_listing.price_amount - manual_discount_value) * line_1.quantity,
+        order.currency,
+    )
+    assert line_1.total_price_net_amount == line_1_total_net_amount
 
 
 def test_fetch_order_prices_catalogue_discount_race_condition(

@@ -7,7 +7,7 @@ from django.db.models import prefetch_related_objects
 
 from ..channel.models import Channel
 from ..core.pricing.interface import LineInfo
-from ..discount import VoucherType
+from ..discount import DiscountType, VoucherType
 from ..discount.interface import (
     fetch_variant_rules_info,
     fetch_voucher_info,
@@ -81,6 +81,14 @@ def fetch_order_lines(order: "Order") -> list[OrderLineInfo]:
 class DraftOrderLineInfo(LineInfo):
     line: "OrderLine"
     discounts: list["OrderLineDiscount"]
+
+    def get_manual_line_discount(
+        self,
+    ) -> Optional["OrderLineDiscount"]:
+        for discount in self.discounts:
+            if discount.type == DiscountType.MANUAL:
+                return discount
+        return None
 
 
 def fetch_draft_order_lines_info(

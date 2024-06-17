@@ -1278,11 +1278,10 @@ def create_or_update_discount_objects_for_order(
     order: "Order", lines_info: Iterable["DraftOrderLineInfo"]
 ):
     create_or_update_discount_objects_from_promotion_for_order(order, lines_info)
+    create_or_update_line_discount_objects_for_manual_discounts(lines_info)
     # TODO: moze trzeba dodac wspolna metodę dla order i checkout do tworzenia
     # LineDiscount dla voucherow na linii
     create_or_update_line_discount_objects_from_voucher(order, lines_info)
-    # dalej zawolac tutaj _update_base_unit_price_amount
-    # badz nawet polaczyc ta metode z ta ponizej
     _copy_unit_discount_data_to_order_line(lines_info)
 
 
@@ -1563,6 +1562,33 @@ def _handle_gift_reward_for_order(
         line_info.discounts = [line_discount]
 
 
+def create_or_update_line_discount_objects_for_manual_discounts(lines_info):
+    discount_to_update: list[OrderLineDiscount] = []
+    for line_info in lines_info:
+        manual_discount = line_info.get_manual_line_discount()
+        if not manual_discount:
+            continue
+        line = line_info.line
+        base_unit_price = line.undiscounted_base_unit_price
+        reduced_unit_price = apply_discount_to_value(
+            manual_discount.value,
+            manual_discount.value_type,
+            line.currency,
+            base_unit_price,
+        )
+        reduced_unit_price = max(reduced_unit_price, zero_money(line.currency))
+        line.base_unit_price_amount = reduced_unit_price.amount
+
+        discount_unit_amount = (base_unit_price - reduced_unit_price).amount
+        discount_amount = discount_unit_amount * line.quantity
+        if manual_discount.amount_value != discount_amount:
+            manual_discount.amount_value = discount_amount
+            discount_to_update.append(manual_discount)
+
+    if discount_to_update:
+        OrderLineDiscount.objects.bulk_update(discount_to_update, ["amount_value"])
+
+
 def create_or_update_line_discount_objects_from_voucher(order, lines_info):
     """Create or update line discount object for voucher applied on lines.
 
@@ -1592,7 +1618,7 @@ def create_or_update_line_discount_objects_from_voucher(order, lines_info):
     with transaction.atomic():
         # Protect against potential thread race. OrderLine object can have only
         # single catalogue discount applied.
-        order_id = lines_info[0].line.order_id  # type: ignore[index]
+        order_id = lines_info[0].line.order_id
         _order_lock = list(
             Order.objects.filter(id=order_id).select_for_update(of=(["self"]))
         )
@@ -1627,8 +1653,9 @@ def create_or_update_line_discount_objects_from_voucher(order, lines_info):
     _reduce_base_unit_price_for_voucher_discount(modified_lines_info)
 
 
+# TODO: share the method with checkout
 def prepare_line_discount_objects_for_voucher(
-    lines_info: Union[Iterable["CheckoutLineInfo"], Iterable["DraftOrderLineInfo"]],
+    lines_info: Iterable["DraftOrderLineInfo"],
 ):
     line_discounts_to_create_inputs: list[dict] = []
     line_discounts_to_update: list[Union[CheckoutLineDiscount, OrderLineDiscount]] = []
@@ -1655,10 +1682,11 @@ def prepare_line_discount_objects_for_voucher(
             continue
 
         discount_amount = discount_amount.amount
-        if discounts_to_update:
+        if discount_to_update:
             _update_voucher_discount(
-                line_info.voucher,
-                line.voucher_code,
+                # discount_amount is 0, when voucher is None
+                line_info.voucher,  # type: ignore[arg-type]
+                line.voucher_code,  # type: ignore[arg-type]
                 discount_amount,
                 discount_to_update,
                 updated_fields,
@@ -1672,7 +1700,8 @@ def prepare_line_discount_objects_for_voucher(
                 "value": discount_amount,
                 "amount_value": discount_amount,
                 "currency": line.currency,
-                "name": f"{line_info.voucher.name}",
+                # discount_amount is 0, when voucher is None
+                "name": f"{line_info.voucher.name}",  # type: ignore
                 "translated_name": None,
                 "reason": "",
                 "voucher": line_info.voucher,
@@ -1737,8 +1766,7 @@ def _reduce_base_unit_price_for_voucher_discount(
         line = line_info.line
         base_unit_price = line.base_unit_price_amount
         for discount in line_info.get_voucher_discounts():
-            if discount.type == DiscountType.VOUCHER:
-                base_unit_price -= discount.amount_value / line.quantity
+            base_unit_price -= discount.amount_value / line.quantity
         line.base_unit_price_amount = max(base_unit_price, Decimal(0))
 
 
