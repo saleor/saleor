@@ -7,7 +7,6 @@ class Migration(migrations.Migration):
     dependencies = [
         ("order", "0183_merge_20240607_1222"),
         ("order", "0185_merge_20240607_1231"),
-        ("order", "0185_ordergrantedrefund_transaction_item"),
     ]
 
     operations = []
