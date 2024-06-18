@@ -154,9 +154,6 @@ def propagate_order_discount_on_order_prices(
             order_discount.amount = total_discount_amount
             order_discounts_to_update.append(order_discount)
 
-    if order_discounts_to_update:
-        OrderDiscount.objects.bulk_update(order_discounts_to_update, ["amount_value"])
-
     # Apply shipping voucher discount
     if shipping_voucher_discount:
         shipping_price = apply_discount_to_value(
@@ -165,6 +162,13 @@ def propagate_order_discount_on_order_prices(
             currency=currency,
             price_to_discount=shipping_price,
         )
+        discount_amount = shipping_price_before_discount - shipping_price
+        if shipping_voucher_discount.amount != discount_amount:
+            shipping_voucher_discount.amount = discount_amount
+            order_discounts_to_update.append(shipping_voucher_discount)
+
+    if order_discounts_to_update:
+        OrderDiscount.objects.bulk_update(order_discounts_to_update, ["amount_value"])
 
     return subtotal, shipping_price
 
