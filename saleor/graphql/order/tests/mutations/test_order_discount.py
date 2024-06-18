@@ -986,6 +986,10 @@ def test_update_order_line_discount(
     order = draft_order_with_fixed_discount_order
     order.status = status
     order.save(update_fields=["status"])
+
+    undiscounted_shipping_price = order.shipping_method.channel_listings.get(
+        channel=order.channel
+    ).price
     line_to_discount = order.lines.first()
     unit_price = Money(Decimal(7.3), currency="USD")
     line_to_discount.unit_price = TaxedMoney(unit_price, unit_price)
@@ -1030,11 +1034,11 @@ def test_update_order_line_discount(
     line_to_discount.refresh_from_db()
     second_line = order.lines.last()
     order.refresh_from_db()
+
     order_discount = order.discounts.get()
     order_discount_amount = order_discount.amount
-    base_shipping = order.base_shipping_price
     discount_applied_to_lines = order_discount_amount - (
-        base_shipping - order.shipping_price.gross
+        undiscounted_shipping_price - order.shipping_price.gross
     )
     discount_applied_to_discounted_line = (
         discount_applied_to_lines
@@ -1068,6 +1072,10 @@ def test_update_order_line_discount(
     parameters = event.parameters
     lines = parameters.get("lines", {})
     assert len(lines) == 1
+
+    line_to_discount.refresh_from_db()
+    assert line_to_discount.unit_discount_amount == value
+    assert line_to_discount.unit_discount_type == DiscountValueType.FIXED
 
     line_data = lines[0]
     assert line_data.get("line_pk") == str(line_to_discount.pk)
