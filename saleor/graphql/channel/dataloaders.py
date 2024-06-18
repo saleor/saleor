@@ -36,7 +36,7 @@ class ChannelByOrderIdLoader(DataLoader):
                     for order in orders
                 ]
 
-            channel_ids = set(order.channel_id if order else None for order in orders)
+            channel_ids = set(order.channel_id for order in orders if order)
             return (
                 ChannelByIdLoader(self.context)
                 .load_many(channel_ids)

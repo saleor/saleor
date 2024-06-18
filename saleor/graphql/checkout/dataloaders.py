@@ -649,9 +649,7 @@ class ChannelByCheckoutIDLoader(DataLoader):
                     for checkout in checkouts
                 ]
 
-            channel_ids = set(
-                checkout.channel_id if checkout else None for checkout in checkouts
-            )
+            channel_ids = set(checkout.channel_id for checkout in checkouts if checkout)
             return (
                 ChannelByIdLoader(self.context)
                 .load_many(channel_ids)
