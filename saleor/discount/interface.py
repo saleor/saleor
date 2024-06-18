@@ -21,13 +21,16 @@ class VoucherInfo:
     """It contains the voucher's details and PKs of all applicable objects."""
 
     voucher: Voucher
+    voucher_code: Optional[str]
     product_pks: list[int]
     variant_pks: list[int]
     collection_pks: list[int]
     category_pks: list[int]
 
 
-def fetch_voucher_info(voucher: Voucher) -> VoucherInfo:
+def fetch_voucher_info(
+    voucher: Voucher, voucher_code: Optional[str] = None
+) -> VoucherInfo:
     variant_pks = list(variant.id for variant in voucher.variants.all())
     product_pks = list(product.id for product in voucher.products.all())
     category_pks = list(category.id for category in voucher.categories.all())
@@ -35,6 +38,7 @@ def fetch_voucher_info(voucher: Voucher) -> VoucherInfo:
 
     return VoucherInfo(
         voucher=voucher,
+        voucher_code=voucher_code,
         product_pks=product_pks,
         variant_pks=variant_pks,
         collection_pks=collection_pks,

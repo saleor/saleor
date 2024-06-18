@@ -351,6 +351,7 @@ def fetch_checkout_lines(
                         rules_info=rules_info,
                         channel=channel,
                         voucher=None,
+                        voucher_code=None,
                     )
                 )
             continue
@@ -368,6 +369,7 @@ def fetch_checkout_lines(
                 rules_info=rules_info,
                 channel=channel,
                 voucher=None,
+                voucher_code=None,
             )
         )
 
@@ -381,7 +383,7 @@ def fetch_checkout_lines(
             # discount from voucher
             return lines_info, unavailable_variant_pks
         if voucher.type == VoucherType.SPECIFIC_PRODUCT or voucher.apply_once_per_order:
-            voucher_info = fetch_voucher_info(voucher)
+            voucher_info = fetch_voucher_info(voucher, checkout.voucher_code)
             apply_voucher_to_line(voucher_info, lines_info)
     return lines_info, unavailable_variant_pks
 

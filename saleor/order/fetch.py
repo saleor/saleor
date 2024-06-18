@@ -130,13 +130,14 @@ def fetch_draft_order_lines_info(
                 rules_info=rules_info,
                 channel=channel,
                 voucher=None,
+                voucher_code=None,
             )
         )
     voucher = order.voucher
     if voucher and (
         voucher.type == VoucherType.SPECIFIC_PRODUCT or voucher.apply_once_per_order
     ):
-        voucher_info = fetch_voucher_info(voucher)
+        voucher_info = fetch_voucher_info(voucher, order.voucher_code)
         apply_voucher_to_line(voucher_info, lines_info)
     return lines_info
 

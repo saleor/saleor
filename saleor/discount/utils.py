@@ -214,6 +214,7 @@ def apply_voucher_to_line(
     for line_info in lines_info:
         if line_info in discounted_lines_by_voucher:
             line_info.voucher = voucher
+            line_info.voucher_code = voucher_info.voucher_code
 
 
 def get_discounted_lines(
@@ -1057,6 +1058,7 @@ def _handle_gift_reward_for_checkout(
             "product_type": variant.product.product_type,
             "collections": [],
             "voucher": None,
+            "voucher_code": None,
         }
 
         gift_line_info = CheckoutLineInfo(**init_values)
@@ -1551,6 +1553,7 @@ def _handle_gift_reward_for_order(
             "rules_info": [rule_info],
             "channel": order.channel_id,
             "voucher": None,
+            "voucher_code": None,
         }
         gift_line_info = DraftOrderLineInfo(**init_values)
         lines_info.append(gift_line_info)  # type: ignore[attr-defined]
@@ -1686,7 +1689,7 @@ def prepare_line_discount_objects_for_voucher(
             _update_voucher_discount(
                 # discount_amount is 0, when voucher is None
                 line_info.voucher,  # type: ignore[arg-type]
-                line.voucher_code,  # type: ignore[arg-type]
+                line_info.voucher_code,  # type: ignore[arg-type]
                 discount_amount,
                 discount_to_update,
                 updated_fields,
@@ -1703,7 +1706,7 @@ def prepare_line_discount_objects_for_voucher(
                 # discount_amount is 0, when voucher is None
                 "name": f"{line_info.voucher.name}",  # type: ignore
                 "translated_name": None,
-                "reason": "",
+                "reason": f"Voucher code: {line_info.voucher_code}",
                 "voucher": line_info.voucher,
                 "unique_type": DiscountType.VOUCHER,
             }
