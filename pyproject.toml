@@ -84,7 +84,7 @@ documentation = "https://docs.saleor.io/"
   sentry-sdk = "1.40.5" # https://github.com/getsentry/sentry-python/issues/2554
   stripe = "^3.0.0"
   text-unidecode = "^1.2"
-  urllib3 = "^1.26.18"
+  urllib3 = "^1.26.19"
   uvicorn = {extras = ["standard"], version = "^0.23.1"}
   weasyprint = ">=53.0" # libpango >=1.44 is required
 
