@@ -96,7 +96,11 @@ def clean_values(
         slugs_list = list(attribute.values.values_list("slug", flat=True))
 
     duplicated_names = get_duplicated_values(
-        [unidecode(value_data.name.lower().strip()) for value_data in values]
+        [
+            unidecode(value_data.name.lower().strip())
+            for value_data in values
+            if value_data.name
+        ]
     )
 
     for value_index, value_data in enumerate(values):
@@ -117,6 +121,16 @@ def clean_values(
                     path=f"{path_prefix}.{value_index}.externalReference",
                     message="External reference already exists.",
                     code=error_class.code.UNIQUE.value,
+                )
+            )
+            continue
+
+        if not value_data.name:
+            index_error_map[attribute_index].append(
+                error_class(
+                    path=f"{path_prefix}.{value_index}.name",
+                    message="The field is required.",
+                    code=error_class.code.REQUIRED.value,
                 )
             )
             continue
