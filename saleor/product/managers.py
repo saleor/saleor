@@ -327,7 +327,7 @@ class ProductVariantQueryset(models.QuerySet):
         # - have a variant channel listing for this channel and the price is not null
         # - have a product channel listing for this channel and the product is published
         #  and visible in listings
-        variants = ProductVariant.objects.filter(
+        variants = ProductVariant.objects.using(self.db).filter(
             channel_listings__channel_id=channel.id,
             channel_listings__price_amount__isnull=False,
         )
