@@ -36061,7 +36061,9 @@ type TaxableObject @doc(category: "Taxes") {
   """The currency of the object."""
   currency: String!
 
-  """The price of shipping method."""
+  """
+  The price of shipping method, includes shipping voucher discount if applied.
+  """
   shippingPrice: Money!
 
   """The address data."""
@@ -36103,10 +36105,14 @@ type TaxableObjectLine @doc(category: "Taxes") {
   """The product sku."""
   productSku: String
 
-  """Price of the single item in the order line."""
+  """
+  Price of the single item in the order line. The price includes catalogue promotions, specific product and applied once per order voucher discounts. The price does not include the entire order discount.
+  """
   unitPrice: Money!
 
-  """Price of the order line."""
+  """
+  Price of the order line. The price includes catalogue promotions, specific product and applied once per order voucher discounts. The price does not include the entire order discount.
+  """
   totalPrice: Money!
 }
 

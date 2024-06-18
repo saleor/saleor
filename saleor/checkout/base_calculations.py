@@ -247,6 +247,8 @@ def checkout_total(
 
     It should be used as a based value when no flat rate/tax plugin/tax app is active.
     """
+    from ..discount.utils import is_order_level_voucher
+
     currency = checkout_info.checkout.currency
     subtotal = base_checkout_subtotal(lines, checkout_info.channel, currency)
     shipping_price = base_checkout_delivery_price(checkout_info, lines)
@@ -255,10 +257,8 @@ def checkout_total(
     # order promotion discount and entire_order voucher discount with
     # apply_once_per_order set to False are not included in the total price yet
     discounted_object_promotion = bool(checkout_info.discounts)
-    discount_not_included = discounted_object_promotion or (
+    discount_not_included = discounted_object_promotion or is_order_level_voucher(
         checkout_info.voucher
-        and checkout_info.voucher.type == VoucherType.ENTIRE_ORDER
-        and not checkout_info.voucher.apply_once_per_order
     )
     # Discount is subtracted from both gross and net values, which may cause negative
     # net value if we are having a discount that covers whole price.

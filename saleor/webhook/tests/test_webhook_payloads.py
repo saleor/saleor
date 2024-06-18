@@ -444,6 +444,10 @@ def test_generate_order_payload_for_tax_calculation_voucher_discounts(
         "metadata": order.metadata,
         "discounts": [
             {
+                "name": discount_1.name,
+                "amount": str(quantize_price(discount_1.amount_value, currency)),
+            },
+            {
                 "name": discount_2.name,
                 "amount": str(quantize_price(discount_2.amount_value, currency)),
             },

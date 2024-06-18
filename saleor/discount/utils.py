@@ -24,6 +24,7 @@ from ..checkout.models import Checkout
 from ..core.exceptions import InsufficientStock
 from ..core.taxes import zero_money
 from ..core.utils.promo_code import InvalidPromoCode
+from ..discount.models import VoucherType
 from ..order.fetch import DraftOrderLineInfo
 from ..order.models import Order
 from ..product.models import (
@@ -56,12 +57,21 @@ from .models import (
 
 if TYPE_CHECKING:
     from ..account.models import User
+    from ..discount.models import Voucher
     from ..plugins.manager import PluginsManager
     from ..product.managers import ProductVariantQueryset
     from ..product.models import VariantChannelListingPromotionRule
 
 CatalogueInfo = defaultdict[str, set[Union[int, str]]]
 CATALOGUE_FIELDS = ["categories", "collections", "products", "variants"]
+
+
+def is_order_level_voucher(voucher: Optional[Voucher]):
+    return bool(
+        voucher
+        and voucher.type == VoucherType.ENTIRE_ORDER
+        and not voucher.apply_once_per_order
+    )
 
 
 def increase_voucher_usage(

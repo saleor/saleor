@@ -81,6 +81,7 @@ from ..giftcard.models import GiftCard, GiftCardEvent, GiftCardTag
 from ..menu.models import Menu, MenuItem, MenuItemTranslation
 from ..order import OrderOrigin, OrderStatus
 from ..order.actions import cancel_fulfillment, fulfill_order_lines
+from ..order.base_calculations import apply_order_discounts
 from ..order.events import (
     OrderEvents,
     fulfillment_refunded_event,
@@ -5665,6 +5666,7 @@ def draft_order_with_fixed_discount_order(draft_order):
     draft_order.total = discount(draft_order.total)
     draft_order.discounts.create(
         value_type=DiscountValueType.FIXED,
+        type=DiscountType.MANUAL,
         value=value,
         reason="Discount reason",
         amount=(draft_order.undiscounted_total - draft_order.total).gross,
@@ -5692,6 +5694,34 @@ def draft_order_with_voucher(
     channel = order.channel
     channel.include_draft_order_in_voucher_usage = True
     channel.save(update_fields=["include_draft_order_in_voucher_usage"])
+
+    return order
+
+
+@pytest.fixture
+def draft_order_with_free_shipping_voucher(
+    draft_order_with_fixed_discount_order, voucher_free_shipping
+):
+    order = draft_order_with_fixed_discount_order
+    voucher_code = voucher_free_shipping.codes.first()
+    discount = order.discounts.first()
+    discount.type = DiscountType.VOUCHER
+    discount.voucher = voucher_free_shipping
+    discount.voucher_code = voucher_code.code
+    discount.save(update_fields=["type", "voucher", "voucher_code"])
+
+    channel = order.channel
+    channel.include_draft_order_in_voucher_usage = True
+    channel.save(update_fields=["include_draft_order_in_voucher_usage"])
+
+    order.voucher = voucher_free_shipping
+    order.voucher_code = voucher_code.code
+    subtotal, shipping_price = apply_order_discounts(order, order.lines.all())
+    order.subtotal = TaxedMoney(gross=subtotal, net=subtotal)
+    order.shipping_price = TaxedMoney(net=shipping_price, gross=shipping_price)
+    total = subtotal + shipping_price
+    order.total = TaxedMoney(net=total, gross=total)
+    order.save()
 
     return order
 

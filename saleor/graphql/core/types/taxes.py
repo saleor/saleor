@@ -7,7 +7,8 @@ from promise import Promise
 from ....checkout import base_calculations
 from ....checkout.models import Checkout, CheckoutLine
 from ....core.prices import quantize_price
-from ....discount import VoucherType
+from ....discount import DiscountType, VoucherType
+from ....discount.utils import is_order_level_voucher
 from ....order.models import Order, OrderLine
 from ....order.utils import get_order_country
 from ....tax.utils import get_charge_taxes
@@ -74,10 +75,24 @@ class TaxableObjectLine(BaseObjectType):
     product_sku = graphene.String(description="The product sku.")
 
     unit_price = graphene.Field(
-        Money, description="Price of the single item in the order line.", required=True
+        Money,
+        description=(
+            "Price of the single item in the order line. "
+            "The price includes catalogue promotions, specific product "
+            "and applied once per order voucher discounts. "
+            "The price does not include the entire order discount."
+        ),
+        required=True,
     )
     total_price = graphene.Field(
-        Money, description="Price of the order line.", required=True
+        Money,
+        description=(
+            "Price of the order line. "
+            "The price includes catalogue promotions, specific product "
+            "and applied once per order voucher discounts. "
+            "The price does not include the entire order discount."
+        ),
+        required=True,
     )
 
     class Meta:
@@ -294,7 +309,12 @@ class TaxableObject(BaseObjectType):
     )
     currency = graphene.String(required=True, description="The currency of the object.")
     shipping_price = graphene.Field(
-        Money, required=True, description="The price of shipping method."
+        Money,
+        required=True,
+        description=(
+            "The price of shipping method, includes shipping voucher discount "
+            "if applied."
+        ),
     )
     address = graphene.Field(
         "saleor.graphql.account.types.Address",
@@ -368,7 +388,20 @@ class TaxableObject(BaseObjectType):
                 ]
             ).then(calculate_shipping_price)
 
-        return root.base_shipping_price
+        # TODO (SHOPX-875): after adding `undiscounted_base_shipping_price` to
+        # Order model, the `root.base_shipping_price` should be used
+        def shipping_price_with_discount(tax_config):
+            return (
+                root.shipping_price_gross
+                if tax_config.prices_entered_with_tax
+                else root.shipping_price_net
+            )
+
+        return (
+            TaxConfigurationByChannelId(info.context)
+            .load(root.channel_id)
+            .then(shipping_price_with_discount)
+        )
 
     @staticmethod
     def resolve_discounts(root: Union[Checkout, Order], info: ResolveInfo):
@@ -380,11 +413,7 @@ class TaxableObject(BaseObjectType):
                 return (
                     [{"name": discount_name, "amount": checkout.discount}]
                     if checkout.discount
-                    and (
-                        checkout_info.voucher
-                        and checkout_info.voucher.type == VoucherType.ENTIRE_ORDER
-                        and not checkout_info.voucher.apply_once_per_order
-                    )
+                    and is_order_level_voucher(checkout_info.voucher)
                     else []
                 )
 
@@ -398,6 +427,16 @@ class TaxableObject(BaseObjectType):
             return [
                 {"name": discount.name, "amount": discount.amount}
                 for discount in discounts
+                if (
+                    discount.type == DiscountType.MANUAL
+                    # TODO (SHOPX-873): apply_once_per_order voucher are included
+                    # for now, as the discount for such vouchers is currently not
+                    # propagated to the draft order lines
+                    or (
+                        discount.voucher
+                        and discount.voucher.type == VoucherType.ENTIRE_ORDER
+                    )
+                )
             ]
 
         return (
