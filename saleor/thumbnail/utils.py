@@ -187,11 +187,11 @@ class ProcessedImage:
                 exif = dict(exif_datadict.items())
                 orientation = exif.get(self.EXIF_ORIENTATION_KEY, None)
                 if orientation == 3:
-                    image = image.transpose(Image.ROTATE_180)
+                    image = image.transpose(Image.Transpose.ROTATE_180)
                 elif orientation == 6:
-                    image = image.transpose(Image.ROTATE_270)
+                    image = image.transpose(Image.Transpose.ROTATE_270)
                 elif orientation == 8:
-                    image = image.transpose(Image.ROTATE_90)
+                    image = image.transpose(Image.Transpose.ROTATE_90)
 
         # Ensure any embedded ICC profile is preserved
         save_kwargs["icc_profile"] = image.info.get("icc_profile")
