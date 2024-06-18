@@ -126,7 +126,7 @@ class GraphQLOperationResponse:
 class ApiCall:
     def __init__(self, request: "HttpRequest"):
         self.gql_operations: list[GraphQLOperationResponse] = []
-        self.response: Optional["HttpResponse"] = None
+        self.response: Optional[HttpResponse] = None
         self._reported = False
         self.request = request
 

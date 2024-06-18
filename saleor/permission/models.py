@@ -20,7 +20,7 @@ def _user_has_perm(user, perm, obj):
 
 def _user_get_permissions(user, obj, from_name):
     permissions = set()
-    name = "get_%s_permissions" % from_name
+    name = f"get_{from_name}_permissions"
     for backend in auth.get_backends():
         if hasattr(backend, name):
             permissions.update(getattr(backend, name)(user, obj))

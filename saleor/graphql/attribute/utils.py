@@ -805,7 +805,7 @@ class AttributeAssignmentMixin:
 
     @classmethod
     def _bulk_create_pre_save_values(cls, pre_save_bulk):
-        results: dict["Attribute", list[AttributeValue]] = defaultdict(list)
+        results: dict[Attribute, list[AttributeValue]] = defaultdict(list)
 
         for action, attribute_data in pre_save_bulk.items():
             for attribute, values in attribute_data.items():

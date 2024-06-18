@@ -328,7 +328,7 @@ def _assert_num_queries(context, *, config, num, exact=True, info=None):
         msg += f"\n{info}"
     if verbose:
         sqls = (q["sql"] for q in context.captured_queries)
-        msg += "\n\nQueries:\n========\n\n%s" % "\n\n".join(sqls)
+        msg += "\n\nQueries:\n========\n\n{}".format("\n\n".join(sqls))
     else:
         msg += " (add -v option to show queries)"
     pytest.fail(msg)

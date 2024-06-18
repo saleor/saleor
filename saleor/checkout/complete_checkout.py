@@ -1079,7 +1079,7 @@ def _create_order_lines_from_checkout_lines(
         prices_entered_with_tax,
     )
     order_lines = []
-    order_line_discounts: list["OrderLineDiscount"] = []
+    order_line_discounts: list[OrderLineDiscount] = []
     for line_info in order_lines_info:
         line = line_info.line
         line.order_id = order_pk

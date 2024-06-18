@@ -566,20 +566,17 @@ def test_retrieving_the_restricted_attributes_restricted(
     expected_value,
 ):
     attribute = to_camel_case(attribute)
-    query = (
-        """
-        {
-          attributes(first: 10) {
-            edges {
-              node {
-                %s
-              }
-            }
-          }
-        }
+    query = f"""
+        {{
+          attributes(first: 10) {{
+            edges {{
+              node {{
+                {attribute}
+              }}
+            }}
+          }}
+        }}
     """
-        % attribute
-    )
 
     found_attributes = get_graphql_content(
         staff_api_client.post_graphql(query, permissions=[permission_manage_products])
@@ -650,7 +647,7 @@ def test_attributes_in_collection_query(
     """
 
     query = query % {
-        "filter_input": "filter: { %s: $nodeID } channel: $channel" % tested_field
+        "filter_input": f"filter: {{ {tested_field}: $nodeID }} channel: $channel"
     }
 
     variables = {"nodeID": filtered_by_node_id, "channel": channel_USD.slug}

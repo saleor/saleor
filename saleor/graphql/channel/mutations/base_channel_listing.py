@@ -80,7 +80,7 @@ class BaseChannelListingMutation(BaseMutation):
         )
         if errors:
             return {}
-        channels_to_add: list["models.Channel"] = []
+        channels_to_add: list[models.Channel] = []
         if add_channels_ids:
             channels_to_add = cls.get_nodes_or_error(
                 add_channels_ids, "channel_id", Channel

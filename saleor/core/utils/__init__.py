@@ -138,7 +138,7 @@ def generate_unique_slug(
 
 def prepare_unique_slug(slug: str, slug_values: Iterable):
     """Prepare unique slug value based on provided list of existing slug values."""
-    unique_slug: Union["SafeText", str] = slug
+    unique_slug: Union[SafeText, str] = slug
     extension = 1
 
     while unique_slug in slug_values:

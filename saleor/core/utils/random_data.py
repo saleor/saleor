@@ -1099,7 +1099,7 @@ def create_shipping_zone(shipping_methods_names, countries, shipping_zone_name):
             ]
         )
     shipping_zone.channels.add(*channels)
-    return "Shipping Zone: %s" % shipping_zone
+    return f"Shipping Zone: {shipping_zone}"
 
 
 def create_shipping_zones():

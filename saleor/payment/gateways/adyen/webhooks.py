@@ -1092,7 +1092,7 @@ def prepare_api_request_data(request: WSGIRequest, data: dict):
         )
 
     params = data["parameters"]
-    request_data: "QueryDict" = QueryDict("")
+    request_data: QueryDict = QueryDict("")
 
     if all([param in request.GET for param in params]):
         request_data = request.GET

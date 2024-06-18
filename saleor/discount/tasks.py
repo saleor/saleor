@@ -170,7 +170,7 @@ def get_ending_promotions(batch=False):
 
 def fetch_promotion_variants_and_product_ids(promotions: "QuerySet[Promotion]"):
     """Fetch products that are included in the given promotions."""
-    promotion_id_to_variants: dict[UUID, "QuerySet"] = defaultdict(
+    promotion_id_to_variants: dict[UUID, QuerySet] = defaultdict(
         lambda: ProductVariant.objects.none()
     )
     variants = ProductVariant.objects.none()

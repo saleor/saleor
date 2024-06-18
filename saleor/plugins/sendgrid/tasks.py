@@ -28,7 +28,7 @@ def send_email(configuration: SendgridConfiguration, template_id, payload):
     try:
         sendgrid_client.send(message)
     except exceptions.BadRequestsError as e:
-        logger.warning("Bad request to Sendgrid, response: %s" % e.body)
+        logger.warning("Bad request to Sendgrid, response: %s", e.body)
 
 
 @app.task(
