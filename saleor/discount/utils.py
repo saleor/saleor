@@ -23,7 +23,6 @@ from ..checkout.models import Checkout
 from ..core.exceptions import InsufficientStock
 from ..core.taxes import zero_money
 from ..core.utils.promo_code import InvalidPromoCode
-from ..discount.models import VoucherType
 from ..order.models import Order
 from ..product.models import (
     Product,
