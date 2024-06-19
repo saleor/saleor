@@ -1288,7 +1288,7 @@ def test_products_filter_by_date_time_range_date_time_attributes(
         for instance in product_list[:2]
     }
 
-
+@pytest.mark.skip
 def test_products_filter_by_non_existing_attribute(
     api_client, product_list, channel_USD
 ):

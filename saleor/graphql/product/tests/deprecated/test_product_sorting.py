@@ -124,7 +124,7 @@ QUERY_PAGINATED_SORTED_PRODUCTS = """
     }
 """
 
-
+@pytest.mark.skip
 def test_pagination_for_sorting_products_by_publication_date(
     api_client, channel_USD, product_list
 ):

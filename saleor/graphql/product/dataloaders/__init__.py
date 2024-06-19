@@ -8,6 +8,7 @@ from .attributes import (
     VariantAttributesVisibleInStorefrontByProductTypeIdLoader,
 )
 from .products import (
+ProductFieldByIdLoader,
     AvailableProductVariantsByProductIdAndChannel,
     CategoryByIdLoader,
     CategoryChildrenByCategoryIdLoader,

@@ -46,6 +46,28 @@ class CategoryBySlugLoader(DataLoader[str, Category]):
         return [categories.get(category_id) for category_id in keys]
 
 
+class ProductFieldByIdLoader(DataLoader):
+    context_key = "product_field_by_id"
+
+    def load_many_fields(self, id, fields):
+        return self.load_many([(id, field) for field in fields])
+
+    def batch_load(self, keys):
+        ids, fields = zip(*keys)
+        ids = set(ids)
+        fields = set(fields)
+        fields.add("id")
+        # print(fields)
+        # print(len(ids))
+        # print(fields)
+        products = Product.objects.using(self.database_connection_name).filter(
+            id__in=ids
+        ).values(*fields)
+        product_map = {product_data.get("id"): product_data for product_data in products}
+
+        return [product_map.get(product_id, {}).get(field_name) for product_id, field_name in keys]
+
+
 class ProductByIdLoader(DataLoader[int, Product]):
     context_key = "product_by_id"
 

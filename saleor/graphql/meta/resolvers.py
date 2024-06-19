@@ -1,5 +1,6 @@
 import dataclasses
 from operator import itemgetter
+from typing import Union, get_args, Optional
 
 from ...account import models as account_models
 from ...app import models as app_models
@@ -24,8 +25,9 @@ from ..core import ResolveInfo
 from ..utils import get_user_or_app_from_context
 from .permissions import PRIVATE_META_PERMISSION_MAP
 
+PK = Union[int, str]
 
-def resolve_object_with_metadata_type(instance):
+def resolve_object_with_metadata_type(instance: Union[ModelWithMetadata, PK], info=None):
     # Imports inside resolvers to avoid circular imports.
     from ...invoice import models as invoice_models
     from ...menu import models as menu_models
@@ -47,43 +49,44 @@ def resolve_object_with_metadata_type(instance):
     from ..tax import types as tax_types
     from ..warehouse import types as warehouse_types
 
+    MODEL_TO_TYPE_MAP = {
+        account_models.Address: account_types.Address,
+        account_models.User: account_types.User,
+        app_models.App: app_types.App,
+        attribute_models.Attribute: attribute_types.Attribute,
+        channel_models.Channel: channel_types.Channel,
+        checkout_models.Checkout: checkout_types.Checkout,
+        checkout_models.CheckoutMetadata: checkout_types.Checkout,
+        checkout_models.CheckoutLine: checkout_types.CheckoutLine,
+        discount_models.Promotion: discount_types.Promotion,
+        discount_models.Voucher: discount_types.Voucher,
+        giftcard_models.GiftCard: giftcard_types.GiftCard,
+        invoice_models.Invoice: invoice_types.Invoice,
+        menu_models.Menu: menu_types.Menu,
+        menu_models.MenuItem: menu_types.MenuItem,
+        order_models.Fulfillment: order_types.Fulfillment,
+        order_models.Order: order_types.Order,
+        order_models.OrderLine: order_types.OrderLine,
+        page_models.Page: page_types.Page,
+        page_models.PageType: page_types.PageType,
+        payment_models.Payment: payment_types.Payment,
+        payment_models.TransactionItem: payment_types.TransactionItem,
+        product_models.Category: product_types.Category,
+        product_models.Collection: product_types.Collection,
+        product_models.DigitalContent: product_types.DigitalContent,
+        product_models.Product: product_types.Product,
+        product_models.ProductMedia: product_types.ProductMedia,
+        product_models.ProductType: product_types.ProductType,
+        product_models.ProductVariant: product_types.ProductVariant,
+        shipping_models.ShippingMethod: shipping_types.ShippingMethodType,
+        shipping_models.ShippingZone: shipping_types.ShippingZone,
+        site_models.SiteSettings: shop_types.Shop,
+        tax_models.TaxClass: tax_types.TaxClass,
+        tax_models.TaxConfiguration: tax_types.TaxConfiguration,
+        warehouse_models.Warehouse: warehouse_types.Warehouse,
+    }
+
     if isinstance(instance, ModelWithMetadata):
-        MODEL_TO_TYPE_MAP = {
-            account_models.Address: account_types.Address,
-            account_models.User: account_types.User,
-            app_models.App: app_types.App,
-            attribute_models.Attribute: attribute_types.Attribute,
-            channel_models.Channel: channel_types.Channel,
-            checkout_models.Checkout: checkout_types.Checkout,
-            checkout_models.CheckoutMetadata: checkout_types.Checkout,
-            checkout_models.CheckoutLine: checkout_types.CheckoutLine,
-            discount_models.Promotion: discount_types.Promotion,
-            discount_models.Voucher: discount_types.Voucher,
-            giftcard_models.GiftCard: giftcard_types.GiftCard,
-            invoice_models.Invoice: invoice_types.Invoice,
-            menu_models.Menu: menu_types.Menu,
-            menu_models.MenuItem: menu_types.MenuItem,
-            order_models.Fulfillment: order_types.Fulfillment,
-            order_models.Order: order_types.Order,
-            order_models.OrderLine: order_types.OrderLine,
-            page_models.Page: page_types.Page,
-            page_models.PageType: page_types.PageType,
-            payment_models.Payment: payment_types.Payment,
-            payment_models.TransactionItem: payment_types.TransactionItem,
-            product_models.Category: product_types.Category,
-            product_models.Collection: product_types.Collection,
-            product_models.DigitalContent: product_types.DigitalContent,
-            product_models.Product: product_types.Product,
-            product_models.ProductMedia: product_types.ProductMedia,
-            product_models.ProductType: product_types.ProductType,
-            product_models.ProductVariant: product_types.ProductVariant,
-            shipping_models.ShippingMethod: shipping_types.ShippingMethodType,
-            shipping_models.ShippingZone: shipping_types.ShippingZone,
-            site_models.SiteSettings: shop_types.Shop,
-            tax_models.TaxClass: tax_types.TaxClass,
-            tax_models.TaxConfiguration: tax_types.TaxConfiguration,
-            warehouse_models.Warehouse: warehouse_types.Warehouse,
-        }
         if instance.__class__ == discount_models.Promotion and getattr(
             instance, "old_sale_id"
         ):
@@ -93,18 +96,15 @@ def resolve_object_with_metadata_type(instance):
     elif dataclasses.is_dataclass(instance):
         DATACLASS_TO_TYPE_MAP = {ShippingMethodData: shipping_types.ShippingMethod}
         return DATACLASS_TO_TYPE_MAP.get(instance.__class__, None), instance.id
+    elif isinstance(instance, get_args(PK)):
+        if info.parent_type.graphene_type in MODEL_TO_TYPE_MAP.values():
+            return info.parent_type.graphene_type, instance
     raise ValueError(f"Unknown type: {instance.__class__}")
 
 
-def resolve_metadata(metadata: dict):
-    return sorted(
-        [{"key": k, "value": v} for k, v in metadata.items()],
-        key=itemgetter("key"),
-    )
 
-
-def check_private_metadata_privilege(root: ModelWithMetadata, info: ResolveInfo):
-    item_type, item_id = resolve_object_with_metadata_type(root)
+def check_private_metadata_privilege(root: Union[ModelWithMetadata, PK], info: ResolveInfo):
+    item_type, item_id = resolve_object_with_metadata_type(root, info=info)
     if not item_type:
         raise NotImplementedError(
             f"Model {type(root)} can't be mapped to type with metadata. "
@@ -126,7 +126,33 @@ def check_private_metadata_privilege(root: ModelWithMetadata, info: ResolveInfo)
     ):
         raise PermissionDenied()
 
+def resolve_metadata(metadata: dict):
+    return sorted(
+        [{"key": k, "value": v} for k, v in metadata.items()],
+        key=itemgetter("key"),
+    )
 
-def resolve_private_metadata(root: ModelWithMetadata, info: ResolveInfo):
+def resolve_metafield(metadata:dict, key:str):
+    return metadata.get(key)
+
+def resolve_private_metadata(root: Union[ModelWithMetadata, PK], private_metadata:dict, info: ResolveInfo):
     check_private_metadata_privilege(root, info)
-    return resolve_metadata(root.private_metadata)
+    return resolve_metadata(private_metadata)
+
+def resolve_private_metafield(
+    root: Union[ModelWithMetadata, PK], private_metadata:dict, info: ResolveInfo, *, key: str
+) -> Optional[str]:
+    check_private_metadata_privilege(root, info)
+    return private_metadata.get(key)
+
+
+def filter_metadata(metadata, keys):
+    if keys is None:
+        return metadata
+    return {key: value for key, value in metadata.items() if key in keys}
+
+def resolve_private_metafields(
+    root: Union[ModelWithMetadata,PK],private_metadata:dict, info: ResolveInfo, *, keys=None
+):
+    check_private_metadata_privilege(root, info)
+    return filter_metadata(private_metadata, keys)

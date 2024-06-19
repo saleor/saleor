@@ -470,12 +470,9 @@ class GiftCard(ModelObjectType[models.GiftCard]):
 
     @staticmethod
     def resolve_product(root: models.GiftCard, info):
-        if root.product_id is None:
+        if not root.product_id:
             return None
-        product = ProductByIdLoader(info.context).load(root.product_id)
-        return product.then(
-            lambda product: ChannelContext(node=product, channel_slug=None)
-        )
+        return ChannelContext(node_id=root.product_id, channel_slug=None)
 
     @staticmethod
     def resolve_events(root: models.GiftCard, info, **kwargs):
