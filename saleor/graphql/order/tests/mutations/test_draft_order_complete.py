@@ -1451,3 +1451,42 @@ def test_draft_order_complete_with_catalogue_and_gift_discount(
     )
     assert order_data["total"]["net"]["amount"] == total
     assert total == line_2_total + line_1_total + order.base_shipping_price_amount
+
+
+def test_draft_order_complete_with_invalid_address(
+    staff_api_client,
+    permission_group_manage_orders,
+    staff_user,
+    draft_order,
+    address,
+):
+    """Check if draft order can be completed with invalid address.
+
+    After introducing `AddressInput.skip_validation`, Saleor may have invalid address
+    stored in database.
+    """
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = draft_order
+    wrong_postal_code = "wrong postal code"
+    address.postal_code = wrong_postal_code
+
+    order.shipping_address = address.get_copy()
+    order.billing_address = address.get_copy()
+    order.save(update_fields=["shipping_address", "billing_address"])
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+
+    # when
+    response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["draftOrderComplete"]["order"]
+    order.refresh_from_db()
+
+    assert data["status"] == order.status.upper()
+    assert data["origin"] == OrderOrigin.DRAFT.upper()
+    assert order.shipping_address.postal_code == wrong_postal_code
+    assert order.billing_address.postal_code == wrong_postal_code

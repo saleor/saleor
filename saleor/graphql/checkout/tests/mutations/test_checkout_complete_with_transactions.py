@@ -3827,3 +3827,64 @@ def test_checkout_complete_line_deleted_in_the_meantime(
     assert not data["errors"]
     assert Order.objects.count() == 1
     assert not Checkout.objects.filter(pk=checkout.pk).exists()
+
+
+def test_checkout_complete_with_invalid_address(
+    user_api_client,
+    checkout_with_item,
+    transaction_item_generator,
+    address,
+    shipping_method,
+):
+    """Check if checkout can be completed with invalid address.
+
+    After introducing `AddressInput.skip_validation`, Saleor may have invalid address
+    stored in database.
+    """
+    # given
+    checkout = checkout_with_item
+
+    invalid_postal_code = "invalid postal code"
+    address.postal_code = invalid_postal_code
+    address.validation_skipped = True
+    address.save(update_fields=["validation_skipped", "postal_code"])
+
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.tax_exemption = True
+    checkout.save()
+
+    channel = checkout.channel
+    channel.automatically_confirm_all_new_orders = True
+    channel.allow_unpaid_orders = True
+    channel.order_mark_as_paid_strategy = MarkAsPaidStrategy.TRANSACTION_FLOW
+    channel.save()
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+
+    update_checkout_payment_statuses(
+        checkout=checkout_info.checkout,
+        checkout_total_gross=total.gross,
+        checkout_has_lines=bool(lines),
+    )
+
+    redirect_url = "https://www.example.com"
+    variables = {"id": to_global_id_or_none(checkout), "redirectUrl": redirect_url}
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+
+    order = Order.objects.get()
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+    assert order.shipping_address.postal_code == invalid_postal_code
+    assert order.billing_address.postal_code == invalid_postal_code

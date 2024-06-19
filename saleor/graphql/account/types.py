@@ -14,7 +14,11 @@ from ...graphql.meta.inputs import MetadataInput
 from ...order import OrderStatus
 from ...payment.interface import ListStoredPaymentMethodsRequestData
 from ...permission.auth_filters import AuthorizationFilters
-from ...permission.enums import AccountPermissions, AppPermission, OrderPermissions
+from ...permission.enums import (
+    AccountPermissions,
+    AppPermission,
+    OrderPermissions,
+)
 from ...plugins.manager import PluginsManager
 from ...thumbnail.utils import (
     get_image_or_proxy_url,
@@ -36,6 +40,7 @@ from ..core.descriptions import (
     ADDED_IN_310,
     ADDED_IN_314,
     ADDED_IN_315,
+    ADDED_IN_319,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -92,10 +97,23 @@ class AddressInput(BaseInputObjectType):
             "[libphonenumber](https://github.com/google/libphonenumber) library."
         )
     )
-
     metadata = graphene.List(
         graphene.NonNull(MetadataInput),
         description="Address public metadata." + ADDED_IN_315,
+        required=False,
+    )
+    skip_validation = graphene.Boolean(
+        description=(
+            "Determine if the address should be validated. "
+            "By default, Saleor accepts only address inputs matching ruleset from "
+            "[Google Address Data]{https://chromium-i18n.appspot.com/ssl-address), "
+            "using [i18naddress](https://github.com/mirumee/google-i18n-address) "
+            "library. Some mutations may require additional permissions to use the "
+            "the field. More info about permissions can be found in relevant mutation."
+        )
+        + ADDED_IN_319
+        + PREVIEW_FEATURE,
+        default_value=False,
         required=False,
     )
 

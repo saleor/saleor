@@ -21,6 +21,7 @@ def resolve_available_shipping_methods(info, *, channel_slug: str, address):
         available = available.filter(
             shipping_zone__countries__contains=address.country,
         )
+        address.pop("skip_validation", None)
         available = filter_shipping_methods_by_postal_code_rules(
             available, Address(**address)
         )

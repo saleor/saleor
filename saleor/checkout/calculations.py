@@ -1,3 +1,4 @@
+import logging
 from collections.abc import Iterable
 from decimal import Decimal
 from typing import TYPE_CHECKING, Optional, cast
@@ -31,6 +32,8 @@ if TYPE_CHECKING:
     from ..account.models import Address
     from ..plugins.manager import PluginsManager
     from .fetch import CheckoutInfo, CheckoutLineInfo
+
+logger = logging.getLogger(__name__)
 
 
 def checkout_shipping_price(
@@ -355,6 +358,8 @@ def _calculate_and_add_tax(
     address: Optional["Address"] = None,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
+    from .utils import log_address_if_validation_skipped_for_checkout
+
     if tax_calculation_strategy == TaxCalculationStrategy.TAX_APP:
         # If taxAppId is not configured run all active plugins and tax apps.
         # If taxAppId is provided run tax plugin or Tax App. taxAppId can be
@@ -368,6 +373,8 @@ def _calculate_and_add_tax(
             tax_data = manager.get_taxes_for_checkout(
                 checkout_info, lines, tax_app_identifier
             )
+            if not tax_data:
+                log_address_if_validation_skipped_for_checkout(checkout_info, logger)
             _apply_tax_data(checkout, lines, tax_data)
         else:
             _call_plugin_or_tax_app(
@@ -398,6 +405,8 @@ def _call_plugin_or_tax_app(
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"] = None,
 ):
+    from .utils import log_address_if_validation_skipped_for_checkout
+
     if tax_app_identifier.startswith(PLUGIN_IDENTIFIER_PREFIX):
         plugin_ids = [tax_app_identifier.replace(PLUGIN_IDENTIFIER_PREFIX, "")]
         plugins = manager.get_plugins(
@@ -422,6 +431,7 @@ def _call_plugin_or_tax_app(
             checkout_info, lines, tax_app_identifier
         )
         if tax_data is None:
+            log_address_if_validation_skipped_for_checkout(checkout_info, logger)
             raise TaxEmptyData("Empty tax data.")
         _apply_tax_data(checkout, lines, tax_data)
 
