@@ -702,3 +702,54 @@ def test_external_shipping_method_called_only_once_during_tax_calculations(
     assert checkout_with_single_item.shipping_price == TaxedMoney(
         net=Money("1337.00", "USD"), gross=Money("1443.96", "USD")
     )
+
+
+@pytest.mark.parametrize("tax_app_id", [None, "test.app"])
+def test_calculate_and_add_tax_empty_tax_data_logging_address(
+    tax_app_id, checkout_with_single_item, address, caplog
+):
+    # given
+    checkout = checkout_with_single_item
+
+    address.validation_skipped = True
+    address.postal_code = "invalid postal code"
+    address.save(update_fields=["postal_code", "validation_skipped"])
+
+    checkout.shipping_address = address
+    checkout.billing_address = address
+    checkout.save(update_fields=["billing_address", "shipping_address"])
+
+    checkout.channel.tax_configuration.tax_app_id = tax_app_id
+    checkout.channel.tax_configuration.save()
+
+    zero_money = zero_taxed_money(checkout.currency)
+    manager_methods = {
+        "calculate_checkout_total": Mock(return_value=zero_money),
+        "calculate_checkout_subtotal": Mock(return_value=zero_money),
+        "calculate_checkout_line_total": Mock(return_value=zero_money),
+        "calculate_checkout_shipping": Mock(return_value=zero_money),
+        "get_checkout_shipping_tax_rate": Mock(return_value=Decimal("0.00")),
+        "get_checkout_line_tax_rate": Mock(return_value=Decimal("0.00")),
+        "get_taxes_for_checkout": Mock(return_value=None),
+    }
+    manager = Mock(**manager_methods)
+
+    checkout_lines_info, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, checkout_lines_info, manager)
+
+    # when
+    _calculate_and_add_tax(
+        TaxCalculationStrategy.TAX_APP,
+        None,
+        checkout,
+        manager,
+        checkout_info,
+        checkout_lines_info,
+        prices_entered_with_tax=False,
+    )
+
+    # then
+    assert (
+        f"Fetching tax data for checkout with address validation skipped. "
+        f"Address ID: {address.pk}" in caplog.text
+    )

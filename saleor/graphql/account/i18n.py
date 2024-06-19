@@ -41,6 +41,18 @@ SKIP_ADDRESS_VALIDATION_PERMISSION_MAP: dict[str, list[BasePermissionEnum]] = {
         CheckoutPermissions.HANDLE_CHECKOUTS,
         AuthorizationFilters.AUTHENTICATED_APP,
     ],
+    "accountAddressCreate": [
+        AuthorizationFilters.AUTHENTICATED_APP,
+        AccountPermissions.IMPERSONATE_USER,
+    ],
+    "accountUpdate": [
+        AuthorizationFilters.AUTHENTICATED_APP,
+        AccountPermissions.IMPERSONATE_USER,
+    ],
+    "accountAddressUpdate": [
+        AccountPermissions.MANAGE_USERS,
+        AuthorizationFilters.AUTHENTICATED_APP,
+    ],
 }
 
 
@@ -91,7 +103,9 @@ class I18nMixin:
             instance=instance,
             enable_normalization=enable_normalization,
         )
+        validation_skipped = False
         if not address_form.is_valid():
+            validation_skipped = True
             errors = cls.attach_params_to_address_form_errors(
                 address_form, params, format_check, required_check
             )
@@ -102,6 +116,7 @@ class I18nMixin:
             address_form.cleaned_data["metadata"] = {}
         if address_form.cleaned_data["private_metadata"] is None:
             address_form.cleaned_data["private_metadata"] = {}
+        address_form.cleaned_data["validation_skipped"] = validation_skipped
 
         return address_form
 
@@ -157,20 +172,19 @@ class I18nMixin:
                 }
             )
 
-        if skip_validation := address_data.get("skip_validation", False):
+        if address_data.get("skip_validation"):
             cls.can_skip_address_validation(info)
-            cls._meta.exclude.append("phone")  # type: ignore[attr-defined]
-        else:
-            address_form = cls._validate_address_form(
-                address_data,
-                address_type,
-                format_check=format_check,
-                required_check=required_check,
-                enable_normalization=enable_normalization,
-            )
-            address_data = address_form.cleaned_data
+            format_check = False
 
-        address_data["validation_skipped"] = skip_validation
+        address_form = cls._validate_address_form(
+            address_data,
+            address_type,
+            format_check=format_check,
+            required_check=required_check,
+            enable_normalization=enable_normalization,
+        )
+        address_data = address_form.cleaned_data
+
         if not instance:
             instance = Address()
 
