@@ -7,7 +7,7 @@ from ..core.prices import quantize_price
 from ..core.taxes import zero_money
 from ..discount import DiscountType, DiscountValueType, VoucherType
 from ..discount.models import OrderDiscount
-from ..discount.utils import apply_discount_to_value
+from ..discount.utils import apply_discount_to_value, is_order_level_voucher
 from ..shipping.models import ShippingMethodChannelListing
 from .interface import OrderTaxedPricesData
 
@@ -96,11 +96,7 @@ def propagate_order_discount_on_order_prices(
         shipping_price_before_discount = shipping_price
         if order_discount.type == DiscountType.VOUCHER:
             voucher = order_discount.voucher
-            if (
-                voucher
-                and voucher.type == VoucherType.ENTIRE_ORDER
-                and not voucher.apply_once_per_order
-            ):
+            if is_order_level_voucher(voucher):
                 subtotal = apply_discount_to_value(
                     value=order_discount.value,
                     value_type=order_discount.value_type,
