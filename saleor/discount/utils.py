@@ -1771,7 +1771,7 @@ def prepare_line_discount_objects_for_voucher(
 
 def calculate_line_discount_amount_from_voucher(
     line_info: "LineInfo", total_price: Money
-):
+) -> Money:
     """Calculate discount amount for voucher applied on line.
 
     Included vouchers: `SPECIFIC_PRODUCT` and `apply_once_per_order`.

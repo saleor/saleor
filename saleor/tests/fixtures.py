@@ -8107,14 +8107,13 @@ def checkout_with_prices(
     checkout_with_items.save(update_fields=["shipping_method"])
 
     manager = get_plugins_manager(allow_replica=False)
-    channel = checkout_with_items.channel
     lines = checkout_with_items.lines.all()
     lines_info, _ = fetch_checkout_lines(checkout_with_items)
     checkout_info = fetch_checkout_info(checkout_with_items, lines_info, manager)
 
     for line, line_info in zip(lines, lines_info):
         line.total_price_net_amount = base_calculations.calculate_base_line_total_price(
-            line_info, channel
+            line_info
         ).amount
         line.total_price_gross_amount = line.total_price_net_amount * Decimal("1.230")
 

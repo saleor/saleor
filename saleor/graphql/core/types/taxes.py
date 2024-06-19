@@ -213,32 +213,19 @@ class TaxableObjectLine(BaseObjectType):
         if isinstance(root, CheckoutLine):
 
             def with_checkout(checkout):
-                checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(
-                    checkout.token
-                )
                 lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(
                     checkout.token
                 )
 
-                def calculate_line_unit_price(data):
-                    (
-                        checkout_info,
-                        lines,
-                    ) = data
+                def calculate_line_unit_price(lines):
                     for line_info in lines:
                         if line_info.line.pk == root.pk:
                             return base_calculations.calculate_base_line_unit_price(
                                 line_info=line_info,
-                                channel=checkout_info.channel,
                             )
                     return None
 
-                return Promise.all(
-                    [
-                        checkout_info,
-                        lines,
-                    ]
-                ).then(calculate_line_unit_price)
+                return lines.then(calculate_line_unit_price)
 
             return (
                 CheckoutByTokenLoader(info.context)
@@ -252,32 +239,19 @@ class TaxableObjectLine(BaseObjectType):
         if isinstance(root, CheckoutLine):
 
             def with_checkout(checkout):
-                checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(
-                    checkout.token
-                )
                 lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(
                     checkout.token
                 )
 
-                def calculate_line_total_price(data):
-                    (
-                        checkout_info,
-                        lines,
-                    ) = data
+                def calculate_line_total_price(lines):
                     for line_info in lines:
                         if line_info.line.pk == root.pk:
                             return base_calculations.calculate_base_line_total_price(
-                                line_info=line_info,
-                                channel=checkout_info.channel,
+                                line_info=line_info
                             )
                     return None
 
-                return Promise.all(
-                    [
-                        checkout_info,
-                        lines,
-                    ]
-                ).then(calculate_line_total_price)
+                return lines.then(calculate_line_total_price)
 
             return (
                 CheckoutByTokenLoader(info.context)
