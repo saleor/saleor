@@ -110,6 +110,7 @@ def calculate_checkout_total_with_gift_cards(
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+    pregenerated_subscription_payloads: Optional[dict] = {},
 ) -> "TaxedMoney":
     total = checkout_total(
         manager=manager,
@@ -117,6 +118,7 @@ def calculate_checkout_total_with_gift_cards(
         lines=lines,
         address=address,
         database_connection_name=database_connection_name,
+        pregenerated_subscription_payloads=pregenerated_subscription_payloads,
     ) - checkout_info.checkout.get_total_gift_cards_balance(database_connection_name)
 
     return max(total, zero_taxed_money(total.currency))
@@ -129,6 +131,7 @@ def checkout_total(
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+    pregenerated_subscription_payloads: Optional[dict] = {},
 ) -> "TaxedMoney":
     """Return the total cost of the checkout.
 
@@ -144,6 +147,7 @@ def checkout_total(
         lines=lines,
         address=address,
         database_connection_name=database_connection_name,
+        pregenerated_subscription_payloads=pregenerated_subscription_payloads,
     )
     return quantize_price(checkout_info.checkout.total, currency)
 
@@ -230,6 +234,7 @@ def _fetch_checkout_prices_if_expired(
     address: Optional["Address"] = None,
     force_update: bool = False,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+    pregenerated_subscription_payloads: Optional[dict] = {},
 ) -> tuple["CheckoutInfo", Iterable["CheckoutLineInfo"]]:
     """Fetch checkout prices with taxes.
 
@@ -277,6 +282,7 @@ def _fetch_checkout_prices_if_expired(
                 prices_entered_with_tax,
                 address,
                 database_connection_name=database_connection_name,
+                pregenerated_subscription_payloads=pregenerated_subscription_payloads,
             )
         except TaxEmptyData as e:
             _set_checkout_base_prices(checkout, checkout_info, lines)
@@ -303,6 +309,7 @@ def _fetch_checkout_prices_if_expired(
                     prices_entered_with_tax,
                     address,
                     database_connection_name=database_connection_name,
+                    pregenerated_subscription_payloads=pregenerated_subscription_payloads,
                 )
             except TaxEmptyData as e:
                 _set_checkout_base_prices(checkout, checkout_info, lines)
@@ -357,6 +364,7 @@ def _calculate_and_add_tax(
     prices_entered_with_tax: bool,
     address: Optional["Address"] = None,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+    pregenerated_subscription_payloads: Optional[dict] = {},
 ):
     from .utils import log_address_if_validation_skipped_for_checkout
 
@@ -365,13 +373,17 @@ def _calculate_and_add_tax(
         # If taxAppId is provided run tax plugin or Tax App. taxAppId can be
         # configured with Avatax plugin identifier.
         if not tax_app_identifier:
+            # TODO Owczar: Cover this flow
             # Call the tax plugins.
             _apply_tax_data_from_plugins(
                 checkout, manager, checkout_info, lines, address
             )
             # Get the taxes calculated with apps and apply to checkout.
             tax_data = manager.get_taxes_for_checkout(
-                checkout_info, lines, tax_app_identifier
+                checkout_info,
+                lines,
+                tax_app_identifier,
+                pregenerated_subscription_payloads,
             )
             if not tax_data:
                 log_address_if_validation_skipped_for_checkout(checkout_info, logger)
@@ -384,6 +396,7 @@ def _calculate_and_add_tax(
                 checkout_info,
                 lines,
                 address,
+                pregenerated_subscription_payloads,
             )
     else:
         # Get taxes calculated with flat rates and apply to checkout.
@@ -404,6 +417,7 @@ def _call_plugin_or_tax_app(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"] = None,
+    pregenerated_subscription_payloads: Optional[dict] = {},
 ):
     from .utils import log_address_if_validation_skipped_for_checkout
 
@@ -428,7 +442,10 @@ def _call_plugin_or_tax_app(
             raise TaxEmptyData("Empty tax data.")
     else:
         tax_data = manager.get_taxes_for_checkout(
-            checkout_info, lines, tax_app_identifier
+            checkout_info,
+            lines,
+            tax_app_identifier,
+            pregenerated_subscription_payloads=pregenerated_subscription_payloads,
         )
         if tax_data is None:
             log_address_if_validation_skipped_for_checkout(checkout_info, logger)
@@ -596,6 +613,7 @@ def fetch_checkout_data(
     checkout_transactions: Optional[Iterable["TransactionItem"]] = None,
     force_status_update: bool = False,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+    pregenerated_subscription_payloads: Optional[dict] = {},
 ):
     """Fetch checkout data.
 
@@ -610,6 +628,7 @@ def fetch_checkout_data(
         address=address,
         force_update=force_update,
         database_connection_name=database_connection_name,
+        pregenerated_subscription_payloads=pregenerated_subscription_payloads,
     )
     current_total_gross = checkout_info.checkout.total.gross
     if current_total_gross != previous_total_gross or force_status_update:
