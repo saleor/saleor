@@ -248,7 +248,7 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
             qs = ChannelQsContext(
                 qs=root.node.excluded_products.using(
                     get_database_connection_name(info.context)
-                ).all(),
+                ).all().values_list("id", flat=True),
                 channel_slug=None,
             )
 

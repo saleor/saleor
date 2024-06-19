@@ -1,6 +1,6 @@
 import collections
 import itertools
-from typing import TYPE_CHECKING, TypeVar, Union, cast
+from typing import TYPE_CHECKING, TypeVar, Union, cast,get_args
 
 import graphene
 from django.db.models import Model
@@ -9,6 +9,9 @@ from graphene.types.objecttype import ObjectType
 from graphene.types.resolver import get_default_resolver
 from promise import Promise
 
+from ..meta.resolvers import resolve_private_metadata, resolve_metadata, \
+    resolve_metafield, resolve_private_metafield, filter_metadata, \
+    resolve_private_metafields
 from ...channel import models
 from ...core.models import ModelWithMetadata
 from ...permission.auth_filters import AuthorizationFilters
@@ -61,8 +64,11 @@ from .enums import (
 if TYPE_CHECKING:
     from ...shipping.models import ShippingZone
 
-T = TypeVar("T", bound=Model)
+PK = Union[int, str]
+T = TypeVar("T", bound=Union[Model, PK])
 
+import logging
+logger = logging.getLogger(__name__)
 
 class ChannelContextTypeForObjectType(ModelObjectType[T]):
     """A Graphene type that supports resolvers' root as ChannelContext objects."""
@@ -77,9 +83,23 @@ class ChannelContextTypeForObjectType(ModelObjectType[T]):
         resolver = get_default_resolver()
         return resolver(attname, default_value, root.node, info, **args)
 
+    @classmethod
+    def resolve_with_context_and_field_dataloader(cls, dataloader):
+        def resolver(attname, default_value, root: ChannelContext[T], info: ResolveInfo, **args):
+            if isinstance(root.node, dict):
+                return root.node.get(attname, default_value)
+            if isinstance(root.node_id, get_args(PK)):
+                return dataloader(info.context).load(
+                    (root.node_id, attname)
+                )
+            # from django.core.management.color import color_style
+            # logger.warning(color_style().WARNING("Using normal resolver for field"), attname)
+            return cls.resolver_with_context(attname, default_value, root, info, **args)
+        return resolver
+
     @staticmethod
     def resolve_id(root: ChannelContext[T], _info: ResolveInfo):
-        return root.node.pk
+        return root.node_id or root.node.id
 
     @staticmethod
     def resolve_translation(
@@ -115,6 +135,12 @@ class ChannelContextType(ChannelContextTypeForObjectType[T]):
 TM = TypeVar("TM", bound=ModelWithMetadata)
 
 
+def get_default_resolver_with_dataloader(root: ChannelContext[TM], info: ResolveInfo, field_name: str):
+    graphene_type = info.parent_type.graphene_type
+    default_resolver = graphene_type._meta.default_resolver
+    return default_resolver(field_name, None, root, info)
+
+
 class ChannelContextTypeWithMetadataForObjectType(ChannelContextTypeForObjectType[TM]):
     """A Graphene type for that uses ChannelContext as root in resolvers.
 
@@ -128,36 +154,66 @@ class ChannelContextTypeWithMetadataForObjectType(ChannelContextTypeForObjectTyp
     @staticmethod
     def resolve_metadata(root: ChannelContext[TM], info: ResolveInfo):
         # Used in metadata API to resolve metadata fields from an instance.
-        return ObjectWithMetadata.resolve_metadata(root.node, info)
+        if root.node:
+            return resolve_metadata(root.node.metadata)
+        return get_default_resolver_with_dataloader(root, info, "metadata").then(resolve_metadata)
 
     @staticmethod
     def resolve_metafield(root: ChannelContext[TM], info: ResolveInfo, *, key: str):
         # Used in metadata API to resolve metadata fields from an instance.
-        return ObjectWithMetadata.resolve_metafield(root.node, info, key=key)
+        def with_metadata(metadata):
+            return resolve_metafield(metadata, key)
+        if root.node:
+            return with_metadata(root.node.metadata)
+        return get_default_resolver_with_dataloader(root, info, "metadata").then(with_metadata)
 
     @staticmethod
     def resolve_metafields(root: ChannelContext[TM], info: ResolveInfo, *, keys=None):
         # Used in metadata API to resolve metadata fields from an instance.
-        return ObjectWithMetadata.resolve_metafields(root.node, info, keys=keys)
+        def with_metadata(metadata):
+            return filter_metadata(metadata, keys)
+        if root.node:
+            return with_metadata(root.node.metadata)
+        return get_default_resolver_with_dataloader(root, info, "metadata").then(with_metadata)
 
     @staticmethod
     def resolve_private_metadata(root: ChannelContext[TM], info: ResolveInfo):
         # Used in metadata API to resolve private metadata fields from an instance.
-        return ObjectWithMetadata.resolve_private_metadata(root.node, info)
+        instance = root.node or root.node_id
+        def _with_private_metadata(private_metadata):
+            return resolve_private_metadata(instance, private_metadata, info)
+
+        if root.node:
+            return _with_private_metadata(root.node.private_metadata)
+        return get_default_resolver_with_dataloader(root, info, "private_metadata").then(_with_private_metadata)
+
 
     @staticmethod
     def resolve_private_metafield(
         root: ChannelContext[TM], info: ResolveInfo, *, key: str
     ):
         # Used in metadata API to resolve private metadata fields from an instance.
-        return ObjectWithMetadata.resolve_private_metafield(root.node, info, key=key)
+        instance = root.node or root.node_id
+        def _with_private_metadata(private_metadata):
+            return resolve_private_metafield(instance, private_metadata, info, key=key)
+        if root.node:
+            return _with_private_metadata(root.node.private_metadata)
+        return get_default_resolver_with_dataloader(root, info, "private_metadata").then(_with_private_metadata)
+
 
     @staticmethod
     def resolve_private_metafields(
         root: ChannelContext[TM], info: ResolveInfo, *, keys=None
     ):
         # Used in metadata API to resolve private metadata fields from an instance.
-        return ObjectWithMetadata.resolve_private_metafields(root.node, info, keys=keys)
+        instance = root.node or root.node_id
+        def _with_private_metadata(private_metadata):
+            return resolve_private_metafields(instance, private_metadata, info, keys=keys)
+        if root.node:
+            return _with_private_metadata(root.node.private_metadata)
+        return get_default_resolver_with_dataloader(root, info, "private_metadata").then(
+            _with_private_metadata)
+
 
 
 class ChannelContextTypeWithMetadata(ChannelContextTypeWithMetadataForObjectType[TM]):

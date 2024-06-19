@@ -8,6 +8,8 @@ import graphene
 from graphene import relay
 from promise import Promise
 
+from ...core import ResolveInfo
+from ...translations.dataloaders import ProductTranslationByIdAndLanguageCodeLoader
 from ....attribute import models as attribute_models
 from ....channel.models import Channel
 from ....core.utils import build_absolute_uri
@@ -96,7 +98,7 @@ from ...order.dataloaders import (
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...product.dataloaders.products import (
     AvailableProductVariantsByProductIdAndChannel,
-    ProductVariantsByProductIdAndChannel,
+    ProductVariantsByProductIdAndChannel, ProductMediaByIdLoader,
 )
 from ...site.dataloaders import load_site_callback
 from ...tax.dataloaders import (
@@ -122,6 +124,7 @@ from ...warehouse.dataloaders import (
 )
 from ...warehouse.types import Stock
 from ..dataloaders import (
+    ProductFieldByIdLoader,
     CategoryByIdLoader,
     CollectionChannelListingByCollectionIdAndChannelSlugLoader,
     CollectionsByProductIdLoader,
@@ -425,7 +428,7 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
         return root.node.created_at
 
     @staticmethod
-    def resolve_channel(root: ChannelContext[models.Product], _info):
+    def resolve_channel(root: ChannelContext[models.ProductVariant], _info):
         return root.channel_slug
 
     @staticmethod
@@ -710,10 +713,7 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
 
     @staticmethod
     def resolve_product(root: ChannelContext[models.ProductVariant], info):
-        product = ProductByIdLoader(info.context).load(root.node.product_id)
-        return product.then(
-            lambda product: ChannelContext(node=product, channel_slug=root.channel_slug)
-        )
+        return ChannelContext(node_id=root.node.product_id, channel_slug=root.channel_slug)
 
     @staticmethod
     def resolve_quantity_ordered(root: ChannelContext[models.ProductVariant], _info):
@@ -842,6 +842,22 @@ class ProductVariantCountableConnection(CountableConnection):
         doc_category = DOC_CATEGORY_PRODUCTS
         node = ProductVariant
 
+
+
+# def default_product_resolver(
+#         attname, default_value, root: ChannelContext, info: ResolveInfo, **args
+# ):
+#     print("rrot")
+#     print(root)
+#     # root_has_node = hasattr(root, "node")
+#     if isinstance(root.node, dict):
+#         root.node.get(attname, default_value)
+#     # if attname in root.node.__dict__:
+#     #     return getattr(root.node, "attname")
+#     # FIXME root should be handled better
+#     return ProductFieldByIdLoader(info.context).load(
+#         (root.node.id, attname)
+#     )
 
 @federated_entity("id channel")
 class Product(ChannelContextTypeWithMetadata[models.Product]):
@@ -980,7 +996,7 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
     translation = TranslationField(
         ProductTranslation,
         type_name="product",
-        resolver=ChannelContextType.resolve_translation,
+        resolver=None
     )
     available_for_purchase = Date(
         description="Date when product is available for purchase.",
@@ -1019,15 +1035,27 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
     )
 
     class Meta:
-        default_resolver = ChannelContextType.resolver_with_context
+        default_resolver = ChannelContextType.resolve_with_context_and_field_dataloader(ProductFieldByIdLoader)
+        # default_resolver = default_product_resolver
         description = "Represents an individual item for sale in the storefront."
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Product
 
+
     @staticmethod
-    def resolve_created(root: ChannelContext[models.Product], _info):
-        created_at = root.node.created_at
-        return created_at
+    def resolve_translation(
+        root: ChannelContext[models.Product], info: ResolveInfo, *, language_code
+    ):
+        product_id = root.node_id or root.node.id
+        return ProductTranslationByIdAndLanguageCodeLoader(info.context).load((product_id, language_code))
+
+    @staticmethod
+    def resolve_created(root: ChannelContext[models.Product], info):
+        if root.node:
+            return root.node.created_at
+        return ProductFieldByIdLoader(
+            info.context,
+        ).load((root.node_id, "created_at"))
 
     @staticmethod
     def resolve_channel(root: ChannelContext[models.Product], _info):
@@ -1035,46 +1063,76 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
 
     @staticmethod
     def resolve_default_variant(root: ChannelContext[models.Product], info):
-        default_variant_id = root.node.default_variant_id
-        if default_variant_id is None:
-            return None
 
-        def return_default_variant_with_channel_context(variant):
-            return ChannelContext(node=variant, channel_slug=root.channel_slug)
+        def with_default_variant_id(default_variant_id):
+            if default_variant_id is None:
+                return None
 
-        return (
-            ProductVariantByIdLoader(info.context)
-            .load(default_variant_id)
-            .then(return_default_variant_with_channel_context)
-        )
+            def return_default_variant_with_channel_context(variant):
+                return ChannelContext(node=variant, channel_slug=root.channel_slug)
+
+            return (
+                ProductVariantByIdLoader(info.context)
+                .load(default_variant_id)
+                .then(return_default_variant_with_channel_context)
+            )
+        if root.node:
+            return with_default_variant_id(root.node.default_variant_id)
+        return ProductFieldByIdLoader(
+            info.context,
+        ).load((root.node_id, "default_variant_id")).then(with_default_variant_id)
+
+
+    @staticmethod
+    def resolve_description(root: ChannelContext[models.Product], info):
+        if root.node:
+            return root.node.description
+        return ProductFieldByIdLoader(
+            info.context,
+        ).load((root.node_id, "description"))
 
     @staticmethod
     def resolve_category(root: ChannelContext[models.Product], info):
-        category_id = root.node.category_id
-        if category_id is None:
-            return None
-        return CategoryByIdLoader(info.context).load(category_id)
+        def with_category(category_id):
+            if category_id is None:
+                return None
+            return CategoryByIdLoader(info.context).load(category_id)
+        if root.node:
+            return with_category(root.node.category_id)
+        return ProductFieldByIdLoader(
+            info.context,
+        ).load((root.node_id, "category_id")).then(with_category)
 
     @staticmethod
-    def resolve_description_json(root: ChannelContext[models.Product], _info):
-        description = root.node.description
-        return description if description is not None else {}
+    def resolve_description_json(root: ChannelContext[models.Product], info):
+        def with_description(description):
+            return description if description is not None else {}
+        if root.node:
+            return with_description(root.node.description)
+        return ProductFieldByIdLoader(
+            info.context,
+        ).load((root.node_id, "description")).then(with_description)
+
 
     @staticmethod
     def resolve_tax_type(root: ChannelContext[models.Product], info):
-        def with_tax_class(data):
-            tax_class, manager = data
-            tax_data = manager.get_tax_code_from_object_meta(
-                tax_class, channel_slug=root.channel_slug
-            )
-            return TaxType(tax_code=tax_data.code, description=tax_data.description)
+        def with_tax_class_id(tax_class_id):
+            def with_tax_class(data):
+                tax_class, manager = data
+                tax_data = manager.get_tax_code_from_object_meta(
+                    tax_class, channel_slug=root.channel_slug
+                )
+                return TaxType(tax_code=tax_data.code, description=tax_data.description)
 
-        if root.node.tax_class_id:
-            tax_class = TaxClassByIdLoader(info.context).load(root.node.tax_class_id)
-            manager = get_plugin_manager_promise(info.context)
-            return Promise.all([tax_class, manager]).then(with_tax_class)
-
-        return None
+            if tax_class_id:
+                tax_class = TaxClassByIdLoader(info.context).load(tax_class_id)
+                manager = get_plugin_manager_promise(info.context)
+                return Promise.all([tax_class, manager]).then(with_tax_class)
+        if root.node:
+            return with_tax_class_id(root.node.tax_class_id)
+        return ProductFieldByIdLoader(
+            info.context,
+        ).load((root.node_id, "tax_class_id")).then(with_tax_class_id)
 
     @staticmethod
     def resolve_thumbnail(
@@ -1108,10 +1166,10 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
                 .load((image.id, size, format))
                 .then(_resolve_url)
             )
-
+        product_id = root.node_id or root.node.id
         return (
             MediaByProductIdLoader(info.context)
-            .load(root.node.id)
+            .load(product_id)
             .then(return_first_thumbnail)
         )
 
@@ -1123,20 +1181,20 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
     def resolve_pricing(root: ChannelContext[models.Product], info, *, address=None):
         if not root.channel_slug:
             return None
-
+        product_id = root.node_id or root.node.id
         channel_slug = str(root.channel_slug)
         context = info.context
 
         channel = ChannelBySlugLoader(context).load(channel_slug)
         product_channel_listing = ProductChannelListingByProductIdAndChannelSlugLoader(
             context
-        ).load((root.node.id, channel_slug))
+        ).load((product_id, channel_slug))
         variants_channel_listing = (
             VariantsChannelListingByProductIdAndChannelSlugLoader(context).load(
-                (root.node.id, channel_slug)
+                (product_id, channel_slug)
             )
         )
-        tax_class = TaxClassByProductIdLoader(context).load(root.node.id)
+        tax_class = TaxClassByProductIdLoader(context).load(product_id)
 
         def load_tax_configuration(data):
             (
@@ -1236,7 +1294,7 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
 
         channel_slug = str(root.channel_slug)
         country_code = address.country if address is not None else None
-
+        product_id = root.node_id or root.node.id
         requestor = get_user_or_app_from_context(info.context)
 
         has_required_permissions = has_one_of_permissions(
@@ -1258,16 +1316,16 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
         def check_variant_availability():
             if has_required_permissions and not channel_slug:
                 variants = ProductVariantsByProductIdLoader(info.context).load(
-                    root.node.id
+                    product_id
                 )
             elif has_required_permissions and channel_slug:
                 variants = ProductVariantsByProductIdAndChannel(info.context).load(
-                    (root.node.id, channel_slug)
+                    (product_id, channel_slug)
                 )
             else:
                 variants = AvailableProductVariantsByProductIdAndChannel(
                     info.context
-                ).load((root.node.id, channel_slug))
+                ).load((product_id, channel_slug))
             return variants.then(load_variants_availability).then(
                 calculate_is_available
             )
@@ -1280,12 +1338,13 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
 
         return (
             ProductChannelListingByProductIdAndChannelSlugLoader(info.context)
-            .load((root.node.id, channel_slug))
+            .load((product_id, channel_slug))
             .then(check_is_available_for_purchase)
         )
 
     @staticmethod
     def resolve_attribute(root: ChannelContext[models.Product], info, slug):
+        product_id = root.node_id or root.node.id
         def get_selected_attribute_by_slug(
             attributes: list[SelectedAttribute],
         ) -> Optional[SelectedAttribute]:
@@ -1302,18 +1361,19 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
         ):
             return (
                 SelectedAttributesAllByProductIdLoader(info.context)
-                .load(root.node.id)
+                .load(product_id)
                 .then(get_selected_attribute_by_slug)
             )
         else:
             return (
                 SelectedAttributesVisibleInStorefrontByProductIdLoader(info.context)
-                .load(root.node.id)
+                .load(product_id)
                 .then(get_selected_attribute_by_slug)
             )
 
     @staticmethod
     def resolve_attributes(root: ChannelContext[models.Product], info):
+        product_id = root.node_id or root.node.id
         requestor = get_user_or_app_from_context(info.context)
         if (
             requestor
@@ -1321,33 +1381,40 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
             and requestor.has_perm(ProductPermissions.MANAGE_PRODUCTS)
         ):
             return SelectedAttributesAllByProductIdLoader(info.context).load(
-                root.node.id
+                product_id
             )
         else:
             return SelectedAttributesVisibleInStorefrontByProductIdLoader(
                 info.context
-            ).load(root.node.id)
+            ).load(product_id)
 
     @staticmethod
     def resolve_media_by_id(root: ChannelContext[models.Product], info, *, id):
+        product_id = root.node_id or root.node.id
+        def with_product_media(product_media):
+            if not product_media or product_media.product_id != product_id:
+                return None
+            return product_media
         _type, pk = from_global_id_or_error(id, ProductMedia)
-        return (
-            root.node.media.using(get_database_connection_name(info.context))
-            .filter(pk=pk)
-            .first()
-        )
+        if not pk:
+            return None
+        return ProductMediaByIdLoader(info.context).load(int(pk)).then(with_product_media)
 
     @staticmethod
     def resolve_image_by_id(root: ChannelContext[models.Product], info, *, id):
+        product_id = root.node_id or root.node.id
         _type, pk = from_global_id_or_error(id, ProductImage)
-        return (
-            root.node.media.using(get_database_connection_name(info.context))
-            .filter(pk=pk)
-            .first()
-        )
+        if not pk:
+            return None
+        def with_product_image(product_media):
+            if not product_media or product_media.product_id != product_id:
+                return None
+            return product_media
+        return ProductMediaByIdLoader(info.context).load(int(pk)).then(with_product_image)
 
     @staticmethod
     def resolve_media(root: ChannelContext[models.Product], info, sort_by=None):
+        product_id = root.node_id or root.node.id
         if sort_by is None:
             sort_by = {
                 "field": ["sort_order"],
@@ -1375,11 +1442,12 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
             )
             return media_sorted
 
-        return MediaByProductIdLoader(info.context).load(root.node.id).then(sort_media)
+        return MediaByProductIdLoader(info.context).load(product_id).then(sort_media)
 
     @staticmethod
     def resolve_images(root: ChannelContext[models.Product], info):
-        return ImagesByProductIdLoader(info.context).load(root.node.id)
+        product_id = root.node_id or root.node.id
+        return ImagesByProductIdLoader(info.context).load(product_id)
 
     @staticmethod
     def resolve_variant(root: ChannelContext[models.Product], info, id=None, sku=None):
@@ -1417,19 +1485,20 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
 
     @staticmethod
     def resolve_variants(root: ChannelContext[models.Product], info):
+        product_id = root.node_id or root.node.id
         requestor = get_user_or_app_from_context(info.context)
         has_required_permissions = has_one_of_permissions(
             requestor, ALL_PRODUCTS_PERMISSIONS
         )
         if has_required_permissions and not root.channel_slug:
-            variants = ProductVariantsByProductIdLoader(info.context).load(root.node.id)
+            variants = ProductVariantsByProductIdLoader(info.context).load(product_id)
         elif has_required_permissions and root.channel_slug:
             variants = ProductVariantsByProductIdAndChannel(info.context).load(
-                (root.node.id, root.channel_slug)
+                (product_id, root.channel_slug)
             )
         else:
             variants = AvailableProductVariantsByProductIdAndChannel(info.context).load(
-                (root.node.id, root.channel_slug)
+                (product_id, root.channel_slug)
             )
 
         def map_channel_context(variants):
@@ -1442,12 +1511,14 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
 
     @staticmethod
     def resolve_channel_listings(root: ChannelContext[models.Product], info):
-        return ProductChannelListingByProductIdLoader(info.context).load(root.node.id)
+        product_id = root.node_id or root.node.id
+        return ProductChannelListingByProductIdLoader(info.context).load(product_id)
 
     @staticmethod
     @traced_resolver
     def resolve_collections(root: ChannelContext[models.Product], info):
         requestor = get_user_or_app_from_context(info.context)
+        product_id = root.node_id or root.node.id
 
         has_required_permissions = has_one_of_permissions(
             requestor, ALL_PRODUCTS_PERMISSIONS
@@ -1492,16 +1563,24 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
 
         return (
             CollectionsByProductIdLoader(info.context)
-            .load(root.node.id)
+            .load(product_id)
             .then(return_collections)
         )
 
     @staticmethod
-    def resolve_weight(root: ChannelContext[models.Product], _info):
-        return convert_weight_to_default_weight_unit(root.node.weight)
+    def resolve_weight(root: ChannelContext[models.Product], info):
+        def with_weight(weight):
+            return convert_weight_to_default_weight_unit(weight)
+
+        if root.node:
+            return with_weight(root.node.weight)
+        return ProductFieldByIdLoader(
+            info.context,
+        ).load((root.node_id, "weight")).then(with_weight)
 
     @staticmethod
     def resolve_is_available_for_purchase(root: ChannelContext[models.Product], info):
+        product_id = root.node_id or root.node.id
         if not root.channel_slug:
             return None
         channel_slug = str(root.channel_slug)
@@ -1513,7 +1592,7 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
 
         return (
             ProductChannelListingByProductIdAndChannelSlugLoader(info.context)
-            .load((root.node.id, channel_slug))
+            .load((product_id, channel_slug))
             .then(calculate_is_available_for_purchase)
         )
 
@@ -1521,6 +1600,7 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
     def resolve_available_for_purchase(root: ChannelContext[models.Product], info):
         if not root.channel_slug:
             return None
+        product_id = root.node_id or root.node.id
         channel_slug = str(root.channel_slug)
 
         def calculate_available_for_purchase(product_channel_listing):
@@ -1530,7 +1610,7 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
 
         return (
             ProductChannelListingByProductIdAndChannelSlugLoader(info.context)
-            .load((root.node.id, channel_slug))
+            .load((product_id, channel_slug))
             .then(calculate_available_for_purchase)
         )
 
@@ -1538,6 +1618,7 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
     def resolve_available_for_purchase_at(root: ChannelContext[models.Product], info):
         if not root.channel_slug:
             return None
+        product_id = root.node_id or root.node.id
         channel_slug = str(root.channel_slug)
 
         def calculate_available_for_purchase(product_channel_listing):
@@ -1547,58 +1628,82 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
 
         return (
             ProductChannelListingByProductIdAndChannelSlugLoader(info.context)
-            .load((root.node.id, channel_slug))
+            .load((product_id, channel_slug))
             .then(calculate_available_for_purchase)
         )
 
     @staticmethod
     def resolve_product_type(root: ChannelContext[models.Product], info):
-        return ProductTypeByIdLoader(info.context).load(root.node.product_type_id)
+        def with_product_type_id(product_type_id):
+            return ProductTypeByIdLoader(info.context).load(product_type_id)
+        if root.node:
+            return with_product_type_id(root.node.product_type_id)
+        return ProductFieldByIdLoader(
+            info.context,
+        ).load((root.node_id, "product_type_id")).then(with_product_type_id)
 
     @staticmethod
     def resolve_tax_class(root: ChannelContext[models.Product], info):
-        product_type = (
-            ProductTypeByIdLoader(info.context).load(root.node.product_type_id)
-            if not root.node.tax_class_id
-            else None
+        def with_product_type_id_and_tax_class_id(data):
+            product_type_id, product_tax_class_id = data
+
+            if product_tax_class_id:
+                return TaxClassByIdLoader(info.context).load(product_tax_class_id)
+            if not product_type_id:
+                return None
+
+            def resolve_tax_class_for_product_type(product_type):
+                tax_class_id = product_type.tax_class_id
+                if tax_class_id:
+                    return TaxClassByIdLoader(info.context).load(tax_class_id)
+                return None
+
+            return ProductTypeByIdLoader(info.context).load(product_type_id).then(resolve_tax_class_for_product_type)
+        if root.node:
+            return with_product_type_id_and_tax_class_id((root.node.product_type_id, root.node.tax_class_id))
+        return ProductFieldByIdLoader(
+            info.context,
+        ).load_many_fields(root.node_id, ["product_type_id", "tax_class_id"]).then(
+            with_product_type_id_and_tax_class_id
         )
 
-        def resolve_tax_class(product_type):
-            tax_class_id = (
-                product_type.tax_class_id if product_type else root.node.tax_class_id
-            )
-            return (
-                TaxClassByIdLoader(info.context).load(tax_class_id)
-                if tax_class_id
-                else None
-            )
 
-        return Promise.resolve(product_type).then(resolve_tax_class)
 
+    @staticmethod
     def resolve_charge_taxes(root: ChannelContext[models.Product], info):
         # Deprecated: this field is deprecated as it only checks whether there are any
         # non-zero flat rates set for a product. Instead channel tax configuration
         # should be used to check whether taxes are charged.
-
-        tax_class_id = root.node.tax_class_id
-        if not tax_class_id:
-            product_type = ProductTypeByIdLoader(info.context).load(
-                root.node.product_type_id
-            )
-
-            def with_product_type(product_type):
-                tax_class_id = product_type.tax_class_id
-                return (
-                    ProductChargeTaxesByTaxClassIdLoader(info.context).load(
-                        tax_class_id
-                    )
-                    if tax_class_id
-                    else False
+        def with_product_type_id_and_tax_class_id(data):
+            product_type_id, tax_class_id = data
+            if not tax_class_id:
+                product_type = ProductTypeByIdLoader(info.context).load(
+                    product_type_id
                 )
 
-            return product_type.then(with_product_type)
+                def with_product_type(product_type):
+                    tax_class_id = product_type.tax_class_id
+                    return (
+                        ProductChargeTaxesByTaxClassIdLoader(info.context).load(
+                            tax_class_id
+                        )
+                        if tax_class_id
+                        else False
+                    )
 
-        return ProductChargeTaxesByTaxClassIdLoader(info.context).load(tax_class_id)
+                return product_type.then(with_product_type)
+
+            return ProductChargeTaxesByTaxClassIdLoader(info.context).load(tax_class_id)
+
+        if root.node:
+            return with_product_type_id_and_tax_class_id(
+                (root.node.product_type_id, root.node.tax_class_id)
+            )
+        return ProductFieldByIdLoader(
+            info.context,
+        ).load_many_fields(root.node_id, ["product_type_id", "tax_class_id"]).then(
+            with_product_type_id_and_tax_class_id
+        )
 
     @staticmethod
     def __resolve_references(roots: list["Product"], info):
@@ -1620,7 +1725,7 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
         for channel_slug, ids in channels.items():
             limited_channel_access = False if channel_slug is None else True
             queryset = resolve_products(
-                info, requestor, channels_map.get(channel_slug), limited_channel_access
+                info, requestor, channels_map.get(channel_slug), limited_channel_access, only_ids=False
             ).qs.filter(id__in=ids)
 
             for product in queryset:

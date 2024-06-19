@@ -444,7 +444,7 @@ class ProductQueries(graphene.ObjectType):
             )
 
         def _resolve_product(channel_obj):
-            product = resolve_product(
+            product_id = resolve_product(
                 info,
                 id=id,
                 slug=slug,
@@ -455,7 +455,7 @@ class ProductQueries(graphene.ObjectType):
             )
 
             return (
-                ChannelContext(node=product, channel_slug=channel) if product else None
+                ChannelContext(node_id=product_id, channel_slug=channel) if product_id else None
             )
 
         if channel:

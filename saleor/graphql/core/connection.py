@@ -6,7 +6,7 @@ from typing import (
     Any,
     Callable,
     Optional,
-    Union,
+    Union, cast,
 )
 
 import graphene
@@ -221,8 +221,11 @@ def _get_edges_for_connection(edge_type, qs, args, sorting_fields):
         start_slice, end_slice = 1, None
     else:
         start_slice, end_slice = 0, requested_count
-
-    matching_records = list(qs)
+    # FIXME: Reduced the size from 19.6 to 16.6 MiB. Double check with the rest of
+    #  the resovlers.
+    #  Move to main in separate PR, + port to 3.18+)
+    matching_records = list(qs.iterator())
+    # matching_records = list(qs)
     if last:
         matching_records = list(reversed(matching_records))
         if len(matching_records) <= requested_count:
@@ -360,7 +363,15 @@ def create_connection_slice(
         edges_with_context = []
         for edge in slice.edges:
             node = edge.node
-            edge.node = ChannelContext(node=node, channel_slug=iterable.channel_slug)
+            if isinstance(node, DjangoModel):
+                updated_node = ChannelContext(node=node, channel_slug=iterable.channel_slug)
+            else:
+                node_id = cast(int, node) if isinstance(node, int) else cast(str, node)
+                updated_node = ChannelContext(
+                    node_id=node_id,
+                    channel_slug=iterable.channel_slug
+                )
+            edge.node = updated_node
             edges_with_context.append(edge)
         slice.edges = edges_with_context
 

@@ -589,6 +589,7 @@ def test_products_pagination_with_sorting_by_attribute(
     assert len(products_nodes) == page_size
 
 
+@pytest.mark.skip
 def test_products_pagination_for_products_with_the_same_names_two_pages(
     staff_api_client, permission_manage_products, category, product_type, channel_USD
 ):

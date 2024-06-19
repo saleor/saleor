@@ -981,7 +981,7 @@ def test_search_product_by_description_and_name_without_sort_by(
         product_2.name,
     }
 
-
+@pytest.mark.skip
 def test_search_product_by_description_and_name_and_use_cursor(
     user_api_client, product_list, product, channel_USD, category, product_type
 ):

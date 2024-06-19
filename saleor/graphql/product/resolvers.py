@@ -79,7 +79,7 @@ def resolve_product(
     database_connection_name = get_database_connection_name(info.context)
     qs = models.Product.objects.using(database_connection_name).visible_to_user(
         requestor, channel, limited_channel_access
-    )
+    ).values_list("id", flat=True)
     if id:
         _type, id = from_global_id_or_error(id, "Product")
         return qs.filter(id=id).first()
@@ -95,6 +95,7 @@ def resolve_products(
     requestor,
     channel: Optional[Channel],
     limited_channel_access: bool,
+    only_ids: bool = True
 ) -> ChannelQsContext:
     connection_name = get_database_connection_name(info.context)
     qs = models.Product.objects.using(connection_name).visible_to_user(
@@ -112,6 +113,8 @@ def resolve_products(
             )
         else:
             qs = models.Product.objects.none()
+    if only_ids:
+        qs = qs.values_list("id", flat=True)
     channel_slug = channel.slug if channel else None
     return ChannelQsContext(qs=qs, channel_slug=channel_slug)
 

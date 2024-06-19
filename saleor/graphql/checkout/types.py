@@ -65,7 +65,8 @@ from ..discount.dataloaders import VoucherByCodeLoader
 from ..giftcard.dataloaders import GiftCardsByCheckoutIdLoader
 from ..giftcard.types import GiftCard
 from ..meta import resolvers as MetaResolvers
-from ..meta.types import ObjectWithMetadata, _filter_metadata
+from ..meta.types import ObjectWithMetadata
+from ..meta.resolvers import filter_metadata
 from ..payment.types import PaymentGateway, StoredPaymentMethod, TransactionItem
 from ..plugins.dataloaders import (
     get_plugin_manager_promise,
@@ -1126,7 +1127,7 @@ class Checkout(ModelObjectType[models.Checkout]):
             CheckoutMetadataByCheckoutIdLoader(info.context)
             .load(root.pk)
             .then(
-                lambda metadata_storage: _filter_metadata(
+                lambda metadata_storage: filter_metadata(
                     metadata_storage.metadata, keys
                 )
                 if metadata_storage
@@ -1141,7 +1142,7 @@ class Checkout(ModelObjectType[models.Checkout]):
             .load(root.pk)
             .then(
                 lambda metadata_storage: MetaResolvers.resolve_private_metadata(
-                    metadata_storage, info
+                    metadata_storage, metadata_storage.private_metadata, info
                 )
                 if metadata_storage
                 else {}
@@ -1170,7 +1171,7 @@ class Checkout(ModelObjectType[models.Checkout]):
     def resolve_private_metafields(root: models.Checkout, info, *, keys=None):
         def resolve_private_metafields_with_privilege(metadata_storage):
             MetaResolvers.check_private_metadata_privilege(metadata_storage, info)
-            return _filter_metadata(metadata_storage.private_metadata, keys)
+            return filter_metadata(metadata_storage.private_metadata, keys)
 
         return (
             CheckoutMetadataByCheckoutIdLoader(info.context)

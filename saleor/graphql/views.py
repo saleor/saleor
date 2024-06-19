@@ -1,6 +1,7 @@
 import hashlib
 import importlib
 import json
+from collections import defaultdict
 from inspect import isclass
 from typing import Any, Optional, Union
 
@@ -48,6 +49,13 @@ def tracing_wrapper(execute, sql, params, many, context):
         return execute(sql, params, many, context)
 
 
+# from django.core.signals import request_finished
+#
+# request_finished.connect(
+#     lambda **kwargs: gc.collect()
+# )
+# print("------")
+# print(gc.get_threshold())
 class GraphQLView(View):
     # This class is our implementation of `graphene_django.views.GraphQLView`,
     # which was extended to support the following features:
@@ -110,7 +118,15 @@ class GraphQLView(View):
                 return self.render_playground(request)
             return HttpResponseNotAllowed(["OPTIONS", "POST"])
         elif request.method == "POST":
-            return self.handle_query(request)
+            # import gc
+            # gc.disable()
+            # import memray
+            # from time import time
+            #
+            # with memray.Tracker(f"memray/{time()}.bin"):
+            response = self.handle_query(request)
+            # gc.enable()
+            return response
         else:
             if settings.PLAYGROUND_ENABLED:
                 return HttpResponseNotAllowed(["GET", "OPTIONS", "POST"])
@@ -195,6 +211,7 @@ class GraphQLView(View):
             with observability.report_api_call(request) as api_call:
                 api_call.response = response
                 api_call.report()
+            # gc.collect()
             return response
 
     def get_response(
