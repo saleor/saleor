@@ -54,6 +54,7 @@ RUN SECRET_KEY=dummy STATIC_URL=${STATIC_URL} python3 manage.py collectstatic --
 
 EXPOSE 8000
 ENV PYTHONUNBUFFERED 1
+ENV WORKERS 4
 
 LABEL org.opencontainers.image.title="saleor/saleor"                                  \
       org.opencontainers.image.description="\
@@ -64,4 +65,4 @@ GraphQL, Django, and ReactJS."                                                  
       org.opencontainers.image.authors="Saleor Commerce (https://saleor.io)"           \
       org.opencontainers.image.licenses="BSD 3"
 
-CMD ["gunicorn", "--bind", ":8000", "--workers", "4", "--worker-class", "saleor.asgi.gunicorn_worker.UvicornWorker", "saleor.asgi:application"]
+CMD ["uvicorn", "--host", "0.0.0.0", "--workers", "${WORKERS}", "--lifespan", "off", "saleor.asgi:application"]
