@@ -33,7 +33,7 @@ class LineInfo:
 
     def get_promotion_discounts(
         self,
-    ) -> list[Union["OrderLineDiscount", "CheckoutLineDiscount"]]:
+    ):
         return [
             discount
             for discount in self.discounts
@@ -42,7 +42,7 @@ class LineInfo:
 
     def get_catalogue_discounts(
         self,
-    ) -> list[Union["OrderLineDiscount", "CheckoutLineDiscount"]]:
+    ):
         return [
             discount
             for discount in self.discounts
@@ -51,7 +51,7 @@ class LineInfo:
 
     def get_voucher_discounts(
         self,
-    ) -> list[Union["OrderLineDiscount", "CheckoutLineDiscount"]]:
+    ):
         return [
             discount
             for discount in self.discounts

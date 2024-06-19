@@ -3,7 +3,7 @@ from collections import defaultdict, namedtuple
 from collections.abc import Iterable, Iterator
 from decimal import ROUND_HALF_UP, Decimal
 from functools import partial
-from typing import TYPE_CHECKING, Callable, Optional, Union, cast
+from typing import TYPE_CHECKING, Callable, Optional, Union, cast, overload
 from uuid import UUID
 
 import graphene
@@ -490,9 +490,23 @@ def create_checkout_line_discount_objects_for_catalogue_promotions(
     )
 
 
+@overload
 def prepare_line_discount_objects_for_catalogue_promotions(
-    lines_info: Union[Iterable["CheckoutLineInfo"], Iterable["DraftOrderLineInfo"]],
-):
+    lines_info: Iterable["CheckoutLineInfo"],
+) -> tuple[
+    list[dict], list["CheckoutLineDiscount"], list["CheckoutLineDiscount"], list[str]
+]:
+    ...
+
+
+@overload
+def prepare_line_discount_objects_for_catalogue_promotions(
+    lines_info: Iterable["DraftOrderLineInfo"],
+) -> tuple[list[dict], list["OrderLineDiscount"], list["OrderLineDiscount"], list[str]]:
+    ...
+
+
+def prepare_line_discount_objects_for_catalogue_promotions(lines_info):
     line_discounts_to_create_inputs: list[dict] = []
     line_discounts_to_update: list[Union[CheckoutLineDiscount, OrderLineDiscount]] = []
     line_discounts_to_remove: list[Union[CheckoutLineDiscount, OrderLineDiscount]] = []
@@ -1332,6 +1346,18 @@ def create_order_line_discount_objects_for_catalogue_promotions(
     lines_info: Iterable["DraftOrderLineInfo"],
 ):
     discount_data = prepare_line_discount_objects_for_catalogue_promotions(lines_info)
+    create_order_line_discount_objects(lines_info, discount_data)
+
+
+def create_order_line_discount_objects(
+    lines_info: Iterable["DraftOrderLineInfo"],
+    discount_data: tuple[
+        list[dict],
+        list["OrderLineDiscount"],
+        list["OrderLineDiscount"],
+        list[str],
+    ],
+):
     if not discount_data or not lines_info:
         return
 
@@ -1342,7 +1368,7 @@ def create_order_line_discount_objects_for_catalogue_promotions(
         updated_fields,
     ) = discount_data
 
-    new_line_discounts = []
+    new_line_discounts: list[OrderLineDiscount] = []
     with transaction.atomic():
         # Protect against potential thread race. OrderLine object can have only
         # single catalogue discount applied.
@@ -1368,6 +1394,15 @@ def create_order_line_discount_objects_for_catalogue_promotions(
     _update_line_info_cached_discounts(
         lines_info, new_line_discounts, discounts_to_update, discount_ids_to_remove
     )
+    affected_line_ids = [
+        discount_line.line_id
+        for discount_line in (new_line_discounts + discounts_to_update)
+    ]
+    affected_line_ids.extend(discount_ids_to_remove)
+    modified_lines_info = [
+        line_info for line_info in lines_info if line_info.line.id in affected_line_ids
+    ]
+    return modified_lines_info
 
 
 def _copy_unit_discount_data_to_order_line(lines_info: Iterable["DraftOrderLineInfo"]):
@@ -1630,55 +1665,11 @@ def create_or_update_line_discount_objects_from_voucher(order, lines_info):
     Only `SPECIFIC_PRODUCT` and `apply_once_per_order` voucher types are applied.
 
     """
-    # TODO: maybe can be unify with create_order_line_discount_objects_for_catalogue_promotions
     discount_data = prepare_line_discount_objects_for_voucher(lines_info)
-    if not discount_data or not lines_info:
-        return
-
-    (
-        discounts_to_create_inputs,
-        discounts_to_update,
-        discount_to_remove,
-        updated_fields,
-    ) = discount_data
-
-    new_line_discounts = []
-    with transaction.atomic():
-        # Protect against potential thread race. OrderLine object can have only
-        # single catalogue discount applied.
-        order_id = lines_info[0].line.order_id
-        _order_lock = list(
-            Order.objects.filter(id=order_id).select_for_update(of=(["self"]))
-        )
-
-        if discount_ids_to_remove := [discount.id for discount in discount_to_remove]:
-            OrderLineDiscount.objects.filter(id__in=discount_ids_to_remove).delete()
-
-        if discounts_to_create_inputs:
-            new_line_discounts = [
-                OrderLineDiscount(**input) for input in discounts_to_create_inputs
-            ]
-            OrderLineDiscount.objects.bulk_create(
-                new_line_discounts, ignore_conflicts=True
-            )
-
-        if discounts_to_update and updated_fields:
-            OrderLineDiscount.objects.bulk_update(discounts_to_update, updated_fields)
-
-    _update_line_info_cached_discounts(
-        lines_info, new_line_discounts, discounts_to_update, discount_ids_to_remove
-    )
-    affected_line_ids = [
-        discount_line.line.id
-        for discount_line in new_line_discounts
-        + discounts_to_update
-        + discount_to_remove
-    ]
-    modified_lines_info = [
-        line_info for line_info in lines_info if line_info.line.id in affected_line_ids
-    ]
-    # base unit price must reflect all actual catalogue discounts
-    _reduce_base_unit_price_for_voucher_discount(modified_lines_info)
+    modified_lines_info = create_order_line_discount_objects(lines_info, discount_data)
+    # base unit price must reflect all actual line voucher discounts
+    if modified_lines_info:
+        _reduce_base_unit_price_for_voucher_discount(modified_lines_info)
 
 
 # TODO (SHOPX-912): share the method with checkout
@@ -1686,8 +1677,8 @@ def prepare_line_discount_objects_for_voucher(
     lines_info: Iterable["DraftOrderLineInfo"],
 ):
     line_discounts_to_create_inputs: list[dict] = []
-    line_discounts_to_update: list[Union[CheckoutLineDiscount, OrderLineDiscount]] = []
-    line_discounts_to_remove: list[Union[CheckoutLineDiscount, OrderLineDiscount]] = []
+    line_discounts_to_update: list[OrderLineDiscount] = []
+    line_discounts_to_remove: list[OrderLineDiscount] = []
     updated_fields: list[str] = []
 
     if not lines_info:
@@ -1715,14 +1706,14 @@ def prepare_line_discount_objects_for_voucher(
         discount_name = f"{voucher.name}"
         if discount_to_update:
             _update_discount(
-                # discount_amount is 0, when voucher is None
                 None,
                 voucher,
                 discount_name,
-                # TODO: set translated voucher name
+                # TODO (SHOPX-914): set translated voucher name
                 "",
                 discount_reason,
                 discount_amount,
+                # TODO (SHOPX-914): should be taken from voucher value_type and value
                 discount_amount,
                 DiscountValueType.FIXED,
                 DiscountType.VOUCHER,
@@ -1734,7 +1725,7 @@ def prepare_line_discount_objects_for_voucher(
             line_discount_input = {
                 "line": line,
                 "type": DiscountType.VOUCHER,
-                # TODO: should be taken from voucher value_type and value
+                # TODO (SHOPX-914): should be taken from voucher value_type and value
                 "value_type": DiscountValueType.FIXED,
                 "value": discount_amount,
                 "amount_value": discount_amount,

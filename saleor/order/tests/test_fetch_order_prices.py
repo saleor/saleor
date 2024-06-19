@@ -2080,6 +2080,7 @@ def test_fetch_order_prices_manual_line_discount_and_voucher_apply_once_per_orde
         value=manual_line_discount_amount,
         name="Manual line discount",
         type=DiscountType.MANUAL,
+        reason="Manual line discount",
     )
 
     shipping_price = order.shipping_price.net
@@ -2142,7 +2143,10 @@ def test_fetch_order_prices_manual_line_discount_and_voucher_apply_once_per_orde
         == manual_line_discount_amount + unit_discount_amount
     )
     assert discounted_line.unit_discount_type == DiscountValueType.FIXED
-    assert discounted_line.unit_discount_reason == f"Voucher code: {order.voucher_code}"
+    assert (
+        discounted_line.unit_discount_reason
+        == f"{manual_line_discount.reason}; Voucher code: {order.voucher_code}"
+    )
 
     assert line_1.base_unit_price_amount == line_1.undiscounted_base_unit_price_amount
     assert (
