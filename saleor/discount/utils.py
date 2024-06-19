@@ -554,7 +554,7 @@ def prepare_line_discount_objects_for_catalogue_promotions(
                 }
                 line_discounts_to_create_inputs.append(line_discount_input)
             else:
-                _update_discount(
+                _update_promotion_discount(
                     rule,
                     rule_info,
                     rule_discount_amount,
@@ -626,7 +626,7 @@ def get_discount_translated_name(rule_info: "VariantPromotionRuleInfo"):
     return None
 
 
-def _update_discount(
+def _update_promotion_discount(
     rule: "PromotionRule",
     rule_info: "VariantPromotionRuleInfo",
     rule_discount_amount: Decimal,
@@ -635,39 +635,73 @@ def _update_discount(
     ],
     updated_fields: list[str],
 ):
-    if discount_to_update.promotion_rule_id != rule.id:
-        discount_to_update.promotion_rule_id = rule.id
-        updated_fields.append("promotion_rule_id")
-    # gift rule has empty reward_value_type
-    value_type = rule.reward_value_type or RewardValueType.FIXED
-    if discount_to_update.value_type != value_type:
-        discount_to_update.value_type = value_type
-        updated_fields.append("value_type")
-    # gift rule has empty reward_value
-    value = rule.reward_value or rule_discount_amount
-    if discount_to_update.value != value:
-        discount_to_update.value = value
-        updated_fields.append("value")
-    if discount_to_update.amount_value != rule_discount_amount:
-        discount_to_update.amount_value = rule_discount_amount
-        updated_fields.append("amount_value")
     discount_name = get_discount_name(rule, rule_info.promotion)
-    if discount_to_update.name != discount_name:
-        discount_to_update.name = discount_name
-        updated_fields.append("name")
     translated_name = get_discount_translated_name(rule_info)
-    if discount_to_update.translated_name != translated_name:
-        discount_to_update.translated_name = translated_name
-        updated_fields.append("translated_name")
     reason = prepare_promotion_discount_reason(
         rule_info.promotion, get_sale_id(rule_info.promotion)
     )
-    if discount_to_update.reason != reason:
-        discount_to_update.reason = reason
+    # gift rule has empty reward_value_type
+    value_type = rule.reward_value_type or RewardValueType.FIXED
+    # gift rule has empty reward_value
+    value = rule.reward_value or rule_discount_amount
+    _update_discount(
+        rule,
+        None,
+        discount_name,
+        translated_name,
+        reason,
+        rule_discount_amount,
+        value,
+        value_type,
+        DiscountType.PROMOTION,
+        discount_to_update,
+        updated_fields,
+    )
+
+
+def _update_discount(
+    rule: Optional["PromotionRule"],
+    voucher: Optional["Voucher"],
+    discount_name: str,
+    translated_name: str,
+    discount_reason: str,
+    discount_amount: Decimal,
+    value: Decimal,
+    value_type: str,
+    unique_type: str,
+    discount_to_update: Union[
+        "CheckoutLineDiscount", "CheckoutDiscount", "OrderLineDiscount", "OrderDiscount"
+    ],
+    updated_fields: list[str],
+):
+    if voucher and discount_to_update.voucher_id != voucher.id:
+        discount_to_update.voucher_id = voucher.id
+        updated_fields.append("voucher_id")
+    if rule and discount_to_update.promotion_rule_id != rule.id:
+        discount_to_update.promotion_rule_id = rule.id
+        updated_fields.append("promotion_rule_id")
+    if discount_to_update.value_type != value_type:
+        discount_to_update.value_type = value_type
+        updated_fields.append("value_type")
+    if discount_to_update.value != value:
+        discount_to_update.value = value
+        updated_fields.append("value")
+    if discount_to_update.amount_value != discount_amount:
+        discount_to_update.amount_value = discount_amount
+        updated_fields.append("amount_value")
+    if discount_to_update.name != discount_name:
+        discount_to_update.name = discount_name
+        updated_fields.append("name")
+    if discount_to_update.translated_name != translated_name:
+        discount_to_update.translated_name = translated_name
+        updated_fields.append("translated_name")
+
+    if discount_to_update.reason != discount_reason:
+        discount_to_update.reason = discount_reason
         updated_fields.append("reason")
     if hasattr(discount_to_update, "unique_type"):
         if discount_to_update.unique_type is None:
-            discount_to_update.unique_type = DiscountType.PROMOTION
+            discount_to_update.unique_type = unique_type
             updated_fields.append("unique_type")
 
 
@@ -964,7 +998,7 @@ def _handle_order_promotion_for_checkout(
 
     if not created:
         fields_to_update: list[str] = []
-        _update_discount(
+        _update_promotion_discount(
             discount_object_defaults["promotion_rule"],
             rule_info,
             discount_amount,
@@ -1029,7 +1063,7 @@ def _handle_gift_reward_for_checkout(
         if line_discount.line_id != line.id:
             line_discount.line = line
             fields_to_update.append("line_id")
-        _update_discount(
+        _update_promotion_discount(
             discount_object_defaults["promotion_rule"],
             rule_info,
             discount_object_defaults["amount_value"],
@@ -1280,8 +1314,6 @@ def create_or_update_discount_objects_for_order(
 ):
     create_or_update_discount_objects_from_promotion_for_order(order, lines_info)
     create_or_update_line_discount_objects_for_manual_discounts(lines_info)
-    # TODO: moze trzeba dodac wspolna metodę dla order i checkout do tworzenia
-    # LineDiscount dla voucherow na linii
     create_or_update_line_discount_objects_from_voucher(order, lines_info)
     _copy_unit_discount_data_to_order_line(lines_info)
 
@@ -1492,7 +1524,7 @@ def _handle_order_promotion_for_order(
 
     if not created:
         fields_to_update: list[str] = []
-        _update_discount(
+        _update_promotion_discount(
             discount_object_defaults["promotion_rule"],
             rule_info,
             discount_amount,
@@ -1530,7 +1562,7 @@ def _handle_gift_reward_for_order(
         if line_discount.line_id != line.id:
             line_discount.line = line
             fields_to_update.append("line_id")
-        _update_discount(
+        _update_promotion_discount(
             discount_object_defaults["promotion_rule"],
             rule_info,
             discount_object_defaults["amount_value"],
@@ -1597,18 +1629,12 @@ def create_or_update_line_discount_objects_from_voucher(order, lines_info):
     The LineDiscount object is created for each line with voucher applied.
     Only `SPECIFIC_PRODUCT` and `apply_once_per_order` voucher types are applied.
 
-
     """
-    # TO jest logika z calculate_base_line_total_price
-    # Póki co uspójnie wyliczenie - docelowo powinny z tego powstać obiekty
-    # OrderLineDiscount
-
+    # TODO: maybe can be unify with create_order_line_discount_objects_for_catalogue_promotions
     discount_data = prepare_line_discount_objects_for_voucher(lines_info)
     if not discount_data or not lines_info:
         return
 
-    # copied from create_order_line_discount_objects_for_catalogue_promotions
-    # maybe can be unify
     (
         discounts_to_create_inputs,
         discounts_to_update,
@@ -1655,7 +1681,7 @@ def create_or_update_line_discount_objects_from_voucher(order, lines_info):
     _reduce_base_unit_price_for_voucher_discount(modified_lines_info)
 
 
-# TODO: share the method with checkout
+# TODO (SHOPX-912): share the method with checkout
 def prepare_line_discount_objects_for_voucher(
     lines_info: Iterable["DraftOrderLineInfo"],
 ):
@@ -1684,12 +1710,22 @@ def prepare_line_discount_objects_for_voucher(
             continue
 
         discount_amount = discount_amount.amount
+        discount_reason = f"Voucher code: {line_info.voucher_code}"
+        voucher = cast(Voucher, line_info.voucher)
+        discount_name = f"{voucher.name}"
         if discount_to_update:
-            _update_voucher_discount(
+            _update_discount(
                 # discount_amount is 0, when voucher is None
-                line_info.voucher,  # type: ignore[arg-type]
-                line_info.voucher_code,  # type: ignore[arg-type]
+                None,
+                voucher,
+                discount_name,
+                # TODO: set translated voucher name
+                "",
+                discount_reason,
                 discount_amount,
+                discount_amount,
+                DiscountValueType.FIXED,
+                DiscountType.VOUCHER,
                 discount_to_update,
                 updated_fields,
             )
@@ -1698,14 +1734,14 @@ def prepare_line_discount_objects_for_voucher(
             line_discount_input = {
                 "line": line,
                 "type": DiscountType.VOUCHER,
+                # TODO: should be taken from voucher value_type and value
                 "value_type": DiscountValueType.FIXED,
                 "value": discount_amount,
                 "amount_value": discount_amount,
                 "currency": line.currency,
-                # discount_amount is 0, when voucher is None
-                "name": f"{line_info.voucher.name}",  # type: ignore
+                "name": discount_name,
                 "translated_name": None,
-                "reason": f"Voucher code: {line_info.voucher_code}",
+                "reason": discount_reason,
                 "voucher": line_info.voucher,
                 "unique_type": DiscountType.VOUCHER,
             }
@@ -1770,44 +1806,6 @@ def _reduce_base_unit_price_for_voucher_discount(
         for discount in line_info.get_voucher_discounts():
             base_unit_price -= discount.amount_value / line.quantity
         line.base_unit_price_amount = max(base_unit_price, Decimal(0))
-
-
-def _update_voucher_discount(
-    voucher: "Voucher",
-    voucher_code: str,
-    discount_amount: Decimal,
-    discount_to_update: Union[
-        "CheckoutLineDiscount", "CheckoutDiscount", "OrderLineDiscount", "OrderDiscount"
-    ],
-    updated_fields: list[str],
-):
-    # temporary method, should be merged with _update_discount
-    if discount_to_update.voucher_id != voucher.id:
-        discount_to_update.voucher_id = voucher.id
-        updated_fields.append("voucher_id")
-    value_type = DiscountValueType.FIXED
-    if discount_to_update.value_type != value_type:
-        discount_to_update.value_type = value_type
-        updated_fields.append("value_type")
-    value = discount_amount
-    if discount_to_update.value != value:
-        discount_to_update.value = value
-        updated_fields.append("value")
-    if discount_to_update.amount_value != discount_amount:
-        discount_to_update.amount_value = discount_amount
-        updated_fields.append("amount_value")
-    discount_name = f"{voucher.name}"
-    if discount_to_update.name != discount_name:
-        discount_to_update.name = discount_name
-        updated_fields.append("name")
-    reason = f"Voucher code: {voucher_code}"
-    if discount_to_update.reason != reason:
-        discount_to_update.reason = reason
-        updated_fields.append("reason")
-    if hasattr(discount_to_update, "unique_type"):
-        if discount_to_update.unique_type is None:
-            discount_to_update.unique_type = DiscountType.VOUCHER
-            updated_fields.append("unique_type")
 
 
 def get_active_catalogue_promotion_rules(
