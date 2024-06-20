@@ -18,6 +18,7 @@ from ..core.exceptions import (
     PreorderAllocationError,
 )
 from ..core.tracing import traced_atomic_transaction
+from ..core.utils.country import get_active_country
 from ..order.fetch import OrderLineInfo
 from ..order.models import OrderLine
 from ..plugins.manager import PluginsManager
@@ -433,9 +434,13 @@ def increase_allocations(
     Allocation.objects.filter(pk__in=allocation_pks_to_delete).delete()
     Stock.objects.bulk_update(stocks_to_update, ["quantity_allocated"])
 
+    order = lines_info[0].line.order  # type: ignore[index]
+    country_code = get_active_country(
+        channel, order.shipping_address, order.billing_address
+    )
     allocate_stocks(
         lines_info,
-        lines_info[0].line.order.shipping_address.country.code,  # type: ignore
+        country_code,
         channel,
         manager,
     )
