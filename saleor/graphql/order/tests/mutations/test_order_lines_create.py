@@ -854,3 +854,34 @@ def test_order_lines_create_with_custom_price(
     assert data["orderLines"][0]["productVariantId"] == variant.get_global_id()
     assert data["orderLines"][0]["quantity"] == quantity
     assert data["orderLines"][0]["isPriceOverridden"] is True
+
+
+def test_order_lines_create_no_shipping_address(
+    order_with_lines,
+    permission_group_manage_orders,
+    staff_api_client,
+    variant_with_many_stocks,
+):
+    # given
+    query = ORDER_LINES_CREATE_MUTATION
+    order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
+    order.shipping_address = None
+    order.save(update_fields=["status", "shipping_address"])
+
+    variant = variant_with_many_stocks
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    quantity = 1
+    variables = {"orderId": order_id, "variantId": variant_id, "quantity": quantity}
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderLinesCreate"]
+    assert not data["errors"]
+    assert data["orderLines"][0]["productSku"] == variant.sku
+    assert data["orderLines"][0]["quantity"] == quantity
