@@ -322,7 +322,7 @@ class ProductVariantQueryset(models.QuerySet):
         channel: Optional[Channel],
         limited_channel_access: bool,
     ):
-        from .models import ALL_PRODUCTS_PERMISSIONS, ProductVariant
+        from .models import ALL_PRODUCTS_PERMISSIONS
 
         # User with product permissions can see all variants. If channel is given,
         # filter variants with product channel listings for this channel.
@@ -343,7 +343,7 @@ class ProductVariantQueryset(models.QuerySet):
         # - have a variant channel listing for this channel and the price is not null
         # - have a product channel listing for this channel and the product is published
         #  and visible in listings
-        variants = ProductVariant.objects.using(self.db).filter(
+        variants = self.filter(
             channel_listings__channel_id=channel.id,
             channel_listings__price_amount__isnull=False,
         )
