@@ -1353,7 +1353,9 @@ def create_transaction_event_from_request_and_webhook_response(
     if not _check_missing_psp_reference_for_events(
         delivery, request_event, transaction_request_response
     ):
-        return create_failed_transaction_event(request_event, cause=error_msg or "")
+        return create_failed_transaction_event(
+            request_event, cause="Missing `pspReference` field in the response."
+        )
 
     psp_reference = transaction_request_response.psp_reference
     request_event.psp_reference = psp_reference

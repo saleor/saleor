@@ -524,6 +524,7 @@ def test_create_transaction_event_from_request_and_webhook_response_with_no_psp_
         type=TransactionEventType.AUTHORIZATION_FAILURE
     )
     assert failed_event.transaction_id == transaction.id
+    assert failed_event.message == "Missing `pspReference` field in the response."
 
 
 @freeze_time("2018-05-31 12:00:01")
