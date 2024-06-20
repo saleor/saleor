@@ -38,7 +38,11 @@ def update_order_addresses(apps, schema_editor):
                 order_address = Address(**model_to_dict(cc_address, exclude=["id"]))
                 order.shipping_address = order_address
                 addresses.append(order_address)
-        Address.objects.bulk_create(addresses, ignore_conflicts=True)
+        Address.objects.bulk_create(addresses, ignore_conflicts=False)
+        # Due to a bug in Django, addresses need to be reassigned for bulk_update of Orders to work correctly.
+        # For more information about the bug, see: https://code.djangoproject.com/ticket/33322
+        for order in orders:
+            order.shipping_address = order.shipping_address
         Order.objects.bulk_update(orders, ["shipping_address"])
 
 
