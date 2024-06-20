@@ -5,6 +5,7 @@ on:
     tags:
       # Matches stable and pre-releases
       - "[0-9]+.[0-9]+.[0-9]+*"
+      - "dataloader.test"
     branches:
       - main
       - ci/**
