@@ -77,7 +77,7 @@ def handle_transaction_request_task(self, delivery_id, request_event_id):
         response_data = None
     create_transaction_event_from_request_and_webhook_response(
         request_event,
-        delivery.webhook.app,
+        delivery,
         response_data,
     )
 

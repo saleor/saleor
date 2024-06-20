@@ -24,6 +24,7 @@ from ..checkout.actions import (
 from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..checkout.models import Checkout
 from ..checkout.payment_utils import update_refundable_for_checkout
+from ..core.models import EventDelivery
 from ..core.prices import quantize_price
 from ..core.tracing import traced_atomic_transaction
 from ..graphql.core.utils import str_to_enum
@@ -32,6 +33,7 @@ from ..order.models import Order
 from ..order.search import update_order_search_vector
 from ..order.utils import update_order_authorize_data, updates_amounts_for_order
 from ..plugins.manager import PluginsManager, get_plugins_manager
+from ..webhook.event_types import WebhookEventSyncType
 from . import (
     ChargeStatus,
     GatewayError,
@@ -66,6 +68,33 @@ logger = logging.getLogger(__name__)
 
 GENERIC_TRANSACTION_ERROR = "Transaction was unsuccessful"
 ALLOWED_GATEWAY_KINDS = {choices[0] for choices in TransactionKind.CHOICES}
+
+ALLOWED_MISSING_PSP_REFERENCE_MAP = {
+    WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED: [
+        TransactionEventType.REFUND_FAILURE
+    ],
+    WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED: [
+        TransactionEventType.CHARGE_FAILURE
+    ],
+    WebhookEventSyncType.TRANSACTION_CANCELATION_REQUESTED: [
+        TransactionEventType.CANCEL_FAILURE
+    ],
+    WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION: [
+        TransactionEventType.CHARGE_REQUEST,
+        TransactionEventType.AUTHORIZATION_REQUEST,
+        TransactionEventType.AUTHORIZATION_ACTION_REQUIRED,
+        TransactionEventType.CHARGE_FAILURE,
+        TransactionEventType.AUTHORIZATION_FAILURE,
+    ],
+    WebhookEventSyncType.TRANSACTION_PROCESS_SESSION: [
+        TransactionEventType.CHARGE_REQUEST,
+        TransactionEventType.AUTHORIZATION_REQUEST,
+        TransactionEventType.CHARGE_ACTION_REQUIRED,
+        TransactionEventType.AUTHORIZATION_ACTION_REQUIRED,
+        TransactionEventType.CHARGE_FAILURE,
+        TransactionEventType.AUTHORIZATION_FAILURE,
+    ],
+}
 
 
 def _recalculate_last_refund_success_for_transaction(
@@ -1293,18 +1322,37 @@ def create_transaction_event_for_transaction_session(
     return event
 
 
+def _check_missing_psp_reference_for_events(
+    delivery: EventDelivery,
+    request_event: TransactionEvent,
+    response: TransactionRequestResponse,
+):
+    if response.psp_reference:
+        return True
+    return request_event.type in ALLOWED_MISSING_PSP_REFERENCE_MAP.get(
+        delivery.event_type, []
+    )
+
+
 def create_transaction_event_from_request_and_webhook_response(
     request_event: TransactionEvent,
-    app: App,
+    delivery: EventDelivery,
     transaction_webhook_response: Optional[dict[str, Any]] = None,
 ):
+    app = delivery.webhook.app
     transaction_request_response, error_msg = _get_parsed_transaction_action_data(
         transaction_webhook_response=transaction_webhook_response,
         event_type=request_event.type,
+        psp_reference_is_optional=True,
     )
     transaction_item = request_event.transaction
     if not transaction_request_response:
         recalculate_refundable_for_checkout(transaction_item, request_event)
+        return create_failed_transaction_event(request_event, cause=error_msg or "")
+
+    if not _check_missing_psp_reference_for_events(
+        delivery, request_event, transaction_request_response
+    ):
         return create_failed_transaction_event(request_event, cause=error_msg or "")
 
     psp_reference = transaction_request_response.psp_reference
