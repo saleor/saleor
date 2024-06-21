@@ -19,6 +19,7 @@ from ...checkout.utils import get_address_for_checkout_taxes, is_shipping_requir
 from ...core.http_client import HTTPClient
 from ...core.taxes import TaxError
 from ...discount import DiscountType, VoucherType
+from ...discount.utils import is_order_level_voucher
 from ...order import base_calculations as base_order_calculations
 from ...order.utils import (
     get_address_for_order_taxes,
@@ -293,11 +294,7 @@ def generate_request_data_from_checkout_lines(
     prices_entered_with_tax = checkout_info.tax_configuration.prices_entered_with_tax
 
     voucher = checkout_info.voucher
-    is_entire_order_discount = (
-        voucher.type == VoucherType.ENTIRE_ORDER
-        if voucher and not voucher.apply_once_per_order
-        else False
-    )
+    is_entire_order_discount = is_order_level_voucher(voucher)
     applicable_checkout_discount = (
         bool(checkout_info.discounts) or is_entire_order_discount
     )
