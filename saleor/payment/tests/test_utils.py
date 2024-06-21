@@ -1650,12 +1650,9 @@ def test_create_transaction_event_for_transaction_session_not_success_events(
 @pytest.mark.parametrize(
     "response_result",
     [
-        TransactionEventType.AUTHORIZATION_FAILURE,
         TransactionEventType.AUTHORIZATION_SUCCESS,
-        TransactionEventType.AUTHORIZATION_REQUEST,
         TransactionEventType.CHARGE_FAILURE,
         TransactionEventType.CHARGE_SUCCESS,
-        TransactionEventType.CHARGE_REQUEST,
     ],
 )
 def test_create_transaction_event_for_transaction_session_missing_psp_reference(

@@ -1218,6 +1218,10 @@ def create_transaction_event_for_transaction_session(
     if not response_event.psp_reference and response_event.type not in [
         TransactionEventType.AUTHORIZATION_ACTION_REQUIRED,
         TransactionEventType.CHARGE_ACTION_REQUIRED,
+        TransactionEventType.CHARGE_REQUEST,
+        TransactionEventType.AUTHORIZATION_REQUEST,
+        TransactionEventType.CHARGE_FAILURE,
+        TransactionEventType.AUTHORIZATION_FAILURE,
     ]:
         return create_failed_transaction_event(
             request_event,
