@@ -1122,7 +1122,7 @@ QUERY_ORDER_BY_EXTERNAL_REFERENCE = """
 """
 
 
-def test_query_order_by_external_reference(user_api_client, order):
+def test_query_order_by_external_reference_missing_permission(user_api_client, order):
     # given
     query = QUERY_ORDER_BY_EXTERNAL_REFERENCE
     ext_ref = "test-ext-ref"
@@ -1132,6 +1132,29 @@ def test_query_order_by_external_reference(user_api_client, order):
 
     # when
     response = user_api_client.post_graphql(query, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+def test_query_order_by_external_reference(
+    staff_api_client, order, permission_manage_orders
+):
+    # given
+    query = QUERY_ORDER_BY_EXTERNAL_REFERENCE
+    ext_ref = "test-ext-ref"
+    order.external_reference = ext_ref
+    order.save(update_fields=["external_reference"])
+    variables = {"externalReference": ext_ref}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[
+            permission_manage_orders,
+        ],
+    )
     content = get_graphql_content(response)
 
     # then
@@ -1143,7 +1166,7 @@ def test_query_order_by_external_reference(user_api_client, order):
 
 @pytest.mark.parametrize("external_reference", ['" "', "not-existing"])
 def test_query_order_by_not_existing_external_reference(
-    external_reference, user_api_client, order
+    external_reference, staff_api_client, order, permission_manage_orders
 ):
     # given
     query = QUERY_ORDER_BY_EXTERNAL_REFERENCE
@@ -1152,7 +1175,13 @@ def test_query_order_by_not_existing_external_reference(
     variables = {"externalReference": external_reference}
 
     # when
-    response = user_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[
+            permission_manage_orders,
+        ],
+    )
     content = get_graphql_content(response)
 
     # then
