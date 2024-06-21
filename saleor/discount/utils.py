@@ -19,7 +19,8 @@ from ..checkout.base_calculations import (
     base_checkout_delivery_price,
     base_checkout_subtotal,
 )
-from ..checkout.models import Checkout
+from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
+from ..checkout.models import Checkout, CheckoutLine
 from ..core.exceptions import InsufficientStock
 from ..core.taxes import zero_money
 from ..core.utils.promo_code import InvalidPromoCode
@@ -57,10 +58,11 @@ if TYPE_CHECKING:
     from ..account.models import User
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..core.pricing.interface import LineInfo
+    from ..discount.models import Voucher
     from ..order.fetch import DraftOrderLineInfo
+    from ..order.models import OrderLine
     from ..plugins.manager import PluginsManager
     from ..product.managers import ProductVariantQueryset
-    from ..product.models import VariantChannelListingPromotionRule
     from .interface import VoucherInfo
 
 CatalogueInfo = defaultdict[str, set[Union[int, str]]]
@@ -532,11 +534,11 @@ def prepare_line_discount_objects_for_catalogue_promotions(lines_info):
             line_discounts_to_remove.extend(discounts_to_update)
             continue
 
-        # discount_amount based on the difference between discounted_price and price
-        discount_amount = _get_discount_amount(line_info.channel_listing, line.quantity)
+        # check if the line price is discounted by catalogue promotion
+        discounted_line = _is_discounted_line(line_info.channel_listing)
 
         # delete all existing discounts if the line is not discounted or it is a gift
-        if not discount_amount or line.is_gift:
+        if not discounted_line or line.is_gift:
             line_discounts_to_remove.extend(discounts_to_update)
             continue
 
@@ -544,7 +546,7 @@ def prepare_line_discount_objects_for_catalogue_promotions(lines_info):
             rule_info = line_info.rules_info[0]
             rule = rule_info.rule
             rule_discount_amount = _get_rule_discount_amount(
-                rule_info.variant_listing_promotion_rule, line.quantity
+                line, rule_info, line_info.channel
             )
             discount_name = get_discount_name(rule, rule_info.promotion)
             translated_name = get_discount_translated_name(rule_info)
@@ -585,9 +587,10 @@ def prepare_line_discount_objects_for_catalogue_promotions(lines_info):
     )
 
 
-def _get_discount_amount(
-    variant_channel_listing: "ProductVariantChannelListing", line_quantity: int
-) -> Decimal:
+def _is_discounted_line(
+    variant_channel_listing: "ProductVariantChannelListing",
+) -> bool:
+    """Return True when the price is discounted by catalogue promotion."""
     price_amount = variant_channel_listing.price_amount
     discounted_price_amount = variant_channel_listing.discounted_price_amount
 
@@ -596,20 +599,44 @@ def _get_discount_amount(
         or discounted_price_amount is None
         or price_amount == discounted_price_amount
     ):
-        return Decimal("0.0")
+        return False
 
-    unit_discount = price_amount - discounted_price_amount
-    return unit_discount * line_quantity
+    return True
 
 
 def _get_rule_discount_amount(
-    variant_listing_promotion_rule: Optional["VariantChannelListingPromotionRule"],
-    line_quantity: int,
+    line: Union["CheckoutLine", "OrderLine"],
+    rule_info: "VariantPromotionRuleInfo",
+    channel: "Channel",
 ) -> Decimal:
+    """Calculate the discount amount for catalogue promotion rule.
+
+    When the line has overridden price, the discount is applied on the
+    new overridden base price.
+    """
+    variant_listing_promotion_rule = rule_info.variant_listing_promotion_rule
     if not variant_listing_promotion_rule:
         return Decimal("0.0")
-    discount_amount = variant_listing_promotion_rule.discount_amount
-    return discount_amount * line_quantity
+
+    if isinstance(line, CheckoutLine):
+        price_override = (
+            Money(line.price_override, channel.currency_code)
+            if line.price_override is not None
+            else None
+        )
+    else:
+        price_override = (
+            line.undiscounted_base_unit_price if line.is_price_overridden else None
+        )
+
+    if price_override:
+        # calculate discount amount on overridden price
+        discount = rule_info.rule.get_discount(channel.currency_code)
+        discounted_price = discount(price_override)
+        discount_amount = (price_override - discounted_price).amount
+    else:
+        discount_amount = variant_listing_promotion_rule.discount_amount
+    return discount_amount * line.quantity
 
 
 def get_discount_name(rule: "PromotionRule", promotion: "Promotion"):
