@@ -4,8 +4,10 @@ import graphene
 from django.core.exceptions import ValidationError
 from graphql import GraphQLError
 
+from ...core.exceptions import PermissionDenied
 from ...order import models
 from ...permission.enums import OrderPermissions
+from ...permission.utils import has_one_of_permissions
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import ADDED_IN_310, DEPRECATED_IN_3X_FIELD
@@ -21,6 +23,7 @@ from ..core.scalars import UUID
 from ..core.types import FilterInputObjectType, TaxedMoney
 from ..core.utils import ext_ref_to_global_id_or_error, from_global_id_or_error
 from ..core.validators import validate_one_of_args_is_in_query
+from ..utils import get_user_or_app_from_context
 from .bulk_mutations.draft_orders import DraftOrderBulkDelete, DraftOrderLinesBulkDelete
 from .bulk_mutations.order_bulk_cancel import OrderBulkCancel
 from .bulk_mutations.order_bulk_create import OrderBulkCreate
@@ -105,7 +108,11 @@ class OrderQueries(graphene.ObjectType):
         description="Look up an order by ID or external reference.",
         id=graphene.Argument(graphene.ID, description="ID of an order."),
         external_reference=graphene.Argument(
-            graphene.String, description=f"External ID of an order. {ADDED_IN_310}"
+            graphene.String,
+            description=(
+                f"External ID of an order. {ADDED_IN_310}."
+                "\n\nRequires one of the following permissions: MANAGE_ORDERS."
+            ),
         ),
         doc_category=DOC_CATEGORY_ORDERS,
     )
@@ -165,6 +172,10 @@ class OrderQueries(graphene.ObjectType):
             "id", id, "external_reference", external_reference
         )
         if not id:
+            requester = get_user_or_app_from_context(info.context)
+            permissions = [OrderPermissions.MANAGE_ORDERS]
+            if not has_one_of_permissions(requester, permissions):
+                raise PermissionDenied(permissions=permissions)
             try:
                 id = ext_ref_to_global_id_or_error(models.Order, external_reference)
             except ValidationError:

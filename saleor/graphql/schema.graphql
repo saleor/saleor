@@ -790,7 +790,9 @@ type Query {
     """
     External ID of an order. 
     
-    Added in Saleor 3.10.
+    Added in Saleor 3.10..
+    
+    Requires one of the following permissions: MANAGE_ORDERS.
     """
     externalReference: String
   ): Order @doc(category: "Orders")
