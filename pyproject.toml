@@ -39,7 +39,6 @@ documentation = "https://docs.saleor.io/"
   django-mptt = "^0"
   django-phonenumber-field = ">=4,<8"
   django-prices = "^2.3"
-  django-redis = "^5.0.0"
   django-stubs-ext = "^4.2.1"
   draftjs-sanitizer = "^1.0.0"
   faker = ">=26.0.0,<27.0"
@@ -155,7 +154,7 @@ extend_exclude = ["conftest\\.py", ".*/conftest\\.py", ".*/tests/.*"]
 
   [tool.deptry.per_rule_ignores]
   DEP001 = ["pkg_resources"]
-  DEP002 = ["azure-common", "azure-storage-blob", "azure-storage-common", "django-redis", "gunicorn", "psycopg"]
+  DEP002 = ["azure-common", "azure-storage-blob", "azure-storage-common", "gunicorn", "psycopg"]
   DEP004 = ["debug_toolbar", "graphiql_debug_toolbar"]
 
 [tool.ruff]
