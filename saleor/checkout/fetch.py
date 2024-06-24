@@ -339,7 +339,7 @@ def fetch_checkout_lines(
     )
     lines_info = []
     unavailable_variant_pks = []
-    product_channel_listing_mapping: dict[int, Optional["ProductChannelListing"]] = {}
+    product_channel_listing_mapping: dict[int, Optional[ProductChannelListing]] = {}
     channel = checkout.channel
 
     for line in lines:

@@ -94,4 +94,4 @@ def create_permissions(
     Permission.objects.using(using).bulk_create(perms)
     if verbosity >= 2:
         for perm in perms:
-            print("Adding permission '%s'" % perm)  # noqa: T201
+            print(f"Adding permission '{perm}'")  # noqa: T201

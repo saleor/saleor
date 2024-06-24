@@ -2501,7 +2501,7 @@ class PluginsManager(PaymentInterface):
     ) -> tuple[Optional["User"], dict]:
         """Verify the provided authentication data."""
         default_data: dict[str, str] = dict()
-        default_user: Optional["User"] = None
+        default_user: Optional[User] = None
         default_value = default_user, default_data
         plugin = self.get_plugin(plugin_id)
         return self.__run_method_on_single_plugin(

@@ -113,7 +113,8 @@ def resolve_entities(_, info: ResolveInfo, *, representations):
             try:
                 model = federated_entities[representation["__typename"]]
                 resolvers[representation["__typename"]] = getattr(
-                    model, "_%s__resolve_references" % representation["__typename"]
+                    model,
+                    "_{}__resolve_references".format(representation["__typename"]),
                 )
             except AttributeError:
                 pass

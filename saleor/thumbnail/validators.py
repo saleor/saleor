@@ -13,17 +13,17 @@ from . import (
 
 
 def validate_image_format(
-    img: Image,
+    img: Image.Image,
     error_code: str,
     allowed_mimetypes: Collection[str] = MIME_TYPE_TO_PIL_IDENTIFIER,
 ):
-    image_mimetype = PIL_IDENTIFIER_TO_MIME_TYPE.get(img.format)
+    image_mimetype = PIL_IDENTIFIER_TO_MIME_TYPE.get(img.format) if img.format else None
     if not image_mimetype or image_mimetype not in allowed_mimetypes:
         msg = f"Invalid file format. Only: {', '.join(allowed_mimetypes)} are supported"
         raise ValidationError(msg, code=error_code)
 
 
-def validate_image_exif(img: Image, error_code: str):
+def validate_image_exif(img: Image.Image, error_code: str):
     try:
         img.getexif()
     except (SyntaxError, TypeError, UnidentifiedImageError) as e:
@@ -35,7 +35,7 @@ def validate_image_exif(img: Image, error_code: str):
 
 
 def validate_image_size(
-    img: Image,
+    img: Image.Image,
     error_code: str,
     min_size: Optional[int] = None,
     max_size: Optional[int] = None,

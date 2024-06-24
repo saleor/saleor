@@ -492,7 +492,7 @@ def get_prices_of_discounted_specific_product(
     product to child category won't work.
     """
     voucher_info = fetch_voucher_info(voucher)
-    discounted_lines: Iterable["CheckoutLineInfo"] = get_discounted_lines(
+    discounted_lines: Iterable[CheckoutLineInfo] = get_discounted_lines(
         lines, voucher_info
     )
     line_prices = get_base_lines_prices(discounted_lines)

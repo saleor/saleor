@@ -93,7 +93,7 @@ class BaseAccessibleChannels(DataLoader):
             self.database_connection_name
         ).filter(id__in=group_ids, restricted_access_to_channels=True)
 
-        group_to_channels: defaultdict[int, list["Channel"]] = defaultdict(list)
+        group_to_channels: defaultdict[int, list[Channel]] = defaultdict(list)
         if groups_with_channel_restriction:
             group_to_channels = self.get_group_channels(
                 groups_with_channel_restriction.values("id"),
@@ -150,7 +150,7 @@ class AccessibleChannelsByUserIdLoader(BaseAccessibleChannels):
             groups.values_list("id", flat=True)
         )
 
-        user_to_channels: defaultdict[int, set["Channel"]] = defaultdict(set)
+        user_to_channels: defaultdict[int, set[Channel]] = defaultdict(set)
         for user_id, group_id in user_groups.values_list("user_id", "group_id"):
             user_to_channels[user_id].update(group_to_channels[group_id])
 

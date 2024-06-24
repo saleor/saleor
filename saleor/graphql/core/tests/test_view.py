@@ -332,7 +332,9 @@ def test_generate_cache_key_use_saleor_version():
 def test_graphql_view_clears_context(rf, staff_user, product):
     # given
     product_id = graphene.Node.to_global_id("Product", product.pk)
-    data = {"query": '{ product(id: "%s") { name category { name } } }' % product_id}
+    data = {
+        "query": f'{{ product(id: "{product_id}") {{ name category {{ name }} }} }}'
+    }
     request = rf.post(path="/", data=data, content_type="application/json")
     request.app = None
     request.user = staff_user

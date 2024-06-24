@@ -39,16 +39,13 @@ def test_order_resolver_tax_recalculation(
 
     order_id = graphene.Node.to_global_id("Order", order.id)
 
-    query = (
+    query = f"""
+        query OrderPrices($id: ID!) {{
+            order(id: $id) {{
+                {price_name} {{ net {{ amount }} gross {{ amount }} }}
+            }}
+        }}
         """
-        query OrderPrices($id: ID!) {
-            order(id: $id) {
-                %s { net { amount } gross { amount } }
-            }
-        }
-        """
-        % price_name
-    )
     variables = {"id": order_id}
 
     # when
@@ -111,18 +108,15 @@ def test_order_line_resolver_tax_recalculation(
 
     order_id = graphene.Node.to_global_id("Order", order.id)
 
-    query = (
+    query = f"""
+        query OrderLinePrices($id: ID!) {{
+            order(id: $id) {{
+                lines {{
+                    {price_name} {{ net {{ amount }} gross {{ amount }} }}
+                }}
+            }}
+        }}
         """
-        query OrderLinePrices($id: ID!) {
-            order(id: $id) {
-                lines {
-                    %s { net { amount } gross { amount } }
-                }
-            }
-        }
-        """
-        % price_name
-    )
     variables = {"id": order_id}
 
     # when

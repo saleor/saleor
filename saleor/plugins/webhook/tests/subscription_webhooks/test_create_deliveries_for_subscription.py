@@ -2938,7 +2938,7 @@ def test_create_deliveries_for_subscriptions_document_executed_with_error(
     deliveries = create_deliveries_for_subscriptions(event_type, product, webhooks)
     # then
     mocked_task_logger.assert_called_with(
-        f"No payload was generated with subscription for event: {event_type}"
+        "No payload was generated with subscription for event: %s", event_type
     )
     assert len(deliveries) == 0
 

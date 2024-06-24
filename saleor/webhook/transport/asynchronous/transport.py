@@ -102,7 +102,7 @@ def create_deliveries_for_subscriptions(
 
         if not data:
             logger.info(
-                "No payload was generated with subscription for event: %s" % event_type
+                "No payload was generated with subscription for event: %s", event_type
             )
             continue
 
@@ -239,7 +239,7 @@ def send_webhook_request_async(self, event_delivery_id):
     try:
         if not delivery.payload:
             raise ValueError(
-                "Event delivery id: %r has no payload." % event_delivery_id
+                f"Event delivery id: %{event_delivery_id}r has no payload."
             )
         data = delivery.payload.payload
         with webhooks_opentracing_trace(delivery.event_type, domain, app=webhook.app):

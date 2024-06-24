@@ -11,18 +11,15 @@ def test_query_exceeding_cost_limit_fails_validation(
 ):
     query_fields = "\n".join(
         [
-            "p%s:  productVariant(id: $id, channel: $channel) { id }" % i
+            f"p{i}:  productVariant(id: $id, channel: $channel) {{ id }}"
             for i in range(20)
         ]
     )
-    query = (
-        """
-        query variantAvailability($id: ID!, $channel: String) {
-            %s
-        }
+    query = f"""
+        query variantAvailability($id: ID!, $channel: String) {{
+            {query_fields}
+        }}
     """
-        % query_fields
-    )
 
     variables = {
         "id": graphene.Node.to_global_id("ProductVariant", variant_with_many_stocks.pk),
@@ -48,18 +45,15 @@ def test_query_below_cost_limit_passes_validation(
 ):
     query_fields = "\n".join(
         [
-            "p%s:  productVariant(id: $id, channel: $channel) { id }" % i
+            f"p{i}:  productVariant(id: $id, channel: $channel) {{ id }}"
             for i in range(20)
         ]
     )
-    query = (
-        """
-        query variantQueryCost($id: ID!, $channel: String) {
-            %s
-        }
+    query = f"""
+        query variantQueryCost($id: ID!, $channel: String) {{
+            {query_fields}
+        }}
     """
-        % query_fields
-    )
 
     variables = {
         "id": graphene.Node.to_global_id("ProductVariant", variant_with_many_stocks.pk),
