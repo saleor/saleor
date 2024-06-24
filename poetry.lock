@@ -1537,13 +1537,12 @@ files = [
 [package.dependencies]
 redis = ">=4"
 sortedcontainers = ">=2,<3"
-typing_extensions = {version = ">=4.7,<5.0", markers = "python_version < \"3.11\""}
 
 [package.extras]
 bf = ["pyprobables (>=0.6,<0.7)"]
 cf = ["pyprobables (>=0.6,<0.7)"]
 json = ["jsonpath-ng (>=1.6,<2.0)"]
-lua = ["lupa (>=2.1,<3.0)"]
+lua = ["lupa (>=1.14,<3.0)"]
 probabilistic = ["pyprobables (>=0.6,<0.7)"]
 
 [[package]]
@@ -5015,13 +5014,13 @@ files = [
 
 [[package]]
 name = "weasyprint"
-version = "62.2"
+version = "62.3"
 description = "The Awesome Document Factory"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "weasyprint-62.2-py3-none-any.whl", hash = "sha256:6fd84e9f55ac239c5657845eae117fd43916c3c5986fe98f69ea13fdab8ec9ad"},
-    {file = "weasyprint-62.2.tar.gz", hash = "sha256:a08ac400e11919d996d76becaa33160d7c1ac55ba160628c42ce7586574c1a51"},
+    {file = "weasyprint-62.3-py3-none-any.whl", hash = "sha256:d31048646ce15084e135b33e334a61f526aa68d2f679fcc109ed0e0f5edaed21"},
+    {file = "weasyprint-62.3.tar.gz", hash = "sha256:8d8680d732f7fa0fcbc587692a5a5cb095c3525627066918d6e203cbf42b7fcd"},
 ]
 
 [package.dependencies]
