@@ -969,16 +969,41 @@ class OrderLine(ModelObjectType[models.OrderLine]):
         )
 
     @staticmethod
-    def resolve_unit_discount_type(root: models.OrderLine, _info):
-        return root.unit_discount_type
+    def resolve_unit_discount_type(root: models.OrderLine, info):
+        def _resolve_unit_discount_type(data):
+            order, lines, manager = data
+            return calculations.order_line_unit_discount_type(
+                order, root, manager, lines
+            )
+
+        order = OrderByIdLoader(info.context).load(root.order_id)
+        lines = OrderLinesByOrderIdLoader(info.context).load(root.order_id)
+        manager = get_plugin_manager_promise(info.context)
+        return Promise.all([order, lines, manager]).then(_resolve_unit_discount_type)
 
     @staticmethod
-    def resolve_unit_discount_value(root: models.OrderLine, _info):
-        return root.unit_discount_value
+    def resolve_unit_discount_value(root: models.OrderLine, info):
+        def _resolve_unit_discount_value(data):
+            order, lines, manager = data
+            return calculations.order_line_unit_discount_value(
+                order, root, manager, lines
+            )
+
+        order = OrderByIdLoader(info.context).load(root.order_id)
+        lines = OrderLinesByOrderIdLoader(info.context).load(root.order_id)
+        manager = get_plugin_manager_promise(info.context)
+        return Promise.all([order, lines, manager]).then(_resolve_unit_discount_value)
 
     @staticmethod
-    def resolve_unit_discount(root: models.OrderLine, _info):
-        return root.unit_discount
+    def resolve_unit_discount(root: models.OrderLine, info):
+        def _resolve_unit_discount(data):
+            order, lines, manager = data
+            return calculations.order_line_unit_discount(order, root, manager, lines)
+
+        order = OrderByIdLoader(info.context).load(root.order_id)
+        lines = OrderLinesByOrderIdLoader(info.context).load(root.order_id)
+        manager = get_plugin_manager_promise(info.context)
+        return Promise.all([order, lines, manager]).then(_resolve_unit_discount)
 
     @staticmethod
     @traced_resolver
