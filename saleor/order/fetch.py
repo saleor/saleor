@@ -109,7 +109,7 @@ def fetch_draft_order_lines_info(
     channel = order.channel
     for line in lines:
         variant = cast(ProductVariant, line.variant)
-        product = variant.product if variant else None
+        product = variant.product
         variant_channel_listing = get_prefetched_variant_listing(variant, channel.id)
         if not variant_channel_listing:
             continue

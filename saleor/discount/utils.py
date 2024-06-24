@@ -196,8 +196,6 @@ def apply_voucher_to_line(
     Apply a voucher to checkout/order line info when the voucher has the type
     SPECIFIC_PRODUCTS or is applied only to the cheapest item.
     """
-    from .utils import get_discounted_lines
-
     voucher = voucher_info.voucher
     discounted_lines_by_voucher: list["LineInfo"] = []
     lines_included_in_discount = lines_info
@@ -231,8 +229,6 @@ def get_discounted_lines(
                 continue
             line_variant = line_info.variant
             line_product = line_info.product
-            if not line_variant or not line_product:
-                continue
             line_category = line_product.category
             line_collections = set(
                 [collection.pk for collection in line_info.collections]

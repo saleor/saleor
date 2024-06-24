@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 class LineInfo:
     line: Union["OrderLine", "CheckoutLine"]
     variant: "ProductVariant"
-    product: Optional["Product"]
+    product: "Product"
     collections: list["Collection"]
     channel_listing: "ProductVariantChannelListing"
     channel: "Channel"
