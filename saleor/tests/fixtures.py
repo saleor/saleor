@@ -3512,7 +3512,9 @@ def variant_with_many_stocks(variant, warehouses_with_shipping_zone):
 
 
 @pytest.fixture
-def variant_on_promotion(product, channel_USD, promotion_rule) -> ProductVariant:
+def variant_on_promotion(
+    product, channel_USD, promotion_rule, warehouse
+) -> ProductVariant:
     product_variant = ProductVariant.objects.create(
         product=product, sku="SKU_A", external_reference="SKU_A"
     )
@@ -3525,6 +3527,10 @@ def variant_on_promotion(product, channel_USD, promotion_rule) -> ProductVariant
         cost_price_amount=Decimal(1),
         currency=channel_USD.currency_code,
     )
+    Stock.objects.create(
+        warehouse=warehouse, product_variant=product_variant, quantity=10
+    )
+
     promotion_rule.variants.add(product_variant)
     reward_value = promotion_rule.reward_value
     discount_amount = price_amount * reward_value / 100
