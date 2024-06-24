@@ -48,6 +48,8 @@ if TYPE_CHECKING:
 @dataclass
 class CheckoutLineInfo(LineInfo):
     line: "CheckoutLine"
+    variant: "ProductVariant"
+    product: "Product"
     product_type: "ProductType"
     discounts: list["CheckoutLineDiscount"]
     tax_class: Optional["TaxClass"] = None

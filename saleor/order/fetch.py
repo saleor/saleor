@@ -1,6 +1,6 @@
 from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Optional, cast
+from typing import Optional
 from uuid import UUID
 
 from django.db.models import prefetch_related_objects
@@ -108,7 +108,9 @@ def fetch_draft_order_lines_info(
     lines_info = []
     channel = order.channel
     for line in lines:
-        variant = cast(ProductVariant, line.variant)
+        variant = line.variant
+        if not variant:
+            continue
         product = variant.product
         variant_channel_listing = get_prefetched_variant_listing(variant, channel.id)
         if not variant_channel_listing:

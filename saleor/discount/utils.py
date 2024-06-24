@@ -205,8 +205,7 @@ def apply_voucher_to_line(
         )
         lines_included_in_discount = discounted_lines_by_voucher
     if voucher.apply_once_per_order:
-        cheapest_line = _get_the_cheapest_line(lines_included_in_discount)
-        if cheapest_line:
+        if cheapest_line := _get_the_cheapest_line(lines_included_in_discount):
             discounted_lines_by_voucher = [cheapest_line]
     for line_info in lines_info:
         if line_info in discounted_lines_by_voucher:
@@ -229,6 +228,8 @@ def get_discounted_lines(
                 continue
             line_variant = line_info.variant
             line_product = line_info.product
+            if not line_variant or not line_product:
+                continue
             line_category = line_product.category
             line_collections = set(
                 [collection.pk for collection in line_info.collections]
