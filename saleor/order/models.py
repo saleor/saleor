@@ -847,7 +847,8 @@ class OrderEvent(models.Model):
     class Meta:
         ordering = ("date",)
         indexes = [
-            BTreeIndex(fields=["related"], name="order_orderevent_related_id_idx")
+            BTreeIndex(fields=["related"], name="order_orderevent_related_id_idx"),
+            models.Index(fields=["type"]),
         ]
 
     def __repr__(self):
