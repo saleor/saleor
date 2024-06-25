@@ -231,6 +231,9 @@ class Product(SeoModel, ModelWithMetadata, ModelWithExternalReference):
                 fields=["name", "slug"],
                 opclasses=["gin_trgm_ops"] * 2,
             ),
+            models.Index(
+                fields=["category_id", "slug"],
+            ),
         ]
         indexes.extend(ModelWithMetadata.Meta.indexes)
 
