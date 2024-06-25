@@ -32,7 +32,7 @@ from ....core.descriptions import ADDED_IN_313, ADDED_IN_314, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_PAYMENTS
 from ....core.enums import TransactionEventReportErrorCode
 from ....core.mutations import ModelMutation
-from ....core.scalars import UUID, PositiveDecimal
+from ....core.scalars import UUID, DateTime, PositiveDecimal
 from ....core.types import common as common_types
 from ....core.validators import validate_one_of_args_is_in_mutation
 from ....plugins.dataloaders import get_plugin_manager_promise
@@ -82,7 +82,7 @@ class TransactionEventReport(ModelMutation):
         amount = PositiveDecimal(
             description="The amount of the event to report.", required=True
         )
-        time = graphene.DateTime(
+        time = DateTime(
             description=(
                 "The time of the event to report. If not provide, "
                 "the current time will be used."

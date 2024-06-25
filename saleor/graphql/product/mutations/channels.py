@@ -32,7 +32,7 @@ from ...core.descriptions import (
 )
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.mutations import BaseMutation
-from ...core.scalars import Date, PositiveDecimal
+from ...core.scalars import Date, DateTime, PositiveDecimal
 from ...core.types import (
     BaseInputObjectType,
     CollectionChannelListingError,
@@ -67,7 +67,7 @@ class PublishableChannelListingInput(BaseInputObjectType):
             "Use `publishedAt` field instead."
         )
     )
-    published_at = graphene.types.datetime.DateTime(
+    published_at = DateTime(
         description="Publication date time. ISO 8601 standard." + ADDED_IN_33
     )
 
@@ -97,7 +97,7 @@ class ProductChannelListingAddInput(PublishableChannelListingInput):
             "Use `availableForPurchaseAt` field instead."
         )
     )
-    available_for_purchase_at = graphene.DateTime(
+    available_for_purchase_at = DateTime(
         description=(
             "A start date time from which a product will be available "
             "for purchase. When not set and `isAvailable` is set to True, "
