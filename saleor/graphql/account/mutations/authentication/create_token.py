@@ -7,6 +7,7 @@ from django.utils import timezone
 from .....account import models
 from .....account.error_codes import AccountErrorCode
 from .....account.utils import retrieve_user_by_email
+from .....account.utils import get_random_user
 from .....core.jwt import create_access_token, create_refresh_token
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_38
@@ -50,9 +51,13 @@ class CreateToken(BaseMutation):
     @classmethod
     def _retrieve_user_from_credentials(cls, email, password) -> Optional[models.User]:
         user = retrieve_user_by_email(email)
+        random_user = get_random_user()
 
-        if user and user.check_password(password):
-            return user
+        if user:
+            if user.check_password(password):
+                return user
+        else:
+            random_user.check_password(password)
         return None
 
     @classmethod
