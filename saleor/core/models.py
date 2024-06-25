@@ -7,6 +7,7 @@ from django.db import models, transaction
 from django.db.models import F, JSONField, Max, Q
 
 from . import EventDeliveryStatus, JobStatus
+from .storages import private_storage
 from .utils.json_serializer import CustomJsonEncoder
 
 
@@ -145,7 +146,9 @@ class Job(models.Model):
 
 class EventPayload(models.Model):
     payload = models.TextField(default="")
-    payload_file = models.FileField(upload_to="payloads", null=True)
+    payload_file = models.FileField(
+        storage=private_storage, upload_to="payloads", null=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     def get_payload(self):
