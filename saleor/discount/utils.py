@@ -19,7 +19,6 @@ from ..checkout.base_calculations import (
     base_checkout_delivery_price,
     base_checkout_subtotal,
 )
-from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
 from ..checkout.models import Checkout, CheckoutLine
 from ..core.exceptions import InsufficientStock
 from ..core.taxes import zero_money

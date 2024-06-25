@@ -483,7 +483,7 @@ def order_line_unit_discount(
     lines: Optional[Iterable[OrderLine]] = None,
     force_update: bool = False,
 ) -> Decimal:
-    """Return the unit price of provided line, taxes included.
+    """Return the line unit discount.
 
     It takes into account all plugins.
     If the prices are expired, call all order price calculation methods
@@ -501,7 +501,7 @@ def order_line_unit_discount_value(
     lines: Optional[Iterable[OrderLine]] = None,
     force_update: bool = False,
 ) -> Decimal:
-    """Return the unit price of provided line, taxes included.
+    """Return the line unit discount value.
 
     It takes into account all plugins.
     If the prices are expired, call all order price calculation methods
@@ -519,7 +519,7 @@ def order_line_unit_discount_type(
     lines: Optional[Iterable[OrderLine]] = None,
     force_update: bool = False,
 ) -> Optional[str]:
-    """Return the unit price of provided line, taxes included.
+    """Return the line unit discount type.
 
     It takes into account all plugins.
     If the prices are expired, call all order price calculation methods
