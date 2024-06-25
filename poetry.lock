@@ -1537,13 +1537,12 @@ files = [
 [package.dependencies]
 redis = ">=4"
 sortedcontainers = ">=2,<3"
-typing_extensions = {version = ">=4.7,<5.0", markers = "python_version < \"3.11\""}
 
 [package.extras]
 bf = ["pyprobables (>=0.6,<0.7)"]
 cf = ["pyprobables (>=0.6,<0.7)"]
 json = ["jsonpath-ng (>=1.6,<2.0)"]
-lua = ["lupa (>=2.1,<3.0)"]
+lua = ["lupa (>=1.14,<3.0)"]
 probabilistic = ["pyprobables (>=0.6,<0.7)"]
 
 [[package]]
@@ -4338,6 +4337,21 @@ starlite = ["starlite (>=1.48)"]
 tornado = ["tornado (>=5)"]
 
 [[package]]
+name = "setuptools"
+version = "70.1.0"
+description = "Easily download, build, install, upgrade, and uninstall Python packages"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "setuptools-70.1.0-py3-none-any.whl", hash = "sha256:d9b8b771455a97c8a9f3ab3448ebe0b29b5e105f1228bba41028be116985a267"},
+    {file = "setuptools-70.1.0.tar.gz", hash = "sha256:01a1e793faa5bd89abc851fa15d0a0db26f160890c7102cd8dce643e886b47f5"},
+]
+
+[package.extras]
+docs = ["furo", "jaraco.packaging (>=9.3)", "jaraco.tidelift (>=1.4)", "pygments-github-lexers (==0.0.5)", "pyproject-hooks (!=1.1)", "rst.linker (>=1.9)", "sphinx (>=3.5)", "sphinx-favicon", "sphinx-inline-tabs", "sphinx-lint", "sphinx-notfound-page (>=1,<2)", "sphinx-reredirects", "sphinxcontrib-towncrier"]
+testing = ["build[virtualenv] (>=1.0.3)", "filelock (>=3.4.0)", "importlib-metadata", "ini2toml[lite] (>=0.14)", "jaraco.develop (>=7.21)", "jaraco.envs (>=2.2)", "jaraco.path (>=3.2.0)", "jaraco.test", "mypy (==1.10.0)", "packaging (>=23.2)", "pip (>=19.1)", "pyproject-hooks (!=1.1)", "pytest (>=6,!=8.1.1)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=2.2)", "pytest-home (>=0.5)", "pytest-mypy", "pytest-perf", "pytest-ruff (>=0.3.2)", "pytest-subprocess", "pytest-timeout", "pytest-xdist (>=3)", "tomli", "tomli-w (>=1.0.0)", "virtualenv (>=13.0.0)", "wheel"]
+
+[[package]]
 name = "singledispatch"
 version = "4.1.0"
 description = "Backport functools.singledispatch to older Pythons."
@@ -5402,4 +5416,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.9"
-content-hash = "a7bab625f8baeb509e94b3084fb42b0a54f9200347c354bbbb5dcf257f6f0ae5"
+content-hash = "6cc20f1fb0eefe35a6d3e007d9ad1957283b1e18bed63559fb3ee14732f90c27"
