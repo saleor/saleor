@@ -20,7 +20,7 @@ from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_317, ADDED_IN_319, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import ModelMutation
-from ....core.scalars import JSON
+from ....core.scalars import JSON, DateTime
 from ....core.types import BaseInputObjectType, Error, NonNullList
 from ....core.utils import WebhookEventInfo
 from ....core.validators import validate_end_is_after_start
@@ -70,12 +70,10 @@ class PromotionRuleInput(PromotionRuleBaseInput):
 
 class PromotionInput(BaseInputObjectType):
     description = JSON(description="Promotion description.")
-    start_date = graphene.types.datetime.DateTime(
+    start_date = DateTime(
         description="The start date of the promotion in ISO 8601 format."
     )
-    end_date = graphene.types.datetime.DateTime(
-        description="The end date of the promotion in ISO 8601 format."
-    )
+    end_date = DateTime(description="The end date of the promotion in ISO 8601 format.")
 
 
 class PromotionCreateInput(PromotionInput):

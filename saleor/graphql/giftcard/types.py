@@ -22,7 +22,7 @@ from ..core.connection import CountableConnection
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
 from ..core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ..core.fields import PermissionsField
-from ..core.scalars import Date
+from ..core.scalars import Date, DateTime
 from ..core.tracing import traced_resolver
 from ..core.types import BaseObjectType, ModelObjectType, Money, NonNullList
 from ..meta.types import ObjectWithMetadata
@@ -68,9 +68,7 @@ class GiftCardEvent(ModelObjectType[models.GiftCardEvent]):
     id = graphene.GlobalID(
         required=True, description="ID of the event associated with a gift card."
     )
-    date = graphene.types.datetime.DateTime(
-        description="Date when event happened at in ISO 8601 format."
-    )
+    date = DateTime(description="Date when event happened at in ISO 8601 format.")
     type = GiftCardEventsEnum(description="Gift card event type.")
     user = graphene.Field(
         "saleor.graphql.account.types.User",
@@ -251,7 +249,7 @@ class GiftCard(ModelObjectType[models.GiftCard]):
         ),
         required=True,
     )
-    created = graphene.DateTime(
+    created = DateTime(
         required=True, description="Date and time when gift card was created."
     )
     created_by = graphene.Field(
@@ -280,9 +278,7 @@ class GiftCard(ModelObjectType[models.GiftCard]):
         ),
         deprecation_reason=DEPRECATED_IN_3X_FIELD,
     )
-    last_used_on = graphene.DateTime(
-        description="Date and time when gift card was last used."
-    )
+    last_used_on = DateTime(description="Date and time when gift card was last used.")
     expiry_date = Date(description="Expiry date of the gift card.")
     app = graphene.Field(
         App,
@@ -332,11 +328,11 @@ class GiftCard(ModelObjectType[models.GiftCard]):
         description="The customer who bought a gift card.",
         deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use `createdBy` field instead.",
     )
-    end_date = graphene.types.datetime.DateTime(
+    end_date = DateTime(
         description="End date of gift card.",
         deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use `expiryDate` field instead.",
     )
-    start_date = graphene.types.datetime.DateTime(
+    start_date = DateTime(
         description="Start date of gift card.",
         deprecation_reason=f"{DEPRECATED_IN_3X_FIELD}",
     )

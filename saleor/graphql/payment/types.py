@@ -25,7 +25,7 @@ from ..core.descriptions import (
 )
 from ..core.doc_category import DOC_CATEGORY_PAYMENTS
 from ..core.fields import JSONString, PermissionsField
-from ..core.scalars import JSON
+from ..core.scalars import JSON, DateTime
 from ..core.scalars import UUID as UUIDScalar
 from ..core.tracing import traced_resolver
 from ..core.types import BaseObjectType, ModelObjectType, Money, NonNullList
@@ -50,7 +50,7 @@ from .enums import (
 
 class Transaction(ModelObjectType[models.Transaction]):
     id = graphene.GlobalID(required=True, description="ID of the transaction.")
-    created = graphene.DateTime(
+    created = DateTime(
         required=True, description="Date and time at which transaction was created."
     )
     payment = graphene.Field(
@@ -140,10 +140,10 @@ class Payment(ModelObjectType[models.Payment]):
     is_active = graphene.Boolean(
         required=True, description="Determines if the payment is active or not."
     )
-    created = graphene.DateTime(
+    created = DateTime(
         required=True, description="Date and time at which payment was created."
     )
-    modified = graphene.DateTime(
+    modified = DateTime(
         required=True, description="Date and time at which payment was modified."
     )
     token = graphene.String(
@@ -311,7 +311,7 @@ class PaymentInitialized(BaseObjectType):
 
 
 class TransactionEvent(ModelObjectType[models.TransactionEvent]):
-    created_at = graphene.DateTime(
+    created_at = DateTime(
         required=True,
         description="Date and time at which a transaction event was created.",
     )
@@ -412,11 +412,11 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
     token = graphene.Field(
         UUIDScalar, description="The transaction token." + ADDED_IN_314, required=True
     )
-    created_at = graphene.DateTime(
+    created_at = DateTime(
         required=True,
         description="Date and time at which payment transaction was created.",
     )
-    modified_at = graphene.DateTime(
+    modified_at = DateTime(
         required=True,
         description="Date and time at which payment transaction was modified.",
     )
