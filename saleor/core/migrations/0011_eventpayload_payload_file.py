@@ -2,6 +2,8 @@
 
 from django.db import migrations, models
 
+from saleor.core.storages import private_storage
+
 
 class Migration(migrations.Migration):
     dependencies = [
@@ -12,7 +14,9 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="eventpayload",
             name="payload_file",
-            field=models.FileField(null=True, upload_to="payloads"),
+            field=models.FileField(
+                null=True, storage=private_storage, upload_to="payloads"
+            ),
         ),
         migrations.AlterField(
             model_name="eventpayload",
