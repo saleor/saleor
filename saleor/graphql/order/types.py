@@ -1515,7 +1515,9 @@ class Order(ModelObjectType[models.Order]):
                 return None
             for discount in discounts:
                 if discount.type == DiscountType.VOUCHER:
-                    return Money(amount=discount.value, currency=discount.currency)
+                    return Money(
+                        amount=discount.amount_value, currency=discount.currency
+                    )
             return None
 
         return (

@@ -7,7 +7,6 @@ from promise import Promise
 from ...checkout.fetch import (
     CheckoutInfo,
     CheckoutLineInfo,
-    apply_voucher_to_checkout_line,
 )
 from ...checkout.models import Checkout, CheckoutLine, CheckoutMetadata
 from ...checkout.problems import (
@@ -22,6 +21,7 @@ from ...checkout.problems import (
 )
 from ...discount import VoucherType
 from ...discount.interface import VariantPromotionRuleInfo
+from ...discount.utils import apply_voucher_to_line
 from ...payment.models import TransactionItem
 from ...product.models import ProductChannelListing
 from ...warehouse.models import Stock
@@ -141,6 +141,8 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader[str, list[CheckoutLineIn
                                 tax_class=tax_class_map[line.variant_id],
                                 channel=channels[checkout.channel_id],
                                 rules_info=rules_info_map[line.id],
+                                voucher=None,
+                                voucher_code=None,
                             )
                             for line in lines
                         ]
@@ -157,7 +159,7 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader[str, list[CheckoutLineIn
                         voucher.type == VoucherType.SPECIFIC_PRODUCT
                         or voucher.apply_once_per_order
                     ):
-                        apply_voucher_to_checkout_line(
+                        apply_voucher_to_line(
                             voucher_info=voucher_info,
                             lines_info=lines_info_map[checkout.pk],
                         )

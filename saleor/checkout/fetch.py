@@ -11,7 +11,8 @@ from typing import (
 )
 from uuid import UUID
 
-from ..discount import DiscountType, VoucherType
+from ..core.pricing.interface import LineInfo
+from ..discount import VoucherType
 from ..discount.interface import fetch_variant_rules_info, fetch_voucher_info
 from ..shipping.interface import ShippingMethodData
 from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
@@ -25,7 +26,7 @@ from ..warehouse.models import Warehouse
 if TYPE_CHECKING:
     from ..account.models import Address, User
     from ..channel.models import Channel
-    from ..discount.interface import VariantPromotionRuleInfo, VoucherInfo
+    from ..checkout.models import CheckoutLine
     from ..discount.models import (
         CheckoutDiscount,
         CheckoutLineDiscount,
@@ -34,7 +35,6 @@ if TYPE_CHECKING:
     )
     from ..plugins.manager import PluginsManager
     from ..product.models import (
-        Collection,
         Product,
         ProductChannelListing,
         ProductType,
@@ -42,36 +42,17 @@ if TYPE_CHECKING:
         ProductVariantChannelListing,
     )
     from ..tax.models import TaxClass, TaxConfiguration
-    from .models import Checkout, CheckoutLine
+    from .models import Checkout
 
 
 @dataclass
-class CheckoutLineInfo:
+class CheckoutLineInfo(LineInfo):
     line: "CheckoutLine"
     variant: "ProductVariant"
-    channel_listing: "ProductVariantChannelListing"
     product: "Product"
     product_type: "ProductType"
-    collections: list["Collection"]
     discounts: list["CheckoutLineDiscount"]
-    rules_info: list["VariantPromotionRuleInfo"]
-    channel: "Channel"
     tax_class: Optional["TaxClass"] = None
-    voucher: Optional["Voucher"] = None
-
-    def get_promotion_discounts(self) -> list["CheckoutLineDiscount"]:
-        return [
-            discount
-            for discount in self.discounts
-            if discount.type in [DiscountType.PROMOTION, DiscountType.ORDER_PROMOTION]
-        ]
-
-    def get_catalogue_discounts(self) -> list["CheckoutLineDiscount"]:
-        return [
-            discount
-            for discount in self.discounts
-            if discount.type == DiscountType.PROMOTION
-        ]
 
 
 @dataclass
@@ -307,6 +288,7 @@ def fetch_checkout_lines(
     voucher: Optional["Voucher"] = None,
 ) -> tuple[Iterable[CheckoutLineInfo], Iterable[int]]:
     """Fetch checkout lines as CheckoutLineInfo objects."""
+    from ..discount.utils import apply_voucher_to_line
     from .utils import get_voucher_for_checkout
 
     select_related_fields = ["variant__product__product_type__tax_class"]
@@ -369,6 +351,8 @@ def fetch_checkout_lines(
                         discounts=discounts,
                         rules_info=rules_info,
                         channel=channel,
+                        voucher=None,
+                        voucher_code=None,
                     )
                 )
             continue
@@ -385,6 +369,8 @@ def fetch_checkout_lines(
                 discounts=discounts,
                 rules_info=rules_info,
                 channel=channel,
+                voucher=None,
+                voucher_code=None,
             )
         )
 
@@ -398,8 +384,8 @@ def fetch_checkout_lines(
             # discount from voucher
             return lines_info, unavailable_variant_pks
         if voucher.type == VoucherType.SPECIFIC_PRODUCT or voucher.apply_once_per_order:
-            voucher_info = fetch_voucher_info(voucher)
-            apply_voucher_to_checkout_line(voucher_info, lines_info)
+            voucher_info = fetch_voucher_info(voucher, checkout.voucher_code)
+            apply_voucher_to_line(voucher_info, lines_info)
     return lines_info, unavailable_variant_pks
 
 
@@ -444,44 +430,6 @@ def _get_product_channel_listing(
                 product_channel_listing = channel_listing
         product_channel_listing_mapping[product.id] = product_channel_listing
     return product_channel_listing
-
-
-def apply_voucher_to_checkout_line(
-    voucher_info: "VoucherInfo",
-    lines_info: Iterable[CheckoutLineInfo],
-):
-    """Attach voucher to valid checkout lines info.
-
-    Apply a voucher to checkout line info when the voucher has the type
-    SPECIFIC_PRODUCTS or is applied only to the cheapest item.
-    """
-    from .utils import get_discounted_lines
-
-    voucher = voucher_info.voucher
-    discounted_lines_by_voucher: list[CheckoutLineInfo] = []
-    lines_included_in_discount = lines_info
-    if voucher.type == VoucherType.SPECIFIC_PRODUCT:
-        discounted_lines_by_voucher.extend(
-            get_discounted_lines(lines_info, voucher_info)
-        )
-        lines_included_in_discount = discounted_lines_by_voucher
-    if voucher.apply_once_per_order:
-        cheapest_line = _get_the_cheapest_line(lines_included_in_discount)
-        if cheapest_line:
-            discounted_lines_by_voucher = [cheapest_line]
-    for line_info in lines_info:
-        if line_info in discounted_lines_by_voucher:
-            line_info.voucher = voucher
-
-
-def _get_the_cheapest_line(
-    lines_info: Optional[Iterable[CheckoutLineInfo]],
-) -> Optional[CheckoutLineInfo]:
-    if not lines_info:
-        return None
-    return min(
-        lines_info, key=lambda line_info: line_info.channel_listing.discounted_price
-    )
 
 
 def fetch_checkout_info(

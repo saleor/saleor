@@ -331,6 +331,7 @@ class DraftOrderCreate(
             voucher = code_instance.voucher
             cls.clean_voucher_listing(voucher, channel, "voucher_code")
         cleaned_input["voucher"] = voucher
+        cleaned_input["voucher_code"] = voucher_code
         cleaned_input["voucher_code_instance"] = code_instance
 
     @classmethod

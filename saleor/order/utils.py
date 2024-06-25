@@ -836,6 +836,7 @@ def update_discount_for_order_line(
     if reason is not None:
         order_line.unit_discount_reason = reason
         fields_to_update.append("unit_discount_reason")
+
     if current_value != value or current_value_type != value_type:
         undiscounted_base_unit_price = order_line.undiscounted_base_unit_price
         currency = undiscounted_base_unit_price.currency
@@ -850,6 +851,7 @@ def update_discount_for_order_line(
 
         order_line.unit_discount_type = value_type
         order_line.unit_discount_value = value
+        # TODO: should we save those values?
         order_line.total_price = order_line.unit_price * order_line.quantity
         order_line.undiscounted_unit_price = (
             order_line.unit_price + order_line.unit_discount
@@ -894,7 +896,7 @@ def _update_manual_order_line_discount_object(
     for discount in discounts:
         if discount.type == DiscountType.MANUAL and not discount_to_update:
             discount_to_update = discount
-        else:
+        elif discount.type != DiscountType.VOUCHER:
             discount_to_delete_ids.append(discount.pk)
 
     if discount_to_delete_ids:
@@ -911,6 +913,7 @@ def _update_manual_order_line_discount_object(
             amount_value=amount_value,
             currency=currency,
             reason=reason,
+            unique_type=DiscountType.MANUAL,
         )
     else:
         update_fields = []
