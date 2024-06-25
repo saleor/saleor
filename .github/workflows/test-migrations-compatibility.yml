@@ -38,7 +38,7 @@ jobs:
 
       - name: Install and configure poetry
         run: |
-          python -m pip install poetry==1.7.0
+          pip install poetry==1.7.0
 
       - name: Restore venv from cache
         id: cached-poetry-dependencies-restore
@@ -54,7 +54,15 @@ jobs:
       - name: Install dependencies
         if: steps.cached-poetry-dependencies-restore.outputs.cache-hit != 'true'
         run: |
-          python -m poetry install --sync --no-root
+          poetry env use python3.9
+          poetry install --sync --no-root
+
+      - name: Add Python Virtual Environment to PATH
+        run: |
+          # Note: requires `poetry env use` to be ran, otherwise poetry
+          # may not be able to find which virtual environment is in use.
+          # Ticket: https://github.com/python-poetry/poetry/issues/7190
+          echo "$(poetry env info -p)"/bin >> $GITHUB_PATH
 
       - name: Cache venv
         uses: actions/cache/save@v4
@@ -66,7 +74,7 @@ jobs:
       - name: Migrate
         run: |
           export DJANGO_SETTINGS_MODULE=saleor.tests.settings
-          python -m poetry run python manage.py migrate
+          python manage.py migrate
 
       - name: Checkout base
         uses: actions/checkout@v4
@@ -76,9 +84,9 @@ jobs:
       # Sync dependencies to ensure consistency with base branch
       - name: Synchronize dependencies
         run: |
-          python -m poetry install --sync --no-root
+          poetry install --sync --no-root
 
       - name: Run tests
         run: |
           export PYTEST_DB_URL=$DATABASE_URL
-          python -m poetry run pytest -n 0 --reuse-db
+          pytest -n 0 --reuse-db
