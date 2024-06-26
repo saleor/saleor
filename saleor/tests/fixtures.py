@@ -2279,9 +2279,7 @@ def pink_attribute_value(color_attribute):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def size_attribute(
-    db, attribute_generator, attribute_values_generator
-):  # pylint: disable=W0613
+def size_attribute(db, attribute_generator, attribute_values_generator):  # pylint: disable=W0613
     attribute = attribute_generator(
         external_reference="sizeAttributeExternalReference",
         slug="size",
