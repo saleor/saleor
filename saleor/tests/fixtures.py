@@ -9343,3 +9343,66 @@ def lots_of_products_with_variants(product_type, channel_USD):
         ProductVariantChannelListing.objects.bulk_create(variant_listings)
         ProductChannelListing.objects.bulk_create(product_listings)
     return Product.objects.all()
+
+
+@pytest.fixture
+def setup_mock_for_cache():
+    """Mock cache backend.
+
+    To be used together with `cache_mock` and `dummy_cache`, where:
+    - `dummy_cache` is a dict the mock is write to, instead of real cache db
+    - `cache_mock` is a patch applied on real cache db
+
+    It supports following functions: `get`, `set`, `delete`, `incr` and `add`. If other
+    function is utilised in a tested codebase, this fixture should be extended.
+
+    Stores `key`, `value` and `ttl` in following format:
+    {key: {"value": value, "ttl": ttl}}
+    """
+
+    def _mocked_cache(dummy_cache, cache_mock):
+        def cache_get(key):
+            if data := dummy_cache.get(key):
+                return data["value"]
+            return None
+
+        def cache_set(key, value, timeout):
+            dummy_cache.update({key: {"value": value, "ttl": timeout}})
+
+        def cache_add(key, value, timeout):
+            if dummy_cache.get(key) is None:
+                dummy_cache.update({key: {"value": value, "ttl": timeout}})
+                return True
+            return False
+
+        def cache_delete(key):
+            dummy_cache.pop(key, None)
+
+        def cache_incr(key, delta):
+            if current_data := dummy_cache.get(key):
+                current_value = current_data["value"]
+                new_value = current_value + delta
+                dummy_cache.update(
+                    {key: {"value": new_value, "ttl": current_data["ttl"]}}
+                )
+                return new_value
+
+        mocked_get_cache = MagicMock()
+        mocked_set_cache = MagicMock()
+        mocked_add_cache = MagicMock()
+        mocked_incr_cache = MagicMock()
+        mocked_delete_cache = MagicMock()
+
+        mocked_get_cache.side_effect = cache_get
+        mocked_set_cache.side_effect = cache_set
+        mocked_add_cache.side_effect = cache_add
+        mocked_incr_cache.side_effect = cache_incr
+        mocked_delete_cache.side_effect = cache_delete
+
+        cache_mock.get = mocked_get_cache
+        cache_mock.set = mocked_set_cache
+        cache_mock.add = mocked_add_cache
+        cache_mock.incr = mocked_incr_cache
+        cache_mock.delete = mocked_delete_cache
+
+    return _mocked_cache
