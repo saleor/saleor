@@ -525,6 +525,60 @@ def order_line_tax_rate(
     return order_line.tax_rate
 
 
+def order_line_unit_discount(
+    order: Order,
+    order_line: OrderLine,
+    manager: PluginsManager,
+    lines: Optional[Iterable[OrderLine]] = None,
+    force_update: bool = False,
+) -> Decimal:
+    """Return the line unit discount.
+
+    It takes into account all plugins.
+    If the prices are expired, call all order price calculation methods
+    and save them in the model directly.
+    """
+    _, lines = fetch_order_prices_if_expired(order, manager, lines, force_update)
+    order_line = _find_order_line(lines, order_line)
+    return order_line.unit_discount
+
+
+def order_line_unit_discount_value(
+    order: Order,
+    order_line: OrderLine,
+    manager: PluginsManager,
+    lines: Optional[Iterable[OrderLine]] = None,
+    force_update: bool = False,
+) -> Decimal:
+    """Return the line unit discount value.
+
+    It takes into account all plugins.
+    If the prices are expired, call all order price calculation methods
+    and save them in the model directly.
+    """
+    _, lines = fetch_order_prices_if_expired(order, manager, lines, force_update)
+    order_line = _find_order_line(lines, order_line)
+    return order_line.unit_discount_value
+
+
+def order_line_unit_discount_type(
+    order: Order,
+    order_line: OrderLine,
+    manager: PluginsManager,
+    lines: Optional[Iterable[OrderLine]] = None,
+    force_update: bool = False,
+) -> Optional[str]:
+    """Return the line unit discount type.
+
+    It takes into account all plugins.
+    If the prices are expired, call all order price calculation methods
+    and save them in the model directly.
+    """
+    _, lines = fetch_order_prices_if_expired(order, manager, lines, force_update)
+    order_line = _find_order_line(lines, order_line)
+    return order_line.unit_discount_type
+
+
 def order_shipping(
     order: Order,
     manager: PluginsManager,
