@@ -52,7 +52,7 @@ from ..core.descriptions import (
 from ..core.doc_category import DOC_CATEGORY_CHECKOUT
 from ..core.enums import LanguageCodeEnum
 from ..core.fields import BaseField, PermissionsField
-from ..core.scalars import UUID, PositiveDecimal
+from ..core.scalars import UUID, DateTime, PositiveDecimal
 from ..core.tracing import traced_resolver
 from ..core.types import BaseObjectType, ModelObjectType, Money, NonNullList, TaxedMoney
 from ..core.utils import CHECKOUT_CALCULATE_TAXES_MESSAGE, WebhookEventInfo, str_to_enum
@@ -467,14 +467,14 @@ class DeliveryMethod(graphene.Union):
 
 class Checkout(ModelObjectType[models.Checkout]):
     id = graphene.ID(required=True, description="The ID of the checkout.")
-    created = graphene.DateTime(
+    created = DateTime(
         required=True, description="The date and time when the checkout was created."
     )
-    updated_at = graphene.DateTime(
+    updated_at = DateTime(
         required=True,
         description=("Time of last modification of the given checkout." + ADDED_IN_313),
     )
-    last_change = graphene.DateTime(
+    last_change = DateTime(
         required=True,
         deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `updatedAt` instead."),
     )
@@ -599,7 +599,7 @@ class Checkout(ModelObjectType[models.Checkout]):
         description="Returns True, if checkout requires shipping.", required=True
     )
     quantity = graphene.Int(description="The number of items purchased.", required=True)
-    stock_reservation_expires = graphene.DateTime(
+    stock_reservation_expires = DateTime(
         description=(
             "Date when oldest stock reservation for this checkout "
             "expires or null if no stock is reserved." + ADDED_IN_31

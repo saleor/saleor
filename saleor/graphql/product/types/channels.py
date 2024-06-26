@@ -25,7 +25,7 @@ from ...channel.types import Channel
 from ...core.descriptions import ADDED_IN_31, ADDED_IN_33, DEPRECATED_IN_3X_FIELD
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.fields import PermissionsField
-from ...core.scalars import Date
+from ...core.scalars import Date, DateTime
 from ...core.tracing import traced_resolver
 from ...core.types import BaseObjectType, ModelObjectType
 from ...tax.dataloaders import (
@@ -62,7 +62,7 @@ class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
             "Use the `publishedAt` field to fetch the publication date."
         ),
     )
-    published_at = graphene.DateTime(
+    published_at = DateTime(
         description="The product publication date time." + ADDED_IN_33
     )
     is_published = graphene.Boolean(
@@ -85,7 +85,7 @@ class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
             "the available for purchase date."
         ),
     )
-    available_for_purchase_at = graphene.DateTime(
+    available_for_purchase_at = DateTime(
         description="The product available for purchase date time." + ADDED_IN_33
     )
     discounted_price = graphene.Field(
@@ -397,7 +397,7 @@ class CollectionChannelListing(ModelObjectType[models.CollectionChannelListing])
             "Use the `publishedAt` field to fetch the publication date."
         ),
     )
-    published_at = graphene.DateTime(
+    published_at = DateTime(
         description="The collection publication date." + ADDED_IN_33
     )
     is_published = graphene.Boolean(

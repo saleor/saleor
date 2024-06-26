@@ -15,6 +15,7 @@ from ...core.descriptions import ADDED_IN_33, DEPRECATED_IN_3X_INPUT, RICH_CONTE
 from ...core.doc_category import DOC_CATEGORY_PAGES
 from ...core.fields import JSONString
 from ...core.mutations import ModelMutation
+from ...core.scalars import DateTime
 from ...core.types import BaseInputObjectType, NonNullList, PageError, SeoInput
 from ...core.validators import clean_seo_fields, validate_slug_and_generate_if_needed
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -35,7 +36,7 @@ class PageInput(BaseInputObjectType):
             "Use `publishedAt` field instead."
         )
     )
-    published_at = graphene.DateTime(
+    published_at = DateTime(
         description="Publication date time. ISO 8601 standard." + ADDED_IN_33
     )
     seo = SeoInput(description="Search engine optimization fields.")
