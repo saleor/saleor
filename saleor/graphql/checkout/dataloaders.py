@@ -118,9 +118,9 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader[str, list[CheckoutLineIn
 
                 lines_info_map = defaultdict(list)
                 voucher_infos_map = {
-                    voucher_info.voucher.code: voucher_info
+                    voucher_info.voucher_code: voucher_info
                     for voucher_info in voucher_infos
-                    if voucher_info
+                    if voucher_info is not None and voucher_info.voucher_code
                 }
                 for checkout, lines in zip(checkouts, checkout_lines):
                     lines_info_map[checkout.pk].extend(

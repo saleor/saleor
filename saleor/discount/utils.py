@@ -187,6 +187,21 @@ def get_voucher_code_instance(
     return code_instance
 
 
+def get_active_voucher_code(voucher, channel_slug):
+    """Return an active VoucherCode instance.
+
+    This method along with `Voucher.code` should be removed in Saleor 4.0.
+    """
+
+    voucher_queryset = Voucher.objects.active_in_channel(timezone.now(), channel_slug)
+    if not voucher_queryset.filter(pk=voucher.pk).exists():
+        raise InvalidPromoCode()
+    voucher_code = VoucherCode.objects.filter(voucher=voucher, is_active=True).first()
+    if not voucher_code:
+        raise InvalidPromoCode()
+    return voucher_code
+
+
 def apply_voucher_to_line(
     voucher_info: "VoucherInfo",
     lines_info: Iterable["LineInfo"],
