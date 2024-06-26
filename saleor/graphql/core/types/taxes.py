@@ -7,7 +7,7 @@ from promise import Promise
 from ....checkout import base_calculations
 from ....checkout.models import Checkout, CheckoutLine
 from ....core.prices import quantize_price
-from ....discount import DiscountType, VoucherType
+from ....discount import DiscountType
 from ....discount.utils import is_order_level_voucher
 from ....order.models import Order, OrderLine
 from ....order.utils import get_order_country
@@ -429,13 +429,7 @@ class TaxableObject(BaseObjectType):
                 for discount in discounts
                 if (
                     discount.type == DiscountType.MANUAL
-                    # TODO (SHOPX-873): apply_once_per_order voucher are included
-                    # for now, as the discount for such vouchers is currently not
-                    # propagated to the draft order lines
-                    or (
-                        discount.voucher
-                        and discount.voucher.type == VoucherType.ENTIRE_ORDER
-                    )
+                    or is_order_level_voucher(discount.voucher)
                 )
             ]
 
