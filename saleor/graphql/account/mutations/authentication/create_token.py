@@ -21,6 +21,8 @@ from ....site.dataloaders import get_site_promise
 from ...types import User
 from .utils import _get_new_csrf_token
 
+MIN_DELAY = 1
+
 
 class CreateToken(BaseMutation):
     """Mutation that authenticates a user and returns token and user data."""
@@ -87,41 +89,54 @@ class CreateToken(BaseMutation):
         pass
 
     @classmethod
-    def authenticate_with_throttling(cls, info: ResolveInfo, email, password):
+    def authenticate_with_throttling(
+        cls, info: ResolveInfo, email, password
+    ) -> Optional[models.User]:
         ip = cls.get_ip_address(info)
         if not ip:
             # TODO zedzior
             pass
 
         ip_key = cls.get_cache_key_failed_ip(ip)
-        with cache.lock(ip_key):
-            block_key = cls.get_cache_key_blocked_ip(ip)
-            if next_attempt_time := cache.get(block_key):
-                raise ValidationError(
-                    {
-                        "email": ValidationError(
-                            f"Due to too many failed authentication attempts, "
-                            f"logining has been disabled till {next_attempt_time}.",
-                            code=AccountErrorCode.LOGIN_ATTEMPT_DELAYED.value,
-                        )
-                    }
-                )
+        block_key = cls.get_cache_key_blocked_ip(ip)
 
-            user = retrieve_user_by_email(email)
-            if user:
-                ip_user_key = cls.get_cache_key_failed_ip_with_user(ip, user.pk)
-                if user.check_password(password):
-                    cache.delete(ip_key)
-                    cache.delete(ip_user_key)
-                    return user
-                else:
-                    cache.incr(ip_user_key, 1)
+        # check if next login attempt is blocked
+        if next_attempt_time := cache.get(block_key):
+            raise ValidationError(
+                {
+                    "email": ValidationError(
+                        f"Due to too many failed authentication attempts, "
+                        f"logining has been suspended till {next_attempt_time}.",
+                        code=AccountErrorCode.LOGIN_ATTEMPT_DELAYED.value,
+                    )
+                }
+            )
 
-            cache.incr(ip_key, 1)
+        # block the IP address before the next attempt to prevent concurrent requests
+        next_attempt_time = timezone.now() + timedelta(seconds=MIN_DELAY)
+        cache.set(block_key, next_attempt_time, timeout=MIN_DELAY)
 
-            cls.block_next_attempt()
+        # retrieve user from credential
+        if user := retrieve_user_by_email(email):
+            ip_user_key = cls.get_cache_key_failed_ip_with_user(ip, user.pk)
+            if user.check_password(password):
+                # clear cache entries when login successful
+                cache.delete(ip_key)
+                cache.delete(ip_user_key)
+                cache.delete(block_key)
+                return user
 
-            return None
+            else:
+                # increment failed attempt for known user
+                cache.incr(ip_user_key, 1)
+
+        # increment failed attempt for whatever user
+        cache.incr(ip_key, 1)
+
+        # calculate next allowed login attempt time and block the IP till the time
+        cls.block_next_attempt()
+
+        return None
 
     @classmethod
     def _retrieve_user_from_credentials(cls, email, password) -> Optional[models.User]:
