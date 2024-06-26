@@ -445,6 +445,8 @@ def test_get_discount_for_checkout_value_entire_order_voucher(
             rules_info=[],
             product_type=line.variant.product.product_type,
             channel=channel_USD,
+            voucher=None,
+            voucher_code=None,
         )
         for line in checkout_with_items.lines.all()
     ]
@@ -609,6 +611,8 @@ def test_get_discount_for_checkout_value_specific_product_voucher(
             product=line.variant.product,
             variant=line.variant,
             product_type=line.variant.product.product_type,
+            voucher=None,
+            voucher_code=None,
         )
         for line in checkout_with_items.lines.all()
     ]

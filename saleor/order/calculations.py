@@ -12,7 +12,7 @@ from ..core.db.connection import allow_writer
 from ..core.prices import quantize_price
 from ..core.taxes import TaxData, TaxEmptyData, TaxError, zero_taxed_money
 from ..discount import DiscountType
-from ..discount.utils import create_or_update_discount_objects_from_promotion_for_order
+from ..discount.utils import create_or_update_discount_objects_for_order
 from ..payment.model_helpers import get_subtotal
 from ..plugins import PLUGIN_IDENTIFIER_PREFIX
 from ..plugins.manager import PluginsManager
@@ -57,7 +57,7 @@ def fetch_order_prices_if_expired(
 
     # handle promotions
     lines_info: list[DraftOrderLineInfo] = fetch_draft_order_lines_info(order, lines)
-    create_or_update_discount_objects_from_promotion_for_order(
+    create_or_update_discount_objects_for_order(
         order, lines_info, database_connection_name
     )
     lines = [line_info.line for line_info in lines_info]
