@@ -2,8 +2,10 @@ from datetime import timedelta
 from typing import Optional
 
 import graphene
+from django.core.cache import cache
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.validators import validate_ipv46_address
 from django.utils import timezone
 
 from .....account import models
@@ -49,18 +51,88 @@ class CreateToken(BaseMutation):
     )
     user = graphene.Field(User, description="A user instance.")
 
+    @staticmethod
+    def is_ip_address_valid(ip):
+        if not ip:
+            return False
+        try:
+            validate_ipv46_address(ip)
+            return True
+        except ValidationError:
+            return False
+
+    @classmethod
+    def get_ip_address(cls, info: ResolveInfo) -> str:
+        proxy_address = info.context.META.get("HTTP_X_FORWARDED_FOR", "").strip()
+        remote_address = info.context.META.get("REMOTE_ADDR", "").strip()
+        ip = proxy_address or remote_address
+        if ip and cls.is_ip_address_valid(ip):
+            return ip
+        return ""
+
+    @classmethod
+    def get_cache_key_failed_ip(cls, ip: str) -> str:
+        return f"login:failed:ip:{ip}"
+
+    @classmethod
+    def get_cache_key_failed_ip_with_user(cls, ip: str, user_id) -> str:
+        return f"login:failed:ip:{ip}:user:{user_id}"
+
+    @classmethod
+    def get_cache_key_blocked_ip(cls, ip: str) -> str:
+        return f"login:blocked:ip:{ip}"
+
+    @classmethod
+    def block_next_attempt(cls):
+        pass
+
+    @classmethod
+    def authenticate_with_throttling(cls, info: ResolveInfo, email, password):
+        ip = cls.get_ip_address(info)
+        if not ip:
+            # TODO zedzior
+            pass
+
+        ip_key = cls.get_cache_key_failed_ip(ip)
+        with cache.lock(ip_key):
+            block_key = cls.get_cache_key_blocked_ip(ip)
+            if next_attempt_time := cache.get(block_key):
+                raise ValidationError(
+                    {
+                        "email": ValidationError(
+                            f"Due to too many failed authentication attempts, "
+                            f"logining has been disabled till {next_attempt_time}.",
+                            code=AccountErrorCode.LOGIN_ATTEMPT_DELAYED.value,
+                        )
+                    }
+                )
+
+            user = retrieve_user_by_email(email)
+            if user:
+                ip_user_key = cls.get_cache_key_failed_ip_with_user(ip, user.pk)
+                if user.check_password(password):
+                    cache.delete(ip_key)
+                    cache.delete(ip_user_key)
+                    return user
+                else:
+                    cache.incr(ip_user_key, 1)
+
+            cache.incr(ip_key, 1)
+
+            cls.block_next_attempt()
+
+            return None
+
     @classmethod
     def _retrieve_user_from_credentials(cls, email, password) -> Optional[models.User]:
         user = retrieve_user_by_email(email)
-
         if user and user.check_password(password):
             return user
         return None
 
     @classmethod
     def get_user(cls, info: ResolveInfo, email, password):
-        site_settings = get_site_promise(info.context).get().settings
-        user = cls._retrieve_user_from_credentials(email, password)
+        user = cls.authenticate_with_throttling(info, email, password)
         if not user:
             raise ValidationError(
                 {
@@ -70,6 +142,8 @@ class CreateToken(BaseMutation):
                     )
                 }
             )
+
+        site_settings = get_site_promise(info.context).get().settings
         if (
             not user.is_confirmed
             and not site_settings.allow_login_without_confirmation
