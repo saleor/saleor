@@ -2286,7 +2286,9 @@ def pink_attribute_value(color_attribute):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def size_attribute(db, attribute_generator, attribute_values_generator):  # pylint: disable=W0613
+def size_attribute(
+    db, attribute_generator, attribute_values_generator
+):  # pylint: disable=W0613
     attribute = attribute_generator(
         external_reference="sizeAttributeExternalReference",
         slug="size",
@@ -7319,6 +7321,16 @@ def media_root(tmpdir, settings):
     root = str(tmpdir.mkdir("media"))
     settings.MEDIA_ROOT = root
     return root
+
+
+@pytest.fixture(scope="session", autouse=True)
+def private_media_root(tmpdir_factory):
+    yield str(tmpdir_factory.mktemp("private-media"))
+
+
+@pytest.fixture(autouse=True)
+def private_media_settings(private_media_root, settings):
+    settings.PRIVATE_MEDIA_ROOT = private_media_root
 
 
 @pytest.fixture
