@@ -14,6 +14,7 @@ from .....checkout.utils import (
     calculate_checkout_quantity,
     invalidate_checkout,
 )
+from .....discount import RewardValueType
 from .....plugins.manager import get_plugins_manager
 from .....product.models import ProductChannelListing
 from .....warehouse.models import Reservation, Stock
@@ -33,6 +34,14 @@ MUTATION_CHECKOUT_LINES_UPDATE = """
                     quantity
                     variant {
                         id
+                    }
+                    undiscountedUnitPrice {
+                        amount
+                    }
+                    unitPrice {
+                        gross {
+                            amount
+                        }
                     }
                 }
                 totalPrice {
@@ -658,6 +667,123 @@ def test_checkout_lines_update_with_custom_price_override_existing_price(
     assert line.price_override == price
     lines, _ = fetch_checkout_lines(checkout)
     assert calculate_checkout_quantity(lines) == 1
+
+
+def test_checkout_lines_update_with_custom_price_and_fixed_catalogue_promotion(
+    app_api_client, checkout_with_item_on_promotion, permission_handle_checkouts
+):
+    # given
+    checkout = checkout_with_item_on_promotion
+
+    assert checkout.lines.count() == 1
+
+    line = checkout.lines.first()
+    old_line_qty = line.quantity
+    line_qty = 1
+    assert line_qty != old_line_qty
+    line_discount = line.discounts.first()
+    old_line_discount_amount_value = line_discount.amount_value
+    reward_value = line_discount.value
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", line.variant_id)
+    custom_price = Decimal("15")
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [
+            {"variantId": variant_id, "quantity": line_qty, "price": custom_price}
+        ],
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_CHECKOUT_LINES_UPDATE,
+        variables,
+        permissions=[permission_handle_checkouts],
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    data = content["data"]["checkoutLinesUpdate"]
+    assert not data["errors"]
+    checkout_data = data["checkout"]
+    assert checkout_data["totalPrice"]["gross"]["amount"] == custom_price - reward_value
+    assert len(checkout_data["lines"]) == 1
+    line_data = data["checkout"]["lines"][0]
+    assert line_data["quantity"] == line_qty
+    assert line_data["undiscountedUnitPrice"]["amount"] == custom_price
+    assert line_data["unitPrice"]["gross"]["amount"] == custom_price - reward_value
+
+    line_discount.refresh_from_db()
+    assert line_discount.amount_value == reward_value
+    assert line_discount.amount_value != old_line_discount_amount_value
+
+
+def test_checkout_lines_update_with_custom_price_and_percentage_catalogue_promotion(
+    app_api_client, checkout_with_item_on_promotion, permission_handle_checkouts
+):
+    # given
+    checkout = checkout_with_item_on_promotion
+
+    assert checkout.lines.count() == 1
+
+    line = checkout.lines.first()
+    old_line_qty = line.quantity
+    line_qty = 2
+    assert line_qty != old_line_qty
+    line_discount = line.discounts.first()
+    old_line_discount_amount_value = line_discount.amount_value
+
+    promotion_rule = line_discount.promotion_rule
+    reward_value_type = RewardValueType.PERCENTAGE
+    reward_value = Decimal("50")
+    promotion_rule.reward_value_type = reward_value_type
+    promotion_rule.reward_value = reward_value
+    promotion_rule.save(update_fields=["reward_value_type", "reward_value"])
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", line.variant_id)
+    custom_price = Decimal("40")
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [
+            {"variantId": variant_id, "quantity": line_qty, "price": custom_price}
+        ],
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_CHECKOUT_LINES_UPDATE,
+        variables,
+        permissions=[permission_handle_checkouts],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    unit_discount_amount = custom_price * promotion_rule.reward_value / 100
+    discount_amount = unit_discount_amount * line_qty
+
+    data = content["data"]["checkoutLinesUpdate"]
+    assert not data["errors"]
+    checkout_data = data["checkout"]
+    assert (
+        checkout_data["totalPrice"]["gross"]["amount"]
+        == custom_price * line_qty - discount_amount
+    )
+    assert len(checkout_data["lines"]) == 1
+    line_data = data["checkout"]["lines"][0]
+    assert line_data["quantity"] == line_qty
+    assert line_data["undiscountedUnitPrice"]["amount"] == custom_price
+    assert (
+        line_data["unitPrice"]["gross"]["amount"] == custom_price - unit_discount_amount
+    )
+
+    line_discount.refresh_from_db()
+    assert line_discount.amount_value == discount_amount
+    assert line_discount.amount_value != old_line_discount_amount_value
+    assert line_discount.value == reward_value
+    assert line_discount.value_type == reward_value_type
 
 
 def test_checkout_lines_update_clear_custom_price(

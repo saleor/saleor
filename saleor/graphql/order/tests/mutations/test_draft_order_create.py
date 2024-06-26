@@ -51,11 +51,6 @@ DRAFT_ORDER_CREATE_MUTATION = """
                         reason
                     }
                     redirectUrl
-                    lines {
-                        productName
-                        productSku
-                        quantity
-                    }
                     billingAddress{
                         city
                         streetAddress1
@@ -127,6 +122,7 @@ DRAFT_ORDER_CREATE_MUTATION = """
                         unitDiscountType
                         unitDiscountValue
                         isGift
+                        isPriceOverridden
                     }
                 }
             }
@@ -2641,6 +2637,121 @@ def test_draft_order_create_with_custom_price_in_order_line(
     assert order_line_1.base_unit_price_amount == expected_price_variant_1
     assert order_line_1.undiscounted_base_unit_price_amount == expected_price_variant_1
     assert order_line_1.is_price_overridden is True
+
+
+def test_draft_order_create_with_custom_price_and_catalogue_promotion(
+    staff_api_client,
+    permission_group_manage_orders,
+    customer_user,
+    variant_on_promotion,
+    channel_USD,
+):
+    # given
+    query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variant = variant_on_promotion
+
+    variant_listing = variant.channel_listings.get(channel=channel_USD)
+    variant_price = variant_listing.price_amount
+    promotion_rule = variant_listing.promotion_rules.first()
+    reward_value = promotion_rule.reward_value
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+
+    custom_price = 18
+    quantity = 2
+    variant_list = [
+        {
+            "variantId": variant_id,
+            "quantity": quantity,
+            "price": custom_price,
+            "forceNewLine": False,
+        },
+        {
+            "variantId": variant_id,
+            "quantity": quantity,
+            "forceNewLine": True,
+        },
+    ]
+    variables = {
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+            "channelId": channel_id,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["draftOrderCreate"]["errors"]
+    data = content["data"]["draftOrderCreate"]["order"]
+    assert data["status"] == OrderStatus.DRAFT.upper()
+    assert len(data["lines"]) == 2
+
+    line_1_unit_discount = custom_price * reward_value / 100
+    promotion_id = graphene.Node.to_global_id("Promotion", promotion_rule.promotion_id)
+    line_data_1 = {
+        "productVariantId": variant_id,
+        "quantity": quantity,
+        "unitDiscount": {
+            "amount": float(line_1_unit_discount),
+        },
+        "unitPrice": {
+            "gross": {
+                "amount": float(custom_price - line_1_unit_discount),
+            },
+        },
+        "undiscountedUnitPrice": {
+            "gross": {
+                "amount": float(custom_price),
+            },
+        },
+        "totalPrice": {
+            "gross": {
+                "amount": float((custom_price - line_1_unit_discount) * quantity),
+            },
+        },
+        "unitDiscountReason": f"Promotion: {promotion_id}",
+        "unitDiscountType": RewardValueType.PERCENTAGE.upper(),
+        "unitDiscountValue": reward_value,
+        "isPriceOverridden": True,
+        "isGift": False,
+    }
+    assert line_data_1 in data["lines"]
+    line_2_unit_discount = variant_price * reward_value / 100
+    line_data_2 = {
+        "productVariantId": variant_id,
+        "quantity": quantity,
+        "unitDiscount": {
+            "amount": float(line_2_unit_discount),
+        },
+        "unitPrice": {
+            "gross": {
+                "amount": float(variant_price - line_2_unit_discount),
+            },
+        },
+        "undiscountedUnitPrice": {
+            "gross": {
+                "amount": float(variant_price),
+            },
+        },
+        "totalPrice": {
+            "gross": {
+                "amount": float((variant_price - line_2_unit_discount) * quantity),
+            },
+        },
+        "unitDiscountReason": f"Promotion: {promotion_id}",
+        "unitDiscountType": RewardValueType.PERCENTAGE.upper(),
+        "unitDiscountValue": reward_value,
+        "isPriceOverridden": False,
+        "isGift": False,
+    }
+    assert line_data_2 in data["lines"]
 
 
 def test_draft_order_create_product_catalogue_promotion(
