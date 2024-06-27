@@ -4,10 +4,9 @@ from typing import Optional
 
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
-from django.core.validators import validate_ipv46_address
 from django.utils import timezone
 
-from ..graphql.core import ResolveInfo
+from ..core.utils import get_client_ip
 from . import models
 from .error_codes import AccountErrorCode
 from .utils import retrieve_user_by_email
@@ -17,20 +16,26 @@ MAX_DELAY = 3600
 ATTEMPT_COUNTER_EXPIRE_TIME = 7200
 
 
-def authenticate_with_throttling(
-    info: ResolveInfo, email, password
-) -> Optional[models.User]:
-    ip = get_ip_address(info)
+def authenticate_with_throttling(request, email, password) -> Optional[models.User]:
+    ip = get_client_ip(request)
     if not ip:
-        # TODO zedzior
-        pass
+        raise ValidationError(
+            {
+                "email": ValidationError(
+                    "Can't indentify requester IP address.",
+                    code=AccountErrorCode.UNKNOWN_IP_ADDRESS.value,
+                )
+            }
+        )
 
     ip_key = get_cache_key_failed_ip(ip)
     block_key = get_cache_key_blocked_ip(ip)
 
     # block the IP address before the next attempt to prevent concurrent requests
     if add_block(block_key, MIN_DELAY) is False:
-        next_attempt_time = cache.get(block_key) or MIN_DELAY
+        next_attempt_time = cache.get(block_key) or timezone.now() + timedelta(
+            seconds=MIN_DELAY
+        )
         raise ValidationError(
             {
                 "email": ValidationError(
@@ -41,8 +46,8 @@ def authenticate_with_throttling(
             }
         )
 
-    # retrieve user from credential
-    ip_user_attempts_count = MIN_DELAY
+    # retrieve user from credentials
+    ip_user_attempts_count = 0
     if user := retrieve_user_by_email(email):
         ip_user_key = get_cache_key_failed_ip_with_user(ip, user.pk)
         if user.check_password(password):
@@ -64,26 +69,6 @@ def authenticate_with_throttling(
     return None
 
 
-def is_ip_address_valid(ip):
-    if not ip:
-        return False
-    try:
-        validate_ipv46_address(ip)
-        return True
-    except ValidationError:
-        return False
-
-
-def get_ip_address(info: ResolveInfo) -> str:
-    proxy_address = info.context.META.get("HTTP_X_FORWARDED_FOR", "").strip()
-    remote_address = info.context.META.get("REMOTE_ADDR", "").strip()
-    ip = proxy_address or remote_address
-    if ip and is_ip_address_valid(ip):
-        return ip
-    # TODO zedzior
-    return ""
-
-
 def get_cache_key_failed_ip(ip: str) -> str:
     return f"login:fail:ip:{ip}"
 
@@ -102,13 +87,23 @@ def clear_cache(keys: list[str]):
 
 
 def get_delay_time(ip_attempts_count: int, ip_user_attempts_count: int) -> int:
-    ip_delay = (
-        2 ^ (ceil(ip_attempts_count / 10) - 1) if ip_attempts_count < 100 else MAX_DELAY
-    )
-    ip_user_delay = (
-        2 ^ (ip_attempts_count - 1) if ip_user_attempts_count < 10 else MAX_DELAY
-    )
-    return max(ip_delay, ip_user_delay)
+    """Calculate next login attempt delay, based on number of attempts."""
+    ip_delay, ip_user_delay = 0, 0
+    if ip_attempts_count > 0:
+        ip_delay = (
+            2 ** (ceil(ip_attempts_count / 10) - 1)
+            if ip_attempts_count < 100
+            else MAX_DELAY
+        )
+
+    if ip_user_attempts_count > 0:
+        ip_user_delay = (
+            2 ** (ip_user_attempts_count - 1)
+            if ip_user_attempts_count < 10
+            else MAX_DELAY
+        )
+
+    return max(ip_delay, ip_user_delay, MIN_DELAY)
 
 
 def override_block(block_key: str, time_delta: int):

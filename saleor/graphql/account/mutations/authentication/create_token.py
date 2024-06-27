@@ -46,7 +46,7 @@ class CreateToken(BaseMutation):
 
     @classmethod
     def get_user(cls, info: ResolveInfo, email, password):
-        user = authenticate_with_throttling(info, email, password)
+        user = authenticate_with_throttling(info.context, email, password)
         if not user:
             raise ValidationError(
                 {
