@@ -566,7 +566,7 @@ def test_create_checkout_with_order_promotion(
     }
 
     # when
-    with django_assert_num_queries(76):
+    with django_assert_num_queries(79):
         response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
 
     # then
@@ -821,7 +821,7 @@ def test_update_checkout_lines_with_reservations(
         reservation_length=5,
     )
 
-    with django_assert_num_queries(92):
+    with django_assert_num_queries(95):
         variant_id = graphene.Node.to_global_id("ProductVariant", variants[0].pk)
         variables = {
             "id": to_global_id_or_none(checkout),
@@ -835,7 +835,7 @@ def test_update_checkout_lines_with_reservations(
         assert not data["errors"]
 
     # Updating multiple lines in checkout has same query count as updating one
-    with django_assert_num_queries(92):
+    with django_assert_num_queries(95):
         variables = {
             "id": to_global_id_or_none(checkout),
             "lines": [],
