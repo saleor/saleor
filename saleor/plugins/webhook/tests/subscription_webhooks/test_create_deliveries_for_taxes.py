@@ -793,7 +793,7 @@ def test_order_calculate_taxes_specific_product_voucher(
     expected_total_price_amount = (
         order_line.undiscounted_base_unit_price_amount - unit_discount_amount
     ) * order_line.quantity
-    assert json.loads(deliveries.payload.payload) == {
+    assert json.loads(deliveries.payload.get_payload()) == {
         "__typename": "CalculateTaxes",
         "taxBase": {
             "address": {"id": to_global_id_or_none(order.shipping_address)},
