@@ -2,7 +2,7 @@
 
 from django.db import migrations, models
 
-from saleor.core.storages import private_storage
+from saleor.core import private_storage
 
 
 class Migration(migrations.Migration):

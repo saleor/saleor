@@ -7323,12 +7323,13 @@ def media_root(tmpdir, settings):
 
 @pytest.fixture(scope="session", autouse=True)
 def private_media_root(tmpdir_factory):
-    yield str(tmpdir_factory.mktemp("private-media"))
+    return str(tmpdir_factory.mktemp("private-media"))
 
 
 @pytest.fixture(autouse=True)
-def private_media_settings(private_media_root, settings):
+def private_media_setting(private_media_root, settings):
     settings.PRIVATE_MEDIA_ROOT = private_media_root
+    return private_media_root
 
 
 @pytest.fixture

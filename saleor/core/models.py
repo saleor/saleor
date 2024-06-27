@@ -6,8 +6,7 @@ from django.contrib.postgres.indexes import GinIndex
 from django.db import models, transaction
 from django.db.models import F, JSONField, Max, Q
 
-from . import EventDeliveryStatus, JobStatus
-from .storages import private_storage
+from . import EventDeliveryStatus, JobStatus, private_storage
 from .utils.json_serializer import CustomJsonEncoder
 
 

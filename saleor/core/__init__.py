@@ -1,3 +1,8 @@
+from django.conf import settings
+from django.core.files.storage import Storage
+from django.utils.functional import LazyObject
+from django.utils.module_loading import import_string
+
 default_app_config = "saleor.core.app.CoreAppConfig"
 
 
@@ -34,3 +39,15 @@ class EventDeliveryStatus:
         (SUCCESS, "Success"),
         (FAILED, "Failed"),
     ]
+
+
+def _get_private_storage_class(import_path=None):
+    return import_string(import_path or settings.PRIVATE_FILE_STORAGE)
+
+
+class PrivateStorage(LazyObject):
+    def _setup(self):
+        self._wrapped = _get_private_storage_class()()
+
+
+private_storage: Storage = PrivateStorage()  # type: ignore[assignment]
