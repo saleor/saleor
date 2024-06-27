@@ -1,4 +1,5 @@
 from datetime import timedelta
+from math import ceil
 from typing import Optional
 
 import graphene
@@ -22,6 +23,8 @@ from ...types import User
 from .utils import _get_new_csrf_token
 
 MIN_DELAY = 1
+MAX_DELAY = 3600
+ATTEMPT_COUNTER_EXPIRE_TIME = 300
 
 
 class CreateToken(BaseMutation):
@@ -70,6 +73,7 @@ class CreateToken(BaseMutation):
         ip = proxy_address or remote_address
         if ip and cls.is_ip_address_valid(ip):
             return ip
+        # TODO zedzior
         return ""
 
     @classmethod
@@ -85,8 +89,33 @@ class CreateToken(BaseMutation):
         return f"login:blocked:ip:{ip}"
 
     @classmethod
-    def block_next_attempt(cls):
-        pass
+    def clear_cache(cls, keys: list[str]):
+        for key in keys:
+            cache.delete(key)
+
+    @classmethod
+    def get_delay_time(cls, ip_attempts_count: int, ip_user_attempts_count: int) -> int:
+        ip_delay = (
+            2 ^ (ceil(ip_attempts_count / 10) - 1)
+            if ip_attempts_count < 100
+            else MAX_DELAY
+        )
+        ip_user_delay = (
+            2 ^ (ip_attempts_count - 1) if ip_user_attempts_count < 10 else MAX_DELAY
+        )
+        return max(ip_delay, ip_user_delay)
+
+    @classmethod
+    def block_next_attempt(cls, block_key: str, time_delta: int):
+        next_attempt_time = timezone.now() + timedelta(seconds=time_delta)
+        cache.set(block_key, next_attempt_time, timeout=time_delta)
+
+    @classmethod
+    def increment_attempt(cls, key: str) -> int:
+        # `cache.add` returns False and does nothing, when key already exists
+        if not cache.add(key, 1, timeout=ATTEMPT_COUNTER_EXPIRE_TIME):
+            return cache.incr(key, 1)
+        return 1
 
     @classmethod
     def authenticate_with_throttling(
@@ -113,28 +142,27 @@ class CreateToken(BaseMutation):
             )
 
         # block the IP address before the next attempt to prevent concurrent requests
-        next_attempt_time = timezone.now() + timedelta(seconds=MIN_DELAY)
-        cache.set(block_key, next_attempt_time, timeout=MIN_DELAY)
+        cls.block_next_attempt(block_key, MIN_DELAY)
 
+        ip_user_attempts_count = MIN_DELAY
         # retrieve user from credential
         if user := retrieve_user_by_email(email):
             ip_user_key = cls.get_cache_key_failed_ip_with_user(ip, user.pk)
             if user.check_password(password):
                 # clear cache entries when login successful
-                cache.delete(ip_key)
-                cache.delete(ip_user_key)
-                cache.delete(block_key)
+                cls.clear_cache([ip_key, ip_user_key, block_key])
                 return user
 
             else:
                 # increment failed attempt for known user
-                cache.incr(ip_user_key, 1)
+                ip_user_attempts_count = cls.increment_attempt(ip_user_key)
 
         # increment failed attempt for whatever user
-        cache.incr(ip_key, 1)
+        ip_attempts_count = cls.increment_attempt(ip_key)
 
         # calculate next allowed login attempt time and block the IP till the time
-        cls.block_next_attempt()
+        delay = cls.get_delay_time(ip_attempts_count, ip_user_attempts_count)
+        cls.block_next_attempt(block_key, delay)
 
         return None
 
