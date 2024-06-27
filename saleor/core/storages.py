@@ -1,7 +1,4 @@
 from django.conf import settings
-from django.utils.functional import LazyObject
-from django.utils.module_loading import import_string
-
 from storages.backends.azure_storage import AzureStorage as AzureBaseStorage
 from storages.backends.gcloud import GoogleCloudStorage
 from storages.backends.s3boto3 import S3Boto3Storage
@@ -54,15 +51,3 @@ class AzureMediaPrivateStorage(AzureBaseStorage):
     def __init__(self, *args, **kwargs):
         self.azure_container = settings.AZURE_CONTAINER_PRIVATE
         super().__init__(*args, **kwargs)
-
-
-def get_private_storage_class():
-    return import_string(settings.PRIVATE_FILE_STORAGE)
-
-
-class PrivateStorage(LazyObject):
-    def _setup(self):
-        self._wrapped = get_private_storage_class()()
-
-
-private_storage = PrivateStorage()

@@ -91,7 +91,6 @@ jobs:
             --cov-report= \
             --junitxml=junit/test-results.xml \
             --django-db-bench=${{ env.BENCH_PATH }}
-        if: ${{ always() }}
 
       - uses: actions/cache@v4
         with:
