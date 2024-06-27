@@ -16,6 +16,7 @@ import pytest
 import pytz
 from django.conf import settings
 from django.contrib.sites.models import Site
+from django.core.cache import cache
 from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import connection
@@ -9343,3 +9344,12 @@ def lots_of_products_with_variants(product_type, channel_USD):
         ProductVariantChannelListing.objects.bulk_create(variant_listings)
         ProductChannelListing.objects.bulk_create(product_listings)
     return Product.objects.all()
+
+
+# TODO zedzior ogarnij jak zarzadzac cachem pomiedzy testami i watkami
+@pytest.fixture(autouse=True)
+def _clear_cache():
+    try:
+        yield
+    finally:
+        cache.clear()

@@ -31238,6 +31238,7 @@ enum AccountErrorCode @doc(category: "Users") {
   MISSING_CHANNEL_SLUG
   ACCOUNT_NOT_CONFIRMED
   LOGIN_ATTEMPT_DELAYED
+  UNKNOWN_IP_ADDRESS
 }
 
 """
