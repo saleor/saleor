@@ -628,7 +628,7 @@ def _get_rule_discount_amount(
             line.undiscounted_base_unit_price if line.is_price_overridden else None
         )
 
-    if price_override:
+    if price_override is not None:
         # calculate discount amount on overridden price
         discount = rule_info.rule.get_discount(channel.currency_code)
         discounted_price = discount(price_override)

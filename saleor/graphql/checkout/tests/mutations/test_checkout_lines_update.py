@@ -786,6 +786,54 @@ def test_checkout_lines_update_with_custom_price_and_percentage_catalogue_promot
     assert line_discount.value_type == reward_value_type
 
 
+def test_checkout_lines_update_with_0_custom_price_and_catalogue_promotion(
+    app_api_client, checkout_with_item_on_promotion, permission_handle_checkouts
+):
+    # given
+    checkout = checkout_with_item_on_promotion
+
+    assert checkout.lines.count() == 1
+
+    line = checkout.lines.first()
+    old_line_qty = line.quantity
+    line_qty = 1
+    assert line_qty != old_line_qty
+    line_discount = line.discounts.first()
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", line.variant_id)
+    custom_price = Decimal("0")
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [
+            {"variantId": variant_id, "quantity": line_qty, "price": custom_price}
+        ],
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_CHECKOUT_LINES_UPDATE,
+        variables,
+        permissions=[permission_handle_checkouts],
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    data = content["data"]["checkoutLinesUpdate"]
+    assert not data["errors"]
+    checkout_data = data["checkout"]
+    assert checkout_data["totalPrice"]["gross"]["amount"] == 0
+    assert len(checkout_data["lines"]) == 1
+    line_data = data["checkout"]["lines"][0]
+    assert line_data["quantity"] == line_qty
+    assert line_data["undiscountedUnitPrice"]["amount"] == 0
+    assert line_data["unitPrice"]["gross"]["amount"] == 0
+
+    line_discount.refresh_from_db()
+    assert line_discount.amount_value == 0
+
+
 def test_checkout_lines_update_clear_custom_price(
     app_api_client, checkout_with_item, permission_handle_checkouts
 ):
