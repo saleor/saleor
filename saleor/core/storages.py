@@ -13,7 +13,7 @@ class S3MediaStorage(S3Boto3Storage):
 
 class S3MediaPrivateStorage(S3Boto3Storage):
     def __init__(self, *args, **kwargs):
-        self.bucket_name = settings.GS_MEDIA_PRIVATE_BUCKET_NAME
+        self.bucket_name = settings.AWS_MEDIA_PRIVATE_BUCKET_NAME
         self.custom_domain = None
         super().__init__(*args, **kwargs)
 
