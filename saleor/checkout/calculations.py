@@ -373,7 +373,6 @@ def _calculate_and_add_tax(
         # If taxAppId is provided run tax plugin or Tax App. taxAppId can be
         # configured with Avatax plugin identifier.
         if not tax_app_identifier:
-            # TODO Owczar: Cover this flow
             # Call the tax plugins.
             _apply_tax_data_from_plugins(
                 checkout, manager, checkout_info, lines, address
