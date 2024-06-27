@@ -548,7 +548,9 @@ def prepare_line_discount_objects_for_catalogue_promotions(lines_info):
             continue
 
         # check if the line price is discounted by catalogue promotion
-        discounted_line = _is_discounted_line(line_info.channel_listing)
+        discounted_line = _is_discounted_line_by_catalogue_promotion(
+            line_info.channel_listing
+        )
 
         # delete all existing discounts if the line is not discounted or it is a gift
         if not discounted_line or line.is_gift:
@@ -600,7 +602,7 @@ def prepare_line_discount_objects_for_catalogue_promotions(lines_info):
     )
 
 
-def _is_discounted_line(
+def _is_discounted_line_by_catalogue_promotion(
     variant_channel_listing: "ProductVariantChannelListing",
 ) -> bool:
     """Return True when the price is discounted by catalogue promotion."""
