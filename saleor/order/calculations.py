@@ -534,9 +534,14 @@ def order_line_unit_discount(
 ) -> Decimal:
     """Return the line unit discount.
 
-    It takes into account all plugins.
-    If the prices are expired, call all order price calculation methods
-    and save them in the model directly.
+        It takes into account all plugins.
+        If the prices are expired, call all order price calculation methods
+        and save them in the model directly.
+    g
+        Line unit discount include discounts from:
+        - catalogue promotion
+        - voucher applied on the line (`SPECIFIC_PRODUCT`, `apply_once_per_order` )
+        - manual line discounts
     """
     _, lines = fetch_order_prices_if_expired(order, manager, lines, force_update)
     order_line = _find_order_line(lines, order_line)
