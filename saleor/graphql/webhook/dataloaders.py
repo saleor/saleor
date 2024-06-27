@@ -3,6 +3,7 @@ from typing import Any
 
 from promise import Promise
 
+from ...core.db.connection import allow_writer_in_context
 from ...core.models import EventPayload
 from ...tax import TaxCalculationStrategy
 from ...tax.utils import (
@@ -21,7 +22,7 @@ from ..checkout.dataloaders import (
 from ..core.dataloaders import DataLoader
 from ..utils import get_user_or_app_from_context
 from .subscription_payload import (
-    generate_payload_from_subscription,
+    generate_payload_promise_from_subscription,
     initialize_request,
 )
 from .utils import get_subscription_query_hash
@@ -86,13 +87,14 @@ class PregeneratedSubscriptionPayloadsByCheckoutTokenLoader(DataLoader):
             False,
             event_type=event_type,
         )
-        # TDDO: Implement below function as a DataLoader
         webhooks = get_webhooks_for_event(event_type)
         apps_ids = [webhook.app_id for webhook in webhooks]
 
+        @allow_writer_in_context(self.context)
         def generate_payloads(data):
             checkouts_info, checkout_liens_info, apps = data
             apps_map = {app.id: app for app in apps}
+            promises = []
             for checkout_info, lines_info in zip(checkouts_info, checkout_liens_info):
                 tax_configuration, country_tax_configuration = (
                     get_tax_configuration_for_checkout(
@@ -120,21 +122,34 @@ class PregeneratedSubscriptionPayloadsByCheckoutTokenLoader(DataLoader):
                             checkout = checkout_info.checkout
                             checkout_token = str(checkout.pk)
 
-                            payload = generate_payload_from_subscription(
-                                event_type=event_type,
-                                subscribable_object=checkout,
-                                subscription_query=webhook.subscription_query,
-                                request=request_context,
-                                app=app,
+                            promise_payload = (
+                                generate_payload_promise_from_subscription(
+                                    event_type=event_type,
+                                    subscribable_object=checkout,
+                                    subscription_query=webhook.subscription_query,
+                                    request=request_context,
+                                    app=app,
+                                )
                             )
-                            if payload:
-                                results[checkout_token][app_id][query_hash] = payload
-            print("IN DATALOADER", "!" * 20)
-            from pprint import pprint
+                            promises.append(promise_payload)
 
-            print(keys)
-            pprint(dict(results))
-            return [results[str(checkout_token)] for checkout_token in keys]
+                            def store_payload(
+                                payload,
+                                checkout_token=checkout_token,
+                                app_id=app_id,
+                                query_hash=query_hash,
+                            ):
+                                if payload:
+                                    results[checkout_token][app_id][query_hash] = (
+                                        payload
+                                    )
+
+                            promise_payload.then(store_payload)
+
+            def return_payloads(_payloads):
+                return [results[str(checkout_token)] for checkout_token in keys]
+
+            return Promise.all(promises).then(return_payloads)
 
         checkouts_info = CheckoutInfoByCheckoutTokenLoader(self.context).load_many(keys)
         lines = CheckoutLinesInfoByCheckoutTokenLoader(self.context).load_many(keys)

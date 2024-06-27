@@ -103,6 +103,7 @@ if TYPE_CHECKING:
     from ...plugins.manager import PluginsManager
 
 
+# TODO: Owczar: Fix typing.
 def get_dataloaders_for_fetching_checkout_data(
     root: models.Checkout, info: ResolveInfo, extra_data: bool = False
 ) -> tuple[
@@ -119,8 +120,9 @@ def get_dataloaders_for_fetching_checkout_data(
     payloads = PregeneratedSubscriptionPayloadsByCheckoutTokenLoader(info.context).load(
         root.token
     )
+    # TODO: Owczar: Remove it when we remove the old checkout calculations
     if extra_data:
-        return address, lines, checkout_info, manager, payloads
+        return address, lines, checkout_info, manager, payloads  # type: ignore
     return address, lines, checkout_info, manager
 
 
@@ -903,10 +905,6 @@ class Checkout(ModelObjectType[models.Checkout]):
         @allow_writer_in_context(info.context)
         def calculate_total_price(data):
             address, lines, checkout_info, manager, payloads = data
-            # address, lines, checkout_info, manager = data
-            import inspect
-
-            print(len(inspect.stack(0)))
             database_connection_name = get_database_connection_name(info.context)
             taxed_total = calculations.calculate_checkout_total_with_gift_cards(
                 manager=manager,
