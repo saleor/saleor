@@ -13,9 +13,11 @@ from django.db.models import Exists, OuterRef, QuerySet
 from prices import Money
 
 from ...channel.models import Channel
+from ...checkout.fetch import CheckoutLineInfo
 from ...checkout.models import Checkout, CheckoutLine
 from ...core.exceptions import InsufficientStock
 from ...core.taxes import zero_money
+from ...order.fetch import EditableOrderLineInfo
 from ...order.models import Order
 from ...product.models import (
     Product,
@@ -23,6 +25,7 @@ from ...product.models import (
     ProductVariant,
     ProductVariantChannelListing,
 )
+from ...warehouse.availability import check_stock_quantity_bulk
 from .. import (
     DiscountType,
     PromotionRuleInfo,
@@ -408,8 +411,6 @@ def _get_best_gift_reward(
     channel: "Channel",
     country: str,
 ) -> tuple[Optional[PromotionRule], Optional[ProductVariantChannelListing]]:
-    from ...warehouse.availability import check_stock_quantity_bulk
-
     rule_ids = [rule.id for rule in rules]
     PromotionRuleGift = PromotionRule.gifts.through
     rule_gifts = PromotionRuleGift.objects.filter(promotionrule_id__in=rule_ids)
@@ -808,9 +809,6 @@ def _handle_gift_reward(
     discount_object_defaults: dict,
     rule_info: VariantPromotionRuleInfo,
 ):
-    from ...checkout.fetch import CheckoutLineInfo
-    from ...order.fetch import EditableOrderLineInfo
-
     discount_model = (
         CheckoutLineDiscount
         if isinstance(order_or_checkout, Checkout)
