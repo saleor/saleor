@@ -100,6 +100,7 @@ def fetch_draft_order_lines_info(
         "variant__channel_listings__variantlistingpromotionrule__promotion_rule__promotion__translations",
         "variant__channel_listings__variantlistingpromotionrule__promotion_rule__translations",
         "variant__product__collections",
+        "variant__product__product_type",
     ]
     if lines is None:
         with allow_writer():
@@ -133,6 +134,7 @@ def fetch_draft_order_lines_info(
                 line=line,
                 variant=variant,
                 product=product,
+                product_type=product.product_type,
                 collections=list(product.collections.all()) if product else [],
                 channel_listing=variant_channel_listing,
                 discounts=list(line.discounts.all()),
