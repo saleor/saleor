@@ -259,9 +259,7 @@ def _create_line_for_order(
 
     # the price with sale and discounts applied - base price that is used for
     # total price calculation
-    base_unit_price = calculate_base_line_unit_price(
-        line_info=checkout_line_info, channel=checkout_info.channel
-    )
+    base_unit_price = calculate_base_line_unit_price(line_info=checkout_line_info)
     # the unit price before applying any discount (sale or voucher)
     undiscounted_base_unit_price = calculate_undiscounted_base_line_unit_price(
         line_info=checkout_line_info,
