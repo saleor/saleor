@@ -3,16 +3,19 @@ from decimal import Decimal
 from typing import TYPE_CHECKING
 
 from django.db import transaction
+from prices import TaxedMoney
 
 from ...core.taxes import zero_money
 from ...order.models import Order
+from .. import DiscountType
 from ..models import (
     DiscountValueType,
     OrderLineDiscount,
 )
 from .manual_discount import apply_discount_to_value
 from .promotion import (
-    create_order_discount_objects_for_order_promotions,
+    create_discount_objects_for_order_promotions,
+    delete_gift_line,
     prepare_line_discount_objects_for_catalogue_promotions,
 )
 from .shared import update_line_info_cached_discounts
@@ -140,6 +143,65 @@ def _update_base_unit_price_amount_for_catalogue_promotion(
             unit_discount = discount.amount_value / line.quantity
             base_unit_price -= unit_discount
         line.base_unit_price_amount = max(base_unit_price, Decimal(0))
+
+
+def create_order_discount_objects_for_order_promotions(
+    order: "Order",
+    lines_info: Iterable["EditableOrderLineInfo"],
+):
+    from ...order.base_calculations import base_order_subtotal
+    from ...order.utils import get_order_country
+
+    # If voucher is set or manual discount applied, then skip order promotions
+    if order.voucher_code or order.discounts.filter(type=DiscountType.MANUAL):
+        _clear_order_discount(order, lines_info)
+        return
+
+    # The base prices are required for order promotion discount qualification.
+    _set_order_base_prices(order, lines_info)
+
+    lines = [line_info.line for line_info in lines_info]
+    subtotal = base_order_subtotal(order, lines)
+
+    (
+        gift_promotion_applied,
+        discount_object,
+    ) = create_discount_objects_for_order_promotions(
+        order, lines_info, subtotal, order.channel, get_order_country(order)
+    )
+    if not gift_promotion_applied and not discount_object:
+        _clear_order_discount(order, lines_info)
+        return
+
+
+def _set_order_base_prices(order: Order, lines_info: Iterable["EditableOrderLineInfo"]):
+    """Set base order prices that includes only catalogue discounts."""
+    from ...order.base_calculations import base_order_subtotal
+
+    lines = [line_info.line for line_info in lines_info]
+    subtotal = base_order_subtotal(order, lines)
+    shipping_price = order.base_shipping_price
+    total = subtotal + shipping_price
+
+    update_fields = []
+    if order.subtotal != TaxedMoney(net=subtotal, gross=subtotal):
+        order.subtotal = TaxedMoney(net=subtotal, gross=subtotal)
+        update_fields.extend(["subtotal_net_amount", "subtotal_gross_amount"])
+    if order.total != TaxedMoney(net=total, gross=total):
+        order.total = TaxedMoney(net=total, gross=total)
+        update_fields.extend(["total_net_amount", "total_gross_amount"])
+
+    if update_fields:
+        order.save(update_fields=update_fields)
+
+
+def _clear_order_discount(
+    order_or_checkout: Order,
+    lines_info: Iterable["EditableOrderLineInfo"],
+):
+    with transaction.atomic():
+        delete_gift_line(order_or_checkout, lines_info)
+        order_or_checkout.discounts.filter(type=DiscountType.ORDER_PROMOTION).delete()
 
 
 def create_or_update_line_discount_objects_for_manual_discounts(lines_info):
