@@ -101,7 +101,6 @@ def calculate_checkout_line_total(
 ) -> TaxedMoney:
     base_total_price = base_calculations.calculate_base_line_total_price(
         checkout_line_info,
-        checkout_info.channel,
     )
     total_price = base_calculations.apply_checkout_discount_on_checkout_line(
         checkout_info,

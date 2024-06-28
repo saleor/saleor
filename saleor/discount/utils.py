@@ -58,7 +58,7 @@ if TYPE_CHECKING:
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..core.pricing.interface import LineInfo
     from ..discount.models import Voucher
-    from ..order.fetch import DraftOrderLineInfo
+    from ..order.fetch import EditableOrderLineInfo
     from ..order.models import OrderLine
     from ..plugins.manager import PluginsManager
     from ..product.managers import ProductVariantQueryset
@@ -198,7 +198,7 @@ def apply_voucher_to_line(
     SPECIFIC_PRODUCTS or is applied only to the cheapest item.
     """
     voucher = voucher_info.voucher
-    discounted_lines_by_voucher: list["LineInfo"] = []
+    discounted_lines_by_voucher: list[LineInfo] = []
     lines_included_in_discount = lines_info
     if voucher.type == VoucherType.SPECIFIC_PRODUCT:
         discounted_lines_by_voucher.extend(
@@ -499,7 +499,7 @@ def prepare_line_discount_objects_for_catalogue_promotions(
 
 @overload
 def prepare_line_discount_objects_for_catalogue_promotions(
-    lines_info: Iterable["DraftOrderLineInfo"],
+    lines_info: Iterable["EditableOrderLineInfo"],
 ) -> tuple[list[dict], list["OrderLineDiscount"], list["OrderLineDiscount"], list[str]]:
     ...
 
@@ -1064,7 +1064,7 @@ def _handle_order_promotion_for_checkout(
 
 def delete_gift_line(
     order_or_checkout: Union[Checkout, Order],
-    lines_info: Iterable[Union["CheckoutLineInfo", "DraftOrderLineInfo"]],
+    lines_info: Iterable[Union["CheckoutLineInfo", "EditableOrderLineInfo"]],
 ):
     if gift_line_infos := [line for line in lines_info if line.line.is_gift]:
         order_or_checkout.lines.filter(is_gift=True).delete()  # type: ignore[misc]
@@ -1347,7 +1347,7 @@ def update_rule_variant_relation(
 
 
 def create_or_update_discount_objects_for_order(
-    order: "Order", lines_info: Iterable["DraftOrderLineInfo"]
+    order: "Order", lines_info: Iterable["EditableOrderLineInfo"]
 ):
     create_or_update_discount_objects_from_promotion_for_order(order, lines_info)
     create_or_update_line_discount_objects_for_manual_discounts(lines_info)
@@ -1357,7 +1357,7 @@ def create_or_update_discount_objects_for_order(
 
 def create_or_update_discount_objects_from_promotion_for_order(
     order: "Order",
-    lines_info: Iterable["DraftOrderLineInfo"],
+    lines_info: Iterable["EditableOrderLineInfo"],
 ):
     create_order_line_discount_objects_for_catalogue_promotions(lines_info)
     # base unit price must reflect all actual catalogue discounts
@@ -1366,14 +1366,14 @@ def create_or_update_discount_objects_from_promotion_for_order(
 
 
 def create_order_line_discount_objects_for_catalogue_promotions(
-    lines_info: Iterable["DraftOrderLineInfo"],
+    lines_info: Iterable["EditableOrderLineInfo"],
 ):
     discount_data = prepare_line_discount_objects_for_catalogue_promotions(lines_info)
     create_order_line_discount_objects(lines_info, discount_data)
 
 
 def create_order_line_discount_objects(
-    lines_info: Iterable["DraftOrderLineInfo"],
+    lines_info: Iterable["EditableOrderLineInfo"],
     discount_data: tuple[
         list[dict],
         list["OrderLineDiscount"],
@@ -1428,7 +1428,9 @@ def create_order_line_discount_objects(
     return modified_lines_info
 
 
-def _copy_unit_discount_data_to_order_line(lines_info: Iterable["DraftOrderLineInfo"]):
+def _copy_unit_discount_data_to_order_line(
+    lines_info: Iterable["EditableOrderLineInfo"],
+):
     for line_info in lines_info:
         if discounts := line_info.discounts:
             line = line_info.line
@@ -1453,7 +1455,7 @@ def _copy_unit_discount_data_to_order_line(lines_info: Iterable["DraftOrderLineI
 
 
 def _update_base_unit_price_amount_for_catalogue_promotion(
-    lines_info: Iterable["DraftOrderLineInfo"],
+    lines_info: Iterable["EditableOrderLineInfo"],
 ):
     for line_info in lines_info:
         line = line_info.line
@@ -1466,7 +1468,7 @@ def _update_base_unit_price_amount_for_catalogue_promotion(
 
 def create_order_discount_objects_for_order_promotions(
     order: "Order",
-    lines_info: Iterable["DraftOrderLineInfo"],
+    lines_info: Iterable["EditableOrderLineInfo"],
 ):
     from ..order.base_calculations import base_order_subtotal
     from ..order.utils import get_order_country
@@ -1540,14 +1542,14 @@ def create_order_discount_objects_for_order_promotions(
 
 def _clear_order_discount(
     order_or_checkout: Union[Checkout, Order],
-    lines_info: Iterable["DraftOrderLineInfo"],
+    lines_info: Iterable["EditableOrderLineInfo"],
 ):
     with transaction.atomic():
         delete_gift_line(order_or_checkout, lines_info)
         order_or_checkout.discounts.filter(type=DiscountType.ORDER_PROMOTION).delete()
 
 
-def _set_order_base_prices(order: Order, lines_info: Iterable["DraftOrderLineInfo"]):
+def _set_order_base_prices(order: Order, lines_info: Iterable["EditableOrderLineInfo"]):
     """Set base order prices that includes only catalogue discounts."""
     from ..order.base_calculations import base_order_subtotal
 
@@ -1570,7 +1572,7 @@ def _set_order_base_prices(order: Order, lines_info: Iterable["DraftOrderLineInf
 
 def _handle_order_promotion_for_order(
     order: Order,
-    lines_info: Iterable["DraftOrderLineInfo"],
+    lines_info: Iterable["EditableOrderLineInfo"],
     discount_object_defaults: dict,
     rule_info: VariantPromotionRuleInfo,
 ):
@@ -1597,12 +1599,12 @@ def _handle_order_promotion_for_order(
 
 def _handle_gift_reward_for_order(
     order: Order,
-    lines_info: Iterable["DraftOrderLineInfo"],
+    lines_info: Iterable["EditableOrderLineInfo"],
     gift_listing: ProductVariantChannelListing,
     discount_object_defaults: dict,
     rule_info: VariantPromotionRuleInfo,
 ):
-    from ..order.fetch import DraftOrderLineInfo
+    from ..order.fetch import EditableOrderLineInfo
 
     with transaction.atomic():
         line, line_created = create_gift_line(order, gift_listing.variant_id)
@@ -1644,7 +1646,7 @@ def _handle_gift_reward_for_order(
             "voucher": None,
             "voucher_code": None,
         }
-        gift_line_info = DraftOrderLineInfo(**init_values)
+        gift_line_info = EditableOrderLineInfo(**init_values)
         lines_info.append(gift_line_info)  # type: ignore[attr-defined]
     else:
         line_info = next(
@@ -1697,7 +1699,7 @@ def create_or_update_line_discount_objects_from_voucher(order, lines_info):
 
 # TODO (SHOPX-912): share the method with checkout
 def prepare_line_discount_objects_for_voucher(
-    lines_info: Iterable["DraftOrderLineInfo"],
+    lines_info: Iterable["EditableOrderLineInfo"],
 ):
     line_discounts_to_create_inputs: list[dict] = []
     line_discounts_to_update: list[OrderLineDiscount] = []
@@ -1771,7 +1773,7 @@ def prepare_line_discount_objects_for_voucher(
 
 def calculate_line_discount_amount_from_voucher(
     line_info: "LineInfo", total_price: Money
-):
+) -> Money:
     """Calculate discount amount for voucher applied on line.
 
     Included vouchers: `SPECIFIC_PRODUCT` and `apply_once_per_order`.
@@ -1812,7 +1814,7 @@ def calculate_line_discount_amount_from_voucher(
 
 
 def _reduce_base_unit_price_for_voucher_discount(
-    lines_info: Iterable["DraftOrderLineInfo"],
+    lines_info: Iterable["EditableOrderLineInfo"],
 ):
     for line_info in lines_info:
         line = line_info.line

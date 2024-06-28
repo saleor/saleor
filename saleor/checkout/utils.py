@@ -21,7 +21,7 @@ from ..core.utils.promo_code import (
 )
 from ..core.utils.translations import get_translation
 from ..discount import DiscountType, VoucherType
-from ..discount.interface import VoucherInfo, fetch_voucher_info
+from ..discount.interface import fetch_voucher_info
 from ..discount.models import (
     CheckoutDiscount,
     NotApplicable,
@@ -32,6 +32,7 @@ from ..discount.utils import (
     create_checkout_discount_objects_for_order_promotions,
     create_checkout_line_discount_objects_for_catalogue_promotions,
     delete_gift_line,
+    get_discounted_lines,
     get_products_voucher_discount,
     get_voucher_code_instance,
     validate_voucher_for_checkout,
@@ -54,6 +55,7 @@ from .models import Checkout, CheckoutLine, CheckoutMetadata
 
 if TYPE_CHECKING:
     from ..account.models import Address
+    from ..core.pricing.interface import LineInfo
     from ..order.models import Order
     from .fetch import CheckoutInfo, CheckoutLineInfo
 
@@ -437,42 +439,8 @@ def _get_shipping_voucher_discount_for_checkout(
     return voucher.get_discount_amount_for(shipping_price, checkout_info.channel)
 
 
-def get_discounted_lines(
-    lines: Iterable["CheckoutLineInfo"], voucher_info: "VoucherInfo"
-) -> Iterable["CheckoutLineInfo"]:
-    discounted_lines = []
-    if (
-        voucher_info.product_pks
-        or voucher_info.collection_pks
-        or voucher_info.category_pks
-        or voucher_info.variant_pks
-    ):
-        for line_info in lines:
-            if line_info.line.is_gift:
-                continue
-            line_variant = line_info.variant
-            line_product = line_info.product
-            line_category = line_info.product.category
-            line_collections = set(
-                [collection.pk for collection in line_info.collections]
-            )
-            if line_info.variant and (
-                line_variant.pk in voucher_info.variant_pks
-                or line_product.pk in voucher_info.product_pks
-                or line_category
-                and line_category.pk in voucher_info.category_pks
-                or line_collections.intersection(voucher_info.collection_pks)
-            ):
-                discounted_lines.append(line_info)
-    else:
-        # If there's no discounted products, collections or categories,
-        # it means that all products are discounted
-        discounted_lines.extend(lines)
-    return discounted_lines
-
-
 def get_prices_of_discounted_specific_product(
-    lines: Iterable["CheckoutLineInfo"],
+    lines: Iterable["LineInfo"],
     voucher: Voucher,
 ) -> list[Money]:
     """Get prices of variants belonging to the discounted specific products.
@@ -482,16 +450,14 @@ def get_prices_of_discounted_specific_product(
     product to child category won't work.
     """
     voucher_info = fetch_voucher_info(voucher)
-    discounted_lines: Iterable["CheckoutLineInfo"] = get_discounted_lines(
-        lines, voucher_info
-    )
+    discounted_lines: Iterable["LineInfo"] = get_discounted_lines(lines, voucher_info)
     line_prices = get_base_lines_prices(discounted_lines)
 
     return line_prices
 
 
 def get_base_lines_prices(
-    lines: Iterable["CheckoutLineInfo"],
+    lines: Iterable["LineInfo"],
 ):
     """Get base total price of checkout lines without voucher discount applied."""
     return [
