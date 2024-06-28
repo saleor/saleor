@@ -9,7 +9,7 @@ from django.core.exceptions import ValidationError
 from ...core.exceptions import InsufficientStock
 from ...discount.interface import VariantPromotionRuleInfo
 from ...discount.models import NotApplicable
-from ...discount.utils import validate_voucher_in_order
+from ...discount.utils.voucher import validate_voucher_in_order
 from ...order.error_codes import OrderErrorCode
 from ...order.utils import get_valid_shipping_methods_for_order
 from ...plugins.manager import PluginsManager

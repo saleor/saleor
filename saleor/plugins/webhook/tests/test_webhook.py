@@ -34,7 +34,7 @@ from ....core.notify_events import NotifyEventType
 from ....core.utils.url import prepare_url
 from ....discount import RewardType, RewardValueType
 from ....discount.interface import VariantPromotionRuleInfo
-from ....discount.utils import (
+from ....discount.utils.checkout import (
     create_or_update_discount_objects_from_promotion_for_checkout,
 )
 from ....graphql.discount.utils import convert_migrated_sale_predicate_to_catalogue_info

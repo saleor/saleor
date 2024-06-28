@@ -4,7 +4,7 @@ import graphene
 import pytest
 from prices import Money, TaxedMoney
 
-from .....discount.utils import get_active_catalogue_promotion_rules
+from .....discount.utils.promotion import get_active_catalogue_promotion_rules
 from .....order import OrderEvents, OrderStatus
 from .....order.models import OrderEvent, OrderLine
 from .....product.models import ProductVariant

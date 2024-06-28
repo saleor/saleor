@@ -31,7 +31,7 @@ from .models import (
     PromotionRule,
     VoucherCode,
 )
-from .utils import mark_catalogue_promotion_rules_as_dirty
+from .utils.promotion import mark_catalogue_promotion_rules_as_dirty
 
 if TYPE_CHECKING:
     from uuid import UUID

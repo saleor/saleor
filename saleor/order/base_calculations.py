@@ -7,7 +7,8 @@ from ..core.prices import quantize_price
 from ..core.taxes import zero_money
 from ..discount import DiscountType, DiscountValueType, VoucherType
 from ..discount.models import OrderDiscount
-from ..discount.utils import apply_discount_to_value, is_order_level_voucher
+from ..discount.utils.manual_discount import apply_discount_to_value
+from ..discount.utils.voucher import is_order_level_voucher
 from ..shipping.models import ShippingMethodChannelListing
 from .interface import OrderTaxedPricesData
 

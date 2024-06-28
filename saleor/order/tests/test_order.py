@@ -12,7 +12,7 @@ from ...discount.interface import VariantPromotionRuleInfo
 from ...discount.models import (
     DiscountValueType,
 )
-from ...discount.utils import validate_voucher_in_order
+from ...discount.utils.voucher import validate_voucher_in_order
 from ...graphql.core.utils import to_global_id_or_none
 from ...graphql.order.utils import OrderLineData
 from ...graphql.tests.utils import get_graphql_content
@@ -661,7 +661,7 @@ def test_get_order_weight_non_existing_product(
     assert old_weight == new_weight
 
 
-@patch("saleor.discount.utils.validate_voucher")
+@patch("saleor.discount.utils.voucher.validate_voucher")
 def test_get_voucher_discount_for_order_voucher_validation(
     mock_validate_voucher, voucher, order_with_lines
 ):
@@ -683,7 +683,7 @@ def test_get_voucher_discount_for_order_voucher_validation(
     )
 
 
-@patch("saleor.discount.utils.validate_voucher")
+@patch("saleor.discount.utils.voucher.validate_voucher")
 def test_validate_voucher_in_order_without_voucher(
     mock_validate_voucher, order_with_lines
 ):

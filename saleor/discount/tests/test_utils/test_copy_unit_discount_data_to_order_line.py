@@ -5,7 +5,7 @@ import graphene
 from ....order.fetch import fetch_draft_order_lines_info
 from ... import DiscountType, DiscountValueType
 from ...models import PromotionRule
-from ...utils import _copy_unit_discount_data_to_order_line
+from ...utils.order import _copy_unit_discount_data_to_order_line
 
 
 def test_copy_unit_discount_data_to_order_line_multiple_discounts(

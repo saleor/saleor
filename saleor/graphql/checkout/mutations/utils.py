@@ -32,7 +32,7 @@ from ....checkout.utils import (
 from ....core.exceptions import InsufficientStock, PermissionDenied
 from ....discount import DiscountType, DiscountValueType
 from ....discount.models import CheckoutLineDiscount, PromotionRule
-from ....discount.utils import (
+from ....discount.utils.promotion import (
     create_gift_line,
     fetch_promotion_rules_for_checkout_or_order,
     get_best_rule,

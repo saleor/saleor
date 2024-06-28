@@ -20,7 +20,7 @@ from ..tasks import (
     handle_promotion_toggle,
     set_promotion_rule_variants_task,
 )
-from ..utils import mark_catalogue_promotion_rules_as_dirty
+from ..utils.promotion import mark_catalogue_promotion_rules_as_dirty
 
 
 def test_fetch_promotion_variants_and_product_ids(

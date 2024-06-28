@@ -21,7 +21,7 @@ from ...checkout.problems import (
 )
 from ...discount import VoucherType
 from ...discount.interface import VariantPromotionRuleInfo
-from ...discount.utils import apply_voucher_to_line
+from ...discount.utils.voucher import apply_voucher_to_line
 from ...payment.models import TransactionItem
 from ...product.models import ProductChannelListing
 from ...warehouse.models import Stock

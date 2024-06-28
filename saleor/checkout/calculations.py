@@ -10,7 +10,7 @@ from prices import Money, TaxedMoney
 from ..checkout import base_calculations
 from ..core.prices import quantize_price
 from ..core.taxes import TaxData, TaxEmptyData, zero_money, zero_taxed_money
-from ..discount.utils import (
+from ..discount.utils.checkout import (
     create_or_update_discount_objects_from_promotion_for_checkout,
 )
 from ..payment.models import TransactionItem

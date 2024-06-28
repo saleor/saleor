@@ -8,7 +8,7 @@ from .....core.tracing import traced_atomic_transaction
 from .....discount import PromotionType, models
 from .....discount.error_codes import DiscountErrorCode
 from .....discount.models import Promotion
-from .....discount.utils import mark_catalogue_promotion_rules_as_dirty
+from .....discount.utils.promotion import mark_catalogue_promotion_rules_as_dirty
 from .....permission.enums import DiscountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
 from ....channel import ChannelContext

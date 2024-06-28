@@ -395,7 +395,7 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
         If a custom price is provided, return the price with applied discounts from
         valid promotion rules for this variant.
         """
-        from ..discount.utils import calculate_discounted_price_for_rules
+        from ..discount.utils.promotion import calculate_discounted_price_for_rules
 
         if price_override is None:
             return channel_listing.discounted_price or channel_listing.price

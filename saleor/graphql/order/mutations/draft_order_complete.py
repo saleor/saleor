@@ -10,7 +10,7 @@ from ....core.postgres import FlatConcatSearchVector
 from ....core.taxes import zero_taxed_money
 from ....core.tracing import traced_atomic_transaction
 from ....discount.models import VoucherCode
-from ....discount.utils import add_voucher_usage_by_customer
+from ....discount.utils.voucher import add_voucher_usage_by_customer
 from ....order import OrderStatus, models
 from ....order.actions import order_created
 from ....order.calculations import fetch_order_prices_if_expired

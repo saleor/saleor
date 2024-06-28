@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-from ...discount.utils import get_active_catalogue_promotion_rules
+from ...discount.utils.promotion import get_active_catalogue_promotion_rules
 from ...plugins.manager import get_plugins_manager
 from ...tests.utils import flush_post_commit_hooks
 from ..models import Category

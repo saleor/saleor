@@ -8,7 +8,7 @@ from django.utils import timezone
 from graphene.utils.str_converters import to_camel_case
 
 from ....core.tracing import traced_atomic_transaction
-from ....discount.utils import mark_active_catalogue_promotion_rules_as_dirty
+from ....discount.utils.promotion import mark_active_catalogue_promotion_rules_as_dirty
 from ....permission.enums import ProductPermissions
 from ....product import models
 from ....product.error_codes import ProductErrorCode, ProductVariantBulkErrorCode

@@ -13,7 +13,7 @@ from ..discount.interface import (
     fetch_voucher_info,
 )
 from ..discount.models import OrderLineDiscount
-from ..discount.utils import apply_voucher_to_line
+from ..discount.utils.voucher import apply_voucher_to_line
 from ..payment.models import Payment
 from ..product.models import (
     DigitalContent,

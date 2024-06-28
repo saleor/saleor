@@ -5,7 +5,7 @@ import graphene
 from django.test import override_settings
 
 from .....discount.models import PromotionRule
-from .....discount.utils import get_active_catalogue_promotion_rules
+from .....discount.utils.promotion import get_active_catalogue_promotion_rules
 from .....graphql.webhook.subscription_payload import get_pre_save_payload_key
 from .....product.error_codes import ProductVariantBulkErrorCode
 from .....product.models import ProductChannelListing

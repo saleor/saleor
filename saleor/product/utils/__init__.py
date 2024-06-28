@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Union
 from ...core.taxes import TaxedMoney, zero_taxed_money
 from ...core.tracing import traced_atomic_transaction
 from ...core.utils.events import call_event
-from ...discount.utils import mark_active_catalogue_promotion_rules_as_dirty
+from ...discount.utils.promotion import mark_active_catalogue_promotion_rules_as_dirty
 from ...webhook.event_types import WebhookEventAsyncType
 from ...webhook.utils import get_webhooks_for_event
 from ..models import Product, ProductChannelListing

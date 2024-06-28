@@ -12,7 +12,7 @@ from .....attribute.tests.model_helpers import (
     get_product_attribute_values,
     get_product_attributes,
 )
-from .....discount.utils import get_active_catalogue_promotion_rules
+from .....discount.utils.promotion import get_active_catalogue_promotion_rules
 from .....product.error_codes import ProductBulkCreateErrorCode
 from .....product.models import Product
 from .....product.tests.utils import create_image

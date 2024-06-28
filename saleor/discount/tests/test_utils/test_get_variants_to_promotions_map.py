@@ -6,7 +6,7 @@ from ....product.models import ProductVariant
 from ....product.utils.variants import fetch_variants_for_promotion_rules
 from ... import PromotionRuleInfo, RewardValueType
 from ...models import Promotion, PromotionRule
-from ...utils import get_variants_to_promotion_rules_map
+from ...utils.promotion import get_variants_to_promotion_rules_map
 
 
 def test_get_variants_to_promotions_map(
