@@ -218,8 +218,7 @@ def test_apply_order_discounts_shipping_voucher(
     assert order.undiscounted_total_net == subtotal + shipping_price
     assert order.undiscounted_total_gross == subtotal + shipping_price
     order_discount.refresh_from_db()
-    # OrderDiscount has amount value only from not applied discounts
-    assert order_discount.amount_value == 0
+    assert order_discount.amount_value == shipping_price.amount
 
 
 def test_apply_order_discounts_zero_discount(order_with_lines):

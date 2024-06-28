@@ -9,7 +9,7 @@ from ..core.prices import quantize_price
 from ..core.taxes import zero_money
 from ..discount import DiscountType, DiscountValueType, VoucherType
 from ..discount.models import OrderDiscount
-from ..discount.utils import apply_discount_to_value
+from ..discount.utils import apply_discount_to_value, is_order_level_voucher
 from ..shipping.models import ShippingMethodChannelListing
 from .interface import OrderTaxedPricesData
 
@@ -36,6 +36,7 @@ def base_order_subtotal(order: "Order", lines: Iterable["OrderLine"]) -> Money:
         quantity = line.quantity
         base_line_total = line.base_unit_price * quantity
         subtotal += base_line_total
+
     return quantize_price(subtotal, currency)
 
 
@@ -106,7 +107,7 @@ def propagate_order_discount_on_order_prices(
         shipping_price_before_discount = shipping_price
         if order_discount.type == DiscountType.VOUCHER:
             voucher = order_discount.voucher
-            if voucher and voucher.type == VoucherType.ENTIRE_ORDER:
+            if is_order_level_voucher(voucher):
                 subtotal = apply_discount_to_value(
                     value=order_discount.value,
                     value_type=order_discount.value_type,
@@ -160,9 +161,6 @@ def propagate_order_discount_on_order_prices(
             order_discount.amount = total_discount_amount
             order_discounts_to_update.append(order_discount)
 
-    if order_discounts_to_update:
-        OrderDiscount.objects.bulk_update(order_discounts_to_update, ["amount_value"])
-
     # Apply shipping voucher discount
     if shipping_voucher_discount:
         shipping_price = apply_discount_to_value(
@@ -171,6 +169,13 @@ def propagate_order_discount_on_order_prices(
             currency=currency,
             price_to_discount=shipping_price,
         )
+        discount_amount = shipping_price_before_discount - shipping_price
+        if shipping_voucher_discount.amount != discount_amount:
+            shipping_voucher_discount.amount = discount_amount
+            order_discounts_to_update.append(shipping_voucher_discount)
+
+    if order_discounts_to_update:
+        OrderDiscount.objects.bulk_update(order_discounts_to_update, ["amount_value"])
 
     return subtotal, shipping_price
 

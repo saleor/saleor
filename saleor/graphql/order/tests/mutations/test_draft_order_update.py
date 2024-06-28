@@ -178,7 +178,7 @@ def test_draft_order_update_voucher_not_available(
     assert error["field"] == "voucher"
 
 
-def test_draft_order_update_with_voucher(
+def test_draft_order_update_with_voucher_entire_order(
     staff_api_client,
     permission_group_manage_orders,
     draft_order,
@@ -257,6 +257,195 @@ def test_draft_order_update_with_voucher(
     assert order_discount.value_type == DiscountValueType.FIXED
     assert order_discount.value == voucher_listing.discount_value
     assert order_discount.amount_value == voucher_listing.discount_value
+
+
+def test_draft_order_update_with_voucher_specific_product(
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    voucher_specific_product_type,
+    graphql_address_data,
+):
+    # given
+    voucher = voucher_specific_product_type
+    code = voucher.codes.first().code
+
+    order = draft_order
+    assert not order.voucher
+    assert not order.voucher_code
+    assert not order.customer_note
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    voucher_listing = voucher.channel_listings.get(channel=order.channel)
+    order_total = order.total_net_amount
+
+    discounted_line, line_1 = order.lines.all()
+    voucher.variants.add(discounted_line.variant)
+    discount_amount = (
+        discounted_line.undiscounted_base_unit_price_amount
+        * discounted_line.quantity
+        * voucher_listing.discount_value
+        / 100
+    )
+
+    variables = {
+        "id": order_id,
+        "input": {
+            "voucherCode": code,
+            "shippingAddress": graphql_address_data,
+            "billingAddress": graphql_address_data,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    assert not data["errors"]
+    assert data["order"]["voucher"]["code"] == voucher.code
+    assert data["order"]["voucherCode"] == voucher.code
+
+    assert data["order"]["undiscountedTotal"]["net"]["amount"] == order_total
+    assert data["order"]["total"]["net"]["amount"] == order_total - discount_amount
+
+    discounted_variant_total = (
+        discounted_line.undiscounted_base_unit_price_amount * discounted_line.quantity
+        - discount_amount
+    )
+    lines_data = data["order"]["lines"]
+    discounted_line_data, line_1_data = lines_data
+    assert (
+        discounted_line_data["unitPrice"]["net"]["amount"]
+        == discounted_variant_total / discounted_line.quantity
+    )
+    assert (
+        discounted_line_data["totalPrice"]["net"]["amount"] == discounted_variant_total
+    )
+    assert (
+        discounted_line_data["unitDiscount"]["amount"]
+        == discount_amount / discounted_line.quantity
+    )
+    assert discounted_line_data["unitDiscountType"] == DiscountValueType.FIXED.upper()
+    assert discounted_line_data["unitDiscountReason"] == f"Voucher code: {code}"
+
+    line_1_total = line_1.undiscounted_base_unit_price_amount * line_1.quantity
+    assert line_1_data["unitPrice"]["net"]["amount"] == line_1_total / line_1.quantity
+    assert line_1_data["totalPrice"]["net"]["amount"] == line_1_total
+    assert line_1_data["unitDiscount"]["amount"] == 0
+    assert line_1_data["unitDiscountType"] is None
+    assert line_1_data["unitDiscountReason"] is None
+
+    order.refresh_from_db()
+    assert order.voucher_code == voucher.code
+    assert order.search_vector
+
+    # TODO (SHOPX-874): Order discount object shouldn't be created
+    assert order.discounts.count() == 1
+
+    assert discounted_line.discounts.count() == 1
+    order_line_discount = discounted_line.discounts.first()
+    assert order_line_discount.voucher == voucher
+    assert order_line_discount.type == DiscountType.VOUCHER
+    assert order_line_discount.value_type == DiscountValueType.FIXED
+    assert order_line_discount.value == discount_amount
+    assert order_line_discount.amount_value == discount_amount
+
+
+def test_draft_order_update_with_voucher_apply_once_per_order(
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    voucher_percentage,
+    graphql_address_data,
+):
+    # given
+    order = draft_order
+    assert not order.voucher
+    assert not order.voucher_code
+
+    voucher = voucher_percentage
+    voucher.apply_once_per_order = True
+    voucher.save(update_fields=["apply_once_per_order"])
+    code = voucher.codes.first().code
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+    voucher_listing = voucher.channel_listings.get(channel=order.channel)
+    order_total = order.total_net_amount
+
+    discounted_line, line_1 = order.lines.all()
+    voucher.variants.add(discounted_line.variant)
+    discount_amount = (
+        discounted_line.undiscounted_base_unit_price_amount
+        * voucher_listing.discount_value
+        / 100
+    )
+
+    variables = {
+        "id": order_id,
+        "input": {
+            "voucher": voucher_id,
+            "shippingAddress": graphql_address_data,
+            "billingAddress": graphql_address_data,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    assert not data["errors"]
+    assert data["order"]["voucher"]["code"] == voucher.code
+    assert data["order"]["voucherCode"] == voucher.code
+    assert data["order"]["undiscountedTotal"]["net"]["amount"] == order_total
+    assert data["order"]["total"]["net"]["amount"] == order_total - discount_amount
+
+    discounted_variant_total = (
+        discounted_line.undiscounted_base_unit_price_amount * discounted_line.quantity
+        - discount_amount
+    )
+    lines_data = data["order"]["lines"]
+    discounted_line_data, line_1_data = lines_data
+    assert discounted_line_data["unitPrice"]["net"]["amount"] == float(
+        round(discounted_variant_total / discounted_line.quantity, 2)
+    )
+    assert (
+        discounted_line_data["totalPrice"]["net"]["amount"] == discounted_variant_total
+    )
+    assert discounted_line_data["unitDiscount"]["amount"] == float(
+        round(discount_amount / discounted_line.quantity, 2)
+    )
+    assert discounted_line_data["unitDiscountType"] == DiscountValueType.FIXED.upper()
+    assert discounted_line_data["unitDiscountReason"] == f"Voucher code: {code}"
+
+    line_1_total = line_1.undiscounted_base_unit_price_amount * line_1.quantity
+    assert line_1_data["unitPrice"]["net"]["amount"] == line_1_total / line_1.quantity
+    assert line_1_data["totalPrice"]["net"]["amount"] == line_1_total
+    assert line_1_data["unitDiscount"]["amount"] == 0
+    assert line_1_data["unitDiscountType"] is None
+    assert line_1_data["unitDiscountReason"] is None
+
+    order.refresh_from_db()
+    assert order.voucher_code == voucher.code
+    assert order.search_vector
+
+    # TODO (SHOPX-874): Order discount object shouldn't be created
+    assert order.discounts.count() == 1
+
+    assert discounted_line.discounts.count() == 1
+    order_line_discount = discounted_line.discounts.first()
+    assert order_line_discount.voucher == voucher
+    assert order_line_discount.type == DiscountType.VOUCHER
+    assert order_line_discount.value_type == DiscountValueType.FIXED
+    assert order_line_discount.value == discount_amount
+    assert order_line_discount.amount_value == discount_amount
 
 
 def test_draft_order_update_clear_voucher(

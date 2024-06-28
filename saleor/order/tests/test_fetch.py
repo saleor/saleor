@@ -34,7 +34,7 @@ def test_fetch_draft_order_lines_info(
     )
 
     # when
-    with django_assert_num_queries(9):
+    with django_assert_num_queries(11):
         lines_info = fetch_draft_order_lines_info(order)
 
     # then

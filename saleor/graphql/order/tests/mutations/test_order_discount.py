@@ -1045,10 +1045,10 @@ def test_update_order_line_discount(
         - (second_line.base_unit_price - second_line.unit_price.gross)
         * second_line.quantity
     )
-    assert (
-        discount_applied_to_discounted_line
-        == (line_to_discount.base_unit_price - line_to_discount.unit_price.gross)
-        * line_to_discount.quantity
+    assert discount_applied_to_discounted_line == quantize_price(
+        (line_to_discount.base_unit_price - line_to_discount.unit_price.gross)
+        * line_to_discount.quantity,
+        order.currency,
     )
 
     errors = data["errors"]
