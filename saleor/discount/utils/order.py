@@ -8,7 +8,9 @@ from prices import TaxedMoney
 
 from ...core.db.connection import allow_writer
 from ...core.taxes import zero_money
+from ...order.base_calculations import base_order_subtotal
 from ...order.models import Order
+from ...order.utils import get_order_country
 from .. import DiscountType
 from ..models import (
     DiscountValueType,
@@ -164,9 +166,6 @@ def create_order_discount_objects_for_order_promotions(
     lines_info: Iterable["EditableOrderLineInfo"],
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
-    from ...order.base_calculations import base_order_subtotal
-    from ...order.utils import get_order_country
-
     # If voucher is set or manual discount applied, then skip order promotions
     if order.voucher_code or order.discounts.filter(type=DiscountType.MANUAL):
         _clear_order_discount(order, lines_info)
@@ -198,8 +197,6 @@ def create_order_discount_objects_for_order_promotions(
 
 def _set_order_base_prices(order: Order, lines_info: Iterable["EditableOrderLineInfo"]):
     """Set base order prices that includes only catalogue discounts."""
-    from ...order.base_calculations import base_order_subtotal
-
     lines = [line_info.line for line_info in lines_info]
     subtotal = base_order_subtotal(order, lines)
     shipping_price = order.base_shipping_price
