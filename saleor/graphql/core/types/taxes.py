@@ -8,7 +8,7 @@ from ....checkout import base_calculations
 from ....checkout.models import Checkout, CheckoutLine
 from ....core.prices import quantize_price
 from ....discount import DiscountType
-from ....discount.utils import is_order_level_voucher
+from ....discount.utils.voucher import is_order_level_voucher
 from ....order.models import Order, OrderLine
 from ....order.utils import get_order_country
 from ....tax.utils import get_charge_taxes

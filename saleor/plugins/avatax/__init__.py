@@ -19,7 +19,7 @@ from ...checkout.utils import get_address_for_checkout_taxes, is_shipping_requir
 from ...core.http_client import HTTPClient
 from ...core.taxes import TaxError
 from ...discount import DiscountType, VoucherType
-from ...discount.utils import is_order_level_voucher
+from ...discount.utils.voucher import is_order_level_voucher
 from ...order import base_calculations as base_order_calculations
 from ...order.utils import (
     get_address_for_order_taxes,

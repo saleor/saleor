@@ -12,7 +12,7 @@ from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...core.prices import quantize_price
 from ...discount import DiscountType
 from ...discount.models import PromotionRule
-from ...discount.utils import (
+from ...discount.utils.checkout import (
     create_or_update_discount_objects_from_promotion_for_checkout,
 )
 from ...plugins.manager import get_plugins_manager

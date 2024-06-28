@@ -1,7 +1,7 @@
 import graphene
 
 from .....attribute import models as attribute_models
-from .....discount.utils import mark_active_catalogue_promotion_rules_as_dirty
+from .....discount.utils.promotion import mark_active_catalogue_promotion_rules_as_dirty
 from .....permission.enums import ProductPermissions
 from .....product import models
 from ....attribute.utils import AttrValuesInput, ProductAttributeAssignmentMixin

@@ -22,7 +22,7 @@ from ....core.prices import quantize_price
 from ....core.taxes import TaxError, TaxType, zero_money, zero_taxed_money
 from ....discount import DiscountType, DiscountValueType, RewardValueType, VoucherType
 from ....discount.models import CheckoutLineDiscount, Promotion, PromotionRule
-from ....discount.utils import (
+from ....discount.utils.checkout import (
     create_or_update_discount_objects_from_promotion_for_checkout,
 )
 from ....order import OrderStatus

@@ -8,7 +8,7 @@ import pytz
 from django.core.files import File
 from graphql_relay import to_global_id
 
-from ....discount.utils import get_active_catalogue_promotion_rules
+from ....discount.utils.promotion import get_active_catalogue_promotion_rules
 from ....product.error_codes import CollectionErrorCode, ProductErrorCode
 from ....product.models import Collection, CollectionChannelListing, Product
 from ....product.tests.utils import create_image, create_zip_file_with_image_ext

@@ -20,11 +20,13 @@ from ....product.models import (
 )
 from ... import DiscountType, RewardType, RewardValueType
 from ...models import CheckoutDiscount, CheckoutLineDiscount, PromotionRule
-from ...utils import (
-    _get_best_gift_reward,
-    create_checkout_discount_objects_for_order_promotions,
+from ...utils.checkout import (
     create_checkout_line_discount_objects_for_catalogue_promotions,
     create_or_update_discount_objects_from_promotion_for_checkout,
+)
+from ...utils.promotion import (
+    _get_best_gift_reward,
+    create_checkout_discount_objects_for_order_promotions,
 )
 
 
@@ -1301,8 +1303,8 @@ def test_create_or_update_discount_objects_from_promotion_for_checkout_voucher_s
     assert not checkout_info.checkout.discounts.all()
 
 
-@patch("saleor.discount.utils.base_checkout_delivery_price")
-@patch("saleor.discount.utils.base_checkout_subtotal")
+@patch("saleor.discount.utils.promotion.base_checkout_delivery_price")
+@patch("saleor.discount.utils.promotion.base_checkout_subtotal")
 def test_create_or_update_discount_objects_from_promotion_no_applicable_rules(
     base_checkout_subtotal_mock,
     base_checkout_delivery_price_mock,
@@ -1399,8 +1401,8 @@ def test_create_or_update_discount_objects_from_promotion(
     assert checkout_info.discounts[0].promotion_rule == rules[1]
 
 
-@patch("saleor.discount.utils.base_checkout_delivery_price")
-@patch("saleor.discount.utils.base_checkout_subtotal")
+@patch("saleor.discount.utils.promotion.base_checkout_delivery_price")
+@patch("saleor.discount.utils.promotion.base_checkout_subtotal")
 def test_create_or_update_discount_objects_from_promotion_best_rule_applies(
     subtotal_mock,
     delivery_price_mock,
@@ -1505,8 +1507,8 @@ def test_create_or_update_discount_objects_from_promotion_best_rule_applies(
     assert discount.reason == f"Promotion: {promotion_id}"
 
 
-@patch("saleor.discount.utils.base_checkout_delivery_price")
-@patch("saleor.discount.utils.base_checkout_subtotal")
+@patch("saleor.discount.utils.promotion.base_checkout_delivery_price")
+@patch("saleor.discount.utils.promotion.base_checkout_subtotal")
 def test_create_or_update_discount_objects_from_promotion_subtotal_price_discount(
     subtotal_mock,
     delivery_price_mock,
@@ -1667,8 +1669,8 @@ def test_update_gift_discount(
     assert lines_info[-1].discounts == [discount]
 
 
-@patch("saleor.discount.utils.base_checkout_delivery_price")
-@patch("saleor.discount.utils.base_checkout_subtotal")
+@patch("saleor.discount.utils.promotion.base_checkout_delivery_price")
+@patch("saleor.discount.utils.promotion.base_checkout_subtotal")
 def test_create_or_update_discount_objects_from_promotion_gift_rule_applies(
     subtotal_mock,
     delivery_price_mock,
@@ -1775,8 +1777,8 @@ def test_create_or_update_discount_objects_from_promotion_gift_rule_applies(
     assert discount.reason == f"Promotion: {promotion_id}"
 
 
-@patch("saleor.discount.utils.base_checkout_delivery_price")
-@patch("saleor.discount.utils.base_checkout_subtotal")
+@patch("saleor.discount.utils.promotion.base_checkout_delivery_price")
+@patch("saleor.discount.utils.promotion.base_checkout_subtotal")
 def test_create_or_update_discount_objects_from_promotion_gift_line_removed(
     subtotal_mock,
     delivery_price_mock,
@@ -2110,7 +2112,7 @@ def test_create_discount_objects_for_order_promotions_race_condition(
         )
 
     with before_after.before(
-        "saleor.discount.utils.create_checkout_discount_objects_for_order_promotions",
+        "saleor.discount.utils.promotion.create_checkout_discount_objects_for_order_promotions",
         call_before_creating_discount_object,
     ):
         create_checkout_discount_objects_for_order_promotions(
@@ -2155,7 +2157,7 @@ def test_create_or_update_order_discount_race_condition(
         )
 
     with before_after.before(
-        "saleor.discount.utils._set_checkout_base_prices", call_update
+        "saleor.discount.utils.promotion._set_checkout_base_prices", call_update
     ):
         call_update()
 
@@ -2180,7 +2182,7 @@ def test_create_or_update_order_discount_gift_reward_race_condition(
         )
 
     with before_after.before(
-        "saleor.discount.utils._set_checkout_base_prices", call_update
+        "saleor.discount.utils.promotion._set_checkout_base_prices", call_update
     ):
         call_update()
 
@@ -2301,7 +2303,7 @@ def test_create_checkout_line_discount_objects_for_catalogue_promotions_race_con
         create_checkout_line_discount_objects_for_catalogue_promotions(lines_info)
 
     with before_after.before(
-        "saleor.discount.utils.prepare_line_discount_objects_for_catalogue_promotions",
+        "saleor.discount.utils.promotion.prepare_line_discount_objects_for_catalogue_promotions",
         call_before_creating_catalogue_line_discount,
     ):
         lines_info, _ = fetch_checkout_lines(checkout)

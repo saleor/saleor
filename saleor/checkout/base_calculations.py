@@ -48,7 +48,7 @@ def calculate_base_line_total_price(
     The price does not include order promotions and the entire order vouchers.
     When the line is gift reward, the price is zero.
     """
-    from ..discount.utils import calculate_line_discount_amount_from_voucher
+    from ..discount.utils.voucher import calculate_line_discount_amount_from_voucher
 
     variant = line_info.variant
     variant_price = variant.get_base_price(
@@ -212,7 +212,7 @@ def checkout_total(
 
     It should be used as a based value when no flat rate/tax plugin/tax app is active.
     """
-    from ..discount.utils import is_order_level_voucher
+    from ..discount.utils.voucher import is_order_level_voucher
 
     currency = checkout_info.checkout.currency
     subtotal = base_checkout_subtotal(lines, checkout_info.channel, currency)

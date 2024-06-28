@@ -5,7 +5,7 @@ import graphene
 
 from ...discount import RewardValueType
 from ...discount.models import PromotionRule
-from ...discount.utils import update_rule_variant_relation
+from ...discount.utils.promotion import update_rule_variant_relation
 from ..utils.variants import fetch_variants_for_promotion_rules
 
 

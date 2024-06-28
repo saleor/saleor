@@ -2283,7 +2283,8 @@ def test_fetch_order_prices_catalogue_discount_race_condition(
         calculations.fetch_order_prices_if_expired(order, plugins_manager, None, True)
 
     with before_after.before(
-        "saleor.discount.utils.prepare_line_discount_objects_for_catalogue_promotions",
+        "saleor.discount.utils.promotion."
+        "prepare_line_discount_objects_for_catalogue_promotions",
         call_before_creating_catalogue_line_discount,
     ):
         calculations.fetch_order_prices_if_expired(order, plugins_manager, None, True)

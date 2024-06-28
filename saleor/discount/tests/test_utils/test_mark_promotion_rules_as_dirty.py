@@ -7,10 +7,10 @@ import pytz
 
 from ... import RewardValueType
 from ...models import Promotion, PromotionRule
-from ...utils import mark_catalogue_promotion_rules_as_dirty
+from ...utils.promotion import mark_catalogue_promotion_rules_as_dirty
 
 
-@patch("saleor.discount.utils.PromotionRule.objects.filter")
+@patch("saleor.discount.utils.promotion.PromotionRule.objects.filter")
 def test_mark_catalogue_promotion_rules_as_dirty_with_empty_list_as_input(
     mocked_promotion_rule_filter,
 ):
