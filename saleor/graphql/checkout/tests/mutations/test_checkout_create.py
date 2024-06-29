@@ -27,7 +27,26 @@ MUTATION_CHECKOUT_CREATE = """
           email
           quantity
           lines {
+            unitPrice {
+                gross {
+                    amount
+                }
+            }
+            totalPrice {
+                gross {
+                    amount
+                }
+            }
+            undiscountedTotalPrice {
+                amount
+            }
+            undiscountedUnitPrice {
+                amount
+            }
             quantity
+            variant {
+                id
+            }
             isGift
           }
         }
@@ -587,6 +606,63 @@ def test_checkout_create_with_custom_price(
     assert checkout_line.variant == variant
     assert checkout_line.quantity == 1
     assert checkout_line.price_override == price
+
+
+def test_checkout_create_with_custom_price_and_catalogue_promotion(
+    app_api_client,
+    variant_on_promotion,
+    channel_USD,
+    permission_handle_checkouts,
+):
+    """Ensure that catalogue promotion is applied on custom price."""
+    # given
+    variant = variant_on_promotion
+
+    promotion_rule = variant.channel_listings.get(
+        channel=channel_USD
+    ).promotion_rules.first()
+    reward_value = promotion_rule.reward_value
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    test_email = "test@example.com"
+    price = 12
+    quantity = 2
+    variables = {
+        "checkoutInput": {
+            "channel": channel_USD.slug,
+            "lines": [{"quantity": quantity, "variantId": variant_id, "price": price}],
+            "email": test_email,
+        }
+    }
+    assert not Checkout.objects.exists()
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_CHECKOUT_CREATE, variables, permissions=[permission_handle_checkouts]
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutCreate"]
+    assert not data["errors"]
+    assert len(data["checkout"]["lines"]) == 1
+
+    unit_discount = price * reward_value / 100
+    line_data = data["checkout"]["lines"][0]
+    assert line_data["quantity"] == quantity
+    assert line_data["undiscountedUnitPrice"]["amount"] == price
+    assert line_data["undiscountedTotalPrice"]["amount"] == price * quantity
+    assert line_data["unitPrice"]["gross"]["amount"] == price - unit_discount
+    assert (
+        line_data["totalPrice"]["gross"]["amount"] == (price - unit_discount) * quantity
+    )
+
+    checkout = Checkout.objects.first()
+    line = checkout.lines.first()
+    assert line.discounts.count() == 1
+    line_discount = line.discounts.first()
+    assert line_discount.amount_value == unit_discount * quantity
+    assert line_discount.value == reward_value
+    assert line_discount.value_type == promotion_rule.reward_value_type
 
 
 def test_checkout_create_with_gift_reward(

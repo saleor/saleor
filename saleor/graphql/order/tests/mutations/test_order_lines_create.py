@@ -57,6 +57,11 @@ ORDER_LINES_CREATE_MUTATION = """
                         currency
                     }
                 }
+                undiscountedUnitPrice {
+                    gross {
+                        amount
+                    }
+                }
                 unitDiscount {
                   amount
                 }
@@ -946,34 +951,99 @@ def test_invalid_order_when_creating_lines(
     draft_order_updated_webhook_mock.assert_not_called()
 
 
-@pytest.mark.parametrize(
-    ("status", "force_new_line"),
-    [(OrderStatus.DRAFT, False), (OrderStatus.UNCONFIRMED, True)],
-)
 @patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
-@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
 def test_order_lines_create_with_custom_price(
-    product_variant_out_of_stock_webhook_mock,
     order_updated_webhook_mock,
     draft_order_updated_webhook_mock,
-    status,
-    force_new_line,
     order_with_lines,
     permission_group_manage_orders,
     staff_api_client,
-    variant_with_many_stocks,
 ):
     # give
     query = ORDER_LINES_CREATE_MUTATION
     order = order_with_lines
-    order.status = status
+    order.status = OrderStatus.DRAFT
     order.save(update_fields=["status"])
-    variant = variant_with_many_stocks
+
+    order_line = order.lines.first()
+    old_qty = order_line.quantity
+
+    lines_count = len(order.lines.all())
+
+    variant = order_line.variant
     quantity = 1
     order_id = graphene.Node.to_global_id("Order", order.id)
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     custom_price = 18
+    force_new_line = False
+    variables = {
+        "orderId": order_id,
+        "variantId": variant_id,
+        "quantity": quantity,
+        "price": custom_price,
+        "forceNewLine": force_new_line,
+    }
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    new_qty = quantity + old_qty
+    assert_proper_webhook_called_once(
+        order,
+        order.status,
+        draft_order_updated_webhook_mock,
+        order_updated_webhook_mock,
+    )
+    assert OrderEvent.objects.count() == 1
+
+    event = OrderEvent.objects.last()
+    assert event.type == order_events.OrderEvents.ADDED_PRODUCTS
+    assert len(event.parameters["lines"]) == 1
+    assert len(order.lines.all()) == lines_count
+
+    order_line.refresh_from_db()
+    assert order_line.undiscounted_base_unit_price_amount == custom_price
+    assert order_line.base_unit_price_amount == custom_price
+    assert event.parameters["lines"] == [
+        {"item": str(order_line), "line_pk": str(order_line.pk), "quantity": new_qty}
+    ]
+
+    content = get_graphql_content(response)
+    data = content["data"]["orderLinesCreate"]
+    assert data["orderLines"][0]["productSku"] == variant.sku
+    assert data["orderLines"][0]["productVariantId"] == variant.get_global_id()
+    assert data["orderLines"][0]["quantity"] == new_qty
+    assert data["orderLines"][0]["isPriceOverridden"] is True
+
+
+@patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+def test_order_lines_create_with_custom_price_force_new_line(
+    order_updated_webhook_mock,
+    draft_order_updated_webhook_mock,
+    order_with_lines,
+    permission_group_manage_orders,
+    staff_api_client,
+):
+    # give
+    query = ORDER_LINES_CREATE_MUTATION
+    order = order_with_lines
+    order.status = OrderStatus.DRAFT
+    order.save(update_fields=["status"])
+
+    order_line = order.lines.first()
+
+    lines_count = len(order.lines.all())
+
+    variant = order_line.variant
+    quantity = 1
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    custom_price = 18
+    force_new_line = True
     variables = {
         "orderId": order_id,
         "variantId": variant_id,
@@ -988,12 +1058,17 @@ def test_order_lines_create_with_custom_price(
 
     # then
     assert_proper_webhook_called_once(
-        order, status, draft_order_updated_webhook_mock, order_updated_webhook_mock
+        order,
+        order.status,
+        draft_order_updated_webhook_mock,
+        order_updated_webhook_mock,
     )
     assert OrderEvent.objects.count() == 1
     event = OrderEvent.objects.last()
     assert event.type == order_events.OrderEvents.ADDED_PRODUCTS
     assert len(event.parameters["lines"]) == 1
+    assert order.lines.count() == lines_count + 1
+
     line = OrderLine.objects.last()
     assert line.undiscounted_base_unit_price_amount == custom_price
     assert line.base_unit_price_amount == custom_price
@@ -1007,3 +1082,128 @@ def test_order_lines_create_with_custom_price(
     assert data["orderLines"][0]["productVariantId"] == variant.get_global_id()
     assert data["orderLines"][0]["quantity"] == quantity
     assert data["orderLines"][0]["isPriceOverridden"] is True
+
+
+def test_order_lines_create_with_custom_price_and_catalogue_discount(
+    order_line_on_promotion,
+    permission_group_manage_orders,
+    staff_api_client,
+):
+    # give
+    query = ORDER_LINES_CREATE_MUTATION
+    order_line = order_line_on_promotion
+    order = order_line.order
+    order.status = OrderStatus.DRAFT
+    order.save(update_fields=["status"])
+
+    order_line = order.lines.first()
+    old_qty = order_line.quantity
+
+    lines_count = len(order.lines.all())
+
+    variant = order_line.variant
+    variant_listings = variant.channel_listings.get(channel=order.channel)
+    promotion_rule = variant_listings.promotion_rules.first()
+    promotion_rule.variants.add(variant)
+
+    reward_value = Decimal("5")
+    promotion_rule.reward_value = reward_value
+    promotion_rule.reward_value_type = RewardValueType.FIXED
+    promotion_rule.save(update_fields=["reward_value", "reward_value_type"])
+
+    quantity = 1
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    custom_price = 18
+    force_new_line = False
+    variables = {
+        "orderId": order_id,
+        "variantId": variant_id,
+        "quantity": quantity,
+        "price": custom_price,
+        "forceNewLine": force_new_line,
+    }
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+
+    new_qty = quantity + old_qty
+
+    assert order.lines.count() == lines_count
+    order_line.refresh_from_db()
+    data = content["data"]["orderLinesCreate"]
+    line_data = data["orderLines"][0]
+    assert line_data["productSku"] == variant.sku
+    assert line_data["productVariantId"] == variant.get_global_id()
+    assert line_data["quantity"] == new_qty
+    assert line_data["isPriceOverridden"] is True
+    assert line_data["undiscountedUnitPrice"]["gross"]["amount"] == custom_price
+    assert line_data["unitPrice"]["gross"]["amount"] == custom_price - reward_value
+    assert line_data["unitDiscount"]["amount"] == reward_value
+
+
+def test_order_lines_create_with_custom_price_force_new_line_and_catalogue_discount(
+    order_line_on_promotion,
+    permission_group_manage_orders,
+    staff_api_client,
+):
+    # give
+    query = ORDER_LINES_CREATE_MUTATION
+    order_line = order_line_on_promotion
+    order = order_line.order
+    order.status = OrderStatus.DRAFT
+    order.save(update_fields=["status"])
+
+    order_line = order.lines.first()
+    lines_count = len(order.lines.all())
+
+    variant = order_line.variant
+    variant_listings = variant.channel_listings.get(channel=order.channel)
+    promotion_rule = variant_listings.promotion_rules.first()
+    promotion_rule.variants.add(variant)
+
+    reward_value = Decimal("5")
+    promotion_rule.reward_value = reward_value
+    promotion_rule.reward_value_type = RewardValueType.FIXED
+    promotion_rule.save(update_fields=["reward_value", "reward_value_type"])
+
+    quantity = 1
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    custom_price = 18
+    force_new_line = True
+    variables = {
+        "orderId": order_id,
+        "variantId": variant_id,
+        "quantity": quantity,
+        "price": custom_price,
+        "forceNewLine": force_new_line,
+    }
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+
+    assert order.lines.count() == lines_count + 1
+    data = content["data"]["orderLinesCreate"]
+
+    discounted_line_data = data["orderLines"][0]
+    assert discounted_line_data["productSku"] == variant.sku
+    assert discounted_line_data["productVariantId"] == variant.get_global_id()
+    assert discounted_line_data["quantity"] == quantity
+    assert discounted_line_data["isPriceOverridden"] is True
+    assert (
+        discounted_line_data["undiscountedUnitPrice"]["gross"]["amount"] == custom_price
+    )
+    assert (
+        discounted_line_data["unitPrice"]["gross"]["amount"]
+        == custom_price - reward_value
+    )
+    assert discounted_line_data["unitDiscount"]["amount"] == reward_value

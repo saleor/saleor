@@ -381,6 +381,12 @@ def add_variant_to_order(
         old_quantity = line.quantity
         new_quantity = old_quantity + line_data.quantity
         line_info = OrderLineInfo(line=line, quantity=old_quantity)
+        update_fields: list[str] = []
+        if new_quantity and line_data.price_override is not None:
+            update_line_base_unit_prices_with_custom_price(
+                order, line_data, line, update_fields
+            )
+
         change_order_line_quantity(
             user,
             app,
@@ -390,7 +396,11 @@ def add_variant_to_order(
             channel,
             manager=manager,
             send_event=False,
+            update_fields=update_fields,
         )
+
+        if update_fields:
+            line.save(update_fields=update_fields)
 
         if allocate_stock:
             increase_allocations(
@@ -415,6 +425,38 @@ def add_variant_to_order(
             manager,
             allocate_stock,
         )
+
+
+def update_line_base_unit_prices_with_custom_price(
+    order, line_data, line, update_fields
+):
+    channel = order.channel
+    variant = line_data.variant
+    price_override = line_data.price_override
+    rules_info = line_data.rules_info
+    channel_listing = variant.channel_listings.get(channel=channel)
+
+    line.is_price_overridden = True
+    line.base_unit_price = variant.get_price(
+        channel_listing,
+        price_override=price_override,
+        promotion_rules=(
+            [rule_info.rule for rule_info in rules_info] if rules_info else None
+        ),
+    )
+    line.undiscounted_base_unit_price_amount = price_override
+    line.undiscounted_unit_price_gross_amount = price_override
+    line.undiscounted_unit_price_net_amount = price_override
+
+    update_fields.extend(
+        [
+            "is_price_overridden",
+            "undiscounted_base_unit_price_amount",
+            "base_unit_price_amount",
+            "undiscounted_unit_price_gross_amount",
+            "undiscounted_unit_price_net_amount",
+        ]
+    )
 
 
 def add_gift_cards_to_order(
@@ -514,6 +556,7 @@ def change_order_line_quantity(
     channel: "Channel",
     manager: "PluginsManager",
     send_event=True,
+    update_fields=None,
 ):
     """Change the quantity of ordered items in a order line."""
     line = line_info.line
@@ -541,15 +584,17 @@ def change_order_line_quantity(
         line.undiscounted_total_price_net_amount = (
             undiscounted_total_price_net_amount.quantize(Decimal("0.001"))
         )
-        line.save(
-            update_fields=[
-                "quantity",
-                "total_price_net_amount",
-                "total_price_gross_amount",
-                "undiscounted_total_price_gross_amount",
-                "undiscounted_total_price_net_amount",
-            ]
-        )
+        fields = [
+            "quantity",
+            "total_price_net_amount",
+            "total_price_gross_amount",
+            "undiscounted_total_price_gross_amount",
+            "undiscounted_total_price_net_amount",
+        ]
+        if update_fields:
+            update_fields.extend(fields)
+        else:
+            line.save(update_fields=fields)
     else:
         delete_order_line(line_info, manager)
 

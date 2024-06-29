@@ -1047,6 +1047,57 @@ def test_checkout_lines_add_existing_variant_override_previous_custom_price(
     assert line.price_override == price
 
 
+def test_checkout_lines_add_custom_price_and_catalogue_promotion(
+    app_api_client, checkout, variant_on_promotion, permission_handle_checkouts
+):
+    # given
+    variant = variant_on_promotion
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    price = Decimal("16")
+
+    promotion_rule = variant.channel_listings.get(
+        channel=checkout.channel
+    ).promotion_rules.first()
+    reward_value = promotion_rule.reward_value
+
+    quantity = 2
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [{"variantId": variant_id, "quantity": quantity, "price": price}],
+        "channelSlug": checkout.channel.slug,
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_CHECKOUT_LINES_ADD,
+        variables,
+        permissions=[permission_handle_checkouts],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLinesAdd"]
+    assert not data["errors"]
+    assert len(data["checkout"]["lines"]) == 1
+
+    unit_discount = price * reward_value / 100
+    line_data = data["checkout"]["lines"][0]
+    assert line_data["quantity"] == quantity
+    assert line_data["undiscountedUnitPrice"]["amount"] == price
+    assert line_data["undiscountedTotalPrice"]["amount"] == price * quantity
+    assert line_data["unitPrice"]["gross"]["amount"] == price - unit_discount
+    assert (
+        line_data["totalPrice"]["gross"]["amount"] == (price - unit_discount) * quantity
+    )
+
+    line = checkout.lines.first()
+    assert line.discounts.count() == 1
+    line_discount = line.discounts.first()
+    assert line_discount.amount_value == unit_discount * quantity
+    assert line_discount.value == reward_value
+    assert line_discount.value_type == promotion_rule.reward_value_type
+
+
 @mock.patch("saleor.plugins.manager.PluginsManager.list_shipping_methods_for_checkout")
 def test_checkout_lines_add_deletes_external_shipping_method_if_invalid(
     mocked_webhook, app_api_client, checkout_with_item, permission_handle_checkouts

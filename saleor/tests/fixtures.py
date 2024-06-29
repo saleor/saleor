@@ -3512,6 +3512,46 @@ def variant_with_many_stocks(variant, warehouses_with_shipping_zone):
 
 
 @pytest.fixture
+def variant_on_promotion(
+    product, channel_USD, promotion_rule, warehouse
+) -> ProductVariant:
+    product_variant = ProductVariant.objects.create(
+        product=product, sku="SKU_A", external_reference="SKU_A"
+    )
+    price_amount = Decimal(10)
+    ProductVariantChannelListing.objects.create(
+        variant=product_variant,
+        channel=channel_USD,
+        price_amount=price_amount,
+        discounted_price_amount=price_amount,
+        cost_price_amount=Decimal(1),
+        currency=channel_USD.currency_code,
+    )
+    Stock.objects.create(
+        warehouse=warehouse, product_variant=product_variant, quantity=10
+    )
+
+    promotion_rule.variants.add(product_variant)
+    reward_value = promotion_rule.reward_value
+    discount_amount = price_amount * reward_value / 100
+
+    variant_channel_listing = product_variant.channel_listings.get(channel=channel_USD)
+
+    variant_channel_listing.discounted_price_amount = (
+        variant_channel_listing.price_amount - reward_value
+    )
+    variant_channel_listing.save(update_fields=["discounted_price_amount"])
+
+    variant_channel_listing.variantlistingpromotionrule.create(
+        promotion_rule=promotion_rule,
+        discount_amount=discount_amount,
+        currency=channel_USD.currency_code,
+    )
+
+    return product_variant
+
+
+@pytest.fixture
 def preorder_variant_global_threshold(product, channel_USD):
     product_variant = ProductVariant.objects.create(
         product=product, sku="SKU_A_P", is_preorder=True, preorder_global_threshold=10
