@@ -69,9 +69,9 @@ def fetch_order_lines(order: "Order") -> list[OrderLineInfo]:
                 quantity=line.quantity,
                 is_digital=is_digital,
                 variant=variant,
-                digital_content=variant.digital_content
-                if is_digital and variant
-                else None,
+                digital_content=(
+                    variant.digital_content if is_digital and variant else None
+                ),
             )
         )
 
@@ -79,7 +79,7 @@ def fetch_order_lines(order: "Order") -> list[OrderLineInfo]:
 
 
 @dataclass
-class DraftOrderLineInfo(LineInfo):
+class EditableOrderLineInfo(LineInfo):
     line: "OrderLine"
     discounts: list["OrderLineDiscount"]
 
@@ -93,9 +93,8 @@ class DraftOrderLineInfo(LineInfo):
 
 
 def fetch_draft_order_lines_info(
-    order: "Order",
-    lines: Optional[Iterable["OrderLine"]] = None,
-) -> list[DraftOrderLineInfo]:
+    order: "Order", lines: Optional[Iterable["OrderLine"]] = None
+) -> list[EditableOrderLineInfo]:
     prefetch_related_fields = [
         "discounts__promotion_rule__promotion",
         "variant__channel_listings__variantlistingpromotionrule__promotion_rule__promotion__translations",
@@ -130,7 +129,7 @@ def fetch_draft_order_lines_info(
             else []
         )
         lines_info.append(
-            DraftOrderLineInfo(
+            EditableOrderLineInfo(
                 line=line,
                 variant=variant,
                 product=product,

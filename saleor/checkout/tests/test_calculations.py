@@ -509,8 +509,7 @@ def test_fetch_checkout_prices_when_tax_exemption_and_not_include_taxes_in_price
 
     # then
     one_line_total_prices = [
-        calculate_base_line_total_price(line_info, checkout_info.channel)
-        for line_info in lines_info
+        calculate_base_line_total_price(line_info) for line_info in lines_info
     ]
     all_lines_total_price = sum(one_line_total_prices, zero_taxed_money(currency))
     shipping_price = base_checkout_delivery_price(checkout_info, lines_info)

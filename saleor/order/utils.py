@@ -1,6 +1,5 @@
 from collections.abc import Iterable
 from decimal import Decimal
-from functools import wraps
 from typing import TYPE_CHECKING, Optional, cast
 
 from django.conf import settings
@@ -17,20 +16,16 @@ from ..core.utils.translations import get_translation
 from ..core.weight import zero_weight
 from ..discount import DiscountType, DiscountValueType
 from ..discount.models import (
-    NotApplicable,
     OrderDiscount,
     OrderLineDiscount,
-    Voucher,
     VoucherType,
 )
 from ..discount.utils import (
     apply_discount_to_value,
     get_discount_name,
     get_discount_translated_name,
-    get_products_voucher_discount,
     get_sale_id,
     prepare_promotion_discount_reason,
-    validate_voucher_in_order,
 )
 from ..giftcard import events as gift_card_events
 from ..giftcard.models import GiftCard
@@ -100,22 +95,6 @@ def order_needs_automatic_fulfillment(lines_data: Iterable["OrderLineInfo"]) -> 
         if line_data.is_digital and order_line_needs_automatic_fulfillment(line_data):
             return True
     return False
-
-
-def update_voucher_discount(func):
-    """Recalculate order discount amount based on order voucher."""
-
-    @wraps(func)
-    def decorator(*args, **kwargs):
-        if kwargs.pop("update_voucher_discount", True):
-            order = args[0]
-            try:
-                discount = get_voucher_discount_for_order(order)
-            except NotApplicable:
-                discount = zero_money(order.currency)
-        return func(*args, **kwargs, discount=discount)
-
-    return decorator
 
 
 def get_voucher_discount_assigned_to_order(order: Order):
@@ -756,56 +735,6 @@ def get_discounted_lines(lines, voucher):
         # it means that all products are discounted
         discounted_lines.extend(list(lines))
     return discounted_lines
-
-
-def get_prices_of_discounted_specific_product(
-    lines: Iterable[OrderLine],
-    voucher: Voucher,
-) -> list[Money]:
-    """Get prices of variants belonging to the discounted specific products.
-
-    Specific products are products, collections and categories.
-    Product must be assigned directly to the discounted category, assigning
-    product to child category won't work.
-    """
-    line_prices = []
-    discounted_lines = get_discounted_lines(lines, voucher)
-
-    for line in discounted_lines:
-        line_prices.extend([line.unit_price_gross] * line.quantity)
-
-    return line_prices
-
-
-def get_products_voucher_discount_for_order(order: Order, voucher: Voucher) -> Money:
-    """Calculate products discount value for a voucher, depending on its type."""
-    prices = None
-    if voucher and voucher.type == VoucherType.SPECIFIC_PRODUCT:
-        prices = get_prices_of_discounted_specific_product(order.lines.all(), voucher)
-    if not prices:
-        msg = "This offer is only valid for selected items."
-        raise NotApplicable(msg)
-    return get_products_voucher_discount(voucher, prices, order.channel)
-
-
-def get_voucher_discount_for_order(order: Order) -> Money:
-    """Calculate discount value depending on voucher and discount types.
-
-    Raise NotApplicable if voucher of given type cannot be applied.
-    """
-    if not order.voucher:
-        return zero_money(order.currency)
-    validate_voucher_in_order(order, order.lines.all(), order.channel)
-    subtotal = order.subtotal
-    if order.voucher.type == VoucherType.ENTIRE_ORDER:
-        return order.voucher.get_discount_amount_for(subtotal.gross, order.channel)
-    if order.voucher.type == VoucherType.SHIPPING:
-        return order.voucher.get_discount_amount_for(
-            order.shipping_price.gross, order.channel
-        )
-    if order.voucher.type == VoucherType.SPECIFIC_PRODUCT:
-        return get_products_voucher_discount_for_order(order, order.voucher)
-    raise NotImplementedError("Unknown discount type")
 
 
 def match_orders_with_new_user(user: User) -> None:

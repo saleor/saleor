@@ -451,7 +451,6 @@ class PluginsManager(PaymentInterface):
     ) -> TaxedMoney:
         default_value = base_calculations.calculate_base_line_total_price(
             checkout_line_info,
-            checkout_info.channel,
         )
         # apply entire order discount or discount from order promotion
         default_value = base_calculations.apply_checkout_discount_on_checkout_line(
@@ -528,7 +527,7 @@ class PluginsManager(PaymentInterface):
     ) -> TaxedMoney:
         quantity = checkout_line_info.line.quantity
         default_value = base_calculations.calculate_base_line_unit_price(
-            checkout_line_info, checkout_info.channel
+            checkout_line_info
         )
         # apply entire order discount
         total_value = base_calculations.apply_checkout_discount_on_checkout_line(
