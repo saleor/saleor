@@ -288,7 +288,6 @@ def generate_request_data_from_checkout_lines(
     config: AvataxConfiguration,
 ) -> list[dict[str, Union[str, int, bool, None]]]:
     data: list[dict[str, Union[str, int, bool, None]]] = []
-    channel = checkout_info.channel
 
     charge_taxes = get_charge_taxes_for_checkout(checkout_info, lines_info)
     prices_entered_with_tax = checkout_info.tax_configuration.prices_entered_with_tax
@@ -318,7 +317,6 @@ def generate_request_data_from_checkout_lines(
 
         checkout_line_total = base_calculations.calculate_base_line_total_price(
             line_info,
-            channel,
         )
 
         # This is a workaround for Avatax and sending a lines with amount 0. Like

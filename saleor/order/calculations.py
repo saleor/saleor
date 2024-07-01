@@ -27,7 +27,7 @@ from ..tax.utils import (
 )
 from . import ORDER_EDITABLE_STATUS
 from .base_calculations import apply_order_discounts, base_order_line_total
-from .fetch import DraftOrderLineInfo, fetch_draft_order_lines_info
+from .fetch import EditableOrderLineInfo, fetch_draft_order_lines_info
 from .interface import OrderTaxedPricesData
 from .models import Order, OrderLine
 from .utils import log_address_if_validation_skipped_for_order
@@ -56,7 +56,7 @@ def fetch_order_prices_if_expired(
         return order, lines
 
     # handle promotions
-    lines_info: list[DraftOrderLineInfo] = fetch_draft_order_lines_info(order, lines)
+    lines_info: list[EditableOrderLineInfo] = fetch_draft_order_lines_info(order, lines)
     create_or_update_discount_objects_for_order(
         order, lines_info, database_connection_name
     )

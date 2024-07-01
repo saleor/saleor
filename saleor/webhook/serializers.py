@@ -82,22 +82,17 @@ def serialize_checkout_lines_for_tax_calculation(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
 ) -> list[dict]:
-    channel = checkout_info.channel
     charge_taxes = get_charge_taxes_for_checkout(checkout_info, lines)
     return [
         {
             **_get_checkout_line_payload_data(line_info),
             "charge_taxes": charge_taxes,
             "unit_amount": quantize_price(
-                base_calculations.calculate_base_line_unit_price(
-                    line_info, channel
-                ).amount,
+                base_calculations.calculate_base_line_unit_price(line_info).amount,
                 checkout_info.checkout.currency,
             ),
             "total_amount": quantize_price(
-                base_calculations.calculate_base_line_total_price(
-                    line_info, channel
-                ).amount,
+                base_calculations.calculate_base_line_total_price(line_info).amount,
                 checkout_info.checkout.currency,
             ),
         }

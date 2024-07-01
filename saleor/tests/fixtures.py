@@ -41,7 +41,11 @@ from ..attribute.utils import associate_attribute_values_to_instance
 from ..checkout import base_calculations
 from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..checkout.models import Checkout, CheckoutLine, CheckoutMetadata
-from ..checkout.utils import add_variant_to_checkout, add_voucher_to_checkout
+from ..checkout.utils import (
+    add_variant_to_checkout,
+    add_voucher_to_checkout,
+    get_prices_of_discounted_specific_product,
+)
 from ..core import EventDeliveryStatus, JobStatus
 from ..core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ..core.payments import PaymentInterface
@@ -76,6 +80,10 @@ from ..discount.models import (
     VoucherCustomer,
     VoucherTranslation,
 )
+from ..discount.utils import (
+    get_products_voucher_discount,
+    validate_voucher_in_order,
+)
 from ..giftcard import GiftCardEvents
 from ..giftcard.models import GiftCard, GiftCardEvent, GiftCardTag
 from ..menu.models import Menu, MenuItem, MenuItemTranslation
@@ -98,7 +106,6 @@ from ..order.models import (
 from ..order.search import prepare_order_search_vector_value
 from ..order.utils import (
     get_voucher_discount_assigned_to_order,
-    get_voucher_discount_for_order,
 )
 from ..page.models import Page, PageTranslation, PageType
 from ..payment import ChargeStatus, TransactionKind
@@ -4911,6 +4918,37 @@ def recalculate_order(order):
     order.save()
 
 
+def get_voucher_discount_for_order(order: Order) -> Money:
+    """Calculate discount value depending on voucher and discount types.
+
+    Raise NotApplicable if voucher of given type cannot be applied.
+    """
+    if not order.voucher:
+        return zero_money(order.currency)
+    validate_voucher_in_order(order)
+    subtotal = order.subtotal
+    if order.voucher.type == VoucherType.ENTIRE_ORDER:
+        return order.voucher.get_discount_amount_for(subtotal.gross, order.channel)
+    if order.voucher.type == VoucherType.SHIPPING:
+        return order.voucher.get_discount_amount_for(
+            order.shipping_price.gross, order.channel
+        )
+    if order.voucher.type == VoucherType.SPECIFIC_PRODUCT:
+        return get_products_voucher_discount_for_order(order, order.voucher)
+    raise NotImplementedError("Unknown discount type")
+
+
+def get_products_voucher_discount_for_order(order: Order, voucher: Voucher) -> Money:
+    """Calculate products discount value for a voucher, depending on its type."""
+    prices = None
+    if voucher and voucher.type == VoucherType.SPECIFIC_PRODUCT:
+        prices = get_prices_of_discounted_specific_product(order.lines.all(), voucher)
+    if not prices:
+        msg = "This offer is only valid for selected items."
+        raise NotApplicable(msg)
+    return get_products_voucher_discount(voucher, prices, order.channel)
+
+
 @pytest.fixture
 def order_with_lines(
     order,
@@ -8107,14 +8145,13 @@ def checkout_with_prices(
     checkout_with_items.save(update_fields=["shipping_method"])
 
     manager = get_plugins_manager(allow_replica=False)
-    channel = checkout_with_items.channel
     lines = checkout_with_items.lines.all()
     lines_info, _ = fetch_checkout_lines(checkout_with_items)
     checkout_info = fetch_checkout_info(checkout_with_items, lines_info, manager)
 
     for line, line_info in zip(lines, lines_info):
         line.total_price_net_amount = base_calculations.calculate_base_line_total_price(
-            line_info, channel
+            line_info
         ).amount
         line.total_price_gross_amount = line.total_price_net_amount * Decimal("1.230")
 
