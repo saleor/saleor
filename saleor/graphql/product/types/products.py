@@ -803,9 +803,6 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
     @staticmethod
     def __resolve_references(roots: list["ProductVariant"], info):
         requestor = get_user_or_app_from_context(info.context)
-        requestor_has_access_to_all = has_one_of_permissions(
-            requestor, ALL_PRODUCTS_PERMISSIONS
-        )
 
         channels = defaultdict(set)
         roots_ids = []
@@ -819,7 +816,6 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
             limited_channel_access = False if channel_slug is None else True
             qs = resolve_product_variants(
                 info,
-                requestor_has_access_to_all,
                 requestor,
                 ids=ids,
                 channel=channels_map.get(channel_slug),
