@@ -10,7 +10,11 @@ from ....core.taxes import TaxError
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
 from ....discount.models import Voucher, VoucherCode
-from ....discount.utils import get_voucher_code_instance, increase_voucher_usage
+from ....discount.utils import (
+    get_active_voucher_code,
+    get_voucher_code_instance,
+    increase_voucher_usage,
+)
 from ....order import OrderOrigin, OrderStatus, events, models
 from ....order.error_codes import OrderErrorCode
 from ....order.search import update_order_search_vector
@@ -289,7 +293,7 @@ class DraftOrderCreate(
         if channel.include_draft_order_in_voucher_usage:
             # Validate voucher when it's included in voucher usage calculation
             try:
-                code_instance = get_voucher_code_instance(voucher.code, channel.slug)
+                code_instance = get_active_voucher_code(voucher, channel.slug)
             except ValidationError:
                 raise ValidationError(
                     {
