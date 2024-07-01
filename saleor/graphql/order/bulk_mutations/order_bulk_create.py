@@ -52,7 +52,7 @@ from ...core.descriptions import ADDED_IN_314, ADDED_IN_318, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.enums import ErrorPolicy, ErrorPolicyEnum, LanguageCodeEnum
 from ...core.mutations import BaseMutation
-from ...core.scalars import PositiveDecimal, WeightScalar
+from ...core.scalars import DateTime, PositiveDecimal, WeightScalar
 from ...core.types import BaseInputObjectType, BaseObjectType, NonNullList
 from ...core.types.common import OrderBulkCreateError
 from ...core.utils import from_global_id_or_error
@@ -327,7 +327,7 @@ class OrderBulkCreateUserInput(BaseInputObjectType):
 
 
 class OrderBulkCreateInvoiceInput(BaseInputObjectType):
-    created_at = graphene.DateTime(
+    created_at = DateTime(
         required=True, description="The date, when the invoice was created."
     )
     number = graphene.String(description="Invoice number.")
@@ -369,7 +369,7 @@ class OrderBulkCreateNoteInput(BaseInputObjectType):
     message = graphene.String(
         required=True, description=f"Note message. Max characters: {MAX_NOTE_LENGTH}."
     )
-    date = graphene.DateTime(description="The date associated with the message.")
+    date = DateTime(description="The date associated with the message.")
     user_id = graphene.ID(description="The user ID associated with the message.")
     user_email = graphene.ID(description="The user email associated with the message.")
     user_external_reference = graphene.ID(
@@ -431,7 +431,7 @@ class OrderBulkCreateOrderLineInput(BaseInputObjectType):
     translated_product_name = graphene.String(
         description="Translation of the product name."
     )
-    created_at = graphene.DateTime(
+    created_at = DateTime(
         required=True, description="The date, when the order line was created."
     )
     is_shipping_required = graphene.Boolean(
@@ -477,7 +477,7 @@ class OrderBulkCreateInput(BaseInputObjectType):
     channel = graphene.String(
         required=True, description="Slug of the channel associated with the order."
     )
-    created_at = graphene.DateTime(
+    created_at = DateTime(
         required=True,
         description="The date, when the order was inserted to Saleor database.",
     )

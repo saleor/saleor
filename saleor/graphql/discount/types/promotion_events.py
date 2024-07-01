@@ -11,6 +11,7 @@ from ...app.dataloaders import AppByIdLoader
 from ...core.descriptions import ADDED_IN_317, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.fields import PermissionsField
+from ...core.scalars import DateTime
 from ...core.types import ModelObjectType
 from ...core.types.user_or_app import UserOrApp
 from ...utils import get_user_or_app_from_context
@@ -23,7 +24,7 @@ def resolve_event_type(root: models.PromotionEvent, _info):
 
 class PromotionEventInterface(graphene.Interface):
     id = graphene.GlobalID()
-    date = graphene.DateTime(description="Date when event happened.", required=True)
+    date = DateTime(description="Date when event happened.", required=True)
     type = PromotionEventsEnum(
         description="Promotion event type.", resolver=resolve_event_type, required=True
     )

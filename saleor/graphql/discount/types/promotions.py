@@ -9,7 +9,7 @@ from ...core.connection import CountableConnection
 from ...core.descriptions import ADDED_IN_317, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.fields import PermissionsField
-from ...core.scalars import JSON, PositiveDecimal
+from ...core.scalars import JSON, DateTime, PositiveDecimal
 from ...core.types import ModelObjectType, NonNullList
 from ...meta.types import ObjectWithMetadata
 from ...translations.fields import TranslationField
@@ -28,14 +28,10 @@ class Promotion(ModelObjectType[models.Promotion]):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True, description="Name of the promotion.")
     description = JSON(description="Description of the promotion.")
-    start_date = graphene.DateTime(
-        required=True, description="Start date of the promotion."
-    )
-    end_date = graphene.DateTime(description="End date of the promotion.")
-    created_at = graphene.DateTime(
-        required=True, description="Date time of promotion creation."
-    )
-    updated_at = graphene.DateTime(
+    start_date = DateTime(required=True, description="Start date of the promotion.")
+    end_date = DateTime(description="End date of the promotion.")
+    created_at = DateTime(required=True, description="Date time of promotion creation.")
+    updated_at = DateTime(
         required=True, description="Date time of last update of promotion."
     )
     rules = NonNullList(

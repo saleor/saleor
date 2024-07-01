@@ -25,7 +25,7 @@ from ...core.doc_category import (
     DOC_CATEGORY_USERS,
     DOC_CATEGORY_WEBHOOKS,
 )
-from ...core.scalars import Decimal
+from ...core.scalars import DateTime, Decimal
 from ..descriptions import (
     ADDED_IN_36,
     ADDED_IN_312,
@@ -907,8 +907,8 @@ class DateRangeInput(graphene.InputObjectType):
 
 
 class DateTimeRangeInput(graphene.InputObjectType):
-    gte = graphene.DateTime(description="Start date.", required=False)
-    lte = graphene.DateTime(description="End date.", required=False)
+    gte = DateTime(description="Start date.", required=False)
+    lte = DateTime(description="End date.", required=False)
 
 
 class IntRangeInput(graphene.InputObjectType):
@@ -935,10 +935,10 @@ class TaxType(BaseObjectType):
 
 class Job(graphene.Interface):
     status = JobStatusEnum(description="Job status.", required=True)
-    created_at = graphene.DateTime(
+    created_at = DateTime(
         description="Created date time of job in ISO 8601 format.", required=True
     )
-    updated_at = graphene.DateTime(
+    updated_at = DateTime(
         description="Date time of job last update in ISO 8601 format.", required=True
     )
     message = graphene.String(description="Job message.")
