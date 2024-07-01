@@ -22,6 +22,7 @@ from ...core.descriptions import (
 )
 from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.fields import ConnectionField, PermissionsField
+from ...core.scalars import DateTime
 from ...core.types import ModelObjectType, Money, NonNullList
 from ...meta.types import ObjectWithMetadata
 from ...product.types import (
@@ -73,9 +74,7 @@ class VoucherCode(ModelObjectType[models.VoucherCode]):
     code = graphene.String(description="Code to use the voucher.")
     used = graphene.Int(description="Number of times a code has been used.")
     is_active = graphene.Boolean(description="Whether a code is active or not.")
-    created_at = graphene.DateTime(
-        required=True, description="Date time of code creation."
-    )
+    created_at = DateTime(required=True, description="Date time of code creation.")
 
     class Meta:
         description = "Represents voucher code." + ADDED_IN_318 + PREVIEW_FEATURE
@@ -103,10 +102,10 @@ class Voucher(ChannelContextTypeWithMetadata[models.Voucher]):
         required=True,
         description="Usage count of the voucher.",
     )
-    start_date = graphene.DateTime(
+    start_date = DateTime(
         required=True, description="The start date and time of voucher."
     )
-    end_date = graphene.DateTime(description="The end date and time of voucher.")
+    end_date = DateTime(description="The end date and time of voucher.")
     apply_once_per_order = graphene.Boolean(
         required=True,
         description="Determine if the voucher should be applied once per order. If set "
