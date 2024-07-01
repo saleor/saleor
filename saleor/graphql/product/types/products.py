@@ -74,7 +74,7 @@ from ...core.fields import (
     JSONString,
     PermissionsField,
 )
-from ...core.scalars import Date
+from ...core.scalars import Date, DateTime
 from ...core.tracing import traced_resolver
 from ...core.types import (
     BaseObjectType,
@@ -252,7 +252,7 @@ class PreorderData(BaseObjectType):
         description="Total number of sold product variant during preorder.",
         permissions=[ProductPermissions.MANAGE_PRODUCTS],
     )
-    end_date = graphene.DateTime(required=False, description="Preorder end date.")
+    end_date = DateTime(required=False, description="Preorder end date.")
 
     class Meta:
         doc_category = DOC_CATEGORY_PRODUCTS
@@ -400,11 +400,11 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
         required=False,
         description=("Preorder data for product variant." + ADDED_IN_31),
     )
-    created = graphene.DateTime(
+    created = DateTime(
         required=True,
         description="The date and time when the product variant was created.",
     )
-    updated_at = graphene.DateTime(
+    updated_at = DateTime(
         required=True,
         description="The date and time when the product variant was last updated.",
     )
@@ -860,10 +860,10 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
     )
     slug = graphene.String(required=True, description="Slug of the product.")
     category = graphene.Field("saleor.graphql.product.types.categories.Category")
-    created = graphene.DateTime(
+    created = DateTime(
         required=True, description="The date and time when the product was created."
     )
-    updated_at = graphene.DateTime(
+    updated_at = DateTime(
         required=True,
         description="The date and time when the product was last updated.",
     )
@@ -995,7 +995,7 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
             "the available for purchase date."
         ),
     )
-    available_for_purchase_at = graphene.DateTime(
+    available_for_purchase_at = DateTime(
         description="Date when product is available for purchase."
     )
     is_available_for_purchase = graphene.Boolean(

@@ -73,7 +73,7 @@ from ..core.doc_category import (
     DOC_CATEGORY_TAXES,
     DOC_CATEGORY_USERS,
 )
-from ..core.scalars import JSON, PositiveDecimal
+from ..core.scalars import JSON, DateTime, PositiveDecimal
 from ..core.types import NonNullList, SubscriptionObjectType
 from ..core.types.order_or_checkout import OrderOrCheckout
 from ..order.dataloaders import OrderByIdLoader
@@ -116,7 +116,7 @@ class IssuingPrincipal(Union):
 
 
 class Event(graphene.Interface):
-    issued_at = graphene.DateTime(description="Time of the event.")
+    issued_at = DateTime(description="Time of the event.")
     version = graphene.String(description="Saleor version that triggered the event.")
     issuing_principal = graphene.Field(
         IssuingPrincipal,

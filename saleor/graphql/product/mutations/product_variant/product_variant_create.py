@@ -19,7 +19,7 @@ from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_31, ADDED_IN_38, ADDED_IN_310
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import ModelMutation
-from ....core.scalars import WeightScalar
+from ....core.scalars import DateTime, WeightScalar
 from ....core.types import BaseInputObjectType, NonNullList, ProductError
 from ....core.utils import get_duplicated_values
 from ....meta.inputs import MetadataInput
@@ -41,7 +41,7 @@ class PreorderSettingsInput(BaseInputObjectType):
     global_threshold = graphene.Int(
         description="The global threshold for preorder variant."
     )
-    end_date = graphene.DateTime(description="The end date for preorder.")
+    end_date = DateTime(description="The end date for preorder.")
 
     class Meta:
         doc_category = DOC_CATEGORY_PRODUCTS

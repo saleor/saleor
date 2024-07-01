@@ -7,7 +7,7 @@ from graphene import Argument, InputField, String
 from graphene.types.inputobjecttype import InputObjectTypeOptions
 from graphene.types.utils import yank_fields_from_attrs
 
-from ...core.scalars import Decimal
+from ...core.scalars import DateTime, Decimal
 from ..descriptions import (
     ADDED_IN_311,
     ADDED_IN_314,
@@ -220,9 +220,9 @@ class DateFilterInput(graphene.InputObjectType):
 
 
 class DateTimeFilterInput(graphene.InputObjectType):
-    eq = graphene.DateTime(description=FilterInputDescriptions.EQ, required=False)
+    eq = DateTime(description=FilterInputDescriptions.EQ, required=False)
     one_of = NonNullList(
-        graphene.DateTime,
+        DateTime,
         description=FilterInputDescriptions.ONE_OF,
         required=False,
     )

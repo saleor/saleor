@@ -16,7 +16,7 @@ from ..core.descriptions import ADDED_IN_33, DEPRECATED_IN_3X_FIELD, RICH_CONTEN
 from ..core.doc_category import DOC_CATEGORY_PAGES
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.fields import FilterConnectionField, JSONString, PermissionsField
-from ..core.scalars import Date
+from ..core.scalars import Date, DateTime
 from ..core.types import ModelObjectType, NonNullList
 from ..meta.types import ObjectWithMetadata
 from ..translations.fields import TranslationField
@@ -131,9 +131,7 @@ class Page(ModelObjectType[models.Page]):
             "Use the `publishedAt` field to fetch the publication date."
         ),
     )
-    published_at = graphene.DateTime(
-        description="The page publication date." + ADDED_IN_33
-    )
+    published_at = DateTime(description="The page publication date." + ADDED_IN_33)
     is_published = graphene.Boolean(
         required=True, description="Determines if the page is published."
     )
@@ -141,7 +139,7 @@ class Page(ModelObjectType[models.Page]):
     page_type = graphene.Field(
         PageType, required=True, description="Determines the type of page"
     )
-    created = graphene.DateTime(
+    created = DateTime(
         required=True, description="Date and time at which page was created."
     )
     content_json = JSONString(

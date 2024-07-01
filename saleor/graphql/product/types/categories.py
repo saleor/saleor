@@ -31,6 +31,7 @@ from ...core.descriptions import (
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.federation import federated_entity, resolve_federation_references
 from ...core.fields import ConnectionField, FilterConnectionField, JSONString
+from ...core.scalars import DateTime
 from ...core.types import Image, ModelObjectType, ThumbnailField
 from ...meta.types import ObjectWithMetadata
 from ...translations.fields import TranslationField
@@ -62,7 +63,7 @@ class Category(ModelObjectType[models.Category]):
             f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
         ),
     )
-    updated_at = graphene.DateTime(
+    updated_at = DateTime(
         required=True,
         description="The date and time when the category was last updated."
         + ADDED_IN_317,

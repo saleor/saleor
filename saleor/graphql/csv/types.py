@@ -10,6 +10,7 @@ from ..app.dataloaders import AppByIdLoader
 from ..app.types import App
 from ..core import ResolveInfo
 from ..core.connection import CountableConnection
+from ..core.scalars import DateTime
 from ..core.types import Job, ModelObjectType, NonNullList
 from ..utils import get_user_or_app_from_context
 from .dataloaders import EventsByExportFileIdLoader
@@ -17,7 +18,7 @@ from .enums import ExportEventEnum
 
 
 class ExportEvent(ModelObjectType[models.ExportEvent]):
-    date = graphene.types.datetime.DateTime(
+    date = DateTime(
         description="Date when event happened at in ISO 8601 format.",
         required=True,
     )

@@ -27,7 +27,7 @@ from ..core.descriptions import (
 from ..core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ..core.enums import MeasurementUnitsEnum
 from ..core.fields import ConnectionField, FilterConnectionField, JSONString
-from ..core.scalars import Date
+from ..core.scalars import Date, DateTime
 from ..core.types import (
     BaseInputObjectType,
     BaseObjectType,
@@ -73,7 +73,7 @@ class AttributeValue(ModelObjectType[models.AttributeValue]):
         description=AttributeValueDescriptions.BOOLEAN, required=False
     )
     date = Date(description=AttributeValueDescriptions.DATE, required=False)
-    date_time = graphene.DateTime(
+    date_time = DateTime(
         description=AttributeValueDescriptions.DATE_TIME, required=False
     )
     external_reference = graphene.String(
@@ -489,7 +489,7 @@ class AttributeValueInput(BaseInputObjectType):
         required=False, description=AttributeValueDescriptions.BOOLEAN
     )
     date = Date(required=False, description=AttributeValueDescriptions.DATE)
-    date_time = graphene.DateTime(
+    date_time = DateTime(
         required=False, description=AttributeValueDescriptions.DATE_TIME
     )
 

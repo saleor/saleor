@@ -52,6 +52,7 @@ from ..core.filters import (
     OperationObjectTypeWhereFilter,
     filter_slug_list,
 )
+from ..core.scalars import DateTime
 from ..core.types import (
     BaseInputObjectType,
     ChannelFilterInputObjectType,
@@ -749,7 +750,7 @@ class ProductStockFilterInput(BaseInputObjectType):
 class ProductFilter(MetadataFilterBase):
     is_published = django_filters.BooleanFilter(method="filter_is_published")
     published_from = ObjectTypeFilter(
-        input_class=graphene.DateTime,
+        input_class=DateTime,
         method="filter_published_from",
         help_text=f"Filter by the publication date. {ADDED_IN_38}",
     )
@@ -758,7 +759,7 @@ class ProductFilter(MetadataFilterBase):
         help_text=f"Filter by availability for purchase. {ADDED_IN_38}",
     )
     available_from = ObjectTypeFilter(
-        input_class=graphene.DateTime,
+        input_class=DateTime,
         method="filter_available_from",
         help_text=f"Filter by the date of availability for purchase. {ADDED_IN_38}",
     )
@@ -1114,12 +1115,12 @@ class ProductWhere(MetadataWhereFilterBase):
         method="filter_is_listed", help_text="Filter by visibility on the channel."
     )
     published_from = ObjectTypeWhereFilter(
-        input_class=graphene.DateTime,
+        input_class=DateTime,
         method="filter_published_from",
         help_text="Filter by the publication date.",
     )
     available_from = ObjectTypeWhereFilter(
-        input_class=graphene.DateTime,
+        input_class=DateTime,
         method="filter_available_from",
         help_text="Filter by the date of availability for purchase.",
     )

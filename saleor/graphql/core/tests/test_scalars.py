@@ -272,3 +272,150 @@ def test_json_scalar_as_correct_value(
 
     # then
     get_graphql_content(response)
+
+
+DATE_TIME_QUERY_WITH_VARIABLE = """
+mutation vv($startDate: DateTime){
+	voucherCreate(input:{
+		type:SHIPPING, code:"test12", startDate: $startDate
+	}){
+		errors{
+			code
+		}
+		voucher{
+			id
+			startDate
+		}
+	}
+}
+"""
+
+
+@pytest.mark.parametrize(
+    "start_date",
+    [
+        "0000-01-01T00:00:00+00:00",
+        "0001-01-01T00:00:01+07:00",
+        "0001-01-01T00:00:01+01:00",
+        "0001-01-01T00:00:00+00:01",
+        "0001-12-31 17:00:01+00 BC",
+        "9999-12-31T23:59:59-07:00",
+    ],
+)
+def test_incorrect_date_time_as_variable(
+    start_date, staff_api_client, permission_manage_discounts
+):
+    # given
+    variables = {"startDate": start_date}
+    staff_api_client.user.user_permissions.add(permission_manage_discounts)
+
+    # when
+    response = staff_api_client.post_graphql(DATE_TIME_QUERY_WITH_VARIABLE, variables)
+
+    # then
+    content = get_graphql_content_from_response(response)
+    assert "errors" in content
+
+
+@pytest.mark.parametrize(
+    "start_date",
+    [
+        "0001-01-01T00:00:01+00:00",
+        "0001-01-01T01:00:02+01:00",
+        "0001-01-10T00:00:01+07:00",
+        "0001-01-01T07:05:01+07:00",
+        "2024-06-10T11:00:00+07:00",
+        "9999-12-31T23:59:59+00:00",
+    ],
+)
+def test_correct_date_time_as_variable(
+    start_date, staff_api_client, permission_manage_discounts
+):
+    # given
+    variables = {"startDate": start_date}
+    staff_api_client.user.user_permissions.add(permission_manage_discounts)
+
+    # when
+    response = staff_api_client.post_graphql(DATE_TIME_QUERY_WITH_VARIABLE, variables)
+
+    # then
+    get_graphql_content(response)
+
+
+@pytest.mark.parametrize(
+    "start_date",
+    [
+        "0000-01-01T00:00:00+00:00",
+        "0001-01-01T00:00:01+07:00",
+        "0001-01-01T00:00:01+01:00",
+        "0001-01-01T00:00:00+00:01",
+        "0001-12-31 17:00:01+00 BC",
+        "9999-12-31T23:59:59-07:00",
+    ],
+)
+def test_incorrect_date_time_as_input(
+    start_date, staff_api_client, permission_manage_discounts
+):
+    # given
+    query = f"""
+    mutation{{
+        voucherCreate(input:{{
+            type:SHIPPING, code:"test12", startDate: "{start_date}"
+        }}){{
+            errors{{
+                code
+            }}
+            voucher{{
+                id
+                startDate
+            }}
+        }}
+    }}
+    """
+    staff_api_client.user.user_permissions.add(permission_manage_discounts)
+
+    # when
+    response = staff_api_client.post_graphql(query)
+
+    # then
+    content = get_graphql_content_from_response(response)
+    assert "errors" in content
+
+
+@pytest.mark.parametrize(
+    "start_date",
+    [
+        "0001-01-01T00:00:01+00:00",
+        "0001-01-01T01:00:02+01:00",
+        "0001-01-10T00:00:01+07:00",
+        "0001-01-01T07:05:01+07:00",
+        "2024-06-10T11:00:00+07:00",
+        "9999-12-31T23:59:59+00:00",
+    ],
+)
+def test_correct_date_time_as_input(
+    start_date, staff_api_client, permission_manage_discounts
+):
+    # given
+    query = f"""
+        mutation {{
+            voucherCreate(input:{{
+                type:SHIPPING, code:"test12", startDate: "{start_date}"
+            }}){{
+                errors{{
+                    code
+                }}
+                voucher{{
+                    id
+                    startDate
+                }}
+            }}
+        }}
+    """
+    staff_api_client.user.user_permissions.add(permission_manage_discounts)
+
+    # when
+    response = staff_api_client.post_graphql(query)
+
+    # then
+    get_graphql_content(response)
