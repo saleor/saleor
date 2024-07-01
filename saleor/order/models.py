@@ -224,6 +224,15 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
     base_shipping_price = MoneyField(
         amount_field="base_shipping_price_amount", currency_field="currency"
     )
+    undiscounted_base_shipping_price_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal("0.0"),
+    )
+    undiscounted_base_shipping_price = MoneyField(
+        amount_field="undiscounted_base_shipping_price_amount",
+        currency_field="currency",
+    )
     shipping_tax_rate = models.DecimalField(
         max_digits=5, decimal_places=4, blank=True, null=True
     )
