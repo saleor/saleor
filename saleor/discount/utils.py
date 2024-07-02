@@ -1570,7 +1570,7 @@ def _set_order_base_prices(order: Order, lines_info: Iterable["EditableOrderLine
 
     lines = [line_info.line for line_info in lines_info]
     subtotal = base_order_subtotal(order, lines)
-    shipping_price = order.base_shipping_price
+    shipping_price = order.undiscounted_base_shipping_price
     total = subtotal + shipping_price
 
     update_fields = []
