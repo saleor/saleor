@@ -303,12 +303,6 @@ def _create_line_for_order(
         checkout_line_info=checkout_line_info,
     )
 
-    if total_line_price == zero_taxed_money(total_line_price.currency):
-        logger.warning(
-            "The checkout completed with 0 line total price for checkout: %s.",
-            graphene.Node.to_global_id("Checkout", checkout_info.checkout.token),
-        )
-
     discount = checkout_line_info.get_sale_discount()
     sale_id = discount.sale_id if discount else None
 

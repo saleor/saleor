@@ -2,7 +2,6 @@ import logging
 from decimal import Decimal
 from typing import TYPE_CHECKING, Iterable, Optional, Tuple
 
-import graphene
 from django.conf import settings
 from django.utils import timezone
 from prices import Money, TaxedMoney
@@ -418,12 +417,6 @@ def _apply_tax_data_from_plugins(
             address,
         )
         line.total_price = total_price
-        logger.warning(
-            "The checkout line total price is 0. "
-            "Checkout line id: %s, checkout id: %s.",
-            graphene.Node.to_global_id("CheckoutLine", line.id),
-            graphene.Node.to_global_id("Checkout", checkout_info.checkout.token),
-        )
 
         line.tax_rate = manager.get_checkout_line_tax_rate(
             checkout_info,
@@ -464,13 +457,6 @@ def _get_checkout_base_prices(
             checkout_info, lines, line_info, unit_price * quantity
         )
         line_total_price = quantize_price(total_price, currency)
-
-        logger.warning(
-            "The checkout line total price is 0. "
-            "Checkout line id: %s, checkout id: %s.",
-            graphene.Node.to_global_id("CheckoutLine", line.id),
-            graphene.Node.to_global_id("Checkout", checkout_info.checkout.token),
-        )
 
         subtotal += line_total_price
 
