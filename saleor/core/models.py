@@ -1,8 +1,9 @@
 import datetime
-from typing import Any, TypeVar
+from typing import Any, Iterable, Sequence, TypeVar
 
 import pytz
 from django.contrib.postgres.indexes import GinIndex
+from django.core.files.base import ContentFile
 from django.db import models, transaction
 from django.db.models import F, JSONField, Max, Q
 
@@ -143,6 +144,26 @@ class Job(models.Model):
         abstract = True
 
 
+class EventPayloadManager(models.Manager["EventPayload"]):
+    @transaction.atomic
+    def create_with_payload_file(self, payload: str) -> "EventPayload":
+        obj = super().create()
+        obj.payload_file.save(
+            f"payload-{obj.pk}-{obj.created_at}.json",
+            ContentFile(payload),
+        )
+        return obj
+
+    @transaction.atomic
+    def bulk_create_with_payload_files(
+        self, objs: Iterable["EventPayload"], payloads=Iterable[str]
+    ) -> list["EventPayload"]:
+        created_objs = self.bulk_create(objs)
+        for obj, payload_data in zip(created_objs, payloads):
+            obj.save_payload_file(payload_data)
+        return created_objs
+
+
 class EventPayload(models.Model):
     payload = models.TextField(default="")
     payload_file = models.FileField(
@@ -150,12 +171,20 @@ class EventPayload(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
+    objects = EventPayloadManager()
+
     def get_payload(self):
         if self.payload_file:
             with self.payload_file.open("rt") as f:
                 payload = f.read()
                 return payload
         return self.payload
+
+    def save_payload_file(self, payload_data: str):
+        self.payload_file.save(
+            f"payload-{self.pk}-{self.created_at}.json",
+            ContentFile(payload_data),
+        )
 
 
 class EventDelivery(models.Model):

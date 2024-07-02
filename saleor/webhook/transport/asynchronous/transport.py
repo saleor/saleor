@@ -137,15 +137,9 @@ def create_deliveries_for_subscriptions(
         )
 
     with allow_writer():
-        # TODO: payload transaction
-        created_event_payloads = EventPayload.objects.bulk_create(event_payloads)
-        for event_payload, payload_data in zip(
-            created_event_payloads, event_payloads_data
-        ):
-            event_payload.payload_file.save(
-                f"payload-{event_payload.pk}-{event_payload.created_at}.json",
-                ContentFile(payload_data),
-            )
+        EventPayload.objects.bulk_create_with_payload_files(
+            event_payloads, event_payloads_data
+        )
         return EventDelivery.objects.bulk_create(event_deliveries)
 
 
@@ -210,12 +204,7 @@ def trigger_webhooks_async(
             raise NotImplementedError("No payload was provided for regular webhooks.")
 
         with allow_writer():
-            # TODO: payload transaction
-            payload = EventPayload.objects.create()
-            payload.payload_file.save(
-                f"payload-{payload.pk}-{payload.created_at}.json",
-                ContentFile(data),
-            )
+            payload = EventPayload.objects.create_with_payload_file(data)
             deliveries.extend(
                 create_event_delivery_list_for_webhooks(
                     webhooks=regular_webhooks,
