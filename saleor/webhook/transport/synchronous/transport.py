@@ -257,6 +257,7 @@ def create_delivery_for_subscription_sync_event(
         # log the issue and continue without creating a delivery.
         return None
     with allow_writer():
+        # TODO: payload transaction
         event_payload = EventPayload.objects.create()
         event_payload.payload_file.save(
             f"payload-{event_payload.pk}-{event_payload.created_at}.json",
@@ -295,6 +296,7 @@ def trigger_webhook_sync(
             return None
     else:
         with allow_writer():
+            # TODO: payload transaction
             event_payload = EventPayload.objects.create()
             event_payload.payload_file.save(
                 f"payload-{event_payload.pk}-{event_payload.created_at}.json",
@@ -355,6 +357,7 @@ def trigger_all_webhooks_sync(
         else:
             with allow_writer():
                 if event_payload is None:
+                    # TODO: payload transaction
                     event_payload = EventPayload.objects.create()
                     event_payload.payload_file.save(
                         f"payload-{event_payload.pk}-{event_payload.created_at}.json",

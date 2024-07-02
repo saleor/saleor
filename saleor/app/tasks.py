@@ -73,6 +73,7 @@ def _raw_remove_deliveries(deliveries_ids):
     attempts._raw_delete(attempts.db)  # type: ignore[attr-defined] # raw access # noqa: E501
     deliveries._raw_delete(deliveries.db)  # type: ignore[attr-defined] # raw access # noqa: E501
     payloads._raw_delete(payloads.db)  # type: ignore[attr-defined] # raw access # noqa: E501
+    # TODO: delete payload files
 
 
 @celeryconf.app.task

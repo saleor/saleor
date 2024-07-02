@@ -426,6 +426,7 @@ def clear_successful_delivery(delivery: "EventDelivery"):
         payload_id = delivery.payload_id
         delivery.delete()
         if payload_id:
+            # TODO: delete payload file
             EventPayload.objects.filter(pk=payload_id, deliveries__isnull=True).delete()
 
 
@@ -493,6 +494,7 @@ def trigger_transaction_request(
             transaction_data, requestor
         )
         with allow_writer():
+            # TODO: payload transaction
             event_payload = EventPayload.objects.create()
             event_payload.payload_file.save(
                 f"payload-{event_payload.pk}-{event_payload.created_at}.json",

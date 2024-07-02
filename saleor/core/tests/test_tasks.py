@@ -43,6 +43,7 @@ def test_delete_event_payloads_task(webhook, settings):
     for creation_time in [before_delete_period, after_delete_period]:
         with freeze_time(creation_time):
             payload = EventPayload.objects.create()
+            # TODO: delete payload files
             delivery = EventDelivery.objects.create(
                 event_type=WebhookEventAsyncType.ANY,
                 payload=payload,

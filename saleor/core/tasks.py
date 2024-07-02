@@ -38,6 +38,7 @@ def delete_event_payloads_task(expiration_date=None):
     if ids:
         if expiration_date > timezone.now():
             qs.delete()
+            # TODO: delete payload files
             delete_event_payloads_task.delay(expiration_date)
         else:
             task_logger.error("Task invocation time limit reached, aborting task")
