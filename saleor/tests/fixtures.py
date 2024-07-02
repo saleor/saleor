@@ -8524,12 +8524,9 @@ def app_manifest_webhook():
 @pytest.fixture
 def event_payload():
     """Return event payload."""
-    event_payload = EventPayload.objects.create()
-    event_payload.payload_file.save(
-        f"payload-{event_payload.pk}-{event_payload.created_at}.json",
-        ContentFile('{"payload_key": "payload_value"}'),
+    return EventPayload.objects.create_with_payload_file(
+        payload='{"payload_key": "payload_value"}'
     )
-    return event_payload
 
 
 @pytest.fixture
