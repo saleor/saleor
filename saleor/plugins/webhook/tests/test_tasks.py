@@ -3,7 +3,6 @@ from decimal import Decimal
 from unittest import mock
 
 import pytest
-from django.core.files.base import ContentFile
 from django.utils import timezone
 from freezegun import freeze_time
 from graphene import Node

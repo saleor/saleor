@@ -17,7 +17,6 @@ import pytz
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.files import File
-from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import connection
 from django.template.defaultfilters import truncatechars

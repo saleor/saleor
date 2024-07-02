@@ -6,7 +6,6 @@ from unittest import mock
 import pytest
 from django.conf import settings
 from django.contrib.sites.models import Site
-from django.core.files.base import ContentFile
 from django.utils import timezone
 from requests import RequestException, TooManyRedirects
 from requests_hardened import HTTPSession

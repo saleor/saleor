@@ -15,7 +15,6 @@ from celery import Task
 from celery.exceptions import MaxRetriesExceededError, Retry
 from celery.utils.log import get_task_logger
 from django.conf import settings
-from django.core.files.base import ContentFile
 from django.urls import reverse
 from google.cloud import pubsub_v1
 from requests import RequestException

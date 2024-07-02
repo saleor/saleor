@@ -7,7 +7,6 @@ from urllib.parse import urlparse
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.core.cache import cache
-from django.core.files.base import ContentFile
 
 from ....celeryconf import app
 from ....core import EventDeliveryStatus
