@@ -10,7 +10,7 @@ from ....core.taxes import TaxError
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
 from ....discount.models import Voucher, VoucherCode
-from ....discount.utils import (
+from ....discount.utils.voucher import (
     get_active_voucher_code,
     get_voucher_code_instance,
     increase_voucher_usage,

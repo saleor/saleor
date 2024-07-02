@@ -9,7 +9,7 @@ from django.conf import settings
 from django.utils.text import slugify
 from freezegun import freeze_time
 
-from .....discount.utils import get_active_catalogue_promotion_rules
+from .....discount.utils.promotion import get_active_catalogue_promotion_rules
 from .....product.error_codes import ProductErrorCode
 from .....tests.utils import dummy_editorjs, flush_post_commit_hooks
 from ....core.enums import WeightUnitsEnum

@@ -1,6 +1,6 @@
 import graphene
 
-from .....discount.utils import mark_active_catalogue_promotion_rules_as_dirty
+from .....discount.utils.promotion import mark_active_catalogue_promotion_rules_as_dirty
 from .....permission.enums import ProductPermissions
 from .....product import models
 from ....channel import ChannelContext

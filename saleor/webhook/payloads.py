@@ -33,7 +33,7 @@ from ..core.utils.anonymization import (
 )
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..discount import VoucherType
-from ..discount.utils import is_order_level_voucher
+from ..discount.utils.voucher import is_order_level_voucher
 from ..order import FulfillmentStatus, OrderStatus
 from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..order.utils import get_order_country

@@ -16,14 +16,16 @@ from ..models import (
     VoucherCode,
     VoucherCustomer,
 )
-from ..utils import (
+from ..utils.promotion import (
+    get_discount_name,
+    get_discount_translated_name,
+)
+from ..utils.voucher import (
     _get_the_cheapest_line,
     activate_voucher_code,
     add_voucher_usage_by_customer,
     deactivate_voucher_code,
     decrease_voucher_code_usage_value,
-    get_discount_name,
-    get_discount_translated_name,
     increase_voucher_code_usage_value,
     is_order_level_voucher,
     remove_voucher_usage_by_customer,

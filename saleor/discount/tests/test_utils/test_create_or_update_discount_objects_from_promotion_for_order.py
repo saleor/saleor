@@ -10,7 +10,7 @@ from ....product.models import (
 from ....warehouse.models import Stock
 from ... import DiscountType, RewardType, RewardValueType
 from ...models import OrderDiscount, OrderLineDiscount
-from ...utils import create_or_update_discount_objects_from_promotion_for_order
+from ...utils.order import create_or_update_discount_objects_from_promotion_for_order
 
 
 def test_create_catalogue_discount_fixed(

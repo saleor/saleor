@@ -15,7 +15,7 @@ from ....core.tracing import traced_atomic_transaction
 from ....core.utils import prepare_unique_slug
 from ....core.utils.editorjs import clean_editor_js
 from ....core.utils.validators import get_oembed_data
-from ....discount.utils import mark_active_catalogue_promotion_rules_as_dirty
+from ....discount.utils.promotion import mark_active_catalogue_promotion_rules_as_dirty
 from ....permission.enums import ProductPermissions
 from ....product import ProductMediaTypes, models
 from ....product.error_codes import ProductBulkCreateErrorCode

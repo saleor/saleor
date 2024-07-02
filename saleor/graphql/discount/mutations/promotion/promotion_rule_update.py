@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 
 from .....discount import PromotionType, events, models
-from .....discount.utils import get_current_products_for_rules
+from .....discount.utils.promotion import get_current_products_for_rules
 from .....permission.enums import DiscountPermissions
 from .....product.utils.product import mark_products_in_channels_as_dirty
 from .....webhook.event_types import WebhookEventAsyncType

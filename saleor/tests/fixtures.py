@@ -80,7 +80,7 @@ from ..discount.models import (
     VoucherCustomer,
     VoucherTranslation,
 )
-from ..discount.utils import (
+from ..discount.utils.voucher import (
     get_products_voucher_discount,
     validate_voucher_in_order,
 )

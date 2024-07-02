@@ -32,10 +32,14 @@ from ..discount.models import (
     Voucher,
     VoucherCode,
 )
-from ..discount.utils import (
+from ..discount.utils.checkout import (
     create_checkout_discount_objects_for_order_promotions,
     create_checkout_line_discount_objects_for_catalogue_promotions,
+)
+from ..discount.utils.promotion import (
     delete_gift_line,
+)
+from ..discount.utils.voucher import (
     get_discounted_lines,
     get_products_voucher_discount,
     get_voucher_code_instance,

@@ -6,7 +6,7 @@ from django.db.models import QuerySet
 
 from ...attribute import AttributeType
 from ...discount.models import PromotionRule
-from ...discount.utils import update_rule_variant_relation
+from ...discount.utils.promotion import update_rule_variant_relation
 from ..models import ProductVariant
 
 if TYPE_CHECKING:

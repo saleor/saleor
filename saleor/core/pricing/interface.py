@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from ...product.models import (
         Collection,
         Product,
+        ProductType,
         ProductVariant,
         ProductVariantChannelListing,
     )
@@ -23,6 +24,7 @@ class LineInfo:
     line: Union["OrderLine", "CheckoutLine"]
     variant: Optional["ProductVariant"]
     product: Optional["Product"]
+    product_type: Optional["ProductType"]
     collections: list["Collection"]
     channel_listing: "ProductVariantChannelListing"
     channel: "Channel"

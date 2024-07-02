@@ -12,7 +12,9 @@ from ...product.utils.variant_prices import update_discounted_prices_for_promoti
 from ...product.utils.variants import fetch_variants_for_promotion_rules
 from .. import DiscountValueType, RewardValueType
 from ..models import Promotion
-from ..utils import create_or_update_discount_objects_from_promotion_for_checkout
+from ..utils.checkout import (
+    create_or_update_discount_objects_from_promotion_for_checkout,
+)
 
 
 @pytest.fixture
