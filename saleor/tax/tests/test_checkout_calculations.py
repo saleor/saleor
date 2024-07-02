@@ -7,7 +7,9 @@ from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...checkout.utils import add_variant_to_checkout
 from ...core.prices import quantize_price
 from ...core.taxes import zero_taxed_money
-from ...discount.utils import create_checkout_discount_objects_for_order_promotions
+from ...discount.utils.checkout import (
+    create_checkout_discount_objects_for_order_promotions,
+)
 from ...plugins.manager import get_plugins_manager
 from ...tax.models import TaxClassCountryRate
 from .. import TaxCalculationStrategy

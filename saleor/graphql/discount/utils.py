@@ -10,7 +10,7 @@ from graphene.utils.str_converters import to_snake_case
 
 from ...checkout.models import Checkout
 from ...discount.models import Promotion, PromotionRule
-from ...discount.utils import update_rule_variant_relation
+from ...discount.utils.promotion import update_rule_variant_relation
 from ...order.models import Order
 from ...product.managers import ProductsQueryset, ProductVariantQueryset
 from ...product.models import (

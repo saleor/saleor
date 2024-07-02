@@ -20,7 +20,7 @@ from .....attribute.tests.model_helpers import (
 )
 from .....attribute.utils import associate_attribute_values_to_instance
 from .....core.taxes import TaxType
-from .....discount.utils import get_active_catalogue_promotion_rules
+from .....discount.utils.promotion import get_active_catalogue_promotion_rules
 from .....graphql.core.enums import AttributeErrorCode
 from .....graphql.tests.utils import get_graphql_content
 from .....plugins.manager import PluginsManager

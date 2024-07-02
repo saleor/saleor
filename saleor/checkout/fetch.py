@@ -295,7 +295,7 @@ def fetch_checkout_lines(
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> tuple[Iterable[CheckoutLineInfo], Iterable[int]]:
     """Fetch checkout lines as CheckoutLineInfo objects."""
-    from ..discount.utils import apply_voucher_to_line
+    from ..discount.utils.voucher import apply_voucher_to_line
     from .utils import get_voucher_for_checkout
 
     select_related_fields = ["variant__product__product_type__tax_class"]

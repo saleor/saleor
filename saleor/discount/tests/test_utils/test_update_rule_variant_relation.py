@@ -4,7 +4,7 @@ import graphene
 
 from ... import RewardValueType
 from ...models import PromotionRule
-from ...utils import update_rule_variant_relation
+from ...utils.promotion import update_rule_variant_relation
 
 
 def test_update_rule_variant_relation(

@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from ... import RewardType, RewardValueType
 from ...models import PromotionRule
-from ...utils import fetch_promotion_rules_for_checkout_or_order
+from ...utils.promotion import fetch_promotion_rules_for_checkout_or_order
 
 
 def test_fetch_promotion_rules_for_checkout(

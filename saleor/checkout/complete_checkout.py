@@ -27,8 +27,8 @@ from ..core.transactions import transaction_with_commit_on_errors
 from ..core.utils.url import validate_storefront_url
 from ..discount import DiscountType, DiscountValueType
 from ..discount.models import CheckoutDiscount, NotApplicable, OrderLineDiscount
-from ..discount.utils import (
-    get_sale_id,
+from ..discount.utils.promotion import get_sale_id
+from ..discount.utils.voucher import (
     increase_voucher_usage,
     release_voucher_code_usage,
 )

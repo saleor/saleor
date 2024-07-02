@@ -1,7 +1,7 @@
 import graphene
 from django.db.models import Exists, OuterRef
 
-from .....discount.utils import mark_active_catalogue_promotion_rules_as_dirty
+from .....discount.utils.promotion import mark_active_catalogue_promotion_rules_as_dirty
 from .....permission.enums import ProductPermissions
 from .....product import models
 from .....thumbnail import models as thumbnail_models

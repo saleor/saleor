@@ -20,8 +20,10 @@ from ..discount.models import (
     OrderLineDiscount,
     VoucherType,
 )
-from ..discount.utils import (
+from ..discount.utils.manual_discount import (
     apply_discount_to_value,
+)
+from ..discount.utils.promotion import (
     get_discount_name,
     get_discount_translated_name,
     get_sale_id,
