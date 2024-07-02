@@ -97,3 +97,7 @@ HTTP_IP_FILTER_ENABLED = False
 HTTP_IP_FILTER_ALLOW_LOOPBACK_IPS = True
 
 MIDDLEWARE.insert(0, "saleor.core.db.connection.restrict_writer_middleware")  # noqa: F405
+
+# Raise error when using writer DB in Celery tasks, without explicit "allow_writer"
+# context manager.
+CELERY_RESTRICT_WRITER_METHOD = "saleor.core.db.connection.restrict_writer"

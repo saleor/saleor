@@ -5,7 +5,20 @@ from django.utils import timezone
 
 from .. import GiftCardEvents
 from ..models import GiftCard
-from ..tasks import deactivate_expired_cards_task
+from ..tasks import deactivate_expired_cards_task, update_gift_cards_search_vector_task
+
+
+def test_update_gift_cards_search_vector_task(gift_card):
+    # given
+    gift_card.search_index_dirty = True
+    gift_card.save(update_fields=["search_index_dirty"])
+
+    # when
+    update_gift_cards_search_vector_task()
+
+    # then
+    gift_card.refresh_from_db()
+    assert not gift_card.search_index_dirty
 
 
 def test_deactivate_expired_cards_task(

@@ -251,6 +251,9 @@ ENABLE_RESTRICT_WRITER_MIDDLEWARE = get_bool_from_env(
 if ENABLE_RESTRICT_WRITER_MIDDLEWARE:
     MIDDLEWARE = ["saleor.core.db.connection.log_writer_usage_middleware"] + MIDDLEWARE
 
+# Restrict inexplicit writer DB usage in Celery tasks
+CELERY_RESTRICT_WRITER_METHOD = "saleor.core.db.connection.log_writer_usage"
+
 INSTALLED_APPS = [
     # External apps that need to go before django's
     "storages",

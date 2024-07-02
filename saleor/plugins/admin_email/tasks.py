@@ -1,4 +1,5 @@
 from ...celeryconf import app
+from ...core.db.connection import allow_writer
 from ...csv.events import export_failed_info_sent_event, export_file_sent_event
 from ...graphql.core.utils import from_global_id_or_none
 from ..email_common import EmailConfig, send_email
@@ -30,10 +31,11 @@ def send_email_with_link_to_download_file_task(
         template_str=template,
         context=payload,
     )
-    export_file_sent_event(
-        export_file_id=from_global_id_or_none(payload["export"]["id"]),
-        user_id=from_global_id_or_none(payload["export"].get("user_id")),
-    )
+    with allow_writer():
+        export_file_sent_event(
+            export_file_id=from_global_id_or_none(payload["export"]["id"]),
+            user_id=from_global_id_or_none(payload["export"].get("user_id")),
+        )
 
 
 @app.task(compression="zlib")
@@ -48,10 +50,11 @@ def send_export_failed_email_task(
         template_str=template,
         context=payload,
     )
-    export_failed_info_sent_event(
-        export_file_id=from_global_id_or_none(payload["export"]["id"]),
-        user_id=from_global_id_or_none(payload["export"].get("user_id")),
-    )
+    with allow_writer():
+        export_failed_info_sent_event(
+            export_file_id=from_global_id_or_none(payload["export"]["id"]),
+            user_id=from_global_id_or_none(payload["export"].get("user_id")),
+        )
 
 
 @app.task(compression="zlib")

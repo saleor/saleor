@@ -5,11 +5,13 @@ from django.utils import timezone
 
 from ..celeryconf import app
 from ..checkout.models import Checkout
+from ..core.db.connection import allow_writer
 from ..order import ORDER_EDITABLE_STATUS
 from ..order.models import Order
 
 
 @app.task
+@allow_writer()
 def drop_invalid_shipping_methods_relations_for_given_channels(
     shipping_method_ids: Iterable[Union[str, int]],
     channel_ids: Iterable[Union[str, int]],

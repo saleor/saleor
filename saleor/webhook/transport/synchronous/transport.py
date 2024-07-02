@@ -57,6 +57,7 @@ task_logger = get_task_logger(__name__)
     retry_backoff=10,
     retry_kwargs={"max_retries": 5},
 )
+@allow_writer()
 def handle_transaction_request_task(self, delivery_id, request_event_id):
     request_event = TransactionEvent.objects.filter(id=request_event_id).first()
     if not request_event:

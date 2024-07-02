@@ -25,15 +25,7 @@ UNSAFE_WRITER_ACCESS_MSG = (
 )
 
 
-class UnsafeDBUsageError(Exception):
-    pass
-
-
-class UnsafeWriterAccessError(UnsafeDBUsageError):
-    pass
-
-
-class UnsafeReplicaUsageError(UnsafeDBUsageError):
+class UnsafeWriterAccessError(Exception):
     pass
 
 
@@ -87,14 +79,14 @@ def restrict_writer_middleware(get_response):
     """
 
     def middleware(request):
-        with connections[writer].execute_wrapper(_restrict_writer):
-            with connections[replica].execute_wrapper(_restrict_writer):
+        with connections[writer].execute_wrapper(restrict_writer):
+            with connections[replica].execute_wrapper(restrict_writer):
                 return get_response(request)
 
     return middleware
 
 
-def _restrict_writer(execute, sql, params, many, context):
+def restrict_writer(execute, sql, params, many, context):
     conn: BaseDatabaseWrapper = context["connection"]
     allow_writer = getattr(conn, "_allow_writer", False)
     if conn.alias == writer and not allow_writer:
@@ -111,13 +103,13 @@ def log_writer_usage_middleware(get_response):
     """
 
     def middleware(request):
-        with connections[writer].execute_wrapper(_log_writer_usage):
+        with connections[writer].execute_wrapper(log_writer_usage):
             return get_response(request)
 
     return middleware
 
 
-def _log_writer_usage(execute, sql, params, many, context):
+def log_writer_usage(execute, sql, params, many, context):
     conn: BaseDatabaseWrapper = context["connection"]
     allow_writer = getattr(conn, "_allow_writer", False)
     if conn.alias == writer and not allow_writer:

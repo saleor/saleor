@@ -13,6 +13,7 @@ from django.utils import timezone
 
 from ..attribute.models import Attribute
 from ..celeryconf import app
+from ..core.db.connection import allow_writer
 from ..core.exceptions import PreorderAllocationError
 from ..discount import PromotionType
 from ..discount.models import Promotion, PromotionRule
@@ -94,10 +95,12 @@ def update_variants_names(product_type_pk: int, saved_attributes_ids: list[int])
     saved_attributes = Attribute.objects.using(
         settings.DATABASE_CONNECTION_REPLICA_NAME
     ).filter(pk__in=saved_attributes_ids)
-    _update_variants_names(instance, saved_attributes)
+    with allow_writer():
+        _update_variants_names(instance, saved_attributes)
 
 
 @app.task
+@allow_writer()
 def update_products_discounted_prices_of_promotion_task(promotion_pk: UUID):
     # FIXME: Should be removed in Saleor 3.21
 
@@ -160,6 +163,7 @@ def _get_existing_rule_variant_list(rules: QuerySet[PromotionRule]):
 
 
 @app.task
+@allow_writer()
 def update_variant_relations_for_active_promotion_rules_task():
     promotions = (
         Promotion.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
@@ -210,6 +214,7 @@ def update_variant_relations_for_active_promotion_rules_task():
 
 
 @app.task
+@allow_writer()
 def update_products_discounted_prices_for_promotion_task(
     product_ids: Iterable[int],
     start_id: Optional[UUID] = None,
@@ -224,6 +229,7 @@ def update_products_discounted_prices_for_promotion_task(
 
 
 @app.task
+@allow_writer()
 def recalculate_discounted_price_for_products_task():
     """Recalculate discounted price for products."""
     listings = (
@@ -256,6 +262,7 @@ def recalculate_discounted_price_for_products_task():
 
 
 @app.task
+@allow_writer()
 def update_discounted_prices_task(product_ids: Iterable[int]):
     # FIXME: Should be removed in Saleor 3.21
 
@@ -267,6 +274,7 @@ def update_discounted_prices_task(product_ids: Iterable[int]):
 
 
 @app.task
+@allow_writer()
 def deactivate_preorder_for_variants_task():
     variants_to_clean = _get_preorder_variants_to_clean()
 
@@ -294,10 +302,12 @@ def update_products_search_vector_task():
         .order_by("updated_at")[:PRODUCTS_BATCH_SIZE]
         .values_list("id", flat=True)
     )
-    update_products_search_vector(products)
+    with allow_writer():
+        update_products_search_vector(products)
 
 
 @app.task(queue=settings.COLLECTION_PRODUCT_UPDATED_QUEUE_NAME)
+@allow_writer()
 def collection_product_updated_task(product_ids):
     manager = get_plugins_manager(allow_replica=True)
     products = list(

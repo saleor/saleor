@@ -10,6 +10,7 @@ from ..celeryconf import app
 from ..channel.models import Channel
 from ..checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from ..checkout.models import Checkout
+from ..core.db.connection import allow_writer
 from ..payment.models import TransactionEvent, TransactionItem
 from ..plugins.manager import get_plugins_manager
 from . import PaymentError, TransactionAction, TransactionEventType
@@ -43,6 +44,7 @@ def checkouts_with_funds_to_release():
 
 
 @app.task
+@allow_writer()
 def transaction_release_funds_for_checkout_task():
     CHECKOUT_BATCH_SIZE = int(settings.CHECKOUT_BATCH_FOR_RELEASING_FUNDS)
     TRANSACTION_BATCH_SIZE = int(settings.TRANSACTION_BATCH_FOR_RELEASING_FUNDS)
