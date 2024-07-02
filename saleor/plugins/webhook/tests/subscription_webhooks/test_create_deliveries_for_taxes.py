@@ -494,6 +494,7 @@ def test_draft_order_calculate_taxes_line_discount(
     # given
     order = order_line.order
     expected_shipping_price = Money("2.00", order.currency)
+    order.undiscounted_base_shipping_price = expected_shipping_price
     order.base_shipping_price = expected_shipping_price
     order.shipping_price = TaxedMoney(
         net=expected_shipping_price, gross=expected_shipping_price
@@ -504,6 +505,7 @@ def test_draft_order_calculate_taxes_line_discount(
             "base_shipping_price_amount",
             "shipping_price_net_amount",
             "shipping_price_gross_amount",
+            "undiscounted_base_shipping_price_amount",
             "status",
         ]
     )
@@ -588,6 +590,7 @@ def test_draft_order_calculate_taxes_entire_order_voucher(
     order_discount.value = discount_amount
     order_discount.save(update_fields=["value"])
 
+    order.undiscounted_base_shipping_price = expected_shipping_price
     order.base_shipping_price = expected_shipping_price
     order.shipping_price = TaxedMoney(
         net=expected_shipping_price, gross=expected_shipping_price
@@ -597,6 +600,7 @@ def test_draft_order_calculate_taxes_entire_order_voucher(
             "base_shipping_price_amount",
             "shipping_price_net_amount",
             "shipping_price_gross_amount",
+            "undiscounted_base_shipping_price_amount",
         ]
     )
 
@@ -669,6 +673,7 @@ def test_draft_order_calculate_taxes_apply_once_per_order_voucher(
     order_discount.value = discount_amount
     order_discount.save(update_fields=["value"])
 
+    order.undiscounted_base_shipping_price = expected_shipping_price
     order.base_shipping_price = expected_shipping_price
     order.shipping_price = TaxedMoney(
         net=expected_shipping_price, gross=expected_shipping_price
@@ -678,6 +683,7 @@ def test_draft_order_calculate_taxes_apply_once_per_order_voucher(
             "base_shipping_price_amount",
             "shipping_price_net_amount",
             "shipping_price_gross_amount",
+            "undiscounted_base_shipping_price_amount",
         ]
     )
 
@@ -746,6 +752,7 @@ def test_order_calculate_taxes_specific_product_voucher(
     order = order_line.order
     webhook = subscription_calculate_taxes_for_order
     expected_shipping_price = Money("2.00", order.currency)
+    order.undiscounted_base_shipping_price = expected_shipping_price
     order.base_shipping_price = expected_shipping_price
     order.shipping_price = TaxedMoney(
         net=expected_shipping_price, gross=expected_shipping_price
@@ -758,6 +765,7 @@ def test_order_calculate_taxes_specific_product_voucher(
             "base_shipping_price_amount",
             "shipping_price_net_amount",
             "shipping_price_gross_amount",
+            "undiscounted_base_shipping_price_amount",
             "voucher_code",
             "voucher",
             "status",

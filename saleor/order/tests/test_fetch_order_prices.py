@@ -974,7 +974,7 @@ def test_fetch_order_prices_manual_discount_and_order_discount_flat_rates(
         line_2.unit_price_net_amount * tax_rate, currency
     )
 
-    undiscounted_shipping_price = order.base_shipping_price_amount
+    undiscounted_shipping_price = order.undiscounted_base_shipping_price_amount
     total_net_amount = quantize_price(
         order.undiscounted_total_net_amount * discount_value / 100, currency
     )
@@ -1115,7 +1115,7 @@ def test_fetch_order_prices_manual_discount_and_gift_discount_flat_rates(
         line_2.unit_price_net_amount * tax_rate, currency
     )
 
-    undiscounted_shipping_price = order.base_shipping_price_amount
+    undiscounted_shipping_price = order.undiscounted_base_shipping_price_amount
     total_net_amount = quantize_price(
         order.undiscounted_total_net_amount * discount_value / 100, currency
     )
@@ -1284,7 +1284,7 @@ def test_fetch_order_prices_manual_discount_and_catalogue_discount_flat_rates(
         line_2.unit_price_net_amount * tax_rate, currency
     )
 
-    undiscounted_shipping_price = order.base_shipping_price_amount
+    undiscounted_shipping_price = order.undiscounted_base_shipping_price_amount
     total_net_amount = quantize_price(
         (order.undiscounted_total_net_amount - catalogue_discount.amount_value)
         * manual_discount_value
@@ -1895,6 +1895,7 @@ def test_fetch_order_prices_manual_order_discount_voucher_specific_product(
     assert order.undiscounted_total_gross == subtotal + shipping_price
     assert order.shipping_price_gross == shipping_price - shipping_discount
     assert order.base_shipping_price == shipping_price
+    assert order.undiscounted_base_shipping_price == shipping_price
 
     assert (
         discounted_line.base_unit_price_amount
@@ -1956,6 +1957,7 @@ def test_fetch_order_prices_manual_order_discount_and_voucher_apply_once_per_ord
     lines = order.lines.all()
     order.voucher = voucher
     order.voucher_code = voucher.codes.first().code
+    order.save(update_fields=["voucher", "voucher_code"])
 
     # create manual order discount
     order_discount_amount = Decimal("10")
@@ -1980,6 +1982,7 @@ def test_fetch_order_prices_manual_order_discount_and_voucher_apply_once_per_ord
     # then
     discounted_line, line_1 = lines
     voucher_discount_amount = discount_amount
+    order.refresh_from_db()
     assert (
         order.total_gross_amount
         == subtotal.amount
@@ -1996,6 +1999,7 @@ def test_fetch_order_prices_manual_order_discount_and_voucher_apply_once_per_ord
     assert order.undiscounted_total_gross == subtotal + shipping_price
     assert order.shipping_price_gross == shipping_price - shipping_discount
     assert order.base_shipping_price == shipping_price
+    assert order.undiscounted_base_shipping_price == shipping_price
 
     unit_discount_amount = discount_amount / discounted_line.quantity
     assert (
