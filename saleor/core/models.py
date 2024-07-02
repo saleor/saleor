@@ -6,7 +6,7 @@ from django.contrib.postgres.indexes import GinIndex
 from django.db import models, transaction
 from django.db.models import F, JSONField, Max, Q
 
-from . import EventDeliveryStatus, JobStatus
+from . import EventDeliveryStatus, JobStatus, private_storage
 from .utils.json_serializer import CustomJsonEncoder
 
 
@@ -144,8 +144,18 @@ class Job(models.Model):
 
 
 class EventPayload(models.Model):
-    payload = models.TextField()
+    payload = models.TextField(default="")
+    payload_file = models.FileField(
+        storage=private_storage, upload_to="payloads", null=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def get_payload(self):
+        if self.payload_file:
+            with self.payload_file.open("rt") as f:
+                payload = f.read()
+                return payload
+        return self.payload
 
 
 class EventDelivery(models.Model):
