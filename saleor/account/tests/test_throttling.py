@@ -1,3 +1,4 @@
+import logging
 from datetime import timedelta
 from unittest.mock import patch
 
@@ -251,9 +252,10 @@ def test_authenticate_incorrect_password_existing_email_subsequent_attempt(
 
 
 @freeze_time("2024-05-31 12:00:01")
-def test_authenticate_unidentified_ip_address(rf, customer_user):
+def test_authenticate_unidentified_ip_address(rf, customer_user, caplog):
     # given
     request = rf.request(HTTP_X_FORWARDED_FOR="", REMOTE_ADDR="")
+    caplog.set_level(logging.WARNING)
 
     # when & then
     with pytest.raises(ValidationError) as e:
@@ -261,6 +263,7 @@ def test_authenticate_unidentified_ip_address(rf, customer_user):
 
     error = e.value.error_dict["email"][0]
     assert error.code == AccountErrorCode.UNKNOWN_IP_ADDRESS.value
+    assert "Unknown request's IP address." in caplog.text
 
 
 @freeze_time("2024-05-31 12:00:01")
@@ -337,3 +340,48 @@ def test_authenticate_race_condition(
     assert mocked_cache.get(ip_key) == 1
     assert mocked_cache.get(ip_user_key) == 1
     assert mocked_cache.get(block_key) == next_attempt
+
+
+@freeze_time("2024-05-31 12:00:01")
+@patch("saleor.account.throttling.cache")
+def test_authenticate_incorrect_credentials_max_attempts(
+    mocked_cache,
+    rf,
+    customer_user,
+    setup_mock_for_cache,
+    caplog,
+):
+    # given
+    dummy_cache = {}
+    setup_mock_for_cache(dummy_cache, mocked_cache)
+    now = timezone.now()
+    caplog.set_level(logging.WARNING)
+
+    ip = "123.123.123.123"
+    request = rf.request(HTTP_X_FORWARDED_FOR=ip)
+
+    block_key = get_cache_key_blocked_ip(ip)
+    ip_key = get_cache_key_failed_ip(ip)
+    ip_user_key = get_cache_key_failed_ip_with_user(ip, customer_user.id)
+
+    # imitate cache state after a couple of login attempts
+    ip_attempts_count = 100
+    ip_user_attempts_count = 10
+    mocked_cache.set(ip_key, ip_attempts_count, timeout=100)
+    mocked_cache.set(ip_user_key, ip_user_attempts_count, timeout=100)
+    expected_delay = get_delay_time(ip_attempts_count + 1, ip_user_attempts_count + 1)
+    assert expected_delay == MAX_DELAY
+
+    # when
+    user = authenticate_with_throttling(request, EXISTING_EMAIL, INCORRECT_PASSWORD)
+
+    # then
+    assert not user
+    next_attempt = mocked_cache.get(block_key)
+    updated_ip_attempts_count = mocked_cache.get(ip_key)
+    updated_ip_user_attempts_count = mocked_cache.get(ip_user_key)
+
+    assert next_attempt == now + timedelta(seconds=expected_delay)
+    assert updated_ip_attempts_count == ip_attempts_count + 1
+    assert updated_ip_user_attempts_count == ip_user_attempts_count + 1
+    assert "Unsuccessful logging attempts reached max value." in caplog.text

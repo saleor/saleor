@@ -1,3 +1,4 @@
+import logging
 from datetime import timedelta
 from math import ceil
 from typing import Optional
@@ -15,10 +16,13 @@ MIN_DELAY = 1
 MAX_DELAY = 3600
 ATTEMPT_COUNTER_EXPIRE_TIME = 7200
 
+logger = logging.getLogger(__name__)
+
 
 def authenticate_with_throttling(request, email, password) -> Optional[models.User]:
     ip = get_client_ip(request)
     if not ip:
+        logger.warning("Unknown request's IP address.")
         raise ValidationError(
             {
                 "email": ValidationError(
@@ -64,6 +68,8 @@ def authenticate_with_throttling(request, email, password) -> Optional[models.Us
 
     # calculate next allowed login attempt time and block the IP till the time
     delay = get_delay_time(ip_attempts_count, ip_user_attempts_count)
+    if delay == MAX_DELAY:
+        logger.warning("Unsuccessful logging attempts reached max value.")
     override_block(block_key, delay)
 
     return None
