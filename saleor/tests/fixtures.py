@@ -8521,10 +8521,10 @@ def app_manifest_webhook():
 
 
 @pytest.fixture
-def event_payload():
+def event_payload(webhook):
     """Return event payload."""
     return EventPayload.objects.create_with_payload_file(
-        payload='{"payload_key": "payload_value"}'
+        payload='{"payload_key": "payload_value"}', webhook=webhook
     )
 
 
@@ -8539,10 +8539,18 @@ def event_delivery(event_payload, webhook, app):
 
 
 @pytest.fixture
-def event_delivery_removed_app(event_payload, webhook_removed_app):
+def event_payload_removed_app(webhook_removed_app):
+    """Return event payload."""
+    return EventPayload.objects.create_with_payload_file(
+        payload="removed-app", webhook=webhook_removed_app
+    )
+
+
+@pytest.fixture
+def event_delivery_removed_app(event_payload_removed_app, webhook_removed_app):
     return EventDelivery.objects.create(
         event_type=WebhookEventAsyncType.ANY,
-        payload=event_payload,
+        payload=event_payload_removed_app,
         webhook=webhook_removed_app,
     )
 
