@@ -30,6 +30,7 @@ from ...core.models import (
     EventDeliveryStatus,
     EventPayload,
 )
+from ...core.tasks import delete_files_from_private_storage_task
 from ...core.taxes import TaxData, TaxLineData
 from ...core.utils import build_absolute_uri
 from ...core.utils.events import call_event
@@ -425,8 +426,12 @@ def clear_successful_delivery(delivery: "EventDelivery"):
         payload_id = delivery.payload_id
         delivery.delete()
         if payload_id:
-            # TODO: delete payload file
-            EventPayload.objects.filter(pk=payload_id, deliveries__isnull=True).delete()
+            payloads_to_delete = EventPayload.objects.filter(
+                pk=payload_id, deliveries__isnull=True
+            )
+            files_to_delete = [p.payload_file.name for p in payloads_to_delete]
+            payloads_to_delete.delete()
+            delete_files_from_private_storage_task.delay(files_to_delete)
 
 
 @allow_writer()
