@@ -169,6 +169,7 @@ def _release_checkout_voucher_usage(
 
 def _process_shipping_data_for_order(
     checkout_info: "CheckoutInfo",
+    undiscounted_base_shipping_price: Money,
     base_shipping_price: Money,
     shipping_price: TaxedMoney,
     manager: "PluginsManager",
@@ -196,6 +197,7 @@ def _process_shipping_data_for_order(
     tax_class = getattr(shipping_method, "tax_class", None)
 
     result: dict[str, Any] = {
+        "undiscounted_base_shipping_price": undiscounted_base_shipping_price,
         "shipping_address": shipping_address,
         "base_shipping_price": base_shipping_price,
         "shipping_price": shipping_price,
@@ -530,7 +532,12 @@ def _prepare_order_data(
     )
     order_data.update(
         _process_shipping_data_for_order(
-            checkout_info, base_shipping_price, shipping_total, manager, lines
+            checkout_info,
+            undiscounted_base_shipping_price,
+            base_shipping_price,
+            shipping_total,
+            manager,
+            lines,
         )
     )
     order_data.update(_process_user_data_for_order(checkout_info, manager))
@@ -1282,6 +1289,7 @@ def _create_order_from_checkout(
         tax_exemption=checkout_info.checkout.tax_exemption,
         **_process_shipping_data_for_order(
             checkout_info,
+            undiscounted_base_shipping_price,
             base_shipping_price,
             shipping_total,
             manager,

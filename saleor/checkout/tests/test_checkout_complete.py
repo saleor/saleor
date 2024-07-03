@@ -1796,7 +1796,12 @@ def test_process_shipping_data_for_order_store_customer_shipping_address(
 
     # when
     _ = _process_shipping_data_for_order(
-        checkout_info, base_shipping_price, shipping_price, manager, lines
+        checkout_info,
+        base_shipping_price,
+        base_shipping_price,
+        shipping_price,
+        manager,
+        lines,
     )
 
     # then
@@ -1831,7 +1836,12 @@ def test_process_shipping_data_for_order_dont_store_customer_click_and_collect_a
 
     # when
     _ = _process_shipping_data_for_order(
-        checkout_info, base_shipping_price, shipping_price, manager, lines
+        checkout_info,
+        base_shipping_price,
+        base_shipping_price,
+        shipping_price,
+        manager,
+        lines,
     )
 
     # then
@@ -1917,6 +1927,7 @@ def test_create_order_store_shipping_prices(
     )
 
     # then
+    assert order.undiscounted_base_shipping_price == expected_base_shipping_price
     assert order.base_shipping_price == expected_base_shipping_price
     assert order.shipping_price == expected_shipping_price
     manager.calculate_checkout_shipping.assert_called_once_with(
@@ -1941,6 +1952,9 @@ def test_create_order_store_shipping_prices_with_free_shipping_voucher(
     checkout = checkout_with_voucher_free_shipping
     manager = get_plugins_manager(allow_replica=False)
 
+    expected_undiscounted_shipping_price = shipping_method.channel_listings.get(
+        channel=checkout.channel
+    ).price
     expected_base_shipping_price = zero_money(checkout.currency)
     expected_shipping_price = zero_taxed_money(checkout.currency)
     expected_shipping_tax_rate = Decimal("0.0")
@@ -1971,6 +1985,9 @@ def test_create_order_store_shipping_prices_with_free_shipping_voucher(
     )
 
     # then
+    assert (
+        order.undiscounted_base_shipping_price == expected_undiscounted_shipping_price
+    )
     assert order.base_shipping_price == expected_base_shipping_price
     assert order.shipping_price == expected_shipping_price
     manager.calculate_checkout_shipping.assert_called_once_with(

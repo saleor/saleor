@@ -749,6 +749,9 @@ def test_create_order_from_store_shipping_prices_with_free_shipping_voucher(
     # given
     checkout = checkout_with_voucher_free_shipping
 
+    expected_undiscounted_shipping_price = shipping_method.channel_listings.get(
+        channel=checkout.channel
+    ).price
     expected_base_shipping_price = zero_money(checkout.currency)
     expected_shipping_price = zero_taxed_money(checkout.currency)
     expected_shipping_tax_rate = Decimal("0.0")
@@ -773,6 +776,9 @@ def test_create_order_from_store_shipping_prices_with_free_shipping_voucher(
     )
 
     # then
+    assert (
+        order.undiscounted_base_shipping_price == expected_undiscounted_shipping_price
+    )
     assert order.base_shipping_price == expected_base_shipping_price
     assert order.shipping_price == expected_shipping_price
     manager.calculate_checkout_shipping.assert_called_once_with(
