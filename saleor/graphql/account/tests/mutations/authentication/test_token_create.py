@@ -400,7 +400,7 @@ def test_create_token_do_update_last_login_when_out_of_threshold(
 @patch("saleor.account.throttling.get_client_ip")
 @patch("saleor.account.throttling.cache")
 def test_create_token_throttling_login_attempt_delay(
-    mocked_cache, mock_get_ip, api_client, customer_user, setup_mock_for_cache
+    mocked_cache, mocked_get_ip, api_client, customer_user, setup_mock_for_cache
 ):
     # given
     dummy_cache = {}
@@ -410,7 +410,7 @@ def test_create_token_throttling_login_attempt_delay(
     variables = {"email": customer_user.email, "password": "incorrect-password"}
 
     ip = "123.123.123.123"
-    mock_get_ip.return_value = ip
+    mocked_get_ip.return_value = ip
 
     # imitate cache state after a couple of failed login attempts
     block_key = get_cache_key_blocked_ip(ip)
