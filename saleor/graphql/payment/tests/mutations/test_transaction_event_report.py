@@ -12,6 +12,7 @@ from freezegun import freeze_time
 from .....checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from .....checkout.calculations import fetch_checkout_data
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from .....order import OrderStatus
 from .....payment import TransactionEventType
 from .....payment.models import TransactionEvent
 from .....payment.transaction_item_calculations import recalculate_transaction_amounts
@@ -1628,10 +1629,10 @@ def test_transaction_event_report_for_order_triggers_webhooks_when_fully_paid(
     transaction_item_generator,
     app_api_client,
     permission_manage_payments,
-    order_with_lines,
+    unconfirmed_order_with_lines,
 ):
     # given
-    order = order_with_lines
+    order = unconfirmed_order_with_lines
     psp_reference = "111-abc"
     transaction = transaction_item_generator(app=app_api_client.app, order_id=order.pk)
     transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
@@ -1670,6 +1671,7 @@ def test_transaction_event_report_for_order_triggers_webhooks_when_fully_paid(
     get_graphql_content(response)
     order.refresh_from_db()
 
+    assert order.status == OrderStatus.UNFULFILLED
     assert order.charge_status == OrderChargeStatusEnum.FULL.value
     mock_order_fully_paid.assert_called_once_with(order)
     mock_order_updated.assert_called_once_with(order)
