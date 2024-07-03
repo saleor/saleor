@@ -43,8 +43,7 @@ def authenticate_with_throttling(request, email, password) -> Optional[models.Us
         raise ValidationError(
             {
                 "email": ValidationError(
-                    f"Due to too many failed authentication attempts, "
-                    f"logging has been suspended till {next_attempt_time}.",
+                    f"Logging has been suspended till {next_attempt_time}.",
                     code=AccountErrorCode.LOGIN_ATTEMPT_DELAYED.value,
                 )
             }
@@ -93,8 +92,23 @@ def clear_cache(keys: list[str]):
 
 
 def get_delay_time(ip_attempts_count: int, ip_user_attempts_count: int) -> int:
-    """Calculate next login attempt delay, based on number of attempts."""
-    ip_delay, ip_user_delay = 0, 0
+    """Calculate next login attempt delay, based on number of attempts.
+
+    Delay is incremented by the power of 2.
+
+    We distinguish two cases:
+    - Case "A": many failed logins for the same IP address, no matters the username
+    provided, to prevent credential stuffing
+    - Case "B": many failed logins for the same IP address and same existing username,
+    to prevent brute-forcing
+
+    For case "A" we increment delay time every 10 attempts. It means delay will be
+    1sec for attempts 1-10, 2sec for attempts 11-20, 4 sec for attempts 21-30 and so on.
+
+    For case "B" we increment delay time every single attempt. It means delay will be
+    1sec after attempt 1, 2sec after attempt 2, 4sec after attempt 3 and so on.
+    """
+    ip_delay = 0
     if ip_attempts_count > 0:
         ip_delay = (
             2 ** (ceil(ip_attempts_count / 10) - 1)
@@ -102,6 +116,7 @@ def get_delay_time(ip_attempts_count: int, ip_user_attempts_count: int) -> int:
             else MAX_DELAY
         )
 
+    ip_user_delay = 0
     if ip_user_attempts_count > 0:
         ip_user_delay = (
             2 ** (ip_user_attempts_count - 1)
