@@ -5,7 +5,6 @@ from django.contrib.auth.tokens import default_token_generator
 from django.test import override_settings
 
 from ......account import events as account_events
-from ......account.error_codes import AccountErrorCode
 from ......account.models import User
 from ......account.notifications import get_default_user_payload
 from ......account.search import generate_user_fields_search_document_value
@@ -99,9 +98,7 @@ def test_customer_register(
     response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"][mutation_name]
-    assert data["errors"]
-    assert data["errors"][0]["field"] == "email"
-    assert data["errors"][0]["code"] == AccountErrorCode.UNIQUE.name
+    assert not data["errors"]
 
     customer_creation_event = account_events.CustomerEvent.objects.get()
     assert customer_creation_event.type == account_events.CustomerEvents.ACCOUNT_CREATED
