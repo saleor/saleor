@@ -14,9 +14,10 @@ from .....core.utils.url import prepare_url, validate_storefront_url
 from .....webhook.event_types import WebhookEventAsyncType
 from ....channel.utils import clean_channel
 from ....core import ResolveInfo
+from ....core.descriptions import DEPRECATED_IN_3X_FIELD
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.enums import LanguageCodeEnum
-from ....core.mutations import ModelMutation
+from ....core.mutations import BaseMutation, ModelMutation
 from ....core.types import AccountError, NonNullList
 from ....core.utils import WebhookEventInfo
 from ....meta.inputs import MetadataInput
@@ -58,7 +59,7 @@ class AccountRegisterInput(AccountBaseInput):
         doc_category = DOC_CATEGORY_USERS
 
 
-class AccountRegister(ModelMutation):
+class AccountRegister(BaseMutation):
     class Arguments:
         input = AccountRegisterInput(
             description="Fields required to create a user.", required=True
@@ -67,13 +68,14 @@ class AccountRegister(ModelMutation):
     requires_confirmation = graphene.Boolean(
         description="Informs whether users need to confirm their email address."
     )
+    user = graphene.Field(
+        User,
+        deprecation_reason=DEPRECATED_IN_3X_FIELD,
+    )
 
     class Meta:
         description = "Register a new user."
         doc_category = DOC_CATEGORY_USERS
-        exclude = ["password"]
-        model = models.User
-        object_type = User
         error_type_class = AccountError
         error_type_field = "account_errors"
         support_meta_field = True
@@ -108,7 +110,9 @@ class AccountRegister(ModelMutation):
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
         site = get_site_promise(info.context).get()
         if not site.settings.enable_account_confirmation_by_email:
-            return super().clean_input(info, instance, data, **kwargs)
+            return ModelMutation.clean_input(
+                info, instance, data, input_cls=cls.Arguments.input, **kwargs
+            )
         elif not data.get("redirect_url"):
             raise ValidationError(
                 {
@@ -142,7 +146,46 @@ class AccountRegister(ModelMutation):
             raise ValidationError({"password": error})
 
         data["language_code"] = data.get("language_code", settings.LANGUAGE_CODE)
-        return super().clean_input(info, instance, data, **kwargs)
+        return ModelMutation.clean_input(
+            info, instance, data, input_cls=cls.Arguments.input, **kwargs
+        )
+
+    @classmethod
+    def clean_instance(cls, info: ResolveInfo, instance, /):
+        user_exists = False
+
+        try:
+            instance.full_clean()
+        except ValidationError as error:
+            user_exists, error.error_dict = cls._clean_errors(error)
+
+            if cls._meta.errors_mapping:
+                cls.remap_error_fields(error, cls._meta.errors_mapping)
+
+            if error.error_dict:
+                raise error
+
+        return user_exists
+
+    @classmethod
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
+        instance = models.User()
+        data = data.get("input")
+        cleaned_input = cls.clean_input(info, instance, data)
+        metadata_list = cleaned_input.pop("metadata", None)
+        private_metadata_list = cleaned_input.pop("private_metadata", None)
+
+        instance = cls.construct_instance(instance, cleaned_input)
+        cls.validate_and_update_metadata(instance, metadata_list, private_metadata_list)
+        user_exists = cls.clean_instance(info, instance)
+        if not user_exists:
+            cls.save(info, instance, cleaned_input)
+        return cls.success_response(instance)
+
+    @classmethod
+    def success_response(cls, instance):
+        instance.id = None
+        return AccountRegister(user=instance, errors=[])
 
     @classmethod
     def save(cls, info: ResolveInfo, user, cleaned_input):
@@ -188,3 +231,32 @@ class AccountRegister(ModelMutation):
 
             cls.call_event(manager.customer_created, user)
         account_events.customer_account_created_event(user=user)
+
+    @classmethod
+    def _clean_email_errors(cls, errors):
+        existing_user = False
+        _errors = []
+
+        for error in errors:
+            if error.code == "unique":
+                existing_user = True
+                continue
+            _errors.append(error)
+
+        return existing_user, _errors
+
+    @classmethod
+    def _clean_errors(cls, error):
+        existing_user = False
+        error_dict = {}
+
+        for field, errors in error.error_dict.items():
+            if field == "email":
+                existing_user, errors = cls._clean_email_errors(errors)
+                if not errors:
+                    continue
+
+            if field != "password":
+                error_dict[field] = errors
+
+        return existing_user, error_dict

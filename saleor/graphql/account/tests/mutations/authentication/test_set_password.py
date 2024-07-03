@@ -104,12 +104,12 @@ def test_set_password_invalid_email(user_api_client):
     content = get_graphql_content(response)
     errors = content["data"]["setPassword"]["errors"]
     assert len(errors) == 1
-    assert errors[0]["field"] == "email"
+    assert errors[0]["field"] == "token"
 
     account_errors = content["data"]["setPassword"]["errors"]
     assert len(account_errors) == 1
-    assert account_errors[0]["field"] == "email"
-    assert account_errors[0]["code"] == AccountErrorCode.NOT_FOUND.name
+    assert account_errors[0]["field"] == "token"
+    assert account_errors[0]["code"] == AccountErrorCode.INVALID.name
 
 
 @freeze_time("2018-05-31 12:00:01")

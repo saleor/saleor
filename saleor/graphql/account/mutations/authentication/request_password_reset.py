@@ -63,7 +63,7 @@ class RequestPasswordReset(BaseMutation):
         ]
 
     @classmethod
-    def clean_user(cls, email, redirect_url, info: ResolveInfo):
+    def clean_user(cls, email, redirect_url):
         try:
             validate_storefront_url(redirect_url)
         except ValidationError as error:
@@ -72,37 +72,10 @@ class RequestPasswordReset(BaseMutation):
             )
 
         user = retrieve_user_by_email(email)
-        if not user:
-            raise ValidationError(
-                {
-                    "email": ValidationError(
-                        "User with this email doesn't exist",
-                        code=AccountErrorCode.NOT_FOUND.value,
-                    )
-                }
-            )
-
-        if not user.is_active:
-            raise ValidationError(
-                {
-                    "email": ValidationError(
-                        "User with this email is inactive",
-                        code=AccountErrorCode.INACTIVE.value,
-                    )
-                }
-            )
-
-        if password_reset_time := user.last_password_reset_request:
-            delta = timezone.now() - password_reset_time
+        if user and user.last_password_reset_request:
+            delta = timezone.now() - user.last_password_reset_request
             if delta.total_seconds() < settings.RESET_PASSWORD_LOCK_TIME:
-                raise ValidationError(
-                    {
-                        "email": ValidationError(
-                            "Password reset already requested",
-                            code=AccountErrorCode.PASSWORD_RESET_ALREADY_REQUESTED.value,
-                        )
-                    }
-                )
+                user = None
 
         return user
 
@@ -110,20 +83,20 @@ class RequestPasswordReset(BaseMutation):
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         email = data["email"]
         redirect_url = data["redirect_url"]
-        user = cls.clean_user(email, redirect_url, info)
+        user = cls.clean_user(email, redirect_url)
         channel_slug = data.get("channel")
+
+        channel_slug = clean_channel(
+            channel_slug, error_class=AccountErrorCode, allow_replica=False
+        ).slug
+        channel_slug = validate_channel(channel_slug, error_class=AccountErrorCode).slug
+
+        if not user:
+            return RequestPasswordReset()
+
         token = default_token_generator.make_token(user)
+
         params = urlencode({"email": user.email, "token": token})
-
-        if not user.is_staff:
-            channel_slug = clean_channel(
-                channel_slug, error_class=AccountErrorCode, allow_replica=False
-            ).slug
-        elif channel_slug is not None:
-            channel_slug = validate_channel(
-                channel_slug, error_class=AccountErrorCode
-            ).slug
-
         manager = get_plugin_manager_promise(info.context).get()
         send_password_reset_notification(
             redirect_url,

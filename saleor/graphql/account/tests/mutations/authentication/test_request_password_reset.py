@@ -6,7 +6,6 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils import timezone
 from freezegun import freeze_time
 
-from ......account.error_codes import AccountErrorCode
 from ......account.notifications import get_default_user_payload
 from ......core.notify_events import NotifyEventType
 from ......core.tests.utils import get_site_context_payload
@@ -93,13 +92,7 @@ def test_account_reset_password_on_cooldown(
     response = user_api_client.post_graphql(REQUEST_PASSWORD_RESET_MUTATION, variables)
     content = get_graphql_content(response)
     errors = content["data"]["requestPasswordReset"]["errors"]
-    assert errors == [
-        {
-            "field": "email",
-            "message": "Password reset already requested",
-            "code": AccountErrorCode.PASSWORD_RESET_ALREADY_REQUESTED.name,
-        }
-    ]
+    assert not errors
     mocked_notify.assert_not_called()
 
 
@@ -168,7 +161,11 @@ def test_request_password_reset_email_for_staff(
     mocked_notify, staff_api_client, channel_USD, site_settings
 ):
     redirect_url = "https://www.example.com"
-    variables = {"email": staff_api_client.user.email, "redirectUrl": redirect_url}
+    variables = {
+        "email": staff_api_client.user.email,
+        "redirectUrl": redirect_url,
+        "channel": channel_USD.slug,
+    }
     response = staff_api_client.post_graphql(REQUEST_PASSWORD_RESET_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["requestPasswordReset"]
@@ -181,14 +178,14 @@ def test_request_password_reset_email_for_staff(
         "reset_url": reset_url,
         "token": token,
         "recipient_email": staff_api_client.user.email,
-        "channel_slug": None,
+        "channel_slug": channel_USD.slug,
         **get_site_context_payload(site_settings.site),
     }
 
     mocked_notify.assert_called_once_with(
         NotifyEventType.ACCOUNT_STAFF_RESET_PASSWORD,
         payload=expected_payload,
-        channel_slug=None,
+        channel_slug=channel_USD.slug,
     )
 
 
@@ -204,7 +201,7 @@ def test_account_reset_password_invalid_email(
     response = user_api_client.post_graphql(REQUEST_PASSWORD_RESET_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["requestPasswordReset"]
-    assert len(data["errors"]) == 1
+    assert not data["errors"]
     mocked_notify.assert_not_called()
 
 
