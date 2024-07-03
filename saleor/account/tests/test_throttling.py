@@ -1,8 +1,8 @@
 from datetime import timedelta
+from unittest.mock import patch
 
 import before_after
 import pytest
-from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from freezegun import freeze_time
@@ -46,8 +46,14 @@ def test_get_delay_time(ip_attempts_count, ip_user_attempts_count, expected_dela
 
 
 @freeze_time("2024-05-31 12:00:01")
-def test_authenticate_successful_first_attempt(rf, customer_user):
+@patch("saleor.account.throttling.cache")
+def test_authenticate_successful_first_attempt(
+    mocked_cache, rf, customer_user, setup_mock_for_cache
+):
     # given
+    dummy_cache = {}
+    setup_mock_for_cache(dummy_cache, mocked_cache)
+
     ip = "123.123.123.123"
     request = rf.request(HTTP_X_FORWARDED_FOR=ip)
 
@@ -60,15 +66,21 @@ def test_authenticate_successful_first_attempt(rf, customer_user):
 
     # then
     assert user
-    assert cache.get(block_key) is None
-    assert cache.get(ip_key) is None
-    assert cache.get(ip_user_key) is None
+    assert mocked_cache.get(block_key) is None
+    assert mocked_cache.get(ip_key) is None
+    assert mocked_cache.get(ip_user_key) is None
 
 
 @freeze_time("2024-05-31 12:00:01")
-def test_authenticate_successful_subsequent_attempt(rf, customer_user):
+@patch("saleor.account.throttling.cache")
+def test_authenticate_successful_subsequent_attempt(
+    mocked_cache, rf, customer_user, setup_mock_for_cache
+):
     """Make sure cache is cleared after successful login."""
     # given
+    dummy_cache = {}
+    setup_mock_for_cache(dummy_cache, mocked_cache)
+
     ip = "123.123.123.123"
     request = rf.request(HTTP_X_FORWARDED_FOR=ip)
 
@@ -77,25 +89,30 @@ def test_authenticate_successful_subsequent_attempt(rf, customer_user):
     ip_user_key = get_cache_key_failed_ip_with_user(ip, customer_user.id)
 
     # imitate cache state after a couple of login attempts
-    cache.set(ip_key, 21, timeout=100)
-    cache.set(ip_user_key, 7, timeout=100)
+    mocked_cache.set(ip_key, 21, timeout=100)
+    mocked_cache.set(ip_user_key, 7, timeout=100)
 
     # when
     user = authenticate_with_throttling(request, EXISTING_EMAIL, CORRECT_PASSWORD)
 
     # then
     assert user
-    assert cache.get(block_key) is None
-    assert cache.get(ip_key) is None
-    assert cache.get(ip_user_key) is None
+    assert mocked_cache.get(block_key) is None
+    assert mocked_cache.get(ip_key) is None
+    assert mocked_cache.get(ip_user_key) is None
 
 
 @freeze_time("2024-05-31 12:00:01")
+@patch("saleor.account.throttling.cache")
 def test_authenticate_incorrect_password_non_existing_email_first_attempt(
+    mocked_cache,
     rf,
     customer_user,
+    setup_mock_for_cache,
 ):
     # given
+    dummy_cache = {}
+    setup_mock_for_cache(dummy_cache, mocked_cache)
     now = timezone.now()
 
     ip = "123.123.123.123"
@@ -110,9 +127,9 @@ def test_authenticate_incorrect_password_non_existing_email_first_attempt(
 
     # then
     assert not user
-    next_attempt = cache.get(block_key)
-    ip_attempts_count = cache.get(ip_key)
-    ip_user_attempts_count = cache.get(ip_user_key)
+    next_attempt = mocked_cache.get(block_key)
+    ip_attempts_count = mocked_cache.get(ip_key)
+    ip_user_attempts_count = mocked_cache.get(ip_user_key)
 
     assert next_attempt == now + timedelta(seconds=MIN_DELAY)
     assert ip_attempts_count == 1
@@ -120,11 +137,16 @@ def test_authenticate_incorrect_password_non_existing_email_first_attempt(
 
 
 @freeze_time("2024-05-31 12:00:01")
+@patch("saleor.account.throttling.cache")
 def test_authenticate_incorrect_password_non_existing_email_subsequent_attempt(
+    mocked_cache,
     rf,
     customer_user,
+    setup_mock_for_cache,
 ):
     # given
+    dummy_cache = {}
+    setup_mock_for_cache(dummy_cache, mocked_cache)
     now = timezone.now()
 
     ip = "123.123.123.123"
@@ -136,7 +158,7 @@ def test_authenticate_incorrect_password_non_existing_email_subsequent_attempt(
 
     # imitate cache state after a couple of login attempts
     ip_attempts_count = 21
-    cache.set(ip_key, ip_attempts_count, timeout=100)
+    mocked_cache.set(ip_key, ip_attempts_count, timeout=100)
     expected_delay = get_delay_time(ip_attempts_count + 1, 0)
 
     # when
@@ -144,9 +166,9 @@ def test_authenticate_incorrect_password_non_existing_email_subsequent_attempt(
 
     # then
     assert not user
-    next_attempt = cache.get(block_key)
-    updated_ip_attempts_count = cache.get(ip_key)
-    ip_user_attempts_count = cache.get(ip_user_key)
+    next_attempt = mocked_cache.get(block_key)
+    updated_ip_attempts_count = mocked_cache.get(ip_key)
+    ip_user_attempts_count = mocked_cache.get(ip_user_key)
 
     assert next_attempt == now + timedelta(seconds=expected_delay)
     assert updated_ip_attempts_count == ip_attempts_count + 1
@@ -154,11 +176,16 @@ def test_authenticate_incorrect_password_non_existing_email_subsequent_attempt(
 
 
 @freeze_time("2024-05-31 12:00:01")
+@patch("saleor.account.throttling.cache")
 def test_authenticate_incorrect_password_existing_email_first_attempt(
+    mocked_cache,
     rf,
     customer_user,
+    setup_mock_for_cache,
 ):
     # given
+    dummy_cache = {}
+    setup_mock_for_cache(dummy_cache, mocked_cache)
     now = timezone.now()
 
     ip = "123.123.123.123"
@@ -173,9 +200,9 @@ def test_authenticate_incorrect_password_existing_email_first_attempt(
 
     # then
     assert not user
-    next_attempt = cache.get(block_key)
-    ip_attempts_count = cache.get(ip_key)
-    ip_user_attempts_count = cache.get(ip_user_key)
+    next_attempt = mocked_cache.get(block_key)
+    ip_attempts_count = mocked_cache.get(ip_key)
+    ip_user_attempts_count = mocked_cache.get(ip_user_key)
 
     assert next_attempt == now + timedelta(seconds=MIN_DELAY)
     assert ip_attempts_count == 1
@@ -183,11 +210,16 @@ def test_authenticate_incorrect_password_existing_email_first_attempt(
 
 
 @freeze_time("2024-05-31 12:00:01")
+@patch("saleor.account.throttling.cache")
 def test_authenticate_incorrect_password_existing_email_subsequent_attempt(
+    mocked_cache,
     rf,
     customer_user,
+    setup_mock_for_cache,
 ):
     # given
+    dummy_cache = {}
+    setup_mock_for_cache(dummy_cache, mocked_cache)
     now = timezone.now()
 
     ip = "123.123.123.123"
@@ -200,8 +232,8 @@ def test_authenticate_incorrect_password_existing_email_subsequent_attempt(
     # imitate cache state after a couple of login attempts
     ip_attempts_count = 21
     ip_user_attempts_count = 5
-    cache.set(ip_key, ip_attempts_count, timeout=100)
-    cache.set(ip_user_key, ip_user_attempts_count, timeout=100)
+    mocked_cache.set(ip_key, ip_attempts_count, timeout=100)
+    mocked_cache.set(ip_user_key, ip_user_attempts_count, timeout=100)
     expected_delay = get_delay_time(ip_attempts_count + 1, ip_user_attempts_count + 1)
 
     # when
@@ -209,9 +241,9 @@ def test_authenticate_incorrect_password_existing_email_subsequent_attempt(
 
     # then
     assert not user
-    next_attempt = cache.get(block_key)
-    updated_ip_attempts_count = cache.get(ip_key)
-    updated_ip_user_attempts_count = cache.get(ip_user_key)
+    next_attempt = mocked_cache.get(block_key)
+    updated_ip_attempts_count = mocked_cache.get(ip_key)
+    updated_ip_user_attempts_count = mocked_cache.get(ip_user_key)
 
     assert next_attempt == now + timedelta(seconds=expected_delay)
     assert updated_ip_attempts_count == ip_attempts_count + 1
@@ -232,8 +264,13 @@ def test_authenticate_unidentified_ip_address(rf, customer_user):
 
 
 @freeze_time("2024-05-31 12:00:01")
-def test_authenticate_login_attempt_delayed(rf, customer_user):
+@patch("saleor.account.throttling.cache")
+def test_authenticate_login_attempt_delayed(
+    mocked_cache, rf, customer_user, setup_mock_for_cache
+):
     # given
+    dummy_cache = {}
+    setup_mock_for_cache(dummy_cache, mocked_cache)
     now = timezone.now()
 
     ip = "123.123.123.123"
@@ -246,11 +283,11 @@ def test_authenticate_login_attempt_delayed(rf, customer_user):
     # imitate cache state when login is temporarily blocked
     ip_attempts_count = 21
     ip_user_attempts_count = 5
-    cache.set(ip_key, ip_attempts_count, timeout=100)
-    cache.set(ip_user_key, ip_user_attempts_count, timeout=100)
+    mocked_cache.set(ip_key, ip_attempts_count, timeout=100)
+    mocked_cache.set(ip_user_key, ip_user_attempts_count, timeout=100)
     delay = get_delay_time(ip_attempts_count, ip_user_attempts_count)
     next_attempt = now + timedelta(seconds=delay)
-    cache.set(block_key, next_attempt)
+    mocked_cache.set(block_key, next_attempt, timeout=delay)
 
     # when & then
     with pytest.raises(ValidationError) as e:
@@ -260,14 +297,19 @@ def test_authenticate_login_attempt_delayed(rf, customer_user):
     assert error.code == AccountErrorCode.LOGIN_ATTEMPT_DELAYED.value
     assert str(next_attempt) in error.message
 
-    assert cache.get(ip_key) == ip_attempts_count
-    assert cache.get(ip_user_key) == ip_user_attempts_count
-    assert cache.get(block_key) == next_attempt
+    assert mocked_cache.get(ip_key) == ip_attempts_count
+    assert mocked_cache.get(ip_user_key) == ip_user_attempts_count
+    assert mocked_cache.get(block_key) == next_attempt
 
 
 @freeze_time("2024-05-31 12:00:01")
-def test_authenticate_race_condition(rf, customer_user):
+@patch("saleor.account.throttling.cache")
+def test_authenticate_race_condition(
+    mocked_cache, rf, customer_user, setup_mock_for_cache
+):
     # given
+    dummy_cache = {}
+    setup_mock_for_cache(dummy_cache, mocked_cache)
     now = timezone.now()
 
     ip = "123.123.123.123"
@@ -292,6 +334,6 @@ def test_authenticate_race_condition(rf, customer_user):
     assert error.code == AccountErrorCode.LOGIN_ATTEMPT_DELAYED.value
     assert str(next_attempt) in error.message
 
-    assert cache.get(ip_key) == 1
-    assert cache.get(ip_user_key) == 1
-    assert cache.get(block_key) == next_attempt
+    assert mocked_cache.get(ip_key) == 1
+    assert mocked_cache.get(ip_user_key) == 1
+    assert mocked_cache.get(block_key) == next_attempt

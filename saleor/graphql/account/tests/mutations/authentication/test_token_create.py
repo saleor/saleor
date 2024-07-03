@@ -48,7 +48,8 @@ MUTATION_CREATE_TOKEN = """
 
 
 @freeze_time("2020-03-18 12:00:00")
-def test_create_token(api_client, customer_user, settings):
+@patch("saleor.account.throttling.cache")
+def test_create_token(_mocked_cache, api_client, customer_user, settings):
     # given
     variables = {"email": customer_user.email, "password": customer_user._password}
 
@@ -85,7 +86,8 @@ def test_create_token(api_client, customer_user, settings):
 
 
 @freeze_time("2020-03-18 12:00:00")
-def test_create_token_with_audience(api_client, customer_user, settings):
+@patch("saleor.account.throttling.cache")
+def test_create_token_with_audience(_mocked_cache, api_client, customer_user, settings):
     # given
     audience = "dashboard"
     variables = {
@@ -128,7 +130,10 @@ def test_create_token_with_audience(api_client, customer_user, settings):
 
 
 @freeze_time("2020-03-18 12:00:00")
-def test_create_token_sets_cookie(api_client, customer_user, settings, monkeypatch):
+@patch("saleor.account.throttling.cache")
+def test_create_token_sets_cookie(
+    _mocked_cache, api_client, customer_user, settings, monkeypatch
+):
     # given
     csrf_token = _get_new_csrf_token()
     monkeypatch.setattr(
@@ -154,7 +159,9 @@ def test_create_token_sets_cookie(api_client, customer_user, settings, monkeypat
     assert refresh_token["secure"]
 
 
-def test_create_token_invalid_password(api_client, customer_user):
+@freeze_time("2024-05-31 12:00:01")
+@patch("saleor.account.throttling.cache")
+def test_create_token_invalid_password(_mocked_cache, api_client, customer_user):
     # given
     variables = {"email": customer_user.email, "password": "wrongpassword"}
     expected_error_code = AccountErrorCode.INVALID_CREDENTIALS.value.upper()
@@ -169,7 +176,9 @@ def test_create_token_invalid_password(api_client, customer_user):
     assert response_error["field"] == "email"
 
 
-def test_create_token_invalid_email(api_client, customer_user):
+@freeze_time("2024-05-31 12:00:01")
+@patch("saleor.account.throttling.cache")
+def test_create_token_invalid_email(_mocked_cache, api_client, customer_user):
     # given
     variables = {"email": "wrongemail", "password": "wrongpassword"}
     expected_error_code = AccountErrorCode.INVALID_CREDENTIALS.value.upper()
@@ -184,7 +193,9 @@ def test_create_token_invalid_email(api_client, customer_user):
     assert response_error["field"] == "email"
 
 
-def test_create_token_unconfirmed_email(api_client, customer_user):
+@freeze_time("2024-05-31 12:00:01")
+@patch("saleor.account.throttling.cache")
+def test_create_token_unconfirmed_email(_mocked_cache, api_client, customer_user):
     # given
     variables = {"email": customer_user.email, "password": customer_user._password}
     customer_user.is_confirmed = False
@@ -202,8 +213,9 @@ def test_create_token_unconfirmed_email(api_client, customer_user):
 
 
 @freeze_time("2020-03-18 12:00:00")
+@patch("saleor.account.throttling.cache")
 def test_create_token_unconfirmed_user_unconfirmed_login_enabled(
-    api_client, customer_user, settings, site_settings
+    _mocked_cache, api_client, customer_user, settings, site_settings
 ):
     # given
     variables = {"email": customer_user.email, "password": customer_user._password}
@@ -244,7 +256,9 @@ def test_create_token_unconfirmed_user_unconfirmed_login_enabled(
     assert payload["iss"] == build_absolute_uri(reverse("api"))
 
 
-def test_create_token_deactivated_user(api_client, customer_user):
+@freeze_time("2020-03-18 12:00:00")
+@patch("saleor.account.throttling.cache")
+def test_create_token_deactivated_user(_mocked_cache, api_client, customer_user):
     # given
     variables = {"email": customer_user.email, "password": customer_user._password}
     customer_user.is_active = False
@@ -264,7 +278,10 @@ def test_create_token_deactivated_user(api_client, customer_user):
 
 
 @freeze_time("2020-03-18 12:00:00")
-def test_create_token_active_user_logged_before(api_client, customer_user, settings):
+@patch("saleor.account.throttling.cache")
+def test_create_token_active_user_logged_before(
+    _mocked_cache, api_client, customer_user, settings
+):
     # given
     variables = {"email": customer_user.email, "password": customer_user._password}
     customer_user.last_login = datetime(2020, 3, 18, tzinfo=timezone.utc)
@@ -303,7 +320,10 @@ def test_create_token_active_user_logged_before(api_client, customer_user, setti
 
 
 @freeze_time("2020-03-18 12:00:00")
-def test_create_token_email_case_insensitive(api_client, customer_user, settings):
+@patch("saleor.account.throttling.cache")
+def test_create_token_email_case_insensitive(
+    _mocked_cache, api_client, customer_user, settings
+):
     # given
     variables = {
         "email": customer_user.email.upper(),
@@ -378,11 +398,15 @@ def test_create_token_do_update_last_login_when_out_of_threshold(
 
 @freeze_time("2020-03-18 12:00:00")
 @patch("saleor.account.throttling.get_client_ip")
+@patch("saleor.account.throttling.cache")
 def test_create_token_throttling_login_attempt_delay(
-    mock_get_ip, api_client, customer_user
+    mocked_cache, mock_get_ip, api_client, customer_user, setup_mock_for_cache
 ):
     # given
+    dummy_cache = {}
+    setup_mock_for_cache(dummy_cache, mocked_cache)
     now = datetime.utcnow()
+
     variables = {"email": customer_user.email, "password": "incorrect-password"}
 
     ip = "123.123.123.123"
@@ -395,11 +419,11 @@ def test_create_token_throttling_login_attempt_delay(
 
     ip_attempts_count = 21
     ip_user_attempts_count = 5
-    cache.set(ip_key, ip_attempts_count, timeout=100)
-    cache.set(ip_user_key, ip_user_attempts_count, timeout=100)
+    mocked_cache.set(ip_key, ip_attempts_count, timeout=100)
+    mocked_cache.set(ip_user_key, ip_user_attempts_count, timeout=100)
     expected_delay = get_delay_time(ip_attempts_count + 1, ip_user_attempts_count + 1)
     next_attempt = now + timedelta(seconds=expected_delay)
-    cache.set(block_key, next_attempt, timeout=100)
+    mocked_cache.set(block_key, next_attempt, timeout=100)
 
     # when
     response = api_client.post_graphql(MUTATION_CREATE_TOKEN, variables)
@@ -416,8 +440,9 @@ def test_create_token_throttling_login_attempt_delay(
 
 @freeze_time("2020-03-18 12:00:00")
 @patch("saleor.account.throttling.get_client_ip")
+@patch("saleor.account.throttling.cache")
 def test_create_token_throttling_unidentified_ip_address(
-    mock_get_ip, api_client, customer_user
+    _mocked_cache, mock_get_ip, api_client, customer_user
 ):
     # given
     mock_get_ip.return_value = None
