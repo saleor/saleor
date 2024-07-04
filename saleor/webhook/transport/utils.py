@@ -429,7 +429,9 @@ def clear_successful_delivery(delivery: "EventDelivery"):
             payloads_to_delete = EventPayload.objects.filter(
                 pk=payload_id, deliveries__isnull=True
             )
-            files_to_delete = [p.payload_file.name for p in payloads_to_delete]
+            files_to_delete = [
+                event_payload.payload_file.name for event_payload in payloads_to_delete
+            ]
             payloads_to_delete.delete()
             delete_files_from_private_storage_task.delay(files_to_delete)
 
