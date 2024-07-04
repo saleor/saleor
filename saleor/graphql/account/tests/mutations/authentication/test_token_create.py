@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
 
 import graphene
+import pytz
 from django.urls import reverse
 from freezegun import freeze_time
 
@@ -284,3 +285,58 @@ def test_create_token_email_case_insensitive(api_client, customer_user, settings
     assert customer_user.email == data["user"]["email"]
     assert not data["errors"]
     assert data["token"]
+
+
+@freeze_time("2020-03-18 12:00:00")
+def test_create_token_do_not_update_last_login_when_in_threshold(
+    api_client, customer_user, settings
+):
+    # given
+    customer_password = customer_user._password
+    customer_user.last_login = datetime.now(tz=pytz.UTC)
+    customer_user.save()
+    expected_last_login = customer_user.last_login
+    expected_updated_at = customer_user.updated_at
+    variables = {"email": customer_user.email, "password": customer_password}
+    time_in_threshold = datetime.now(tz=pytz.UTC) + timedelta(
+        seconds=settings.TOKEN_UPDATE_LAST_LOGIN_THRESHOLD - 1
+    )
+
+    # when
+    with freeze_time(time_in_threshold):
+        response = api_client.post_graphql(MUTATION_CREATE_TOKEN, variables)
+
+    # then
+    get_graphql_content(response)
+    customer_user.refresh_from_db()
+    assert customer_user.updated_at == expected_updated_at
+    assert customer_user.last_login == expected_last_login
+
+
+@freeze_time("2020-03-18 12:00:00")
+def test_create_token_do_update_last_login_when_out_of_threshold(
+    api_client, customer_user, settings
+):
+    # given
+    customer_password = customer_user._password
+    customer_user.last_login = datetime.now(tz=pytz.UTC)
+    customer_user.save()
+    previous_last_login = customer_user.last_login
+    previous_updated_at = customer_user.updated_at
+
+    variables = {"email": customer_user.email, "password": customer_password}
+    time_in_threshold = datetime.now(tz=pytz.UTC) + timedelta(
+        seconds=settings.TOKEN_UPDATE_LAST_LOGIN_THRESHOLD + 1
+    )
+
+    # when
+    with freeze_time(time_in_threshold):
+        response = api_client.post_graphql(MUTATION_CREATE_TOKEN, variables)
+
+    # then
+    get_graphql_content(response)
+    customer_user.refresh_from_db()
+    assert customer_user.updated_at != previous_updated_at
+    assert customer_user.last_login != previous_last_login
+    assert customer_user.updated_at == time_in_threshold
+    assert customer_user.last_login == time_in_threshold

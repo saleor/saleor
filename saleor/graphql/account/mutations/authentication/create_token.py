@@ -1,6 +1,8 @@
+from datetime import timedelta
 from typing import Optional
 
 import graphene
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
@@ -97,7 +99,6 @@ class CreateToken(BaseMutation):
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, audience=None, email, password
     ):
-        user = cls.get_user(info, email, password)
         additional_paylod = {}
 
         csrf_token = _get_new_csrf_token()
@@ -108,6 +109,7 @@ class CreateToken(BaseMutation):
             additional_paylod["aud"] = f"custom:{audience}"
             refresh_additional_payload["aud"] = f"custom:{audience}"
 
+        user = cls.get_user(info, email, password)
         access_token = create_access_token(user, additional_payload=additional_paylod)
         refresh_token = create_refresh_token(
             user, additional_payload=refresh_additional_payload
@@ -115,8 +117,12 @@ class CreateToken(BaseMutation):
         setattr(info.context, "refresh_token", refresh_token)
         info.context.user = user
         info.context._cached_user = user
-        user.last_login = timezone.now()
-        user.save(update_fields=["last_login", "updated_at"])
+        time_now = timezone.now()
+        threshold_delta = timedelta(seconds=settings.TOKEN_UPDATE_LAST_LOGIN_THRESHOLD)
+
+        if not user.last_login or user.last_login + threshold_delta < time_now:
+            user.last_login = time_now
+            user.save(update_fields=["last_login", "updated_at"])
         return cls(
             errors=[],
             user=user,
