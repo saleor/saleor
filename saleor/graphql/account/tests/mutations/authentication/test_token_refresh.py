@@ -332,7 +332,7 @@ def test_refresh_token_do_not_update_last_login_when_in_threshold(
 
 
 @freeze_time("2020-03-18 12:00:00")
-def test_refresh_token_do_not_update_last_login_when_out_of_threshold(
+def test_refresh_token_do_update_last_login_when_out_of_threshold(
     api_client, customer_user, settings
 ):
     # given
