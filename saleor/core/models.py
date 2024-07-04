@@ -172,9 +172,11 @@ class EventPayloadManager(models.Manager["EventPayload"]):
 
 
 class EventPayload(models.Model):
+    PAYLOADS_DIR = "payloads"
+
     payload = models.TextField(default="")
     payload_file = models.FileField(
-        storage=private_storage, upload_to="payloads", null=True
+        storage=private_storage, upload_to=PAYLOADS_DIR, null=True
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -197,7 +199,23 @@ class EventPayload(models.Model):
         filename = f"payload-{self.pk}-{self.created_at}.json"
         if not webhook:
             return filename
-        return safe_join(f"app-{webhook.app_id}", f"webhook-{webhook.pk}", filename)
+        return safe_join(
+            self._get_app_prefix(webhook.app_id),
+            self._get_webhook_prefix(webhook.id),
+            filename,
+        )
+
+    @classmethod
+    def _get_app_prefix(cls, app_id: int) -> str:
+        return f"app-{app_id}"
+
+    @classmethod
+    def _get_webhook_prefix(cls, webhook_id: int) -> str:
+        return f"webhook-{webhook_id}"
+
+    @classmethod
+    def get_app_webhook_payloads_dir(cls, app_id: int) -> str:
+        return safe_join(cls.PAYLOADS_DIR, cls._get_app_prefix(app_id))
 
 
 class EventDelivery(models.Model):

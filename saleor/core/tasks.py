@@ -5,6 +5,7 @@ from django.conf import settings
 from django.core.files.storage import default_storage
 from django.db.models import Exists, OuterRef
 from django.utils import timezone
+from storages.utils import safe_join
 
 from ..celeryconf import app
 from . import private_storage
@@ -60,3 +61,15 @@ def delete_files_from_storage_task(paths):
 def delete_files_from_private_storage_task(paths):
     for path in paths:
         private_storage.delete(path)
+
+
+@app.task
+def recursive_delete_files_from_private_storage_task(root_path):
+    dirs, files = private_storage.listdir(root_path)
+    for file in files:
+        file_path = safe_join(root_path, file)
+        private_storage.delete(file_path)
+    for dir in dirs:
+        dir_path = safe_join(root_path, dir)
+        recursive_delete_files_from_private_storage_task(dir_path)
+    private_storage.delete(root_path)

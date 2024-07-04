@@ -5,8 +5,8 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from ...webhook.event_types import WebhookEventAsyncType
-from ..models import EventDelivery, EventDeliveryAttempt, EventPayload
 from .. import private_storage
+from ..models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ..tasks import (
     delete_event_payloads_task,
     delete_files_from_storage_task,

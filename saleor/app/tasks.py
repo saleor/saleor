@@ -9,6 +9,7 @@ from requests import HTTPError, RequestException
 from .. import celeryconf
 from ..core import JobStatus
 from ..core.models import EventDelivery, EventDeliveryAttempt, EventPayload
+from ..core.tasks import recursive_delete_files_from_private_storage_task
 from ..webhook.models import Webhook
 from .installation_utils import AppInstallationError, install_app
 from .models import App, AppExtension, AppInstallation, AppToken
@@ -111,5 +112,8 @@ def remove_apps_task():
         AppToken.objects.filter(app_id=app.id).delete()
 
         AppExtension.objects.filter(app_id=app.id).delete()
+
+        payloads_dir = EventPayload.get_app_webhook_payloads_dir(app.id)
+        recursive_delete_files_from_private_storage_task.delay(payloads_dir)
 
         app.delete()
