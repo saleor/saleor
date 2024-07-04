@@ -914,6 +914,12 @@ OAUTH_UPDATE_LAST_LOGIN_THRESHOLD = parse(
     os.environ.get("OAUTH_UPDATE_LAST_LOGIN_THRESHOLD", "15 minutes")
 )
 
+# Time threshold to update user last_login when using tokenCreate/tokenRefresh
+# mutations.
+TOKEN_UPDATE_LAST_LOGIN_THRESHOLD = parse(
+    os.environ.get("TOKEN_UPDATE_LAST_LOGIN_THRESHOLD", "5 seconds")
+)
+
 # Max lock time for checkout processing.
 # It prevents locking checkout when unhandled issue appears.
 CHECKOUT_COMPLETION_LOCK_TIME = parse(
