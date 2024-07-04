@@ -378,12 +378,12 @@ def test_create_token_do_update_last_login_when_out_of_threshold(
     previous_updated_at = customer_user.updated_at
 
     variables = {"email": customer_user.email, "password": customer_password}
-    time_in_threshold = datetime.now(tz=pytz.UTC) + timedelta(
+    time_out_of_threshold = datetime.now(tz=pytz.UTC) + timedelta(
         seconds=settings.TOKEN_UPDATE_LAST_LOGIN_THRESHOLD + 1
     )
 
     # when
-    with freeze_time(time_in_threshold):
+    with freeze_time(time_out_of_threshold):
         response = api_client.post_graphql(MUTATION_CREATE_TOKEN, variables)
 
     # then
@@ -391,8 +391,8 @@ def test_create_token_do_update_last_login_when_out_of_threshold(
     customer_user.refresh_from_db()
     assert customer_user.updated_at != previous_updated_at
     assert customer_user.last_login != previous_last_login
-    assert customer_user.updated_at == time_in_threshold
-    assert customer_user.last_login == time_in_threshold
+    assert customer_user.updated_at == time_out_of_threshold
+    assert customer_user.last_login == time_out_of_threshold
 
 
 @freeze_time("2020-03-18 12:00:00")
