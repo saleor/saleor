@@ -1,6 +1,8 @@
+from datetime import timedelta
 from typing import Optional
 
 import graphene
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
@@ -128,12 +130,17 @@ class RefreshToken(BaseMutation):
         if need_csrf:
             cls.clean_csrf_token(csrf_token, payload)
 
-        user = get_user(payload)
         additional_payload = {}
         if audience := payload.get("aud"):
             additional_payload["aud"] = audience
+        user = get_user(payload)
         token = create_access_token(user, additional_payload=additional_payload)
         if user and not user.is_anonymous:
-            user.last_login = timezone.now()
-            user.save(update_fields=["last_login", "updated_at"])
+            time_now = timezone.now()
+            threshold_delta = timedelta(
+                seconds=settings.TOKEN_UPDATE_LAST_LOGIN_THRESHOLD
+            )
+            if not user.last_login or user.last_login + threshold_delta < time_now:
+                user.last_login = time_now
+                user.save(update_fields=["last_login", "updated_at"])
         return cls(errors=[], user=user, token=token)
