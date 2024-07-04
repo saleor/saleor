@@ -327,7 +327,7 @@ def test_for_order_without_data(
 
     expected_psp_reference = "ppp-123"
     expected_response = transaction_session_response.copy()
-    expected_response["amount"] = order_with_lines.total.gross.amount
+    expected_response["amount"] = expected_amount
     expected_response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
     expected_response["pspReference"] = expected_psp_reference
     del expected_response["data"]
