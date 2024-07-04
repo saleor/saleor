@@ -3,7 +3,6 @@ from unittest.mock import patch
 
 import graphene
 import pytz
-from django.core.cache import cache
 from django.urls import reverse
 from freezegun import freeze_time
 
@@ -434,7 +433,7 @@ def test_create_token_throttling_login_attempt_delay(
     assert len(errors) == 1
     error = errors[0]
     assert error["code"] == AccountErrorCode.LOGIN_ATTEMPT_DELAYED.name
-    assert error["field"] == "email"
+    assert error["field"] is None
     assert str(next_attempt) in error["message"]
 
 
@@ -460,4 +459,4 @@ def test_create_token_throttling_unidentified_ip_address(
     assert len(errors) == 1
     error = errors[0]
     assert error["code"] == AccountErrorCode.UNKNOWN_IP_ADDRESS.name
-    assert error["field"] == "email"
+    assert error["field"] is None

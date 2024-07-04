@@ -24,12 +24,8 @@ def authenticate_with_throttling(request, email, password) -> Optional[models.Us
     if not ip:
         logger.warning("Unknown request's IP address.")
         raise ValidationError(
-            {
-                "email": ValidationError(
-                    "Can't indentify requester IP address.",
-                    code=AccountErrorCode.UNKNOWN_IP_ADDRESS.value,
-                )
-            }
+            "Can't indentify requester IP address.",
+            code=AccountErrorCode.UNKNOWN_IP_ADDRESS.value,
         )
 
     ip_key = get_cache_key_failed_ip(ip)
@@ -41,12 +37,8 @@ def authenticate_with_throttling(request, email, password) -> Optional[models.Us
             seconds=MIN_DELAY
         )
         raise ValidationError(
-            {
-                "email": ValidationError(
-                    f"Logging has been suspended till {next_attempt_time}.",
-                    code=AccountErrorCode.LOGIN_ATTEMPT_DELAYED.value,
-                )
-            }
+            f"Logging has been suspended till {next_attempt_time}.",
+            code=AccountErrorCode.LOGIN_ATTEMPT_DELAYED.value,
         )
 
     # retrieve user from credentials

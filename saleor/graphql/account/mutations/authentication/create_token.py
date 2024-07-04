@@ -1,5 +1,6 @@
+from datetime import timedelta
+
 import graphene
-from django.core.cache import cache
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils import timezone
