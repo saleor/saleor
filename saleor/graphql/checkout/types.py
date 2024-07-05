@@ -1258,13 +1258,14 @@ class Checkout(ModelObjectType[models.Checkout]):
         database_connection_name = get_database_connection_name(info.context)
 
         def _calculate_total_balance_for_transactions(data):
-            address, lines, checkout_info, manager, transactions = data
+            address, lines, checkout_info, manager, payloads, transactions = data
             taxed_total = calculations.calculate_checkout_total_with_gift_cards(
                 manager=manager,
                 checkout_info=checkout_info,
                 lines=lines,
                 address=address,
                 database_connection_name=database_connection_name,
+                pregenerated_subscription_payloads=payloads,
             )
             checkout_total = max(taxed_total, zero_taxed_money(root.currency))
             total_charged = zero_money(root.currency)
@@ -1273,7 +1274,9 @@ class Checkout(ModelObjectType[models.Checkout]):
                 total_charged += transaction.amount_charge_pending
             return total_charged - checkout_total.gross
 
-        dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
+        dataloaders = list(
+            get_dataloaders_for_fetching_checkout_data(root, info, extra_data=True)
+        )
         dataloaders.append(
             TransactionItemsByCheckoutIDLoader(info.context).load(root.pk)
         )
