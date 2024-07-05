@@ -927,7 +927,7 @@ class Checkout(ModelObjectType[models.Checkout]):
     def resolve_subtotal_price(root: models.Checkout, info: ResolveInfo):
         @allow_writer_in_context(info.context)
         def calculate_subtotal_price(data):
-            address, lines, checkout_info, manager = data
+            address, lines, checkout_info, manager, payloads = data
             database_connection_name = get_database_connection_name(info.context)
             return calculations.checkout_subtotal(
                 manager=manager,
@@ -935,9 +935,12 @@ class Checkout(ModelObjectType[models.Checkout]):
                 lines=lines,
                 address=address,
                 database_connection_name=database_connection_name,
+                pregenerated_subscription_payloads=payloads,
             )
 
-        dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
+        dataloaders = list(
+            get_dataloaders_for_fetching_checkout_data(root, info, extra_data=True)
+        )
         return Promise.all(dataloaders).then(calculate_subtotal_price)
 
     @staticmethod
