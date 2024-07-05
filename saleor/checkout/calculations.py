@@ -88,6 +88,7 @@ def checkout_subtotal(
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+    pregenerated_subscription_payloads: Optional[dict] = {},
 ) -> "TaxedMoney":
     """Return the total cost of all the checkout lines, taxes included.
 
@@ -100,6 +101,7 @@ def checkout_subtotal(
         lines=lines,
         address=address,
         database_connection_name=database_connection_name,
+        pregenerated_subscription_payloads=pregenerated_subscription_payloads,
     )
     return quantize_price(checkout_info.checkout.subtotal, currency)
 
