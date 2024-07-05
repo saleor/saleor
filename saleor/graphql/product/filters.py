@@ -166,9 +166,9 @@ def _clean_product_attributes_range_filter_input(filter_value, queries):
             queries[attr_pk] += attr_values[value]
 
 
-def _clean_product_attributes_date_time_range_filter_input(filter_value):
+def _clean_product_attributes_date_time_range_filter_input(filter_value, queries):
     attribute_slugs = [slug for slug, _ in filter_value]
-    matching_attributes = AttributeValue.objects.filter(
+    matching_attribute_values = AttributeValue.objects.filter(
         attribute__slug__in=attribute_slugs
     )
     filters = {}
@@ -185,7 +185,13 @@ def _clean_product_attributes_date_time_range_filter_input(filter_value):
                     gte, datetime.datetime.min.time(), tzinfo=pytz.UTC
                 )
             filters["date_time__gte"] = gte
-    return matching_attributes.filter(**filters)
+    matching_queryset = matching_attribute_values.filter(**filters)
+    if not matching_queryset:
+        raise ValueError(
+            f"Requested value for attributes {attribute_slugs} doesn't exist"
+        )
+    for attr_val in matching_queryset:
+        queries[attr_val.attribute.pk] += [attr_val.pk]
 
 
 class KeyValueDict(TypedDict):
@@ -247,30 +253,6 @@ def filter_products_by_attributes_values(qs, queries: T_PRODUCT_FILTER_QUERIES):
     return qs.filter(*filters)
 
 
-def filter_products_by_attributes_values_qs(qs, values_qs):
-    assigned_product_attribute_values = AssignedProductAttributeValue.objects.filter(
-        value__in=values_qs
-    )
-    product_attribute_filter = Q(
-        Exists(assigned_product_attribute_values.filter(product_id=OuterRef("pk")))
-    )
-
-    assigned_variant_attribute_values = AssignedVariantAttributeValue.objects.filter(
-        value__in=values_qs
-    )
-    assigned_variant_attributes = AssignedVariantAttribute.objects.filter(
-        Exists(assigned_variant_attribute_values.filter(assignment_id=OuterRef("pk")))
-    )
-    product_variants = ProductVariant.objects.filter(
-        Exists(assigned_variant_attributes.filter(variant_id=OuterRef("pk")))
-    )
-    variant_attribute_filter = Q(
-        Exists(product_variants.filter(product_id=OuterRef("pk")))
-    )
-
-    return qs.filter(product_attribute_filter | variant_attribute_filter)
-
-
 def filter_products_by_attributes(
     qs,
     filter_values,
@@ -286,15 +268,13 @@ def filter_products_by_attributes(
         if filter_range_values:
             _clean_product_attributes_range_filter_input(filter_range_values, queries)
         if date_range_list:
-            values_qs = _clean_product_attributes_date_time_range_filter_input(
-                date_range_list
+            _clean_product_attributes_date_time_range_filter_input(
+                date_range_list, queries
             )
-            return filter_products_by_attributes_values_qs(qs, values_qs)
         if date_time_range_list:
-            values_qs = _clean_product_attributes_date_time_range_filter_input(
-                date_time_range_list
+            _clean_product_attributes_date_time_range_filter_input(
+                date_time_range_list, queries
             )
-            return filter_products_by_attributes_values_qs(qs, values_qs)
         if filter_boolean_values:
             _clean_product_attributes_boolean_filter_input(
                 filter_boolean_values, queries
