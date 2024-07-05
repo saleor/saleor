@@ -8,7 +8,7 @@ from mock import patch
 from .....checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from .....checkout.calculations import fetch_checkout_data
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from .....order import OrderAuthorizeStatus, OrderChargeStatus, OrderEvents
+from .....order import OrderAuthorizeStatus, OrderChargeStatus, OrderEvents, OrderStatus
 from .....payment import TransactionEventType
 from .....payment.error_codes import TransactionUpdateErrorCode
 from .....payment.models import TransactionEvent, TransactionItem
@@ -2684,6 +2684,13 @@ def test_transaction_update_doesnt_accept_old_id_for_new_transactions(
     assert error["field"] == "id"
 
 
+@pytest.mark.parametrize(
+    ("auto_order_confirmation", "excpected_order_status"),
+    [
+        (True, OrderStatus.UNFULFILLED),
+        (False, OrderStatus.UNCONFIRMED),
+    ],
+)
 @patch("saleor.plugins.manager.PluginsManager.order_paid")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
 @patch("saleor.plugins.manager.PluginsManager.order_fully_paid")
@@ -2691,17 +2698,22 @@ def test_transaction_update_for_order_triggers_webhooks_when_fully_paid(
     mock_order_fully_paid,
     mock_order_updated,
     mock_order_paid,
-    order_with_lines,
+    auto_order_confirmation,
+    excpected_order_status,
+    unconfirmed_order_with_lines,
     permission_manage_payments,
     app_api_client,
     app,
     transaction_item_generator,
 ):
     # given
+    order = unconfirmed_order_with_lines
+    order.channel.automatically_confirm_all_new_orders = auto_order_confirmation
+    order.channel.save(update_fields=["automatically_confirm_all_new_orders"])
     current_authorized_value = Decimal("1")
     current_charged_value = Decimal("2")
     transaction = transaction_item_generator(
-        order_id=order_with_lines.pk,
+        order_id=order.pk,
         app=app,
         authorized_value=current_authorized_value,
         charged_value=current_charged_value,
@@ -2711,7 +2723,7 @@ def test_transaction_update_for_order_triggers_webhooks_when_fully_paid(
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "amountCharged": {
-                "amount": order_with_lines.total.gross.amount,
+                "amount": order.total.gross.amount,
                 "currency": "USD",
             },
         },
@@ -2723,14 +2735,14 @@ def test_transaction_update_for_order_triggers_webhooks_when_fully_paid(
     )
 
     # then
-    order_with_lines.refresh_from_db()
-
+    order.refresh_from_db()
     get_graphql_content(response)
 
-    assert order_with_lines.charge_status == OrderChargeStatus.FULL
-    mock_order_fully_paid.assert_called_once_with(order_with_lines)
-    mock_order_updated.assert_called_once_with(order_with_lines)
-    mock_order_paid.assert_called_once_with(order_with_lines)
+    assert order.status == excpected_order_status
+    assert order.charge_status == OrderChargeStatus.FULL
+    mock_order_fully_paid.assert_called_once_with(order)
+    mock_order_updated.assert_called_once_with(order)
+    mock_order_paid.assert_called_once_with(order)
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_paid")
