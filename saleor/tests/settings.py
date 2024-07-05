@@ -97,3 +97,6 @@ HTTP_IP_FILTER_ENABLED = False
 HTTP_IP_FILTER_ALLOW_LOOPBACK_IPS = True
 
 MIDDLEWARE.insert(0, "saleor.core.db.connection.restrict_writer_middleware")  # noqa: F405
+
+CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME = "checkout_events_queue"
+ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME = "order_events_queue"

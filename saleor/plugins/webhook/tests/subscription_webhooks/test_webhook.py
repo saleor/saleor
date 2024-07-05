@@ -26,7 +26,7 @@ class FakeDelivery:
 
 
 @mock.patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.delay"
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
 def test_trigger_webhooks_async(
     mocked_send_webhook_request,
@@ -43,12 +43,21 @@ def test_trigger_webhooks_async(
     assert deliveries.count() == 2
     assert deliveries[0].webhook == subscription_order_created_webhook
     assert deliveries[1].webhook == webhook
-    calls = [mock.call(deliveries[1].id), mock.call(deliveries[0].id)]
-    assert mocked_send_webhook_request.mock_calls == calls
+    for delivery in deliveries:
+        assert (
+            mock.call(
+                kwargs={"event_delivery_id": delivery.id},
+                queue=None,
+                bind=True,
+                retry_backoff=10,
+                retry_kwargs={"max_retries": 5},
+            )
+            in mocked_send_webhook_request.mock_calls
+        )
 
 
 @mock.patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.delay"
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
 @mock.patch(
     "saleor.webhook.transport.asynchronous.transport.create_deliveries_for_subscriptions"
