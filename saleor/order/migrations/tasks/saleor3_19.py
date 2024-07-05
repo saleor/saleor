@@ -11,11 +11,8 @@ from ...models import Order, OrderLine
 # The batch of size 250 takes ~0.5 second and consumes ~20MB memory at peak
 ADDRESS_UPDATE_BATCH_SIZE = 250
 
-# The batch of size 250 takes ~0.3 second and consumes ~30MB memory at peak
-ORDER_CALCULATE_SHIPPING_PRICE_BATCH_SIZE = 500
-
-# The batch of size 250 takes ~0.3 second and consumes ~20MB memory at peak
-ORDER_SET_SHIPPING_PRICE_BATCH_SIZE = 1000
+# The batch of size 250 takes ~0.2 second and consumes ~20MB memory at peak
+ORDER_SET_SHIPPING_PRICE_BATCH_SIZE = 250
 
 
 @app.task
@@ -39,31 +36,48 @@ def update_order_addresses_task():
 
 @app.task
 def set_udniscounted_base_shipping_price_on_orders_task():
-    migrate_orders_with_voucher_instance.delay()
+    qs = Order.objects.filter(undiscounted_base_shipping_price_amount__isnull=True)
+    order_ids = list(
+        qs.values_list("pk", flat=True)[:ORDER_SET_SHIPPING_PRICE_BATCH_SIZE]
+    )
+    if order_ids:
+        orders = Order.objects.filter(id__in=order_ids)
+
+        orders_with_shipping_discount = _get_orders_with_shipping_discount(orders)
+        orders_no_shipping_discount = orders.exclude(
+            Exists(orders_with_shipping_discount.filter(pk=OuterRef("pk")))
+        )
+
+        if orders_no_shipping_discount:
+            _set_undiscounted_base_shipping_price(orders_no_shipping_discount)
+        if orders_with_shipping_discount:
+            _calculate_and_set_undiscounted_base_shipping_price(
+                orders_with_shipping_discount
+            )
+
+        set_udniscounted_base_shipping_price_on_orders_task.delay()
 
 
-@app.task
-def migrate_orders_with_voucher_instance():
+def _get_orders_with_shipping_discount(orders):
+    orders_with_shipping_voucher = _get_orders_with_shipping_voucher(orders)
+    orders_with_shipping_voucher_no_voucher_instance = (
+        _get_orders_with_shipping_voucher_no_voucher_instance(orders)
+    )
+    return (
+        orders_with_shipping_voucher | orders_with_shipping_voucher_no_voucher_instance
+    )
+
+
+def _get_orders_with_shipping_voucher(orders):
     shipping_vouchers = Voucher.objects.filter(type="shipping")
-    orders = Order.objects.filter(
-        undiscounted_base_shipping_price_amount__isnull=True,
+    return orders.filter(
         origin__in=["checkout"],
         voucher_code__isnull=False,
         voucher__isnull=False,
     ).filter(Exists(shipping_vouchers.filter(pk=OuterRef("voucher_id"))))
 
-    order_ids = list(
-        orders.values_list("pk", flat=True)[:ORDER_CALCULATE_SHIPPING_PRICE_BATCH_SIZE]
-    )
-    if order_ids:
-        calculate_and_set_undiscounted_base_shipping_price(order_ids)
-        migrate_orders_with_voucher_instance.delay()
-    else:
-        migrate_orders_no_voucher_instance.delay()
 
-
-@app.task
-def migrate_orders_no_voucher_instance():
+def _get_orders_with_shipping_voucher_no_voucher_instance(orders):
     # lines with applied line voucher
     lines_with_voucher = OrderLine.objects.filter(voucher_code__isnull=False)
 
@@ -85,9 +99,8 @@ def migrate_orders_no_voucher_instance():
 
     # orders with voucher code, no voucher instance, without line vouchers
     # and not applicable order voucher
-    orders = (
-        Order.objects.filter(
-            undiscounted_base_shipping_price_amount__isnull=True,
+    return (
+        orders.filter(
             origin__in=["checkout"],
             voucher_code__isnull=False,
             voucher__isnull=True,
@@ -98,18 +111,8 @@ def migrate_orders_no_voucher_instance():
         )
     )
 
-    order_ids = list(
-        orders.values_list("pk", flat=True)[:ORDER_CALCULATE_SHIPPING_PRICE_BATCH_SIZE]
-    )
-    if order_ids:
-        calculate_and_set_undiscounted_base_shipping_price(order_ids)
-        migrate_orders_no_voucher_instance.delay()
-    else:
-        set_undiscounted_base_shipping_price_shipping_price_same_as_base.delay()
 
-
-def calculate_and_set_undiscounted_base_shipping_price(order_ids):
-    orders = Order.objects.filter(id__in=order_ids)
+def _calculate_and_set_undiscounted_base_shipping_price(orders):
     order_discounts = OrderDiscount.objects.filter(
         order_id__in=orders.values("pk"), type="voucher"
     )
@@ -126,17 +129,7 @@ def calculate_and_set_undiscounted_base_shipping_price(order_ids):
         Order.objects.bulk_update(orders, ["undiscounted_base_shipping_price_amount"])
 
 
-@app.task
-def set_undiscounted_base_shipping_price_shipping_price_same_as_base():
-    qs = Order.objects.filter(Q(undiscounted_base_shipping_price_amount__isnull=True))
-    order_ids = qs.values_list("pk", flat=True)[:ORDER_SET_SHIPPING_PRICE_BATCH_SIZE]
-    if order_ids:
-        set_undiscounted_base_shipping_price(order_ids)
-        set_undiscounted_base_shipping_price_shipping_price_same_as_base.delay()
-
-
-def set_undiscounted_base_shipping_price(order_ids):
-    orders = Order.objects.filter(id__in=order_ids)
+def _set_undiscounted_base_shipping_price(orders):
     with transaction.atomic():
         _orders = list(orders.select_for_update(of=(["self"])))
         orders.update(
