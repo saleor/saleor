@@ -68,6 +68,9 @@ query OrdersQuery {
                     amount
                     currency
                 }
+                undiscountedShippingPrice{
+                    amount
+                }
                 shippingPrice {
                     gross {
                         amount
@@ -276,10 +279,14 @@ def test_order_query(
 ):
     # given
     order = fulfilled_order
-    net = Money(amount=Decimal("10"), currency="USD")
-    gross = Money(amount=net.amount * Decimal(1.23), currency="USD").quantize()
-    shipping_price = TaxedMoney(net=net, gross=gross)
+    shipping_net = Money(amount=Decimal("10"), currency="USD")
+    shipping_gross = Money(
+        amount=shipping_net.amount * Decimal(1.23), currency="USD"
+    ).quantize()
+    shipping_price = TaxedMoney(net=shipping_net, gross=shipping_gross)
     order.shipping_price = shipping_price
+    order.base_shipping_price = shipping_net
+    order.undiscounted_base_shipping_price = shipping_net
     shipping_tax_rate = Decimal("0.23")
     order.shipping_tax_rate = shipping_tax_rate
     private_value = "abc123"
@@ -316,6 +323,7 @@ def test_order_query(
     expected_price = Money(
         amount=str(order_data["shippingPrice"]["gross"]["amount"]), currency="USD"
     )
+    assert order_data["undiscountedShippingPrice"]["amount"] == shipping_net.amount
     assert expected_price == shipping_price.gross
     assert order_data["shippingTaxRate"] == float(shipping_tax_rate)
     shipping_tax_class = order.shipping_method.tax_class

@@ -536,6 +536,23 @@ def order_line_unit_discount_type(
     return order_line.unit_discount_type
 
 
+def order_undiscounted_shipping(
+    order: Order,
+    manager: PluginsManager,
+    lines: Optional[Iterable[OrderLine]] = None,
+    force_update: bool = False,
+) -> TaxedMoney:
+    """Return the undiscounted shipping price of the order.
+
+    It takes into account all plugins.
+    If the prices are expired, call all order price calculation methods
+    and save them in the model directly.
+    """
+    currency = order.currency
+    order, _ = fetch_order_prices_if_expired(order, manager, lines, force_update)
+    return quantize_price(order.undiscounted_base_shipping_price, currency)
+
+
 def order_shipping(
     order: Order,
     manager: PluginsManager,
