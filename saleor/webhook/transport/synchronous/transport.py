@@ -345,7 +345,7 @@ def trigger_all_webhooks_sync(
                 )
 
             pregenerated_payload = get_pregenerated_subscription_payload(
-                webhook, subscribable_object, pregenerated_subscription_payloads
+                webhook, pregenerated_subscription_payloads
             )
 
             delivery = create_delivery_for_subscription_sync_event(

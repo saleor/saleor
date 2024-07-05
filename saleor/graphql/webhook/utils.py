@@ -13,16 +13,9 @@ def get_subscription_query_hash(subscription_query: str) -> str:
 
 def get_pregenerated_subscription_payload(
     webhook: Webhook,
-    subscriptable_object,
     pregenerated_subscription_payloads: Optional[dict] = {},
 ) -> Optional[dict]:
     if webhook.subscription_query is None or pregenerated_subscription_payloads is None:
-        return None
-
-    if not hasattr(subscriptable_object, "pk"):
-        logger.warning(
-            "Subscriptable object doesn't have a primary key. Skipping usage of pregenerated subscription payload."
-        )
         return None
 
     query_hash = get_subscription_query_hash(webhook.subscription_query)

@@ -3036,7 +3036,8 @@ class WebhookPlugin(BasePlugin):
         pregenerated_subscription_payloads: Optional[dict] = {},
     ):
         app = (
-            App.objects.filter(
+            App.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+            .filter(
                 identifier=app_identifier,
                 is_active=True,
             )
@@ -3061,7 +3062,7 @@ class WebhookPlugin(BasePlugin):
         )
 
         pregenerated_subscription_payload = get_pregenerated_subscription_payload(
-            webhook, subscriptable_object, pregenerated_subscription_payloads
+            webhook, pregenerated_subscription_payloads
         )
         response = trigger_webhook_sync(
             event_type=event_type,
