@@ -1990,6 +1990,18 @@ def test_create_order_store_shipping_prices_with_free_shipping_voucher(
     )
     assert order.base_shipping_price == expected_base_shipping_price
     assert order.shipping_price == expected_shipping_price
+    undiscounted_subtotal = sum(
+        [line.undiscounted_total_price for line in order.lines.all()],
+        zero_taxed_money(order.currency),
+    )
+    assert (
+        order.undiscounted_total
+        == TaxedMoney(
+            net=expected_undiscounted_shipping_price,
+            gross=expected_undiscounted_shipping_price,
+        )
+        + undiscounted_subtotal
+    )
     manager.calculate_checkout_shipping.assert_called_once_with(
         checkout_info, lines, checkout.shipping_address, plugin_ids=None
     )
