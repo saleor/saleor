@@ -37,7 +37,8 @@ def authenticate_with_throttling(request, email, password) -> Optional[models.Us
             seconds=MIN_DELAY
         )
         raise ValidationError(
-            f"Logging has been suspended till {next_attempt_time}.",
+            f"Logging has been suspended till {next_attempt_time} due to too many "
+            f"logging attempts originating from the same IP address.",
             code=AccountErrorCode.LOGIN_ATTEMPT_DELAYED.value,
         )
 
