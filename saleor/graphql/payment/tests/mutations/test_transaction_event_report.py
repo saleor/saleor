@@ -12,6 +12,7 @@ from freezegun import freeze_time
 from .....checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from .....checkout.calculations import fetch_checkout_data
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from .....order import OrderStatus
 from .....payment import TransactionEventType
 from .....payment.models import TransactionEvent
 from .....payment.transaction_item_calculations import recalculate_transaction_amounts
@@ -1617,6 +1618,13 @@ def test_transaction_event_report_doesnt_accept_old_id_for_new_transaction(
     assert error["field"] == "id"
 
 
+@pytest.mark.parametrize(
+    ("auto_order_confirmation", "excpected_order_status"),
+    [
+        (True, OrderStatus.UNFULFILLED),
+        (False, OrderStatus.UNCONFIRMED),
+    ],
+)
 @patch("saleor.plugins.manager.PluginsManager.order_paid")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
 @patch("saleor.plugins.manager.PluginsManager.order_fully_paid")
@@ -1624,13 +1632,17 @@ def test_transaction_event_report_for_order_triggers_webhooks_when_fully_paid(
     mock_order_fully_paid,
     mock_order_updated,
     mock_order_paid,
+    auto_order_confirmation,
+    excpected_order_status,
     transaction_item_generator,
     app_api_client,
     permission_manage_payments,
-    order_with_lines,
+    unconfirmed_order_with_lines,
 ):
     # given
-    order = order_with_lines
+    order = unconfirmed_order_with_lines
+    order.channel.automatically_confirm_all_new_orders = auto_order_confirmation
+    order.channel.save(update_fields=["automatically_confirm_all_new_orders"])
     psp_reference = "111-abc"
     transaction = transaction_item_generator(app=app_api_client.app, order_id=order.pk)
     transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
@@ -1669,6 +1681,7 @@ def test_transaction_event_report_for_order_triggers_webhooks_when_fully_paid(
     get_graphql_content(response)
     order.refresh_from_db()
 
+    assert order.status == excpected_order_status
     assert order.charge_status == OrderChargeStatusEnum.FULL.value
     mock_order_fully_paid.assert_called_once_with(order)
     mock_order_updated.assert_called_once_with(order)
