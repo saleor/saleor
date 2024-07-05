@@ -69,7 +69,7 @@ logger = logging.getLogger(__name__)
 GENERIC_TRANSACTION_ERROR = "Transaction was unsuccessful"
 ALLOWED_GATEWAY_KINDS = {choices[0] for choices in TransactionKind.CHOICES}
 
-ALLOWED_MISSING_PSP_REFERENCE_MAP = {
+PSP_REFERENCE_OPTIONAL_MAP = {
     WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED: [
         TransactionEventType.REFUND_FAILURE
     ],
@@ -82,6 +82,7 @@ ALLOWED_MISSING_PSP_REFERENCE_MAP = {
     WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION: [
         TransactionEventType.CHARGE_REQUEST,
         TransactionEventType.AUTHORIZATION_REQUEST,
+        TransactionEventType.CHARGE_ACTION_REQUIRED,
         TransactionEventType.AUTHORIZATION_ACTION_REQUIRED,
         TransactionEventType.CHARGE_FAILURE,
         TransactionEventType.AUTHORIZATION_FAILURE,
@@ -1333,9 +1334,7 @@ def _check_missing_psp_reference_for_events(
 ):
     if response.psp_reference:
         return True
-    return request_event.type in ALLOWED_MISSING_PSP_REFERENCE_MAP.get(
-        delivery.event_type, []
-    )
+    return request_event.type in PSP_REFERENCE_OPTIONAL_MAP.get(delivery.event_type, [])
 
 
 def create_transaction_event_from_request_and_webhook_response(
