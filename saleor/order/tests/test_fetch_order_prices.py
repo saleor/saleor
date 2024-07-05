@@ -1894,7 +1894,7 @@ def test_fetch_order_prices_manual_order_discount_voucher_specific_product(
     )
     assert order.undiscounted_total_gross == subtotal + shipping_price
     assert order.shipping_price_gross == shipping_price - shipping_discount
-    assert order.base_shipping_price == shipping_price - shipping_discount
+    assert order.base_shipping_price == shipping_price
     assert order.undiscounted_base_shipping_price == shipping_price
 
     assert (
@@ -1998,7 +1998,7 @@ def test_fetch_order_prices_manual_order_discount_and_voucher_apply_once_per_ord
     )
     assert order.undiscounted_total_gross == subtotal + shipping_price
     assert order.shipping_price_gross == shipping_price - shipping_discount
-    assert order.base_shipping_price == shipping_price - shipping_discount
+    assert order.base_shipping_price == shipping_price
     assert order.undiscounted_base_shipping_price == shipping_price
 
     unit_discount_amount = discount_amount / discounted_line.quantity

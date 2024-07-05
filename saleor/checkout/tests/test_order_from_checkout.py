@@ -670,6 +670,7 @@ def test_create_order_from_checkout_store_shipping_prices(
     )
 
     # then
+    assert order.undiscounted_base_shipping_price == expected_base_shipping_price
     assert order.base_shipping_price == expected_base_shipping_price
     assert order.shipping_price == expected_shipping_price
     manager.calculate_checkout_shipping.assert_called_once_with(

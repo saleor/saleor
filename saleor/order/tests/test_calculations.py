@@ -345,6 +345,7 @@ def test_recalculate_with_plugins_order_discounts_and_total_undiscounted_price_c
     shipping_listing.save(update_fields=["price_amount"])
 
     order.undiscounted_base_shipping_price = new_shipping_price
+    order.base_shipping_price = new_shipping_price
     order.shipping_method = shipping_method_weight_based
     order.shipping_method_name = shipping_method_weight_based.name
     order.save(

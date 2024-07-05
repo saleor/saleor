@@ -208,7 +208,9 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
         amount_field="shipping_price_gross_amount", currency_field="currency"
     )
 
-    # Shipping price with applied shipping voucher discount, with tax
+    # Price with applied shipping voucher discount
+    # (for draft order - price without discount)
+    # FIXME (SHOPX-875)
     shipping_price = TaxedMoneyField(
         net_amount_field="shipping_price_net_amount",
         gross_amount_field="shipping_price_gross_amount",
