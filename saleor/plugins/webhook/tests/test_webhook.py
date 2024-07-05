@@ -1186,7 +1186,7 @@ def test_checkout_metadata_updated(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
-        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+        queue=None,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial

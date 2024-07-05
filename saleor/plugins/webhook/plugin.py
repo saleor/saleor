@@ -1665,9 +1665,7 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         self._trigger_metadata_updated_event(
-            WebhookEventAsyncType.CHECKOUT_METADATA_UPDATED,
-            checkout,
-            queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+            WebhookEventAsyncType.CHECKOUT_METADATA_UPDATED, checkout
         )
 
     def notify(
