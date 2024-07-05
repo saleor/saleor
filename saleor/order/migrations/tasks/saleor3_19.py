@@ -11,7 +11,11 @@ from ...models import Order, OrderLine
 # The batch of size 250 takes ~0.5 second and consumes ~20MB memory at peak
 ADDRESS_UPDATE_BATCH_SIZE = 250
 
-ORDER_UPDATE_BATCH_SIZE = 100
+# The batch of size 250 takes ~0.3 second and consumes ~30MB memory at peak
+ORDER_CALCULATE_SHIPPING_PRICE_BATCH_SIZE = 500
+
+# The batch of size 250 takes ~0.3 second and consumes ~20MB memory at peak
+ORDER_SET_SHIPPING_PRICE_BATCH_SIZE = 1000
 
 
 @app.task
@@ -48,7 +52,9 @@ def migrate_orders_with_voucher_instance():
         voucher__isnull=False,
     ).filter(Exists(shipping_vouchers.filter(pk=OuterRef("voucher_id"))))
 
-    order_ids = list(orders.values_list("pk", flat=True)[:ORDER_UPDATE_BATCH_SIZE])
+    order_ids = list(
+        orders.values_list("pk", flat=True)[:ORDER_CALCULATE_SHIPPING_PRICE_BATCH_SIZE]
+    )
     if order_ids:
         calculate_and_set_undiscounted_base_shipping_price(order_ids)
         migrate_orders_with_voucher_instance.delay()
@@ -92,7 +98,9 @@ def migrate_orders_no_voucher_instance():
         )
     )
 
-    order_ids = list(orders.values_list("pk", flat=True)[:ORDER_UPDATE_BATCH_SIZE])
+    order_ids = list(
+        orders.values_list("pk", flat=True)[:ORDER_CALCULATE_SHIPPING_PRICE_BATCH_SIZE]
+    )
     if order_ids:
         calculate_and_set_undiscounted_base_shipping_price(order_ids)
         migrate_orders_no_voucher_instance.delay()
@@ -121,7 +129,7 @@ def calculate_and_set_undiscounted_base_shipping_price(order_ids):
 @app.task
 def set_undiscounted_base_shipping_price_shipping_price_same_as_base():
     qs = Order.objects.filter(Q(undiscounted_base_shipping_price_amount__isnull=True))
-    order_ids = qs.values_list("pk", flat=True)[:ORDER_UPDATE_BATCH_SIZE]
+    order_ids = qs.values_list("pk", flat=True)[:ORDER_SET_SHIPPING_PRICE_BATCH_SIZE]
     if order_ids:
         set_undiscounted_base_shipping_price(order_ids)
         set_undiscounted_base_shipping_price_shipping_price_same_as_base.delay()
