@@ -566,7 +566,6 @@ class ProductQueries(graphene.ObjectType):
                 ids=ids,
                 channel=channel_obj,
                 limited_channel_access=limited_channel_access,
-                requestor_has_access_to_all=has_required_permissions,
                 requestor=requestor,
             )
             kwargs["channel"] = qs.channel_slug
