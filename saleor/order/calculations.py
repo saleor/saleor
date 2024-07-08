@@ -352,8 +352,9 @@ def _recalculate_with_plugins(
     except TaxError:
         pass
 
+    undiscounted_shipping_price = order.undiscounted_base_shipping_price
     order.undiscounted_total = undiscounted_subtotal + TaxedMoney(
-        net=order.base_shipping_price, gross=order.base_shipping_price
+        net=undiscounted_shipping_price, gross=undiscounted_shipping_price
     )
     order.subtotal = get_subtotal(lines, order.currency)
     order.total = manager.calculate_order_total(order, lines, plugin_ids=plugin_ids)

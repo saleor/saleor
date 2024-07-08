@@ -1816,8 +1816,7 @@ def test_draft_order_update_undiscounted_base_shipping_price_set(
     # given
     order = order_with_lines
     order.status = OrderStatus.DRAFT
-    order.undiscounted_base_shipping_price_amount = None
-    order.save(update_fields=["status", "undiscounted_base_shipping_price_amount"])
+    order.save(update_fields=["status"])
 
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     query = DRAFT_ORDER_UPDATE_MUTATION
