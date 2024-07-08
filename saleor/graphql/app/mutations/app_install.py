@@ -1,9 +1,7 @@
 import graphene
-from django.core.exceptions import ValidationError
 
 from ....app import models
 from ....app.manifest_validations import clean_manifest_url
-from ....app.models import App
 from ....app.tasks import install_app_task
 from ....permission.enums import AppPermission, get_permissions
 from ....webhook.event_types import WebhookEventAsyncType
@@ -64,17 +62,6 @@ class AppInstall(ModelMutation):
     def clean_input(cls, info, instance, data, **kwargs):
         manifest_url = data.get("manifest_url")
         clean_manifest_url(manifest_url)
-        breakpoint()
-        if app := App.objects.filter(manifest_url=manifest_url).first():
-            raise ValidationError(
-                {
-                    "manifest_url": ValidationError(
-                        "App with the same manifest_url is already installed: "
-                        f"{app.name}"
-                    )
-                }
-            )
-
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
         # clean and prepare permissions

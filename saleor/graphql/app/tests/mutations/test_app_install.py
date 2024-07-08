@@ -1,8 +1,9 @@
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import graphene
 
-from .....app.models import AppInstallation
+from .....app.models import App, AppInstallation
+from .....app.tasks import install_app_task
 from .....core import JobStatus
 from ....core.enums import AppErrorCode, PermissionEnum
 from ....tests.utils import get_graphql_content
@@ -111,7 +112,11 @@ def test_app_install_mutation_out_of_scope_permissions(
     assert error["permissions"] == [PermissionEnum.MANAGE_ORDERS.name]
 
 
-def test_install_app_mutation_with_the_same_manifest_twice(
+@patch("saleor.app.installation_utils.send_app_token", Mock())
+@patch(
+    "saleor.graphql.app.mutations.app_install.install_app_task.delay", install_app_task
+)
+def test_install_app_mutation_with_the_same_identifier_twice(
     permission_manage_apps,
     permission_manage_orders,
     staff_api_client,
@@ -120,9 +125,6 @@ def test_install_app_mutation_with_the_same_manifest_twice(
     app,
 ):
     # given
-    monkeypatch.setattr(
-        "saleor.graphql.app.mutations.app_install.install_app_task.delay", Mock()
-    )
     staff_user.user_permissions.set([permission_manage_apps, permission_manage_orders])
     variables = {
         "app_name": "New external integration",
@@ -131,15 +133,25 @@ def test_install_app_mutation_with_the_same_manifest_twice(
     }
 
     # when
-    data = _mutate_app_install(staff_api_client, variables)
+    with patch("saleor.app.installation_utils.fetch_manifest") as mocked_fetch:
+        mocked_fetch.return_value = {
+            "id": app.identifier,
+            "tokenTargetUrl": "http://localhost:3000/register",
+            "name": "app",
+            "version": "1.0.0",
+        }
+        data = _mutate_app_install(staff_api_client, variables)
 
     # then
-    errors = data["errors"]
-    assert not data["appInstallation"]
-    assert len(errors) == 1
-    error = errors[0]
-    assert error["field"] == "manifestUrl"
-    assert error["code"] == "INVALID"
-    assert error["message"] == (
-        f"App with the same manifest_url is already installed: {app.name}"
+    # Installation is done in celery task - response shows that app is being installed
+    assert not data["errors"]
+    assert data["appInstallation"]["status"] == JobStatus.PENDING.upper()
+    assert data["appInstallation"]["manifestUrl"] == app.manifest_url
+    assert App.objects.count() == 1
+    # Celery bypassed, AppInstallation instance failed to install app
+    app_installation = AppInstallation.objects.first()
+    assert app_installation.status == JobStatus.FAILED
+    assert app_installation.message == (
+        "identifier: "
+        "['App with the same identifier is already installed: Sample app objects']"
     )
