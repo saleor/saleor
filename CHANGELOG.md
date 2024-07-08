@@ -31,6 +31,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Extend valid address values - #15877 by @zedzior
 - Fixed a rare crash in the introspection query detection code - #15966 by @patrys
 - Added HTTP compression telemetry - #16125 by @patrys
+- Rewrite `productVariants` resolvers to use JOINs instead of subqueries - #16262 by @maarcingebala
 
 # 3.19.0
 
