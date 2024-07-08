@@ -174,6 +174,7 @@ def trigger_webhooks_async(
     allow_replica=False,
     pre_save_payloads=None,
     request_time=None,
+    queue=None,
 ):
     """Trigger async webhooks - both regular and subscription.
 
@@ -182,10 +183,11 @@ def trigger_webhooks_async(
         `legacy_data_generator` function is used to generate the payload when needed.
     :param event_type: used in both webhook types as event type.
     :param webhooks: used in both webhook types, queryset of async webhooks.
-    :param allow_replica: use a replica database.
     :param subscribable_object: subscribable object used in subscription webhooks.
     :param requestor: used in subscription webhooks to generate metadata for payload.
     :param legacy_data_generator: used to generate payload for regular webhooks.
+    :param allow_replica: use a replica database.
+    :param queue: defines the queue to which the event should be sent.
     """
     regular_webhooks, subscription_webhooks = group_webhooks_by_subscription(webhooks)
     deliveries = []
@@ -218,7 +220,13 @@ def trigger_webhooks_async(
         )
 
     for delivery in deliveries:
-        send_webhook_request_async.delay(delivery.id)
+        send_webhook_request_async.apply_async(
+            kwargs={"event_delivery_id": delivery.id},
+            queue=queue or settings.WEBHOOK_CELERY_QUEUE_NAME,
+            bind=True,
+            retry_backoff=10,
+            retry_kwargs={"max_retries": 5},
+        )
 
 
 @app.task(
