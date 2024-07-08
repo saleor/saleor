@@ -128,7 +128,12 @@ def _get_channel_to_products_map(rule_to_variant_list):
     for rule_to_variant in rule_to_variant_list:
         channel_ids = rule_to_channels_map[rule_to_variant.promotionrule_id]
         for channel_id in channel_ids:
-            product_id = variant_id_to_product_id_map[rule_to_variant.productvariant_id]
+            try:
+                product_id = variant_id_to_product_id_map[
+                    rule_to_variant.productvariant_id
+                ]
+            except KeyError:
+                continue
             channel_to_products_map[channel_id].add(product_id)
 
     return channel_to_products_map
