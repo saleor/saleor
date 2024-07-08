@@ -11830,7 +11830,7 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   
   Added in Saleor 3.19.
   """
-  undiscountedShippingPrice: Money
+  undiscountedShippingPrice: Money!
 
   """Total price of shipping."""
   shippingPrice: TaxedMoney!
