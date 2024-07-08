@@ -229,8 +229,7 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
     undiscounted_base_shipping_price_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        null=True,
-        blank=True,
+        default=Decimal("0.0"),
     )
     # Shipping price before applying any discounts
     undiscounted_base_shipping_price = MoneyField(
