@@ -329,11 +329,12 @@ def test_generate_cache_key_use_saleor_version():
     assert saleor_version in cache_key
 
 
-def test_graphql_view_clears_context(rf, staff_user, product):
+def test_graphql_view_clears_context(rf, staff_user, product, channel_USD):
     # given
     product_id = graphene.Node.to_global_id("Product", product.pk)
+    channel_slug = channel_USD.slug
     data = {
-        "query": f'{{ product(id: "{product_id}") {{ name category {{ name }} }} }}'
+        "query": f'{{ product(id: "{product_id}" channel: "{channel_slug}") {{ name category {{ name }} }} }}'
     }
     request = rf.post(path="/", data=data, content_type="application/json")
     request.app = None
