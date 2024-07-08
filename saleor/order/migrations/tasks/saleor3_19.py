@@ -43,7 +43,11 @@ def set_udniscounted_base_shipping_price_on_orders_task():
     if order_ids:
         orders = Order.objects.filter(id__in=order_ids)
 
+        # get orders created from checkout that has shipping discount
+        # for draft orders the `base_shipping_price_amount` is the undiscounted price
+        # so we can use it as a base for the undiscounted price
         orders_with_shipping_discount = _get_orders_with_shipping_discount(orders)
+
         orders_no_shipping_discount = orders.exclude(
             Exists(orders_with_shipping_discount.filter(pk=OuterRef("pk")))
         )
