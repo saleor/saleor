@@ -73,36 +73,15 @@ class RequestPasswordReset(BaseMutation):
 
         user = retrieve_user_by_email(email)
         if not user:
-            raise ValidationError(
-                {
-                    "email": ValidationError(
-                        "User with this email doesn't exist",
-                        code=AccountErrorCode.NOT_FOUND.value,
-                    )
-                }
-            )
+            raise ValidationError({})
 
         if not user.is_active:
-            raise ValidationError(
-                {
-                    "email": ValidationError(
-                        "User with this email is inactive",
-                        code=AccountErrorCode.INACTIVE.value,
-                    )
-                }
-            )
+            raise ValidationError({})
 
         if password_reset_time := user.last_password_reset_request:
             delta = timezone.now() - password_reset_time
             if delta.total_seconds() < settings.RESET_PASSWORD_LOCK_TIME:
-                raise ValidationError(
-                    {
-                        "email": ValidationError(
-                            "Password reset already requested",
-                            code=AccountErrorCode.PASSWORD_RESET_ALREADY_REQUESTED.value,
-                        )
-                    }
-                )
+                raise ValidationError({})
 
         return user
 
