@@ -649,8 +649,8 @@ CELERY_BEAT_SCHEDULE = {
             "saleor.product.tasks"
             ".update_variant_relations_for_active_promotion_rules_task"
         ),
-        "schedule": timedelta(seconds=BEAT_PRICE_RECALCULATION_SCHEDULE),
-        "options": {"expires": BEAT_PRICE_RECALCULATION_SCHEDULE_EXPIRE_AFTER_SEC},
+        "schedule": timedelta(seconds=1),
+        "options": {"expires": 10},
     },
     "recalculate-discounted-price-for-products": {
         "task": "saleor.product.tasks.recalculate_discounted_price_for_products_task",

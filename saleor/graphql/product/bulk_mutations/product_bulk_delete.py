@@ -2,6 +2,7 @@ from collections import defaultdict
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.db.models.expressions import Exists, OuterRef
 
 from ....attribute import AttributeInputType
@@ -102,7 +103,23 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
             product_variant_map[product].append(variant)
 
         products = [product for product in queryset]
-        queryset.delete()
+        # queryset.delete()
+        with transaction.atomic():
+            variants_ids = (
+                models.ProductVariant.objects.order_by("pk")
+                .select_for_update(of=("self",))
+                .filter(product__in=products)
+                .values_list("pk", flat=True)
+            )
+            models.ProductVariant.objects.filter(pk__in=variants_ids).delete()
+            ids = tuple(
+                models.Product.objects.order_by("pk")
+                .select_for_update(of=("self",))
+                .filter(pk__in=[product.pk for product in products])
+                .values_list("pk", flat=True)
+            )
+            models.Product.objects.filter(pk__in=ids).delete()
+
         webhooks = get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_DELETED)
         manager = get_plugin_manager_promise(info.context).get()
         for product in products:
