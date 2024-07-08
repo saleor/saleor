@@ -668,17 +668,6 @@ files = [
 ]
 
 [[package]]
-name = "chardet"
-version = "5.2.0"
-description = "Universal encoding detector for Python 3"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "chardet-5.2.0-py3-none-any.whl", hash = "sha256:e1cf59446890a00105fe7b7912492ea04b6e6f06d4b742b2c788469e34c82970"},
-    {file = "chardet-5.2.0.tar.gz", hash = "sha256:1b3b6ff479a8c414bc3fa2c0852995695c4a026dcd6d0633b2dd092ca39c1cf7"},
-]
-
-[[package]]
 name = "charset-normalizer"
 version = "3.3.2"
 description = "The Real First Universal Charset Detector. Open, modern and actively maintained alternative to Chardet."
@@ -1037,21 +1026,28 @@ files = [
 
 [[package]]
 name = "deptry"
-version = "0.12.0"
+version = "0.16.2"
 description = "A command line utility to check for unused, missing and transitive dependencies in a Python project."
 optional = false
-python-versions = ">=3.8,<4.0"
+python-versions = ">=3.8"
 files = [
-    {file = "deptry-0.12.0-py3-none-any.whl", hash = "sha256:69c801a6ae1b39c7b8e0daf40dbe8b75f1f161277d206dd8f921f32cd22dad91"},
-    {file = "deptry-0.12.0.tar.gz", hash = "sha256:ac3cd32d149c92a9af12f63cd9486ddd1760f0277ed0cf306c6ef0388f57ff0a"},
+    {file = "deptry-0.16.2-cp38-abi3-macosx_10_12_x86_64.whl", hash = "sha256:24bfbae07bd6533c852c795e8d88d05a8ad0801bec0d3662e1a37db763c52540"},
+    {file = "deptry-0.16.2-cp38-abi3-macosx_11_0_arm64.whl", hash = "sha256:fc881688a2eaeafe51c0617d32a6535057bccdb74559cc667109f48f81cd976e"},
+    {file = "deptry-0.16.2-cp38-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:fed4b692f556e4c80acb42cec93e3b5fdc7fc2323049c2a0cfd9dfc4a9c7033e"},
+    {file = "deptry-0.16.2-cp38-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:93ec508a932d8f06c3bd1aa7a4548d5dbec92c3060d42eedcda3be9729bd7c3b"},
+    {file = "deptry-0.16.2-cp38-abi3-win_amd64.whl", hash = "sha256:eb92e9aacde66cfe001d6318eb0851ae0ca26fea441defed4765a47644daf8bb"},
+    {file = "deptry-0.16.2-pp310-pypy310_pp73-macosx_10_12_x86_64.whl", hash = "sha256:dfdceca2fbc87f4bce04df4207914a5eb37e67fb2107579ad2e88107c22d2456"},
+    {file = "deptry-0.16.2-pp310-pypy310_pp73-macosx_11_0_arm64.whl", hash = "sha256:96ab62dd5f4658735aac72d0e49f6d896eabf50a0e4e2cdecb436a1362aa696b"},
+    {file = "deptry-0.16.2-pp310-pypy310_pp73-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:7e4408fa5a8d146b55bc40f0829fb875efef33174a2679bd9954ce988b9bc0d7"},
+    {file = "deptry-0.16.2-pp310-pypy310_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:af976afc2a0583f48dc25f616d2566fecd7af5080675c8eccb161def88d93503"},
+    {file = "deptry-0.16.2-pp310-pypy310_pp73-win_amd64.whl", hash = "sha256:dd86c9d34aa75b91fb72b34110f0660b2277bf9a95fe9cae3ead36d465bc44ac"},
+    {file = "deptry-0.16.2.tar.gz", hash = "sha256:f0f752cf6f5e9f7445a79fcf195b772cd2d4b889cd260e23867dd8013caa74c1"},
 ]
 
 [package.dependencies]
-chardet = ">=4.0.0"
-click = ">=8.0.0,<9.0.0"
+click = ">=8.0.0,<9"
 colorama = {version = ">=0.4.6", markers = "sys_platform == \"win32\""}
-pathspec = ">=0.9.0"
-tomli = {version = ">=2.0.1,<3.0.0", markers = "python_version < \"3.11\""}
+tomli = {version = ">=2.0.1", markers = "python_version < \"3.11\""}
 
 [[package]]
 name = "distlib"
@@ -2997,17 +2993,6 @@ python-versions = ">=3.8"
 files = [
     {file = "packaging-24.1-py3-none-any.whl", hash = "sha256:5b8f2217dbdbd2f7f384c41c628544e6d52f2d0f53c6d0c3ea61aa5d1d7ff124"},
     {file = "packaging-24.1.tar.gz", hash = "sha256:026ed72c8ed3fcce5bf8950572258698927fd1dbda10a5e981cdf0ac37f4f002"},
-]
-
-[[package]]
-name = "pathspec"
-version = "0.12.1"
-description = "Utility library for gitignore style pattern matching of file paths."
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "pathspec-0.12.1-py3-none-any.whl", hash = "sha256:a0d503e138a4c123b27490a4f7beda6a01c6f288df0e4a8b79c7eb0dc7b4cc08"},
-    {file = "pathspec-0.12.1.tar.gz", hash = "sha256:a482d51503a1ab33b1c67a6c3813a26953dbdc71c31dacaef9a838c4e29f5712"},
 ]
 
 [[package]]
@@ -5416,4 +5401,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.9"
-content-hash = "6cc20f1fb0eefe35a6d3e007d9ad1957283b1e18bed63559fb3ee14732f90c27"
+content-hash = "f33f193203ab1611ab072ba4eeaa1506b784e1ac2d3f9e1452a82c19c608da25"
