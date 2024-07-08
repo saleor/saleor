@@ -7445,6 +7445,7 @@ def app(db):
         name="Sample app objects",
         is_active=True,
         identifier="saleor.app.test",
+        manifest_url="http://localhost:3000/manifest",
     )
     return app
 
