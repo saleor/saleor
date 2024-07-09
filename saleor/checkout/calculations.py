@@ -43,6 +43,7 @@ def checkout_shipping_price(
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+    pregenerated_subscription_payloads: Optional[dict] = {},
 ) -> "TaxedMoney":
     """Return checkout shipping price.
 
@@ -55,6 +56,7 @@ def checkout_shipping_price(
         lines=lines,
         address=address,
         database_connection_name=database_connection_name,
+        pregenerated_subscription_payloads=pregenerated_subscription_payloads,
     )
     return quantize_price(checkout_info.checkout.shipping_price, currency)
 
