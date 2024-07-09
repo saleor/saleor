@@ -500,9 +500,7 @@ def trigger_transaction_request(
             transaction_data, requestor
         )
         with allow_writer():
-            event_payload = EventPayload.objects.create_with_payload_file(
-                payload, webhook
-            )
+            event_payload = EventPayload.objects.create_with_payload_file(payload)
             delivery = EventDelivery.objects.create(
                 status=EventDeliveryStatus.PENDING,
                 event_type=event_type,

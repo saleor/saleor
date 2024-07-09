@@ -76,7 +76,6 @@ def create_deliveries_for_subscriptions(
 
     event_payloads = []
     event_payloads_data = []
-    event_webhooks = []
     event_deliveries = []
 
     # Dataloaders are shared between calls to generate_payload_from_subscription to
@@ -127,7 +126,6 @@ def create_deliveries_for_subscriptions(
         event_payloads_data.append(payload_data)
         event_payload = EventPayload()
         event_payloads.append(event_payload)
-        event_webhooks.append(webhook)
         event_deliveries.append(
             EventDelivery(
                 status=EventDeliveryStatus.PENDING,
@@ -139,7 +137,7 @@ def create_deliveries_for_subscriptions(
 
     with allow_writer():
         EventPayload.objects.bulk_create_with_payload_files(
-            event_payloads, event_payloads_data, event_webhooks
+            event_payloads, event_payloads_data
         )
         return EventDelivery.objects.bulk_create(event_deliveries)
 

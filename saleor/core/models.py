@@ -1,19 +1,15 @@
 import datetime
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Any, Optional, TypeVar
+from typing import Any, TypeVar
 
 import pytz
 from django.contrib.postgres.indexes import GinIndex
 from django.core.files.base import ContentFile
 from django.db import models, transaction
 from django.db.models import F, JSONField, Max, Q
-from storages.utils import safe_join
 
 from . import EventDeliveryStatus, JobStatus, private_storage
 from .utils.json_serializer import CustomJsonEncoder
-
-if TYPE_CHECKING:
-    from ..webhook.models import Webhook
 
 
 class SortableModel(models.Model):
@@ -151,23 +147,18 @@ class Job(models.Model):
 
 class EventPayloadManager(models.Manager["EventPayload"]):
     @transaction.atomic
-    def create_with_payload_file(
-        self, payload: str, webhook: Optional["Webhook"] = None
-    ) -> "EventPayload":
+    def create_with_payload_file(self, payload: str) -> "EventPayload":
         obj = super().create()
-        obj.save_payload_file(payload, webhook)
+        obj.save_payload_file(payload)
         return obj
 
     @transaction.atomic
     def bulk_create_with_payload_files(
-        self,
-        objs: Iterable["EventPayload"],
-        payloads: Iterable[str],
-        webhooks: Iterable["Webhook"],
+        self, objs: Iterable["EventPayload"], payloads=Iterable[str]
     ) -> list["EventPayload"]:
         created_objs = self.bulk_create(objs)
-        for obj, payload_data, webhook in zip(created_objs, payloads, webhooks):
-            obj.save_payload_file(payload_data, webhook)
+        for obj, payload_data in zip(created_objs, payloads):
+            obj.save_payload_file(payload_data)
         return created_objs
 
 
@@ -189,33 +180,11 @@ class EventPayload(models.Model):
                 return payload
         return self.payload
 
-    def save_payload_file(self, payload_data: str, webhook: Optional["Webhook"] = None):
+    def save_payload_file(self, payload_data: str):
         self.payload_file.save(
-            self._get_payload_filename(webhook),
+            f"payload-{self.pk}-{self.created_at}.json",
             ContentFile(payload_data),
         )
-
-    def _get_payload_filename(self, webhook: Optional["Webhook"]) -> str:
-        filename = f"payload-{self.pk}-{self.created_at}.json"
-        if not webhook:
-            return filename
-        return safe_join(
-            self._get_app_prefix(webhook.app_id),
-            self._get_webhook_prefix(webhook.id),
-            filename,
-        )
-
-    @classmethod
-    def _get_app_prefix(cls, app_id: int) -> str:
-        return f"app-{app_id}"
-
-    @classmethod
-    def _get_webhook_prefix(cls, webhook_id: int) -> str:
-        return f"webhook-{webhook_id}"
-
-    @classmethod
-    def get_app_webhook_payloads_dir(cls, app_id: int) -> str:
-        return safe_join(cls.PAYLOADS_DIR, cls._get_app_prefix(app_id))
 
 
 class EventDelivery(models.Model):

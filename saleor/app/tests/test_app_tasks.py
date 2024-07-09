@@ -6,7 +6,7 @@ from django.utils import timezone
 from requests import RequestException
 from requests_hardened import HTTPSession
 
-from ...core import JobStatus, private_storage
+from ...core import JobStatus
 from ...core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ...webhook.models import Webhook
 from ..installation_utils import AppInstallationError
@@ -115,13 +115,11 @@ def test_install_app_task_undefined_error(monkeypatch, app_installation):
 @pytest.mark.django_db(transaction=True)
 def test_remove_app_task(
     event_attempt_removed_app,
-    event_payload_removed_app,
     removed_app_with_extensions,
     removed_app,
 ):
     # given
     removed_app.tokens.create(name="token1")
-    payloads_dir = EventPayload.get_app_webhook_payloads_dir(removed_app.id)
     assert App.objects.count() > 0
     assert AppToken.objects.count() > 0
     assert AppExtension.objects.count() > 0
@@ -129,8 +127,6 @@ def test_remove_app_task(
     assert EventDelivery.objects.count() > 0
     assert EventPayload.objects.count() > 0
     assert EventDeliveryAttempt.objects.count() > 0
-    assert private_storage.exists(event_payload_removed_app.payload_file.name)
-    assert private_storage.exists(payloads_dir)
 
     # when
     remove_apps_task()
@@ -143,8 +139,6 @@ def test_remove_app_task(
     assert EventDelivery.objects.count() == 0
     assert EventPayload.objects.count() == 0
     assert EventDeliveryAttempt.objects.count() == 0
-    assert not private_storage.exists(event_payload_removed_app.payload_file.name)
-    assert not private_storage.exists(payloads_dir)
 
 
 def test_remove_app_task_not_remove_not_own_payloads(

@@ -257,7 +257,7 @@ def create_delivery_for_subscription_sync_event(
         return None
     with allow_writer():
         event_payload = EventPayload.objects.create_with_payload_file(
-            payload=json.dumps({**data}), webhook=webhook
+            json.dumps({**data})
         )
         event_delivery = EventDelivery.objects.create(
             status=EventDeliveryStatus.PENDING,
@@ -292,9 +292,7 @@ def trigger_webhook_sync(
             return None
     else:
         with allow_writer():
-            event_payload = EventPayload.objects.create_with_payload_file(
-                payload, webhook
-            )
+            event_payload = EventPayload.objects.create_with_payload_file(payload)
             delivery = EventDelivery.objects.create(
                 status=EventDeliveryStatus.PENDING,
                 event_type=event_type,
@@ -351,7 +349,7 @@ def trigger_all_webhooks_sync(
             with allow_writer():
                 if event_payload is None:
                     event_payload = EventPayload.objects.create_with_payload_file(
-                        generate_payload(), webhook
+                        generate_payload()
                     )
                 delivery = EventDelivery.objects.create(
                     status=EventDeliveryStatus.PENDING,

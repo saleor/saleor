@@ -267,7 +267,7 @@ def test_send_webhook_request_with_proper_timeout(mock_post, event_delivery, app
 def test_send_webhook_request_sync_invalid_scheme(webhook, app):
     target_url = "gcpubsub://cloud.google.com/projects/saleor/topics/test"
     event_payload = EventPayload.objects.create_with_payload_file(
-        payload="fake_content", webhook=webhook
+        payload="fake_content"
     )
     webhook.target_url = target_url
     webhook.save()
