@@ -6,7 +6,7 @@ import pytest
 from django.core.exceptions import ValidationError
 
 from ....account.notifications import get_user_custom_payload
-from ....core.notify_events import AdminNotifyEvent, UserNotifyEvent
+from ....core.notify import AdminNotifyEvent, UserNotifyEvent
 from ....webhook.payloads import generate_product_variant_payload
 from ...models import PluginConfiguration
 from ..plugin import EVENT_MAP
@@ -32,7 +32,7 @@ def test_notify_via_external_notification_trigger_with_extra_payload(
     for payload in expected_payload:
         payload["extra_payload"] = extra_payload
     test_template_id = "2efac70d-64ed-4e57-9951-f87e14d7e60e"
-    plugin.notify(test_template_id, expected_payload, None)
+    plugin.notify(test_template_id, lambda: expected_payload, None)
 
     mocked_event_map.assert_called_once_with(
         expected_payload, test_template_id, asdict(plugin.config)
@@ -59,7 +59,7 @@ def test_send_notification_to_customers_with_product_variant_payload(
 
     test_template_id = "2efac70d-64ed-4e57-9951-f87e14d7e60e"
 
-    plugin.notify(test_template_id, expected_payload[0], None)
+    plugin.notify(test_template_id, lambda: expected_payload[0], None)
 
     base_interface_mock.assert_called_once()
 
@@ -97,7 +97,7 @@ def test_notify_not_valid_event_type(mocked_event_map, sendgrid_email_plugin):
 
     plugin = sendgrid_email_plugin(api_key="AB12", active=True)
 
-    plugin.notify(AdminNotifyEvent.CSV_EXPORT_FAILED, {}, None)
+    plugin.notify(AdminNotifyEvent.CSV_EXPORT_FAILED, lambda: {"payload": 1}, None)
 
     assert not mocked_event_task.delay.called
 
@@ -167,7 +167,7 @@ def test_notify(mocked_event_map, sendgrid_email_plugin):
         active=True, api_key="AB12", account_password_reset_template_id="123"
     )
 
-    plugin.notify(UserNotifyEvent.ACCOUNT_PASSWORD_RESET, sample_payload, None)
+    plugin.notify(UserNotifyEvent.ACCOUNT_PASSWORD_RESET, lambda: sample_payload, None)
 
     mocked_event_task.delay.assert_called_once_with(
         sample_payload, asdict(plugin.config)

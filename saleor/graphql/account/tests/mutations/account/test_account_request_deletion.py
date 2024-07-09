@@ -6,7 +6,7 @@ from freezegun import freeze_time
 
 from ......account.error_codes import AccountErrorCode
 from ......account.notifications import get_default_user_payload
-from ......core.notify_events import NotifyEventType
+from ......core.notify import NotifyEventType
 from ......core.tests.utils import get_site_context_payload
 from ......core.tokens import account_delete_token_generator
 from ......core.utils.url import prepare_url
@@ -30,13 +30,18 @@ ACCOUNT_REQUEST_DELETION_MUTATION = """
 def test_account_request_deletion(
     mocked_notify, mocked_token, user_api_client, channel_PLN, site_settings
 ):
+    # given
     mocked_token.return_value = "token"
     user = user_api_client.user
     redirect_url = "https://www.example.com"
     variables = {"redirectUrl": redirect_url, "channel": channel_PLN.slug}
+
+    # when
     response = user_api_client.post_graphql(
         ACCOUNT_REQUEST_DELETION_MUTATION, variables
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["accountRequestDeletion"]
     assert not data["errors"]
@@ -51,11 +56,14 @@ def test_account_request_deletion(
         **get_site_context_payload(site_settings.site),
     }
 
-    mocked_notify.assert_called_once_with(
-        NotifyEventType.ACCOUNT_DELETE,
-        payload=expected_payload,
-        channel_slug=channel_PLN.slug,
-    )
+    assert mocked_notify.call_count == 1
+    call_args = mocked_notify.call_args_list[0]
+    called_args = call_args.args
+    called_kwargs = call_args.kwargs
+    assert called_args[0] == NotifyEventType.ACCOUNT_DELETE
+    assert len(called_kwargs) == 2
+    assert called_kwargs["payload_func"]() == expected_payload
+    assert called_kwargs["channel_slug"] == channel_PLN.slug
 
 
 @patch("saleor.account.notifications.account_delete_token_generator.make_token")
@@ -93,13 +101,18 @@ def test_account_request_deletion_send_account_delete_requested_event(
 def test_account_request_deletion_token_validation(
     mocked_notify, user_api_client, channel_PLN, site_settings
 ):
+    # given
     user = user_api_client.user
     token = account_delete_token_generator.make_token(user)
     redirect_url = "https://www.example.com"
     variables = {"redirectUrl": redirect_url, "channel": channel_PLN.slug}
+
+    # when
     response = user_api_client.post_graphql(
         ACCOUNT_REQUEST_DELETION_MUTATION, variables
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["accountRequestDeletion"]
     assert not data["errors"]
@@ -114,11 +127,14 @@ def test_account_request_deletion_token_validation(
         **get_site_context_payload(site_settings.site),
     }
 
-    mocked_notify.assert_called_once_with(
-        NotifyEventType.ACCOUNT_DELETE,
-        payload=expected_payload,
-        channel_slug=channel_PLN.slug,
-    )
+    assert mocked_notify.call_count == 1
+    call_args = mocked_notify.call_args_list[0]
+    called_args = call_args.args
+    called_kwargs = call_args.kwargs
+    assert called_args[0] == NotifyEventType.ACCOUNT_DELETE
+    assert len(called_kwargs) == 2
+    assert called_kwargs["payload_func"]() == expected_payload
+    assert called_kwargs["channel_slug"] == channel_PLN.slug
 
 
 @patch("saleor.plugins.manager.PluginsManager.notify")
@@ -153,6 +169,7 @@ def test_account_request_deletion_storefront_hosts_not_allowed(
 def test_account_request_deletion_all_storefront_hosts_allowed(
     mocked_notify, user_api_client, settings, channel_PLN, site_settings
 ):
+    # given
     user = user_api_client.user
     user.last_login = timezone.now()
     user.save(update_fields=["last_login"])
@@ -161,9 +178,13 @@ def test_account_request_deletion_all_storefront_hosts_allowed(
     settings.ALLOWED_CLIENT_HOSTS = ["*"]
     redirect_url = "https://www.test.com"
     variables = {"redirectUrl": redirect_url, "channel": channel_PLN.slug}
+
+    # when
     response = user_api_client.post_graphql(
         ACCOUNT_REQUEST_DELETION_MUTATION, variables
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["accountRequestDeletion"]
     assert not data["errors"]
@@ -179,11 +200,14 @@ def test_account_request_deletion_all_storefront_hosts_allowed(
         **get_site_context_payload(site_settings.site),
     }
 
-    mocked_notify.assert_called_once_with(
-        NotifyEventType.ACCOUNT_DELETE,
-        payload=expected_payload,
-        channel_slug=channel_PLN.slug,
-    )
+    assert mocked_notify.call_count == 1
+    call_args = mocked_notify.call_args_list[0]
+    called_args = call_args.args
+    called_kwargs = call_args.kwargs
+    assert called_args[0] == NotifyEventType.ACCOUNT_DELETE
+    assert len(called_kwargs) == 2
+    assert called_kwargs["payload_func"]() == expected_payload
+    assert called_kwargs["channel_slug"] == channel_PLN.slug
 
 
 @freeze_time("2018-05-31 12:00:01")
@@ -191,14 +215,19 @@ def test_account_request_deletion_all_storefront_hosts_allowed(
 def test_account_request_deletion_subdomain(
     mocked_notify, user_api_client, settings, channel_PLN, site_settings
 ):
+    # given
     user = user_api_client.user
     token = account_delete_token_generator.make_token(user)
     settings.ALLOWED_CLIENT_HOSTS = [".example.com"]
     redirect_url = "https://sub.example.com"
     variables = {"redirectUrl": redirect_url, "channel": channel_PLN.slug}
+
+    # when
     response = user_api_client.post_graphql(
         ACCOUNT_REQUEST_DELETION_MUTATION, variables
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["accountRequestDeletion"]
     assert not data["errors"]
@@ -213,8 +242,11 @@ def test_account_request_deletion_subdomain(
         **get_site_context_payload(site_settings.site),
     }
 
-    mocked_notify.assert_called_once_with(
-        NotifyEventType.ACCOUNT_DELETE,
-        payload=expected_payload,
-        channel_slug=channel_PLN.slug,
-    )
+    assert mocked_notify.call_count == 1
+    call_args = mocked_notify.call_args_list[0]
+    called_args = call_args.args
+    called_kwargs = call_args.kwargs
+    assert called_args[0] == NotifyEventType.ACCOUNT_DELETE
+    assert len(called_kwargs) == 2
+    assert called_kwargs["payload_func"]() == expected_payload
+    assert called_kwargs["channel_slug"] == channel_PLN.slug

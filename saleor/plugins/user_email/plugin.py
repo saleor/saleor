@@ -1,11 +1,11 @@
 import logging
 from dataclasses import asdict
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Callable, Union
 
 from django.conf import settings
 from promise.promise import Promise
 
-from ...core.notify_events import NotifyEventType, UserNotifyEvent
+from ...core.notify import NotifyEventType, UserNotifyEvent
 from ...graphql.plugins.dataloaders import EmailTemplatesByPluginConfigurationLoader
 from ...plugins.models import EmailTemplate
 from ..base_plugin import BasePlugin, ConfigurationTypeField, PluginConfigurationType
@@ -388,10 +388,14 @@ class UserEmailPlugin(BasePlugin):
             .then(map_templates_to_configuration)
         )
 
-    def notify(self, event: Union[NotifyEventType, str], payload: dict, previous_value):
+    def notify(
+        self,
+        event: Union[NotifyEventType, str],
+        payload_func: Callable[[], dict],
+        previous_value,
+    ):
         if not self.active:
             return previous_value
-
         event_map = get_user_event_map()
         if event not in UserNotifyEvent.CHOICES:
             return previous_value
@@ -403,7 +407,7 @@ class UserEmailPlugin(BasePlugin):
         event_func = event_map[event]
         config = asdict(self.config)
         self._add_missing_configuration(config)
-        event_func(payload, config, self)
+        event_func(payload_func, config, self)
 
     @classmethod
     def validate_plugin_configuration(
