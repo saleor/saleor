@@ -1215,7 +1215,7 @@ class Checkout(ModelObjectType[models.Checkout]):
     @staticmethod
     def resolve_authorize_status(root: models.Checkout, info):
         def _resolve_authorize_status(data):
-            address, lines, checkout_info, manager, transactions = data
+            address, lines, checkout_info, manager, payloads, transactions = data
             database_connection_name = get_database_connection_name(info.context)
             fetch_checkout_data(
                 checkout_info=checkout_info,
@@ -1225,10 +1225,13 @@ class Checkout(ModelObjectType[models.Checkout]):
                 checkout_transactions=transactions,
                 force_status_update=True,
                 database_connection_name=database_connection_name,
+                pregenerated_subscription_payloads=payloads,
             )
             return checkout_info.checkout.authorize_status
 
-        dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
+        dataloaders = list(
+            get_dataloaders_for_fetching_checkout_data(root, info, extra_data=True)
+        )
         dataloaders.append(
             TransactionItemsByCheckoutIDLoader(info.context).load(root.pk)
         )
