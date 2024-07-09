@@ -9,7 +9,7 @@ from ......account.error_codes import AccountErrorCode
 from ......account.models import User
 from ......account.notifications import get_default_user_payload
 from ......account.search import generate_user_fields_search_document_value
-from ......core.notify_events import NotifyEventType
+from ......core.notify import NotifyEventType
 from ......core.tests.utils import get_site_context_payload
 from ......core.utils.url import prepare_url
 from .....tests.utils import get_graphql_content
@@ -48,6 +48,7 @@ def test_customer_register(
     order,
     site_settings,
 ):
+    # given
     mocked_generator.return_value = "token"
     email = "customer@example.com"
 
@@ -66,8 +67,11 @@ def test_customer_register(
     }
     query = ACCOUNT_REGISTER_MUTATION
     mutation_name = "accountRegister"
+
+    # when
     response = api_client.post_graphql(query, variables)
 
+    # then
     new_user = User.objects.get(email=email)
     content = get_graphql_content(response)
     data = content["data"][mutation_name]
@@ -90,11 +94,14 @@ def test_customer_register(
         new_user
     )
     assert not data["errors"]
-    mocked_notify.assert_called_once_with(
-        NotifyEventType.ACCOUNT_CONFIRMATION,
-        payload=expected_payload,
-        channel_slug=channel_PLN.slug,
-    )
+    assert mocked_notify.call_count == 1
+    call_args = mocked_notify.call_args_list[0]
+    called_args = call_args.args
+    called_kwargs = call_args.kwargs
+    assert called_args[0] == NotifyEventType.ACCOUNT_CONFIRMATION
+    assert len(called_kwargs) == 2
+    assert called_kwargs["payload_func"]() == expected_payload
+    assert called_kwargs["channel_slug"] == channel_PLN.slug
 
     response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
@@ -142,7 +149,12 @@ def test_customer_register_generates_valid_token(
     data = content["data"]["accountRegister"]
 
     # then
-    token = mocked_notify.call_args.kwargs["payload"]["token"]
+    assert mocked_notify.call_count == 1
+    call_args = mocked_notify.call_args_list[0]
+    called_kwargs = call_args.kwargs
+    token = called_kwargs["payload_func"]()["token"]
+    assert called_kwargs["channel_slug"] == channel_PLN.slug
+
     assert not data["errors"]
     assert default_token_generator.check_token(new_user, token)
 

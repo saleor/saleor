@@ -8,7 +8,7 @@ from freezegun import freeze_time
 
 from ......account.error_codes import AccountErrorCode
 from ......account.notifications import get_default_user_payload
-from ......core.notify_events import NotifyEventType
+from ......core.notify import NotifyEventType
 from ......core.tests.utils import get_site_context_payload
 from ......core.utils.url import prepare_url
 from .....tests.utils import get_graphql_content
@@ -40,13 +40,18 @@ def test_account_reset_password(
     channel_USD,
     site_settings,
 ):
+    # given
     redirect_url = "https://www.example.com"
     variables = {
         "email": customer_user.email,
         "redirectUrl": redirect_url,
         "channel": channel_PLN.slug,
     }
+
+    # when
     response = user_api_client.post_graphql(REQUEST_PASSWORD_RESET_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["requestPasswordReset"]
     assert not data["errors"]
@@ -62,11 +67,15 @@ def test_account_reset_password(
         **get_site_context_payload(site_settings.site),
     }
 
-    mocked_notify.assert_called_once_with(
-        NotifyEventType.ACCOUNT_PASSWORD_RESET,
-        payload=expected_payload,
-        channel_slug=channel_PLN.slug,
-    )
+    assert mocked_notify.call_count == 1
+    call_args = mocked_notify.call_args_list[0]
+    called_args = call_args.args
+    called_kwargs = call_args.kwargs
+    assert called_args[0] == NotifyEventType.ACCOUNT_PASSWORD_RESET
+    assert len(called_kwargs) == 2
+    assert called_kwargs["payload_func"]() == expected_payload
+    assert called_kwargs["channel_slug"] == channel_PLN.slug
+
     user = user_api_client.user
     user.refresh_from_db()
     assert user.last_password_reset_request == timezone.now()
@@ -133,13 +142,18 @@ def test_account_reset_password_with_upper_case_email(
     channel_USD,
     site_settings,
 ):
+    # given
     redirect_url = "https://www.example.com"
     variables = {
         "email": customer_user.email.upper(),
         "redirectUrl": redirect_url,
         "channel": channel_PLN.slug,
     }
+
+    # when
     response = user_api_client.post_graphql(REQUEST_PASSWORD_RESET_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["requestPasswordReset"]
     assert not data["errors"]
@@ -155,11 +169,14 @@ def test_account_reset_password_with_upper_case_email(
         **get_site_context_payload(site_settings.site),
     }
 
-    mocked_notify.assert_called_once_with(
-        NotifyEventType.ACCOUNT_PASSWORD_RESET,
-        payload=expected_payload,
-        channel_slug=channel_PLN.slug,
-    )
+    assert mocked_notify.call_count == 1
+    call_args = mocked_notify.call_args_list[0]
+    called_args = call_args.args
+    called_kwargs = call_args.kwargs
+    assert called_args[0] == NotifyEventType.ACCOUNT_PASSWORD_RESET
+    assert len(called_kwargs) == 2
+    assert called_kwargs["payload_func"]() == expected_payload
+    assert called_kwargs["channel_slug"] == channel_PLN.slug
 
 
 @freeze_time("2018-05-31 12:00:01")
@@ -167,9 +184,14 @@ def test_account_reset_password_with_upper_case_email(
 def test_request_password_reset_email_for_staff(
     mocked_notify, staff_api_client, channel_USD, site_settings
 ):
+    # given
     redirect_url = "https://www.example.com"
     variables = {"email": staff_api_client.user.email, "redirectUrl": redirect_url}
+
+    # when
     response = staff_api_client.post_graphql(REQUEST_PASSWORD_RESET_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["requestPasswordReset"]
     assert not data["errors"]
@@ -185,11 +207,14 @@ def test_request_password_reset_email_for_staff(
         **get_site_context_payload(site_settings.site),
     }
 
-    mocked_notify.assert_called_once_with(
-        NotifyEventType.ACCOUNT_STAFF_RESET_PASSWORD,
-        payload=expected_payload,
-        channel_slug=None,
-    )
+    assert mocked_notify.call_count == 1
+    call_args = mocked_notify.call_args_list[0]
+    called_args = call_args.args
+    called_kwargs = call_args.kwargs
+    assert called_args[0] == NotifyEventType.ACCOUNT_STAFF_RESET_PASSWORD
+    assert len(called_kwargs) == 2
+    assert called_kwargs["payload_func"]() == expected_payload
+    assert called_kwargs["channel_slug"] is None
 
 
 @patch("saleor.plugins.manager.PluginsManager.notify")
@@ -259,6 +284,7 @@ def test_account_reset_password_all_storefront_hosts_allowed(
     channel_USD,
     site_settings,
 ):
+    # given
     settings.ALLOWED_CLIENT_HOSTS = ["*"]
     redirect_url = "https://www.test.com"
     variables = {
@@ -266,7 +292,11 @@ def test_account_reset_password_all_storefront_hosts_allowed(
         "redirectUrl": redirect_url,
         "channel": channel_PLN.slug,
     }
+
+    # when
     response = user_api_client.post_graphql(REQUEST_PASSWORD_RESET_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["requestPasswordReset"]
     assert not data["errors"]
@@ -282,12 +312,14 @@ def test_account_reset_password_all_storefront_hosts_allowed(
         "channel_slug": channel_PLN.slug,
         **get_site_context_payload(site_settings.site),
     }
-
-    mocked_notify.assert_called_once_with(
-        NotifyEventType.ACCOUNT_PASSWORD_RESET,
-        payload=expected_payload,
-        channel_slug=channel_PLN.slug,
-    )
+    assert mocked_notify.call_count == 1
+    call_args = mocked_notify.call_args_list[0]
+    called_args = call_args.args
+    called_kwargs = call_args.kwargs
+    assert called_args[0] == NotifyEventType.ACCOUNT_PASSWORD_RESET
+    assert len(called_kwargs) == 2
+    assert called_kwargs["payload_func"]() == expected_payload
+    assert called_kwargs["channel_slug"] == channel_PLN.slug
 
 
 @freeze_time("2018-05-31 12:00:01")
@@ -295,6 +327,7 @@ def test_account_reset_password_all_storefront_hosts_allowed(
 def test_account_reset_password_subdomain(
     mocked_notify, user_api_client, customer_user, settings, channel_PLN, site_settings
 ):
+    # given
     settings.ALLOWED_CLIENT_HOSTS = [".example.com"]
     redirect_url = "https://sub.example.com"
     variables = {
@@ -302,7 +335,11 @@ def test_account_reset_password_subdomain(
         "redirectUrl": redirect_url,
         "channel": channel_PLN.slug,
     }
+
+    # when
     response = user_api_client.post_graphql(REQUEST_PASSWORD_RESET_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["requestPasswordReset"]
     assert not data["errors"]
@@ -319,11 +356,14 @@ def test_account_reset_password_subdomain(
         **get_site_context_payload(site_settings.site),
     }
 
-    mocked_notify.assert_called_once_with(
-        NotifyEventType.ACCOUNT_PASSWORD_RESET,
-        payload=expected_payload,
-        channel_slug=channel_PLN.slug,
-    )
+    assert mocked_notify.call_count == 1
+    call_args = mocked_notify.call_args_list[0]
+    called_args = call_args.args
+    called_kwargs = call_args.kwargs
+    assert called_args[0] == NotifyEventType.ACCOUNT_PASSWORD_RESET
+    assert len(called_kwargs) == 2
+    assert called_kwargs["payload_func"]() == expected_payload
+    assert called_kwargs["channel_slug"] == channel_PLN.slug
 
 
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
@@ -394,11 +434,15 @@ def test_account_reset_password_for_not_confirmed_user(
         **get_site_context_payload(site_settings.site),
     }
 
-    mocked_notify.assert_called_once_with(
-        NotifyEventType.ACCOUNT_PASSWORD_RESET,
-        payload=expected_payload,
-        channel_slug=channel_PLN.slug,
-    )
+    assert mocked_notify.call_count == 1
+    call_args = mocked_notify.call_args_list[0]
+    called_args = call_args.args
+    called_kwargs = call_args.kwargs
+    assert called_args[0] == NotifyEventType.ACCOUNT_PASSWORD_RESET
+    assert len(called_kwargs) == 2
+    assert called_kwargs["payload_func"]() == expected_payload
+    assert called_kwargs["channel_slug"] == channel_PLN.slug
+
     user = user_api_client.user
     user.refresh_from_db()
     assert user.last_password_reset_request == timezone.now()

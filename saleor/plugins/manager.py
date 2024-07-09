@@ -2477,7 +2477,7 @@ class PluginsManager(PaymentInterface):
     def notify(
         self,
         event: "NotifyEventTypeChoice",
-        payload: dict,
+        payload_func: Callable,
         channel_slug: Optional[str] = None,
         plugin_id: Optional[str] = None,
     ):
@@ -2489,10 +2489,10 @@ class PluginsManager(PaymentInterface):
                 method_name="notify",
                 previous_value=default_value,
                 event=event,
-                payload=payload,
+                payload_func=payload_func,
             )
         return self.__run_method_on_plugins(
-            "notify", default_value, event, payload, channel_slug=channel_slug
+            "notify", default_value, event, payload_func, channel_slug=channel_slug
         )
 
     def external_obtain_access_tokens(
