@@ -1,5 +1,7 @@
 import pytest
 
+from ....account.models import User
+from ....graphql.core.utils import to_global_id_or_none
 from ..shop.utils import prepare_shop
 from ..utils import assign_permissions
 from .utils import account_register, token_create
@@ -53,7 +55,9 @@ def test_should_login_before_email_confirmation_core_1510(
         redirect_url,
     )
 
-    user_id = user_account["user"]["id"]
+    user = User.objects.last()
+    assert user
+    user_id = to_global_id_or_none(user)
     assert user_account["user"]["isActive"] is True
     assert user_account["requiresConfirmation"] is True
 
