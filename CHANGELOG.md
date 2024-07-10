@@ -10,6 +10,12 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Breaking changes
 - Remove the `anonymize` plugin. Use `saleor/core/utils/anonymization` code instead. - by @aniav
+- Change error codes related to user enumeration bad habbit. Included mutations will now not reveal information in error codes if email was already registered:
+  - `AccountRegister`,
+    `AccountRegister` mutation will additionaly not return `ID` of the user.
+  - `ConfirmAccount`,
+  - `RequestPasswordReset`,
+  - `SetPassword`, #16243 by @kadewu
 
 ### GraphQL API
 - Add `translatableContent` to all translation types; add translated object id to all translatable content types - #15617 by @zedzior
