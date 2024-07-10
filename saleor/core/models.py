@@ -7,6 +7,8 @@ from django.contrib.postgres.indexes import GinIndex
 from django.core.files.base import ContentFile
 from django.db import models, transaction
 from django.db.models import F, JSONField, Max, Q
+from django.utils.crypto import get_random_string
+from storages.utils import safe_join
 
 from . import EventDeliveryStatus, JobStatus, private_storage
 from .utils.json_serializer import CustomJsonEncoder
@@ -181,10 +183,10 @@ class EventPayload(models.Model):
         return self.payload
 
     def save_payload_file(self, payload_data: str):
-        self.payload_file.save(
-            f"payload-{self.pk}-{self.created_at}.json",
-            ContentFile(payload_data),
-        )
+        prefix = get_random_string(length=12)
+        file_name = f"payload-{self.pk}-{self.created_at}.json"
+        file_path = safe_join(prefix, file_name)
+        self.payload_file.save(file_path, ContentFile(payload_data))
 
 
 class EventDelivery(models.Model):
