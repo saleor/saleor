@@ -68,7 +68,7 @@ CATALOGUE_FIELDS = ["categories", "collections", "products", "variants"]
 
 # to avoid locking many rows in the database at once we process them in chunks,
 # so we don't lock the database for a long time
-BULK_CREATE_NEW_PROMOTION_RULE_VARIANTS_BATCH_SIZE = 100
+BULK_CREATE_NEW_PROMOTION_RULE_VARIANTS_BATCH_SIZE = 200
 
 
 def is_order_level_voucher(voucher: Optional[Voucher]):
@@ -1270,17 +1270,11 @@ def update_rule_variant_relation(
         if (rv.promotionrule_id, rv.productvariant_id) not in new_rule_variant_set
     ]
     with transaction.atomic():
-        product_ids = tuple(
+        _variants = tuple(
             ProductVariant.objects.order_by("pk")
             .select_for_update(of=["self"])
             .filter(id__in={rv.productvariant_id for rv in rule_variant_to_delete_ids})
-            .values_list("product_id", flat=True)
-        )
-        _product_ids = tuple(
-            Product.objects.order_by("pk")
-            .select_for_update(of=["self"])
-            .filter(id__in=product_ids)
-            .values_list("pk", flat=True)
+            .values_list("id", flat=True)
         )
         _rules = tuple(
             PromotionRule.objects.order_by("pk")

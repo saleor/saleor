@@ -103,7 +103,6 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
             product_variant_map[product].append(variant)
 
         products = [product for product in queryset]
-        # queryset.delete()
         with transaction.atomic():
             variants_ids = (
                 models.ProductVariant.objects.order_by("pk")
