@@ -11,6 +11,7 @@ from ..core.utils import get_client_ip
 from . import models
 from .error_codes import AccountErrorCode
 from .utils import retrieve_user_by_email
+from .utils import get_random_user
 
 MIN_DELAY = 1
 MAX_DELAY = 3600
@@ -54,6 +55,12 @@ def authenticate_with_throttling(request, email, password) -> Optional[models.Us
         else:
             # increment failed attempt for known user
             ip_user_attempts_count = increment_attempt(ip_user_key)
+
+    else:
+        random_user = get_random_user()
+        ip_user_key = get_cache_key_failed_ip_with_user(ip, random_user.pk)
+        random_user.check_password(password)
+        fake_increment_attempt(ip_user_key)
 
     # increment failed attempt for whatever user
     ip_attempts_count = increment_attempt(ip_key)
@@ -134,4 +141,8 @@ def increment_attempt(key: str) -> int:
     # `cache.add` returns False and does nothing, when key already exists
     if not cache.add(key, 1, timeout=ATTEMPT_COUNTER_EXPIRE_TIME):
         return cache.incr(key, 1)
+    return 1
+
+def fake_increment_attempt(fake_key: str) -> int:
+    cache.add(fake_key, 0, timeout=ATTEMPT_COUNTER_EXPIRE_TIME)
     return 1

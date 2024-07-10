@@ -1,3 +1,5 @@
+import random
+
 from typing import TYPE_CHECKING
 
 from django.conf import settings
@@ -133,6 +135,13 @@ def retrieve_user_by_email(email):
     if users:
         return users[0]
     return None
+
+
+def get_random_user():
+    users = list(User.objects.all())
+    random_number = random.randint(0, (len(users)-1))
+
+    return users[random_number]
 
 
 def get_user_groups_permissions(user: User):
