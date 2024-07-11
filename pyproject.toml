@@ -30,7 +30,7 @@ documentation = "https://docs.saleor.io/"
   cryptography = "^42.0.5"
   dj-database-url = "^2"
   dj-email-url = "^1"
-  django = {version = "^3.2.24", extras = ["bcrypt"]}
+  django = {version = "^4.2.14", extras = ["bcrypt"]}
   django-cache-url = "^3.1.2"
   django-celery-beat = "^2.2.1"
   django-countries = "^7.2"
