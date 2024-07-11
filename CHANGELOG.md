@@ -15,6 +15,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Breaking changes
 
 - Remove the `anonymize` plugin. Use `saleor/core/utils/anonymization` code instead. - by @aniav
+- Require the `type` field on `PromotionCreateInput` - #16296 by @IKarbowiak
 
 ### GraphQL API
 
