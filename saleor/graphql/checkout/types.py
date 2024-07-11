@@ -85,7 +85,7 @@ from ..tax.dataloaders import (
 from ..utils import get_user_or_app_from_context
 from ..warehouse.dataloaders import StocksReservationsByCheckoutTokenLoader
 from ..warehouse.types import Warehouse
-from ..webhook.dataloaders import PregeneratedSubscriptionPayloadsByCheckoutTokenLoader
+from ..webhook.dataloaders import PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader
 from .dataloaders import (
     CheckoutByTokenLoader,
     CheckoutInfoByCheckoutTokenLoader,
@@ -117,7 +117,7 @@ def get_dataloaders_for_fetching_checkout_data(
     lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
     checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(root.token)
     manager = get_plugin_manager_promise(info.context)
-    payloads = PregeneratedSubscriptionPayloadsByCheckoutTokenLoader(info.context).load(
+    payloads = PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(info.context).load(
         root.token
     )
     return address, lines, checkout_info, manager, payloads
@@ -293,7 +293,7 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
             lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(
                 checkout.token
             )
-            payloads = PregeneratedSubscriptionPayloadsByCheckoutTokenLoader(
+            payloads = PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(
                 info.context
             ).load(checkout.token)
 
@@ -376,7 +376,7 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
             lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(
                 checkout.token
             )
-            payloads = PregeneratedSubscriptionPayloadsByCheckoutTokenLoader(
+            payloads = PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(
                 info.context
             ).load(checkout.token)
 
