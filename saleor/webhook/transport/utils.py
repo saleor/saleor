@@ -363,7 +363,7 @@ def get_delivery_for_webhook(event_delivery_id) -> Optional["EventDelivery"]:
             id=event_delivery_id
         )
     except EventDelivery.DoesNotExist:
-        logger.error("Event delivery id: %r not found", event_delivery_id)
+        logger.warning("Event delivery id: %r not found", event_delivery_id)
         return None
 
     if not delivery.webhook.is_active:
