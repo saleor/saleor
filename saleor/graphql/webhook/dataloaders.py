@@ -70,11 +70,28 @@ class WebhooksByAppIdLoader(DataLoader):
         return [webhooks_by_app_map.get(app_id, []) for app_id in keys]
 
 
-class PregeneratedSubscriptionPayloadsByCheckoutTokenLoader(DataLoader):
-    context_key = "pregenerated_subscription_payloads_by_checkout_token"
+class PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(DataLoader):
+    context_key = "pregenerated_checkout_tax_payloads_by_checkout_token"
 
     def batch_load(self, keys):
-        # TODO Owczar: Add dict explanation here.
+        """Fetch pregenerated tax payloads for checkouts.
+
+        This loader is used to fetch pregenerated tax payloads for checkouts.
+
+        return: A dict of tax payloads for checkouts.
+
+        Example:
+        {
+            "checkout_token": {
+                "app_id": {
+                    "query_hash": {
+                        <payload>
+                    }
+                }
+            }
+        }
+
+        """
         results: dict[str, dict[int, dict[str, dict[str, Any]]]] = defaultdict(
             lambda: defaultdict(dict)
         )
