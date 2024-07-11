@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 import graphene
 from promise import Promise
@@ -103,14 +103,14 @@ if TYPE_CHECKING:
     from ...plugins.manager import PluginsManager
 
 
-# TODO: Owczar: Fix typing.
 def get_dataloaders_for_fetching_checkout_data(
-    root: models.Checkout, info: ResolveInfo, extra_data: bool = False
+    root: models.Checkout, info: ResolveInfo
 ) -> tuple[
     Optional[Promise["Address"]],
     Promise[list["CheckoutLineInfo"]],
     Promise["CheckoutInfo"],
     Promise["PluginsManager"],
+    Promise[dict[str, Any]],
 ]:
     address_id = root.shipping_address_id or root.billing_address_id
     address = AddressByIdLoader(info.context).load(address_id) if address_id else None
@@ -120,10 +120,7 @@ def get_dataloaders_for_fetching_checkout_data(
     payloads = PregeneratedSubscriptionPayloadsByCheckoutTokenLoader(info.context).load(
         root.token
     )
-    # TODO: Owczar: Remove it when we remove the old checkout calculations
-    if extra_data:
-        return address, lines, checkout_info, manager, payloads  # type: ignore
-    return address, lines, checkout_info, manager
+    return address, lines, checkout_info, manager, payloads
 
 
 class CheckoutLineProblemInsufficientStock(
@@ -916,9 +913,7 @@ class Checkout(ModelObjectType[models.Checkout]):
             )
             return max(taxed_total, zero_taxed_money(root.currency))
 
-        dataloaders = list(
-            get_dataloaders_for_fetching_checkout_data(root, info, extra_data=True)
-        )
+        dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
         return Promise.all(dataloaders).then(calculate_total_price)
 
     @staticmethod
@@ -938,9 +933,7 @@ class Checkout(ModelObjectType[models.Checkout]):
                 pregenerated_subscription_payloads=payloads,
             )
 
-        dataloaders = list(
-            get_dataloaders_for_fetching_checkout_data(root, info, extra_data=True)
-        )
+        dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
         return Promise.all(dataloaders).then(calculate_subtotal_price)
 
     @staticmethod
@@ -960,9 +953,7 @@ class Checkout(ModelObjectType[models.Checkout]):
                 pregenerated_subscription_payloads=payloads,
             )
 
-        dataloaders = list(
-            get_dataloaders_for_fetching_checkout_data(root, info, extra_data=True)
-        )
+        dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
         return Promise.all(dataloaders).then(calculate_shipping_price)
 
     @staticmethod
@@ -1229,9 +1220,7 @@ class Checkout(ModelObjectType[models.Checkout]):
             )
             return checkout_info.checkout.authorize_status
 
-        dataloaders = list(
-            get_dataloaders_for_fetching_checkout_data(root, info, extra_data=True)
-        )
+        dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
         dataloaders.append(
             TransactionItemsByCheckoutIDLoader(info.context).load(root.pk)
         )
@@ -1254,9 +1243,7 @@ class Checkout(ModelObjectType[models.Checkout]):
             )
             return checkout_info.checkout.charge_status
 
-        dataloaders = list(
-            get_dataloaders_for_fetching_checkout_data(root, info, extra_data=True)
-        )
+        dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
         dataloaders.append(
             TransactionItemsByCheckoutIDLoader(info.context).load(root.pk)
         )
@@ -1283,9 +1270,7 @@ class Checkout(ModelObjectType[models.Checkout]):
                 total_charged += transaction.amount_charge_pending
             return total_charged - checkout_total.gross
 
-        dataloaders = list(
-            get_dataloaders_for_fetching_checkout_data(root, info, extra_data=True)
-        )
+        dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
         dataloaders.append(
             TransactionItemsByCheckoutIDLoader(info.context).load(root.pk)
         )
