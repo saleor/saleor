@@ -10,6 +10,8 @@ on:
     secrets:
       SLACK_WEBHOOK_URL:
       SLACK_MENTION_GROUP_ID:
+    outputs:
+      version: ${{ jobs.docker.outputs.version }}
 
 jobs:
   docker:
