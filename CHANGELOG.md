@@ -1,47 +1,55 @@
-
 # Changelog
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/saleor/saleor/releases) page.
 
-# 3.20.0 [Unreleased]
+# 3.20.0
 
 ### Highlights
-- Include transaction item in refund flow - #15590 by @korycins
+
+- Connecting the Transaction item to a granted refund in the refund flow is now possible. This makes it easier to understand what’s the status of a refund. - #15590 by @korycins
+- `checkout` and `checkouts` queries now allow to be used with `HANDLE_PAYMENTS` permission. Previously, only `MANAGE_CHECKOUTS` and `IMPERSONATE_USER` were allowed to retrieve checkouts. This made the behavior around payment apps inconsistent.
+- Database performance improvements around:
+  - using the replica database in all the places where the operation doesn’t have to write to the database
+  - dataloaders for `attributes` and `productVariants` queries
 
 ### Breaking changes
+
 - Remove the `anonymize` plugin. Use `saleor/core/utils/anonymization` code instead. - by @aniav
 
 ### GraphQL API
-- Add `translatableContent` to all translation types; add translated object id to all translatable content types - #15617 by @zedzior
-- Add a `taxConfiguration` to a `Channel` - #15610 by @Air-t
-- Add `stocks` to a `Warehouse` - #15771 by @teddyondieki
-- Deprecate the `taxTypes` query - #15802 by @maarcingebala
-- Change permissions for `checkout` and `checkouts` queries. Add `HANDLE_PAYMENTS` to required permissions - #16010 by @Air-t
-- Change the `CheckoutRemovePromoCode` mutation behavior to throw a `ValidationError` when the promo code is not detached from the checkout. - #16109 by @Air-t
 
-### Saleor Apps
+- Add `translatableContent` to all translation types; add translated object id to all translatable content types - #15617 by @zedzior
+- Add the `Channel.taxConfiguration` field - #15610 by @Air-t
+- Add the `Warehouse.stocks` field - #15771 by @teddyondieki
+- Change permissions for `checkout` and `checkouts` queries. Add `HANDLE_PAYMENTS` to required permissions - #16010 by @Air-t
+- Change the `checkoutRemovePromoCode` mutation behavior to throw a `ValidationError` when the promo code is not detached from the checkout. - #16109 by @Air-t
+- Deprecate the `taxTypes` query - #15802 by @maarcingebala
 
 ### Other changes
-- Remove `prefetched_for_webhook` to legacy payload generators - #15369 by @AjmalPonneth
-- Don't raise InsufficientStock for track_inventory=False variants #15475 by @carlosa54
+
+- Remove `prefetched_for_webhook` queryset for legacy payload generators - #15369 by @AjmalPonneth
+- Don't raise `InsufficientStock` for inventory tracking for variants is disabled - #15475 by @carlosa54
 - DB performance improvements in attribute dataloaders - #15474 by @AjmalPonneth
 - Calculate order promotions in draft orders - #15459 by @zedzior
-- Prevent name overwriting of Product Variants when Updating Product Types - #15670 by @teddyondieki
+- Prevent name overwriting of product variants when updating product types - #15670 by @teddyondieki
 - Added support for the `BrokerProperties` custom header to webhooks to support Azure Service Bus - #15899 by @patrys
-- Extend valid address values - #15877 by @zedzior
 - Fixed a rare crash in the introspection query detection code - #15966 by @patrys
 - Added HTTP compression telemetry - #16125 by @patrys
-- Rewrite `productVariants` resolvers to use JOINs instead of subqueries - #16262 by @maarcingebala
 - Implement login throttling - #16219 by @zedzior
+- Introduce the `allow_writer` context manager to explicitly control when the writer database should be used - #15651 by @maarcingebala
+- Improve performance of the `productVariants` resolvers by using JOINs instead of subqueries - #16262 by @maarcingebala
+- Extend valid address values - #15877 by @zedzior
 
 # 3.19.0
 
 ### Highlights
+
 - Introduce `order` promotion rules that allow applying discounts during checkout calculations when the checkout meets certain conditions. - #14696 by @IKarbowiak, @zedzior
 - Introduce gift reward as `order` promotion rule reward - #15259 by @zedzior, @IKarbowiak
 - New environment variable `EVENT_PAYLOAD_DELETE_TASK_TIME_LIMIT` to control time limit of `delete_event_payloads_task` - #15396 by @wcislo-saleor
 
 ### Breaking changes
+
 - Drop `OrderBulkCreateInput.voucher` field. Use `OrderBulkCreateInput.voucherCode` instead. - #14553 by @zedzior
 - Add new `type` field to `PromotionCreateInput`, the field will be required from 3.20 - #14696 by @IKarbowiak, @zedzior
 - Do not stack promotion rules within the promotion. Only the best promotion rule will be applied within the promotion. Previously discounts from all rules within the promotion that gives the best discount were applied to the variant's price - #15309 by @korycins
@@ -57,6 +65,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Saleor Apps
 
 ### Other changes
+
 - Add missing descriptions to order module - #14845 by @DevilsAutumn
 - Unify how undiscounted prices are handled in orders and checkouts - #14780 by @jakubkuc
 - Drop demo - #14835 by @fowczarek
@@ -118,7 +127,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Change the Attribute - Product relation to decrease code complexity and make it easier to understand the relations - #13407 by @aniav
 - Change the Attribute - Page relation to decrease code complexity - #13621 by @michal-macioszczyk
 - Added validation for timestamp comparison - #14025 by @ritanjandawn
-
 
 # 3.17.0
 
