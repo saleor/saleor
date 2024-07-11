@@ -11,7 +11,9 @@ on:
       SLACK_WEBHOOK_URL:
       SLACK_MENTION_GROUP_ID:
     outputs:
-      version: ${{ jobs.docker.outputs.version }}
+      version:
+        description: Docker image version
+        value: ${{ jobs.docker.outputs.version }}
 
 jobs:
   docker:
