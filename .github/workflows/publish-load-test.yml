@@ -1,0 +1,30 @@
+name: Publish for load test
+
+on:
+  pull_request:
+    types: [reopened, synchronize, labeled]
+    branches: ["**"]
+
+jobs:
+  publish:
+    if: ${{ ((github.event.action == 'labeled') && (github.event.label.name == 'load test')) || ((github.event.action != 'labeled') && contains(github.event.pull_request.labels.*.name, 'load test')) }}
+    uses: ./.github/workflows/publish-containers.yaml
+    with:
+      prefix: load-test-
+    secrets:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_CLOUD_CI_WEBHOOK_URL }}
+      SLACK_MENTION_GROUP_ID: ${{ secrets.SLACK_CORE_SUPPORT_GROUP_ID }}
+
+  deploy:
+    runs-on: ubuntu-20.04
+    needs:
+      - publish
+    steps:
+      - name: Trigger load test deployment
+        run: |
+          curl -f -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: Bearer ${{ secrets.SALEOR_RELEASE_TOKEN }}" \
+            https://api.github.com/repos/saleor/saleor-multitenant/dispatches \
+            -d "{\"event_type\":\"deploy-load-test\",\"client_payload\":{\"version\":\"${{ needs.publish.outputs.version }}\"}}"
