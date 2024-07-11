@@ -60,6 +60,7 @@ class GraphQLView(View):
     middleware = None
     root_value = None
     backend: GraphQLBackend = None  # type: ignore[assignment]
+    _query: str = None
 
     HANDLED_EXCEPTIONS = (
         GraphQLError,
@@ -278,6 +279,7 @@ class GraphQLView(View):
             )
 
             query, variables, operation_name = self.get_graphql_params(request, data)
+            self._query = operation_name
 
             document, error = self.parse_query(query)
             with observability.report_gql_operation() as operation:
@@ -389,9 +391,8 @@ class GraphQLView(View):
             variables = operations.get("variables")
         return query, variables, operation_name
 
-    @classmethod
-    def format_error(cls, error):
-        return format_error(error, cls.HANDLED_EXCEPTIONS)
+    def format_error(self, error):
+        return format_error(error, self.HANDLED_EXCEPTIONS, self._query)
 
 
 def get_key(key):
