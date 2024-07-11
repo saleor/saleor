@@ -105,14 +105,14 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
         products = [product for product in queryset]
         with transaction.atomic():
             variants_ids = (
-                models.ProductVariant.objects.order_by("pk")
+                models.ProductVariant.objects.order_by("created_at")
                 .select_for_update(of=("self",))
                 .filter(product__in=products)
                 .values_list("pk", flat=True)
             )
             models.ProductVariant.objects.filter(pk__in=variants_ids).delete()
             ids = tuple(
-                models.Product.objects.order_by("pk")
+                models.Product.objects.order_by("created_at")
                 .select_for_update(of=("self",))
                 .filter(pk__in=[product.pk for product in products])
                 .values_list("pk", flat=True)

@@ -45,7 +45,7 @@ CATALOGUE_FIELDS = ["categories", "collections", "products", "variants"]
 
 # to avoid locking many rows in the database at once we process them in chunks,
 # so we don't lock the database for a long time
-BULK_CREATE_NEW_PROMOTION_RULE_VARIANTS_BATCH_SIZE = 200
+BULK_CREATE_NEW_PROMOTION_RULE_VARIANTS_BATCH_SIZE = 100
 
 
 def increase_voucher_usage(
@@ -592,6 +592,15 @@ def batch(iterable, size):
 
 def _process_promotion_rule_variants_batch(rules_to_add_batch):
     with transaction.atomic():
+        variant_lock = tuple(
+            ProductVariant.objects.order_by("created_at")
+            .select_for_update(of=["self"])
+            .filter(id__in={rv.productvariant_id for rv in rules_to_add_batch})
+            .values_list("pk", flat=True)
+        )
+        if not variant_lock:
+            return []
+
         rules_lock = tuple(
             PromotionRule.objects.order_by("pk")
             .select_for_update(of=["self"])
@@ -599,15 +608,6 @@ def _process_promotion_rule_variants_batch(rules_to_add_batch):
             .values_list("pk", flat=True)
         )
         if not rules_lock:
-            return []
-        variant_lock = tuple(
-            ProductVariant.objects.order_by("pk")
-            .select_for_update(of=["self"])
-            .filter(id__in={rv.productvariant_id for rv in rules_to_add_batch})
-            .values_list("pk", flat=True)
-        )
-
-        if not variant_lock:
             return []
 
         # base on what locks returned, filter out rules and variants that weren't locked
@@ -658,7 +658,7 @@ def update_rule_variant_relation(
     ]
     with transaction.atomic():
         _variants = tuple(
-            ProductVariant.objects.order_by("pk")
+            ProductVariant.objects.order_by("created_at")
             .select_for_update(of=["self"])
             .filter(id__in={rv.productvariant_id for rv in rule_variant_to_delete_ids})
             .values_list("id", flat=True)
@@ -674,9 +674,22 @@ def update_rule_variant_relation(
         ).filter(id__in={rv.id for rv in rule_variant_to_delete_ids}).delete()
 
     # to avoid deadlocks we need to sort new records by promotionrule_id and
-    # productvariant_id, so we lock them in correct order in batches
-    rules_variants_to_add.sort(
-        key=lambda rv: (rv.promotionrule_id, rv.productvariant_id)
+    # variant's created_at, so we lock them in correct order in batches
+    variant_created_at_map = dict(
+        ProductVariant.objects.order_by("created_at")
+        .filter(id__in={rv.productvariant_id for rv in rules_variants_to_add})
+        .values_list("id", "created_at")
+    )
+    rules_variants_to_add = sorted(
+        (
+            rv
+            for rv in rules_variants_to_add
+            if rv.productvariant_id in variant_created_at_map
+        ),
+        key=lambda rv: (
+            rv.promotionrule_id,
+            variant_created_at_map[rv.productvariant_id],
+        ),
     )
 
     for rules_to_add_batch in batch(
