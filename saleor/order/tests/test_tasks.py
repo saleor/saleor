@@ -10,7 +10,11 @@ from ...discount.models import VoucherCustomer
 from ...warehouse.models import Allocation
 from .. import OrderEvents, OrderStatus
 from ..models import Order, OrderEvent, get_order_number
-from ..tasks import delete_expired_orders_task, expire_orders_task
+from ..tasks import (
+    _bulk_release_voucher_usage,
+    delete_expired_orders_task,
+    expire_orders_task,
+)
 
 
 def test_expire_orders_task_check_voucher(
@@ -611,3 +615,38 @@ def test_delete_expired_orders_task_schedule_itself(
     # then
     mocked_delay.assert_called_once_with()
     assert Order.objects.count() == 2
+
+
+def test_bulk_release_voucher_usage_no_negative_value(
+    order_list, allocations, channel_USD, voucher_customer
+):
+    # given
+    channel_USD.expire_orders_after = 1
+    channel_USD.save()
+
+    now = timezone.now()
+    code = voucher_customer.voucher_code
+    voucher = code.voucher
+    code.used = 1
+    voucher.usage_limit = 3
+    code.save(update_fields=["used"])
+    voucher.save(update_fields=["usage_limit"])
+
+    order_1 = order_list[0]
+    order_1.status = OrderStatus.UNCONFIRMED
+    order_1.created_at = now - timezone.timedelta(minutes=10)
+    order_1.voucher_code = code.code
+    order_1.save()
+
+    order_2 = order_list[1]
+    order_2.status = OrderStatus.UNCONFIRMED
+    order_2.created_at = now - timezone.timedelta(minutes=10)
+    order_2.voucher_code = code.code
+    order_2.save()
+
+    # when
+    _bulk_release_voucher_usage([order_1.pk, order_2.pk])
+
+    # then
+    code.refresh_from_db()
+    assert code.used == 0

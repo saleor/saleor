@@ -3,6 +3,7 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.db.models import Exists, F, Func, OuterRef, Subquery, Value
+from django.db.models.functions import Greatest
 from django.utils import timezone
 
 from ..celeryconf import app
@@ -60,7 +61,7 @@ def _bulk_release_voucher_usage(order_ids):
         Exists(voucher_orders),
         Exists(vouchers.filter(id=OuterRef("voucher_id"))),
     ).annotate(order_count=Subquery(count_orders)).update(
-        used=F("used") - F("order_count")
+        used=Greatest(F("used") - F("order_count"), 0)
     )
 
     orders = Order.objects.filter(id__in=order_ids)
