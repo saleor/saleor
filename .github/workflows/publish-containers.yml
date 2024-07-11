@@ -10,8 +10,6 @@ on:
     secrets:
       SLACK_WEBHOOK_URL:
       SLACK_MENTION_GROUP_ID:
-    outputs:
-      version: ${{ steps.meta.outputs.version }}
 
 jobs:
   docker:
@@ -20,6 +18,9 @@ jobs:
     permissions:
       contents: read
       packages: write
+    
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
 
     steps:
       - name: Checkout
