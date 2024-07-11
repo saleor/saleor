@@ -12,6 +12,5 @@ jobs:
     with:
       prefix: unstable-
     secrets:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_CLOUD_CI_WEBHOOK_URL }}
       SLACK_MENTION_GROUP_ID: ${{ secrets.SLACK_CORE_SUPPORT_GROUP_ID }}
