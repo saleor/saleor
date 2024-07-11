@@ -42,6 +42,7 @@ jobs:
             ghcr.io/${{ steps.image.outputs.image_name }}
           tags: |
             type=ref,event=branch,prefix=${{ inputs.prefix }}
+            type=ref,event=pr,prefix=${{ inputs.prefix }}
             type=pep440,pattern={{version}}
             type=pep440,pattern={{major}}.{{minor}}
 
