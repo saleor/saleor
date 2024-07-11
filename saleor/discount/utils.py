@@ -679,6 +679,7 @@ def update_rule_variant_relation(
         ProductVariant.objects.order_by("created_at")
         .filter(id__in={rv.productvariant_id for rv in rules_variants_to_add})
         .values_list("id", "created_at")
+        .iterator()
     )
     rules_variants_to_add = sorted(
         (
@@ -688,9 +689,10 @@ def update_rule_variant_relation(
         ),
         key=lambda rv: (
             rv.promotionrule_id,
-            variant_created_at_map[rv.productvariant_id],
+            variant_created_at_map[rv.productvariant_id],  # noqa: F821
         ),
     )
+    del variant_created_at_map
 
     for rules_to_add_batch in batch(
         rules_variants_to_add, size=BULK_CREATE_NEW_PROMOTION_RULE_VARIANTS_BATCH_SIZE

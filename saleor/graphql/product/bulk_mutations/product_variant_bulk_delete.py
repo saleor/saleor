@@ -173,7 +173,7 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
         the last available variant has been deleted.
         """
         variants = (
-            models.ProductVariant.objects.order_by("pk")
+            models.ProductVariant.objects.order_by("created_at")
             .select_for_update(of=("self",))
             .filter(product_id__in=product_pks)
             .exclude(id__in=variant_pks)
