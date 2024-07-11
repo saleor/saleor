@@ -293,10 +293,13 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
             lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(
                 checkout.token
             )
+            payloads = PregeneratedSubscriptionPayloadsByCheckoutTokenLoader(
+                info.context
+            ).load(checkout.token)
 
             @allow_writer_in_context(info.context)
             def calculate_line_unit_price(data):
-                checkout_info, lines = data
+                checkout_info, lines, payloads = data
                 database_connection_name = get_database_connection_name(info.context)
                 for line_info in lines:
                     if line_info.line.pk == root.pk:
@@ -306,6 +309,7 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
                             lines=lines,
                             checkout_line_info=line_info,
                             database_connection_name=database_connection_name,
+                            pregenerated_subscription_payloads=payloads,
                         )
                 return None
 
@@ -313,6 +317,7 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
                 [
                     checkout_info,
                     lines,
+                    payloads,
                 ]
             ).then(calculate_line_unit_price)
 
