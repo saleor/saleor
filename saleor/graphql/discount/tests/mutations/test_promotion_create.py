@@ -215,6 +215,7 @@ def test_promotion_create_by_app(
     variables = {
         "input": {
             "name": promotion_name,
+            "type": PromotionTypeEnum.CATALOGUE.name,
             "description": description_json,
             "startDate": start_date.isoformat(),
             "endDate": end_date.isoformat(),
@@ -604,6 +605,7 @@ def test_promotion_create_only_name_and_end_date(
     variables = {
         "input": {
             "name": promotion_name,
+            "type": PromotionTypeEnum.CATALOGUE.name,
             "endDate": end_date.isoformat(),
         }
     }
@@ -1580,6 +1582,7 @@ def test_promotion_create_rules_without_channels_and_percentage_reward(
     variables = {
         "input": {
             "name": "test promotion",
+            "type": PromotionTypeEnum.CATALOGUE.name,
             "startDate": start_date.isoformat(),
             "endDate": end_date.isoformat(),
             "rules": [
@@ -2073,6 +2076,7 @@ def test_promotion_create_without_catalogue_predicate(
     variables = {
         "input": {
             "name": promotion_name,
+            "type": PromotionTypeEnum.CATALOGUE.name,
             "description": description_json,
             "startDate": start_date.isoformat(),
             "endDate": end_date.isoformat(),

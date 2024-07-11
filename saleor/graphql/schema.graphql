@@ -27937,13 +27937,9 @@ input PromotionCreateInput @doc(category: "Discounts") {
   """
   Defines the promotion type. Implicate the required promotion rules predicate type and whether the promotion rules will give the catalogue or order discount. 
   
-  The default value is `Catalogue`.
-  
-  This field will be required from Saleor 3.20.
-  
   Added in Saleor 3.19.
   """
-  type: PromotionTypeEnum
+  type: PromotionTypeEnum!
 
   """List of promotion rules."""
   rules: [PromotionRuleInput!]
