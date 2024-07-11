@@ -2,6 +2,7 @@ import graphene
 
 from ...invoice import models
 from ..core.descriptions import ADDED_IN_310, DEPRECATED_IN_3X_FIELD
+from ..core.scalars import DateTime
 from ..core.types import Job, ModelObjectType
 from ..meta.types import ObjectWithMetadata
 from ..order.dataloaders import OrderByIdLoader
@@ -17,10 +18,10 @@ class Invoice(ModelObjectType[models.Invoice]):
             "This field will be removed in 4.0"
         ),
     )
-    created_at = graphene.DateTime(
+    created_at = DateTime(
         required=True, description="Date and time at which invoice was created."
     )
-    updated_at = graphene.DateTime(
+    updated_at = DateTime(
         required=True, description="Date and time at which invoice was updated."
     )
     message = graphene.String(description="Message associated with an invoice.")

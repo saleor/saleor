@@ -1,6 +1,8 @@
 import decimal
+from datetime import MAXYEAR, MINYEAR, datetime
 
 import graphene
+import pytz
 from graphene.types.generic import GenericScalar
 from graphql.language import ast
 from measurement.measures import Weight
@@ -138,6 +140,27 @@ class UUID(graphene.UUID):
             return super(UUID, UUID).parse_value(value)
         except ValueError:
             return None
+
+
+# The custom DateTime scalar is needed as graphene.DateTime allows to save the date-time
+# value in format that is not supported by datetime module.
+# The custom validation makes additional check to confirm that the value is correct
+# Value like this `0001-01-01T00:00:01+07:00` will generate the BC date, which without
+# additional check will be saved in the database as UTC BC time:
+# `0001-12-31 17:00:01+00 BC`.
+class DateTime(graphene.DateTime):
+    __doc__ = graphene.DateTime.__doc__
+
+    @staticmethod
+    def parse_value(value):
+        parsed_value = super(DateTime, DateTime).parse_value(value)
+        if parsed_value is not None and isinstance(parsed_value, datetime):
+            if parsed_value.year in [MINYEAR, MAXYEAR]:
+                try:
+                    parsed_value.astimezone(tz=pytz.UTC)
+                except OverflowError:
+                    return None
+        return parsed_value
 
 
 # The custom Date scalar is needed as the currently used graphene 2 version is not

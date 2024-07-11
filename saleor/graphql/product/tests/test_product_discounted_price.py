@@ -4,7 +4,7 @@ from freezegun import freeze_time
 from graphql_relay import to_global_id
 
 from ....discount.models import Promotion, PromotionRule
-from ....discount.utils import (
+from ....discount.utils.promotion import (
     get_active_catalogue_promotion_rules,
     get_current_products_for_rules,
 )

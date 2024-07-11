@@ -6,7 +6,7 @@ from ...channel import ChannelContext
 from ...core import ResolveInfo
 from ...core.connection import CountableConnection
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
-from ...core.scalars import UUID
+from ...core.scalars import UUID, DateTime
 from ...core.types import ModelObjectType, NonNullList
 from ...meta.types import ObjectWithMetadata
 from ..dataloaders import ProductVariantByIdLoader
@@ -21,7 +21,7 @@ class DigitalContentUrl(ModelObjectType[models.DigitalContentUrl]):
         required=True,
         description="Digital content associated with the URL.",
     )
-    created = graphene.DateTime(
+    created = DateTime(
         required=True,
         description="Date and time when the digital content URL was created.",
     )

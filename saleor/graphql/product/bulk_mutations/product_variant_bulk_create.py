@@ -9,7 +9,7 @@ from graphene.utils.str_converters import to_camel_case
 
 from ....attribute import AttributeType
 from ....core.tracing import traced_atomic_transaction
-from ....discount.utils import mark_active_catalogue_promotion_rules_as_dirty
+from ....discount.utils.promotion import mark_active_catalogue_promotion_rules_as_dirty
 from ....permission.enums import ProductPermissions
 from ....product import models
 from ....product.error_codes import ProductVariantBulkErrorCode
@@ -37,7 +37,7 @@ from ...core.mutations import (
     ModelMutation,
     validation_error_to_error_type,
 )
-from ...core.scalars import Date
+from ...core.scalars import Date, DateTime
 from ...core.types import (
     BaseInputObjectType,
     BaseObjectType,
@@ -190,7 +190,7 @@ class BulkAttributeValueInput(BaseInputObjectType):
     date = Date(
         required=False, description=AttributeValueDescriptions.DATE + ADDED_IN_312
     )
-    date_time = graphene.DateTime(
+    date_time = DateTime(
         required=False, description=AttributeValueDescriptions.DATE_TIME + ADDED_IN_312
     )
 

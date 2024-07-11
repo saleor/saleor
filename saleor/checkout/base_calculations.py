@@ -13,7 +13,7 @@ from prices import Money
 
 from ..core.prices import quantize_price
 from ..core.taxes import zero_money
-from ..discount import DiscountValueType, VoucherType
+from ..discount import VoucherType
 
 if TYPE_CHECKING:
     from decimal import Decimal
@@ -24,7 +24,6 @@ if TYPE_CHECKING:
 
 def calculate_base_line_unit_price(
     line_info: "CheckoutLineInfo",
-    channel: "Channel",
 ) -> Money:
     """Calculate line unit price including discounts and vouchers.
 
@@ -32,9 +31,7 @@ def calculate_base_line_unit_price(
     voucher discounts.
     The price does not include the entire order discount.
     """
-    total_line_price = calculate_base_line_total_price(
-        line_info=line_info, channel=channel
-    )
+    total_line_price = calculate_base_line_total_price(line_info=line_info)
     quantity = line_info.line.quantity
     currency = total_line_price.currency
     return quantize_price(total_line_price / quantity, currency)
@@ -42,7 +39,6 @@ def calculate_base_line_unit_price(
 
 def calculate_base_line_total_price(
     line_info: "CheckoutLineInfo",
-    channel: "Channel",
     include_voucher: bool = True,
 ) -> Money:
     """Calculate line total price including discounts and vouchers.
@@ -52,10 +48,9 @@ def calculate_base_line_total_price(
     The price does not include order promotions and the entire order vouchers.
     When the line is gift reward, the price is zero.
     """
-    variant = line_info.variant
-    currency = line_info.channel_listing.currency
-    quantity = line_info.line.quantity
+    from ..discount.utils.voucher import calculate_line_discount_amount_from_voucher
 
+    variant = line_info.variant
     variant_price = variant.get_base_price(
         line_info.channel_listing, line_info.line.price_override
     )
@@ -67,39 +62,10 @@ def calculate_base_line_total_price(
         total_price -= discount_amount
 
     if include_voucher and line_info.voucher:
-        if not line_info.voucher.apply_once_per_order:
-            if line_info.voucher.discount_value_type == DiscountValueType.PERCENTAGE:
-                voucher_discount_amount = line_info.voucher.get_discount_amount_for(
-                    total_price, channel=channel
-                )
-                total_price = max(
-                    total_price - voucher_discount_amount, zero_money(currency)
-                )
-            else:
-                unit_price = total_price / quantity
-                voucher_unit_discount_amount = (
-                    line_info.voucher.get_discount_amount_for(
-                        unit_price, channel=channel
-                    )
-                )
-                total_price = max(
-                    total_price - (voucher_unit_discount_amount * quantity),
-                    zero_money(currency),
-                )
-        else:
-            unit_price = total_price / quantity
-            voucher_unit_discount_amount = line_info.voucher.get_discount_amount_for(
-                unit_price, channel=channel
-            )
-            variant_price_with_discounts = max(
-                unit_price - voucher_unit_discount_amount, zero_money(currency)
-            )
-            # we add -1 as we handle a case when voucher is applied only to single line
-            # of the cheapest item
-            quantity_without_voucher = line_info.line.quantity - 1
-            total_price = (
-                unit_price * quantity_without_voucher + variant_price_with_discounts
-            )
+        discount_amount = calculate_line_discount_amount_from_voucher(
+            line_info, total_price
+        )
+        total_price -= discount_amount
 
     return quantize_price(total_price, total_price.currency)
 
@@ -230,7 +196,6 @@ def base_checkout_subtotal(
     line_totals = [
         calculate_base_line_total_price(
             line,
-            channel,
             include_voucher=include_voucher,
         )
         for line in checkout_lines
@@ -247,7 +212,7 @@ def checkout_total(
 
     It should be used as a based value when no flat rate/tax plugin/tax app is active.
     """
-    from ..discount.utils import is_order_level_voucher
+    from ..discount.utils.voucher import is_order_level_voucher
 
     currency = checkout_info.checkout.currency
     subtotal = base_checkout_subtotal(lines, checkout_info.channel, currency)
@@ -329,7 +294,6 @@ def _get_discounted_checkout_line_price(
     lines_total_prices = [
         calculate_base_line_total_price(
             line_info,
-            channel,
         ).amount
         for line_info in lines
         if line_info.line.id != checkout_line_info.line.id

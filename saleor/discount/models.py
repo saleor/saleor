@@ -164,7 +164,7 @@ class Voucher(ModelWithMetadata):
             )
         raise NotImplementedError("Unknown discount type")
 
-    def get_discount_amount_for(self, price: Money, channel: Channel):
+    def get_discount_amount_for(self, price: Money, channel: Channel) -> Money:
         discount = self.get_discount(channel)
         after_discount = discount(price)
         if after_discount.amount < 0:

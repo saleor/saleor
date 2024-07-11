@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 
 from ....core.tracing import traced_atomic_transaction
 from ....discount.models import VoucherCode
-from ....discount.utils import release_voucher_code_usage
+from ....discount.utils.voucher import release_voucher_code_usage
 from ....order import OrderStatus, models
 from ....order.error_codes import OrderErrorCode
 from ....permission.enums import OrderPermissions

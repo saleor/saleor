@@ -9,7 +9,7 @@ from django.conf import settings
 from freezegun import freeze_time
 
 from .....attribute import AttributeInputType
-from .....discount.utils import get_active_catalogue_promotion_rules
+from .....discount.utils.promotion import get_active_catalogue_promotion_rules
 from .....product.error_codes import ProductVariantBulkErrorCode
 from .....product.models import (
     ProductChannelListing,

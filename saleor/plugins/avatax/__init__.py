@@ -19,7 +19,7 @@ from ...checkout.utils import get_address_for_checkout_taxes, is_shipping_requir
 from ...core.http_client import HTTPClient
 from ...core.taxes import TaxError
 from ...discount import DiscountType, VoucherType
-from ...discount.utils import is_order_level_voucher
+from ...discount.utils.voucher import is_order_level_voucher
 from ...order import base_calculations as base_order_calculations
 from ...order.utils import (
     get_address_for_order_taxes,
@@ -288,7 +288,6 @@ def generate_request_data_from_checkout_lines(
     config: AvataxConfiguration,
 ) -> list[dict[str, Union[str, int, bool, None]]]:
     data: list[dict[str, Union[str, int, bool, None]]] = []
-    channel = checkout_info.channel
 
     charge_taxes = get_charge_taxes_for_checkout(checkout_info, lines_info)
     prices_entered_with_tax = checkout_info.tax_configuration.prices_entered_with_tax
@@ -318,7 +317,6 @@ def generate_request_data_from_checkout_lines(
 
         checkout_line_total = base_calculations.calculate_base_line_total_price(
             line_info,
-            channel,
         )
 
         # This is a workaround for Avatax and sending a lines with amount 0. Like

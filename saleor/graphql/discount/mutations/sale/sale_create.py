@@ -8,7 +8,7 @@ from .....core.tracing import traced_atomic_transaction
 from .....discount import PromotionType, models
 from .....discount.error_codes import DiscountErrorCode
 from .....discount.models import Promotion
-from .....discount.utils import mark_catalogue_promotion_rules_as_dirty
+from .....discount.utils.promotion import mark_catalogue_promotion_rules_as_dirty
 from .....permission.enums import DiscountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
 from ....channel import ChannelContext
@@ -16,7 +16,7 @@ from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_MUTATION
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import ModelMutation
-from ....core.scalars import PositiveDecimal
+from ....core.scalars import DateTime, PositiveDecimal
 from ....core.types import BaseInputObjectType, DiscountError, NonNullList
 from ....core.utils import WebhookEventInfo
 from ....core.validators import validate_end_is_after_start
@@ -51,12 +51,8 @@ class SaleInput(BaseInputObjectType):
         description="Collections related to the discount.",
         name="collections",
     )
-    start_date = graphene.types.datetime.DateTime(
-        description="Start date of the voucher in ISO 8601 format."
-    )
-    end_date = graphene.types.datetime.DateTime(
-        description="End date of the voucher in ISO 8601 format."
-    )
+    start_date = DateTime(description="Start date of the voucher in ISO 8601 format.")
+    end_date = DateTime(description="End date of the voucher in ISO 8601 format.")
 
     class Meta:
         doc_category = DOC_CATEGORY_DISCOUNTS

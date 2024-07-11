@@ -1781,6 +1781,13 @@ def test_transaction_create_creates_calculation_events(
     assert cancel_event.amount.amount == canceled_value
 
 
+@pytest.mark.parametrize(
+    ("auto_order_confirmation", "excpected_order_status"),
+    [
+        (True, OrderStatus.UNFULFILLED),
+        (False, OrderStatus.UNCONFIRMED),
+    ],
+)
 @patch("saleor.plugins.manager.PluginsManager.order_paid")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
 @patch("saleor.plugins.manager.PluginsManager.order_fully_paid")
@@ -1788,15 +1795,20 @@ def test_transaction_create_for_order_triggers_webhooks_when_fully_paid(
     mock_order_fully_paid,
     mock_order_updated,
     mock_order_paid,
-    order_with_lines,
+    auto_order_confirmation,
+    excpected_order_status,
+    unconfirmed_order_with_lines,
     permission_manage_payments,
     staff_api_client,
 ):
     # given
-    charged_value = order_with_lines.total.gross.amount
+    order = unconfirmed_order_with_lines
+    order.channel.automatically_confirm_all_new_orders = auto_order_confirmation
+    order.channel.save(update_fields=["automatically_confirm_all_new_orders"])
+    charged_value = order.total.gross.amount
 
     variables = {
-        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
+        "id": graphene.Node.to_global_id("Order", order.pk),
         "transaction": {
             "name": "Credit Card",
             "pspReference": "PSP reference - 123",
@@ -1814,13 +1826,14 @@ def test_transaction_create_for_order_triggers_webhooks_when_fully_paid(
     )
 
     # then
-    order_with_lines.refresh_from_db()
+    order.refresh_from_db()
     get_graphql_content(response)
 
-    assert order_with_lines.charge_status == OrderChargeStatus.FULL
-    mock_order_fully_paid.assert_called_once_with(order_with_lines)
-    mock_order_updated.assert_called_once_with(order_with_lines)
-    mock_order_paid.assert_called_once_with(order_with_lines)
+    assert order.status == excpected_order_status
+    assert order.charge_status == OrderChargeStatus.FULL
+    mock_order_fully_paid.assert_called_once_with(order)
+    mock_order_updated.assert_called_once_with(order)
+    mock_order_paid.assert_called_once_with(order)
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_paid")

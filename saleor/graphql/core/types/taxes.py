@@ -7,8 +7,8 @@ from promise import Promise
 from ....checkout import base_calculations
 from ....checkout.models import Checkout, CheckoutLine
 from ....core.prices import quantize_price
-from ....discount import DiscountType, VoucherType
-from ....discount.utils import is_order_level_voucher
+from ....discount import DiscountType
+from ....discount.utils.voucher import is_order_level_voucher
 from ....order.models import Order, OrderLine
 from ....order.utils import get_order_country
 from ....tax.utils import get_charge_taxes
@@ -213,32 +213,19 @@ class TaxableObjectLine(BaseObjectType):
         if isinstance(root, CheckoutLine):
 
             def with_checkout(checkout):
-                checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(
-                    checkout.token
-                )
                 lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(
                     checkout.token
                 )
 
-                def calculate_line_unit_price(data):
-                    (
-                        checkout_info,
-                        lines,
-                    ) = data
+                def calculate_line_unit_price(lines):
                     for line_info in lines:
                         if line_info.line.pk == root.pk:
                             return base_calculations.calculate_base_line_unit_price(
                                 line_info=line_info,
-                                channel=checkout_info.channel,
                             )
                     return None
 
-                return Promise.all(
-                    [
-                        checkout_info,
-                        lines,
-                    ]
-                ).then(calculate_line_unit_price)
+                return lines.then(calculate_line_unit_price)
 
             return (
                 CheckoutByTokenLoader(info.context)
@@ -252,32 +239,19 @@ class TaxableObjectLine(BaseObjectType):
         if isinstance(root, CheckoutLine):
 
             def with_checkout(checkout):
-                checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(
-                    checkout.token
-                )
                 lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(
                     checkout.token
                 )
 
-                def calculate_line_total_price(data):
-                    (
-                        checkout_info,
-                        lines,
-                    ) = data
+                def calculate_line_total_price(lines):
                     for line_info in lines:
                         if line_info.line.pk == root.pk:
                             return base_calculations.calculate_base_line_total_price(
-                                line_info=line_info,
-                                channel=checkout_info.channel,
+                                line_info=line_info
                             )
                     return None
 
-                return Promise.all(
-                    [
-                        checkout_info,
-                        lines,
-                    ]
-                ).then(calculate_line_total_price)
+                return lines.then(calculate_line_total_price)
 
             return (
                 CheckoutByTokenLoader(info.context)
@@ -429,13 +403,7 @@ class TaxableObject(BaseObjectType):
                 for discount in discounts
                 if (
                     discount.type == DiscountType.MANUAL
-                    # TODO (SHOPX-873): apply_once_per_order voucher are included
-                    # for now, as the discount for such vouchers is currently not
-                    # propagated to the draft order lines
-                    or (
-                        discount.voucher
-                        and discount.voucher.type == VoucherType.ENTIRE_ORDER
-                    )
+                    or is_order_level_voucher(discount.voucher)
                 )
             ]
 

@@ -15,7 +15,7 @@ from ....core.tracing import traced_atomic_transaction
 from ....core.utils import prepare_unique_slug
 from ....core.utils.editorjs import clean_editor_js
 from ....core.utils.validators import get_oembed_data
-from ....discount.utils import mark_active_catalogue_promotion_rules_as_dirty
+from ....discount.utils.promotion import mark_active_catalogue_promotion_rules_as_dirty
 from ....permission.enums import ProductPermissions
 from ....product import ProductMediaTypes, models
 from ....product.error_codes import ProductBulkCreateErrorCode
@@ -32,7 +32,7 @@ from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.enums import ErrorPolicyEnum
 from ...core.fields import JSONString
 from ...core.mutations import BaseMutation, ModelMutation
-from ...core.scalars import WeightScalar
+from ...core.scalars import DateTime, WeightScalar
 from ...core.types import (
     BaseInputObjectType,
     BaseObjectType,
@@ -77,9 +77,7 @@ class ProductChannelListingCreateInput(BaseInputObjectType):
     is_published = graphene.Boolean(
         description="Determines if object is visible to customers."
     )
-    published_at = graphene.types.datetime.DateTime(
-        description="Publication date time. ISO 8601 standard."
-    )
+    published_at = DateTime(description="Publication date time. ISO 8601 standard.")
     visible_in_listings = graphene.Boolean(
         description=(
             "Determines if product is visible in product listings "
@@ -93,7 +91,7 @@ class ProductChannelListingCreateInput(BaseInputObjectType):
             "this product is still visible to customers, but it cannot be purchased."
         ),
     )
-    available_for_purchase_at = graphene.DateTime(
+    available_for_purchase_at = DateTime(
         description=(
             "A start date time from which a product will be available "
             "for purchase. When not set and `isAvailable` is set to True, "

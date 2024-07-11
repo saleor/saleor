@@ -48,7 +48,7 @@ from ..core.doc_category import DOC_CATEGORY_USERS
 from ..core.enums import LanguageCodeEnum
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.fields import ConnectionField, PermissionsField
-from ..core.scalars import UUID
+from ..core.scalars import UUID, DateTime
 from ..core.tracing import traced_resolver
 from ..core.types import (
     BaseInputObjectType,
@@ -226,9 +226,7 @@ class Address(ModelObjectType[models.Address]):
 
 class CustomerEvent(ModelObjectType[models.CustomerEvent]):
     id = graphene.GlobalID(required=True, description="The ID of the customer event.")
-    date = graphene.types.datetime.DateTime(
-        description="Date when event happened at in ISO 8601 format."
-    )
+    date = DateTime(description="Date when event happened at in ISO 8601 format.")
     type = CustomerEventsEnum(description="Customer event type.")
     user = graphene.Field(lambda: User, description="User who performed the action.")
     app = graphene.Field(App, description="App that performed the action.")
@@ -444,13 +442,13 @@ class User(ModelObjectType[models.User]):
         description=f"External ID of this user. {ADDED_IN_310}", required=False
     )
 
-    last_login = graphene.DateTime(
+    last_login = DateTime(
         description="The date when the user last time log in to the system."
     )
-    date_joined = graphene.DateTime(
+    date_joined = DateTime(
         required=True, description="The data when the user create account."
     )
-    updated_at = graphene.DateTime(
+    updated_at = DateTime(
         required=True,
         description="The data when the user last update the account information.",
     )

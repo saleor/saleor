@@ -7,10 +7,10 @@ import pytz
 
 from ... import RewardValueType
 from ...models import Promotion, PromotionRule
-from ...utils import mark_active_catalogue_promotion_rules_as_dirty
+from ...utils.promotion import mark_active_catalogue_promotion_rules_as_dirty
 
 
-@patch("saleor.discount.utils.PromotionRule.channels.through.objects.filter")
+@patch("saleor.discount.utils.promotion.PromotionRule.channels.through.objects.filter")
 def test_mark_active_catalogue_promotion_rules_as_dirty_with_empty_channel_list(
     mocked_promotion_channel_filter,
 ):

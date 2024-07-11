@@ -12,7 +12,7 @@ from freezegun import freeze_time
 from graphql_relay import to_global_id
 
 from ....core.utils.json_serializer import CustomJsonEncoder
-from ....discount.utils import get_active_catalogue_promotion_rules
+from ....discount.utils.promotion import get_active_catalogue_promotion_rules
 from ....product.error_codes import ProductErrorCode
 from ....product.models import Category, Product, ProductChannelListing
 from ....product.tests.utils import create_image, create_zip_file_with_image_ext

@@ -1,15 +1,20 @@
 from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Optional, cast
+from typing import Optional
 from uuid import UUID
 
 from django.db.models import prefetch_related_objects
 
 from ..channel.models import Channel
 from ..core.db.connection import allow_writer
-from ..discount import DiscountType
-from ..discount.interface import VariantPromotionRuleInfo, fetch_variant_rules_info
-from ..discount.models import OrderLineDiscount, Voucher
+from ..core.pricing.interface import LineInfo
+from ..discount import DiscountType, VoucherType
+from ..discount.interface import (
+    fetch_variant_rules_info,
+    fetch_voucher_info,
+)
+from ..discount.models import OrderLineDiscount
+from ..discount.utils.voucher import apply_voucher_to_line
 from ..payment.models import Payment
 from ..product.models import (
     DigitalContent,
@@ -64,9 +69,9 @@ def fetch_order_lines(order: "Order") -> list[OrderLineInfo]:
                 quantity=line.quantity,
                 is_digital=is_digital,
                 variant=variant,
-                digital_content=variant.digital_content
-                if is_digital and variant
-                else None,
+                digital_content=(
+                    variant.digital_content if is_digital and variant else None
+                ),
             )
         )
 
@@ -74,38 +79,28 @@ def fetch_order_lines(order: "Order") -> list[OrderLineInfo]:
 
 
 @dataclass
-class DraftOrderLineInfo:
+class EditableOrderLineInfo(LineInfo):
     line: "OrderLine"
-    variant: "ProductVariant"
-    channel_listing: "ProductVariantChannelListing"
     discounts: list["OrderLineDiscount"]
-    rules_info: list["VariantPromotionRuleInfo"]
-    channel: "Channel"
-    voucher: Optional["Voucher"] = None
 
-    def get_promotion_discounts(self) -> list["OrderLineDiscount"]:
-        return [
-            discount
-            for discount in self.discounts
-            if discount.type in [DiscountType.PROMOTION, DiscountType.ORDER_PROMOTION]
-        ]
-
-    def get_catalogue_discounts(self) -> list["OrderLineDiscount"]:
-        return [
-            discount
-            for discount in self.discounts
-            if discount.type == DiscountType.PROMOTION
-        ]
+    def get_manual_line_discount(
+        self,
+    ) -> Optional["OrderLineDiscount"]:
+        for discount in self.discounts:
+            if discount.type == DiscountType.MANUAL:
+                return discount
+        return None
 
 
 def fetch_draft_order_lines_info(
-    order: "Order",
-    lines: Optional[Iterable["OrderLine"]] = None,
-) -> list[DraftOrderLineInfo]:
+    order: "Order", lines: Optional[Iterable["OrderLine"]] = None
+) -> list[EditableOrderLineInfo]:
     prefetch_related_fields = [
         "discounts__promotion_rule__promotion",
         "variant__channel_listings__variantlistingpromotionrule__promotion_rule__promotion__translations",
         "variant__channel_listings__variantlistingpromotionrule__promotion_rule__translations",
+        "variant__product__collections",
+        "variant__product__product_type",
     ]
     if lines is None:
         with allow_writer():
@@ -121,7 +116,10 @@ def fetch_draft_order_lines_info(
         channel = order.channel
 
     for line in lines:
-        variant = cast(ProductVariant, line.variant)
+        variant = line.variant
+        if not variant:
+            continue
+        product = variant.product
         variant_channel_listing = get_prefetched_variant_listing(variant, channel.id)
         if not variant_channel_listing:
             continue
@@ -132,15 +130,26 @@ def fetch_draft_order_lines_info(
             else []
         )
         lines_info.append(
-            DraftOrderLineInfo(
+            EditableOrderLineInfo(
                 line=line,
                 variant=variant,
+                product=product,
+                product_type=product.product_type,
+                collections=list(product.collections.all()) if product else [],
                 channel_listing=variant_channel_listing,
                 discounts=list(line.discounts.all()),
                 rules_info=rules_info,
                 channel=channel,
+                voucher=None,
+                voucher_code=None,
             )
         )
+    voucher = order.voucher
+    if voucher and (
+        voucher.type == VoucherType.SPECIFIC_PRODUCT or voucher.apply_once_per_order
+    ):
+        voucher_info = fetch_voucher_info(voucher, order.voucher_code)
+        apply_voucher_to_line(voucher_info, lines_info)
     return lines_info
 
 

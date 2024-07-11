@@ -74,7 +74,7 @@ from ...core.fields import (
     JSONString,
     PermissionsField,
 )
-from ...core.scalars import Date
+from ...core.scalars import Date, DateTime
 from ...core.tracing import traced_resolver
 from ...core.types import (
     BaseObjectType,
@@ -252,7 +252,7 @@ class PreorderData(BaseObjectType):
         description="Total number of sold product variant during preorder.",
         permissions=[ProductPermissions.MANAGE_PRODUCTS],
     )
-    end_date = graphene.DateTime(required=False, description="Preorder end date.")
+    end_date = DateTime(required=False, description="Preorder end date.")
 
     class Meta:
         doc_category = DOC_CATEGORY_PRODUCTS
@@ -400,11 +400,11 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
         required=False,
         description=("Preorder data for product variant." + ADDED_IN_31),
     )
-    created = graphene.DateTime(
+    created = DateTime(
         required=True,
         description="The date and time when the product variant was created.",
     )
-    updated_at = graphene.DateTime(
+    updated_at = DateTime(
         required=True,
         description="The date and time when the product variant was last updated.",
     )
@@ -808,9 +808,6 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
     @staticmethod
     def __resolve_references(roots: list["ProductVariant"], info):
         requestor = get_user_or_app_from_context(info.context)
-        requestor_has_access_to_all = has_one_of_permissions(
-            requestor, ALL_PRODUCTS_PERMISSIONS
-        )
 
         channels = defaultdict(set)
         roots_ids = []
@@ -827,7 +824,6 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
             limited_channel_access = False if channel_slug is None else True
             qs = resolve_product_variants(
                 info,
-                requestor_has_access_to_all,
                 requestor,
                 ids=ids,
                 channel=channels_map.get(channel_slug),
@@ -860,10 +856,10 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
     )
     slug = graphene.String(required=True, description="Slug of the product.")
     category = graphene.Field("saleor.graphql.product.types.categories.Category")
-    created = graphene.DateTime(
+    created = DateTime(
         required=True, description="The date and time when the product was created."
     )
-    updated_at = graphene.DateTime(
+    updated_at = DateTime(
         required=True,
         description="The date and time when the product was last updated.",
     )
@@ -995,7 +991,7 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
             "the available for purchase date."
         ),
     )
-    available_for_purchase_at = graphene.DateTime(
+    available_for_purchase_at = DateTime(
         description="Date when product is available for purchase."
     )
     is_available_for_purchase = graphene.Boolean(

@@ -895,6 +895,13 @@ UPDATE_SEARCH_VECTOR_INDEX_QUEUE_NAME = os.environ.get(
 )
 # Queue name for "async webhook" events
 WEBHOOK_CELERY_QUEUE_NAME = os.environ.get("WEBHOOK_CELERY_QUEUE_NAME", None)
+CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME = os.environ.get(
+    "CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME", WEBHOOK_CELERY_QUEUE_NAME
+)
+ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME = os.environ.get(
+    "ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME", WEBHOOK_CELERY_QUEUE_NAME
+)
+
 
 # Queue name for execution of collection product_updated events
 COLLECTION_PRODUCT_UPDATED_QUEUE_NAME = os.environ.get(
@@ -914,6 +921,12 @@ CONFIRMATION_EMAIL_LOCK_TIME = parse(
 # Time threshold to update user last_login when performing requests with OAUTH token.
 OAUTH_UPDATE_LAST_LOGIN_THRESHOLD = parse(
     os.environ.get("OAUTH_UPDATE_LAST_LOGIN_THRESHOLD", "15 minutes")
+)
+
+# Time threshold to update user last_login when using tokenCreate/tokenRefresh
+# mutations.
+TOKEN_UPDATE_LAST_LOGIN_THRESHOLD = parse(
+    os.environ.get("TOKEN_UPDATE_LAST_LOGIN_THRESHOLD", "5 seconds")
 )
 
 # Max lock time for checkout processing.

@@ -11,7 +11,7 @@ from ..checkout import base_calculations
 from ..core.db.connection import allow_writer
 from ..core.prices import quantize_price
 from ..core.taxes import TaxData, TaxEmptyData, zero_money, zero_taxed_money
-from ..discount.utils import (
+from ..discount.utils.checkout import (
     create_or_update_discount_objects_from_promotion_for_checkout,
 )
 from ..payment.models import TransactionItem
@@ -556,9 +556,7 @@ def _set_checkout_base_prices(
         line = line_info.line
         quantity = line.quantity
 
-        unit_price = base_calculations.calculate_base_line_unit_price(
-            line_info, checkout_info.channel
-        )
+        unit_price = base_calculations.calculate_base_line_unit_price(line_info)
         total_price = base_calculations.apply_checkout_discount_on_checkout_line(
             checkout_info, lines, line_info, unit_price * quantity
         )

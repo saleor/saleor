@@ -3,9 +3,11 @@ from typing import Optional
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.models import OuterRef, Subquery
 
 from ....discount import models
 from ....discount.error_codes import DiscountErrorCode
+from ....discount.models import VoucherCode
 from ....permission.enums import DiscountPermissions
 from ....product.utils.product import (
     get_channel_to_products_map_from_rules,
@@ -163,8 +165,12 @@ class VoucherBulkDelete(ModelBulkDeleteMutation):
     @classmethod
     def bulk_action(cls, info: ResolveInfo, queryset, /):
         manager = get_plugin_manager_promise(info.context).get()
-        vouchers = list(queryset)
-        codes = [voucher.code for voucher in vouchers]
+        vouchers = queryset.annotate(
+            last_code=Subquery(
+                VoucherCode.objects.filter(voucher=OuterRef("pk")).values("code")[:1]
+            )
+        )
+        codes = [voucher.last_code for voucher in vouchers]
         webhooks = get_webhooks_for_event(WebhookEventAsyncType.VOUCHER_DELETED)
         queryset.delete()
 

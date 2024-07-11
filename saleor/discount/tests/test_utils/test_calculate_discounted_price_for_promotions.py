@@ -4,7 +4,7 @@ import graphene
 
 from ... import PromotionRuleInfo, RewardValueType
 from ...models import Promotion, PromotionRule
-from ...utils import calculate_discounted_price_for_promotions
+from ...utils.promotion import calculate_discounted_price_for_promotions
 
 
 def test_variant_discounts_multiple_promotions(product, channel_USD):

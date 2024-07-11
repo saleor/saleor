@@ -701,7 +701,7 @@ def test_draft_order_calculate_taxes_apply_once_per_order_voucher(
         "taxBase": {
             "address": {"id": to_global_id_or_none(order.shipping_address)},
             "currency": "USD",
-            "discounts": [{"amount": {"amount": float(discount_amount)}}],
+            "discounts": [],
             "channel": {"id": to_global_id_or_none(order.channel)},
             "lines": [
                 {
@@ -714,12 +714,110 @@ def test_draft_order_calculate_taxes_apply_once_per_order_voucher(
                         "id": to_global_id_or_none(line),
                     },
                     "totalPrice": {
-                        "amount": float(line.base_unit_price_amount * line.quantity)
+                        "amount": float(
+                            round(line.base_unit_price_amount * line.quantity, 2)
+                        )
                     },
-                    "unitPrice": {"amount": float(line.base_unit_price_amount)},
+                    "unitPrice": {
+                        "amount": float(round(line.base_unit_price_amount, 2))
+                    },
                     "variantName": line.variant_name,
                 }
                 for line in order.lines.all()
+            ],
+            "pricesEnteredWithTax": True,
+            "shippingPrice": {"amount": float(expected_shipping_price.amount)},
+            "sourceObject": {
+                "__typename": "Order",
+                "id": to_global_id_or_none(order),
+            },
+        },
+    }
+
+
+@freeze_time("2020-03-18 12:00:00")
+def test_order_calculate_taxes_specific_product_voucher(
+    order_line,
+    subscription_calculate_taxes_for_order,
+    shipping_zone,
+    voucher_specific_product_type,
+):
+    # given
+    order = order_line.order
+    webhook = subscription_calculate_taxes_for_order
+    expected_shipping_price = Money("2.00", order.currency)
+    order.base_shipping_price = expected_shipping_price
+    order.shipping_price = TaxedMoney(
+        net=expected_shipping_price, gross=expected_shipping_price
+    )
+    order.status = OrderStatus.DRAFT
+    order.voucher = voucher_specific_product_type
+    order.voucher_code = voucher_specific_product_type.codes.first().code
+    order.save(
+        update_fields=[
+            "base_shipping_price_amount",
+            "shipping_price_net_amount",
+            "shipping_price_gross_amount",
+            "voucher_code",
+            "voucher",
+            "status",
+        ]
+    )
+
+    voucher_specific_product_type.discount_value_type = DiscountValueType.FIXED
+    voucher_specific_product_type.save(update_fields=["discount_value_type"])
+
+    voucher_listing = voucher_specific_product_type.channel_listings.get(
+        channel=order.channel
+    )
+    unit_discount_amount = Decimal("2")
+    voucher_listing.discount_value = unit_discount_amount
+    voucher_listing.save(update_fields=["discount_value"])
+    voucher_specific_product_type.variants.add(order_line.variant)
+
+    manager = get_plugins_manager(allow_replica=False)
+    fetch_order_prices_if_expired(order, manager, order.lines.all(), True)
+
+    shipping_method = shipping_zone.shipping_methods.first()
+    order.shipping_method = shipping_method
+
+    webhook.subscription_query = TAXES_SUBSCRIPTION_QUERY
+    webhook.save(update_fields=["subscription_query"])
+
+    # when
+    deliveries = create_delivery_for_subscription_sync_event(
+        WebhookEventSyncType.ORDER_CALCULATE_TAXES, order, webhook
+    )
+
+    # then
+    expected_total_price_amount = (
+        order_line.undiscounted_base_unit_price_amount - unit_discount_amount
+    ) * order_line.quantity
+    assert json.loads(deliveries.payload.payload) == {
+        "__typename": "CalculateTaxes",
+        "taxBase": {
+            "address": {"id": to_global_id_or_none(order.shipping_address)},
+            "currency": "USD",
+            "discounts": [],
+            "channel": {"id": to_global_id_or_none(order.channel)},
+            "lines": [
+                {
+                    "chargeTaxes": True,
+                    "productName": order_line.product_name,
+                    "productSku": "SKU_A",
+                    "quantity": order_line.quantity,
+                    "sourceLine": {
+                        "__typename": "OrderLine",
+                        "id": to_global_id_or_none(order_line),
+                    },
+                    "totalPrice": {"amount": float(expected_total_price_amount)},
+                    "unitPrice": {
+                        "amount": float(
+                            expected_total_price_amount / order_line.quantity
+                        )
+                    },
+                    "variantName": order_line.variant_name,
+                }
             ],
             "pricesEnteredWithTax": True,
             "shippingPrice": {"amount": float(expected_shipping_price.amount)},

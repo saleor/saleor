@@ -41,7 +41,11 @@ from ..attribute.utils import associate_attribute_values_to_instance
 from ..checkout import base_calculations
 from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..checkout.models import Checkout, CheckoutLine, CheckoutMetadata
-from ..checkout.utils import add_variant_to_checkout, add_voucher_to_checkout
+from ..checkout.utils import (
+    add_variant_to_checkout,
+    add_voucher_to_checkout,
+    get_prices_of_discounted_specific_product,
+)
 from ..core import EventDeliveryStatus, JobStatus
 from ..core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ..core.payments import PaymentInterface
@@ -76,6 +80,10 @@ from ..discount.models import (
     VoucherCustomer,
     VoucherTranslation,
 )
+from ..discount.utils.voucher import (
+    get_products_voucher_discount,
+    validate_voucher_in_order,
+)
 from ..giftcard import GiftCardEvents
 from ..giftcard.models import GiftCard, GiftCardEvent, GiftCardTag
 from ..menu.models import Menu, MenuItem, MenuItemTranslation
@@ -98,7 +106,6 @@ from ..order.models import (
 from ..order.search import prepare_order_search_vector_value
 from ..order.utils import (
     get_voucher_discount_assigned_to_order,
-    get_voucher_discount_for_order,
 )
 from ..page.models import Page, PageTranslation, PageType
 from ..payment import ChargeStatus, TransactionKind
@@ -3512,6 +3519,46 @@ def variant_with_many_stocks(variant, warehouses_with_shipping_zone):
 
 
 @pytest.fixture
+def variant_on_promotion(
+    product, channel_USD, promotion_rule, warehouse
+) -> ProductVariant:
+    product_variant = ProductVariant.objects.create(
+        product=product, sku="SKU_A", external_reference="SKU_A"
+    )
+    price_amount = Decimal(10)
+    ProductVariantChannelListing.objects.create(
+        variant=product_variant,
+        channel=channel_USD,
+        price_amount=price_amount,
+        discounted_price_amount=price_amount,
+        cost_price_amount=Decimal(1),
+        currency=channel_USD.currency_code,
+    )
+    Stock.objects.create(
+        warehouse=warehouse, product_variant=product_variant, quantity=10
+    )
+
+    promotion_rule.variants.add(product_variant)
+    reward_value = promotion_rule.reward_value
+    discount_amount = price_amount * reward_value / 100
+
+    variant_channel_listing = product_variant.channel_listings.get(channel=channel_USD)
+
+    variant_channel_listing.discounted_price_amount = (
+        variant_channel_listing.price_amount - reward_value
+    )
+    variant_channel_listing.save(update_fields=["discounted_price_amount"])
+
+    variant_channel_listing.variantlistingpromotionrule.create(
+        promotion_rule=promotion_rule,
+        discount_amount=discount_amount,
+        currency=channel_USD.currency_code,
+    )
+
+    return product_variant
+
+
+@pytest.fixture
 def preorder_variant_global_threshold(product, channel_USD):
     product_variant = ProductVariant.objects.create(
         product=product, sku="SKU_A_P", is_preorder=True, preorder_global_threshold=10
@@ -4869,6 +4916,37 @@ def recalculate_order(order):
             assigned_order_discount.save(update_fields=["value", "amount_value"])
 
     order.save()
+
+
+def get_voucher_discount_for_order(order: Order) -> Money:
+    """Calculate discount value depending on voucher and discount types.
+
+    Raise NotApplicable if voucher of given type cannot be applied.
+    """
+    if not order.voucher:
+        return zero_money(order.currency)
+    validate_voucher_in_order(order)
+    subtotal = order.subtotal
+    if order.voucher.type == VoucherType.ENTIRE_ORDER:
+        return order.voucher.get_discount_amount_for(subtotal.gross, order.channel)
+    if order.voucher.type == VoucherType.SHIPPING:
+        return order.voucher.get_discount_amount_for(
+            order.shipping_price.gross, order.channel
+        )
+    if order.voucher.type == VoucherType.SPECIFIC_PRODUCT:
+        return get_products_voucher_discount_for_order(order, order.voucher)
+    raise NotImplementedError("Unknown discount type")
+
+
+def get_products_voucher_discount_for_order(order: Order, voucher: Voucher) -> Money:
+    """Calculate products discount value for a voucher, depending on its type."""
+    prices = None
+    if voucher and voucher.type == VoucherType.SPECIFIC_PRODUCT:
+        prices = get_prices_of_discounted_specific_product(order.lines.all(), voucher)
+    if not prices:
+        msg = "This offer is only valid for selected items."
+        raise NotApplicable(msg)
+    return get_products_voucher_discount(voucher, prices, order.channel)
 
 
 @pytest.fixture
@@ -8067,14 +8145,13 @@ def checkout_with_prices(
     checkout_with_items.save(update_fields=["shipping_method"])
 
     manager = get_plugins_manager(allow_replica=False)
-    channel = checkout_with_items.channel
     lines = checkout_with_items.lines.all()
     lines_info, _ = fetch_checkout_lines(checkout_with_items)
     checkout_info = fetch_checkout_info(checkout_with_items, lines_info, manager)
 
     for line, line_info in zip(lines, lines_info):
         line.total_price_net_amount = base_calculations.calculate_base_line_total_price(
-            line_info, channel
+            line_info
         ).amount
         line.total_price_gross_amount = line.total_price_net_amount * Decimal("1.230")
 
@@ -9266,3 +9343,66 @@ def lots_of_products_with_variants(product_type, channel_USD):
         ProductVariantChannelListing.objects.bulk_create(variant_listings)
         ProductChannelListing.objects.bulk_create(product_listings)
     return Product.objects.all()
+
+
+@pytest.fixture
+def setup_mock_for_cache():
+    """Mock cache backend.
+
+    To be used together with `cache_mock` and `dummy_cache`, where:
+    - `dummy_cache` is a dict the mock is write to, instead of real cache db
+    - `cache_mock` is a patch applied on real cache db
+
+    It supports following functions: `get`, `set`, `delete`, `incr` and `add`. If other
+    function is utilised in a tested codebase, this fixture should be extended.
+
+    Stores `key`, `value` and `ttl` in following format:
+    {key: {"value": value, "ttl": ttl}}
+    """
+
+    def _mocked_cache(dummy_cache, cache_mock):
+        def cache_get(key):
+            if data := dummy_cache.get(key):
+                return data["value"]
+            return None
+
+        def cache_set(key, value, timeout):
+            dummy_cache.update({key: {"value": value, "ttl": timeout}})
+
+        def cache_add(key, value, timeout):
+            if dummy_cache.get(key) is None:
+                dummy_cache.update({key: {"value": value, "ttl": timeout}})
+                return True
+            return False
+
+        def cache_delete(key):
+            dummy_cache.pop(key, None)
+
+        def cache_incr(key, delta):
+            if current_data := dummy_cache.get(key):
+                current_value = current_data["value"]
+                new_value = current_value + delta
+                dummy_cache.update(
+                    {key: {"value": new_value, "ttl": current_data["ttl"]}}
+                )
+                return new_value
+
+        mocked_get_cache = MagicMock()
+        mocked_set_cache = MagicMock()
+        mocked_add_cache = MagicMock()
+        mocked_incr_cache = MagicMock()
+        mocked_delete_cache = MagicMock()
+
+        mocked_get_cache.side_effect = cache_get
+        mocked_set_cache.side_effect = cache_set
+        mocked_add_cache.side_effect = cache_add
+        mocked_incr_cache.side_effect = cache_incr
+        mocked_delete_cache.side_effect = cache_delete
+
+        cache_mock.get = mocked_get_cache
+        cache_mock.set = mocked_set_cache
+        cache_mock.add = mocked_add_cache
+        cache_mock.incr = mocked_incr_cache
+        cache_mock.delete = mocked_delete_cache
+
+    return _mocked_cache

@@ -27,8 +27,8 @@ from ..core.transactions import transaction_with_commit_on_errors
 from ..core.utils.url import validate_storefront_url
 from ..discount import DiscountType, DiscountValueType
 from ..discount.models import CheckoutDiscount, NotApplicable, OrderLineDiscount
-from ..discount.utils import (
-    get_sale_id,
+from ..discount.utils.promotion import get_sale_id
+from ..discount.utils.voucher import (
     increase_voucher_usage,
     release_voucher_code_usage,
 )
@@ -259,9 +259,7 @@ def _create_line_for_order(
 
     # the price with sale and discounts applied - base price that is used for
     # total price calculation
-    base_unit_price = calculate_base_line_unit_price(
-        line_info=checkout_line_info, channel=checkout_info.channel
-    )
+    base_unit_price = calculate_base_line_unit_price(line_info=checkout_line_info)
     # the unit price before applying any discount (sale or voucher)
     undiscounted_base_unit_price = calculate_undiscounted_base_line_unit_price(
         line_info=checkout_line_info,
@@ -307,22 +305,15 @@ def _create_line_for_order(
         prices_entered_with_tax,
     )
 
-    line_voucher_code = None
-    if checkout_line_info.voucher:
-        line_voucher_code = checkout_line_info.voucher.code
-    order_voucher_code = None
-    if checkout_info.voucher:
-        order_voucher_code = checkout_info.voucher.code
-
     discount_price = undiscounted_unit_price - unit_price
     if prices_entered_with_tax:
         discount_amount = discount_price.gross
     else:
         discount_amount = discount_price.net
 
-    unit_discount_reason = _get_unit_discount_reason(
-        line_voucher_code, order_voucher_code
-    )
+    voucher_code = checkout_info.checkout.voucher_code
+    is_line_voucher_code = bool(checkout_line_info.voucher)
+    unit_discount_reason = _get_unit_discount_reason(voucher_code, is_line_voucher_code)
 
     tax_class = None
     if product.tax_class_id:
@@ -349,7 +340,7 @@ def _create_line_for_order(
         undiscounted_total_price=undiscounted_total_price,  # money field not supported by mypy_django_plugin # noqa: E501
         total_price=total_line_price,
         tax_rate=tax_rate,
-        voucher_code=line_voucher_code,
+        voucher_code=voucher_code if is_line_voucher_code else None,
         unit_discount=discount_amount,  # money field not supported by mypy_django_plugin # noqa: E501
         unit_discount_reason=unit_discount_reason,
         unit_discount_value=discount_amount.amount,  # we store value as fixed discount
@@ -393,15 +384,14 @@ def _create_line_for_order(
 
 
 def _get_unit_discount_reason(
-    line_voucher_code: Optional[str],
-    order_voucher_code: Optional[str],
+    voucher_code: Optional[str], is_line_voucher_code
 ) -> Optional[str]:
-    unit_discount_reason = None
-    if line_voucher_code:
-        unit_discount_reason = f"Voucher code: {line_voucher_code}"
-    elif order_voucher_code:
-        unit_discount_reason = f"Entire order voucher code: {order_voucher_code}"
-    return unit_discount_reason
+    if not voucher_code:
+        return None
+    return (
+        f"{'Voucher code' if is_line_voucher_code else 'Entire order voucher code'}: "
+        f"{voucher_code}"
+    )
 
 
 def _create_order_line_discounts(

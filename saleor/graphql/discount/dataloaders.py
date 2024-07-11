@@ -210,6 +210,7 @@ class VoucherInfoByVoucherCodeLoader(DataLoader[str, Optional[VoucherInfo]]):
             voucher_infos.append(
                 VoucherInfo(
                     voucher=voucher_code.voucher,
+                    voucher_code=voucher_code.code,
                     product_pks=product_pks_map.get(voucher_code.voucher_id, []),
                     variant_pks=variant_pks_map.get(voucher_code.voucher_id, []),
                     category_pks=category_pks_map.get(voucher_code.voucher_id, []),

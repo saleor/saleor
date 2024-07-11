@@ -11,7 +11,7 @@ from ...channel.models import Channel
 from ...core.taxes import zero_money
 from ...discount import PromotionRuleInfo
 from ...discount.models import PromotionRule
-from ...discount.utils import (
+from ...discount.utils.promotion import (
     calculate_discounted_price_for_promotions,
     get_variants_to_promotion_rules_map,
 )
