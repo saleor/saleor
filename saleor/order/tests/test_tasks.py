@@ -1,3 +1,4 @@
+import logging
 from datetime import timedelta
 from unittest import mock
 from unittest.mock import patch
@@ -10,7 +11,11 @@ from ...discount.models import VoucherCustomer
 from ...warehouse.models import Allocation
 from .. import OrderEvents, OrderStatus
 from ..models import Order, OrderEvent, get_order_number
-from ..tasks import delete_expired_orders_task, expire_orders_task
+from ..tasks import (
+    _bulk_release_voucher_usage,
+    delete_expired_orders_task,
+    expire_orders_task,
+)
 
 
 def test_expire_orders_task_check_voucher(
@@ -611,3 +616,70 @@ def test_delete_expired_orders_task_schedule_itself(
     # then
     mocked_delay.assert_called_once_with()
     assert Order.objects.count() == 2
+
+
+def test_bulk_release_voucher_usage_voucher_usage_mismatch(
+    order_list, allocations, channel_USD, voucher_customer, caplog
+):
+    # We can have mismatch between `voucher.used` and number of order utilizing
+    # the voucher. It can happen in following cases:
+    # CASE 1:
+    # 1. use channelUpdate mutation to set:
+    #   a. include_draft_order_in_voucher_usage=True
+    #   b. automatically_confirm_all_new_orders=False
+    # 2. create voucher with usageLimit=5
+    # 3. create voucher code (let me name it code-123 for reference)
+    # 4. create draft order and associate it with the code-123
+    # State 1: Now we have draft order where
+    # order.voucher_code=code-123 and voucher_code.used=1
+    # 5. use channelUpdate mutation to set include_draft_order_in_voucher_usage=False.
+    # It will decrease the voucher_code.used, but won’t disconnect voucher from
+    # the orders
+    # State 2: Now we have draft order where
+    # order.voucher_code=code-123 and voucher_code.used=0
+    #
+    # CASE 2:
+    # 1. use channelUpdate mutation to set:
+    #   a. include_draft_order_in_voucher_usage=True
+    #   b. automatically_confirm_all_new_orders=False
+    # 2. create voucher without setting usage_limit
+    # 3. create new code for the voucher (ie. code-123)
+    # 4. create draft order and associate it with the “code-123”
+    # 5. set usageLimit for the voucher
+    # Now we have draft order where order.voucher_code=code-123 and voucher_code.used=0
+    #
+    # This test will mimic above steps to create the mismatch and will test
+    # _bulk_release_voucher_usage trying to not save negative values
+
+    # given
+    channel_USD.expire_orders_after = 1
+    channel_USD.save()
+
+    now = timezone.now()
+    caplog.set_level(logging.ERROR)
+    code = voucher_customer.voucher_code
+    voucher = code.voucher
+    code.used = 1
+    voucher.usage_limit = 3
+    code.save(update_fields=["used"])
+    voucher.save(update_fields=["usage_limit"])
+
+    order_1 = order_list[0]
+    order_1.status = OrderStatus.UNCONFIRMED
+    order_1.created_at = now - timezone.timedelta(minutes=10)
+    order_1.voucher_code = code.code
+    order_1.save()
+
+    order_2 = order_list[1]
+    order_2.status = OrderStatus.UNCONFIRMED
+    order_2.created_at = now - timezone.timedelta(minutes=10)
+    order_2.voucher_code = code.code
+    order_2.save()
+
+    # when
+    _bulk_release_voucher_usage([order_1.pk, order_2.pk])
+
+    # then
+    code.refresh_from_db()
+    assert code.used == 0
+    assert code.code in caplog.text
