@@ -8,7 +8,7 @@ on:
 jobs:
   publish:
     if: ${{ ((github.event.action == 'labeled') && (github.event.label.name == 'load test')) || ((github.event.action != 'labeled') && contains(github.event.pull_request.labels.*.name, 'load test')) }}
-    uses: ./.github/workflows/publish-containers.yaml
+    uses: ./.github/workflows/publish-containers.yml
     with:
       prefix: load-test-
     secrets:
