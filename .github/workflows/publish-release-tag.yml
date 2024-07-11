@@ -8,7 +8,7 @@ on:
 
 jobs:
   publish:
-    uses: ./.github/workflows/publish-containers.yaml
+    uses: ./.github/workflows/publish-containers.yml
     secrets:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_CLOUD_CI_WEBHOOK_URL }}

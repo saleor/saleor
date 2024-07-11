@@ -8,7 +8,7 @@ on:
 
 jobs:
   publish:
-    uses: ./.github/workflows/publish-containers.yaml
+    uses: ./.github/workflows/publish-containers.yml
     with:
       prefix: unstable-
     secrets:
