@@ -8,7 +8,6 @@ on:
         required: false
         type: string
     secrets:
-      GITHUB_TOKEN:
       SLACK_WEBHOOK_URL:
       SLACK_MENTION_GROUP_ID:
     outputs:
