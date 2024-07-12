@@ -1,6 +1,6 @@
 import re
 
-from ....tests.utils import get_graphql_content
+from ....tests.utils import assert_graphql_error_with_message, get_graphql_content
 
 GET_ADDRESS_VALIDATION_RULES_QUERY = """
     query getValidator(
@@ -111,6 +111,20 @@ def test_address_validation_rules_with_country_area(user_api_client):
         "countryArea",
     }
     assert set(data["upperFields"]) == {"countryArea"}
+
+
+def test_address_validation_rules_for_EU(user_api_client):
+    # given
+    query = GET_ADDRESS_VALIDATION_RULES_QUERY
+    variables = {"country_code": "EU", "country_area": None, "city_area": None}
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+
+    # then
+    assert_graphql_error_with_message(
+        response, "Cannot validate address for EU country code."
+    )
 
 
 def test_address_validation_rules_fields_in_camel_case(user_api_client):

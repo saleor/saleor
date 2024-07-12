@@ -22,7 +22,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-    
+
     outputs:
       version: ${{ steps.meta.outputs.version }}
 
