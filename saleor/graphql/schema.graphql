@@ -5264,7 +5264,11 @@ type ShippingMethodsPerCountry @doc(category: "Shipping") {
   shippingMethods: [ShippingMethod!]
 }
 
-"""An enumeration."""
+"""
+Represents country codes defined by the ISO 3166-1 alpha-2 standard.
+
+The `EU` value is DEPRECATED and will be removed in Saleor 3.21.
+"""
 enum CountryCode {
   AF
   AX

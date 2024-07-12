@@ -17,6 +17,11 @@ All notable, unreleased changes to this project will be documented in this file.
 - Remove the `anonymize` plugin. Use `saleor/core/utils/anonymization` code instead. - by @aniav
 - Require the `type` field on `PromotionCreateInput` - #16296 by @IKarbowiak
 
+### Deprecated
+- Deprecate `EU` from `CountryCode` enum - #16300 by @IKarbowiak
+  - `EU` is not a country code and might cause a misconfiguration
+- Deprecate the `taxTypes` query - #15802 by @maarcingebala
+
 ### GraphQL API
 
 - Add `translatableContent` to all translation types; add translated object id to all translatable content types - #15617 by @zedzior
@@ -24,7 +29,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add the `Warehouse.stocks` field - #15771 by @teddyondieki
 - Change permissions for `checkout` and `checkouts` queries. Add `HANDLE_PAYMENTS` to required permissions - #16010 by @Air-t
 - Change the `checkoutRemovePromoCode` mutation behavior to throw a `ValidationError` when the promo code is not detached from the checkout. - #16109 by @Air-t
-- Deprecate the `taxTypes` query - #15802 by @maarcingebala
 
 ### Other changes
 
