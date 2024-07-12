@@ -30,6 +30,7 @@ from . import PatchedSubscriberExecutionContext, __version__
 from .core.languages import LANGUAGES as CORE_LANGUAGES
 from .core.schedules import initiated_promotion_webhook_schedule
 from .graphql.executor import patch_executor
+from .telemetry import configure_otel_otlp
 
 django_stubs_ext.monkeypatch()
 
@@ -827,6 +828,9 @@ if JAEGER_HOST:
         service_name="saleor",
         validate=True,
     ).initialize_tracer()
+
+
+configure_otel_otlp()
 
 
 # Some cloud providers (Heroku) export REDIS_URL variable instead of CACHE_URL
