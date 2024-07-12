@@ -7,6 +7,10 @@ on:
         description: Optional image prefix for branch build
         required: false
         type: string
+      version:
+        description: Optional custom image version tag
+        required: false
+        type: string
     secrets:
       SLACK_WEBHOOK_URL:
       SLACK_MENTION_GROUP_ID:
@@ -46,9 +50,9 @@ jobs:
             ghcr.io/${{ steps.image.outputs.image_name }}
           tags: |
             type=ref,event=branch,prefix=${{ inputs.prefix }}
-            type=ref,event=pr,prefix=${{ inputs.prefix }}
             type=pep440,pattern={{version}}
             type=pep440,pattern={{major}}.{{minor}}
+            type=raw,value=${{ inputs.version }},enable=${{ inputs.version != null }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -89,8 +93,8 @@ jobs:
         if: ${{ failure() }}
         env:
           JOB_STATUS: ${{ job.status }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_CLOUD_CI_WEBHOOK_URL }}
-          SLACK_MENTION_GROUP_ID: ${{ secrets.SLACK_CORE_SUPPORT_GROUP_ID }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_MENTION_GROUP_ID: ${{ secrets.SLACK_MENTION_GROUP_ID }}
           JOB_TITLE: "Build of Saleor Core ${{ steps.meta.outputs.version }}"
         run: |
           python3 ./.github/workflows/notify/notify-slack.py
