@@ -95,14 +95,16 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
         )
         with transaction.atomic():
             product_pks = tuple(
-                models.Product.objects.select_for_update(of=("self",))
+                models.Product.objects.order_by("created_at")
+                .select_for_update(of=("self",))
                 .filter(pk__in=product_pks)
                 .values_list("pk", flat=True)
             )
 
             # Get cached variants with related fields to fully populate webhook payload.
             variants = list(
-                models.ProductVariant.objects.select_for_update()
+                models.ProductVariant.objects.order_by("created_at")
+                .select_for_update()
                 .filter(id__in=pks)
                 .prefetch_related(
                     "channel_listings",

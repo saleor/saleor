@@ -3,7 +3,7 @@ from typing import cast
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db.models import F
+from django.db.models import F, Subquery
 from django.utils import timezone
 from graphene.utils.str_converters import to_camel_case
 
@@ -694,8 +694,15 @@ class ProductVariantBulkUpdate(BaseMutation):
             fields=["price_amount", "cost_price_amount", "preorder_quantity_threshold"],
         )
         warehouse_models.Stock.objects.filter(id__in=stocks_to_remove).delete()
+        locked_ids = (
+            models.ProductVariantChannelListing.objects.filter(
+                id__in=listings_to_remove
+            )
+            .select_for_update(of=("self",))
+            .order_by("pk")
+        )
         models.ProductVariantChannelListing.objects.filter(
-            id__in=listings_to_remove
+            id__in=Subquery(locked_ids.values("pk"))
         ).delete()
 
     @classmethod
