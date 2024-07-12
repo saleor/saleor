@@ -159,6 +159,20 @@ def create_event_delivery_list_for_webhooks(
     return event_deliveries
 
 
+def get_webhook_id_to_queue_name_map(webhooks, default_queue):
+    webhook_queue_name_map = {}
+    for webhook in webhooks:
+        scheme = urlparse(webhook.target_url).scheme.lower()
+        if scheme == WebhookSchemes.AWS_SQS:
+            queue_name = settings.WEBHOOK_SQS_CELERY_QUEUE_NAME
+        elif scheme == WebhookSchemes.GOOGLE_CLOUD_PUBSUB:
+            queue_name = settings.WEBHOOK_PUBSUB_CELERY_QUEUE_NAME
+        else:
+            queue_name = default_queue
+        webhook_queue_name_map[webhook.id] = queue_name
+    return webhook_queue_name_map
+
+
 def trigger_webhooks_async(
     data,  # deprecated, legacy_data_generator should be used instead
     event_type,
@@ -212,11 +226,13 @@ def trigger_webhooks_async(
                 request_time=request_time,
             )
         )
-
+    webhook_id_to_queue_map = get_webhook_id_to_queue_name_map(
+        webhooks, queue or settings.WEBHOOK_CELERY_QUEUE_NAME
+    )
     for delivery in deliveries:
         send_webhook_request_async.apply_async(
             kwargs={"event_delivery_id": delivery.id},
-            queue=queue or settings.WEBHOOK_CELERY_QUEUE_NAME,
+            queue=webhook_id_to_queue_map.get(delivery.webhook_id),
             bind=True,
             retry_backoff=10,
             retry_kwargs={"max_retries": 5},
