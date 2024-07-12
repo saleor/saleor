@@ -4,8 +4,6 @@ import json
 from inspect import isclass
 from typing import Any, Optional, Union
 
-import opentracing
-import opentracing.tags
 from django.conf import settings
 from django.core.cache import cache
 from django.db import connection
@@ -17,6 +15,8 @@ from graphql import GraphQLBackend, GraphQLDocument, GraphQLSchema
 from graphql.error import GraphQLError, GraphQLSyntaxError
 from graphql.execution import ExecutionResult
 from jwt.exceptions import PyJWTError
+from opentelemetry import trace
+from opentelemetry.semconv.trace import SpanAttributes
 from requests_hardened.ip_filter import InvalidIPAddress
 
 from .. import __version__ as saleor_version
@@ -32,19 +32,22 @@ from .utils.validators import check_if_query_contains_only_schema
 
 INT_ERROR_MSG = "Int cannot represent non 32-bit signed integer value"
 
+tracer = trace.get_tracer(__name__)
+
 
 def tracing_wrapper(execute, sql, params, many, context):
     conn: DatabaseWrapper = context["connection"]
     operation = f"{conn.alias} {conn.display_name}"
-    with opentracing.global_tracer().start_active_span(operation) as scope:
-        span = scope.span
-        span.set_tag(opentracing.tags.COMPONENT, "db")
-        span.set_tag(opentracing.tags.DATABASE_STATEMENT, sql)
-        span.set_tag(opentracing.tags.DATABASE_TYPE, conn.display_name)
-        span.set_tag(opentracing.tags.PEER_HOSTNAME, conn.settings_dict.get("HOST"))
-        span.set_tag(opentracing.tags.PEER_PORT, conn.settings_dict.get("PORT"))
-        span.set_tag("service.name", "postgres")
-        span.set_tag("span.type", "sql")
+    with tracer.start_as_current_span(operation, kind=trace.SpanKind.CLIENT) as span:
+        span.set_attribute("component", "db")
+        span.set_attribute(SpanAttributes.DB_STATEMENT, sql)
+        span.set_attribute(SpanAttributes.DB_SYSTEM, conn.display_name)
+        span.set_attribute(
+            SpanAttributes.SERVER_ADDRESS, conn.settings_dict.get("HOST")
+        )
+        span.set_attribute(SpanAttributes.SERVER_PORT, conn.settings_dict.get("PORT"))
+        span.set_attribute("service.name", "postgres")
+        span.set_attribute("span.type", "sql")
         return execute(sql, params, many, context)
 
 
@@ -147,8 +150,6 @@ class GraphQLView(View):
         return JsonResponse(data=result, status=status_code, safe=False)
 
     def handle_query(self, request: HttpRequest) -> JsonResponse:
-        tracer = opentracing.global_tracer()
-
         # Disable extending spans from header due to:
         # https://github.com/DataDog/dd-trace-py/issues/2030
 
@@ -158,20 +159,37 @@ class GraphQLView(View):
         # We should:
         # Add `from opentracing.propagation import Format` to imports
         # Add `child_of=span_ontext` to `start_active_span`
-        with tracer.start_active_span("http") as scope:
-            span = scope.span
-            span.set_tag(opentracing.tags.COMPONENT, "http")
-            span.set_tag(opentracing.tags.HTTP_METHOD, request.method)
-            span.set_tag(
-                opentracing.tags.HTTP_URL,
+        # with tracer.start_active_span("http") as scope:
+        #     span = scope.span
+        #     span.set_tag(opentracing.tags.COMPONENT, "http")
+        #     span.set_tag(opentracing.tags.HTTP_METHOD, request.method)
+        #     span.set_tag(
+        #         opentracing.tags.HTTP_URL,
+        #         request.build_absolute_uri(request.get_full_path()),
+        #     )
+        #     accepted_encoding = request.META.get("HTTP_ACCEPT_ENCODING", "")
+        #     span.set_tag(
+        #         "http.compression", "gzip" if "gzip" in accepted_encoding else "none"
+        #     )
+        # span.set_tag("http.useragent", request.META.get("HTTP_USER_AGENT", ""))
+        # span.set_tag("span.type", "web")
+
+        # Add `child_of=span_ontext` to `start_as_current_span`
+        with tracer.start_as_current_span("http", kind=trace.SpanKind.SERVER) as span:
+            span.set_attribute("component", "http")
+            span.set_attribute(SpanAttributes.HTTP_METHOD, request.method)
+            span.set_attribute(
+                SpanAttributes.HTTP_URL,
                 request.build_absolute_uri(request.get_full_path()),
             )
             accepted_encoding = request.META.get("HTTP_ACCEPT_ENCODING", "")
-            span.set_tag(
+            span.set_attribute(
                 "http.compression", "gzip" if "gzip" in accepted_encoding else "none"
             )
-            span.set_tag("http.useragent", request.META.get("HTTP_USER_AGENT", ""))
-            span.set_tag("span.type", "web")
+            span.set_attribute(
+                SpanAttributes.HTTP_USER_AGENT, request.META.get("HTTP_USER_AGENT", "")
+            )
+            span.set_attribute("span.type", "web")
 
             main_ip_header = settings.REAL_IP_ENVIRON[0]
             additional_ip_headers = settings.REAL_IP_ENVIRON[1:]
@@ -179,23 +197,28 @@ class GraphQLView(View):
             request_ips = request.META.get(main_ip_header, "")
             for ip in request_ips.split(","):
                 if is_valid_ipv4(ip):
-                    span.set_tag(opentracing.tags.PEER_HOST_IPV4, ip)
+                    span.set_attribute(SpanAttributes.NET_PEER_IP, ip)
+                    span.set_attribute(SpanAttributes.NETWORK_TYPE, "ipv4")
                 elif is_valid_ipv6(ip):
-                    span.set_tag(opentracing.tags.PEER_HOST_IPV6, ip)
+                    span.set_attribute(SpanAttributes.NET_PEER_IP, ip)
+                    span.set_attribute(SpanAttributes.NETWORK_TYPE, "ipv6")
                 else:
                     continue
                 break
             for additional_ip_header in additional_ip_headers:
                 if request_ips := request.META.get(additional_ip_header):
-                    span.set_tag(f"ip_{additional_ip_header}", request_ips[:100])
+                    span.set_attribute(f"ip_{additional_ip_header}", request_ips[:100])
 
             response = self._handle_query(request)
-            span.set_tag(opentracing.tags.HTTP_STATUS_CODE, response.status_code)
+            span.set_attribute(SpanAttributes.HTTP_STATUS_CODE, response.status_code)
 
             # RFC2616: Content-Length is defined in bytes,
             # we can calculate the RAW UTF-8 size using the length of
             # response.content of type 'bytes'
-            span.set_tag("http.content_length", len(response.content))
+            span.set_attribute(
+                SpanAttributes.HTTP_RESPONSE_CONTENT_LENGTH_UNCOMPRESSED,
+                len(response.content),
+            )
             with observability.report_api_call(request) as api_call:
                 api_call.response = response
                 api_call.report()
@@ -256,11 +279,10 @@ class GraphQLView(View):
             return None, ExecutionResult(errors=[e], invalid=True)
 
     def execute_graphql_request(self, request: HttpRequest, data: dict):
-        with opentracing.global_tracer().start_active_span("graphql_query") as scope:
-            span = scope.span
-            span.set_tag(opentracing.tags.COMPONENT, "graphql")
-            span.set_tag(
-                opentracing.tags.HTTP_URL,
+        with tracer.start_as_current_span("graphql_query") as span:
+            span.set_attribute("component", "graphql")
+            span.set_attribute(
+                SpanAttributes.HTTP_URL,
                 request.build_absolute_uri(request.get_full_path()),
             )
 
@@ -275,9 +297,9 @@ class GraphQLView(View):
                 return error
 
             raw_query_string = document.document_string
-            span.set_tag("graphql.query", raw_query_string)
-            span.set_tag("graphql.query_identifier", query_identifier(document))
-            span.set_tag("graphql.query_fingerprint", query_fingerprint(document))
+            span.set_attribute("graphql.query", raw_query_string)
+            span.set_attribute("graphql.query_identifier", query_identifier(document))
+            span.set_attribute("graphql.query_fingerprint", query_fingerprint(document))
             try:
                 query_contains_schema = check_if_query_contains_only_schema(document)
             except GraphQLError as e:
@@ -290,7 +312,7 @@ class GraphQLView(View):
                 COST_MAP,
                 settings.GRAPHQL_QUERY_MAX_COMPLEXITY,
             )
-            span.set_tag("graphql.query_cost", query_cost)
+            span.set_attribute("graphql.query_cost", query_cost)
             if settings.GRAPHQL_QUERY_MAX_COMPLEXITY and cost_errors:
                 result = ExecutionResult(errors=cost_errors, invalid=True)
                 return set_query_cost_on_result(result, query_cost)
@@ -304,8 +326,8 @@ class GraphQLView(View):
 
             context = get_context_value(request)
             if app := getattr(request, "app", None):
-                span.set_tag("app.id", app.id)
-                span.set_tag("app.name", app.name)
+                span.set_attribute("app.id", app.id)
+                span.set_attribute("app.name", app.name)
 
             try:
                 with connection.execute_wrapper(tracing_wrapper):
@@ -331,7 +353,7 @@ class GraphQLView(View):
 
                     return set_query_cost_on_result(response, query_cost)
             except Exception as e:
-                span.set_tag(opentracing.tags.ERROR, True)
+                span.set_attribute("error", True)
 
                 # In the graphql-core version that we are using,
                 # the Exception is raised for too big integers value.
