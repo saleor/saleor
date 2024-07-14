@@ -1794,3 +1794,32 @@ def test_checkout_gift_cards(
 
     # then
     assert response.status_code == 200
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_checkout_note_update(api_client, checkout_with_variants, count_queries):
+    query = (
+        FRAGMENT_CHECKOUT
+        + """
+            mutation UpdateCheckoutNote(
+              $id: ID, $note: String!
+            ) {
+              checkoutNoteUpdate(id: $id, note: $note) {
+                checkout {
+                  ...Checkout
+                }
+                errors {
+                  field
+                  message
+                }
+              }
+            }
+        """
+    )
+    variables = {
+        "id": to_global_id_or_none(checkout_with_variants),
+        "note": "New note text",
+    }
+    response = get_graphql_content(api_client.post_graphql(query, variables))
+    assert not response["data"]["checkoutNoteUpdate"]["errors"]

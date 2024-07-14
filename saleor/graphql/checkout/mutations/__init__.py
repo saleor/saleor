@@ -12,6 +12,7 @@ from .checkout_line_delete import CheckoutLineDelete
 from .checkout_lines_add import CheckoutLinesAdd
 from .checkout_lines_delete import CheckoutLinesDelete
 from .checkout_lines_update import CheckoutLinesUpdate
+from .checkout_note_update import CheckoutNoteUpdate
 from .checkout_remove_promo_code import CheckoutRemovePromoCode
 from .checkout_shipping_address_update import CheckoutShippingAddressUpdate
 from .checkout_shipping_method_update import CheckoutShippingMethodUpdate
@@ -32,6 +33,7 @@ __all__ = [
     "CheckoutLinesAdd",
     "CheckoutLinesDelete",
     "CheckoutLinesUpdate",
+    "CheckoutNoteUpdate",
     "CheckoutRemovePromoCode",
     "CheckoutShippingAddressUpdate",
     "CheckoutShippingMethodUpdate",
