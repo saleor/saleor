@@ -117,9 +117,27 @@ def calculate_checkout_total_with_gift_cards(
         lines=lines,
         address=address,
         database_connection_name=database_connection_name,
-    ) - checkout_info.checkout.get_total_gift_cards_balance(database_connection_name)
+    )
 
-    return max(total, zero_taxed_money(total.currency))
+    gift_cards_balance = checkout_info.checkout.get_total_gift_cards_balance(
+        database_connection_name
+    )
+    if gift_cards_balance.amount > 0:
+        total_with_gift_cards = max(
+            total - gift_cards_balance, zero_taxed_money(total.currency)
+        )
+        gift_card_compensation = min(total.gross, gift_cards_balance)
+        details = {
+            "checkout_id": str(checkout_info.checkout.pk),
+            "gift_card_compensation": str(gift_card_compensation.amount),
+            "total_after_gift_card_compensation": str(
+                total_with_gift_cards.gross.amount
+            ),
+        }
+        logger.info("Gift card payment: %s", details)
+        return total_with_gift_cards
+
+    return total
 
 
 def checkout_total(
