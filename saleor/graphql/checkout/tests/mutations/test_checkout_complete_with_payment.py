@@ -170,7 +170,9 @@ def test_checkout_complete(
     payment_dummy,
     address,
     shipping_method,
+    caplog,
 ):
+    # given
     assert not gift_card.last_used_on
 
     checkout = checkout_with_gift_card
@@ -210,8 +212,11 @@ def test_checkout_complete(
     orders_count = Order.objects.count()
     redirect_url = "https://www.example.com"
     variables = {"id": to_global_id_or_none(checkout), "redirectUrl": redirect_url}
+
+    # when
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
+    # then
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
     assert not data["errors"]
@@ -274,6 +279,14 @@ def test_checkout_complete(
     recalculate_with_plugins_mock.assert_not_called()
 
     assert not len(Reservation.objects.all())
+
+    assert str(checkout_info.checkout.pk) == caplog.records[0].checkout_id
+    assert gift_card.initial_balance_amount == Decimal(
+        caplog.records[0].gift_card_compensation
+    )
+    assert total.gross.amount == Decimal(
+        caplog.records[0].total_after_gift_card_compensation
+    )
 
 
 @pytest.mark.integration
