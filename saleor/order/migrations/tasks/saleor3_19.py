@@ -101,6 +101,11 @@ def _get_orders_with_shipping_voucher_no_voucher_instance(orders):
         )
     )
 
+    # order discount must be present for such orders
+    order_discounts = OrderDiscount.objects.filter(
+        order_id__in=orders.values("pk"), type="voucher"
+    )
+
     # orders with voucher code, no voucher instance, without line vouchers
     # and not applicable order voucher
     return (
@@ -113,6 +118,7 @@ def _get_orders_with_shipping_voucher_no_voucher_instance(orders):
         .filter(
             Exists(lines_with_not_applicable_voucher.filter(order_id=OuterRef("pk")))
         )
+        .filter(Exists(order_discounts.filter(order_id=OuterRef("pk"))))
     )
 
 
