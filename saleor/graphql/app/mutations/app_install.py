@@ -62,7 +62,6 @@ class AppInstall(ModelMutation):
     def clean_input(cls, info, instance, data, **kwargs):
         manifest_url = data.get("manifest_url")
         clean_manifest_url(manifest_url)
-
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
         # clean and prepare permissions
