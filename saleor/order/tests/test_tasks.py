@@ -1,3 +1,4 @@
+import logging
 from datetime import timedelta
 from unittest import mock
 from unittest.mock import patch
@@ -618,13 +619,14 @@ def test_delete_expired_orders_task_schedule_itself(
 
 
 def test_bulk_release_voucher_usage_no_negative_value(
-    order_list, allocations, channel_USD, voucher_customer
+    order_list, allocations, channel_USD, voucher_customer, caplog
 ):
     # given
     channel_USD.expire_orders_after = 1
     channel_USD.save()
 
     now = timezone.now()
+    caplog.set_level(logging.ERROR)
     code = voucher_customer.voucher_code
     voucher = code.voucher
     code.used = 1
@@ -650,3 +652,4 @@ def test_bulk_release_voucher_usage_no_negative_value(
     # then
     code.refresh_from_db()
     assert code.used == 0
+    assert code.code in caplog.text
