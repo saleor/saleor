@@ -1188,6 +1188,7 @@ def test_checkout_complete(
     shipping_method,
     transaction_events_generator,
     transaction_item_generator,
+    caplog,
 ):
     # given
     checkout = prepare_checkout_for_test(
@@ -1288,6 +1289,14 @@ def test_checkout_complete(
     recalculate_with_plugins_mock.assert_not_called()
 
     assert not len(Reservation.objects.all())
+
+    assert str(checkout_info.checkout.pk) == caplog.records[0].checkout_id
+    assert gift_card.initial_balance_amount == Decimal(
+        caplog.records[0].gift_card_compensation
+    )
+    assert total.gross.amount == Decimal(
+        caplog.records[0].total_after_gift_card_compensation
+    )
 
 
 @pytest.mark.integration
