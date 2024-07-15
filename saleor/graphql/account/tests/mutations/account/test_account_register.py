@@ -95,6 +95,68 @@ def test_customer_register(
         channel_slug=channel_PLN.slug,
     )
 
+
+@override_settings(
+    ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=True, ALLOWED_CLIENT_HOSTS=["localhost"]
+)
+@patch("saleor.account.notifications.default_token_generator.make_token")
+@patch("saleor.plugins.manager.PluginsManager.notify")
+def test_customer_register_twice(
+    mocked_notify,
+    mocked_generator,
+    api_client,
+    channel_PLN,
+    order,
+    site_settings,
+):
+    mocked_generator.return_value = "token"
+    email = "customer@example.com"
+
+    redirect_url = "http://localhost:3000"
+    variables = {
+        "input": {
+            "email": email,
+            "password": "Password",
+            "redirectUrl": redirect_url,
+            "firstName": "saleor",
+            "lastName": "rocks",
+            "languageCode": "PL",
+            "metadata": [{"key": "meta", "value": "data"}],
+            "channel": channel_PLN.slug,
+        }
+    }
+    query = ACCOUNT_REGISTER_MUTATION
+    mutation_name = "accountRegister"
+    response = api_client.post_graphql(query, variables)
+
+    new_user = User.objects.get(email=email)
+    content = get_graphql_content(response)
+    data = content["data"][mutation_name]
+    params = urlencode({"email": email, "token": "token"})
+    confirm_url = prepare_url(params, redirect_url)
+
+    expected_payload = {
+        "user": get_default_user_payload(new_user),
+        "token": "token",
+        "confirm_url": confirm_url,
+        "recipient_email": new_user.email,
+        "channel_slug": channel_PLN.slug,
+        **get_site_context_payload(site_settings.site),
+    }
+    assert new_user.metadata == {"meta": "data"}
+    assert new_user.language_code == "pl"
+    assert new_user.first_name == variables["input"]["firstName"]
+    assert new_user.last_name == variables["input"]["lastName"]
+    assert new_user.search_document == generate_user_fields_search_document_value(
+        new_user
+    )
+    assert not data["errors"]
+    mocked_notify.assert_called_once_with(
+        NotifyEventType.ACCOUNT_CONFIRMATION,
+        payload=expected_payload,
+        channel_slug=channel_PLN.slug,
+    )
+
     response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"][mutation_name]
