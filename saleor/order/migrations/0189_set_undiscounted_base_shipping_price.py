@@ -21,7 +21,7 @@ def set_udniscounted_base_shipping_price(apps, _schema_editor):
         # for draft orders the `base_shipping_price_amount` is the undiscounted price
         # so we can use it as a base for the undiscounted price
         orders_with_shipping_discount = _get_orders_with_shipping_discount(
-            Voucher, OrderLine, orders
+            Voucher, OrderLine, OrderDiscount, orders
         )
 
         orders_no_shipping_discount = orders.exclude(
@@ -36,10 +36,12 @@ def set_udniscounted_base_shipping_price(apps, _schema_editor):
             )
 
 
-def _get_orders_with_shipping_discount(Voucher, OrderLine, orders):
+def _get_orders_with_shipping_discount(Voucher, OrderLine, OrderDiscount, orders):
     orders_with_shipping_voucher = _get_orders_with_shipping_voucher(Voucher, orders)
     orders_with_shipping_voucher_no_voucher_instance = (
-        _get_orders_with_shipping_voucher_no_voucher_instance(OrderLine, orders)
+        _get_orders_with_shipping_voucher_no_voucher_instance(
+            OrderLine, OrderDiscount, orders
+        )
     )
     return (
         orders_with_shipping_voucher | orders_with_shipping_voucher_no_voucher_instance
@@ -55,7 +57,9 @@ def _get_orders_with_shipping_voucher(Voucher, orders):
     ).filter(Exists(shipping_vouchers.filter(pk=OuterRef("voucher_id"))))
 
 
-def _get_orders_with_shipping_voucher_no_voucher_instance(OrderLine, orders):
+def _get_orders_with_shipping_voucher_no_voucher_instance(
+    OrderLine, OrderDiscount, orders
+):
     # lines with applied line voucher
     lines_with_voucher = OrderLine.objects.filter(voucher_code__isnull=False)
 
@@ -75,6 +79,11 @@ def _get_orders_with_shipping_voucher_no_voucher_instance(OrderLine, orders):
         )
     )
 
+    # order discount must be present for such orders
+    order_discounts = OrderDiscount.objects.filter(
+        order_id__in=orders.values("pk"), type="voucher"
+    )
+
     # orders with voucher code, no voucher instance, without line vouchers
     # and not applicable order voucher
     return (
@@ -87,6 +96,7 @@ def _get_orders_with_shipping_voucher_no_voucher_instance(OrderLine, orders):
         .filter(
             Exists(lines_with_not_applicable_voucher.filter(order_id=OuterRef("pk")))
         )
+        .filter(Exists(order_discounts.filter(order_id=OuterRef("pk"))))
     )
 
 
