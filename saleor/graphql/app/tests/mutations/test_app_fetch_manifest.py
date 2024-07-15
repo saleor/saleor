@@ -851,3 +851,37 @@ def test_app_fetch_manifest_with_invalid_brand_data(
     assert len(errors) == 1
     assert errors[0]["field"] == "brand"
     assert errors[0]["code"] == AppErrorCode.INVALID_URL_FORMAT.name
+
+
+@pytest.mark.vcr
+def test_fetch_manifest_fail_when_app_with_same_identifier_already_installed(
+    staff_api_client,
+    staff_user,
+    permission_manage_apps,
+    app,
+):
+    # given
+    app.identifier = "saleor.app.avatax"
+    app.save()
+    manifest_url = "http://localhost:3000/api/manifest"
+
+    query = APP_FETCH_MANIFEST_MUTATION
+    variables = {"manifest_url": manifest_url}
+    staff_user.user_permissions.set([permission_manage_apps])
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables=variables,
+    )
+    content = get_graphql_content(response)
+
+    errors = content["data"]["appFetchManifest"]["errors"]
+
+    # then
+    assert len(errors) == 1
+    assert errors[0]["field"] == "identifier"
+    assert errors[0]["code"] == "INVALID"
+    assert errors[0]["message"] == (
+        f"App with the same identifier is already installed: {app.name}"
+    )
