@@ -445,6 +445,7 @@ def test_trigger_webhooks_async_pick_up_queue_based_on_protocol(
     permission_manage_orders,
     settings,
     webhook,
+    django_assert_num_queries,
 ):
     # given
     settings.WEBHOOK_CELERY_QUEUE_NAME = None
@@ -458,12 +459,13 @@ def test_trigger_webhooks_async_pick_up_queue_based_on_protocol(
     expected_data = serialize("json", [order_with_lines])
 
     # when
-    trigger_webhooks_async(
-        expected_data,
-        WebhookEventAsyncType.ORDER_CREATED,
-        [webhook],
-        allow_replica=False,
-    )
+    with django_assert_num_queries(2):
+        trigger_webhooks_async(
+            expected_data,
+            WebhookEventAsyncType.ORDER_CREATED,
+            [webhook],
+            allow_replica=False,
+        )
 
     # then
     delivery = EventDelivery.objects.get()
