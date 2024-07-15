@@ -4,7 +4,7 @@ from django.apps import apps as registry
 from django.db import migrations
 from django.db.models.signals import post_migrate
 
-from .tasks.saleor3_19 import set_udniscounted_base_shipping_price_on_orders_task
+from .tasks.saleor3_20 import set_udniscounted_base_shipping_price_on_orders_task
 
 
 def set_udniscounted_base_shipping_price(apps, _schema_editor):
