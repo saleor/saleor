@@ -1,4 +1,3 @@
-import ast
 import logging
 import os
 import os.path
@@ -39,13 +38,14 @@ def get_list(text):
 
 
 def get_bool_from_env(name, default_value):
-    if name in os.environ:
-        value = os.environ[name]
-        try:
-            return ast.literal_eval(value)
-        except ValueError as e:
-            raise ValueError(f"{value} is an invalid value for {name}") from e
-    return default_value
+    """Retrieve and convert an environment variable to a boolean object.
+
+    Accepted values are `true` (case-insensitive) and `1`, any other value resolves to `False`.
+    """
+    value = os.environ.get(name)
+    if value is None:
+        return default_value
+    return value.lower() in ("true", "1")
 
 
 def get_url_from_env(name, *, schemes=None) -> Optional[str]:
