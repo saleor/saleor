@@ -2723,6 +2723,53 @@ class Subscription(SubscriptionObjectType):
         Event,
         description="Look up subscription event." + ADDED_IN_32,
     )
+    draft_order_created = graphene.Field(
+        DraftOrderCreated,
+        description=(
+            "Event sent when new draft order is created."
+            + ADDED_IN_320
+            + PREVIEW_FEATURE
+        ),
+        resolver=filter_order_over_channels(WebhookEventAsyncType.DRAFT_ORDER_CREATED),
+        channels=graphene.Argument(
+            NonNullList(graphene.String),
+            description=(
+                "List of channel slugs. The event will be sent only if the order "
+                "belongs to one of the provided channels. If the channel slug list is "
+                "empty, orders that belong to any channel will be sent."
+            ),
+        ),
+    )
+    draft_order_updated = graphene.Field(
+        DraftOrderUpdated,
+        description=(
+            "Event sent when draft order is updated." + ADDED_IN_320 + PREVIEW_FEATURE
+        ),
+        resolver=filter_order_over_channels(WebhookEventAsyncType.DRAFT_ORDER_UPDATED),
+        channels=graphene.Argument(
+            NonNullList(graphene.String),
+            description=(
+                "List of channel slugs. The event will be sent only if the order "
+                "belongs to one of the provided channels. If the channel slug list is "
+                "empty, orders that belong to any channel will be sent."
+            ),
+        ),
+    )
+    draft_order_deleted = graphene.Field(
+        DraftOrderDeleted,
+        description=(
+            "Event sent when draft order is deleted." + ADDED_IN_320 + PREVIEW_FEATURE
+        ),
+        resolver=filter_order_over_channels(WebhookEventAsyncType.DRAFT_ORDER_DELETED),
+        channels=graphene.Argument(
+            NonNullList(graphene.String),
+            description=(
+                "List of channel slugs. The event will be sent only if the order "
+                "belongs to one of the provided channels. If the channel slug list is "
+                "empty, orders that belong to any channel will be sent."
+            ),
+        ),
+    )
     order_created = graphene.Field(
         OrderCreated,
         description=(
