@@ -8,14 +8,13 @@ from ..models import (
     OrderDiscount,
     OrderLineDiscount,
     PromotionRule,
-    Voucher,
 )
 
 if TYPE_CHECKING:
     from ..models import Voucher
 
 
-def update_line_discount(
+def update_discount(
     rule: Optional["PromotionRule"],
     voucher: Optional["Voucher"],
     discount_name: str,
@@ -29,6 +28,7 @@ def update_line_discount(
         "CheckoutLineDiscount", "CheckoutDiscount", "OrderLineDiscount", "OrderDiscount"
     ],
     updated_fields: list[str],
+    voucher_code: Optional[str],
 ):
     if voucher and discount_to_update.voucher_id != voucher.id:
         discount_to_update.voucher_id = voucher.id
@@ -59,6 +59,9 @@ def update_line_discount(
         if discount_to_update.unique_type is None:
             discount_to_update.unique_type = unique_type
             updated_fields.append("unique_type")
+    if voucher_code and discount_to_update.voucher_code != voucher_code:
+        discount_to_update.voucher_code = voucher_code
+        updated_fields.append("voucher_code")
 
 
 def update_line_info_cached_discounts(
