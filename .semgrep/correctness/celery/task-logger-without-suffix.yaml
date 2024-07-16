@@ -10,8 +10,13 @@ rules:
     languages:
       - python
     severity: ERROR
-    pattern: |
-      logging.getLogger($X, ...)
-      ...
-      celery.utils.log.get_task_logger($X, ...)
+    pattern-either:
+      - pattern: |
+          logging.getLogger($X, ...)
+          ...
+          celery.utils.log.get_task_logger($X, ...)
+      - pattern: |
+          celery.utils.log.get_task_logger($X, ...)
+          ...
+          logging.getLogger($X, ...)
     focus-metavariable: $X

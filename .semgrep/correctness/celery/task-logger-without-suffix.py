@@ -7,6 +7,13 @@ def same_name_using___name__():
     logger = logging.getLogger(__name__)
     task_logger = get_task_logger(__name__)
 
+def same_name_with_celery_first():
+    # Using the same name (__name__) should match,
+    # even if get_task_logger() is called before logging.getLogger().
+    # ruleid: task-logger-without-suffix
+    task_logger = get_task_logger(__name__)
+    logger = logging.getLogger(__name__)
+
 def different_name_get_task_logger():
     # Using a different name in `get_task_logger()` shouldn't match.
     # ok: task-logger-without-suffix
