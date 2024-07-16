@@ -1366,7 +1366,7 @@ def create_or_update_discount_objects_for_order(
 ):
     create_or_update_discount_objects_from_promotion_for_order(order, lines_info)
     create_or_update_line_discount_objects_for_manual_discounts(lines_info)
-    create_or_update_line_discount_objects_from_voucher(order, lines_info)
+    create_or_update_discount_objects_from_voucher(order, lines_info)
     _copy_unit_discount_data_to_order_line(lines_info)
 
 
@@ -1485,7 +1485,6 @@ def create_order_discount_objects_for_order_promotions(
     order: "Order",
     lines_info: Iterable["EditableOrderLineInfo"],
 ):
-    from ..order.base_calculations import base_order_subtotal
     from ..order.utils import get_order_country
 
     # If voucher is set or manual discount applied, then skip order promotions
@@ -1496,15 +1495,13 @@ def create_order_discount_objects_for_order_promotions(
     # The base prices are required for order promotion discount qualification.
     _set_order_base_prices(order, lines_info)
 
-    lines = [line_info.line for line_info in lines_info]
-    subtotal = base_order_subtotal(order, lines)
     channel = order.channel
     rules = fetch_promotion_rules_for_checkout_or_order(order)
     rule_data = get_best_rule(
         rules=rules,
         channel=channel,
         country=get_order_country(order),
-        subtotal=subtotal,
+        subtotal=order.subtotal,
     )
     if not rule_data:
         _clear_order_discount(order, lines_info)
@@ -1698,7 +1695,55 @@ def create_or_update_line_discount_objects_for_manual_discounts(lines_info):
         OrderLineDiscount.objects.bulk_update(discount_to_update, ["amount_value"])
 
 
-def create_or_update_line_discount_objects_from_voucher(order, lines_info):
+def create_or_update_discount_objects_from_voucher(order, lines_info):
+    create_or_update_discount_object_from_order_level_voucher(order)
+    create_or_update_line_discount_objects_from_voucher(lines_info)
+
+
+def create_or_update_discount_object_from_order_level_voucher(order):
+    """Create or update discount object for ENTIRE_ORDER voucher."""
+    voucher = order.voucher
+    if is_order_level_voucher(voucher):
+        voucher_channel_listing = voucher.channel_listings.filter(
+            channel=order.channel
+        ).first()
+        if not voucher_channel_listing:
+            return
+
+        discount_amount = voucher.get_discount_amount_for(order.subtotal, order.channel)
+        discount_reason = f"Voucher code: {order.voucher_code}"
+        discount_name = f"{voucher.name}"
+        discount_to_update = order.discounts.filter(type=DiscountType.VOUCHER).first()
+        if discount_to_update:
+            updated_fields: list[str] = []
+            _update_discount(
+                rule=None,
+                voucher=voucher,
+                discount_name=discount_name,
+                # TODO (SHOPX-914): set translated voucher name
+                translated_name="",
+                discount_reason=discount_reason,
+                discount_amount=discount_amount,
+                value=voucher_channel_listing.discount_value,
+                value_type=voucher.discount_value_type,
+                unique_type=DiscountType.VOUCHER,
+                discount_to_update=discount_to_update,
+                updated_fields=updated_fields,
+            )
+        else:
+            order.discounts.create(
+                voucher=voucher,
+                value_type=voucher.discount_value_type,
+                value=voucher_channel_listing.discount_value,
+                amount_value=discount_amount,
+                reason=f"Voucher: {voucher.name}",
+                name=discount_name,
+                type=DiscountType.VOUCHER,
+                voucher_code=order.voucher_code,
+            )
+
+
+def create_or_update_line_discount_objects_from_voucher(lines_info):
     """Create or update line discount object for voucher applied on lines.
 
     The LineDiscount object is created for each line with voucher applied.
