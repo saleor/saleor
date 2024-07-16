@@ -618,9 +618,39 @@ def test_delete_expired_orders_task_schedule_itself(
     assert Order.objects.count() == 2
 
 
-def test_bulk_release_voucher_usage_no_negative_value(
+def test_bulk_release_voucher_usage_voucher_usage_mismatch(
     order_list, allocations, channel_USD, voucher_customer, caplog
 ):
+    # We can have mismatch between `voucher.used` and number of order utilizing
+    # the voucher. It can happen in following cases:
+    # CASE 1:
+    # 1. use channelUpdate mutation to set:
+    #   a. include_draft_order_in_voucher_usage=True
+    #   b. automatically_confirm_all_new_orders=False
+    # 2. create voucher with usageLimit=5
+    # 3. create voucher code (let me name it code-123 for reference)
+    # 4. create draft order and associate it with the code-123
+    # State 1: Now we have draft order where
+    # order.voucher_code=code-123 and voucher_code.used=1
+    # 5. use channelUpdate mutation to set include_draft_order_in_voucher_usage=False.
+    # It will decrease the voucher_code.used, but won’t disconnect voucher from
+    # the orders
+    # State 2: Now we have draft order where
+    # order.voucher_code=code-123 and voucher_code.used=0
+    #
+    # CASE 2:
+    # 1. use channelUpdate mutation to set:
+    #   a. include_draft_order_in_voucher_usage=True
+    #   b. automatically_confirm_all_new_orders=False
+    # 2. create voucher without setting usage_limit
+    # 3. create new code for the voucher (ie. code-123)
+    # 4. create draft order and associate it with the “code-123”
+    # 5. set usageLimit for the voucher
+    # Now we have draft order where order.voucher_code=code-123 and voucher_code.used=0
+    #
+    # This test will mimic above steps to create the mismatch and will test
+    # _bulk_release_voucher_usage trying to not save negative values
+
     # given
     channel_USD.expire_orders_after = 1
     channel_USD.save()

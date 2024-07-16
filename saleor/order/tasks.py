@@ -63,6 +63,7 @@ def _bulk_release_voucher_usage(order_ids):
     ).annotate(order_count=Subquery(count_orders))
 
     # We observed mismatch between code.used and number of orders which utilize the code
+    # In some cases it is expected, but we want to further investigate the issue
     suspected_codes = [code.code for code in codes if code.used < code.order_count]
     if suspected_codes:
         logger.error(
