@@ -150,10 +150,16 @@ def _create_variant_listing_promotion_rule(variant_listing_promotion_rule_to_cre
             for listing in variant_listing_promotion_rule_to_create
         ]
         # Lock PromotionRule and ProductVariantChannelListing before bulk_create
-        rules = PromotionRule.objects.filter(id__in=rule_ids).select_for_update()
-        variant_listings = ProductVariantChannelListing.objects.filter(
-            id__in=listing_ids
-        ).select_for_update()
+        rules = (
+            PromotionRule.objects.filter(id__in=rule_ids)
+            .select_for_update()
+            .order_by("pk")
+        )
+        variant_listings = (
+            ProductVariantChannelListing.objects.filter(id__in=listing_ids)
+            .select_for_update()
+            .order_by("pk")
+        )
         # Do not create VariantChannelListingPromotionRule for rules that were deleted.
         if len(rules) < len(rule_ids):
             variant_listing_promotion_rule_to_create = [

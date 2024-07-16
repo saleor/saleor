@@ -48,7 +48,7 @@ class ProductDelete(ModelDeleteMutation, ModelWithExtRefMutation):
         instance = cls.get_instance(info, external_reference=external_reference, id=id)
         with traced_atomic_transaction():
             variants_id = list(
-                instance.variants.order_by("created_at")
+                instance.variants.order_by("pk")
                 .select_for_update(of=("self",))
                 .all()
                 .values_list("id", flat=True)
@@ -59,7 +59,7 @@ class ProductDelete(ModelDeleteMutation, ModelWithExtRefMutation):
                 variants_id
             )
 
-            models.ProductVariant.objects.order_by("created_at").filter(
+            models.ProductVariant.objects.order_by("pk").filter(
                 pk__in=variants_id
             ).delete()
             response = super().perform_mutation(

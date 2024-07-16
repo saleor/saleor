@@ -95,7 +95,7 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
         )
         with transaction.atomic():
             product_pks = tuple(
-                models.Product.objects.order_by("created_at")
+                models.Product.objects.order_by("pk")
                 .select_for_update(of=("self",))
                 .filter(pk__in=product_pks)
                 .values_list("pk", flat=True)
@@ -103,7 +103,7 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
 
             # Get cached variants with related fields to fully populate webhook payload.
             variants = list(
-                models.ProductVariant.objects.order_by("created_at")
+                models.ProductVariant.objects.order_by("pk")
                 .select_for_update()
                 .filter(id__in=pks)
                 .prefetch_related(
@@ -174,24 +174,23 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
         Delete product channel listings for product and channel for which
         the last available variant has been deleted.
         """
-        variants = (
-            models.ProductVariant.objects.order_by("created_at")
-            .select_for_update(of=("self",))
-            .filter(product_id__in=product_pks)
-            .exclude(id__in=variant_pks)
-        )
+        variants = models.ProductVariant.objects.filter(
+            product_id__in=product_pks
+        ).exclude(id__in=variant_pks)
 
         variant_subquery = Subquery(
-            queryset=variants.filter(id=OuterRef("variant_id")).values("product_id"),
+            queryset=variants.filter(id=OuterRef("variant_id"))
+            .order_by("pk")
+            .values("product_id"),
             output_field=IntegerField(),
         )
         variant_channel_listings = models.ProductVariantChannelListing.objects.annotate(
             product_id=Coalesce(variant_subquery, 0)
         )
 
-        invalid_product_channel_listings = (
+        invalid_product_channel_listings_pks = tuple(
             models.ProductChannelListing.objects.order_by("pk")
-            .select_for_update(of=("self",))
+            .select_for_update()
             .filter(product_id__in=product_pks)
             .exclude(
                 Exists(
@@ -201,5 +200,8 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
                     )
                 )
             )
+            .values_list("id", flat=True)
         )
-        invalid_product_channel_listings.delete()
+        models.ProductChannelListing.objects.filter(
+            pk__in=invalid_product_channel_listings_pks
+        ).delete()
