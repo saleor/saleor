@@ -1,0 +1,17 @@
+rules:
+  - id: task-logger-without-suffix
+    message: >-
+      Wrapping the module's logger with Celery can lead to unexpected behaviors when called outside Celery, such as crashes or missing custom logging formatters (e.g., HTTP request log formatter).
+      Because of that, the task logger should be using its own specific namespace, such as f"{__name__}.celery".
+    metadata:
+      category: correctness
+      technology:
+        - celery
+    languages:
+      - python
+    severity: ERROR
+    pattern: |
+      logging.getLogger($X, ...)
+      ...
+      celery.utils.log.get_task_logger($X, ...)
+    focus-metavariable: $X

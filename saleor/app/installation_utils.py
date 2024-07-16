@@ -33,7 +33,7 @@ from .types import AppExtensionTarget, AppType
 MAX_ICON_FILE_SIZE = 1024 * 1024 * 10  # 10MB
 
 logger = logging.getLogger(__name__)
-task_logger = get_task_logger(__name__)
+task_logger = get_task_logger(f"{__name__}.celery")
 
 
 class AppInstallationError(HTTPError):
