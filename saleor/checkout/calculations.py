@@ -134,7 +134,7 @@ def calculate_checkout_total_with_gift_cards(
                 total_with_gift_cards.gross.amount
             ),
         }
-        logger.info("Gift card payment: %s", details)
+        logger.info("Gift card payment.", extra=details)
         return total_with_gift_cards
 
     return total

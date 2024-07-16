@@ -1,3 +1,4 @@
+import logging
 from datetime import date, timedelta
 from decimal import Decimal
 from unittest import mock
@@ -1084,6 +1085,7 @@ def test_checkout_add_used_gift_card_code(
 def test_checkout_get_total_with_gift_card(
     api_client, checkout_with_item, gift_card, caplog
 ):
+    caplog.set_level(logging.INFO)
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
@@ -1106,9 +1108,13 @@ def test_checkout_get_total_with_gift_card(
     assert not data["checkout"]["giftCards"] == []
     assert data["checkout"]["totalPrice"]["gross"]["amount"] == total_with_gift_card
 
-    assert str(checkout_info.checkout.pk) in caplog.text
-    assert str(gift_card.current_balance_amount) in caplog.text
-    assert str(total_with_gift_card) in caplog.text
+    assert str(checkout_info.checkout.pk) == caplog.records[0].checkout_id
+    assert gift_card.current_balance_amount == Decimal(
+        caplog.records[0].gift_card_compensation
+    )
+    assert total_with_gift_card == Decimal(
+        caplog.records[0].total_after_gift_card_compensation
+    )
 
 
 def test_checkout_get_total_with_many_gift_card(
