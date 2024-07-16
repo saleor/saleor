@@ -1,9 +1,10 @@
 import platform
 import time
 
-from .. import __version__ as saleor_version
 from celery._state import get_current_task as get_current_celery_task
 from pythonjsonlogger.jsonlogger import JsonFormatter as BaseFormatter
+
+from .. import __version__ as saleor_version
 
 
 class JsonFormatter(BaseFormatter):
@@ -15,7 +16,7 @@ class JsonFormatter(BaseFormatter):
         try:
             log_record["query"] = record.exc_info[1]._exc_query
             log_record["version"] = saleor_version
-        except (KeyError, TypeError):
+        except (TypeError, IndexError, AttributeError):
             pass
 
 
