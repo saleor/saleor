@@ -160,14 +160,13 @@ def create_event_delivery_list_for_webhooks(
 
 
 def get_queue_name_for_webhook(webhook, default_queue):
-    scheme = urlparse(webhook.target_url).scheme.lower()
-    if scheme == WebhookSchemes.AWS_SQS:
-        queue_name = settings.WEBHOOK_SQS_CELERY_QUEUE_NAME
-    elif scheme == WebhookSchemes.GOOGLE_CLOUD_PUBSUB:
-        queue_name = settings.WEBHOOK_PUBSUB_CELERY_QUEUE_NAME
-    else:
-        queue_name = default_queue
-    return queue_name
+    return {
+        WebhookSchemes.AWS_SQS: settings.WEBHOOK_SQS_CELERY_QUEUE_NAME,
+        WebhookSchemes.GOOGLE_CLOUD_PUBSUB: settings.WEBHOOK_PUBSUB_CELERY_QUEUE_NAME,
+    }.get(
+        urlparse(webhook.target_url).scheme.lower(),
+        default_queue,
+    )
 
 
 def trigger_webhooks_async(
