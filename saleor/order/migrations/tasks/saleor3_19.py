@@ -31,7 +31,7 @@ def update_order_addresses_task():
                 addresses.append(order_address)
         Address.objects.bulk_create(addresses, ignore_conflicts=True)
         Order.objects.bulk_update(orders, ["shipping_address"])
-        update_order_addresses_task()
+        update_order_addresses_task.delay()
 
 
 @app.task
