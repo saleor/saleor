@@ -823,6 +823,7 @@ def test_order_from_checkout_with_voucher_and_gift_card(
         channel=checkout.channel
     ).price
     gift_card_initial_balance = gift_card.initial_balance_amount
+    discount_amount = checkout.discount
 
     orders_count = Order.objects.count()
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
@@ -845,12 +846,10 @@ def test_order_from_checkout_with_voucher_and_gift_card(
     assert str(order.pk) == order_token
     assert order.metadata == checkout.metadata_storage.metadata
     assert order.private_metadata == checkout.metadata_storage.private_metadata
-    subtotal = get_subtotal(order.lines.all(), order.currency).gross
-    assert order.subtotal.gross == subtotal
+    subtotal = get_subtotal(order.lines.all(), order.currency)
+    assert order.subtotal.gross == subtotal.gross
     assert order.total_gross_amount < order.undiscounted_total_gross_amount
-    assert order.undiscounted_total == TaxedMoney(
-        net=subtotal + shipping_price, gross=subtotal + shipping_price
-    )
+    assert order.undiscounted_total == subtotal + shipping_price + discount_amount
 
     order_line = order.lines.first()
     assert checkout_line_quantity == order_line.quantity
