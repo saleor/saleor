@@ -23,6 +23,7 @@ CHECKOUT_NOTE_UPDATE_MUTATION = """
 
 
 def test_checkout_note_update(user_api_client, checkout_with_item):
+    # given
     checkout = checkout_with_item
     checkout.note = ""
     checkout.save(update_fields=["note"])
@@ -31,7 +32,10 @@ def test_checkout_note_update(user_api_client, checkout_with_item):
     note = "New note value"
     variables = {"id": to_global_id_or_none(checkout), "note": note}
 
+    # when
     response = user_api_client.post_graphql(CHECKOUT_NOTE_UPDATE_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["checkoutNoteUpdate"]
     assert not data["errors"]
@@ -56,7 +60,7 @@ def test_with_active_problems_flow(api_client, checkout_with_problems):
         CHECKOUT_NOTE_UPDATE_MUTATION,
         variables,
     )
-    content = get_graphql_content(response)
 
     # then
+    content = get_graphql_content(response)
     assert not content["data"]["checkoutNoteUpdate"]["errors"]

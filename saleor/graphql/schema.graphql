@@ -19196,33 +19196,21 @@ type Mutation {
   """
   Updates note in the existing checkout object.
   
+  Added in Saleor 3.21.
+  
   Triggers the following webhook events:
   - CHECKOUT_UPDATED (async): A checkout was updated.
   """
   checkoutNoteUpdate(
     """
-    The ID of the checkout. 
-    
-    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
-    """
-    checkoutId: ID
-
-    """
     The checkout's ID.
     
-    Added in Saleor 3.4.
+    Added in Saleor 3.21.
     """
     id: ID
 
     """New note content."""
     note: String!
-
-    """
-    Checkout token.
-    
-    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
-    """
-    token: UUID
   ): CheckoutNoteUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [])
 
   """
@@ -29578,6 +29566,8 @@ input CheckoutLineUpdateInput @doc(category: "Checkout") {
 
 """
 Updates note in the existing checkout object.
+
+Added in Saleor 3.21.
 
 Triggers the following webhook events:
 - CHECKOUT_UPDATED (async): A checkout was updated.
