@@ -184,7 +184,7 @@ class EventPayload(models.Model):
 
     def save_payload_file(self, payload_data: str):
         prefix = get_random_string(length=12)
-        file_name = f"payload-{self.pk}-{self.created_at}.json"
+        file_name = f"{self.pk}.json"
         file_path = safe_join(prefix, file_name)
         self.payload_file.save(file_path, ContentFile(payload_data))
 
