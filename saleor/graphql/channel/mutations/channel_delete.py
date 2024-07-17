@@ -23,7 +23,10 @@ from ..utils import delete_invalid_warehouse_to_shipping_zone_relations
 class ChannelDeleteInput(BaseInputObjectType):
     channel_id = graphene.ID(
         required=True,
-        description="ID of channel to migrate orders from origin channel.",
+        description=(
+            "ID of a channel to migrate orders from the origin channel. "
+            "Target channel has to have the same currency as the origin."
+        ),
     )
 
     class Meta:
