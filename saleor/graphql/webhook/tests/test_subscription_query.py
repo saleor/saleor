@@ -226,6 +226,56 @@ def test_subscription_query():
             """,
             ["product_updated", "product_created"],
         ),
+        (
+            """
+                subscription{
+                    orderCreated(channels:["default"]){
+                        order{
+                            id
+                        }
+                    }
+                }
+                """,
+            ["order_created"],
+        ),
+        (
+            """
+                fragment OrderFragment on Order {
+                  id
+                  number
+                  lines {
+                    id
+                  }
+                }
+                subscription {
+                    orderCreated{
+                        order{
+                            ...OrderFragment
+                        }
+                    }
+                }
+                """,
+            ["order_created"],
+        ),
+        (
+            """
+                fragment OrderFragment on Order {
+                  id
+                  number
+                  lines {
+                    id
+                  }
+                }
+                subscription {
+                    updated: orderUpdated{
+                        order{
+                            ...OrderFragment
+                        }
+                    }
+                }
+                """,
+            ["order_updated"],
+        ),
     ],
 )
 def test_get_event_type_from_subscription(query, events):
@@ -314,6 +364,210 @@ def test_get_event_type_from_subscription(query, events):
             "Can't find a single event.",
             ValidationError,
             WebhookErrorCode.MISSING_EVENT,
+        ),
+        (
+            """
+            subscription {
+                event{
+                    ...on OrderCreated{
+                        order{
+                            id
+                        }
+                    }
+                }
+                orderCreated(channels:["default-channel"]){
+                    order{
+                        lines{
+                            id
+                            variant{
+                                id
+                                product{
+                                    id
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            """,
+            "Subscription must select only one top field.",
+            ValidationError,
+            WebhookErrorCode.INVALID,
+        ),
+        (
+            """
+            subscription {
+                orderCreated(channels:["default-channel"]){
+                    order{
+                        lines{
+                            id
+                            variant{
+                                id
+                                product{
+                                    id
+                                }
+                            }
+                        }
+                    }
+                }
+                orderCreated(channels:["default-channel"]){
+                    order{
+                        lines{
+                            id
+                            variant{
+                                id
+                                product{
+                                    id
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            """,
+            "Subscription must select only one top field.",
+            ValidationError,
+            WebhookErrorCode.INVALID,
+        ),
+        (
+            """
+            subscription {
+                alias: orderCreated(channels:["default-channel"]){
+                    order{
+                        lines{
+                            id
+                            variant{
+                                id
+                                product{
+                                    id
+                                }
+                            }
+                        }
+                    }
+                }
+                orderCreated(channels:["default-channel"]){
+                    order{
+                        lines{
+                            id
+                            variant{
+                                id
+                                product{
+                                    id
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            """,
+            "Subscription must select only one top field.",
+            ValidationError,
+            WebhookErrorCode.INVALID,
+        ),
+        (
+            """
+            subscription {
+                orderUpdated(channels:["default-channel"]){
+                    order{
+                        lines{
+                            id
+                            variant{
+                                id
+                                product{
+                                    id
+                                }
+                            }
+                        }
+                    }
+                }
+                orderCreated(channels:["default-channel"]){
+                    order{
+                        lines{
+                            id
+                            variant{
+                                id
+                                product{
+                                    id
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            """,
+            "Subscription must select only one top field.",
+            ValidationError,
+            WebhookErrorCode.INVALID,
+        ),
+        (
+            """
+            subscription {
+                alias: orderCreated(channels:["different-channel"]){
+                    order{
+                        lines{
+                            id
+                            variant{
+                                id
+                                product{
+                                    id
+                                }
+                            }
+                        }
+                    }
+                }
+                orderCreated(channels:["default-channel"]){
+                    order{
+                        lines{
+                            id
+                            variant{
+                                id
+                                product{
+                                    id
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            """,
+            "Subscription must select only one top field.",
+            ValidationError,
+            WebhookErrorCode.INVALID,
+        ),
+        (
+            """
+            subscription {
+                alias: orderUpdated(channels:["different-channel"]){
+                    order{
+                        lines{
+                            id
+                            variant{
+                                id
+                                product{
+                                    id
+                                }
+                            }
+                        }
+                    }
+                }
+                orderCreated(channels:["default-channel"]){
+                    order{
+                        lines{
+                            id
+                            variant{
+                                id
+                                product{
+                                    id
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            """,
+            "Subscription must select only one top field.",
+            ValidationError,
+            WebhookErrorCode.INVALID,
         ),
     ],
 )

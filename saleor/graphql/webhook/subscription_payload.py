@@ -123,7 +123,14 @@ def generate_payload_from_subscription(
         return None
 
     payload_instance = payload[0]
-    event_payload = get_event_payload(payload_instance.data.get("event"))
+    payload_data_keys = payload_instance.data.keys()
+    for key in payload_data_keys:
+        extracted_payload = get_event_payload(payload_instance.data.get(key))
+        payload_instance.data[key] = extracted_payload
+    if "event" in payload_instance.data:
+        event_payload = payload_instance.data.get("event")
+    else:
+        event_payload = {"data": payload_instance.data}
 
     if payload_instance.errors:
         event_payload["errors"] = [

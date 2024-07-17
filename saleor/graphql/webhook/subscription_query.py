@@ -48,8 +48,30 @@ class SubscriptionQuery:
             self.error_code = WebhookErrorCode.GRAPHQL_ERROR.value
             return errors
 
+        subscription = self._get_subscription(self.ast)
+        if not subscription:
+            self.error_code = WebhookErrorCode.MISSING_SUBSCRIPTION.value
+            return [
+                ValidationError(
+                    message="Subscription operation can't be found.",
+                    code=WebhookErrorCode.MISSING_SUBSCRIPTION.value,
+                )
+            ]
+
+        field_names = [
+            selection.name.value for selection in subscription.selection_set.selections
+        ]
+        if len(field_names) > 1 and set(field_names) != {"event"}:
+            self.error_code = WebhookErrorCode.INVALID.value
+            return [
+                ValidationError(
+                    message="Subscription must select only one top field.",
+                    code=WebhookErrorCode.INVALID.value,
+                )
+            ]
+
         try:
-            self.events = self.get_events_from_subscription()
+            self.events = self.get_events_from_subscription(subscription)
         except ValidationError as err:
             self.error_code = err.code
             return [err]
@@ -57,13 +79,13 @@ class SubscriptionQuery:
         self.is_valid = True
         return []
 
-    def get_events_from_subscription(self) -> list[str]:
-        subscription = self._get_subscription(self.ast)
-        if not subscription:
-            raise ValidationError(
-                message="Subscription operation can't be found.",
-                code=WebhookErrorCode.MISSING_SUBSCRIPTION.value,
-            )
+    def get_events_from_subscription(self, subscription) -> list[str]:
+        subscription_name = subscription.selection_set.selections[0].name.value
+        if subscription_name != "event":
+            return [
+                to_snake_case(selection.name.value)
+                for selection in subscription.selection_set.selections
+            ]
 
         event_types = self._get_event_types_from_subscription(subscription)
         if not event_types:
