@@ -1501,7 +1501,7 @@ def create_order_discount_objects_for_order_promotions(
         rules=rules,
         channel=channel,
         country=get_order_country(order),
-        subtotal=order.subtotal,
+        subtotal=order.subtotal.net,
     )
     if not rule_data:
         _clear_order_discount(order, lines_info)
@@ -1702,49 +1702,55 @@ def create_or_update_discount_objects_from_voucher(order, lines_info):
 
 def create_or_update_discount_object_from_order_level_voucher(order):
     """Create or update discount object for ENTIRE_ORDER voucher."""
-    voucher = order.voucher
-    if is_order_level_voucher(voucher):
-        voucher_channel_listing = voucher.channel_listings.filter(
-            channel=order.channel
-        ).first()
-        if not voucher_channel_listing:
-            return
+    if not order.voucher_id:
+        order.discounts.filter(type=DiscountType.VOUCHER).delete()
+        return
 
-        discount_amount = voucher.get_discount_amount_for(
-            order.subtotal.net, order.channel
+    voucher = order.voucher
+    if not is_order_level_voucher(voucher):
+        return
+
+    voucher_channel_listing = voucher.channel_listings.filter(
+        channel=order.channel
+    ).first()
+    if not voucher_channel_listing:
+        return
+
+    discount_amount = voucher.get_discount_amount_for(order.subtotal.net, order.channel)
+    discount_reason = f"Voucher code: {order.voucher_code}"
+    discount_name = voucher.name or ""
+    discount_to_update = order.discounts.filter(type=DiscountType.VOUCHER).first()
+    if discount_to_update:
+        updated_fields: list[str] = []
+        _update_discount(
+            rule=None,
+            voucher=voucher,
+            discount_name=discount_name,
+            # TODO (SHOPX-914): set translated voucher name
+            translated_name="",
+            discount_reason=discount_reason,
+            discount_amount=discount_amount.amount,
+            value=voucher_channel_listing.discount_value,
+            value_type=voucher.discount_value_type,
+            unique_type=DiscountType.VOUCHER,
+            discount_to_update=discount_to_update,
+            updated_fields=updated_fields,
         )
-        discount_reason = f"Voucher code: {order.voucher_code}"
-        discount_name = voucher.name or ""
-        discount_to_update = order.discounts.filter(type=DiscountType.VOUCHER).first()
-        if discount_to_update:
-            updated_fields: list[str] = []
-            _update_discount(
-                rule=None,
-                voucher=voucher,
-                discount_name=discount_name,
-                # TODO (SHOPX-914): set translated voucher name
-                translated_name="",
-                discount_reason=discount_reason,
-                discount_amount=discount_amount.amount,
-                value=voucher_channel_listing.discount_value,
-                value_type=voucher.discount_value_type,
-                unique_type=DiscountType.VOUCHER,
-                discount_to_update=discount_to_update,
-                updated_fields=updated_fields,
-            )
-        else:
-            order.discounts.create(
-                voucher=voucher,
-                value_type=voucher.discount_value_type,
-                value=voucher_channel_listing.discount_value,
-                amount_value=discount_amount.amount,
-                reason=f"Voucher: {voucher.name}",
-                name=discount_name,
-                type=DiscountType.VOUCHER,
-                voucher_code=order.voucher_code,
-                # TODO (SHOPX-914): set translated voucher name
-                translated_name="",
-            )
+        if updated_fields:
+            discount_to_update.save(update_fields=updated_fields)
+    else:
+        order.discounts.create(
+            voucher=voucher,
+            value_type=voucher.discount_value_type,
+            value=voucher_channel_listing.discount_value,
+            amount_value=discount_amount.amount,
+            reason=f"Voucher: {voucher.name}",
+            name=discount_name,
+            type=DiscountType.VOUCHER,
+            voucher_code=order.voucher_code,
+            # TODO (SHOPX-914): set translated voucher name
+            translated_name="",
+        )
 
 
 def create_or_update_line_discount_objects_from_voucher(lines_info):

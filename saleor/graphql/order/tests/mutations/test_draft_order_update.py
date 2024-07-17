@@ -1,10 +1,13 @@
+from decimal import Decimal
+
 import graphene
 import pytest
 from prices import TaxedMoney
 
 from .....core.prices import quantize_price
 from .....core.taxes import zero_money
-from .....discount import DiscountType, DiscountValueType, RewardValueType
+from .....discount import DiscountType, DiscountValueType, RewardValueType, VoucherType
+from .....discount.models import OrderDiscount, Voucher
 from .....order import OrderStatus
 from .....order.error_codes import OrderErrorCode
 from .....order.models import OrderEvent
@@ -1837,3 +1840,140 @@ def test_draft_order_update_undiscounted_base_shipping_price_set(
         order.undiscounted_base_shipping_price_amount
         == order.base_shipping_price_amount
     )
+
+
+def test_draft_order_update_ensure_entire_order_voucher_discount_is_overridden(
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    voucher,
+    graphql_address_data,
+    channel_USD,
+):
+    # given
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    order = draft_order
+    assert voucher.type == VoucherType.ENTIRE_ORDER
+    assert voucher.discount_value_type == DiscountValueType.FIXED
+
+    # apply voucher to order
+    order.voucher = voucher
+    order.voucher_code = voucher.codes.first().code
+    order.save(update_fields=["voucher_id", "voucher_code"])
+
+    currency = order.currency
+    undiscounted_subtotal = zero_money(currency)
+    for line in order.lines.all():
+        undiscounted_subtotal += line.base_unit_price * line.quantity
+
+    voucher_listing = voucher.channel_listings.get(channel=channel_USD)
+    discount_value = voucher_listing.discount_value
+
+    order_discount = order.discounts.create(
+        voucher=voucher,
+        value=discount_value,
+        value_type=DiscountValueType.FIXED,
+        type=DiscountType.VOUCHER,
+    )
+
+    # create new voucher
+    new_discount_value = Decimal(50)
+    new_code = "new_code"
+    new_voucher = Voucher.objects.create(
+        type=VoucherType.ENTIRE_ORDER,
+        name="new voucher",
+        discount_value_type=DiscountValueType.PERCENTAGE,
+    )
+    new_voucher.codes.create(code=new_code)
+    new_voucher.channel_listings.create(
+        channel=channel_USD,
+        discount_value=new_discount_value,
+    )
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id, "input": {"voucherCode": new_code}}
+
+    # when apply new voucher to order
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    assert not data["errors"]
+    assert data["order"]["voucher"]["code"] == new_code
+    assert data["order"]["voucherCode"] == new_code
+    assert data["order"]["subtotal"]["gross"]["amount"] == Decimal(
+        undiscounted_subtotal.amount / 2
+    )
+
+    order.refresh_from_db()
+    assert order.voucher_code == new_code
+
+    order_discount.refresh_from_db()
+    assert order.discounts.count() == 1
+    assert order.discounts.first() == order_discount
+    assert order_discount.voucher == new_voucher
+    assert order_discount.type == DiscountType.VOUCHER
+    assert order_discount.value_type == DiscountValueType.PERCENTAGE
+    assert order_discount.value == new_discount_value
+    assert order_discount.amount_value == Decimal(undiscounted_subtotal.amount / 2)
+
+
+def test_draft_order_update_remove_entire_order_voucher(
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    voucher,
+    graphql_address_data,
+    channel_USD,
+):
+    # given
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    order = draft_order
+    assert voucher.type == VoucherType.ENTIRE_ORDER
+    assert voucher.discount_value_type == DiscountValueType.FIXED
+
+    # apply voucher to order
+    order.voucher = voucher
+    order.voucher_code = voucher.codes.first().code
+    order.save(update_fields=["voucher_id", "voucher_code"])
+
+    currency = order.currency
+    undiscounted_subtotal = zero_money(currency)
+    for line in order.lines.all():
+        undiscounted_subtotal += line.base_unit_price * line.quantity
+
+    voucher_listing = voucher.channel_listings.get(channel=channel_USD)
+    discount_value = voucher_listing.discount_value
+
+    order_discount = order.discounts.create(
+        voucher=voucher,
+        value=discount_value,
+        value_type=DiscountValueType.FIXED,
+        type=DiscountType.VOUCHER,
+    )
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id, "input": {"voucherCode": None}}
+
+    # when apply new voucher to order
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    assert not data["errors"]
+    assert not data["order"]["voucher"]
+    assert not data["order"]["voucherCode"]
+    assert data["order"]["subtotal"]["gross"]["amount"] == undiscounted_subtotal.amount
+
+    order.refresh_from_db()
+    assert order.voucher_code is None
+    assert order.voucher is None
+
+    with pytest.raises(OrderDiscount.DoesNotExist):
+        order_discount.refresh_from_db()
