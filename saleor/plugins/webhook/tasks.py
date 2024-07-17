@@ -1,13 +1,6 @@
-import logging
-
-from celery.utils.log import get_task_logger
 from django.conf import settings
 
 from ...celeryconf import app
-
-logger = logging.getLogger(__name__)
-task_logger = get_task_logger(__name__)
-
 
 # all tasks to be removed in 3.18.
 # tasks moved to different direction.
