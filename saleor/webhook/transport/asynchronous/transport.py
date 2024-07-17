@@ -42,7 +42,7 @@ if TYPE_CHECKING:
 
 
 logger = logging.getLogger(__name__)
-task_logger = get_task_logger(__name__)
+task_logger = get_task_logger(f"{__name__}.celery")
 
 OBSERVABILITY_QUEUE_NAME = "observability"
 
