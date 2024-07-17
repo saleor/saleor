@@ -1616,6 +1616,10 @@ def test_checkout_complete_free_shipping_voucher_and_gift_card(
     assert order.total == total
     assert order.shipping_price == zero_taxed_money(order.currency)
     assert order.undiscounted_total == subtotal + shipping_price
+    assert order.voucher == voucher_free_shipping
+
+    assert order.total == total
+    assert order.shipping_price == zero_taxed_money(order.currency)
 
     order_line = order.lines.first()
     assert checkout_line_quantity == order_line.quantity
@@ -1630,6 +1634,10 @@ def test_checkout_complete_free_shipping_voucher_and_gift_card(
 
     code.refresh_from_db()
     assert code.used == voucher_used_count + 1
+    order_line = order.lines.first()
+    assert not order_line.unit_discount_reason
+    assert not order_line.unit_discount_amount
+
     order_discount = order.discounts.filter(type=DiscountType.VOUCHER).first()
     assert order_discount
     assert order_discount.amount_value == shipping_price.amount

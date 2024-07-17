@@ -25,7 +25,7 @@ from ..core.taxes import TaxError, zero_taxed_money
 from ..core.tracing import traced_atomic_transaction
 from ..core.transactions import transaction_with_commit_on_errors
 from ..core.utils.url import validate_storefront_url
-from ..discount import DiscountType, DiscountValueType
+from ..discount import DiscountType, DiscountValueType, VoucherType
 from ..discount.models import CheckoutDiscount, NotApplicable, OrderLineDiscount
 from ..discount.utils import (
     get_sale_id,
@@ -313,7 +313,14 @@ def _create_line_for_order(
 
     voucher_code = checkout_info.checkout.voucher_code
     is_line_voucher_code = bool(checkout_line_info.voucher)
-    unit_discount_reason = _get_unit_discount_reason(voucher_code, is_line_voucher_code)
+    is_shipping_voucher = (
+        True
+        if checkout_info.voucher and checkout_info.voucher.type == VoucherType.SHIPPING
+        else False
+    )
+    unit_discount_reason = _get_unit_discount_reason(
+        voucher_code, is_line_voucher_code, is_shipping_voucher
+    )
 
     tax_class = None
     if product.tax_class_id:
@@ -384,9 +391,9 @@ def _create_line_for_order(
 
 
 def _get_unit_discount_reason(
-    voucher_code: Optional[str], is_line_voucher_code
+    voucher_code: Optional[str], is_line_voucher_code: bool, is_shipping_voucher: bool
 ) -> Optional[str]:
-    if not voucher_code:
+    if not voucher_code or is_shipping_voucher:
         return None
     return (
         f"{'Voucher code' if is_line_voucher_code else 'Entire order voucher code'}: "
