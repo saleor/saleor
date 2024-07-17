@@ -21,6 +21,7 @@ from ..permission.models import Permission
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..webhook.validators import custom_headers_validator
 from .error_codes import AppErrorCode
+from .models import App
 from .types import AppExtensionMount, AppExtensionTarget
 from .validators import AppURLValidator, brand_validator
 
@@ -111,6 +112,7 @@ def clean_manifest_data(manifest_data, raise_for_saleor_version=False):
     errors: T_ERRORS = defaultdict(list)
 
     validate_required_fields(manifest_data, errors)
+
     try:
         if "tokenTargetUrl" in manifest_data:
             _clean_app_url(manifest_data["tokenTargetUrl"])
@@ -152,6 +154,12 @@ def clean_manifest_data(manifest_data, raise_for_saleor_version=False):
 
     manifest_data["permissions"] = app_permissions
 
+    if app := App.objects.filter(identifier=manifest_data.get("id")).first():
+        errors["identifier"].append(
+            ValidationError(
+                f"App with the same identifier is already installed: {app.name}"
+            )
+        )
     if not errors:
         clean_extensions(manifest_data, app_permissions, errors)
         clean_webhooks(manifest_data, errors)
