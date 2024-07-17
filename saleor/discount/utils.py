@@ -1710,9 +1710,11 @@ def create_or_update_discount_object_from_order_level_voucher(order):
         if not voucher_channel_listing:
             return
 
-        discount_amount = voucher.get_discount_amount_for(order.subtotal, order.channel)
+        discount_amount = voucher.get_discount_amount_for(
+            order.subtotal.net, order.channel
+        )
         discount_reason = f"Voucher code: {order.voucher_code}"
-        discount_name = f"{voucher.name}"
+        discount_name = voucher.name or ""
         discount_to_update = order.discounts.filter(type=DiscountType.VOUCHER).first()
         if discount_to_update:
             updated_fields: list[str] = []
@@ -1723,7 +1725,7 @@ def create_or_update_discount_object_from_order_level_voucher(order):
                 # TODO (SHOPX-914): set translated voucher name
                 translated_name="",
                 discount_reason=discount_reason,
-                discount_amount=discount_amount,
+                discount_amount=discount_amount.amount,
                 value=voucher_channel_listing.discount_value,
                 value_type=voucher.discount_value_type,
                 unique_type=DiscountType.VOUCHER,
@@ -1735,11 +1737,13 @@ def create_or_update_discount_object_from_order_level_voucher(order):
                 voucher=voucher,
                 value_type=voucher.discount_value_type,
                 value=voucher_channel_listing.discount_value,
-                amount_value=discount_amount,
+                amount_value=discount_amount.amount,
                 reason=f"Voucher: {voucher.name}",
                 name=discount_name,
                 type=DiscountType.VOUCHER,
                 voucher_code=order.voucher_code,
+                # TODO (SHOPX-914): set translated voucher name
+                translated_name="",
             )
 
 

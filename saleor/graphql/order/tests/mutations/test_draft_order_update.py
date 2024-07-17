@@ -342,9 +342,7 @@ def test_draft_order_update_with_voucher_specific_product(
     assert order.voucher_code == voucher.code
     assert order.search_vector
 
-    # TODO (SHOPX-874): Order discount object shouldn't be created
-    assert order.discounts.count() == 1
-
+    assert order.discounts.count() == 0
     assert discounted_line.discounts.count() == 1
     order_line_discount = discounted_line.discounts.first()
     assert order_line_discount.voucher == voucher
@@ -436,9 +434,7 @@ def test_draft_order_update_with_voucher_apply_once_per_order(
     assert order.voucher_code == voucher.code
     assert order.search_vector
 
-    # TODO (SHOPX-874): Order discount object shouldn't be created
-    assert order.discounts.count() == 1
-
+    assert order.discounts.count() == 0
     assert discounted_line.discounts.count() == 1
     order_line_discount = discounted_line.discounts.first()
     assert order_line_discount.voucher == voucher
