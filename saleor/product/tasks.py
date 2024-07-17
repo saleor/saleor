@@ -30,7 +30,7 @@ from .utils.variants import (
 )
 
 logger = logging.getLogger(__name__)
-task_logger = get_task_logger(__name__)
+task_logger = get_task_logger(f"{__name__}.celery")
 
 PRODUCTS_BATCH_SIZE = 300
 
