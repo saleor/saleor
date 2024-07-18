@@ -4,6 +4,7 @@ from enum import Enum
 from typing import Optional, Union, cast
 
 import graphene
+from django.db import transaction
 from django.db.models import Exists, OuterRef, QuerySet
 from graphene.utils.str_converters import to_camel_case
 
@@ -76,21 +77,24 @@ def get_variants_for_promotion(
     queryset = ProductVariant.objects.none()
     promotion_rule_variants = []
     PromotionRuleVariant = PromotionRule.variants.through
-    rules = promotion.rules.all()
-    for rule in rules:
-        variants = get_variants_for_predicate(rule.catalogue_predicate)
-        queryset |= variants
-        if update_rule_variants:
-            promotion_rule_variants.extend(
-                [
-                    PromotionRuleVariant(
-                        promotionrule_id=rule.pk, productvariant_id=variant.pk
-                    )
-                    for variant in variants
-                ]
-            )
-    if promotion_rule_variants:
-        update_rule_variant_relation(rules, promotion_rule_variants)
+    with transaction.atomic():
+        rules = promotion.rules.all().select_for_update().order_by("pk")
+
+        for rule in rules.iterator():
+            variants = get_variants_for_predicate(rule.catalogue_predicate)
+            queryset |= variants
+            if update_rule_variants:
+                promotion_rule_variants.extend(
+                    [
+                        PromotionRuleVariant(
+                            promotionrule_id=rule.pk, productvariant_id=variant.pk
+                        )
+                        for variant in variants
+                    ]
+                )
+
+        if promotion_rule_variants:
+            update_rule_variant_relation(rules, promotion_rule_variants)
 
     return queryset
 

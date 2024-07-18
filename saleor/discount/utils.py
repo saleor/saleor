@@ -585,17 +585,12 @@ def get_current_products_for_rules(rules: "QuerySet[PromotionRule]"):
     return Product.objects.filter(Exists(variants.filter(product_id=OuterRef("id"))))
 
 
-def batch(iterable, size):
-    for index in range(0, len(iterable), size):
-        yield iterable[index : index + size]
-
-
-def _process_promotion_rule_variants_batch(rules_to_add_batch):
+def _create_new_rules(rules_to_add):
     with transaction.atomic():
         variant_lock = tuple(
             ProductVariant.objects.order_by("pk")
             .select_for_update(of=("self",))
-            .filter(id__in={rv.productvariant_id for rv in rules_to_add_batch})
+            .filter(id__in={rv.productvariant_id for rv in rules_to_add})
             .values_list("pk", flat=True)
         )
         if not variant_lock:
@@ -604,7 +599,7 @@ def _process_promotion_rule_variants_batch(rules_to_add_batch):
         rules_lock = tuple(
             PromotionRule.objects.order_by("pk")
             .select_for_update(of=("self",))
-            .filter(id__in={rv.promotionrule_id for rv in rules_to_add_batch})
+            .filter(id__in={rv.promotionrule_id for rv in rules_to_add})
             .values_list("pk", flat=True)
         )
         if not rules_lock:
@@ -613,7 +608,7 @@ def _process_promotion_rule_variants_batch(rules_to_add_batch):
         # base on what locks returned, filter out rules and variants that weren't locked
         rules_to_add_batch = [
             rv
-            for rv in rules_to_add_batch
+            for rv in rules_to_add
             if rv.promotionrule_id in rules_lock
             and rv.productvariant_id in variant_lock
         ]
@@ -632,7 +627,6 @@ def update_rule_variant_relation(
     Adds new relations, if they don't exist already.
     `new_rules_variants` is a list of PromotionRuleVariant objects.
     """
-    created_records = []
     PromotionRuleVariant = PromotionRule.variants.through
     existing_rules_variants = PromotionRuleVariant.objects.filter(
         Exists(rules.filter(pk=OuterRef("promotionrule_id")))
@@ -673,14 +667,7 @@ def update_rule_variant_relation(
             of=("self",)
         ).filter(id__in={rv.id for rv in rule_variant_to_delete_ids}).delete()
 
-    for rules_to_add_batch in batch(
-        rules_variants_to_add, size=BULK_CREATE_NEW_PROMOTION_RULE_VARIANTS_BATCH_SIZE
-    ):
-        created_records.extend(
-            _process_promotion_rule_variants_batch(rules_to_add_batch)
-        )
-
-    return created_records
+        return _create_new_rules(rules_variants_to_add)
 
 
 def get_active_promotion_rules(

@@ -1,6 +1,7 @@
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, Optional
 
+from django.db import transaction
 from django.db.models import QuerySet
 
 from ...attribute import AttributeType
@@ -59,15 +60,25 @@ def fetch_variants_for_promotion_rules(
 
     PromotionRuleVariant = PromotionRule.variants.through
     new_rules_variants = []
-    for rule in rules.iterator():
-        variants = get_variants_for_predicate(rule.catalogue_predicate)
-        new_rules_variants.extend(
-            [
-                PromotionRuleVariant(
-                    promotionrule_id=rule.pk, productvariant_id=variant_id
-                )
-                for variant_id in set(variants.values_list("pk", flat=True))
-            ]
-        )
 
-    return update_rule_variant_relation(rules, new_rules_variants)
+    with transaction.atomic():
+        rule_ids = tuple(rules.values_list("id", flat=True))
+        for rule in (
+            PromotionRule.objects.order_by("pk")
+            .select_for_update()
+            .filter(pk__in=rule_ids)
+            .iterator()
+        ):
+            variants = get_variants_for_predicate(rule.catalogue_predicate)
+            new_rules_variants.extend(
+                [
+                    PromotionRuleVariant(
+                        promotionrule_id=rule.pk, productvariant_id=variant_id
+                    )
+                    for variant_id in set(
+                        variants.order_by("pk").values_list("pk", flat=True)
+                    )
+                ]
+            )
+
+        return update_rule_variant_relation(rules, new_rules_variants)

@@ -37,7 +37,7 @@ VARIANTS_UPDATE_BATCH = 500
 # Results in update time ~0.2s
 DISCOUNTED_PRODUCT_BATCH = 2000
 # Results in update time ~2s when 600 channels exist
-PROMOTION_RULE_BATCH_SIZE = 100
+PROMOTION_RULE_BATCH_SIZE = 50
 
 
 def _variants_in_batches(variants_qs):
