@@ -9,10 +9,9 @@ from .....app.models import App
 from .....channel import TransactionFlowStrategy
 from .....channel.models import Channel
 from .....checkout import models as checkout_models
-from .....checkout.utils import cancel_active_payments
-from .....core.tracing import traced_atomic_transaction
+from .....checkout.utils import activate_payments, cancel_active_payments
 from .....order import models as order_models
-from .....payment import TransactionEventType
+from .....payment import FAILED_TRANSACTION_EVENTS, TransactionEventType
 from .....payment import models as payment_models
 from .....payment.error_codes import TransactionProcessErrorCode
 from .....payment.interface import PaymentGatewayData
@@ -192,23 +191,25 @@ class TransactionProcess(BaseMutation):
         action = cls.get_action(request_event, source_object.channel)
         manager = get_plugin_manager_promise(info.context).get()
 
-        with traced_atomic_transaction():
-            if isinstance(source_object, checkout_models.Checkout):
-                # Deactivate active payment objects to avoid processing checkout
-                # with use of two different flows.
-                cancel_active_payments(source_object)
+        payment_ids = []
+        if isinstance(source_object, checkout_models.Checkout):
+            # Deactivate active payment objects to avoid processing checkout
+            # with use of two different flows.
+            payment_ids = cancel_active_payments(source_object)
 
-            event, data = handle_transaction_process_session(
-                transaction_item=transaction_item,
-                source_object=source_object,
-                payment_gateway_data=PaymentGatewayData(
-                    app_identifier=app_identifier, data=data
-                ),
-                app=app,
-                action=action,
-                manager=manager,
-                request_event=request_event,
-            )
+        event, data = handle_transaction_process_session(
+            transaction_item=transaction_item,
+            source_object=source_object,
+            payment_gateway_data=PaymentGatewayData(
+                app_identifier=app_identifier, data=data
+            ),
+            app=app,
+            action=action,
+            manager=manager,
+            request_event=request_event,
+        )
+        if event.type in FAILED_TRANSACTION_EVENTS and payment_ids:
+            activate_payments(payment_ids)
 
         transaction_item.refresh_from_db()
         return cls(transaction=transaction_item, transaction_event=event, data=data)
