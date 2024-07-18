@@ -7,7 +7,6 @@ from urllib.parse import urlparse
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.core.cache import cache
-from django.core.files.base import ContentFile
 
 from ....celeryconf import app
 from ....core import EventDeliveryStatus
@@ -257,11 +256,8 @@ def create_delivery_for_subscription_sync_event(
         # log the issue and continue without creating a delivery.
         return None
     with allow_writer():
-        # TODO: payload transaction
-        event_payload = EventPayload.objects.create()
-        event_payload.payload_file.save(
-            f"payload-{event_payload.pk}-{event_payload.created_at}.json",
-            ContentFile(json.dumps({**data})),
+        event_payload = EventPayload.objects.create_with_payload_file(
+            json.dumps({**data})
         )
         event_delivery = EventDelivery.objects.create(
             status=EventDeliveryStatus.PENDING,
@@ -296,12 +292,7 @@ def trigger_webhook_sync(
             return None
     else:
         with allow_writer():
-            # TODO: payload transaction
-            event_payload = EventPayload.objects.create()
-            event_payload.payload_file.save(
-                f"payload-{event_payload.pk}-{event_payload.created_at}.json",
-                ContentFile(payload),
-            )
+            event_payload = EventPayload.objects.create_with_payload_file(payload)
             delivery = EventDelivery.objects.create(
                 status=EventDeliveryStatus.PENDING,
                 event_type=event_type,
@@ -357,11 +348,8 @@ def trigger_all_webhooks_sync(
         else:
             with allow_writer():
                 if event_payload is None:
-                    # TODO: payload transaction
-                    event_payload = EventPayload.objects.create()
-                    event_payload.payload_file.save(
-                        f"payload-{event_payload.pk}-{event_payload.created_at}.json",
-                        ContentFile(generate_payload()),
+                    event_payload = EventPayload.objects.create_with_payload_file(
+                        generate_payload()
                     )
                 delivery = EventDelivery.objects.create(
                     status=EventDeliveryStatus.PENDING,

@@ -6,7 +6,7 @@ from django.utils import timezone
 from requests import RequestException
 from requests_hardened import HTTPSession
 
-from ...core import JobStatus
+from ...core import JobStatus, private_storage
 from ...core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ...webhook.models import Webhook
 from ..installation_utils import AppInstallationError
@@ -114,7 +114,10 @@ def test_install_app_task_undefined_error(monkeypatch, app_installation):
 # Without `transaction=True` test will pass due to be in one atomic bloc.
 @pytest.mark.django_db(transaction=True)
 def test_remove_app_task(
-    event_attempt_removed_app, removed_app_with_extensions, removed_app
+    event_attempt_removed_app,
+    event_payload,
+    removed_app_with_extensions,
+    removed_app,
 ):
     # given
     removed_app.tokens.create(name="token1")
@@ -125,6 +128,7 @@ def test_remove_app_task(
     assert EventDelivery.objects.count() > 0
     assert EventPayload.objects.count() > 0
     assert EventDeliveryAttempt.objects.count() > 0
+    assert private_storage.exists(event_payload.payload_file.name)
 
     # when
     remove_apps_task()
@@ -137,6 +141,7 @@ def test_remove_app_task(
     assert EventDelivery.objects.count() == 0
     assert EventPayload.objects.count() == 0
     assert EventDeliveryAttempt.objects.count() == 0
+    assert not private_storage.exists(event_payload.payload_file.name)
 
 
 def test_remove_app_task_not_remove_not_own_payloads(

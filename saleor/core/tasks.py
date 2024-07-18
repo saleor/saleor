@@ -7,6 +7,7 @@ from django.db.models import Exists, OuterRef
 from django.utils import timezone
 
 from ..celeryconf import app
+from . import private_storage
 from .models import EventDelivery, EventPayload
 
 task_logger: logging.Logger = get_task_logger(__name__)
@@ -37,8 +38,13 @@ def delete_event_payloads_task(expiration_date=None):
     qs = EventPayload.objects.filter(pk__in=ids)
     if ids:
         if expiration_date > timezone.now():
+            files_to_delete = [
+                event_payload.payload_file.name
+                for event_payload in qs
+                if event_payload.payload_file
+            ]
             qs.delete()
-            # TODO: delete payload files
+            delete_files_from_private_storage_task.delay(files_to_delete)
             delete_event_payloads_task.delay(expiration_date)
         else:
             task_logger.error("Task invocation time limit reached, aborting task")
@@ -48,3 +54,9 @@ def delete_event_payloads_task(expiration_date=None):
 def delete_files_from_storage_task(paths):
     for path in paths:
         default_storage.delete(path)
+
+
+@app.task
+def delete_files_from_private_storage_task(paths):
+    for path in paths:
+        private_storage.delete(path)

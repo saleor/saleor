@@ -17,7 +17,6 @@ import pytz
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.files import File
-from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import connection
 from django.template.defaultfilters import truncatechars
@@ -8524,12 +8523,9 @@ def app_manifest_webhook():
 @pytest.fixture
 def event_payload():
     """Return event payload."""
-    event_payload = EventPayload.objects.create()
-    event_payload.payload_file.save(
-        f"payload-{event_payload.pk}-{event_payload.created_at}.json",
-        ContentFile('{"payload_key": "payload_value"}'),
+    return EventPayload.objects.create_with_payload_file(
+        payload='{"payload_key": "payload_value"}'
     )
-    return event_payload
 
 
 @pytest.fixture
