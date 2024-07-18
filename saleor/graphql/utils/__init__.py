@@ -270,7 +270,7 @@ def query_fingerprint(document: GraphQLDocument) -> str:
     return f"{label}:{query_hash}"
 
 
-def format_error(error, handled_exceptions):
+def format_error(error, handled_exceptions, query=None):
     result: dict[str, Any]
     if isinstance(error, GraphQLError):
         result = format_graphql_error(error)
@@ -285,6 +285,8 @@ def format_error(error, handled_exceptions):
         exc = exc.original_error
     if isinstance(exc, AssertionError):
         exc = GraphQLError(str(exc))
+    if query:
+        exc._exc_query = query
     if isinstance(exc, handled_exceptions):
         handled_errors_logger.info("A query had an error", exc_info=exc)
     else:
