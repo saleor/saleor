@@ -1,3 +1,4 @@
+import logging
 from collections.abc import Iterable
 from decimal import Decimal
 from typing import TYPE_CHECKING, Optional, cast
@@ -68,6 +69,8 @@ if TYPE_CHECKING:
     from ..discount.interface import VariantPromotionRuleInfo
     from ..payment.models import Payment, TransactionItem
     from ..plugins.manager import PluginsManager
+
+logger = logging.getLogger(__name__)
 
 
 def get_order_country(order: Order) -> str:
@@ -447,6 +450,7 @@ def add_gift_cards_to_order(
     user: Optional[User],
     app: Optional["App"],
 ):
+    total_before_gift_card_compensation = total_price_left
     order_gift_cards = []
     gift_cards_to_update = []
     balance_data: list[tuple[GiftCard, float]] = []
@@ -474,6 +478,15 @@ def add_gift_cards_to_order(
     ]
     GiftCard.objects.bulk_update(gift_cards_to_update, update_fields)
     gift_card_events.gift_cards_used_in_order_event(balance_data, order, user, app)
+
+    gift_card_compensation = total_before_gift_card_compensation - total_price_left
+    if gift_card_compensation.amount > 0:
+        details = {
+            "checkout_id": str(checkout_info.checkout.pk),
+            "gift_card_compensation": str(gift_card_compensation.amount),
+            "total_after_gift_card_compensation": str(total_price_left.amount),
+        }
+        logger.info("Gift card payment.", extra=details)
 
 
 def update_gift_card_balance(
