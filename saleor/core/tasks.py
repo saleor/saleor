@@ -44,7 +44,7 @@ def delete_event_payloads_task(expiration_date=None):
                 if event_payload.payload_file
             ]
             qs.delete()
-            delete_files_from_private_storage_task(files_to_delete)
+            delete_files_from_private_storage_task.delay(files_to_delete)
             delete_event_payloads_task.delay(expiration_date)
         else:
             task_logger.error("Task invocation time limit reached, aborting task")
