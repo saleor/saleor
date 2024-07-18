@@ -37,6 +37,7 @@ from ...order.models import Order
 from ...order.search import update_order_search_vector
 from ...order.utils import updates_amounts_for_order
 from ...payment import (
+    FAILED_TRANSACTION_EVENTS,
     PaymentError,
     StorePaymentMethod,
     TransactionAction,
@@ -2410,23 +2411,26 @@ class TransactionProcess(BaseMutation):
         app_identifier = cast(str, app_identifier)
         action = cls.get_action(request_event, source_object.channel)
         manager = get_plugin_manager_promise(info.context).get()
-        with traced_atomic_transaction():
-            if isinstance(source_object, checkout_models.Checkout):
-                # Deactivate active payment objects to avoid processing checkout
-                # with use of two different flows.
-                cancel_active_payments(source_object)
 
-            event, data = handle_transaction_process_session(
-                transaction_item=transaction_item,
-                source_object=source_object,
-                payment_gateway=PaymentGatewayData(
-                    app_identifier=app_identifier, data=data
-                ),
-                app=app,
-                action=action,
-                manager=manager,
-                request_event=request_event,
-            )
+        payment_ids = []
+        if isinstance(source_object, checkout_models.Checkout):
+            # Deactivate active payment objects to avoid processing checkout
+            # with use of two different flows.
+            payment_ids = cancel_active_payments(source_object)
+
+        event, data = handle_transaction_process_session(
+            transaction_item=transaction_item,
+            source_object=source_object,
+            payment_gateway=PaymentGatewayData(
+                app_identifier=app_identifier, data=data
+            ),
+            app=app,
+            action=action,
+            manager=manager,
+            request_event=request_event,
+        )
+        if event.type in FAILED_TRANSACTION_EVENTS and payment_ids:
+            activate_payments(payment_ids)
 
         transaction_item.refresh_from_db()
         return cls(transaction=transaction_item, transaction_event=event, data=data)
