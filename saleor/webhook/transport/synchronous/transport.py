@@ -4,7 +4,6 @@ from json import JSONDecodeError
 from typing import TYPE_CHECKING, Any, Callable, Optional, TypeVar
 from urllib.parse import urlparse
 
-from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.core.cache import cache
 
@@ -48,7 +47,6 @@ R = TypeVar("R")
 
 
 logger = logging.getLogger(__name__)
-task_logger = get_task_logger(__name__)
 
 
 @app.task(
