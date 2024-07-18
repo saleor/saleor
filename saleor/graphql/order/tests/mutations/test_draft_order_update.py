@@ -1937,7 +1937,6 @@ def test_draft_order_update_remove_entire_order_voucher(
     assert voucher.type == VoucherType.ENTIRE_ORDER
     assert voucher.discount_value_type == DiscountValueType.FIXED
 
-    # apply voucher to order
     order.voucher = voucher
     order.voucher_code = voucher.codes.first().code
     order.save(update_fields=["voucher_id", "voucher_code"])
@@ -1960,7 +1959,7 @@ def test_draft_order_update_remove_entire_order_voucher(
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id, "input": {"voucherCode": None}}
 
-    # when apply new voucher to order
+    # when
     response = staff_api_client.post_graphql(query, variables)
 
     # then
