@@ -3064,7 +3064,7 @@ def test_generate_payload_from_subscription_circular_subscription_sync_event_err
     )
 
     # then
-    payload = json.loads(deliveries[0].payload.payload)
+    payload = json.loads(deliveries[0].payload.get_payload())
     error_code = "CircularSubscriptionSyncEvent"
 
     assert "event" not in payload
