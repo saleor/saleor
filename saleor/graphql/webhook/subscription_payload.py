@@ -129,7 +129,7 @@ def generate_payload_promise_from_subscription(
             return None
 
         payload_instance = payload[0]
-        event_payload = payload_instance.data.get("event")
+        event_payload = payload_instance.data.get("event") or {}
 
         def check_errors(
             event_payload, payload_instance=payload_instance
