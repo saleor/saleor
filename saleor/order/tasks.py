@@ -3,6 +3,7 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.db.models import Exists, F, Func, OuterRef, Subquery, Value
+from django.db.models.functions import Greatest
 from django.utils import timezone
 
 from ..celeryconf import app
@@ -56,12 +57,21 @@ def _bulk_release_voucher_usage(order_ids):
     ).values("count")
 
     vouchers = Voucher.objects.filter(usage_limit__isnull=False)
-    VoucherCode.objects.filter(
+    codes = VoucherCode.objects.filter(
         Exists(voucher_orders),
         Exists(vouchers.filter(id=OuterRef("voucher_id"))),
-    ).annotate(order_count=Subquery(count_orders)).update(
-        used=F("used") - F("order_count")
-    )
+    ).annotate(order_count=Subquery(count_orders))
+
+    # We observed mismatch between code.used and number of orders which utilize the code
+    # In some cases it is expected, but we want to further investigate the issue
+    suspected_codes = [code.code for code in codes if code.used < code.order_count]
+    if suspected_codes:
+        logger.error(
+            f"Voucher codes: [{','.join(suspected_codes)}] have been used more times "
+            f"than indicated by `code.used` field."
+        )
+
+    codes.update(used=Greatest(F("used") - F("order_count"), 0))
 
     orders = Order.objects.filter(id__in=order_ids)
     voucher_codes = VoucherCode.objects.filter(

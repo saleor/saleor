@@ -3027,6 +3027,52 @@ def test_generate_payload_from_subscription_return_permission_errors_in_payload(
     assert deliveries[0].webhook == webhooks[0]
 
 
+def test_generate_payload_from_subscription_circular_subscription_sync_event_error(
+    checkout, subscription_webhook, permission_handle_taxes
+):
+    # given
+    query = """
+    subscription {
+      event {
+        ... on CalculateTaxes {
+          taxBase {
+            sourceObject {
+              ...on Checkout{
+                totalPrice {
+                  gross {
+                    amount
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    """
+
+    invalid_subscription_webhook = subscription_webhook(
+        query,
+        WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
+    )
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
+        checkout,
+        [invalid_subscription_webhook],
+    )
+
+    # then
+    payload = json.loads(deliveries[0].payload.payload)
+    error_code = "CircularSubscriptionSyncEvent"
+
+    assert "event" not in payload
+    assert payload["errors"][0]["extensions"]["exception"]["code"] == error_code
+    assert len(deliveries) == 1
+    assert deliveries[0].webhook == invalid_subscription_webhook
+
+
 def test_thumbnail_created_product_media(
     thumbnail_product_media, subscription_thumbnail_created_webhook
 ):

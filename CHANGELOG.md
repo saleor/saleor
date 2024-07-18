@@ -14,3 +14,5 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Webhooks
 
 ### Other changes
+
+- Added support for numeric and lower-case boolean environment variables - #16313 by @NyanKiyoshi

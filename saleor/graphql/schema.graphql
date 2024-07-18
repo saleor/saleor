@@ -30063,7 +30063,9 @@ type ChannelDelete @doc(category: "Channels") @webhookEventsInfo(asyncEvents: [C
 }
 
 input ChannelDeleteInput @doc(category: "Channels") {
-  """ID of channel to migrate orders from origin channel."""
+  """
+  ID of a channel to migrate orders from the origin channel. Target channel has to have the same currency as the origin.
+  """
   channelId: ID!
 }
 
