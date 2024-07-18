@@ -667,12 +667,18 @@ class PluginsManager(PaymentInterface):
             channel_slug=checkout_info.channel.slug,
         )
 
-    def get_taxes_for_order(self, order: "Order", app_identifier) -> Optional[TaxData]:
+    def get_taxes_for_order(
+        self,
+        order: "Order",
+        app_identifier,
+        pregenerated_subscription_payloads: Optional[dict] = {},
+    ) -> Optional[TaxData]:
         return self.__run_plugin_method_until_first_success(
             "get_taxes_for_order",
             order,
             app_identifier,
             channel_slug=order.channel.slug,
+            pregenerated_subscription_payloads=pregenerated_subscription_payloads,
         )
 
     def preprocess_order_creation(

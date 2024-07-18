@@ -3116,7 +3116,11 @@ class WebhookPlugin(BasePlugin):
             )
 
     def get_taxes_for_order(
-        self, order: "Order", app_identifier, previous_value
+        self,
+        order: "Order",
+        app_identifier,
+        previous_value,
+        pregenerated_subscription_payloads: Optional[dict] = {},
     ) -> Optional["TaxData"]:
         event_type = WebhookEventSyncType.ORDER_CALCULATE_TAXES
         if app_identifier:
@@ -3125,6 +3129,7 @@ class WebhookPlugin(BasePlugin):
                 app_identifier,
                 lambda: generate_order_payload_for_tax_calculation(order),
                 order,
+                pregenerated_subscription_payloads=pregenerated_subscription_payloads,
             )
         else:
             return trigger_all_webhooks_sync(
@@ -3133,6 +3138,7 @@ class WebhookPlugin(BasePlugin):
                 parse_tax_data,
                 order,
                 self.requestor,
+                pregenerated_subscription_payloads=pregenerated_subscription_payloads,
             )
 
     def get_shipping_methods_for_checkout(

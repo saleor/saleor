@@ -41,6 +41,7 @@ def fetch_order_prices_if_expired(
     lines: Optional[Iterable[OrderLine]] = None,
     force_update: bool = False,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+    pregenerated_subscription_payloads: Optional[dict] = {},
 ) -> tuple[Order, Optional[Iterable[OrderLine]]]:
     """Fetch order prices with taxes.
 
@@ -74,6 +75,7 @@ def fetch_order_prices_if_expired(
         manager,
         lines,
         database_connection_name=database_connection_name,
+        pregenerated_subscription_payloads=pregenerated_subscription_payloads,
     )
 
     order.should_refresh_prices = False
@@ -156,6 +158,7 @@ def _recalculate_prices(
     manager: PluginsManager,
     lines: Iterable[OrderLine],
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+    pregenerated_subscription_payloads: Optional[dict] = {},
 ):
     """Calculate prices after handling order level discounts and taxes."""
     tax_configuration = order.channel.tax_configuration
@@ -186,6 +189,7 @@ def _recalculate_prices(
                 manager,
                 prices_entered_with_tax,
                 database_connection_name=database_connection_name,
+                pregenerated_subscription_payloads=pregenerated_subscription_payloads,
             )
         except TaxEmptyData as e:
             order.tax_error = str(e)
@@ -209,6 +213,7 @@ def _recalculate_prices(
                     manager,
                     prices_entered_with_tax,
                     database_connection_name=database_connection_name,
+                    pregenerated_subscription_payloads=pregenerated_subscription_payloads,
                 )
             except TaxEmptyData as e:
                 order.tax_error = str(e)
@@ -224,6 +229,7 @@ def _calculate_and_add_tax(
     manager: "PluginsManager",
     prices_entered_with_tax: bool,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+    pregenerated_subscription_payloads: Optional[dict] = {},
 ):
     if tax_calculation_strategy == TaxCalculationStrategy.TAX_APP:
         # If taxAppId is not configured run all active plugins and tax apps.
@@ -233,7 +239,11 @@ def _calculate_and_add_tax(
             # Get the taxes calculated with plugins.
             _recalculate_with_plugins(manager, order, lines, prices_entered_with_tax)
             # Get the taxes calculated with apps and apply to order.
-            tax_data = manager.get_taxes_for_order(order, tax_app_identifier)
+            tax_data = manager.get_taxes_for_order(
+                order,
+                tax_app_identifier,
+                pregenerated_subscription_payloads=pregenerated_subscription_payloads,
+            )
             if not tax_data:
                 log_address_if_validation_skipped_for_order(order, logger)
             _apply_tax_data(order, lines, tax_data)
@@ -244,6 +254,7 @@ def _calculate_and_add_tax(
                 lines,
                 manager,
                 prices_entered_with_tax,
+                pregenerated_subscription_payloads=pregenerated_subscription_payloads,
             )
     else:
         # Get taxes calculated with flat rates and apply to order.
@@ -261,6 +272,7 @@ def _call_plugin_or_tax_app(
     lines: Iterable["OrderLine"],
     manager: "PluginsManager",
     prices_entered_with_tax: bool,
+    pregenerated_subscription_payloads: Optional[dict] = {},
 ):
     if tax_app_identifier.startswith(PLUGIN_IDENTIFIER_PREFIX):
         plugin_ids = [tax_app_identifier.replace(PLUGIN_IDENTIFIER_PREFIX, "")]
@@ -279,7 +291,11 @@ def _call_plugin_or_tax_app(
         if order.tax_error:
             raise TaxEmptyData("Empty tax data.")
     else:
-        tax_data = manager.get_taxes_for_order(order, tax_app_identifier)
+        tax_data = manager.get_taxes_for_order(
+            order,
+            tax_app_identifier,
+            pregenerated_subscription_payloads=pregenerated_subscription_payloads,
+        )
         if tax_data is None:
             log_address_if_validation_skipped_for_order(order, logger)
             raise TaxEmptyData("Empty tax data.")
@@ -663,6 +679,7 @@ def order_total(
     lines: Optional[Iterable[OrderLine]] = None,
     force_update: bool = False,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+    pregenerated_subscription_payloads: Optional[dict] = {},
 ) -> TaxedMoney:
     """Return the total price of the order.
 
@@ -677,6 +694,7 @@ def order_total(
         lines,
         force_update,
         database_connection_name=database_connection_name,
+        pregenerated_subscription_payloads=pregenerated_subscription_payloads,
     )
     return quantize_price(order.total, currency)
 

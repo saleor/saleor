@@ -303,7 +303,11 @@ class PluginSample(BasePlugin):
         return sample_tax_data(checkout_info.checkout)
 
     def get_taxes_for_order(
-        self, order: "Order", app_identifier, previous_value
+        self,
+        order: "Order",
+        app_identifier,
+        previous_value,
+        pregenerated_subscription_payloads: Optional[dict] = {},
     ) -> Optional["TaxData"]:
         return sample_tax_data(order)
 

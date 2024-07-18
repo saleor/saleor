@@ -1797,9 +1797,54 @@ class Order(ModelObjectType[models.Order]):
     def resolve_total(root: models.Order, info, manager):
         @allow_writer_in_context(info.context)
         def _resolve_total(lines):
+            pregenerated_subscription_payloads = {
+                2: {
+                    "29b68cac6e4afbb662108dd4e6f9a385": {
+                        "taxBase": {
+                            "pricesEnteredWithTax": True,
+                            "currency": "USD",
+                            "channel": {"slug": "default-channel3"},
+                            "shippingPrice": {"amount": 0.0},
+                            "lines": [
+                                {
+                                    "sourceLine": {
+                                        "__typename": "OrderLine",
+                                        "id": "Order:ID",
+                                        "orderVariant": {
+                                            "id": "UHJvZHVjdFZhcmlhbnQ6Mzg0",
+                                            "product": {
+                                                "taxClass": {
+                                                    "id": "VGF4Q2xhc3M6Mg==",
+                                                    "name": "Books",
+                                                }
+                                            },
+                                        },
+                                    },
+                                    "quantity": 1,
+                                    "unitPrice": {"amount": 1.99},
+                                    "totalPrice": {"amount": 1.99},
+                                    "chargeTaxes": True,
+                                }
+                            ],
+                            "discounts": [],
+                            "sourceObject": {
+                                "__typename": "Order",
+                                "id": "Order:ID",
+                            },
+                        }
+                    }
+                }
+            }
+
             database_connection_name = get_database_connection_name(info.context)
             return calculations.order_total(
-                root, manager, lines, database_connection_name=database_connection_name
+                root,
+                manager,
+                lines,
+                database_connection_name=database_connection_name,
+                pregenerated_subscription_payloads=pregenerated_subscription_payloads,
+                # TODO Owczar: Remove it before merge!
+                # force_update=True,
             )
 
         return (
@@ -2456,9 +2501,9 @@ class Order(ModelObjectType[models.Order]):
     def resolve_shipping_tax_class(cls, root: models.Order, info):
         if root.shipping_method_id:
             return cls.resolve_shipping_method(root, info).then(
-                lambda shipping_method_data: shipping_method_data.tax_class
-                if shipping_method_data
-                else None
+                lambda shipping_method_data: (
+                    shipping_method_data.tax_class if shipping_method_data else None
+                )
             )
         return None
 

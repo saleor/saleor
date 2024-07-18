@@ -608,7 +608,9 @@ class BasePlugin:
         Optional["TaxData"],
     ]
 
-    get_taxes_for_order: Callable[["Order", str, Any], Optional["TaxData"]]
+    get_taxes_for_order: Callable[
+        ["Order", str, Any, Optional[dict]], Optional["TaxData"]
+    ]
 
     get_client_token: Callable[[Any, Any], Any]
 
