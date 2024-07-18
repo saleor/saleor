@@ -14,7 +14,7 @@ from .widgets import DatalistTextWidget
 
 COUNTRY_FORMS = {}
 UNKNOWN_COUNTRIES = set()
-ADDRESS_FIELDS_TO_LOG = ["country_area", "city_area", "city", "postal_code"]
+ADDRESS_FIELDS_TO_LOG = ["country_area", "city_area", "city"]
 
 AREA_TYPE = {
     "area": "Area",
@@ -197,13 +197,15 @@ class CountryAwareAddressForm(AddressForm):
         return self.validate_address(data)
 
     def log_errors(self):
+        if not self.data.get("skip_validation"):
+            return
+
         errors = self.errors
         fields = {}
         for field, _ in errors.items():
             fields[field] = (
                 self.data.get(field) if field in ADDRESS_FIELDS_TO_LOG else "invalid"
             )
-        fields["skip_validation"] = self.data.get("skip_validation")
         fields["country"] = self.data.get("country")
         logger.warning("Invalid address input: %s", fields)
 
