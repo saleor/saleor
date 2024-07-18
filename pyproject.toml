@@ -58,7 +58,6 @@ documentation = "https://docs.saleor.io/"
   measurement = "^3.2.2"
   micawber = "^0.5.2"
   oauthlib = "^3.1"
-  opentracing = "^2.3.0"
   petl = "1.7.15"
   phonenumberslite = "^8.12.25"
   pillow = "^10.3.0"
@@ -88,9 +87,11 @@ documentation = "https://docs.saleor.io/"
   uvicorn = {extras = ["standard"], version = "^0.23.1"}
   weasyprint = ">=53.0" # libpango >=1.44 is required
   setuptools = "^70.1.0"
-  opentelemetry-api = "^1.25.0"
-  opentelemetry-sdk = "^1.25.0"
-  opentelemetry-exporter-otlp = "^1.25.0"
+  opentelemetry-api = "<1.25"
+  opentelemetry-semantic-conventions = "<0.46"
+  opentelemetry-distro = {version = "<0.46", extras = ["otlp"]}
+  opentelemetry-instrumentation = "<0.46"
+  opentracing = "^2.3.0"
 
     [tool.poetry.dependencies.celery]
     version = ">=4.4.5,<6.0.0"
