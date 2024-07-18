@@ -28,6 +28,7 @@ from ..giftcard.utils import (
     add_gift_card_code_to_checkout,
     remove_gift_card_code_from_checkout,
 )
+from ..payment.models import Payment
 from ..plugins.manager import PluginsManager
 from ..product import models as product_models
 from ..shipping.interface import ShippingMethodData
@@ -900,8 +901,15 @@ def is_fully_paid(
     return total_paid >= checkout_total.amount
 
 
-def cancel_active_payments(checkout: Checkout) -> None:
-    checkout.payments.filter(is_active=True).update(is_active=False)
+def cancel_active_payments(checkout: Checkout) -> list[int]:
+    payments = checkout.payments.filter(is_active=True)
+    payment_ids = list(payments.values_list("id", flat=True))
+    payments.update(is_active=False)
+    return payment_ids
+
+
+def activate_payments(payment_ids: list[int]) -> None:
+    Payment.objects.filter(id__in=payment_ids).update(is_active=True)
 
 
 def is_shipping_required(lines: Iterable["CheckoutLineInfo"]):
