@@ -14,7 +14,7 @@ from .....checkout.calculations import fetch_checkout_data
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....core.prices import quantize_price
 from .....order import OrderChargeStatus, OrderStatus
-from .....payment import TransactionEventType
+from .....payment import TransactionEventType, TransactionItemIdempotencyUniqueError
 from .....payment.interface import (
     PaymentGatewayData,
     TransactionProcessActionData,
@@ -2184,3 +2184,61 @@ def test_for_checkout_with_payments(
     for payment in payments:
         payment.refresh_from_db()
         assert payment.is_active is False
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
+def test_for_checkout_with_payments_error_raised(
+    mocked_initialize,
+    user_api_client,
+    checkout_with_prices,
+    webhook_app,
+    transaction_session_response,
+):
+    # given
+    checkout = checkout_with_prices
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    # create payments
+    payments = Payment.objects.bulk_create(
+        [
+            Payment(
+                gateway="mirumee.payments.dummy", is_active=True, checkout=checkout
+            ),
+            Payment(
+                gateway="mirumee.payments.dummy", is_active=False, checkout=checkout
+            ),
+        ]
+    )
+
+    expected_amount = Decimal("10.00")
+    expected_psp_reference = "ppp-123"
+    expected_response = transaction_session_response.copy()
+    expected_response["result"] = "CHARGE_SUCCESS"
+    expected_response["pspReference"] = expected_psp_reference
+    mocked_initialize.side_effect = TransactionItemIdempotencyUniqueError()
+    idempotency_key = "ABC"
+
+    variables = {
+        "action": None,
+        "amount": expected_amount,
+        "id": to_global_id_or_none(checkout),
+        "paymentGateway": {"id": expected_app_identifier, "data": None},
+        "idempotencyKey": idempotency_key,
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["transactionInitialize"]
+    assert len(data["errors"]) == 1
+    error = data["errors"][0]
+    assert error["code"] == TransactionInitializeErrorCode.UNIQUE.name
+    assert error["field"] == "idempotencyKey"
+    for payment in payments:
+        payment.refresh_from_db()
+    assert payments[0].is_active is True
+    assert payments[1].is_active is False

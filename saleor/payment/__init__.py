@@ -245,6 +245,14 @@ class TransactionEventType:
     ]
 
 
+FAILED_TRANSACTION_EVENTS = [
+    TransactionEventType.AUTHORIZATION_FAILURE,
+    TransactionEventType.CHARGE_FAILURE,
+    TransactionEventType.REFUND_FAILURE,
+    TransactionEventType.CANCEL_FAILURE,
+]
+
+
 class TokenizedPaymentFlow:
     """Represents possible tokenized payment flows that can be used to process payment.
 
