@@ -35,7 +35,7 @@ from ..core.taxes import TaxError, zero_taxed_money
 from ..core.tracing import traced_atomic_transaction
 from ..core.transactions import transaction_with_commit_on_errors
 from ..core.utils.url import validate_storefront_url
-from ..discount import DiscountType, DiscountValueType
+from ..discount import DiscountType, DiscountValueType, VoucherType
 from ..discount.models import NotApplicable, OrderLineDiscount
 from ..discount.utils import (
     add_voucher_usage_by_customer,
@@ -311,7 +311,7 @@ def _create_line_for_order(
     if checkout_line_info.voucher:
         line_voucher_code = checkout_line_info.voucher.code
     order_voucher_code = None
-    if checkout_info.voucher:
+    if checkout_info.voucher and checkout_info.voucher.type != VoucherType.SHIPPING:
         order_voucher_code = checkout_info.voucher.code
 
     discount_price = undiscounted_unit_price - unit_price
