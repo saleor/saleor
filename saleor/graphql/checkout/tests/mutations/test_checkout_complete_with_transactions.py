@@ -1936,6 +1936,122 @@ def test_checkout_complete_with_voucher_single_use(
     ).exists(), "Checkout should have been deleted"
 
 
+@patch("saleor.plugins.manager.PluginsManager.order_confirmed")
+def test_checkout_complete_with_shipping_voucher(
+    order_confirmed_mock,
+    user_api_client,
+    checkout_with_voucher_free_shipping,
+    address,
+    shipping_method,
+    voucher_free_shipping,
+    transaction_events_generator,
+    transaction_item_generator,
+):
+    # given
+    checkout = checkout_with_voucher_free_shipping
+    shipping_listing = shipping_method.channel_listings.get(
+        channel_id=checkout.channel_id
+    )
+    shipping_listing.price_amount = Decimal("35")
+    shipping_listing.save(update_fields=["price_amount"])
+    checkout.discount = shipping_listing.price
+    checkout.save(update_fields=["discount_amount"])
+
+    checkout = prepare_checkout_for_test(
+        checkout,
+        address,
+        address,
+        shipping_method,
+        transaction_item_generator,
+        transaction_events_generator,
+    )
+
+    checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
+    checkout.metadata_storage.store_value_in_private_metadata(
+        items={"accepted": "false"}
+    )
+    checkout.tax_exemption = True
+    checkout.save()
+    checkout.metadata_storage.save()
+
+    checkout_line = checkout.lines.first()
+    checkout_line_quantity = checkout_line.quantity
+    checkout_line_variant = checkout_line.variant
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+
+    channel = checkout.channel
+    channel.automatically_confirm_all_new_orders = True
+    channel.save()
+
+    orders_count = Order.objects.count()
+    redirect_url = "https://www.example.com"
+    variables = {"id": to_global_id_or_none(checkout), "redirectUrl": redirect_url}
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+
+    order_token = data["order"]["token"]
+    order_id = data["order"]["id"]
+    assert Order.objects.count() == orders_count + 1
+    order = Order.objects.first()
+    assert order.status == OrderStatus.UNFULFILLED
+    assert order.origin == OrderOrigin.CHECKOUT
+    assert order.voucher == voucher_free_shipping
+    assert not order.original
+    assert order_id == graphene.Node.to_global_id("Order", order.id)
+    assert str(order.id) == order_token
+    assert order.redirect_url == redirect_url
+    assert order.total.gross == total.gross
+    assert order.metadata == checkout.metadata_storage.metadata
+    assert order.private_metadata == checkout.metadata_storage.private_metadata
+    transaction = order.payment_transactions.first()
+    assert transaction
+    assert order.total_charged_amount == transaction.charged_value
+    assert order.shipping_price == zero_taxed_money(order.currency)
+
+    order_line = order.lines.first()
+    line_tax_class = order_line.tax_class
+    shipping_tax_class = shipping_method.tax_class
+
+    assert checkout_line_quantity == order_line.quantity
+    assert checkout_line_variant == order_line.variant
+
+    assert order_line.tax_class == line_tax_class
+    assert order_line.tax_class_name == line_tax_class.name
+    assert order_line.tax_class_metadata == line_tax_class.metadata
+    assert order_line.tax_class_private_metadata == line_tax_class.private_metadata
+    assert not order_line.unit_discount_reason
+    assert not order_line.unit_discount_amount
+
+    assert order.shipping_address == address
+    assert order.shipping_method == checkout.shipping_method
+    assert order.shipping_tax_rate is not None
+    assert order.shipping_tax_class_name == shipping_tax_class.name
+    assert order.shipping_tax_class_metadata == shipping_tax_class.metadata
+    assert (
+        order.shipping_tax_class_private_metadata == shipping_tax_class.private_metadata
+    )
+    assert order.search_vector
+
+    assert not Checkout.objects.filter(
+        pk=checkout.pk
+    ).exists(), "Checkout should have been deleted"
+    order_confirmed_mock.assert_called_once_with(order)
+
+    assert not len(Reservation.objects.all())
+
+
 def test_checkout_with_voucher_complete_product_on_sale(
     user_api_client,
     checkout_with_voucher_percentage,
