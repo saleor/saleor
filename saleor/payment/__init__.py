@@ -243,6 +243,14 @@ class TransactionEventType:
     ]
 
 
+FAILED_TRANSACTION_EVENTS = [
+    TransactionEventType.AUTHORIZATION_FAILURE,
+    TransactionEventType.CHARGE_FAILURE,
+    TransactionEventType.REFUND_FAILURE,
+    TransactionEventType.CANCEL_FAILURE,
+]
+
+
 class TransactionEventStatus:
     """Represents a status of payment transaction.
 

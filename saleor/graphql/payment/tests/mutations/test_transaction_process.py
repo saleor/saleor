@@ -14,7 +14,7 @@ from .....checkout.calculations import fetch_checkout_data
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....core.prices import quantize_price
 from .....order import OrderChargeStatus, OrderStatus
-from .....payment import TransactionEventType
+from .....payment import FAILED_TRANSACTION_EVENTS, TransactionEventType
 from .....payment.interface import (
     PaymentGatewayData,
     TransactionProcessActionData,
@@ -213,7 +213,10 @@ def _assert_fields(
     response_event = transaction.events.filter(type=response_event_type).first()
     assert response_event
     assert response_event.amount_value == expected_amount
-    assert response_event.include_in_calculations
+    include_in_calculations = (
+        True if response_event_type not in FAILED_TRANSACTION_EVENTS else False
+    )
+    assert response_event.include_in_calculations is include_in_calculations
     assert response_event.psp_reference == expected_psp_reference
 
     mocked_process.assert_called_with(
@@ -1420,3 +1423,77 @@ def test_for_checkout_with_payments(
     for payment in payments:
         payment.refresh_from_db()
         assert payment.is_active is False
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.transaction_process_session")
+def test_for_checkout_with_payments_transaction_process_failure(
+    mocked_process,
+    user_api_client,
+    checkout_with_prices,
+    webhook_app,
+    transaction_session_response,
+    transaction_item_generator,
+):
+    # given
+    expected_amount = Decimal("10.00")
+
+    checkout = checkout_with_prices
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    # create payments
+    payments = Payment.objects.bulk_create(
+        [
+            Payment(
+                gateway="mirumee.payments.dummy", is_active=True, checkout=checkout
+            ),
+            Payment(
+                gateway="mirumee.payments.dummy", is_active=False, checkout=checkout
+            ),
+        ]
+    )
+
+    transaction_item = transaction_item_generator(
+        checkout_id=checkout_with_prices.pk, app=webhook_app
+    )
+    TransactionEvent.objects.create(
+        transaction=transaction_item,
+        amount_value=expected_amount,
+        currency=transaction_item.currency,
+        type=TransactionEventType.CHARGE_REQUEST,
+    )
+
+    data = None
+    mocked_process.return_value = PaymentGatewayData(
+        app_identifier=expected_app_identifier, data=data
+    )
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction_item.token),
+        "data": None,
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_PROCESS, variables)
+
+    # then
+    content = get_graphql_content(response)
+    checkout.refresh_from_db()
+    _assert_fields(
+        content=content,
+        source_object=checkout,
+        expected_amount=expected_amount,
+        expected_psp_reference=None,
+        response_event_type=TransactionEventType.CHARGE_FAILURE,
+        app_identifier=webhook_app.identifier,
+        mocked_process=mocked_process,
+        charged_value=Decimal("0"),
+        data=None,
+        returned_data=None,
+    )
+    assert checkout.charge_status == CheckoutChargeStatus.NONE
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.NONE
+    for payment in payments:
+        payment.refresh_from_db()
+    assert payments[0].is_active is True
+    assert payments[1].is_active is False
