@@ -5,6 +5,7 @@ from .checkout_create import CheckoutCreate
 from .checkout_create_from_order import CheckoutCreateFromOrder
 from .checkout_customer_attach import CheckoutCustomerAttach
 from .checkout_customer_detach import CheckoutCustomerDetach
+from .checkout_customer_note_update import CheckoutCustomerNoteUpdate
 from .checkout_delivery_method_update import CheckoutDeliveryMethodUpdate
 from .checkout_email_update import CheckoutEmailUpdate
 from .checkout_language_code_update import CheckoutLanguageCodeUpdate
@@ -12,7 +13,6 @@ from .checkout_line_delete import CheckoutLineDelete
 from .checkout_lines_add import CheckoutLinesAdd
 from .checkout_lines_delete import CheckoutLinesDelete
 from .checkout_lines_update import CheckoutLinesUpdate
-from .checkout_note_update import CheckoutNoteUpdate
 from .checkout_remove_promo_code import CheckoutRemovePromoCode
 from .checkout_shipping_address_update import CheckoutShippingAddressUpdate
 from .checkout_shipping_method_update import CheckoutShippingMethodUpdate
@@ -26,6 +26,7 @@ __all__ = [
     "CheckoutCreateFromOrder",
     "CheckoutCustomerAttach",
     "CheckoutCustomerDetach",
+    "CheckoutCustomerNoteUpdate",
     "CheckoutDeliveryMethodUpdate",
     "CheckoutEmailUpdate",
     "CheckoutLanguageCodeUpdate",
@@ -33,7 +34,6 @@ __all__ = [
     "CheckoutLinesAdd",
     "CheckoutLinesDelete",
     "CheckoutLinesUpdate",
-    "CheckoutNoteUpdate",
     "CheckoutRemovePromoCode",
     "CheckoutShippingAddressUpdate",
     "CheckoutShippingMethodUpdate",

@@ -19037,6 +19037,26 @@ type Mutation {
   ): CheckoutCustomerDetach @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [])
 
   """
+  Updates customer note in the existing checkout object.
+  
+  Added in Saleor 3.21.
+  
+  Triggers the following webhook events:
+  - CHECKOUT_UPDATED (async): A checkout was updated.
+  """
+  checkoutCustomerNoteUpdate(
+    """New customer note content."""
+    customerNote: String!
+
+    """
+    The checkout's ID.
+    
+    Added in Saleor 3.21.
+    """
+    id: ID
+  ): CheckoutCustomerNoteUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [])
+
+  """
   Updates email address in the existing checkout object.
   
   Triggers the following webhook events:
@@ -19192,26 +19212,6 @@ type Mutation {
     """
     token: UUID
   ): CheckoutLinesUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [])
-
-  """
-  Updates note in the existing checkout object.
-  
-  Added in Saleor 3.21.
-  
-  Triggers the following webhook events:
-  - CHECKOUT_UPDATED (async): A checkout was updated.
-  """
-  checkoutNoteUpdate(
-    """
-    The checkout's ID.
-    
-    Added in Saleor 3.21.
-    """
-    id: ID
-
-    """New note content."""
-    note: String!
-  ): CheckoutNoteUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [])
 
   """
   Remove a gift card or a voucher from a checkout.
@@ -29473,6 +29473,21 @@ type CheckoutCustomerDetach @doc(category: "Checkout") @webhookEventsInfo(asyncE
 }
 
 """
+Updates customer note in the existing checkout object.
+
+Added in Saleor 3.21.
+
+Triggers the following webhook events:
+- CHECKOUT_UPDATED (async): A checkout was updated.
+"""
+type CheckoutCustomerNoteUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: []) {
+  """An updated checkout."""
+  checkout: Checkout
+  checkoutErrors: [CheckoutError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [CheckoutError!]!
+}
+
+"""
 Updates email address in the existing checkout object.
 
 Triggers the following webhook events:
@@ -29562,21 +29577,6 @@ input CheckoutLineUpdateInput @doc(category: "Checkout") {
   Added in Saleor 3.6.
   """
   lineId: ID
-}
-
-"""
-Updates note in the existing checkout object.
-
-Added in Saleor 3.21.
-
-Triggers the following webhook events:
-- CHECKOUT_UPDATED (async): A checkout was updated.
-"""
-type CheckoutNoteUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: []) {
-  """An updated checkout."""
-  checkout: Checkout
-  checkoutErrors: [CheckoutError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
-  errors: [CheckoutError!]!
 }
 
 """
