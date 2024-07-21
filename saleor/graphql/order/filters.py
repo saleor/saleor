@@ -9,6 +9,7 @@ from graphql.error import GraphQLError
 
 from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCardEvent
+from ...order import OrderChargeStatus
 from ...order.models import Order, OrderLine
 from ...order.search import search_orders
 from ...payment import ChargeStatus
@@ -34,6 +35,8 @@ def filter_payment_status(qs, _, value):
         lookup = Q(payments__is_active=True, payments__charge_status__in=value)
         if ChargeStatus.FULLY_REFUNDED in value:
             lookup |= Q(payments__charge_status=ChargeStatus.FULLY_REFUNDED)
+        elif ChargeStatus.NOT_CHARGED in value:
+            lookup |= Q(charge_status=OrderChargeStatus.NONE)
         qs = qs.filter(lookup)
     return qs
 
