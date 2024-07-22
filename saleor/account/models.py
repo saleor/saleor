@@ -5,10 +5,11 @@ from uuid import uuid4
 
 from django.conf import settings
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
-from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.indexes import GinIndex, OpClass
 from django.db import models
 from django.db.models import JSONField, Q, Value
 from django.db.models.expressions import Exists, OuterRef
+from django.db.models.functions import Upper
 from django.forms.models import model_to_dict
 from django.utils import timezone
 from django.utils.crypto import get_random_string
@@ -222,6 +223,14 @@ class User(
                 name="user_p_meta_jsonb_path_idx",
                 fields=["private_metadata"],
                 opclasses=["jsonb_path_ops"],
+            ),
+            GinIndex(
+                OpClass(Upper("first_name"), name="gin_trgm_ops"),
+                name="upper_first_name_gin",
+            ),
+            GinIndex(
+                OpClass(Upper("last_name"), name="gin_trgm_ops"),
+                name="upper_last_name_gin",
             ),
         ]
 
