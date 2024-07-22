@@ -2745,6 +2745,63 @@ def test_transaction_update_for_order_triggers_webhooks_when_fully_paid(
     mock_order_paid.assert_called_once_with(order)
 
 
+@pytest.mark.parametrize(
+    ("auto_order_confirmation"),
+    [True, False],
+)
+@patch("saleor.plugins.manager.PluginsManager.order_paid")
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_fully_paid")
+def test_transaction_update_for_draft_order_triggers_webhooks_when_fully_paid(
+    mock_order_fully_paid,
+    mock_order_updated,
+    mock_order_paid,
+    auto_order_confirmation,
+    draft_order,
+    permission_manage_payments,
+    app_api_client,
+    app,
+    transaction_item_generator,
+):
+    # given
+    order = draft_order
+    order.channel.automatically_confirm_all_new_orders = auto_order_confirmation
+    order.channel.save(update_fields=["automatically_confirm_all_new_orders"])
+    current_authorized_value = Decimal("1")
+    current_charged_value = Decimal("2")
+    transaction = transaction_item_generator(
+        order_id=order.pk,
+        app=app,
+        authorized_value=current_authorized_value,
+        charged_value=current_charged_value,
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "transaction": {
+            "amountCharged": {
+                "amount": order.total.gross.amount,
+                "currency": "USD",
+            },
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    order.refresh_from_db()
+    get_graphql_content(response)
+
+    assert order.status == OrderStatus.DRAFT
+    assert order.charge_status == OrderChargeStatus.FULL
+    mock_order_fully_paid.assert_called_once_with(order)
+    mock_order_updated.assert_called_once_with(order)
+    mock_order_paid.assert_called_once_with(order)
+
+
 @patch("saleor.plugins.manager.PluginsManager.order_paid")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
 @patch("saleor.plugins.manager.PluginsManager.order_fully_paid")
