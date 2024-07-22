@@ -13994,6 +13994,7 @@ input OrderFilterInput @doc(category: "Orders") {
   isClickAndCollect: Boolean
   isPreorder: Boolean
   ids: [ID!]
+  checkoutTokens: [UUID!]
   giftCardUsed: Boolean
   giftCardBought: Boolean
   numbers: [String!]
