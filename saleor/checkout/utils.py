@@ -1004,7 +1004,7 @@ def set_external_shipping_id(checkout: Checkout, app_shipping_id: str):
 
 
 def get_external_shipping_id(container: Union["Checkout", "Order"]):
-    if type(container) == Checkout:
+    if type(container) is Checkout:
         container = get_checkout_metadata(container)
     return container.get_value_from_private_metadata(  # type:ignore
         PRIVATE_META_APP_SHIPPING_ID
