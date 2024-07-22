@@ -464,8 +464,8 @@ def test_draft_order_status_with_order_confirmation(
     expected_response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
     expected_response["pspReference"] = expected_psp_reference
     del expected_response["data"]
-    mocked_process.return_value = PaymentGatewayData(
-        app_identifier=expected_app_identifier, data=expected_response
+    mocked_process.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
     )
 
     variables = {

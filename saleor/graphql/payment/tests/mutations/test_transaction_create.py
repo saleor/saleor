@@ -364,8 +364,7 @@ def test_transaction_create_for_draft_order(
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
-            "status": "Charged 10$",
-            "type": "Credit Card",
+            "name": "Credit card",
             "pspReference": "PSP reference - 123",
             "availableActions": [],
             "amountCharged": {
