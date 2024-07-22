@@ -3,6 +3,7 @@ from uuid import UUID
 import django_filters
 import graphene
 from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
 from graphql.error import GraphQLError
@@ -79,12 +80,23 @@ def filter_status(qs, _, value):
 
 
 def filter_customer(qs, _, value):
-    qs = qs.filter(
-        Q(user_email__ilike=value)
-        | Q(user__email__trigram_similar=value)
-        | Q(user__first_name__trigram_similar=value)
-        | Q(user__last_name__trigram_similar=value)
-    )
+    try:
+        validate_email(value)
+        qs = qs.filter(Q(user_email__iexact=value) | Q(user__email__iexact=value))
+    except ValidationError:
+        try:
+            first_name, last_name = value.split()
+            qs = qs.filter(
+                user__first_name__iexact=first_name, user__last_name__iexact=last_name
+            )
+        except ValueError:
+            qs = qs.filter(
+                Q(user_email__ilike=value)
+                | Q(user__email__ilike=value)
+                | Q(user__first_name__ilike=value)
+                | Q(user__last_name__ilike=value)
+            )
+
     return qs
 
 
