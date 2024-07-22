@@ -169,7 +169,7 @@ def handle_fully_paid_order(
         )
 
     call_event(manager.order_fully_paid, order)
-    if order.channel.automatically_confirm_all_new_orders:
+    if not order.is_draft() and order.channel.automatically_confirm_all_new_orders:
         update_order_status(order)
 
     call_event(manager.order_updated, order)

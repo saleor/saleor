@@ -299,6 +299,32 @@ def test_handle_fully_paid_order_gift_cards_not_created(
     send_notification_mock.assert_not_called
 
 
+@pytest.mark.parametrize("automatically_confirm_all_new_orders", [True, False])
+@patch("saleor.order.actions.send_payment_confirmation")
+def test_handle_fully_paid_order_for_draft_order(
+    mock_send_payment_confirmation, automatically_confirm_all_new_orders, draft_order
+):
+    # given
+    manager = get_plugins_manager(allow_replica=False)
+
+    channel = draft_order.channel
+    channel.automatically_confirm_all_new_orders = automatically_confirm_all_new_orders
+    channel.save(update_fields=["automatically_confirm_all_new_orders"])
+
+    draft_order.payments.add(Payment.objects.create())
+    order_info = fetch_order_info(draft_order)
+
+    # when
+    handle_fully_paid_order(manager, order_info)
+
+    # then
+    event_order_paid = draft_order.events.get()
+    assert event_order_paid.type == OrderEvents.ORDER_FULLY_PAID
+    assert draft_order.status == OrderStatus.DRAFT
+
+    mock_send_payment_confirmation.assert_called_once_with(order_info, manager)
+
+
 def test_mark_as_paid_with_payment(admin_user, draft_order):
     manager = get_plugins_manager(allow_replica=False)
     mark_order_as_paid_with_payment(draft_order, admin_user, None, manager)
