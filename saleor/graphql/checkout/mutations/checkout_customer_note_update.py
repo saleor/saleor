@@ -16,8 +16,8 @@ class CheckoutCustomerNoteUpdate(BaseMutation):
 
     class Arguments:
         id = graphene.ID(
-            description="The checkout's ID." + ADDED_IN_321,
-            required=False,
+            description="The checkout's ID.",
+            required=True,
         )
         customer_note = graphene.String(
             required=True, description="New customer note content."

@@ -19048,12 +19048,8 @@ type Mutation {
     """New customer note content."""
     customerNote: String!
 
-    """
-    The checkout's ID.
-    
-    Added in Saleor 3.21.
-    """
-    id: ID
+    """The checkout's ID."""
+    id: ID!
   ): CheckoutCustomerNoteUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [])
 
   """
