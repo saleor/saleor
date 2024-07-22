@@ -1688,6 +1688,72 @@ def test_transaction_event_report_for_order_triggers_webhooks_when_fully_paid(
     mock_order_paid.assert_called_once_with(order)
 
 
+@pytest.mark.parametrize(
+    ("auto_order_confirmation"),
+    [True, False],
+)
+@patch("saleor.plugins.manager.PluginsManager.order_paid")
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_fully_paid")
+def test_transaction_event_report_for_draft_order_triggers_webhooks_when_fully_paid(
+    mock_order_fully_paid,
+    mock_order_updated,
+    mock_order_paid,
+    auto_order_confirmation,
+    transaction_item_generator,
+    app_api_client,
+    permission_manage_payments,
+    draft_order,
+):
+    # given
+    order = draft_order
+    order.channel.automatically_confirm_all_new_orders = auto_order_confirmation
+    order.channel.save(update_fields=["automatically_confirm_all_new_orders"])
+    psp_reference = "111-abc"
+    transaction = transaction_item_generator(app=app_api_client.app, order_id=order.pk)
+    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
+    variables = {
+        "id": transaction_id,
+        "type": TransactionEventTypeEnum.CHARGE_SUCCESS.name,
+        "amount": order.total.gross.amount,
+        "pspReference": psp_reference,
+    }
+    query = (
+        MUTATION_DATA_FRAGMENT
+        + """
+    mutation TransactionEventReport(
+        $id: ID
+        $type: TransactionEventTypeEnum!
+        $amount: PositiveDecimal!
+        $pspReference: String!
+    ) {
+        transactionEventReport(
+            id: $id
+            type: $type
+            amount: $amount
+            pspReference: $pspReference
+        ) {
+            ...TransactionEventData
+        }
+    }
+    """
+    )
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    get_graphql_content(response)
+    order.refresh_from_db()
+
+    assert order.status == OrderStatus.DRAFT
+    assert order.charge_status == OrderChargeStatusEnum.FULL.value
+    mock_order_fully_paid.assert_called_once_with(order)
+    mock_order_updated.assert_called_once_with(order)
+    mock_order_paid.assert_called_once_with(order)
+
+
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
 @patch("saleor.plugins.manager.PluginsManager.order_fully_paid")
 def test_transaction_event_report_for_order_triggers_webhooks_when_partially_paid(

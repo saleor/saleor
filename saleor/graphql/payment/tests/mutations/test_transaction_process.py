@@ -427,6 +427,73 @@ def test_order_status_with_order_confirmation(
     assert order.charge_status == OrderChargeStatus.FULL
 
 
+@pytest.mark.parametrize(
+    ("auto_order_confirmation"),
+    [True, False],
+)
+@mock.patch("saleor.plugins.manager.PluginsManager.transaction_process_session")
+def test_draft_order_status_with_order_confirmation(
+    mocked_process,
+    auto_order_confirmation,
+    user_api_client,
+    draft_order,
+    webhook_app,
+    transaction_session_response,
+    transaction_item_generator,
+):
+    # given
+    order = draft_order
+    order.channel.automatically_confirm_all_new_orders = auto_order_confirmation
+    order.channel.save(update_fields=["automatically_confirm_all_new_orders"])
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    transaction_item = transaction_item_generator(order_id=order.pk, app=webhook_app)
+    TransactionEvent.objects.create(
+        transaction=transaction_item,
+        amount_value=order.total.gross.amount,
+        currency=transaction_item.currency,
+        type=TransactionEventType.CHARGE_REQUEST,
+    )
+
+    expected_psp_reference = "ppp-123"
+    expected_response = transaction_session_response.copy()
+    expected_response["amount"] = order.total.gross.amount
+    expected_response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
+    expected_response["pspReference"] = expected_psp_reference
+    del expected_response["data"]
+    mocked_process.return_value = PaymentGatewayData(
+        app_identifier=expected_app_identifier, data=expected_response
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction_item.token),
+        "data": None,
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_PROCESS, variables)
+
+    # then
+    content = get_graphql_content(response)
+    _assert_fields(
+        content=content,
+        source_object=order,
+        expected_amount=order.total.gross.amount,
+        expected_psp_reference=expected_psp_reference,
+        response_event_type=TransactionEventType.CHARGE_SUCCESS,
+        app_identifier=webhook_app.identifier,
+        mocked_process=mocked_process,
+        charged_value=order.total.gross.amount,
+        returned_data=None,
+    )
+
+    order.refresh_from_db()
+    assert order.status == OrderStatus.DRAFT
+    assert order.charge_status == OrderChargeStatus.FULL
+
+
 @mock.patch("saleor.plugins.manager.PluginsManager.transaction_process_session")
 def test_for_checkout_with_data(
     mocked_process,

@@ -365,6 +365,64 @@ def test_transaction_create_for_order_updates_order_total_charged_by_app(
     assert charged_value == transaction.charged_value
 
 
+@pytest.mark.parametrize("automatically_confirm_all_new_orders", [True, False])
+def test_transaction_create_for_draft_order(
+    automatically_confirm_all_new_orders,
+    order_with_lines,
+    permission_manage_payments,
+    app_api_client,
+):
+    # given
+    order_with_lines.status = OrderStatus.DRAFT
+    order_with_lines.save(update_fields=["status"])
+
+    channel = order_with_lines.channel
+    channel.automatically_confirm_all_new_orders = automatically_confirm_all_new_orders
+    channel.save(update_fields=["automatically_confirm_all_new_orders"])
+
+    previously_charged_value = Decimal("90")
+    old_transaction = order_with_lines.payment_transactions.create(
+        charged_value=previously_charged_value, currency=order_with_lines.currency
+    )
+    update_order_charge_data(order_with_lines)
+
+    charged_value = Decimal("10")
+
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
+        "transaction": {
+            "status": "Charged 10$",
+            "type": "Credit Card",
+            "pspReference": "PSP reference - 123",
+            "availableActions": [],
+            "amountCharged": {
+                "amount": charged_value,
+                "currency": "USD",
+            },
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    order_with_lines.refresh_from_db()
+    transaction = order_with_lines.payment_transactions.exclude(
+        id=old_transaction.id
+    ).last()
+    content = get_graphql_content(response)
+    data = content["data"]["transactionCreate"]["transaction"]
+    assert data["chargedAmount"]["amount"] == charged_value
+    assert (
+        order_with_lines.total_charged_amount
+        == previously_charged_value + charged_value
+    )
+    assert charged_value == transaction.charged_value
+    assert order_with_lines.status == OrderStatus.DRAFT
+
+
 def test_transaction_create_for_checkout_by_app(
     checkout_with_items, permission_manage_payments, app_api_client
 ):
