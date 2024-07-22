@@ -9,7 +9,7 @@ def test_new_get_current():
     result = Site.objects.get_current()
     assert result.name == "mirumee.com"
     assert result.domain == "mirumee.com"
-    assert type(result.settings) == SiteSettings
+    assert type(result.settings) is SiteSettings
 
 
 def test_site_settings_default_from_email(settings):
