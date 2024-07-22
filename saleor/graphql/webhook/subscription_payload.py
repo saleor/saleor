@@ -109,7 +109,7 @@ def generate_payload_promise_from_subscription(
 
     def return_payload_promise(
         results, app_id=app_id, subscription_query=subscription_query
-    ) -> Union[Promise[Optional[dict[str, Any]]], Optional[dict[str, Any]]]:
+    ):
         if hasattr(results, "errors"):
             logger.warning(
                 "Unable to build a payload for subscription. \n"
@@ -131,9 +131,7 @@ def generate_payload_promise_from_subscription(
         payload_instance = payload[0]
         event_payload = payload_instance.data.get("event") or {}
 
-        def check_errors(
-            event_payload, payload_instance=payload_instance
-        ) -> Optional[dict[str, Any]]:
+        def check_errors(event_payload, payload_instance=payload_instance):
             if payload_instance.errors:
                 event_payload["errors"] = [
                     format_error(error, (GraphQLError, PermissionDenied))
@@ -145,7 +143,10 @@ def generate_payload_promise_from_subscription(
             return event_payload.then(check_errors)
         return check_errors(event_payload)
 
-    return results_promise.then(return_payload_promise)
+    if isinstance(results_promise, Promise):
+        return results_promise.then(return_payload_promise)
+    result = return_payload_promise(results_promise)
+    return Promise.resolve(result)
 
 
 def generate_payload_from_subscription(
