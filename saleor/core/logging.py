@@ -4,6 +4,8 @@ import time
 from celery._state import get_current_task as get_current_celery_task
 from pythonjsonlogger.jsonlogger import JsonFormatter as BaseFormatter
 
+from .. import __version__ as saleor_version
+
 
 class JsonFormatter(BaseFormatter):
     converter = time.gmtime
@@ -11,6 +13,11 @@ class JsonFormatter(BaseFormatter):
     def add_fields(self, log_record, record, message_dict):
         super().add_fields(log_record, record, message_dict)
         log_record["hostname"] = platform.node()
+        try:
+            log_record["query"] = record.exc_info[1]._exc_query
+            log_record["version"] = saleor_version
+        except (TypeError, IndexError, AttributeError):
+            pass
 
 
 class JsonCeleryFormatter(JsonFormatter):
