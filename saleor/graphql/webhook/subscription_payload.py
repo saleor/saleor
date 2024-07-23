@@ -81,7 +81,7 @@ def generate_payload_promise_from_subscription(
     subscribable_object: is an object which have a dedicated own type in Subscription
     definition.
     subscription_query: query used to prepare a payload via graphql engine.
-    context: A dummy request used to share context between apps in order to use
+    request: A dummy request used to share context between apps in order to use
     dataloaders benefits.
     app: the owner of the given payload. Required in case when webhook contains
     protected fields.
@@ -165,7 +165,7 @@ def generate_payload_from_subscription(
     subscribable_object: is an object which have a dedicated own type in Subscription
     definition.
     subscription_query: query used to prepare a payload via graphql engine.
-    context: A dummy request used to share context between apps in order to use
+    request: A dummy request used to share context between apps in order to use
     dataloaders benefits.
     app: the owner of the given payload. Required in case when webhook contains
     protected fields.
