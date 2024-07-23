@@ -10,9 +10,7 @@ from django.utils import timezone
 from prices import Money
 
 from .....checkout import base_calculations, calculations
-from .....checkout.actions import (
-    call_checkout_event_for_checkout_info,
-)
+from .....checkout.actions import call_checkout_event_for_checkout_info
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.utils import add_variant_to_checkout, set_external_shipping_id
@@ -1502,7 +1500,7 @@ def test_checkout_add_voucher_triggers_sync_webhooks(
 
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={"event_delivery_id": checkout_update_delivery.id},
-        queue=None,
+        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,
         retry_backoff=10,
         retry_kwargs={"max_retries": 5},
