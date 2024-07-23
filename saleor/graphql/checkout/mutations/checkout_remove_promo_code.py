@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from graphql.error import GraphQLError
 
 from ....checkout import models
+from ....checkout.actions import call_checkout_event_for_checkout_info
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import (
@@ -108,7 +109,13 @@ class CheckoutRemovePromoCode(BaseMutation):
             recalculate_discount=True,
             save=True,
         )
-        cls.call_event(manager.checkout_updated, checkout)
+        call_checkout_event_for_checkout_info(
+            manager,
+            event_func=manager.checkout_updated,
+            event_name=WebhookEventAsyncType.CHECKOUT_UPDATED,
+            checkout_info=checkout_info,
+            lines=lines,
+        )
 
         return CheckoutRemovePromoCode(checkout=checkout)
 
