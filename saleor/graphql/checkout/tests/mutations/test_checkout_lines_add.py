@@ -1824,7 +1824,7 @@ def test_checkout_lines_add_triggers_sync_webhooks(
 
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={"event_delivery_id": checkout_update_delivery.id},
-        queue=None,
+        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,
         retry_backoff=10,
         retry_kwargs={"max_retries": 5},
