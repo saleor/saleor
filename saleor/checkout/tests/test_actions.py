@@ -352,7 +352,7 @@ def test_call_checkout_event_for_checkout_triggers_sync_webhook_when_needed(
 
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={"event_delivery_id": checkout_create_delivery.id},
-        queue=None,
+        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,
         retry_backoff=10,
         retry_kwargs={"max_retries": 5},
@@ -419,7 +419,7 @@ def test_call_checkout_event_for_checkout_skips_tax_webhook_when_not_expired(
 
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={"event_delivery_id": checkout_create_delivery.id},
-        queue=None,
+        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,
         retry_backoff=10,
         retry_kwargs={"max_retries": 5},
@@ -536,7 +536,7 @@ def test_call_checkout_event_for_checkout_info_triggers_sync_webhook_when_needed
 
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={"event_delivery_id": checkout_create_delivery.id},
-        queue=None,
+        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,
         retry_backoff=10,
         retry_kwargs={"max_retries": 5},
@@ -613,7 +613,7 @@ def test_call_checkout_event_for_checkout_info_skips_tax_webhook_when_not_expire
 
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={"event_delivery_id": checkout_create_delivery.id},
-        queue=None,
+        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,
         retry_backoff=10,
         retry_kwargs={"max_retries": 5},
@@ -737,7 +737,7 @@ def test_transaction_amounts_for_checkout_fully_paid_triggers_sync_webhook(
 
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={"event_delivery_id": checkout_fully_paid_delivery.id},
-        queue=None,
+        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,
         retry_backoff=10,
         retry_kwargs={"max_retries": 5},
