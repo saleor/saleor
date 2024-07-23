@@ -104,9 +104,7 @@ from ..order.models import (
     OrderLine,
 )
 from ..order.search import prepare_order_search_vector_value
-from ..order.utils import (
-    get_voucher_discount_assigned_to_order,
-)
+from ..order.utils import get_voucher_discount_assigned_to_order
 from ..page.models import Page, PageTranslation, PageType
 from ..payment import ChargeStatus, TransactionKind
 from ..payment.interface import AddressData, GatewayConfig, GatewayResponse, PaymentData
@@ -9407,3 +9405,151 @@ def setup_mock_for_cache():
         cache_mock.delete = mocked_delete_cache
 
     return _mocked_cache
+
+
+def test_call_checkout_event_for_checkout_triggers_sync_webhook_when_needed(
+    mocked_send_webhook_request_async,
+    mocked_send_webhook_request_sync,
+    checkout_with_items,
+    permission_handle_taxes,
+    permission_manage_shipping,
+    permission_manage_checkouts,
+    settings,
+):
+    # given
+    mocked_send_webhook_request_sync.return_value = None
+
+
+@pytest.fixture
+def setup_checkout_webhooks(
+    permission_handle_taxes,
+    permission_manage_shipping,
+    permission_manage_checkouts,
+):
+    subscription_async_webhooks = """
+    fragment CheckoutFragment on Checkout {
+      shippingPrice {
+        gross {
+          amount
+        }
+      }
+      totalPrice {
+        gross {
+          amount
+        }
+      }
+    }
+
+    subscription {
+      event {
+        ... on CheckoutCreated {
+          checkout {
+            ...CheckoutFragment
+          }
+        }
+        ... on CheckoutUpdated {
+          checkout {
+            ...CheckoutFragment
+          }
+        }
+        ... on CheckoutFullyPaid {
+          checkout {
+            ...CheckoutFragment
+          }
+        }
+        ... on CheckoutMetadataUpdated {
+          checkout {
+            ...CheckoutFragment
+          }
+        }
+      }
+    }
+    """
+
+    def _setup(additional_checkout_event):
+        tax_app, shipping_app, additional_app = App.objects.bulk_create(
+            [
+                App(
+                    name="Sample tax app",
+                    is_active=True,
+                    identifier="saleor.app.tax",
+                ),
+                App(
+                    name="Sample shipping app",
+                    is_active=True,
+                    identifier="saleor.app.shipping",
+                ),
+                App(
+                    name="Sample async webhook app",
+                    is_active=True,
+                    identifier="saleor.app.additional",
+                ),
+            ]
+        )
+        tax_app.permissions.add(permission_handle_taxes)
+        shipping_app.permissions.set(
+            [permission_manage_shipping, permission_manage_checkouts]
+        )
+        additional_app.permissions.add(permission_manage_checkouts)
+        (
+            tax_webhook,
+            shipping_webhook,
+            shipping_filter_webhook,
+            additional_webhook,
+        ) = Webhook.objects.bulk_create(
+            [
+                Webhook(
+                    name="Tax webhook",
+                    app=tax_app,
+                    target_url="http://127.0.0.1/test",
+                    subscription_query="subscription{ event{ ...on CalculateTaxes{ __typename } } }",
+                ),
+                Webhook(
+                    name="Shipping webhook",
+                    app=shipping_app,
+                    target_url="http://127.0.0.1/test",
+                    subscription_query="subscription { event { ... on ShippingListMethodsForCheckout { __typename } } }",
+                ),
+                Webhook(
+                    name="Shipping webhook",
+                    app=shipping_app,
+                    target_url="http://127.0.0.1/test",
+                    subscription_query="subscription { event { ... on CheckoutFilterShippingMethods { __typename } } }",
+                ),
+                Webhook(
+                    name="Checkout additional webhook",
+                    app=additional_app,
+                    target_url="http://127.0.0.1/test",
+                    subscription_query=subscription_async_webhooks,
+                ),
+            ]
+        )
+
+        WebhookEvent.objects.bulk_create(
+            [
+                WebhookEvent(
+                    event_type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
+                    webhook_id=tax_webhook.id,
+                ),
+                WebhookEvent(
+                    event_type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
+                    webhook_id=shipping_filter_webhook.id,
+                ),
+                WebhookEvent(
+                    event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+                    webhook_id=shipping_webhook.id,
+                ),
+                WebhookEvent(
+                    event_type=additional_checkout_event,
+                    webhook_id=additional_webhook.id,
+                ),
+            ]
+        )
+        return (
+            tax_webhook,
+            shipping_webhook,
+            shipping_filter_webhook,
+            additional_webhook,
+        )
+
+    return _setup

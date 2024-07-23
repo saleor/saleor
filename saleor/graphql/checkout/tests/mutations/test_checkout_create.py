@@ -1,6 +1,7 @@
 import datetime
 import warnings
 from unittest import mock
+from unittest.mock import call, patch
 
 import graphene
 import pytest
@@ -10,12 +11,15 @@ from django.utils import timezone
 
 from .....channel.utils import DEPRECATION_WARNING_MESSAGE
 from .....checkout import AddressType
+from .....checkout.actions import call_checkout_event_for_checkout
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_lines
 from .....checkout.models import Checkout
 from .....checkout.utils import calculate_checkout_quantity
+from .....core.models import EventDelivery
 from .....product.models import ProductChannelListing
 from .....warehouse.models import Reservation, Stock
+from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 MUTATION_CHECKOUT_CREATE = """
@@ -2641,3 +2645,90 @@ def test_checkout_create_skip_validation_billing_address_by_app(
     new_checkout = Checkout.objects.first()
     assert new_checkout.billing_address.postal_code == invalid_postal_code
     assert new_checkout.billing_address.validation_skipped is True
+
+
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_create.call_checkout_event_for_checkout",
+    wraps=call_checkout_event_for_checkout,
+)
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_checkout_create_triggers_sync_webhooks(
+    mocked_send_webhook_request_async,
+    mocked_send_webhook_request_sync,
+    wrapped_call_checkout_event_for_checkout,
+    api_client,
+    stock,
+    graphql_address_data,
+    channel_USD,
+    setup_checkout_webhooks,
+    settings,
+):
+    # given
+    mocked_send_webhook_request_sync.return_value = None
+    (
+        tax_webhook,
+        shipping_webhook,
+        shipping_filter_webhook,
+        checkout_created_webhook,
+    ) = setup_checkout_webhooks(WebhookEventAsyncType.CHECKOUT_CREATED)
+
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    test_email = "test@example.com"
+    billing_metadata = [{"key": "billing", "value": "billing_value"}]
+    shipping_metadata = [{"key": "shipping", "value": "shipping_value"}]
+    shipping_address_data = graphql_address_data.copy()
+    billing_address_data = graphql_address_data.copy()
+    shipping_address_data["metadata"] = shipping_metadata
+    billing_address_data["metadata"] = billing_metadata
+
+    variables = {
+        "checkoutInput": {
+            "channel": channel_USD.slug,
+            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "email": test_email,
+            "shippingAddress": shipping_address_data,
+            "billingAddress": billing_address_data,
+        }
+    }
+
+    # when
+    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["checkoutCreate"]["errors"]
+
+    # confirm that event delivery was generated for each webhook.
+    checkout_create_delivery = EventDelivery.objects.get(
+        webhook_id=checkout_created_webhook.id
+    )
+    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
+    filter_shipping_delivery = EventDelivery.objects.get(
+        webhook_id=shipping_filter_webhook.id,
+        event_type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
+    )
+    shipping_methods_delivery = EventDelivery.objects.get(
+        webhook_id=shipping_webhook.id,
+        event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+    )
+
+    mocked_send_webhook_request_async.assert_called_once_with(
+        kwargs={"event_delivery_id": checkout_create_delivery.id},
+        queue=None,
+        bind=True,
+        retry_backoff=10,
+        retry_kwargs={"max_retries": 5},
+    )
+    mocked_send_webhook_request_sync.assert_has_calls(
+        [
+            call(shipping_methods_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
+            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
+            call(tax_delivery),
+        ]
+    )
+    assert wrapped_call_checkout_event_for_checkout.called
