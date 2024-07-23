@@ -2,7 +2,7 @@ from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
 
 CHECKOUT_CUSTOMER_NOTE_UPDATE_MUTATION = """
-    mutation checkoutCustomerNoteUpdate($id: ID, $customerNote: String!) {
+    mutation checkoutCustomerNoteUpdate($id: ID!, $customerNote: String!) {
         checkoutCustomerNoteUpdate(id: $id, customerNote: $customerNote) {
             checkout {
                 id,

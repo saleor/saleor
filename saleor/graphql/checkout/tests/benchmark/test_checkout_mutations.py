@@ -1805,7 +1805,7 @@ def test_checkout_customer_note_update(
         FRAGMENT_CHECKOUT
         + """
             mutation UpdateCheckoutCustomerNote(
-              $id: ID, $customerNote: String!
+              $id: ID!, $customerNote: String!
             ) {
               checkoutCustomerNoteUpdate(id: $id, customerNote: $customerNote) {
                 checkout {
