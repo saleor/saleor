@@ -1,5 +1,6 @@
 import graphene
 
+from ....checkout.actions import call_checkout_event_for_checkout
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_321
@@ -53,5 +54,10 @@ class CheckoutCustomerNoteUpdate(BaseMutation):
         cls.clean_instance(info, checkout)
         checkout.save(update_fields=["note", "last_change"])
         manager = get_plugin_manager_promise(info.context).get()
-        cls.call_event(manager.checkout_updated, checkout)
+        call_checkout_event_for_checkout(
+            manager,
+            event_func=manager.checkout_updated,
+            event_name=WebhookEventAsyncType.CHECKOUT_UPDATED,
+            checkout=checkout,
+        )
         return CheckoutCustomerNoteUpdate(checkout=checkout)
