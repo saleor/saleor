@@ -109,10 +109,10 @@ class PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(DataLoader):
 
         @allow_writer_in_context(self.context)
         def generate_payloads(data):
-            checkouts_info, checkout_liens_info, apps = data
+            checkouts_info, checkout_lines_info, apps = data
             apps_map = {app.id: app for app in apps}
             promises = []
-            for checkout_info, lines_info in zip(checkouts_info, checkout_liens_info):
+            for checkout_info, lines_info in zip(checkouts_info, checkout_lines_info):
                 tax_configuration, country_tax_configuration = (
                     get_tax_configuration_for_checkout(
                         checkout_info, lines_info, self.database_connection_name
