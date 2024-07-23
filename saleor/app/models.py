@@ -31,6 +31,12 @@ class AppQueryset(models.QuerySet["App"]):
             **permissions,
         )
 
+    def not_removed(self):
+        return self.filter(removed_at__isnull=True)
+
+    def marked_to_be_removed(self):
+        return self.filter(removed_at__isnull=False)
+
 
 AppManager = models.Manager.from_queryset(AppQueryset)
 
