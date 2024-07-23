@@ -11,6 +11,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### GraphQL API
 
+- Add `CheckoutCustomerNoteUpdate` mutation - #16315 by @pitkes22
+
 ### Webhooks
 
 ### Other changes
