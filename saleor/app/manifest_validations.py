@@ -153,8 +153,11 @@ def clean_manifest_data(manifest_data, raise_for_saleor_version=False):
         app_permissions = []
 
     manifest_data["permissions"] = app_permissions
-
-    if app := App.objects.filter(identifier=manifest_data.get("id")).first():
+    if (
+        app := App.objects.not_removed()
+        .filter(identifier=manifest_data.get("id"))
+        .first()
+    ):
         errors["identifier"].append(
             ValidationError(
                 f"App with the same identifier is already installed: {app.name}"
