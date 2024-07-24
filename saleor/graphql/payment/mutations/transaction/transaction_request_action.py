@@ -6,6 +6,7 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from .....app.models import App
+from .....core.prices import quantize_price
 from .....order.models import Order
 from .....payment import PaymentError, TransactionAction, TransactionEventType
 from .....payment.error_codes import TransactionRequestActionErrorCode
@@ -154,11 +155,17 @@ class TransactionRequestAction(BaseMutation):
         else:
             checkout = cast(Checkout, transaction.checkout)
             channel = checkout.channel
+
         cls.check_channel_permissions(info, [channel.id])
+
         channel_slug = channel.slug
         user = info.context.user
         app = get_app_promise(info.context).get()
         manager = get_plugin_manager_promise(info.context).get()
+
+        if action_value is not None:
+            action_value = quantize_price(action_value, transaction.currency)
+
         action_kwargs = {
             "channel_slug": channel_slug,
             "user": user,
