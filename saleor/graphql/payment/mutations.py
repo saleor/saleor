@@ -1945,8 +1945,9 @@ class TransactionSessionBase(BaseMutation):
         source_object: Union[checkout_models.Checkout, order_models.Order],
         input_amount: Optional[Decimal],
     ) -> Decimal:
+        currency = source_object.currency
         if input_amount is not None:
-            return input_amount
+            return quantize_price(input_amount, currency)
         amount: Decimal = source_object.total_gross_amount
         transactions = source_object.payment_transactions.all()
         for transaction_item in transactions:
@@ -1957,7 +1958,7 @@ class TransactionSessionBase(BaseMutation):
             amount -= transaction_item.authorize_pending_value
             amount -= transaction_item.charge_pending_value
 
-        return amount if amount >= Decimal(0) else Decimal(0)
+        return quantize_price(amount, currency) if amount >= Decimal(0) else Decimal(0)
 
 
 class PaymentGatewayInitialize(TransactionSessionBase):
