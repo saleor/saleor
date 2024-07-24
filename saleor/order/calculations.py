@@ -591,6 +591,7 @@ def order_undiscounted_shipping(
     manager: PluginsManager,
     lines: Optional[Iterable[OrderLine]] = None,
     force_update: bool = False,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> TaxedMoney:
     """Return the undiscounted shipping price of the order.
 
@@ -599,7 +600,13 @@ def order_undiscounted_shipping(
     and save them in the model directly.
     """
     currency = order.currency
-    order, _ = fetch_order_prices_if_expired(order, manager, lines, force_update)
+    order, _ = fetch_order_prices_if_expired(
+        order,
+        manager,
+        lines,
+        force_update,
+        database_connection_name=database_connection_name,
+    )
     return quantize_price(order.undiscounted_base_shipping_price, currency)
 
 
