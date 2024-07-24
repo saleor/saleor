@@ -5,11 +5,10 @@ from uuid import uuid4
 
 from django.conf import settings
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
-from django.contrib.postgres.indexes import GinIndex, OpClass
+from django.contrib.postgres.indexes import GinIndex
 from django.db import models
 from django.db.models import JSONField, Q, Value
 from django.db.models.expressions import Exists, OuterRef
-from django.db.models.functions import Upper
 from django.forms.models import model_to_dict
 from django.utils import timezone
 from django.utils.crypto import get_random_string
@@ -191,6 +190,7 @@ class User(
     )
     search_document = models.TextField(blank=True, default="")
     uuid = models.UUIDField(default=uuid4, unique=True)
+    full_name = models.CharField(max_length=512, blank=True, default="")
 
     USERNAME_FIELD = "email"
 
@@ -225,12 +225,20 @@ class User(
                 opclasses=["jsonb_path_ops"],
             ),
             GinIndex(
-                OpClass(Upper("first_name"), name="gin_trgm_ops"),
-                name="upper_first_name_gin",
+                fields=["first_name"],
+                name="first_name_gin",
+                opclasses=["gin_trgm_ops"],
             ),
             GinIndex(
-                OpClass(Upper("last_name"), name="gin_trgm_ops"),
-                name="upper_last_name_gin",
+                fields=["last_name"],
+                name="last_name_gin",
+                opclasses=["gin_trgm_ops"],
+            ),
+            # index for concat(first_name, " ", last_name)
+            GinIndex(
+                name="user_full_name_gin",
+                fields=["full_name"],
+                opclasses=["gin_trgm_ops"],
             ),
         ]
 
@@ -324,6 +332,10 @@ class User(
             or not site_settings.enable_account_confirmation_by_email
             or self.is_confirmed
         )
+
+    def save(self, *args, **kwargs):
+        self.full_name = f"{self.first_name} {self.last_name}"
+        super().save(*args, **kwargs)
 
 
 class CustomerNote(models.Model):

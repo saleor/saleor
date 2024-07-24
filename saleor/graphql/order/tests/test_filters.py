@@ -65,11 +65,25 @@ def test_filter_customer_by_last_name(similar_customers_with_orders):
     assert order2 in qs
 
 
-def test_filter_customer_by_full_name(similar_customers_with_orders):
+def test_filter_customer_by_full_name_first_last_name(similar_customers_with_orders):
     # given
     order, order2, customer_user, customer_user2 = similar_customers_with_orders
     qs = Order.objects.all()
     value = f"{customer_user.first_name} {customer_user.last_name}"
+
+    # when
+    qs = filter_customer(qs, None, value)
+
+    # then
+    assert qs.count() == 1
+    assert qs.first() == order
+
+
+def test_filter_customer_by_full_name_last_first_name(similar_customers_with_orders):
+    # given
+    order, order2, customer_user, customer_user2 = similar_customers_with_orders
+    qs = Order.objects.all()
+    value = f"{customer_user.last_name} {customer_user.first_name}"
 
     # when
     qs = filter_customer(qs, None, value)

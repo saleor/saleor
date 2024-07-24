@@ -85,9 +85,10 @@ def filter_customer(qs, _, value):
         qs = qs.filter(Q(user_email__iexact=value) | Q(user__email__iexact=value))
     except ValidationError:
         try:
-            first_name, last_name = value.split()
+            first, last = value.split(" ", 1)
             qs = qs.filter(
-                user__first_name__iexact=first_name, user__last_name__iexact=last_name
+                Q(user__full_name__iexact=value)
+                | Q(user__full_name__iexact=f"{last} {first}")
             )
         except ValueError:
             qs = qs.filter(
