@@ -20,6 +20,7 @@ from ..checkout.dataloaders import (
     CheckoutLinesInfoByCheckoutTokenLoader,
 )
 from ..core.dataloaders import DataLoader
+from ..order.dataloaders import OrderByIdLoader, OrderLinesByOrderIdLoader
 from ..utils import get_user_or_app_from_context
 from .subscription_payload import (
     generate_payload_promise_from_subscription,
@@ -100,7 +101,7 @@ class PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(DataLoader):
         requestor = get_user_or_app_from_context(self.context)
         request_context = initialize_request(
             requestor,
-            event_type in WebhookEventSyncType.ALL,
+            True,
             False,
             event_type=event_type,
         )
@@ -172,3 +173,40 @@ class PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(DataLoader):
         lines = CheckoutLinesInfoByCheckoutTokenLoader(self.context).load_many(keys)
         apps = AppByIdLoader(self.context).load_many(apps_ids)
         return Promise.all([checkouts_info, lines, apps]).then(generate_payloads)
+
+
+class PregeneratedOrderTaxPayloadsByOrderIdLoader(DataLoader):
+    context_key = "pregenerated_order_tax_payloads_by_order_id"
+
+    def batch_load(self, keys):
+        results: dict[str, dict[int, dict[str, dict[str, Any]]]] = (  # noqa F841
+            defaultdict(lambda: defaultdict(dict))
+        )
+
+        event_type = WebhookEventSyncType.ORDER_CALCULATE_TAXES
+        requestor = get_user_or_app_from_context(self.context)
+        request_context = initialize_request(  # noqa F841
+            requestor,
+            True,
+            False,
+            event_type=event_type,
+        )
+        webhooks = get_webhooks_for_event(event_type)
+        apps_ids = [webhook.app_id for webhook in webhooks]
+
+        @allow_writer_in_context(self.context)
+        def generate_payloads(data):
+            orders, order_lines, apps = data
+            apps_map = {app.id: app for app in apps}  # noqa F841
+            promises = []  # noqa F841
+
+            for order, order_lines in zip(orders, order_lines):
+                pass
+                # TODO[Owczar] move logic from fetch_order_prices_if_expired to dataloader
+
+            return [{} for _ in keys]
+
+        orders = OrderByIdLoader(self.context).load_many(keys)
+        order_lines = OrderLinesByOrderIdLoader(self.context).load_many(keys)
+        apps = AppByIdLoader(self.context).load_many(apps_ids)
+        return Promise.all([orders, order_lines, apps]).then(generate_payloads)

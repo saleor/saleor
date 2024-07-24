@@ -148,6 +148,7 @@ from ..tax.dataloaders import (
 )
 from ..tax.types import TaxClass
 from ..warehouse.types import Allocation, Stock, Warehouse
+from ..webhook.dataloaders import PregeneratedOrderTaxPayloadsByOrderIdLoader
 from .dataloaders import (
     AllocationsByOrderLineIdLoader,
     FulfillmentLinesByFulfillmentIdLoader,
@@ -1796,59 +1797,66 @@ class Order(ModelObjectType[models.Order]):
     @plugin_manager_promise_callback
     def resolve_total(root: models.Order, info, manager):
         @allow_writer_in_context(info.context)
-        def _resolve_total(lines):
-            pregenerated_subscription_payloads = {
-                2: {
-                    "29b68cac6e4afbb662108dd4e6f9a385": {
-                        "taxBase": {
-                            "pricesEnteredWithTax": True,
-                            "currency": "USD",
-                            "channel": {"slug": "default-channel3"},
-                            "shippingPrice": {"amount": 0.0},
-                            "lines": [
-                                {
-                                    "sourceLine": {
-                                        "__typename": "OrderLine",
-                                        "id": "Order:ID",
-                                        "orderVariant": {
-                                            "id": "UHJvZHVjdFZhcmlhbnQ6Mzg0",
-                                            "product": {
-                                                "taxClass": {
-                                                    "id": "VGF4Q2xhc3M6Mg==",
-                                                    "name": "Books",
-                                                }
-                                            },
-                                        },
-                                    },
-                                    "quantity": 1,
-                                    "unitPrice": {"amount": 1.99},
-                                    "totalPrice": {"amount": 1.99},
-                                    "chargeTaxes": True,
-                                }
-                            ],
-                            "discounts": [],
-                            "sourceObject": {
-                                "__typename": "Order",
-                                "id": "Order:ID",
-                            },
-                        }
-                    }
-                }
-            }
-
+        def _resolve_total(data):
+            order_lines, pregenerated_tax_payloads = data
+            # TODO[Owczar]: Remove commented test code.
+            # tmp = {
+            #     2: {
+            #         "29b68cac6e4afbb662108dd4e6f9a385": {
+            #             "taxBase": {
+            #                 "pricesEnteredWithTax": True,
+            #                 "currency": "USD",
+            #                 "channel": {"slug": "default-channel3"},
+            #                 "shippingPrice": {"amount": 0.0},
+            #                 "lines": [
+            #                     {
+            #                         "sourceLine": {
+            #                             "__typename": "OrderLine",
+            #                             "id": "Order:ID",
+            #                             "orderVariant": {
+            #                                 "id": "UHJvZHVjdFZhcmlhbnQ6Mzg0",
+            #                                 "product": {
+            #                                     "taxClass": {
+            #                                         "id": "VGF4Q2xhc3M6Mg==",
+            #                                         "name": "Books",
+            #                                     }
+            #                                 },
+            #                             },
+            #                         },
+            #                         "quantity": 1,
+            #                         "unitPrice": {"amount": 1.99},
+            #                         "totalPrice": {"amount": 1.99},
+            #                         "chargeTaxes": True,
+            #                     }
+            #                 ],
+            #                 "discounts": [],
+            #                 "sourceObject": {
+            #                     "__typename": "Order",
+            #                     "id": "Order:ID",
+            #                 },
+            #             }
+            #         }
+            #     }
+            # }
+            # if not pregenerated_tax_payloads == tmp:
+            #     raise Exception("pregenerated_tax_payloads is not working")
             database_connection_name = get_database_connection_name(info.context)
             return calculations.order_total(
                 root,
                 manager,
-                lines,
+                order_lines,
                 database_connection_name=database_connection_name,
-                pregenerated_subscription_payloads=pregenerated_subscription_payloads,
+                pregenerated_subscription_payloads=None,
                 # TODO Owczar: Remove it before merge!
-                # force_update=True,
+                force_update=True,
             )
 
-        return (
-            OrderLinesByOrderIdLoader(info.context).load(root.id).then(_resolve_total)
+        order_lines = OrderLinesByOrderIdLoader(info.context).load(root.id)
+        pregenerated_tax_payloads = PregeneratedOrderTaxPayloadsByOrderIdLoader(
+            info.context
+        ).load(root.id)
+        return Promise.all([order_lines, pregenerated_tax_payloads]).then(
+            _resolve_total
         )
 
     @staticmethod
