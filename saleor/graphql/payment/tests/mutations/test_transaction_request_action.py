@@ -172,6 +172,73 @@ def test_transaction_request_action_missing_event(
     assert mocked_is_active.called
 
 
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.transaction_charge_requested")
+def test_transaction_request_action_amount_with_lot_of_decimal_places(
+    mocked_payment_action_request,
+    mocked_is_active,
+    order_with_lines,
+    app_api_client,
+    permission_manage_payments,
+):
+    # given
+    mocked_is_active.side_effect = [True, False]
+
+    transaction = TransactionItem.objects.create(
+        name="Credit card",
+        psp_reference="PSP ref",
+        available_actions=[],
+        currency="USD",
+        order_id=order_with_lines.pk,
+        authorized_value=Decimal("10"),
+    )
+
+    charge_amount = Decimal("9.12345678")
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "action_type": TransactionActionEnum.CHARGE.name,
+        "amount": charge_amount,
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_REQUEST_ACTION,
+        variables,
+        permissions=[permission_manage_payments],
+    )
+
+    # then
+    get_graphql_content(response)
+
+    request_event = TransactionEvent.objects.filter(
+        type=TransactionEventType.CHARGE_REQUEST
+    ).first()
+
+    assert mocked_is_active.called
+    assert request_event
+    mocked_payment_action_request.assert_called_once_with(
+        TransactionActionData(
+            transaction=transaction,
+            action_type=TransactionAction.CHARGE,
+            action_value=round(charge_amount, 2),
+            event=request_event,
+            transaction_app_owner=None,
+        ),
+        order_with_lines.channel.slug,
+    )
+
+    event = order_with_lines.events.first()
+    assert event.type == OrderEvents.TRANSACTION_CHARGE_REQUESTED
+    assert Decimal(event.parameters["amount"]) == round(charge_amount, 2)
+    assert event.parameters["reference"] == transaction.psp_reference
+
+    assert TransactionEvent.objects.get(
+        transaction=transaction,
+        type=TransactionEventType.CHARGE_REQUEST,
+        amount_value=round(charge_amount, 2),
+    )
+
+
 @pytest.fixture
 def transaction_request_webhook(permission_manage_payments):
     app = App.objects.create(
