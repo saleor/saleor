@@ -76,6 +76,10 @@ def is_order_level_voucher(voucher: Optional[Voucher]):
     )
 
 
+def is_shipping_voucher(voucher: Optional[Voucher]):
+    return bool(voucher and voucher.type == VoucherType.SHIPPING)
+
+
 def increase_voucher_usage(
     voucher: "Voucher",
     code: "VoucherCode",
@@ -697,17 +701,18 @@ def _update_promotion_discount(
     # gift rule has empty reward_value
     value = rule.reward_value or rule_discount_amount
     _update_discount(
-        rule,
-        None,
-        discount_name,
-        translated_name,
-        reason,
-        rule_discount_amount,
-        value,
-        value_type,
-        DiscountType.PROMOTION,
-        discount_to_update,
-        updated_fields,
+        rule=rule,
+        voucher=None,
+        discount_name=discount_name,
+        translated_name=translated_name,
+        discount_reason=reason,
+        discount_amount=rule_discount_amount,
+        value=value,
+        value_type=value_type,
+        unique_type=DiscountType.PROMOTION,
+        discount_to_update=discount_to_update,
+        updated_fields=updated_fields,
+        voucher_code=None,
     )
 
 
@@ -725,6 +730,7 @@ def _update_discount(
         "CheckoutLineDiscount", "CheckoutDiscount", "OrderLineDiscount", "OrderDiscount"
     ],
     updated_fields: list[str],
+    voucher_code: Optional[str],
 ):
     if voucher and discount_to_update.voucher_id != voucher.id:
         discount_to_update.voucher_id = voucher.id
@@ -747,7 +753,6 @@ def _update_discount(
     if discount_to_update.translated_name != translated_name:
         discount_to_update.translated_name = translated_name
         updated_fields.append("translated_name")
-
     if discount_to_update.reason != discount_reason:
         discount_to_update.reason = discount_reason
         updated_fields.append("reason")
@@ -755,6 +760,9 @@ def _update_discount(
         if discount_to_update.unique_type is None:
             discount_to_update.unique_type = unique_type
             updated_fields.append("unique_type")
+    if voucher_code and discount_to_update.voucher_code != voucher_code:
+        discount_to_update.voucher_code = voucher_code
+        updated_fields.append("voucher_code")
 
 
 def _update_line_info_cached_discounts(
@@ -1707,7 +1715,7 @@ def create_or_update_discount_object_from_order_level_voucher(order):
         return
 
     voucher = order.voucher
-    if not is_order_level_voucher(voucher):
+    if not (is_order_level_voucher(voucher) or is_shipping_voucher(voucher)):
         return
 
     voucher_channel_listing = voucher.channel_listings.filter(
@@ -1716,7 +1724,13 @@ def create_or_update_discount_object_from_order_level_voucher(order):
     if not voucher_channel_listing:
         return
 
-    discount_amount = voucher.get_discount_amount_for(order.subtotal.net, order.channel)
+    price_to_discount = zero_money(order.currency)
+    if is_order_level_voucher(voucher):
+        price_to_discount = order.subtotal.net
+    if is_shipping_voucher(voucher):
+        price_to_discount = order.shipping_price_net
+
+    discount_amount = voucher.get_discount_amount_for(price_to_discount, order.channel)
     discount_reason = f"Voucher code: {order.voucher_code}"
     discount_name = voucher.name or ""
 
@@ -1725,7 +1739,7 @@ def create_or_update_discount_object_from_order_level_voucher(order):
         "value_type": voucher.discount_value_type,
         "value": voucher_channel_listing.discount_value,
         "amount_value": discount_amount.amount,
-        "reason": f"Voucher: {voucher.name}",
+        "reason": discount_reason,
         "name": discount_name,
         "type": DiscountType.VOUCHER,
         "voucher_code": order.voucher_code,
@@ -1752,6 +1766,7 @@ def create_or_update_discount_object_from_order_level_voucher(order):
             unique_type=DiscountType.VOUCHER,
             discount_to_update=discount_object,
             updated_fields=updated_fields,
+            voucher_code=order.voucher_code,
         )
         if updated_fields:
             discount_object.save(update_fields=updated_fields)
@@ -1800,24 +1815,25 @@ def prepare_line_discount_objects_for_voucher(
             continue
 
         discount_amount = discount_amount.amount
-        discount_reason = f"Voucher code: {line_info.voucher_code}"
+        code = line_info.voucher_code
+        discount_reason = f"Voucher code: {code}"
         voucher = cast(Voucher, line_info.voucher)
         discount_name = f"{voucher.name}"
         if discount_to_update:
             _update_discount(
-                None,
-                voucher,
-                discount_name,
+                rule=None,
+                voucher=voucher,
+                discount_name=discount_name,
                 # TODO (SHOPX-914): set translated voucher name
-                "",
-                discount_reason,
-                discount_amount,
-                # TODO (SHOPX-914): should be taken from voucher value_type and value
-                discount_amount,
-                DiscountValueType.FIXED,
-                DiscountType.VOUCHER,
-                discount_to_update,
-                updated_fields,
+                translated_name="",
+                discount_reason=discount_reason,
+                discount_amount=discount_amount,
+                value=discount_amount,
+                value_type=voucher.discount_value_type,
+                unique_type=DiscountType.VOUCHER,
+                discount_to_update=discount_to_update,
+                updated_fields=updated_fields,
+                voucher_code=code,
             )
             line_discounts_to_update.append(discount_to_update)
         else:
@@ -1834,6 +1850,7 @@ def prepare_line_discount_objects_for_voucher(
                 "reason": discount_reason,
                 "voucher": line_info.voucher,
                 "unique_type": DiscountType.VOUCHER,
+                "voucher_code": code,
             }
             line_discounts_to_create_inputs.append(line_discount_input)
 

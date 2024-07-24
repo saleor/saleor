@@ -123,6 +123,14 @@ DRAFT_ORDER_UPDATE_MUTATION = """
                         unitDiscountValue
                         isGift
                     }
+                    shippingPrice {
+                        gross {
+                            amount
+                        }
+                        net {
+                            amount
+                        }
+                    }
                 }
             }
         }
@@ -1915,6 +1923,7 @@ def test_draft_order_update_ensure_entire_order_voucher_discount_is_overridden(
     assert order.discounts.count() == 1
     assert order.discounts.first() == order_discount
     assert order_discount.voucher == new_voucher
+    assert order_discount.voucher_code == new_code
     assert order_discount.type == DiscountType.VOUCHER
     assert order_discount.value_type == DiscountValueType.PERCENTAGE
     assert order_discount.value == new_discount_value
@@ -1976,3 +1985,85 @@ def test_draft_order_update_remove_entire_order_voucher(
 
     with pytest.raises(OrderDiscount.DoesNotExist):
         order_discount.refresh_from_db()
+
+
+def test_draft_order_update_replace_entire_order_voucher_with_shipping_voucher(
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    voucher_percentage,
+    voucher_shipping_type,
+    graphql_address_data,
+    channel_USD,
+):
+    # given
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    order = draft_order
+    voucher = voucher_percentage
+    assert voucher.type == VoucherType.ENTIRE_ORDER
+
+    order.voucher = voucher
+    entire_order_code = voucher.codes.first().code
+    order.voucher_code = entire_order_code
+    order.save(update_fields=["voucher_id", "voucher_code"])
+
+    currency = order.currency
+    undiscounted_subtotal = zero_money(currency)
+    for line in order.lines.all():
+        undiscounted_subtotal += line.base_unit_price * line.quantity
+
+    voucher_listing = voucher.channel_listings.get(channel=channel_USD)
+    discount_value = voucher_listing.discount_value
+
+    order_discount = order.discounts.create(
+        voucher=voucher,
+        value=discount_value,
+        value_type=DiscountValueType.FIXED,
+        type=DiscountType.VOUCHER,
+    )
+
+    undiscounted_shipping_price = order.base_shipping_price
+    shipping_code = voucher_shipping_type.codes.first().code
+    assert shipping_code != entire_order_code
+    shipping_discount = voucher_shipping_type.channel_listings.get(
+        channel=channel_USD
+    ).discount_value
+    expected_shipping_price = undiscounted_shipping_price.amount - shipping_discount
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id, "input": {"voucherCode": shipping_code}}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    assert not data["errors"]
+    assert data["order"]["voucher"]["code"] == shipping_code
+    assert data["order"]["voucherCode"] == shipping_code
+    assert data["order"]["subtotal"]["gross"]["amount"] == undiscounted_subtotal.amount
+    assert data["order"]["shippingPrice"]["gross"]["amount"] == expected_shipping_price
+    assert (
+        data["order"]["total"]["gross"]["amount"]
+        == undiscounted_subtotal.amount + expected_shipping_price
+    )
+
+    order.refresh_from_db()
+    assert order.voucher_code == shipping_code
+    assert order.voucher == voucher_shipping_type
+
+    order_discount.refresh_from_db()
+    discounts = order.discounts.all()
+    assert len(discounts) == 1
+    assert discounts[0] == order_discount
+    assert order_discount.voucher == voucher_shipping_type
+    assert order_discount.value_type == voucher_shipping_type.discount_value_type
+    assert order_discount.value == discount_value
+    assert order_discount.amount_value == shipping_discount
+    assert order_discount.reason == f"Voucher code: {shipping_code}"
+    assert voucher_shipping_type.name is None
+    assert order_discount.name == ""
+    assert order_discount.type == DiscountType.VOUCHER
+    assert order_discount.voucher_code == shipping_code

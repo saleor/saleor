@@ -2336,7 +2336,7 @@ def test_fetch_order_prices_voucher_entire_order_fixed(
     assert discount.value_type == voucher.discount_value_type
     assert discount.value == discount_amount
     assert discount.amount_value == discount_amount
-    assert discount.reason == f"Voucher: {voucher.name}"
+    assert discount.reason == f"Voucher code: {code}"
     assert discount.name == voucher.name
     assert discount.type == DiscountType.VOUCHER
     assert discount.voucher_code == code
@@ -2447,7 +2447,7 @@ def test_fetch_order_prices_voucher_entire_order_percentage(
     assert discount.value_type == voucher.discount_value_type
     assert discount.value == discount_value
     assert discount.amount_value == Decimal(subtotal.amount / 2)
-    assert discount.reason == f"Voucher: {voucher.name}"
+    assert discount.reason == f"Voucher code: {code}"
     assert discount.name == voucher.name
     assert discount.type == DiscountType.VOUCHER
     assert discount.voucher_code == code
@@ -2509,3 +2509,143 @@ def test_fetch_order_prices_voucher_entire_order_percentage(
     assert line_2.total_price_net_amount == line_2_total_net_amount
     assert line_2.base_unit_price_amount == variant_2_undiscounted_unit_price
     assert line_2.unit_price_net_amount == line_2_total_net_amount / line_2.quantity
+
+
+def test_fetch_order_prices_voucher_shipping_fixed(
+    order_with_lines, voucher, plugins_manager
+):
+    # given
+    voucher.type = VoucherType.SHIPPING
+    voucher.discount_value_type = DiscountValueType.FIXED
+    voucher.save(update_fields=["type", "discount_value_type"])
+
+    order = order_with_lines
+
+    voucher_listing = voucher.channel_listings.get(channel=order.channel)
+    discount_value = Decimal("5")
+    voucher_listing.discount_value = discount_value
+    voucher_listing.save(update_fields=["discount_value"])
+
+    voucher.name = "Voucher shipping"
+    voucher.save(update_fields=["name"])
+
+    order.voucher = voucher
+    code = voucher.codes.first().code
+    order.voucher_code = code
+
+    undiscounted_shipping_price = order.shipping_price.net.amount
+    expected_shipping_price = Decimal(undiscounted_shipping_price - discount_value)
+    currency = order.currency
+    subtotal = zero_money(currency)
+    lines = order.lines.all()
+    for line in lines:
+        subtotal += line.base_unit_price * line.quantity
+
+    # when
+    order, lines = calculations.fetch_order_prices_if_expired(
+        order, plugins_manager, None, True
+    )
+
+    # then
+    assert OrderDiscount.objects.count() == 1
+    discount = order.discounts.first()
+    assert discount.voucher == voucher
+    assert discount.value_type == voucher.discount_value_type
+    assert discount.value == discount_value
+    assert (
+        discount.amount_value == undiscounted_shipping_price - expected_shipping_price
+    )
+    assert discount.reason == f"Voucher code: {code}"
+    assert discount.name == voucher.name
+    assert discount.type == DiscountType.VOUCHER
+    assert discount.voucher_code == code
+    # TODO (SHOPX-914): set translated voucher name
+    assert discount.translated_name == ""
+
+    assert order.base_shipping_price.amount == undiscounted_shipping_price
+    assert order.shipping_price_net_amount == expected_shipping_price
+    assert order.shipping_price_gross.amount == expected_shipping_price
+    assert order.subtotal_net_amount == subtotal.amount
+    assert order.subtotal_gross_amount == subtotal.amount
+    assert order.total_net_amount == order.subtotal_net_amount + expected_shipping_price
+    assert (
+        order.total_gross_amount == order.subtotal_net_amount + expected_shipping_price
+    )
+    assert (
+        order.undiscounted_total_net_amount
+        == subtotal.amount + undiscounted_shipping_price
+    )
+    assert (
+        order.undiscounted_total_gross_amount
+        == subtotal.amount + undiscounted_shipping_price
+    )
+
+
+def test_fetch_order_prices_voucher_shipping_percentage(
+    order_with_lines, voucher, plugins_manager
+):
+    # given
+    voucher.type = VoucherType.SHIPPING
+    voucher.discount_value_type = DiscountValueType.PERCENTAGE
+    voucher.save(update_fields=["type", "discount_value_type"])
+
+    order = order_with_lines
+
+    voucher_listing = voucher.channel_listings.get(channel=order.channel)
+    discount_value = Decimal("50")
+    voucher_listing.discount_value = discount_value
+    voucher_listing.save(update_fields=["discount_value"])
+
+    voucher.name = "Voucher shipping"
+    voucher.save(update_fields=["name"])
+
+    order.voucher = voucher
+    code = voucher.codes.first().code
+    order.voucher_code = code
+
+    undiscounted_shipping_price = order.shipping_price.net.amount
+    expected_shipping_price = Decimal(undiscounted_shipping_price / 2)
+    currency = order.currency
+    subtotal = zero_money(currency)
+    lines = order.lines.all()
+    for line in lines:
+        subtotal += line.base_unit_price * line.quantity
+
+    # when
+    order, lines = calculations.fetch_order_prices_if_expired(
+        order, plugins_manager, None, True
+    )
+
+    # then
+    assert OrderDiscount.objects.count() == 1
+    discount = order.discounts.first()
+    assert discount.voucher == voucher
+    assert discount.value_type == voucher.discount_value_type
+    assert discount.value == discount_value
+    assert (
+        discount.amount_value == undiscounted_shipping_price - expected_shipping_price
+    )
+    assert discount.reason == f"Voucher code: {code}"
+    assert discount.name == voucher.name
+    assert discount.type == DiscountType.VOUCHER
+    assert discount.voucher_code == code
+    # TODO (SHOPX-914): set translated voucher name
+    assert discount.translated_name == ""
+
+    assert order.base_shipping_price.amount == undiscounted_shipping_price
+    assert order.shipping_price_net_amount == expected_shipping_price
+    assert order.shipping_price_gross.amount == expected_shipping_price
+    assert order.subtotal_net_amount == subtotal.amount
+    assert order.subtotal_gross_amount == subtotal.amount
+    assert order.total_net_amount == order.subtotal_net_amount + expected_shipping_price
+    assert (
+        order.total_gross_amount == order.subtotal_net_amount + expected_shipping_price
+    )
+    assert (
+        order.undiscounted_total_net_amount
+        == subtotal.amount + undiscounted_shipping_price
+    )
+    assert (
+        order.undiscounted_total_gross_amount
+        == subtotal.amount + undiscounted_shipping_price
+    )
