@@ -14,7 +14,7 @@ def test_update_gift_cards_search_vector_task(gift_card):
     gift_card.save(update_fields=["search_index_dirty"])
 
     # when
-    update_gift_cards_search_vector_task()
+    update_gift_cards_search_vector_task.delay()
 
     # then
     gift_card.refresh_from_db()
