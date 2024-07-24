@@ -1517,6 +1517,7 @@ class TransactionRequestAction(BaseMutation):
         action_type = data["action_type"]
         action_value = data.get("amount")
         validate_one_of_args_is_in_mutation("id", id, "token", token)
+
         transaction = get_transaction_item(id, token)
         if transaction.order_id:
             order = cast(Order, transaction.order)
@@ -1524,11 +1525,17 @@ class TransactionRequestAction(BaseMutation):
         else:
             checkout = cast(Checkout, transaction.checkout)
             channel = checkout.channel
+
         cls.check_channel_permissions(info, [channel.id])
+
         channel_slug = channel.slug
         user = info.context.user
         app = get_app_promise(info.context).get()
         manager = get_plugin_manager_promise(info.context).get()
+
+        if action_value is not None:
+            action_value = quantize_price(action_value, transaction.currency)
+
         action_kwargs = {
             "channel_slug": channel_slug,
             "user": user,
