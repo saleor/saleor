@@ -67,6 +67,44 @@ def test_retry_install_app_mutation(
     assert data["appInstallation"]["status"] == JobStatus.PENDING.upper()
     assert data["appInstallation"]["manifestUrl"] == app_installation.manifest_url
     mocked_task.assert_called_with(app_installation.pk, True)
+    assert App.objects.count() == 0
+
+
+def test_retry_install_app_mutation_with_another_app_installed_but_marked_to_be_removed(
+    monkeypatch,
+    app_installation,
+    permission_manage_apps,
+    staff_api_client,
+    permission_manage_orders,
+    staff_user,
+    app_marked_to_be_removed,
+):
+    assert app_marked_to_be_removed.removed_at is not None
+    # given
+    app_installation.status = JobStatus.FAILED
+    app_installation.save()
+    mocked_task = Mock()
+    monkeypatch.setattr(
+        "saleor.graphql.app.mutations.app_retry_install.install_app_task.delay",
+        mocked_task,
+    )
+    staff_user.user_permissions.set([permission_manage_apps, permission_manage_orders])
+    variables = {
+        "id": graphene.Node.to_global_id("AppInstallation", app_installation.id),
+        "activate_after_installation": True,
+    }
+
+    # when
+    data = _mutate_app_install_retry(staff_api_client, variables)
+
+    # then
+    app_installation = AppInstallation.objects.get()
+    _, app_id = graphene.Node.from_global_id(data["appInstallation"]["id"])
+    assert int(app_id) == app_installation.id
+    assert data["appInstallation"]["status"] == JobStatus.PENDING.upper()
+    assert data["appInstallation"]["manifestUrl"] == app_installation.manifest_url
+    mocked_task.assert_called_with(app_installation.pk, True)
+    assert App.objects.count() == 1
 
 
 def test_retry_install_app_mutation_by_app(
