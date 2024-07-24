@@ -25,6 +25,7 @@ from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...checkout.utils import activate_payments, cancel_active_payments
 from ...core.error_codes import MetadataErrorCode
 from ...core.exceptions import PermissionDenied
+from ...core.prices import quantize_price
 from ...core.tracing import traced_atomic_transaction
 from ...core.utils import get_client_ip
 from ...core.utils.url import validate_storefront_url
@@ -1710,6 +1711,7 @@ class TransactionEventReport(ModelMutation):
                 ]
             )
 
+        amount = quantize_price(amount, transaction.currency)
         app_identifier = None
         if app and app.identifier:
             app_identifier = app.identifier
