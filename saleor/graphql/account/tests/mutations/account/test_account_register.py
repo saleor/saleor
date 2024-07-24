@@ -298,3 +298,31 @@ def test_customer_register_no_channel_email_confirmation_unset(
     assert not data["errors"]
     assert data["user"]["email"].lower()
     mocked_notify.assert_not_called()
+
+
+def test_account_register_properly_filter_errors(
+    api_client, channel_PLN, site_settings
+):
+    # given
+    site_settings.enable_account_confirmation_by_email = False
+    site_settings.save(update_fields=["enable_account_confirmation_by_email"])
+
+    email = "customer"
+    variables = {
+        "input": {
+            "email": email,
+            "password": "Password",
+            "firstName": "saleor",
+            "lastName": "rocks",
+        }
+    }
+
+    # when
+    response = api_client.post_graphql(ACCOUNT_REGISTER_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["accountRegister"]["errors"]
+    assert errors
+    assert errors[0]["code"] == "INVALID"
+    assert errors[0]["field"] == "email"

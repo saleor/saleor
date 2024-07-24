@@ -155,12 +155,9 @@ class AccountRegister(BaseMutation):
         user_exists = False
 
         try:
-            instance.full_clean()
+            instance.full_clean(exclude=["password"])
         except ValidationError as error:
             user_exists, error.error_dict = cls._clean_errors(error)
-
-            if cls._meta.errors_mapping:
-                cls.remap_error_fields(error, cls._meta.errors_mapping)
 
             if error.error_dict:
                 raise error
@@ -235,15 +232,15 @@ class AccountRegister(BaseMutation):
     @classmethod
     def _clean_email_errors(cls, errors):
         existing_user = False
-        _errors = []
+        filtered_errors = []
 
         for error in errors:
             if error.code == "unique":
                 existing_user = True
                 continue
-            _errors.append(error)
+            filtered_errors.append(error)
 
-        return existing_user, _errors
+        return existing_user, filtered_errors
 
     @classmethod
     def _clean_errors(cls, error):
@@ -256,7 +253,6 @@ class AccountRegister(BaseMutation):
                 if not errors:
                     continue
 
-            if field != "password":
-                error_dict[field] = errors
+            error_dict[field] = errors
 
         return existing_user, error_dict
