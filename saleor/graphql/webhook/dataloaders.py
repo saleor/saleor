@@ -1,6 +1,7 @@
 from collections import defaultdict
 from typing import Any
 
+from django.utils import timezone
 from promise import Promise
 
 from ...core.db.connection import allow_writer_in_context
@@ -100,8 +101,8 @@ class PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(DataLoader):
         requestor = get_user_or_app_from_context(self.context)
         request_context = initialize_request(
             requestor,
-            event_type in WebhookEventSyncType.ALL,
-            False,
+            sync_event=True,
+            allow_replica=False,
             event_type=event_type,
         )
         webhooks = get_webhooks_for_event(event_type)
@@ -122,7 +123,10 @@ class PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(DataLoader):
                     tax_configuration, country_tax_configuration
                 )
 
-                if tax_strategy == TaxCalculationStrategy.TAX_APP:
+                if (
+                    tax_strategy == TaxCalculationStrategy.TAX_APP
+                    and checkout_info.checkout.price_expiration <= timezone.now()
+                ):
                     tax_app_identifier = get_tax_app_id(
                         tax_configuration, country_tax_configuration
                     )
