@@ -808,3 +808,55 @@ def test_for_order_with_multiple_payment_gateways(
         ],
         order,
     )
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.payment_gateway_initialize_session")
+def test_with_payment_gateways_and_amount_with_lot_of_decimal_places(
+    mocked_initialize,
+    user_api_client,
+    order_with_lines,
+):
+    # given
+    order = order_with_lines
+    expected_app_identifier = "app.id"
+    expected_data = {"json": "data"}
+    expected_response = {"data": expected_data}
+    expected_input_data = {"input": "json"}
+    excpected_amount = Decimal("28.1256977854")
+    mocked_initialize.return_value = [
+        PaymentGatewayData(
+            app_identifier=expected_app_identifier, data=expected_response
+        )
+    ]
+    variables = {
+        "id": to_global_id_or_none(order),
+        "amount": excpected_amount,
+        "paymentGateways": [
+            {"id": expected_app_identifier, "data": expected_input_data}
+        ],
+    }
+
+    # when
+    response = user_api_client.post_graphql(PAYMENT_GATEWAY_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["paymentGatewayInitialize"]["errors"]
+    assert content["data"]
+    assert len(content["data"]["paymentGatewayInitialize"]["gatewayConfigs"]) == 1
+    gateway_config = content["data"]["paymentGatewayInitialize"]["gatewayConfigs"][0]
+    assert gateway_config == {
+        "id": expected_app_identifier,
+        "data": expected_data,
+        "errors": [],
+    }
+
+    mocked_initialize.assert_called_once_with(
+        round(excpected_amount, 2),
+        [
+            PaymentGatewayData(
+                app_identifier=expected_app_identifier, data=expected_input_data
+            )
+        ],
+        order,
+    )
