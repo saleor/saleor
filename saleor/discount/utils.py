@@ -603,6 +603,10 @@ def update_rule_variant_relation(
     Deletes relations, which are not valid anymore.
     Adds new relations, if they don't exist already.
     `new_rules_variants` is a list of PromotionRuleVariant objects.
+
+    It is important to lock the variants and rules before deleting and adding new
+    relations to avoid integrity errors. It is also important to lock the rules and
+    variants in the same order to avoid deadlocks.
     """
     PromotionRuleVariant = PromotionRule.variants.through
     existing_rules_variants = PromotionRuleVariant.objects.filter(

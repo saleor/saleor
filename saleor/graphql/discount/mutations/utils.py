@@ -1,7 +1,6 @@
 from collections import defaultdict
 
 import graphene
-from django.db import transaction
 from django.db.models import QuerySet
 
 from ....discount.models import Promotion, PromotionRule
@@ -43,23 +42,16 @@ def update_variants_for_promotion(
     PromotionRuleVariant = PromotionRule.variants.through
     rules = PromotionRule.objects.filter(promotion_id=promotion.id)
     promotion_rule_variants = []
-
-    with transaction.atomic():
-        for rule_id in (
-            rules.order_by("pk")
-            .select_for_update()
-            .values_list("id", flat=True)
-            .iterator()
-        ):
-            promotion_rule_variants.extend(
-                [
-                    PromotionRuleVariant(
-                        promotionrule_id=rule_id, productvariant_id=variant.pk
-                    )
-                    for variant in variants
-                ]
-            )
-        update_rule_variant_relation(rules, promotion_rule_variants)
+    for rule_id in promotion.rules.values_list("id", flat=True):
+        promotion_rule_variants.extend(
+            [
+                PromotionRuleVariant(
+                    promotionrule_id=rule_id, productvariant_id=variant.pk
+                )
+                for variant in variants
+            ]
+        )
+    update_rule_variant_relation(rules, promotion_rule_variants)
 
 
 def promotion_rule_should_be_marked_with_dirty_variants(
