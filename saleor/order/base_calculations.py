@@ -93,10 +93,10 @@ def propagate_order_discount_on_order_prices(
     The function returns the subtotal and shipping price after applying the order
     discount.
     """
-    base_subtotal = base_order_subtotal(order, lines)
     # TODO (SHOPX-875): add undiscounted_base_shipping_price field to Order model,
     # and use it here
     base_shipping_price = order.base_shipping_price
+    base_subtotal = base_order_subtotal(order, lines)
     subtotal = base_subtotal
     shipping_price = base_shipping_price
     currency = order.currency

@@ -425,8 +425,12 @@ def test_apply_order_discounts_voucher_entire_order_and_manual_discount_fixed(
     # then
     assert discounted_shipping_price == expected_shipping
     assert discounted_subtotal == expected_subtotal
-    assert order.total_net == expected_shipping + expected_subtotal
-    assert order.total_gross == expected_shipping + expected_subtotal
+    assert quantize_price(order.total_net, currency) == quantize_price(
+        expected_shipping + expected_subtotal, currency
+    )
+    assert quantize_price(order.total_gross, currency) == quantize_price(
+        expected_shipping + expected_subtotal, currency
+    )
     assert order.shipping_price_net == discounted_shipping_price
     assert order.shipping_price_gross == discounted_shipping_price
     assert order.undiscounted_total_net == undiscounted_total

@@ -5084,6 +5084,7 @@ def order_with_lines(
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     order.shipping_price = TaxedMoney(net=net, gross=gross)
     order.base_shipping_price = net
+    order.undiscounted_base_shipping_price = net
     order.shipping_tax_rate = calculate_tax_rate(order.shipping_price)
     order.save()
 
@@ -5478,6 +5479,7 @@ def order_with_lines_channel_PLN(
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     order.shipping_price = TaxedMoney(net=net, gross=gross)
     order.base_shipping_price = net
+    order.undiscounted_base_shipping_price = net
     order.shipping_tax_rate = calculate_tax_rate(order.shipping_price)
     order.save()
 
@@ -5594,6 +5596,7 @@ def order_with_preorder_lines(
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     order.shipping_price = TaxedMoney(net=net, gross=gross)
     order.base_shipping_price = net
+    order.undiscounted_base_shipping_price = net
     order.save()
 
     recalculate_order(order)
