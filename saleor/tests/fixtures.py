@@ -9407,19 +9407,6 @@ def setup_mock_for_cache():
     return _mocked_cache
 
 
-def test_call_checkout_event_for_checkout_triggers_sync_webhook_when_needed(
-    mocked_send_webhook_request_async,
-    mocked_send_webhook_request_sync,
-    checkout_with_items,
-    permission_handle_taxes,
-    permission_manage_shipping,
-    permission_manage_checkouts,
-    settings,
-):
-    # given
-    mocked_send_webhook_request_sync.return_value = None
-
-
 @pytest.fixture
 def setup_checkout_webhooks(
     permission_handle_taxes,
