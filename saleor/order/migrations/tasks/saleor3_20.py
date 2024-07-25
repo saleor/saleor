@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.db import transaction
 from django.db.models import Exists, F, OuterRef, Q
 
@@ -107,7 +109,8 @@ def _calculate_and_set_undiscounted_base_shipping_price(orders):
     }
     for order in orders:
         order.undiscounted_base_shipping_price_amount = (
-            order.base_shipping_price_amount + order_to_discount_amount[order.pk]
+            order.base_shipping_price_amount
+            + order_to_discount_amount.get(order.pk, Decimal("0.0"))
         )
     with transaction.atomic():
         _orders = list(orders.select_for_update(of=(["self"])))
