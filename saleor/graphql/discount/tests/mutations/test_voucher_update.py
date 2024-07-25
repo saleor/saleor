@@ -516,3 +516,35 @@ def test_update_voucher_usage_limit(
     assert code_1.used == expected_code_1_used
     assert code_2.used == expected_code_2_used
     assert code_3.used == expected_code_3_used
+
+
+def test_update_voucher_with_deprecated_code_field(
+    staff_api_client,
+    voucher,
+    permission_manage_discounts,
+):
+    # given
+    new_code = "new-code"
+    code_instance = voucher.codes.get()
+    assert code_instance.code != new_code
+    variables = {
+        "id": graphene.Node.to_global_id("Voucher", voucher.id),
+        "input": {
+            "code": new_code,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["voucherUpdate"]["errors"]
+    data = content["data"]["voucherUpdate"]["voucher"]
+    assert len(data["codes"]["edges"]) == 1
+    assert data["codes"]["edges"][0]["node"]["code"] == new_code
+
+    code_instance.refresh_from_db()
+    assert code_instance.code == new_code

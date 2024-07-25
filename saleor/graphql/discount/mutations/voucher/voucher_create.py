@@ -207,9 +207,12 @@ class VoucherCreate(ModelMutation):
             cls._clean_old_code(data)
 
     @classmethod
-    def construct_codes_instances(cls, code, codes_data, voucher_instance):
+    def construct_codes_instances(
+        cls, code, codes_data, voucher_instance
+    ) -> tuple[list[models.VoucherCode], list[models.VoucherCode]]:
+        codes_to_create = []
         if codes_data:
-            return [
+            codes_to_create = [
                 models.VoucherCode(
                     code=code,
                     voucher=voucher_instance,
@@ -218,14 +221,14 @@ class VoucherCreate(ModelMutation):
             ]
 
         if code:
-            return [
+            codes_to_create = [
                 models.VoucherCode(
                     code=code,
                     voucher=voucher_instance,
                 )
             ]
 
-        return []
+        return codes_to_create, []
 
     @classmethod
     def clean_voucher_instance(cls, info: ResolveInfo, voucher_instance):
@@ -282,7 +285,7 @@ class VoucherCreate(ModelMutation):
         code = cleaned_input.pop("code", None)
 
         voucher_instance = cls.construct_instance(voucher_instance, cleaned_input)
-        codes_to_create = cls.construct_codes_instances(
+        codes_to_create, codes_to_update = cls.construct_codes_instances(
             code, codes_to_create_data, voucher_instance
         )
 
@@ -292,14 +295,11 @@ class VoucherCreate(ModelMutation):
 
         cls.clean_voucher_instance(info, voucher_instance)
 
-        has_multiple_codes = bool(codes_to_create_data)
         if codes_to_create:
             cls.clean_codes_instance(codes_to_create)
-        codes_to_update = cleaned_input.pop("codes_to_update", [])
+        codes_to_update.extend(cleaned_input.pop("codes_to_update", []))
 
-        cls.save(
-            info, voucher_instance, codes_to_create, codes_to_update, has_multiple_codes
-        )
+        cls.save(info, voucher_instance, codes_to_create, codes_to_update)
         cls._save_m2m(info, voucher_instance, cleaned_input)
 
         cls.post_save_action(info, voucher_instance, codes_to_create, cleaned_input)

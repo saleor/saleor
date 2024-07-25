@@ -140,9 +140,12 @@ class VoucherUpdate(VoucherCreate):
         return []
 
     @classmethod
-    def construct_codes_instances(cls, code, codes_data, voucher_instance):
+    def construct_codes_instances(
+        cls, code, codes_data, voucher_instance
+    ) -> tuple[list[models.VoucherCode], list[models.VoucherCode]]:
+        codes_to_create, codes_to_update = [], []
         if codes_data:
-            return [
+            codes_to_create = [
                 models.VoucherCode(
                     code=code,
                     voucher=voucher_instance,
@@ -154,7 +157,7 @@ class VoucherUpdate(VoucherCreate):
             if voucher_instance.codes.count() == 1:
                 code_instance = voucher_instance.codes.first()
                 code_instance.code = code
-                return [code_instance]
+                codes_to_update = [code_instance]
             else:
                 raise ValidationError(
                     {
@@ -165,7 +168,7 @@ class VoucherUpdate(VoucherCreate):
                     }
                 )
 
-        return []
+        return codes_to_create, codes_to_update
 
     @classmethod
     def save(  # type: ignore[override]
@@ -174,12 +177,7 @@ class VoucherUpdate(VoucherCreate):
         voucher_instance,
         codes_to_create: list[models.VoucherCode],
         codes_to_update: list[models.VoucherCode],
-        has_multiple_codes: bool,
     ):
-        if not has_multiple_codes:
-            # TODO zedzior
-            pass
-
         with transaction.atomic():
             voucher_instance.save()
             if codes_to_create:
