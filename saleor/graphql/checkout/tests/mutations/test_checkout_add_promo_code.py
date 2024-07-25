@@ -2,6 +2,7 @@ from datetime import date, timedelta
 from decimal import Decimal
 from unittest import mock
 
+import before_after
 import graphene
 import pytest
 from django.utils import timezone
@@ -13,7 +14,7 @@ from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.utils import add_variant_to_checkout, set_external_shipping_id
 from .....discount import VoucherType
 from .....plugins.manager import get_plugins_manager
-from .....product.models import ProductVariantChannelListing
+from .....product.models import Collection, ProductVariantChannelListing
 from .....warehouse.models import Stock
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
@@ -499,6 +500,42 @@ def test_checkout_add_collection_voucher_code_checkout_with_sale(
     )
     assert checkout.voucher_code == voucher.code
     assert checkout.discount_amount == voucher_discount
+
+
+def test_checkout_add_collection_voucher_code_checkout_with_sale_collection_deleted(
+    api_client, checkout_with_item_on_sale, voucher_percentage, collection
+):
+    # given
+    checkout = checkout_with_item_on_sale
+
+    voucher = voucher_percentage
+    product = checkout.lines.first().variant.product
+    product.collections.add(collection)
+    voucher.type = VoucherType.SPECIFIC_PRODUCT
+    voucher.save()
+    voucher.collections.add(collection)
+    checkout.price_expiration = timezone.now()
+    lines, _ = fetch_checkout_lines(checkout)
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "promoCode": voucher.code,
+    }
+    assert Collection.objects.count() == 1
+
+    # when
+    def delete_collections(*args, **kwargs):
+        Collection.objects.all().delete()
+
+    with before_after.after(
+        "saleor.graphql.product.dataloaders.products.CollectionsByProductIdLoader"
+        ".batch_load",
+        delete_collections,
+    ):
+        data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    # then
+    assert not data["errors"]
+    assert Collection.objects.count() == 0
 
 
 def test_checkout_add_category_code_checkout_with_sale(
