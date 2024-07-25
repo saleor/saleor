@@ -209,21 +209,30 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
         amount_field="shipping_price_gross_amount", currency_field="currency"
     )
 
+    # Price with applied shipping voucher discount
     shipping_price = TaxedMoneyField(
         net_amount_field="shipping_price_net_amount",
         gross_amount_field="shipping_price_gross_amount",
         currency_field="currency",
     )
-    # Price with applied shipping voucher discount
-    # (for draft order - price without discount)
-    # FIXME (SHOPX-875)
     base_shipping_price_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=Decimal("0.0"),
     )
+    # Shipping price with applied shipping voucher discount, without tax
     base_shipping_price = MoneyField(
         amount_field="base_shipping_price_amount", currency_field="currency"
+    )
+    undiscounted_base_shipping_price_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal("0.0"),
+    )
+    # Shipping price before applying any discounts
+    undiscounted_base_shipping_price = MoneyField(
+        amount_field="undiscounted_base_shipping_price_amount",
+        currency_field="currency",
     )
     shipping_tax_rate = models.DecimalField(
         max_digits=5, decimal_places=4, blank=True, null=True

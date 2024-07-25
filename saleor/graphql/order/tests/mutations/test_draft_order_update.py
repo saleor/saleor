@@ -1805,3 +1805,38 @@ def test_draft_order_update_with_cc_warehouse_as_shipping_method(
     assert len(errors) == 1
     assert errors[0]["code"] == OrderErrorCode.INVALID.name
     assert errors[0]["field"] == "shippingMethod"
+
+
+def test_draft_order_update_undiscounted_base_shipping_price_set(
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+    graphql_address_data,
+):
+    # given
+    order = order_with_lines
+    order.status = OrderStatus.DRAFT
+    order.save(update_fields=["status"])
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {
+        "id": order_id,
+        "input": {
+            "billingAddress": graphql_address_data,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["draftOrderUpdate"]["errors"]
+
+    order.refresh_from_db()
+    assert (
+        order.undiscounted_base_shipping_price_amount
+        == order.base_shipping_price_amount
+    )

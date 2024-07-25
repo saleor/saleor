@@ -11825,6 +11825,13 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   """Shipping method for this order."""
   shippingMethod: ShippingMethod @deprecated(reason: "This field will be removed in Saleor 4.0. Use `deliveryMethod` instead.")
 
+  """
+  Undiscounted total price of shipping.
+  
+  Added in Saleor 3.19.
+  """
+  undiscountedShippingPrice: Money!
+
   """Total price of shipping."""
   shippingPrice: TaxedMoney!
 
