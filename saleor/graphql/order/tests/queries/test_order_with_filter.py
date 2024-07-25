@@ -28,7 +28,7 @@ from ....tests.utils import get_graphql_content, get_graphql_content_from_respon
 def orders_query_with_filter():
     query = """
       query ($filter: OrderFilterInput!, ) {
-        orders(first: 5, filter:$filter) {
+        orders(first: 10, filter:$filter) {
           totalCount
           edges {
             node {
@@ -1358,3 +1358,66 @@ def test_order_query_with_filter_by_empty_list(
     # then
     content = get_graphql_content(response)
     assert content["data"]["orders"]["totalCount"] == len(orders_from_checkout)
+
+
+def test_order_query_with_filter_checkout_tokens(
+    orders_query_with_filter,
+    staff_api_client,
+    permission_group_manage_orders,
+    order,
+    orders_from_checkout,
+    channel_USD,
+):
+    assert not order.checkout_token
+    assert all([order.checkout_token for order in orders_from_checkout])
+    # given
+    variables = {
+        "filter": {
+            "checkoutTokens": [order.checkout_token for order in orders_from_checkout],
+        },
+    }
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(orders_query_with_filter, variables)
+
+    # then
+    content = get_graphql_content(response)
+    order_data = content["data"]["orders"]["edges"]
+    assert len(order_data) == len(orders_from_checkout)
+    for order in orders_from_checkout:
+        assert {
+            "node": {"id": graphene.Node.to_global_id("Order", order.pk)}
+        } in order_data
+
+
+def test_order_query_with_filter_checkout_tokens_empty_list(
+    orders_query_with_filter,
+    staff_api_client,
+    permission_group_manage_orders,
+    order,
+    orders_from_checkout,
+    channel_USD,
+):
+    assert not order.checkout_token
+    assert all([order.checkout_token for order in orders_from_checkout])
+    # given
+    variables = {
+        "filter": {
+            "checkoutTokens": [],
+        },
+    }
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(orders_query_with_filter, variables)
+
+    # then
+    content = get_graphql_content(response)
+    order_data = content["data"]["orders"]["edges"]
+
+    assert len(order_data) == len(orders_from_checkout + [order])
+    for order in orders_from_checkout + [order]:
+        assert {
+            "node": {"id": graphene.Node.to_global_id("Order", order.pk)}
+        } in order_data
