@@ -1709,13 +1709,13 @@ def create_or_update_discount_objects_from_voucher(order, lines_info):
 
 
 def create_or_update_discount_object_from_order_level_voucher(order):
-    """Create or update discount object for ENTIRE_ORDER voucher."""
+    """Create or update discount object for ENTIRE_ORDER and SHIPPING voucher."""
     if not order.voucher_id:
         order.discounts.filter(type=DiscountType.VOUCHER).delete()
         return
 
     voucher = order.voucher
-    if not (is_order_level_voucher(voucher) or is_shipping_voucher(voucher)):
+    if not is_order_level_voucher(voucher) and not is_shipping_voucher(voucher):
         return
 
     voucher_channel_listing = voucher.channel_listings.filter(
