@@ -199,7 +199,10 @@ def _get_product_to_variant_channel_listings_per_channel_map(
         lambda: defaultdict(list)
     )
     for variant_channel_listing in variant_channel_listings.iterator():
-        product_id = variant_to_product_id[variant_channel_listing.variant_id]
+        try:
+            product_id = variant_to_product_id[variant_channel_listing.variant_id]
+        except KeyError:
+            continue
         price_data[product_id][variant_channel_listing.channel_id].append(
             variant_channel_listing
         )
