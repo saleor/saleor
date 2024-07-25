@@ -5,6 +5,12 @@ from ...checkout.models import Checkout
 
 
 def call_event_including_protected_events(func_obj, *func_args, **func_kwargs):
+    """Call event without additional validation.
+
+    This function triggers the event without any additional validation. It should be
+    used when all additional actions are already handled. Additional actions like
+    triggering all existing sync webhooks before calling async webhooks.
+    """
     connection = transaction.get_connection()
     if connection.in_atomic_block:
         transaction.on_commit(lambda: func_obj(*func_args, **func_kwargs))

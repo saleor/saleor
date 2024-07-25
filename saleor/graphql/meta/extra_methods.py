@@ -1,6 +1,6 @@
 from ...checkout.actions import (
     call_checkout_event_for_checkout_info,
-    checkout_event_requires_additional_action,
+    checkout_event_requires_sync_webhooks_to_trigger,
 )
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...product.models import Product, ProductVariant
@@ -21,9 +21,9 @@ def extra_checkout_actions(instance, info: ResolveInfo, **data):
     )
     # In case of having any active combination of async/sync webhooks for these events
     # we need to fetch checkout lines and checkout info to call sync webhook first.
-    if checkout_event_requires_additional_action(
+    if checkout_event_requires_sync_webhooks_to_trigger(
         WebhookEventAsyncType.CHECKOUT_UPDATED, webhook_event_map
-    ) or checkout_event_requires_additional_action(
+    ) or checkout_event_requires_sync_webhooks_to_trigger(
         WebhookEventAsyncType.CHECKOUT_METADATA_UPDATED, webhook_event_map
     ):
         lines_info, _ = fetch_checkout_lines(

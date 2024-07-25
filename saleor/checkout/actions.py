@@ -26,11 +26,19 @@ if TYPE_CHECKING:
     from ..webhook.models import Webhook
 
 
-def checkout_event_requires_additional_action(event_name, webhook_event_map):
-    # No need for additional actions as we don't have any webhook for the `event_name`
+def checkout_event_requires_sync_webhooks_to_trigger(
+    event_name: str, webhook_event_map: dict[str, set["Webhook"]]
+) -> bool:
+    """Check if calling the event requires additional actions.
+
+    In case of having active webhook with the `event_name`, the function will return
+    True, when any sync checkout's webhooks are active. `True` means that sync webhook
+    should be triggered first, before calling async webhook.
+    """
+
     if event_name not in webhook_event_map:
         return False
-    # No need for additional actions as we don't have any sync webhook for the checkout
+
     if not set(WebhookEventSyncType.CHECKOUT_EVENTS).intersection(
         webhook_event_map.keys()
     ):
@@ -47,7 +55,9 @@ def call_checkout_event_for_checkout(
     webhook_event_map = get_webhooks_for_multiple_events(
         [event_name, *WebhookEventSyncType.CHECKOUT_EVENTS]
     )
-    if not checkout_event_requires_additional_action(event_name, webhook_event_map):
+    if not checkout_event_requires_sync_webhooks_to_trigger(
+        event_name, webhook_event_map
+    ):
         call_event_including_protected_events(event_func, checkout)
         return
 
@@ -77,7 +87,7 @@ def call_checkout_event_for_checkout_info(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"] = None,
-    webhook_event_map: Optional[dict[str, list["Webhook"]]] = None,
+    webhook_event_map: Optional[dict[str, set["Webhook"]]] = None,
 ):
     checkout = checkout_info.checkout
     if webhook_event_map is None:
@@ -87,7 +97,9 @@ def call_checkout_event_for_checkout_info(
 
     # No need to trigger additional sync webhook when we don't have active webhook or
     # we don't have active sync checkout webhooks
-    if not checkout_event_requires_additional_action(event_name, webhook_event_map):
+    if not checkout_event_requires_sync_webhooks_to_trigger(
+        event_name, webhook_event_map
+    ):
         call_event_including_protected_events(event_func, checkout)
         return None
 
