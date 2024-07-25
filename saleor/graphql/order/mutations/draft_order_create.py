@@ -548,6 +548,12 @@ class DraftOrderCreate(
                     cls._update_shipping_price(instance, shipping_channel_listing)
                 updated_fields.extend(SHIPPING_METHOD_UPDATE_FIELDS)
 
+            if instance.undiscounted_base_shipping_price_amount is None:
+                instance.undiscounted_base_shipping_price_amount = (
+                    instance.base_shipping_price_amount
+                )
+                updated_fields.append("undiscounted_base_shipping_price_amount")
+
             # Save any changes create/update the draft
             cls._commit_changes(info, instance, cleaned_input, is_new_instance, app)
 

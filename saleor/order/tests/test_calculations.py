@@ -344,6 +344,7 @@ def test_recalculate_with_plugins_order_discounts_and_total_undiscounted_price_c
     shipping_listing.price = new_shipping_price
     shipping_listing.save(update_fields=["price_amount"])
 
+    order.undiscounted_base_shipping_price = new_shipping_price
     order.base_shipping_price = new_shipping_price
     order.shipping_method = shipping_method_weight_based
     order.shipping_method_name = shipping_method_weight_based.name
@@ -412,6 +413,7 @@ def test_recalculate_prices_total_shipping_price_changed(
     shipping_listing.save(update_fields=["price_amount"])
 
     order.base_shipping_price = new_shipping_price
+    order.undiscounted_base_shipping_price = new_shipping_price
     order.shipping_method = shipping_method_weight_based
     order.shipping_method_name = shipping_method_weight_based.name
     order.save(
@@ -825,7 +827,7 @@ def test_fetch_order_prices_when_tax_exemption_and_not_include_taxes_in_prices(
     assert order_with_lines.discounts.first().amount_value == expected_discount_amount
     subtotal = zero_taxed_money(currency)
     undiscounted_subtotal = zero_taxed_money(currency)
-    undiscounted_shipping = order_with_lines.base_shipping_price
+    undiscounted_shipping = order_with_lines.undiscounted_base_shipping_price
     shipping_price = order_with_lines.shipping_price
     assert shipping_price.net == undiscounted_shipping * discount / 100
     assert shipping_price.net == shipping_price.gross
@@ -894,6 +896,7 @@ def test_fetch_order_prices_if_expired_use_base_shipping_price(
     )
     expected_price = Money("2.00", currency)
     order.base_shipping_price = expected_price
+    order.undiscounted_base_shipping_price = expected_price
     order.save()
 
     # when

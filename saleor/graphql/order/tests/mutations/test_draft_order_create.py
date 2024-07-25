@@ -3345,3 +3345,45 @@ def test_draft_order_create_with_voucher_without_user(
     assert order.user is None
     assert data["order"]["voucherCode"] == voucher_percentage.code == order.voucher_code
     assert data["order"]["status"] == OrderStatus.DRAFT.upper() == order.status.upper()
+
+
+def test_draft_order_create_create_no_shipping_method(
+    staff_api_client,
+    permission_group_manage_orders,
+    variant,
+    channel_USD,
+    graphql_address_data,
+):
+    # given
+    # display_gross_prices is disabled and there is no country-specific configuration
+    # order.display_gross_prices should be also disabled as a result
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    variant_0 = variant
+    query = DRAFT_ORDER_CREATE_MUTATION
+
+    variant_0_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
+    variant_list = [{"variantId": variant_0_id, "quantity": 2}]
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+
+    variables = {
+        "input": {
+            "lines": variant_list,
+            "billingAddress": graphql_address_data,
+            "shippingAddress": graphql_address_data,
+            "channelId": channel_id,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["draftOrderCreate"]["errors"]
+    order_id = content["data"]["draftOrderCreate"]["order"]["id"]
+    _, order_pk = graphene.Node.from_global_id(order_id)
+
+    order = Order.objects.get(id=order_pk)
+    assert order.undiscounted_base_shipping_price_amount == 0
+    assert order.base_shipping_price_amount == 0

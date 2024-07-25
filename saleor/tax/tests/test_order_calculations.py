@@ -331,6 +331,9 @@ def test_calculate_order_shipping(order_line, shipping_zone):
     order.shipping_method_name = method.name
     order.shipping_method = method
     order.base_shipping_price = method.channel_listings.get(channel=order.channel).price
+    order.undiscounted_base_shipping_price = method.channel_listings.get(
+        channel=order.channel
+    ).price
     order.save()
 
     apply_order_discounts(order, lines)
