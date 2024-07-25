@@ -8,6 +8,7 @@ from freezegun import freeze_time
 from .....core.utils.json_serializer import CustomJsonEncoder
 from .....discount import DiscountValueType
 from .....discount.error_codes import DiscountErrorCode
+from .....order.models import Order
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_meta, generate_requestor
 from ....tests.utils import get_graphql_content
@@ -415,3 +416,46 @@ def test_update_voucher_single_use_voucher_already_used_in_checkout(
     assert errors[0]["field"] == "singleUse"
     assert errors[0]["code"] == DiscountErrorCode.VOUCHER_ALREADY_USED.name
     assert not errors[0]["voucherCodes"]
+
+
+def test_update_voucher_current_usage_exceed_limit(
+    staff_api_client,
+    voucher_with_many_codes,
+    permission_manage_discounts,
+    order_list,
+    order_line,
+    checkout,
+):
+    # given
+    voucher = voucher_with_many_codes
+    code_1, code_2, code_3, code_4, code_5 = voucher.codes.all()
+    order_1, order_2, order_3 = order_list
+
+    order_1.voucher_code = code_1.code
+    order_2.voucher_code = code_2.code
+    Order.objects.bulk_update([order_1, order_2], ["voucher_code"])
+
+    order_line.voucher_code = code_3.code
+    order_line.save(update_fields=["voucher_code"])
+
+    checkout.voucher_code = code_3.code
+    checkout.save(update_fields=["voucher_code"])
+
+    variables = {
+        "id": graphene.Node.to_global_id("Voucher", voucher.id),
+        "input": {"usageLimit": 3},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["voucherUpdate"]["voucher"]
+    errors = content["data"]["voucherUpdate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "usageLimit"
+    assert errors[0]["code"] == DiscountErrorCode.USAGE_LIMIT_EXCEEDED.name
+    assert "(4)" in errors[0]["message"]

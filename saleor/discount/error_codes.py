@@ -11,6 +11,7 @@ class DiscountErrorCode(Enum):
     CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT = "cannot_manage_product_without_variant"
     DUPLICATED_INPUT_ITEM = "duplicated_input_item"
     VOUCHER_ALREADY_USED = "voucher_already_used"
+    USAGE_LIMIT_EXCEEDED = "usage_limit_exceeded"
 
 
 class PromotionCreateErrorCode(Enum):

@@ -1,11 +1,15 @@
+from collections import Counter
+from itertools import chain
+
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Exists, OuterRef
+from django.db.models import Exists, OuterRef, Q
 
 from .....checkout import models as checkout_models
 from .....discount import models
 from .....discount.error_codes import DiscountErrorCode
+from .....order import OrderStatus
 from .....order import models as order_models
 from .....permission.enums import DiscountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
@@ -46,6 +50,7 @@ class VoucherUpdate(VoucherCreate):
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
         cls.clean_codes(data)
         cls.clean_voucher_usage_setting(instance, data)
+        cls.clean_usage_limit(instance, data)
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
         return cleaned_input
@@ -84,6 +89,50 @@ class VoucherUpdate(VoucherCreate):
                         )
                     }
                 )
+
+    @classmethod
+    def count_voucher_usage(cls, voucher: Voucher) -> dict[str, int]:
+        voucher_codes = [code.code for code in voucher.codes.all()]
+        orders = order_models.Order.objects.select_related("channel").filter(
+            voucher_code__in=voucher_codes
+        )
+        orders = orders.exclude(
+            Q(channel__include_draft_order_in_voucher_usage=False)
+            & Q(status=OrderStatus.DRAFT)
+        ).values_list("voucher_code", flat=True)
+        order_lines = order_models.OrderLine.objects.select_related(
+            "order__channel"
+        ).filter(voucher_code__in=voucher_codes)
+        order_lines = order_lines.exclude(
+            Q(order__channel__include_draft_order_in_voucher_usage=False)
+            & Q(order__status=OrderStatus.DRAFT)
+        ).values_list("voucher_code", flat=True)
+        checkouts = checkout_models.Checkout.objects.filter(
+            voucher_code__in=voucher_codes
+        ).values_list("voucher_code", flat=True)
+
+        usage = list(chain(orders, order_lines, checkouts))
+        return dict(Counter(usage))  # type: ignore[arg-type]
+
+    @classmethod
+    def clean_usage_limit(cls, instance: Voucher, data):
+        if "usage_limit" in data and instance.usage_limit != data["usage_limit"]:
+            new_limit = data["usage_limit"]
+            current_usage_data = cls.count_voucher_usage(instance)
+            current_usage_total = sum(current_usage_data.values())
+            if current_usage_total > new_limit:
+                raise ValidationError(
+                    {
+                        "usage_limit": ValidationError(
+                            "The voucher have been already used more times "
+                            f"({current_usage_total}) than new limit.",
+                            code=DiscountErrorCode.USAGE_LIMIT_EXCEEDED.value,
+                        )
+                    }
+                )
+            voucher_codes = instance.codes.all()
+            for code in voucher_codes:
+                code.used = current_usage_data.get(code.code, 0)
 
     @classmethod
     def construct_codes_instances(

@@ -639,17 +639,8 @@ def test_bulk_release_voucher_usage_voucher_usage_mismatch(
     # order.voucher_code=code-123 and voucher_code.used=0
     #
     # CASE 2:
-    # 1. use channelUpdate mutation to set:
-    #   a. include_draft_order_in_voucher_usage=True
-    #   b. automatically_confirm_all_new_orders=False
-    # 2. create voucher without setting usage_limit
-    # 3. create new code for the voucher (ie. code-123)
-    # 4. create draft order and associate it with the “code-123”
-    # 5. set usageLimit for the voucher
-    # Now we have draft order where order.voucher_code=code-123 and voucher_code.used=0
-    #
-    # This test will mimic above steps to create the mismatch and will test
-    # _bulk_release_voucher_usage trying to not save negative values
+    # orders have been imported with orderBulkCreate mutation, which does not
+    # check voucher usage limit
 
     # given
     channel_USD.expire_orders_after = 1
