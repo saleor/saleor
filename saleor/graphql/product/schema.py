@@ -487,7 +487,7 @@ class ProductQueries(graphene.ObjectType):
         def _resolve_products(channel_obj):
             if not channel_obj:
                 raise GraphQLError(
-                    f"BRO, Channel with '{channel}' slug does not exist."
+                    f"Channel with '{channel}' slug does not exist (Nathan))."
                 )
 
             qs = resolve_products(info, requestor, channel_obj, limited_channel_access)
