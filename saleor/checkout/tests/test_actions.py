@@ -478,6 +478,53 @@ def test_call_checkout_event_for_checkout_skip_sync_webhooks_when_async_missing(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_call_checkout_event_only_async_when_sync_missing(
+    mocked_send_webhook_request_async,
+    mocked_send_webhook_request_sync,
+    checkout_with_items,
+    permission_manage_checkouts,
+    settings,
+    webhook,
+):
+    # given
+    plugins_manager = get_plugins_manager(allow_replica=False)
+    checkout_with_items.price_expiration = timezone.now()
+    checkout_with_items.save(update_fields=["price_expiration"])
+
+    webhook.events.create(event_type=WebhookEventAsyncType.CHECKOUT_CREATED)
+    webhook.app.permissions.add(permission_manage_checkouts)
+
+    # when
+    with freeze_time("2023-06-01 12:00:01"):
+        call_checkout_event_for_checkout(
+            plugins_manager,
+            plugins_manager.checkout_created,
+            WebhookEventAsyncType.CHECKOUT_CREATED,
+            checkout_with_items,
+        )
+
+    # then
+    flush_post_commit_hooks()
+
+    # confirm that event delivery was generated for each webhook.
+    checkout_create_delivery = EventDelivery.objects.get(webhook_id=webhook.id)
+
+    mocked_send_webhook_request_async.assert_called_once_with(
+        kwargs={"event_delivery_id": checkout_create_delivery.id},
+        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+        bind=True,
+        retry_backoff=10,
+        retry_kwargs={"max_retries": 5},
+    )
+    assert not mocked_send_webhook_request_sync.called
+
+
+@freeze_time("2023-05-31 12:00:01")
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_checkout_event_for_checkout_info_triggers_sync_webhook_when_needed(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
@@ -625,6 +672,63 @@ def test_call_checkout_event_for_checkout_info_skips_tax_webhook_when_not_expire
             call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
         ]
     )
+
+
+@freeze_time("2023-05-31 12:00:01")
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_call_checkout_event_for_checkout_info_only_async_when_sync_missing(
+    mocked_send_webhook_request_async,
+    mocked_send_webhook_request_sync,
+    checkout_with_items,
+    permission_manage_checkouts,
+    settings,
+    webhook,
+):
+    # given
+    plugins_manager = get_plugins_manager(allow_replica=False)
+    checkout_with_items.price_expiration = timezone.now()
+    checkout_with_items.save(update_fields=["price_expiration"])
+
+    webhook.events.create(event_type=WebhookEventAsyncType.CHECKOUT_CREATED)
+    webhook.app.permissions.add(permission_manage_checkouts)
+
+    lines_info, _ = fetch_checkout_lines(
+        checkout_with_items,
+    )
+    checkout_info = fetch_checkout_info(
+        checkout_with_items,
+        lines_info,
+        plugins_manager,
+    )
+
+    # when
+    with freeze_time("2023-06-01 12:00:01"):
+        call_checkout_event_for_checkout_info(
+            plugins_manager,
+            plugins_manager.checkout_created,
+            WebhookEventAsyncType.CHECKOUT_CREATED,
+            checkout_info,
+            lines_info,
+        )
+
+    # then
+    flush_post_commit_hooks()
+
+    # confirm that event delivery was generated for each webhook.
+    checkout_create_delivery = EventDelivery.objects.get(webhook_id=webhook.id)
+
+    mocked_send_webhook_request_async.assert_called_once_with(
+        kwargs={"event_delivery_id": checkout_create_delivery.id},
+        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+        bind=True,
+        retry_backoff=10,
+        retry_kwargs={"max_retries": 5},
+    )
+    assert not mocked_send_webhook_request_sync.called
 
 
 @freeze_time("2023-05-31 12:00:01")
