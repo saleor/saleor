@@ -13,6 +13,7 @@ All notable, unreleased changes to this project will be documented in this file.
     `AccountRegister` mutation will additionaly not return `ID` of the user.
   - `ConfirmAccount`,
   - `RequestPasswordReset`,
+    `RequestPasswordReset` will now require `channel` as input  for staff users,
   - `SetPassword`, #16243 by @kadewu
 
 ### GraphQL API
