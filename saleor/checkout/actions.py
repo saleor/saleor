@@ -1,16 +1,117 @@
+from collections.abc import Iterable
+from datetime import timedelta
 from decimal import Decimal
-from typing import cast
+from typing import TYPE_CHECKING, Callable, Optional, cast
 
 from django.db.models import Q
+from django.utils import timezone
 
-from ..core.utils.events import call_event
+from ..core.utils.events import call_event_including_protected_events
 from ..payment.models import TransactionItem
-from ..plugins.manager import PluginsManager
+from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from ..webhook.utils import get_webhooks_for_multiple_events
 from . import CheckoutChargeStatus
 from .calculations import fetch_checkout_data
-from .fetch import fetch_checkout_info, fetch_checkout_lines
+from .fetch import (
+    CheckoutInfo,
+    CheckoutLineInfo,
+    fetch_checkout_info,
+    fetch_checkout_lines,
+)
 from .models import Checkout
 from .payment_utils import update_refundable_for_checkout
+
+if TYPE_CHECKING:
+    from ..account.models import Address
+    from ..plugins.manager import PluginsManager
+    from ..webhook.models import Webhook
+
+
+def checkout_event_requires_additional_action(event_name, webhook_event_map):
+    # No need for additional actions as we don't have any webhook for the `event_name`
+    if event_name not in webhook_event_map:
+        return False
+    # No need for additional actions as we don't have any sync webhook for the checkout
+    if not set(WebhookEventSyncType.CHECKOUT_EVENTS).intersection(
+        webhook_event_map.keys()
+    ):
+        return False
+    return True
+
+
+def call_checkout_event_for_checkout(
+    manager: "PluginsManager",
+    event_func: Callable,
+    event_name: str,
+    checkout: "Checkout",
+):
+    webhook_event_map = get_webhooks_for_multiple_events(
+        [event_name, *WebhookEventSyncType.CHECKOUT_EVENTS]
+    )
+    if not checkout_event_requires_additional_action(event_name, webhook_event_map):
+        call_event_including_protected_events(event_func, checkout)
+        return
+
+    lines_info, _ = fetch_checkout_lines(
+        checkout,
+    )
+    checkout_info = fetch_checkout_info(
+        checkout,
+        lines_info,
+        manager,
+    )
+    call_checkout_event_for_checkout_info(
+        manager=manager,
+        event_func=event_func,
+        event_name=event_name,
+        checkout_info=checkout_info,
+        lines=lines_info,
+        webhook_event_map=webhook_event_map,
+    )
+    return
+
+
+def call_checkout_event_for_checkout_info(
+    manager: "PluginsManager",
+    event_func: Callable,
+    event_name: str,
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
+    address: Optional["Address"] = None,
+    webhook_event_map: Optional[dict[str, list["Webhook"]]] = None,
+):
+    checkout = checkout_info.checkout
+    if webhook_event_map is None:
+        webhook_event_map = get_webhooks_for_multiple_events(
+            [event_name, *WebhookEventSyncType.CHECKOUT_EVENTS]
+        )
+
+    # No need to trigger additional sync webhook when we don't have active webhook or
+    # we don't have active sync checkout webhooks
+    if not checkout_event_requires_additional_action(event_name, webhook_event_map):
+        call_event_including_protected_events(event_func, checkout)
+        return None
+
+    _ = checkout_info.all_shipping_methods
+
+    # + timedelta(seconds=10) to confirm that triggered webhooks will still have a
+    # valid prices. Triggered only when we have active sync tax webhook
+    if (
+        WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES in webhook_event_map
+        and checkout.price_expiration < timezone.now() + timedelta(seconds=10)
+    ):
+        fetch_checkout_data(
+            checkout_info=checkout_info,
+            manager=manager,
+            lines=lines,
+            address=address
+            or checkout_info.shipping_address
+            or checkout_info.billing_address,
+            force_update=True,
+        )
+
+    call_event_including_protected_events(event_func, checkout)
+    return None
 
 
 def get_checkout_refundable(transaction: TransactionItem, checkout: Checkout):
@@ -75,4 +176,10 @@ def transaction_amounts_for_checkout_updated(
         update_refundable_for_checkout(checkout.pk)
 
     if not previous_charge_status_is_fully_paid and current_status_is_fully_paid:
-        call_event(manager.checkout_fully_paid, checkout_info.checkout)
+        call_checkout_event_for_checkout_info(
+            manager,
+            event_func=manager.checkout_fully_paid,
+            event_name=WebhookEventAsyncType.CHECKOUT_FULLY_PAID,
+            checkout_info=checkout_info,
+            lines=lines,
+        )

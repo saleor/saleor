@@ -5,6 +5,7 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....checkout import AddressType, models
+from ....checkout.actions import call_checkout_event_for_checkout_info
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import (
     CheckoutLineInfo,
@@ -215,6 +216,12 @@ class CheckoutShippingAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixi
             + invalidate_prices_updated_fields
         )
 
-        cls.call_event(manager.checkout_updated, checkout)
+        call_checkout_event_for_checkout_info(
+            manager,
+            event_func=manager.checkout_updated,
+            event_name=WebhookEventAsyncType.CHECKOUT_UPDATED,
+            checkout_info=checkout_info,
+            lines=lines,
+        )
 
         return CheckoutShippingAddressUpdate(checkout=checkout)

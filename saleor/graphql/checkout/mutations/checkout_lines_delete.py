@@ -1,6 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 
+from ....checkout.actions import call_checkout_event_for_checkout_info
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import invalidate_checkout_prices
 from ....webhook.event_types import WebhookEventAsyncType
@@ -86,6 +87,12 @@ class CheckoutLinesDelete(BaseMutation):
         checkout_info = fetch_checkout_info(checkout, lines, manager)
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
         invalidate_checkout_prices(checkout_info, lines, manager, save=True)
-        cls.call_event(manager.checkout_updated, checkout)
+        call_checkout_event_for_checkout_info(
+            manager,
+            event_func=manager.checkout_updated,
+            event_name=WebhookEventAsyncType.CHECKOUT_UPDATED,
+            checkout_info=checkout_info,
+            lines=lines,
+        )
 
         return CheckoutLinesDelete(checkout=checkout)
