@@ -520,6 +520,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                 "last_name",
                 "email",
                 "is_active",
+                "is_confirmed",
                 "note",
                 "language_code",
                 "external_reference",
