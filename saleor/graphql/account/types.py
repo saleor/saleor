@@ -58,6 +58,7 @@ from ..core.types import (
     ModelObjectType,
     NonNullList,
     Permission,
+    SecureGlobalID,
     ThumbnailField,
 )
 from ..core.utils import from_global_id_or_error, str_to_enum, to_global_id_or_none
@@ -317,7 +318,7 @@ class UserPermission(Permission):
 @federated_entity("id")
 @federated_entity("email")
 class User(ModelObjectType[models.User]):
-    id = graphene.GlobalID(required=True, description="The ID of the user.")
+    id = SecureGlobalID(required=True, description="The ID of the user.")
     email = graphene.String(required=True, description="The email address of the user.")
     first_name = graphene.String(
         required=True, description="The given name of the address."

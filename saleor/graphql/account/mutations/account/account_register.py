@@ -14,10 +14,9 @@ from .....core.utils.url import prepare_url, validate_storefront_url
 from .....webhook.event_types import WebhookEventAsyncType
 from ....channel.utils import clean_channel
 from ....core import ResolveInfo
-from ....core.descriptions import DEPRECATED_IN_3X_FIELD
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.enums import LanguageCodeEnum
-from ....core.mutations import BaseMutation, ModelMutation
+from ....core.mutations import ModelMutation
 from ....core.types import AccountError, NonNullList
 from ....core.utils import WebhookEventInfo
 from ....meta.inputs import MetadataInput
@@ -59,7 +58,7 @@ class AccountRegisterInput(AccountBaseInput):
         doc_category = DOC_CATEGORY_USERS
 
 
-class AccountRegister(BaseMutation):
+class AccountRegister(ModelMutation):
     class Arguments:
         input = AccountRegisterInput(
             description="Fields required to create a user.", required=True
@@ -68,16 +67,14 @@ class AccountRegister(BaseMutation):
     requires_confirmation = graphene.Boolean(
         description="Informs whether users need to confirm their email address."
     )
-    user = graphene.Field(
-        User,
-        deprecation_reason=DEPRECATED_IN_3X_FIELD,
-    )
 
     class Meta:
         description = "Register a new user."
         doc_category = DOC_CATEGORY_USERS
         error_type_class = AccountError
         error_type_field = "account_errors"
+        model = models.User
+        object_type = User
         support_meta_field = True
         webhook_events_info = [
             WebhookEventInfo(
@@ -104,15 +101,16 @@ class AccountRegister(BaseMutation):
         response.requires_confirmation = (
             site.settings.enable_account_confirmation_by_email
         )
+        # we don't want to leak id's as it will allow to deduce if user exists
+        if response.user:
+            response.user.DO_NOT_LEAK_ID = True
         return response
 
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
         site = get_site_promise(info.context).get()
         if not site.settings.enable_account_confirmation_by_email:
-            return ModelMutation.clean_input(
-                info, instance, data, input_cls=cls.Arguments.input, **kwargs
-            )
+            return super().clean_input(info, instance, data, **kwargs)
         elif not data.get("redirect_url"):
             raise ValidationError(
                 {
@@ -146,9 +144,7 @@ class AccountRegister(BaseMutation):
             raise ValidationError({"password": error})
 
         data["language_code"] = data.get("language_code", settings.LANGUAGE_CODE)
-        return ModelMutation.clean_input(
-            info, instance, data, input_cls=cls.Arguments.input, **kwargs
-        )
+        return super().clean_input(info, instance, data, **kwargs)
 
     @classmethod
     def clean_instance(cls, info: ResolveInfo, instance, /):
@@ -178,11 +174,6 @@ class AccountRegister(BaseMutation):
         if not user_exists:
             cls.save(info, instance, cleaned_input)
         return cls.success_response(instance)
-
-    @classmethod
-    def success_response(cls, instance):
-        instance.id = None
-        return AccountRegister(user=instance, errors=[])
 
     @classmethod
     def save(cls, info: ResolveInfo, user, cleaned_input):

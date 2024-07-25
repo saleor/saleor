@@ -326,3 +326,28 @@ def test_account_register_properly_filter_errors(
     assert errors
     assert errors[0]["code"] == "INVALID"
     assert errors[0]["field"] == "email"
+
+
+def test_account_register_returns_empty_id(
+    api_client, channel_PLN, site_settings, customer_user
+):
+    # given
+    site_settings.enable_account_confirmation_by_email = False
+    site_settings.save(update_fields=["enable_account_confirmation_by_email"])
+
+    variables = {
+        "input": {
+            "email": customer_user.email,
+            "password": "Password",
+        }
+    }
+
+    # when
+    response = api_client.post_graphql(ACCOUNT_REGISTER_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["accountRegister"]
+    assert not data["errors"]
+    assert data["user"]["id"] == ""
+    assert data["user"]["email"] == customer_user.email

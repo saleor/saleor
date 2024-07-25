@@ -31676,9 +31676,9 @@ Triggers the following webhook events:
 type AccountRegister @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_CREATED, NOTIFY_USER, ACCOUNT_CONFIRMATION_REQUESTED], syncEvents: []) {
   """Informs whether users need to confirm their email address."""
   requiresConfirmation: Boolean
-  user: User @deprecated(reason: "This field will be removed in Saleor 4.0.")
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AccountError!]!
+  user: User
 }
 
 """Fields required to create a user."""
