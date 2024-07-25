@@ -689,7 +689,7 @@ class User(ModelObjectType[models.User]):
         from .resolvers import resolve_users
 
         ids = set()
-        emails = set()
+        emails: set[Optional[str]] = set()
         for root in roots:
             if root.id is not None:
                 ids.add(root.id)
