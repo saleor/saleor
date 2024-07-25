@@ -85,7 +85,7 @@ def get_webhooks_for_multiple_events(
     webhooks: Optional["QuerySet[Webhook]"] = None,
     apps_ids: Optional["list[int]"] = None,
     apps_identifier: Optional[list[str]] = None,
-) -> dict[str, list[Webhook]]:
+) -> dict[str, set[Webhook]]:
     if webhooks is None:
         # For this QS replica usage is applied later, as this QS could be also passed
         # as parameter.
@@ -121,7 +121,7 @@ def get_webhooks_for_multiple_events(
         ]
         app_perm_map[app.id] = app_permission_codenames
 
-    event_map = defaultdict(list)
+    event_map = defaultdict(set)
     for webhook in webhooks:
         app_permission_codenames = app_perm_map.get(webhook.app_id, [])
         events: set[str] = webhook_events_map.get(webhook.id, set())
@@ -130,8 +130,9 @@ def get_webhooks_for_multiple_events(
                 event_type, WebhookEventSyncType.PERMISSIONS.get(event_type)
             )
             if not required_permission:
+                event_map[event_type].add(webhook)
                 continue
             _, codename = required_permission.value.split(".")
             if codename in app_permission_codenames:
-                event_map[event_type].append(webhook)
+                event_map[event_type].add(webhook)
     return event_map
