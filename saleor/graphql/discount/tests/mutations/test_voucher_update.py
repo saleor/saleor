@@ -431,6 +431,7 @@ def test_update_voucher_current_usage_exceed_limit(
     code_1, code_2, code_3, code_4, code_5 = voucher.codes.all()
     order_1, order_2, order_3 = order_list
 
+    # add 4 code usages to orders, order lines and checkouts
     order_1.voucher_code = code_1.code
     order_2.voucher_code = code_2.code
     Order.objects.bulk_update([order_1, order_2], ["voucher_code"])
@@ -458,4 +459,60 @@ def test_update_voucher_current_usage_exceed_limit(
     assert len(errors) == 1
     assert errors[0]["field"] == "usageLimit"
     assert errors[0]["code"] == DiscountErrorCode.USAGE_LIMIT_EXCEEDED.name
+    # check if current voucher usage number is present in the error message
     assert "(4)" in errors[0]["message"]
+
+
+def test_update_voucher_usage_limit(
+    staff_api_client,
+    voucher_with_many_codes,
+    permission_manage_discounts,
+    order_list,
+    order_line,
+    checkout,
+):
+    # given
+    voucher = voucher_with_many_codes
+    code_1, code_2, code_3, _, _ = voucher.codes.order_by("code").all()
+    order_1, order_2, order_3 = order_list
+    assert voucher.usage_limit is None
+    assert code_2.used == 0
+    assert code_3.used == 0
+    assert code_1.used == 0
+
+    order_1.voucher_code = code_1.code
+    order_2.voucher_code = code_2.code
+    Order.objects.bulk_update([order_1, order_2], ["voucher_code"])
+
+    order_line.voucher_code = code_3.code
+    order_line.save(update_fields=["voucher_code"])
+
+    checkout.voucher_code = code_3.code
+    checkout.save(update_fields=["voucher_code"])
+
+    expected_code_1_used = 1
+    expected_code_2_used = 1
+    expected_code_3_used = 2
+    usage_limit = 7
+    variables = {
+        "id": graphene.Node.to_global_id("Voucher", voucher.id),
+        "input": {"usageLimit": usage_limit},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["voucherUpdate"]["errors"]
+    data = content["data"]["voucherUpdate"]["voucher"]
+    assert data
+
+    voucher.refresh_from_db()
+    assert voucher.usage_limit == usage_limit
+    code_1, code_2, code_3, _, _ = voucher.codes.order_by("code").all()
+    assert code_1.used == expected_code_1_used
+    assert code_2.used == expected_code_2_used
+    assert code_3.used == expected_code_3_used

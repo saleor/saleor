@@ -50,8 +50,9 @@ class VoucherUpdate(VoucherCreate):
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
         cls.clean_codes(data)
         cls.clean_voucher_usage_setting(instance, data)
-        cls.clean_usage_limit(instance, data)
+        codes_to_update = cls.clean_usage_limit(instance, data)
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
+        cleaned_input["codes_to_update"] = codes_to_update
 
         return cleaned_input
 
@@ -115,7 +116,7 @@ class VoucherUpdate(VoucherCreate):
         return dict(Counter(usage))  # type: ignore[arg-type]
 
     @classmethod
-    def clean_usage_limit(cls, instance: Voucher, data):
+    def clean_usage_limit(cls, instance: Voucher, data) -> list[models.VoucherCode]:
         if "usage_limit" in data and instance.usage_limit != data["usage_limit"]:
             new_limit = data["usage_limit"]
             current_usage_data = cls.count_voucher_usage(instance)
@@ -130,14 +131,16 @@ class VoucherUpdate(VoucherCreate):
                         )
                     }
                 )
-            voucher_codes = instance.codes.all()
+            voucher_codes = list(
+                instance.codes.filter(code__in=current_usage_data.keys())
+            )
             for code in voucher_codes:
                 code.used = current_usage_data.get(code.code, 0)
+            return voucher_codes
+        return []
 
     @classmethod
-    def construct_codes_instances(
-        cls, code, codes_data, cleaned_input, voucher_instance
-    ):
+    def construct_codes_instances(cls, code, codes_data, voucher_instance):
         if codes_data:
             return [
                 models.VoucherCode(
@@ -166,20 +169,25 @@ class VoucherUpdate(VoucherCreate):
 
     @classmethod
     def save(  # type: ignore[override]
-        cls, _info: ResolveInfo, voucher_instance, code_instances, has_multiple_codes
+        cls,
+        _info: ResolveInfo,
+        voucher_instance,
+        codes_to_create: list[models.VoucherCode],
+        codes_to_update: list[models.VoucherCode],
+        has_multiple_codes: bool,
     ):
-        codes_to_create = []
-        codes_to_update = []
-
-        if has_multiple_codes:
-            codes_to_create += code_instances
-        else:
-            codes_to_update += code_instances
+        if not has_multiple_codes:
+            # TODO zedzior
+            pass
 
         with transaction.atomic():
             voucher_instance.save()
-            models.VoucherCode.objects.bulk_create(codes_to_create)
-            models.VoucherCode.objects.bulk_update(codes_to_update, fields=["code"])
+            if codes_to_create:
+                models.VoucherCode.objects.bulk_create(codes_to_create)
+            if codes_to_update:
+                models.VoucherCode.objects.bulk_update(
+                    codes_to_update, fields=["code", "used"]
+                )
 
     @classmethod
     def post_save_action(  # type: ignore[override]

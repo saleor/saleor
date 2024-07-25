@@ -207,9 +207,7 @@ class VoucherCreate(ModelMutation):
             cls._clean_old_code(data)
 
     @classmethod
-    def construct_codes_instances(
-        cls, code, codes_data, cleaned_input, voucher_instance
-    ):
+    def construct_codes_instances(cls, code, codes_data, voucher_instance):
         if codes_data:
             return [
                 models.VoucherCode(
@@ -248,9 +246,7 @@ class VoucherCreate(ModelMutation):
             code_instance.full_clean(exclude=["voucher"])
 
     @classmethod
-    def save(  # type: ignore[override]
-        cls, _info: ResolveInfo, voucher_instance, code_instances, has_multiple_codes
-    ):
+    def save(cls, _info: ResolveInfo, voucher_instance, code_instances, *args):
         with transaction.atomic():
             voucher_instance.save()
             models.VoucherCode.objects.bulk_create(code_instances)
@@ -282,12 +278,12 @@ class VoucherCreate(ModelMutation):
 
         metadata_list = cleaned_input.pop("metadata", None)
         private_metadata_list = cleaned_input.pop("private_metadata", None)
-        codes_data = cleaned_input.pop("add_codes", None)
+        codes_to_create_data = cleaned_input.pop("add_codes", None)
         code = cleaned_input.pop("code", None)
 
         voucher_instance = cls.construct_instance(voucher_instance, cleaned_input)
-        code_instances = cls.construct_codes_instances(
-            code, codes_data, cleaned_input, voucher_instance
+        codes_to_create = cls.construct_codes_instances(
+            code, codes_to_create_data, voucher_instance
         )
 
         cls.validate_and_update_metadata(
@@ -296,12 +292,15 @@ class VoucherCreate(ModelMutation):
 
         cls.clean_voucher_instance(info, voucher_instance)
 
-        if code_instances:
-            cls.clean_codes_instance(code_instances)
+        has_multiple_codes = bool(codes_to_create_data)
+        if codes_to_create:
+            cls.clean_codes_instance(codes_to_create)
+        codes_to_update = cleaned_input.pop("codes_to_update", [])
 
-        has_multiple_codes = bool(codes_data)
-        cls.save(info, voucher_instance, code_instances, has_multiple_codes)
+        cls.save(
+            info, voucher_instance, codes_to_create, codes_to_update, has_multiple_codes
+        )
         cls._save_m2m(info, voucher_instance, cleaned_input)
 
-        cls.post_save_action(info, voucher_instance, code_instances, cleaned_input)
+        cls.post_save_action(info, voucher_instance, codes_to_create, cleaned_input)
         return cls.success_response(voucher_instance)
