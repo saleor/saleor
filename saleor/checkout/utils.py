@@ -1022,8 +1022,8 @@ def delete_external_shipping_id(checkout: Checkout, save: bool = False):
 def get_or_create_checkout_metadata(checkout: "Checkout") -> CheckoutMetadata:
     if hasattr(checkout, "metadata_storage"):
         return checkout.metadata_storage
-    else:
-        return CheckoutMetadata.objects.create(checkout=checkout)
+    metadata, _ = CheckoutMetadata.objects.get_or_create(checkout=checkout)
+    return metadata
 
 
 @allow_writer()
