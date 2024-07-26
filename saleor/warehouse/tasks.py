@@ -4,12 +4,14 @@ from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from ..celeryconf import app
+from ..core.db.connection import allow_writer
 from .models import Allocation, PreorderReservation, Reservation, Stock
 
 task_logger = get_task_logger(__name__)
 
 
 @app.task
+@allow_writer()
 def delete_empty_allocations_task():
     count, _ = Allocation.objects.filter(quantity_allocated=0).delete()
     if count:
@@ -17,6 +19,7 @@ def delete_empty_allocations_task():
 
 
 @app.task
+@allow_writer()
 def delete_expired_reservations_task():
     stock_reservations, _ = Reservation.objects.filter(
         reserved_until__lt=timezone.now()
@@ -34,6 +37,7 @@ def delete_expired_reservations_task():
 
 
 @app.task
+@allow_writer()
 def update_stocks_quantity_allocated_task():
     stocks_to_update = []
     for mismatched_stock in Stock.objects.annotate(
