@@ -1327,14 +1327,18 @@ def create_transaction_event_for_transaction_session(
     return event
 
 
-def _check_missing_psp_reference_for_events(
+def _missing_required_psp_reference(
     delivery: EventDelivery,
-    request_event: TransactionEvent,
+    request_event_type: Union[TransactionRequestEventResponse, TransactionEvent],
     response: TransactionRequestResponse,
 ):
+    """Return True when psp reference is required and missing in the response."""
     if response.psp_reference:
-        return True
-    return request_event.type in PSP_REFERENCE_OPTIONAL_MAP.get(delivery.event_type, [])
+        return False
+    request_event_type = cast(str, request_event_type.type)
+    return request_event_type.lower() not in PSP_REFERENCE_OPTIONAL_MAP.get(
+        delivery.event_type, []
+    )
 
 
 def create_transaction_event_from_request_and_webhook_response(
@@ -1353,8 +1357,9 @@ def create_transaction_event_from_request_and_webhook_response(
         recalculate_refundable_for_checkout(transaction_item, request_event)
         return create_failed_transaction_event(request_event, cause=error_msg or "")
 
-    if not _check_missing_psp_reference_for_events(
-        delivery, request_event, transaction_request_response
+    request_event_type = transaction_request_response.event or request_event
+    if _missing_required_psp_reference(
+        delivery, request_event_type, transaction_request_response
     ):
         return create_failed_transaction_event(
             request_event, cause="Missing `pspReference` field in the response."

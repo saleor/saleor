@@ -12,7 +12,7 @@ from ...order import OrderAuthorizeStatus, OrderChargeStatus
 from ...plugins.manager import get_plugins_manager
 from ...tests.utils import flush_post_commit_hooks
 from ...webhook.event_types import WebhookEventSyncType
-from .. import TransactionAction, TransactionEventType
+from .. import TransactionEventType
 from ..interface import (
     PaymentLineData,
     PaymentLinesData,
@@ -468,50 +468,62 @@ def test_create_transaction_event_from_request_and_webhook_response_with_psp_ref
 
 
 @pytest.mark.parametrize(
-    ("delivery_type", "event_type"),
+    ("delivery_type", "event_type", "result_event_type"),
     [
         (
             WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED,
+            TransactionEventType.REFUND_REQUEST,
             TransactionEventType.REFUND_FAILURE,
         ),
         (
             WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED,
+            TransactionEventType.CHARGE_REQUEST,
             TransactionEventType.CHARGE_FAILURE,
         ),
         (
             WebhookEventSyncType.TRANSACTION_CANCELATION_REQUESTED,
+            TransactionEventType.CANCEL_REQUEST,
             TransactionEventType.CANCEL_FAILURE,
         ),
         (
             WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION,
             TransactionEventType.CHARGE_REQUEST,
+            TransactionEventType.CHARGE_FAILURE,
         ),
         (
             WebhookEventSyncType.TRANSACTION_PROCESS_SESSION,
             TransactionEventType.CHARGE_REQUEST,
+            TransactionEventType.CHARGE_FAILURE,
         ),
     ],
 )
 def test_create_transaction_event_from_request_and_webhook_response_with_no_psp_reference_valid_event(
     delivery_type,
     event_type,
+    result_event_type,
     transaction_item_generator,
     event_delivery,
 ):
     # given
     event_delivery.event_type = delivery_type
     event_delivery.save(update_fields=["event_type"])
+
     transaction = transaction_item_generator()
+    event_amount = Decimal(11.00)
     request_event = TransactionEvent.objects.create(
         type=event_type,
         amount_value=Decimal(11.00),
         currency="USD",
         transaction_id=transaction.id,
     )
-    response_data = {"actions": [TransactionAction.CANCEL.upper()]}
+    event_count = transaction.events.count()
+    response_data = {
+        "amount": event_amount,
+        "result": result_event_type.upper(),
+    }
 
     # when
-    create_transaction_event_from_request_and_webhook_response(
+    event = create_transaction_event_from_request_and_webhook_response(
         request_event, event_delivery, response_data
     )
 
@@ -519,34 +531,38 @@ def test_create_transaction_event_from_request_and_webhook_response_with_no_psp_
     request_event.refresh_from_db()
     transaction.refresh_from_db()
     assert request_event.psp_reference is None
-    assert transaction.available_actions == [TransactionAction.CANCEL]
-    assert TransactionEvent.objects.count() == 1
-    event = TransactionEvent.objects.get()
-    assert event.transaction_id == transaction.id
-    assert event.message == ""
+    assert transaction.events.count() == event_count + 1
+    assert event.psp_reference is None
+    assert event.type == result_event_type
+    assert not event.message
 
 
 @pytest.mark.parametrize(
-    ("delivery_type", "event_type"),
+    ("delivery_type", "event_type", "result_event_type"),
     [
         (
             WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED,
+            TransactionEventType.REFUND_REQUEST,
             TransactionEventType.REFUND_SUCCESS,
         ),
         (
             WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED,
+            TransactionEventType.CHARGE_REQUEST,
             TransactionEventType.CHARGE_SUCCESS,
         ),
         (
             WebhookEventSyncType.TRANSACTION_CANCELATION_REQUESTED,
+            TransactionEventType.CANCEL_REQUEST,
             TransactionEventType.CANCEL_SUCCESS,
         ),
         (
             WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION,
+            TransactionEventType.AUTHORIZATION_REQUEST,
             TransactionEventType.AUTHORIZATION_SUCCESS,
         ),
         (
             WebhookEventSyncType.TRANSACTION_PROCESS_SESSION,
+            TransactionEventType.AUTHORIZATION_REQUEST,
             TransactionEventType.AUTHORIZATION_SUCCESS,
         ),
     ],
@@ -554,6 +570,7 @@ def test_create_transaction_event_from_request_and_webhook_response_with_no_psp_
 def test_create_transaction_event_from_request_and_webhook_response_with_no_psp_reference_invalid_event(
     delivery_type,
     event_type,
+    result_event_type,
     transaction_item_generator,
     event_delivery,
 ):
@@ -561,16 +578,21 @@ def test_create_transaction_event_from_request_and_webhook_response_with_no_psp_
     event_delivery.event_type = delivery_type
     event_delivery.save(update_fields=["event_type"])
     transaction = transaction_item_generator()
+    event_amount = Decimal(11.00)
     request_event = TransactionEvent.objects.create(
         type=event_type,
-        amount_value=Decimal(11.00),
+        amount_value=event_amount,
         currency="USD",
         transaction_id=transaction.id,
     )
-    response_data = {"actions": [TransactionAction.CANCEL.upper()]}
+    event_count = transaction.events.count()
+    response_data = {
+        "amount": event_amount,
+        "result": result_event_type.upper(),
+    }
 
     # when
-    create_transaction_event_from_request_and_webhook_response(
+    event = create_transaction_event_from_request_and_webhook_response(
         request_event, event_delivery, response_data
     )
 
@@ -578,10 +600,10 @@ def test_create_transaction_event_from_request_and_webhook_response_with_no_psp_
     request_event.refresh_from_db()
     transaction.refresh_from_db()
     assert request_event.psp_reference is None
-    assert transaction.available_actions == []
-    failed_event = TransactionEvent.objects.last()
-    assert failed_event.transaction_id == transaction.id
-    assert failed_event.message == "Missing `pspReference` field in the response."
+    assert transaction.events.count() == event_count + 1
+    assert event.psp_reference is None
+    assert event.transaction_id == transaction.id
+    assert event.message == "Missing `pspReference` field in the response."
 
 
 @freeze_time("2018-05-31 12:00:01")
