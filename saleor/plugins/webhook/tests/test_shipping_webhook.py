@@ -1,12 +1,13 @@
 import json
 from unittest import mock
+from unittest.mock import call
 
 import graphene
 import pytest
 
 from ....core.models import EventDelivery
 from ....graphql.tests.utils import get_graphql_content
-from ....webhook.const import CACHE_EXCLUDED_SHIPPING_KEY, CACHE_EXCLUDED_SHIPPING_TIME
+from ....webhook.const import CACHE_EXCLUDED_SHIPPING_TIME
 from ....webhook.event_types import WebhookEventSyncType
 from ....webhook.models import Webhook
 from ....webhook.payloads import (
@@ -20,6 +21,7 @@ from ....webhook.transport.shipping import (
     to_shipping_app_id,
 )
 from ....webhook.transport.synchronous.transport import trigger_webhook_sync
+from ....webhook.transport.utils import generate_cache_key_for_webhook
 from ...base_plugin import ExcludedShippingMethod
 
 ORDER_QUERY_SHIPPING_METHOD = """
@@ -68,7 +70,7 @@ CHECKOUT_QUERY_SHIPPING_METHOD = """
 
 
 @mock.patch("saleor.webhook.transport.synchronous.transport.cache.set")
-@mock.patch("saleor.webhook.transport.shipping.trigger_webhook_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.trigger_webhook_sync")
 @mock.patch(
     "saleor.plugins.webhook.plugin.generate_excluded_shipping_methods_for_order_payload"
 )
@@ -84,9 +86,10 @@ def test_excluded_shipping_methods_for_order(
 ):
     # given
     shipping_app = shipping_app_factory()
+    shipping_webhook = shipping_app.webhooks.get()
     webhook_reason = "Order contains dangerous products."
     other_reason = "Shipping is not applicable for this order."
-    mocked_webhook.return_value = {
+    webhook_response = {
         "excluded_methods": [
             {
                 "id": graphene.Node.to_global_id("ShippingMethod", "1"),
@@ -94,7 +97,9 @@ def test_excluded_shipping_methods_for_order(
             }
         ]
     }
-    payload = mock.MagicMock()
+    mocked_webhook.return_value = webhook_response
+    payload_dict = {"order": {"id": 1, "some_field": "12"}}
+    payload = json.dumps(payload_dict)
     mocked_payload.return_value = payload
     plugin = webhook_plugin()
     available_shipping_methods = available_shipping_methods_factory(num_methods=2)
@@ -115,28 +120,32 @@ def test_excluded_shipping_methods_for_order(
     assert em.id == "1"
     assert webhook_reason in em.reason
     assert other_reason in em.reason
-    event_type = WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
+
     mocked_webhook.assert_called_once_with(
         WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
         payload,
-        shipping_app.webhooks.get(events__event_type=event_type),
+        shipping_webhook,
         False,
         subscribable_object=order_with_lines,
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
+        request=None,
     )
-    expected_cache_key = CACHE_EXCLUDED_SHIPPING_KEY + str(order_with_lines.id)
-
-    expected_excluded_shipping_method = [{"id": "1", "reason": webhook_reason}]
+    expected_cache_key = generate_cache_key_for_webhook(
+        payload_dict,
+        shipping_webhook.target_url,
+        WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
+        shipping_app.id,
+    )
 
     mocked_cache_set.assert_called_once_with(
         expected_cache_key,
-        (payload, expected_excluded_shipping_method),
-        CACHE_EXCLUDED_SHIPPING_TIME,
+        webhook_response,
+        timeout=CACHE_EXCLUDED_SHIPPING_TIME,
     )
 
 
 @mock.patch("saleor.webhook.transport.synchronous.transport.cache.set")
-@mock.patch("saleor.webhook.transport.shipping.trigger_webhook_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.trigger_webhook_sync")
 @mock.patch(
     "saleor.plugins.webhook.plugin.generate_excluded_shipping_methods_for_order_payload"
 )
@@ -152,34 +161,37 @@ def test_multiple_app_with_excluded_shipping_methods_for_order(
 ):
     # given
     shipping_app = shipping_app_factory()
+    shipping_webhook = shipping_app.webhooks.get()
+
     second_shipping_app = shipping_app_factory(app_name="shipping-app2")
+    second_shipping_webhook = second_shipping_app.webhooks.get()
     webhook_reason = "Order contains dangerous products."
     webhook_second_reason = "Shipping is not applicable for this order."
+    first_webhook_response = {
+        "excluded_methods": [
+            {
+                "id": graphene.Node.to_global_id("ShippingMethod", "1"),
+                "reason": webhook_reason,
+            }
+        ]
+    }
+    second_webhook_response = {
+        "excluded_methods": [
+            {
+                "id": graphene.Node.to_global_id("ShippingMethod", "1"),
+                "reason": webhook_second_reason,
+            },
+            {
+                "id": graphene.Node.to_global_id("ShippingMethod", "2"),
+                "reason": webhook_second_reason,
+            },
+        ]
+    }
 
-    mocked_webhook.side_effect = [
-        {
-            "excluded_methods": [
-                {
-                    "id": graphene.Node.to_global_id("ShippingMethod", "1"),
-                    "reason": webhook_reason,
-                }
-            ]
-        },
-        {
-            "excluded_methods": [
-                {
-                    "id": graphene.Node.to_global_id("ShippingMethod", "1"),
-                    "reason": webhook_second_reason,
-                },
-                {
-                    "id": graphene.Node.to_global_id("ShippingMethod", "2"),
-                    "reason": webhook_second_reason,
-                },
-            ]
-        },
-    ]
+    mocked_webhook.side_effect = [first_webhook_response, second_webhook_response]
 
-    payload = mock.MagicMock()
+    payload_dict = {"order": {"id": 1, "some_field": "12"}}
+    payload = json.dumps(payload_dict)
     mocked_payload.return_value = payload
     plugin = webhook_plugin()
     available_shipping_methods = available_shipping_methods_factory(num_methods=2)
@@ -202,36 +214,54 @@ def test_multiple_app_with_excluded_shipping_methods_for_order(
     mocked_webhook.assert_any_call(
         event_type,
         payload,
-        shipping_app.webhooks.get(events__event_type=event_type),
+        shipping_webhook,
         False,
         subscribable_object=order_with_lines,
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
+        request=None,
     )
     mocked_webhook.assert_any_call(
         event_type,
         payload,
-        second_shipping_app.webhooks.get(events__event_type=event_type),
+        second_shipping_webhook,
         False,
         subscribable_object=order_with_lines,
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
+        request=None,
     )
-    expected_cache_key = CACHE_EXCLUDED_SHIPPING_KEY + str(order_with_lines.id)
+    expected_cache_for_first_webhook_key = generate_cache_key_for_webhook(
+        payload_dict,
+        shipping_webhook.target_url,
+        WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
+        shipping_app.id,
+    )
+    expected_cache_for_second_webhook_key = generate_cache_key_for_webhook(
+        payload_dict,
+        second_shipping_webhook.target_url,
+        WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
+        second_shipping_app.id,
+    )
 
-    expected_excluded_shipping_method = [
-        {"id": "1", "reason": webhook_reason},
-        {"id": "1", "reason": webhook_second_reason},
-        {"id": "2", "reason": webhook_second_reason},
-    ]
+    assert expected_cache_for_first_webhook_key != expected_cache_for_second_webhook_key
 
-    mocked_cache_set.assert_called_once_with(
-        expected_cache_key,
-        (payload, expected_excluded_shipping_method),
-        CACHE_EXCLUDED_SHIPPING_TIME,
+    mocked_cache_set.assert_has_calls(
+        [
+            call(
+                expected_cache_for_first_webhook_key,
+                first_webhook_response,
+                timeout=CACHE_EXCLUDED_SHIPPING_TIME,
+            ),
+            call(
+                expected_cache_for_second_webhook_key,
+                second_webhook_response,
+                timeout=CACHE_EXCLUDED_SHIPPING_TIME,
+            ),
+        ]
     )
 
 
 @mock.patch("saleor.webhook.transport.synchronous.transport.cache.set")
-@mock.patch("saleor.webhook.transport.shipping.trigger_webhook_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.trigger_webhook_sync")
 @mock.patch(
     "saleor.plugins.webhook.plugin.generate_excluded_shipping_methods_for_order_payload"
 )
@@ -247,13 +277,14 @@ def test_multiple_webhooks_on_the_same_app_with_excluded_shipping_methods_for_or
 ):
     # given
     shipping_app = shipping_app_factory()
+    first_webhook = shipping_app.webhooks.get()
     event_type = WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
 
     # create the second webhook with the same event
     second_webhook = Webhook.objects.create(
         name="shipping-webhook-1",
         app=shipping_app,
-        target_url="https://shipping-gateway.com/api/",
+        target_url="https://shipping-gateway.com/apiv2/",
     )
     second_webhook.events.create(
         event_type=event_type,
@@ -263,30 +294,31 @@ def test_multiple_webhooks_on_the_same_app_with_excluded_shipping_methods_for_or
     webhook_reason = "Order contains dangerous products."
     webhook_second_reason = "Shipping is not applicable for this order."
 
-    mocked_webhook.side_effect = [
-        {
-            "excluded_methods": [
-                {
-                    "id": graphene.Node.to_global_id("ShippingMethod", "1"),
-                    "reason": webhook_reason,
-                }
-            ]
-        },
-        {
-            "excluded_methods": [
-                {
-                    "id": graphene.Node.to_global_id("ShippingMethod", "1"),
-                    "reason": webhook_second_reason,
-                },
-                {
-                    "id": graphene.Node.to_global_id("ShippingMethod", "2"),
-                    "reason": webhook_second_reason,
-                },
-            ]
-        },
-    ]
+    first_webhook_response = {
+        "excluded_methods": [
+            {
+                "id": graphene.Node.to_global_id("ShippingMethod", "1"),
+                "reason": webhook_reason,
+            }
+        ]
+    }
+    second_webhook_response = {
+        "excluded_methods": [
+            {
+                "id": graphene.Node.to_global_id("ShippingMethod", "1"),
+                "reason": webhook_second_reason,
+            },
+            {
+                "id": graphene.Node.to_global_id("ShippingMethod", "2"),
+                "reason": webhook_second_reason,
+            },
+        ]
+    }
 
-    payload = mock.MagicMock()
+    mocked_webhook.side_effect = [first_webhook_response, second_webhook_response]
+
+    payload_dict = {"order": {"id": 1, "some_field": "12"}}
+    payload = json.dumps(payload_dict)
     mocked_payload.return_value = payload
     plugin = webhook_plugin()
     available_shipping_methods = available_shipping_methods_factory(num_methods=2)
@@ -305,30 +337,53 @@ def test_multiple_webhooks_on_the_same_app_with_excluded_shipping_methods_for_or
     assert em.id == "1"
     assert webhook_reason in em.reason
     assert webhook_second_reason in em.reason
-    webhooks = shipping_app.webhooks.filter(events__event_type=event_type)
-    assert len(webhooks) > 1
-    for webhook in webhooks:
-        mocked_webhook.assert_any_call(
-            event_type,
-            payload,
-            webhook,
-            False,
-            subscribable_object=order_with_lines,
-            timeout=settings.WEBHOOK_SYNC_TIMEOUT,
-        )
 
-    expected_cache_key = CACHE_EXCLUDED_SHIPPING_KEY + str(order_with_lines.id)
+    mocked_webhook.assert_any_call(
+        event_type,
+        payload,
+        first_webhook,
+        False,
+        subscribable_object=order_with_lines,
+        timeout=settings.WEBHOOK_SYNC_TIMEOUT,
+        request=None,
+    )
+    mocked_webhook.assert_any_call(
+        event_type,
+        payload,
+        second_webhook,
+        False,
+        subscribable_object=order_with_lines,
+        timeout=settings.WEBHOOK_SYNC_TIMEOUT,
+        request=None,
+    )
 
-    expected_excluded_shipping_method = [
-        {"id": "1", "reason": webhook_reason},
-        {"id": "1", "reason": webhook_second_reason},
-        {"id": "2", "reason": webhook_second_reason},
-    ]
+    expected_cache_for_first_webhook_key = generate_cache_key_for_webhook(
+        payload_dict,
+        first_webhook.target_url,
+        WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
+        shipping_app.id,
+    )
+    expected_cache_for_second_webhook_key = generate_cache_key_for_webhook(
+        payload_dict,
+        second_webhook.target_url,
+        WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
+        shipping_app.id,
+    )
+    assert expected_cache_for_first_webhook_key != expected_cache_for_second_webhook_key
 
-    mocked_cache_set.assert_called_once_with(
-        expected_cache_key,
-        (payload, expected_excluded_shipping_method),
-        CACHE_EXCLUDED_SHIPPING_TIME,
+    mocked_cache_set.assert_has_calls(
+        [
+            call(
+                expected_cache_for_first_webhook_key,
+                first_webhook_response,
+                timeout=CACHE_EXCLUDED_SHIPPING_TIME,
+            ),
+            call(
+                expected_cache_for_second_webhook_key,
+                second_webhook_response,
+                timeout=CACHE_EXCLUDED_SHIPPING_TIME,
+            ),
+        ]
     )
 
 
@@ -529,7 +584,7 @@ def test_trigger_webhook_sync(mock_request, shipping_app):
 
 
 @mock.patch("saleor.webhook.transport.synchronous.transport.cache.set")
-@mock.patch("saleor.webhook.transport.shipping.trigger_webhook_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.trigger_webhook_sync")
 @mock.patch(
     "saleor.plugins.webhook.plugin."
     "generate_excluded_shipping_methods_for_checkout_payload"
@@ -546,10 +601,11 @@ def test_excluded_shipping_methods_for_checkout_webhook(
 ):
     # given
     shipping_app = shipping_app_factory()
+    shipping_webhook = shipping_app.webhooks.get()
     webhook_reason = "Checkout contains dangerous products."
     other_reason = "Shipping is not applicable for this checkout."
 
-    mocked_webhook.return_value = {
+    webhook_response = {
         "excluded_methods": [
             {
                 "id": graphene.Node.to_global_id("ShippingMethod", "1"),
@@ -557,8 +613,13 @@ def test_excluded_shipping_methods_for_checkout_webhook(
             }
         ]
     }
-    payload = mock.MagicMock()
+
+    mocked_webhook.return_value = webhook_response
+
+    payload_dict = {"checkout": {"id": 1, "some_field": "12"}}
+    payload = json.dumps(payload_dict)
     mocked_payload.return_value = payload
+
     plugin = webhook_plugin()
     available_shipping_methods = available_shipping_methods_factory(num_methods=2)
     previous_value = [
@@ -577,24 +638,27 @@ def test_excluded_shipping_methods_for_checkout_webhook(
     assert em.id == "1"
     assert webhook_reason in em.reason
     assert other_reason in em.reason
-    event_type = WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
+
     mocked_webhook.assert_called_once_with(
-        event_type,
+        WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
         payload,
-        shipping_app.webhooks.get(events__event_type=event_type),
+        shipping_webhook,
         False,
         subscribable_object=checkout_with_items,
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
+        request=None,
     )
-
-    expected_cache_key = CACHE_EXCLUDED_SHIPPING_KEY + str(checkout_with_items.token)
-
-    expected_excluded_shipping_method = [{"id": "1", "reason": webhook_reason}]
+    expected_cache_key = generate_cache_key_for_webhook(
+        payload_dict,
+        shipping_webhook.target_url,
+        WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
+        shipping_app.id,
+    )
 
     mocked_cache_set.assert_called_once_with(
         expected_cache_key,
-        (payload, expected_excluded_shipping_method),
-        CACHE_EXCLUDED_SHIPPING_TIME,
+        webhook_response,
+        timeout=CACHE_EXCLUDED_SHIPPING_TIME,
     )
 
 
@@ -644,7 +708,7 @@ def test_excluded_shipping_methods_for_checkout(
 
 
 @mock.patch("saleor.webhook.transport.synchronous.transport.cache.set")
-@mock.patch("saleor.webhook.transport.shipping.trigger_webhook_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.trigger_webhook_sync")
 @mock.patch(
     "saleor.plugins.webhook.plugin."
     "generate_excluded_shipping_methods_for_checkout_payload"
@@ -661,34 +725,41 @@ def test_multiple_app_with_excluded_shipping_methods_for_checkout(
 ):
     # given
     shipping_app = shipping_app_factory()
+    shipping_webhook = shipping_app.webhooks.get()
+
     second_shipping_app = shipping_app_factory()
+    second_shipping_webhook = second_shipping_app.webhooks.get()
+
     webhook_reason = "Checkout contains dangerous products."
     webhook_second_reason = "Shipping is not applicable for this checkout."
 
-    mocked_webhook.side_effect = [
-        {
-            "excluded_methods": [
-                {
-                    "id": graphene.Node.to_global_id("ShippingMethod", "1"),
-                    "reason": webhook_reason,
-                }
-            ]
-        },
-        {
-            "excluded_methods": [
-                {
-                    "id": graphene.Node.to_global_id("ShippingMethod", "1"),
-                    "reason": webhook_second_reason,
-                },
-                {
-                    "id": graphene.Node.to_global_id("ShippingMethod", "2"),
-                    "reason": webhook_second_reason,
-                },
-            ]
-        },
-    ]
-    payload = mock.MagicMock()
+    first_webhook_response = {
+        "excluded_methods": [
+            {
+                "id": graphene.Node.to_global_id("ShippingMethod", "1"),
+                "reason": webhook_reason,
+            }
+        ]
+    }
+    second_webhook_response = {
+        "excluded_methods": [
+            {
+                "id": graphene.Node.to_global_id("ShippingMethod", "1"),
+                "reason": webhook_second_reason,
+            },
+            {
+                "id": graphene.Node.to_global_id("ShippingMethod", "2"),
+                "reason": webhook_second_reason,
+            },
+        ]
+    }
+
+    mocked_webhook.side_effect = [first_webhook_response, second_webhook_response]
+
+    payload_dict = {"checkout": {"id": 1, "some_field": "12"}}
+    payload = json.dumps(payload_dict)
     mocked_payload.return_value = payload
+
     plugin = webhook_plugin()
     available_shipping_methods = available_shipping_methods_factory(num_methods=2)
     previous_value = []
@@ -710,37 +781,52 @@ def test_multiple_app_with_excluded_shipping_methods_for_checkout(
     mocked_webhook.assert_any_call(
         event_type,
         payload,
-        shipping_app.webhooks.get(events__event_type=event_type),
+        shipping_webhook,
         False,
         subscribable_object=checkout_with_items,
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
+        request=None,
     )
     mocked_webhook.assert_any_call(
         event_type,
         payload,
-        second_shipping_app.webhooks.get(events__event_type=event_type),
+        second_shipping_webhook,
         False,
         subscribable_object=checkout_with_items,
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
+        request=None,
     )
 
-    expected_cache_key = CACHE_EXCLUDED_SHIPPING_KEY + str(checkout_with_items.token)
+    expected_cache_for_first_webhook_key = generate_cache_key_for_webhook(
+        payload_dict, shipping_webhook.target_url, event_type, shipping_app.id
+    )
+    expected_cache_for_second_webhook_key = generate_cache_key_for_webhook(
+        payload_dict,
+        second_shipping_webhook.target_url,
+        event_type,
+        second_shipping_app.id,
+    )
 
-    expected_excluded_shipping_method = [
-        {"id": "1", "reason": webhook_reason},
-        {"id": "1", "reason": webhook_second_reason},
-        {"id": "2", "reason": webhook_second_reason},
-    ]
+    assert expected_cache_for_first_webhook_key != expected_cache_for_second_webhook_key
 
-    mocked_cache_set.assert_called_once_with(
-        expected_cache_key,
-        (payload, expected_excluded_shipping_method),
-        CACHE_EXCLUDED_SHIPPING_TIME,
+    mocked_cache_set.assert_has_calls(
+        [
+            call(
+                expected_cache_for_first_webhook_key,
+                first_webhook_response,
+                timeout=CACHE_EXCLUDED_SHIPPING_TIME,
+            ),
+            call(
+                expected_cache_for_second_webhook_key,
+                second_webhook_response,
+                timeout=CACHE_EXCLUDED_SHIPPING_TIME,
+            ),
+        ]
     )
 
 
 @mock.patch("saleor.webhook.transport.synchronous.transport.cache.set")
-@mock.patch("saleor.webhook.transport.shipping.trigger_webhook_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.trigger_webhook_sync")
 @mock.patch(
     "saleor.plugins.webhook.plugin."
     "generate_excluded_shipping_methods_for_checkout_payload"
@@ -757,13 +843,14 @@ def test_multiple_webhooks_on_the_same_app_with_excluded_shipping_methods_for_ch
 ):
     # given
     shipping_app = shipping_app_factory()
+    first_webhook = shipping_app.webhooks.get()
     event_type = WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
 
     # create the second webhook with the same event
     second_webhook = Webhook.objects.create(
         name="shipping-webhook-1",
         app=shipping_app,
-        target_url="https://shipping-gateway.com/api/",
+        target_url="https://shipping-gateway.com/apiv2/",
     )
     second_webhook.events.create(
         event_type=event_type,
@@ -773,30 +860,33 @@ def test_multiple_webhooks_on_the_same_app_with_excluded_shipping_methods_for_ch
     webhook_reason = "Checkout contains dangerous products."
     webhook_second_reason = "Shipping is not applicable for this checkout."
 
-    mocked_webhook.side_effect = [
-        {
-            "excluded_methods": [
-                {
-                    "id": graphene.Node.to_global_id("ShippingMethod", "1"),
-                    "reason": webhook_reason,
-                }
-            ]
-        },
-        {
-            "excluded_methods": [
-                {
-                    "id": graphene.Node.to_global_id("ShippingMethod", "1"),
-                    "reason": webhook_second_reason,
-                },
-                {
-                    "id": graphene.Node.to_global_id("ShippingMethod", "2"),
-                    "reason": webhook_second_reason,
-                },
-            ]
-        },
-    ]
-    payload = mock.MagicMock()
+    first_webhook_response = {
+        "excluded_methods": [
+            {
+                "id": graphene.Node.to_global_id("ShippingMethod", "1"),
+                "reason": webhook_reason,
+            }
+        ]
+    }
+    second_webhook_response = {
+        "excluded_methods": [
+            {
+                "id": graphene.Node.to_global_id("ShippingMethod", "1"),
+                "reason": webhook_second_reason,
+            },
+            {
+                "id": graphene.Node.to_global_id("ShippingMethod", "2"),
+                "reason": webhook_second_reason,
+            },
+        ]
+    }
+
+    mocked_webhook.side_effect = [first_webhook_response, second_webhook_response]
+
+    payload_dict = {"checkout": {"id": 1, "some_field": "12"}}
+    payload = json.dumps(payload_dict)
     mocked_payload.return_value = payload
+
     plugin = webhook_plugin()
     available_shipping_methods = available_shipping_methods_factory(num_methods=2)
     previous_value = []
@@ -814,30 +904,47 @@ def test_multiple_webhooks_on_the_same_app_with_excluded_shipping_methods_for_ch
     assert em.id == "1"
     assert webhook_reason in em.reason
     assert webhook_second_reason in em.reason
-    webhooks = shipping_app.webhooks.filter(events__event_type=event_type)
-    assert len(webhooks) > 1
-    for webhook in webhooks:
-        mocked_webhook.assert_any_call(
-            event_type,
-            payload,
-            webhook,
-            False,
-            subscribable_object=checkout_with_items,
-            timeout=settings.WEBHOOK_SYNC_TIMEOUT,
-        )
 
-    expected_cache_key = CACHE_EXCLUDED_SHIPPING_KEY + str(checkout_with_items.token)
+    mocked_webhook.assert_any_call(
+        event_type,
+        payload,
+        first_webhook,
+        False,
+        subscribable_object=checkout_with_items,
+        timeout=settings.WEBHOOK_SYNC_TIMEOUT,
+        request=None,
+    )
+    mocked_webhook.assert_any_call(
+        event_type,
+        payload,
+        second_webhook,
+        False,
+        subscribable_object=checkout_with_items,
+        timeout=settings.WEBHOOK_SYNC_TIMEOUT,
+        request=None,
+    )
 
-    expected_excluded_shipping_method = [
-        {"id": "1", "reason": webhook_reason},
-        {"id": "1", "reason": webhook_second_reason},
-        {"id": "2", "reason": webhook_second_reason},
-    ]
+    expected_cache_for_first_webhook_key = generate_cache_key_for_webhook(
+        payload_dict, first_webhook.target_url, event_type, shipping_app.id
+    )
+    expected_cache_for_second_webhook_key = generate_cache_key_for_webhook(
+        payload_dict, second_webhook.target_url, event_type, shipping_app.id
+    )
+    assert expected_cache_for_first_webhook_key != expected_cache_for_second_webhook_key
 
-    mocked_cache_set.assert_called_once_with(
-        expected_cache_key,
-        (payload, expected_excluded_shipping_method),
-        CACHE_EXCLUDED_SHIPPING_TIME,
+    mocked_cache_set.assert_has_calls(
+        [
+            call(
+                expected_cache_for_first_webhook_key,
+                first_webhook_response,
+                timeout=CACHE_EXCLUDED_SHIPPING_TIME,
+            ),
+            call(
+                expected_cache_for_second_webhook_key,
+                second_webhook_response,
+                timeout=CACHE_EXCLUDED_SHIPPING_TIME,
+            ),
+        ]
     )
 
 
@@ -899,7 +1006,7 @@ def test_generate_excluded_shipping_methods_for_checkout_payload(
 
 
 @mock.patch("saleor.webhook.transport.shipping.parse_excluded_shipping_methods")
-@mock.patch("saleor.webhook.transport.shipping.trigger_webhook_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.trigger_webhook_sync")
 @mock.patch(
     "saleor.webhook.transport.shipping.get_excluded_shipping_methods_from_response"
 )
@@ -921,12 +1028,7 @@ def test_get_excluded_shipping_methods_or_fetch_invalid_response_type(
 
     # when
     get_excluded_shipping_methods_or_fetch(
-        webhooks,
-        event_type,
-        '{"test":"payload"}',
-        "test",
-        checkout,
-        allow_replica=False,
+        webhooks, event_type, '{"test":"payload"}', checkout, False
     )
     # then
     mocked_get_excluded.asssert_not_called()

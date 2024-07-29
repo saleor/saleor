@@ -55,7 +55,7 @@ from ...payment.utils import (
 )
 from ...settings import WEBHOOK_SYNC_TIMEOUT
 from ...thumbnail.models import Thumbnail
-from ...webhook.const import CACHE_EXCLUDED_SHIPPING_KEY, WEBHOOK_CACHE_DEFAULT_TIMEOUT
+from ...webhook.const import WEBHOOK_CACHE_DEFAULT_TIMEOUT
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...webhook.payloads import (
     generate_checkout_payload,
@@ -3087,12 +3087,10 @@ class WebhookPlugin(BasePlugin):
             order,
             available_shipping_methods,
         )
-        cache_key = CACHE_EXCLUDED_SHIPPING_KEY + str(order.id)
         return get_excluded_shipping_data(
             event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
             previous_value=previous_value,
             payload_fun=payload_fun,
-            cache_key=cache_key,
             subscribable_object=order,
             allow_replica=self.allow_replica,
         )
@@ -3108,12 +3106,10 @@ class WebhookPlugin(BasePlugin):
             checkout,
             available_shipping_methods,
         )
-        cache_key = CACHE_EXCLUDED_SHIPPING_KEY + str(checkout.token)
         return get_excluded_shipping_data(
             event_type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
             previous_value=previous_value,
             payload_fun=payload_function,
-            cache_key=cache_key,
             subscribable_object=checkout,
             allow_replica=self.allow_replica,
         )

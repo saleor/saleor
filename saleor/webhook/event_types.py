@@ -921,6 +921,11 @@ class WebhookEventSyncType:
         PAYMENT_REFUND,
         PAYMENT_VOID,
     ]
+    CHECKOUT_EVENTS = [
+        SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+        CHECKOUT_FILTER_SHIPPING_METHODS,
+        CHECKOUT_CALCULATE_TAXES,
+    ]
 
     # Events that are used only in the mutation logic can be excluded from the
     # circular query check.
