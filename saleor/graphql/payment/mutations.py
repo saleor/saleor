@@ -25,6 +25,7 @@ from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...checkout.utils import activate_payments, cancel_active_payments
 from ...core.error_codes import MetadataErrorCode
 from ...core.exceptions import PermissionDenied
+from ...core.prices import quantize_price
 from ...core.tracing import traced_atomic_transaction
 from ...core.utils import get_client_ip
 from ...core.utils.url import validate_storefront_url
@@ -866,19 +867,31 @@ class TransactionCreate(BaseMutation):
             )
 
     @classmethod
-    def get_money_data_from_input(cls, cleaned_data: dict) -> Dict[str, Decimal]:
+    def get_money_data_from_input(
+        cls, cleaned_data: dict, currency: str
+    ) -> Dict[str, Decimal]:
         money_data = {}
         if amount_authorized := cleaned_data.pop("amount_authorized", None):
-            money_data["authorized_value"] = amount_authorized["amount"]
+            money_data["authorized_value"] = quantize_price(
+                amount_authorized["amount"], currency
+            )
         if amount_charged := cleaned_data.pop("amount_charged", None):
-            money_data["charged_value"] = amount_charged["amount"]
+            money_data["charged_value"] = quantize_price(
+                amount_charged["amount"], currency
+            )
         if amount_refunded := cleaned_data.pop("amount_refunded", None):
-            money_data["refunded_value"] = amount_refunded["amount"]
+            money_data["refunded_value"] = quantize_price(
+                amount_refunded["amount"], currency
+            )
 
         if amount_canceled := cleaned_data.pop("amount_canceled", None):
-            money_data["canceled_value"] = amount_canceled["amount"]
+            money_data["canceled_value"] = quantize_price(
+                amount_canceled["amount"], currency
+            )
         elif amount_voided := cleaned_data.pop("amount_voided", None):
-            money_data["canceled_value"] = amount_voided["amount"]
+            money_data["canceled_value"] = quantize_price(
+                amount_voided["amount"], currency
+            )
         return money_data
 
     @classmethod
@@ -1087,6 +1100,7 @@ class TransactionCreate(BaseMutation):
             order_or_checkout_instance, transaction=transaction
         )
         transaction_data = {**transaction}
+        currency = order_or_checkout_instance.currency
         transaction_data["currency"] = order_or_checkout_instance.currency
         app = get_app_promise(info.context).get()
         user = info.context.user
@@ -1107,7 +1121,7 @@ class TransactionCreate(BaseMutation):
                     status=transaction_event.get("status"),
                     message=cls.create_event_message(transaction_event),
                 )
-        money_data = cls.get_money_data_from_input(transaction_data)
+        money_data = cls.get_money_data_from_input(transaction_data, currency)
         new_transaction = cls.create_transaction(transaction_data, user=user, app=app)
         if money_data:
             create_manual_adjustment_events(
@@ -1347,7 +1361,7 @@ class TransactionUpdate(TransactionCreate):
             cls.validate_transaction_input(instance, transaction)
             cls.assign_app_to_transaction_data_if_missing(instance, transaction, app)
             cls.cleanup_metadata_data(transaction)
-            money_data = cls.get_money_data_from_input(transaction)
+            money_data = cls.get_money_data_from_input(transaction, instance.currency)
             cls.update_transaction(instance, transaction, money_data, user, app)
 
         event = None
@@ -1516,6 +1530,7 @@ class TransactionRequestAction(BaseMutation):
         action_type = data["action_type"]
         action_value = data.get("amount")
         validate_one_of_args_is_in_mutation("id", id, "token", token)
+
         transaction = get_transaction_item(id, token)
         if transaction.order_id:
             order = cast(Order, transaction.order)
@@ -1523,11 +1538,17 @@ class TransactionRequestAction(BaseMutation):
         else:
             checkout = cast(Checkout, transaction.checkout)
             channel = checkout.channel
+
         cls.check_channel_permissions(info, [channel.id])
+
         channel_slug = channel.slug
         user = info.context.user
         app = get_app_promise(info.context).get()
         manager = get_plugin_manager_promise(info.context).get()
+
+        if action_value is not None:
+            action_value = quantize_price(action_value, transaction.currency)
+
         action_kwargs = {
             "channel_slug": channel_slug,
             "user": user,
@@ -1710,6 +1731,7 @@ class TransactionEventReport(ModelMutation):
                 ]
             )
 
+        amount = quantize_price(amount, transaction.currency)
         app_identifier = None
         if app and app.identifier:
             app_identifier = app.identifier
@@ -1936,8 +1958,9 @@ class TransactionSessionBase(BaseMutation):
         source_object: Union[checkout_models.Checkout, order_models.Order],
         input_amount: Optional[Decimal],
     ) -> Decimal:
+        currency = source_object.currency
         if input_amount is not None:
-            return input_amount
+            return quantize_price(input_amount, currency)
         amount: Decimal = source_object.total_gross_amount
         transactions = source_object.payment_transactions.all()
         for transaction_item in transactions:
@@ -1948,7 +1971,7 @@ class TransactionSessionBase(BaseMutation):
             amount -= transaction_item.authorize_pending_value
             amount -= transaction_item.charge_pending_value
 
-        return amount if amount >= Decimal(0) else Decimal(0)
+        return quantize_price(amount, currency) if amount >= Decimal(0) else Decimal(0)
 
 
 class PaymentGatewayInitialize(TransactionSessionBase):
