@@ -12,6 +12,7 @@ from .....attribute.models import AttributeValue
 from .....attribute.utils import associate_attribute_values_to_instance
 from .....core.units import WeightUnits
 from .....product.models import (
+    Channel,
     Product,
     ProductChannelListing,
     ProductVariantChannelListing,
@@ -2843,3 +2844,81 @@ def test_product_tax_class_query_by_staff(staff_api_client, product, channel_USD
     assert data["product"]
     assert data["product"]["id"]
     assert data["product"]["taxClass"]["id"]
+
+
+@pytest.fixture
+def channel_USD(db):
+    return Channel.objects.create(name="USD Channel", slug="usd-channel")
+
+
+@pytest.fixture
+def product_in_usd_channel(db, channel_USD):
+    product = Product.objects.create(name="Test Product")
+    product.channel_listings.create(channel=channel_USD, price_amount=10)
+    return product
+
+
+def test_products_invalid_channel_slug(api_client):
+    response = api_client.post_graphql(
+        """
+        query {
+          products(last: 100, channel: "does-not-exist") {
+            edges {
+              node {
+                id
+              }
+            }
+          }
+        }
+        """
+    )
+    content = get_graphql_content(response, ignore_errors=True)
+    assert "errors" in content
+    assert (
+        content["errors"][0]["message"]
+        == "Channel with 'does-not-exist' slug does not exist."
+    )
+
+
+def test_products_no_products_for_channel(api_client, channel_USD):
+    response = api_client.post_graphql(
+        """
+        query {
+          products(last: 100, channel: "empty-channel") {
+            edges {
+              node {
+                id
+              }
+            }
+          }
+        }
+        """
+    )
+    content = get_graphql_content(response, ignore_errors=True)
+    assert "errors" in content
+    assert (
+        content["errors"][0]["message"]
+        == "No products found for channel 'empty-channel'"
+    )
+
+
+def test_products_with_valid_channel(api_client, channel_USD, product_in_usd_channel):
+    response = api_client.post_graphql(
+        """
+        query {
+          products(last: 100, channel: "usd-channel") {
+            edges {
+              node {
+                id
+              }
+            }
+          }
+        }
+        """
+    )
+    content = get_graphql_content(response)
+    assert "errors" not in content
+    assert len(content["data"]["products"]["edges"]) == 1
+    assert content["data"]["products"]["edges"][0]["node"][
+        "id"
+    ] == graphene.Node.to_global_id("Product", product_in_usd_channel.id)
