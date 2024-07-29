@@ -351,6 +351,7 @@ def test_customers_bulk_update_match_orders_and_gift_card_when_confirmed(
     assert gift_card.created_by == customer_user
     assert gift_card.created_by_email == customer_user.email
     assert order.user == customer_user
+    assert customer_user.is_confirmed
 
 
 def test_customers_bulk_update_using_external_refs(
