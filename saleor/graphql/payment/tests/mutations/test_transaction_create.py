@@ -2086,3 +2086,70 @@ def test_transaction_create_for_checkout_updates_last_transaction_modified_at(
     transaction = checkout_with_items.payment_transactions.first()
 
     assert checkout_with_items.last_transaction_modified_at == transaction.modified_at
+
+
+@pytest.mark.parametrize(
+    ("amount_field_name", "transaction_field_name", "amount_db_field"),
+    [
+        ("amountAuthorized", "authorizedAmount", "authorized_value"),
+        ("amountCharged", "chargedAmount", "charged_value"),
+        ("amountCanceled", "canceledAmount", "canceled_value"),
+        ("amountRefunded", "refundedAmount", "refunded_value"),
+    ],
+)
+def test_transaction_create_amount_with_lot_of_decimal_places(
+    amount_field_name,
+    transaction_field_name,
+    amount_db_field,
+    order_with_lines,
+    permission_manage_payments,
+    app_api_client,
+):
+    # given
+    psp_reference = "PSP reference - 123"
+    available_actions = [
+        TransactionActionEnum.CHARGE.name,
+        TransactionActionEnum.CANCEL.name,
+        TransactionActionEnum.CHARGE.name,
+    ]
+    value = Decimal("9.88789999")
+    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
+
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
+        "transaction": {
+            "name": "Credit Card",
+            "pspReference": psp_reference,
+            "availableActions": available_actions,
+            amount_field_name: {
+                "amount": value,
+                "currency": "USD",
+            },
+            "externalUrl": external_url,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    available_actions = set(available_actions)
+
+    transaction = order_with_lines.payment_transactions.first()
+    content = get_graphql_content(response)
+    data = content["data"]["transactionCreate"]["transaction"]
+    assert set(data["actions"]) == available_actions
+    assert data["pspReference"] == psp_reference
+    assert str(data[transaction_field_name]["amount"]) == str(round(value, 2))
+    assert data["externalUrl"] == external_url
+    assert data["createdBy"]["id"] == to_global_id_or_none(app_api_client.app)
+
+    assert available_actions == set(map(str.upper, transaction.available_actions))
+    assert psp_reference == transaction.psp_reference
+    assert round(value, 2) == getattr(transaction, amount_db_field)
+    assert transaction.app_identifier == app_api_client.app.identifier
+    assert transaction.app == app_api_client.app
+    assert transaction.user is None
+    assert transaction.external_url == external_url
