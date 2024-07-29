@@ -80,16 +80,12 @@ PSP_REFERENCE_OPTIONAL_MAP = {
         TransactionEventType.CANCEL_FAILURE
     ],
     WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION: [
-        TransactionEventType.CHARGE_REQUEST,
-        TransactionEventType.AUTHORIZATION_REQUEST,
         TransactionEventType.CHARGE_ACTION_REQUIRED,
         TransactionEventType.AUTHORIZATION_ACTION_REQUIRED,
         TransactionEventType.CHARGE_FAILURE,
         TransactionEventType.AUTHORIZATION_FAILURE,
     ],
     WebhookEventSyncType.TRANSACTION_PROCESS_SESSION: [
-        TransactionEventType.CHARGE_REQUEST,
-        TransactionEventType.AUTHORIZATION_REQUEST,
         TransactionEventType.CHARGE_ACTION_REQUIRED,
         TransactionEventType.AUTHORIZATION_ACTION_REQUIRED,
         TransactionEventType.CHARGE_FAILURE,
@@ -1219,8 +1215,6 @@ def create_transaction_event_for_transaction_session(
     if not response_event.psp_reference and response_event.type not in [
         TransactionEventType.AUTHORIZATION_ACTION_REQUIRED,
         TransactionEventType.CHARGE_ACTION_REQUIRED,
-        TransactionEventType.CHARGE_REQUEST,
-        TransactionEventType.AUTHORIZATION_REQUEST,
         TransactionEventType.CHARGE_FAILURE,
         TransactionEventType.AUTHORIZATION_FAILURE,
     ]:

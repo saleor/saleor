@@ -1741,6 +1741,14 @@ def test_create_transaction_event_for_transaction_session_not_success_events(
             TransactionEventType.CHARGE_FAILURE,
             "Message related to the payment",
         ),
+        (
+            TransactionEventType.CHARGE_REQUEST,
+            "Providing `pspReference` is required for CHARGE_REQUEST",
+        ),
+        (
+            TransactionEventType.AUTHORIZATION_REQUEST,
+            "Providing `pspReference` is required for AUTHORIZATION_REQUEST",
+        ),
     ],
 )
 def test_create_transaction_event_for_transaction_session_missing_psp_reference(
