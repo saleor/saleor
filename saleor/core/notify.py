@@ -1,3 +1,24 @@
+from functools import cache
+from typing import Callable
+
+
+class NotifyHandler:
+    """Helper class for handling payload generation for notify event.
+
+    Payload is generated only when required and only once for the instance.
+    In case when plugins/webhooks don't use notfiy event, payload is not generated.
+    """
+
+    generate_payload_func: Callable[[], dict]
+
+    def __init__(self, payload_func):
+        self.generate_payload_func = payload_func
+
+    @cache
+    def payload(self):
+        return self.generate_payload_func()
+
+
 class UserNotifyEvent:
     ACCOUNT_CONFIRMATION = "account_confirmation"
     ACCOUNT_PASSWORD_RESET = "account_password_reset"

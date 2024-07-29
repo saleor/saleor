@@ -1,14 +1,23 @@
 from collections import defaultdict
 from collections.abc import Iterable
+from dataclasses import dataclass
 from decimal import Decimal
+from functools import partial
 from typing import TYPE_CHECKING, Optional
 from urllib.parse import urlencode
 
+from django.conf import settings
 from django.forms import model_to_dict
 
 from ..account.models import StaffNotificationRecipient
+from ..attribute.models import (
+    AssignedProductAttributeValue,
+    Attribute,
+    AttributeProduct,
+    AttributeValue,
+)
 from ..core.notification.utils import get_site_context
-from ..core.notify_events import NotifyEventType
+from ..core.notify import NotifyEventType, NotifyHandler
 from ..core.prices import quantize_price, quantize_price_fields
 from ..core.utils.url import build_absolute_uri, prepare_url
 from ..discount import DiscountType
@@ -22,6 +31,62 @@ from .models import FulfillmentLine, Order, OrderLine
 if TYPE_CHECKING:
     from ..account.models import User  # noqa: F401
     from ..app.models import App
+
+
+@dataclass
+class AttributeData:
+    attribute_map: dict[int, Attribute]
+    attribute_value_map: dict[int, AttributeValue]
+    product_type_id_to_attribute_id_map: dict[int, list[int]]
+    assigned_product_attribute_values_map: dict[int, list[int]]
+
+
+def get_attribute_data_from_order_lines(lines: Iterable["OrderLine"]) -> AttributeData:
+    product_ids = set(
+        [line.variant.product_id for line in lines if line.variant_id]  # type: ignore
+    )
+    assigned_product_attribute_values = (
+        AssignedProductAttributeValue.objects.using(
+            settings.DATABASE_CONNECTION_REPLICA_NAME
+        )
+        .filter(product_id__in=product_ids)
+        .values_list("product_id", "value_id")
+    )
+    assigned_product_attribute_values_map = defaultdict(list)
+    attribute_value_ids = set()
+    for product_id, value_id in assigned_product_attribute_values:
+        attribute_value_ids.add(value_id)
+        assigned_product_attribute_values_map[product_id].append(value_id)
+
+    attribute_values_map = AttributeValue.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).in_bulk(attribute_value_ids)
+
+    product_type_ids = set(
+        [
+            line.variant.product.product_type_id  # type: ignore
+            for line in lines
+            if line.variant_id
+        ]
+    )
+
+    attribute_products = AttributeProduct.objects.filter(
+        product_type_id__in=product_type_ids
+    ).values_list("product_type_id", "attribute_id")
+    attribute_ids = set()
+    product_type_id_to_attribute_id_map = defaultdict(list)
+    for product_type_id, attribute_id in attribute_products:
+        attribute_ids.add(attribute_id)
+        product_type_id_to_attribute_id_map[product_type_id].append(attribute_id)
+
+    attributes_map = Attribute.objects.in_bulk(attribute_ids)
+
+    return AttributeData(
+        attribute_map=attributes_map,
+        attribute_value_map=attribute_values_map,
+        product_type_id_to_attribute_id_map=product_type_id_to_attribute_id_map,
+        assigned_product_attribute_values_map=assigned_product_attribute_values_map,
+    )
 
 
 def get_image_payload(instance: ProductMedia):
@@ -47,17 +112,32 @@ def get_default_images_payload(images: list[ProductMedia]):
     return {"first_image": first_image_payload, "images": images_payload}
 
 
-def get_product_attributes_payload(product):
-    attribute_products = product.product_type.attributeproduct.all()
-    assigned_values = product.attributevalues.all()
+def get_product_attributes_payload(product, attribute_data: AttributeData):
+    attribute_ids = attribute_data.product_type_id_to_attribute_id_map.get(
+        product.product_type.id, []
+    )
+    assigned_value_ids = attribute_data.assigned_product_attribute_values_map.get(
+        product.id, []
+    )
+
+    attributes = [
+        attribute_data.attribute_map[attribute_id]
+        for attribute_id in attribute_ids
+        if attribute_id in attribute_data.attribute_map
+    ]
+    attribute_values = [
+        attribute_data.attribute_value_map[value_id]
+        for value_id in assigned_value_ids
+        if value_id in attribute_data.attribute_value_map
+    ]
 
     values_map = defaultdict(list)
-    for av in assigned_values:
-        values_map[av.value.attribute_id].append(av.value)
+    for value in attribute_values:
+        values_map[value.attribute_id].append(value)
 
     attributes_payload = []
-    for attribute_product in attribute_products:
-        attr = attribute_product.attribute
+    for attribute in attributes:
+        attr = attribute
         attributes_payload.append(
             {
                 "assignment": {
@@ -80,12 +160,12 @@ def get_product_attributes_payload(product):
     return attributes_payload
 
 
-def get_product_payload(product: Product):
+def get_product_payload(product: Product, attribute_data: AttributeData):
     all_media = product.media.all()
     images = [media for media in all_media if media.type == ProductMediaTypes.IMAGE]
     return {
         "id": to_global_id_or_none(product),
-        "attributes": get_product_attributes_payload(product),
+        "attributes": get_product_attributes_payload(product, attribute_data),
         "weight": str(product.weight or ""),
         **get_default_images_payload(images),
     }
@@ -104,7 +184,7 @@ def get_product_variant_payload(variant: ProductVariant):
     }
 
 
-def get_order_line_payload(line: "OrderLine"):
+def get_order_line_payload(line: "OrderLine", attribute_data: AttributeData):
     digital_url: Optional[str] = None
     if line.is_digital:
         content = DigitalContentUrl.objects.filter(line=line).first()
@@ -112,7 +192,7 @@ def get_order_line_payload(line: "OrderLine"):
     variant_dependent_fields = {}
     if line.variant:
         variant_dependent_fields = {
-            "product": get_product_payload(line.variant.product),
+            "product": get_product_payload(line.variant.product, attribute_data),
             "variant": get_product_variant_payload(line.variant),
         }
     currency = line.currency
@@ -150,10 +230,12 @@ def get_order_line_payload(line: "OrderLine"):
     }
 
 
-def get_lines_payload(order_lines: Iterable["OrderLine"]):
+def get_lines_payload(
+    order_lines: Iterable["OrderLine"], attribute_data: AttributeData
+):
     payload = []
     for line in order_lines:
-        payload.append(get_order_line_payload(line))
+        payload.append(get_order_line_payload(line, attribute_data))
     return payload
 
 
@@ -239,22 +321,27 @@ def get_custom_order_payload(order: Order):
     return payload
 
 
-def get_default_order_payload(order: "Order", redirect_url: str = ""):
+def get_default_order_payload(
+    order: "Order",
+    redirect_url: str = "",
+    lines: Optional[Iterable["OrderLine"]] = None,
+    attribute_data: Optional[AttributeData] = None,
+):
     order_details_url = ""
     if redirect_url:
         order_details_url = prepare_order_details_url(order, redirect_url)
     subtotal = order.subtotal
     tax = order.total_gross_amount - order.total_net_amount or Decimal(0)
 
-    lines = order.lines.prefetch_related(
-        "variant__media",
-        "variant__product__media",
-        "variant__product__attributevalues",
-        "variant__product__attributevalues__value",
-        "variant__product__product_type",
-        "variant__product__product_type__attributeproduct",
-        "variant__product__product_type__attributeproduct__attribute",
-    ).all()
+    if lines is None:
+        lines = order.lines.prefetch_related(
+            "variant__media",
+            "variant__product__media",
+            "variant__product__product_type",
+        ).all()
+    if attribute_data is None:
+        attribute_data = get_attribute_data_from_order_lines(lines)
+
     currency = order.currency
     quantize_price_fields(order, fields=ORDER_PRICE_FIELDS, currency=currency)
     order_payload = model_to_dict(order, fields=ORDER_MODEL_FIELDS)
@@ -272,7 +359,7 @@ def get_default_order_payload(order: "Order", redirect_url: str = ""):
             "subtotal_gross_amount": quantize_price(subtotal.gross.amount, currency),
             "subtotal_net_amount": quantize_price(subtotal.net.amount, currency),
             "tax_amount": quantize_price(tax, currency),
-            "lines": get_lines_payload(lines),
+            "lines": get_lines_payload(lines, attribute_data),
             "billing_address": get_address_payload(order.billing_address),
             "shipping_address": get_address_payload(order.shipping_address),
             "shipping_method_name": order.shipping_method_name,
@@ -286,30 +373,44 @@ def get_default_order_payload(order: "Order", redirect_url: str = ""):
     return order_payload
 
 
-def get_default_fulfillment_line_payload(line: "FulfillmentLine"):
+def get_default_fulfillment_line_payload(
+    line: "FulfillmentLine", attribute_data: AttributeData
+):
     return {
         "id": to_global_id_or_none(line),
-        "order_line": get_order_line_payload(line.order_line),
+        "order_line": get_order_line_payload(line.order_line, attribute_data),
         "quantity": line.quantity,
     }
 
 
 def get_default_fulfillment_payload(order, fulfillment):
-    lines = fulfillment.lines.all()
-    physical_lines = [line for line in lines if not line.order_line.is_digital]
+    lines = fulfillment.lines.prefetch_related(
+        "order_line__variant__media",
+        "order_line__variant__product__media",
+        "order_line__variant__product__product_type",
+    ).all()
+    attribute_data = get_attribute_data_from_order_lines(
+        [line.order_line for line in lines]
+    )
 
+    physical_lines = [line for line in lines if not line.order_line.is_digital]
     digital_lines = [line for line in lines if line.order_line.is_digital]
+
     payload = {
-        "order": get_default_order_payload(order, order.redirect_url),
+        "order": get_default_order_payload(
+            order, order.redirect_url, attribute_data=attribute_data
+        ),
         "fulfillment": {
             "tracking_number": fulfillment.tracking_number,
             "is_tracking_number_url": fulfillment.is_tracking_number_url,
         },
         "physical_lines": [
-            get_default_fulfillment_line_payload(line) for line in physical_lines
+            get_default_fulfillment_line_payload(line, attribute_data)
+            for line in physical_lines
         ],
         "digital_lines": [
-            get_default_fulfillment_line_payload(line) for line in digital_lines
+            get_default_fulfillment_line_payload(line, attribute_data)
+            for line in digital_lines
         ],
         "recipient_email": order.get_customer_email(),
         **get_site_context(),
@@ -324,14 +425,19 @@ def prepare_order_details_url(order: Order, redirect_url: str) -> str:
 
 def send_order_confirmation(order_info, redirect_url, manager):
     """Send notification with order confirmation."""
-    payload = {
-        "order": get_default_order_payload(order_info.order, redirect_url),
-        "recipient_email": order_info.customer_email,
-        **get_site_context(),
-    }
+
+    def _generate_payload():
+        payload = {
+            "order": get_default_order_payload(order_info.order, redirect_url),
+            "recipient_email": order_info.customer_email,
+            **get_site_context(),
+        }
+        return payload
+
+    handler = NotifyHandler(_generate_payload)
     manager.notify(
         NotifyEventType.ORDER_CONFIRMATION,
-        payload,
+        payload_func=handler.payload,
         channel_slug=order_info.channel.slug,
     )
 
@@ -343,73 +449,100 @@ def send_order_confirmation(order_info, redirect_url, manager):
         notification.get_email() for notification in staff_notifications
     ]
     if recipient_emails:
-        payload = {
-            "order": payload["order"],
-            "recipient_list": recipient_emails,
-            **get_site_context(),
-        }
-        manager.notify(NotifyEventType.STAFF_ORDER_CONFIRMATION, payload=payload)
+
+        def _generate_staff_payload():
+            payload = _generate_payload()
+            payload = {
+                "order": payload["order"],
+                "recipient_list": recipient_emails,
+                **get_site_context(),
+            }
+            return payload
+
+        handler = NotifyHandler(_generate_payload)
+        manager.notify(
+            NotifyEventType.STAFF_ORDER_CONFIRMATION, payload_func=handler.payload
+        )
 
 
 def send_order_confirmed(order, user, app, manager):
     """Send email which tells customer that order has been confirmed."""
-    payload = {
-        "order": get_default_order_payload(order, order.redirect_url),
-        "recipient_email": order.get_customer_email(),
-        **get_site_context(),
-    }
-    attach_requester_payload_data(payload, user, app)
+
+    def _generate_payload():
+        payload = {
+            "order": get_default_order_payload(order, order.redirect_url),
+            "recipient_email": order.get_customer_email(),
+            **get_site_context(),
+        }
+        attach_requester_payload_data(payload, user, app)
+        return payload
+
+    handler = NotifyHandler(_generate_payload)
     manager.notify(
-        NotifyEventType.ORDER_CONFIRMED, payload, channel_slug=order.channel.slug
+        NotifyEventType.ORDER_CONFIRMED,
+        payload_func=handler.payload,
+        channel_slug=order.channel.slug,
     )
 
 
 def send_fulfillment_confirmation_to_customer(order, fulfillment, user, app, manager):
-    payload = get_default_fulfillment_payload(order, fulfillment)
-    attach_requester_payload_data(payload, user, app)
+    def _generate_payload():
+        _payload = get_default_fulfillment_payload(order, fulfillment)
+        attach_requester_payload_data(_payload, user, app)
+        return _payload
+
+    handler = NotifyHandler(_generate_payload)
+
     manager.notify(
         NotifyEventType.ORDER_FULFILLMENT_CONFIRMATION,
-        payload=payload,
+        payload_func=handler.payload,
         channel_slug=order.channel.slug,
     )
 
 
 def send_fulfillment_update(order, fulfillment, manager):
-    payload = get_default_fulfillment_payload(order, fulfillment)
+    handler = NotifyHandler(
+        partial(get_default_fulfillment_payload, order, fulfillment)
+    )
     manager.notify(
         NotifyEventType.ORDER_FULFILLMENT_UPDATE,
-        payload,
+        payload_func=handler.payload,
         channel_slug=order.channel.slug,
     )
 
 
 def send_payment_confirmation(order_info, manager):
     """Send notification with the payment confirmation."""
-    payment = order_info.payment
-    payload = {
-        "order": get_default_order_payload(order_info.order),
-        "recipient_email": order_info.customer_email,
-        **get_site_context(),
-    }
-    if payment:
-        payment_currency = payment.currency
-        payload.update(
-            {
-                "payment": {
-                    "created": payment.created_at,
-                    "modified": payment.modified_at,
-                    "charge_status": payment.charge_status,
-                    "total": quantize_price(payment.total, payment_currency),
-                    "captured_amount": quantize_price(
-                        payment.captured_amount, payment_currency
-                    ),
-                    "currency": payment_currency,
+
+    def _generate_payload():
+        payment = order_info.payment
+        payload = {
+            "order": get_default_order_payload(order_info.order),
+            "recipient_email": order_info.customer_email,
+            **get_site_context(),
+        }
+        if payment:
+            payment_currency = payment.currency
+            payload.update(
+                {
+                    "payment": {
+                        "created": payment.created_at,
+                        "modified": payment.modified_at,
+                        "charge_status": payment.charge_status,
+                        "total": quantize_price(payment.total, payment_currency),
+                        "captured_amount": quantize_price(
+                            payment.captured_amount, payment_currency
+                        ),
+                        "currency": payment_currency,
+                    }
                 }
-            }
-        )
+            )
+        return payload
+
+    handler = NotifyHandler(_generate_payload)
     manager.notify(
         NotifyEventType.ORDER_PAYMENT_CONFIRMATION,
-        payload,
+        payload_func=handler.payload,
         channel_slug=order_info.channel.slug,
     )
 
@@ -417,14 +550,20 @@ def send_payment_confirmation(order_info, manager):
 def send_order_canceled_confirmation(
     order: "Order", user: Optional["User"], app: Optional["App"], manager
 ):
-    payload = {
-        "order": get_default_order_payload(order),
-        "recipient_email": order.get_customer_email(),
-        **get_site_context(),
-    }
-    attach_requester_payload_data(payload, user, app)
+    def _generate_payload():
+        payload = {
+            "order": get_default_order_payload(order),
+            "recipient_email": order.get_customer_email(),
+            **get_site_context(),
+        }
+        attach_requester_payload_data(payload, user, app)
+        return payload
+
+    handler = NotifyHandler(_generate_payload)
     manager.notify(
-        NotifyEventType.ORDER_CANCELED, payload, channel_slug=order.channel.slug
+        NotifyEventType.ORDER_CANCELED,
+        payload_func=handler.payload,
+        channel_slug=order.channel.slug,
     )
 
 
@@ -436,17 +575,21 @@ def send_order_refunded_confirmation(
     currency: str,
     manager,
 ):
-    payload = {
-        "order": get_default_order_payload(order),
-        "recipient_email": order.get_customer_email(),
-        "amount": quantize_price(amount, currency),
-        "currency": currency,
-        **get_site_context(),
-    }
-    attach_requester_payload_data(payload, user, app)
+    def _generate_payload():
+        payload = {
+            "order": get_default_order_payload(order),
+            "recipient_email": order.get_customer_email(),
+            "amount": quantize_price(amount, currency),
+            "currency": currency,
+            **get_site_context(),
+        }
+        attach_requester_payload_data(payload, user, app)
+        return payload
+
+    handler = NotifyHandler(_generate_payload)
     manager.notify(
         NotifyEventType.ORDER_REFUND_CONFIRMATION,
-        payload,
+        payload_func=handler.payload,
         channel_slug=order.channel.slug,
     )
 

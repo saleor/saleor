@@ -6,7 +6,7 @@ import pytest
 from django.core.exceptions import ValidationError
 from django.core.mail.backends.smtp import EmailBackend
 
-from ....core.notify_events import NotifyEventType
+from ....core.notify import NotifyEventType
 from ....graphql.tests.utils import get_graphql_content
 from ...email_common import (
     DEFAULT_EMAIL_CONFIG_STRUCTURE,

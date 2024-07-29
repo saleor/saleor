@@ -4,7 +4,7 @@ from urllib.parse import urlencode
 import pytest
 from freezegun import freeze_time
 
-from ...core.notify_events import NotifyEventType, UserNotifyEvent
+from ...core.notify import NotifyEventType, UserNotifyEvent
 from ...core.tests.utils import get_site_context_payload
 from ...core.utils.url import prepare_url
 from ...graphql.core.utils import to_global_id_or_none
@@ -32,11 +32,14 @@ def test_get_default_user_payload(customer_user):
 def test_send_email_request_change(
     mocked_notify, site_settings, customer_user, channel_PLN
 ):
+    # given
     new_email = "example@example.com"
     redirect_url = "http://localhost:8000/redirect"
     token = "token_example"
 
     manager = get_plugins_manager(allow_replica=False)
+
+    # when
     notifications.send_request_user_change_email_notification(
         redirect_url,
         customer_user,
@@ -46,6 +49,7 @@ def test_send_email_request_change(
         channel_slug=channel_PLN.slug,
     )
 
+    # then
     expected_payload = {
         "user": get_default_user_payload(customer_user),
         "recipient_email": new_email,
@@ -56,20 +60,24 @@ def test_send_email_request_change(
         "channel_slug": channel_PLN.slug,
         **get_site_context_payload(site_settings.site),
     }
-
-    mocked_notify.assert_called_once_with(
-        UserNotifyEvent.ACCOUNT_CHANGE_EMAIL_REQUEST,
-        payload=expected_payload,
-        channel_slug=channel_PLN.slug,
-    )
+    assert mocked_notify.call_count == 1
+    call_args = mocked_notify.call_args_list[0]
+    called_args = call_args.args
+    called_kwargs = call_args.kwargs
+    assert called_args[0] == UserNotifyEvent.ACCOUNT_CHANGE_EMAIL_REQUEST
+    assert len(called_kwargs) == 2
+    assert called_kwargs["payload_func"]() == expected_payload
+    assert called_kwargs["channel_slug"] == channel_PLN.slug
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
 def test_send_email_changed_notification(
     mocked_notify, site_settings, customer_user, channel_PLN
 ):
+    # given
     old_email = "example@example.com"
 
+    # when
     notifications.send_user_change_email_notification(
         old_email,
         customer_user,
@@ -77,6 +85,7 @@ def test_send_email_changed_notification(
         channel_slug=channel_PLN.slug,
     )
 
+    # then
     expected_payload = {
         "user": get_default_user_payload(customer_user),
         "recipient_email": old_email,
@@ -86,11 +95,14 @@ def test_send_email_changed_notification(
         **get_site_context_payload(site_settings.site),
     }
 
-    mocked_notify.assert_called_once_with(
-        UserNotifyEvent.ACCOUNT_CHANGE_EMAIL_CONFIRM,
-        payload=expected_payload,
-        channel_slug=channel_PLN.slug,
-    )
+    assert mocked_notify.call_count == 1
+    call_args = mocked_notify.call_args_list[0]
+    called_args = call_args.args
+    called_kwargs = call_args.kwargs
+    assert called_args[0] == UserNotifyEvent.ACCOUNT_CHANGE_EMAIL_CONFIRM
+    assert len(called_kwargs) == 2
+    assert called_kwargs["payload_func"]() == expected_payload
+    assert called_kwargs["channel_slug"] == channel_PLN.slug
 
 
 @pytest.mark.parametrize("is_staff", [True, False])
@@ -99,12 +111,14 @@ def test_send_email_changed_notification(
 def test_send_password_reset_notification(
     mocked_notify, mocked_generator, is_staff, site_settings, customer_user, channel_PLN
 ):
+    # given
     token = "token_example"
     mocked_generator.return_value = token
     redirect_url = "http://localhost:8000/reset"
     params = urlencode({"email": customer_user.email, "token": token})
     reset_url = prepare_url(params, redirect_url)
 
+    # when
     notifications.send_password_reset_notification(
         redirect_url,
         customer_user,
@@ -113,6 +127,7 @@ def test_send_password_reset_notification(
         staff=is_staff,
     )
 
+    # then
     expected_payload = {
         "user": get_default_user_payload(customer_user),
         "recipient_email": customer_user.email,
@@ -126,6 +141,12 @@ def test_send_password_reset_notification(
         if is_staff
         else NotifyEventType.ACCOUNT_PASSWORD_RESET
     )
-    mocked_notify.assert_called_once_with(
-        expected_event, payload=expected_payload, channel_slug=channel_PLN.slug
-    )
+
+    assert mocked_notify.call_count == 1
+    call_args = mocked_notify.call_args_list[0]
+    called_args = call_args.args
+    called_kwargs = call_args.kwargs
+    assert called_args[0] == expected_event
+    assert len(called_kwargs) == 2
+    assert called_kwargs["payload_func"]() == expected_payload
+    assert called_kwargs["channel_slug"] == channel_PLN.slug

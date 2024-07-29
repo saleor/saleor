@@ -24,7 +24,7 @@ def send_notification(
 def trigger_notifications(
     manager, external_event_type, payload, channel_slug=None, plugin_id=None
 ):
-    method_kwargs = dict(event=external_event_type, payload=payload)
+    method_kwargs = dict(event=external_event_type, payload_func=lambda: payload)
     manager.notify(**method_kwargs, plugin_id=plugin_id, channel_slug=channel_slug)
 
 

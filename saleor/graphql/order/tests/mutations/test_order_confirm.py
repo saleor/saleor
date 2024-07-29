@@ -2,7 +2,7 @@ from unittest.mock import ANY, patch
 
 import graphene
 
-from .....core.notify_events import NotifyEventType
+from .....core.notify import NotifyEventType
 from .....core.tests.utils import get_site_context_payload
 from .....order import OrderStatus
 from .....order import events as order_events
@@ -92,11 +92,15 @@ def test_order_confirm(
         "requester_app_id": None,
         **get_site_context_payload(site_settings.site),
     }
-    mocked_notify.assert_called_once_with(
-        NotifyEventType.ORDER_CONFIRMED,
-        expected_payload,
-        channel_slug=order_unconfirmed.channel.slug,
-    )
+    assert mocked_notify.call_count == 1
+    call_args = mocked_notify.call_args_list[0]
+    called_args = call_args.args
+    called_kwargs = call_args.kwargs
+    assert called_args[0] == NotifyEventType.ORDER_CONFIRMED
+    assert len(called_kwargs) == 2
+    assert called_kwargs["payload_func"]() == expected_payload
+    assert called_kwargs["channel_slug"] == order_unconfirmed.channel.slug
+
     order_info = fetch_order_info(order_unconfirmed)
     handle_fully_paid_order_mock.assert_called_once_with(
         ANY,
@@ -119,6 +123,7 @@ def test_order_confirm_without_sku(
     payment_txn_preauth,
     site_settings,
 ):
+    # given
     order_unconfirmed.lines.update(product_sku=None)
     ProductVariant.objects.update(sku=None)
 
@@ -126,10 +131,14 @@ def test_order_confirm_without_sku(
     payment_txn_preauth.save()
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     assert not OrderEvent.objects.exists()
+
+    # when
     response = staff_api_client.post_graphql(
         ORDER_CONFIRM_MUTATION,
         {"id": graphene.Node.to_global_id("Order", order_unconfirmed.id)},
     )
+
+    # then
     order_data = get_graphql_content(response)["data"]["orderConfirm"]["order"]
 
     assert order_data["status"] == OrderStatus.UNFULFILLED.upper()
@@ -159,11 +168,15 @@ def test_order_confirm_without_sku(
         "requester_app_id": None,
         **get_site_context_payload(site_settings.site),
     }
-    mocked_notify.assert_called_once_with(
-        NotifyEventType.ORDER_CONFIRMED,
-        expected_payload,
-        channel_slug=order_unconfirmed.channel.slug,
-    )
+
+    assert mocked_notify.call_count == 1
+    call_args = mocked_notify.call_args_list[0]
+    called_args = call_args.args
+    called_kwargs = call_args.kwargs
+    assert called_args[0] == NotifyEventType.ORDER_CONFIRMED
+    assert len(called_kwargs) == 2
+    assert called_kwargs["payload_func"]() == expected_payload
+    assert called_kwargs["channel_slug"] == order_unconfirmed.channel.slug
 
 
 def test_order_confirm_unfulfilled(
@@ -362,11 +375,16 @@ def test_order_confirm_by_app(
         "requester_app_id": to_global_id_or_none(app_api_client.app),
         **get_site_context_payload(site_settings.site),
     }
-    mocked_notify.assert_called_once_with(
-        NotifyEventType.ORDER_CONFIRMED,
-        expected_payload,
-        channel_slug=order_unconfirmed.channel.slug,
-    )
+
+    assert mocked_notify.call_count == 1
+    call_args = mocked_notify.call_args_list[0]
+    called_args = call_args.args
+    called_kwargs = call_args.kwargs
+    assert called_args[0] == NotifyEventType.ORDER_CONFIRMED
+    assert len(called_kwargs) == 2
+    assert called_kwargs["payload_func"]() == expected_payload
+    assert called_kwargs["channel_slug"] == order_unconfirmed.channel.slug
+
     order_info = fetch_order_info(order_unconfirmed)
     handle_fully_paid_order_mock.assert_called_once_with(
         ANY,

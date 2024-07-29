@@ -3,13 +3,7 @@ from collections.abc import Iterable
 from copy import copy
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    Optional,
-    Union,
-)
+from typing import TYPE_CHECKING, Any, Callable, Optional, Union
 
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
@@ -51,7 +45,7 @@ if TYPE_CHECKING:
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..checkout.models import Checkout
     from ..core.middleware import Requestor
-    from ..core.notify_events import NotifyEventType
+    from ..core.notify import NotifyEventType
     from ..core.taxes import TaxData, TaxType
     from ..csv.models import ExportFile
     from ..discount.models import Promotion, PromotionRule, Voucher, VoucherCode
@@ -777,7 +771,7 @@ class BasePlugin:
     # Handle notification request.
     #
     # Overwrite this method if the plugin is responsible for sending notifications.
-    notify: Callable[["NotifyEventType", dict, Any], Any]
+    notify: Callable[["NotifyEventType", Callable[[], dict], Any], Any]
 
     # Trigger when order is cancelled.
     #

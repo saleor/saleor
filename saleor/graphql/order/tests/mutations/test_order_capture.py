@@ -2,7 +2,7 @@ from unittest.mock import ANY, patch
 
 import graphene
 
-from .....core.notify_events import NotifyEventType
+from .....core.notify import NotifyEventType
 from .....core.tests.utils import get_site_context_payload
 from .....order import events as order_events
 from .....order.notifications import get_default_order_payload
@@ -96,11 +96,15 @@ def test_order_capture(
         **get_site_context_payload(site_settings.site),
     }
 
-    mocked_notify.assert_called_once_with(
-        NotifyEventType.ORDER_PAYMENT_CONFIRMATION,
-        expected_payment_payload,
-        channel_slug=order.channel.slug,
-    )
+    assert mocked_notify.call_count == 1
+    call_args = mocked_notify.call_args_list[0]
+    called_args = call_args.args
+    called_kwargs = call_args.kwargs
+    assert called_args[0] == NotifyEventType.ORDER_PAYMENT_CONFIRMATION
+    assert len(called_kwargs) == 2
+    assert called_kwargs["payload_func"]() == expected_payment_payload
+    assert called_kwargs["channel_slug"] == order.channel.slug
+
     fulfill_non_shippable_gift_cards_mock.assert_called_once_with(
         order, list(order.lines.all()), site_settings, staff_api_client.user, None, ANY
     )

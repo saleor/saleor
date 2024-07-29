@@ -1,10 +1,10 @@
 import logging
 from dataclasses import asdict
-from typing import Union
+from typing import Callable, Union
 
 from django.core.exceptions import ValidationError
 
-from ...core.notify_events import NotifyEventType, UserNotifyEvent
+from ...core.notify import NotifyEventType, UserNotifyEvent
 from ...plugins.sendgrid.tasks import send_email_with_dynamic_template_id
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 from ..error_codes import PluginErrorCode
@@ -222,7 +222,12 @@ class SendgridEmailPlugin(BasePlugin):
         configuration = {item["name"]: item["value"] for item in self.configuration}
         self.config = SendgridConfiguration(**configuration)
 
-    def notify(self, event: Union[NotifyEventType, str], payload: dict, previous_value):
+    def notify(
+        self,
+        event: Union[NotifyEventType, str],
+        payload_func: Callable[[], dict],
+        previous_value,
+    ):
         if not self.active:
             return previous_value
 
@@ -230,6 +235,7 @@ class SendgridEmailPlugin(BasePlugin):
 
         if not event_in_notify_event:
             logger.info(f"Send email with event {event} as dynamic template ID.")
+            payload = payload_func()
             send_email_with_dynamic_template_id.delay(
                 payload, event, asdict(self.config)
             )
@@ -246,7 +252,7 @@ class SendgridEmailPlugin(BasePlugin):
         if not template_id:
             # the empty fields means that we should not send an email for this event.
             return previous_value
-
+        payload = payload_func()
         event_task.delay(payload, asdict(self.config))
 
     @classmethod
