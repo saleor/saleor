@@ -1,12 +1,17 @@
 from unittest import mock
+from unittest.mock import call, patch
 
 import graphene
+from django.test import override_settings
 
+from .....checkout.actions import call_checkout_event_for_checkout_info
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import CheckoutLine
 from .....checkout.utils import invalidate_checkout
+from .....core.models import EventDelivery
 from .....plugins.manager import get_plugins_manager
+from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
 from ...mutations.utils import update_checkout_shipping_method_if_invalid
@@ -195,3 +200,79 @@ def test_checkout_lines_delete_not_associated_with_checkout(
     assert errors[0]["field"] == "lineId"
     assert errors[0]["code"] == CheckoutErrorCode.INVALID.name
     assert errors[0]["lines"] == [line_id]
+
+
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_lines_delete.call_checkout_event_for_checkout_info",
+    wraps=call_checkout_event_for_checkout_info,
+)
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_checkout_lines_delete_triggers_sync_webhooks(
+    mocked_send_webhook_request_async,
+    mocked_send_webhook_request_sync,
+    wrapped_call_checkout_event_for_checkout,
+    setup_checkout_webhooks,
+    settings,
+    api_client,
+    checkout_with_items,
+):
+    # given
+    mocked_send_webhook_request_sync.return_value = []
+    (
+        tax_webhook,
+        shipping_webhook,
+        shipping_filter_webhook,
+        checkout_updated_webhook,
+    ) = setup_checkout_webhooks(WebhookEventAsyncType.CHECKOUT_UPDATED)
+
+    line = checkout_with_items.lines.first()
+    first_line_id = to_global_id_or_none(line)
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_items),
+        "linesIds": [first_line_id],
+    }
+
+    # when
+    response = api_client.post_graphql(
+        MUTATION_CHECKOUT_LINES_DELETE,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["checkoutLinesDelete"]["errors"]
+
+    # confirm that event delivery was generated for each webhook.
+    checkout_update_delivery = EventDelivery.objects.get(
+        webhook_id=checkout_updated_webhook.id
+    )
+    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
+    shipping_methods_delivery = EventDelivery.objects.get(
+        webhook_id=shipping_webhook.id,
+        event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+    )
+    filter_shipping_delivery = EventDelivery.objects.get(
+        webhook_id=shipping_filter_webhook.id,
+        event_type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
+    )
+
+    mocked_send_webhook_request_async.assert_called_once_with(
+        kwargs={"event_delivery_id": checkout_update_delivery.id},
+        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+        bind=True,
+        retry_backoff=10,
+        retry_kwargs={"max_retries": 5},
+    )
+    mocked_send_webhook_request_sync.assert_has_calls(
+        [
+            call(shipping_methods_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
+            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
+            call(tax_delivery),
+        ]
+    )
+    assert wrapped_call_checkout_event_for_checkout.called
