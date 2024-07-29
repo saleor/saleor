@@ -1460,7 +1460,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             new_transaction = TransactionCreate.create_transaction(
                 transaction_data, None, None, save=False
             )
-            money_data = TransactionCreate.get_money_data_from_input(transaction_data)
+            money_data = TransactionCreate.get_money_data_from_input(
+                transaction_data, order.currency
+            )
             events: List[TransactionEvent] = []
             if money_data:
                 amountfield_eventtype_map = {
