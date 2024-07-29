@@ -217,7 +217,7 @@ class TransactionUpdate(TransactionCreate):
             cls.validate_transaction_input(instance, transaction)
             cls.assign_app_to_transaction_data_if_missing(instance, transaction, app)
             cls.cleanup_metadata_data(transaction)
-            money_data = cls.get_money_data_from_input(transaction)
+            money_data = cls.get_money_data_from_input(transaction, instance.currency)
             cls.update_transaction(instance, transaction, money_data, user, app)
 
         event = None

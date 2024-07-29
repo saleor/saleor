@@ -62,6 +62,7 @@ class ShippingMethodUpdateMixin:
     def clear_shipping_method_from_order(cls, order):
         order.shipping_method = None
         order.base_shipping_price = zero_money(order.currency)
+        order.undiscounted_base_shipping_price = zero_money(order.currency)
         order.shipping_price = zero_taxed_money(order.currency)
         order.shipping_method_name = None
         order.shipping_tax_rate = None
@@ -108,6 +109,7 @@ class ShippingMethodUpdateMixin:
     ):
         if not shipping_channel_listing:
             order.base_shipping_price = zero_money(order.currency)
+            order.undiscounted_base_shipping_price = zero_money(order.currency)
             return
 
         if (
@@ -116,8 +118,10 @@ class ShippingMethodUpdateMixin:
             and order.is_shipping_required()
         ):
             order.base_shipping_price = shipping_channel_listing.price
+            order.undiscounted_base_shipping_price = shipping_channel_listing.price
         else:
             order.base_shipping_price = zero_money(order.currency)
+            order.undiscounted_base_shipping_price = zero_money(order.currency)
 
 
 def clean_order_update_shipping(

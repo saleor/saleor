@@ -7,6 +7,7 @@ from django.utils import timezone
 from .....app.models import App
 from .....checkout.actions import transaction_amounts_for_checkout_updated
 from .....core.exceptions import PermissionDenied
+from .....core.prices import quantize_price
 from .....core.tracing import traced_atomic_transaction
 from .....order import models as order_models
 from .....order.actions import order_transaction_updated
@@ -216,6 +217,7 @@ class TransactionEventReport(ModelMutation):
                 ]
             )
 
+        amount = quantize_price(amount, transaction.currency)
         app_identifier = None
         if app and app.identifier:
             app_identifier = app.identifier

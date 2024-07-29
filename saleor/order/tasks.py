@@ -8,6 +8,7 @@ from django.utils import timezone
 
 from ..celeryconf import app
 from ..channel.models import Channel
+from ..core.db.connection import allow_writer
 from ..core.tracing import traced_atomic_transaction
 from ..core.utils.events import call_event
 from ..discount.models import Voucher, VoucherCode, VoucherCustomer
@@ -31,6 +32,7 @@ DELETE_EXPIRED_ORDER_BATCH_SIZE = 5000
 
 
 @app.task
+@allow_writer()
 def recalculate_orders_task(order_ids: list[int]):
     orders = Order.objects.filter(id__in=order_ids)
 
@@ -41,6 +43,7 @@ def recalculate_orders_task(order_ids: list[int]):
 
 
 @app.task
+@allow_writer()
 def send_order_updated(order_ids):
     manager = get_plugins_manager(allow_replica=True)
     for order in Order.objects.filter(id__in=order_ids):
@@ -108,6 +111,7 @@ def _order_expired_events(order_ids):
     )
 
 
+@allow_writer()
 def _expire_orders(manager, now):
     time_diff_func_in_minutes = (
         Func(Value("day"), now - OuterRef("created_at"), function="DATE_PART") * 24
@@ -179,5 +183,7 @@ def delete_expired_orders_task():
     # the writer DB. This avoids mixing querysets from different DBs.
     ids_batch = list(ids_batch)
 
-    Order.objects.filter(id__in=ids_batch).delete()
+    with allow_writer():
+        Order.objects.filter(id__in=ids_batch).delete()
+
     delete_expired_orders_task.delay()

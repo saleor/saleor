@@ -7,10 +7,10 @@ from ....graphql.context import SaleorContext
 from ....tests.models import Book
 from ..connection import (
     UnsafeWriterAccessError,
-    _log_writer_usage,
-    _restrict_writer,
     allow_writer,
     allow_writer_in_context,
+    log_writer_usage,
+    restrict_writer,
 )
 
 
@@ -65,14 +65,14 @@ def test_restrict_writer_raises_error(settings):
     connection = connections[settings.DATABASE_CONNECTION_DEFAULT_NAME]
 
     with pytest.raises(UnsafeWriterAccessError):
-        with connection.execute_wrapper(_restrict_writer):
+        with connection.execute_wrapper(restrict_writer):
             Book.objects.first()
 
 
 def test_restrict_writer_in_allow_writer(settings):
     connection = connections[settings.DATABASE_CONNECTION_DEFAULT_NAME]
 
-    with connection.execute_wrapper(_restrict_writer):
+    with connection.execute_wrapper(restrict_writer):
         with allow_writer():
             Book.objects.first()
 
@@ -80,7 +80,7 @@ def test_restrict_writer_in_allow_writer(settings):
 def test_log_writer_usage(settings, caplog):
     connection = connections[settings.DATABASE_CONNECTION_DEFAULT_NAME]
 
-    with connection.execute_wrapper(_log_writer_usage):
+    with connection.execute_wrapper(log_writer_usage):
         Book.objects.first()
 
     assert caplog.records

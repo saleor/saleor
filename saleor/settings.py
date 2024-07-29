@@ -251,6 +251,9 @@ ENABLE_RESTRICT_WRITER_MIDDLEWARE = get_bool_from_env(
 if ENABLE_RESTRICT_WRITER_MIDDLEWARE:
     MIDDLEWARE = ["saleor.core.db.connection.log_writer_usage_middleware"] + MIDDLEWARE
 
+# Restrict inexplicit writer DB usage in Celery tasks
+CELERY_RESTRICT_WRITER_METHOD = "saleor.core.db.connection.log_writer_usage"
+
 INSTALLED_APPS = [
     # External apps that need to go before django's
     "storages",
@@ -895,6 +898,13 @@ UPDATE_SEARCH_VECTOR_INDEX_QUEUE_NAME = os.environ.get(
 )
 # Queue name for "async webhook" events
 WEBHOOK_CELERY_QUEUE_NAME = os.environ.get("WEBHOOK_CELERY_QUEUE_NAME", None)
+WEBHOOK_SQS_CELERY_QUEUE_NAME = os.environ.get(
+    "WEBHOOK_SQS_CELERY_QUEUE_NAME", WEBHOOK_CELERY_QUEUE_NAME
+)
+WEBHOOK_PUBSUB_CELERY_QUEUE_NAME = os.environ.get(
+    "WEBHOOK_PUBSUB_CELERY_QUEUE_NAME", WEBHOOK_CELERY_QUEUE_NAME
+)
+
 CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME = os.environ.get(
     "CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME", WEBHOOK_CELERY_QUEUE_NAME
 )
