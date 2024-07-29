@@ -4,6 +4,7 @@ from typing import Optional
 import graphene
 from django.core.exceptions import ValidationError
 
+from ....checkout.actions import call_checkout_event_for_checkout_info
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import (
     CheckoutInfo,
@@ -270,7 +271,13 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             update_fields=checkout_fields_to_update + invalidate_prices_updated_fields
         )
         get_or_create_checkout_metadata(checkout).save()
-        cls.call_event(manager.checkout_updated, checkout)
+        call_checkout_event_for_checkout_info(
+            manager,
+            event_func=manager.checkout_updated,
+            event_name=WebhookEventAsyncType.CHECKOUT_UPDATED,
+            checkout_info=checkout_info,
+            lines=lines,
+        )
 
     @staticmethod
     def _resolve_delivery_method_type(id_) -> Optional[str]:
