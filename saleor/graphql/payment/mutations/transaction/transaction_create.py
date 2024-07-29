@@ -9,6 +9,7 @@ from django.db.models import Model
 
 from .....checkout import models as checkout_models
 from .....checkout.actions import transaction_amounts_for_checkout_updated
+from .....core.prices import quantize_price
 from .....order import OrderStatus
 from .....order import models as order_models
 from .....order.actions import order_transaction_updated
@@ -151,17 +152,27 @@ class TransactionCreate(BaseMutation):
             )
 
     @classmethod
-    def get_money_data_from_input(cls, cleaned_data: dict) -> Dict[str, Decimal]:
+    def get_money_data_from_input(
+        cls, cleaned_data: dict, currency: str
+    ) -> Dict[str, Decimal]:
         money_data = {}
         if amount_authorized := cleaned_data.pop("amount_authorized", None):
-            money_data["authorized_value"] = amount_authorized["amount"]
+            money_data["authorized_value"] = quantize_price(
+                amount_authorized["amount"], currency
+            )
         if amount_charged := cleaned_data.pop("amount_charged", None):
-            money_data["charged_value"] = amount_charged["amount"]
+            money_data["charged_value"] = quantize_price(
+                amount_charged["amount"], currency
+            )
         if amount_refunded := cleaned_data.pop("amount_refunded", None):
-            money_data["refunded_value"] = amount_refunded["amount"]
+            money_data["refunded_value"] = quantize_price(
+                amount_refunded["amount"], currency
+            )
 
         if amount_canceled := cleaned_data.pop("amount_canceled", None):
-            money_data["canceled_value"] = amount_canceled["amount"]
+            money_data["canceled_value"] = quantize_price(
+                amount_canceled["amount"], currency
+            )
         return money_data
 
     @classmethod
@@ -337,7 +348,8 @@ class TransactionCreate(BaseMutation):
             order_or_checkout_instance, transaction=transaction
         )
         transaction_data = {**transaction}
-        transaction_data["currency"] = order_or_checkout_instance.currency
+        currency = order_or_checkout_instance.currency
+        transaction_data["currency"] = currency
         app = get_app_promise(info.context).get()
         user = info.context.user
         manager = get_plugin_manager_promise(info.context).get()
@@ -354,7 +366,7 @@ class TransactionCreate(BaseMutation):
                     reference=transaction_event.get("psp_reference"),
                     message=transaction_event.get("message", ""),
                 )
-        money_data = cls.get_money_data_from_input(transaction_data)
+        money_data = cls.get_money_data_from_input(transaction_data, currency)
         new_transaction = cls.create_transaction(transaction_data, user=user, app=app)
         if money_data:
             create_manual_adjustment_events(
