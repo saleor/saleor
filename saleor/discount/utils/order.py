@@ -38,7 +38,9 @@ def create_or_update_discount_objects_for_order(
         order, lines_info, database_connection_name
     )
     create_or_update_line_discount_objects_for_manual_discounts(lines_info)
-    create_or_update_discount_objects_from_voucher(order, lines_info)
+    create_or_update_discount_objects_from_voucher(
+        order, lines_info, database_connection_name
+    )
     _copy_unit_discount_data_to_order_line(lines_info)
 
 

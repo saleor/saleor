@@ -7,6 +7,7 @@ from django.utils import timezone
 from prices import Money
 
 from ...channel.models import Channel
+from ...core.db.connection import allow_writer
 from ...core.taxes import zero_money
 from ...core.utils.promo_code import InvalidPromoCode
 from ...order.models import Order
@@ -308,24 +309,33 @@ def get_products_voucher_discount(
     return total_amount
 
 
-def create_or_update_discount_objects_from_voucher(order, lines_info):
-    create_or_update_discount_object_from_order_level_voucher(order)
+def create_or_update_discount_objects_from_voucher(
+    order, lines_info, database_connection_name
+):
+    create_or_update_discount_object_from_order_level_voucher(
+        order, database_connection_name
+    )
     create_or_update_line_discount_objects_from_voucher(lines_info)
 
 
-def create_or_update_discount_object_from_order_level_voucher(order):
+def create_or_update_discount_object_from_order_level_voucher(
+    order, database_connection_name
+):
     """Create or update discount object for ENTIRE_ORDER and SHIPPING voucher."""
     if not order.voucher_id:
-        order.discounts.filter(type=DiscountType.VOUCHER).delete()
-        return
+        with allow_writer():
+            order.discounts.filter(type=DiscountType.VOUCHER).delete()
+            return
 
     voucher = order.voucher
     if not is_order_level_voucher(voucher) and not is_shipping_voucher(voucher):
         return
 
-    voucher_channel_listing = voucher.channel_listings.filter(
-        channel=order.channel
-    ).first()
+    voucher_channel_listing = (
+        voucher.channel_listings.using(database_connection_name)
+        .filter(channel=order.channel)
+        .first()
+    )
     if not voucher_channel_listing:
         return
 
@@ -352,29 +362,30 @@ def create_or_update_discount_object_from_order_level_voucher(order):
         "translated_name": "",
     }
 
-    discount_object, created = order.discounts.get_or_create(
-        type=DiscountType.VOUCHER,
-        defaults=discount_object_defaults,
-    )
-    if not created:
-        updated_fields: list[str] = []
-        update_discount(
-            rule=None,
-            voucher=voucher,
-            discount_name=discount_name,
-            # TODO (SHOPX-914): set translated voucher name
-            translated_name="",
-            discount_reason=discount_reason,
-            discount_amount=discount_amount.amount,
-            value=voucher_channel_listing.discount_value,
-            value_type=voucher.discount_value_type,
-            unique_type=DiscountType.VOUCHER,
-            discount_to_update=discount_object,
-            updated_fields=updated_fields,
-            voucher_code=order.voucher_code,
+    with allow_writer():
+        discount_object, created = order.discounts.get_or_create(
+            type=DiscountType.VOUCHER,
+            defaults=discount_object_defaults,
         )
-        if updated_fields:
-            discount_object.save(update_fields=updated_fields)
+        if not created:
+            updated_fields: list[str] = []
+            update_discount(
+                rule=None,
+                voucher=voucher,
+                discount_name=discount_name,
+                # TODO (SHOPX-914): set translated voucher name
+                translated_name="",
+                discount_reason=discount_reason,
+                discount_amount=discount_amount.amount,
+                value=voucher_channel_listing.discount_value,
+                value_type=voucher.discount_value_type,
+                unique_type=DiscountType.VOUCHER,
+                discount_to_update=discount_object,
+                updated_fields=updated_fields,
+                voucher_code=order.voucher_code,
+            )
+            if updated_fields:
+                discount_object.save(update_fields=updated_fields)
 
 
 def create_or_update_line_discount_objects_from_voucher(lines_info):
