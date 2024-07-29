@@ -3387,3 +3387,62 @@ def test_draft_order_create_create_no_shipping_method(
     order = Order.objects.get(id=order_pk)
     assert order.undiscounted_base_shipping_price_amount == 0
     assert order.base_shipping_price_amount == 0
+
+
+def test_draft_order_create_voucher_exceed_usage_limit(
+    staff_api_client,
+    permission_group_manage_orders,
+    customer_user,
+    shipping_method,
+    variant,
+    voucher_with_many_codes,
+    channel_USD,
+    graphql_address_data,
+):
+    # given
+    query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    channel_USD.include_draft_order_in_voucher_usage = True
+    channel_USD.save(update_fields=["include_draft_order_in_voucher_usage"])
+
+    voucher = voucher_with_many_codes
+    voucher.usage_limit = 1
+    voucher.save(update_fields=["usage_limit"])
+
+    code_1, code_2, _, _, _ = voucher.codes.all()
+    code_1.used = 1
+    code_1.save(update_fields=["used"])
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variant_qty = 2
+
+    variant_list = [
+        {"variantId": variant_id, "quantity": variant_qty},
+    ]
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    redirect_url = "https://www.example.com"
+    variables = {
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+            "billingAddress": shipping_address,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "voucherCode": code_2.code,
+            "channelId": channel_id,
+            "redirectUrl": redirect_url,
+        }
+    }
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["draftOrderCreate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == OrderErrorCode.INVALID_VOUCHER_CODE.name
+    assert errors[0]["field"] == "voucherCode"
