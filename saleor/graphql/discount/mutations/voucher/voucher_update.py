@@ -60,21 +60,11 @@ class VoucherUpdate(VoucherCreate):
 
     @classmethod
     def clean_voucher_usage_setting(cls, instance, data):
-        """Ensure single use setting is not changed if voucher was already used."""
+        """Ensure voucher usage settings are not changed if voucher was already used."""
+        is_voucher_used = None
         if "single_use" in data and instance.single_use != data["single_use"]:
-            voucher_codes = instance.codes.all()
-            used_codes = voucher_codes.filter(
-                Exists(order_models.Order.objects.filter(voucher_code=OuterRef("code")))
-                | Exists(
-                    order_models.OrderLine.objects.filter(voucher_code=OuterRef("code"))
-                )
-                | Exists(
-                    checkout_models.Checkout.objects.filter(
-                        voucher_code=OuterRef("code")
-                    )
-                )
-            )
-            if used_codes.exists():
+            is_voucher_used = cls.is_voucher_used(instance)
+            if is_voucher_used:
                 raise ValidationError(
                     {
                         "single_use": ValidationError(
@@ -84,6 +74,33 @@ class VoucherUpdate(VoucherCreate):
                         )
                     }
                 )
+        if "usage_limit" in data and instance.usage_limit != data["usage_limit"]:
+            if is_voucher_used is None:
+                is_voucher_used = cls.is_voucher_used(instance)
+            if is_voucher_used:
+                raise ValidationError(
+                    {
+                        "usage_limit": ValidationError(
+                            "Cannot change usage limit setting when any voucher code has "
+                            "already been used.",
+                            code=DiscountErrorCode.VOUCHER_ALREADY_USED.value,
+                        )
+                    }
+                )
+
+    @classmethod
+    def is_voucher_used(cls, instance) -> bool:
+        voucher_codes = instance.codes.all()
+        used_codes = voucher_codes.filter(
+            Exists(order_models.Order.objects.filter(voucher_code=OuterRef("code")))
+            | Exists(
+                order_models.OrderLine.objects.filter(voucher_code=OuterRef("code"))
+            )
+            | Exists(
+                checkout_models.Checkout.objects.filter(voucher_code=OuterRef("code"))
+            )
+        )
+        return used_codes.exists()
 
     @classmethod
     def construct_codes_instances(
