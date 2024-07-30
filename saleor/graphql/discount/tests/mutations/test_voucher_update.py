@@ -451,6 +451,37 @@ def test_update_voucher_usage_limit_voucher_already_used(
     assert errors[0]["code"] == DiscountErrorCode.VOUCHER_ALREADY_USED.name
 
 
+def test_update_voucher_usage_limit_the_same_value(
+    staff_api_client,
+    voucher,
+    permission_manage_discounts,
+    checkout,
+):
+    # given
+    usage_limit = 10
+    voucher.usage_limit = usage_limit
+    voucher.save(update_fields=["usage_limit"])
+
+    code_instance = voucher.codes.first()
+    checkout.voucher_code = code_instance.code
+    checkout.save(update_fields=["voucher_code"])
+
+    variables = {
+        "id": graphene.Node.to_global_id("Voucher", voucher.id),
+        "input": {"usageLimit": usage_limit},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["voucherUpdate"]["errors"]
+    assert content["data"]["voucherUpdate"]["voucher"]
+
+
 def test_update_voucher_with_deprecated_code_field(
     staff_api_client,
     voucher,
