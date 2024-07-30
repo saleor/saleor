@@ -82,8 +82,10 @@ class VoucherQueryset(models.QuerySet["Voucher"]):
     def expired(self, date):
         subquery = (
             VoucherCode.objects.filter(voucher_id=OuterRef("pk"))
+            .order_by()
+            .values("voucher_id")
             .annotate(total_used=Sum("used"))
-            .values("total_used")[:1]
+            .values("total_used")
         )
         return self.filter(
             Q(usage_limit__lte=Subquery(subquery)) | Q(end_date__lt=date),
