@@ -2563,6 +2563,7 @@ def test_fetch_order_prices_voucher_shipping_fixed(
     # TODO (SHOPX-914): set translated voucher name
     assert discount.translated_name == ""
 
+    assert order.undiscounted_base_shipping_price.amount == undiscounted_shipping_price
     assert order.base_shipping_price.amount == undiscounted_shipping_price
     assert order.shipping_price_net_amount == expected_shipping_price
     assert order.shipping_price_gross.amount == expected_shipping_price
@@ -2633,6 +2634,7 @@ def test_fetch_order_prices_voucher_shipping_percentage(
     # TODO (SHOPX-914): set translated voucher name
     assert discount.translated_name == ""
 
+    assert order.undiscounted_base_shipping_price.amount == undiscounted_shipping_price
     assert order.base_shipping_price.amount == undiscounted_shipping_price
     assert order.shipping_price_net_amount == expected_shipping_price
     assert order.shipping_price_gross.amount == expected_shipping_price
