@@ -1,7 +1,9 @@
 import pytest
 
 from ....order import OrderStatus
+from ....order.models import Order
 from ....order.utils import invalidate_order_prices
+from ..filters import filter_by_checkout_tokens
 
 
 @pytest.mark.parametrize(
@@ -44,3 +46,23 @@ def test_invalidate_order_prices_save(order, save, invalid_prices):
     assert order.should_refresh_prices
     order.refresh_from_db()
     assert order.should_refresh_prices is invalid_prices
+
+
+def test_filter_by_checkout_tokens_with_values(orders_from_checkout, order):
+    # given
+    order_with_token = orders_from_checkout[0]
+    checkout_token = order_with_token.checkout_token
+    # when
+    orders = filter_by_checkout_tokens(
+        Order.objects.all(), "checkout_token", [checkout_token]
+    )
+    # then
+    assert orders.count() == 4
+    assert order not in orders
+
+
+def test_filter_by_checkout_tokens_no_values(orders_from_checkout, order):
+    # when
+    orders = filter_by_checkout_tokens(Order.objects.all(), "checkout_token", [])
+    # then
+    assert orders.count() == Order.objects.count()
