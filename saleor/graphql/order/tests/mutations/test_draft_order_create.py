@@ -11,7 +11,7 @@ from .....checkout import AddressType
 from .....core.prices import quantize_price
 from .....core.taxes import TaxError, zero_taxed_money
 from .....discount import DiscountType, DiscountValueType, RewardType, RewardValueType
-from .....discount.models import VoucherChannelListing, VoucherCustomer
+from .....discount.models import VoucherChannelListing, VoucherCode, VoucherCustomer
 from .....order import OrderStatus
 from .....order import events as order_events
 from .....order.error_codes import OrderErrorCode
@@ -3385,3 +3385,148 @@ def test_draft_order_create_create_no_shipping_method(
     order = Order.objects.get(id=order_pk)
     assert order.undiscounted_base_shipping_price_amount == 0
     assert order.base_shipping_price_amount == 0
+
+
+def test_draft_order_create_voucher_exceed_usage_limit(
+    staff_api_client,
+    permission_group_manage_orders,
+    customer_user,
+    shipping_method,
+    variant,
+    voucher_with_many_codes,
+    voucher_percentage,
+    channel_USD,
+    graphql_address_data,
+):
+    # given
+    query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    channel_USD.include_draft_order_in_voucher_usage = True
+    channel_USD.save(update_fields=["include_draft_order_in_voucher_usage"])
+
+    voucher_1 = voucher_with_many_codes
+    voucher_1.usage_limit = 6
+    voucher_1.save(update_fields=["usage_limit"])
+
+    code_1, code_2, code_3, code_4, code_5 = voucher_1.codes.all()
+    code_1.used = 1
+    code_2.used = 2
+    code_3.used = 3
+    code_4.used = 0
+    code_5.used = 0
+    VoucherCode.objects.bulk_update([code_1, code_2, code_3, code_4, code_5], ["used"])
+
+    voucher_2 = voucher_percentage
+    voucher_2.usage_limit = 3
+    voucher_2.save(update_fields=["usage_limit"])
+    code_6 = voucher_2.codes.get()
+    code_6.used = 1
+    code_6.save(update_fields=["used"])
+    voucher_2.codes.create(code="new code voucher 2", used=1)
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variant_qty = 2
+
+    variant_list = [
+        {"variantId": variant_id, "quantity": variant_qty},
+    ]
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    redirect_url = "https://www.example.com"
+    variables = {
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+            "billingAddress": shipping_address,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "voucherCode": code_2.code,
+            "channelId": channel_id,
+            "redirectUrl": redirect_url,
+        }
+    }
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["draftOrderCreate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == OrderErrorCode.INVALID_VOUCHER_CODE.name
+    assert errors[0]["field"] == "voucherCode"
+
+
+@pytest.mark.parametrize("used", [0, 1, 2])
+def test_draft_order_create_voucher_with_usage_limit(
+    used,
+    staff_api_client,
+    permission_group_manage_orders,
+    customer_user,
+    shipping_method,
+    variant,
+    voucher_with_many_codes,
+    voucher_percentage,
+    channel_USD,
+    graphql_address_data,
+):
+    # given
+    query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    channel_USD.include_draft_order_in_voucher_usage = True
+    channel_USD.save(update_fields=["include_draft_order_in_voucher_usage"])
+
+    voucher_1 = voucher_with_many_codes
+    voucher_1.usage_limit = 10
+    voucher_1.save(update_fields=["usage_limit"])
+
+    code_1, code_2, code_3, code_4, code_5 = voucher_1.codes.all()
+    code_1.used = used
+    code_2.used = 1
+    code_3.used = 2
+    code_4.used = 3
+    code_5.used = 0
+    VoucherCode.objects.bulk_update([code_1, code_2, code_3, code_4, code_5], ["used"])
+
+    voucher_2 = voucher_percentage
+    voucher_2.usage_limit = 3
+    voucher_2.save(update_fields=["usage_limit"])
+    code_6 = voucher_2.codes.get()
+    code_6.used = 1
+    code_6.save(update_fields=["used"])
+    voucher_2.codes.create(code="new code voucher 2", used=1)
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variant_qty = 2
+
+    variant_list = [
+        {"variantId": variant_id, "quantity": variant_qty},
+    ]
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    redirect_url = "https://www.example.com"
+    variables = {
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+            "billingAddress": shipping_address,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "voucherCode": code_1.code,
+            "channelId": channel_id,
+            "redirectUrl": redirect_url,
+        }
+    }
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["draftOrderCreate"]["errors"]
+    data = content["data"]["draftOrderCreate"]["order"]
+    assert data["voucherCode"] == code_1.code
