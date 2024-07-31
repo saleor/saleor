@@ -47,6 +47,7 @@ def test_customer_register(
     order,
     site_settings,
 ):
+    # given
     mocked_generator.return_value = "token"
     email = "customer@example.com"
 
@@ -65,11 +66,15 @@ def test_customer_register(
     }
     query = ACCOUNT_REGISTER_MUTATION
     mutation_name = "accountRegister"
+
+    # when
     response = api_client.post_graphql(query, variables)
 
-    new_user = User.objects.get(email=email)
     content = get_graphql_content(response)
     data = content["data"][mutation_name]
+
+    # then
+    new_user = User.objects.get(email=email)
     params = urlencode({"email": email, "token": "token"})
     confirm_url = prepare_url(params, redirect_url)
 
@@ -109,6 +114,7 @@ def test_customer_register_twice(
     order,
     site_settings,
 ):
+    # given
     mocked_generator.return_value = "token"
     email = "customer@example.com"
 
@@ -127,11 +133,15 @@ def test_customer_register_twice(
     }
     query = ACCOUNT_REGISTER_MUTATION
     mutation_name = "accountRegister"
+
+    # when
     response = api_client.post_graphql(query, variables)
 
-    new_user = User.objects.get(email=email)
     content = get_graphql_content(response)
     data = content["data"][mutation_name]
+
+    # then
+    new_user = User.objects.get(email=email)
     params = urlencode({"email": email, "token": "token"})
     confirm_url = prepare_url(params, redirect_url)
 

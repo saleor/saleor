@@ -222,6 +222,14 @@ class AccountRegister(ModelMutation):
 
     @classmethod
     def _clean_email_errors(cls, errors):
+        """Clean email errors.
+
+        Iterates over errors for field `email` with purpose to
+        not leak `unique` error in case when user already exists in database which would
+        allow user enumeration.
+        Returns boolean value if user exists and filtered errors
+        that can be displayed to the end user.
+        """
         existing_user = False
         filtered_errors = []
 
@@ -235,6 +243,13 @@ class AccountRegister(ModelMutation):
 
     @classmethod
     def _clean_errors(cls, error):
+        """Clean errors.
+
+        Iterate over errors for field `email` with purpose to
+        not leak error indicating user existence in the system.
+        Returns boolean value if user exists and filtered errors
+        that can be displayed to the end user.
+        """
         existing_user = False
         error_dict = {}
 

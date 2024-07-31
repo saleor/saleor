@@ -73,6 +73,8 @@ class RequestPasswordReset(BaseMutation):
             delta = timezone.now() - user.last_password_reset_request
             if delta.total_seconds() < settings.RESET_PASSWORD_LOCK_TIME:
                 user = None
+        elif user and not user.is_active:
+            user = None
 
         return user
 

@@ -54,6 +54,8 @@ class SetPassword(CreateToken):
         try:
             user = models.User.objects.get(email=email)
         except ObjectDoesNotExist:
+            # If user doesn't exists in the database we create fake user for calculation
+            # purpose, as we don't want to indicate non existence of user in the system.
             error = True
             user = models.User()
 
