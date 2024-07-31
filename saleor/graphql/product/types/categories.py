@@ -110,8 +110,12 @@ class Category(ModelObjectType[models.Category]):
 
     @staticmethod
     def resolve_ancestors(root: models.Category, info, **kwargs):
+        database_connection_name = get_database_connection_name(info.context)
         return create_connection_slice(
-            root.get_ancestors(), info, kwargs, CategoryCountableConnection
+            root.get_ancestors().using(database_connection_name),
+            info,
+            kwargs,
+            CategoryCountableConnection,
         )
 
     @staticmethod
