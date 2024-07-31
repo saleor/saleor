@@ -821,8 +821,7 @@ def test_draft_order_create_with_voucher_specific_product(
     assert line_1_data["unitDiscountType"] is None
     assert line_1_data["unitDiscountReason"] is None
 
-    # TODO (SHOPX-874): Order discount object shouldn't be created
-    assert order.discounts.count() == 1
+    assert order.discounts.count() == 0
 
     discounted_line = order.lines.get(variant=discounted_variant)
     assert discounted_line.discounts.count() == 1
@@ -963,8 +962,7 @@ def test_draft_order_create_with_voucher_apply_once_per_order(
     assert line_1_data["unitDiscountType"] is None
     assert line_1_data["unitDiscountReason"] is None
 
-    # TODO (SHOPX-874): Order discount object shouldn't be created
-    assert order.discounts.count() == 1
+    assert order.discounts.count() == 0
 
     discounted_line = order.lines.get(variant=discounted_variant)
     assert discounted_line.discounts.count() == 1

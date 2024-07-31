@@ -23,7 +23,7 @@ from .promotion import (
     prepare_line_discount_objects_for_catalogue_promotions,
 )
 from .shared import update_line_info_cached_discounts
-from .voucher import create_or_update_line_discount_objects_from_voucher
+from .voucher import create_or_update_discount_objects_from_voucher
 
 if TYPE_CHECKING:
     from ...order.fetch import EditableOrderLineInfo
@@ -38,7 +38,9 @@ def create_or_update_discount_objects_for_order(
         order, lines_info, database_connection_name
     )
     create_or_update_line_discount_objects_for_manual_discounts(lines_info)
-    create_or_update_line_discount_objects_from_voucher(order, lines_info)
+    create_or_update_discount_objects_from_voucher(
+        order, lines_info, database_connection_name
+    )
     _copy_unit_discount_data_to_order_line(lines_info)
 
 

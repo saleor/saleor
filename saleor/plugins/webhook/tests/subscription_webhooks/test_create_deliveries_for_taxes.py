@@ -586,6 +586,10 @@ def test_draft_order_calculate_taxes_entire_order_voucher(
     voucher.save(update_fields=["type"])
 
     discount_amount = Decimal("10")
+    channel_listing = voucher.channel_listings.get()
+    channel_listing.discount_value = discount_amount
+    channel_listing.save(update_fields=["discount_value"])
+
     order_discount = order.discounts.first()
     order_discount.value = discount_amount
     order_discount.save(update_fields=["value"])
