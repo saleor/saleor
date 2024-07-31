@@ -19,7 +19,7 @@ from ...core import ResolveInfo
 from ...core.mutations import BaseMutation
 from ...core.utils import from_global_id_or_error
 from ...payment.utils import metadata_contains_empty_key
-from ..extra_methods import TYPE_EXTRA_METHODS, TYPE_EXTRA_PREFETCH
+from ..extra_methods import TYPE_EXTRA_METHODS
 from ..permissions import AccountPermissions
 from ..types import ObjectWithMetadata
 from .utils import get_valid_metadata_instance
@@ -249,9 +249,6 @@ class BaseMetadataMutation(BaseMutation):
     def perform_model_extra_actions(cls, root, info: ResolveInfo, type_name, **data):
         """Run extra metadata method based on mutating model."""
         if TYPE_EXTRA_METHODS.get(type_name):
-            prefetch_method = TYPE_EXTRA_PREFETCH.get(type_name)
-            if prefetch_method:
-                data["qs"] = prefetch_method()
             instance = cls.get_instance(info, **data)
             TYPE_EXTRA_METHODS[type_name](instance, info, **data)
 

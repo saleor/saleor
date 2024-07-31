@@ -3,7 +3,6 @@ from ...checkout.actions import (
     checkout_event_requires_sync_webhooks_to_trigger,
 )
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from ...product.models import Product, ProductVariant
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...webhook.utils import get_webhooks_for_multiple_events
 from ..core import ResolveInfo
@@ -138,10 +137,4 @@ TYPE_EXTRA_METHODS = {
     "User": extra_user_actions,
     "Warehouse": extra_warehouse_actions,
     "Voucher": extra_voucher_actions,
-}
-
-
-TYPE_EXTRA_PREFETCH = {
-    "Product": Product.objects.prefetched_for_webhook,
-    "ProductVariant": ProductVariant.objects.prefetched_for_webhook,
 }

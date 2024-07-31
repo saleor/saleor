@@ -369,7 +369,7 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
             mark_products_in_channels_as_dirty,
             {channel_id: {product.pk} for channel_id in modified_channel_ids},
         )
-        product = ProductModel.objects.prefetched_for_webhook().get(pk=product.pk)
+        product = ProductModel.objects.get(pk=product.pk)
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.product_updated, product)
 

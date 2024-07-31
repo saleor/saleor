@@ -218,7 +218,7 @@ class ProductCreate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, _cleaned_input):
-        product = models.Product.objects.prefetched_for_webhook().get(pk=instance.pk)
+        product = models.Product.objects.get(pk=instance.pk)
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.product_created, product)
 
