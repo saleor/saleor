@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, List, Optional, cast
 from uuid import uuid4
 
 from django.conf import settings
-from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.indexes import BTreeIndex, GinIndex
 from django.contrib.postgres.search import SearchVectorField
 from django.core.validators import MinValueValidator
 from django.db import connection, models
@@ -351,6 +351,7 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
                 fields=["user_email", "user_id"],
                 name="order_user_email_user_id_idx",
             ),
+            BTreeIndex(fields=["checkout_token"], name="checkout_token_btree_idx"),
         ]
 
     def is_fully_paid(self):
