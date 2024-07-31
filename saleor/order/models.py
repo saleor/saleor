@@ -356,6 +356,7 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
                 fields=["user_email", "user_id"],
                 name="order_user_email_user_id_idx",
             ),
+            BTreeIndex(fields=["checkout_token"], name="checkout_token_btree_idx"),
         ]
 
     def is_fully_paid(self):
