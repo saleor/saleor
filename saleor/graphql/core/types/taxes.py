@@ -384,10 +384,14 @@ class TaxableObject(BaseObjectType):
             def calculate_checkout_discounts(checkout_info):
                 checkout = checkout_info.checkout
                 discount_name = checkout.discount_name
+                discount = checkout.discount
                 return (
-                    [{"name": discount_name, "amount": checkout.discount}]
-                    if checkout.discount
-                    and is_order_level_voucher(checkout_info.voucher)
+                    [{"name": discount_name, "amount": discount}]
+                    if discount
+                    and (
+                        is_order_level_voucher(checkout_info.voucher)
+                        or discount.type == DiscountType.ORDER_PROMOTION
+                    )
                     else []
                 )
 
@@ -402,7 +406,7 @@ class TaxableObject(BaseObjectType):
                 {"name": discount.name, "amount": discount.amount}
                 for discount in discounts
                 if (
-                    discount.type == DiscountType.MANUAL
+                    discount.type in [DiscountType.MANUAL, DiscountType.ORDER_PROMOTION]
                     or is_order_level_voucher(discount.voucher)
                 )
             ]
