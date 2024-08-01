@@ -2,8 +2,10 @@ from unittest.mock import ANY, call, patch
 
 import graphene
 
+from .....order.actions import WEBHOOK_EVENTS_FOR_ORDER_CANCELED, cancel_order
 from .....order.models import OrderLine
 from .....product.models import ProductVariant
+from .....webhook.utils import get_webhooks_for_multiple_events
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 MUTATION_ORDER_BULK_CANCEL = """
@@ -19,21 +21,23 @@ mutation CancelManyOrders($ids: [ID!]!) {
 """
 
 
-@patch("saleor.graphql.order.bulk_mutations.order_bulk_cancel.get_webhooks_for_event")
-@patch("saleor.graphql.order.bulk_mutations.order_bulk_cancel.cancel_order")
+@patch(
+    "saleor.graphql.order.bulk_mutations.order_bulk_cancel.cancel_order",
+    wraps=cancel_order,
+)
 def test_order_bulk_cancel(
     mock_cancel_order,
-    mocked_get_webhooks_for_event,
     staff_api_client,
     order_list,
     fulfilled_order_with_all_cancelled_fulfillments,
     permission_group_manage_orders,
-    address,
     any_webhook,
     settings,
 ):
     # given
-    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    webhook_event_map = get_webhooks_for_multiple_events(
+        WEBHOOK_EVENTS_FOR_ORDER_CANCELED
+    )
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
 
     permission_group_manage_orders.user_set.add(staff_api_client.user)
@@ -55,8 +59,7 @@ def test_order_bulk_cancel(
             user=staff_api_client.user,
             app=None,
             manager=ANY,
-            webhooks_cancelled=[any_webhook],
-            webhooks_updated=[any_webhook],
+            webhook_event_map=webhook_event_map,
         )
         for order in orders
     ]
@@ -111,11 +114,12 @@ def test_order_bulk_cancel_with_back_in_stock_webhook(
     product_variant_back_in_stock_webhook_mock.assert_called_once()
 
 
-@patch("saleor.graphql.order.bulk_mutations.order_bulk_cancel.get_webhooks_for_event")
-@patch("saleor.graphql.order.bulk_mutations.order_bulk_cancel.cancel_order")
+@patch(
+    "saleor.graphql.order.bulk_mutations.order_bulk_cancel.cancel_order",
+    wraps=cancel_order,
+)
 def test_order_bulk_cancel_as_app(
     mock_cancel_order,
-    mocked_get_webhooks_for_event,
     app_api_client,
     order_list,
     fulfilled_order_with_all_cancelled_fulfillments,
@@ -125,7 +129,9 @@ def test_order_bulk_cancel_as_app(
     settings,
 ):
     # given
-    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    webhook_event_map = get_webhooks_for_multiple_events(
+        WEBHOOK_EVENTS_FOR_ORDER_CANCELED
+    )
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
 
     orders = order_list
@@ -148,8 +154,7 @@ def test_order_bulk_cancel_as_app(
             user=None,
             app=app_api_client.app,
             manager=ANY,
-            webhooks_cancelled=[any_webhook],
-            webhooks_updated=[any_webhook],
+            webhook_event_map=webhook_event_map,
         )
         for order in orders
     ]
@@ -158,11 +163,12 @@ def test_order_bulk_cancel_as_app(
     assert mock_cancel_order.call_count == expected_count
 
 
-@patch("saleor.graphql.order.bulk_mutations.order_bulk_cancel.get_webhooks_for_event")
-@patch("saleor.graphql.order.bulk_mutations.order_bulk_cancel.cancel_order")
+@patch(
+    "saleor.graphql.order.bulk_mutations.order_bulk_cancel.cancel_order",
+    wraps=cancel_order,
+)
 def test_order_bulk_cancel_without_sku(
     mock_cancel_order,
-    mocked_get_webhooks_for_event,
     staff_api_client,
     order_list,
     fulfilled_order_with_all_cancelled_fulfillments,
@@ -172,7 +178,9 @@ def test_order_bulk_cancel_without_sku(
     settings,
 ):
     # given
-    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    webhook_event_map = get_webhooks_for_multiple_events(
+        WEBHOOK_EVENTS_FOR_ORDER_CANCELED
+    )
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
 
     permission_group_manage_orders.user_set.add(staff_api_client.user)
@@ -197,8 +205,7 @@ def test_order_bulk_cancel_without_sku(
             user=staff_api_client.user,
             app=None,
             manager=ANY,
-            webhooks_cancelled=[any_webhook],
-            webhooks_updated=[any_webhook],
+            webhook_event_map=webhook_event_map,
         )
         for order in orders
     ]

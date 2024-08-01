@@ -7,12 +7,18 @@ from django.db import transaction
 from ....account.models import User
 from ....core.tracing import traced_atomic_transaction
 from ....order import OrderStatus, models
-from ....order.actions import order_charged, order_confirmed
+from ....order.actions import (
+    WEBHOOK_EVENTS_FOR_ORDER_CHARGED,
+    WEBHOOK_EVENTS_FOR_ORDER_CONFIRMED,
+    order_charged,
+    order_confirmed,
+)
 from ....order.error_codes import OrderErrorCode
 from ....order.fetch import fetch_order_info
 from ....order.utils import update_order_display_gross_prices
 from ....payment import gateway
 from ....permission.enums import OrderPermissions
+from ....webhook.utils import get_webhooks_for_multiple_events
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.mutations import ModelMutation
@@ -73,11 +79,19 @@ class OrderConfirm(ModelMutation):
         payment = order_info.payment
         manager = get_plugin_manager_promise(info.context).get()
         app = get_app_promise(info.context).get()
+        webhook_events_for_map = WEBHOOK_EVENTS_FOR_ORDER_CONFIRMED
+        webhook_event_map = None
         with traced_atomic_transaction():
             if payment and payment.is_authorized and payment.can_capture():
                 authorized_payment = payment
                 gateway.capture(payment, manager, channel_slug=order.channel.slug)
                 site = get_site_promise(info.context).get()
+                webhook_events_for_map = webhook_events_for_map.union(
+                    WEBHOOK_EVENTS_FOR_ORDER_CHARGED
+                )
+                webhook_event_map = get_webhooks_for_multiple_events(
+                    webhook_events_for_map
+                )
                 transaction.on_commit(
                     lambda: order_charged(
                         order_info,
@@ -88,8 +102,14 @@ class OrderConfirm(ModelMutation):
                         manager,
                         site.settings,
                         payment.gateway,
+                        webhook_event_map=webhook_event_map,
                     )
                 )
+            if webhook_event_map is None:
+                webhook_event_map = get_webhooks_for_multiple_events(
+                    webhook_events_for_map
+                )
+
             transaction.on_commit(
                 lambda: order_confirmed(
                     order,
@@ -97,6 +117,7 @@ class OrderConfirm(ModelMutation):
                     app,
                     manager,
                     send_confirmation_email=True,
+                    webhook_event_map=webhook_event_map,
                 )
             )
         return OrderConfirm(order=order)
