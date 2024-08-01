@@ -5,7 +5,10 @@ from typing import TYPE_CHECKING, Callable, Optional, cast
 
 from django.utils import timezone
 
-from ..core.utils.events import call_event_including_protected_events
+from ..core.utils.events import (
+    call_event_including_protected_events,
+    webhook_async_event_requires_sync_webhooks_to_trigger,
+)
 from ..payment.models import TransactionItem
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..webhook.utils import get_webhooks_for_multiple_events
@@ -26,26 +29,6 @@ if TYPE_CHECKING:
     from ..webhook.models import Webhook
 
 
-def checkout_event_requires_sync_webhooks_to_trigger(
-    event_name: str, webhook_event_map: dict[str, set["Webhook"]]
-) -> bool:
-    """Check if calling the event requires additional actions.
-
-    In case of having active webhook with the `event_name`, the function will return
-    True, when any sync checkout's webhooks are active. `True` means that sync webhook
-    should be triggered first, before calling async webhook.
-    """
-
-    if event_name not in webhook_event_map:
-        return False
-
-    if not set(WebhookEventSyncType.CHECKOUT_EVENTS).intersection(
-        webhook_event_map.keys()
-    ):
-        return False
-    return True
-
-
 def call_checkout_event_for_checkout(
     manager: "PluginsManager",
     event_func: Callable,
@@ -55,8 +38,10 @@ def call_checkout_event_for_checkout(
     webhook_event_map = get_webhooks_for_multiple_events(
         [event_name, *WebhookEventSyncType.CHECKOUT_EVENTS]
     )
-    if not checkout_event_requires_sync_webhooks_to_trigger(
-        event_name, webhook_event_map
+    if not webhook_async_event_requires_sync_webhooks_to_trigger(
+        event_name,
+        webhook_event_map,
+        possible_sync_events=WebhookEventSyncType.CHECKOUT_EVENTS,
     ):
         call_event_including_protected_events(event_func, checkout)
         return
@@ -97,8 +82,10 @@ def call_checkout_event_for_checkout_info(
 
     # No need to trigger additional sync webhook when we don't have active webhook or
     # we don't have active sync checkout webhooks
-    if not checkout_event_requires_sync_webhooks_to_trigger(
-        event_name, webhook_event_map
+    if not webhook_async_event_requires_sync_webhooks_to_trigger(
+        event_name,
+        webhook_event_map,
+        possible_sync_events=WebhookEventSyncType.CHECKOUT_EVENTS,
     ):
         call_event_including_protected_events(event_func, checkout)
         return None

@@ -1,4 +1,5 @@
 from collections import defaultdict
+from collections.abc import Iterable
 from typing import TYPE_CHECKING, Optional
 
 from django.conf import settings
@@ -81,58 +82,63 @@ def get_webhooks_for_event(
 
 
 def get_webhooks_for_multiple_events(
-    event_types: list[str],
-    webhooks: Optional["QuerySet[Webhook]"] = None,
-    apps_ids: Optional["list[int]"] = None,
-    apps_identifier: Optional[list[str]] = None,
+    event_types: Iterable[str],
 ) -> dict[str, set[Webhook]]:
-    if webhooks is None:
-        # For this QS replica usage is applied later, as this QS could be also passed
-        # as parameter.
-        webhooks = Webhook.objects.all()
+    set_event_types = set(event_types)
+    if set_event_types.intersection(WebhookEventAsyncType.ALL):
+        set_event_types.add(WebhookEventAsyncType.ANY)
 
-    filter_expresion = Q()
-    for event_type in set(event_types):
-        filter_expresion |= Q(
-            get_filter_for_single_webhook_event(
-                event_type=event_type,
-                apps_ids=apps_ids,
-                apps_identifier=apps_identifier,
-            )
-        )
-    webhooks = list(
-        webhooks.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
-        .filter(filter_expresion)
-        .select_related("app")
-        .prefetch_related("app__permissions__content_type")
+    webhook_id_to_event_type = (
+        WebhookEvent.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(event_type__in=set_event_types)
+        .values_list("webhook_id", "event_type")
     )
-    webhook_events = WebhookEvent.objects.filter(
-        webhook_id__in={webhook.id for webhook in webhooks}
-    ).values_list("webhook_id", "event_type")
-    webhook_events_map = defaultdict(set)
-    for webhook_id, event_type in webhook_events:
-        webhook_events_map[webhook_id].add(event_type)
-    webhook_app = {webhook.app_id: webhook.app for webhook in webhooks}
+    webhook_id_to_event_types_map = defaultdict(set)
+    for webhook_id, event_type in webhook_id_to_event_type:
+        webhook_id_to_event_types_map[webhook_id].add(event_type)
+
+    webhooks = Webhook.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME).filter(
+        id__in={webhook_id for webhook_id, _ in webhook_id_to_event_type},
+        is_active=True,
+    )
+    app_ids = {webhook.app_id for webhook in webhooks}
+
+    apps = (
+        App.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(id__in=app_ids, is_active=True, removed_at__isnull=True)
+        .prefetch_related("permissions__content_type")
+        .in_bulk()
+    )
+
     app_perm_map = {}
-    for app in webhook_app.values():
-        app_permissions = app.permissions.all()
+    for app in apps.values():
+        app_perms = app.permissions.all()
         app_permission_codenames = [
-            permission.codename for permission in app_permissions
+            (permission.content_type.app_label, permission.codename)
+            for permission in app_perms
         ]
         app_perm_map[app.id] = app_permission_codenames
-
-    event_map = defaultdict(set)
+    active_event_map = defaultdict(set)
     for webhook in webhooks:
-        app_permission_codenames = app_perm_map.get(webhook.app_id, [])
-        events: set[str] = webhook_events_map.get(webhook.id, set())
-        for event_type in events:
+        if webhook.app_id not in apps:
+            continue
+        app = apps[webhook.app_id]
+        webhook.app = app
+        app_permissions = app_perm_map.get(webhook.app_id, [])
+        events = webhook_id_to_event_types_map.get(webhook.id, set())
+        for event in events:
             required_permission = WebhookEventAsyncType.PERMISSIONS.get(
-                event_type, WebhookEventSyncType.PERMISSIONS.get(event_type)
+                event, WebhookEventSyncType.PERMISSIONS.get(event)
             )
             if not required_permission:
-                event_map[event_type].add(webhook)
-                continue
-            _, codename = required_permission.value.split(".")
-            if codename in app_permission_codenames:
-                event_map[event_type].add(webhook)
-    return event_map
+                active_event_map[event].add(webhook)
+            else:
+                app_label, codename = required_permission.value.split(".")
+                if (app_label, codename) in app_permissions:
+                    active_event_map[event].add(webhook)
+    # always add events that don't have any active webhooks. This is needed for
+    # future validation when calling events.
+    for event in set_event_types:
+        if event not in active_event_map:
+            active_event_map[event] = set()
+    return active_event_map
