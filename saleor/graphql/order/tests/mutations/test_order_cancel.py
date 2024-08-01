@@ -1,9 +1,14 @@
-from unittest.mock import ANY, patch
+from unittest.mock import ANY, call, patch
 
 import graphene
+from django.test import override_settings
 
+from .....core.models import EventDelivery
 from .....giftcard import GiftCardEvents
 from .....giftcard.events import gift_cards_bought_event
+from .....order import OrderStatus
+from .....order.actions import call_order_event, cancel_order
+from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 MUTATION_ORDER_CANCEL = """
@@ -22,7 +27,7 @@ mutation cancelOrder($id: ID!) {
 """
 
 
-@patch("saleor.graphql.order.mutations.order_cancel.cancel_order")
+@patch("saleor.graphql.order.mutations.order_cancel.cancel_order", wraps=cancel_order)
 @patch("saleor.graphql.order.mutations.order_cancel.clean_order_cancel")
 def test_order_cancel(
     mock_clean_order_cancel,
@@ -125,3 +130,92 @@ def test_order_cancel_no_channel_access(
 
     # then
     assert_no_permission(response)
+
+
+@patch(
+    "saleor.order.actions.call_order_event",
+    wraps=call_order_event,
+)
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+@patch("saleor.graphql.order.mutations.order_cancel.clean_order_cancel")
+def test_order_cancel_skip_trigger_webhooks(
+    mock_clean_order_cancel,
+    mocked_send_webhook_request_async,
+    mocked_send_webhook_request_sync,
+    wrapped_call_order_event,
+    setup_order_webhooks,
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+    settings,
+    django_capture_on_commit_callbacks,
+):
+    # given
+    mocked_send_webhook_request_sync.return_value = []
+    (
+        tax_webhook,
+        shipping_filter_webhook,
+        additional_order_webhook,
+    ) = setup_order_webhooks(
+        [WebhookEventAsyncType.ORDER_UPDATED, WebhookEventAsyncType.ORDER_CANCELLED]
+    )
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = order_with_lines
+    order.should_refresh_prices = True
+    order.status = OrderStatus.UNCONFIRMED
+    order.save(update_fields=["status", "should_refresh_prices"])
+    mock_clean_order_cancel.return_value = order
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(MUTATION_ORDER_CANCEL, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderCancel"]
+    assert not data["errors"]
+
+    # confirm that event delivery was generated for each webhook.
+    order_updated_delivery = EventDelivery.objects.get(
+        webhook_id=additional_order_webhook.id,
+        event_type=WebhookEventAsyncType.ORDER_UPDATED,
+    )
+    order_cancelled_delivery = EventDelivery.objects.get(
+        webhook_id=additional_order_webhook.id,
+        event_type=WebhookEventAsyncType.ORDER_CANCELLED,
+    )
+    order_deliveries = [
+        order_cancelled_delivery,
+        order_updated_delivery,
+    ]
+    tax_delivery = EventDelivery.objects.filter(webhook_id=tax_webhook.id).first()
+    filter_shipping_delivery = EventDelivery.objects.filter(
+        webhook_id=shipping_filter_webhook.id,
+        event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
+    ).first()
+
+    assert not tax_delivery
+    assert not filter_shipping_delivery
+
+    mocked_send_webhook_request_async.assert_has_calls(
+        [
+            call(
+                kwargs={"event_delivery_id": delivery.id},
+                queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+                bind=True,
+                retry_backoff=10,
+                retry_kwargs={"max_retries": 5},
+            )
+            for delivery in order_deliveries
+        ],
+        any_order=True,
+    )
+    assert not mocked_send_webhook_request_sync.called
+    assert wrapped_call_order_event.called

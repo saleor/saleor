@@ -16,6 +16,7 @@ from ....discount.utils import (
     increase_voucher_usage,
 )
 from ....order import OrderOrigin, OrderStatus, events, models
+from ....order.actions import call_order_event
 from ....order.error_codes import OrderErrorCode
 from ....order.search import update_order_search_vector
 from ....order.utils import (
@@ -26,6 +27,7 @@ from ....order.utils import (
 )
 from ....permission.enums import OrderPermissions
 from ....shipping.utils import convert_to_shipping_method_data
+from ....webhook.event_types import WebhookEventAsyncType
 from ...account.i18n import I18nMixin
 from ...account.mixins import AddressMetadataMixin
 from ...account.types import AddressInput
@@ -562,12 +564,6 @@ class DraftOrderCreate(
 
             update_order_display_gross_prices(instance)
 
-            if is_new_instance:
-                cls.call_event(manager.draft_order_created, instance)
-
-            else:
-                cls.call_event(manager.draft_order_updated, instance)
-
             # Post-process the results
             updated_fields.extend(
                 [
@@ -584,6 +580,20 @@ class DraftOrderCreate(
             update_order_search_vector(instance, save=False)
 
             instance.save(update_fields=updated_fields)
+            if is_new_instance:
+                call_order_event(
+                    manager,
+                    manager.draft_order_created,
+                    WebhookEventAsyncType.DRAFT_ORDER_CREATED,
+                    instance,
+                )
+            else:
+                call_order_event(
+                    manager,
+                    manager.draft_order_updated,
+                    WebhookEventAsyncType.DRAFT_ORDER_UPDATED,
+                    instance,
+                )
 
     @classmethod
     def handle_order_voucher(cls, cleaned_input, instance, voucher):

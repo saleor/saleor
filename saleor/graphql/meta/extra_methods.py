@@ -1,8 +1,7 @@
-from ...checkout.actions import (
-    call_checkout_event_for_checkout_info,
-    checkout_event_requires_sync_webhooks_to_trigger,
-)
+from ...checkout.actions import call_checkout_event_for_checkout_info
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from ...core.utils.events import webhook_async_event_requires_sync_webhooks_to_trigger
+from ...order.actions import call_order_event
 from ...product.models import Product, ProductVariant
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...webhook.utils import get_webhooks_for_multiple_events
@@ -21,10 +20,14 @@ def extra_checkout_actions(instance, info: ResolveInfo, **data):
     )
     # In case of having any active combination of async/sync webhooks for these events
     # we need to fetch checkout lines and checkout info to call sync webhook first.
-    if checkout_event_requires_sync_webhooks_to_trigger(
-        WebhookEventAsyncType.CHECKOUT_UPDATED, webhook_event_map
-    ) or checkout_event_requires_sync_webhooks_to_trigger(
-        WebhookEventAsyncType.CHECKOUT_METADATA_UPDATED, webhook_event_map
+    if webhook_async_event_requires_sync_webhooks_to_trigger(
+        WebhookEventAsyncType.CHECKOUT_UPDATED,
+        webhook_event_map,
+        possible_sync_events=WebhookEventSyncType.CHECKOUT_EVENTS,
+    ) or webhook_async_event_requires_sync_webhooks_to_trigger(
+        WebhookEventAsyncType.CHECKOUT_METADATA_UPDATED,
+        webhook_event_map,
+        possible_sync_events=WebhookEventSyncType.CHECKOUT_EVENTS,
     ):
         lines_info, _ = fetch_checkout_lines(
             instance,
@@ -77,7 +80,12 @@ def extra_gift_card_actions(instance, info: ResolveInfo, **data):
 
 def extra_order_actions(instance, info: ResolveInfo, **data):
     manager = get_plugin_manager_promise(info.context).get()
-    manager.order_metadata_updated(instance)
+    call_order_event(
+        manager,
+        manager.order_metadata_updated,
+        WebhookEventAsyncType.ORDER_METADATA_UPDATED,
+        instance,
+    )
 
 
 def extra_product_actions(instance, info: ResolveInfo, **data):

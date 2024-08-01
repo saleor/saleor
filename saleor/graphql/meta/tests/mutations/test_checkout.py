@@ -372,7 +372,7 @@ def test_update_public_metadata_for_checkout_line(api_client, checkout_line):
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
-def test_add_metadata_for_checkout_triggers_sync_webhooks_with_checkout_updated(
+def test_add_metadata_for_checkout_triggers_webhooks_with_checkout_updated(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     wrapped_call_checkout_event_for_checkout,
@@ -442,7 +442,7 @@ def test_add_metadata_for_checkout_triggers_sync_webhooks_with_checkout_updated(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
-def test_add_metadata_for_checkout_triggers_sync_webhooks_with_updated_metadata(
+def test_add_metadata_for_checkout_triggers_webhooks_with_updated_metadata(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     wrapped_call_checkout_event_for_checkout,

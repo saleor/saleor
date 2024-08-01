@@ -214,7 +214,7 @@ def test_checkout_line_delete_non_removable_gift(user_api_client, checkout_line)
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
-def test_checkout_line_delete_triggers_sync_webhooks(
+def test_checkout_line_delete_triggers_webhooks(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     wrapped_call_checkout_event_for_checkout,
