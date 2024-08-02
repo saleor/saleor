@@ -2104,15 +2104,41 @@ class Order(ModelObjectType[models.Order]):
         def _resolve_total_remaining_grant_for_transactions(
             transactions, total_granted_refund
         ):
-            total_pending_refund = sum(
-                [transaction.amount_refund_pending for transaction in transactions],
+            amount_fields = [
+                "amount_charged",
+                "amount_authorized",
+                "amount_refunded",
+                "amount_canceled",
+                "amount_charge_pending",
+                "amount_authorize_pending",
+                "amount_refund_pending",
+                "amount_cancel_pending",
+            ]
+            processed_amount = sum(
+                [
+                    sum(
+                        [getattr(transaction, field) for field in amount_fields],
+                        zero_money(root.currency),
+                    )
+                    for transaction in transactions
+                ],
                 zero_money(root.currency),
             )
-            total_refund = sum(
-                [transaction.amount_refunded for transaction in transactions],
+            refunded_amount = sum(
+                [
+                    transaction.amount_refunded + transaction.amount_refund_pending
+                    for transaction in transactions
+                ],
                 zero_money(root.currency),
             )
-            return total_granted_refund - (total_pending_refund + total_refund)
+            already_granted_refund = max(
+                refunded_amount - (processed_amount - root.total.gross),
+                zero_money(root.currency),
+            )
+
+            return max(
+                total_granted_refund - already_granted_refund, zero_money(root.currency)
+            )
 
         def _resolve_total_remaining_grant(data):
             transactions, payments, granted_refunds = data
@@ -2120,6 +2146,9 @@ class Order(ModelObjectType[models.Order]):
                 [granted_refund.amount for granted_refund in granted_refunds],
                 zero_money(root.currency),
             )
+            # total_granted_refund cannot be bigger than order.total
+            # TODO: ensure if it should be gross or net
+            total_granted_refund = min(total_granted_refund, root.total.gross)
 
             def _resolve_total_remaining_grant_for_payment(payment_transactions):
                 total_refund_amount = Decimal(0)
@@ -2178,9 +2207,9 @@ class Order(ModelObjectType[models.Order]):
     def resolve_shipping_tax_class(cls, root: models.Order, info):
         if root.shipping_method_id:
             return cls.resolve_shipping_method(root, info).then(
-                lambda shipping_method_data: shipping_method_data.tax_class
-                if shipping_method_data
-                else None
+                lambda shipping_method_data: (
+                    shipping_method_data.tax_class if shipping_method_data else None
+                )
             )
         return None
 
