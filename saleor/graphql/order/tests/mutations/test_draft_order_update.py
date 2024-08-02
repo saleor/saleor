@@ -1,6 +1,5 @@
-from unittest.mock import call, patch
-
 from decimal import Decimal
+from unittest.mock import call, patch
 
 import graphene
 import pytest
