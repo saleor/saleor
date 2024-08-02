@@ -241,7 +241,9 @@ def test_parse_transaction_action_data_with_only_psp_reference():
 
     # when
     parsed_data, _ = parse_transaction_action_data(
-        response_data, TransactionEventType.AUTHORIZATION_REQUEST
+        response_data,
+        TransactionEventType.AUTHORIZATION_REQUEST,
+        WebhookEventSyncType.PAYMENT_AUTHORIZE,
     )
 
     # then
@@ -292,7 +294,9 @@ def test_parse_transaction_action_data_with_provided_time(
 
     # when
     parsed_data, error_msg = parse_transaction_action_data(
-        response_data, TransactionEventType.CHARGE_REQUEST
+        response_data,
+        TransactionEventType.CHARGE_REQUEST,
+        WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION,
     )
     # then
     assert parsed_data.event.time == expected_datetime
@@ -318,7 +322,9 @@ def test_parse_transaction_action_data_with_event_all_fields_provided():
 
     # when
     parsed_data, error_msg = parse_transaction_action_data(
-        response_data, TransactionEventType.CHARGE_REQUEST
+        response_data,
+        TransactionEventType.CHARGE_REQUEST,
+        WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED,
     )
     # then
     assert isinstance(parsed_data, TransactionRequestResponse)
@@ -354,7 +360,9 @@ def test_parse_transaction_action_data_with_incorrect_result():
 
     # when
     parsed_data, error_msg = parse_transaction_action_data(
-        response_data, TransactionEventType.REFUND_REQUEST
+        response_data,
+        TransactionEventType.REFUND_REQUEST,
+        WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED,
     )
 
     # then
@@ -375,7 +383,9 @@ def test_parse_transaction_action_data_with_event_only_mandatory_fields():
 
     # when
     parsed_data, _ = parse_transaction_action_data(
-        response_data, TransactionEventType.CHARGE_REQUEST
+        response_data,
+        TransactionEventType.CHARGE_REQUEST,
+        WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED,
     )
 
     # then
@@ -398,7 +408,9 @@ def test_parse_transaction_action_data_with_missin_psp_reference():
 
     # when
     parsed_data, _ = parse_transaction_action_data(
-        response_data, TransactionEventType.AUTHORIZATION_REQUEST
+        response_data,
+        TransactionEventType.AUTHORIZATION_REQUEST,
+        WebhookEventSyncType.PAYMENT_AUTHORIZE,
     )
 
     # then
@@ -413,7 +425,9 @@ def test_parse_transaction_action_data_with_missing_mandatory_event_fields():
 
     # when
     parsed_data, _ = parse_transaction_action_data(
-        response_data, TransactionEventType.AUTHORIZATION_REQUEST
+        response_data,
+        TransactionEventType.AUTHORIZATION_REQUEST,
+        WebhookEventSyncType.PAYMENT_AUTHORIZE,
     )
 
     # then
@@ -603,7 +617,9 @@ def test_create_transaction_event_from_request_and_webhook_response_with_no_psp_
     assert transaction.events.count() == event_count + 1
     assert event.psp_reference is None
     assert event.transaction_id == transaction.id
-    assert event.message == "Missing `pspReference` field in the response."
+    assert event.message == (
+        f"Providing `pspReference` is required for {result_event_type.upper()}."
+    )
 
 
 @freeze_time("2018-05-31 12:00:01")
@@ -1597,15 +1613,52 @@ def test_get_correct_event_types_based_on_request_type(request_type, expected_ev
 
 
 @pytest.mark.parametrize(
-    ("response_result", "transaction_amount_field_name"),
+    ("webhook_type", "response_result", "transaction_amount_field_name"),
     [
-        (TransactionEventType.AUTHORIZATION_REQUEST, "authorize_pending_value"),
-        (TransactionEventType.AUTHORIZATION_SUCCESS, "authorized_value"),
-        (TransactionEventType.CHARGE_REQUEST, "charge_pending_value"),
-        (TransactionEventType.CHARGE_SUCCESS, "charged_value"),
+        (
+            WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION,
+            TransactionEventType.AUTHORIZATION_REQUEST,
+            "authorize_pending_value",
+        ),
+        (
+            WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION,
+            TransactionEventType.AUTHORIZATION_SUCCESS,
+            "authorized_value",
+        ),
+        (
+            WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION,
+            TransactionEventType.CHARGE_REQUEST,
+            "charge_pending_value",
+        ),
+        (
+            WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION,
+            TransactionEventType.CHARGE_SUCCESS,
+            "charged_value",
+        ),
+        (
+            WebhookEventSyncType.TRANSACTION_PROCESS_SESSION,
+            TransactionEventType.AUTHORIZATION_REQUEST,
+            "authorize_pending_value",
+        ),
+        (
+            WebhookEventSyncType.TRANSACTION_PROCESS_SESSION,
+            TransactionEventType.AUTHORIZATION_SUCCESS,
+            "authorized_value",
+        ),
+        (
+            WebhookEventSyncType.TRANSACTION_PROCESS_SESSION,
+            TransactionEventType.CHARGE_REQUEST,
+            "charge_pending_value",
+        ),
+        (
+            WebhookEventSyncType.TRANSACTION_PROCESS_SESSION,
+            TransactionEventType.CHARGE_SUCCESS,
+            "charged_value",
+        ),
     ],
 )
 def test_create_transaction_event_for_transaction_session_success_response(
+    webhook_type,
     response_result,
     transaction_amount_field_name,
     transaction_item_generator,
@@ -1626,6 +1679,7 @@ def test_create_transaction_event_for_transaction_session_success_response(
     response_event = create_transaction_event_for_transaction_session(
         request_event,
         webhook_app,
+        webhook_event_type=webhook_type,
         manager=plugins_manager,
         transaction_webhook_response=response,
     )
@@ -1638,15 +1692,52 @@ def test_create_transaction_event_for_transaction_session_success_response(
 
 
 @pytest.mark.parametrize(
-    ("response_result", "transaction_amount_field_name"),
+    ("webhook_type", "response_result", "transaction_amount_field_name"),
     [
-        (TransactionEventType.AUTHORIZATION_REQUEST, "authorize_pending_value"),
-        (TransactionEventType.AUTHORIZATION_SUCCESS, "authorized_value"),
-        (TransactionEventType.CHARGE_REQUEST, "charge_pending_value"),
-        (TransactionEventType.CHARGE_SUCCESS, "charged_value"),
+        (
+            WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION,
+            TransactionEventType.AUTHORIZATION_REQUEST,
+            "authorize_pending_value",
+        ),
+        (
+            WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION,
+            TransactionEventType.AUTHORIZATION_SUCCESS,
+            "authorized_value",
+        ),
+        (
+            WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION,
+            TransactionEventType.CHARGE_REQUEST,
+            "charge_pending_value",
+        ),
+        (
+            WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION,
+            TransactionEventType.CHARGE_SUCCESS,
+            "charged_value",
+        ),
+        (
+            WebhookEventSyncType.TRANSACTION_PROCESS_SESSION,
+            TransactionEventType.AUTHORIZATION_REQUEST,
+            "authorize_pending_value",
+        ),
+        (
+            WebhookEventSyncType.TRANSACTION_PROCESS_SESSION,
+            TransactionEventType.AUTHORIZATION_SUCCESS,
+            "authorized_value",
+        ),
+        (
+            WebhookEventSyncType.TRANSACTION_PROCESS_SESSION,
+            TransactionEventType.CHARGE_REQUEST,
+            "charge_pending_value",
+        ),
+        (
+            WebhookEventSyncType.TRANSACTION_PROCESS_SESSION,
+            TransactionEventType.CHARGE_SUCCESS,
+            "charged_value",
+        ),
     ],
 )
 def test_create_transaction_event_for_transaction_session_success_response_with_0(
+    webhook_type,
     response_result,
     transaction_amount_field_name,
     transaction_item_generator,
@@ -1667,6 +1758,7 @@ def test_create_transaction_event_for_transaction_session_success_response_with_
     response_event = create_transaction_event_for_transaction_session(
         request_event,
         webhook_app,
+        webhook_event_type=webhook_type,
         manager=plugins_manager,
         transaction_webhook_response=response,
     )
@@ -1712,6 +1804,7 @@ def test_create_transaction_event_for_transaction_session_not_success_events(
     response_event = create_transaction_event_for_transaction_session(
         request_event,
         webhook_app,
+        webhook_event_type=WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION,
         manager=plugins_manager,
         transaction_webhook_response=response,
     )
@@ -1731,11 +1824,11 @@ def test_create_transaction_event_for_transaction_session_not_success_events(
     [
         (
             TransactionEventType.AUTHORIZATION_SUCCESS,
-            "Providing `pspReference` is required for AUTHORIZATION_SUCCESS",
+            "Providing `pspReference` is required for AUTHORIZATION_SUCCESS.",
         ),
         (
             TransactionEventType.CHARGE_SUCCESS,
-            "Providing `pspReference` is required for CHARGE_SUCCESS",
+            "Providing `pspReference` is required for CHARGE_SUCCESS.",
         ),
         (
             TransactionEventType.CHARGE_FAILURE,
@@ -1743,11 +1836,11 @@ def test_create_transaction_event_for_transaction_session_not_success_events(
         ),
         (
             TransactionEventType.CHARGE_REQUEST,
-            "Providing `pspReference` is required for CHARGE_REQUEST",
+            "Providing `pspReference` is required for CHARGE_REQUEST.",
         ),
         (
             TransactionEventType.AUTHORIZATION_REQUEST,
-            "Providing `pspReference` is required for AUTHORIZATION_REQUEST",
+            "Providing `pspReference` is required for AUTHORIZATION_REQUEST.",
         ),
     ],
 )
@@ -1776,6 +1869,7 @@ def test_create_transaction_event_for_transaction_session_missing_psp_reference(
     response_event = create_transaction_event_for_transaction_session(
         request_event,
         webhook_app,
+        webhook_event_type=WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION,
         manager=plugins_manager,
         transaction_webhook_response=response,
     )
@@ -1822,6 +1916,7 @@ def test_create_transaction_event_for_transaction_session_missing_reference_with
     response_event = create_transaction_event_for_transaction_session(
         request_event,
         webhook_app,
+        webhook_event_type=WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION,
         manager=plugins_manager,
         transaction_webhook_response=response,
     )
@@ -1868,6 +1963,7 @@ def test_create_transaction_event_for_transaction_session_call_webhook_order_upd
     create_transaction_event_for_transaction_session(
         request_event,
         webhook_app,
+        webhook_event_type=WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION,
         manager=plugins_manager,
         transaction_webhook_response=response,
     )
@@ -1903,6 +1999,7 @@ def test_create_transaction_event_for_transaction_session_call_webhook_for_fully
     create_transaction_event_for_transaction_session(
         request_event,
         webhook_app,
+        webhook_event_type=WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION,
         manager=plugins_manager,
         transaction_webhook_response=response,
     )
@@ -1946,6 +2043,7 @@ def test_create_transaction_event_for_transaction_session_success_sets_actions(
     create_transaction_event_for_transaction_session(
         request_event,
         webhook_app,
+        webhook_event_type=WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION,
         manager=plugins_manager,
         transaction_webhook_response=response,
     )
@@ -1992,6 +2090,7 @@ def test_create_transaction_event_for_transaction_session_failure_doesnt_set_act
     create_transaction_event_for_transaction_session(
         request_event,
         webhook_app,
+        webhook_event_type=WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION,
         manager=plugins_manager,
         transaction_webhook_response=response,
     )
@@ -2072,6 +2171,7 @@ def test_create_transaction_event_updates_transaction_modified_at(
         create_transaction_event_for_transaction_session(
             request_event,
             webhook_app,
+            webhook_event_type=WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION,
             manager=plugins_manager,
             transaction_webhook_response=response,
         )
@@ -2109,6 +2209,7 @@ def test_create_transaction_event_for_transaction_session_failure_set_psp_refere
     create_transaction_event_for_transaction_session(
         request_event,
         webhook_app,
+        webhook_event_type=WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION,
         manager=plugins_manager,
         transaction_webhook_response=response,
     )
@@ -2148,6 +2249,7 @@ def test_create_transaction_event_for_transaction_session_when_psp_ref_missing(
     create_transaction_event_for_transaction_session(
         request_event,
         webhook_app,
+        webhook_event_type=WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION,
         manager=plugins_manager,
         transaction_webhook_response=response,
     )
@@ -2183,6 +2285,7 @@ def test_create_transaction_event_updates_transaction_modified_at_for_failure(
         create_transaction_event_for_transaction_session(
             request_event,
             webhook_app,
+            webhook_event_type=WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION,
             manager=plugins_manager,
             transaction_webhook_response=response,
         )
