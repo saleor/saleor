@@ -31,8 +31,8 @@ from ..utils import (
 from .draft_order_create import OrderLineCreateInput
 from .utils import (
     EditableOrderValidationMixin,
+    call_event_by_order_status,
     get_variant_rule_info_map,
-    get_webhook_handler_by_order_status,
 )
 
 VariantData = namedtuple("VariantData", ["variant", "rules_info"])
@@ -204,8 +204,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
                     "updated_at",
                 ]
             )
-            func = get_webhook_handler_by_order_status(order.status, manager)
-            cls.call_event(func, order)
+            call_event_by_order_status(order, manager)
 
         return OrderLinesCreate(order=order, order_lines=added_lines)
 

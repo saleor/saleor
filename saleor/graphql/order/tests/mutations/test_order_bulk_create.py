@@ -1030,7 +1030,7 @@ def test_order_bulk_create_multiple_notes(
     assert event_2["message"] == note_2["message"]
     assert event_2["app"]["id"] == note_2["appId"]
 
-    db_events = OrderEvent.objects.all()
+    db_events = OrderEvent.objects.all().order_by("pk")
     db_event_1 = db_events[0]
     assert db_event_1.parameters["message"] == note_1["message"]
     assert db_event_1.user == customer_user
