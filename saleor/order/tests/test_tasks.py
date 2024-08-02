@@ -1,20 +1,25 @@
 import logging
 from datetime import timedelta
 from unittest import mock
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 import pytest
+from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
 
+from ...core.models import EventDelivery
 from ...discount.models import VoucherCustomer
 from ...warehouse.models import Allocation
+from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from .. import OrderEvents, OrderStatus
+from ..actions import call_order_event
 from ..models import Order, OrderEvent, get_order_number
 from ..tasks import (
     _bulk_release_voucher_usage,
     delete_expired_orders_task,
     expire_orders_task,
+    send_order_updated,
 )
 
 
@@ -683,3 +688,76 @@ def test_bulk_release_voucher_usage_voucher_usage_mismatch(
     code.refresh_from_db()
     assert code.used == 0
     assert code.code in caplog.text
+
+
+@patch(
+    "saleor.order.tasks.call_order_event",
+    wraps=call_order_event,
+)
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_send_order_updated(
+    mocked_send_webhook_request_async,
+    mocked_send_webhook_request_sync,
+    wrapped_call_order_event,
+    setup_order_webhooks,
+    order_with_lines,
+    settings,
+    django_capture_on_commit_callbacks,
+):
+    # given
+    mocked_send_webhook_request_sync.return_value = []
+    (
+        tax_webhook,
+        shipping_filter_webhook,
+        additional_order_webhook,
+    ) = setup_order_webhooks(
+        [
+            WebhookEventAsyncType.ORDER_UPDATED,
+            WebhookEventAsyncType.ORDER_FULLY_PAID,
+        ]
+    )
+    order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
+    order.should_refresh_prices = True
+    order.save(
+        update_fields=[
+            "status",
+            "should_refresh_prices",
+        ]
+    )
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        send_order_updated([order.pk])
+
+    # then
+    # confirm that event delivery was generated for each webhook.
+    order_updated_delivery = EventDelivery.objects.get(
+        webhook_id=additional_order_webhook.id,
+        event_type=WebhookEventAsyncType.ORDER_UPDATED,
+    )
+
+    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
+    filter_shipping_delivery = EventDelivery.objects.get(
+        webhook_id=shipping_filter_webhook.id,
+        event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
+    )
+
+    mocked_send_webhook_request_async.assert_called_once_with(
+        kwargs={"event_delivery_id": order_updated_delivery.id},
+        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+        bind=True,
+        retry_backoff=10,
+        retry_kwargs={"max_retries": 5},
+    )
+    mocked_send_webhook_request_sync.assert_has_calls(
+        [
+            call(tax_delivery),
+            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
+        ]
+    )
+    assert wrapped_call_order_event.called
