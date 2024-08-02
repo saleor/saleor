@@ -44,7 +44,7 @@ from ..models import (
     Promotion,
     PromotionRule,
 )
-from .shared import update_line_discount
+from .shared import update_discount
 
 if TYPE_CHECKING:
     from ...checkout.fetch import CheckoutLineInfo
@@ -350,18 +350,19 @@ def _update_promotion_discount(
     value_type = rule.reward_value_type or RewardValueType.FIXED
     # gift rule has empty reward_value
     value = rule.reward_value or rule_discount_amount
-    update_line_discount(
-        rule,
-        None,
-        discount_name,
-        translated_name,
-        reason,
-        rule_discount_amount,
-        value,
-        value_type,
-        DiscountType.PROMOTION,
-        discount_to_update,
-        updated_fields,
+    update_discount(
+        rule=rule,
+        voucher=None,
+        discount_name=discount_name,
+        translated_name=translated_name,
+        discount_reason=reason,
+        discount_amount=rule_discount_amount,
+        value=value,
+        value_type=value_type,
+        unique_type=DiscountType.PROMOTION,
+        discount_to_update=discount_to_update,
+        updated_fields=updated_fields,
+        voucher_code=None,
     )
 
 

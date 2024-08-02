@@ -1334,6 +1334,11 @@ class Order(ModelObjectType[models.Order]):
         description="Shipping method for this order.",
         deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `deliveryMethod` instead."),
     )
+    undiscounted_shipping_price = graphene.Field(
+        Money,
+        description="Undiscounted total price of shipping." + ADDED_IN_319,
+        required=True,
+    )
     shipping_price = graphene.Field(
         TaxedMoney, description="Total price of shipping.", required=True
     )
@@ -1719,6 +1724,21 @@ class Order(ModelObjectType[models.Order]):
             .load(root.shipping_address_id)
             .then(_resolve_shipping_address)
         )
+
+    @staticmethod
+    @traced_resolver
+    @prevent_sync_event_circular_query
+    def resolve_undiscounted_shipping_price(root: models.Order, info):
+        def _resolve_undiscounted_shipping_price(data):
+            lines, manager = data
+            database_connection_name = get_database_connection_name(info.context)
+            return calculations.order_undiscounted_shipping(
+                root, manager, lines, database_connection_name=database_connection_name
+            )
+
+        lines = OrderLinesByOrderIdLoader(info.context).load(root.id)
+        manager = get_plugin_manager_promise(info.context)
+        return Promise.all([lines, manager]).then(_resolve_undiscounted_shipping_price)
 
     @staticmethod
     @traced_resolver

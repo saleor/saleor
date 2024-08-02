@@ -623,7 +623,7 @@ def test_update_order_line_discount_old_id(
     order.refresh_from_db()
     order_discount = order.discounts.get()
     order_discount_amount = order_discount.amount
-    base_shipping = order.base_shipping_price
+    base_shipping = order.undiscounted_base_shipping_price
     discount_applied_to_lines = order_discount_amount - (
         base_shipping - order.shipping_price.gross
     )

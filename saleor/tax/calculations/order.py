@@ -102,7 +102,7 @@ def _set_order_totals(
 
     shipping_tax_rate = order.shipping_tax_rate or 0
     undiscounted_shipping_price = calculate_flat_rate_tax(
-        order.base_shipping_price,
+        order.undiscounted_base_shipping_price,
         Decimal(shipping_tax_rate * 100),
         prices_entered_with_tax,
     )

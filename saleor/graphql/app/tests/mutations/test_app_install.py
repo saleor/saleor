@@ -67,6 +67,42 @@ def test_install_app_mutation(
     assert app_installation_data["manifestUrl"] == app_installation.manifest_url
     mocked_task.assert_called_with(app_installation.pk, True)
     assert app_installation.uuid is not None
+    assert App.objects.count() == 0
+
+
+def test_install_app_mutation_with_another_app_installed_but_marked_to_be_removed(
+    permission_manage_apps,
+    permission_manage_orders,
+    staff_api_client,
+    staff_user,
+    monkeypatch,
+    app_marked_to_be_removed,
+):
+    assert app_marked_to_be_removed.removed_at is not None
+    # given
+    mocked_task = Mock()
+    monkeypatch.setattr(
+        "saleor.graphql.app.mutations.app_install.install_app_task.delay", mocked_task
+    )
+    staff_user.user_permissions.set([permission_manage_apps, permission_manage_orders])
+    variables = {
+        "app_name": "New external integration",
+        "manifest_url": "http://localhost:3000/manifest",
+        "permissions": [PermissionEnum.MANAGE_ORDERS.name],
+    }
+    # when
+    data = _mutate_app_install(staff_api_client, variables)
+
+    # then
+    app_installation = AppInstallation.objects.get()
+    app_installation_data = data["appInstallation"]
+    _, app_id = graphene.Node.from_global_id(app_installation_data["id"])
+    assert int(app_id) == app_installation.id
+    assert app_installation_data["status"] == JobStatus.PENDING.upper()
+    assert app_installation_data["manifestUrl"] == app_installation.manifest_url
+    mocked_task.assert_called_with(app_installation.pk, True)
+    assert app_installation.uuid is not None
+    assert App.objects.count() == 1
 
 
 def test_app_is_not_allowed_to_install_app(

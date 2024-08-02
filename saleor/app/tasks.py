@@ -8,6 +8,7 @@ from requests import HTTPError, RequestException
 
 from .. import celeryconf
 from ..core import JobStatus
+from ..core.db.connection import allow_writer
 from ..core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ..core.tasks import delete_files_from_private_storage_task
 from ..webhook.models import Webhook
@@ -18,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 @celeryconf.app.task
+@allow_writer()
 def install_app_task(job_id, activate=False):
     try:
         app_installation = AppInstallation.objects.get(id=job_id)
@@ -85,6 +87,7 @@ def _raw_remove_deliveries(deliveries_ids):
 
 
 @celeryconf.app.task
+@allow_writer()
 def remove_apps_task():
     app_delete_period = timezone.now() - settings.DELETE_APP_TTL
     apps = App.objects.filter(removed_at__lte=app_delete_period)
@@ -115,9 +118,6 @@ def remove_apps_task():
             _raw_remove_deliveries(deliveries_ids)
 
         webhooks.delete()
-
         AppToken.objects.filter(app_id=app.id).delete()
-
         AppExtension.objects.filter(app_id=app.id).delete()
-
         app.delete()

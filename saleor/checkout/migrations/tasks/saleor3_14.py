@@ -2,6 +2,7 @@ from django.db import transaction
 from django.db.models.expressions import Exists, OuterRef, Q
 
 from ....celeryconf import app
+from ....core.db.connection import allow_writer
 from ....payment.models import TransactionItem
 from ...models import Checkout
 
@@ -11,6 +12,7 @@ BATCH_SIZE = 2000
 
 
 @app.task
+@allow_writer()
 def update_transaction_modified_at_in_checkouts():
     checkouts_without_modified_at = Checkout.objects.filter(
         Exists(TransactionItem.objects.filter(checkout_id=OuterRef("pk"))),
@@ -41,6 +43,7 @@ def update_transaction_modified_at_in_checkouts():
 
 
 @app.task
+@allow_writer()
 def update_checkout_refundable():
     with_transactions = TransactionItem.objects.filter(
         Q(checkout_id=OuterRef("pk"))

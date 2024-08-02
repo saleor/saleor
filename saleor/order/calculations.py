@@ -11,7 +11,6 @@ from prices import Money, TaxedMoney
 from ..core.db.connection import allow_writer
 from ..core.prices import quantize_price
 from ..core.taxes import TaxData, TaxEmptyData, TaxError, zero_taxed_money
-from ..discount import DiscountType
 from ..discount.utils.order import create_or_update_discount_objects_for_order
 from ..payment.model_helpers import get_subtotal
 from ..plugins import PLUGIN_IDENTIFIER_PREFIX
@@ -61,7 +60,6 @@ def fetch_order_prices_if_expired(
         order, lines_info, database_connection_name
     )
     lines = [line_info.line for line_info in lines_info]
-    _update_order_discount_for_voucher(order)
 
     _clear_prefetched_discounts(order, lines)
     with allow_writer():
@@ -89,6 +87,7 @@ def fetch_order_prices_if_expired(
                     "undiscounted_total_gross_amount",
                     "shipping_price_net_amount",
                     "shipping_price_gross_amount",
+                    "base_shipping_price_amount",
                     "shipping_tax_rate",
                     "should_refresh_prices",
                     "tax_error",
@@ -115,31 +114,6 @@ def fetch_order_prices_if_expired(
             )
 
         return order, lines
-
-
-@allow_writer()
-def _update_order_discount_for_voucher(order: Order):
-    """Create or delete OrderDiscount instances."""
-    if not order.voucher_id:
-        order.discounts.filter(type=DiscountType.VOUCHER).delete()
-
-    elif (
-        order.voucher_id
-        and not order.discounts.filter(voucher_code=order.voucher_code).exists()
-    ):
-        voucher = order.voucher
-        voucher_channel_listing = voucher.channel_listings.filter(  # type: ignore
-            channel=order.channel
-        ).first()
-        if voucher_channel_listing:
-            order.discounts.create(
-                value_type=voucher.discount_value_type,  # type: ignore
-                value=voucher_channel_listing.discount_value,
-                reason=f"Voucher: {voucher.name}",  # type: ignore
-                voucher=voucher,
-                type=DiscountType.VOUCHER,
-                voucher_code=order.voucher_code,
-            )
 
 
 def _clear_prefetched_discounts(order, lines):
@@ -351,8 +325,9 @@ def _recalculate_with_plugins(
     except TaxError:
         pass
 
+    undiscounted_shipping_price = order.undiscounted_base_shipping_price
     order.undiscounted_total = undiscounted_subtotal + TaxedMoney(
-        net=order.base_shipping_price, gross=order.base_shipping_price
+        net=undiscounted_shipping_price, gross=undiscounted_shipping_price
     )
     order.subtotal = get_subtotal(lines, order.currency)
     order.total = manager.calculate_order_total(order, lines, plugin_ids=plugin_ids)
@@ -582,6 +557,30 @@ def order_line_unit_discount_type(
     _, lines = fetch_order_prices_if_expired(order, manager, lines, force_update)
     order_line = _find_order_line(lines, order_line)
     return order_line.unit_discount_type
+
+
+def order_undiscounted_shipping(
+    order: Order,
+    manager: PluginsManager,
+    lines: Optional[Iterable[OrderLine]] = None,
+    force_update: bool = False,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+) -> TaxedMoney:
+    """Return the undiscounted shipping price of the order.
+
+    It takes into account all plugins.
+    If the prices are expired, call all order price calculation methods
+    and save them in the model directly.
+    """
+    currency = order.currency
+    order, _ = fetch_order_prices_if_expired(
+        order,
+        manager,
+        lines,
+        force_update,
+        database_connection_name=database_connection_name,
+    )
+    return quantize_price(order.undiscounted_base_shipping_price, currency)
 
 
 def order_shipping(

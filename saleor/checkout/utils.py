@@ -49,6 +49,7 @@ from ..giftcard.utils import (
     add_gift_card_code_to_checkout,
     remove_gift_card_code_from_checkout_or_error,
 )
+from ..payment.models import Payment
 from ..plugins.manager import PluginsManager
 from ..product import models as product_models
 from ..shipping.interface import ShippingMethodData
@@ -954,8 +955,15 @@ def is_fully_paid(
     return total_paid >= checkout_total.amount
 
 
-def cancel_active_payments(checkout: Checkout) -> None:
-    checkout.payments.filter(is_active=True).update(is_active=False)
+def cancel_active_payments(checkout: Checkout) -> list[int]:
+    payments = checkout.payments.filter(is_active=True)
+    payment_ids = list(payments.values_list("id", flat=True))
+    payments.update(is_active=False)
+    return payment_ids
+
+
+def activate_payments(payment_ids: list[int]) -> None:
+    Payment.objects.filter(id__in=payment_ids).update(is_active=True)
 
 
 def is_shipping_required(lines: Iterable["CheckoutLineInfo"]):
@@ -996,7 +1004,7 @@ def set_external_shipping_id(checkout: Checkout, app_shipping_id: str):
 
 
 def get_external_shipping_id(container: Union["Checkout", "Order"]):
-    if type(container) == Checkout:
+    if type(container) is Checkout:
         container = get_checkout_metadata(container)
     return container.get_value_from_private_metadata(  # type:ignore
         PRIVATE_META_APP_SHIPPING_ID
@@ -1014,8 +1022,8 @@ def delete_external_shipping_id(checkout: Checkout, save: bool = False):
 def get_or_create_checkout_metadata(checkout: "Checkout") -> CheckoutMetadata:
     if hasattr(checkout, "metadata_storage"):
         return checkout.metadata_storage
-    else:
-        return CheckoutMetadata.objects.create(checkout=checkout)
+    metadata, _ = CheckoutMetadata.objects.get_or_create(checkout=checkout)
+    return metadata
 
 
 @allow_writer()

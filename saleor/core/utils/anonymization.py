@@ -45,7 +45,7 @@ def generate_fake_user() -> "User":
 
 def generate_fake_metadata() -> dict[str, str]:
     """Generate a fake metadata/private metadata dictionary."""
-    return fake.pydict(value_types=str)
+    return fake.pydict(value_types=[str])
 
 
 def anonymize_order(order: "Order") -> "Order":
