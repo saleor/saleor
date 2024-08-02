@@ -436,7 +436,7 @@ def clear_successful_delivery(delivery: "EventDelivery"):
                 )
             ]
             payloads_to_delete.delete()
-            delete_files_from_private_storage_task.delay(files_to_delete)
+            delete_files_from_private_storage_task(files_to_delete)
 
 
 @allow_writer()
