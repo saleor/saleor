@@ -26,6 +26,14 @@ def webhook_async_event_requires_sync_webhooks_to_trigger(
     if event_name not in webhook_event_map:
         raise ValueError(f"Event {event_name} not found in webhook_event_map.")
 
+    missing_possible_sync_events_in_map = set(possible_sync_events).difference(
+        webhook_event_map.keys()
+    )
+    if missing_possible_sync_events_in_map:
+        raise ValueError(
+            f"Event {missing_possible_sync_events_in_map} not found in webhook_event_map."
+        )
+
     if not webhook_event_map[event_name] and not webhook_event_map.get(
         WebhookEventAsyncType.ANY
     ):

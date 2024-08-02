@@ -1991,7 +1991,7 @@ def _process_refund(
             user=user,
             app=app,
             refunded_lines=list(lines_to_refund.values()),
-            amount=amount,
+            amount=amount,  # type: ignore
             shipping_costs_included=refund_shipping_costs,
         )
     )

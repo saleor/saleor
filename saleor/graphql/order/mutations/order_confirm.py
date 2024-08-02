@@ -97,7 +97,7 @@ class OrderConfirm(ModelMutation):
                         authorized_payment,
                         manager,
                         site.settings,
-                        payment.gateway,
+                        payment.gateway,  # type: ignore
                         webhook_event_map=webhook_event_map,
                     )
                 )
