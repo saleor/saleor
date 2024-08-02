@@ -192,12 +192,11 @@ def _clear_checkout_discount(
 
 
 def has_checkout_order_promotion(checkout_info: "CheckoutInfo") -> bool:
-    order_promotion = next(
+    return next(
         (
-            discount
+            True
             for discount in checkout_info.discounts
             if discount.type == DiscountType.ORDER_PROMOTION
         ),
-        None,
+        False,
     )
-    return bool(order_promotion)
