@@ -79,19 +79,15 @@ class OrderConfirm(ModelMutation):
         payment = order_info.payment
         manager = get_plugin_manager_promise(info.context).get()
         app = get_app_promise(info.context).get()
-        webhook_events_for_map = WEBHOOK_EVENTS_FOR_ORDER_CONFIRMED
+        webhook_events = WEBHOOK_EVENTS_FOR_ORDER_CONFIRMED
         webhook_event_map = None
         with traced_atomic_transaction():
             if payment and payment.is_authorized and payment.can_capture():
                 authorized_payment = payment
                 gateway.capture(payment, manager, channel_slug=order.channel.slug)
                 site = get_site_promise(info.context).get()
-                webhook_events_for_map = webhook_events_for_map.union(
-                    WEBHOOK_EVENTS_FOR_ORDER_CHARGED
-                )
-                webhook_event_map = get_webhooks_for_multiple_events(
-                    webhook_events_for_map
-                )
+                webhook_events = webhook_events.union(WEBHOOK_EVENTS_FOR_ORDER_CHARGED)
+                webhook_event_map = get_webhooks_for_multiple_events(webhook_events)
                 transaction.on_commit(
                     lambda: order_charged(
                         order_info,
@@ -106,9 +102,7 @@ class OrderConfirm(ModelMutation):
                     )
                 )
             if webhook_event_map is None:
-                webhook_event_map = get_webhooks_for_multiple_events(
-                    webhook_events_for_map
-                )
+                webhook_event_map = get_webhooks_for_multiple_events(webhook_events)
 
             transaction.on_commit(
                 lambda: order_confirmed(
