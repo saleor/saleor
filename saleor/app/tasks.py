@@ -76,7 +76,7 @@ def _raw_remove_deliveries(deliveries_ids):
 
     files_to_delete = [
         event_payload.payload_file.name
-        for event_payload in payloads
+        for event_payload in payloads.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
         if event_payload.payload_file
     ]
     delete_files_from_private_storage_task.delay(files_to_delete)

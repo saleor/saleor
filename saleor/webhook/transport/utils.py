@@ -430,7 +430,10 @@ def clear_successful_delivery(delivery: "EventDelivery"):
                 pk=payload_id, deliveries__isnull=True
             )
             files_to_delete = [
-                event_payload.payload_file.name for event_payload in payloads_to_delete
+                event_payload.payload_file.name
+                for event_payload in payloads_to_delete.using(
+                    settings.DATABASE_CONNECTION_REPLICA_NAME
+                )
             ]
             payloads_to_delete.delete()
             delete_files_from_private_storage_task.delay(files_to_delete)
