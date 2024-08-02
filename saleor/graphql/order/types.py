@@ -2108,12 +2108,12 @@ class Order(ModelObjectType[models.Order]):
                 "amount_charged",
                 "amount_authorized",
                 "amount_refunded",
-                "amount_canceled",
                 "amount_charge_pending",
                 "amount_authorize_pending",
                 "amount_refund_pending",
-                "amount_cancel_pending",
             ]
+            # Calculate total processed amount, it excluded the cancel amounts
+            # as it's the amount that never has been charged
             processed_amount = sum(
                 [
                     sum(
