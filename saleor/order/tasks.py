@@ -13,7 +13,7 @@ from ..discount.models import Voucher, VoucherCode, VoucherCustomer
 from ..payment.models import Payment, TransactionItem
 from ..plugins.manager import get_plugins_manager
 from ..warehouse.management import deallocate_stock_for_orders
-from ..webhook.event_types import WebhookEventAsyncType
+from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..webhook.utils import get_webhooks_for_multiple_events
 from . import OrderEvents, OrderStatus
 from .actions import call_order_event
@@ -43,8 +43,20 @@ def recalculate_orders_task(order_ids: list[int]):
 @app.task
 def send_order_updated(order_ids):
     manager = get_plugins_manager(allow_replica=True)
+    webhook_event_map = get_webhooks_for_multiple_events(
+        [
+            WebhookEventAsyncType.ORDER_UPDATED,
+            *WebhookEventSyncType.ORDER_EVENTS,
+        ]
+    )
     for order in Order.objects.filter(id__in=order_ids):
-        manager.order_updated(order)
+        call_order_event(
+            manager,
+            manager.order_updated,
+            WebhookEventAsyncType.ORDER_UPDATED,
+            order,
+            webhook_event_map=webhook_event_map,
+        )
 
 
 def _bulk_release_voucher_usage(order_ids):
@@ -93,6 +105,7 @@ def _call_expired_order_events(order_ids, manager):
         [
             WebhookEventAsyncType.ORDER_EXPIRED,
             WebhookEventAsyncType.ORDER_UPDATED,
+            # *WebhookEventSyncType.ORDER_EVENTS,
         ]
     )
     for order in orders:
