@@ -76,6 +76,18 @@ def is_order_level_voucher(voucher: Optional[Voucher]):
     )
 
 
+def has_checkout_order_promotion(checkout_info: "CheckoutInfo") -> bool:
+    order_promotion = next(
+        (
+            discount
+            for discount in checkout_info.discounts
+            if discount.type == DiscountType.ORDER_PROMOTION
+        ),
+        None,
+    )
+    return bool(order_promotion)
+
+
 def is_shipping_voucher(voucher: Optional[Voucher]):
     return bool(voucher and voucher.type == VoucherType.SHIPPING)
 
