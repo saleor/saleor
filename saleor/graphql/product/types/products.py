@@ -952,6 +952,7 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
     )
     variants = NonNullList(
         ProductVariant,
+        required=True,
         description=(
             "List of variants for the product. Requires the following permissions to "
             "include the unpublished items: "
