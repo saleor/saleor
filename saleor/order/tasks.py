@@ -10,14 +10,14 @@ from ..celeryconf import app
 from ..channel.models import Channel
 from ..core.db.connection import allow_writer
 from ..core.tracing import traced_atomic_transaction
-from ..core.utils.events import call_event
 from ..discount.models import Voucher, VoucherCode, VoucherCustomer
 from ..payment.models import Payment, TransactionItem
 from ..plugins.manager import get_plugins_manager
 from ..warehouse.management import deallocate_stock_for_orders
-from ..webhook.event_types import WebhookEventAsyncType
-from ..webhook.utils import get_webhooks_for_event
+from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from ..webhook.utils import get_webhooks_for_multiple_events
 from . import OrderEvents, OrderStatus
+from .actions import call_order_event
 from .models import Order, OrderEvent
 from .utils import invalidate_order_prices
 
@@ -46,8 +46,20 @@ def recalculate_orders_task(order_ids: list[int]):
 @allow_writer()
 def send_order_updated(order_ids):
     manager = get_plugins_manager(allow_replica=True)
+    webhook_event_map = get_webhooks_for_multiple_events(
+        [
+            WebhookEventAsyncType.ORDER_UPDATED,
+            *WebhookEventSyncType.ORDER_EVENTS,
+        ]
+    )
     for order in Order.objects.filter(id__in=order_ids):
-        manager.order_updated(order)
+        call_order_event(
+            manager,
+            manager.order_updated,
+            WebhookEventAsyncType.ORDER_UPDATED,
+            order,
+            webhook_event_map=webhook_event_map,
+        )
 
 
 def _bulk_release_voucher_usage(order_ids):
@@ -92,11 +104,28 @@ def _call_expired_order_events(order_ids, manager):
         .filter(id__in=order_ids)
         .select_related("channel")
     )
-    webhooks_order_expired = get_webhooks_for_event(WebhookEventAsyncType.ORDER_EXPIRED)
-    webhooks_order_updated = get_webhooks_for_event(WebhookEventAsyncType.ORDER_UPDATED)
+    webhook_event_map = get_webhooks_for_multiple_events(
+        [
+            WebhookEventAsyncType.ORDER_EXPIRED,
+            WebhookEventAsyncType.ORDER_UPDATED,
+            # *WebhookEventSyncType.ORDER_EVENTS,
+        ]
+    )
     for order in orders:
-        call_event(manager.order_expired, order, webhooks=webhooks_order_expired)
-        call_event(manager.order_updated, order, webhooks=webhooks_order_updated)
+        call_order_event(
+            manager,
+            manager.order_expired,
+            WebhookEventAsyncType.ORDER_EXPIRED,
+            order,
+            webhook_event_map=webhook_event_map,
+        )
+        call_order_event(
+            manager,
+            manager.order_updated,
+            WebhookEventAsyncType.ORDER_UPDATED,
+            order,
+            webhook_event_map=webhook_event_map,
+        )
 
 
 def _order_expired_events(order_ids):

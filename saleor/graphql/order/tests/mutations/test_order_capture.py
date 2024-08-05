@@ -1,13 +1,18 @@
-from unittest.mock import ANY, patch
+from unittest.mock import ANY, call, patch
 
 import graphene
+from django.test import override_settings
 
+from .....core.models import EventDelivery
 from .....core.notify_events import NotifyEventType
 from .....core.tests.utils import get_site_context_payload
+from .....order import OrderStatus
 from .....order import events as order_events
+from .....order.actions import call_order_event, order_charged
 from .....order.notifications import get_default_order_payload
 from .....payment import ChargeStatus
 from .....payment.models import Payment
+from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....payment.types import PaymentChargeStatusEnum
 from ....tests.utils import assert_no_permission, get_graphql_content
 
@@ -35,11 +40,15 @@ ORDER_CAPTURE_MUTATION = """
 """
 
 
+@patch(
+    "saleor.graphql.order.mutations.order_capture.order_charged", wraps=order_charged
+)
 @patch("saleor.giftcard.utils.fulfill_non_shippable_gift_cards")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_order_capture(
     mocked_notify,
     fulfill_non_shippable_gift_cards_mock,
+    order_charged_mock,
     staff_api_client,
     permission_group_manage_orders,
     payment_txn_preauth,
@@ -104,6 +113,7 @@ def test_order_capture(
     fulfill_non_shippable_gift_cards_mock.assert_called_once_with(
         order, list(order.lines.all()), site_settings, staff_api_client.user, None, ANY
     )
+    assert order_charged_mock.called
 
 
 def test_order_capture_by_user_no_channel_access(
@@ -155,3 +165,107 @@ def test_order_capture_by_app(
     assert data["paymentStatusDisplay"] == payment_status_display
     assert data["isPaid"]
     assert data["totalCaptured"]["amount"] == float(amount)
+
+
+@patch(
+    "saleor.order.actions.call_order_event",
+    wraps=call_order_event,
+)
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
+@override_settings(
+    PLUGINS=[
+        "saleor.plugins.webhook.plugin.WebhookPlugin",
+        "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin",
+    ]
+)
+def test_order_capture_triggers_webhooks(
+    mocked_send_webhook_request_async,
+    mocked_send_webhook_request_sync,
+    wrapped_call_order_event,
+    setup_order_webhooks,
+    staff_api_client,
+    permission_group_manage_orders,
+    payment_txn_preauth,
+    staff_user,
+    settings,
+    django_capture_on_commit_callbacks,
+):
+    # given
+    mocked_send_webhook_request_sync.return_value = []
+    (
+        tax_webhook,
+        shipping_filter_webhook,
+        additional_order_webhook,
+    ) = setup_order_webhooks(
+        [
+            WebhookEventAsyncType.ORDER_PAID,
+            WebhookEventAsyncType.ORDER_UPDATED,
+            WebhookEventAsyncType.ORDER_FULLY_PAID,
+        ]
+    )
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = payment_txn_preauth.order
+    order.status = OrderStatus.UNCONFIRMED
+    order.should_refresh_prices = True
+    order.save(update_fields=["status", "should_refresh_prices"])
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    amount = float(payment_txn_preauth.total)
+    variables = {"id": order_id, "amount": amount}
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(ORDER_CAPTURE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["orderCapture"]["errors"]
+
+    # confirm that event delivery was generated for each webhook.
+    order_paid_delivery = EventDelivery.objects.get(
+        webhook_id=additional_order_webhook.id,
+        event_type=WebhookEventAsyncType.ORDER_PAID,
+    )
+    order_updated_delivery = EventDelivery.objects.get(
+        webhook_id=additional_order_webhook.id,
+        event_type=WebhookEventAsyncType.ORDER_UPDATED,
+    )
+    order_fully_paid_delivery = EventDelivery.objects.get(
+        webhook_id=additional_order_webhook.id,
+        event_type=WebhookEventAsyncType.ORDER_FULLY_PAID,
+    )
+    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
+    filter_shipping_delivery = EventDelivery.objects.get(
+        webhook_id=shipping_filter_webhook.id,
+        event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
+    )
+
+    order_deliveries = [
+        order_fully_paid_delivery,
+        order_paid_delivery,
+        order_updated_delivery,
+    ]
+
+    mocked_send_webhook_request_async.assert_has_calls(
+        [
+            call(
+                kwargs={"event_delivery_id": delivery.id},
+                queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+                bind=True,
+                retry_backoff=10,
+                retry_kwargs={"max_retries": 5},
+            )
+            for delivery in order_deliveries
+        ],
+        any_order=True,
+    )
+    mocked_send_webhook_request_sync.assert_has_calls(
+        [
+            call(tax_delivery),
+            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
+        ]
+    )
+    assert wrapped_call_order_event.called

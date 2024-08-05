@@ -18,9 +18,7 @@ from ...settings import WEBHOOK_SYNC_TIMEOUT
 from ...shipping.interface import ShippingMethodData
 from ...webhook.utils import get_webhooks_for_event
 from ..const import APP_ID_PREFIX, CACHE_EXCLUDED_SHIPPING_TIME
-from .synchronous.transport import (
-    trigger_webhook_sync_if_not_cached,
-)
+from .synchronous.transport import trigger_webhook_sync_if_not_cached
 
 logger = logging.getLogger(__name__)
 
@@ -110,6 +108,7 @@ def get_cache_data_for_exclude_shipping_methods(payload: str) -> dict:
     # drop fields that change between requests but are not relevant for cache key
     source_object.pop("last_change", None)
     source_object.pop("meta", None)
+    source_object.pop("shipping_method", None)
     return payload_dict
 
 

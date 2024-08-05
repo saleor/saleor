@@ -1,14 +1,22 @@
+from decimal import Decimal
+from unittest.mock import call, patch
+
 import graphene
 import pytest
+from django.test import override_settings
 from prices import TaxedMoney
 
+from .....core.models import EventDelivery
 from .....core.prices import quantize_price
 from .....core.taxes import zero_money
-from .....discount import DiscountType, DiscountValueType, RewardValueType
+from .....discount import DiscountType, DiscountValueType, RewardValueType, VoucherType
+from .....discount.models import OrderDiscount, Voucher
 from .....order import OrderStatus
+from .....order.actions import call_order_event
 from .....order.error_codes import OrderErrorCode
 from .....order.models import OrderEvent
 from .....payment.model_helpers import get_subtotal
+from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 DRAFT_ORDER_UPDATE_MUTATION = """
@@ -119,6 +127,14 @@ DRAFT_ORDER_UPDATE_MUTATION = """
                         unitDiscountType
                         unitDiscountValue
                         isGift
+                    }
+                    shippingPrice {
+                        gross {
+                            amount
+                        }
+                        net {
+                            amount
+                        }
                     }
                 }
             }
@@ -342,9 +358,7 @@ def test_draft_order_update_with_voucher_specific_product(
     assert order.voucher_code == voucher.code
     assert order.search_vector
 
-    # TODO (SHOPX-874): Order discount object shouldn't be created
-    assert order.discounts.count() == 1
-
+    assert order.discounts.count() == 0
     assert discounted_line.discounts.count() == 1
     order_line_discount = discounted_line.discounts.first()
     assert order_line_discount.voucher == voucher
@@ -436,9 +450,7 @@ def test_draft_order_update_with_voucher_apply_once_per_order(
     assert order.voucher_code == voucher.code
     assert order.search_vector
 
-    # TODO (SHOPX-874): Order discount object shouldn't be created
-    assert order.discounts.count() == 1
-
+    assert order.discounts.count() == 0
     assert discounted_line.discounts.count() == 1
     order_line_discount = discounted_line.discounts.first()
     assert order_line_discount.voucher == voucher
@@ -1840,3 +1852,387 @@ def test_draft_order_update_undiscounted_base_shipping_price_set(
         order.undiscounted_base_shipping_price_amount
         == order.base_shipping_price_amount
     )
+
+
+def test_draft_order_update_ensure_entire_order_voucher_discount_is_overridden(
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    voucher,
+    graphql_address_data,
+    channel_USD,
+):
+    # given
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    order = draft_order
+    assert voucher.type == VoucherType.ENTIRE_ORDER
+    assert voucher.discount_value_type == DiscountValueType.FIXED
+
+    # apply voucher to order
+    order.voucher = voucher
+    order.voucher_code = voucher.codes.first().code
+    order.save(update_fields=["voucher_id", "voucher_code"])
+
+    currency = order.currency
+    undiscounted_subtotal = zero_money(currency)
+    for line in order.lines.all():
+        undiscounted_subtotal += line.base_unit_price * line.quantity
+
+    voucher_listing = voucher.channel_listings.get(channel=channel_USD)
+    discount_value = voucher_listing.discount_value
+
+    order_discount = order.discounts.create(
+        voucher=voucher,
+        value=discount_value,
+        value_type=DiscountValueType.FIXED,
+        type=DiscountType.VOUCHER,
+    )
+
+    # create new voucher
+    new_discount_value = Decimal(50)
+    new_code = "new_code"
+    new_voucher = Voucher.objects.create(
+        type=VoucherType.ENTIRE_ORDER,
+        name="new voucher",
+        discount_value_type=DiscountValueType.PERCENTAGE,
+    )
+    new_voucher.codes.create(code=new_code)
+    new_voucher.channel_listings.create(
+        channel=channel_USD,
+        discount_value=new_discount_value,
+    )
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id, "input": {"voucherCode": new_code}}
+
+    # when apply new voucher to order
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    assert not data["errors"]
+    assert data["order"]["voucher"]["code"] == new_code
+    assert data["order"]["voucherCode"] == new_code
+    assert data["order"]["subtotal"]["gross"]["amount"] == Decimal(
+        undiscounted_subtotal.amount / 2
+    )
+
+    order.refresh_from_db()
+    assert order.voucher_code == new_code
+
+    order_discount.refresh_from_db()
+    assert order.discounts.count() == 1
+    assert order.discounts.first() == order_discount
+    assert order_discount.voucher == new_voucher
+    assert order_discount.voucher_code == new_code
+    assert order_discount.type == DiscountType.VOUCHER
+    assert order_discount.value_type == DiscountValueType.PERCENTAGE
+    assert order_discount.value == new_discount_value
+    assert order_discount.amount_value == Decimal(undiscounted_subtotal.amount / 2)
+
+
+def test_draft_order_update_remove_entire_order_voucher(
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    voucher,
+    graphql_address_data,
+    channel_USD,
+):
+    # given
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    order = draft_order
+    assert voucher.type == VoucherType.ENTIRE_ORDER
+    assert voucher.discount_value_type == DiscountValueType.FIXED
+
+    order.voucher = voucher
+    order.voucher_code = voucher.codes.first().code
+    order.save(update_fields=["voucher_id", "voucher_code"])
+
+    currency = order.currency
+    undiscounted_subtotal = zero_money(currency)
+    for line in order.lines.all():
+        undiscounted_subtotal += line.base_unit_price * line.quantity
+
+    voucher_listing = voucher.channel_listings.get(channel=channel_USD)
+    discount_value = voucher_listing.discount_value
+
+    order_discount = order.discounts.create(
+        voucher=voucher,
+        value=discount_value,
+        value_type=DiscountValueType.FIXED,
+        type=DiscountType.VOUCHER,
+    )
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id, "input": {"voucherCode": None}}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    assert not data["errors"]
+    assert not data["order"]["voucher"]
+    assert not data["order"]["voucherCode"]
+    assert data["order"]["subtotal"]["gross"]["amount"] == undiscounted_subtotal.amount
+
+    order.refresh_from_db()
+    assert order.voucher_code is None
+    assert order.voucher is None
+
+    with pytest.raises(OrderDiscount.DoesNotExist):
+        order_discount.refresh_from_db()
+
+
+def test_draft_order_update_replace_entire_order_voucher_with_shipping_voucher(
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    voucher_percentage,
+    voucher_shipping_type,
+    graphql_address_data,
+    channel_USD,
+):
+    # given
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    order = draft_order
+    voucher = voucher_percentage
+    assert voucher.type == VoucherType.ENTIRE_ORDER
+
+    order.voucher = voucher
+    entire_order_code = voucher.codes.first().code
+    order.voucher_code = entire_order_code
+    order.save(update_fields=["voucher_id", "voucher_code"])
+
+    currency = order.currency
+    undiscounted_subtotal = zero_money(currency)
+    for line in order.lines.all():
+        undiscounted_subtotal += line.base_unit_price * line.quantity
+
+    voucher_listing = voucher.channel_listings.get(channel=channel_USD)
+    discount_value = voucher_listing.discount_value
+
+    order_discount = order.discounts.create(
+        voucher=voucher,
+        value=discount_value,
+        value_type=DiscountValueType.FIXED,
+        type=DiscountType.VOUCHER,
+    )
+
+    undiscounted_shipping_price = order.base_shipping_price
+    shipping_code = voucher_shipping_type.codes.first().code
+    assert shipping_code != entire_order_code
+    shipping_discount = voucher_shipping_type.channel_listings.get(
+        channel=channel_USD
+    ).discount_value
+    expected_shipping_price = undiscounted_shipping_price.amount - shipping_discount
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id, "input": {"voucherCode": shipping_code}}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    assert not data["errors"]
+    assert data["order"]["voucher"]["code"] == shipping_code
+    assert data["order"]["voucherCode"] == shipping_code
+    assert data["order"]["subtotal"]["gross"]["amount"] == undiscounted_subtotal.amount
+    assert data["order"]["shippingPrice"]["gross"]["amount"] == expected_shipping_price
+    assert (
+        data["order"]["total"]["gross"]["amount"]
+        == undiscounted_subtotal.amount + expected_shipping_price
+    )
+
+    order.refresh_from_db()
+    assert order.voucher_code == shipping_code
+    assert order.voucher == voucher_shipping_type
+
+    order_discount.refresh_from_db()
+    discounts = order.discounts.all()
+    assert len(discounts) == 1
+    assert discounts[0] == order_discount
+    assert order_discount.voucher == voucher_shipping_type
+    assert order_discount.value_type == voucher_shipping_type.discount_value_type
+    assert order_discount.value == discount_value
+    assert order_discount.amount_value == shipping_discount
+    assert order_discount.reason == f"Voucher code: {shipping_code}"
+    assert voucher_shipping_type.name is None
+    assert order_discount.name == ""
+    assert order_discount.type == DiscountType.VOUCHER
+    assert order_discount.voucher_code == shipping_code
+
+
+@patch(
+    "saleor.graphql.order.mutations.draft_order_create.call_order_event",
+    wraps=call_order_event,
+)
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_draft_order_update_triggers_webhooks(
+    mocked_send_webhook_request_async,
+    mocked_send_webhook_request_sync,
+    wrapped_call_order_event,
+    setup_order_webhooks,
+    voucher,
+    app_api_client,
+    permission_manage_orders,
+    draft_order,
+    django_capture_on_commit_callbacks,
+    settings,
+):
+    # given
+    mocked_send_webhook_request_sync.return_value = []
+    (
+        tax_webhook,
+        shipping_filter_webhook,
+        draft_order_updated_webhook,
+    ) = setup_order_webhooks(WebhookEventAsyncType.DRAFT_ORDER_UPDATED)
+
+    order = draft_order
+    order.voucher = voucher
+    order.save(update_fields=["voucher"])
+
+    voucher_listing = voucher.channel_listings.get(channel=order.channel)
+    discount_amount = voucher_listing.discount_value
+    order.discounts.create(
+        voucher=voucher,
+        value=discount_amount,
+        type=DiscountType.VOUCHER,
+    )
+
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {
+        "id": order_id,
+        "input": {
+            "voucher": None,
+        },
+    }
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        response = app_api_client.post_graphql(
+            query, variables, permissions=(permission_manage_orders,)
+        )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    assert not data["errors"]
+    order.refresh_from_db()
+
+    # confirm that event delivery was generated for each webhook.
+    draft_order_updated_delivery = EventDelivery.objects.get(
+        webhook_id=draft_order_updated_webhook.id
+    )
+    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
+    filter_shipping_delivery = EventDelivery.objects.get(
+        webhook_id=shipping_filter_webhook.id,
+        event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
+    )
+
+    mocked_send_webhook_request_async.assert_called_once_with(
+        kwargs={"event_delivery_id": draft_order_updated_delivery.id},
+        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+        bind=True,
+        retry_backoff=10,
+        retry_kwargs={"max_retries": 5},
+    )
+    mocked_send_webhook_request_sync.assert_has_calls(
+        [
+            call(tax_delivery),
+            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
+        ]
+    )
+    assert wrapped_call_order_event.called
+
+
+@patch(
+    "saleor.graphql.order.mutations.draft_order_create.call_order_event",
+    wraps=call_order_event,
+)
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_draft_order_update_triggers_webhooks_when_tax_webhook_not_needed(
+    mocked_send_webhook_request_async,
+    mocked_send_webhook_request_sync,
+    wrapped_call_order_event,
+    setup_order_webhooks,
+    voucher,
+    app_api_client,
+    permission_manage_orders,
+    draft_order,
+    django_capture_on_commit_callbacks,
+    settings,
+):
+    # given
+    mocked_send_webhook_request_sync.return_value = []
+    (
+        tax_webhook,
+        shipping_filter_webhook,
+        draft_order_updated_webhook,
+    ) = setup_order_webhooks(WebhookEventAsyncType.DRAFT_ORDER_UPDATED)
+
+    order = draft_order
+
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {
+        "id": order_id,
+        "input": {
+            "customerNote": "New note",
+        },
+    }
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        response = app_api_client.post_graphql(
+            query, variables, permissions=(permission_manage_orders,)
+        )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    assert not data["errors"]
+    order.refresh_from_db()
+
+    # confirm that event delivery was generated for each webhook.
+    draft_order_updated_delivery = EventDelivery.objects.get(
+        webhook_id=draft_order_updated_webhook.id
+    )
+    tax_delivery = EventDelivery.objects.filter(webhook_id=tax_webhook.id)
+    filter_shipping_delivery = EventDelivery.objects.get(
+        webhook_id=shipping_filter_webhook.id,
+        event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
+    )
+
+    assert not tax_delivery
+    assert not order.should_refresh_prices
+    mocked_send_webhook_request_async.assert_called_once_with(
+        kwargs={"event_delivery_id": draft_order_updated_delivery.id},
+        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+        bind=True,
+        retry_backoff=10,
+        retry_kwargs={"max_retries": 5},
+    )
+    mocked_send_webhook_request_sync.assert_called_once_with(
+        filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT
+    )
+    assert wrapped_call_order_event.called
