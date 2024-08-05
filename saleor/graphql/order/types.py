@@ -2147,7 +2147,6 @@ class Order(ModelObjectType[models.Order]):
                 zero_money(root.currency),
             )
             # total_granted_refund cannot be bigger than order.total
-            # TODO: ensure if it should be gross or net
             total_granted_refund = min(total_granted_refund, root.total.gross)
 
             def _resolve_total_remaining_grant_for_payment(payment_transactions):
