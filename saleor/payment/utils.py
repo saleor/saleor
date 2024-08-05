@@ -24,7 +24,6 @@ from ..checkout.actions import (
 from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..checkout.models import Checkout
 from ..checkout.payment_utils import update_refundable_for_checkout
-from ..core.models import EventDelivery
 from ..core.prices import quantize_price
 from ..core.tracing import traced_atomic_transaction
 from ..graphql.core.utils import str_to_enum
@@ -33,8 +32,8 @@ from ..order.models import Order
 from ..order.search import update_order_search_vector
 from ..order.utils import update_order_authorize_data, updates_amounts_for_order
 from ..plugins.manager import PluginsManager, get_plugins_manager
-from ..webhook.event_types import WebhookEventSyncType
 from . import (
+    OPTIONAL_PSP_REFERENCE_EVENTS,
     ChargeStatus,
     GatewayError,
     PaymentError,
@@ -68,30 +67,6 @@ logger = logging.getLogger(__name__)
 
 GENERIC_TRANSACTION_ERROR = "Transaction was unsuccessful"
 ALLOWED_GATEWAY_KINDS = {choices[0] for choices in TransactionKind.CHOICES}
-
-PSP_REFERENCE_OPTIONAL_MAP = {
-    WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED: [
-        TransactionEventType.REFUND_FAILURE
-    ],
-    WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED: [
-        TransactionEventType.CHARGE_FAILURE
-    ],
-    WebhookEventSyncType.TRANSACTION_CANCELATION_REQUESTED: [
-        TransactionEventType.CANCEL_FAILURE
-    ],
-    WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION: [
-        TransactionEventType.CHARGE_ACTION_REQUIRED,
-        TransactionEventType.AUTHORIZATION_ACTION_REQUIRED,
-        TransactionEventType.CHARGE_FAILURE,
-        TransactionEventType.AUTHORIZATION_FAILURE,
-    ],
-    WebhookEventSyncType.TRANSACTION_PROCESS_SESSION: [
-        TransactionEventType.CHARGE_ACTION_REQUIRED,
-        TransactionEventType.AUTHORIZATION_ACTION_REQUIRED,
-        TransactionEventType.CHARGE_FAILURE,
-        TransactionEventType.AUTHORIZATION_FAILURE,
-    ],
-}
 
 
 def _recalculate_last_refund_success_for_transaction(
@@ -936,7 +911,6 @@ error_msg = str
 def parse_transaction_action_data(
     response_data: Any,
     request_type: str,
-    webhook_event_type: str,
     event_is_optional: bool = True,
 ) -> tuple[Optional["TransactionRequestResponse"], Optional[error_msg]]:
     """Parse response from transaction action webhook.
@@ -978,9 +952,7 @@ def parse_transaction_action_data(
         return None, msg
 
     request_event_type = parsed_event_data.get("type", request_type)
-    if not psp_reference and request_event_type not in PSP_REFERENCE_OPTIONAL_MAP.get(
-        webhook_event_type, []
-    ):
+    if not psp_reference and request_event_type not in OPTIONAL_PSP_REFERENCE_EVENTS:
         msg = f"Providing `pspReference` is required for {request_event_type.upper()}."
         logger.error(msg)
         return None, msg
@@ -1161,7 +1133,6 @@ def _create_event_from_response(
 def _get_parsed_transaction_action_data(
     transaction_webhook_response: Optional[dict[str, Any]],
     event_type: str,
-    webhook_event_type: str,
     event_is_optional: bool = True,
 ) -> tuple[Optional["TransactionRequestResponse"], Optional[error_msg]]:
     if transaction_webhook_response is None:
@@ -1170,7 +1141,6 @@ def _get_parsed_transaction_action_data(
     transaction_request_response, error_msg = parse_transaction_action_data(
         transaction_webhook_response,
         event_type,
-        webhook_event_type,
         event_is_optional=event_is_optional,
     )
     if not transaction_request_response:
@@ -1199,7 +1169,6 @@ def create_transaction_event_for_transaction_session(
     request_event: TransactionEvent,
     app: App,
     manager: "PluginsManager",
-    webhook_event_type: str,
     transaction_webhook_response: Optional[dict[str, Any]] = None,
 ):
     request_event_type = "session-request"
@@ -1207,7 +1176,6 @@ def create_transaction_event_for_transaction_session(
     transaction_request_response, error_msg = _get_parsed_transaction_action_data(
         transaction_webhook_response=transaction_webhook_response,
         event_type=request_event_type,
-        webhook_event_type=webhook_event_type,
         event_is_optional=False,
     )
     if not transaction_request_response or not transaction_request_response.event:
@@ -1314,14 +1282,12 @@ def create_transaction_event_for_transaction_session(
 
 def create_transaction_event_from_request_and_webhook_response(
     request_event: TransactionEvent,
-    delivery: EventDelivery,
+    app: App,
     transaction_webhook_response: Optional[dict[str, Any]] = None,
 ):
-    app = delivery.webhook.app
     transaction_request_response, error_msg = _get_parsed_transaction_action_data(
         transaction_webhook_response=transaction_webhook_response,
         event_type=request_event.type,
-        webhook_event_type=delivery.event_type,
     )
     transaction_item = request_event.transaction
     if not transaction_request_response:
@@ -1623,7 +1589,6 @@ def handle_transaction_initialize_session(
     created_event = create_transaction_event_for_transaction_session(
         request_event,
         app,
-        webhook_event_type=WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION,
         transaction_webhook_response=response_data,
         manager=manager,
     )
@@ -1660,7 +1625,6 @@ def handle_transaction_process_session(
     created_event = create_transaction_event_for_transaction_session(
         request_event,
         app,
-        webhook_event_type=WebhookEventSyncType.TRANSACTION_PROCESS_SESSION,
         transaction_webhook_response=response_data,
         manager=manager,
     )
