@@ -204,6 +204,9 @@ def trigger_webhooks_async(
     :param allow_replica: use a replica database.
     :param queue: defines the queue to which the event should be sent.
     """
+    if not isinstance(event_type, str):
+        event_type = event_type.event_type
+
     regular_webhooks, subscription_webhooks = group_webhooks_by_subscription(webhooks)
     deliveries = []
     if regular_webhooks:

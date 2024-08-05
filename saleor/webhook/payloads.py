@@ -1141,6 +1141,8 @@ def _generate_sample_order_payload(event_name):
 @allow_writer()
 @traced_payload_generator
 def generate_sample_payload(event_name: str) -> Optional[dict]:
+    from ..product.webhooks import ProductCreated
+
     checkout_events = [
         WebhookEventAsyncType.CHECKOUT_UPDATED,
         WebhookEventAsyncType.CHECKOUT_CREATED,
@@ -1158,7 +1160,7 @@ def generate_sample_payload(event_name: str) -> Optional[dict]:
     if event_name in user_events:
         user = generate_fake_user()
         payload = generate_customer_payload(user)
-    elif event_name == WebhookEventAsyncType.PRODUCT_CREATED:
+    elif event_name == ProductCreated.event_type:
         product = _get_sample_object(Product.objects.all())
         payload = generate_product_payload(product) if product else None
     elif event_name in checkout_events:

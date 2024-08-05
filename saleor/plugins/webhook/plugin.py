@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any, Callable, Final, Optional, Union
 
 import graphene
 from django.conf import settings
+from django.db.models import QuerySet
 
 from ...app.models import App
 from ...channel.models import Channel
@@ -51,6 +52,7 @@ from ...payment.utils import (
 )
 from ...settings import WEBHOOK_SYNC_TIMEOUT
 from ...thumbnail.models import Thumbnail
+from ...webhook.base import WebhookSpecType
 from ...webhook.const import WEBHOOK_CACHE_DEFAULT_TIMEOUT
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...webhook.payloads import (
@@ -174,7 +176,10 @@ class WebhookPlugin(BasePlugin):
         self.active = True
 
     @staticmethod
-    def _get_webhooks_for_event(event_type, webhooks):
+    def _get_webhooks_for_event(
+        event_type: Union[str, type[WebhookSpecType]],
+        webhooks: Optional["QuerySet[Webhook]"] = None,
+    ):
         if webhooks is not None:
             return webhooks
         return get_webhooks_for_event(event_type)
@@ -1642,14 +1647,16 @@ class WebhookPlugin(BasePlugin):
     ) -> Any:
         if not self.active:
             return previous_value
-        event_type = WebhookEventAsyncType.PRODUCT_CREATED
-        if webhooks := self._get_webhooks_for_event(event_type, webhooks):
+
+        from ...product.webhooks import ProductCreated
+
+        if webhooks := self._get_webhooks_for_event(ProductCreated, webhooks):
             product_data_generator = partial(
                 generate_product_payload, product, self.requestor
             )
             self.trigger_webhooks_async(
                 None,
-                event_type,
+                ProductCreated,
                 webhooks,
                 product,
                 self.requestor,

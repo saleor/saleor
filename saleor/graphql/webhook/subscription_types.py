@@ -886,14 +886,6 @@ class ProductBase(AbstractType):
         return product.category
 
 
-class ProductCreated(SubscriptionObjectType, ProductBase):
-    class Meta:
-        root_type = "Product"
-        enable_dry_run = True
-        interfaces = (Event,)
-        description = "Event sent when new product is created." + ADDED_IN_32
-
-
 class ProductUpdated(SubscriptionObjectType, ProductBase):
     class Meta:
         root_type = "Product"
@@ -3016,7 +3008,6 @@ ASYNC_WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.DRAFT_ORDER_CREATED: DraftOrderCreated,
     WebhookEventAsyncType.DRAFT_ORDER_UPDATED: DraftOrderUpdated,
     WebhookEventAsyncType.DRAFT_ORDER_DELETED: DraftOrderDeleted,
-    WebhookEventAsyncType.PRODUCT_CREATED: ProductCreated,
     WebhookEventAsyncType.PRODUCT_UPDATED: ProductUpdated,
     WebhookEventAsyncType.PRODUCT_DELETED: ProductDeleted,
     WebhookEventAsyncType.PRODUCT_METADATA_UPDATED: ProductMetadataUpdated,

@@ -34075,34 +34075,6 @@ type MenuItemDeleted implements Event @doc(category: "Menu") {
 }
 
 """
-Event sent when new product is created.
-
-Added in Saleor 3.2.
-"""
-type ProductCreated implements Event @doc(category: "Products") {
-  """Time of the event."""
-  issuedAt: DateTime
-
-  """Saleor version that triggered the event."""
-  version: String
-
-  """The user or application that triggered the event."""
-  issuingPrincipal: IssuingPrincipal
-
-  """The application receiving the webhook."""
-  recipient: App
-
-  """The product the event relates to."""
-  product(
-    """Slug of a channel for which the data should be returned."""
-    channel: String
-  ): Product
-
-  """The category of the product."""
-  category: Category
-}
-
-"""
 Event sent when product is updated.
 
 Added in Saleor 3.2.
@@ -36855,6 +36827,34 @@ type PaymentMethodProcessTokenizationSession implements Event @doc(category: "Pa
   The ID returned by app from `PAYMENT_METHOD_INITIALIZE_TOKENIZATION_SESSION` webhook.
   """
   id: String!
+}
+
+"""
+Event sent when new product is created.
+
+Added in Saleor 3.2.
+"""
+type ProductCreated implements Event @doc(category: "Products") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The product the event relates to."""
+  product(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): Product
+
+  """The category of the product."""
+  category: Category
 }
 
 """_Any value scalar as defined by Federation spec."""

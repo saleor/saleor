@@ -1,12 +1,13 @@
 from collections import defaultdict
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Union
 
 from django.conf import settings
 from django.db.models import Q
 from django.db.models.expressions import Exists, OuterRef
 
 from ..app.models import App
+from ..webhook.base import WebhookSpecType
 from .event_types import WebhookEventAsyncType, WebhookEventSyncType
 from .models import Webhook, WebhookEvent
 
@@ -57,12 +58,15 @@ def get_filter_for_single_webhook_event(
 
 
 def get_webhooks_for_event(
-    event_type: str,
+    event_type: Union[str, type[WebhookSpecType]],
     webhooks: Optional["QuerySet[Webhook]"] = None,
     apps_ids: Optional["list[int]"] = None,
     apps_identifier: Optional[list[str]] = None,
 ) -> "QuerySet[Webhook]":
     """Get active webhooks from the database for an event."""
+    if not isinstance(event_type, str):
+        # Once all events are moved from WebhookPlugin to core, event_type should be of type WebhookSpec only
+        event_type = event_type.event_type
 
     if webhooks is None:
         # For this QS replica usage is applied later, as this QS could be also passed
