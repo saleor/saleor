@@ -148,3 +148,19 @@ def _set_undiscounted_base_shipping_price(orders):
         orders.update(
             undiscounted_base_shipping_price_amount=F("base_shipping_price_amount")
         )
+
+
+@app.task
+def set_udniscounted_base_shipping_price_on_draft_orders_task():
+    qs = Order.objects.filter(
+        undiscounted_base_shipping_price_amount=0,
+        base_shipping_price_amount__gt=0,
+        status="draft",
+    )
+    order_ids = list(
+        qs.values_list("pk", flat=True)[:ORDER_SET_SHIPPING_PRICE_BATCH_SIZE]
+    )
+    if order_ids:
+        orders = Order.objects.filter(id__in=order_ids)
+        _set_undiscounted_base_shipping_price(orders)
+        set_udniscounted_base_shipping_price_on_draft_orders_task.delay()
