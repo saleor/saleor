@@ -9,6 +9,7 @@ from ....checkout.fetch import get_variant_channel_listing
 from ....core.taxes import zero_money, zero_taxed_money
 from ....discount.interface import fetch_variant_rules_info
 from ....order import ORDER_EDITABLE_STATUS, OrderStatus, events
+from ....order.actions import call_order_event
 from ....order.error_codes import OrderErrorCode
 from ....order.utils import invalidate_order_prices
 from ....payment import PaymentError
@@ -17,6 +18,7 @@ from ....plugins.manager import PluginsManager
 from ....product import models as product_models
 from ....shipping.interface import ShippingMethodData
 from ....shipping.models import ShippingMethodChannelListing
+from ....webhook.event_types import WebhookEventAsyncType
 from ..utils import get_shipping_method_availability_error
 
 SHIPPING_METHOD_UPDATE_FIELDS = [
@@ -143,11 +145,18 @@ def clean_order_update_shipping(
         raise ValidationError({"shipping_method": error})
 
 
-def get_webhook_handler_by_order_status(status, manager):
-    if status == OrderStatus.DRAFT:
-        return manager.draft_order_updated
+def call_event_by_order_status(order, manager):
+    if order.status == OrderStatus.DRAFT:
+        call_order_event(
+            manager,
+            manager.draft_order_updated,
+            WebhookEventAsyncType.DRAFT_ORDER_UPDATED,
+            order,
+        )
     else:
-        return manager.order_updated
+        call_order_event(
+            manager, manager.order_updated, WebhookEventAsyncType.ORDER_UPDATED, order
+        )
 
 
 def try_payment_action(order, user, app, payment, func, *args, **kwargs):

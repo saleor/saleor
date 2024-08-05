@@ -5,8 +5,10 @@ from ....core.tracing import traced_atomic_transaction
 from ....discount.models import VoucherCode
 from ....discount.utils import release_voucher_code_usage
 from ....order import OrderStatus, models
+from ....order.actions import call_order_event
 from ....order.error_codes import OrderErrorCode
 from ....permission.enums import OrderPermissions
+from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_310
 from ...core.mutations import (
@@ -54,7 +56,12 @@ class DraftOrderDelete(
         manager = get_plugin_manager_promise(info.context).get()
         with traced_atomic_transaction():
             response = super().perform_mutation(_root, info, **data)
-            cls.call_event(manager.draft_order_deleted, order)
+            call_order_event(
+                manager,
+                manager.draft_order_deleted,
+                WebhookEventAsyncType.DRAFT_ORDER_DELETED,
+                order,
+            )
         return response
 
     @classmethod

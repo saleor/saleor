@@ -936,6 +936,7 @@ class WebhookEventSyncType:
         CHECKOUT_FILTER_SHIPPING_METHODS,
         CHECKOUT_CALCULATE_TAXES,
     ]
+    ORDER_EVENTS = [ORDER_CALCULATE_TAXES, ORDER_FILTER_SHIPPING_METHODS]
 
     # Events that are used only in the mutation logic can be excluded from the
     # circular query check.
