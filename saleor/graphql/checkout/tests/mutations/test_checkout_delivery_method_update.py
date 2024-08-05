@@ -1017,7 +1017,7 @@ def test_checkout_delivery_method_update_from_cc_to_all_warehouses_disabled_cc(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
-def test_checkout_delivery_method_update_triggers_sync_webhooks(
+def test_checkout_delivery_method_update_triggers_webhooks(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     wrapped_call_checkout_event_for_checkout,
@@ -1093,7 +1093,7 @@ def test_checkout_delivery_method_update_triggers_sync_webhooks(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
-def test_checkout_delivery_method_update_cc_triggers_sync_webhooks(
+def test_checkout_delivery_method_update_cc_triggers_webhooks(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     wrapped_call_checkout_event_for_checkout,
@@ -1180,7 +1180,7 @@ def test_checkout_delivery_method_update_cc_triggers_sync_webhooks(
     "saleor.graphql.checkout.mutations.checkout_delivery_method_update."
     "clean_delivery_method"
 )
-def test_checkout_delivery_method_update_external_shipping_triggers_sync_webhooks(
+def test_checkout_delivery_method_update_external_shipping_triggers_webhooks(
     mock_clean_delivery,
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,

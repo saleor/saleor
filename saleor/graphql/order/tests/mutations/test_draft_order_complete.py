@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from decimal import Decimal
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 import graphene
 import pytz
@@ -17,6 +17,10 @@ from .....discount import DiscountValueType
 from .....discount.models import VoucherCustomer
 from .....order import OrderOrigin, OrderStatus
 from .....order import events as order_events
+from .....order.actions import (
+    call_order_event,
+    order_created,
+)
 from .....order.calculations import fetch_order_prices_if_expired
 from .....order.error_codes import OrderErrorCode
 from .....order.interface import OrderTaxedPricesData
@@ -32,7 +36,7 @@ from .....plugins.webhook.conftest import (  # noqa: F401
 from .....product.models import ProductVariant
 from .....warehouse.models import Allocation, PreorderAllocation, Stock
 from .....warehouse.tests.utils import get_available_quantity_for_stock
-from .....webhook.event_types import WebhookEventSyncType
+from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....payment.types import PaymentChargeStatusEnum
 from ....tests.utils import assert_no_permission, get_graphql_content
 
@@ -75,9 +79,14 @@ DRAFT_ORDER_COMPLETE_MUTATION = """
 """
 
 
+@patch(
+    "saleor.graphql.order.mutations.draft_order_complete.order_created",
+    wraps=order_created,
+)
 @patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
 def test_draft_order_complete(
     product_variant_out_of_stock_webhook_mock,
+    order_created_mock,
     staff_api_client,
     permission_group_manage_orders,
     staff_user,
@@ -128,6 +137,7 @@ def test_draft_order_complete(
     product_variant_out_of_stock_webhook_mock.assert_called_once_with(
         Stock.objects.last()
     )
+    assert order_created_mock.called
 
 
 def test_draft_order_complete_no_automatically_confirm_all_new_orders(
@@ -1490,3 +1500,100 @@ def test_draft_order_complete_with_invalid_address(
     assert data["origin"] == OrderOrigin.DRAFT.upper()
     assert order.shipping_address.postal_code == wrong_postal_code
     assert order.billing_address.postal_code == wrong_postal_code
+
+
+@patch(
+    "saleor.order.actions.call_order_event",
+    wraps=call_order_event,
+)
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_draft_order_complete_triggers_webhooks(
+    mocked_send_webhook_request_async,
+    mocked_send_webhook_request_sync,
+    wrapped_call_order_event,
+    setup_order_webhooks,
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    settings,
+    django_capture_on_commit_callbacks,
+):
+    # given
+    mocked_send_webhook_request_sync.return_value = []
+    (
+        tax_webhook,
+        shipping_filter_webhook,
+        additional_order_webhook,
+    ) = setup_order_webhooks(
+        [
+            WebhookEventAsyncType.ORDER_CREATED,
+            WebhookEventAsyncType.ORDER_CONFIRMED,
+            WebhookEventAsyncType.ORDER_PAID,
+            WebhookEventAsyncType.ORDER_UPDATED,
+            WebhookEventAsyncType.ORDER_FULLY_PAID,
+        ]
+    )
+
+    order = draft_order
+    order.should_refresh_prices = True
+    order.status = OrderStatus.DRAFT
+    order.save()
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(
+            DRAFT_ORDER_COMPLETE_MUTATION, variables
+        )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["draftOrderComplete"]["errors"]
+
+    # confirm that event delivery was generated for each webhook.
+    order_confirmed_delivery = EventDelivery.objects.get(
+        webhook_id=additional_order_webhook.id,
+        event_type=WebhookEventAsyncType.ORDER_CONFIRMED,
+    )
+    order_updated_delivery = EventDelivery.objects.get(
+        webhook_id=additional_order_webhook.id,
+        event_type=WebhookEventAsyncType.ORDER_CREATED,
+    )
+    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
+    filter_shipping_delivery = EventDelivery.objects.get(
+        webhook_id=shipping_filter_webhook.id,
+        event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
+    )
+
+    order_deliveries = [
+        order_confirmed_delivery,
+        order_updated_delivery,
+    ]
+
+    mocked_send_webhook_request_async.assert_has_calls(
+        [
+            call(
+                kwargs={"event_delivery_id": delivery.id},
+                queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+                bind=True,
+                retry_backoff=10,
+                retry_kwargs={"max_retries": 5},
+            )
+            for delivery in order_deliveries
+        ],
+        any_order=True,
+    )
+    mocked_send_webhook_request_sync.assert_has_calls(
+        [
+            call(tax_delivery),
+            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
+        ]
+    )
+    assert wrapped_call_order_event.called

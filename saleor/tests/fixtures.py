@@ -8,7 +8,7 @@ from datetime import timedelta
 from decimal import Decimal
 from functools import partial
 from io import BytesIO
-from typing import Callable, Optional
+from typing import Callable, Optional, Union
 from unittest.mock import MagicMock
 
 import graphene
@@ -9550,6 +9550,191 @@ def setup_checkout_webhooks(
         return (
             tax_webhook,
             shipping_webhook,
+            shipping_filter_webhook,
+            additional_webhook,
+        )
+
+    return _setup
+
+
+@pytest.fixture
+def setup_order_webhooks(
+    permission_handle_taxes,
+    permission_manage_shipping,
+    permission_manage_orders,
+):
+    subscription_async_webhooks = """
+    fragment OrderFragment on Order {
+      shippingPrice {
+        gross {
+          amount
+        }
+      }
+      total {
+        gross {
+          amount
+        }
+      }
+    }
+
+    subscription {
+      event {
+        ... on OrderCreated {
+          order {
+            ...OrderFragment
+          }
+        }
+        ... on OrderUpdated {
+          order {
+            ...OrderFragment
+          }
+        }
+        ... on OrderPaid {
+          order {
+            ...OrderFragment
+          }
+        }
+        ... on OrderExpired {
+          order {
+            ...OrderFragment
+          }
+        }
+        ... on OrderRefunded {
+          order {
+            ...OrderFragment
+          }
+        }
+        ... on OrderConfirmed {
+          order {
+            ...OrderFragment
+          }
+        }
+        ... on OrderFullyPaid {
+          order {
+            ...OrderFragment
+          }
+        }
+        ... on OrderFulfilled {
+          order {
+            ...OrderFragment
+          }
+        }
+        ... on OrderCancelled {
+          order {
+            ...OrderFragment
+          }
+        }
+        ... on OrderBulkCreated {
+          orders {
+            ...OrderFragment
+          }
+        }
+        ... on OrderFullyRefunded {
+          order {
+            ...OrderFragment
+          }
+        }
+        ... on OrderMetadataUpdated {
+          order {
+            ...OrderFragment
+          }
+        }
+        ... on DraftOrderCreated {
+          order {
+            ...OrderFragment
+          }
+        }
+        ... on DraftOrderUpdated {
+          order {
+            ...OrderFragment
+          }
+        }
+        ... on DraftOrderDeleted {
+          order {
+            ...OrderFragment
+          }
+        }
+      }
+    }
+    """
+
+    def _setup(additional_order_event: Union[str, list[str]]):
+        tax_app, shipping_app, additional_app = App.objects.bulk_create(
+            [
+                App(
+                    name="Sample tax app",
+                    is_active=True,
+                    identifier="saleor.app.tax",
+                ),
+                App(
+                    name="Sample shipping app",
+                    is_active=True,
+                    identifier="saleor.app.shipping",
+                ),
+                App(
+                    name="Sample async webhook app",
+                    is_active=True,
+                    identifier="saleor.app.additional",
+                ),
+            ]
+        )
+        tax_app.permissions.add(permission_handle_taxes)
+        shipping_app.permissions.set(
+            [permission_manage_shipping, permission_manage_orders]
+        )
+        additional_app.permissions.add(permission_manage_orders)
+        (
+            tax_webhook,
+            shipping_filter_webhook,
+            additional_webhook,
+        ) = Webhook.objects.bulk_create(
+            [
+                Webhook(
+                    name="Tax webhook",
+                    app=tax_app,
+                    target_url="http://127.0.0.1/test",
+                    subscription_query="subscription{ event{ ...on CalculateTaxes{ __typename } } }",
+                ),
+                Webhook(
+                    name="Shipping webhook",
+                    app=shipping_app,
+                    target_url="http://127.0.0.1/test",
+                    subscription_query="subscription { event { ... on OrderFilterShippingMethods { __typename } } }",
+                ),
+                Webhook(
+                    name="Checkout additional webhook",
+                    app=additional_app,
+                    target_url="http://127.0.0.1/test",
+                    subscription_query=subscription_async_webhooks,
+                ),
+            ]
+        )
+        if isinstance(additional_order_event, str):
+            additional_order_event = [
+                additional_order_event,
+            ]
+        additional_events = [
+            WebhookEvent(
+                event_type=event,
+                webhook_id=additional_webhook.id,
+            )
+            for event in additional_order_event
+        ]
+        WebhookEvent.objects.bulk_create(
+            [
+                WebhookEvent(
+                    event_type=WebhookEventSyncType.ORDER_CALCULATE_TAXES,
+                    webhook_id=tax_webhook.id,
+                ),
+                WebhookEvent(
+                    event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
+                    webhook_id=shipping_filter_webhook.id,
+                ),
+            ]
+            + additional_events
+        )
+        return (
+            tax_webhook,
             shipping_filter_webhook,
             additional_webhook,
         )
