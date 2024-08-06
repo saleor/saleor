@@ -149,14 +149,11 @@ def call_event_by_order_status(order, manager):
     if order.status == OrderStatus.DRAFT:
         call_order_event(
             manager,
-            manager.draft_order_updated,
             WebhookEventAsyncType.DRAFT_ORDER_UPDATED,
             order,
         )
     else:
-        call_order_event(
-            manager, manager.order_updated, WebhookEventAsyncType.ORDER_UPDATED, order
-        )
+        call_order_event(manager, WebhookEventAsyncType.ORDER_UPDATED, order)
 
 
 def try_payment_action(order, user, app, payment, func, *args, **kwargs):
