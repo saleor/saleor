@@ -195,8 +195,7 @@ class ProductCreate(ModelMutation):
             except ValidationError as exc:
                 raise ValidationError({"attributes": exc})
 
-        manager = get_plugin_manager_promise(info.context).get()
-        clean_tax_code(cleaned_input, manager)
+        clean_tax_code(cleaned_input)
 
         clean_seo_fields(cleaned_input)
         return cleaned_input
