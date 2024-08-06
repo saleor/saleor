@@ -36110,6 +36110,12 @@ type TaxableObjectDiscount @doc(category: "Taxes") {
 
   """The amount of the discount."""
   amount: Money!
+
+  """Determines if the discount should be distributed over subtotal price."""
+  distributeOverSubtotal: Boolean!
+
+  """Determines if the discount should be distributed over shipping price."""
+  distributeOverShipping: Boolean!
 }
 
 type TaxableObjectLine @doc(category: "Taxes") {

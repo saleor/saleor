@@ -91,6 +91,11 @@ def is_shipping_voucher(voucher: Optional[Voucher]):
     return bool(voucher and voucher.type == VoucherType.SHIPPING)
 
 
+def should_discount_shipping(discount: OrderDiscount) -> bool:
+    """Check if the discount should be distributed over shipping price."""
+    return discount.type != DiscountType.ORDER_PROMOTION
+
+
 def increase_voucher_usage(
     voucher: "Voucher",
     code: "VoucherCode",
