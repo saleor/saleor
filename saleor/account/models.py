@@ -190,7 +190,6 @@ class User(
     )
     search_document = models.TextField(blank=True, default="")
     uuid = models.UUIDField(default=uuid4, unique=True)
-    full_name = models.CharField(max_length=512, blank=True, default="")
 
     USERNAME_FIELD = "email"
 
@@ -232,12 +231,6 @@ class User(
             GinIndex(
                 fields=["last_name"],
                 name="last_name_gin",
-                opclasses=["gin_trgm_ops"],
-            ),
-            # index for concat(first_name, " ", last_name)
-            GinIndex(
-                name="user_full_name_gin",
-                fields=["full_name"],
                 opclasses=["gin_trgm_ops"],
             ),
         ]
@@ -332,10 +325,6 @@ class User(
             or not site_settings.enable_account_confirmation_by_email
             or self.is_confirmed
         )
-
-    def save(self, *args, **kwargs):
-        self.full_name = f"{self.first_name} {self.last_name}"
-        super().save(*args, **kwargs)
 
 
 class CustomerNote(models.Model):

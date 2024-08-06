@@ -4,10 +4,11 @@ import django_filters
 import graphene
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
-from django.db.models import Exists, OuterRef, Q
+from django.db.models import Exists, OuterRef, Q, Value
 from django.utils import timezone
 from graphql.error import GraphQLError
 
+from ...core.postgres import FlatConcat
 from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCardEvent
 from ...order.models import Order, OrderLine
@@ -86,9 +87,15 @@ def filter_customer(qs, _, value):
     except ValidationError:
         try:
             first, last = value.split(" ", 1)
-            qs = qs.filter(
-                Q(user__full_name__iexact=value)
-                | Q(user__full_name__iexact=f"{last} {first}")
+            qs = qs.alias(
+                user_full_name=FlatConcat(
+                    "user__first_name",
+                    Value(" "),
+                    "user__last_name",
+                )
+            ).filter(
+                Q(user_full_name__iexact=value)
+                | Q(user_full_name__iexact=f"{last} {first}")
             )
         except ValueError:
             qs = qs.filter(
