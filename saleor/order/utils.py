@@ -16,14 +16,8 @@ from ..core.utils.country import get_active_country
 from ..core.utils.translations import get_translation
 from ..core.weight import zero_weight
 from ..discount import DiscountType, DiscountValueType
-from ..discount.models import (
-    OrderDiscount,
-    OrderLineDiscount,
-    VoucherType,
-)
-from ..discount.utils.manual_discount import (
-    apply_discount_to_value,
-)
+from ..discount.models import OrderDiscount, OrderLineDiscount, VoucherType
+from ..discount.utils.manual_discount import apply_discount_to_value
 from ..discount.utils.promotion import (
     get_discount_name,
     get_discount_translated_name,
@@ -698,8 +692,11 @@ def get_valid_shipping_methods_for_order(
     if not valid_methods:
         return []
 
-    excluded_methods = manager.excluded_shipping_methods_for_order(order, valid_methods)
-    initialize_shipping_method_active_status(valid_methods, excluded_methods)
+    if order.status in ORDER_EDITABLE_STATUS:
+        excluded_methods = manager.excluded_shipping_methods_for_order(
+            order, valid_methods
+        )
+        initialize_shipping_method_active_status(valid_methods, excluded_methods)
 
     return valid_methods
 
