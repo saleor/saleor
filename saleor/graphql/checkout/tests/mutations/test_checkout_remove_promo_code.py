@@ -8,7 +8,7 @@ from django.utils import timezone
 from prices import Money
 
 from .....checkout import base_calculations
-from .....checkout.actions import call_checkout_event_for_checkout_info
+from .....checkout.actions import call_checkout_info_event
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....core.models import EventDelivery
@@ -708,8 +708,8 @@ def test_with_active_problems_flow(
 
 
 @patch(
-    "saleor.graphql.checkout.mutations.checkout_remove_promo_code.call_checkout_event_for_checkout_info",
-    wraps=call_checkout_event_for_checkout_info,
+    "saleor.graphql.checkout.mutations.checkout_remove_promo_code.call_checkout_info_event",
+    wraps=call_checkout_info_event,
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
@@ -719,7 +719,7 @@ def test_with_active_problems_flow(
 def test_checkout_remove_triggers_webhooks(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
-    wrapped_call_checkout_event_for_checkout,
+    wrapped_call_checkout_info_event,
     setup_checkout_webhooks,
     settings,
     api_client,
@@ -773,4 +773,4 @@ def test_checkout_remove_triggers_webhooks(
             call(tax_delivery),
         ]
     )
-    assert wrapped_call_checkout_event_for_checkout.called
+    assert wrapped_call_checkout_info_event.called

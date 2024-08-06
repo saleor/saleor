@@ -51,7 +51,6 @@ def send_order_updated(order_ids):
     for order in Order.objects.filter(id__in=order_ids):
         call_order_event(
             manager,
-            manager.order_updated,
             WebhookEventAsyncType.ORDER_UPDATED,
             order,
             webhook_event_map=webhook_event_map,
@@ -106,14 +105,12 @@ def _call_expired_order_events(order_ids, manager):
     for order in orders:
         call_order_event(
             manager,
-            manager.order_expired,
             WebhookEventAsyncType.ORDER_EXPIRED,
             order,
             webhook_event_map=webhook_event_map,
         )
         call_order_event(
             manager,
-            manager.order_updated,
             WebhookEventAsyncType.ORDER_UPDATED,
             order,
             webhook_event_map=webhook_event_map,
