@@ -1,7 +1,6 @@
 from functools import partial
 
 import graphene
-from django.conf import settings
 from django.core.exceptions import ValidationError
 
 from .....attribute import models as attribute_models
@@ -222,24 +221,16 @@ class ProductCreate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, _cleaned_input):
+        from .....webhook.payloads import generate_product_payload
+
         product = models.Product.objects.get(pk=instance.pk)
-
-        if settings.USE_LEGACY_WEBHOOK_PLUGIN:
-            manager = get_plugin_manager_promise(info.context).get()
-            cls.call_event(manager.product_created, product)
-        else:
-            from .....webhook.payloads import generate_product_payload
-
-            requestor = get_user_or_app_from_context(info.context)
-            cls.call_event(
-                ProductCreated.call_webhook,
-                product,
-                requestor,
-                legacy_data_generator=partial(
-                    generate_product_payload, product, requestor
-                ),
-                allow_replica=getattr(info.context, "allow_replica", True),
-            )
+        requestor = get_user_or_app_from_context(info.context)
+        ProductCreated.trigger_webhook_async(
+            product,
+            requestor,
+            allow_replica=getattr(info.context, "allow_replica", True),
+            legacy_data_generator=partial(generate_product_payload, product, requestor),
+        )
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
