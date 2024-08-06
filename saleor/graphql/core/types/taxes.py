@@ -402,25 +402,22 @@ class TaxableObject(BaseObjectType):
                 if not checkout.discount:
                     return []
 
-                if is_order_level_voucher(checkout_info.voucher):
+                has_order_promotion = has_checkout_order_promotion(checkout_info)
+                has_order_level_voucher = is_order_level_voucher(checkout_info.voucher)
+                # order promotion (currently we handle SUBTOTAL_PROMOTION only) applies
+                # to subtotal only
+                distribute_over_shipping = not has_order_promotion
+
+                if has_order_level_voucher or has_order_promotion:
                     return [
                         {
                             "name": discount_name,
                             "amount": checkout.discount,
                             "distribute_over_subtotal": True,
-                            "distribute_over_shipping": True,
+                            "distribute_over_shipping": distribute_over_shipping,
                         }
                     ]
 
-                if has_checkout_order_promotion(checkout_info):
-                    return [
-                        {
-                            "name": discount_name,
-                            "amount": checkout.discount,
-                            "distribute_over_subtotal": True,
-                            "distribute_over_shipping": False,
-                        }
-                    ]
                 return []
 
             return (
