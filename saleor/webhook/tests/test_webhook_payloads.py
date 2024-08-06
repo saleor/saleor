@@ -1810,7 +1810,14 @@ def test_generate_checkout_payload_for_tax_calculation_entire_order_voucher(
             "slug": checkout.channel.slug,
         },
         "currency": currency,
-        "discounts": [{"amount": str(discount_amount), "name": voucher.name}],
+        "discounts": [
+            {
+                "amount": str(discount_amount),
+                "name": voucher.name,
+                "distribute_over_subtotal": True,
+                "distribute_over_shipping": True,
+            }
+        ],
         "included_taxes_in_prices": prices_entered_with_tax,
         "lines": mocked_serialized_checkout_lines,
         "metadata": {"meta_key": "meta_value"},
@@ -2015,7 +2022,15 @@ def test_generate_checkout_payload_for_tax_calculation_order_discount(
             "slug": checkout.channel.slug,
         },
         "currency": currency,
-        "discounts": [{"amount": str(discount_amount), "name": rule.name}],
+        "discounts": [
+            {
+                "amount": str(discount_amount),
+                "name": rule.name,
+                # subtotal discount is not distributed to shipping price
+                "distribute_over_shipping": False,
+                "distribute_over_subtotal": True,
+            }
+        ],
         "included_taxes_in_prices": prices_entered_with_tax,
         "lines": mocked_serialized_checkout_lines,
         "metadata": {"meta_key": "meta_value"},
