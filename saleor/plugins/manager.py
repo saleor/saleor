@@ -652,13 +652,18 @@ class PluginsManager(PaymentInterface):
         )
 
     def get_taxes_for_checkout(
-        self, checkout_info, lines, app_identifier
+        self,
+        checkout_info,
+        lines,
+        app_identifier,
+        pregenerated_subscription_payloads: Optional[dict] = {},
     ) -> Optional[TaxData]:
         return self.__run_plugin_method_until_first_success(
             "get_taxes_for_checkout",
             checkout_info,
             lines,
             app_identifier,
+            pregenerated_subscription_payloads=pregenerated_subscription_payloads,
             channel_slug=checkout_info.channel.slug,
         )
 
@@ -2287,13 +2292,14 @@ class PluginsManager(PaymentInterface):
         *args,
         channel_slug: Optional[str],
         plugins: Optional[list["BasePlugin"]] = None,
+        **kwargs,
     ):
         if plugins is None:
             plugins = self.get_plugins(channel_slug=channel_slug, active_only=True)
         if plugins:
             for plugin in plugins:
                 result = self.__run_method_on_single_plugin(
-                    plugin, method_name, None, *args
+                    plugin, method_name, None, *args, **kwargs
                 )
                 if result is not None:
                     return result

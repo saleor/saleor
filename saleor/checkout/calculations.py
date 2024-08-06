@@ -41,6 +41,7 @@ def checkout_shipping_price(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
+    pregenerated_subscription_payloads: Optional[dict] = {},
 ) -> "TaxedMoney":
     """Return checkout shipping price.
 
@@ -52,6 +53,7 @@ def checkout_shipping_price(
         manager=manager,
         lines=lines,
         address=address,
+        pregenerated_subscription_payloads=pregenerated_subscription_payloads,
     )
     return quantize_price(checkout_info.checkout.shipping_price, currency)
 
@@ -82,6 +84,7 @@ def checkout_subtotal(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
+    pregenerated_subscription_payloads: Optional[dict] = {},
 ) -> "TaxedMoney":
     """Return the total cost of all the checkout lines, taxes included.
 
@@ -93,6 +96,7 @@ def checkout_subtotal(
         manager=manager,
         lines=lines,
         address=address,
+        pregenerated_subscription_payloads=pregenerated_subscription_payloads,
     )
     return quantize_price(checkout_info.checkout.subtotal, currency)
 
@@ -102,6 +106,7 @@ def calculate_checkout_total_with_gift_cards(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
+    pregenerated_subscription_payloads: Optional[dict] = {},
 ) -> "TaxedMoney":
     total = (
         checkout_total(
@@ -109,10 +114,10 @@ def calculate_checkout_total_with_gift_cards(
             checkout_info=checkout_info,
             lines=lines,
             address=address,
+            pregenerated_subscription_payloads=pregenerated_subscription_payloads,
         )
         - checkout_info.checkout.get_total_gift_cards_balance()
     )
-
     return max(total, zero_taxed_money(total.currency))
 
 
@@ -122,6 +127,7 @@ def checkout_total(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
+    pregenerated_subscription_payloads: Optional[dict] = {},
 ) -> "TaxedMoney":
     """Return the total cost of the checkout.
 
@@ -136,6 +142,7 @@ def checkout_total(
         manager=manager,
         lines=lines,
         address=address,
+        pregenerated_subscription_payloads=pregenerated_subscription_payloads,
     )
     return quantize_price(checkout_info.checkout.total, currency)
 
@@ -146,6 +153,7 @@ def checkout_line_total(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
+    pregenerated_subscription_payloads: Optional[dict] = {},
 ) -> TaxedMoney:
     """Return the total price of provided line, taxes included.
 
@@ -158,6 +166,7 @@ def checkout_line_total(
         manager=manager,
         lines=lines,
         address=address,
+        pregenerated_subscription_payloads=pregenerated_subscription_payloads,
     )
     checkout_line = find_checkout_line_info(lines, checkout_line_info.line.id).line
     return quantize_price(checkout_line.total_price, currency)
@@ -169,6 +178,7 @@ def checkout_line_unit_price(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
+    pregenerated_subscription_payloads: Optional[dict] = {},
 ) -> TaxedMoney:
     """Return the unit price of provided line, taxes included.
 
@@ -181,6 +191,7 @@ def checkout_line_unit_price(
         manager=manager,
         lines=lines,
         address=address,
+        pregenerated_subscription_payloads=pregenerated_subscription_payloads,
     )
     checkout_line = find_checkout_line_info(lines, checkout_line_info.line.id).line
     unit_price = checkout_line.total_price / checkout_line.quantity
@@ -215,6 +226,7 @@ def _fetch_checkout_prices_if_expired(
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"] = None,
     force_update: bool = False,
+    pregenerated_subscription_payloads: Optional[dict] = {},
 ) -> tuple["CheckoutInfo", Iterable["CheckoutLineInfo"]]:
     """Fetch checkout prices with taxes.
 
@@ -255,6 +267,7 @@ def _fetch_checkout_prices_if_expired(
                 lines,
                 prices_entered_with_tax,
                 address,
+                pregenerated_subscription_payloads=pregenerated_subscription_payloads,
             )
         except TaxEmptyData as e:
             _set_checkout_base_prices(checkout, checkout_info, lines)
@@ -280,6 +293,7 @@ def _fetch_checkout_prices_if_expired(
                     lines,
                     prices_entered_with_tax,
                     address,
+                    pregenerated_subscription_payloads=pregenerated_subscription_payloads,
                 )
             except TaxEmptyData as e:
                 _set_checkout_base_prices(checkout, checkout_info, lines)
@@ -332,6 +346,7 @@ def _calculate_and_add_tax(
     lines: Iterable["CheckoutLineInfo"],
     prices_entered_with_tax: bool,
     address: Optional["Address"] = None,
+    pregenerated_subscription_payloads: Optional[dict] = {},
 ):
     from .utils import log_address_if_validation_skipped_for_checkout
 
@@ -346,7 +361,10 @@ def _calculate_and_add_tax(
             )
             # Get the taxes calculated with apps and apply to checkout.
             tax_data = manager.get_taxes_for_checkout(
-                checkout_info, lines, tax_app_identifier
+                checkout_info,
+                lines,
+                tax_app_identifier,
+                pregenerated_subscription_payloads,
             )
             if not tax_data:
                 log_address_if_validation_skipped_for_checkout(checkout_info, logger)
@@ -359,6 +377,7 @@ def _calculate_and_add_tax(
                 checkout_info,
                 lines,
                 address,
+                pregenerated_subscription_payloads,
             )
     else:
         # Get taxes calculated with flat rates and apply to checkout.
@@ -374,6 +393,7 @@ def _call_plugin_or_tax_app(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"] = None,
+    pregenerated_subscription_payloads: Optional[dict] = {},
 ):
     from .utils import log_address_if_validation_skipped_for_checkout
 
@@ -398,7 +418,10 @@ def _call_plugin_or_tax_app(
             raise TaxEmptyData("Empty tax data.")
     else:
         tax_data = manager.get_taxes_for_checkout(
-            checkout_info, lines, tax_app_identifier
+            checkout_info,
+            lines,
+            tax_app_identifier,
+            pregenerated_subscription_payloads=pregenerated_subscription_payloads,
         )
         if tax_data is None:
             log_address_if_validation_skipped_for_checkout(checkout_info, logger)
@@ -563,6 +586,7 @@ def fetch_checkout_data(
     force_update: bool = False,
     checkout_transactions: Optional[Iterable["TransactionItem"]] = None,
     force_status_update: bool = False,
+    pregenerated_subscription_payloads: Optional[dict] = {},
 ):
     """Fetch checkout data.
 
@@ -576,6 +600,7 @@ def fetch_checkout_data(
         lines=lines,
         address=address,
         force_update=force_update,
+        pregenerated_subscription_payloads=pregenerated_subscription_payloads,
     )
     current_total_gross = checkout_info.checkout.total.gross
     if current_total_gross != previous_total_gross or force_status_update:
