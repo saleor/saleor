@@ -76,6 +76,10 @@ def is_order_level_voucher(voucher: Optional[Voucher]):
     )
 
 
+def is_shipping_voucher(voucher: Optional[Voucher]):
+    return bool(voucher and voucher.type == VoucherType.SHIPPING)
+
+
 def has_checkout_order_promotion(checkout_info: "CheckoutInfo") -> bool:
     return next(
         (
@@ -87,8 +91,9 @@ def has_checkout_order_promotion(checkout_info: "CheckoutInfo") -> bool:
     )
 
 
-def is_shipping_voucher(voucher: Optional[Voucher]):
-    return bool(voucher and voucher.type == VoucherType.SHIPPING)
+def should_discount_shipping(discount: OrderDiscount) -> bool:
+    """Check if the discount should be distributed over shipping price."""
+    return discount.type != DiscountType.ORDER_PROMOTION
 
 
 def increase_voucher_usage(

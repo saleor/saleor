@@ -73,7 +73,7 @@ def parse_django_datetime(date):
 
 
 @pytest.fixture
-def order_for_payload(fulfilled_order):
+def order_for_payload(fulfilled_order, voucher_percentage):
     order = fulfilled_order
 
     new_order = Order.objects.create(
@@ -91,12 +91,14 @@ def order_for_payload(fulfilled_order):
         amount_value=Decimal("33.0"),
         reason="Discount from staff",
     )
+
     discount = order.discounts.create(
         type=DiscountType.VOUCHER,
         value_type=DiscountValueType.PERCENTAGE,
         value=Decimal("10"),
         amount_value=Decimal("16.5"),
         name="Voucher",
+        voucher=voucher_percentage,
     )
 
     discount.created_at = datetime.now(pytz.utc) + timedelta(days=1)
@@ -366,10 +368,14 @@ def test_generate_order_payload_for_tax_calculation(
             {
                 "name": discount_1.name,
                 "amount": str(quantize_price(discount_1.amount_value, currency)),
+                "distribute_over_subtotal": True,
+                "distribute_over_shipping": True,
             },
             {
                 "name": discount_2.name,
                 "amount": str(quantize_price(discount_2.amount_value, currency)),
+                "distribute_over_subtotal": True,
+                "distribute_over_shipping": True,
             },
         ],
         "lines": json.loads(order_lines),
@@ -444,12 +450,10 @@ def test_generate_order_payload_for_tax_calculation_voucher_discounts(
         "metadata": order.metadata,
         "discounts": [
             {
-                "name": discount_1.name,
-                "amount": str(quantize_price(discount_1.amount_value, currency)),
-            },
-            {
                 "name": discount_2.name,
                 "amount": str(quantize_price(discount_2.amount_value, currency)),
+                "distribute_over_shipping": True,
+                "distribute_over_subtotal": True,
             },
         ],
         "lines": json.loads(order_lines),

@@ -8,7 +8,11 @@ from ....checkout import base_calculations
 from ....checkout.models import Checkout, CheckoutLine
 from ....core.prices import quantize_price
 from ....discount import DiscountType
-from ....discount.utils import has_checkout_order_promotion, is_order_level_voucher
+from ....discount.utils import (
+    has_checkout_order_promotion,
+    is_order_level_voucher,
+    should_discount_shipping,
+)
 from ....order.models import Order, OrderLine
 from ....order.utils import get_order_country
 from ....tax.utils import get_charge_taxes
@@ -266,6 +270,16 @@ class TaxableObjectDiscount(BaseObjectType):
     amount = graphene.Field(
         Money, description="The amount of the discount.", required=True
     )
+    distribute_over_subtotal = graphene.Boolean(
+        description="Determines if the discount should be distributed over subtotal price.",
+        required=True,
+        default_value=True,
+    )
+    distribute_over_shipping = graphene.Boolean(
+        description="Determines if the discount should be distributed over shipping price.",
+        required=True,
+        default_value=True,
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_TAXES
@@ -384,15 +398,30 @@ class TaxableObject(BaseObjectType):
             def calculate_checkout_discounts(checkout_info):
                 checkout = checkout_info.checkout
                 discount_name = checkout.discount_name
-                return (
-                    [{"name": discount_name, "amount": checkout.discount}]
-                    if checkout.discount
-                    and (
-                        is_order_level_voucher(checkout_info.voucher)
-                        or has_checkout_order_promotion(checkout_info)
-                    )
-                    else []
-                )
+
+                if not checkout.discount:
+                    return []
+
+                if is_order_level_voucher(checkout_info.voucher):
+                    return [
+                        {
+                            "name": discount_name,
+                            "amount": checkout.discount,
+                            "distribute_over_subtotal": True,
+                            "distribute_over_shipping": True,
+                        }
+                    ]
+
+                if has_checkout_order_promotion(checkout_info):
+                    return [
+                        {
+                            "name": discount_name,
+                            "amount": checkout.discount,
+                            "distribute_over_subtotal": True,
+                            "distribute_over_shipping": False,
+                        }
+                    ]
+                return []
 
             return (
                 CheckoutInfoByCheckoutTokenLoader(info.context)
@@ -402,7 +431,12 @@ class TaxableObject(BaseObjectType):
 
         def map_discounts(discounts):
             return [
-                {"name": discount.name, "amount": discount.amount}
+                {
+                    "name": discount.name,
+                    "amount": discount.amount,
+                    "distribute_over_subtotal": True,
+                    "distribute_over_shipping": should_discount_shipping(discount),
+                }
                 for discount in discounts
                 if (
                     discount.type in [DiscountType.MANUAL, DiscountType.ORDER_PROMOTION]
