@@ -32,10 +32,7 @@ documentation = "https://docs.saleor.io/"
   dj-email-url = "^1"
   django = {version = "^3.2.24", extras = ["bcrypt"]}
   django-cache-url = "^3.1.2"
-  # This is related to the issue with setuptools:
-  # https://github.com/pypa/setuptools/issues/4519. It can be removed when 2.7.0 is
-  # released.
-  django-celery-beat = "<2.6.0"
+  django-celery-beat = "^2.2.1"
   django-countries = "^7.2"
   django-filter = "^23.1"
   django-measurement = "^3.0"
@@ -146,7 +143,7 @@ documentation = "https://docs.saleor.io/"
   types-redis = "^4.6.0"
   types-requests = "^2.31.0"
   types-six = "^1.16.17"
-  vcrpy = ">=4.0,<=5.1.0"
+  vcrpy = ">=4.0,<7.0"
 
 [tool.deptry]
 extend_exclude = ["conftest\\.py", ".*/conftest\\.py", ".*/tests/.*"]
