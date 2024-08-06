@@ -136,7 +136,5 @@ class OrderUpdateShipping(
 
         order.save(update_fields=SHIPPING_METHOD_UPDATE_FIELDS)
         # Post-process the results
-        call_order_event(
-            manager, manager.order_updated, WebhookEventAsyncType.ORDER_UPDATED, order
-        )
+        call_order_event(manager, WebhookEventAsyncType.ORDER_UPDATED, order)
         return OrderUpdateShipping(order=order)
