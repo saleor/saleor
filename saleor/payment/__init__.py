@@ -251,6 +251,17 @@ FAILED_TRANSACTION_EVENTS = [
 ]
 
 
+OPTIONAL_PSP_REFERENCE_EVENTS = [
+    TransactionEventType.CHARGE_ACTION_REQUIRED,
+    TransactionEventType.AUTHORIZATION_ACTION_REQUIRED,
+    TransactionEventType.CHARGE_FAILURE,
+    TransactionEventType.AUTHORIZATION_FAILURE,
+    TransactionEventType.REFUND_FAILURE,
+    TransactionEventType.CHARGE_FAILURE,
+    TransactionEventType.CANCEL_FAILURE,
+]
+
+
 class TransactionEventStatus:
     """Represents a status of payment transaction.
 
