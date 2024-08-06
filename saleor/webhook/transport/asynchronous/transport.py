@@ -205,6 +205,8 @@ def trigger_webhooks_async(
     :param queue: defines the queue to which the event should be sent.
     """
     if not isinstance(event_type, str):
+        # To remove when all events are migrated to classes and event_type is always
+        # WebhookBaseType type.
         event_type = event_type.event_type
 
     regular_webhooks, subscription_webhooks = group_webhooks_by_subscription(webhooks)

@@ -52,7 +52,7 @@ from ...payment.utils import (
 )
 from ...settings import WEBHOOK_SYNC_TIMEOUT
 from ...thumbnail.models import Thumbnail
-from ...webhook.base import WebhookSpecType
+from ...webhook.base import WebhookBaseType
 from ...webhook.const import WEBHOOK_CACHE_DEFAULT_TIMEOUT
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...webhook.payloads import (
@@ -177,7 +177,7 @@ class WebhookPlugin(BasePlugin):
 
     @staticmethod
     def _get_webhooks_for_event(
-        event_type: Union[str, type[WebhookSpecType]],
+        event_type: Union[str, type[WebhookBaseType]],
         webhooks: Optional["QuerySet[Webhook]"] = None,
     ):
         if webhooks is not None:

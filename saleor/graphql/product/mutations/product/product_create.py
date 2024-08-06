@@ -1,3 +1,5 @@
+from functools import partial
+
 import graphene
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -226,11 +228,16 @@ class ProductCreate(ModelMutation):
             manager = get_plugin_manager_promise(info.context).get()
             cls.call_event(manager.product_created, product)
         else:
+            from .....webhook.payloads import generate_product_payload
+
             requestor = get_user_or_app_from_context(info.context)
             cls.call_event(
                 ProductCreated.call_webhook,
                 product,
                 requestor,
+                legacy_data_generator=partial(
+                    generate_product_payload, product, requestor
+                ),
                 allow_replica=getattr(info.context, "allow_replica", True),
             )
 

@@ -7,7 +7,7 @@ from django.db.models import Q
 from django.db.models.expressions import Exists, OuterRef
 
 from ..app.models import App
-from ..webhook.base import WebhookSpecType
+from ..webhook.base import WebhookBaseType
 from .event_types import WebhookEventAsyncType, WebhookEventSyncType
 from .models import Webhook, WebhookEvent
 
@@ -58,14 +58,15 @@ def get_filter_for_single_webhook_event(
 
 
 def get_webhooks_for_event(
-    event_type: Union[str, type[WebhookSpecType]],
+    event_type: Union[str, type[WebhookBaseType]],
     webhooks: Optional["QuerySet[Webhook]"] = None,
     apps_ids: Optional["list[int]"] = None,
     apps_identifier: Optional[list[str]] = None,
 ) -> "QuerySet[Webhook]":
     """Get active webhooks from the database for an event."""
     if not isinstance(event_type, str):
-        # Once all events are moved from WebhookPlugin to core, event_type should be of type WebhookSpec only
+        # To remove when all events are migrated to classes and event_type is always
+        # WebhookBaseType type.
         event_type = event_type.event_type
 
     if webhooks is None:

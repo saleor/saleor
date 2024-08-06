@@ -1,5 +1,5 @@
 from collections.abc import Iterable
-from typing import Any, Optional, TypeVar, Union
+from typing import Any, Callable, Optional, TypeVar, Union
 
 from django.utils.module_loading import import_string
 
@@ -9,7 +9,7 @@ from ..permission.enums import BasePermissionEnum
 from .models import Webhook
 
 
-class WebhookSpec:
+class WebhookBase:
     description: str
     event_type: str
     name: str
@@ -23,7 +23,7 @@ class WebhookSpec:
         requestor: Union[User, App],
         webhooks: Optional[Iterable[Webhook]] = None,
         allow_replica: bool = True,
-        legacy_payload_generator: Any = None,
+        legacy_data_generator: Optional[Callable] = None,
     ):
         from .transport.asynchronous.transport import trigger_webhooks_async
         from .utils import get_webhooks_for_event
@@ -32,23 +32,21 @@ class WebhookSpec:
             webhooks = get_webhooks_for_event(cls)
 
         if webhooks:
-            # TODO: add support for legacy_payload_generator
-            # product_data_generator = partial(generate_product_payload, product, requestor)
             trigger_webhooks_async(
                 None,
                 cls,
                 webhooks,
                 subscribable_object,
                 requestor,
-                legacy_data_generator=None,
+                legacy_data_generator=legacy_data_generator,
                 allow_replica=allow_replica,
             )
 
 
-WebhookSpecType = TypeVar("WebhookSpecType", bound=WebhookSpec)
+WebhookBaseType = TypeVar("WebhookBaseType", bound=WebhookBase)
 
 
-def register(webhook_spec: type[WebhookSpecType]):
+def register(webhook_spec: type[WebhookBaseType]):
     from ..graphql.webhook.subscription_types import WEBHOOK_TYPES_MAP
 
     # Register webhook subscription type
