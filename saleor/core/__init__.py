@@ -3,8 +3,6 @@ from django.core.files.storage import Storage
 from django.utils.functional import LazyObject
 from django.utils.module_loading import import_string
 
-default_app_config = "saleor.core.app.CoreAppConfig"
-
 
 class JobStatus:
     PENDING = "pending"
