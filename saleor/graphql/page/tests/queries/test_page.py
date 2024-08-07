@@ -7,12 +7,14 @@ from .....attribute.tests.model_helpers import (
     get_page_attributes,
 )
 from .....attribute.utils import associate_attribute_values_to_instance
+from .....page.models import PageTranslation
 from .....tests.utils import dummy_editorjs
+from ....core.enums import LanguageCodeEnum
 from ....tests.utils import get_graphql_content, get_graphql_content_from_response
 
 PAGE_QUERY = """
-    query PageQuery($id: ID, $slug: String) {
-        page(id: $id, slug: $slug) {
+    query PageQuery($id: ID, $slug: String, $slugLanguageCode: LanguageCodeEnum) {
+        page(id: $id, slug: $slug, slugLanguageCode: $slugLanguageCode) {
             id
             title
             slug
@@ -430,3 +432,25 @@ def test_page_attribute_visible_in_storefront_for_staff_is_always_returned(
             "slug": attribute.slug,
         }
     }
+
+
+def test_page_query_by_translated_slug(user_api_client, page, page_translation_fr):
+    # given
+    slug = "french-article"
+    PageTranslation.objects.filter(
+        page=page, language_code=page_translation_fr.language_code
+    ).update(slug=slug)
+
+    # when
+    variables = {"slug": slug, "slugLanguageCode": LanguageCodeEnum.FR.name}
+    response = user_api_client.post_graphql(
+        PAGE_QUERY,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    page_data = content["data"]["page"]
+
+    assert page_data is not None
+    assert page_data["title"] == page.title

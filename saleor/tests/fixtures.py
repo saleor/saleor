@@ -6974,6 +6974,7 @@ def collection_translation_fr(published_collection):
         language_code="fr",
         collection=published_collection,
         name="French collection name",
+        slug="french-collection-name",
         description=dummy_editorjs("French description."),
     )
 
@@ -6985,6 +6986,17 @@ def category_translation_fr(category):
         category=category,
         name="French category name",
         description=dummy_editorjs("French category description."),
+    )
+
+
+@pytest.fixture
+def category_translation_with_slug_pl(category):
+    return CategoryTranslation.objects.create(
+        language_code="pl",
+        category=category,
+        name="Polish category name",
+        slug="polish-category-name",
+        description=dummy_editorjs("Polish category description."),
     )
 
 

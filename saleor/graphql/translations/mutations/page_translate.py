@@ -7,15 +7,18 @@ from ...core.enums import LanguageCodeEnum
 from ...core.fields import JSONString
 from ...core.types import TranslationError
 from .. import types as translation_types
-from .utils import BaseTranslateMutation, SeoTranslationInput
+from .utils import BaseTranslateMutationWithSlug, SeoTranslationInput
 
 
 class PageTranslationInput(SeoTranslationInput):
     title = graphene.String()
+    slug = graphene.String()
     content = JSONString(description="Translated page content." + RICH_CONTENT)
 
 
-class PageTranslate(BaseTranslateMutation):
+class PageTranslate(BaseTranslateMutationWithSlug):
+    slugable_field = "title"
+
     class Arguments:
         id = graphene.ID(
             required=True, description="Page ID or PageTranslatableContent ID."

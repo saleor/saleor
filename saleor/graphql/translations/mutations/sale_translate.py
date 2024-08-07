@@ -47,7 +47,7 @@ class SaleTranslate(BaseTranslateMutation):
         instance = cls.get_promotion_instance(id)
         cls.validate_input(input)
 
-        input = cls.pre_update_or_create(instance, input)
+        input = cls.pre_update_or_create(instance, input, language_code)
 
         translation, created = instance.translations.update_or_create(
             language_code=language_code, defaults=input
