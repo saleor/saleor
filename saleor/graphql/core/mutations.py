@@ -37,7 +37,6 @@ from ..core.doc_category import DOC_CATEGORY_MAP
 from ..core.validators import validate_one_of_args_is_in_mutation
 from ..meta.permissions import PRIVATE_META_PERMISSION_MAP, PUBLIC_META_PERMISSION_MAP
 from ..payment.utils import metadata_contains_empty_key
-from ..plugins.dataloaders import get_plugin_manager_promise
 from ..utils import get_nodes, resolve_global_ids_to_primary_keys
 from . import ResolveInfo
 from .context import disallow_replica_in_context, setup_context_user
@@ -517,12 +516,6 @@ class BaseMutation(graphene.Mutation):
 
         if not cls.check_permissions(info.context, data=data):
             raise PermissionDenied(permissions=cls._meta.permissions)
-        manager = get_plugin_manager_promise(info.context).get()
-        result = manager.perform_mutation(
-            mutation_cls=cls, root=root, info=info, data=data
-        )
-        if result is not None:
-            return result
 
         try:
             response = cls.perform_mutation(root, info, **data)
@@ -1045,12 +1038,6 @@ class BaseBulkMutation(BaseMutation):
 
         if not cls.check_permissions(info.context):
             raise PermissionDenied(permissions=cls._meta.permissions)
-        manager = get_plugin_manager_promise(info.context).get()
-        result = manager.perform_mutation(
-            mutation_cls=cls, root=root, info=info, data=data
-        )
-        if result is not None:
-            return result
 
         count, errors = cls.perform_mutation(root, info, **data)
         if errors:
