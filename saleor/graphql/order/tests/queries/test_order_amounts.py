@@ -963,15 +963,17 @@ def test_order_total_remaining_grant_query_with_payment_by_app(
 
 
 @pytest.mark.parametrize(
-    "amount_charged, "
-    "amount_authorized, "
-    "amount_refunded, "
-    "amount_canceled, "
-    "amount_charge_pending, "
-    "amount_authorize_pending, "
-    "amount_refund_pending, "
-    "amount_cancel_pending, "
-    "remaining_grant_amount, ",
+    (
+        "amount_charged",
+        "amount_authorized",
+        "amount_refunded",
+        "amount_canceled",
+        "amount_charge_pending",
+        "amount_authorize_pending",
+        "amount_refund_pending",
+        "amount_cancel_pending",
+        "remaining_grant_amount",
+    ),
     [
         ("60", "0", "0", "0", "0", "0", "0", "0", 150),
         ("0", "60", "0", "0", "0", "0", "0", "0", 150),
@@ -1042,15 +1044,17 @@ def test_order_total_remaining_grant_query_with_transactions_total_charged(
 
 
 @pytest.mark.parametrize(
-    "amount_charged, "
-    "amount_authorized, "
-    "amount_refunded, "
-    "amount_canceled, "
-    "amount_charge_pending, "
-    "amount_authorize_pending, "
-    "amount_refund_pending, "
-    "amount_cancel_pending, "
-    "remaining_grant_amount, ",
+    (
+        "amount_charged",
+        "amount_authorized",
+        "amount_refunded",
+        "amount_canceled",
+        "amount_charge_pending",
+        "amount_authorize_pending",
+        "amount_refund_pending",
+        "amount_cancel_pending",
+        "remaining_grant_amount",
+    ),
     [
         ("60", "0", "0", "0", "0", "0", "0", "0", 10),
         ("0", "60", "0", "0", "0", "0", "0", "0", 10),
@@ -1122,15 +1126,17 @@ def test_order_total_remaining_grant_query_with_transactions_total_refunded(
 
 
 @pytest.mark.parametrize(
-    "amount_charged, "
-    "amount_authorized, "
-    "amount_refunded, "
-    "amount_canceled, "
-    "amount_charge_pending, "
-    "amount_authorize_pending, "
-    "amount_refund_pending, "
-    "amount_cancel_pending, "
-    "remaining_grant_amount, ",
+    (
+        "amount_charged",
+        "amount_authorized",
+        "amount_refunded",
+        "amount_canceled",
+        "amount_charge_pending",
+        "amount_authorize_pending",
+        "amount_refund_pending",
+        "amount_cancel_pending",
+        "remaining_grant_amount",
+    ),
     [
         ("60", "0", "0", "0", "0", "0", "0", "0", 85),
         ("0", "60", "0", "0", "0", "0", "0", "0", 85),
