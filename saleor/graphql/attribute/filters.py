@@ -76,7 +76,7 @@ def filter_attributes_by_product_types(qs, field, value, requestor, channel_slug
     product_types = set(product_qs.values_list("product_type_id", flat=True))
     return qs.filter(
         Q(product_types__in=product_types) | Q(product_variant_types__in=product_types)
-    )
+    ).distinct()
 
 
 def filter_attribute_search(qs, _, value):
