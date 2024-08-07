@@ -94,15 +94,8 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
             .values_list("pk", flat=True)
         )
         with transaction.atomic():
-            product_pks = tuple(
-                models.Product.objects.order_by("pk")
-                .select_for_update(of=("self",))
-                .filter(pk__in=product_pks)
-                .values_list("pk", flat=True)
-            )
-
             # Get cached variants with related fields to fully populate webhook payload.
-            variants = list(
+            variants = tuple(
                 models.ProductVariant.objects.order_by("pk")
                 .select_for_update()
                 .filter(id__in=pks)
@@ -111,6 +104,12 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
                     "attributes__values",
                     "variant_media",
                 )
+            )
+            product_pks = tuple(
+                models.Product.objects.order_by("pk")
+                .select_for_update(of=("self",))
+                .filter(pk__in=product_pks)
+                .values_list("pk", flat=True)
             )
 
             cls.delete_assigned_attribute_values(pks)
@@ -134,26 +133,26 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
                     order, info.context.user, app, order_lines
                 )
 
-            order_pks = draft_order_lines_data.order_pks
-            if order_pks:
-                recalculate_orders_task.delay(list(order_pks))
+        order_pks = draft_order_lines_data.order_pks
+        if order_pks:
+            recalculate_orders_task.delay(list(order_pks))
 
-            # set new product default variant if any has been removed
-            products = models.Product.objects.order_by("pk").filter(
-                pk__in=product_pks, default_variant__isnull=True
+        # set new product default variant if any has been removed
+        products = models.Product.objects.order_by("pk").filter(
+            pk__in=product_pks, default_variant__isnull=True
+        )
+        for product in products:
+            product.search_vector = FlatConcatSearchVector(
+                *prepare_product_search_vector_value(product)
             )
-            for product in products:
-                product.search_vector = FlatConcatSearchVector(
-                    *prepare_product_search_vector_value(product)
-                )
-                product.default_variant = product.variants.first()
-                product.save(
-                    update_fields=[
-                        "default_variant",
-                        "search_vector",
-                        "updated_at",
-                    ]
-                )
+            product.default_variant = product.variants.first()
+            product.save(
+                update_fields=[
+                    "default_variant",
+                    "search_vector",
+                    "updated_at",
+                ]
+            )
 
         cls.post_save_actions(info, variants)
         return response
