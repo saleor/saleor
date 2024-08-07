@@ -1075,6 +1075,36 @@ def test_with_cancel_request_and_success_events_different_psp_references(
     )
 
 
+def test_with_authorization_success_and_refund_success_events(
+    transaction_item_generator, transaction_events_generator
+):
+    # given
+    transaction = transaction_item_generator()
+    authorization_value = Decimal("11.00")
+    refund_value = Decimal("11.00")
+    transaction_events_generator(
+        transaction=transaction,
+        psp_references=["1", "1"],
+        types=[
+            TransactionEventType.AUTHORIZATION_SUCCESS,
+            TransactionEventType.REFUND_SUCCESS,
+        ],
+        amounts=[authorization_value, refund_value],
+    )
+
+    # when
+    recalculate_transaction_amounts(transaction)
+
+    # then
+    transaction.refresh_from_db()
+    _assert_amounts(
+        transaction,
+        authorized_value=authorization_value,
+        refunded_value=authorization_value,
+        charged_value=-authorization_value,
+    )
+
+
 def test_event_without_psp_reference(
     transaction_item_generator, transaction_events_generator
 ):
