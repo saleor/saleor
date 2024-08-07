@@ -33,6 +33,7 @@ from ..order.search import update_order_search_vector
 from ..order.utils import update_order_authorize_data, updates_amounts_for_order
 from ..plugins.manager import PluginsManager, get_plugins_manager
 from . import (
+    OPTIONAL_PSP_REFERENCE_EVENTS,
     ChargeStatus,
     GatewayError,
     PaymentError,
@@ -913,7 +914,6 @@ def parse_transaction_action_data(
     response_data: Any,
     request_type: str,
     event_is_optional: bool = True,
-    psp_reference_is_optional: bool = False,
 ) -> tuple[Optional["TransactionRequestResponse"], Optional[error_msg]]:
     """Parse response from transaction action webhook.
 
@@ -922,11 +922,6 @@ def parse_transaction_action_data(
     If unable to parse, None will be returned.
     """
     psp_reference: str = response_data.get("pspReference")
-    if not psp_reference and not psp_reference_is_optional:
-        msg: str = "Missing `pspReference` field in the response."
-        logger.error(msg)
-        return None, msg
-
     available_actions = response_data.get("actions", None)
     if available_actions is not None:
         possible_actions = {
@@ -960,6 +955,12 @@ def parse_transaction_action_data(
         msg = "\n".join(error_field_msg)
         if len(msg) >= 512:
             msg = msg[:509] + "..."
+        return None, msg
+
+    request_event_type = parsed_event_data.get("type", request_type)
+    if not psp_reference and request_event_type not in OPTIONAL_PSP_REFERENCE_EVENTS:
+        msg = f"Providing `pspReference` is required for {request_event_type.upper()}."
+        logger.error(msg)
         return None, msg
 
     return (
@@ -1139,7 +1140,6 @@ def _get_parsed_transaction_action_data(
     transaction_webhook_response: Optional[Dict[str, Any]],
     event_type: str,
     event_is_optional: bool = True,
-    psp_reference_is_optional: bool = False,
 ) -> tuple[Optional["TransactionRequestResponse"], Optional[error_msg]]:
     if transaction_webhook_response is None:
         return None, "Failed to delivery request."
@@ -1148,7 +1148,6 @@ def _get_parsed_transaction_action_data(
         transaction_webhook_response,
         event_type,
         event_is_optional=event_is_optional,
-        psp_reference_is_optional=psp_reference_is_optional,
     )
     if not transaction_request_response:
         return None, error_msg or ""
@@ -1184,7 +1183,6 @@ def create_transaction_event_for_transaction_session(
         transaction_webhook_response=transaction_webhook_response,
         event_type=request_event_type,
         event_is_optional=False,
-        psp_reference_is_optional=True,
     )
     if not transaction_request_response or not transaction_request_response.event:
         return create_failed_transaction_event(request_event, cause=error_msg or "")
@@ -1192,18 +1190,7 @@ def create_transaction_event_for_transaction_session(
     event = None
     request_event_update_fields = []
     response_event = transaction_request_response.event
-    if not response_event.psp_reference and response_event.type not in [
-        TransactionEventType.AUTHORIZATION_ACTION_REQUIRED,
-        TransactionEventType.CHARGE_ACTION_REQUIRED,
-    ]:
-        return create_failed_transaction_event(
-            request_event,
-            cause=(
-                f"Providing `pspReference` is required for "
-                f"{response_event.type.upper()}"
-            ),
-        )
-    elif response_event.type in [
+    if response_event.type in [
         TransactionEventType.AUTHORIZATION_REQUEST,
         TransactionEventType.CHARGE_REQUEST,
     ]:
