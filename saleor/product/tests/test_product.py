@@ -160,53 +160,53 @@ def test_filtering_by_attribute(
 
 
 def test_clean_product_attributes_date_time_range_filter_input(
-    date_attribute, date_time_attribute
+    date_attribute, date_time_attribute, product_with_multiple_values_attributes
 ):
-    # filter date attribute
+    queries = defaultdict(list)
     filter_value = [
         (
             date_attribute.slug,
             {"gte": datetime(2020, 10, 5, tzinfo=pytz.utc)},
         )
     ]
-    values_qs = _clean_product_attributes_date_time_range_filter_input(filter_value)
+    _clean_product_attributes_date_time_range_filter_input(filter_value, queries)
+    assert queries == {
+        date_attribute.pk: [value.pk for value in date_attribute.values.all()]
+    }
 
-    assert set(date_attribute.values.all()) == set(values_qs.all())
-
+    queries = defaultdict(list)
     filter_value = [
         (
             date_attribute.slug,
             {"gte": datetime(2020, 10, 5).date(), "lte": datetime(2020, 11, 4).date()},
         )
     ]
-    values_qs = _clean_product_attributes_date_time_range_filter_input(filter_value)
+    _clean_product_attributes_date_time_range_filter_input(filter_value, queries)
+    assert queries == {date_attribute.pk: [date_attribute.values.first().pk]}
 
-    assert {date_attribute.values.first().pk} == set(
-        values_qs.values_list("pk", flat=True)
-    )
-
-    # filter date time attribute
+    queries = defaultdict(list)
     filter_value = [
         (
             date_attribute.slug,
             {"lte": datetime(2020, 11, 4, tzinfo=timezone.utc)},
         )
     ]
-    values_qs = _clean_product_attributes_date_time_range_filter_input(filter_value)
+    _clean_product_attributes_date_time_range_filter_input(filter_value, queries)
+    assert queries == {date_attribute.pk: [date_attribute.values.first().pk]}
 
-    assert {date_attribute.values.first().pk} == set(
-        values_qs.values_list("pk", flat=True)
-    )
-
+    queries = defaultdict(list)
     filter_value = [
         (
             date_attribute.slug,
             {"lte": datetime(2020, 10, 4, tzinfo=timezone.utc)},
         )
     ]
-    values_qs = _clean_product_attributes_date_time_range_filter_input(filter_value)
 
-    assert values_qs.exists() is False
+    with pytest.raises(
+        ValueError,
+        match="Requested value for attributes ([^\s]+) doesn't exist",
+    ):
+        _clean_product_attributes_date_time_range_filter_input(filter_value, queries)
 
 
 def test_clean_product_attributes_boolean_filter_input(boolean_attribute):

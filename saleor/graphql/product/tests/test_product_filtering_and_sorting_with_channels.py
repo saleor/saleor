@@ -6,6 +6,7 @@ import pytest
 import pytz
 from freezegun import freeze_time
 
+from ....attribute.utils import associate_attribute_values_to_instance
 from ....product import ProductTypeKind
 from ....product.models import (
     Product,
@@ -658,6 +659,66 @@ def test_products_with_filtering_and_not_existing_channel(
     content = get_graphql_content(response)
     products_nodes = content["data"]["products"]["edges"]
     assert len(products_nodes) == 0
+
+
+@pytest.mark.parametrize(
+    ("date_time_filter", "bool_filter", "product_exists"),
+    [
+        ({"gte": "2020-10-05T00:00:00Z"}, True, True),
+        ({"gte": "2020-10-05T00:00:00Z"}, False, False),
+        ({"lte": "2020-09-06T00:00:00Z"}, True, False),
+        ({"lte": "2020-09-06T00:00:00Z"}, False, False),
+        ({"lte": "2020-11-06T00:00:00Z"}, True, True),
+    ],
+)
+def test_products_with_filtering_multiple_attributes(
+    date_time_filter,
+    bool_filter,
+    product_exists,
+    staff_api_client,
+    permission_manage_products,
+    non_default_category,
+    channel_USD,
+    product,
+    product_type,
+    date_time_attribute,
+    boolean_attribute,
+    product_with_multiple_values_attributes,
+):
+    # given
+    product_type.product_attributes.clear()
+    product_type.product_attributes.add(date_time_attribute)
+    product_type.product_attributes.add(boolean_attribute)
+
+    associate_attribute_values_to_instance(
+        product, {date_time_attribute.pk: [date_time_attribute.values.first()]}
+    )
+    associate_attribute_values_to_instance(
+        product, {boolean_attribute.pk: [boolean_attribute.values.first()]}
+    )
+
+    variables = {
+        "filter": {
+            "attributes": [
+                {"slug": "release-date-time", "dateTime": date_time_filter},
+                {"slug": "boolean", "boolean": bool_filter},
+            ]
+        },
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCTS_WITH_SORTING_AND_FILTERING,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    products_nodes = content["data"]["products"]["edges"]
+    assert len(products_nodes) == product_exists
 
 
 def test_published_products_without_sku_as_staff(
