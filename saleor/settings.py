@@ -962,3 +962,11 @@ ENABLE_LIMITING_WEBHOOKS_FOR_IDENTICAL_PAYLOADS = get_bool_from_env(
 # Transaction items limit for PaymentGatewayInitialize / TransactionInitialize.
 # That setting limits the allowed number of transaction items for single entity.
 TRANSACTION_ITEMS_LIMIT = 100
+
+
+# The manager.perform_mutation method is deprecated and will be removed in Saleor 3.21.
+# It is enabled by default, but can be disabled by setting the environment variable to
+# False.
+ENABLE_DEPRECATED_MANAGER_PERFORM_MUTATION = get_bool_from_env(
+    "ENABLE_DEPRECATED_MANAGER_PERFORM_MUTATION", True
+)

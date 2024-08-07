@@ -14,6 +14,7 @@ from typing import (
 from uuid import UUID
 
 import graphene
+from django.conf import settings
 from django.core.exceptions import (
     NON_FIELD_ERRORS,
     ImproperlyConfigured,
@@ -524,12 +525,14 @@ class BaseMutation(graphene.Mutation):
 
         if not cls.check_permissions(info.context, data=data):
             raise PermissionDenied(permissions=cls._meta.permissions)
-        manager = get_plugin_manager_promise(info.context).get()
-        result = manager.perform_mutation(
-            mutation_cls=cls, root=root, info=info, data=data
-        )
-        if result is not None:
-            return result
+
+        if settings.ENABLE_DEPRECATED_MANAGER_PERFORM_MUTATION:
+            manager = get_plugin_manager_promise(info.context).get()
+            result = manager.perform_mutation(
+                mutation_cls=cls, root=root, info=info, data=data
+            )
+            if result is not None:
+                return result
 
         try:
             response = cls.perform_mutation(root, info, **data)
@@ -1052,12 +1055,14 @@ class BaseBulkMutation(BaseMutation):
 
         if not cls.check_permissions(info.context):
             raise PermissionDenied(permissions=cls._meta.permissions)
-        manager = get_plugin_manager_promise(info.context).get()
-        result = manager.perform_mutation(
-            mutation_cls=cls, root=root, info=info, data=data
-        )
-        if result is not None:
-            return result
+
+        if settings.ENABLE_DEPRECATED_MANAGER_PERFORM_MUTATION:
+            manager = get_plugin_manager_promise(info.context).get()
+            result = manager.perform_mutation(
+                mutation_cls=cls, root=root, info=info, data=data
+            )
+            if result is not None:
+                return result
 
         count, errors = cls.perform_mutation(root, info, **data)
         if errors:

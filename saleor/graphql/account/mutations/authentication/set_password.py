@@ -1,4 +1,5 @@
 import graphene
+from django.conf import settings
 from django.contrib.auth import password_validation
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -41,15 +42,17 @@ class SetPassword(CreateToken):
         cls, root, info: ResolveInfo, /, *, email, password, token
     ):
         disallow_replica_in_context(info.context)
-        manager = get_plugin_manager_promise(info.context).get()
-        result = manager.perform_mutation(
-            mutation_cls=cls,
-            root=root,
-            info=info,
-            data={"email": email, "password": password, "token": token},
-        )
-        if result is not None:
-            return result
+
+        if settings.ENABLE_DEPRECATED_MANAGER_PERFORM_MUTATION:
+            manager = get_plugin_manager_promise(info.context).get()
+            result = manager.perform_mutation(
+                mutation_cls=cls,
+                root=root,
+                info=info,
+                data={"email": email, "password": password, "token": token},
+            )
+            if result is not None:
+                return result
 
         try:
             cls._set_password_for_user(email, password, token)
