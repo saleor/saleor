@@ -17,7 +17,7 @@ services:
       - ..:/app
 
   dashboard:
-    image: ghcr.io/saleor/saleor-dashboard:3.20
+    image: ghcr.io/saleor/saleor-dashboard:3.20.5
     restart: unless-stopped
     ports:
       - 9000:80
