@@ -33,13 +33,19 @@ def update_order_subtotals(start_number=None):
         return
 
     order_line = OrderLine.objects.filter(order=OuterRef("pk"))
-    subtotal_net_sum = order_line.annotate(
-        net_sum=Func(F("total_price_net_amount"), function="Sum")
-    ).values("net_sum")
+    subtotal_net_sum = (
+        order_line.annotate(net_sum=Func(F("total_price_net_amount"), function="Sum"))
+        .values("net_sum")
+        .order_by()
+    )
 
-    subtotal_gross_sum = order_line.annotate(
-        gross_sum=Func(F("total_price_gross_amount"), function="Sum")
-    ).values("gross_sum")
+    subtotal_gross_sum = (
+        order_line.annotate(
+            gross_sum=Func(F("total_price_gross_amount"), function="Sum")
+        )
+        .values("gross_sum")
+        .order_by()
+    )
 
     orders_with_totals = Order.objects.filter(
         number__in=current_batch_order_numbers
@@ -77,6 +83,6 @@ def update_order_addresses_task():
                 order_address = Address(**model_to_dict(cc_address, exclude=["id"]))
                 order.shipping_address = order_address
                 addresses.append(order_address)
-        Address.objects.bulk_create(addresses, ignore_conflicts=True)
+        Address.objects.bulk_create(addresses, ignore_conflicts=False)
         Order.objects.bulk_update(orders, ["shipping_address"])
         update_order_addresses_task.delay()

@@ -52,7 +52,7 @@ def handle_webhook(
     request: WSGIRequest, gateway_config: "GatewayConfig", channel_slug: str
 ):
     payload = request.body
-    sig_header = request.META["HTTP_STRIPE_SIGNATURE"]
+    sig_header = request.headers["stripe-signature"]
     api_key = gateway_config.connection_params["secret_api_key"]
     endpoint_secret = gateway_config.connection_params.get("webhook_secret")
 
