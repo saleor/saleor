@@ -2,6 +2,7 @@ import graphene
 
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
+from ..core.descriptions import ADDED_IN_321
 from ..core.doc_category import DOC_CATEGORY_PAGES
 from ..core.enums import LanguageCodeEnum
 from ..core.fields import BaseField, FilterConnectionField
@@ -38,7 +39,7 @@ class PageQueries(graphene.ObjectType):
         slug=graphene.String(description="The slug of the page."),
         slug_language_code=graphene.Argument(
             LanguageCodeEnum,
-            description="Language code of the page slug, omit to use primary slug.",
+            description="Language code of the page slug, omit to use primary slug." + ADDED_IN_321,
         ),
         description="Look up a page by ID or slug.",
         doc_category=DOC_CATEGORY_PAGES,
