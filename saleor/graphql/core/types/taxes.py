@@ -8,7 +8,7 @@ from ....checkout import base_calculations
 from ....checkout.models import Checkout, CheckoutLine
 from ....core.prices import quantize_price
 from ....discount import DiscountType
-from ....discount.utils import is_order_level_voucher
+from ....discount.utils import has_checkout_order_promotion, is_order_level_voucher
 from ....order.models import Order, OrderLine
 from ....order.utils import get_order_country
 from ....tax.utils import get_charge_taxes
@@ -387,7 +387,10 @@ class TaxableObject(BaseObjectType):
                 return (
                     [{"name": discount_name, "amount": checkout.discount}]
                     if checkout.discount
-                    and is_order_level_voucher(checkout_info.voucher)
+                    and (
+                        is_order_level_voucher(checkout_info.voucher)
+                        or has_checkout_order_promotion(checkout_info)
+                    )
                     else []
                 )
 
@@ -402,7 +405,7 @@ class TaxableObject(BaseObjectType):
                 {"name": discount.name, "amount": discount.amount}
                 for discount in discounts
                 if (
-                    discount.type == DiscountType.MANUAL
+                    discount.type in [DiscountType.MANUAL, DiscountType.ORDER_PROMOTION]
                     or is_order_level_voucher(discount.voucher)
                 )
             ]
