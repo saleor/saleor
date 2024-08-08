@@ -189,7 +189,7 @@ def apply_order_discounts(
 ) -> tuple[Money, Money]:
     """Calculate prices after applying order level discounts.
 
-    Handles manual discounts and ENTIRE_ORDER vouchers.
+    Handles manual discounts, ENTIRE_ORDER vouchers and ORDER_PROMOTION.
     Shipping vouchers are included in the base shipping price.
     Specific product vouchers are included in line base prices.
     Entire order vouchers are recalculated and updated in this function
