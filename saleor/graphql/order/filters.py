@@ -22,6 +22,7 @@ from ..core.filters import (
     MetadataFilterBase,
     ObjectTypeFilter,
 )
+from ..core.scalars import UUID as UUIDScalar
 from ..core.types import DateRangeInput, DateTimeRangeInput
 from ..core.utils import from_global_id_or_error
 from ..discount.filters import DiscountedObjectWhere
@@ -214,6 +215,12 @@ def filter_by_order_number(qs, _, values):
     return qs.filter(number__in=values)
 
 
+def filter_by_checkout_tokens(qs, _, values):
+    if not values:
+        return qs
+    return qs.filter(checkout_token__in=values)
+
+
 class DraftOrderFilter(MetadataFilterBase):
     customer = django_filters.CharFilter(method=filter_customer)
     created = ObjectTypeFilter(input_class=DateRangeInput, method=filter_created_range)
@@ -248,6 +255,9 @@ class OrderFilter(DraftOrderFilter):
     )
     is_preorder = django_filters.BooleanFilter(method=filter_is_preorder)
     ids = GlobalIDMultipleChoiceFilter(method=filter_order_by_id)
+    checkout_tokens = ListObjectTypeFilter(
+        input_class=UUIDScalar, method=filter_by_checkout_tokens
+    )
     gift_card_used = django_filters.BooleanFilter(method=filter_gift_card_used)
     gift_card_bought = django_filters.BooleanFilter(method=filter_gift_card_bought)
     numbers = ListObjectTypeFilter(

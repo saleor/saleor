@@ -9,7 +9,7 @@ from ..observability.exceptions import (
     TruncationError,
 )
 from ..observability.payload_schema import ObservabilityEventTypes
-from ..utils import get_webhooks_for_event
+from ..utils import get_webhooks_for_event, get_webhooks_for_multiple_events
 
 
 @pytest.fixture
@@ -140,4 +140,74 @@ def test_truncation_error_extra_fields(
         "bytes_limit": bytes_limit,
         "payload_size": payload_size,
         **kwargs,
+    }
+
+
+def test_get_webhooks_for_multiple_events(
+    async_app_factory, async_type, setup_checkout_webhooks, app, external_app
+):
+    # given
+    (
+        tax_webhook,
+        shipping_webhook,
+        shipping_filter_webhook,
+        checkout_created_webhook,
+    ) = setup_checkout_webhooks(WebhookEventAsyncType.CHECKOUT_CREATED)
+
+    attribute_created_webhook = app.webhooks.create(
+        name="Attribute webhook",
+        target_url="http://127.0.0.1/test",
+    )
+    attribute_created_webhook.events.create(
+        event_type=WebhookEventAsyncType.ATTRIBUTE_CREATED
+    )
+    second_attribute_created_webhook = app.webhooks.create(
+        name="Second attribute webhook",
+        target_url="http://127.0.0.1/test",
+    )
+    second_attribute_created_webhook.events.create(
+        event_type=WebhookEventAsyncType.ATTRIBUTE_CREATED
+    )
+
+    disabled_webhook = app.webhooks.create(
+        name="Attribute webhook", target_url="http://127.0.0.1/test", is_active=False
+    )
+    disabled_webhook.events.create(event_type=WebhookEventAsyncType.ATTRIBUTE_CREATED)
+
+    not_active_app = external_app
+    not_active_app.is_active = False
+    not_active_app.save()
+
+    not_active_webhook = not_active_app.webhooks.create(
+        name="Attribute webhook",
+        target_url="http://127.0.0.1/test",
+    )
+    not_active_webhook.events.create(event_type=WebhookEventAsyncType.ATTRIBUTE_CREATED)
+
+    # when
+    webhook_map = get_webhooks_for_multiple_events(
+        [
+            WebhookEventAsyncType.CHECKOUT_CREATED,
+            WebhookEventAsyncType.ATTRIBUTE_CREATED,
+            WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
+            WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+            WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
+            WebhookEventAsyncType.ORDER_CREATED,
+        ]
+    )
+
+    # then
+    assert dict(webhook_map) == {
+        WebhookEventAsyncType.ANY: set(),
+        WebhookEventAsyncType.ORDER_CREATED: set(),
+        WebhookEventAsyncType.CHECKOUT_CREATED: {checkout_created_webhook},
+        WebhookEventAsyncType.ATTRIBUTE_CREATED: {
+            attribute_created_webhook,
+            second_attribute_created_webhook,
+        },
+        WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES: {tax_webhook},
+        WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT: {shipping_webhook},
+        WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS: {
+            shipping_filter_webhook
+        },
     }

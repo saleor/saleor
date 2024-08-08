@@ -2,6 +2,7 @@ from datetime import timedelta
 
 import pytest
 from django.utils import timezone
+from freezegun import freeze_time
 
 from .....discount import DiscountValueType
 from .....discount.models import Voucher, VoucherCode
@@ -231,5 +232,98 @@ def test_query_vouchers_with_filter_search(
         QUERY_VOUCHERS_WITH_FILTER, variables, permissions=[permission_manage_discounts]
     )
     content = get_graphql_content(response)
+    data = content["data"]["vouchers"]["edges"]
+    assert len(data) == count
+
+
+@freeze_time("2020-03-18 12:00:00")
+@pytest.mark.parametrize(
+    ("start_date", "end_date", "used", "count"),
+    [
+        (
+            timezone.now().replace(year=2018, month=1, day=1),
+            timezone.now().replace(year=2019, month=1, day=1),
+            0,
+            2,
+        ),
+        (
+            timezone.now().replace(year=2023, month=1, day=1),
+            timezone.now().replace(year=2024, month=1, day=1),
+            0,
+            0,
+        ),
+        (
+            timezone.now().replace(year=2023, month=1, day=1),
+            None,
+            0,
+            0,
+        ),
+        (
+            timezone.now().replace(year=2019, month=1, day=1),
+            timezone.now().replace(year=2021, month=1, day=1),
+            0,
+            0,
+        ),
+        (
+            timezone.now().replace(year=2019, month=1, day=1),
+            timezone.now().replace(year=2021, month=1, day=1),
+            2,
+            1,
+        ),
+        (
+            timezone.now().replace(year=2019, month=1, day=1),
+            timezone.now().replace(year=2021, month=1, day=1),
+            110,
+            2,
+        ),
+    ],
+)
+def test_query_vouchers_with_filter_status_expired(
+    start_date,
+    end_date,
+    used,
+    count,
+    staff_api_client,
+    permission_manage_discounts,
+):
+    # given
+    vouchers = Voucher.objects.bulk_create(
+        [
+            Voucher(
+                name="Voucher1",
+                start_date=timezone.now(),
+            ),
+            Voucher(
+                name="Voucher2",
+                start_date=start_date,
+                end_date=end_date,
+                usage_limit=5,
+            ),
+            Voucher(
+                name="Voucher3",
+                start_date=start_date,
+                end_date=end_date,
+                usage_limit=100,
+            ),
+        ]
+    )
+    VoucherCode.objects.bulk_create(
+        [
+            VoucherCode(code="code-A", voucher=vouchers[0]),
+            VoucherCode(code="code-B", voucher=vouchers[0]),
+            VoucherCode(code="code-1", voucher=vouchers[1], used=3),
+            VoucherCode(code="code-2", voucher=vouchers[1], used=used),
+            VoucherCode(code="code-abc", voucher=vouchers[2], used=used),
+        ]
+    )
+    variables = {"filter": {"status": "EXPIRED"}}
+
+    # whne
+    response = staff_api_client.post_graphql(
+        QUERY_VOUCHERS_WITH_FILTER, variables, permissions=[permission_manage_discounts]
+    )
+    content = get_graphql_content(response)
+
+    # then
     data = content["data"]["vouchers"]["edges"]
     assert len(data) == count

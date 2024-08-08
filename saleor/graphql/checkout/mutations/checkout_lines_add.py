@@ -1,5 +1,6 @@
 import graphene
 
+from ....checkout.actions import call_checkout_event_for_checkout_info
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import (
     fetch_checkout_info,
@@ -215,7 +216,13 @@ class CheckoutLinesAdd(BaseMutation):
         update_checkout_external_shipping_method_if_invalid(checkout_info, lines)
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
         invalidate_checkout(checkout_info, lines, manager, save=True)
-        cls.call_event(manager.checkout_updated, checkout)
+        call_checkout_event_for_checkout_info(
+            manager,
+            event_func=manager.checkout_updated,
+            event_name=WebhookEventAsyncType.CHECKOUT_UPDATED,
+            checkout_info=checkout_info,
+            lines=lines,
+        )
 
         return CheckoutLinesAdd(checkout=checkout)
 

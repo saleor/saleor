@@ -578,6 +578,7 @@ def test_order_bulk_create(
     assert db_order.shipping_price_gross_amount == 120
     assert db_order.shipping_price_net_amount == 100
     assert db_order.base_shipping_price_amount == 100
+    assert db_order.undiscounted_base_shipping_price_amount == 100
     assert db_order.total_gross_amount == 120
     assert db_order.total_net_amount == 100
     assert db_order.undiscounted_total_gross_amount == 120
@@ -1030,7 +1031,7 @@ def test_order_bulk_create_multiple_notes(
     assert event_2["message"] == note_2["message"]
     assert event_2["app"]["id"] == note_2["appId"]
 
-    db_events = OrderEvent.objects.all()
+    db_events = OrderEvent.objects.all().order_by("pk")
     db_event_1 = db_events[0]
     assert db_event_1.parameters["message"] == note_1["message"]
     assert db_event_1.user == customer_user
