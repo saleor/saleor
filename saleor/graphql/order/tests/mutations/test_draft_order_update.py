@@ -1504,6 +1504,7 @@ def test_draft_order_update_shipping_method_from_different_channel(
     # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order
+    base_shipping_price = order.base_shipping_price
     order.shipping_address = address_usa
     order.save(update_fields=["shipping_address"])
     query = DRAFT_ORDER_UPDATE_SHIPPING_METHOD_MUTATION
@@ -1525,6 +1526,10 @@ def test_draft_order_update_shipping_method_from_different_channel(
     assert error["code"] == OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
     assert error["field"] == "shippingMethod"
 
+    order.refresh_from_db()
+    assert order.undiscounted_base_shipping_price == base_shipping_price
+    assert order.base_shipping_price == base_shipping_price
+
 
 def test_draft_order_update_shipping_method_prices_updates(
     staff_api_client,
@@ -1541,14 +1546,17 @@ def test_draft_order_update_shipping_method_prices_updates(
     order.shipping_method = shipping_method
     order.save(update_fields=["shipping_address", "shipping_method"])
     assert shipping_method.channel_listings.first().price_amount == 10
+
+    shipping_price = 15
     method_2 = shipping_method_weight_based
     m2_channel_listing = method_2.channel_listings.first()
-    m2_channel_listing.price_amount = 15
+    m2_channel_listing.price_amount = shipping_price
     m2_channel_listing.save(update_fields=["price_amount"])
     query = DRAFT_ORDER_UPDATE_SHIPPING_METHOD_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
     shipping_method_id = graphene.Node.to_global_id("ShippingMethod", method_2.id)
     variables = {"id": order_id, "shippingMethod": shipping_method_id}
+
     # when
     response = staff_api_client.post_graphql(query, variables)
 
@@ -1560,6 +1568,10 @@ def test_draft_order_update_shipping_method_prices_updates(
     assert not data["errors"]
     assert data["order"]["shippingMethodName"] == method_2.name
     assert data["order"]["shippingPrice"]["net"]["amount"] == 15.0
+
+    order.refresh_from_db()
+    assert order.undiscounted_base_shipping_price_amount == shipping_price
+    assert order.base_shipping_price_amount == shipping_price
 
 
 def test_draft_order_update_shipping_method_clear_with_none(
@@ -1596,6 +1608,9 @@ def test_draft_order_update_shipping_method_clear_with_none(
     assert data["order"]["shippingPrice"] == zero_shipping_price_data
     assert data["order"]["shippingTaxRate"] == 0.0
     assert order.shipping_method is None
+
+    assert order.undiscounted_base_shipping_price == zero_money(order.currency)
+    assert order.base_shipping_price == zero_money(order.currency)
 
 
 def test_draft_order_update_shipping_method(
@@ -1641,7 +1656,7 @@ def test_draft_order_update_shipping_method(
 
     assert order.base_shipping_price == shipping_total
     assert order.shipping_method == shipping_method
-    assert order.base_shipping_price == shipping_total
+    assert order.undiscounted_base_shipping_price == shipping_total
     assert order.shipping_price_net == shipping_price.net
     assert order.shipping_price_gross == shipping_price.gross
 

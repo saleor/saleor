@@ -189,3 +189,14 @@ def _clear_checkout_discount(
                         "translated_discount_name",
                     ]
                 )
+
+
+def has_checkout_order_promotion(checkout_info: "CheckoutInfo") -> bool:
+    return next(
+        (
+            True
+            for discount in checkout_info.discounts
+            if discount.type == DiscountType.ORDER_PROMOTION
+        ),
+        False,
+    )

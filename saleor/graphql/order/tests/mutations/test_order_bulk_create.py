@@ -578,6 +578,7 @@ def test_order_bulk_create(
     assert db_order.shipping_price_gross_amount == 120
     assert db_order.shipping_price_net_amount == 100
     assert db_order.base_shipping_price_amount == 100
+    assert db_order.undiscounted_base_shipping_price_amount == 100
     assert db_order.total_gross_amount == 120
     assert db_order.total_net_amount == 100
     assert db_order.undiscounted_total_gross_amount == 120

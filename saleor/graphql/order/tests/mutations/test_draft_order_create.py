@@ -250,6 +250,7 @@ def test_draft_order_create_with_voucher_entire_order(
         channel_id=order.channel_id
     ).get_total()
     assert order.base_shipping_price == shipping_total
+    assert order.undiscounted_base_shipping_price == shipping_total
 
     # Ensure the correct event was created
     created_draft_event = OrderEvent.objects.get(
@@ -546,6 +547,7 @@ def test_draft_order_create_with_voucher_code(
     assert order.search_vector
     assert order.external_reference == external_reference
     assert order.base_shipping_price == shipping_total
+    assert order.undiscounted_base_shipping_price == shipping_total
 
     # Ensure the correct event was created
     created_draft_event = OrderEvent.objects.get(
@@ -665,6 +667,7 @@ def test_draft_order_create_percentage_voucher(
     assert order.shipping_method == shipping_method
     assert order.shipping_method_name == shipping_method.name
     assert order.base_shipping_price == shipping_total
+    assert order.undiscounted_base_shipping_price == shipping_total
 
     # Ensure the correct event was created
     created_draft_event = OrderEvent.objects.get(
@@ -795,6 +798,7 @@ def test_draft_order_create_with_voucher_specific_product(
         channel_id=order.channel_id
     ).get_total()
     assert order.base_shipping_price == shipping_total
+    assert order.undiscounted_base_shipping_price == shipping_total
 
     lines_data = data["lines"]
     discounted_line_data, line_1_data = lines_data
@@ -936,6 +940,7 @@ def test_draft_order_create_with_voucher_apply_once_per_order(
         channel_id=order.channel_id
     ).get_total()
     assert order.base_shipping_price == shipping_total
+    assert order.undiscounted_base_shipping_price == shipping_total
 
     lines_data = data["lines"]
     discounted_line_data, line_1_data = lines_data
@@ -1517,6 +1522,7 @@ def test_draft_order_create_with_same_variant_and_force_new_line(
         channel_id=order.channel_id
     ).get_total()
     assert order.base_shipping_price == shipping_total
+    assert order.undiscounted_base_shipping_price == shipping_total
 
     # Ensure the correct event was created
     created_draft_event = OrderEvent.objects.get(
@@ -1612,6 +1618,7 @@ def test_draft_order_create_with_inactive_channel(
         channel_id=order.channel_id
     ).get_total()
     assert order.base_shipping_price == shipping_total
+    assert order.undiscounted_base_shipping_price == shipping_total
 
     # Ensure the correct event was created
     created_draft_event = OrderEvent.objects.get(
@@ -1700,6 +1707,7 @@ def test_draft_order_create_without_sku(
         channel_id=order.channel_id
     ).get_total()
     assert order.base_shipping_price == shipping_total
+    assert order.undiscounted_base_shipping_price == shipping_total
 
     order_line = order.lines.get(variant=variant)
     assert order_line.product_sku is None
@@ -1771,6 +1779,7 @@ def test_draft_order_create_variant_with_0_price(
         channel_id=order.channel_id
     ).get_total()
     assert order.base_shipping_price == shipping_total
+    assert order.undiscounted_base_shipping_price == shipping_total
 
     # Ensure the correct event was created
     created_draft_event = OrderEvent.objects.get(
@@ -2242,6 +2251,7 @@ def test_draft_order_create_with_channel(
         channel_id=order.channel_id
     ).get_total()
     assert order.base_shipping_price == shipping_total
+    assert order.undiscounted_base_shipping_price == shipping_total
 
     # Ensure the correct event was created
     created_draft_event = OrderEvent.objects.get(
@@ -2316,6 +2326,7 @@ def test_draft_order_create_product_without_shipping(
     assert order.shipping_method == shipping_method
     assert order.shipping_address.first_name == graphql_address_data["firstName"]
     assert order.base_shipping_price == Money(0, "USD")
+    assert order.undiscounted_base_shipping_price == Money(0, "USD")
 
     # Ensure the correct event was created
     created_draft_event = OrderEvent.objects.get(
@@ -3462,6 +3473,7 @@ def test_draft_order_create_create_no_shipping_method(
     order = Order.objects.get(id=order_pk)
     assert order.undiscounted_base_shipping_price_amount == 0
     assert order.base_shipping_price_amount == 0
+    assert order.undiscounted_base_shipping_price_amount == 0
 
 
 def test_draft_order_create_voucher_exceed_usage_limit(

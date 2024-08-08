@@ -48,6 +48,7 @@ def test_order_update_shipping(
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
     order.base_shipping_price = zero_money(order.currency)
+    order.undiscounted_base_shipping_price = zero_money(order.currency)
     order.status = status
     order.save()
     assert order.shipping_method != shipping_method
@@ -69,6 +70,7 @@ def test_order_update_shipping(
     assert order.status == status
     assert order.shipping_method == shipping_method
     assert order.base_shipping_price == shipping_total
+    assert order.undiscounted_base_shipping_price == shipping_total
     assert order.shipping_price_net == shipping_price.net
     assert order.shipping_price_gross == shipping_price.gross
     assert order.shipping_tax_rate == Decimal("0.0")
