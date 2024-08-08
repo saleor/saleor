@@ -447,6 +447,12 @@ class Transaction(models.Model):
 
     class Meta:
         ordering = ("pk",)
+        indexes = [
+            GinIndex(
+                name="token_idx",
+                fields=["token"],
+            ),
+        ]
 
     def __repr__(self):
         return (
