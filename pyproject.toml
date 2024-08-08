@@ -30,7 +30,7 @@ documentation = "https://docs.saleor.io/"
   cryptography = "^42.0.5"
   dj-database-url = "^2"
   dj-email-url = "^1"
-  django = {version = "^3.2.24", extras = ["bcrypt"]}
+  django = {version = "^4.2", extras = ["bcrypt"]}
   django-cache-url = "^3.1.2"
   django-celery-beat = "^2.2.1"
   django-countries = "^7.2"
@@ -39,7 +39,6 @@ documentation = "https://docs.saleor.io/"
   django-mptt = "^0"
   django-phonenumber-field = ">=4,<8"
   django-prices = "^2.3"
-  django-redis = "^5.0.0"
   django-stubs-ext = "^4.2.1"
   draftjs-sanitizer = "^1.0.0"
   faker = ">=26.0.0,<27.0"
@@ -66,7 +65,6 @@ documentation = "https://docs.saleor.io/"
   posuto = "^2024.7.0"
   prices = "^1.0"
   promise = "^2.3"
-  psycopg2 = "^2.8.3"
   pybars3 = "^0.9.7"
   pyjwt = "2.5.0" # Version 2.6.0 changed iat validation which causes tests to fail: https://github.com/saleor/saleor/issues/11047
   python-dateutil = "^2.8.2"
@@ -88,6 +86,7 @@ documentation = "https://docs.saleor.io/"
   uvicorn = {extras = ["standard"], version = "^0.23.1"}
   weasyprint = ">=53.0" # libpango >=1.44 is required
   setuptools = "^70.1.0"
+  psycopg = {version = "^3.1.8", extras = ["binary"]}
 
     [tool.poetry.dependencies.celery]
     version = ">=4.4.5,<6.0.0"
@@ -154,7 +153,7 @@ extend_exclude = ["conftest\\.py", ".*/conftest\\.py", ".*/tests/.*"]
 
   [tool.deptry.per_rule_ignores]
   DEP001 = ["pkg_resources"]
-  DEP002 = ["azure-common", "azure-storage-blob", "azure-storage-common", "django-redis", "gunicorn", "psycopg2"]
+  DEP002 = ["azure-common", "azure-storage-blob", "azure-storage-common", "gunicorn", "psycopg"]
   DEP004 = ["debug_toolbar", "graphiql_debug_toolbar"]
 
 [tool.ruff]
