@@ -46,7 +46,7 @@ class PromotionTranslate(BaseTranslateMutation):
         instance = cls.get_node_or_error(info, node_id, only_type=model_type)
         cls.validate_input(input)
 
-        input = cls.pre_update_or_create(instance, input)
+        input = cls.pre_update_or_create(instance, input, language_code)
         translation, created = instance.translations.update_or_create(
             language_code=language_code, defaults=input
         )

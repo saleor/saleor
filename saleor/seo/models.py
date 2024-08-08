@@ -23,6 +23,7 @@ class SeoModelTranslation(Translation):
     seo_description = models.CharField(
         max_length=300, blank=True, null=True, validators=[MaxLengthValidator(300)]
     )
+    slug = models.SlugField(max_length=255, allow_unicode=True, null=True)
 
     class Meta:
         abstract = True
@@ -31,4 +32,5 @@ class SeoModelTranslation(Translation):
         return {
             "seo_title": self.seo_title,
             "seo_description": self.seo_description,
+            "slug": self.slug,
         }

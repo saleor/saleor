@@ -12,11 +12,12 @@ from ..core.connection import create_connection_slice, filter_connection_queryse
 from ..core.descriptions import (
     ADDED_IN_310,
     ADDED_IN_314,
+    ADDED_IN_321,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
 from ..core.doc_category import DOC_CATEGORY_PRODUCTS
-from ..core.enums import ReportingPeriod
+from ..core.enums import LanguageCodeEnum, ReportingPeriod
 from ..core.fields import (
     BaseField,
     ConnectionField,
@@ -112,8 +113,10 @@ from .mutations.digital_contents import (
 )
 from .resolvers import (
     resolve_categories,
+    resolve_category_by_translated_slug,
     resolve_collection_by_id,
     resolve_collection_by_slug,
+    resolve_collection_by_translated_slug,
     resolve_collections,
     resolve_digital_content_by_id,
     resolve_digital_contents,
@@ -187,6 +190,10 @@ class ProductQueries(graphene.ObjectType):
         Category,
         id=graphene.Argument(graphene.ID, description="ID of the category."),
         slug=graphene.Argument(graphene.String, description="Slug of the category"),
+        slug_language_code=graphene.Argument(
+            LanguageCodeEnum,
+            description="Language code of the category slug, omit to use primary slug." + ADDED_IN_321,
+        ),
         description="Look up a category by ID or slug.",
         doc_category=DOC_CATEGORY_PRODUCTS,
     )
@@ -196,13 +203,18 @@ class ProductQueries(graphene.ObjectType):
             graphene.ID,
             description="ID of the collection.",
         ),
-        slug=graphene.Argument(graphene.String, description="Slug of the category"),
+        slug=graphene.Argument(graphene.String, description="Slug of the collection"),
+        slug_language_code=graphene.Argument(
+            LanguageCodeEnum,
+            description="Language code of the collection slug, omit to use primary slug." + ADDED_IN_321,
+        ),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
         description=(
-            "Look up a collection by ID. Requires one of the following permissions to "
-            "include the unpublished items: "
+            "Look up a collection by ID or slug. If slugLanguageCode is provided, "
+            "category will be fetched by slug translation. Requires one of the "
+            "following permissions to include the unpublished items: "
             f"{', '.join([p.name for p in ALL_PRODUCTS_PERMISSIONS])}."
         ),
         doc_category=DOC_CATEGORY_PRODUCTS,
@@ -231,6 +243,10 @@ class ProductQueries(graphene.ObjectType):
             description="ID of the product.",
         ),
         slug=graphene.Argument(graphene.String, description="Slug of the product."),
+        slug_language_code=graphene.Argument(
+            LanguageCodeEnum,
+            description="Language code of the product slug, omit to use primary slug." + ADDED_IN_321,
+        ),
         external_reference=graphene.Argument(
             graphene.String, description=f"External ID of the product. {ADDED_IN_310}"
         ),
@@ -349,7 +365,15 @@ class ProductQueries(graphene.ObjectType):
         return create_connection_slice(qs, info, kwargs, CategoryCountableConnection)
 
     @staticmethod
-    def resolve_category(_root, info: ResolveInfo, *, id=None, slug=None, **kwargs):
+    def resolve_category(
+        _root,
+        info: ResolveInfo,
+        *,
+        id=None,
+        slug=None,
+        slug_language_code=None,
+        **kwargs,
+    ):
         validate_one_of_args_is_in_query("id", id, "slug", slug)
         if id:
             _, id = from_global_id_or_error(id, Category)
@@ -358,12 +382,22 @@ class ProductQueries(graphene.ObjectType):
                 return CategoryByIdLoader(info.context).load(int(id))
             return None
         if slug:
+            if slug_language_code:
+                return resolve_category_by_translated_slug(
+                    info, slug, slug_language_code
+                )
             return CategoryBySlugLoader(info.context).load(slug)
 
     @staticmethod
     @traced_resolver
     def resolve_collection(
-        _root, info: ResolveInfo, *, id=None, slug=None, channel=None
+        _root,
+        info: ResolveInfo,
+        *,
+        id=None,
+        slug=None,
+        channel=None,
+        slug_language_code=None,
     ):
         validate_one_of_args_is_in_query("id", id, "slug", slug)
         requestor = get_user_or_app_from_context(info.context)
@@ -371,6 +405,7 @@ class ProductQueries(graphene.ObjectType):
         has_required_permissions = has_one_of_permissions(
             requestor, ALL_PRODUCTS_PERMISSIONS
         )
+
         if channel is None and not has_required_permissions:
             channel = get_default_channel_slug_or_graphql_error(
                 allow_replica=info.context.allow_replica
@@ -379,9 +414,18 @@ class ProductQueries(graphene.ObjectType):
             _, id = from_global_id_or_error(id, Collection)
             collection = resolve_collection_by_id(info, id, channel, requestor)
         else:
-            collection = resolve_collection_by_slug(
-                info, slug=slug, channel_slug=channel, requestor=requestor
-            )
+            if slug_language_code is None:
+                collection = resolve_collection_by_slug(
+                    info, slug=slug, channel_slug=channel, requestor=requestor
+                )
+            else:
+                collection = resolve_collection_by_translated_slug(
+                    info,
+                    slug=slug,
+                    channel_slug=channel,
+                    slug_language_code=slug_language_code,
+                    requestor=requestor,
+                )
         return (
             ChannelContext(node=collection, channel_slug=channel)
             if collection
@@ -425,6 +469,7 @@ class ProductQueries(graphene.ObjectType):
         *,
         id=None,
         slug=None,
+        slug_language_code=None,
         external_reference=None,
         channel=None,
     ):
@@ -448,6 +493,7 @@ class ProductQueries(graphene.ObjectType):
                 info,
                 id=id,
                 slug=slug,
+                slug_language_code=slug_language_code,
                 external_reference=external_reference,
                 channel=channel_obj,
                 limited_channel_access=limited_channel_access,

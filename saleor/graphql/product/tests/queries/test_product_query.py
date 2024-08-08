@@ -14,19 +14,21 @@ from .....core.units import WeightUnits
 from .....product.models import (
     Product,
     ProductChannelListing,
+    ProductTranslation,
     ProductVariantChannelListing,
 )
 from .....tests.utils import dummy_editorjs
 from .....thumbnail.models import Thumbnail
 from .....warehouse.models import Allocation, Stock
-from ....core.enums import ThumbnailFormatEnum
+from ....core.enums import LanguageCodeEnum, ThumbnailFormatEnum
 from ....tests.utils import get_graphql_content, get_graphql_content_from_response
 
 QUERY_PRODUCT = """
-    query ($id: ID, $slug: String, $channel:String){
+    query ($id: ID, $slug: String, $slugLanguageCode: LanguageCodeEnum, $channel:String){
         product(
             id: $id,
             slug: $slug,
+            slugLanguageCode: $slugLanguageCode,
             channel: $channel
         ) {
             id
@@ -849,7 +851,7 @@ def test_product_query_by_id_weight_is_rounded(
     assert product_data["weight"]["unit"] == WeightUnits.KG.upper()
 
 
-def test_product_query_by_slug(user_api_client, product, channel_USD):
+def test_product_query_by_id_unpublished(user_api_client, product, channel_USD):
     variables = {
         "id": graphene.Node.to_global_id("Product", product.pk),
         "channel": channel_USD.slug,
@@ -862,6 +864,25 @@ def test_product_query_by_slug(user_api_client, product, channel_USD):
     content = get_graphql_content(response)
     product_data = content["data"]["product"]
     assert product_data is None
+
+
+def test_product_query_by_translated_slug(
+    user_api_client, product, product_translation_fr, channel_USD
+):
+    slug = "french-name"
+    variables = {
+        "slug": slug,
+        "slugLanguageCode": LanguageCodeEnum.FR.name,
+        "channel": channel_USD.slug,
+    }
+    ProductTranslation.objects.filter(
+        product=product, language_code=LanguageCodeEnum.FR.value
+    ).update(slug=slug)
+
+    response = user_api_client.post_graphql(QUERY_PRODUCT, variables=variables)
+    content = get_graphql_content(response)
+    product_data = content["data"]["product"]
+    assert product_data["name"] == product.name
 
 
 def test_product_query_by_id_not_existing_in_channel_as_customer(
@@ -1067,6 +1088,28 @@ def test_product_query_by_slug_not_available_as_customer(
         "slug": product.slug,
         "channel": channel_USD.slug,
     }
+    ProductChannelListing.objects.filter(product=product, channel=channel_USD).update(
+        is_published=False
+    )
+
+    response = user_api_client.post_graphql(QUERY_PRODUCT, variables=variables)
+    content = get_graphql_content(response)
+    product_data = content["data"]["product"]
+    assert product_data is None
+
+
+def test_product_query_by_translated_slug_not_available_as_customer(
+    user_api_client, product, product_translation_fr, channel_USD
+):
+    slug = "french-name"
+    variables = {
+        "slug": slug,
+        "slugLanguageCode": LanguageCodeEnum.FR.name,
+        "channel": channel_USD.slug,
+    }
+    ProductTranslation.objects.filter(
+        product=product, language_code=LanguageCodeEnum.FR.value
+    ).update(slug=slug)
     ProductChannelListing.objects.filter(product=product, channel=channel_USD).update(
         is_published=False
     )

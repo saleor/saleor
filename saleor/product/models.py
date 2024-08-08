@@ -95,6 +95,17 @@ class CategoryTranslation(SeoModelTranslation):
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 
     class Meta:
+        indexes = [
+            BTreeIndex(
+                fields=["language_code", "slug"], name="categorytranslation_slug_idx"
+            ),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["language_code", "slug"],
+                name="categorytranslation_slug_unique",
+            ),
+        ]
         unique_together = (("language_code", "category"),)
 
     def __str__(self) -> str:
@@ -267,6 +278,17 @@ class ProductTranslation(SeoModelTranslation):
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 
     class Meta:
+        indexes = [
+            BTreeIndex(
+                fields=["language_code", "slug"], name="producttranslation_slug_idx"
+            ),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["language_code", "slug"],
+                name="producttranslation_slug_unique",
+            ),
+        ]
         unique_together = (("language_code", "product"),)
 
     def __str__(self) -> str:
@@ -717,6 +739,17 @@ class CollectionTranslation(SeoModelTranslation):
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 
     class Meta:
+        indexes = [
+            BTreeIndex(
+                fields=["language_code", "slug"], name="collectiontranslation_slug_idx"
+            ),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["language_code", "slug"],
+                name="collectiontranslation_slug_unique",
+            ),
+        ]
         unique_together = (("language_code", "collection"),)
 
     def __repr__(self):

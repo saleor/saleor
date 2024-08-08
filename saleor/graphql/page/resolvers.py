@@ -6,17 +6,28 @@ from ..utils import get_user_or_app_from_context
 from .types import Page
 
 
-def resolve_page(info, global_page_id=None, slug=None):
+def resolve_page(info, global_page_id=None, slug=None, slug_language_code=None):
     validate_one_of_args_is_in_query("id", global_page_id, "slug", slug)
     requestor = get_user_or_app_from_context(info.context)
 
     if slug is not None:
-        page = (
-            models.Page.objects.using(get_database_connection_name(info.context))
-            .visible_to_user(requestor)
-            .filter(slug=slug)
-            .first()
-        )
+        if slug_language_code is None:
+            page = (
+                models.Page.objects.using(get_database_connection_name(info.context))
+                .visible_to_user(requestor)
+                .filter(slug=slug)
+                .first()
+            )
+        else:
+            page = (
+                models.Page.objects.using(get_database_connection_name(info.context))
+                .visible_to_user(requestor)
+                .filter(
+                    translations__slug=slug,
+                    translations__language_code=slug_language_code,
+                )
+                .first()
+            )
     else:
         _type, page_pk = from_global_id_or_error(global_page_id, Page)
         page = (
