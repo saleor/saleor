@@ -89,6 +89,7 @@ def get_variants_for_promotion(
                     for variant in variants
                 ]
             )
+
     if promotion_rule_variants:
         update_rule_variant_relation(rules, promotion_rule_variants)
 

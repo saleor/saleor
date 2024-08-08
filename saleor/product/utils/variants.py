@@ -69,5 +69,4 @@ def fetch_variants_for_promotion_rules(
                 for variant_id in set(variants.values_list("pk", flat=True))
             ]
         )
-    update_rule_variant_relation(rules, new_rules_variants)
-    return new_rules_variants
+    return update_rule_variant_relation(rules, new_rules_variants)
