@@ -223,6 +223,16 @@ class User(
                 fields=["private_metadata"],
                 opclasses=["jsonb_path_ops"],
             ),
+            GinIndex(
+                fields=["first_name"],
+                name="first_name_gin",
+                opclasses=["gin_trgm_ops"],
+            ),
+            GinIndex(
+                fields=["last_name"],
+                name="last_name_gin",
+                opclasses=["gin_trgm_ops"],
+            ),
         ]
 
     def __init__(self, *args, **kwargs):
