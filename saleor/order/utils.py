@@ -683,8 +683,11 @@ def get_valid_shipping_methods_for_order(
     if not valid_methods:
         return []
 
-    excluded_methods = manager.excluded_shipping_methods_for_order(order, valid_methods)
-    initialize_shipping_method_active_status(valid_methods, excluded_methods)
+    if order.status in ORDER_EDITABLE_STATUS:
+        excluded_methods = manager.excluded_shipping_methods_for_order(
+            order, valid_methods
+        )
+        initialize_shipping_method_active_status(valid_methods, excluded_methods)
 
     return valid_methods
 
