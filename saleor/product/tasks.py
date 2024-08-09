@@ -39,7 +39,7 @@ VARIANTS_UPDATE_BATCH = 500
 # Results in update time ~0.2s
 DISCOUNTED_PRODUCT_BATCH = 2000
 # Results in update time ~2s when 600 channels exist
-PROMOTION_RULE_BATCH_SIZE = 100
+PROMOTION_RULE_BATCH_SIZE = 50
 
 
 def _variants_in_batches(variants_qs):
@@ -139,7 +139,12 @@ def _get_channel_to_products_map(rule_to_variant_list):
     for rule_to_variant in rule_to_variant_list:
         channel_ids = rule_to_channels_map[rule_to_variant.promotionrule_id]
         for channel_id in channel_ids:
-            product_id = variant_id_to_product_id_map[rule_to_variant.productvariant_id]
+            try:
+                product_id = variant_id_to_product_id_map[
+                    rule_to_variant.productvariant_id
+                ]
+            except KeyError:
+                continue
             channel_to_products_map[channel_id].add(product_id)
 
     return channel_to_products_map
