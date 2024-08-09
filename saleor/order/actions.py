@@ -3,7 +3,7 @@ from collections import defaultdict
 from collections.abc import Iterable
 from copy import deepcopy
 from decimal import Decimal
-from typing import TYPE_CHECKING, Callable, Optional, TypedDict
+from typing import TYPE_CHECKING, Optional, TypedDict
 from uuid import UUID
 
 from django.conf import settings
@@ -31,6 +31,7 @@ from ..payment import (
 from ..payment.interface import RefundData
 from ..payment.models import Payment, Transaction, TransactionItem
 from ..payment.utils import create_payment, create_transaction_for_order
+from ..plugins.manager import PluginsManager
 from ..shipping.models import ShippingMethodChannelListing
 from ..warehouse.management import (
     deallocate_stock,
@@ -80,7 +81,6 @@ from .utils import (
 
 if TYPE_CHECKING:
     from ..app.models import App
-    from ..plugins.manager import PluginsManager
     from ..site.models import SiteSettings
     from ..warehouse.models import Warehouse
     from ..webhook.models import Webhook
@@ -140,16 +140,38 @@ WEBHOOK_EVENTS_FOR_ORDER_CREATED = {
     WebhookEventAsyncType.ORDER_CREATED,
 }.union(WEBHOOK_EVENTS_FOR_ORDER_CHARGED).union(WEBHOOK_EVENTS_FOR_ORDER_CONFIRMED)
 
+ORDER_WEBHOOK_EVENT_MAP = {
+    WebhookEventAsyncType.ORDER_CREATED: PluginsManager.order_created.__name__,
+    WebhookEventAsyncType.ORDER_UPDATED: PluginsManager.order_updated.__name__,
+    WebhookEventAsyncType.ORDER_REFUNDED: PluginsManager.order_refunded.__name__,
+    WebhookEventAsyncType.ORDER_CONFIRMED: PluginsManager.order_confirmed.__name__,
+    WebhookEventAsyncType.ORDER_CANCELLED: PluginsManager.order_cancelled.__name__,
+    WebhookEventAsyncType.ORDER_METADATA_UPDATED: PluginsManager.order_metadata_updated.__name__,
+    WebhookEventAsyncType.ORDER_FULLY_REFUNDED: PluginsManager.order_fully_refunded.__name__,
+    WebhookEventAsyncType.ORDER_FULLY_PAID: PluginsManager.order_fully_paid.__name__,
+    WebhookEventAsyncType.ORDER_PAID: PluginsManager.order_paid.__name__,
+    WebhookEventAsyncType.ORDER_FULFILLED: PluginsManager.order_fulfilled.__name__,
+    WebhookEventAsyncType.ORDER_EXPIRED: PluginsManager.order_expired.__name__,
+    WebhookEventAsyncType.DRAFT_ORDER_DELETED: PluginsManager.draft_order_deleted.__name__,
+    WebhookEventAsyncType.DRAFT_ORDER_CREATED: PluginsManager.draft_order_created.__name__,
+    WebhookEventAsyncType.DRAFT_ORDER_UPDATED: PluginsManager.draft_order_updated.__name__,
+}
+
 
 def call_order_event(
     manager: "PluginsManager",
-    event_func: Callable,
     event_name: str,
     order: "Order",
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
     webhook_event_map: Optional[dict[str, set["Webhook"]]] = None,
     **event_kwargs,
 ):
+    if event_name not in ORDER_WEBHOOK_EVENT_MAP:
+        raise ValueError(f"Event {event_name} not found in ORDER_WEBHOOK_EVENT_MAP.")
+
+    plugin_manager_method_name = ORDER_WEBHOOK_EVENT_MAP[event_name]
+    event_func = getattr(manager, plugin_manager_method_name)
+
     if order.status not in ORDER_EDITABLE_STATUS:
         call_event_including_protected_events(event_func, order, **event_kwargs)
         return
@@ -208,7 +230,6 @@ def order_created(
 
     call_order_event(
         manager,
-        manager.order_created,
         WebhookEventAsyncType.ORDER_CREATED,
         order,
         webhook_event_map=webhook_event_map,
@@ -257,7 +278,6 @@ def order_confirmed(
     events.order_confirmed_event(order=order, user=user, app=app)
     call_order_event(
         manager,
-        manager.order_confirmed,
         WebhookEventAsyncType.ORDER_CONFIRMED,
         order,
         webhook_event_map=webhook_event_map,
@@ -298,14 +318,12 @@ def handle_fully_paid_order(
 
     call_order_event(
         manager,
-        manager.order_fully_paid,
         WebhookEventAsyncType.ORDER_FULLY_PAID,
         order,
         webhook_event_map=webhook_event_map,
     )
     call_order_event(
         manager,
-        manager.order_updated,
         WebhookEventAsyncType.ORDER_UPDATED,
         order,
         webhook_event_map=webhook_event_map,
@@ -335,7 +353,6 @@ def cancel_order(
             )
         call_order_event(
             manager,
-            manager.order_cancelled,
             WebhookEventAsyncType.ORDER_CANCELLED,
             order,
             webhook_event_map=webhook_event_map,
@@ -345,7 +362,6 @@ def cancel_order(
         )
         call_order_event(
             manager,
-            manager.order_updated,
             WebhookEventAsyncType.ORDER_UPDATED,
             order,
             webhook_event_map=webhook_event_map,
@@ -391,7 +407,6 @@ def order_refunded(
 
     call_order_event(
         manager,
-        manager.order_refunded,
         WebhookEventAsyncType.ORDER_REFUNDED,
         order,
         webhook_event_map=webhook_event_map,
@@ -399,7 +414,6 @@ def order_refunded(
     if trigger_order_updated:
         call_order_event(
             manager,
-            manager.order_updated,
             WebhookEventAsyncType.ORDER_UPDATED,
             order,
             webhook_event_map=webhook_event_map,
@@ -426,7 +440,6 @@ def order_refunded(
     if total_refunded >= order.total.gross.amount:
         call_order_event(
             manager,
-            manager.order_fully_refunded,
             WebhookEventAsyncType.ORDER_FULLY_REFUNDED,
             order,
             webhook_event_map=webhook_event_map,
@@ -441,9 +454,7 @@ def order_voided(
     manager: "PluginsManager",
 ):
     events.payment_voided_event(order=order, user=user, app=app, payment=payment)
-    call_order_event(
-        manager, manager.order_updated, WebhookEventAsyncType.ORDER_UPDATED, order
-    )
+    call_order_event(manager, WebhookEventAsyncType.ORDER_UPDATED, order)
 
 
 def order_returned(
@@ -491,7 +502,6 @@ def order_fulfilled(
         )
         call_order_event(
             manager,
-            manager.order_updated,
             WebhookEventAsyncType.ORDER_UPDATED,
             order,
             webhook_event_map=webhook_event_map,
@@ -502,7 +512,6 @@ def order_fulfilled(
         if order.status == OrderStatus.FULFILLED:
             call_order_event(
                 manager,
-                manager.order_fulfilled,
                 WebhookEventAsyncType.ORDER_FULFILLED,
                 order,
                 webhook_event_map=webhook_event_map,
@@ -528,9 +537,7 @@ def order_awaits_fulfillment_approval(
     events.fulfillment_awaits_approval_event(
         order=order, user=user, app=app, fulfillment_lines=fulfillment_lines
     )
-    call_order_event(
-        manager, manager.order_updated, WebhookEventAsyncType.ORDER_UPDATED, order
-    )
+    call_order_event(manager, WebhookEventAsyncType.ORDER_UPDATED, order)
 
 
 def order_authorized(
@@ -547,7 +554,6 @@ def order_authorized(
     )
     call_order_event(
         manager,
-        manager.order_updated,
         WebhookEventAsyncType.ORDER_UPDATED,
         order,
         webhook_event_map=webhook_event_map,
@@ -577,7 +583,6 @@ def order_charged(
 
     call_order_event(
         manager,
-        manager.order_paid,
         WebhookEventAsyncType.ORDER_PAID,
         order,
         webhook_event_map=webhook_event_map,
@@ -595,7 +600,6 @@ def order_charged(
     else:
         call_order_event(
             manager,
-            manager.order_updated,
             WebhookEventAsyncType.ORDER_UPDATED,
             order,
             webhook_event_map=webhook_event_map,
@@ -668,7 +672,6 @@ def order_transaction_updated(
     if order_updated:
         call_order_event(
             manager,
-            manager.order_updated,
             WebhookEventAsyncType.ORDER_UPDATED,
             order_info.order,
             webhook_event_map=webhook_event_map,
@@ -692,7 +695,6 @@ def fulfillment_tracking_updated(
     call_event(manager.tracking_number_updated, fulfillment)
     call_order_event(
         manager,
-        manager.order_updated,
         WebhookEventAsyncType.ORDER_UPDATED,
         fulfillment.order,
     )
@@ -729,7 +731,6 @@ def cancel_fulfillment(
         call_event(manager.fulfillment_canceled, fulfillment)
         call_order_event(
             manager,
-            manager.order_updated,
             WebhookEventAsyncType.ORDER_UPDATED,
             fulfillment.order,
         )
@@ -763,7 +764,6 @@ def cancel_waiting_fulfillment(
         call_event(manager.fulfillment_canceled, fulfillment)
         call_order_event(
             manager,
-            manager.order_updated,
             WebhookEventAsyncType.ORDER_UPDATED,
             fulfillment.order,
         )
@@ -848,7 +848,6 @@ def approve_fulfillment(
         )
         call_order_event(
             manager,
-            manager.order_updated,
             WebhookEventAsyncType.ORDER_UPDATED,
             order,
             webhook_event_map=webhook_event_map,
@@ -857,7 +856,6 @@ def approve_fulfillment(
         if order.status == OrderStatus.FULFILLED:
             call_order_event(
                 manager,
-                manager.order_fulfilled,
                 WebhookEventAsyncType.ORDER_FULFILLED,
                 order,
                 webhook_event_map=webhook_event_map,
@@ -906,13 +904,10 @@ def mark_order_as_paid_with_transaction(
         )
         call_order_event(
             manager,
-            manager.order_fully_paid,
             WebhookEventAsyncType.ORDER_FULLY_PAID,
             order,
         )
-        call_order_event(
-            manager, manager.order_updated, WebhookEventAsyncType.ORDER_UPDATED, order
-        )
+        call_order_event(manager, WebhookEventAsyncType.ORDER_UPDATED, order)
 
 
 def mark_order_as_paid_with_payment(
@@ -971,14 +966,12 @@ def mark_order_as_paid_with_payment(
         )
         call_order_event(
             manager,
-            manager.order_fully_paid,
             WebhookEventAsyncType.ORDER_FULLY_PAID,
             order,
             webhook_event_map=webhook_event_map,
         )
         call_order_event(
             manager,
-            manager.order_updated,
             WebhookEventAsyncType.ORDER_UPDATED,
             order,
             webhook_event_map=webhook_event_map,
@@ -1534,9 +1527,7 @@ def create_refund_fulfillment(
                 FulfillmentStatus.WAITING_FOR_APPROVAL,
             ],
         ).delete()
-        call_order_event(
-            manager, manager.order_updated, WebhookEventAsyncType.ORDER_UPDATED, order
-        )
+        call_order_event(manager, WebhookEventAsyncType.ORDER_UPDATED, order)
 
     return refunded_fulfillment
 
@@ -1900,9 +1891,7 @@ def create_fulfillments_for_returned_products(
             ],
         ).delete()
 
-        call_order_event(
-            manager, manager.order_updated, WebhookEventAsyncType.ORDER_UPDATED, order
-        )
+        call_order_event(manager, WebhookEventAsyncType.ORDER_UPDATED, order)
     return return_fulfillment, replace_fulfillment, new_order
 
 
