@@ -86,6 +86,7 @@ from ..discount.utils.voucher import (
 )
 from ..giftcard import GiftCardEvents
 from ..giftcard.models import GiftCard, GiftCardEvent, GiftCardTag
+from ..graphql.core.utils import to_global_id_or_none
 from ..menu.models import Menu, MenuItem, MenuItemTranslation
 from ..order import OrderOrigin, OrderStatus
 from ..order.actions import cancel_fulfillment, fulfill_order_lines
@@ -7759,6 +7760,8 @@ def payment_method_process_tokenization_app(db, permission_manage_payments):
 @pytest.fixture
 def tax_app(db, permission_handle_taxes):
     app = App.objects.create(name="Tax App", is_active=True)
+    app.identifier = to_global_id_or_none(app)
+    app.save()
     app.permissions.add(permission_handle_taxes)
 
     webhook = Webhook.objects.create(
@@ -7777,6 +7780,70 @@ def tax_app(db, permission_handle_taxes):
         ]
     )
     return app
+
+
+@pytest.fixture
+def external_tax_app(db, permission_handle_taxes):
+    app = App.objects.create(
+        name="External App",
+        is_active=True,
+        type=AppType.THIRDPARTY,
+        identifier="mirumee.app.simple.tax",
+        about_app="About app text.",
+        data_privacy="Data privacy text.",
+        data_privacy_url="http://www.example.com/privacy/",
+        homepage_url="http://www.example.com/homepage/",
+        support_url="http://www.example.com/support/contact/",
+        configuration_url="http://www.example.com/app-configuration/",
+        app_url="http://www.example.com/app/",
+    )
+    app.tokens.create(name="Default")
+    app.permissions.add(permission_handle_taxes)
+
+    webhook = Webhook.objects.create(
+        name="external-tax-webhook-1",
+        app=app,
+        target_url="https://tax-app.example.com/api/",
+        subscription_query=CALCULATE_TAXES_SUBSCRIPTION_QUERY,
+    )
+    webhook.events.bulk_create(
+        [
+            WebhookEvent(event_type=event_type, webhook=webhook)
+            for event_type in [
+                WebhookEventSyncType.ORDER_CALCULATE_TAXES,
+                WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
+            ]
+        ]
+    )
+    return app
+
+
+@pytest.fixture
+def tax_line_data_response():
+    return {
+        "id": "1234",
+        "currency": "PLN",
+        "unit_net_amount": 12.34,
+        "unit_gross_amount": 12.34,
+        "total_gross_amount": 12.34,
+        "total_net_amount": 12.34,
+        "tax_rate": 23,
+    }
+
+
+@pytest.fixture
+def tax_data_response(tax_line_data_response):
+    return {
+        "currency": "PLN",
+        "total_net_amount": 12.34,
+        "total_gross_amount": 12.34,
+        "subtotal_net_amount": 12.34,
+        "subtotal_gross_amount": 12.34,
+        "shipping_price_gross_amount": 12.34,
+        "shipping_price_net_amount": 12.34,
+        "shipping_tax_rate": 23,
+        "lines": [tax_line_data_response] * 5,
+    }
 
 
 @pytest.fixture
