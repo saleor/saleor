@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Union
 
-from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.indexes import BTreeIndex, GinIndex
 from django.db import models
 
 from ..core.db.fields import SanitizedJSONField
@@ -54,6 +54,17 @@ class PageTranslation(SeoModelTranslation):
     class Meta:
         ordering = ("language_code", "page", "pk")
         unique_together = (("language_code", "page"),)
+        indexes = [
+            BTreeIndex(
+                fields=["language_code", "slug"], name="pagetranslation_slug_idx"
+            ),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["language_code", "slug"],
+                name="pagetranslation_slug_unique",
+            ),
+        ]
 
     def __repr__(self):
         class_ = type(self)
