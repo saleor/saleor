@@ -9,6 +9,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Breaking changes
 
+- Drop the `manager.perform_mutation` method. - #16515 by @maarcingebala
+
 ### GraphQL API
 
 - Add `CheckoutCustomerNoteUpdate` mutation - #16315 by @pitkes22

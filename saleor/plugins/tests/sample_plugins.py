@@ -10,9 +10,6 @@ from typing import (
 
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
-from graphene import Mutation
-from graphql import GraphQLError, ResolveInfo
-from graphql.execution import ExecutionResult
 from prices import Money, TaxedMoney
 
 from ...account.models import User
@@ -312,16 +309,6 @@ class PluginSample(BasePlugin):
 
     def event_delivery_retry(self, delivery: "EventDelivery", previous_value: Any):
         return True
-
-    def perform_mutation(
-        self,
-        mutation_cls: Mutation,
-        root,
-        info: ResolveInfo,
-        data: dict,
-        previous_value: Optional[Union[ExecutionResult, GraphQLError]],
-    ) -> Optional[Union[ExecutionResult, GraphQLError]]:
-        return None
 
     def payment_gateway_initialize_session(
         self,
