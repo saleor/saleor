@@ -2994,7 +2994,11 @@ class WebhookPlugin(BasePlugin):
         )
 
     def get_taxes_for_checkout(
-        self, checkout_info, lines, previous_value
+        self,
+        checkout_info,
+        lines,
+        previous_value,
+        pregenerated_subscription_payloads: Optional[dict] = {},
     ) -> Optional["TaxData"]:
         return trigger_all_webhooks_sync(
             WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
@@ -3005,6 +3009,7 @@ class WebhookPlugin(BasePlugin):
             parse_tax_data,
             checkout_info.checkout,
             self.requestor,
+            pregenerated_subscription_payloads=pregenerated_subscription_payloads,
         )
 
     def get_taxes_for_order(
