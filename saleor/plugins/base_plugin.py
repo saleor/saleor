@@ -604,7 +604,7 @@ class BasePlugin:
     ]
 
     get_taxes_for_checkout: Callable[
-        ["CheckoutInfo", Iterable["CheckoutLineInfo"], Any],
+        ["CheckoutInfo", Iterable["CheckoutLineInfo"], Any, Optional[dict]],
         Optional["TaxData"],
     ]
 

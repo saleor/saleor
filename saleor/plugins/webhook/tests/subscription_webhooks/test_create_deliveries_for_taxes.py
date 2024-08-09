@@ -192,6 +192,37 @@ def test_checkout_calculate_taxes_with_free_shipping_voucher(
 
 
 @freeze_time("2020-03-18 12:00:00")
+def test_checkout_calculate_taxes_with_pregenerated_payload(
+    checkout_with_voucher_free_shipping,
+    webhook_app,
+    permission_handle_taxes,
+):
+    # given
+    checkout = checkout_with_voucher_free_shipping
+    webhook_app.permissions.add(permission_handle_taxes)
+    webhook = Webhook.objects.create(
+        name="Webhook",
+        app=webhook_app,
+        target_url="http://www.example.com/any",
+        subscription_query=TAXES_SUBSCRIPTION_QUERY,
+    )
+    event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
+    webhook.events.create(event_type=event_type)
+    expected_payload = {"payload": "test"}
+
+    # when
+    deliveries = create_delivery_for_subscription_sync_event(
+        event_type,
+        checkout,
+        webhook,
+        pregenerated_payload=expected_payload,
+    )
+
+    # then
+    assert json.loads(deliveries.payload.payload) == expected_payload
+
+
+@freeze_time("2020-03-18 12:00:00")
 def test_checkout_calculate_taxes_with_entire_order_voucher(
     checkout_with_voucher,
     webhook_app,
