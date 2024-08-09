@@ -6,7 +6,7 @@ from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
 
-from .....checkout.actions import call_checkout_event_for_checkout_info
+from .....checkout.actions import call_checkout_info_event
 from .....core.models import EventDelivery
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from . import PRIVATE_KEY, PRIVATE_VALUE, PUBLIC_KEY, PUBLIC_VALUE
@@ -364,8 +364,8 @@ def test_update_public_metadata_for_checkout_line(api_client, checkout_line):
 
 @freeze_time("2023-05-31 12:00:01")
 @patch(
-    "saleor.graphql.meta.extra_methods.call_checkout_event_for_checkout_info",
-    wraps=call_checkout_event_for_checkout_info,
+    "saleor.graphql.meta.extra_methods.call_checkout_info_event",
+    wraps=call_checkout_info_event,
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
@@ -375,7 +375,7 @@ def test_update_public_metadata_for_checkout_line(api_client, checkout_line):
 def test_add_metadata_for_checkout_triggers_webhooks_with_checkout_updated(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
-    wrapped_call_checkout_event_for_checkout,
+    wrapped_call_checkout_info_event,
     setup_checkout_webhooks,
     settings,
     api_client,
@@ -429,13 +429,13 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_checkout_updated(
             call(tax_delivery),
         ]
     )
-    assert wrapped_call_checkout_event_for_checkout.called
+    assert wrapped_call_checkout_info_event.called
 
 
 @freeze_time("2023-05-31 12:00:01")
 @patch(
-    "saleor.graphql.meta.extra_methods.call_checkout_event_for_checkout_info",
-    wraps=call_checkout_event_for_checkout_info,
+    "saleor.graphql.meta.extra_methods.call_checkout_info_event",
+    wraps=call_checkout_info_event,
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
@@ -445,7 +445,7 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_checkout_updated(
 def test_add_metadata_for_checkout_triggers_webhooks_with_updated_metadata(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
-    wrapped_call_checkout_event_for_checkout,
+    wrapped_call_checkout_info_event,
     setup_checkout_webhooks,
     settings,
     api_client,
@@ -501,4 +501,4 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_updated_metadata(
             call(tax_delivery),
         ]
     )
-    assert wrapped_call_checkout_event_for_checkout.called
+    assert wrapped_call_checkout_info_event.called

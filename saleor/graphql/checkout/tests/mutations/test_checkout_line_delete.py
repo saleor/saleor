@@ -5,7 +5,7 @@ import graphene
 from django.test import override_settings
 
 from .....checkout import base_calculations
-from .....checkout.actions import call_checkout_event_for_checkout_info
+from .....checkout.actions import call_checkout_info_event
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.utils import (
@@ -206,8 +206,8 @@ def test_checkout_line_delete_non_removable_gift(user_api_client, checkout_line)
 
 
 @patch(
-    "saleor.graphql.checkout.mutations.checkout_line_delete.call_checkout_event_for_checkout_info",
-    wraps=call_checkout_event_for_checkout_info,
+    "saleor.graphql.checkout.mutations.checkout_line_delete.call_checkout_info_event",
+    wraps=call_checkout_info_event,
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
@@ -217,7 +217,7 @@ def test_checkout_line_delete_non_removable_gift(user_api_client, checkout_line)
 def test_checkout_line_delete_triggers_webhooks(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
-    wrapped_call_checkout_event_for_checkout,
+    wrapped_call_checkout_info_event,
     setup_checkout_webhooks,
     settings,
     api_client,
@@ -285,4 +285,4 @@ def test_checkout_line_delete_triggers_webhooks(
             call(tax_delivery),
         ]
     )
-    assert wrapped_call_checkout_event_for_checkout.called
+    assert wrapped_call_checkout_info_event.called

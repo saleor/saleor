@@ -1,4 +1,4 @@
-from ...checkout.actions import call_checkout_event_for_checkout_info
+from ...checkout.actions import call_checkout_info_event
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...core.utils.events import webhook_async_event_requires_sync_webhooks_to_trigger
 from ...order.actions import call_order_event
@@ -37,17 +37,15 @@ def extra_checkout_actions(instance, info: ResolveInfo, **data):
             lines_info,
             manager,
         )
-        call_checkout_event_for_checkout_info(
+        call_checkout_info_event(
             manager=manager,
-            event_func=manager.checkout_updated,
             event_name=WebhookEventAsyncType.CHECKOUT_UPDATED,
             checkout_info=checkout_info,
             lines=lines_info,
             webhook_event_map=webhook_event_map,
         )
-        call_checkout_event_for_checkout_info(
+        call_checkout_info_event(
             manager=manager,
-            event_func=manager.checkout_metadata_updated,
             event_name=WebhookEventAsyncType.CHECKOUT_METADATA_UPDATED,
             checkout_info=checkout_info,
             lines=lines_info,
@@ -82,7 +80,6 @@ def extra_order_actions(instance, info: ResolveInfo, **data):
     manager = get_plugin_manager_promise(info.context).get()
     call_order_event(
         manager,
-        manager.order_metadata_updated,
         WebhookEventAsyncType.ORDER_METADATA_UPDATED,
         instance,
     )

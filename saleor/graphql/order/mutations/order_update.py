@@ -109,7 +109,6 @@ class OrderUpdate(DraftOrderCreate, ModelWithExtRefMutation):
             instance.save()
             call_order_event(
                 manager,
-                manager.order_updated,
                 WebhookEventAsyncType.ORDER_UPDATED,
                 instance,
             )
