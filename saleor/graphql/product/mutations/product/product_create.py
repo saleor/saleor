@@ -1,3 +1,5 @@
+from functools import partial
+
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -7,6 +9,7 @@ from .....core.utils.editorjs import clean_editor_js
 from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.error_codes import ProductErrorCode
+from .....product.webhooks import ProductCreated
 from ....attribute.types import AttributeValueInput
 from ....attribute.utils import AttrValuesInput, ProductAttributeAssignmentMixin
 from ....channel import ChannelContext
@@ -25,6 +28,7 @@ from ....core.types import BaseInputObjectType, NonNullList, ProductError, SeoIn
 from ....core.validators import clean_seo_fields, validate_slug_and_generate_if_needed
 from ....meta.inputs import MetadataInput
 from ....plugins.dataloaders import get_plugin_manager_promise
+from ....utils import get_user_or_app_from_context
 from ...types import Product
 from ..utils import clean_tax_code
 
@@ -217,9 +221,16 @@ class ProductCreate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, _cleaned_input):
+        from .....webhook.payloads import generate_product_payload
+
         product = models.Product.objects.get(pk=instance.pk)
-        manager = get_plugin_manager_promise(info.context).get()
-        cls.call_event(manager.product_created, product)
+        requestor = get_user_or_app_from_context(info.context)
+        ProductCreated.trigger_webhook_async(
+            product,
+            requestor,
+            allow_replica=getattr(info.context, "allow_replica", True),
+            legacy_data_generator=partial(generate_product_payload, product, requestor),
+        )
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
