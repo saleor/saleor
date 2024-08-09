@@ -46,14 +46,22 @@ class ProductDelete(ModelDeleteMutation, ModelWithExtRefMutation):
         cls, _root, info: ResolveInfo, /, *, external_reference=None, id=None
     ):
         instance = cls.get_instance(info, external_reference=external_reference, id=id)
-        variants_id = list(instance.variants.all().values_list("id", flat=True))
         with traced_atomic_transaction():
+            variants_id = list(
+                instance.variants.order_by("pk")
+                .select_for_update(of=("self",))
+                .all()
+                .values_list("id", flat=True)
+            )
             cls.delete_assigned_attribute_values(instance)
 
             draft_order_lines_data = get_draft_order_lines_data_for_variants(
                 variants_id
             )
 
+            models.ProductVariant.objects.order_by("pk").filter(
+                pk__in=variants_id
+            ).delete()
             response = super().perform_mutation(
                 _root, info, external_reference=external_reference, id=id
             )
