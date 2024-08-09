@@ -78,6 +78,28 @@ def test_category_query_by_id(user_api_client, product, channel_USD):
     assert len(category_data["children"]["edges"]) == category.get_children().count()
 
 
+def test_category_query_with_ancestors(user_api_client, product, channel_USD):
+    # given
+    category = Category.objects.first()
+    child = Category.objects.create(
+        name="Child Category", slug="child-category", parent=category
+    )
+
+    # when
+    variables = {
+        "id": graphene.Node.to_global_id("Category", child.pk),
+        "channel": channel_USD.slug,
+    }
+    response = user_api_client.post_graphql(QUERY_CATEGORY, variables=variables)
+    content = get_graphql_content(response)
+    category_data = content["data"]["category"]
+
+    # then
+    assert category_data is not None
+    assert len(category_data["ancestors"]["edges"]) == child.get_ancestors().count()
+    assert len(category_data["children"]["edges"]) == child.get_children().count()
+
+
 def test_category_query_invalid_id(user_api_client, product, channel_USD):
     category_id = "'"
     variables = {

@@ -68,7 +68,7 @@ MUTATION_CHECKOUT_CREATE = """
 
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_checkout_create_triggers_webhooks(
+def test_checkout_create_triggers_async_webhooks(
     mocked_webhook_trigger,
     mocked_get_webhooks_for_event,
     any_webhook,
@@ -2656,7 +2656,7 @@ def test_checkout_create_skip_validation_billing_address_by_app(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
-def test_checkout_create_triggers_sync_webhooks(
+def test_checkout_create_triggers_webhooks(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     wrapped_call_checkout_event_for_checkout,

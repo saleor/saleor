@@ -92,7 +92,9 @@ INTERNAL_IPS = get_list(os.environ.get("INTERNAL_IPS", "127.0.0.1"))
 # Maximum time in seconds Django can keep the database connections opened.
 # Set the value to 0 to disable connection persistence, database connections
 # will be closed after each request.
-DB_CONN_MAX_AGE = int(os.environ.get("DB_CONN_MAX_AGE", 600))
+# For Django 4, the default value was changed to 0 as persistent DB connections
+# are not supported.
+DB_CONN_MAX_AGE = int(os.environ.get("DB_CONN_MAX_AGE", 0))
 
 DATABASE_CONNECTION_DEFAULT_NAME = "default"
 # TODO: For local envs will be activated in separate PR.
@@ -124,7 +126,6 @@ LANGUAGE_CODE = "en"
 LANGUAGES = CORE_LANGUAGES
 LOCALE_PATHS = [os.path.join(PROJECT_ROOT, "locale")]
 USE_I18N = True
-USE_L10N = True
 USE_TZ = True
 
 FORM_RENDERER = "django.forms.renderers.TemplatesSetting"
@@ -551,15 +552,16 @@ EXPORT_FILES_TIMEDELTA = timedelta(
 )
 
 # CELERY SETTINGS
-CELERY_TIMEZONE = TIME_ZONE
+CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_BROKER_URL = (
     os.environ.get("CELERY_BROKER_URL", os.environ.get("CLOUDAMQP_URL")) or ""
 )
-CELERY_TASK_ALWAYS_EAGER = not CELERY_BROKER_URL
-CELERY_ACCEPT_CONTENT = ["json"]
-CELERY_TASK_SERIALIZER = "json"
-CELERY_RESULT_SERIALIZER = "json"
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", None)
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TASK_ALWAYS_EAGER = not CELERY_BROKER_URL
+CELERY_TASK_SERIALIZER = "json"
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_WORKER_PREFETCH_MULTIPLIER = 1
 
 # Expire orders task setting
 BEAT_EXPIRE_ORDERS_AFTER_TIMEDELTA = timedelta(

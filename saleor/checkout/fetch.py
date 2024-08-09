@@ -13,6 +13,7 @@ from uuid import UUID
 
 from django.conf import settings
 
+from ..core.db.connection import allow_writer
 from ..core.pricing.interface import LineInfo
 from ..discount import VoucherType
 from ..discount.interface import fetch_variant_rules_info, fetch_voucher_info
@@ -281,7 +282,10 @@ def get_delivery_method_info(
     if isinstance(delivery_method, ShippingMethodData):
         return ShippingMethodInfo(delivery_method, address)
     if isinstance(delivery_method, Warehouse):
-        return CollectionPointInfo(delivery_method, delivery_method.address)
+        # TODO: Workaround for lack of using in tests.
+        # The warehouse address should be loaded when CheckoutInfo is created.
+        with allow_writer():
+            return CollectionPointInfo(delivery_method, delivery_method.address)
 
     raise NotImplementedError()
 

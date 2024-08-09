@@ -5,10 +5,12 @@ from ....account.models import User
 from ....core.postgres import FlatConcatSearchVector
 from ....core.tracing import traced_atomic_transaction
 from ....order import OrderStatus, models
+from ....order.actions import call_order_event
 from ....order.error_codes import OrderErrorCode
 from ....order.search import prepare_order_search_vector_value
 from ....order.utils import invalidate_order_prices
 from ....permission.enums import OrderPermissions
+from ....webhook.event_types import WebhookEventAsyncType
 from ...account.types import AddressInput
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_310
@@ -105,4 +107,9 @@ class OrderUpdate(DraftOrderCreate, ModelWithExtRefMutation):
                 invalidate_order_prices(instance)
 
             instance.save()
-            cls.call_event(manager.order_updated, instance)
+            call_order_event(
+                manager,
+                manager.order_updated,
+                WebhookEventAsyncType.ORDER_UPDATED,
+                instance,
+            )
