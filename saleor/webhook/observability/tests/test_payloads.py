@@ -399,7 +399,7 @@ def test_generate_event_delivery_attempt_payload(event_attempt):
                 payload=EventDeliveryPayload(
                     content_length=32,
                     body=JsonTruncText(
-                        pretty_json(json.loads(delivery.payload.payload)), False
+                        pretty_json(json.loads(delivery.payload.get_payload())), False
                     ),
                 ),
             ),

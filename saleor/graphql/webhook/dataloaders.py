@@ -33,12 +33,12 @@ class PayloadByIdLoader(DataLoader[str, str]):
     context_key = "payload_by_id"
 
     def batch_load(self, keys):
-        payload = EventPayload.objects.using(self.database_connection_name).in_bulk(
+        payloads = EventPayload.objects.using(self.database_connection_name).in_bulk(
             keys
         )
 
         return [
-            payload[payload_id].payload if payload.get(payload_id) else None
+            payloads[payload_id].get_payload() if payloads.get(payload_id) else None
             for payload_id in keys
         ]
 

@@ -122,7 +122,7 @@ def test_list_stored_payment_methods_subscription_issuing_principal(
     delivery = EventDelivery.objects.get()
     mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
 
-    delivery_subscription_payload = json.loads(delivery.payload.payload)
+    delivery_subscription_payload = json.loads(delivery.payload.get_payload())
     assert delivery_subscription_payload == {
         "issuingPrincipal": {"id": graphene.Node.to_global_id("User", customer_user.pk)}
     }
@@ -168,7 +168,7 @@ def test_list_stored_payment_methods_subscription_issuing_principal_as_app(
     delivery = EventDelivery.objects.get()
     mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
 
-    delivery_subscription_payload = json.loads(delivery.payload.payload)
+    delivery_subscription_payload = json.loads(delivery.payload.get_payload())
     assert delivery_subscription_payload == {
         "issuingPrincipal": {
             "id": graphene.Node.to_global_id("App", list_stored_payment_methods_app.pk)

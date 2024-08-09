@@ -10,6 +10,7 @@ from .. import celeryconf
 from ..core import JobStatus
 from ..core.db.connection import allow_writer
 from ..core.models import EventDelivery, EventDeliveryAttempt, EventPayload
+from ..core.tasks import delete_files_from_private_storage_task
 from ..webhook.models import Webhook
 from .installation_utils import AppInstallationError, install_app
 from .models import App, AppExtension, AppInstallation, AppToken
@@ -72,6 +73,14 @@ def _raw_remove_deliveries(deliveries_ids):
     attempts = EventDeliveryAttempt.objects.filter(
         Exists(deliveries.filter(id=OuterRef("delivery_id")))
     )
+
+    files_to_delete = [
+        event_payload.payload_file.name
+        for event_payload in payloads.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        if event_payload.payload_file
+    ]
+    delete_files_from_private_storage_task.delay(files_to_delete)
+
     attempts._raw_delete(attempts.db)  # type: ignore[attr-defined] # raw access # noqa: E501
     deliveries._raw_delete(deliveries.db)  # type: ignore[attr-defined] # raw access # noqa: E501
     payloads._raw_delete(payloads.db)  # type: ignore[attr-defined] # raw access # noqa: E501

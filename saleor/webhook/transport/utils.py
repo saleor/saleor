@@ -30,6 +30,7 @@ from ...core.models import (
     EventDeliveryStatus,
     EventPayload,
 )
+from ...core.tasks import delete_files_from_private_storage_task
 from ...core.taxes import TaxData, TaxLineData
 from ...core.utils import build_absolute_uri
 from ...core.utils.events import call_event
@@ -425,7 +426,17 @@ def clear_successful_delivery(delivery: "EventDelivery"):
         payload_id = delivery.payload_id
         delivery.delete()
         if payload_id:
-            EventPayload.objects.filter(pk=payload_id, deliveries__isnull=True).delete()
+            payloads_to_delete = EventPayload.objects.filter(
+                pk=payload_id, deliveries__isnull=True
+            )
+            files_to_delete = [
+                event_payload.payload_file.name
+                for event_payload in payloads_to_delete.using(
+                    settings.DATABASE_CONNECTION_REPLICA_NAME
+                )
+            ]
+            payloads_to_delete.delete()
+            delete_files_from_private_storage_task(files_to_delete)
 
 
 @allow_writer()
@@ -492,7 +503,7 @@ def trigger_transaction_request(
             transaction_data, requestor
         )
         with allow_writer():
-            event_payload = EventPayload.objects.create(payload=payload)
+            event_payload = EventPayload.objects.create_with_payload_file(payload)
             delivery = EventDelivery.objects.create(
                 status=EventDeliveryStatus.PENDING,
                 event_type=event_type,

@@ -105,8 +105,8 @@ def test_transaction_process_session_checkout_with_data(
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     assert delivery.payload
-    assert delivery.payload.payload
-    assert json.loads(delivery.payload.payload) == {
+    assert delivery.payload.get_payload()
+    assert json.loads(delivery.payload.get_payload()) == {
         "merchantReference": graphene.Node.to_global_id(
             "TransactionItem", transaction.token
         ),
@@ -172,8 +172,8 @@ def test_transaction_process_session_checkout_without_data(
     # then
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     assert delivery.payload
-    assert delivery.payload.payload
-    assert json.loads(delivery.payload.payload) == {
+    assert delivery.payload.get_payload()
+    assert json.loads(delivery.payload.get_payload()) == {
         "merchantReference": graphene.Node.to_global_id(
             "TransactionItem", transaction.token
         ),
@@ -247,8 +247,8 @@ def test_transaction_process_session_order_with_data(
 
     order_id = graphene.Node.to_global_id("Order", order.pk)
     assert delivery.payload
-    assert delivery.payload.payload
-    assert json.loads(delivery.payload.payload) == {
+    assert delivery.payload.get_payload()
+    assert json.loads(delivery.payload.get_payload()) == {
         "merchantReference": graphene.Node.to_global_id(
             "TransactionItem", transaction.token
         ),
@@ -313,8 +313,8 @@ def test_transaction_process_session_order_without_data(
     # then
     order_id = graphene.Node.to_global_id("Order", order.pk)
     assert delivery.payload
-    assert delivery.payload.payload
-    assert json.loads(delivery.payload.payload) == {
+    assert delivery.payload.get_payload()
+    assert json.loads(delivery.payload.get_payload()) == {
         "merchantReference": graphene.Node.to_global_id(
             "TransactionItem", transaction.token
         ),
@@ -379,8 +379,8 @@ def test_transaction_process_session_empty_customer_ip_address(
     # then
     order_id = graphene.Node.to_global_id("Order", order.pk)
     assert delivery.payload
-    assert delivery.payload.payload
-    assert json.loads(delivery.payload.payload) == {
+    assert delivery.payload.get_payload()
+    assert json.loads(delivery.payload.get_payload()) == {
         "merchantReference": graphene.Node.to_global_id(
             "TransactionItem", transaction.token
         ),

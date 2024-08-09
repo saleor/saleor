@@ -1,6 +1,6 @@
 import pytest
 
-from ....core import EventDeliveryStatus
+from ....core import EventDeliveryStatus, private_storage
 from ....core.models import EventDelivery, EventPayload
 from ....payment import TransactionKind
 from ....webhook.const import APP_ID_PREFIX
@@ -238,11 +238,13 @@ def test_clear_successful_delivery(event_delivery):
     event_delivery.status = EventDeliveryStatus.SUCCESS
     event_delivery.save()
     event_payload = event_delivery.payload
+    assert private_storage.exists(event_payload.payload_file.name)
     # when
     clear_successful_delivery(event_delivery)
     # then
     assert not EventDelivery.objects.filter(pk=event_delivery.pk).exists()
     assert not EventPayload.objects.filter(pk=event_payload.pk).exists()
+    assert not private_storage.exists(event_payload.payload_file.name)
 
 
 def test_clear_successful_delivery_when_payload_in_multiple_deliveries(event_delivery):
@@ -251,12 +253,14 @@ def test_clear_successful_delivery_when_payload_in_multiple_deliveries(event_del
     event_delivery.status = EventDeliveryStatus.SUCCESS
     event_delivery.save()
     event_payload = event_delivery.payload
+    assert private_storage.exists(event_payload.payload_file.name)
     EventDelivery.objects.create(payload=event_payload, webhook=event_delivery.webhook)
     # when
     clear_successful_delivery(event_delivery)
     # then
     assert not EventDelivery.objects.filter(pk=event_delivery.pk).exists()
     assert EventPayload.objects.filter(pk=event_payload.pk).exists()
+    assert private_storage.exists(event_payload.payload_file.name)
 
 
 def test_clear_successful_delivery_on_failed_delivery(event_delivery):

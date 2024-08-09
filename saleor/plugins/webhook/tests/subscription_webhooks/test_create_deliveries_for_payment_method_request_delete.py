@@ -48,8 +48,8 @@ def test_stored_payment_method_request_delete(
 
     # then
     assert delivery.payload
-    assert delivery.payload.payload
-    assert json.loads(delivery.payload.payload) == {
+    assert delivery.payload.get_payload()
+    assert json.loads(delivery.payload.get_payload()) == {
         "paymentMethodId": payment_method_id,
         "user": {"id": graphene.Node.to_global_id("User", customer_user.pk)},
         "channel": {"id": graphene.Node.to_global_id("Channel", channel_USD.pk)},

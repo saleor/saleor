@@ -176,7 +176,7 @@ def test_send_webhook_request_sync_request_exception(
 ):
     # given
     event_payload = event_delivery.payload
-    data = event_payload.payload
+    data = event_payload.get_payload()
     webhook = event_delivery.webhook
     domain = Site.objects.get_current().domain
     message = data.encode("utf-8")
@@ -266,7 +266,9 @@ def test_send_webhook_request_with_proper_timeout(mock_post, event_delivery, app
 
 def test_send_webhook_request_sync_invalid_scheme(webhook, app):
     target_url = "gcpubsub://cloud.google.com/projects/saleor/topics/test"
-    event_payload = EventPayload.objects.create(payload="fake_content")
+    event_payload = EventPayload.objects.create_with_payload_file(
+        payload="fake_content"
+    )
     webhook.target_url = target_url
     webhook.save()
     delivery = EventDelivery.objects.create(

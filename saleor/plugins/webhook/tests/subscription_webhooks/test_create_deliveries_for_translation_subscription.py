@@ -35,7 +35,7 @@ def test_translation_created_product(
         }
     )
 
-    assert deliveries[0].payload.payload == expected_payload
+    assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -67,7 +67,7 @@ def test_translation_created_product_variant(
         }
     )
 
-    assert deliveries[0].payload.payload == expected_payload
+    assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -99,7 +99,7 @@ def test_translation_created_collection(
         }
     )
 
-    assert deliveries[0].payload.payload == expected_payload
+    assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -131,7 +131,7 @@ def test_translation_created_category(
         }
     )
 
-    assert deliveries[0].payload.payload == expected_payload
+    assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -163,7 +163,7 @@ def test_translation_created_attribute(
         }
     )
 
-    assert deliveries[0].payload.payload == expected_payload
+    assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -197,7 +197,7 @@ def test_translation_created_attribute_value(
         }
     )
 
-    assert deliveries[0].payload.payload == expected_payload
+    assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -229,7 +229,7 @@ def test_translation_created_page(
         }
     )
 
-    assert deliveries[0].payload.payload == expected_payload
+    assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -264,7 +264,7 @@ def test_translation_created_shipping_method(
         }
     )
 
-    assert deliveries[0].payload.payload == expected_payload
+    assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -296,7 +296,7 @@ def test_translation_created_promotion(
         }
     )
 
-    assert deliveries[0].payload.payload == expected_payload
+    assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -327,7 +327,7 @@ def test_translation_created_promotion_converted_from_sale(
         }
     )
 
-    assert deliveries[0].payload.payload == expected_payload
+    assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -360,7 +360,7 @@ def test_translation_created_promotion_rule(
         }
     )
 
-    assert deliveries[0].payload.payload == expected_payload
+    assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -392,7 +392,7 @@ def test_translation_created_voucher(
         }
     )
 
-    assert deliveries[0].payload.payload == expected_payload
+    assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -424,7 +424,7 @@ def test_translation_created_menu_item(
         }
     )
 
-    assert deliveries[0].payload.payload == expected_payload
+    assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -456,7 +456,7 @@ def test_translation_updated_product(
         }
     )
 
-    assert deliveries[0].payload.payload == expected_payload
+    assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -488,7 +488,7 @@ def test_translation_updated_product_variant(
         }
     )
 
-    assert deliveries[0].payload.payload == expected_payload
+    assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -520,7 +520,7 @@ def test_translation_updated_collection(
         }
     )
 
-    assert deliveries[0].payload.payload == expected_payload
+    assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -552,7 +552,7 @@ def test_translation_updated_category(
         }
     )
 
-    assert deliveries[0].payload.payload == expected_payload
+    assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -584,7 +584,7 @@ def test_translation_updated_attribute(
         }
     )
 
-    assert deliveries[0].payload.payload == expected_payload
+    assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -618,7 +618,7 @@ def test_translation_updated_attribute_value(
         }
     )
 
-    assert deliveries[0].payload.payload == expected_payload
+    assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -650,7 +650,7 @@ def test_translation_updated_page(
         }
     )
 
-    assert deliveries[0].payload.payload == expected_payload
+    assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -685,7 +685,7 @@ def test_translation_updated_shipping_method(
         }
     )
 
-    assert deliveries[0].payload.payload == expected_payload
+    assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -717,7 +717,7 @@ def test_translation_updated_promotion(
         }
     )
 
-    assert deliveries[0].payload.payload == expected_payload
+    assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -750,7 +750,7 @@ def test_translation_updated_promotion_rule(
         }
     )
 
-    assert deliveries[0].payload.payload == expected_payload
+    assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -782,7 +782,7 @@ def test_translation_updated_voucher(
         }
     )
 
-    assert deliveries[0].payload.payload == expected_payload
+    assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -814,6 +814,6 @@ def test_translation_updated_menu_item(
         }
     )
 
-    assert deliveries[0].payload.payload == expected_payload
+    assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]

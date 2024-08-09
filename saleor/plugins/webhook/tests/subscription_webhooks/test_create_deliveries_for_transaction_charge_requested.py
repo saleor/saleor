@@ -83,7 +83,7 @@ def test_order_transaction_charge_request(
     )
 
     # then
-    assert json.loads(deliveries[0].payload.payload) == {
+    assert json.loads(deliveries[0].payload.get_payload()) == {
         "transaction": {
             "id": transaction_id,
             "createdAt": "2020-03-18T12:00:00+00:00",
@@ -161,7 +161,7 @@ def test_checkout_transaction_charge_request(
 
     # then
     checkout_with_items.refresh_from_db()
-    assert json.loads(deliveries[0].payload.payload) == {
+    assert json.loads(deliveries[0].payload.get_payload()) == {
         "transaction": {
             "id": transaction_id,
             "createdAt": "2020-03-18T12:00:00+00:00",

@@ -111,9 +111,9 @@ def test_trigger_webhooks_for_event_calls_expected_events(
         target_url="http://www.example.com/third/"
     )
     third_webhook.events.create(event_type=WebhookEventAsyncType.ANY)
-    event_payload = EventPayload.objects.create()
+    payload = ""
     trigger_webhooks_async(
-        event_payload,
+        payload,
         event_name,
         get_webhooks_for_event(event_name),
         allow_replica=False,
@@ -1737,9 +1737,8 @@ def test_create_event_payload_reference_with_error(
     webhook.target_url = "testy"
     webhook.save()
     expected_data = serialize("json", [order_with_lines])
-    event_payload = EventPayload.objects.create(payload=expected_data)
     trigger_webhooks_async(
-        event_payload,
+        expected_data,
         WebhookEventAsyncType.ORDER_CREATED,
         [webhook],
         allow_replica=False,
@@ -1747,6 +1746,7 @@ def test_create_event_payload_reference_with_error(
     delivery = EventDelivery.objects.first()
     send_webhook_request_async(delivery.id)
     attempt = EventDeliveryAttempt.objects.first()
+    payload = EventPayload.objects.first()
 
     assert delivery
     assert attempt
@@ -1756,6 +1756,8 @@ def test_create_event_payload_reference_with_error(
     assert delivery.status == "failed"
     assert attempt.task_id == ANY
     assert attempt.duration == ANY
+    assert payload.get_payload() == expected_data
+    assert payload.payload_file
 
 
 @freeze_time("1914-06-28 10:50")
@@ -1945,7 +1947,7 @@ def test_send_webhook_request_async(
         "mirumee.com",
         event_delivery.webhook.secret_key,
         event_delivery.event_type,
-        event_delivery.payload.payload,
+        event_delivery.payload.get_payload(),
         event_delivery.webhook.custom_headers,
     )
     mocked_clear_delivery.assert_called_once_with(event_delivery)
@@ -2304,7 +2306,7 @@ def test_send_webhook_request_async_with_request_exception(
 ):
     # given
     event_payload = event_delivery.payload
-    data = event_payload.payload
+    data = event_payload.get_payload()
     webhook = event_delivery.webhook
     domain = Site.objects.get_current().domain
     message = data.encode("utf-8")
