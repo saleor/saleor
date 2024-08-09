@@ -583,14 +583,12 @@ class DraftOrderCreate(
             if is_new_instance:
                 call_order_event(
                     manager,
-                    manager.draft_order_created,
                     WebhookEventAsyncType.DRAFT_ORDER_CREATED,
                     instance,
                 )
             else:
                 call_order_event(
                     manager,
-                    manager.draft_order_updated,
                     WebhookEventAsyncType.DRAFT_ORDER_UPDATED,
                     instance,
                 )
