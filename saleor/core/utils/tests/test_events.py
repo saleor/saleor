@@ -43,7 +43,7 @@ def test_webhook_async_event_requires_sync_webhooks_to_trigger_not_async_event()
         )
 
 
-def test_webhook_async_event_requires_sync_webhooks_to_trigger():
+def test_webhook_async_event_requires_sync_webhooks_to_trigger_when_no_webhooks():
     # given
     event_name = WebhookEventAsyncType.ORDER_CREATED
     webhook_event_map = get_webhooks_for_multiple_events(
@@ -58,6 +58,79 @@ def test_webhook_async_event_requires_sync_webhooks_to_trigger():
 
     # then
     assert not should_trigger
+
+
+def test_webhook_async_event_requires_sync_webhooks_to_trigger_when_async_webhook(
+    webhook, permission_manage_orders
+):
+    # given
+    webhook.events.create(event_type=WebhookEventAsyncType.ORDER_CREATED)
+    webhook.app.permissions.set([permission_manage_orders])
+
+    event_name = WebhookEventAsyncType.ORDER_CREATED
+    webhook_event_map = get_webhooks_for_multiple_events(
+        [WebhookEventAsyncType.ORDER_CREATED, *WebhookEventSyncType.ORDER_EVENTS]
+    )
+
+    # when
+
+    should_trigger = webhook_async_event_requires_sync_webhooks_to_trigger(
+        event_name, webhook_event_map, WebhookEventSyncType.ORDER_EVENTS
+    )
+
+    # then
+    assert not should_trigger
+
+
+def test_webhook_async_event_requires_sync_webhooks_to_trigger_when_sync_webhook_active(
+    webhook, permission_manage_orders, setup_order_webhooks
+):
+    # given
+    different_event = WebhookEventAsyncType.ORDER_EXPIRED
+    (
+        tax_webhook,
+        shipping_filter_webhook,
+        order_created_webhook,
+    ) = setup_order_webhooks(different_event)
+
+    event_name = WebhookEventAsyncType.ORDER_CREATED
+    webhook_event_map = get_webhooks_for_multiple_events(
+        [WebhookEventAsyncType.ORDER_CREATED, *WebhookEventSyncType.ORDER_EVENTS]
+    )
+
+    # when
+
+    should_trigger = webhook_async_event_requires_sync_webhooks_to_trigger(
+        event_name, webhook_event_map, WebhookEventSyncType.ORDER_EVENTS
+    )
+
+    # then
+    assert not should_trigger
+
+
+def test_webhook_async_event_requires_sync_webhooks_to_trigger_webhooks_active(
+    setup_order_webhooks,
+):
+    # given
+    event_name = WebhookEventAsyncType.ORDER_CREATED
+    (
+        tax_webhook,
+        shipping_filter_webhook,
+        order_created_webhook,
+    ) = setup_order_webhooks(event_name)
+
+    webhook_event_map = get_webhooks_for_multiple_events(
+        [event_name, *WebhookEventSyncType.ORDER_EVENTS]
+    )
+
+    # when
+
+    should_trigger = webhook_async_event_requires_sync_webhooks_to_trigger(
+        event_name, webhook_event_map, WebhookEventSyncType.ORDER_EVENTS
+    )
+
+    # then
+    assert should_trigger
 
 
 def test_webhook_async_event_requires_sync_webhooks_to_trigger_missing_event_in_map():
@@ -80,3 +153,126 @@ def test_webhook_async_event_requires_sync_webhooks_to_trigger_missing_event_in_
         webhook_async_event_requires_sync_webhooks_to_trigger(
             event_name, webhook_event_map, WebhookEventSyncType.ORDER_EVENTS
         )
+
+
+@pytest.mark.parametrize("subscription_query", ["", None])
+def test_webhook_async_event_requires_sync_webhooks_to_trigger_no_subscription_for_event(
+    setup_order_webhooks, subscription_query, webhook, permission_manage_orders
+):
+    # given
+    (
+        tax_webhook,
+        shipping_filter_webhook,
+        order_created_webhook,
+    ) = setup_order_webhooks(WebhookEventAsyncType.ORDER_CREATED)
+
+    order_created_webhook.subscription_query = subscription_query
+    order_created_webhook.save(update_fields=["subscription_query"])
+
+    webhook.events.create(event_type=WebhookEventAsyncType.ORDER_CREATED)
+    webhook.app.permissions.set([permission_manage_orders])
+    webhook.subscription_query = subscription_query
+    webhook.save(update_fields=["subscription_query"])
+
+    event_name = WebhookEventAsyncType.ORDER_CREATED
+    webhook_event_map = get_webhooks_for_multiple_events(
+        [WebhookEventAsyncType.ORDER_CREATED, *WebhookEventSyncType.ORDER_EVENTS]
+    )
+
+    # when
+
+    should_trigger = webhook_async_event_requires_sync_webhooks_to_trigger(
+        event_name, webhook_event_map, WebhookEventSyncType.ORDER_EVENTS
+    )
+
+    # then
+    assert not should_trigger
+
+
+@pytest.mark.parametrize("subscription_query", ["", None])
+def test_webhook_async_event_requires_sync_webhooks_to_trigger_no_subscription_single_webhook(
+    setup_order_webhooks, subscription_query, webhook, permission_manage_orders
+):
+    # given
+    webhook.events.create(event_type=WebhookEventAsyncType.ORDER_CREATED)
+    webhook.app.permissions.set([permission_manage_orders])
+    webhook.subscription_query = subscription_query
+    webhook.save(update_fields=["subscription_query"])
+
+    (
+        tax_webhook,
+        shipping_filter_webhook,
+        order_created_webhook,
+    ) = setup_order_webhooks(WebhookEventAsyncType.ORDER_CREATED)
+
+    event_name = WebhookEventAsyncType.ORDER_CREATED
+    webhook_event_map = get_webhooks_for_multiple_events(
+        [WebhookEventAsyncType.ORDER_CREATED, *WebhookEventSyncType.ORDER_EVENTS]
+    )
+
+    # when
+
+    should_trigger = webhook_async_event_requires_sync_webhooks_to_trigger(
+        event_name, webhook_event_map, WebhookEventSyncType.ORDER_EVENTS
+    )
+
+    # then
+    assert should_trigger
+
+
+@pytest.mark.parametrize("subscription_query", ["", None])
+def test_webhook_async_event_requires_sync_webhooks_to_trigger_no_subscription_for_async_events(
+    setup_order_webhooks, subscription_query
+):
+    # given
+    (
+        tax_webhook,
+        shipping_filter_webhook,
+        order_created_webhook,
+    ) = setup_order_webhooks(WebhookEventAsyncType.ORDER_CREATED)
+    tax_webhook.subscription_query = subscription_query
+    tax_webhook.save(update_fields=["subscription_query"])
+    shipping_filter_webhook.subscription_query = subscription_query
+    shipping_filter_webhook.save(update_fields=["subscription_query"])
+
+    event_name = WebhookEventAsyncType.ORDER_CREATED
+    webhook_event_map = get_webhooks_for_multiple_events(
+        [WebhookEventAsyncType.ORDER_CREATED, *WebhookEventSyncType.ORDER_EVENTS]
+    )
+
+    # when
+
+    should_trigger = webhook_async_event_requires_sync_webhooks_to_trigger(
+        event_name, webhook_event_map, WebhookEventSyncType.ORDER_EVENTS
+    )
+
+    # then
+    assert not should_trigger
+
+
+@pytest.mark.parametrize("subscription_query", ["", None])
+def test_webhook_async_event_requires_sync_webhooks_to_trigger_no_subscription_for_single_async_event(
+    setup_order_webhooks, subscription_query
+):
+    # given
+    (
+        tax_webhook,
+        shipping_filter_webhook,
+        order_created_webhook,
+    ) = setup_order_webhooks(WebhookEventAsyncType.ORDER_CREATED)
+    shipping_filter_webhook.subscription_query = subscription_query
+    shipping_filter_webhook.save(update_fields=["subscription_query"])
+
+    event_name = WebhookEventAsyncType.ORDER_CREATED
+    webhook_event_map = get_webhooks_for_multiple_events(
+        [WebhookEventAsyncType.ORDER_CREATED, *WebhookEventSyncType.ORDER_EVENTS]
+    )
+
+    # when
+
+    should_trigger = webhook_async_event_requires_sync_webhooks_to_trigger(
+        event_name, webhook_event_map, WebhookEventSyncType.ORDER_EVENTS
+    )
+
+    # then
+    assert should_trigger

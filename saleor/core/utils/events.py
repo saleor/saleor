@@ -44,6 +44,25 @@ def webhook_async_event_requires_sync_webhooks_to_trigger(
     )
     if not active_webhook_events.intersection(possible_sync_events):
         return False
+    if all(
+        [
+            not bool(webhook.subscription_query)
+            for webhook in webhook_event_map[event_name]
+        ]
+    ):
+        return False
+    sync_event_has_subscription = False
+    for sync_event in possible_sync_events:
+        sync_event_has_subscription = any(
+            [
+                bool(webhook.subscription_query)
+                for webhook in webhook_event_map.get(sync_event, [])
+            ]
+        )
+        if sync_event_has_subscription:
+            break
+    if not sync_event_has_subscription:
+        return False
     return True
 
 
