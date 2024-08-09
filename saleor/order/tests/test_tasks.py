@@ -381,6 +381,89 @@ def test_expire_orders_task_after(order_list, allocations, channel_USD):
     ).exists()
 
 
+@patch(
+    "saleor.order.tasks.call_order_event",
+    wraps=call_order_event,
+)
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_expire_orders_task_do_not_call_sync_webhooks(
+    mocked_send_webhook_request_async,
+    mocked_send_webhook_request_sync,
+    wrapped_call_order_event,
+    setup_order_webhooks,
+    order_list,
+    channel_USD,
+    settings,
+    django_capture_on_commit_callbacks,
+):
+    # given
+    (
+        tax_webhook,
+        shipping_filter_webhook,
+        additional_order_webhook,
+    ) = setup_order_webhooks(
+        [
+            WebhookEventAsyncType.ORDER_UPDATED,
+            WebhookEventAsyncType.ORDER_EXPIRED,
+        ]
+    )
+
+    channel_USD.expire_orders_after = 60
+    channel_USD.save()
+
+    now = timezone.now()
+    order_1 = order_list[0]
+    order_1.created_at = now
+    order_1.status = OrderStatus.UNCONFIRMED
+    order_1.save()
+
+    order_2 = order_list[1]
+    order_2.created_at = now - timezone.timedelta(minutes=120)
+    order_2.status = OrderStatus.UNCONFIRMED
+    order_2.save()
+
+    order_3 = order_list[2]
+    order_3.created_at = now - timezone.timedelta(minutes=120)
+    order_3.status = OrderStatus.UNFULFILLED
+    order_3.save()
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        expire_orders_task()
+
+    # then
+    order_expired_delivery = EventDelivery.objects.get(
+        webhook_id=additional_order_webhook.id,
+        event_type=WebhookEventAsyncType.ORDER_EXPIRED,
+    )
+    order_updated_delivery = EventDelivery.objects.get(
+        webhook_id=additional_order_webhook.id,
+        event_type=WebhookEventAsyncType.ORDER_UPDATED,
+    )
+    order_deliveries = [order_updated_delivery, order_expired_delivery]
+
+    mocked_send_webhook_request_async.assert_has_calls(
+        [
+            call(
+                kwargs={"event_delivery_id": delivery.id},
+                queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+                bind=True,
+                retry_backoff=10,
+                retry_kwargs={"max_retries": 5},
+            )
+            for delivery in order_deliveries
+        ],
+        any_order=True,
+    )
+
+    assert not mocked_send_webhook_request_sync.called
+    assert wrapped_call_order_event.called
+
+
 @freeze_time("2020-03-18 12:00:00")
 def test_delete_expired_orders_task(order_list, allocations, channel_USD):
     # given
