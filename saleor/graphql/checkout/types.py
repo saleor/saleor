@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 import graphene
 from promise import Promise
@@ -83,6 +83,7 @@ from ..tax.dataloaders import (
 from ..utils import get_user_or_app_from_context
 from ..warehouse.dataloaders import StocksReservationsByCheckoutTokenLoader
 from ..warehouse.types import Warehouse
+from ..webhook.dataloaders import PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader
 from .dataloaders import (
     CheckoutByTokenLoader,
     CheckoutInfoByCheckoutTokenLoader,
@@ -107,13 +108,17 @@ def get_dataloaders_for_fetching_checkout_data(
     Promise[list["CheckoutLineInfo"]],
     Promise["CheckoutInfo"],
     Promise["PluginsManager"],
+    Promise[dict[str, Any]],
 ]:
     address_id = root.shipping_address_id or root.billing_address_id
     address = AddressByIdLoader(info.context).load(address_id) if address_id else None
     lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
     checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(root.token)
     manager = get_plugin_manager_promise(info.context)
-    return address, lines, checkout_info, manager
+    payloads = PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(info.context).load(
+        root.token
+    )
+    return address, lines, checkout_info, manager, payloads
 
 
 class CheckoutLineProblemInsufficientStock(
@@ -286,12 +291,12 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
             lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(
                 checkout.token
             )
+            payloads = PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(
+                info.context
+            ).load(checkout.token)
 
             def calculate_line_unit_price(data):
-                (
-                    checkout_info,
-                    lines,
-                ) = data
+                checkout_info, lines, payloads = data
                 for line_info in lines:
                     if line_info.line.pk == root.pk:
                         return calculations.checkout_line_unit_price(
@@ -299,6 +304,7 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
                             checkout_info=checkout_info,
                             lines=lines,
                             checkout_line_info=line_info,
+                            pregenerated_subscription_payloads=payloads,
                         )
                 return None
 
@@ -306,6 +312,7 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
                 [
                     checkout_info,
                     lines,
+                    payloads,
                 ]
             ).then(calculate_line_unit_price)
 
@@ -364,9 +371,12 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
             lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(
                 checkout.token
             )
+            payloads = PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(
+                info.context
+            ).load(checkout.token)
 
             def calculate_line_total_price(data):
-                (checkout_info, lines) = data
+                checkout_info, lines, payloads = data
                 for line_info in lines:
                     if line_info.line.pk == root.pk:
                         return calculations.checkout_line_total(
@@ -374,10 +384,17 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
                             checkout_info=checkout_info,
                             lines=lines,
                             checkout_line_info=line_info,
+                            pregenerated_subscription_payloads=payloads,
                         )
                 return None
 
-            return Promise.all([checkout_info, lines]).then(calculate_line_total_price)
+            return Promise.all(
+                [
+                    checkout_info,
+                    lines,
+                    payloads,
+                ]
+            ).then(calculate_line_total_price)
 
         return Promise.all(
             [
@@ -884,12 +901,13 @@ class Checkout(ModelObjectType[models.Checkout]):
     @prevent_sync_event_circular_query
     def resolve_total_price(root: models.Checkout, info: ResolveInfo):
         def calculate_total_price(data):
-            address, lines, checkout_info, manager = data
+            address, lines, checkout_info, manager, payloads = data
             taxed_total = calculations.calculate_checkout_total_with_gift_cards(
                 manager=manager,
                 checkout_info=checkout_info,
                 lines=lines,
                 address=address,
+                pregenerated_subscription_payloads=payloads,
             )
             return max(taxed_total, zero_taxed_money(root.currency))
 
@@ -901,12 +919,13 @@ class Checkout(ModelObjectType[models.Checkout]):
     @prevent_sync_event_circular_query
     def resolve_subtotal_price(root: models.Checkout, info: ResolveInfo):
         def calculate_subtotal_price(data):
-            address, lines, checkout_info, manager = data
+            address, lines, checkout_info, manager, payloads = data
             return calculations.checkout_subtotal(
                 manager=manager,
                 checkout_info=checkout_info,
                 lines=lines,
                 address=address,
+                pregenerated_subscription_payloads=payloads,
             )
 
         dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
@@ -917,12 +936,13 @@ class Checkout(ModelObjectType[models.Checkout]):
     @prevent_sync_event_circular_query
     def resolve_shipping_price(root: models.Checkout, info: ResolveInfo):
         def calculate_shipping_price(data):
-            address, lines, checkout_info, manager = data
+            address, lines, checkout_info, manager, payloads = data
             return calculations.checkout_shipping_price(
                 manager=manager,
                 checkout_info=checkout_info,
                 lines=lines,
                 address=address,
+                pregenerated_subscription_payloads=payloads,
             )
 
         dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
@@ -1067,11 +1087,11 @@ class Checkout(ModelObjectType[models.Checkout]):
             CheckoutMetadataByCheckoutIdLoader(info.context)
             .load(root.pk)
             .then(
-                lambda metadata_storage: MetaResolvers.resolve_metadata(
-                    metadata_storage.metadata
+                lambda metadata_storage: (
+                    MetaResolvers.resolve_metadata(metadata_storage.metadata)
+                    if metadata_storage
+                    else {}
                 )
-                if metadata_storage
-                else {}
             )
         )
 
@@ -1081,9 +1101,9 @@ class Checkout(ModelObjectType[models.Checkout]):
             CheckoutMetadataByCheckoutIdLoader(info.context)
             .load(root.pk)
             .then(
-                lambda metadata_storage: metadata_storage.metadata.get(key)
-                if metadata_storage
-                else None
+                lambda metadata_storage: (
+                    metadata_storage.metadata.get(key) if metadata_storage else None
+                )
             )
         )
 
@@ -1093,11 +1113,11 @@ class Checkout(ModelObjectType[models.Checkout]):
             CheckoutMetadataByCheckoutIdLoader(info.context)
             .load(root.pk)
             .then(
-                lambda metadata_storage: _filter_metadata(
-                    metadata_storage.metadata, keys
+                lambda metadata_storage: (
+                    _filter_metadata(metadata_storage.metadata, keys)
+                    if metadata_storage
+                    else {}
                 )
-                if metadata_storage
-                else {}
             )
         )
 
@@ -1107,11 +1127,11 @@ class Checkout(ModelObjectType[models.Checkout]):
             CheckoutMetadataByCheckoutIdLoader(info.context)
             .load(root.pk)
             .then(
-                lambda metadata_storage: MetaResolvers.resolve_private_metadata(
-                    metadata_storage, info
+                lambda metadata_storage: (
+                    MetaResolvers.resolve_private_metadata(metadata_storage, info)
+                    if metadata_storage
+                    else {}
                 )
-                if metadata_storage
-                else {}
             )
         )
 
@@ -1125,11 +1145,11 @@ class Checkout(ModelObjectType[models.Checkout]):
             CheckoutMetadataByCheckoutIdLoader(info.context)
             .load(root.pk)
             .then(
-                lambda metadata_storage: resolve_private_metafield_with_privilege_check(
-                    metadata_storage
+                lambda metadata_storage: (
+                    resolve_private_metafield_with_privilege_check(metadata_storage)
+                    if metadata_storage
+                    else None
                 )
-                if metadata_storage
-                else None
             )
         )
 
@@ -1143,11 +1163,11 @@ class Checkout(ModelObjectType[models.Checkout]):
             CheckoutMetadataByCheckoutIdLoader(info.context)
             .load(root.pk)
             .then(
-                lambda metadata_storage: resolve_private_metafields_with_privilege(
-                    metadata_storage
+                lambda metadata_storage: (
+                    resolve_private_metafields_with_privilege(metadata_storage)
+                    if metadata_storage
+                    else {}
                 )
-                if metadata_storage
-                else {}
             )
         )
 
@@ -1165,7 +1185,7 @@ class Checkout(ModelObjectType[models.Checkout]):
     @staticmethod
     def resolve_authorize_status(root: models.Checkout, info):
         def _resolve_authorize_status(data):
-            address, lines, checkout_info, manager, transactions = data
+            address, lines, checkout_info, manager, payloads, transactions = data
             fetch_checkout_data(
                 checkout_info=checkout_info,
                 manager=manager,
@@ -1173,6 +1193,7 @@ class Checkout(ModelObjectType[models.Checkout]):
                 address=address,
                 checkout_transactions=transactions,
                 force_status_update=True,
+                pregenerated_subscription_payloads=payloads,
             )
             return checkout_info.checkout.authorize_status
 
@@ -1185,7 +1206,7 @@ class Checkout(ModelObjectType[models.Checkout]):
     @staticmethod
     def resolve_charge_status(root: models.Checkout, info):
         def _resolve_charge_status(data):
-            address, lines, checkout_info, manager, transactions = data
+            address, lines, checkout_info, manager, payloads, transactions = data
             fetch_checkout_data(
                 checkout_info=checkout_info,
                 manager=manager,
@@ -1193,6 +1214,7 @@ class Checkout(ModelObjectType[models.Checkout]):
                 address=address,
                 checkout_transactions=transactions,
                 force_status_update=True,
+                pregenerated_subscription_payloads=payloads,
             )
             return checkout_info.checkout.charge_status
 
@@ -1205,12 +1227,13 @@ class Checkout(ModelObjectType[models.Checkout]):
     @staticmethod
     def resolve_total_balance(root: models.Checkout, info):
         def _calculate_total_balance_for_transactions(data):
-            address, lines, checkout_info, manager, transactions = data
+            address, lines, checkout_info, manager, payloads, transactions = data
             taxed_total = calculations.calculate_checkout_total_with_gift_cards(
                 manager=manager,
                 checkout_info=checkout_info,
                 lines=lines,
                 address=address,
+                pregenerated_subscription_payloads=payloads,
             )
             checkout_total = max(taxed_total, zero_taxed_money(root.currency))
             total_charged = zero_money(root.currency)
