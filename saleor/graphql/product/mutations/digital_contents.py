@@ -1,4 +1,5 @@
 import graphene
+from django.conf import settings
 from django.core.exceptions import ValidationError
 
 from ....core.db.connection import allow_writer
@@ -180,12 +181,14 @@ class DigitalContentDelete(BaseMutation):
         disallow_replica_in_context(info.context)
         if not cls.check_permissions(info.context):
             raise PermissionDenied(permissions=cls._meta.permissions)
-        manager = get_plugin_manager_promise(info.context).get()
-        result = manager.perform_mutation(
-            mutation_cls=cls, root=root, info=info, data={"variant_id": variant_id}
-        )
-        if result is not None:
-            return result
+
+        if settings.ENABLE_DEPRECATED_MANAGER_PERFORM_MUTATION:
+            manager = get_plugin_manager_promise(info.context).get()
+            result = manager.perform_mutation(
+                mutation_cls=cls, root=root, info=info, data={"variant_id": variant_id}
+            )
+            if result is not None:
+                return result
 
         variant = cls.get_node_or_error(
             info, variant_id, field="id", only_type=ProductVariant
