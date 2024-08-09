@@ -1,9 +1,15 @@
+from unittest.mock import patch
+
 import graphene
 import pytest
+from django.test import override_settings
 
+from .....core.models import EventDelivery
 from .....discount.models import VoucherCode
 from .....order import OrderStatus
+from .....order.actions import call_order_event
 from .....order.error_codes import OrderErrorCode
+from .....webhook.event_types import WebhookEventAsyncType
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 DRAFT_ORDER_DELETE_MUTATION = """
@@ -256,3 +262,60 @@ def test_draft_order_delete_release_voucher_codes_single_use(
     # then
     voucher_code.refresh_from_db()
     assert voucher_code.is_active is True
+
+
+@patch(
+    "saleor.graphql.order.mutations.draft_order_delete.call_order_event",
+    wraps=call_order_event,
+)
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_draft_order_delete_do_not_trigger_sync_webhooks(
+    mocked_send_webhook_request_async,
+    mocked_send_webhook_request_sync,
+    wrapped_call_order_event,
+    setup_order_webhooks,
+    settings,
+    django_capture_on_commit_callbacks,
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+):
+    # given
+    mocked_send_webhook_request_sync.return_value = []
+    (
+        tax_webhook,
+        shipping_filter_webhook,
+        draft_order_deleted_webhook,
+    ) = setup_order_webhooks(WebhookEventAsyncType.DRAFT_ORDER_DELETED)
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = draft_order
+    query = DRAFT_ORDER_DELETE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["draftOrderDelete"]["errors"]
+
+    # confirm that event delivery was generated for each webhook.
+    draft_order_deleted_delivery = EventDelivery.objects.get(
+        webhook_id=draft_order_deleted_webhook.id
+    )
+
+    mocked_send_webhook_request_async.assert_called_once_with(
+        kwargs={"event_delivery_id": draft_order_deleted_delivery.id},
+        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+        bind=True,
+        retry_backoff=10,
+        retry_kwargs={"max_retries": 5},
+    )
+    assert not mocked_send_webhook_request_sync.called
+    assert wrapped_call_order_event.called

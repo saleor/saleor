@@ -311,17 +311,13 @@ def update_products_search_vector_task():
 def collection_product_updated_task(product_ids):
     manager = get_plugins_manager(allow_replica=True)
     products = list(
-        Product.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
-        .filter(id__in=product_ids)
-        .prefetched_for_webhook(single_object=False)
+        Product.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME).filter(
+            id__in=product_ids
+        )
     )
     replica_products_count = len(products)
     if replica_products_count != len(product_ids):
-        products = list(
-            Product.objects.filter(id__in=product_ids).prefetched_for_webhook(
-                single_object=False
-            )
-        )
+        products = list(Product.objects.filter(id__in=product_ids))
         if len(products) != replica_products_count:
             logger.warning(
                 "collection_product_updated_task fetched %s products from replica, "

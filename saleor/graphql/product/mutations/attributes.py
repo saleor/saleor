@@ -692,7 +692,7 @@ class ProductReorderAttributeValues(BaseReorderAttributeValuesMutation):
         )
 
         try:
-            product = models.Product.objects.prefetched_for_webhook().get(pk=pk)
+            product = models.Product.objects.get(pk=pk)
         except ObjectDoesNotExist:
             raise ValidationError(
                 {

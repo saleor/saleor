@@ -19,10 +19,6 @@ from .....payment.model_helpers import get_subtotal
 from .....plugins import PLUGIN_IDENTIFIER_PREFIX
 from .....plugins.manager import get_plugins_manager
 from .....plugins.tests.sample_plugins import PluginSample
-from .....plugins.webhook.conftest import (  # noqa: F401
-    tax_data_response,
-    tax_line_data_response,
-)
 from .....webhook.event_types import WebhookEventSyncType
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content

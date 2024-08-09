@@ -1,25 +1,29 @@
 from datetime import datetime, timedelta
 from decimal import Decimal
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, call, patch
 
 import graphene
 import pytest
 import pytz
+from django.test import override_settings
 from prices import Money
 
 from .....checkout import AddressType
+from .....core.models import EventDelivery
 from .....core.prices import quantize_price
 from .....core.taxes import TaxError, zero_taxed_money
 from .....discount import DiscountType, DiscountValueType, RewardType, RewardValueType
 from .....discount.models import VoucherChannelListing, VoucherCode, VoucherCustomer
 from .....order import OrderStatus
 from .....order import events as order_events
+from .....order.actions import call_order_event
 from .....order.error_codes import OrderErrorCode
 from .....order.models import Order, OrderEvent
 from .....payment.model_helpers import get_subtotal
 from .....product.models import ProductVariant
 from .....tax import TaxCalculationStrategy
 from .....tests.utils import round_up
+from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 DRAFT_ORDER_CREATE_MUTATION = """
@@ -246,6 +250,7 @@ def test_draft_order_create_with_voucher_entire_order(
         channel_id=order.channel_id
     ).get_total()
     assert order.base_shipping_price == shipping_total
+    assert order.undiscounted_base_shipping_price == shipping_total
 
     # Ensure the correct event was created
     created_draft_event = OrderEvent.objects.get(
@@ -542,6 +547,7 @@ def test_draft_order_create_with_voucher_code(
     assert order.search_vector
     assert order.external_reference == external_reference
     assert order.base_shipping_price == shipping_total
+    assert order.undiscounted_base_shipping_price == shipping_total
 
     # Ensure the correct event was created
     created_draft_event = OrderEvent.objects.get(
@@ -661,6 +667,7 @@ def test_draft_order_create_percentage_voucher(
     assert order.shipping_method == shipping_method
     assert order.shipping_method_name == shipping_method.name
     assert order.base_shipping_price == shipping_total
+    assert order.undiscounted_base_shipping_price == shipping_total
 
     # Ensure the correct event was created
     created_draft_event = OrderEvent.objects.get(
@@ -791,6 +798,7 @@ def test_draft_order_create_with_voucher_specific_product(
         channel_id=order.channel_id
     ).get_total()
     assert order.base_shipping_price == shipping_total
+    assert order.undiscounted_base_shipping_price == shipping_total
 
     lines_data = data["lines"]
     discounted_line_data, line_1_data = lines_data
@@ -932,6 +940,7 @@ def test_draft_order_create_with_voucher_apply_once_per_order(
         channel_id=order.channel_id
     ).get_total()
     assert order.base_shipping_price == shipping_total
+    assert order.undiscounted_base_shipping_price == shipping_total
 
     lines_data = data["lines"]
     discounted_line_data, line_1_data = lines_data
@@ -1513,6 +1522,7 @@ def test_draft_order_create_with_same_variant_and_force_new_line(
         channel_id=order.channel_id
     ).get_total()
     assert order.base_shipping_price == shipping_total
+    assert order.undiscounted_base_shipping_price == shipping_total
 
     # Ensure the correct event was created
     created_draft_event = OrderEvent.objects.get(
@@ -1608,6 +1618,7 @@ def test_draft_order_create_with_inactive_channel(
         channel_id=order.channel_id
     ).get_total()
     assert order.base_shipping_price == shipping_total
+    assert order.undiscounted_base_shipping_price == shipping_total
 
     # Ensure the correct event was created
     created_draft_event = OrderEvent.objects.get(
@@ -1696,6 +1707,7 @@ def test_draft_order_create_without_sku(
         channel_id=order.channel_id
     ).get_total()
     assert order.base_shipping_price == shipping_total
+    assert order.undiscounted_base_shipping_price == shipping_total
 
     order_line = order.lines.get(variant=variant)
     assert order_line.product_sku is None
@@ -1767,6 +1779,7 @@ def test_draft_order_create_variant_with_0_price(
         channel_id=order.channel_id
     ).get_total()
     assert order.base_shipping_price == shipping_total
+    assert order.undiscounted_base_shipping_price == shipping_total
 
     # Ensure the correct event was created
     created_draft_event = OrderEvent.objects.get(
@@ -2238,6 +2251,7 @@ def test_draft_order_create_with_channel(
         channel_id=order.channel_id
     ).get_total()
     assert order.base_shipping_price == shipping_total
+    assert order.undiscounted_base_shipping_price == shipping_total
 
     # Ensure the correct event was created
     created_draft_event = OrderEvent.objects.get(
@@ -2312,6 +2326,7 @@ def test_draft_order_create_product_without_shipping(
     assert order.shipping_method == shipping_method
     assert order.shipping_address.first_name == graphql_address_data["firstName"]
     assert order.base_shipping_price == Money(0, "USD")
+    assert order.undiscounted_base_shipping_price == Money(0, "USD")
 
     # Ensure the correct event was created
     created_draft_event = OrderEvent.objects.get(
@@ -3458,6 +3473,7 @@ def test_draft_order_create_create_no_shipping_method(
     order = Order.objects.get(id=order_pk)
     assert order.undiscounted_base_shipping_price_amount == 0
     assert order.base_shipping_price_amount == 0
+    assert order.undiscounted_base_shipping_price_amount == 0
 
 
 def test_draft_order_create_voucher_exceed_usage_limit(
@@ -3603,3 +3619,99 @@ def test_draft_order_create_voucher_with_usage_limit(
     assert not content["data"]["draftOrderCreate"]["errors"]
     data = content["data"]["draftOrderCreate"]["order"]
     assert data["voucherCode"] == code_1.code
+
+
+@patch(
+    "saleor.graphql.order.mutations.draft_order_create.call_order_event",
+    wraps=call_order_event,
+)
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_draft_order_create_triggers_webhooks(
+    mocked_send_webhook_request_async,
+    mocked_send_webhook_request_sync,
+    wrapped_call_order_event,
+    setup_order_webhooks,
+    app_api_client,
+    permission_manage_orders,
+    customer_user,
+    shipping_method_channel_PLN,
+    product_available_in_many_channels,
+    channel_PLN,
+    graphql_address_data,
+    settings,
+    django_capture_on_commit_callbacks,
+):
+    # given
+    mocked_send_webhook_request_sync.return_value = []
+    (
+        tax_webhook,
+        shipping_filter_webhook,
+        draft_order_created_webhook,
+    ) = setup_order_webhooks(WebhookEventAsyncType.DRAFT_ORDER_CREATED)
+
+    variant = product_available_in_many_channels.variants.first()
+    query = DRAFT_ORDER_CREATE_MUTATION
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    variant_list = [
+        {"variantId": variant_id, "quantity": 2},
+    ]
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id(
+        "ShippingMethod", shipping_method_channel_PLN.id
+    )
+    channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
+    redirect_url = "https://www.example.com"
+
+    variables = {
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+            "billingAddress": shipping_address,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "channelId": channel_id,
+            "redirectUrl": redirect_url,
+        }
+    }
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        response = app_api_client.post_graphql(
+            query, variables, permissions=(permission_manage_orders,)
+        )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["draftOrderCreate"]["errors"]
+
+    # confirm that event delivery was generated for each webhook.
+    draft_order_created_delivery = EventDelivery.objects.get(
+        webhook_id=draft_order_created_webhook.id
+    )
+    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
+    filter_shipping_delivery = EventDelivery.objects.get(
+        webhook_id=shipping_filter_webhook.id,
+        event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
+    )
+
+    mocked_send_webhook_request_async.assert_called_once_with(
+        kwargs={"event_delivery_id": draft_order_created_delivery.id},
+        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+        bind=True,
+        retry_backoff=10,
+        retry_kwargs={"max_retries": 5},
+    )
+    mocked_send_webhook_request_sync.assert_has_calls(
+        [
+            call(tax_delivery),
+            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
+        ]
+    )
+    assert wrapped_call_order_event.called

@@ -197,7 +197,9 @@ def test_get_webhooks_for_multiple_events(
     )
 
     # then
-    assert webhook_map == {
+    assert dict(webhook_map) == {
+        WebhookEventAsyncType.ANY: set(),
+        WebhookEventAsyncType.ORDER_CREATED: set(),
         WebhookEventAsyncType.CHECKOUT_CREATED: {checkout_created_webhook},
         WebhookEventAsyncType.ATTRIBUTE_CREATED: {
             attribute_created_webhook,
