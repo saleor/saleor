@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
             name="gifts",
             field=models.ManyToManyField(
                 blank=True,
-                related_name="_discount_promotionrule_gifts_+",
+                related_name="+",
                 to="product.ProductVariant",
             ),
         ),

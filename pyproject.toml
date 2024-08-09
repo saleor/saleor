@@ -38,7 +38,6 @@ documentation = "https://docs.saleor.io/"
   django-mptt = "^0"
   django-phonenumber-field = ">=4,<8"
   django-prices = "^2.3"
-  django-redis = "^5.0.0"
   django-stubs-ext = "^4.2.1"
   draftjs-sanitizer = "^1.0.0"
   faker = ">=4.1,<24.0"
@@ -65,7 +64,6 @@ documentation = "https://docs.saleor.io/"
   posuto = "^2024.6.0"
   prices = "^1.0"
   promise = "^2.3"
-  psycopg2 = "^2.8.3"
   pybars3 = "^0.9.7"
   pyjwt = "2.5.0"
   python-dateutil = "^2.8.2"
@@ -86,9 +84,10 @@ documentation = "https://docs.saleor.io/"
   urllib3 = "^1.26.19"
   weasyprint = ">=53.0"
   setuptools = "^70.1.0"
+  psycopg = {version = "^3.1.8", extras = ["binary"]}
 
     [tool.poetry.dependencies.django]
-    version = "^3.2.24"
+    version = "^4.2"
     extras = [ "bcrypt" ]
 
     [tool.poetry.dependencies.uvicorn]
@@ -165,9 +164,8 @@ extend_exclude = [ "conftest\\.py", ".*/conftest\\.py", ".*/tests/.*" ]
   "azure-common",
   "azure-storage-blob",
   "azure-storage-common",
-  "django-redis",
   "gunicorn",
-  "psycopg2"
+  "psycopg"
 ]
   DEP004 = [ "debug_toolbar", "graphiql_debug_toolbar" ]
 

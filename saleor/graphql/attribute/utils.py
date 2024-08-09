@@ -10,7 +10,6 @@ from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.db.models.expressions import Exists, OuterRef
 from django.template.defaultfilters import truncatechars
-from django.utils import timezone
 from django.utils.text import slugify
 from graphql.error import GraphQLError
 from text_unidecode import unidecode
@@ -685,7 +684,7 @@ class AttributeAssignmentMixin:
         attr_values: AttrValuesInput,
     ):
         is_date_attr = attribute.input_type == AttributeInputType.DATE
-        tz = timezone.utc
+        tz = datetime.timezone.utc
         if is_date_attr:
             if not attr_values.date:
                 return ()
