@@ -97,13 +97,14 @@ class CategoryTranslation(SeoModelTranslation):
     class Meta:
         indexes = [
             BTreeIndex(
-                fields=["language_code", "slug"], name="categorytranslation_slug_idx"
+                fields=["language_code", "slug"],
+                name="uniq_lang_slug_categorytransl",
             ),
         ]
         constraints = [
             models.UniqueConstraint(
                 fields=["language_code", "slug"],
-                name="categorytranslation_slug_unique",
+                name="uniq_lang_slug_categorytransl",
             ),
         ]
         unique_together = (("language_code", "category"),)
@@ -280,13 +281,14 @@ class ProductTranslation(SeoModelTranslation):
     class Meta:
         indexes = [
             BTreeIndex(
-                fields=["language_code", "slug"], name="producttranslation_slug_idx"
+                fields=["language_code", "slug"],
+                name="uniq_lang_slug_producttransl",
             ),
         ]
         constraints = [
             models.UniqueConstraint(
                 fields=["language_code", "slug"],
-                name="producttranslation_slug_unique",
+                name="uniq_lang_slug_producttransl",
             ),
         ]
         unique_together = (("language_code", "product"),)
@@ -741,13 +743,14 @@ class CollectionTranslation(SeoModelTranslation):
     class Meta:
         indexes = [
             BTreeIndex(
-                fields=["language_code", "slug"], name="collectiontranslation_slug_idx"
+                fields=["language_code", "slug"],
+                name="uniq_lang_slug_collectiontransl",
             ),
         ]
         constraints = [
             models.UniqueConstraint(
                 fields=["language_code", "slug"],
-                name="collectiontranslation_slug_unique",
+                name="uniq_lang_slug_collectiontransl",
             ),
         ]
         unique_together = (("language_code", "collection"),)

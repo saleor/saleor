@@ -52,19 +52,20 @@ class PageTranslation(SeoModelTranslation):
     content = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 
     class Meta:
-        ordering = ("language_code", "page", "pk")
-        unique_together = (("language_code", "page"),)
         indexes = [
             BTreeIndex(
-                fields=["language_code", "slug"], name="pagetranslation_slug_idx"
+                fields=["language_code", "slug"],
+                name="uniq_lang_slug_pagetransl",
             ),
         ]
         constraints = [
             models.UniqueConstraint(
                 fields=["language_code", "slug"],
-                name="pagetranslation_slug_unique",
+                name="uniq_lang_slug_pagetransl",
             ),
         ]
+        ordering = ("language_code", "page", "pk")
+        unique_together = (("language_code", "page"),)
 
     def __repr__(self):
         class_ = type(self)
