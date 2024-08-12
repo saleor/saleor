@@ -210,7 +210,7 @@ def _calculate_and_add_tax(
             tax_data = manager.get_taxes_for_order(order, tax_app_identifier)
             if not tax_data:
                 log_address_if_validation_skipped_for_order(order, logger)
-            _apply_tax_data(order, lines, tax_data)
+            _apply_tax_data(order, lines, tax_data, prices_entered_with_tax)
         else:
             _call_plugin_or_tax_app(
                 tax_app_identifier,
@@ -257,7 +257,7 @@ def _call_plugin_or_tax_app(
         if tax_data is None:
             log_address_if_validation_skipped_for_order(order, logger)
             raise TaxEmptyData("Empty tax data.")
-        _apply_tax_data(order, lines, tax_data)
+        _apply_tax_data(order, lines, tax_data, prices_entered_with_tax)
 
 
 def _recalculate_with_plugins(
@@ -352,7 +352,10 @@ def _get_undiscounted_price(
 
 
 def _apply_tax_data(
-    order: Order, lines: Iterable[OrderLine], tax_data: Optional[TaxData]
+    order: Order,
+    lines: Iterable[OrderLine],
+    tax_data: Optional[TaxData],
+    prices_entered_with_tax: bool,
 ) -> None:
     """Apply all prices from tax data to order and order lines."""
     if not tax_data:
@@ -365,21 +368,49 @@ def _apply_tax_data(
     )
 
     order.shipping_price = shipping_price
-    order.shipping_tax_rate = normalize_tax_rate_for_db(tax_data.shipping_tax_rate)
+    shipping_tax_rate = normalize_tax_rate_for_db(tax_data.shipping_tax_rate)
+    order.shipping_tax_rate = shipping_tax_rate
+
+    undiscounted_shipping_price = get_taxed_undiscounted_price(
+        order.undiscounted_base_shipping_price,
+        shipping_price,
+        shipping_tax_rate,
+        prices_entered_with_tax,
+    )
 
     subtotal = zero_taxed_money(order.currency)
+    undiscounted_subtotal = zero_taxed_money(order.currency)
     for order_line, tax_line in zip(lines, tax_data.lines):
         line_total_price = TaxedMoney(
             net=Money(tax_line.total_net_amount, currency),
             gross=Money(tax_line.total_gross_amount, currency),
         )
         order_line.total_price = line_total_price
-        order_line.unit_price = line_total_price / order_line.quantity
-        order_line.tax_rate = normalize_tax_rate_for_db(tax_line.tax_rate)
+        order_line.unit_price = quantize_price(
+            line_total_price / order_line.quantity, currency
+        )
+        line_tax_rate = normalize_tax_rate_for_db(tax_line.tax_rate)
+        order_line.tax_rate = line_tax_rate
         subtotal += line_total_price
+
+        order_line.undiscounted_unit_price = get_taxed_undiscounted_price(
+            order_line.undiscounted_base_unit_price,
+            order_line.unit_price,
+            line_tax_rate,
+            prices_entered_with_tax,
+        )
+        order_line.undiscounted_total_price = get_taxed_undiscounted_price(
+            # base_order_line_total returns equal gross and net
+            base_order_line_total(order_line).undiscounted_price.net,
+            line_total_price,
+            line_tax_rate,
+            prices_entered_with_tax,
+        )
+        undiscounted_subtotal += order_line.undiscounted_total_price
 
     order.subtotal = subtotal
     order.total = shipping_price + subtotal
+    order.undiscounted_total = undiscounted_shipping_price + undiscounted_subtotal
 
 
 def _remove_tax(order, lines):
