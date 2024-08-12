@@ -45,16 +45,49 @@ def tax_data(order_with_lines, order_lines):
                 total_gross_amount=quantize_price(
                     line.total_price.net.amount * (1 + line_tax_rate), line.currency
                 ),
-                tax_rate=line_tax_rate,
+                tax_rate=line_tax_rate * 100,
             )
         )
 
     shipping_net = order.shipping_price.net.amount
-    shipping_gross = order.shipping_price.net.amount * shipping_tax_rate
+    shipping_gross = order.shipping_price.net.amount * (1 + shipping_tax_rate)
     return TaxData(
         shipping_price_net_amount=shipping_net,
         shipping_price_gross_amount=shipping_gross,
-        shipping_tax_rate=shipping_tax_rate,
+        shipping_tax_rate=shipping_tax_rate * 100,
+        lines=lines,
+    )
+
+
+@pytest.fixture
+def tax_data_prices_entered_with_tax(order_with_lines, order_lines):
+    order = order_with_lines
+    tax_rate = Decimal("0.23")
+    shipping_tax_rate = Decimal("0.17")
+    currency = order.currency
+    lines = []
+    for i, line in enumerate(order_lines, start=1):
+        line_tax_rate = tax_rate + Decimal(f"{i}") / 100
+        lines.append(
+            TaxLineData(
+                total_net_amount=quantize_price(
+                    line.total_price.net.amount / (1 + line_tax_rate), currency
+                ),
+                total_gross_amount=quantize_price(
+                    line.total_price.net.amount, currency
+                ),
+                tax_rate=line_tax_rate * 100,
+            )
+        )
+
+    shipping_net = quantize_price(
+        order.shipping_price.net.amount / (1 + shipping_tax_rate), currency
+    )
+    shipping_gross = order.shipping_price.net.amount
+    return TaxData(
+        shipping_price_net_amount=shipping_net,
+        shipping_price_gross_amount=shipping_gross,
+        shipping_tax_rate=shipping_tax_rate * 100,
         lines=lines,
     )
 
@@ -472,13 +505,21 @@ def test_recalculate_prices_line_quantity_changed(
     assert order_discount.amount == order.undiscounted_total.net
 
 
-def test_apply_tax_data(order_with_lines, order_lines, tax_data):
+@pytest.mark.parametrize("prices_entered_with_tax", [True, False])
+def test_apply_tax_data(
+    prices_entered_with_tax,
+    order_with_lines,
+    order_lines,
+    tax_data,
+    tax_data_prices_entered_with_tax,
+):
     # given
     order = order_with_lines
     lines = order_lines
+    tax_data = tax_data_prices_entered_with_tax if prices_entered_with_tax else tax_data
 
     # when
-    calculations._apply_tax_data(order, [line for line in lines], tax_data)
+    calculations._apply_tax_data(order, lines, tax_data, prices_entered_with_tax)
 
     # then
     assert str(order.shipping_price.net.amount) == str(
@@ -487,10 +528,35 @@ def test_apply_tax_data(order_with_lines, order_lines, tax_data):
     assert str(order.shipping_price.gross.amount) == str(
         tax_data.shipping_price_gross_amount
     )
-
     for line, tax_line in zip(lines, tax_data.lines):
         assert str(line.total_price.net.amount) == str(tax_line.total_net_amount)
         assert str(line.total_price.gross.amount) == str(tax_line.total_gross_amount)
+        assert str(line.undiscounted_total_price.net.amount) == str(
+            tax_line.total_net_amount
+        )
+        assert str(line.undiscounted_total_price.gross.amount) == str(
+            tax_line.total_gross_amount
+        )
+
+    subtotal_gross = sum(line.total_price.gross.amount for line in lines)
+    subtotal_net = sum(line.total_price.net.amount for line in lines)
+    undiscounted_subtotal_gross = sum(line.total_price.gross.amount for line in lines)
+    undiscounted_subtotal_net = sum(line.total_price.net.amount for line in lines)
+
+    assert order.subtotal_gross_amount == subtotal_gross
+    assert order.subtotal_net_amount == subtotal_net
+    assert (
+        order.total_gross_amount == subtotal_gross + order.shipping_price_gross_amount
+    )
+    assert order.total_net_amount == subtotal_net + order.shipping_price_net_amount
+    assert (
+        order.undiscounted_total_gross_amount
+        == undiscounted_subtotal_gross + order.shipping_price_gross_amount
+    )
+    assert (
+        order.undiscounted_total_net_amount
+        == undiscounted_subtotal_net + order.shipping_price_net_amount
+    )
 
 
 @pytest.fixture
