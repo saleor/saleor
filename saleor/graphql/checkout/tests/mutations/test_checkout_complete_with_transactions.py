@@ -303,6 +303,9 @@ def test_checkout_with_total_0(
     assert order.charge_status == OrderChargeStatus.FULL
     assert order.authorize_status == OrderAuthorizeStatus.FULL
     assert order.subtotal.gross == get_subtotal(order.lines.all(), order.currency).gross
+    assert order.shipping_price_gross_amount == 0
+    assert order.base_shipping_price_amount == 0
+    assert order.undiscounted_base_shipping_price_amount == 0
 
 
 def test_checkout_with_authorized(
@@ -333,6 +336,10 @@ def test_checkout_with_authorized(
     channel = checkout.channel
     channel.automatically_confirm_all_new_orders = True
     channel.save()
+
+    shipping_price = checkout.shipping_method.channel_listings.get(
+        channel=checkout.channel
+    ).price
 
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
@@ -398,6 +405,9 @@ def test_checkout_with_authorized(
     assert (
         order.shipping_tax_class_private_metadata == shipping_tax_class.private_metadata
     )
+    assert order.shipping_price_gross_amount == shipping_price.amount
+    assert order.base_shipping_price_amount == shipping_price.amount
+    assert order.undiscounted_base_shipping_price_amount == shipping_price.amount
 
     assert not Checkout.objects.filter()
     assert not len(Reservation.objects.all())
@@ -1291,7 +1301,10 @@ def test_checkout_complete(
     assert not len(Reservation.objects.all())
 
     order_utils_log = caplog.records[1]
-    assert str(checkout_info.checkout.pk) == order_utils_log.checkout_id
+    assert (
+        graphene.Node.to_global_id("Checkout", checkout_info.checkout.pk)
+        == order_utils_log.checkout_id
+    )
     assert gift_card.initial_balance_amount == Decimal(
         order_utils_log.gift_card_compensation
     )

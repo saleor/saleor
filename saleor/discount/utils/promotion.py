@@ -2,6 +2,7 @@ import datetime
 from collections import defaultdict, namedtuple
 from collections.abc import Iterable, Iterator
 from decimal import Decimal
+from itertools import chain
 from typing import TYPE_CHECKING, Callable, Optional, Union, overload
 from uuid import UUID
 
@@ -44,7 +45,7 @@ from ..models import (
     Promotion,
     PromotionRule,
 )
-from .shared import update_line_discount
+from .shared import update_discount
 
 if TYPE_CHECKING:
     from ...checkout.fetch import CheckoutLineInfo
@@ -350,18 +351,19 @@ def _update_promotion_discount(
     value_type = rule.reward_value_type or RewardValueType.FIXED
     # gift rule has empty reward_value
     value = rule.reward_value or rule_discount_amount
-    update_line_discount(
-        rule,
-        None,
-        discount_name,
-        translated_name,
-        reason,
-        rule_discount_amount,
-        value,
-        value_type,
-        DiscountType.PROMOTION,
-        discount_to_update,
-        updated_fields,
+    update_discount(
+        rule=rule,
+        voucher=None,
+        discount_name=discount_name,
+        translated_name=translated_name,
+        discount_reason=reason,
+        discount_amount=rule_discount_amount,
+        value=value,
+        value_type=value_type,
+        unique_type=DiscountType.PROMOTION,
+        discount_to_update=discount_to_update,
+        updated_fields=updated_fields,
+        voucher_code=None,
     )
 
 
@@ -683,6 +685,19 @@ def get_current_products_for_rules(rules: "QuerySet[PromotionRule]"):
     return Product.objects.filter(Exists(variants.filter(product_id=OuterRef("id"))))
 
 
+def _create_new_rules(rules_to_add, variants_lock, rules_lock):
+    # base on what locks returned, filter out rules and variants that weren't locked
+    rules_to_add_batch = [
+        rv
+        for rv in rules_to_add
+        if rv.promotionrule_id in rules_lock and rv.productvariant_id in variants_lock
+    ]
+
+    return PromotionRule.variants.through.objects.bulk_create(
+        rules_to_add_batch, ignore_conflicts=True
+    )
+
+
 def update_rule_variant_relation(
     rules: QuerySet[PromotionRule], new_rules_variants: list
 ):
@@ -691,38 +706,62 @@ def update_rule_variant_relation(
     Deletes relations, which are not valid anymore.
     Adds new relations, if they don't exist already.
     `new_rules_variants` is a list of PromotionRuleVariant objects.
+
+    It is important to lock the variants and rules before deleting and adding new
+    relations to avoid integrity errors. It is also important to lock the rules and
+    variants in the same order to avoid deadlocks.
     """
+    PromotionRuleVariant = PromotionRule.variants.through
+    existing_rules_variants = PromotionRuleVariant.objects.filter(
+        Exists(rules.filter(pk=OuterRef("promotionrule_id")))
+    ).all()
+    new_rule_variant_set = set(
+        (rv.promotionrule_id, rv.productvariant_id) for rv in new_rules_variants
+    )
+    existing_rule_variant_set = set(
+        (rv.promotionrule_id, rv.productvariant_id) for rv in existing_rules_variants
+    )
+    # Assign new variants to promotion rules
+    rules_variants_to_add = [
+        rv
+        for rv in new_rules_variants
+        if (rv.promotionrule_id, rv.productvariant_id) not in existing_rule_variant_set
+    ]
+
+    # Clear invalid variants assigned to promotion rules
+    rule_variant_to_delete_ids = [
+        rv
+        for rv in existing_rules_variants
+        if (rv.promotionrule_id, rv.productvariant_id) not in new_rule_variant_set
+    ]
     with transaction.atomic():
-        PromotionRuleVariant = PromotionRule.variants.through
-        existing_rules_variants = PromotionRuleVariant.objects.filter(
-            Exists(rules.filter(pk=OuterRef("promotionrule_id")))
-        ).all()
-        new_rule_variant_set = set(
-            (rv.promotionrule_id, rv.productvariant_id) for rv in new_rules_variants
+        variants_lock = tuple(
+            ProductVariant.objects.order_by("pk")
+            .select_for_update(of=("self",))
+            .filter(
+                id__in={
+                    rv.productvariant_id
+                    for rv in chain(rule_variant_to_delete_ids, rules_variants_to_add)
+                }
+            )
+            .values_list("id", flat=True)
         )
-        existing_rule_variant_set = set(
-            (rv.promotionrule_id, rv.productvariant_id)
-            for rv in existing_rules_variants
+        rules_lock = tuple(
+            PromotionRule.objects.order_by("pk")
+            .select_for_update(of=("self",))
+            .filter(
+                id__in={
+                    rv.promotionrule_id
+                    for rv in chain(rule_variant_to_delete_ids, rules_variants_to_add)
+                }
+            )
+            .values_list("pk", flat=True)
         )
+        PromotionRuleVariant.objects.order_by("pk").select_for_update(
+            of=("self",)
+        ).filter(id__in={rv.id for rv in rule_variant_to_delete_ids}).delete()
 
-        # Clear invalid variants assigned to promotion rules
-        rule_variant_to_delete_ids = [
-            rv.id
-            for rv in existing_rules_variants
-            if (rv.promotionrule_id, rv.productvariant_id) not in new_rule_variant_set
-        ]
-        PromotionRuleVariant.objects.filter(id__in=rule_variant_to_delete_ids).delete()
-
-        # Assign new variants to promotion rules
-        rules_variants_to_add = [
-            rv
-            for rv in new_rules_variants
-            if (rv.promotionrule_id, rv.productvariant_id)
-            not in existing_rule_variant_set
-        ]
-        PromotionRuleVariant.objects.bulk_create(
-            rules_variants_to_add, ignore_conflicts=True
-        )
+        return _create_new_rules(rules_variants_to_add, variants_lock, rules_lock)
 
 
 def create_discount_objects_for_order_promotions(

@@ -61,6 +61,7 @@ class GraphQLView(View):
     middleware = None
     root_value = None
     backend: GraphQLBackend = None  # type: ignore[assignment]
+    _query: Optional[str] = None
 
     HANDLED_EXCEPTIONS = (
         GraphQLError,
@@ -265,7 +266,6 @@ class GraphQLView(View):
             )
 
             query, variables, operation_name = self.get_graphql_params(request, data)
-
             document, error = self.parse_query(query)
             with observability.report_gql_operation() as operation:
                 operation.query = document
@@ -274,9 +274,11 @@ class GraphQLView(View):
             if error or document is None:
                 return error
 
+            _query_identifier = query_identifier(document)
+            self._query = _query_identifier
             raw_query_string = document.document_string
             span.set_tag("graphql.query", raw_query_string)
-            span.set_tag("graphql.query_identifier", query_identifier(document))
+            span.set_tag("graphql.query_identifier", _query_identifier)
             span.set_tag("graphql.query_fingerprint", query_fingerprint(document))
             try:
                 query_contains_schema = check_if_query_contains_only_schema(document)
@@ -374,9 +376,8 @@ class GraphQLView(View):
             variables = operations.get("variables")
         return query, variables, operation_name
 
-    @classmethod
-    def format_error(cls, error):
-        return format_error(error, cls.HANDLED_EXCEPTIONS)
+    def format_error(self, error):
+        return format_error(error, self.HANDLED_EXCEPTIONS, self._query)
 
 
 def get_key(key):

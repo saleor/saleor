@@ -191,6 +191,10 @@ def test_checkout_complete(
     checkout_line_quantity = checkout_line.quantity
     checkout_line_variant = checkout_line.variant
 
+    shipping_price = checkout.shipping_method.channel_listings.get(
+        channel=checkout.channel
+    ).price
+
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
@@ -260,6 +264,9 @@ def test_checkout_complete(
     assert (
         order.shipping_tax_class_private_metadata == shipping_tax_class.private_metadata
     )
+    assert order.shipping_price_gross_amount == shipping_price.amount
+    assert order.base_shipping_price_amount == shipping_price.amount
+    assert order.undiscounted_base_shipping_price_amount == shipping_price.amount
     assert order.payments.exists()
     assert order.search_vector
     order_payment = order.payments.first()
@@ -281,7 +288,10 @@ def test_checkout_complete(
     assert not len(Reservation.objects.all())
 
     order_utils_log = caplog.records[1]
-    assert str(checkout_info.checkout.pk) == order_utils_log.checkout_id
+    assert (
+        graphene.Node.to_global_id("Checkout", checkout_info.checkout.pk)
+        == order_utils_log.checkout_id
+    )
     assert gift_card.initial_balance_amount == Decimal(
         order_utils_log.gift_card_compensation
     )
@@ -3434,6 +3444,9 @@ def test_checkout_complete_0_total_value(
     assert checkout_line_variant == order_line.variant
     assert order.shipping_address is None
     assert order.shipping_method is None
+    assert order.shipping_price_gross_amount == 0
+    assert order.base_shipping_price_amount == 0
+    assert order.undiscounted_base_shipping_price_amount == 0
     assert order.payments.exists()
     order_payment = order.payments.first()
     assert order_payment == payment

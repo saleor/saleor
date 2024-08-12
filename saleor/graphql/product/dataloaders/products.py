@@ -524,10 +524,8 @@ class CollectionByIdLoader(DataLoader):
     context_key = "collection_by_id"
 
     def batch_load(self, keys):
-        collections = (
-            Collection.objects.using(self.database_connection_name)
-            .using(self.database_connection_name)
-            .in_bulk(keys)
+        collections = Collection.objects.using(self.database_connection_name).in_bulk(
+            keys
         )
         return [collections.get(collection_id) for collection_id in keys]
 
@@ -538,7 +536,6 @@ class CollectionsByProductIdLoader(DataLoader):
     def batch_load(self, keys):
         product_collection_pairs = list(
             CollectionProduct.objects.using(self.database_connection_name)
-            .using(self.database_connection_name)
             .filter(product_id__in=keys)
             .order_by("id")
             .values_list("product_id", "collection_id")
@@ -549,9 +546,10 @@ class CollectionsByProductIdLoader(DataLoader):
             product_collection_map[pid].append(cid)
 
         def map_collections(collections):
-            collection_map = {c.id: c for c in collections}
+            collection_map = {c.id: c for c in collections if c is not None}
+
             return [
-                [collection_map[cid] for cid in product_collection_map[pid]]
+                [collection_map.get(cid) for cid in product_collection_map[pid]]
                 for pid in keys
             ]
 

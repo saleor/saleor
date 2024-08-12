@@ -3,14 +3,7 @@ import secrets
 from collections.abc import Collection, Iterable
 from enum import Enum
 from itertools import chain
-from typing import (
-    Any,
-    Optional,
-    TypeVar,
-    Union,
-    cast,
-    overload,
-)
+from typing import Any, Optional, TypeVar, Union, cast, overload
 from uuid import UUID
 
 import graphene
