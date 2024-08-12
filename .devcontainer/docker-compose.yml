@@ -2,11 +2,11 @@ version: "3.4"
 
 services:
   saleor:
-    image: saleor/saleor:latest
+    image: saleor
     build:
       context: ..
       dockerfile: .devcontainer/Dockerfile
-    command: python /app/manage.py runserver 0.0.0.0:8000
+    command: sleep infinity
     env_file:
       - common.env
       - backend.env
@@ -15,17 +15,15 @@ services:
       - redis
     volumes:
       - ..:/app
-    ports:
-      - "8000:8000"
 
   dashboard:
     image: ghcr.io/saleor/saleor-dashboard:3.20.5
     restart: unless-stopped
     ports:
-      - "9000:80"
+      - 9000:80
 
   db:
-    image: postgres:15-alpine
+    image: library/postgres:15-alpine
     restart: unless-stopped
     volumes:
       - saleor-db:/var/lib/postgresql/data
@@ -34,16 +32,16 @@ services:
       - POSTGRES_PASSWORD=saleor
 
   redis:
-    image: redis:7.0-alpine
+    image: library/redis:7.0-alpine
     restart: unless-stopped
     volumes:
       - saleor-redis:/data
 
   mailpit:
-    image: axllent/mailpit:latest
+    image: axllent/mailpit
     ports:
-      - "1025:1025" # SMTP Server
-      - "8025:8025" # Mailpit UI
+      - "1025" # SMTP Server
+      - "8025" # Mailpit UI
     restart: unless-stopped
 
 volumes:
