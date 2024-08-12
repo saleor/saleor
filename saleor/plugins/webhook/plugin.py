@@ -3033,8 +3033,10 @@ class WebhookPlugin(BasePlugin):
         app_identifier: str,
         payload_gen: Callable,
         subscriptable_object=None,
-        pregenerated_subscription_payloads: Optional[dict] = {},
+        pregenerated_subscription_payloads: Optional[dict] = None,
     ):
+        if pregenerated_subscription_payloads is None:
+            pregenerated_subscription_payloads = {}
         app = (
             App.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
             .filter(
@@ -3082,8 +3084,10 @@ class WebhookPlugin(BasePlugin):
         lines,
         app_identifier,
         previous_value,
-        pregenerated_subscription_payloads={},
+        pregenerated_subscription_payloads: Optional[dict] = None,
     ) -> Optional["TaxData"]:
+        if pregenerated_subscription_payloads is None:
+            pregenerated_subscription_payloads = {}
         event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
         if app_identifier:
             return self.__run_tax_webhook(
