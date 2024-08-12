@@ -2998,8 +2998,10 @@ class WebhookPlugin(BasePlugin):
         checkout_info,
         lines,
         previous_value,
-        pregenerated_subscription_payloads: Optional[dict] = {},
+        pregenerated_subscription_payloads: Optional[dict] = None,
     ) -> Optional["TaxData"]:
+        if pregenerated_subscription_payloads is None:
+            pregenerated_subscription_payloads = {}
         return trigger_all_webhooks_sync(
             WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
             lambda: generate_checkout_payload_for_tax_calculation(

@@ -596,8 +596,10 @@ class PluginsManager(PaymentInterface):
         self,
         checkout_info,
         lines,
-        pregenerated_subscription_payloads: Optional[dict] = {},
+        pregenerated_subscription_payloads: Optional[dict] = None,
     ) -> Optional[TaxData]:
+        if pregenerated_subscription_payloads is None:
+            pregenerated_subscription_payloads = {}
         return self.__run_plugin_method_until_first_success(
             "get_taxes_for_checkout",
             checkout_info,
