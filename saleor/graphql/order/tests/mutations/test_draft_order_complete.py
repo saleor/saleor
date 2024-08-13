@@ -29,10 +29,6 @@ from .....payment.model_helpers import get_subtotal
 from .....plugins import PLUGIN_IDENTIFIER_PREFIX
 from .....plugins.base_plugin import ExcludedShippingMethod
 from .....plugins.tests.sample_plugins import PluginSample
-from .....plugins.webhook.conftest import (  # noqa: F401
-    tax_data_response,
-    tax_line_data_response,
-)
 from .....product.models import ProductVariant
 from .....warehouse.models import Allocation, PreorderAllocation, Stock
 from .....warehouse.tests.utils import get_available_quantity_for_stock

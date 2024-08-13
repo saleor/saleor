@@ -18,6 +18,7 @@ from ....graphql.webhook.subscription_payload import (
     initialize_request,
 )
 from ....graphql.webhook.subscription_types import WEBHOOK_TYPES_MAP
+from ....graphql.webhook.utils import get_pregenerated_subscription_payload
 from ....payment.models import TransactionEvent
 from ....payment.utils import (
     create_transaction_event_from_request_and_webhook_response,
@@ -212,6 +213,7 @@ def create_delivery_for_subscription_sync_event(
     requestor=None,
     request=None,
     allow_replica=False,
+    pregenerated_payload: Optional[dict] = None,
 ) -> Optional[EventDelivery]:
     """Generate webhook payload based on subscription query and create delivery object.
 
@@ -223,8 +225,9 @@ def create_delivery_for_subscription_sync_event(
     :param webhook: webhook object for which delivery will be created.
     :param requestor: used in subscription webhooks to generate meta data for payload.
     :param request: used to share context between sync event calls
-    :return: List of event deliveries to send via webhook tasks.
     :param allow_replica: use replica database.
+    :param pregenerated_payload: Pregenerated payload to use instead of generating one when creating delivery.
+    :return: List of event deliveries to send via webhook tasks.
     """
     if event_type not in WEBHOOK_TYPES_MAP:
         logger.info(
@@ -239,13 +242,17 @@ def create_delivery_for_subscription_sync_event(
             event_type=event_type,
             allow_replica=allow_replica,
         )
-    data = generate_payload_from_subscription(
-        event_type=event_type,
-        subscribable_object=subscribable_object,
-        subscription_query=webhook.subscription_query,
-        request=request,
-        app=webhook.app,
-    )
+    if not pregenerated_payload:
+        data = generate_payload_from_subscription(
+            event_type=event_type,
+            subscribable_object=subscribable_object,
+            subscription_query=webhook.subscription_query,
+            request=request,
+            app=webhook.app,
+        )
+    else:
+        data = pregenerated_payload
+
     if not data:
         logger.info(
             "No payload was generated with subscription for event: %s", event_type
@@ -274,6 +281,7 @@ def trigger_webhook_sync(
     timeout=None,
     request=None,
     requestor=None,
+    pregenerated_subscription_payload: Optional[dict] = None,
 ) -> Optional[dict[Any, Any]]:
     """Send a synchronous webhook request."""
     if webhook.subscription_query:
@@ -284,6 +292,7 @@ def trigger_webhook_sync(
             requestor=requestor,
             request=request,
             allow_replica=allow_replica,
+            pregenerated_payload=pregenerated_subscription_payload,
         )
         if not delivery:
             return None
@@ -311,6 +320,7 @@ def trigger_all_webhooks_sync(
     subscribable_object=None,
     requestor=None,
     allow_replica=False,
+    pregenerated_subscription_payloads: Optional[dict] = None,
 ) -> Optional[R]:
     """Send all synchronous webhook request for given event type.
 
@@ -320,6 +330,9 @@ def trigger_all_webhooks_sync(
     If no webhook responds with expected response,
     this function returns None.
     """
+    if pregenerated_subscription_payloads is None:
+        pregenerated_subscription_payloads = {}
+
     webhooks = get_webhooks_for_event(event_type)
     request_context = None
     event_payload = None
@@ -333,12 +346,17 @@ def trigger_all_webhooks_sync(
                     event_type=event_type,
                 )
 
+            pregenerated_payload = get_pregenerated_subscription_payload(
+                webhook, pregenerated_subscription_payloads
+            )
+
             delivery = create_delivery_for_subscription_sync_event(
                 event_type=event_type,
                 subscribable_object=subscribable_object,
                 webhook=webhook,
                 request=request_context,
                 requestor=requestor,
+                pregenerated_payload=pregenerated_payload,
             )
             if not delivery:
                 return None
