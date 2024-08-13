@@ -162,7 +162,6 @@ def call_order_event(
     event_name: str,
     order: "Order",
     webhook_event_map: Optional[dict[str, set["Webhook"]]] = None,
-    **event_kwargs,
 ):
     if event_name not in ORDER_WEBHOOK_EVENT_MAP:
         raise ValueError(f"Event {event_name} not found in ORDER_WEBHOOK_EVENT_MAP.")
@@ -170,21 +169,24 @@ def call_order_event(
     plugin_manager_method_name = ORDER_WEBHOOK_EVENT_MAP[event_name]
     event_func = getattr(manager, plugin_manager_method_name)
 
-    if order.status not in ORDER_EDITABLE_STATUS:
-        call_event_including_protected_events(event_func, order, **event_kwargs)
-        return
-    if event_name == WebhookEventAsyncType.DRAFT_ORDER_DELETED:
-        call_event_including_protected_events(event_func, order, **event_kwargs)
-        return
-
     if webhook_event_map is None:
         webhook_event_map = get_webhooks_for_multiple_events(
             [event_name, *WebhookEventSyncType.ORDER_EVENTS]
         )
+
+    webhooks = webhook_event_map.get(event_name, set())
+
+    if order.status not in ORDER_EDITABLE_STATUS:
+        call_event_including_protected_events(event_func, order, webhooks=webhooks)
+        return
+    if event_name == WebhookEventAsyncType.DRAFT_ORDER_DELETED:
+        call_event_including_protected_events(event_func, order, webhooks=webhooks)
+        return
+
     if not webhook_async_event_requires_sync_webhooks_to_trigger(
         event_name, webhook_event_map, WebhookEventSyncType.ORDER_EVENTS
     ):
-        call_event_including_protected_events(event_func, order, **event_kwargs)
+        call_event_including_protected_events(event_func, order, webhooks=webhooks)
         return
 
     if (
@@ -205,7 +207,7 @@ def call_order_event(
             manager,
         )
 
-    call_event_including_protected_events(event_func, order, **event_kwargs)
+    call_event_including_protected_events(event_func, order, webhooks=webhooks)
     return
 
 
@@ -352,16 +354,12 @@ def cancel_order(
             WebhookEventAsyncType.ORDER_CANCELLED,
             order,
             webhook_event_map=webhook_event_map,
-            webhooks=webhook_event_map.get(
-                WebhookEventAsyncType.ORDER_CANCELLED, set()
-            ),
         )
         call_order_event(
             manager,
             WebhookEventAsyncType.ORDER_UPDATED,
             order,
             webhook_event_map=webhook_event_map,
-            webhooks=webhook_event_map.get(WebhookEventAsyncType.ORDER_UPDATED, set()),
         )
 
         call_event(send_order_canceled_confirmation, order, user, app, manager)

@@ -75,7 +75,7 @@ def test_order_note_update_as_staff_user(
     assert data["event"]["user"]["email"] == staff_user.email
     assert data["event"]["message"] == message
     assert data["event"]["related"]["id"] == note_id
-    order_updated_webhook_mock.assert_called_once_with(order)
+    order_updated_webhook_mock.assert_called_once_with(order, webhooks=set())
 
     order.refresh_from_db()
     assert order.status == OrderStatus.UNFULFILLED
@@ -123,7 +123,7 @@ def test_order_note_update_as_app(
     assert data["order"]["id"] == order_id
     assert data["event"]["user"] is None
     assert data["event"]["related"]["id"] == note_id
-    order_updated_webhook_mock.assert_called_once_with(order)
+    order_updated_webhook_mock.assert_called_once_with(order, webhooks=set())
 
     new_note = OrderEvent.objects.filter(order=order).exclude(pk=note.pk).get()
     assert new_note.type == OrderEvents.NOTE_UPDATED
