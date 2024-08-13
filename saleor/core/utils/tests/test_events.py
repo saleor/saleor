@@ -1,8 +1,14 @@
+from unittest.mock import patch
+
 import pytest
 
 from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....webhook.utils import get_webhooks_for_multiple_events
-from ..events import call_event, webhook_async_event_requires_sync_webhooks_to_trigger
+from ..events import (
+    call_event,
+    call_event_including_protected_events,
+    webhook_async_event_requires_sync_webhooks_to_trigger,
+)
 
 
 def test_call_event_cannot_be_used_with_checkout_info_object(
@@ -80,3 +86,23 @@ def test_webhook_async_event_requires_sync_webhooks_to_trigger_missing_event_in_
         webhook_async_event_requires_sync_webhooks_to_trigger(
             event_name, webhook_event_map, WebhookEventSyncType.ORDER_EVENTS
         )
+
+
+@patch("saleor.plugins.manager.PluginsManager.checkout_created")
+def test_call_event_including_protected_events(
+    mocked_checkout_created,
+    checkout_with_items,
+    plugins_manager,
+    webhook,
+    django_capture_on_commit_callbacks,
+):
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        call_event_including_protected_events(
+            plugins_manager.checkout_created, checkout_with_items, webhooks=[webhook]
+        )
+
+    # then
+    mocked_checkout_created.assert_called_once_with(
+        checkout_with_items, webhooks=[webhook]
+    )

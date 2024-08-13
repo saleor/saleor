@@ -62,9 +62,9 @@ def test_payment_refund_success(
     assert txn.kind == TransactionKind.REFUND
 
     flush_post_commit_hooks()
-    mock_order_updated.assert_called_once_with(payment.order)
-    mock_order_refunded.assert_called_once_with(payment.order)
-    mock_order_fully_refunded.assert_called_once_with(payment.order)
+    mock_order_updated.assert_called_once_with(payment.order, webhooks=set())
+    mock_order_refunded.assert_called_once_with(payment.order, webhooks=set())
+    mock_order_fully_refunded.assert_called_once_with(payment.order, webhooks=set())
 
 
 def test_payment_refund_success_by_user_no_channel_access(
@@ -131,9 +131,9 @@ def test_payment_refund_success_by_app(
     assert txn.kind == TransactionKind.REFUND
 
     flush_post_commit_hooks()
-    mock_order_updated.assert_called_once_with(payment.order)
-    mock_order_refunded.assert_called_once_with(payment.order)
-    mock_order_fully_refunded.assert_called_once_with(payment.order)
+    mock_order_updated.assert_called_once_with(payment.order, webhooks=set())
+    mock_order_refunded.assert_called_once_with(payment.order, webhooks=set())
+    mock_order_fully_refunded.assert_called_once_with(payment.order, webhooks=set())
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")

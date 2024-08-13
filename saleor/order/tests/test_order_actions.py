@@ -1,5 +1,5 @@
 from decimal import Decimal
-from unittest.mock import call, patch
+from unittest.mock import ANY, call, patch
 
 import pytest
 from django.test import override_settings
@@ -7,6 +7,7 @@ from prices import Money, TaxedMoney
 
 from ...channel import MarkAsPaidStrategy
 from ...core.models import EventDelivery
+from ...core.utils.events import call_event_including_protected_events
 from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCard, GiftCardEvent
 from ...order.fetch import OrderLineInfo, fetch_order_info
@@ -751,18 +752,12 @@ def test_cancel_order_dont_trigger_webhooks(
                 WebhookEventAsyncType.ORDER_UPDATED,
                 order,
                 webhook_event_map=webhook_event_map,
-                webhooks=webhook_event_map.get(
-                    WebhookEventAsyncType.ORDER_UPDATED, set()
-                ),
             ),
             call(
                 plugins_manager,
                 WebhookEventAsyncType.ORDER_CANCELLED,
                 order,
                 webhook_event_map=webhook_event_map,
-                webhooks=webhook_event_map.get(
-                    WebhookEventAsyncType.ORDER_CANCELLED, set()
-                ),
             ),
         ],
         any_order=True,
@@ -798,8 +793,8 @@ def test_order_refunded_by_user(
     send_order_refunded_confirmation_mock.assert_called_once_with(
         order, order.user, None, amount, order.currency, manager
     )
-    order_fully_refunded_mock.assert_called_once_with(order)
-    order_refunded_mock.assert_called_once_with(order)
+    order_fully_refunded_mock.assert_called_once_with(order, webhooks=set())
+    order_refunded_mock.assert_called_once_with(order, webhooks=set())
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_refunded")
@@ -831,8 +826,8 @@ def test_order_refunded_by_app(
     send_order_refunded_confirmation_mock.assert_called_once_with(
         order, None, app, amount, order.currency, manager
     )
-    order_fully_refunded_mock.assert_called_once_with(order)
-    order_refunded_mock.assert_called_once_with(order)
+    order_fully_refunded_mock.assert_called_once_with(order, webhooks=set())
+    order_refunded_mock.assert_called_once_with(order, webhooks=set())
 
 
 @patch(
@@ -1681,8 +1676,8 @@ def test_order_transaction_updated_order_fully_paid(
 
     # then
     flush_post_commit_hooks()
-    order_fully_paid.assert_called_once_with(order_with_lines)
-    order_updated.assert_called_once_with(order_with_lines)
+    order_fully_paid.assert_called_once_with(order_with_lines, webhooks=set())
+    order_updated.assert_called_once_with(order_with_lines, webhooks=set())
 
 
 @patch(
@@ -2086,7 +2081,7 @@ def test_order_transaction_updated_order_partially_paid(
     # then
     flush_post_commit_hooks()
     assert not order_fully_paid.called
-    order_updated.assert_called_once_with(order_with_lines)
+    order_updated.assert_called_once_with(order_with_lines, webhooks=set())
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
@@ -2122,7 +2117,7 @@ def test_order_transaction_updated_order_partially_paid_and_multiple_transaction
     # then
     flush_post_commit_hooks()
     assert not order_fully_paid.called
-    order_updated.assert_called_once_with(order_with_lines)
+    order_updated.assert_called_once_with(order_with_lines, webhooks=set())
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
@@ -2191,7 +2186,7 @@ def test_order_transaction_updated_order_authorized(
     # then
     flush_post_commit_hooks()
     assert not order_fully_paid.called
-    order_updated.assert_called_once_with(order_with_lines)
+    order_updated.assert_called_once_with(order_with_lines, webhooks=set())
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
@@ -2227,7 +2222,7 @@ def test_order_transaction_updated_order_partially_authorized_and_multiple_trans
     # then
     flush_post_commit_hooks()
     assert not order_fully_paid.called
-    order_updated.assert_called_once_with(order_with_lines)
+    order_updated.assert_called_once_with(order_with_lines, webhooks=set())
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
@@ -2294,8 +2289,8 @@ def test_order_transaction_updated_order_fully_refunded(
 
     # then
     flush_post_commit_hooks()
-    order_fully_refunded.assert_called_once_with(order_with_lines)
-    order_refunded.assert_called_once_with(order_with_lines)
+    order_fully_refunded.assert_called_once_with(order_with_lines, webhooks=set())
+    order_refunded.assert_called_once_with(order_with_lines, webhooks=set())
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_refunded")
@@ -2328,7 +2323,7 @@ def test_order_transaction_updated_order_partially_refunded(
     # then
     flush_post_commit_hooks()
     assert not order_fully_refunded.called
-    order_refunded.assert_called_once_with(order_with_lines)
+    order_refunded.assert_called_once_with(order_with_lines, webhooks=set())
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_refunded")
@@ -2364,8 +2359,8 @@ def test_order_transaction_updated_order_fully_refunded_and_multiple_transaction
 
     # then
     flush_post_commit_hooks()
-    order_fully_refunded.assert_called_once_with(order_with_lines)
-    order_refunded.assert_called_once_with(order_with_lines)
+    order_fully_refunded.assert_called_once_with(order_with_lines, webhooks=set())
+    order_refunded.assert_called_once_with(order_with_lines, webhooks=set())
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_refunded")
@@ -2417,8 +2412,8 @@ def test_order_transaction_updated_order_fully_refunded_with_transaction_and_pay
 
     # then
     flush_post_commit_hooks()
-    order_refunded.assert_called_once_with(order_with_lines)
-    order_fully_refunded.assert_called_once_with(order_with_lines)
+    order_refunded.assert_called_once_with(order_with_lines, webhooks=set())
+    order_fully_refunded.assert_called_once_with(order_with_lines, webhooks=set())
 
 
 @pytest.mark.parametrize(
@@ -2441,8 +2436,13 @@ def test_order_transaction_updated_order_fully_refunded_with_transaction_and_pay
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
+@patch(
+    "saleor.order.actions.call_event_including_protected_events",
+    wraps=call_event_including_protected_events,
+)
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_order_event_for_order_event_triggers_sync_webhook(
+    mocked_call_event_including_protected_events,
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     setup_order_webhooks,
@@ -2493,6 +2493,9 @@ def test_call_order_event_for_order_event_triggers_sync_webhook(
             call(tax_delivery),
             call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
         ]
+    )
+    mocked_call_event_including_protected_events.assert_called_once_with(
+        ANY, order_with_lines, webhooks={order_webhook}
     )
 
 
@@ -2557,8 +2560,13 @@ def test_call_order_event_incorrect_webhook_event(
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
+@patch(
+    "saleor.order.actions.call_event_including_protected_events",
+    wraps=call_event_including_protected_events,
+)
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_order_event_for_order_event_missing_filter_shipping_method_webhook(
+    mocked_call_event_including_protected_events,
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     setup_order_webhooks,
@@ -2609,6 +2617,9 @@ def test_call_order_event_for_order_event_missing_filter_shipping_method_webhook
         retry_kwargs={"max_retries": 5},
     )
     mocked_send_webhook_request_sync.assert_called_once_with(tax_delivery)
+    mocked_call_event_including_protected_events.assert_called_once_with(
+        ANY, order_with_lines, webhooks={order_webhook}
+    )
 
 
 @pytest.mark.parametrize(
@@ -2633,8 +2644,13 @@ def test_call_order_event_for_order_event_missing_filter_shipping_method_webhook
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
+@patch(
+    "saleor.order.actions.call_event_including_protected_events",
+    wraps=call_event_including_protected_events,
+)
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_order_event_for_order_event_skips_tax_webhook_when_prices_are_valid(
+    mocked_call_event_including_protected_events,
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     setup_order_webhooks,
@@ -2686,6 +2702,9 @@ def test_call_order_event_for_order_event_skips_tax_webhook_when_prices_are_vali
     mocked_send_webhook_request_sync.assert_called_once_with(
         filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT
     )
+    mocked_call_event_including_protected_events.assert_called_once_with(
+        ANY, order_with_lines, webhooks={order_webhook}
+    )
 
 
 @pytest.mark.parametrize(
@@ -2710,8 +2729,13 @@ def test_call_order_event_for_order_event_skips_tax_webhook_when_prices_are_vali
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
+@patch(
+    "saleor.order.actions.call_event_including_protected_events",
+    wraps=call_event_including_protected_events,
+)
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_order_event_for_order_event_skips_sync_webhooks_when_order_not_editable(
+    mocked_call_event_including_protected_events,
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     setup_order_webhooks,
@@ -2762,14 +2786,22 @@ def test_call_order_event_for_order_event_skips_sync_webhooks_when_order_not_edi
         retry_kwargs={"max_retries": 5},
     )
     assert not mocked_send_webhook_request_sync.called
+    mocked_call_event_including_protected_events.assert_called_once_with(
+        ANY, order_with_lines, webhooks={order_webhook}
+    )
 
 
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
+@patch(
+    "saleor.order.actions.call_event_including_protected_events",
+    wraps=call_event_including_protected_events,
+)
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_order_event_for_order_event_skips_sync_webhooks_when_draft_order_deleted(
+    mocked_call_event_including_protected_events,
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     setup_order_webhooks,
@@ -2815,6 +2847,9 @@ def test_call_order_event_for_order_event_skips_sync_webhooks_when_draft_order_d
         retry_kwargs={"max_retries": 5},
     )
     assert not mocked_send_webhook_request_sync.called
+    mocked_call_event_including_protected_events.assert_called_once_with(
+        ANY, order_with_lines, webhooks={order_webhook}
+    )
 
 
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
@@ -2868,8 +2903,13 @@ def test_call_order_event_for_order_event_skips_when_async_webhooks_missing(
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
+@patch(
+    "saleor.order.actions.call_event_including_protected_events",
+    wraps=call_event_including_protected_events,
+)
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_order_event_for_order_event_skips_when_sync_webhooks_missing(
+    mocked_call_event_including_protected_events,
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     order_with_lines,
@@ -2907,6 +2947,9 @@ def test_call_order_event_for_order_event_skips_when_sync_webhooks_missing(
         retry_kwargs={"max_retries": 5},
     )
     assert not mocked_send_webhook_request_sync.called
+    mocked_call_event_including_protected_events.assert_called_once_with(
+        plugins_manager.order_created, order_with_lines, webhooks={webhook}
+    )
 
 
 @patch(
