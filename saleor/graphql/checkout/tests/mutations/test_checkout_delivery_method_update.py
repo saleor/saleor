@@ -6,7 +6,7 @@ import pytest
 from django.test import override_settings
 
 from .....account.models import Address
-from .....checkout.actions import call_checkout_event_for_checkout_info
+from .....checkout.actions import call_checkout_info_event
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.utils import PRIVATE_META_APP_SHIPPING_ID, invalidate_checkout
@@ -1009,8 +1009,8 @@ def test_checkout_delivery_method_update_from_cc_to_all_warehouses_disabled_cc(
 
 
 @patch(
-    "saleor.graphql.checkout.mutations.checkout_delivery_method_update.call_checkout_event_for_checkout_info",
-    wraps=call_checkout_event_for_checkout_info,
+    "saleor.graphql.checkout.mutations.checkout_delivery_method_update.call_checkout_info_event",
+    wraps=call_checkout_info_event,
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
@@ -1020,7 +1020,7 @@ def test_checkout_delivery_method_update_from_cc_to_all_warehouses_disabled_cc(
 def test_checkout_delivery_method_update_triggers_webhooks(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
-    wrapped_call_checkout_event_for_checkout,
+    wrapped_call_checkout_info_event,
     setup_checkout_webhooks,
     settings,
     api_client,
@@ -1081,12 +1081,12 @@ def test_checkout_delivery_method_update_triggers_webhooks(
             call(tax_delivery),
         ]
     )
-    assert wrapped_call_checkout_event_for_checkout.called
+    assert wrapped_call_checkout_info_event.called
 
 
 @patch(
-    "saleor.graphql.checkout.mutations.checkout_delivery_method_update.call_checkout_event_for_checkout_info",
-    wraps=call_checkout_event_for_checkout_info,
+    "saleor.graphql.checkout.mutations.checkout_delivery_method_update.call_checkout_info_event",
+    wraps=call_checkout_info_event,
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
@@ -1096,7 +1096,7 @@ def test_checkout_delivery_method_update_triggers_webhooks(
 def test_checkout_delivery_method_update_cc_triggers_webhooks(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
-    wrapped_call_checkout_event_for_checkout,
+    wrapped_call_checkout_info_event,
     setup_checkout_webhooks,
     settings,
     api_client,
@@ -1164,12 +1164,12 @@ def test_checkout_delivery_method_update_cc_triggers_webhooks(
             call(tax_delivery),
         ]
     )
-    assert wrapped_call_checkout_event_for_checkout.called
+    assert wrapped_call_checkout_info_event.called
 
 
 @patch(
-    "saleor.graphql.checkout.mutations.checkout_delivery_method_update.call_checkout_event_for_checkout_info",
-    wraps=call_checkout_event_for_checkout_info,
+    "saleor.graphql.checkout.mutations.checkout_delivery_method_update.call_checkout_info_event",
+    wraps=call_checkout_info_event,
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
@@ -1184,7 +1184,7 @@ def test_checkout_delivery_method_update_external_shipping_triggers_webhooks(
     mock_clean_delivery,
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
-    wrapped_call_checkout_event_for_checkout,
+    wrapped_call_checkout_info_event,
     setup_checkout_webhooks,
     settings,
     api_client,
@@ -1259,4 +1259,4 @@ def test_checkout_delivery_method_update_external_shipping_triggers_webhooks(
             call(tax_delivery),
         ]
     )
-    assert wrapped_call_checkout_event_for_checkout.called
+    assert wrapped_call_checkout_info_event.called
