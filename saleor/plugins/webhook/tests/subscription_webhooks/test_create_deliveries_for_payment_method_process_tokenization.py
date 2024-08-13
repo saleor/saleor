@@ -52,8 +52,8 @@ def test_payment_method_process_tokenization_without_data(
 
     # then
     assert delivery.payload
-    assert delivery.payload.payload
-    assert json.loads(delivery.payload.payload) == {
+    assert delivery.payload.get_payload()
+    assert json.loads(delivery.payload.get_payload()) == {
         "data": None,
         "user": {"id": graphene.Node.to_global_id("User", customer_user.pk)},
         "channel": {"id": graphene.Node.to_global_id("Channel", channel_USD.pk)},
@@ -88,8 +88,8 @@ def test_payment_method_process_tokenization_with_data(
 
     # then
     assert delivery.payload
-    assert delivery.payload.payload
-    assert json.loads(delivery.payload.payload) == {
+    assert delivery.payload.get_payload()
+    assert json.loads(delivery.payload.get_payload()) == {
         "data": expected_data,
         "user": {"id": graphene.Node.to_global_id("User", customer_user.pk)},
         "channel": {"id": graphene.Node.to_global_id("Channel", channel_USD.pk)},

@@ -80,7 +80,7 @@ def test_stored_payment_method_request_delete_with_static_payload(
 
     # then
     delivery = EventDelivery.objects.get()
-    assert delivery.payload.payload == json.dumps(
+    assert delivery.payload.get_payload() == json.dumps(
         {
             "payment_method_id": payment_method_id,
             "user_id": graphene.Node.to_global_id("User", customer_user.pk),
@@ -134,7 +134,7 @@ def test_stored_payment_method_request_delete_with_subscription_payload(
 
     # then
     delivery = EventDelivery.objects.get()
-    assert delivery.payload.payload == json.dumps(
+    assert delivery.payload.get_payload() == json.dumps(
         {
             "user": {"id": graphene.Node.to_global_id("User", customer_user.pk)},
             "paymentMethodId": payment_method_id,
@@ -188,7 +188,7 @@ def test_stored_payment_method_request_delete_failure_from_app(
 
     # then
     delivery = EventDelivery.objects.get()
-    assert delivery.payload.payload == json.dumps(
+    assert delivery.payload.get_payload() == json.dumps(
         {
             "payment_method_id": payment_method_id,
             "user_id": graphene.Node.to_global_id("User", customer_user.pk),
@@ -439,7 +439,7 @@ def test_stored_payment_method_request_delete_invalidates_cache_for_app(
     delivery = EventDelivery.objects.filter(
         event_type=WebhookEventSyncType.STORED_PAYMENT_METHOD_DELETE_REQUESTED
     ).first()
-    assert delivery.payload.payload == json.dumps(
+    assert delivery.payload.get_payload() == json.dumps(
         {
             "user": {"id": graphene.Node.to_global_id("User", customer_user.pk)},
             "paymentMethodId": payment_method_id,

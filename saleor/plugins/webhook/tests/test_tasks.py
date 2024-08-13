@@ -74,8 +74,9 @@ def test_trigger_transaction_request(
     generated_payload = EventPayload.objects.first()
     generated_delivery = EventDelivery.objects.first()
 
-    assert generated_payload.payload == generate_transaction_action_request_payload(
-        transaction_data, staff_user
+    assert (
+        generated_payload.get_payload()
+        == generate_transaction_action_request_payload(transaction_data, staff_user)
     )
     assert generated_delivery.status == EventDeliveryStatus.PENDING
     assert (
@@ -149,7 +150,7 @@ def test_trigger_transaction_request_with_webhook_subscription(
 
     assert generated_payload
     assert generated_delivery
-    assert json.loads(generated_payload.payload) == {
+    assert json.loads(generated_payload.get_payload()) == {
         "transaction": {
             "id": Node.to_global_id(
                 "TransactionItem", transaction_data.transaction.token
@@ -398,7 +399,7 @@ def test_handle_transaction_request_task_missing_delivery_updates_refundable_che
     )
 
     payload = generate_transaction_action_request_payload(transaction_data, staff_user)
-    event_payload = EventPayload.objects.create(payload=payload)
+    event_payload = EventPayload.objects.create_with_payload_file(payload)
     delivery = EventDelivery.objects.create(
         status=EventDeliveryStatus.PENDING,
         event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED,
@@ -461,7 +462,7 @@ def test_handle_transaction_request_task_with_only_psp_reference(
     )
 
     payload = generate_transaction_action_request_payload(transaction_data, staff_user)
-    event_payload = EventPayload.objects.create(payload=payload)
+    event_payload = EventPayload.objects.create_with_payload_file(payload)
     delivery = EventDelivery.objects.create(
         status=EventDeliveryStatus.PENDING,
         event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED,
@@ -529,7 +530,7 @@ def test_handle_transaction_request_task_with_server_error(
     )
 
     payload = generate_transaction_action_request_payload(transaction_data, staff_user)
-    event_payload = EventPayload.objects.create(payload=payload)
+    event_payload = EventPayload.objects.create_with_payload_file(payload)
     delivery = EventDelivery.objects.create(
         status=EventDeliveryStatus.PENDING,
         event_type=WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED,
@@ -582,7 +583,7 @@ def test_handle_transaction_request_task_with_missing_psp_reference(
     )
 
     payload = generate_transaction_action_request_payload(transaction_data, staff_user)
-    event_payload = EventPayload.objects.create(payload=payload)
+    event_payload = EventPayload.objects.create_with_payload_file(payload)
     delivery = EventDelivery.objects.create(
         status=EventDeliveryStatus.PENDING,
         event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED,
@@ -666,7 +667,7 @@ def test_handle_transaction_request_task_with_missing_required_event_field(
     )
 
     payload = generate_transaction_action_request_payload(transaction_data, staff_user)
-    event_payload = EventPayload.objects.create(payload=payload)
+    event_payload = EventPayload.objects.create_with_payload_file(payload)
     delivery = EventDelivery.objects.create(
         status=EventDeliveryStatus.PENDING,
         event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED,
@@ -759,7 +760,7 @@ def test_handle_transaction_request_task_with_result_event(
     )
 
     payload = generate_transaction_action_request_payload(transaction_data, staff_user)
-    event_payload = EventPayload.objects.create(payload=payload)
+    event_payload = EventPayload.objects.create_with_payload_file(payload)
     delivery = EventDelivery.objects.create(
         status=EventDeliveryStatus.PENDING,
         event_type=WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED,
@@ -851,7 +852,7 @@ def test_handle_transaction_request_task_with_only_required_fields_for_result_ev
     )
 
     payload = generate_transaction_action_request_payload(transaction_data, staff_user)
-    event_payload = EventPayload.objects.create(payload=payload)
+    event_payload = EventPayload.objects.create_with_payload_file(payload)
     delivery = EventDelivery.objects.create(
         status=EventDeliveryStatus.PENDING,
         event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED,
@@ -956,7 +957,7 @@ def test_handle_transaction_request_task_calls_recalculation_of_amounts(
     )
 
     payload = generate_transaction_action_request_payload(transaction_data, staff_user)
-    event_payload = EventPayload.objects.create(payload=payload)
+    event_payload = EventPayload.objects.create_with_payload_file(payload)
     delivery = EventDelivery.objects.create(
         status=EventDeliveryStatus.PENDING,
         event_type=WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED,
@@ -1020,7 +1021,7 @@ def test_handle_transaction_request_task_with_available_actions(
     )
 
     payload = generate_transaction_action_request_payload(transaction_data, staff_user)
-    event_payload = EventPayload.objects.create(payload=payload)
+    event_payload = EventPayload.objects.create_with_payload_file(payload)
     delivery = EventDelivery.objects.create(
         status=EventDeliveryStatus.PENDING,
         event_type=WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED,
@@ -1116,7 +1117,7 @@ def test_handle_transaction_request_task_request_event_included_in_calculations(
     )
 
     payload = generate_transaction_action_request_payload(transaction_data, staff_user)
-    event_payload = EventPayload.objects.create(payload=payload)
+    event_payload = EventPayload.objects.create_with_payload_file(payload)
     delivery = EventDelivery.objects.create(
         status=EventDeliveryStatus.PENDING,
         event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED,

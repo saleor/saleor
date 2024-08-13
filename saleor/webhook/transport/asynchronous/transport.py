@@ -75,6 +75,7 @@ def create_deliveries_for_subscriptions(
         return []
 
     event_payloads = []
+    event_payloads_data = []
     event_deliveries = []
 
     # Dataloaders are shared between calls to generate_payload_from_subscription to
@@ -121,7 +122,9 @@ def create_deliveries_for_subscriptions(
                 )
                 continue
 
-        event_payload = EventPayload(payload=json.dumps({**data}))
+        payload_data = json.dumps({**data})
+        event_payloads_data.append(payload_data)
+        event_payload = EventPayload()
         event_payloads.append(event_payload)
         event_deliveries.append(
             EventDelivery(
@@ -133,7 +136,9 @@ def create_deliveries_for_subscriptions(
         )
 
     with allow_writer():
-        EventPayload.objects.bulk_create(event_payloads)
+        EventPayload.objects.bulk_create_with_payload_files(
+            event_payloads, event_payloads_data
+        )
         return EventDelivery.objects.bulk_create(event_deliveries)
 
 
@@ -208,7 +213,7 @@ def trigger_webhooks_async(
             raise NotImplementedError("No payload was provided for regular webhooks.")
 
         with allow_writer():
-            payload = EventPayload.objects.create(payload=data)
+            payload = EventPayload.objects.create_with_payload_file(data)
             deliveries.extend(
                 create_event_delivery_list_for_webhooks(
                     webhooks=regular_webhooks,
@@ -261,7 +266,7 @@ def send_webhook_request_async(self, event_delivery_id):
             raise ValueError(
                 f"Event delivery id: %{event_delivery_id}r has no payload."
             )
-        data = delivery.payload.payload
+        data = delivery.payload.get_payload()
         with webhooks_opentracing_trace(delivery.event_type, domain, app=webhook.app):
             response = send_webhook_using_scheme_method(
                 webhook.target_url,
