@@ -3,6 +3,7 @@ from collections.abc import Iterable
 from decimal import Decimal
 from typing import TYPE_CHECKING, Optional, cast
 
+import graphene
 from django.conf import settings
 from django.db.models import QuerySet, Sum
 from django.utils import timezone
@@ -16,14 +17,8 @@ from ..core.utils.country import get_active_country
 from ..core.utils.translations import get_translation
 from ..core.weight import zero_weight
 from ..discount import DiscountType, DiscountValueType
-from ..discount.models import (
-    OrderDiscount,
-    OrderLineDiscount,
-    VoucherType,
-)
-from ..discount.utils.manual_discount import (
-    apply_discount_to_value,
-)
+from ..discount.models import OrderDiscount, OrderLineDiscount, VoucherType
+from ..discount.utils.manual_discount import apply_discount_to_value
 from ..discount.utils.promotion import (
     get_discount_name,
     get_discount_translated_name,
@@ -482,7 +477,9 @@ def add_gift_cards_to_order(
     gift_card_compensation = total_before_gift_card_compensation - total_price_left
     if gift_card_compensation.amount > 0:
         details = {
-            "checkout_id": str(checkout_info.checkout.pk),
+            "checkout_id": graphene.Node.to_global_id(
+                "Checkout", checkout_info.checkout.pk
+            ),
             "gift_card_compensation": str(gift_card_compensation.amount),
             "total_after_gift_card_compensation": str(total_price_left.amount),
         }
@@ -698,8 +695,11 @@ def get_valid_shipping_methods_for_order(
     if not valid_methods:
         return []
 
-    excluded_methods = manager.excluded_shipping_methods_for_order(order, valid_methods)
-    initialize_shipping_method_active_status(valid_methods, excluded_methods)
+    if order.status in ORDER_EDITABLE_STATUS:
+        excluded_methods = manager.excluded_shipping_methods_for_order(
+            order, valid_methods
+        )
+        initialize_shipping_method_active_status(valid_methods, excluded_methods)
 
     return valid_methods
 

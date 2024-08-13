@@ -322,7 +322,7 @@ def trigger_all_webhooks_sync(
     subscribable_object=None,
     requestor=None,
     allow_replica=False,
-    pregenerated_subscription_payloads: Optional[dict] = {},
+    pregenerated_subscription_payloads: Optional[dict] = None,
 ) -> Optional[R]:
     """Send all synchronous webhook request for given event type.
 
@@ -332,6 +332,9 @@ def trigger_all_webhooks_sync(
     If no webhook responds with expected response,
     this function returns None.
     """
+    if pregenerated_subscription_payloads is None:
+        pregenerated_subscription_payloads = {}
+
     webhooks = get_webhooks_for_event(event_type)
     request_context = None
     event_payload = None
