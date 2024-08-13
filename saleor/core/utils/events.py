@@ -8,6 +8,54 @@ from ...webhook.event_types import WebhookEventAsyncType
 from ...webhook.models import Webhook
 
 
+def any_wehook_has_subscription(
+    events: list[str], webhook_event_map: dict[str, set["Webhook"]]
+) -> bool:
+    event_has_subscription = False
+    for event in events:
+        event_has_subscription = any(
+            [
+                bool(webhook.subscription_query)
+                for webhook in webhook_event_map.get(event, [])
+            ]
+        )
+        if event_has_subscription:
+            break
+    return event_has_subscription
+
+
+def any_webhook_is_active_for_events(
+    events: list[str], webhook_event_map: dict[str, set["Webhook"]]
+) -> bool:
+    """Check if any webhook is active for given events."""
+
+    active_webhook_events = set(
+        [event for event, webhooks in webhook_event_map.items() if webhooks]
+    )
+    if not active_webhook_events.intersection(events):
+        return False
+    return True
+
+
+def _validate_event_name(event_name, webhook_event_map):
+    is_async_event = event_name in WebhookEventAsyncType.ALL
+    if not is_async_event:
+        raise ValueError(f"Event {event_name} is not an async event.")
+
+    if event_name not in webhook_event_map:
+        raise ValueError(f"Event {event_name} not found in webhook_event_map.")
+
+
+def _validate_webhook_event_map(webhook_event_map, possible_sync_events):
+    missing_possible_sync_events_in_map = set(possible_sync_events).difference(
+        webhook_event_map.keys()
+    )
+    if missing_possible_sync_events_in_map:
+        raise ValueError(
+            f"Event {missing_possible_sync_events_in_map} not found in webhook_event_map."
+        )
+
+
 def webhook_async_event_requires_sync_webhooks_to_trigger(
     event_name: str,
     webhook_event_map: dict[str, set["Webhook"]],
@@ -19,49 +67,28 @@ def webhook_async_event_requires_sync_webhooks_to_trigger(
     True, when any sync from `possible_sync_events`'s webhooks are active. `True`
     means that sync webhook should be triggered first, before calling async webhook.
     """
-    is_async_event = event_name in WebhookEventAsyncType.ALL
-    if not is_async_event:
-        raise ValueError(f"Event {event_name} is not an async event.")
+    _validate_event_name(event_name, webhook_event_map)
 
-    if event_name not in webhook_event_map:
-        raise ValueError(f"Event {event_name} not found in webhook_event_map.")
-
-    missing_possible_sync_events_in_map = set(possible_sync_events).difference(
-        webhook_event_map.keys()
-    )
-    if missing_possible_sync_events_in_map:
-        raise ValueError(
-            f"Event {missing_possible_sync_events_in_map} not found in webhook_event_map."
-        )
+    _validate_webhook_event_map(webhook_event_map, possible_sync_events)
 
     if not webhook_event_map[event_name] and not webhook_event_map.get(
         WebhookEventAsyncType.ANY
     ):
         return False
 
-    active_webhook_events = set(
-        [event for event, webhooks in webhook_event_map.items() if webhooks]
+    if not any_webhook_is_active_for_events(possible_sync_events, webhook_event_map):
+        return False
+
+    async_webhooks_have_subscriptions = any_wehook_has_subscription(
+        [event_name], webhook_event_map
     )
-    if not active_webhook_events.intersection(possible_sync_events):
+    if not async_webhooks_have_subscriptions:
         return False
-    if all(
-        [
-            not bool(webhook.subscription_query)
-            for webhook in webhook_event_map[event_name]
-        ]
-    ):
-        return False
-    sync_event_has_subscription = False
-    for sync_event in possible_sync_events:
-        sync_event_has_subscription = any(
-            [
-                bool(webhook.subscription_query)
-                for webhook in webhook_event_map.get(sync_event, [])
-            ]
-        )
-        if sync_event_has_subscription:
-            break
-    if not sync_event_has_subscription:
+
+    sync_events_have_subscriptions = any_wehook_has_subscription(
+        possible_sync_events, webhook_event_map
+    )
+    if not sync_events_have_subscriptions:
         return False
     return True
 
