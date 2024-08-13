@@ -298,7 +298,7 @@ class PluginSample(BasePlugin):
         lines,
         app_identifier,
         previous_value,
-        pregenerated_subscription_payloads={},
+        pregenerated_subscription_payloads=None,
     ) -> Optional["TaxData"]:
         return sample_tax_data(checkout_info.checkout)
 
