@@ -21,6 +21,7 @@ from ...core.utils.json_serializer import CustomJsonEncoder
 from ...csv.notifications import get_default_export_payload
 from ...graphql.core.context import SaleorContext
 from ...graphql.webhook.subscription_payload import initialize_request
+from ...graphql.webhook.utils import get_pregenerated_subscription_payload
 from ...payment import PaymentError, TransactionKind
 from ...payment.interface import (
     GatewayResponse,
@@ -3032,9 +3033,13 @@ class WebhookPlugin(BasePlugin):
         app_identifier: str,
         payload_gen: Callable,
         subscriptable_object=None,
+        pregenerated_subscription_payloads: Optional[dict] = None,
     ):
+        if pregenerated_subscription_payloads is None:
+            pregenerated_subscription_payloads = {}
         app = (
-            App.objects.filter(
+            App.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+            .filter(
                 identifier=app_identifier,
                 is_active=True,
             )
@@ -3057,6 +3062,10 @@ class WebhookPlugin(BasePlugin):
             allow_replica=False,
             event_type=event_type,
         )
+
+        pregenerated_subscription_payload = get_pregenerated_subscription_payload(
+            webhook, pregenerated_subscription_payloads
+        )
         response = trigger_webhook_sync(
             event_type=event_type,
             webhook=webhook,
@@ -3065,12 +3074,20 @@ class WebhookPlugin(BasePlugin):
             subscribable_object=subscriptable_object,
             request=request_context,
             requestor=self.requestor,
+            pregenerated_subscription_payload=pregenerated_subscription_payload,
         )
         return parse_tax_data(response)
 
     def get_taxes_for_checkout(
-        self, checkout_info, lines, app_identifier, previous_value
+        self,
+        checkout_info,
+        lines,
+        app_identifier,
+        previous_value,
+        pregenerated_subscription_payloads: Optional[dict] = None,
     ) -> Optional["TaxData"]:
+        if pregenerated_subscription_payloads is None:
+            pregenerated_subscription_payloads = {}
         event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
         if app_identifier:
             return self.__run_tax_webhook(
@@ -3080,6 +3097,7 @@ class WebhookPlugin(BasePlugin):
                     checkout_info, lines
                 ),
                 checkout_info.checkout,
+                pregenerated_subscription_payloads=pregenerated_subscription_payloads,
             )
         else:
             return trigger_all_webhooks_sync(
@@ -3091,6 +3109,7 @@ class WebhookPlugin(BasePlugin):
                 parse_tax_data,
                 checkout_info.checkout,
                 self.requestor,
+                pregenerated_subscription_payloads=pregenerated_subscription_payloads,
             )
 
     def get_taxes_for_order(
