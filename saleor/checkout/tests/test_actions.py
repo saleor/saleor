@@ -14,8 +14,8 @@ from ...tests.utils import flush_post_commit_hooks
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from .. import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from ..actions import (
-    call_checkout_event_for_checkout,
-    call_checkout_event_for_checkout_info,
+    call_checkout_event,
+    call_checkout_info_event,
     transaction_amounts_for_checkout_updated,
 )
 from ..calculations import fetch_checkout_data
@@ -304,12 +304,53 @@ def test_get_checkout_refundable_with_multiple_active_transactions(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
-def test_call_checkout_event_for_checkout_triggers_sync_webhook_when_needed(
+def test_call_checkout_event_incorrect_webhook_event(
+    mocked_send_webhook_request_async,
+    mocked_send_webhook_request_sync,
+    checkout_with_items,
+    setup_checkout_webhooks,
+    django_capture_on_commit_callbacks,
+):
+    # given
+    plugins_manager = get_plugins_manager(allow_replica=False)
+    checkout_with_items.price_expiration = timezone.now()
+    checkout_with_items.save(update_fields=["price_expiration"])
+
+    mocked_send_webhook_request_sync.return_value = []
+    setup_checkout_webhooks(WebhookEventAsyncType.CHECKOUT_CREATED)
+
+    incorrect_event = WebhookEventAsyncType.ORDER_UPDATED
+    # when
+
+    with django_capture_on_commit_callbacks(execute=True):
+        with pytest.raises(
+            ValueError,
+            match=f"Event {incorrect_event} not found in CHECKOUT_WEBHOOK_EVENT_MAP.",
+        ):
+            call_checkout_event(
+                plugins_manager,
+                incorrect_event,
+                checkout_with_items,
+            )
+
+    # then
+    assert not mocked_send_webhook_request_async.called
+    assert not mocked_send_webhook_request_sync.called
+
+
+@freeze_time("2023-05-31 12:00:01")
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_call_checkout_event_triggers_sync_webhook_when_needed(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     checkout_with_items,
     setup_checkout_webhooks,
     settings,
+    django_capture_on_commit_callbacks,
 ):
     # given
     plugins_manager = get_plugins_manager(allow_replica=False)
@@ -325,17 +366,15 @@ def test_call_checkout_event_for_checkout_triggers_sync_webhook_when_needed(
     ) = setup_checkout_webhooks(WebhookEventAsyncType.CHECKOUT_CREATED)
 
     # when
-    with freeze_time("2023-06-01 12:00:01"):
-        call_checkout_event_for_checkout(
-            plugins_manager,
-            plugins_manager.checkout_created,
-            WebhookEventAsyncType.CHECKOUT_CREATED,
-            checkout_with_items,
-        )
+    with django_capture_on_commit_callbacks(execute=True):
+        with freeze_time("2023-06-01 12:00:01"):
+            call_checkout_event(
+                plugins_manager,
+                WebhookEventAsyncType.CHECKOUT_CREATED,
+                checkout_with_items,
+            )
 
     # then
-    flush_post_commit_hooks()
-
     # confirm that event delivery was generated for each webhook.
     checkout_create_delivery = EventDelivery.objects.get(
         webhook_id=checkout_created_webhook.id
@@ -372,12 +411,13 @@ def test_call_checkout_event_for_checkout_triggers_sync_webhook_when_needed(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
-def test_call_checkout_event_for_checkout_skips_tax_webhook_when_not_expired(
+def test_call_checkout_event_skips_tax_webhook_when_not_expired(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     checkout_with_items,
     setup_checkout_webhooks,
     settings,
+    django_capture_on_commit_callbacks,
 ):
     # given
     plugins_manager = get_plugins_manager(allow_replica=False)
@@ -393,16 +433,14 @@ def test_call_checkout_event_for_checkout_skips_tax_webhook_when_not_expired(
     ) = setup_checkout_webhooks(WebhookEventAsyncType.CHECKOUT_CREATED)
 
     # when
-    call_checkout_event_for_checkout(
-        plugins_manager,
-        plugins_manager.checkout_created,
-        WebhookEventAsyncType.CHECKOUT_CREATED,
-        checkout_with_items,
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        call_checkout_event(
+            plugins_manager,
+            WebhookEventAsyncType.CHECKOUT_CREATED,
+            checkout_with_items,
+        )
 
     # then
-    flush_post_commit_hooks()
-
     # confirm that event delivery was generated for each webhook.
     checkout_create_delivery = EventDelivery.objects.get(
         webhook_id=checkout_created_webhook.id
@@ -439,12 +477,12 @@ def test_call_checkout_event_for_checkout_skips_tax_webhook_when_not_expired(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
-def test_call_checkout_event_for_checkout_skip_sync_webhooks_when_async_missing(
+def test_call_checkout_event_skip_sync_webhooks_when_async_missing(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     checkout_with_items,
     setup_checkout_webhooks,
-    settings,
+    django_capture_on_commit_callbacks,
 ):
     # given
     plugins_manager = get_plugins_manager(allow_replica=False)
@@ -457,16 +495,15 @@ def test_call_checkout_event_for_checkout_skip_sync_webhooks_when_async_missing(
     setup_checkout_webhooks(WebhookEventAsyncType.CHECKOUT_CREATED)
 
     # when
-    with freeze_time("2023-06-01 12:00:01"):
-        call_checkout_event_for_checkout(
-            plugins_manager,
-            plugins_manager.checkout_updated,
-            WebhookEventAsyncType.CHECKOUT_UPDATED,
-            checkout_with_items,
-        )
+    with django_capture_on_commit_callbacks(execute=True):
+        with freeze_time("2023-06-01 12:00:01"):
+            call_checkout_event(
+                plugins_manager,
+                WebhookEventAsyncType.CHECKOUT_UPDATED,
+                checkout_with_items,
+            )
 
     # then
-    flush_post_commit_hooks()
 
     assert not mocked_send_webhook_request_async.called
     assert not mocked_send_webhook_request_sync.called
@@ -485,6 +522,7 @@ def test_call_checkout_event_only_async_when_sync_missing(
     permission_manage_checkouts,
     settings,
     webhook,
+    django_capture_on_commit_callbacks,
 ):
     # given
     plugins_manager = get_plugins_manager(allow_replica=False)
@@ -495,16 +533,15 @@ def test_call_checkout_event_only_async_when_sync_missing(
     webhook.app.permissions.add(permission_manage_checkouts)
 
     # when
-    with freeze_time("2023-06-01 12:00:01"):
-        call_checkout_event_for_checkout(
-            plugins_manager,
-            plugins_manager.checkout_created,
-            WebhookEventAsyncType.CHECKOUT_CREATED,
-            checkout_with_items,
-        )
+    with django_capture_on_commit_callbacks(execute=True):
+        with freeze_time("2023-06-01 12:00:01"):
+            call_checkout_event(
+                plugins_manager,
+                WebhookEventAsyncType.CHECKOUT_CREATED,
+                checkout_with_items,
+            )
 
     # then
-    flush_post_commit_hooks()
 
     # confirm that event delivery was generated for each webhook.
     checkout_create_delivery = EventDelivery.objects.get(webhook_id=webhook.id)
@@ -525,12 +562,62 @@ def test_call_checkout_event_only_async_when_sync_missing(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
-def test_call_checkout_event_for_checkout_info_triggers_sync_webhook_when_needed(
+def test_call_checkout_info_event_incorrect_webhook_event(
+    mocked_send_webhook_request_async,
+    mocked_send_webhook_request_sync,
+    checkout_with_items,
+    setup_checkout_webhooks,
+    django_capture_on_commit_callbacks,
+):
+    # given
+    plugins_manager = get_plugins_manager(allow_replica=False)
+    checkout_with_items.price_expiration = timezone.now()
+    checkout_with_items.save(update_fields=["price_expiration"])
+
+    mocked_send_webhook_request_sync.return_value = []
+    setup_checkout_webhooks(WebhookEventAsyncType.CHECKOUT_CREATED)
+
+    lines_info, _ = fetch_checkout_lines(
+        checkout_with_items,
+    )
+    checkout_info = fetch_checkout_info(
+        checkout_with_items,
+        lines_info,
+        plugins_manager,
+    )
+    incorrect_webhook_event = WebhookEventAsyncType.ORDER_UPDATED
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        with pytest.raises(
+            ValueError,
+            match=f"Event {incorrect_webhook_event} not found in CHECKOUT_WEBHOOK_EVENT_MAP.",
+        ):
+            call_checkout_info_event(
+                plugins_manager,
+                incorrect_webhook_event,
+                checkout_info,
+                lines_info,
+            )
+
+    # then
+    assert not mocked_send_webhook_request_async.called
+    assert not mocked_send_webhook_request_sync.called
+
+
+@freeze_time("2023-05-31 12:00:01")
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_call_checkout_info_event_triggers_sync_webhook_when_needed(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     checkout_with_items,
     setup_checkout_webhooks,
     settings,
+    django_capture_on_commit_callbacks,
 ):
     # given
     plugins_manager = get_plugins_manager(allow_replica=False)
@@ -555,17 +642,16 @@ def test_call_checkout_event_for_checkout_info_triggers_sync_webhook_when_needed
     )
 
     # when
-    with freeze_time("2023-06-01 12:00:01"):
-        call_checkout_event_for_checkout_info(
-            plugins_manager,
-            plugins_manager.checkout_created,
-            WebhookEventAsyncType.CHECKOUT_CREATED,
-            checkout_info,
-            lines_info,
-        )
+    with django_capture_on_commit_callbacks(execute=True):
+        with freeze_time("2023-06-01 12:00:01"):
+            call_checkout_info_event(
+                plugins_manager,
+                WebhookEventAsyncType.CHECKOUT_CREATED,
+                checkout_info,
+                lines_info,
+            )
 
     # then
-    flush_post_commit_hooks()
 
     # confirm that event delivery was generated for each webhook.
     checkout_create_delivery = EventDelivery.objects.get(
@@ -603,12 +689,13 @@ def test_call_checkout_event_for_checkout_info_triggers_sync_webhook_when_needed
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
-def test_call_checkout_event_for_checkout_info_skips_tax_webhook_when_not_expired(
+def test_call_checkout_info_event_skips_tax_webhook_when_not_expired(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     checkout_with_items,
     setup_checkout_webhooks,
     settings,
+    django_capture_on_commit_callbacks,
 ):
     # given
     plugins_manager = get_plugins_manager(allow_replica=False)
@@ -633,16 +720,15 @@ def test_call_checkout_event_for_checkout_info_skips_tax_webhook_when_not_expire
     )
 
     # when
-    call_checkout_event_for_checkout_info(
-        plugins_manager,
-        plugins_manager.checkout_created,
-        WebhookEventAsyncType.CHECKOUT_CREATED,
-        checkout_info,
-        lines_info,
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        call_checkout_info_event(
+            plugins_manager,
+            WebhookEventAsyncType.CHECKOUT_CREATED,
+            checkout_info,
+            lines_info,
+        )
 
     # then
-    flush_post_commit_hooks()
 
     # confirm that event delivery was generated for each webhook.
     checkout_create_delivery = EventDelivery.objects.get(
@@ -680,13 +766,14 @@ def test_call_checkout_event_for_checkout_info_skips_tax_webhook_when_not_expire
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
-def test_call_checkout_event_for_checkout_info_only_async_when_sync_missing(
+def test_call_checkout_info_event_only_async_when_sync_missing(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     checkout_with_items,
     permission_manage_checkouts,
     settings,
     webhook,
+    django_capture_on_commit_callbacks,
 ):
     # given
     plugins_manager = get_plugins_manager(allow_replica=False)
@@ -706,17 +793,16 @@ def test_call_checkout_event_for_checkout_info_only_async_when_sync_missing(
     )
 
     # when
-    with freeze_time("2023-06-01 12:00:01"):
-        call_checkout_event_for_checkout_info(
-            plugins_manager,
-            plugins_manager.checkout_created,
-            WebhookEventAsyncType.CHECKOUT_CREATED,
-            checkout_info,
-            lines_info,
-        )
+    with django_capture_on_commit_callbacks(execute=True):
+        with freeze_time("2023-06-01 12:00:01"):
+            call_checkout_info_event(
+                plugins_manager,
+                WebhookEventAsyncType.CHECKOUT_CREATED,
+                checkout_info,
+                lines_info,
+            )
 
     # then
-    flush_post_commit_hooks()
 
     # confirm that event delivery was generated for each webhook.
     checkout_create_delivery = EventDelivery.objects.get(webhook_id=webhook.id)
@@ -737,12 +823,12 @@ def test_call_checkout_event_for_checkout_info_only_async_when_sync_missing(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
-def test_call_checkout_event_for_checkout_info_skip_sync_webhooks_when_async_missing(
+def test_call_checkout_info_event_skip_sync_webhooks_when_async_missing(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     checkout_with_items,
     setup_checkout_webhooks,
-    settings,
+    django_capture_on_commit_callbacks,
 ):
     # given
     plugins_manager = get_plugins_manager(allow_replica=False)
@@ -764,17 +850,16 @@ def test_call_checkout_event_for_checkout_info_skip_sync_webhooks_when_async_mis
     )
 
     # when
-    with freeze_time("2023-06-01 12:00:01"):
-        call_checkout_event_for_checkout_info(
-            plugins_manager,
-            plugins_manager.checkout_updated,
-            WebhookEventAsyncType.CHECKOUT_UPDATED,
-            checkout_info,
-            lines_info,
-        )
+    with django_capture_on_commit_callbacks(execute=True):
+        with freeze_time("2023-06-01 12:00:01"):
+            call_checkout_info_event(
+                plugins_manager,
+                WebhookEventAsyncType.CHECKOUT_UPDATED,
+                checkout_info,
+                lines_info,
+            )
 
     # then
-    flush_post_commit_hooks()
 
     assert not mocked_send_webhook_request_async.called
     assert not mocked_send_webhook_request_sync.called
@@ -782,8 +867,8 @@ def test_call_checkout_event_for_checkout_info_skip_sync_webhooks_when_async_mis
 
 @freeze_time("2023-05-31 12:00:01")
 @patch(
-    "saleor.checkout.actions.call_checkout_event_for_checkout_info",
-    wraps=call_checkout_event_for_checkout_info,
+    "saleor.checkout.actions.call_checkout_info_event",
+    wraps=call_checkout_info_event,
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
@@ -793,11 +878,12 @@ def test_call_checkout_event_for_checkout_info_skip_sync_webhooks_when_async_mis
 def test_transaction_amounts_for_checkout_fully_paid_triggers_sync_webhook(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
-    wrapped_call_checkout_event_for_checkout,
+    wrapped_call_checkout_info_event,
     setup_checkout_webhooks,
     settings,
     checkout_with_items,
     transaction_item_generator,
+    django_capture_on_commit_callbacks,
 ):
     # given
     plugins_manager = get_plugins_manager(allow_replica=False)
@@ -820,10 +906,10 @@ def test_transaction_amounts_for_checkout_fully_paid_triggers_sync_webhook(
     )
 
     # when
-    transaction_amounts_for_checkout_updated(transaction, manager=plugins_manager)
+    with django_capture_on_commit_callbacks(execute=True):
+        transaction_amounts_for_checkout_updated(transaction, manager=plugins_manager)
 
     # then
-    flush_post_commit_hooks()
 
     # confirm that event delivery was generated for each webhook.
     checkout_fully_paid_delivery = EventDelivery.objects.get(
@@ -853,4 +939,4 @@ def test_transaction_amounts_for_checkout_fully_paid_triggers_sync_webhook(
             call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
         ]
     )
-    assert wrapped_call_checkout_event_for_checkout.called
+    assert wrapped_call_checkout_info_event.called

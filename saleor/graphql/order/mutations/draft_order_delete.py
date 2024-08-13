@@ -58,7 +58,6 @@ class DraftOrderDelete(
             response = super().perform_mutation(_root, info, **data)
             call_order_event(
                 manager,
-                manager.draft_order_deleted,
                 WebhookEventAsyncType.DRAFT_ORDER_DELETED,
                 order,
             )

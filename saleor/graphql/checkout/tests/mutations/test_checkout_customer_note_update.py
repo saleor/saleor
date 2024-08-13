@@ -2,7 +2,7 @@ from unittest.mock import call, patch
 
 from django.test import override_settings
 
-from saleor.checkout.actions import call_checkout_event_for_checkout
+from saleor.checkout.actions import call_checkout_event
 from saleor.core.models import EventDelivery
 from saleor.webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 
@@ -77,8 +77,8 @@ def test_with_active_problems_flow(api_client, checkout_with_problems):
 
 
 @patch(
-    "saleor.graphql.checkout.mutations.checkout_customer_note_update.call_checkout_event_for_checkout",
-    wraps=call_checkout_event_for_checkout,
+    "saleor.graphql.checkout.mutations.checkout_customer_note_update.call_checkout_event",
+    wraps=call_checkout_event,
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
@@ -88,7 +88,7 @@ def test_with_active_problems_flow(api_client, checkout_with_problems):
 def test_checkout_customer_note_update_triggers_webhooks(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
-    wrapped_call_checkout_event_for_checkout,
+    wrapped_call_checkout_event,
     setup_checkout_webhooks,
     settings,
     user_api_client,
@@ -147,4 +147,4 @@ def test_checkout_customer_note_update_triggers_webhooks(
             call(tax_delivery),
         ]
     )
-    assert wrapped_call_checkout_event_for_checkout.called
+    assert wrapped_call_checkout_event.called
