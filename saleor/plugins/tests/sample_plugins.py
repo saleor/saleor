@@ -293,7 +293,11 @@ class PluginSample(BasePlugin):
         return Decimal("0.080").quantize(Decimal(".01"))
 
     def get_taxes_for_checkout(
-        self, checkout_info: "CheckoutInfo", lines, previous_value
+        self,
+        checkout_info: "CheckoutInfo",
+        lines,
+        previous_value,
+        pregenerated_subscription_payloads=None,
     ) -> Optional["TaxData"]:
         return sample_tax_data(checkout_info.checkout)
 
