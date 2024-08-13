@@ -287,15 +287,16 @@ def test_checkout_complete(
 
     assert not len(Reservation.objects.all())
 
+    order_utils_log = caplog.records[1]
     assert (
         graphene.Node.to_global_id("Checkout", checkout_info.checkout.pk)
-        == caplog.records[0].checkout_id
+        == order_utils_log.checkout_id
     )
     assert gift_card.initial_balance_amount == Decimal(
-        caplog.records[0].gift_card_compensation
+        order_utils_log.gift_card_compensation
     )
     assert total.gross.amount == Decimal(
-        caplog.records[0].total_after_gift_card_compensation
+        order_utils_log.total_after_gift_card_compensation
     )
 
 

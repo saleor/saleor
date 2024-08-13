@@ -1,3 +1,4 @@
+import logging
 from collections import defaultdict
 from collections.abc import Iterable
 from decimal import Decimal
@@ -88,6 +89,8 @@ if TYPE_CHECKING:
     from .base_plugin import BasePlugin
 
 NotifyEventTypeChoice = str
+
+logger = logging.getLogger(__name__)
 
 
 class PluginsManager(PaymentInterface):
@@ -2547,6 +2550,8 @@ class PluginsManager(PaymentInterface):
     ) -> Optional[Union[ExecutionResult, GraphQLError]]:
         """Invoke before each mutation is executed.
 
+        Note: This method is DEPRECATED and will be removed in Saleor 3.21.
+
         This allows to trigger specific logic before the mutation is executed
         but only once the permissions are checked.
 
@@ -2554,7 +2559,12 @@ class PluginsManager(PaymentInterface):
             - null if the execution shall continue
             - graphql.GraphQLError
             - graphql.execution.ExecutionResult
+
         """
+        logger.warning(
+            "The manager.perform_mutation method is deprecated and will be removed in "
+            "Saleor 3.21"
+        )
         return self.__run_method_on_plugins(
             "perform_mutation",
             default_value=None,

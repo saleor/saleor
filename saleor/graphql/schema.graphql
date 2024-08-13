@@ -10419,7 +10419,7 @@ type Shop implements ObjectWithMetadata {
   
   Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
   """
-  limits: LimitInfo!
+  limits: LimitInfo! @deprecated(reason: "This field will be removed in Saleor 4.0.")
 
   """
   Saleor API version.
