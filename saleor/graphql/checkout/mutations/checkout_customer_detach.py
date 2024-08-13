@@ -1,8 +1,6 @@
 import graphene
 
-from ....checkout.actions import (
-    call_checkout_event_for_checkout,
-)
+from ....checkout.actions import call_checkout_event
 from ....core.exceptions import PermissionDenied
 from ....permission.auth_filters import AuthorizationFilters
 from ....permission.enums import AccountPermissions
@@ -72,9 +70,8 @@ class CheckoutCustomerDetach(BaseMutation):
         checkout.save(update_fields=["user", "last_change"])
         manager = get_plugin_manager_promise(info.context).get()
 
-        call_checkout_event_for_checkout(
+        call_checkout_event(
             manager,
-            event_func=manager.checkout_updated,
             event_name=WebhookEventAsyncType.CHECKOUT_UPDATED,
             checkout=checkout,
         )
