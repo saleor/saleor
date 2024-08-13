@@ -332,6 +332,7 @@ class Shop(graphene.ObjectType):
         LimitInfo,
         required=True,
         description="Resource limitations and current usage if any set for a shop",
+        deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD}"),
         permissions=[AuthorizationFilters.AUTHENTICATED_STAFF_USER],
     )
     version = PermissionsField(
