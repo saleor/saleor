@@ -99,7 +99,6 @@ def _call_expired_order_events(order_ids, manager):
         [
             WebhookEventAsyncType.ORDER_EXPIRED,
             WebhookEventAsyncType.ORDER_UPDATED,
-            # *WebhookEventSyncType.ORDER_EVENTS,
         ]
     )
     for order in orders:
