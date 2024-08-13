@@ -8,7 +8,7 @@ from ...webhook.event_types import WebhookEventAsyncType
 from ...webhook.models import Webhook
 
 
-def any_wehook_has_subscription(
+def any_webhook_has_subscription(
     events: list[str], webhook_event_map: dict[str, set["Webhook"]]
 ) -> bool:
     event_has_subscription = False
@@ -79,13 +79,13 @@ def webhook_async_event_requires_sync_webhooks_to_trigger(
     if not any_webhook_is_active_for_events(possible_sync_events, webhook_event_map):
         return False
 
-    async_webhooks_have_subscriptions = any_wehook_has_subscription(
+    async_webhooks_have_subscriptions = any_webhook_has_subscription(
         [event_name], webhook_event_map
     )
     if not async_webhooks_have_subscriptions:
         return False
 
-    sync_events_have_subscriptions = any_wehook_has_subscription(
+    sync_events_have_subscriptions = any_webhook_has_subscription(
         possible_sync_events, webhook_event_map
     )
     if not sync_events_have_subscriptions:
