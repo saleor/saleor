@@ -365,7 +365,9 @@ class AvataxPlugin(BasePlugin):
             raise TaxError(customer_msg)
         return previous_value
 
-    def order_confirmed(self, order: "Order", previous_value: Any) -> Any:
+    def order_confirmed(
+        self, order: "Order", previous_value: Any, webhooks=None
+    ) -> Any:
         if not self.active:
             return previous_value
         tax_strategy = get_tax_calculation_strategy_for_order(order)

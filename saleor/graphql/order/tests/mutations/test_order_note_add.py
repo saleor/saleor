@@ -64,7 +64,7 @@ def test_order_note_add_as_staff_user(
     assert data["order"]["id"] == order_id
     assert data["event"]["user"]["email"] == staff_user.email
     assert data["event"]["message"] == message
-    order_updated_webhook_mock.assert_called_once_with(order)
+    order_updated_webhook_mock.assert_called_once_with(order, webhooks=set())
 
     order.refresh_from_db()
     assert order.status == OrderStatus.UNFULFILLED
@@ -161,7 +161,7 @@ def test_order_add_note_by_app(
     assert data["event"]["user"] is None
     assert data["event"]["app"]["name"] == app_api_client.app.name
     assert data["event"]["message"] == message
-    order_updated_webhook_mock.assert_called_once_with(order)
+    order_updated_webhook_mock.assert_called_once_with(order, webhooks=set())
 
 
 def test_order_note_add_fail_on_missing_permission(staff_api_client, order):

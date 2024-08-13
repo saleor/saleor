@@ -1303,7 +1303,7 @@ def test_manager_transaction_process_session(
 
 
 @patch("saleor.plugins.tests.sample_plugins.PluginSample.checkout_fully_paid")
-def test_checkout_fully_paid(mocked_sample_method, checkout):
+def test_checkout_fully_paid(mocked_sample_method, checkout, webhook):
     # given
     plugins = [
         "saleor.plugins.tests.sample_plugins.PluginSample",
@@ -1311,16 +1311,19 @@ def test_checkout_fully_paid(mocked_sample_method, checkout):
     ]
 
     manager = PluginsManager(plugins=plugins)
+    webhooks = {webhook}
 
     # when
-    manager.checkout_fully_paid(checkout)
+    manager.checkout_fully_paid(checkout, webhooks=webhooks)
 
     # then
-    mocked_sample_method.assert_called_once_with(checkout, previous_value=None)
+    mocked_sample_method.assert_called_once_with(
+        checkout, previous_value=None, webhooks=webhooks
+    )
 
 
 @patch("saleor.plugins.tests.sample_plugins.PluginSample.order_fully_refunded")
-def test_order_fully_refunded(mocked_sample_method, order):
+def test_order_fully_refunded(mocked_sample_method, order, webhook):
     # given
     plugins = [
         "saleor.plugins.tests.sample_plugins.PluginSample",
@@ -1328,16 +1331,18 @@ def test_order_fully_refunded(mocked_sample_method, order):
     ]
 
     manager = PluginsManager(plugins=plugins)
-
+    webhooks = {webhook}
     # when
-    manager.order_fully_refunded(order)
+    manager.order_fully_refunded(order, webhooks=webhooks)
 
     # then
-    mocked_sample_method.assert_called_once_with(order, previous_value=None)
+    mocked_sample_method.assert_called_once_with(
+        order, previous_value=None, webhooks=webhooks
+    )
 
 
 @patch("saleor.plugins.tests.sample_plugins.PluginSample.order_refunded")
-def test_order_refunded(mocked_sample_method, order):
+def test_order_refunded(mocked_sample_method, order, webhook):
     # given
     plugins = [
         "saleor.plugins.tests.sample_plugins.PluginSample",
@@ -1345,16 +1350,19 @@ def test_order_refunded(mocked_sample_method, order):
     ]
 
     manager = PluginsManager(plugins=plugins)
+    webhooks = {webhook}
 
     # when
-    manager.order_refunded(order)
+    manager.order_refunded(order, webhooks=webhooks)
 
     # then
-    mocked_sample_method.assert_called_once_with(order, previous_value=None)
+    mocked_sample_method.assert_called_once_with(
+        order, previous_value=None, webhooks=webhooks
+    )
 
 
 @patch("saleor.plugins.tests.sample_plugins.PluginSample.order_paid")
-def test_order_paid(mocked_sample_method, order):
+def test_order_paid(mocked_sample_method, order, webhook):
     # given
     plugins = [
         "saleor.plugins.tests.sample_plugins.PluginSample",
@@ -1362,12 +1370,15 @@ def test_order_paid(mocked_sample_method, order):
     ]
 
     manager = PluginsManager(plugins=plugins)
+    webhooks = {webhook}
 
     # when
-    manager.order_paid(order)
+    manager.order_paid(order, webhooks=webhooks)
 
     # then
-    mocked_sample_method.assert_called_once_with(order, previous_value=None)
+    mocked_sample_method.assert_called_once_with(
+        order, previous_value=None, webhooks=webhooks
+    )
 
 
 @patch("saleor.plugins.tests.sample_plugins.PluginSample.list_stored_payment_methods")
