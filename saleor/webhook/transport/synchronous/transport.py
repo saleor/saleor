@@ -89,7 +89,7 @@ def _send_webhook_request_sync(
     delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT, attempt=None
 ) -> tuple[WebhookResponse, Optional[dict[Any, Any]]]:
     event_payload = delivery.payload
-    data = event_payload.payload
+    data = event_payload.get_payload()
     webhook = delivery.webhook
     parts = urlparse(webhook.target_url)
     domain = get_domain()
@@ -261,9 +261,10 @@ def create_delivery_for_subscription_sync_event(
         # Return None so if subscription query returns no data Saleor will not crash but
         # log the issue and continue without creating a delivery.
         return None
-
     with allow_writer():
-        event_payload = EventPayload.objects.create(payload=json.dumps({**data}))
+        event_payload = EventPayload.objects.create_with_payload_file(
+            json.dumps({**data})
+        )
         event_delivery = EventDelivery.objects.create(
             status=EventDeliveryStatus.PENDING,
             event_type=event_type,
@@ -299,7 +300,7 @@ def trigger_webhook_sync(
             return None
     else:
         with allow_writer():
-            event_payload = EventPayload.objects.create(payload=payload)
+            event_payload = EventPayload.objects.create_with_payload_file(payload)
             delivery = EventDelivery.objects.create(
                 status=EventDeliveryStatus.PENDING,
                 event_type=event_type,
@@ -364,8 +365,8 @@ def trigger_all_webhooks_sync(
         else:
             with allow_writer():
                 if event_payload is None:
-                    event_payload = EventPayload.objects.create(
-                        payload=generate_payload()
+                    event_payload = EventPayload.objects.create_with_payload_file(
+                        generate_payload()
                     )
                 delivery = EventDelivery.objects.create(
                     status=EventDeliveryStatus.PENDING,

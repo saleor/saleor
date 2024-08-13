@@ -470,6 +470,7 @@ AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
 AWS_LOCATION = os.environ.get("AWS_LOCATION", "")
 AWS_MEDIA_BUCKET_NAME = os.environ.get("AWS_MEDIA_BUCKET_NAME")
 AWS_MEDIA_CUSTOM_DOMAIN = os.environ.get("AWS_MEDIA_CUSTOM_DOMAIN")
+AWS_MEDIA_PRIVATE_BUCKET_NAME = os.environ.get("AWS_MEDIA_PRIVATE_BUCKET_NAME")
 AWS_QUERYSTRING_AUTH = get_bool_from_env("AWS_QUERYSTRING_AUTH", False)
 AWS_QUERYSTRING_EXPIRE = get_bool_from_env("AWS_QUERYSTRING_EXPIRE", 3600)
 AWS_S3_CUSTOM_DOMAIN = os.environ.get("AWS_STATIC_CUSTOM_DOMAIN")
@@ -484,9 +485,11 @@ AWS_S3_FILE_OVERWRITE = get_bool_from_env("AWS_S3_FILE_OVERWRITE", True)
 # See https://django-storages.readthedocs.io/en/latest/backends/gcloud.html
 GS_PROJECT_ID = os.environ.get("GS_PROJECT_ID")
 GS_BUCKET_NAME = os.environ.get("GS_BUCKET_NAME")
+GS_BUCKET_NAME = os.environ.get("GS_BUCKET_NAME")
 GS_LOCATION = os.environ.get("GS_LOCATION", "")
 GS_CUSTOM_ENDPOINT = os.environ.get("GS_CUSTOM_ENDPOINT")
 GS_MEDIA_BUCKET_NAME = os.environ.get("GS_MEDIA_BUCKET_NAME")
+GS_MEDIA_PRIVATE_BUCKET_NAME = os.environ.get("GS_MEDIA_BUCKET_NAME")
 GS_AUTO_CREATE_BUCKET = get_bool_from_env("GS_AUTO_CREATE_BUCKET", False)
 GS_QUERYSTRING_AUTH = get_bool_from_env("GS_QUERYSTRING_AUTH", False)
 GS_DEFAULT_ACL = os.environ.get("GS_DEFAULT_ACL", None)
@@ -504,6 +507,7 @@ if "GOOGLE_APPLICATION_CREDENTIALS" not in os.environ:
 AZURE_ACCOUNT_NAME = os.environ.get("AZURE_ACCOUNT_NAME")
 AZURE_ACCOUNT_KEY = os.environ.get("AZURE_ACCOUNT_KEY")
 AZURE_CONTAINER = os.environ.get("AZURE_CONTAINER")
+AZURE_CONTAINER_PRIVATE = os.environ.get("AZURE_CONTAINER_PRIVATE")
 AZURE_SSL = os.environ.get("AZURE_SSL")
 
 if AWS_STORAGE_BUCKET_NAME:
@@ -517,6 +521,14 @@ elif GS_MEDIA_BUCKET_NAME:
     DEFAULT_FILE_STORAGE = "saleor.core.storages.GCSMediaStorage"
 elif AZURE_CONTAINER:
     DEFAULT_FILE_STORAGE = "saleor.core.storages.AzureMediaStorage"
+
+PRIVATE_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
+if AWS_MEDIA_PRIVATE_BUCKET_NAME:
+    PRIVATE_FILE_STORAGE = "saleor.core.storages.S3MediaPrivateStorage"
+elif GS_MEDIA_PRIVATE_BUCKET_NAME:
+    PRIVATE_FILE_STORAGE = "saleor.core.storages.GCSMediaPrivateStorage"
+elif AZURE_CONTAINER_PRIVATE:
+    PRIVATE_FILE_STORAGE = "saleor.core.storages.AzureMediaPrivateStorage"
 
 PLACEHOLDER_IMAGES = {
     32: "images/placeholder32.png",

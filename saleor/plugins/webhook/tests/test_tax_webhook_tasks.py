@@ -52,7 +52,7 @@ def test_trigger_tax_webhook_sync(
 
     # then
     payload = EventPayload.objects.get()
-    assert payload.payload == data
+    assert payload.get_payload() == data
     delivery = EventDelivery.objects.get()
     assert delivery.status == EventDeliveryStatus.PENDING
     assert delivery.event_type == event_type
@@ -80,7 +80,7 @@ def test_trigger_tax_webhook_sync_multiple_webhooks_first(
     successful_webhook = tax_checkout_webhooks[0]
 
     payload = EventPayload.objects.get()
-    assert payload.payload == data
+    assert payload.get_payload() == data
     delivery = EventDelivery.objects.order_by("pk").first()
     assert delivery.status == EventDeliveryStatus.PENDING
     assert delivery.event_type == event_type
@@ -107,7 +107,7 @@ def test_trigger_tax_webhook_sync_multiple_webhooks_last(
     # then
 
     payload = EventPayload.objects.get()
-    assert payload.payload == data
+    assert payload.get_payload() == data
     deliveries = list(EventDelivery.objects.order_by("pk"))
     for call, delivery, webhook in zip(
         mock_request.call_args_list, deliveries, tax_checkout_webhooks

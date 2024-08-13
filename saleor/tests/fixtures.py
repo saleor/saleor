@@ -7322,6 +7322,17 @@ def media_root(tmpdir, settings):
     return root
 
 
+@pytest.fixture(scope="session", autouse=True)
+def private_media_root(tmpdir_factory):
+    return str(tmpdir_factory.mktemp("private-media"))
+
+
+@pytest.fixture(autouse=True)
+def private_media_setting(private_media_root, settings):
+    settings.PRIVATE_MEDIA_ROOT = private_media_root
+    return private_media_root
+
+
 @pytest.fixture
 def description_json():
     return {
@@ -8593,7 +8604,9 @@ def app_manifest_webhook():
 @pytest.fixture
 def event_payload():
     """Return event payload."""
-    return EventPayload.objects.create(payload='{"payload_key": "payload_value"}')
+    return EventPayload.objects.create_with_payload_file(
+        payload='{"payload_key": "payload_value"}'
+    )
 
 
 @pytest.fixture
@@ -8620,6 +8633,35 @@ def event_attempt(event_delivery):
     """Return an event delivery attempt object."""
     return EventDeliveryAttempt.objects.create(
         delivery=event_delivery,
+        task_id="example_task_id",
+        duration=None,
+        response="example_response",
+        response_headers=None,
+        request_headers=None,
+    )
+
+
+@pytest.fixture
+def event_payload_in_database():
+    """Return event payload with payload in database."""
+    return EventPayload.objects.create(payload='{"payload_key": "payload_value"}')
+
+
+@pytest.fixture
+def event_delivery_payload_in_database(event_payload_in_database, webhook, app):
+    """Return an event delivery object."""
+    return EventDelivery.objects.create(
+        event_type=WebhookEventAsyncType.ANY,
+        payload=event_payload_in_database,
+        webhook=webhook,
+    )
+
+
+@pytest.fixture
+def event_attempt_payload_in_database(event_delivery_payload_in_database):
+    """Return an event delivery attempt object."""
+    return EventDeliveryAttempt.objects.create(
+        delivery=event_delivery_payload_in_database,
         task_id="example_task_id",
         duration=None,
         response="example_response",
