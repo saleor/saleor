@@ -92,6 +92,13 @@ def is_shipping_voucher(voucher: Optional[Voucher]):
     return bool(voucher and voucher.type == VoucherType.SHIPPING)
 
 
+def is_order_level_discount(discount: OrderDiscount) -> bool:
+    return discount.type in [
+        DiscountType.MANUAL,
+        DiscountType.ORDER_PROMOTION,
+    ] or is_order_level_voucher(discount.voucher)
+
+
 def increase_voucher_usage(
     voucher: "Voucher",
     code: "VoucherCode",
