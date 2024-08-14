@@ -404,6 +404,8 @@ class TaxableObject(BaseObjectType):
             return [
                 {"name": discount.name, "amount": discount.amount}
                 for discount in discounts
+                # Only order level discounts, like entire order vouchers,
+                # order promotions and manual discounts should be taken into account
                 if (
                     discount.type in [DiscountType.MANUAL, DiscountType.ORDER_PROMOTION]
                     or is_order_level_voucher(discount.voucher)
