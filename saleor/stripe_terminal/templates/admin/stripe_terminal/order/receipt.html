@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Receipt</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .receipt-container {
+            width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+        }
+        .receipt-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .receipt-details {
+            margin-bottom: 20px;
+        }
+        .receipt-footer {
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="receipt-container">
+        <div class="receipt-header">
+            <h1>Receipt</h1>
+            <p>Order #{{ order.id }}</p>
+        </div>
+        <div class="receipt-details">
+            <p><strong>Customer Name:</strong> {{ order.customer_name }}</p>
+            <p><strong>Total:</strong> ${{ order.total }}</p>
+            <p><strong>Status:</strong> {{ order.status }}</p>
+            <p><strong>Payment Intent ID:</strong> {{ order.payment_intent_id }}</p>
+            <p><strong>Date:</strong> {{ order.created_at }}</p>
+        </div>
+        <div class="receipt-footer">
+            <p>Thank you for your purchase!</p>
+        </div>
+    </div>
+</body>
+</html>

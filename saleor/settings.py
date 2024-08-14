@@ -292,6 +292,7 @@ INSTALLED_APPS = [
     "saleor.app",
     "saleor.thumbnail",
     "saleor.schedulers",
+    "saleor.stripe_terminal"
     # External apps
     "django_measurement",
     "django_prices",
@@ -576,6 +577,12 @@ CELERY_TIMEZONE = TIME_ZONE
 CELERY_WORKER_PREFETCH_MULTIPLIER = int(
     os.environ.get("CELERY_WORKER_PREFETCH_MULTIPLIER", 1)
 )
+
+##STRIPE AND SALEOR CREDENTIALS
+STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY')
+STRIPE_PAYMENT_URL = os.environ.get('STRIPE_PAYMENT_URL')
+SALEOR_API_URL = os.environ.get('SALEOR_API_URL')
+API_TOKEN = os.environ.get('API_TOKEN')
 
 # Expire orders task setting
 BEAT_EXPIRE_ORDERS_AFTER_TIMEDELTA = timedelta(
