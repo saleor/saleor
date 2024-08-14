@@ -157,6 +157,75 @@ ORDER_WEBHOOK_EVENT_MAP = {
 }
 
 
+def _trigger_order_sync_webhooks(
+    manager: "PluginsManager",
+    order: "Order",
+    webhook_event_map: dict[str, set["Webhook"]],
+):
+    if (
+        webhook_event_map.get(WebhookEventSyncType.ORDER_CALCULATE_TAXES)
+        and order.should_refresh_prices
+    ):
+        fetch_order_prices_if_expired(
+            order,
+            manager,
+        )
+    if webhook_event_map.get(WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS):
+        shipping_listings = ShippingMethodChannelListing.objects.filter(
+            channel_id=order.channel_id
+        )
+        get_valid_shipping_methods_for_order(
+            order,
+            shipping_listings,
+            manager,
+        )
+
+
+def call_order_events(
+    manager: "PluginsManager",
+    event_names: list[str],
+    order: "Order",
+    webhook_event_map: Optional[dict[str, set["Webhook"]]] = None,
+):
+    missing_events = set(event_names).difference(ORDER_WEBHOOK_EVENT_MAP.keys())
+    if missing_events:
+        raise ValueError(
+            f"Events {missing_events} not found in ORDER_WEBHOOK_EVENT_MAP."
+        )
+
+    if webhook_event_map is None:
+        webhook_event_map = get_webhooks_for_multiple_events(
+            [*event_names, *WebhookEventSyncType.ORDER_EVENTS]
+        )
+
+    any_event_requires_sync_webhooks = any(
+        webhook_async_event_requires_sync_webhooks_to_trigger(
+            event_name,
+            webhook_event_map,
+            possible_sync_events=WebhookEventSyncType.ORDER_EVENTS,
+        )
+        for event_name in event_names
+    )
+
+    should_trigger_sync = (
+        any_event_requires_sync_webhooks
+        and order.status in ORDER_EDITABLE_STATUS
+        and WebhookEventAsyncType.DRAFT_ORDER_DELETED not in event_names
+    )
+    if should_trigger_sync:
+        _trigger_order_sync_webhooks(
+            manager,
+            order,
+            webhook_event_map=webhook_event_map,
+        )
+
+    for event_name in event_names:
+        plugin_manager_method_name = ORDER_WEBHOOK_EVENT_MAP[event_name]
+        webhooks = webhook_event_map.get(event_name, set())
+        event_func = getattr(manager, plugin_manager_method_name)
+        call_event_including_protected_events(event_func, order, webhooks=webhooks)
+
+
 def call_order_event(
     manager: "PluginsManager",
     event_name: str,
@@ -189,23 +258,11 @@ def call_order_event(
         call_event_including_protected_events(event_func, order, webhooks=webhooks)
         return
 
-    if (
-        webhook_event_map.get(WebhookEventSyncType.ORDER_CALCULATE_TAXES)
-        and order.should_refresh_prices
-    ):
-        fetch_order_prices_if_expired(
-            order,
-            manager,
-        )
-    if webhook_event_map.get(WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS):
-        shipping_listings = ShippingMethodChannelListing.objects.filter(
-            channel_id=order.channel_id
-        )
-        get_valid_shipping_methods_for_order(
-            order,
-            shipping_listings,
-            manager,
-        )
+    _trigger_order_sync_webhooks(
+        manager,
+        order,
+        webhook_event_map=webhook_event_map,
+    )
 
     call_event_including_protected_events(event_func, order, webhooks=webhooks)
     return
@@ -314,15 +371,12 @@ def handle_fully_paid_order(
     if not order.is_draft() and order.channel.automatically_confirm_all_new_orders:
         update_order_status(order)
 
-    call_order_event(
+    call_order_events(
         manager,
-        WebhookEventAsyncType.ORDER_FULLY_PAID,
-        order,
-        webhook_event_map=webhook_event_map,
-    )
-    call_order_event(
-        manager,
-        WebhookEventAsyncType.ORDER_UPDATED,
+        [
+            WebhookEventAsyncType.ORDER_FULLY_PAID,
+            WebhookEventAsyncType.ORDER_UPDATED,
+        ],
         order,
         webhook_event_map=webhook_event_map,
     )
@@ -349,15 +403,12 @@ def cancel_order(
             webhook_event_map = get_webhooks_for_multiple_events(
                 WEBHOOK_EVENTS_FOR_ORDER_CANCELED
             )
-        call_order_event(
+        call_order_events(
             manager,
-            WebhookEventAsyncType.ORDER_CANCELLED,
-            order,
-            webhook_event_map=webhook_event_map,
-        )
-        call_order_event(
-            manager,
-            WebhookEventAsyncType.ORDER_UPDATED,
+            [
+                WebhookEventAsyncType.ORDER_CANCELLED,
+                WebhookEventAsyncType.ORDER_UPDATED,
+            ],
             order,
             webhook_event_map=webhook_event_map,
         )
@@ -399,19 +450,11 @@ def order_refunded(
             WEBHOOK_EVENTS_FOR_ORDER_REFUNDED
         )
 
-    call_order_event(
-        manager,
+    webhook_events = [
         WebhookEventAsyncType.ORDER_REFUNDED,
-        order,
-        webhook_event_map=webhook_event_map,
-    )
+    ]
     if trigger_order_updated:
-        call_order_event(
-            manager,
-            WebhookEventAsyncType.ORDER_UPDATED,
-            order,
-            webhook_event_map=webhook_event_map,
-        )
+        webhook_events.append(WebhookEventAsyncType.ORDER_UPDATED)
 
     total_refunded = Decimal(0)
     last_payment = payment if payment else order.get_last_payment()
@@ -432,12 +475,14 @@ def order_refunded(
     )
 
     if total_refunded >= order.total.gross.amount:
-        call_order_event(
-            manager,
-            WebhookEventAsyncType.ORDER_FULLY_REFUNDED,
-            order,
-            webhook_event_map=webhook_event_map,
-        )
+        webhook_events.append(WebhookEventAsyncType.ORDER_FULLY_REFUNDED)
+
+    call_order_events(
+        manager,
+        webhook_events,
+        order,
+        webhook_event_map=webhook_event_map,
+    )
 
 
 def order_voided(
@@ -494,25 +539,21 @@ def order_fulfilled(
         events.fulfillment_fulfilled_items_event(
             order=order, user=user, app=app, fulfillment_lines=fulfillment_lines
         )
-        call_order_event(
-            manager,
-            WebhookEventAsyncType.ORDER_UPDATED,
-            order,
-            webhook_event_map=webhook_event_map,
-        )
+        webhook_events = [WebhookEventAsyncType.ORDER_UPDATED]
         for fulfillment in fulfillments:
             call_event(manager.fulfillment_created, fulfillment, notify_customer)
 
         if order.status == OrderStatus.FULFILLED:
-            call_order_event(
-                manager,
-                WebhookEventAsyncType.ORDER_FULFILLED,
-                order,
-                webhook_event_map=webhook_event_map,
-            )
+            webhook_events.append(WebhookEventAsyncType.ORDER_FULFILLED)
             for fulfillment in fulfillments:
                 call_event(manager.fulfillment_approved, fulfillment)
 
+        call_order_events(
+            manager,
+            webhook_events,
+            order,
+            webhook_event_map=webhook_event_map,
+        )
     if notify_customer:
         for fulfillment in fulfillments:
             send_fulfillment_confirmation_to_customer(
@@ -840,20 +881,17 @@ def approve_fulfillment(
         webhook_event_map = get_webhooks_for_multiple_events(
             WEBHOOK_EVENTS_FOR_ORDER_FULFILLED
         )
-        call_order_event(
+        webhook_events = [WebhookEventAsyncType.ORDER_UPDATED]
+        call_event(manager.fulfillment_approved, fulfillment, notify_customer)
+        if order.status == OrderStatus.FULFILLED:
+            webhook_events.append(WebhookEventAsyncType.ORDER_FULFILLED)
+
+        call_order_events(
             manager,
-            WebhookEventAsyncType.ORDER_UPDATED,
+            webhook_events,
             order,
             webhook_event_map=webhook_event_map,
         )
-        call_event(manager.fulfillment_approved, fulfillment, notify_customer)
-        if order.status == OrderStatus.FULFILLED:
-            call_order_event(
-                manager,
-                WebhookEventAsyncType.ORDER_FULFILLED,
-                order,
-                webhook_event_map=webhook_event_map,
-            )
 
         if gift_card_lines_info:
             gift_cards_create(
@@ -896,12 +934,14 @@ def mark_order_as_paid_with_transaction(
             app=app,
             transaction_reference=external_reference,
         )
-        call_order_event(
+        call_order_events(
             manager,
-            WebhookEventAsyncType.ORDER_FULLY_PAID,
+            [
+                WebhookEventAsyncType.ORDER_FULLY_PAID,
+                WebhookEventAsyncType.ORDER_UPDATED,
+            ],
             order,
         )
-        call_order_event(manager, WebhookEventAsyncType.ORDER_UPDATED, order)
 
 
 def mark_order_as_paid_with_payment(
@@ -958,15 +998,12 @@ def mark_order_as_paid_with_payment(
         webhook_event_map = get_webhooks_for_multiple_events(
             WEBHOOK_EVENTS_FOR_FULLY_PAID
         )
-        call_order_event(
+        call_order_events(
             manager,
-            WebhookEventAsyncType.ORDER_FULLY_PAID,
-            order,
-            webhook_event_map=webhook_event_map,
-        )
-        call_order_event(
-            manager,
-            WebhookEventAsyncType.ORDER_UPDATED,
+            [
+                WebhookEventAsyncType.ORDER_FULLY_PAID,
+                WebhookEventAsyncType.ORDER_UPDATED,
+            ],
             order,
             webhook_event_map=webhook_event_map,
         )

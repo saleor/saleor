@@ -15,7 +15,7 @@ from ..warehouse.management import deallocate_stock_for_orders
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..webhook.utils import get_webhooks_for_multiple_events
 from . import OrderEvents, OrderStatus
-from .actions import call_order_event
+from .actions import call_order_event, call_order_events
 from .models import Order, OrderEvent
 from .utils import invalidate_order_prices
 
@@ -99,18 +99,16 @@ def _call_expired_order_events(order_ids, manager):
         [
             WebhookEventAsyncType.ORDER_EXPIRED,
             WebhookEventAsyncType.ORDER_UPDATED,
+            *WebhookEventSyncType.ORDER_EVENTS,
         ]
     )
     for order in orders:
-        call_order_event(
+        call_order_events(
             manager,
-            WebhookEventAsyncType.ORDER_EXPIRED,
-            order,
-            webhook_event_map=webhook_event_map,
-        )
-        call_order_event(
-            manager,
-            WebhookEventAsyncType.ORDER_UPDATED,
+            [
+                WebhookEventAsyncType.ORDER_EXPIRED,
+                WebhookEventAsyncType.ORDER_UPDATED,
+            ],
             order,
             webhook_event_map=webhook_event_map,
         )
