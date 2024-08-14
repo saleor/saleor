@@ -138,14 +138,14 @@ def test_meta_mutations_handle_validation_errors(staff_api_client):
     assert errors[0]["code"] == MetadataErrorCode.INVALID.name
 
 
-@patch("saleor.plugins.manager.PluginsManager.checkout_updated")
+@patch("saleor.graphql.meta.extra_methods.call_checkout_events")
 def test_base_metadata_mutation_handles_errors_from_extra_action(
-    mock_checkout_updated, api_client, checkout
+    mock_call_checkout_events, api_client, checkout
 ):
     # given
     error_field = "field"
     error_msg = "boom"
-    mock_checkout_updated.side_effect = ValidationError({error_field: error_msg})
+    mock_call_checkout_events.side_effect = ValidationError({error_field: error_msg})
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
     # when
