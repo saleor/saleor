@@ -16,6 +16,7 @@ from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from .. import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from ..actions import (
     call_checkout_event,
+    call_checkout_events,
     call_checkout_info_event,
     transaction_amounts_for_checkout_updated,
 )
@@ -1006,4 +1007,319 @@ def test_transaction_amounts_for_checkout_fully_paid_triggers_sync_webhook(
         plugins_manager.checkout_fully_paid,
         checkout_with_items,
         webhooks={checkout_fully_paid_webhook},
+    )
+
+
+@freeze_time("2023-05-31 12:00:01")
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_call_checkout_events_incorrect_webhook_event(
+    mocked_send_webhook_request_async,
+    mocked_send_webhook_request_sync,
+    checkout_with_items,
+    setup_checkout_webhooks,
+    django_capture_on_commit_callbacks,
+):
+    # given
+    plugins_manager = get_plugins_manager(allow_replica=False)
+    checkout_with_items.price_expiration = timezone.now()
+    checkout_with_items.save(update_fields=["price_expiration"])
+
+    mocked_send_webhook_request_sync.return_value = []
+    setup_checkout_webhooks(WebhookEventAsyncType.CHECKOUT_CREATED)
+
+    incorrect_event = WebhookEventAsyncType.ORDER_UPDATED
+    # when
+
+    with django_capture_on_commit_callbacks(execute=True):
+        with pytest.raises(
+            ValueError,
+            match=f"Events { {incorrect_event} } not found in CHECKOUT_WEBHOOK_EVENT_MAP.",
+        ):
+            call_checkout_events(
+                plugins_manager,
+                [incorrect_event, WebhookEventAsyncType.CHECKOUT_CREATED],
+                checkout_with_items,
+            )
+
+    # then
+    assert not mocked_send_webhook_request_async.called
+    assert not mocked_send_webhook_request_sync.called
+
+
+@freeze_time("2023-05-31 12:00:01")
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
+@patch(
+    "saleor.checkout.actions.call_event_including_protected_events",
+    wraps=call_event_including_protected_events,
+)
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_call_checkout_events_triggers_sync_webhook_when_needed(
+    mocked_call_event_including_protected_events,
+    mocked_send_webhook_request_async,
+    mocked_send_webhook_request_sync,
+    checkout_with_items,
+    setup_checkout_webhooks,
+    settings,
+    django_capture_on_commit_callbacks,
+):
+    # given
+    plugins_manager = get_plugins_manager(allow_replica=False)
+    checkout_with_items.price_expiration = timezone.now()
+    checkout_with_items.save(update_fields=["price_expiration"])
+
+    mocked_send_webhook_request_sync.return_value = []
+    (
+        tax_webhook,
+        shipping_webhook,
+        shipping_filter_webhook,
+        checkout_created_webhook,
+    ) = setup_checkout_webhooks(WebhookEventAsyncType.CHECKOUT_CREATED)
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        with freeze_time("2023-06-01 12:00:01"):
+            call_checkout_events(
+                plugins_manager,
+                [
+                    WebhookEventAsyncType.CHECKOUT_CREATED,
+                    WebhookEventAsyncType.CHECKOUT_UPDATED,
+                ],
+                checkout_with_items,
+            )
+
+    # then
+    # confirm that event delivery was generated for each webhook.
+    checkout_create_delivery = EventDelivery.objects.get(
+        webhook_id=checkout_created_webhook.id
+    )
+    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
+    filter_shipping_delivery = EventDelivery.objects.get(
+        webhook_id=shipping_filter_webhook.id,
+        event_type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
+    )
+    shipping_methods_delivery = EventDelivery.objects.get(
+        webhook_id=shipping_webhook.id,
+        event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+    )
+
+    mocked_send_webhook_request_async.assert_called_once_with(
+        kwargs={"event_delivery_id": checkout_create_delivery.id},
+        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+        bind=True,
+        retry_backoff=10,
+        retry_kwargs={"max_retries": 5},
+    )
+    mocked_send_webhook_request_sync.assert_has_calls(
+        [
+            call(shipping_methods_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
+            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
+            call(tax_delivery),
+        ]
+    )
+    mocked_call_event_including_protected_events.assert_has_calls(
+        [
+            call(
+                plugins_manager.checkout_created,
+                checkout_with_items,
+                webhooks={checkout_created_webhook},
+            ),
+            call(plugins_manager.checkout_updated, checkout_with_items, webhooks=set()),
+        ]
+    )
+
+
+@freeze_time("2023-05-31 12:00:01")
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
+@patch(
+    "saleor.checkout.actions.call_event_including_protected_events",
+    wraps=call_event_including_protected_events,
+)
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_call_checkout_events_skips_tax_webhook_when_not_expired(
+    mocked_call_event_including_protected_events,
+    mocked_send_webhook_request_async,
+    mocked_send_webhook_request_sync,
+    checkout_with_items,
+    setup_checkout_webhooks,
+    settings,
+    django_capture_on_commit_callbacks,
+):
+    # given
+    plugins_manager = get_plugins_manager(allow_replica=False)
+    checkout_with_items.price_expiration = timezone.now() + datetime.timedelta(hours=1)
+    checkout_with_items.save(update_fields=["price_expiration"])
+
+    mocked_send_webhook_request_sync.return_value = []
+    (
+        tax_webhook,
+        shipping_webhook,
+        shipping_filter_webhook,
+        checkout_created_webhook,
+    ) = setup_checkout_webhooks(WebhookEventAsyncType.CHECKOUT_CREATED)
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        call_checkout_events(
+            plugins_manager,
+            [
+                WebhookEventAsyncType.CHECKOUT_CREATED,
+                WebhookEventAsyncType.CHECKOUT_UPDATED,
+            ],
+            checkout_with_items,
+        )
+
+    # then
+    # confirm that event delivery was generated for each webhook.
+    checkout_create_delivery = EventDelivery.objects.get(
+        webhook_id=checkout_created_webhook.id
+    )
+    tax_delivery = EventDelivery.objects.filter(webhook_id=tax_webhook.id).first()
+    filter_shipping_delivery = EventDelivery.objects.get(
+        webhook_id=shipping_filter_webhook.id,
+        event_type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
+    )
+    shipping_methods_delivery = EventDelivery.objects.get(
+        webhook_id=shipping_webhook.id,
+        event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+    )
+
+    mocked_send_webhook_request_async.assert_called_once_with(
+        kwargs={"event_delivery_id": checkout_create_delivery.id},
+        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+        bind=True,
+        retry_backoff=10,
+        retry_kwargs={"max_retries": 5},
+    )
+    assert not tax_delivery
+    mocked_send_webhook_request_sync.assert_has_calls(
+        [
+            call(shipping_methods_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
+            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
+        ]
+    )
+    mocked_call_event_including_protected_events.assert_has_calls(
+        [
+            call(
+                plugins_manager.checkout_created,
+                checkout_with_items,
+                webhooks={checkout_created_webhook},
+            ),
+            call(plugins_manager.checkout_updated, checkout_with_items, webhooks=set()),
+        ]
+    )
+
+
+@freeze_time("2023-05-31 12:00:01")
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_call_checkout_events_skip_sync_webhooks_when_async_missing(
+    mocked_send_webhook_request_async,
+    mocked_send_webhook_request_sync,
+    checkout_with_items,
+    setup_checkout_webhooks,
+    django_capture_on_commit_callbacks,
+):
+    # given
+    plugins_manager = get_plugins_manager(allow_replica=False)
+    checkout_with_items.price_expiration = timezone.now()
+    checkout_with_items.save(update_fields=["price_expiration"])
+
+    mocked_send_webhook_request_sync.return_value = []
+
+    # setup sync webhooks with async that is not going to be called
+    setup_checkout_webhooks(WebhookEventAsyncType.CHECKOUT_CREATED)
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        with freeze_time("2023-06-01 12:00:01"):
+            call_checkout_events(
+                plugins_manager,
+                [
+                    WebhookEventAsyncType.CHECKOUT_FULLY_PAID,
+                    WebhookEventAsyncType.CHECKOUT_UPDATED,
+                ],
+                checkout_with_items,
+            )
+
+    # then
+
+    assert not mocked_send_webhook_request_async.called
+    assert not mocked_send_webhook_request_sync.called
+
+
+@freeze_time("2023-05-31 12:00:01")
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
+@patch(
+    "saleor.checkout.actions.call_event_including_protected_events",
+    wraps=call_event_including_protected_events,
+)
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_call_checkout_events_only_async_when_sync_missing(
+    mocked_call_event_including_protected_events,
+    mocked_send_webhook_request_async,
+    mocked_send_webhook_request_sync,
+    checkout_with_items,
+    permission_manage_checkouts,
+    settings,
+    webhook,
+    django_capture_on_commit_callbacks,
+):
+    # given
+    plugins_manager = get_plugins_manager(allow_replica=False)
+    checkout_with_items.price_expiration = timezone.now()
+    checkout_with_items.save(update_fields=["price_expiration"])
+
+    webhook.events.create(event_type=WebhookEventAsyncType.CHECKOUT_CREATED)
+    webhook.app.permissions.add(permission_manage_checkouts)
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        with freeze_time("2023-06-01 12:00:01"):
+            call_checkout_events(
+                plugins_manager,
+                [
+                    WebhookEventAsyncType.CHECKOUT_CREATED,
+                    WebhookEventAsyncType.CHECKOUT_UPDATED,
+                ],
+                checkout_with_items,
+            )
+
+    # then
+
+    # confirm that event delivery was generated for each webhook.
+    checkout_create_delivery = EventDelivery.objects.get(webhook_id=webhook.id)
+
+    mocked_send_webhook_request_async.assert_called_once_with(
+        kwargs={"event_delivery_id": checkout_create_delivery.id},
+        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+        bind=True,
+        retry_backoff=10,
+        retry_kwargs={"max_retries": 5},
+    )
+    assert not mocked_send_webhook_request_sync.called
+    mocked_call_event_including_protected_events.assert_has_calls(
+        [
+            call(
+                plugins_manager.checkout_created,
+                checkout_with_items,
+                webhooks={webhook},
+            ),
+            call(plugins_manager.checkout_updated, checkout_with_items, webhooks=set()),
+        ]
     )
