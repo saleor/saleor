@@ -2701,21 +2701,18 @@ class WarehouseMetadataUpdated(SubscriptionObjectType, WarehouseBase):
         description = "Event sent when warehouse metadata is updated." + ADDED_IN_38
 
 
-def filter_order_over_channels(field_event):
-    def _filter_order_over_channels(root, info, channels=None):
-        event_type, order = root
-        if field_event != event_type:
-            return Observable.from_([])
-        if channels:
-            channel_ids = Channel.objects.filter(slug__in=channels).values_list(
-                "id", flat=True
-            )
-            if order.channel_id in channel_ids:
-                return Observable.from_([root])
-            return Observable.from_([])
-        return Observable.from_([root])
+def default_order_resolver(root, info, channels=None):
+    return Observable.from_([root])
 
-    return _filter_order_over_channels
+
+channels_argument = graphene.Argument(
+    NonNullList(graphene.String),
+    description=(
+        "List of channel slugs. The event will be sent only if the order "
+        "belongs to one of the provided channels. If the channel slug list is "
+        "empty, orders that belong to any channel will be sent."
+    ),
+)
 
 
 class Subscription(SubscriptionObjectType):
@@ -2728,45 +2725,24 @@ class Subscription(SubscriptionObjectType):
         description=(
             "Event sent when new order is created." + ADDED_IN_320 + PREVIEW_FEATURE
         ),
-        resolver=filter_order_over_channels(WebhookEventAsyncType.ORDER_CREATED),
-        channels=graphene.Argument(
-            NonNullList(graphene.String),
-            description=(
-                "List of channel slugs. The event will be sent only if the order "
-                "belongs to one of the provided channels. If the channel slug list is "
-                "empty, orders that belong to any channel will be sent."
-            ),
-        ),
+        resolver=default_order_resolver,
+        channels=channels_argument,
     )
     order_updated = graphene.Field(
         OrderUpdated,
         description=(
             "Event sent when order is updated." + ADDED_IN_320 + PREVIEW_FEATURE
         ),
-        resolver=filter_order_over_channels(WebhookEventAsyncType.ORDER_UPDATED),
-        channels=graphene.Argument(
-            NonNullList(graphene.String),
-            description=(
-                "List of channel slugs. The event will be sent only if the order "
-                "belongs to one of the provided channels. If the channel slug list is "
-                "empty, orders that belong to any channel will be sent."
-            ),
-        ),
+        resolver=default_order_resolver,
+        channels=channels_argument,
     )
     order_confirmed = graphene.Field(
         OrderConfirmed,
         description=(
             "Event sent when order is confirmed." + ADDED_IN_320 + PREVIEW_FEATURE
         ),
-        resolver=filter_order_over_channels(WebhookEventAsyncType.ORDER_CONFIRMED),
-        channels=graphene.Argument(
-            NonNullList(graphene.String),
-            description=(
-                "List of channel slugs. The event will be sent only if the order "
-                "belongs to one of the provided channels. If the channel slug list is "
-                "empty, orders that belong to any channel will be sent."
-            ),
-        ),
+        resolver=default_order_resolver,
+        channels=channels_argument,
     )
     order_paid = graphene.Field(
         OrderPaid,
@@ -2775,30 +2751,16 @@ class Subscription(SubscriptionObjectType):
             + ADDED_IN_320
             + PREVIEW_FEATURE
         ),
-        resolver=filter_order_over_channels(WebhookEventAsyncType.ORDER_PAID),
-        channels=graphene.Argument(
-            NonNullList(graphene.String),
-            description=(
-                "List of channel slugs. The event will be sent only if the order "
-                "belongs to one of the provided channels. If the channel slug list is "
-                "empty, orders that belong to any channel will be sent."
-            ),
-        ),
+        resolver=default_order_resolver,
+        channels=channels_argument,
     )
     order_fully_paid = graphene.Field(
         OrderFullyPaid,
         description=(
             "Event sent when order is fully paid." + ADDED_IN_320 + PREVIEW_FEATURE
         ),
-        resolver=filter_order_over_channels(WebhookEventAsyncType.ORDER_FULLY_PAID),
-        channels=graphene.Argument(
-            NonNullList(graphene.String),
-            description=(
-                "List of channel slugs. The event will be sent only if the order "
-                "belongs to one of the provided channels. If the channel slug list is "
-                "empty, orders that belong to any channel will be sent."
-            ),
-        ),
+        resolver=default_order_resolver,
+        channels=channels_argument,
     )
     order_refunded = graphene.Field(
         OrderRefunded,
@@ -2806,73 +2768,38 @@ class Subscription(SubscriptionObjectType):
             "The order received a refund. The order may be partially or fully "
             "refunded." + ADDED_IN_320 + PREVIEW_FEATURE
         ),
-        resolver=filter_order_over_channels(WebhookEventAsyncType.ORDER_REFUNDED),
-        channels=graphene.Argument(
-            NonNullList(graphene.String),
-            description=(
-                "List of channel slugs. The event will be sent only if the order "
-                "belongs to one of the provided channels. If the channel slug list is "
-                "empty, orders that belong to any channel will be sent."
-            ),
-        ),
+        resolver=default_order_resolver,
+        channels=channels_argument,
     )
     order_fully_refunded = graphene.Field(
         OrderFullyRefunded,
         description=("The order is fully refunded." + ADDED_IN_320 + PREVIEW_FEATURE),
-        resolver=filter_order_over_channels(WebhookEventAsyncType.ORDER_FULLY_REFUNDED),
-        channels=graphene.Argument(
-            NonNullList(graphene.String),
-            description=(
-                "List of channel slugs. The event will be sent only if the order "
-                "belongs to one of the provided channels. If the channel slug list is "
-                "empty, orders that belong to any channel will be sent."
-            ),
-        ),
+        resolver=default_order_resolver,
+        channels=channels_argument,
     )
     order_fulfilled = graphene.Field(
         OrderFulfilled,
         description=(
             "Event sent when order is fulfilled." + ADDED_IN_320 + PREVIEW_FEATURE
         ),
-        resolver=filter_order_over_channels(WebhookEventAsyncType.ORDER_FULFILLED),
-        channels=graphene.Argument(
-            NonNullList(graphene.String),
-            description=(
-                "List of channel slugs. The event will be sent only if the order "
-                "belongs to one of the provided channels. If the channel slug list is "
-                "empty, orders that belong to any channel will be sent."
-            ),
-        ),
+        resolver=default_order_resolver,
+        channels=channels_argument,
     )
     order_cancelled = graphene.Field(
         OrderCancelled,
         description=(
             "Event sent when order is cancelled." + ADDED_IN_320 + PREVIEW_FEATURE
         ),
-        resolver=filter_order_over_channels(WebhookEventAsyncType.ORDER_CANCELLED),
-        channels=graphene.Argument(
-            NonNullList(graphene.String),
-            description=(
-                "List of channel slugs. The event will be sent only if the order "
-                "belongs to one of the provided channels. If the channel slug list is "
-                "empty, orders that belong to any channel will be sent."
-            ),
-        ),
+        resolver=default_order_resolver,
+        channels=channels_argument,
     )
     order_expired = graphene.Field(
         OrderExpired,
         description=(
             "Event sent when order becomes expired." + ADDED_IN_320 + PREVIEW_FEATURE
         ),
-        resolver=filter_order_over_channels(WebhookEventAsyncType.ORDER_EXPIRED),
-        channels=graphene.Argument(
-            NonNullList(graphene.String),
-            description=(
-                "List of channel slugs. The event will be sent only if the order "
-                "belongs to one of the provided channels. If the channel slug list is "
-                "empty, orders that belong to any channel will be sent."
-            ),
-        ),
+        resolver=default_order_resolver,
+        channels=channels_argument,
     )
     order_metadata_updated = graphene.Field(
         OrderMetadataUpdated,
@@ -2881,31 +2808,15 @@ class Subscription(SubscriptionObjectType):
             + ADDED_IN_320
             + PREVIEW_FEATURE
         ),
-        resolver=filter_order_over_channels(
-            WebhookEventAsyncType.ORDER_METADATA_UPDATED
-        ),
-        channels=graphene.Argument(
-            NonNullList(graphene.String),
-            description=(
-                "List of channel slugs. The event will be sent only if the order "
-                "belongs to one of the provided channels. If the channel slug list is "
-                "empty, orders that belong to any channel will be sent."
-            ),
-        ),
+        resolver=default_order_resolver,
+        channels=channels_argument,
     )
     order_bulk_created = graphene.Field(
         OrderBulkCreated,
         description=(
             "Event sent when orders are imported." + ADDED_IN_320 + PREVIEW_FEATURE
         ),
-        channels=graphene.Argument(
-            NonNullList(graphene.String),
-            description=(
-                "List of channel slugs. The event will be sent only if the order "
-                "belongs to one of the provided channels. If the channel slug list is "
-                "empty, orders that belong to any channel will be sent."
-            ),
-        ),
+        channels=channels_argument,
     )
 
     class Meta:
