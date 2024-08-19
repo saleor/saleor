@@ -2,6 +2,7 @@ from collections import defaultdict
 from decimal import Decimal
 from typing import TYPE_CHECKING, Optional, Union
 
+from .. import DiscountType
 from ..models import (
     CheckoutDiscount,
     CheckoutLineDiscount,
@@ -82,3 +83,12 @@ def update_line_info_cached_discounts(
         ]
         if discount := line_id_line_discounts_map.get(line_info.line.id):
             line_info.discounts.extend(discount)
+
+
+def is_order_level_discount(discount: OrderDiscount) -> bool:
+    from .voucher import is_order_level_voucher
+
+    return discount.type in [
+        DiscountType.MANUAL,
+        DiscountType.ORDER_PROMOTION,
+    ] or is_order_level_voucher(discount.voucher)

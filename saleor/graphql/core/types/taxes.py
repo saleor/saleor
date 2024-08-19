@@ -7,8 +7,8 @@ from promise import Promise
 from ....checkout import base_calculations
 from ....checkout.models import Checkout, CheckoutLine
 from ....core.prices import quantize_price
-from ....discount import DiscountType
 from ....discount.utils.checkout import has_checkout_order_promotion
+from ....discount.utils.shared import is_order_level_discount
 from ....discount.utils.voucher import is_order_level_voucher
 from ....order.models import Order, OrderLine
 from ....order.utils import get_order_country
@@ -405,10 +405,9 @@ class TaxableObject(BaseObjectType):
             return [
                 {"name": discount.name, "amount": discount.amount}
                 for discount in discounts
-                if (
-                    discount.type in [DiscountType.MANUAL, DiscountType.ORDER_PROMOTION]
-                    or is_order_level_voucher(discount.voucher)
-                )
+                # Only order level discounts, like entire order vouchers,
+                # order promotions and manual discounts should be taken into account
+                if is_order_level_discount(discount)
             ]
 
         return (
