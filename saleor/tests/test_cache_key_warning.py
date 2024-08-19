@@ -1,5 +1,6 @@
-from django.core.cache import cache, CacheKeyWarning
 import warnings
+
+from django.core.cache import CacheKeyWarning, cache
 
 
 def test_ignore_cache_key_warning():
