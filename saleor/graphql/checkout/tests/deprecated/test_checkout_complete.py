@@ -148,7 +148,7 @@ def test_checkout_complete(
     assert not Checkout.objects.filter(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
-    order_confirmed_mock.assert_called_once_with(order)
+    order_confirmed_mock.assert_called_once_with(order, webhooks=set())
 
 
 def test_checkout_complete_order_already_exists_neither_token_and_id_given(
@@ -312,4 +312,4 @@ def test_checkout_complete_for_token_as_input(
     assert not Checkout.objects.filter(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
-    order_confirmed_mock.assert_called_once_with(order)
+    order_confirmed_mock.assert_called_once_with(order, webhooks=set())

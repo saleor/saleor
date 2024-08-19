@@ -206,7 +206,7 @@ def test_order_from_checkout(
         gift_card=gift_card, type=GiftCardEvents.USED_IN_ORDER
     )
 
-    order_confirmed_mock.assert_called_once_with(order)
+    order_confirmed_mock.assert_called_once_with(order, webhooks=set())
     recalculate_with_plugins_mock.assert_not_called()
 
 
@@ -369,7 +369,7 @@ def test_order_from_checkout_with_metadata(
         **checkout.metadata_storage.private_metadata,
         metadata_key: metadata_value,
     }
-    order_confirmed_mock.assert_called_once_with(order)
+    order_confirmed_mock.assert_called_once_with(order, webhooks=set())
 
 
 @pytest.mark.integration
@@ -442,7 +442,7 @@ def test_order_from_checkout_with_metadata_checkout_without_metadata(
         **checkout.metadata_storage.private_metadata,
         metadata_key: metadata_value,
     }
-    order_confirmed_mock.assert_called_once_with(order)
+    order_confirmed_mock.assert_called_once_with(order, webhooks=set())
 
 
 def test_order_from_checkout_by_app_with_missing_permission(
@@ -555,7 +555,7 @@ def test_order_from_checkout_gift_card_bought(
         checkout.channel.slug,
         resending=False,
     )
-    order_confirmed_mock.assert_called_once_with(order)
+    order_confirmed_mock.assert_called_once_with(order, webhooks=set())
     assert Fulfillment.objects.count() == 1
 
 
@@ -2077,7 +2077,7 @@ def test_order_from_draft_create_with_preorder_variant(
     assert not Checkout.objects.filter(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
-    order_confirmed_mock.assert_called_once_with(order)
+    order_confirmed_mock.assert_called_once_with(order, webhooks=set())
 
 
 def test_order_from_draft_create_click_collect_preorder_fails_for_disabled_warehouse(

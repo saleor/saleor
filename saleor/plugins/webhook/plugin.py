@@ -728,11 +728,11 @@ class WebhookPlugin(BasePlugin):
             export,
         )
 
-    def order_created(self, order: "Order", previous_value: Any) -> Any:
+    def order_created(self, order: "Order", previous_value: Any, webhooks=None) -> Any:
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.ORDER_CREATED
-        if webhooks := get_webhooks_for_event(event_type):
+        if webhooks := self._get_webhooks_for_event(event_type, webhooks):
             order_data_generator = partial(
                 generate_order_payload, order, self.requestor
             )
@@ -819,11 +819,13 @@ class WebhookPlugin(BasePlugin):
             WebhookEventAsyncType.MENU_ITEM_DELETED, menu_item, webhooks=webhooks
         )
 
-    def order_confirmed(self, order: "Order", previous_value: Any) -> Any:
+    def order_confirmed(
+        self, order: "Order", previous_value: Any, webhooks=None
+    ) -> Any:
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.ORDER_CONFIRMED
-        if webhooks := get_webhooks_for_event(event_type):
+        if webhooks := self._get_webhooks_for_event(event_type, webhooks):
             order_data_generator = partial(
                 generate_order_payload, order, self.requestor
             )
@@ -837,11 +839,13 @@ class WebhookPlugin(BasePlugin):
                 queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             )
 
-    def order_fully_paid(self, order: "Order", previous_value: Any) -> Any:
+    def order_fully_paid(
+        self, order: "Order", previous_value: Any, webhooks=None
+    ) -> Any:
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.ORDER_FULLY_PAID
-        if webhooks := get_webhooks_for_event(event_type):
+        if webhooks := self._get_webhooks_for_event(event_type, webhooks):
             order_data_generator = partial(
                 generate_order_payload, order, self.requestor
             )
@@ -855,11 +859,11 @@ class WebhookPlugin(BasePlugin):
                 queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             )
 
-    def order_paid(self, order: "Order", previous_value: Any) -> Any:
+    def order_paid(self, order: "Order", previous_value: Any, webhooks=None) -> Any:
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.ORDER_PAID
-        if webhooks := get_webhooks_for_event(event_type):
+        if webhooks := self._get_webhooks_for_event(event_type, webhooks):
             order_data_generator = partial(
                 generate_order_payload, order, self.requestor
             )
@@ -873,11 +877,11 @@ class WebhookPlugin(BasePlugin):
                 queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             )
 
-    def order_refunded(self, order: "Order", previous_value: Any) -> Any:
+    def order_refunded(self, order: "Order", previous_value: Any, webhooks=None) -> Any:
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.ORDER_REFUNDED
-        if webhooks := get_webhooks_for_event(event_type):
+        if webhooks := self._get_webhooks_for_event(event_type, webhooks):
             order_data_generator = partial(
                 generate_order_payload, order, self.requestor
             )
@@ -891,11 +895,13 @@ class WebhookPlugin(BasePlugin):
                 queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             )
 
-    def order_fully_refunded(self, order: "Order", previous_value: Any) -> Any:
+    def order_fully_refunded(
+        self, order: "Order", previous_value: Any, webhooks=None
+    ) -> Any:
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.ORDER_FULLY_REFUNDED
-        if webhooks := get_webhooks_for_event(event_type):
+        if webhooks := self._get_webhooks_for_event(event_type, webhooks):
             order_data_generator = partial(
                 generate_order_payload, order, self.requestor
             )
@@ -1247,11 +1253,13 @@ class WebhookPlugin(BasePlugin):
                 queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             )
 
-    def order_fulfilled(self, order: "Order", previous_value: Any) -> Any:
+    def order_fulfilled(
+        self, order: "Order", previous_value: Any, webhooks=None
+    ) -> Any:
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.ORDER_FULFILLED
-        if webhooks := get_webhooks_for_event(event_type):
+        if webhooks := self._get_webhooks_for_event(event_type, webhooks):
             order_data_generator = partial(
                 generate_order_payload, order, self.requestor
             )
@@ -1265,12 +1273,15 @@ class WebhookPlugin(BasePlugin):
                 queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             )
 
-    def order_metadata_updated(self, order: "Order", previous_value: Any) -> Any:
+    def order_metadata_updated(
+        self, order: "Order", previous_value: Any, webhooks=None
+    ) -> Any:
         if not self.active:
             return previous_value
         self._trigger_metadata_updated_event(
             WebhookEventAsyncType.ORDER_METADATA_UPDATED,
             order,
+            webhooks=webhooks,
             queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         )
 
@@ -1295,11 +1306,13 @@ class WebhookPlugin(BasePlugin):
                 queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             )
 
-    def draft_order_created(self, order: "Order", previous_value: Any) -> Any:
+    def draft_order_created(
+        self, order: "Order", previous_value: Any, webhooks=None
+    ) -> Any:
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.DRAFT_ORDER_CREATED
-        if webhooks := get_webhooks_for_event(event_type):
+        if webhooks := self._get_webhooks_for_event(event_type, webhooks):
             order_data_generator = partial(
                 generate_order_payload, order, self.requestor
             )
@@ -1313,11 +1326,13 @@ class WebhookPlugin(BasePlugin):
                 queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             )
 
-    def draft_order_updated(self, order: "Order", previous_value: Any) -> Any:
+    def draft_order_updated(
+        self, order: "Order", previous_value: Any, webhooks=None
+    ) -> Any:
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.DRAFT_ORDER_UPDATED
-        if webhooks := get_webhooks_for_event(event_type):
+        if webhooks := self._get_webhooks_for_event(event_type, webhooks):
             order_data_generator = partial(
                 generate_order_payload, order, self.requestor
             )
@@ -1331,11 +1346,13 @@ class WebhookPlugin(BasePlugin):
                 queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             )
 
-    def draft_order_deleted(self, order: "Order", previous_value: Any) -> Any:
+    def draft_order_deleted(
+        self, order: "Order", previous_value: Any, webhooks=None
+    ) -> Any:
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.DRAFT_ORDER_DELETED
-        if webhooks := get_webhooks_for_event(event_type):
+        if webhooks := self._get_webhooks_for_event(event_type, webhooks):
             order_data_generator = partial(
                 generate_order_payload, order, self.requestor
             )
@@ -1815,11 +1832,13 @@ class WebhookPlugin(BasePlugin):
                 legacy_data_generator=product_variant_data_generator,
             )
 
-    def checkout_created(self, checkout: "Checkout", previous_value: Any) -> Any:
+    def checkout_created(
+        self, checkout: "Checkout", previous_value: Any, webhooks=None
+    ) -> Any:
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.CHECKOUT_CREATED
-        if webhooks := get_webhooks_for_event(event_type):
+        if webhooks := self._get_webhooks_for_event(event_type, webhooks):
             checkout_data_generator = partial(
                 generate_checkout_payload, checkout, self.requestor
             )
@@ -1833,11 +1852,13 @@ class WebhookPlugin(BasePlugin):
                 queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             )
 
-    def checkout_updated(self, checkout: "Checkout", previous_value: Any) -> Any:
+    def checkout_updated(
+        self, checkout: "Checkout", previous_value: Any, webhooks=None
+    ) -> Any:
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.CHECKOUT_UPDATED
-        if webhooks := get_webhooks_for_event(event_type):
+        if webhooks := self._get_webhooks_for_event(event_type, webhooks):
             checkout_data_generator = partial(
                 generate_checkout_payload, checkout, self.requestor
             )
@@ -1851,11 +1872,13 @@ class WebhookPlugin(BasePlugin):
                 queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             )
 
-    def checkout_fully_paid(self, checkout: "Checkout", previous_value: Any) -> Any:
+    def checkout_fully_paid(
+        self, checkout: "Checkout", previous_value: Any, webhooks=None
+    ) -> Any:
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.CHECKOUT_FULLY_PAID
-        if webhooks := get_webhooks_for_event(event_type):
+        if webhooks := self._get_webhooks_for_event(event_type, webhooks):
             checkout_data_generator = partial(
                 generate_checkout_payload, checkout, self.requestor
             )
@@ -1870,12 +1893,12 @@ class WebhookPlugin(BasePlugin):
             )
 
     def checkout_metadata_updated(
-        self, checkout: "Checkout", previous_value: Any
+        self, checkout: "Checkout", previous_value: Any, webhooks=None
     ) -> Any:
         if not self.active:
             return previous_value
         self._trigger_metadata_updated_event(
-            WebhookEventAsyncType.CHECKOUT_METADATA_UPDATED, checkout
+            WebhookEventAsyncType.CHECKOUT_METADATA_UPDATED, checkout, webhooks=webhooks
         )
 
     def notify(

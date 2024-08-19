@@ -1295,7 +1295,7 @@ def test_checkout_complete(
     assert not Checkout.objects.filter(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
-    order_confirmed_mock.assert_called_once_with(order)
+    order_confirmed_mock.assert_called_once_with(order, webhooks=set())
     recalculate_with_plugins_mock.assert_not_called()
 
     assert not len(Reservation.objects.all())
@@ -1375,7 +1375,7 @@ def test_checkout_complete_with_metadata(
     assert not Checkout.objects.filter(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
-    order_confirmed_mock.assert_called_once_with(order)
+    order_confirmed_mock.assert_called_once_with(order, webhooks=set())
 
 
 @pytest.mark.integration
@@ -1491,7 +1491,7 @@ def test_checkout_complete_with_metadata_checkout_without_metadata(
     assert not Checkout.objects.filter(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
-    order_confirmed_mock.assert_called_once_with(order)
+    order_confirmed_mock.assert_called_once_with(order, webhooks=set())
 
 
 @pytest.mark.integration
@@ -1671,7 +1671,7 @@ def test_checkout_complete_gift_card_bought(
         checkout.channel.slug,
         resending=False,
     )
-    order_confirmed_mock.assert_called_once_with(order)
+    order_confirmed_mock.assert_called_once_with(order, webhooks=set())
     assert Fulfillment.objects.count() == 1
 
 
@@ -1795,7 +1795,7 @@ def test_checkout_complete_with_shipping_voucher_and_gift_card(
     assert not Checkout.objects.filter(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
-    order_confirmed_mock.assert_called_once_with(order)
+    order_confirmed_mock.assert_called_once_with(order, webhooks=set())
 
     assert not len(Reservation.objects.all())
 
@@ -2438,7 +2438,7 @@ def test_checkout_complete_with_shipping_voucher(
     assert not Checkout.objects.filter(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
-    order_confirmed_mock.assert_called_once_with(order)
+    order_confirmed_mock.assert_called_once_with(order, webhooks=set())
 
     assert not len(Reservation.objects.all())
 
@@ -3815,7 +3815,7 @@ def test_checkout_complete_with_preorder_variant(
     assert not Checkout.objects.filter(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
-    order_confirmed_mock.assert_called_once_with(order)
+    order_confirmed_mock.assert_called_once_with(order, webhooks=set())
 
 
 def test_checkout_complete_with_click_collect_preorder_fails_for_disabled_warehouse(

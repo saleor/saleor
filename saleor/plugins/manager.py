@@ -885,10 +885,14 @@ class PluginsManager(PaymentInterface):
             "product_export_completed", default_value, export, channel_slug=None
         )
 
-    def order_created(self, order: "Order"):
+    def order_created(self, order: "Order", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "order_created", default_value, order, channel_slug=order.channel.slug
+            "order_created",
+            default_value,
+            order,
+            channel_slug=order.channel.slug,
+            webhooks=webhooks,
         )
 
     def event_delivery_retry(self, event_delivery: "EventDelivery"):
@@ -897,28 +901,44 @@ class PluginsManager(PaymentInterface):
             "event_delivery_retry", default_value, event_delivery, channel_slug=None
         )
 
-    def order_confirmed(self, order: "Order"):
+    def order_confirmed(self, order: "Order", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "order_confirmed", default_value, order, channel_slug=order.channel.slug
+            "order_confirmed",
+            default_value,
+            order,
+            channel_slug=order.channel.slug,
+            webhooks=webhooks,
         )
 
-    def draft_order_created(self, order: "Order"):
+    def draft_order_created(self, order: "Order", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "draft_order_created", default_value, order, channel_slug=order.channel.slug
+            "draft_order_created",
+            default_value,
+            order,
+            channel_slug=order.channel.slug,
+            webhooks=webhooks,
         )
 
-    def draft_order_updated(self, order: "Order"):
+    def draft_order_updated(self, order: "Order", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "draft_order_updated", default_value, order, channel_slug=order.channel.slug
+            "draft_order_updated",
+            default_value,
+            order,
+            channel_slug=order.channel.slug,
+            webhooks=webhooks,
         )
 
-    def draft_order_deleted(self, order: "Order"):
+    def draft_order_deleted(self, order: "Order", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "draft_order_deleted", default_value, order, channel_slug=order.channel.slug
+            "draft_order_deleted",
+            default_value,
+            order,
+            channel_slug=order.channel.slug,
+            webhooks=webhooks,
         )
 
     def sale_created(self, sale: "Promotion", current_catalogue):
@@ -1054,31 +1074,44 @@ class PluginsManager(PaymentInterface):
             channel_slug=channel_slug,
         )
 
-    def order_fully_paid(self, order: "Order"):
+    def order_fully_paid(self, order: "Order", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "order_fully_paid", default_value, order, channel_slug=order.channel.slug
+            "order_fully_paid",
+            default_value,
+            order,
+            channel_slug=order.channel.slug,
+            webhooks=webhooks,
         )
 
-    def order_paid(self, order: "Order"):
+    def order_paid(self, order: "Order", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "order_paid", default_value, order, channel_slug=order.channel.slug
+            "order_paid",
+            default_value,
+            order,
+            channel_slug=order.channel.slug,
+            webhooks=webhooks,
         )
 
-    def order_fully_refunded(self, order: "Order"):
+    def order_fully_refunded(self, order: "Order", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
             "order_fully_refunded",
             default_value,
             order,
             channel_slug=order.channel.slug,
+            webhooks=webhooks,
         )
 
-    def order_refunded(self, order: "Order"):
+    def order_refunded(self, order: "Order", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "order_refunded", default_value, order, channel_slug=order.channel.slug
+            "order_refunded",
+            default_value,
+            order,
+            channel_slug=order.channel.slug,
+            webhooks=webhooks,
         )
 
     def order_updated(self, order: "Order", webhooks=None):
@@ -1111,19 +1144,24 @@ class PluginsManager(PaymentInterface):
             webhooks=webhooks,
         )
 
-    def order_fulfilled(self, order: "Order"):
+    def order_fulfilled(self, order: "Order", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "order_fulfilled", default_value, order, channel_slug=order.channel.slug
+            "order_fulfilled",
+            default_value,
+            order,
+            channel_slug=order.channel.slug,
+            webhooks=webhooks,
         )
 
-    def order_metadata_updated(self, order: "Order"):
+    def order_metadata_updated(self, order: "Order", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
             "order_metadata_updated",
             default_value,
             order,
             channel_slug=order.channel.slug,
+            webhooks=webhooks,
         )
 
     def order_bulk_created(self, orders: list["Order"]):
@@ -1183,40 +1221,44 @@ class PluginsManager(PaymentInterface):
             channel_slug=fulfillment.order.channel.slug,
         )
 
-    def checkout_created(self, checkout: "Checkout"):
+    def checkout_created(self, checkout: "Checkout", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
             "checkout_created",
             default_value,
             checkout,
             channel_slug=checkout.channel.slug,
+            webhooks=webhooks,
         )
 
-    def checkout_updated(self, checkout: "Checkout"):
+    def checkout_updated(self, checkout: "Checkout", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
             "checkout_updated",
             default_value,
             checkout,
             channel_slug=checkout.channel.slug,
+            webhooks=webhooks,
         )
 
-    def checkout_fully_paid(self, checkout: "Checkout"):
+    def checkout_fully_paid(self, checkout: "Checkout", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
             "checkout_fully_paid",
             default_value,
             checkout,
             channel_slug=checkout.channel.slug,
+            webhooks=webhooks,
         )
 
-    def checkout_metadata_updated(self, checkout: "Checkout"):
+    def checkout_metadata_updated(self, checkout: "Checkout", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
             "checkout_metadata_updated",
             default_value,
             checkout,
             channel_slug=checkout.channel.slug,
+            webhooks=webhooks,
         )
 
     def page_created(self, page: "Page"):
