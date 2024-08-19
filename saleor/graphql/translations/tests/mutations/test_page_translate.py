@@ -106,10 +106,10 @@ def test_page_translate_without_slug(
 
     assert translation_data["title"] == title
     assert translation_data["language"]["code"] == LanguageCodeEnum.PL.name
-    assert translation_data["slug"] is not None
+    assert translation_data["slug"] is None
     translation = page.translations.first()
     assert translation.title == title
-    assert translation.slug is not None
+    assert translation.slug is None
 
 
 def test_page_translate_update(

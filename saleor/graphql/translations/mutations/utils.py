@@ -166,33 +166,24 @@ class BaseTranslateMutation(ModelMutation):
 
 
 class BaseTranslateMutationWithSlug(BaseTranslateMutation):
-    slugable_field = "name"
-
     class Meta:
         abstract = True
 
     @classmethod
     def pre_update_or_create(cls, instance, input_data, language_code):
-        translation_instance = instance.translations.filter(
-            language_code=language_code
-        ).first()
+        if input_data.get("slug") is not None:
+            translation_instance = instance.translations.filter(
+                language_code=language_code
+            ).first()
 
-        if translation_instance is None:
-            translation_instance = instance.translations.model()
+            if translation_instance is None:
+                translation_instance = instance.translations.model()
 
-        validate_slug_already_exists(
-            instance, translation_instance, input_data, language_code
-        )
+            validate_slug_already_exists(
+                instance, translation_instance, input_data, language_code
+            )
 
-        language_code_lookup = {"language_code": language_code}
-        input = validate_slug_and_generate_if_needed(
-            translation_instance,
-            cls.slugable_field,
-            input_data,
-            additional_search_lookup=language_code_lookup,
-        )
-
-        return input
+        return input_data
 
 
 class NameTranslationInput(graphene.InputObjectType):

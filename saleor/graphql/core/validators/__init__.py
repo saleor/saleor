@@ -158,7 +158,6 @@ def validate_slug_and_generate_if_needed(
     slugable_field: str,
     cleaned_input: dict,
     slug_field_name: str = "slug",
-    additional_search_lookup=None,
 ) -> dict:
     """Validate slug from input and generate in create mutation if is not given."""
 
@@ -170,14 +169,8 @@ def validate_slug_and_generate_if_needed(
 
     # create mutation - generate slug if slug value is empty
     slug = cleaned_input.get(slug_field_name)
-    slugable_value = cleaned_input.get(slugable_field)
-
-    if not slug and slugable_value:
-        slug = generate_unique_slug(
-            instance,
-            slugable_value,
-            additional_search_lookup=additional_search_lookup,
-        )
+    if not slug and slugable_field in cleaned_input:
+        slug = generate_unique_slug(instance, cleaned_input[slugable_field])
         cleaned_input[slug_field_name] = slug
     return cleaned_input
 

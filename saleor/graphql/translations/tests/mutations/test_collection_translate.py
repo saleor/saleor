@@ -106,10 +106,10 @@ def test_collection_translate_without_slug(
 
     assert translation_data["name"] == name
     assert translation_data["language"]["code"] == LanguageCodeEnum.PL.name
-    assert translation_data["slug"] is not None
+    assert translation_data["slug"] is None
     translation = published_collection.translations.first()
     assert translation.name == name
-    assert translation.slug is not None
+    assert translation.slug is None
 
 
 def test_collection_translate_slug_conflict(

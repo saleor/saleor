@@ -106,7 +106,7 @@ def test_category_translate_without_slug(
 
     assert translation_data["name"] == name
     assert translation_data["language"]["code"] == LanguageCodeEnum.PL.name
-    assert translation_data["slug"] is not None
+    assert translation_data["slug"] is None
     translation = category.translations.first()
     assert translation.name == name
-    assert translation.slug is not None
+    assert translation.slug is None

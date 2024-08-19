@@ -106,10 +106,10 @@ def test_product_translate_without_slug(
 
     assert translation_data["name"] == name
     assert translation_data["language"]["code"] == LanguageCodeEnum.PL.name
-    assert translation_data["slug"] is not None
+    assert translation_data["slug"] is None
     translation = product.translations.first()
     assert translation.name == name
-    assert translation.slug is not None
+    assert translation.slug is None
 
 
 def test_product_translate_update(
