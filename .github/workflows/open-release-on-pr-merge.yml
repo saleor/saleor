@@ -1,0 +1,16 @@
+name: Open release on PR merged if it was labeled release.
+on:
+  pull_request:
+    types:
+     - closed
+
+jobs:
+  run-release-trigger:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'release')
+    env:
+      GH_REF: ${{ github.event.pull_request.head.ref }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - run: echo "PR_TAG_REF=$GH_REF" | sed "s/release-//" >> $GITHUB_ENV
+      - run: "gh release create $PR_TAG_REF --repo=$GITHUB_REPOSITORY --generate-notes --draft --verify-tag"
