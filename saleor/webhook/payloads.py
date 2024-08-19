@@ -32,7 +32,7 @@ from ..core.utils.anonymization import (
 )
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..discount import VoucherType
-from ..discount.utils import is_order_level_voucher
+from ..discount.utils import is_order_level_discount, is_order_level_voucher
 from ..order import FulfillmentStatus, OrderStatus
 from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..order.utils import get_order_country
@@ -1406,7 +1406,9 @@ def generate_order_payload_for_tax_calculation(order: "Order"):
     discounts = order.discounts.all()
     discounts_dict = []
     for discount in discounts:
-        if is_order_level_voucher(discount.voucher):
+        # Only order level discounts, like entire order vouchers,
+        # order promotions and manual discounts should be taken into account
+        if not is_order_level_discount(discount):
             continue
         quantize_price_fields(discount, ("amount_value",), order.currency)
         discount_amount = quantize_price(discount.amount_value, order.currency)
