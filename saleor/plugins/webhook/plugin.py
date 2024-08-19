@@ -1309,13 +1309,12 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.ORDER_METADATA_UPDATED
-        webhooks = self._get_webhooks_for_order_events(event_type, order)
+        webhooks = self._get_webhooks_for_order_events(event_type, order, webhooks)
         self._trigger_metadata_updated_event(
             event_type,
             order,
             webhooks=webhooks,
             queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-            webhooks=webhooks,
         )
 
     def _get_webhooks_for_order_bulk_created_event(

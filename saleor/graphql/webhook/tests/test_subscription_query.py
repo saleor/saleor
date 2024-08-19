@@ -623,3 +623,94 @@ def test_get_events_from_field():
         "OrderFullyPaid": IsFragment.FALSE,
         "EventFragment": IsFragment.TRUE,
     }
+
+
+def test_get_filterable_arguments_for_query_with_filters():
+    # given
+    query = """
+    subscription {
+      orderConfirmed(channels: ["default-channel"]) {
+        order {
+          id
+          number
+          lines {
+            id
+            variant {
+              id
+            }
+          }
+        }
+      }
+    }
+    """
+    subscription_query = SubscriptionQuery(query)
+
+    # when
+    result = subscription_query.get_filterable_arguments()
+
+    # then
+    assert result == {"channels": ["default-channel"]}
+
+
+def test_get_filterable_arguments_with_empty_filters():
+    # given
+    query = """
+    subscription {
+      orderConfirmed {
+        order {
+          id
+          number
+          lines {
+            id
+            variant {
+              id
+            }
+          }
+        }
+      }
+    }
+    """
+    subscription_query = SubscriptionQuery(query)
+
+    # when
+    result = subscription_query.get_filterable_arguments()
+
+    # then
+    assert result == {}
+
+
+def test_get_filterable_arguments_for_non_filterable_query():
+    # given
+    query = """
+      fragment EventFragment on Event {
+        ... on OrderUpdated {
+          order {
+              id
+          }
+        }
+      }
+      subscription {
+        event {
+          ... on OrderCreated {
+            order {
+              id
+            }
+          }
+          something
+          somethingElse
+          ... on OrderFullyPaid {
+            order {
+              id
+            }
+          }
+          ... EventFragment
+        }
+      }
+    """
+    subscription_query = SubscriptionQuery(query)
+
+    # when
+    result = subscription_query.get_filterable_arguments()
+
+    # then
+    assert result == {}
