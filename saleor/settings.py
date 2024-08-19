@@ -17,6 +17,7 @@ import sentry_sdk
 import sentry_sdk.utils
 from celery.schedules import crontab
 from django.conf import global_settings
+from django.core.cache import CacheKeyWarning
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.utils import get_random_secret_key
 from django.core.validators import URLValidator
@@ -993,3 +994,8 @@ TRANSACTION_ITEMS_LIMIT = 100
 ENABLE_DEPRECATED_MANAGER_PERFORM_MUTATION = get_bool_from_env(
     "ENABLE_DEPRECATED_MANAGER_PERFORM_MUTATION", True
 )
+
+
+# Disable Django warnings regarding too long cache keys being incompatible with
+# memcached to avoid leaking key values.
+warnings.filterwarnings("ignore", category=CacheKeyWarning)
