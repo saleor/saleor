@@ -8,14 +8,10 @@ from typing import TYPE_CHECKING, Any, Callable, Optional, Union
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
 from django.utils.functional import SimpleLazyObject
-from graphene import Mutation
-from graphql import GraphQLError
-from graphql.execution import ExecutionResult
 from prices import TaxedMoney
 from promise.promise import Promise
 
 from ..core.models import EventDelivery
-from ..graphql.core import ResolveInfo
 from ..payment.interface import (
     CustomerSource,
     GatewayResponse,
@@ -1270,26 +1266,6 @@ class BasePlugin:
 
     # Triggers retry mechanism for event delivery
     event_delivery_retry: Callable[["EventDelivery", Any], EventDelivery]
-
-    # Invoked before each mutation is executed
-    #
-    # This allows to trigger specific logic before the mutation is executed
-    # but only once the permissions are checked.
-    #
-    # Returns one of:
-    #    - null if the execution shall continue
-    #    - an execution result
-    #    - graphql.GraphQLError
-    perform_mutation: Callable[
-        [
-            Optional[Union[ExecutionResult, GraphQLError]],  # previous value
-            Mutation,  # mutation class
-            Any,  # mutation root
-            ResolveInfo,  # resolve info
-            dict,  # mutation data
-        ],
-        Optional[Union[ExecutionResult, GraphQLError]],
-    ]
 
     def token_is_required_as_payment_input(self, previous_value):
         return previous_value

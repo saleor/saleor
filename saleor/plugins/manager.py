@@ -7,9 +7,6 @@ import opentracing
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseNotFound
 from django.utils.module_loading import import_string
-from graphene import Mutation
-from graphql import GraphQLError
-from graphql.execution import ExecutionResult
 from prices import TaxedMoney
 
 from ..channel.models import Channel
@@ -19,7 +16,7 @@ from ..core.models import EventDelivery
 from ..core.payments import PaymentInterface
 from ..core.prices import quantize_price
 from ..core.taxes import TaxData, TaxType, zero_money, zero_taxed_money
-from ..graphql.core import ResolveInfo, SaleorContext
+from ..graphql.core import SaleorContext
 from ..order import base_calculations as base_order_calculations
 from ..order.base_calculations import (
     base_order_line_total,
@@ -656,8 +653,10 @@ class PluginsManager(PaymentInterface):
         checkout_info,
         lines,
         app_identifier,
-        pregenerated_subscription_payloads: Optional[dict] = {},
+        pregenerated_subscription_payloads: Optional[dict] = None,
     ) -> Optional[TaxData]:
+        if pregenerated_subscription_payloads is None:
+            pregenerated_subscription_payloads = {}
         return self.__run_plugin_method_until_first_success(
             "get_taxes_for_checkout",
             checkout_info,
@@ -2580,29 +2579,6 @@ class PluginsManager(PaymentInterface):
             checkout,
             available_shipping_methods,
             channel_slug=channel.slug,
-        )
-
-    def perform_mutation(
-        self, mutation_cls: Mutation, root, info: ResolveInfo, data: dict
-    ) -> Optional[Union[ExecutionResult, GraphQLError]]:
-        """Invoke before each mutation is executed.
-
-        This allows to trigger specific logic before the mutation is executed
-        but only once the permissions are checked.
-
-        Returns one of:
-            - null if the execution shall continue
-            - graphql.GraphQLError
-            - graphql.execution.ExecutionResult
-        """
-        return self.__run_method_on_plugins(
-            "perform_mutation",
-            default_value=None,
-            mutation_cls=mutation_cls,
-            root=root,
-            info=info,
-            data=data,
-            channel_slug=None,
         )
 
     def is_event_active_for_any_plugin(
