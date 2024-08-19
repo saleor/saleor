@@ -86,8 +86,8 @@ def _trigger_checkout_sync_webhooks(
 ):
     _ = checkout_info.all_shipping_methods
 
-    # + timedelta(seconds=10) to confirm that triggered webhooks will still have a
-    # valid prices. Triggered only when we have active sync tax webhook
+    # + timedelta(seconds=10) to confirm that triggered webhooks will still have
+    # valid prices. Triggered only when we have active sync tax webhook.
     if webhook_event_map.get(
         WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
     ) and checkout_info.checkout.price_expiration < timezone.now() + timedelta(
