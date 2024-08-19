@@ -41,7 +41,7 @@ from ..permission.enums import (
     ProductPermissions,
     ProductTypePermissions,
 )
-from ..seo.models import SeoModel, SeoModelTranslation
+from ..seo.models import SeoModel, SeoModelTranslationWithSlug
 from ..tax.models import TaxClass
 from . import ProductMediaTypes, ProductTypeKind, managers
 
@@ -87,7 +87,7 @@ class Category(ModelWithMetadata, MPTTModel, SeoModel):
         return self.name
 
 
-class CategoryTranslation(SeoModelTranslation):
+class CategoryTranslation(SeoModelTranslationWithSlug):
     category = models.ForeignKey(
         Category, related_name="translations", on_delete=models.CASCADE
     )
@@ -271,7 +271,7 @@ class Product(SeoModel, ModelWithMetadata, ModelWithExternalReference):
         return ["concatenated_values_order", "concatenated_values", "name"]
 
 
-class ProductTranslation(SeoModelTranslation):
+class ProductTranslation(SeoModelTranslationWithSlug):
     product = models.ForeignKey(
         Product, related_name="translations", on_delete=models.CASCADE
     )
@@ -733,7 +733,7 @@ class CollectionChannelListing(PublishableModel):
         ordering = ("pk",)
 
 
-class CollectionTranslation(SeoModelTranslation):
+class CollectionTranslation(SeoModelTranslationWithSlug):
     collection = models.ForeignKey(
         Collection, related_name="translations", on_delete=models.CASCADE
     )
