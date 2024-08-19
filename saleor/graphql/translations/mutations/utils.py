@@ -21,7 +21,6 @@ from ...core.enums import ErrorPolicyEnum, TranslationErrorCode
 from ...core.fields import JSONString
 from ...core.mutations import BaseMutation, ModelMutation
 from ...core.utils import from_global_id_or_error
-from ...core.validators import validate_slug_and_generate_if_needed
 from ...plugins.dataloaders import get_plugin_manager_promise
 from .. import types as translation_types
 
@@ -99,10 +98,6 @@ def validate_slug_already_exists(
 class BaseTranslateMutation(ModelMutation):
     class Meta:
         abstract = True
-
-    @classmethod
-    def clean_input(cls, info: ResolveInfo, instance, data, *, input_cls=None):
-        return
 
     @classmethod
     def clean_node_id(cls, id: str) -> tuple[str, type[graphene.ObjectType]]:
