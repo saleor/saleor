@@ -7,9 +7,6 @@ import opentracing
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseNotFound
 from django.utils.module_loading import import_string
-from graphene import Mutation
-from graphql import GraphQLError
-from graphql.execution import ExecutionResult
 from prices import TaxedMoney
 
 from ..channel.models import Channel
@@ -19,7 +16,7 @@ from ..core.models import EventDelivery
 from ..core.payments import PaymentInterface
 from ..core.prices import quantize_price
 from ..core.taxes import TaxData, TaxType, zero_money, zero_taxed_money
-from ..graphql.core import ResolveInfo, SaleorContext
+from ..graphql.core import SaleorContext
 from ..order import base_calculations as base_order_calculations
 from ..order.base_calculations import (
     base_order_line_total,
@@ -656,8 +653,10 @@ class PluginsManager(PaymentInterface):
         checkout_info,
         lines,
         app_identifier,
-        pregenerated_subscription_payloads: Optional[dict] = {},
+        pregenerated_subscription_payloads: Optional[dict] = None,
     ) -> Optional[TaxData]:
+        if pregenerated_subscription_payloads is None:
+            pregenerated_subscription_payloads = {}
         return self.__run_plugin_method_until_first_success(
             "get_taxes_for_checkout",
             checkout_info,
@@ -886,10 +885,14 @@ class PluginsManager(PaymentInterface):
             "product_export_completed", default_value, export, channel_slug=None
         )
 
-    def order_created(self, order: "Order"):
+    def order_created(self, order: "Order", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "order_created", default_value, order, channel_slug=order.channel.slug
+            "order_created",
+            default_value,
+            order,
+            channel_slug=order.channel.slug,
+            webhooks=webhooks,
         )
 
     def event_delivery_retry(self, event_delivery: "EventDelivery"):
@@ -898,28 +901,44 @@ class PluginsManager(PaymentInterface):
             "event_delivery_retry", default_value, event_delivery, channel_slug=None
         )
 
-    def order_confirmed(self, order: "Order"):
+    def order_confirmed(self, order: "Order", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "order_confirmed", default_value, order, channel_slug=order.channel.slug
+            "order_confirmed",
+            default_value,
+            order,
+            channel_slug=order.channel.slug,
+            webhooks=webhooks,
         )
 
-    def draft_order_created(self, order: "Order"):
+    def draft_order_created(self, order: "Order", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "draft_order_created", default_value, order, channel_slug=order.channel.slug
+            "draft_order_created",
+            default_value,
+            order,
+            channel_slug=order.channel.slug,
+            webhooks=webhooks,
         )
 
-    def draft_order_updated(self, order: "Order"):
+    def draft_order_updated(self, order: "Order", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "draft_order_updated", default_value, order, channel_slug=order.channel.slug
+            "draft_order_updated",
+            default_value,
+            order,
+            channel_slug=order.channel.slug,
+            webhooks=webhooks,
         )
 
-    def draft_order_deleted(self, order: "Order"):
+    def draft_order_deleted(self, order: "Order", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "draft_order_deleted", default_value, order, channel_slug=order.channel.slug
+            "draft_order_deleted",
+            default_value,
+            order,
+            channel_slug=order.channel.slug,
+            webhooks=webhooks,
         )
 
     def sale_created(self, sale: "Promotion", current_catalogue):
@@ -1055,31 +1074,44 @@ class PluginsManager(PaymentInterface):
             channel_slug=channel_slug,
         )
 
-    def order_fully_paid(self, order: "Order"):
+    def order_fully_paid(self, order: "Order", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "order_fully_paid", default_value, order, channel_slug=order.channel.slug
+            "order_fully_paid",
+            default_value,
+            order,
+            channel_slug=order.channel.slug,
+            webhooks=webhooks,
         )
 
-    def order_paid(self, order: "Order"):
+    def order_paid(self, order: "Order", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "order_paid", default_value, order, channel_slug=order.channel.slug
+            "order_paid",
+            default_value,
+            order,
+            channel_slug=order.channel.slug,
+            webhooks=webhooks,
         )
 
-    def order_fully_refunded(self, order: "Order"):
+    def order_fully_refunded(self, order: "Order", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
             "order_fully_refunded",
             default_value,
             order,
             channel_slug=order.channel.slug,
+            webhooks=webhooks,
         )
 
-    def order_refunded(self, order: "Order"):
+    def order_refunded(self, order: "Order", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "order_refunded", default_value, order, channel_slug=order.channel.slug
+            "order_refunded",
+            default_value,
+            order,
+            channel_slug=order.channel.slug,
+            webhooks=webhooks,
         )
 
     def order_updated(self, order: "Order", webhooks=None):
@@ -1112,19 +1144,24 @@ class PluginsManager(PaymentInterface):
             webhooks=webhooks,
         )
 
-    def order_fulfilled(self, order: "Order"):
+    def order_fulfilled(self, order: "Order", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "order_fulfilled", default_value, order, channel_slug=order.channel.slug
+            "order_fulfilled",
+            default_value,
+            order,
+            channel_slug=order.channel.slug,
+            webhooks=webhooks,
         )
 
-    def order_metadata_updated(self, order: "Order"):
+    def order_metadata_updated(self, order: "Order", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
             "order_metadata_updated",
             default_value,
             order,
             channel_slug=order.channel.slug,
+            webhooks=webhooks,
         )
 
     def order_bulk_created(self, orders: list["Order"]):
@@ -1184,40 +1221,44 @@ class PluginsManager(PaymentInterface):
             channel_slug=fulfillment.order.channel.slug,
         )
 
-    def checkout_created(self, checkout: "Checkout"):
+    def checkout_created(self, checkout: "Checkout", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
             "checkout_created",
             default_value,
             checkout,
             channel_slug=checkout.channel.slug,
+            webhooks=webhooks,
         )
 
-    def checkout_updated(self, checkout: "Checkout"):
+    def checkout_updated(self, checkout: "Checkout", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
             "checkout_updated",
             default_value,
             checkout,
             channel_slug=checkout.channel.slug,
+            webhooks=webhooks,
         )
 
-    def checkout_fully_paid(self, checkout: "Checkout"):
+    def checkout_fully_paid(self, checkout: "Checkout", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
             "checkout_fully_paid",
             default_value,
             checkout,
             channel_slug=checkout.channel.slug,
+            webhooks=webhooks,
         )
 
-    def checkout_metadata_updated(self, checkout: "Checkout"):
+    def checkout_metadata_updated(self, checkout: "Checkout", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
             "checkout_metadata_updated",
             default_value,
             checkout,
             channel_slug=checkout.channel.slug,
+            webhooks=webhooks,
         )
 
     def page_created(self, page: "Page"):
@@ -2538,29 +2579,6 @@ class PluginsManager(PaymentInterface):
             checkout,
             available_shipping_methods,
             channel_slug=channel.slug,
-        )
-
-    def perform_mutation(
-        self, mutation_cls: Mutation, root, info: ResolveInfo, data: dict
-    ) -> Optional[Union[ExecutionResult, GraphQLError]]:
-        """Invoke before each mutation is executed.
-
-        This allows to trigger specific logic before the mutation is executed
-        but only once the permissions are checked.
-
-        Returns one of:
-            - null if the execution shall continue
-            - graphql.GraphQLError
-            - graphql.execution.ExecutionResult
-        """
-        return self.__run_method_on_plugins(
-            "perform_mutation",
-            default_value=None,
-            mutation_cls=mutation_cls,
-            root=root,
-            info=info,
-            data=data,
-            channel_slug=None,
         )
 
     def is_event_active_for_any_plugin(

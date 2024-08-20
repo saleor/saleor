@@ -11,7 +11,7 @@ from django.utils import timezone
 
 from .....channel.utils import DEPRECATION_WARNING_MESSAGE
 from .....checkout import AddressType
-from .....checkout.actions import call_checkout_event_for_checkout
+from .....checkout.actions import call_checkout_event
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_lines
 from .....checkout.models import Checkout
@@ -66,12 +66,11 @@ MUTATION_CHECKOUT_CREATE = """
 """
 
 
-@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_checkout_create_triggers_async_webhooks(
     mocked_webhook_trigger,
-    mocked_get_webhooks_for_event,
-    any_webhook,
+    webhook,
+    permission_manage_checkouts,
     user_api_client,
     stock,
     graphql_address_data,
@@ -79,7 +78,9 @@ def test_checkout_create_triggers_async_webhooks(
     channel_USD,
 ):
     """Create checkout object using GraphQL API."""
-    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    webhook.app.permissions.set([permission_manage_checkouts])
+    webhook.events.create(event_type=WebhookEventAsyncType.CHECKOUT_CREATED)
+
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     variant = stock.product_variant
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
@@ -2648,8 +2649,8 @@ def test_checkout_create_skip_validation_billing_address_by_app(
 
 
 @patch(
-    "saleor.graphql.checkout.mutations.checkout_create.call_checkout_event_for_checkout",
-    wraps=call_checkout_event_for_checkout,
+    "saleor.graphql.checkout.mutations.checkout_create.call_checkout_event",
+    wraps=call_checkout_event,
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
@@ -2659,7 +2660,7 @@ def test_checkout_create_skip_validation_billing_address_by_app(
 def test_checkout_create_triggers_webhooks(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
-    wrapped_call_checkout_event_for_checkout,
+    wrapped_call_checkout_event,
     api_client,
     stock,
     graphql_address_data,
@@ -2731,4 +2732,4 @@ def test_checkout_create_triggers_webhooks(
             call(tax_delivery),
         ]
     )
-    assert wrapped_call_checkout_event_for_checkout.called
+    assert wrapped_call_checkout_event.called

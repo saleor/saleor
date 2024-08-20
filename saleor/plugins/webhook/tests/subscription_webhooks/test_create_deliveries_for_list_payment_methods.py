@@ -47,8 +47,8 @@ def test_list_stored_payment_methods(
 
     # then
     assert delivery.payload
-    assert delivery.payload.payload
-    assert json.loads(delivery.payload.payload) == {
+    assert delivery.payload.get_payload()
+    assert json.loads(delivery.payload.get_payload()) == {
         "channel": {"id": graphene.Node.to_global_id("Channel", channel_USD.pk)},
         "user": {"id": graphene.Node.to_global_id("User", customer_user.pk)},
     }

@@ -27,6 +27,7 @@ SHIPPING_METHOD_UPDATE_FIELDS = [
     "shipping_price_net_amount",
     "shipping_price_gross_amount",
     "base_shipping_price_amount",
+    "undiscounted_base_shipping_price_amount",
     "shipping_method_name",
     "shipping_tax_class",
     "shipping_tax_class_name",
@@ -149,14 +150,11 @@ def call_event_by_order_status(order, manager):
     if order.status == OrderStatus.DRAFT:
         call_order_event(
             manager,
-            manager.draft_order_updated,
             WebhookEventAsyncType.DRAFT_ORDER_UPDATED,
             order,
         )
     else:
-        call_order_event(
-            manager, manager.order_updated, WebhookEventAsyncType.ORDER_UPDATED, order
-        )
+        call_order_event(manager, WebhookEventAsyncType.ORDER_UPDATED, order)
 
 
 def try_payment_action(order, user, app, payment, func, *args, **kwargs):

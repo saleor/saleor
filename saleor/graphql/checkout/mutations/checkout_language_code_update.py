@@ -1,6 +1,6 @@
 import graphene
 
-from saleor.checkout.actions import call_checkout_event_for_checkout
+from saleor.checkout.actions import call_checkout_event
 from saleor.webhook.event_types import WebhookEventAsyncType
 
 from ...core import ResolveInfo
@@ -67,9 +67,8 @@ class CheckoutLanguageCodeUpdate(BaseMutation):
         checkout.language_code = language_code
         checkout.save(update_fields=["language_code", "last_change"])
         manager = get_plugin_manager_promise(info.context).get()
-        call_checkout_event_for_checkout(
+        call_checkout_event(
             manager,
-            event_func=manager.checkout_updated,
             event_name=WebhookEventAsyncType.CHECKOUT_UPDATED,
             checkout=checkout,
         )

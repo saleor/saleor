@@ -3,10 +3,12 @@ from uuid import UUID
 import django_filters
 import graphene
 from django.core.exceptions import ValidationError
-from django.db.models import Exists, OuterRef, Q
+from django.core.validators import validate_email
+from django.db.models import Exists, OuterRef, Q, Value
 from django.utils import timezone
 from graphql.error import GraphQLError
 
+from ...core.postgres import FlatConcat
 from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCardEvent
 from ...order.models import Order, OrderLine
@@ -79,13 +81,43 @@ def filter_status(qs, _, value):
     return qs & query_objects
 
 
-def filter_customer(qs, _, value):
-    qs = qs.filter(
+def _filter_customer_by_email_first_or_last_name(qs, value):
+    return qs.filter(
         Q(user_email__ilike=value)
-        | Q(user__email__trigram_similar=value)
-        | Q(user__first_name__trigram_similar=value)
-        | Q(user__last_name__trigram_similar=value)
+        | Q(user__email__ilike=value)
+        | Q(user__first_name__ilike=value)
+        | Q(user__last_name__ilike=value)
     )
+
+
+def _filter_by_customer_full_name(qs, value):
+    try:
+        first, last = value.split(" ", 1)
+    except ValueError:
+        qs = _filter_customer_by_email_first_or_last_name(qs, value)
+    else:
+        qs = qs.alias(
+            user_full_name=FlatConcat(
+                "user__first_name",
+                Value(" "),
+                "user__last_name",
+            )
+        ).filter(
+            Q(user_full_name__iexact=value)
+            | Q(user_full_name__iexact=f"{last} {first}")
+        )
+
+    return qs
+
+
+def filter_customer(qs, _, value):
+    try:
+        validate_email(value)
+    except ValidationError:
+        qs = _filter_by_customer_full_name(qs, value)
+    else:
+        qs = qs.filter(Q(user_email__iexact=value) | Q(user__email__iexact=value))
+
     return qs
 
 

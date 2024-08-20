@@ -55,7 +55,6 @@ def send_order_updated(order_ids):
     for order in Order.objects.filter(id__in=order_ids):
         call_order_event(
             manager,
-            manager.order_updated,
             WebhookEventAsyncType.ORDER_UPDATED,
             order,
             webhook_event_map=webhook_event_map,
@@ -67,9 +66,11 @@ def _bulk_release_voucher_usage(order_ids):
         voucher_code=OuterRef("code"),
         id__in=order_ids,
     )
-    count_orders = voucher_orders.annotate(
-        count=Func(F("pk"), function="Count")
-    ).values("count")
+    count_orders = (
+        voucher_orders.annotate(count=Func(F("pk"), function="Count"))
+        .values("count")
+        .order_by()
+    )
 
     vouchers = Voucher.objects.filter(usage_limit__isnull=False)
     codes = VoucherCode.objects.filter(
@@ -108,20 +109,17 @@ def _call_expired_order_events(order_ids, manager):
         [
             WebhookEventAsyncType.ORDER_EXPIRED,
             WebhookEventAsyncType.ORDER_UPDATED,
-            # *WebhookEventSyncType.ORDER_EVENTS,
         ]
     )
     for order in orders:
         call_order_event(
             manager,
-            manager.order_expired,
             WebhookEventAsyncType.ORDER_EXPIRED,
             order,
             webhook_event_map=webhook_event_map,
         )
         call_order_event(
             manager,
-            manager.order_updated,
             WebhookEventAsyncType.ORDER_UPDATED,
             order,
             webhook_event_map=webhook_event_map,

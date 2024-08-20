@@ -3,7 +3,7 @@ from typing import Optional
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....checkout.actions import call_checkout_event_for_checkout_info
+from ....checkout.actions import call_checkout_info_event
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import (
@@ -224,9 +224,8 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         )
         get_checkout_metadata(checkout).save()
 
-        call_checkout_event_for_checkout_info(
+        call_checkout_info_event(
             manager,
-            event_func=manager.checkout_updated,
             event_name=WebhookEventAsyncType.CHECKOUT_UPDATED,
             checkout_info=checkout_info,
             lines=lines,
@@ -265,9 +264,8 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             + invalidate_prices_updated_fields
         )
         get_checkout_metadata(checkout).save()
-        call_checkout_event_for_checkout_info(
+        call_checkout_info_event(
             manager,
-            event_func=manager.checkout_updated,
             event_name=WebhookEventAsyncType.CHECKOUT_UPDATED,
             checkout_info=checkout_info,
             lines=lines,
@@ -290,9 +288,8 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         )
         get_checkout_metadata(checkout).save()
 
-        call_checkout_event_for_checkout_info(
+        call_checkout_info_event(
             manager,
-            event_func=manager.checkout_updated,
             event_name=WebhookEventAsyncType.CHECKOUT_UPDATED,
             checkout_info=checkout_info,
             lines=lines,
