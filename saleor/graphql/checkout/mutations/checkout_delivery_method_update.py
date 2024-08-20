@@ -3,6 +3,7 @@ from typing import Optional
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import DatabaseError
 
 from ....checkout.actions import call_checkout_info_event
 from ....checkout.error_codes import CheckoutErrorCode
@@ -266,9 +267,24 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         invalidate_prices_updated_fields = invalidate_checkout(
             checkout_info, lines, manager, save=False
         )
-        checkout.save(
-            update_fields=checkout_fields_to_update + invalidate_prices_updated_fields
-        )
+        try:
+            checkout.save(
+                update_fields=(
+                    checkout_fields_to_update + invalidate_prices_updated_fields
+                )
+            )
+        except DatabaseError as error:
+            if type(error) is DatabaseError:
+                raise ValidationError(
+                    {
+                        "checkout": ValidationError(
+                            "Checkout does no longer exists.",
+                            code=CheckoutErrorCode.DELETED.value,
+                        )
+                    }
+                )
+            raise
+
         get_or_create_checkout_metadata(checkout).save()
         call_checkout_info_event(
             manager,
@@ -321,7 +337,6 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         delivery_method_id=None,
     ):
         checkout = get_checkout(cls, info, checkout_id=None, token=token, id=id)
-
         use_legacy_error_flow_for_checkout = (
             checkout.channel.use_legacy_error_flow_for_checkout
         )

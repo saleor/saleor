@@ -1617,7 +1617,7 @@ def complete_checkout_with_payment(
         checkout.save(update_fields=["completing_started_at"])
 
         # Fetching checkout info inside the transaction block with select_for_update
-        # enure that we are processing checkout on the current data.
+        # ensure that we are processing checkout on the current data.
         lines, _ = fetch_checkout_lines(checkout)
         checkout_info = fetch_checkout_info(checkout, lines, manager)
         assign_checkout_user(user, checkout_info)
