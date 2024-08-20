@@ -1,12 +1,16 @@
 import datetime
+from collections.abc import Iterable
 from typing import Any, TypeVar
 
 import pytz
 from django.contrib.postgres.indexes import GinIndex
+from django.core.files.base import ContentFile
 from django.db import models, transaction
 from django.db.models import F, JSONField, Max, Q
+from django.utils.crypto import get_random_string
+from storages.utils import safe_join
 
-from . import EventDeliveryStatus, JobStatus
+from . import EventDeliveryStatus, JobStatus, private_storage
 from .utils.json_serializer import CustomJsonEncoder
 
 
@@ -143,9 +147,46 @@ class Job(models.Model):
         abstract = True
 
 
+class EventPayloadManager(models.Manager["EventPayload"]):
+    @transaction.atomic
+    def create_with_payload_file(self, payload: str) -> "EventPayload":
+        obj = super().create()
+        obj.save_payload_file(payload)
+        return obj
+
+    @transaction.atomic
+    def bulk_create_with_payload_files(
+        self, objs: Iterable["EventPayload"], payloads=Iterable[str]
+    ) -> list["EventPayload"]:
+        created_objs = self.bulk_create(objs)
+        for obj, payload_data in zip(created_objs, payloads):
+            obj.save_payload_file(payload_data)
+        return created_objs
+
+
 class EventPayload(models.Model):
-    payload = models.TextField()
+    PAYLOADS_DIR = "payloads"
+
+    payload = models.TextField(default="")
+    payload_file = models.FileField(
+        storage=private_storage, upload_to=PAYLOADS_DIR, null=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
+
+    objects = EventPayloadManager()
+
+    def get_payload(self):
+        if self.payload_file:
+            with self.payload_file.open("rt") as f:
+                payload = f.read()
+                return payload
+        return self.payload
+
+    def save_payload_file(self, payload_data: str):
+        prefix = get_random_string(length=12)
+        file_name = f"{self.pk}.json"
+        file_path = safe_join(prefix, file_name)
+        self.payload_file.save(file_path, ContentFile(payload_data))
 
 
 class EventDelivery(models.Model):
