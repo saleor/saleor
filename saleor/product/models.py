@@ -95,12 +95,6 @@ class CategoryTranslation(SeoModelTranslationWithSlug):
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 
     class Meta:
-        indexes = [
-            BTreeIndex(
-                fields=["language_code", "slug"],
-                name="uniq_lang_slug_categorytransl",
-            ),
-        ]
         constraints = [
             models.UniqueConstraint(
                 fields=["language_code", "slug"],
@@ -279,12 +273,6 @@ class ProductTranslation(SeoModelTranslationWithSlug):
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 
     class Meta:
-        indexes = [
-            BTreeIndex(
-                fields=["language_code", "slug"],
-                name="uniq_lang_slug_producttransl",
-            ),
-        ]
         constraints = [
             models.UniqueConstraint(
                 fields=["language_code", "slug"],
@@ -741,12 +729,6 @@ class CollectionTranslation(SeoModelTranslationWithSlug):
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 
     class Meta:
-        indexes = [
-            BTreeIndex(
-                fields=["language_code", "slug"],
-                name="uniq_lang_slug_collectiontransl",
-            ),
-        ]
         constraints = [
             models.UniqueConstraint(
                 fields=["language_code", "slug"],

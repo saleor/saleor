@@ -52,12 +52,6 @@ class PageTranslation(SeoModelTranslationWithSlug):
     content = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 
     class Meta:
-        indexes = [
-            BTreeIndex(
-                fields=["language_code", "slug"],
-                name="uniq_lang_slug_pagetransl",
-            ),
-        ]
         constraints = [
             models.UniqueConstraint(
                 fields=["language_code", "slug"],

@@ -36,13 +36,6 @@ class Migration(migrations.Migration):
                 ),
             ],
             state_operations=[
-                AddIndexConcurrently(
-                    model_name="categorytranslation",
-                    index=BTreeIndex(
-                        fields=["language_code", "slug"],
-                        name="uniq_lang_slug_categorytransl",
-                    ),
-                ),
                 migrations.AddConstraint(
                     model_name="categorytranslation",
                     constraint=models.UniqueConstraint(
@@ -77,13 +70,6 @@ class Migration(migrations.Migration):
                 ),
             ],
             state_operations=[
-                AddIndexConcurrently(
-                    model_name="collectiontranslation",
-                    index=BTreeIndex(
-                        fields=["language_code", "slug"],
-                        name="uniq_lang_slug_collectiontransl",
-                    ),
-                ),
                 migrations.AddConstraint(
                     model_name="collectiontranslation",
                     constraint=models.UniqueConstraint(
@@ -118,13 +104,6 @@ class Migration(migrations.Migration):
                 ),
             ],
             state_operations=[
-                AddIndexConcurrently(
-                    model_name="producttranslation",
-                    index=BTreeIndex(
-                        fields=["language_code", "slug"],
-                        name="uniq_lang_slug_producttransl",
-                    ),
-                ),
                 migrations.AddConstraint(
                     model_name="producttranslation",
                     constraint=models.UniqueConstraint(

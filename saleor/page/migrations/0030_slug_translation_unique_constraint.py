@@ -36,13 +36,6 @@ class Migration(migrations.Migration):
                 ),
             ],
             state_operations=[
-                AddIndexConcurrently(
-                    model_name="pagetranslation",
-                    index=BTreeIndex(
-                        fields=["language_code", "slug"],
-                        name="uniq_lang_slug_pagetransl",
-                    ),
-                ),
                 migrations.AddConstraint(
                     model_name="pagetranslation",
                     constraint=models.UniqueConstraint(
