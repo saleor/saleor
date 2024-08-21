@@ -542,7 +542,7 @@ class CategoryTranslation(BaseTranslationType[product_models.CategoryTranslation
     )
     seo_title = graphene.String(description="Translated SEO title.")
     seo_description = graphene.String(description="Translated SEO description.")
-    slug = graphene.String(description="Translated category slug>" + ADDED_IN_321)
+    slug = graphene.String(description="Translated category slug." + ADDED_IN_321)
     name = graphene.String(description="Translated category name.")
     description = JSONString(
         description="Translated description of the category." + RICH_CONTENT
