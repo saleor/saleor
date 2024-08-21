@@ -598,6 +598,9 @@ def test_checkout_price_override(
     assert order_line.tax_class_metadata == line_tax_class.metadata
     assert order_line.tax_class_private_metadata == line_tax_class.private_metadata
     assert order_line.is_price_overridden is True
+    assert (
+        order_line.undiscounted_unit_price_gross_amount == checkout_line.price_override
+    )
 
     assert order.shipping_address == address
     assert order.shipping_method == checkout.shipping_method
