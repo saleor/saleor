@@ -5,6 +5,7 @@ import graphene
 from django.test import override_settings
 
 from ......core.models import EventDelivery
+from ......graphql.webhook.subscription_query import SubscriptionQuery
 from ......webhook.event_types import WebhookEventAsyncType
 from .....manager import get_plugins_manager
 
@@ -46,6 +47,9 @@ def test_order_bulk_created(
     event_type = WebhookEventAsyncType.ORDER_BULK_CREATED
 
     webhook = subscription_webhook(ORDER_BULK_CREATED_SUBSCRIPTION, event_type)
+    subscription_query = SubscriptionQuery(ORDER_BULK_CREATED_SUBSCRIPTION)
+    webhook.filterable_channel_slugs = subscription_query.get_filterable_channel_slugs()
+    webhook.save()
 
     order_id = graphene.Node.to_global_id("Order", order.id)
 
@@ -113,6 +117,9 @@ def test_order_bulk_created_without_channels_input(
       }
     }"""
     webhook = subscription_webhook(query, WebhookEventAsyncType.ORDER_BULK_CREATED)
+    subscription_query = SubscriptionQuery(query)
+    webhook.filterable_channel_slugs = subscription_query.get_filterable_channel_slugs()
+    webhook.save()
 
     order_id = graphene.Node.to_global_id("Order", order.id)
 
@@ -174,9 +181,12 @@ def test_order_bulk_created_with_different_channel(
     channel.slug = "different-channel"
     channel.save()
 
-    subscription_webhook(
+    webhook = subscription_webhook(
         ORDER_BULK_CREATED_SUBSCRIPTION, WebhookEventAsyncType.ORDER_BULK_CREATED
     )
+    subscription_query = SubscriptionQuery(ORDER_BULK_CREATED_SUBSCRIPTION)
+    webhook.filterable_channel_slugs = subscription_query.get_filterable_channel_slugs()
+    webhook.save()
 
     # when
     manager.order_bulk_created([order])
@@ -207,9 +217,12 @@ def test_different_event_doesnt_trigger_webhook(
     channel = order.channel
     channel.slug = "default-channel"
     channel.save()
-    subscription_webhook(
+    webhook = subscription_webhook(
         ORDER_BULK_CREATED_SUBSCRIPTION, WebhookEventAsyncType.ORDER_CREATED
     )
+    subscription_query = SubscriptionQuery(ORDER_BULK_CREATED_SUBSCRIPTION)
+    webhook.filterable_channel_slugs = subscription_query.get_filterable_channel_slugs()
+    webhook.save()
 
     # when
     manager.order_bulk_created([order])

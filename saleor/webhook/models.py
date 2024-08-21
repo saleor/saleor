@@ -1,3 +1,5 @@
+from django.contrib.postgres.fields import ArrayField
+from django.contrib.postgres.indexes import GinIndex
 from django.db import models
 
 from ..app.models import App
@@ -26,9 +28,20 @@ class Webhook(models.Model):
         encoder=CustomJsonEncoder,
         validators=[custom_headers_validator],
     )
+    filterable_channel_slugs = ArrayField(
+        models.CharField(max_length=255),
+        blank=True,
+        default=list,
+    )
 
     class Meta:
         ordering = ("pk",)
+        indexes = [
+            GinIndex(
+                name="filterable_channel_slugs_idx",
+                fields=["filterable_channel_slugs"],
+            )
+        ]
 
     def __str__(self):
         return self.name

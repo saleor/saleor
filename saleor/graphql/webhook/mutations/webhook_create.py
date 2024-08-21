@@ -136,6 +136,8 @@ class WebhookCreate(ModelMutation, NotifyUserEventValidationMixin):
                     code=subscription_query.error_code,
                 )
             instance.subscription_query = query
+            filterable_channel_slugs = subscription_query.get_filterable_channel_slugs()
+            cleaned_data["filterable_channel_slugs"] = filterable_channel_slugs
 
         if headers := cleaned_data.get("custom_headers"):
             try:

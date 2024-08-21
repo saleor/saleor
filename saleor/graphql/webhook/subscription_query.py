@@ -1,5 +1,5 @@
 from enum import Flag
-from typing import Optional, Union
+from typing import Optional, Union, cast
 
 from django.core.exceptions import ValidationError
 from graphene.utils.str_converters import to_snake_case
@@ -32,33 +32,35 @@ class SubscriptionQuery:
         self.errors = self.validate_query()
         self.error_msg: str = ";".join(set([str(err.message) for err in self.errors]))
 
-    def get_filterable_arguments(self) -> dict[str, list[str]]:
-        """Get filterable arguments from the subscription.
+    def get_filterable_channel_slugs(self) -> list[str]:
+        """Get filterable channel slugs from the subscription.
 
         Subscription is filterable if it has arguments provided that can be used to
         filter out records. If arguments are not provided, the subscription is not
         filterable, then needs to be treated as normal subscription.
         """
         if not self.is_valid:
-            return {}
+            return []
         subscription = self._get_subscription(self.ast)
-        if not subscription:
-            return {}
+        # subscription is not optional as validation from init already passed
+        subscription = cast(OperationDefinition, subscription)
 
         field_names = [
             selection.name.value for selection in subscription.selection_set.selections
         ]
-        if len(field_names) > 1 and set(field_names) != {"event"}:
-            return {}
+        if len(field_names) > 1 or set(field_names) == {"event"}:
+            return []
         selection = subscription.selection_set.selections[0]
         if not selection.arguments:
-            return {}
-        arguments = {}
+            return []
+        channels = []
         for arg in selection.arguments:
             argument_name = arg.name.value
             argument_values = getattr(arg.value, "values", [])
-            arguments[argument_name] = [value.value for value in argument_values]
-        return arguments
+            if argument_name == "channels":
+                channels = [value.value for value in argument_values]
+                break
+        return channels
 
     def validate_query(self) -> list[Union[GraphQLSyntaxError, ValidationError]]:
         from ..api import schema

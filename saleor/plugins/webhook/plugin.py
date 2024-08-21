@@ -22,7 +22,6 @@ from ...core.utils.json_serializer import CustomJsonEncoder
 from ...csv.notifications import get_default_export_payload
 from ...graphql.core.context import SaleorContext
 from ...graphql.webhook.subscription_payload import initialize_request
-from ...graphql.webhook.subscription_query import SubscriptionQuery
 from ...graphql.webhook.utils import get_pregenerated_subscription_payload
 from ...payment import PaymentError, TransactionKind
 from ...payment.interface import (
@@ -748,13 +747,11 @@ class WebhookPlugin(BasePlugin):
             if not webhook.subscription_query:
                 filtered_webhooks.append(webhook)
                 continue
-            subscription_query = SubscriptionQuery(webhook.subscription_query)
-            subscription_filters = subscription_query.get_filterable_arguments()
-            if not subscription_filters:
+            filterable_channel_slugs = list(webhook.filterable_channel_slugs)
+            if not filterable_channel_slugs:
                 filtered_webhooks.append(webhook)
                 continue
-            subscription_channels = subscription_filters.get("channels", [])
-            if order_channel_slug in subscription_channels:
+            if order_channel_slug in filterable_channel_slugs:
                 filtered_webhooks.append(webhook)
         return filtered_webhooks
 
@@ -1331,13 +1328,11 @@ class WebhookPlugin(BasePlugin):
             if not webhook.subscription_query:
                 filtered_webhooks.append(webhook)
                 continue
-            subscription_query = SubscriptionQuery(webhook.subscription_query)
-            subscription_filters = subscription_query.get_filterable_arguments()
-            if not subscription_filters:
+            filterable_channel_slugs = list(webhook.filterable_channel_slugs)
+            if not filterable_channel_slugs:
                 filtered_webhooks.append(webhook)
                 continue
-            subscription_channels = subscription_filters.get("channels", [])
-            if order_channel_slugs.intersection(subscription_channels):
+            if order_channel_slugs.intersection(filterable_channel_slugs):
                 filtered_webhooks.append(webhook)
         return filtered_webhooks
 
