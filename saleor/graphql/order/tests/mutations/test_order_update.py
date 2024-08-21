@@ -85,7 +85,7 @@ def test_order_update(
     assert order.user is None
     assert order.status == OrderStatus.UNFULFILLED
     assert order.external_reference == external_reference
-    order_updated_webhook_mock.assert_called_once_with(order)
+    order_updated_webhook_mock.assert_called_once_with(order, webhooks=set())
 
 
 def test_order_update_by_user_no_channel_access(
@@ -171,7 +171,7 @@ def test_order_update_by_app(
     assert order.user is None
     assert order.status == OrderStatus.UNFULFILLED
     assert order.external_reference == external_reference
-    order_updated_webhook_mock.assert_called_once_with(order)
+    order_updated_webhook_mock.assert_called_once_with(order, webhooks=set())
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")

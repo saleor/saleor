@@ -84,7 +84,7 @@ def test_create_return_fulfillment_only_order_lines(
     assert order_lines_to_return.filter(id=event_lines[1]["line_pk"]).exists()
     assert event_lines[1]["quantity"] == 2
 
-    mocked_order_updated.assert_called_once_with(order_with_lines)
+    mocked_order_updated.assert_called_once_with(order_with_lines, webhooks=set())
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
@@ -160,7 +160,7 @@ def test_create_return_fulfillment_only_order_lines_with_refund(
     assert returned_fulfillment.total_refund_amount == amount
     assert returned_fulfillment.shipping_refund_amount is None
 
-    mocked_order_updated.assert_called_once_with(order_with_lines)
+    mocked_order_updated.assert_called_once_with(order_with_lines, webhooks=set())
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
@@ -242,7 +242,7 @@ def test_create_return_fulfillment_only_order_lines_included_shipping_costs(
         == order_with_lines.shipping_price_gross_amount
     )
 
-    mocked_order_updated.assert_called_once_with(order_with_lines)
+    mocked_order_updated.assert_called_once_with(order_with_lines, webhooks=set())
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
@@ -373,7 +373,7 @@ def test_create_return_fulfillment_only_order_lines_with_replace_request(
     )
     assert replaced_line.tax_rate == expected_replaced_line.tax_rate
 
-    mocked_order_updated.assert_called_once_with(order_with_lines)
+    mocked_order_updated.assert_called_once_with(order_with_lines, webhooks=set())
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
@@ -421,7 +421,7 @@ def test_create_return_fulfillment_only_fulfillment_lines(
     assert not mocked_refund.called
     assert not replace_order
 
-    mocked_order_updated.assert_called_once_with(fulfilled_order)
+    mocked_order_updated.assert_called_once_with(fulfilled_order, webhooks=set())
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
@@ -528,7 +528,7 @@ def test_create_return_fulfillment_only_fulfillment_lines_replace_order(
     )
     assert replaced_line.tax_rate == expected_replaced_line.tax_rate
 
-    mocked_order_updated.assert_called_once_with(fulfilled_order)
+    mocked_order_updated.assert_called_once_with(fulfilled_order, webhooks=set())
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
@@ -636,7 +636,7 @@ def test_create_return_fulfillment_with_lines_already_refunded(
     assert returned_and_refunded_fulfillment.total_refund_amount == amount
     assert returned_and_refunded_fulfillment.shipping_refund_amount is None
 
-    mocked_order_updated.assert_called_once_with(fulfilled_order)
+    mocked_order_updated.assert_called_once_with(fulfilled_order, webhooks=set())
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
@@ -712,4 +712,4 @@ def test_create_return_fulfillment_only_order_lines_with_old_ids(
     assert order_lines_to_return.filter(id=event_lines[1]["line_pk"]).exists()
     assert event_lines[1]["quantity"] == 2
 
-    mocked_order_updated.assert_called_once_with(order_with_lines)
+    mocked_order_updated.assert_called_once_with(order_with_lines, webhooks=set())

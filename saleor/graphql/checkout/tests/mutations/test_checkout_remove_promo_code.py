@@ -86,7 +86,9 @@ def test_checkout_remove_voucher_code(
     assert data["checkout"]["voucherCode"] is None
     assert checkout_with_voucher.voucher_code is None
     assert checkout_with_voucher.last_change != previous_checkout_last_change
-    checkout_updated_webhook_mock.assert_called_once_with(checkout_with_voucher)
+    checkout_updated_webhook_mock.assert_called_once_with(
+        checkout_with_voucher, webhooks=set()
+    )
 
 
 @patch("saleor.plugins.manager.PluginsManager.checkout_updated")
@@ -117,7 +119,9 @@ def test_checkout_remove_voucher_code_from_voucher_with_multiple_codes(
     assert data["checkout"]["voucherCode"] is None
     assert checkout_with_voucher.voucher_code is None
     assert checkout_with_voucher.last_change != previous_checkout_last_change
-    checkout_updated_webhook_mock.assert_called_once_with(checkout_with_voucher)
+    checkout_updated_webhook_mock.assert_called_once_with(
+        checkout_with_voucher, webhooks=set()
+    )
 
 
 @patch("saleor.plugins.manager.PluginsManager.checkout_updated")
@@ -228,7 +232,9 @@ def test_checkout_remove_gift_card_code(
     assert not checkout_with_gift_card.gift_cards.all().exists()
     checkout_with_gift_card.refresh_from_db()
     assert checkout_with_gift_card.last_change != previous_checkout_last_change
-    checkout_updated_webhook_mock.assert_called_once_with(checkout_with_gift_card)
+    checkout_updated_webhook_mock.assert_called_once_with(
+        checkout_with_gift_card, webhooks=set()
+    )
 
 
 @patch("saleor.plugins.manager.PluginsManager.checkout_updated")
@@ -293,7 +299,9 @@ def test_checkout_remove_one_of_gift_cards(
     assert not checkout_gift_cards.filter(code=gift_card_first.code).exists()
     checkout_with_gift_card.refresh_from_db()
     assert checkout_with_gift_card.last_change != previous_checkout_last_change
-    checkout_updated_webhook_mock.assert_called_once_with(checkout_with_gift_card)
+    checkout_updated_webhook_mock.assert_called_once_with(
+        checkout_with_gift_card, webhooks=set()
+    )
 
 
 @patch("saleor.plugins.manager.PluginsManager.checkout_updated")
@@ -362,7 +370,9 @@ def test_checkout_remove_voucher_code_by_id(
     assert data["checkout"]["voucherCode"] is None
     assert len(data["checkout"]["giftCards"]) == 1
     assert checkout_with_voucher.voucher_code is None
-    checkout_updated_webhook_mock.assert_called_once_with(checkout_with_voucher)
+    checkout_updated_webhook_mock.assert_called_once_with(
+        checkout_with_voucher, webhooks=set()
+    )
 
 
 @patch("saleor.plugins.manager.PluginsManager.checkout_updated")
@@ -440,7 +450,9 @@ def test_checkout_remove_voucher_with_multiple_codes_by_id(
     assert data["checkout"]["voucherCode"] is None
     assert len(data["checkout"]["giftCards"]) == 1
     assert checkout_with_voucher.voucher_code is None
-    checkout_updated_webhook_mock.assert_called_once_with(checkout_with_voucher)
+    checkout_updated_webhook_mock.assert_called_once_with(
+        checkout_with_voucher, webhooks=set()
+    )
 
 
 @patch("saleor.plugins.manager.PluginsManager.checkout_updated")
@@ -473,7 +485,9 @@ def test_checkout_remove_gift_card_by_id(
     assert gift_cards[0]["id"] == graphene.Node.to_global_id(
         "GiftCard", gift_card_expiry_date.pk
     )
-    checkout_updated_webhook_mock.assert_called_once_with(checkout_with_voucher)
+    checkout_updated_webhook_mock.assert_called_once_with(
+        checkout_with_voucher, webhooks=set()
+    )
 
 
 @patch("saleor.plugins.manager.PluginsManager.checkout_updated")
@@ -591,7 +605,9 @@ def test_checkout_remove_voucher_code_invalidates_price(
     assert not data["errors"]
     assert data["checkout"]["subtotalPrice"]["gross"]["amount"] == subtotal.amount
     assert data["checkout"]["totalPrice"]["gross"]["amount"] == expected_total
-    checkout_updated_webhook_mock.assert_called_once_with(checkout_with_item)
+    checkout_updated_webhook_mock.assert_called_once_with(
+        checkout_with_item, webhooks=set()
+    )
 
 
 @patch("saleor.plugins.manager.PluginsManager.checkout_updated")
@@ -629,7 +645,9 @@ def test_checkout_remove_voucher_code_order_promotion_discount_applied(
     assert checkout.discount_amount == reward_value
     assert checkout.last_change != previous_checkout_last_change
     assert checkout.discounts.count() == 1
-    checkout_updated_webhook_mock.assert_called_once_with(checkout_with_voucher)
+    checkout_updated_webhook_mock.assert_called_once_with(
+        checkout_with_voucher, webhooks=set()
+    )
 
 
 @patch("saleor.plugins.manager.PluginsManager.checkout_updated")
@@ -668,7 +686,9 @@ def test_checkout_remove_voucher_code_gift_reward_applied(
     assert checkout.lines.count() == lines_count + 1 == len(data["checkout"]["lines"])
     gift_line = checkout.lines.get(is_gift=True)
     assert gift_line.discounts.count() == 1
-    checkout_updated_webhook_mock.assert_called_once_with(checkout_with_voucher)
+    checkout_updated_webhook_mock.assert_called_once_with(
+        checkout_with_voucher, webhooks=set()
+    )
 
 
 @patch("saleor.plugins.manager.PluginsManager.checkout_updated")
@@ -704,7 +724,9 @@ def test_with_active_problems_flow(
 
     # then
     assert not content["data"]["checkoutRemovePromoCode"]["errors"]
-    checkout_updated_webhook_mock.assert_called_once_with(checkout_with_problems)
+    checkout_updated_webhook_mock.assert_called_once_with(
+        checkout_with_problems, webhooks=set()
+    )
 
 
 @patch(

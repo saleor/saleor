@@ -1408,7 +1408,7 @@ def test_transaction_event_updates_checkout_full_paid_with_charged_amount(
 
     assert checkout.charge_status == CheckoutChargeStatus.FULL
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
-    mocked_fully_paid.assert_called_once_with(checkout)
+    mocked_fully_paid.assert_called_once_with(checkout, webhooks=set())
 
 
 @patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
@@ -1472,7 +1472,7 @@ def test_transaction_event_updates_checkout_full_paid_with_pending_charge_amount
 
     assert checkout.charge_status == CheckoutChargeStatus.FULL
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
-    mocked_fully_paid.assert_called_once_with(checkout)
+    mocked_fully_paid.assert_called_once_with(checkout, webhooks=set())
 
 
 def test_transaction_event_report_with_info_event(
@@ -1763,9 +1763,9 @@ def test_transaction_event_report_for_order_triggers_webhooks_when_fully_paid(
 
     assert order.status == excpected_order_status
     assert order.charge_status == OrderChargeStatusEnum.FULL.value
-    mock_order_fully_paid.assert_called_once_with(order)
-    mock_order_updated.assert_called_once_with(order)
-    mock_order_paid.assert_called_once_with(order)
+    mock_order_fully_paid.assert_called_once_with(order, webhooks=set())
+    mock_order_updated.assert_called_once_with(order, webhooks=set())
+    mock_order_paid.assert_called_once_with(order, webhooks=set())
 
 
 @pytest.mark.parametrize(
@@ -1829,9 +1829,9 @@ def test_transaction_event_report_for_draft_order_triggers_webhooks_when_fully_p
 
     assert order.status == OrderStatus.DRAFT
     assert order.charge_status == OrderChargeStatusEnum.FULL.value
-    mock_order_fully_paid.assert_called_once_with(order)
-    mock_order_updated.assert_called_once_with(order)
-    mock_order_paid.assert_called_once_with(order)
+    mock_order_fully_paid.assert_called_once_with(order, webhooks=set())
+    mock_order_updated.assert_called_once_with(order, webhooks=set())
+    mock_order_paid.assert_called_once_with(order, webhooks=set())
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
@@ -1886,7 +1886,7 @@ def test_transaction_event_report_for_order_triggers_webhooks_when_partially_pai
 
     assert order.charge_status == OrderChargeStatusEnum.PARTIAL.value
     assert not mock_order_fully_paid.called
-    mock_order_updated.assert_called_once_with(order)
+    mock_order_updated.assert_called_once_with(order, webhooks=set())
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
@@ -1941,7 +1941,7 @@ def test_transaction_event_report_for_order_triggers_webhooks_when_partially_aut
 
     assert order.authorize_status == OrderAuthorizeStatusEnum.PARTIAL.value
     assert not mock_order_fully_paid.called
-    mock_order_updated.assert_called_once_with(order)
+    mock_order_updated.assert_called_once_with(order, webhooks=set())
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
@@ -1996,7 +1996,7 @@ def test_transaction_event_report_for_order_triggers_webhooks_when_fully_authori
 
     assert order.authorize_status == OrderAuthorizeStatusEnum.FULL.value
     assert not mock_order_fully_paid.called
-    mock_order_updated.assert_called_once_with(order)
+    mock_order_updated.assert_called_once_with(order, webhooks=set())
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_refunded")
@@ -2051,9 +2051,9 @@ def test_transaction_event_report_for_order_triggers_webhooks_when_fully_refunde
     get_graphql_content(response)
     order.refresh_from_db()
 
-    mock_order_fully_refunded.assert_called_once_with(order)
-    mock_order_updated.assert_called_once_with(order)
-    mock_order_refunded.assert_called_once_with(order)
+    mock_order_fully_refunded.assert_called_once_with(order, webhooks=set())
+    mock_order_updated.assert_called_once_with(order, webhooks=set())
+    mock_order_refunded.assert_called_once_with(order, webhooks=set())
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_refunded")
@@ -2109,8 +2109,8 @@ def test_transaction_event_report_for_order_triggers_webhooks_when_partially_ref
     order.refresh_from_db()
 
     assert not mock_order_fully_refunded.called
-    mock_order_refunded.assert_called_once_with(order)
-    mock_order_updated.assert_called_once_with(order)
+    mock_order_refunded.assert_called_once_with(order, webhooks=set())
+    mock_order_updated.assert_called_once_with(order, webhooks=set())
 
 
 def test_transaction_event_report_by_app_assign_app_owner(
