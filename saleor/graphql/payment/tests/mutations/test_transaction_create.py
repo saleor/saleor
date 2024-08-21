@@ -1221,7 +1221,7 @@ def test_transaction_create_for_checkout_fully_paid(
     assert checkout.charge_status == CheckoutChargeStatus.FULL
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
 
-    mocked_checkout_fully_paid.assert_called_once_with(checkout)
+    mocked_checkout_fully_paid.assert_called_once_with(checkout, webhooks=set())
 
 
 @pytest.mark.parametrize(
@@ -1888,9 +1888,9 @@ def test_transaction_create_for_order_triggers_webhooks_when_fully_paid(
 
     assert order.status == excpected_order_status
     assert order.charge_status == OrderChargeStatus.FULL
-    mock_order_fully_paid.assert_called_once_with(order)
-    mock_order_updated.assert_called_once_with(order)
-    mock_order_paid.assert_called_once_with(order)
+    mock_order_fully_paid.assert_called_once_with(order, webhooks=set())
+    mock_order_updated.assert_called_once_with(order, webhooks=set())
+    mock_order_paid.assert_called_once_with(order, webhooks=set())
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_paid")
@@ -1931,8 +1931,8 @@ def test_transaction_create_for_order_triggers_webhook_when_partially_paid(
 
     assert order_with_lines.charge_status == OrderChargeStatus.PARTIAL
     assert not mock_order_fully_paid.called
-    mock_order_updated.assert_called_once_with(order_with_lines)
-    mock_order_paid.assert_called_once_with(order_with_lines)
+    mock_order_updated.assert_called_once_with(order_with_lines, webhooks=set())
+    mock_order_paid.assert_called_once_with(order_with_lines, webhooks=set())
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
@@ -1971,7 +1971,7 @@ def test_transaction_create_for_order_triggers_webhook_when_authorized(
 
     assert order_with_lines.authorize_status == OrderAuthorizeStatus.PARTIAL
     assert not mock_order_fully_paid.called
-    mock_order_updated.assert_called_once_with(order_with_lines)
+    mock_order_updated.assert_called_once_with(order_with_lines, webhooks=set())
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
@@ -2010,9 +2010,9 @@ def test_transaction_create_for_order_triggers_webhooks_when_fully_refunded(
     order_with_lines.refresh_from_db()
     get_graphql_content(response)
 
-    mock_order_fully_refunded.assert_called_once_with(order_with_lines)
-    mock_order_refunded.assert_called_once_with(order_with_lines)
-    mock_order_updated.assert_called_once_with(order_with_lines)
+    mock_order_fully_refunded.assert_called_once_with(order_with_lines, webhooks=set())
+    mock_order_refunded.assert_called_once_with(order_with_lines, webhooks=set())
+    mock_order_updated.assert_called_once_with(order_with_lines, webhooks=set())
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
@@ -2052,8 +2052,8 @@ def test_transaction_create_for_order_triggers_webhook_when_partially_refunded(
     get_graphql_content(response)
 
     assert not mock_order_fully_refunded.called
-    mock_order_updated.assert_called_once_with(order_with_lines)
-    mock_order_refunded.assert_called_once_with(order_with_lines)
+    mock_order_updated.assert_called_once_with(order_with_lines, webhooks=set())
+    mock_order_refunded.assert_called_once_with(order_with_lines, webhooks=set())
 
 
 @freeze_time("2018-05-31 12:00:01")

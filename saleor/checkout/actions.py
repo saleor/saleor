@@ -48,7 +48,7 @@ def call_checkout_event(
     webhook_event_map = get_webhooks_for_multiple_events(
         [event_name, *WebhookEventSyncType.CHECKOUT_EVENTS]
     )
-
+    webhooks = webhook_event_map.get(event_name, set())
     if not webhook_async_event_requires_sync_webhooks_to_trigger(
         event_name,
         webhook_event_map,
@@ -56,7 +56,7 @@ def call_checkout_event(
     ):
         plugin_manager_method_name = CHECKOUT_WEBHOOK_EVENT_MAP[event_name]
         event_func = getattr(manager, plugin_manager_method_name)
-        call_event_including_protected_events(event_func, checkout)
+        call_event_including_protected_events(event_func, checkout, webhooks=webhooks)
         return
 
     lines_info, _ = fetch_checkout_lines(
@@ -93,6 +93,8 @@ def call_checkout_info_event(
     if event_name not in CHECKOUT_WEBHOOK_EVENT_MAP:
         raise ValueError(f"Event {event_name} not found in CHECKOUT_WEBHOOK_EVENT_MAP.")
 
+    webhooks = webhook_event_map.get(event_name, set())
+
     plugin_manager_method_name = CHECKOUT_WEBHOOK_EVENT_MAP[event_name]
     event_func = getattr(manager, plugin_manager_method_name)
 
@@ -103,7 +105,7 @@ def call_checkout_info_event(
         webhook_event_map,
         possible_sync_events=WebhookEventSyncType.CHECKOUT_EVENTS,
     ):
-        call_event_including_protected_events(event_func, checkout)
+        call_event_including_protected_events(event_func, checkout, webhooks=webhooks)
         return None
 
     _ = checkout_info.all_shipping_methods
@@ -124,7 +126,7 @@ def call_checkout_info_event(
             force_update=True,
         )
 
-    call_event_including_protected_events(event_func, checkout)
+    call_event_including_protected_events(event_func, checkout, webhooks=webhooks)
     return None
 
 

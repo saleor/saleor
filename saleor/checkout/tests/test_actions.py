@@ -9,6 +9,7 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from ...core.models import EventDelivery
+from ...core.utils.events import call_event_including_protected_events
 from ...plugins.manager import get_plugins_manager
 from ...tests.utils import flush_post_commit_hooks
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
@@ -43,7 +44,7 @@ def test_transaction_amounts_for_checkout_updated_fully_paid(
     checkout.refresh_from_db()
     assert checkout.charge_status == CheckoutChargeStatus.FULL
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
-    mocked_fully_paid.assert_called_with(checkout)
+    mocked_fully_paid.assert_called_with(checkout, webhooks=set())
 
 
 @patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
@@ -113,7 +114,7 @@ def test_transaction_amounts_for_checkout_updated_updates_last_transaction_modif
     flush_post_commit_hooks()
     checkout.refresh_from_db()
     assert checkout.last_transaction_modified_at == transaction.modified_at
-    mocked_fully_paid.assert_called_with(checkout)
+    mocked_fully_paid.assert_called_with(checkout, webhooks=set())
 
 
 def test_get_checkout_refundable_with_transaction_and_last_refund_success(
@@ -343,8 +344,13 @@ def test_call_checkout_event_incorrect_webhook_event(
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
+@patch(
+    "saleor.checkout.actions.call_event_including_protected_events",
+    wraps=call_event_including_protected_events,
+)
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_checkout_event_triggers_sync_webhook_when_needed(
+    mocked_call_event_including_protected_events,
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     checkout_with_items,
@@ -403,6 +409,11 @@ def test_call_checkout_event_triggers_sync_webhook_when_needed(
             call(tax_delivery),
         ]
     )
+    mocked_call_event_including_protected_events.assert_called_once_with(
+        plugins_manager.checkout_created,
+        checkout_with_items,
+        webhooks={checkout_created_webhook},
+    )
 
 
 @freeze_time("2023-05-31 12:00:01")
@@ -410,8 +421,13 @@ def test_call_checkout_event_triggers_sync_webhook_when_needed(
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
+@patch(
+    "saleor.checkout.actions.call_event_including_protected_events",
+    wraps=call_event_including_protected_events,
+)
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_checkout_event_skips_tax_webhook_when_not_expired(
+    mocked_call_event_including_protected_events,
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     checkout_with_items,
@@ -469,6 +485,11 @@ def test_call_checkout_event_skips_tax_webhook_when_not_expired(
             call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
         ]
     )
+    mocked_call_event_including_protected_events.assert_called_once_with(
+        plugins_manager.checkout_created,
+        checkout_with_items,
+        webhooks={checkout_created_webhook},
+    )
 
 
 @freeze_time("2023-05-31 12:00:01")
@@ -514,8 +535,13 @@ def test_call_checkout_event_skip_sync_webhooks_when_async_missing(
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
+@patch(
+    "saleor.checkout.actions.call_event_including_protected_events",
+    wraps=call_event_including_protected_events,
+)
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_checkout_event_only_async_when_sync_missing(
+    mocked_call_event_including_protected_events,
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     checkout_with_items,
@@ -554,6 +580,9 @@ def test_call_checkout_event_only_async_when_sync_missing(
         retry_kwargs={"max_retries": 5},
     )
     assert not mocked_send_webhook_request_sync.called
+    mocked_call_event_including_protected_events.assert_called_once_with(
+        plugins_manager.checkout_created, checkout_with_items, webhooks={webhook}
+    )
 
 
 @freeze_time("2023-05-31 12:00:01")
@@ -610,8 +639,13 @@ def test_call_checkout_info_event_incorrect_webhook_event(
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
+@patch(
+    "saleor.checkout.actions.call_event_including_protected_events",
+    wraps=call_event_including_protected_events,
+)
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_checkout_info_event_triggers_sync_webhook_when_needed(
+    mocked_call_event_including_protected_events,
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     checkout_with_items,
@@ -681,6 +715,11 @@ def test_call_checkout_info_event_triggers_sync_webhook_when_needed(
             call(tax_delivery),
         ]
     )
+    mocked_call_event_including_protected_events.assert_called_once_with(
+        plugins_manager.checkout_created,
+        checkout_with_items,
+        webhooks={checkout_created_webhook},
+    )
 
 
 @freeze_time("2023-05-31 12:00:01")
@@ -688,8 +727,13 @@ def test_call_checkout_info_event_triggers_sync_webhook_when_needed(
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
+@patch(
+    "saleor.checkout.actions.call_event_including_protected_events",
+    wraps=call_event_including_protected_events,
+)
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_checkout_info_event_skips_tax_webhook_when_not_expired(
+    mocked_call_event_including_protected_events,
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     checkout_with_items,
@@ -758,6 +802,11 @@ def test_call_checkout_info_event_skips_tax_webhook_when_not_expired(
             call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
         ]
     )
+    mocked_call_event_including_protected_events.assert_called_once_with(
+        plugins_manager.checkout_created,
+        checkout_with_items,
+        webhooks={checkout_created_webhook},
+    )
 
 
 @freeze_time("2023-05-31 12:00:01")
@@ -765,8 +814,13 @@ def test_call_checkout_info_event_skips_tax_webhook_when_not_expired(
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
+@patch(
+    "saleor.checkout.actions.call_event_including_protected_events",
+    wraps=call_event_including_protected_events,
+)
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_checkout_info_event_only_async_when_sync_missing(
+    mocked_call_event_including_protected_events,
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     checkout_with_items,
@@ -815,6 +869,9 @@ def test_call_checkout_info_event_only_async_when_sync_missing(
         retry_kwargs={"max_retries": 5},
     )
     assert not mocked_send_webhook_request_sync.called
+    mocked_call_event_including_protected_events.assert_called_once_with(
+        plugins_manager.checkout_created, checkout_with_items, webhooks={webhook}
+    )
 
 
 @freeze_time("2023-05-31 12:00:01")
@@ -874,8 +931,13 @@ def test_call_checkout_info_event_skip_sync_webhooks_when_async_missing(
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
+@patch(
+    "saleor.checkout.actions.call_event_including_protected_events",
+    wraps=call_event_including_protected_events,
+)
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_transaction_amounts_for_checkout_fully_paid_triggers_sync_webhook(
+    mocked_call_event_including_protected_events,
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     wrapped_call_checkout_info_event,
@@ -940,3 +1002,8 @@ def test_transaction_amounts_for_checkout_fully_paid_triggers_sync_webhook(
         ]
     )
     assert wrapped_call_checkout_info_event.called
+    mocked_call_event_including_protected_events.assert_called_once_with(
+        plugins_manager.checkout_fully_paid,
+        checkout_with_items,
+        webhooks={checkout_fully_paid_webhook},
+    )
