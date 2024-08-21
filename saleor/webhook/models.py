@@ -5,6 +5,7 @@ from django.db import models
 from ..app.models import App
 from ..app.validators import AppURLValidator
 from ..core.utils.json_serializer import CustomJsonEncoder
+from .const import MAX_FILTERABLE_CHANNEL_SLUGS_LIMIT
 from .validators import custom_headers_validator
 
 
@@ -32,6 +33,7 @@ class Webhook(models.Model):
         models.CharField(max_length=255),
         blank=True,
         default=list,
+        size=MAX_FILTERABLE_CHANNEL_SLUGS_LIMIT,
     )
 
     class Meta:

@@ -48,8 +48,10 @@ class SubscriptionQuery:
         field_names = [
             selection.name.value for selection in subscription.selection_set.selections
         ]
+        # Skip if there is non-filterable subscription
         if len(field_names) > 1 or set(field_names) == {"event"}:
             return []
+
         selection = subscription.selection_set.selections[0]
         if not selection.arguments:
             return []
@@ -61,6 +63,20 @@ class SubscriptionQuery:
                 channels = [value.value for value in argument_values]
                 break
         return channels
+
+    def _check_if_invalid_top_field_selection(self, subscription: OperationDefinition):
+        """Check if subscription selects only one top field.
+
+        Filterable subscription can select only one top field. If more than one field
+        is selected, the subscription is invalid.
+        """
+        is_invalid = False
+        field_names = [
+            selection.name.value for selection in subscription.selection_set.selections
+        ]
+        if len(field_names) > 1 and set(field_names) != {"event"}:
+            is_invalid = True
+        return is_invalid
 
     def validate_query(self) -> list[Union[GraphQLSyntaxError, ValidationError]]:
         from ..api import schema
@@ -88,10 +104,7 @@ class SubscriptionQuery:
                 )
             ]
 
-        field_names = [
-            selection.name.value for selection in subscription.selection_set.selections
-        ]
-        if len(field_names) > 1 and set(field_names) != {"event"}:
+        if self._check_if_invalid_top_field_selection(subscription):
             self.error_code = WebhookErrorCode.INVALID.value
             return [
                 ValidationError(

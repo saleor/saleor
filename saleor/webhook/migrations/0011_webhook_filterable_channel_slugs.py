@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             field=django.contrib.postgres.fields.ArrayField(
                 base_field=models.CharField(max_length=255),
                 default=list,
-                size=None,
+                size=500,
                 blank=True,
             ),
         ),
