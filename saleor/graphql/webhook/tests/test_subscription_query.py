@@ -625,7 +625,7 @@ def test_get_events_from_field():
     }
 
 
-def test_get_filterable_arguments_for_query_with_filters():
+def test_get_filterable_channel_slugs_for_query_with_filters():
     # given
     query = """
     subscription {
@@ -646,13 +646,13 @@ def test_get_filterable_arguments_for_query_with_filters():
     subscription_query = SubscriptionQuery(query)
 
     # when
-    result = subscription_query.get_filterable_arguments()
+    result = subscription_query.get_filterable_channel_slugs()
 
     # then
-    assert result == {"channels": ["default-channel"]}
+    assert result == ["default-channel"]
 
 
-def test_get_filterable_arguments_with_empty_filters():
+def test_get_filterable_channel_slugs_with_empty_filters():
     # given
     query = """
     subscription {
@@ -673,13 +673,13 @@ def test_get_filterable_arguments_with_empty_filters():
     subscription_query = SubscriptionQuery(query)
 
     # when
-    result = subscription_query.get_filterable_arguments()
+    result = subscription_query.get_filterable_channel_slugs()
 
     # then
-    assert result == {}
+    assert result == []
 
 
-def test_get_filterable_arguments_for_non_filterable_query():
+def test_get_filterable_channel_slugs_for_non_filterable_query():
     # given
     query = """
       fragment EventFragment on Event {
@@ -710,7 +710,7 @@ def test_get_filterable_arguments_for_non_filterable_query():
     subscription_query = SubscriptionQuery(query)
 
     # when
-    result = subscription_query.get_filterable_arguments()
+    result = subscription_query.get_filterable_channel_slugs()
 
     # then
-    assert result == {}
+    assert result == []

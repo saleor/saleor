@@ -5,6 +5,7 @@ import graphene
 from django.test import override_settings
 
 from ......core.models import EventDelivery
+from ......graphql.webhook.subscription_query import SubscriptionQuery
 from ......webhook.event_types import WebhookEventAsyncType
 from .....manager import get_plugins_manager
 
@@ -41,6 +42,9 @@ def test_order_cancelled(mocked_async, order_line, subscription_webhook):
     event_type = WebhookEventAsyncType.ORDER_CANCELLED
 
     webhook = subscription_webhook(ORDER_CANCELLED_SUBSCRIPTION, event_type)
+    subscription_query = SubscriptionQuery(ORDER_CANCELLED_SUBSCRIPTION)
+    webhook.filterable_channel_slugs = subscription_query.get_filterable_channel_slugs()
+    webhook.save()
 
     order_id = graphene.Node.to_global_id("Order", order.id)
 
@@ -107,6 +111,9 @@ def test_order_cancelled_without_channels_input(
       }
     }"""
     webhook = subscription_webhook(query, event_type)
+    subscription_query = SubscriptionQuery(query)
+    webhook.filterable_channel_slugs = subscription_query.get_filterable_channel_slugs()
+    webhook.save()
 
     order_id = graphene.Node.to_global_id("Order", order.id)
 
@@ -168,7 +175,10 @@ def test_order_cancelled_with_different_channel(
 
     event_type = WebhookEventAsyncType.ORDER_CANCELLED
 
-    subscription_webhook(ORDER_CANCELLED_SUBSCRIPTION, event_type)
+    webhook = subscription_webhook(ORDER_CANCELLED_SUBSCRIPTION, event_type)
+    subscription_query = SubscriptionQuery(ORDER_CANCELLED_SUBSCRIPTION)
+    webhook.filterable_channel_slugs = subscription_query.get_filterable_channel_slugs()
+    webhook.save()
 
     # when
     manager.order_cancelled(order)
@@ -202,7 +212,10 @@ def test_different_event_doesnt_trigger_webhook(
 
     event_type = WebhookEventAsyncType.ORDER_CREATED
 
-    subscription_webhook(ORDER_CANCELLED_SUBSCRIPTION, event_type)
+    webhook = subscription_webhook(ORDER_CANCELLED_SUBSCRIPTION, event_type)
+    subscription_query = SubscriptionQuery(ORDER_CANCELLED_SUBSCRIPTION)
+    webhook.filterable_channel_slugs = subscription_query.get_filterable_channel_slugs()
+    webhook.save()
 
     # when
     manager.order_cancelled(order)
