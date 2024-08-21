@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 from ....permission.auth_filters import AuthorizationFilters
 from ....permission.enums import AppPermission
 from ....webhook import models
+from ....webhook.const import MAX_FILTERABLE_CHANNEL_SLUGS_LIMIT
 from ....webhook.error_codes import WebhookErrorCode
 from ....webhook.validators import (
     HEADERS_LENGTH_LIMIT,
@@ -137,6 +138,12 @@ class WebhookCreate(ModelMutation, NotifyUserEventValidationMixin):
                 )
             instance.subscription_query = query
             filterable_channel_slugs = subscription_query.get_filterable_channel_slugs()
+            if len(filterable_channel_slugs) > MAX_FILTERABLE_CHANNEL_SLUGS_LIMIT:
+                raise_validation_error(
+                    field="query",
+                    message="Too many channel slugs provided in the query",
+                    code=WebhookErrorCode.INVALID,
+                )
             cleaned_data["filterable_channel_slugs"] = filterable_channel_slugs
 
         if headers := cleaned_data.get("custom_headers"):

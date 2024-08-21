@@ -33,6 +33,7 @@ from ...product.models import (
 )
 from ...shipping.models import ShippingMethodTranslation
 from ...thumbnail.views import TYPE_TO_MODEL_DATA_MAPPING
+from ...webhook.const import MAX_FILTERABLE_CHANNEL_SLUGS_LIMIT
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..account.types import User as UserType
 from ..app.types import App as AppType
@@ -2710,7 +2711,8 @@ channels_argument = graphene.Argument(
     description=(
         "List of channel slugs. The event will be sent only if the order "
         "belongs to one of the provided channels. If the channel slug list is "
-        "empty, orders that belong to any channel will be sent."
+        "empty, orders that belong to any channel will be sent. Maximally "
+        f"{MAX_FILTERABLE_CHANNEL_SLUGS_LIMIT} items."
     ),
 )
 
