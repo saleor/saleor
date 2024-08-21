@@ -247,6 +247,26 @@ def test_clear_successful_delivery(event_delivery):
     assert not private_storage.exists(event_payload.payload_file.name)
 
 
+def test_clear_successful_delivery_with_payload_in_database(
+    event_delivery_payload_in_database,
+):
+    # given
+    assert EventDelivery.objects.filter(
+        pk=event_delivery_payload_in_database.pk
+    ).exists()
+    event_delivery_payload_in_database.status = EventDeliveryStatus.SUCCESS
+    event_delivery_payload_in_database.save()
+    event_payload = event_delivery_payload_in_database.payload
+    assert not event_payload.payload_file
+    # when
+    clear_successful_delivery(event_delivery_payload_in_database)
+    # then
+    assert not EventDelivery.objects.filter(
+        pk=event_delivery_payload_in_database.pk
+    ).exists()
+    assert not EventPayload.objects.filter(pk=event_payload.pk).exists()
+
+
 def test_clear_successful_delivery_when_payload_in_multiple_deliveries(event_delivery):
     # given
     assert EventDelivery.objects.filter(pk=event_delivery.pk).exists()
