@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Union
 
-from django.contrib.postgres.indexes import BTreeIndex, GinIndex
+from django.contrib.postgres.indexes import GinIndex
 from django.db import models
 
 from ..core.db.fields import SanitizedJSONField

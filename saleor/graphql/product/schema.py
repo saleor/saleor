@@ -192,7 +192,8 @@ class ProductQueries(graphene.ObjectType):
         slug=graphene.Argument(graphene.String, description="Slug of the category"),
         slug_language_code=graphene.Argument(
             LanguageCodeEnum,
-            description="Language code of the category slug, omit to use primary slug." + ADDED_IN_321,
+            description="Language code of the category slug, omit to use primary slug."
+            + ADDED_IN_321,
         ),
         description="Look up a category by ID or slug.",
         doc_category=DOC_CATEGORY_PRODUCTS,
@@ -206,7 +207,8 @@ class ProductQueries(graphene.ObjectType):
         slug=graphene.Argument(graphene.String, description="Slug of the collection"),
         slug_language_code=graphene.Argument(
             LanguageCodeEnum,
-            description="Language code of the collection slug, omit to use primary slug." + ADDED_IN_321,
+            description="Language code of the collection slug, omit to use primary slug."
+            + ADDED_IN_321,
         ),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
@@ -245,7 +247,8 @@ class ProductQueries(graphene.ObjectType):
         slug=graphene.Argument(graphene.String, description="Slug of the product."),
         slug_language_code=graphene.Argument(
             LanguageCodeEnum,
-            description="Language code of the product slug, omit to use primary slug." + ADDED_IN_321,
+            description="Language code of the product slug, omit to use primary slug."
+            + ADDED_IN_321,
         ),
         external_reference=graphene.Argument(
             graphene.String, description=f"External ID of the product. {ADDED_IN_310}"
