@@ -7,7 +7,7 @@ from .....core.models import EventDelivery
 from .....giftcard import GiftCardEvents
 from .....giftcard.events import gift_cards_bought_event
 from .....order import OrderStatus
-from .....order.actions import call_order_event, cancel_order
+from .....order.actions import call_order_events, cancel_order
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....tests.utils import assert_no_permission, get_graphql_content
 
@@ -133,8 +133,8 @@ def test_order_cancel_no_channel_access(
 
 
 @patch(
-    "saleor.order.actions.call_order_event",
-    wraps=call_order_event,
+    "saleor.order.actions.call_order_events",
+    wraps=call_order_events,
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
@@ -146,7 +146,7 @@ def test_order_cancel_skip_trigger_webhooks(
     mock_clean_order_cancel,
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
-    wrapped_call_order_event,
+    wrapped_call_order_events,
     setup_order_webhooks,
     staff_api_client,
     permission_group_manage_orders,
@@ -218,4 +218,4 @@ def test_order_cancel_skip_trigger_webhooks(
         any_order=True,
     )
     assert not mocked_send_webhook_request_sync.called
-    assert wrapped_call_order_event.called
+    assert wrapped_call_order_events.called
