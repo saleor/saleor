@@ -1,8 +1,10 @@
 from functools import partial
 
 import graphql
+from django.core.exceptions import ImproperlyConfigured
 from django.urls import reverse
 from django.utils.functional import SimpleLazyObject
+from django.utils.module_loading import import_string
 from graphql import (
     GraphQLCachedBackend,
     GraphQLCoreBackend,
@@ -173,6 +175,36 @@ GraphQLWebhookEventsInfoDirective = graphql.GraphQLDirective(
         graphql.DirectiveLocation.OBJECT,
     ],
 )
+
+
+def load_webhook_types():
+    """Load webhooks types so they can be used in the schema.
+
+    This function inspects webhooks by iterating over subclasses of `AsyncWebhookBase`
+    and `SyncWebhookBase` classes, and then imports the subscription type for each
+    webhook.
+    """
+    from ..webhook.base import AsyncWebhookBase, SyncWebhookBase
+
+    def load_webhooks_for_base_cls(base_cls):
+        for cls in base_cls.__subclasses__():
+            try:
+                subscription_type = import_string(cls.subscription_type)
+            except ImportError:
+                raise ImproperlyConfigured(
+                    f"Subscription type {cls.subscription_type} for event "
+                    f"{cls.event_type} could not be imported."
+                )
+            else:
+                WEBHOOK_TYPES_MAP[cls.event_type] = subscription_type
+
+    load_webhooks_for_base_cls(AsyncWebhookBase)
+    load_webhooks_for_base_cls(SyncWebhookBase)
+
+
+load_webhook_types()
+
+
 schema = build_federated_schema(
     Query,
     mutation=Mutation,

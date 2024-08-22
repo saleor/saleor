@@ -25,6 +25,10 @@ from ..shipping.utils import (
 )
 from ..warehouse import WarehouseClickAndCollectOption
 from ..warehouse.models import Warehouse
+from .webhooks.list_shipping_methods import (
+    ShippingListMethodsForCheckout,
+    convert_to_app_id_with_identifier,
+)
 
 if TYPE_CHECKING:
     from ..account.models import Address, User
@@ -107,7 +111,6 @@ class CheckoutInfo:
 
     @property
     def delivery_method_info(self) -> "DeliveryMethodBase":
-        from ..webhook.transport.shipping import convert_to_app_id_with_identifier
         from .utils import get_external_shipping_id
 
         delivery_method: Optional[Union[ShippingMethodData, Warehouse, Callable]] = None
@@ -546,6 +549,7 @@ def get_all_shipping_methods_list(
     manager,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
+    requestor = manager.requestor_getter() if manager.requestor_getter else None
     return list(
         itertools.chain(
             get_valid_internal_shipping_method_list_for_checkout_info(
@@ -555,8 +559,8 @@ def get_all_shipping_methods_list(
                 shipping_channel_listings,
                 database_connection_name=database_connection_name,
             ),
-            manager.list_shipping_methods_for_checkout(
-                checkout=checkout_info.checkout, channel_slug=checkout_info.channel.slug
+            ShippingListMethodsForCheckout.trigger_webhook(
+                checkout_info.checkout, requestor
             ),
         )
     )

@@ -1,9 +1,5 @@
 from django.db import transaction
 
-from ...checkout.fetch import CheckoutInfo
-from ...checkout.models import Checkout
-from ...order.fetch import OrderInfo
-from ...order.models import Order
 from ...webhook.event_types import WebhookEventAsyncType
 from ...webhook.models import Webhook
 
@@ -112,6 +108,11 @@ def call_event(func_obj, *func_args, **func_kwargs):
 
     Ensures that in atomic transaction event is called on_commit.
     """
+    from ...checkout.fetch import CheckoutInfo
+    from ...checkout.models import Checkout
+    from ...order.fetch import OrderInfo
+    from ...order.models import Order
+
     is_protected_instance = any(
         [
             isinstance(arg, (Checkout, CheckoutInfo, Order, OrderInfo))

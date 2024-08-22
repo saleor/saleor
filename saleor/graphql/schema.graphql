@@ -36418,35 +36418,6 @@ type CheckoutFilterShippingMethods implements Event @doc(category: "Checkout") {
 }
 
 """
-List shipping methods for checkout.
-
-Added in Saleor 3.6.
-"""
-type ShippingListMethodsForCheckout implements Event @doc(category: "Checkout") {
-  """Time of the event."""
-  issuedAt: DateTime
-
-  """Saleor version that triggered the event."""
-  version: String
-
-  """The user or application that triggered the event."""
-  issuingPrincipal: IssuingPrincipal
-
-  """The application receiving the webhook."""
-  recipient: App
-
-  """The checkout the event relates to."""
-  checkout: Checkout
-
-  """
-  Shipping methods that can be used with this checkout.
-  
-  Added in Saleor 3.6.
-  """
-  shippingMethods: [ShippingMethod!]
-}
-
-"""
 Synchronous webhook for calculating checkout/order taxes.
 
 Added in Saleor 3.7.
@@ -36855,6 +36826,35 @@ type ProductCreated implements Event @doc(category: "Products") {
 
   """The category of the product."""
   category: Category
+}
+
+"""
+List shipping methods for checkout.
+
+Added in Saleor 3.6.
+"""
+type ShippingListMethodsForCheckout implements Event @doc(category: "Checkout") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The checkout the event relates to."""
+  checkout: Checkout
+
+  """
+  Shipping methods that can be used with this checkout.
+  
+  Added in Saleor 3.6.
+  """
+  shippingMethods: [ShippingMethod!]
 }
 
 """_Any value scalar as defined by Federation spec."""
