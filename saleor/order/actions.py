@@ -9,6 +9,7 @@ from uuid import UUID
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.db import transaction
+from django.db.models import Sum
 
 from ..account.models import User
 from ..core.exceptions import AllocationError, InsufficientStock, InsufficientStockData
@@ -1120,6 +1121,19 @@ def automatically_fulfill_digital_lines(
         update_order_status(order)
 
 
+def _check_if_fulfillment_quantity_exceeds_order_quantity(order_line, quantity):
+    if order_line.quantity_unfulfilled - quantity < 0:
+        return True
+
+    allocated = order_line.allocations.aggregate(allocated=Sum("quantity_allocated"))[
+        "allocated"
+    ]
+    if allocated is not None and allocated - quantity < 0:
+        return True
+
+    return False
+
+
 def _create_fulfillment_lines(
     fulfillment: Fulfillment,
     warehouse_pk: UUID,
@@ -1161,6 +1175,13 @@ def _create_fulfillment_lines(
 
     """
     lines = [line_data["order_line"] for line_data in lines_data]
+    # we are locking the rows to prevent race conditions when creating the allocations
+    _ids = list(
+        OrderLine.objects.filter(id__in=[line.id for line in lines])
+        .order_by("pk")
+        .select_for_update(of=["self"])
+        .values_list("id", flat=True)
+    )
     variants = [line.variant for line in lines if line.variant]
     stocks = (
         Stock.objects.for_channel_and_country(channel_slug)
@@ -1173,6 +1194,7 @@ def _create_fulfillment_lines(
         variant_to_stock[stock.product_variant_id].append(stock)
 
     insufficient_stocks = []
+    allocation_lines_error = []
     fulfillment_lines = []
     lines_info = []
     for line in lines_data:
@@ -1197,6 +1219,12 @@ def _create_fulfillment_lines(
                 insufficient_stocks.append(error_data)
                 continue
 
+            if _check_if_fulfillment_quantity_exceeds_order_quantity(
+                order_line, quantity
+            ):
+                allocation_lines_error.append(order_line)
+                continue
+
             is_digital = order_line.is_digital
             lines_info.append(
                 OrderLineInfo(
@@ -1209,6 +1237,7 @@ def _create_fulfillment_lines(
             )
             if variant and is_digital:
                 variant.digital_content.urls.create(line=order_line)
+
             fulfillment_line = FulfillmentLine(
                 order_line=order_line,
                 fulfillment=fulfillment,
@@ -1228,6 +1257,9 @@ def _create_fulfillment_lines(
 
     if insufficient_stocks:
         raise InsufficientStock(insufficient_stocks)
+
+    if allocation_lines_error:
+        raise AllocationError(allocation_lines_error)
 
     if lines_info:
         if decrease_stock:

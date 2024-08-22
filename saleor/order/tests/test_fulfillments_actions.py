@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import pytest
 
-from ...core.exceptions import InsufficientStock
+from ...core.exceptions import AllocationError, InsufficientStock
 from ...order import OrderEvents
 from ...plugins.manager import get_plugins_manager
 from ...tests.utils import flush_post_commit_hooks
@@ -710,15 +710,16 @@ def test_create_fulfillments_quantity_allocated_lower_than_line_quantity(
     manager = get_plugins_manager(allow_replica=False)
 
     # when
-    [fulfillment] = create_fulfillments(
-        staff_user,
-        None,
-        order,
-        fulfillment_lines_for_warehouses,
-        manager,
-        site_settings,
-        True,
-    )
+    with pytest.raises(AllocationError):
+        create_fulfillments(
+            staff_user,
+            None,
+            order,
+            fulfillment_lines_for_warehouses,
+            manager,
+            site_settings,
+            True,
+        )
     flush_post_commit_hooks()
 
     # then
@@ -726,25 +727,19 @@ def test_create_fulfillments_quantity_allocated_lower_than_line_quantity(
     fulfillment_lines = FulfillmentLine.objects.filter(
         fulfillment__order=order
     ).order_by("pk")
-    assert fulfillment_lines[0].stock == order_line1.variant.stocks.get()
-    assert fulfillment_lines[0].quantity == line_1_qty
-    assert fulfillment_lines[1].stock == order_line2.variant.stocks.get()
-    assert fulfillment_lines[1].quantity == line_2_qty
+    assert fulfillment_lines.count() == 0
 
-    assert order.status == OrderStatus.FULFILLED
-    assert order.fulfillments.get() == fulfillment
+    assert order.status == OrderStatus.UNFULFILLED
 
     order_line1, order_line2 = order.lines.all()
-    assert order_line1.quantity_fulfilled == line_1_qty
-    assert order_line2.quantity_fulfilled == line_2_qty
+    assert order_line1.quantity_fulfilled == 0
+    assert order_line2.quantity_fulfilled == 0
 
     assert (
         Allocation.objects.filter(
             order_line__order=order, quantity_allocated__gt=0
         ).count()
-        == 0
+        == 2
     )
 
-    mock_email_fulfillment.assert_called_once_with(
-        order, order.fulfillments.get(), staff_user, None, manager
-    )
+    mock_email_fulfillment.assert_not_called()
