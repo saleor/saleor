@@ -21,4 +21,5 @@ All notable, unreleased changes to this project will be documented in this file.
 
 - Added support for numeric and lower-case boolean environment variables - #16313 by @NyanKiyoshi
 - Fixed a potential crash when Checkout metadata is accessed with high concurrency - #16411 by @patrys
+- Add slugs to product/category/collection/page translations. Allow to query by translated slug - #16449 by @delemeator
 - Fixed a crash when the Decimal scalar is passed a non-normal value - #16520 by @patrys
