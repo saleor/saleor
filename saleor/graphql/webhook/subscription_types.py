@@ -1,4 +1,5 @@
 import graphene
+from django.conf import settings
 from graphene import AbstractType, Union
 from rx import Observable
 
@@ -2862,8 +2863,10 @@ class Subscription(SubscriptionObjectType):
 
         orders_to_return = []
         if channels:
-            channel_ids = Channel.objects.filter(slug__in=channels).values_list(
-                "id", flat=True
+            channel_ids = (
+                Channel.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+                .filter(slug__in=channels)
+                .values_list("id", flat=True)
             )
             for order in orders:
                 if order.channel_id in channel_ids:

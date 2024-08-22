@@ -11,7 +11,7 @@ from .....manager import get_plugins_manager
 
 ORDER_BULK_CREATED_SUBSCRIPTION = """
 subscription {
-  orderBulkCreated(channels: ["default-channel"]) {
+  orderBulkCreated(channels: ["%s"]) {
     orders {
       id
       number
@@ -32,22 +32,26 @@ subscription {
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_order_bulk_created(
-    mocked_async, order_line, subscription_webhook, order_with_lines_channel_PLN
+    mocked_async,
+    order_line,
+    subscription_webhook,
+    order_with_lines_channel_PLN,
+    settings,
 ):
     # given
     manager = get_plugins_manager(False)
     order = order_line.order
     channel = order.channel
-    channel.slug = "default-channel"
-    channel.save()
+    assert channel.slug == settings.DEFAULT_CHANNEL_SLUG
+
     second_channel = order_with_lines_channel_PLN.channel
-    second_channel.slug = "different-channel"
-    second_channel.save()
+    assert second_channel.slug == "c-pln"
 
     event_type = WebhookEventAsyncType.ORDER_BULK_CREATED
 
-    webhook = subscription_webhook(ORDER_BULK_CREATED_SUBSCRIPTION, event_type)
-    subscription_query = SubscriptionQuery(ORDER_BULK_CREATED_SUBSCRIPTION)
+    query = ORDER_BULK_CREATED_SUBSCRIPTION % settings.DEFAULT_CHANNEL_SLUG
+    webhook = subscription_webhook(query, event_type)
+    subscription_query = SubscriptionQuery(query)
     webhook.filterable_channel_slugs = subscription_query.get_filterable_channel_slugs()
     webhook.save()
 
@@ -171,20 +175,19 @@ def test_order_bulk_created_without_channels_input(
 def test_order_bulk_created_with_different_channel(
     mocked_async,
     mocked_create_event_delivery_list_for_webhooks,
-    order_line,
+    order_with_lines_channel_PLN,
     subscription_webhook,
+    settings,
 ):
     # given
     manager = get_plugins_manager(False)
-    order = order_line.order
+    order = order_with_lines_channel_PLN
     channel = order.channel
-    channel.slug = "different-channel"
-    channel.save()
+    assert channel.slug != settings.DEFAULT_CHANNEL_SLUG
 
-    webhook = subscription_webhook(
-        ORDER_BULK_CREATED_SUBSCRIPTION, WebhookEventAsyncType.ORDER_BULK_CREATED
-    )
-    subscription_query = SubscriptionQuery(ORDER_BULK_CREATED_SUBSCRIPTION)
+    query = ORDER_BULK_CREATED_SUBSCRIPTION % settings.DEFAULT_CHANNEL_SLUG
+    webhook = subscription_webhook(query, WebhookEventAsyncType.ORDER_BULK_CREATED)
+    subscription_query = SubscriptionQuery(query)
     webhook.filterable_channel_slugs = subscription_query.get_filterable_channel_slugs()
     webhook.save()
 
@@ -210,17 +213,17 @@ def test_different_event_doesnt_trigger_webhook(
     mocked_create_event_delivery_list_for_webhooks,
     order_line,
     subscription_webhook,
+    settings,
 ):
     # given
     manager = get_plugins_manager(False)
     order = order_line.order
     channel = order.channel
-    channel.slug = "default-channel"
-    channel.save()
-    webhook = subscription_webhook(
-        ORDER_BULK_CREATED_SUBSCRIPTION, WebhookEventAsyncType.ORDER_CREATED
-    )
-    subscription_query = SubscriptionQuery(ORDER_BULK_CREATED_SUBSCRIPTION)
+    assert channel.slug == settings.DEFAULT_CHANNEL_SLUG
+
+    query = ORDER_BULK_CREATED_SUBSCRIPTION % settings.DEFAULT_CHANNEL_SLUG
+    webhook = subscription_webhook(query, WebhookEventAsyncType.ORDER_CREATED)
+    subscription_query = SubscriptionQuery(query)
     webhook.filterable_channel_slugs = subscription_query.get_filterable_channel_slugs()
     webhook.save()
 

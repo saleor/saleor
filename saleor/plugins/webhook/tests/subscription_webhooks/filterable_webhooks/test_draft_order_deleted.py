@@ -11,7 +11,7 @@ from .....manager import get_plugins_manager
 
 DRAFT_ORDER_DELETED_SUBSCRIPTION = """
 subscription {
-  draftOrderDeleted(channels: ["default-channel"]) {
+  draftOrderDeleted(channels: ["%s"]) {
     order {
       id
     }
@@ -24,19 +24,19 @@ subscription {
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
-def test_draft_order_deleted(mocked_async, order_line, subscription_webhook):
+def test_draft_order_deleted(mocked_async, order_line, subscription_webhook, settings):
     # given
     manager = get_plugins_manager(False)
 
     order = order_line.order
     channel = order.channel
-    channel.slug = "default-channel"
-    channel.save()
+    assert channel.slug == settings.DEFAULT_CHANNEL_SLUG
 
     event_type = WebhookEventAsyncType.DRAFT_ORDER_DELETED
 
-    webhook = subscription_webhook(DRAFT_ORDER_DELETED_SUBSCRIPTION, event_type)
-    subscription_query = SubscriptionQuery(DRAFT_ORDER_DELETED_SUBSCRIPTION)
+    query = DRAFT_ORDER_DELETED_SUBSCRIPTION % settings.DEFAULT_CHANNEL_SLUG
+    webhook = subscription_webhook(query, event_type)
+    subscription_query = SubscriptionQuery(query)
     webhook.filterable_channel_slugs = subscription_query.get_filterable_channel_slugs()
     webhook.save()
 
@@ -126,21 +126,22 @@ def test_draft_order_deleted_without_channels_input(
 def test_draft_order_updated_with_different_channel(
     mocked_async,
     mocked_create_event_delivery_list_for_webhooks,
-    order_line,
+    order_with_lines_channel_PLN,
     subscription_webhook,
+    settings,
 ):
     # given
     manager = get_plugins_manager(False)
 
-    order = order_line.order
+    order = order_with_lines_channel_PLN
     channel = order.channel
-    channel.slug = "different-channel"
-    channel.save()
+    assert channel.slug != settings.DEFAULT_CHANNEL_SLUG
 
     event_type = WebhookEventAsyncType.DRAFT_ORDER_DELETED
 
-    webhook = subscription_webhook(DRAFT_ORDER_DELETED_SUBSCRIPTION, event_type)
-    subscription_query = SubscriptionQuery(DRAFT_ORDER_DELETED_SUBSCRIPTION)
+    query = DRAFT_ORDER_DELETED_SUBSCRIPTION % settings.DEFAULT_CHANNEL_SLUG
+    webhook = subscription_webhook(query, event_type)
+    subscription_query = SubscriptionQuery(query)
     webhook.filterable_channel_slugs = subscription_query.get_filterable_channel_slugs()
     webhook.save()
 
@@ -166,19 +167,20 @@ def test_different_event_doesnt_trigger_webhook(
     mocked_create_event_delivery_list_for_webhooks,
     order_line,
     subscription_webhook,
+    settings,
 ):
     # given
     manager = get_plugins_manager(False)
 
     order = order_line.order
     channel = order.channel
-    channel.slug = "default-channel"
-    channel.save()
+    assert channel.slug == settings.DEFAULT_CHANNEL_SLUG
 
     event_type = WebhookEventAsyncType.ORDER_UPDATED
 
-    webhook = subscription_webhook(DRAFT_ORDER_DELETED_SUBSCRIPTION, event_type)
-    subscription_query = SubscriptionQuery(DRAFT_ORDER_DELETED_SUBSCRIPTION)
+    query = DRAFT_ORDER_DELETED_SUBSCRIPTION % settings.DEFAULT_CHANNEL_SLUG
+    webhook = subscription_webhook(query, event_type)
+    subscription_query = SubscriptionQuery(query)
     webhook.filterable_channel_slugs = subscription_query.get_filterable_channel_slugs()
     webhook.save()
 
