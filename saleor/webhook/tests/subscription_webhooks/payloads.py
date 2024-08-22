@@ -3,13 +3,13 @@ import json
 import graphene
 from django.utils import timezone
 
-from ..... import __version__
-from .....core.utils import build_absolute_uri
-from .....discount.models import Promotion
-from .....graphql.attribute.enums import AttributeInputTypeEnum, AttributeTypeEnum
-from .....graphql.discount.utils import get_categories_from_predicate
-from .....graphql.shop.types import SHOP_ID
-from .....product.models import Product
+from .... import __version__
+from ....core.utils import build_absolute_uri
+from ....discount.models import Promotion
+from ....graphql.attribute.enums import AttributeInputTypeEnum, AttributeTypeEnum
+from ....graphql.discount.utils import get_categories_from_predicate
+from ....graphql.shop.types import SHOP_ID
+from ....product.models import Product
 
 
 def generate_account_events_payload(customer_user):

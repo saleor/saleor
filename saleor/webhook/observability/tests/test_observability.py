@@ -3,13 +3,13 @@ from unittest.mock import Mock, patch
 from celery.canvas import Signature
 
 from ....core import EventDeliveryStatus
-from ....webhook.event_types import WebhookEventAsyncType
-from ....webhook.observability import concatenate_json_events
-from ....webhook.transport.asynchronous.transport import (
+from ...event_types import WebhookEventAsyncType
+from ...transport.asynchronous.transport import (
     observability_reporter_task,
     observability_send_events,
     send_observability_events,
 )
+from .. import concatenate_json_events
 
 
 @patch("saleor.webhook.transport.asynchronous.transport.group")

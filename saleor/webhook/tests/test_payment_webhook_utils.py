@@ -1,10 +1,10 @@
 import pytest
 
-from ....core import EventDeliveryStatus, private_storage
-from ....core.models import EventDelivery, EventPayload
-from ....payment import TransactionKind
-from ....webhook.const import APP_ID_PREFIX
-from ....webhook.transport.utils import (
+from ...core import EventDeliveryStatus, private_storage
+from ...core.models import EventDelivery, EventPayload
+from ...payment import TransactionKind
+from ..const import APP_ID_PREFIX
+from ..transport.utils import (
     clear_successful_delivery,
     from_payment_app_id,
     parse_list_payment_gateways_response,

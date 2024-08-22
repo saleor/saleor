@@ -1,7 +1,7 @@
 import pytest
 
-from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
-from .....webhook.models import Webhook
+from ...event_types import WebhookEventAsyncType, WebhookEventSyncType
+from ...models import Webhook
 from . import subscription_queries as queries
 
 

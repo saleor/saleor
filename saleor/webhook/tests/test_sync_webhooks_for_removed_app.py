@@ -2,10 +2,10 @@ from unittest import mock
 
 from django.utils import timezone
 
-from ....core.models import EventDelivery, EventPayload
-from ....webhook.event_types import WebhookEventSyncType
-from ....webhook.transport.synchronous.transport import trigger_all_webhooks_sync
-from ....webhook.transport.utils import parse_tax_data
+from ...core.models import EventDelivery, EventPayload
+from ..event_types import WebhookEventSyncType
+from ..transport.synchronous.transport import trigger_all_webhooks_sync
+from ..transport.utils import parse_tax_data
 
 
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")

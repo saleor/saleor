@@ -2,8 +2,8 @@ import decimal
 
 import pytest
 
-from ....core.taxes import TaxData
-from ....webhook.transport.utils import (
+from ...core.taxes import TaxData
+from ..transport.utils import (
     _unsafe_parse_tax_data,
     _unsafe_parse_tax_line_data,
     parse_tax_data,

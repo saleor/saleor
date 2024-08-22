@@ -116,7 +116,6 @@ from ..payment.utils import create_manual_adjustment_events
 from ..permission.enums import get_permissions
 from ..permission.models import Permission
 from ..plugins.manager import get_plugins_manager
-from ..plugins.webhook.tests.subscription_webhooks import subscription_queries
 from ..product import ProductMediaTypes, ProductTypeKind
 from ..product.models import (
     Category,
@@ -162,6 +161,7 @@ from ..warehouse.models import (
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..webhook.models import Webhook, WebhookEvent
 from ..webhook.observability import WebhookData
+from ..webhook.tests.subscription_webhooks import subscription_queries
 from ..webhook.transport.utils import WebhookResponse, to_payment_app_id
 from .utils import dummy_editorjs
 
@@ -7890,6 +7890,33 @@ def tax_app_with_subscription_webhooks(db, permission_handle_taxes):
         ]
     )
     return app
+
+
+@pytest.fixture
+def tax_checkout_webhook(tax_app):
+    webhook = Webhook.objects.create(
+        name="Tax checkout webhook",
+        app=tax_app,
+        target_url="https://www.example.com/tax-checkout",
+    )
+    webhook.events.create(event_type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES)
+    return webhook
+
+
+@pytest.fixture
+def tax_order_webhook(tax_app):
+    webhook = Webhook.objects.create(
+        name="Tax order webhook",
+        app=tax_app,
+        target_url="https://www.example.com/tax-order",
+    )
+    webhook.events.create(event_type=WebhookEventSyncType.ORDER_CALCULATE_TAXES)
+    return webhook
+
+
+@pytest.fixture
+def tax_app_with_webhooks(tax_app, tax_checkout_webhook, tax_order_webhook):
+    return tax_app
 
 
 @pytest.fixture

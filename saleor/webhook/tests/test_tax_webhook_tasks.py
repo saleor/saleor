@@ -2,12 +2,12 @@ from unittest import mock
 
 import pytest
 
-from ....core import EventDeliveryStatus
-from ....core.models import EventDelivery, EventPayload
-from ....webhook.event_types import WebhookEventSyncType
-from ....webhook.models import Webhook, WebhookEvent
-from ....webhook.transport.synchronous.transport import trigger_all_webhooks_sync
-from ....webhook.transport.utils import parse_tax_data
+from ...core import EventDeliveryStatus
+from ...core.models import EventDelivery, EventPayload
+from ..event_types import WebhookEventSyncType
+from ..models import Webhook, WebhookEvent
+from ..transport.synchronous import trigger_all_webhooks_sync
+from ..transport.utils import parse_tax_data
 
 
 @pytest.fixture

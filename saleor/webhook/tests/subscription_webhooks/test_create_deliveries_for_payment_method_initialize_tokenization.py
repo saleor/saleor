@@ -2,12 +2,10 @@ import json
 
 import graphene
 
-from .....payment import TokenizedPaymentFlow
-from .....payment.interface import PaymentMethodInitializeTokenizationRequestData
-from .....webhook.event_types import WebhookEventSyncType
-from .....webhook.transport.asynchronous.transport import (
-    create_deliveries_for_subscriptions,
-)
+from ....payment import TokenizedPaymentFlow
+from ....payment.interface import PaymentMethodInitializeTokenizationRequestData
+from ...event_types import WebhookEventSyncType
+from ...transport.asynchronous import create_deliveries_for_subscriptions
 
 PAYMENT_METHOD_INITIALIZE_TOKENIZATION_SESSION = """
 subscription{

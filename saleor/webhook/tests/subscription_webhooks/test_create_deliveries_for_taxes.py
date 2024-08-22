@@ -7,19 +7,19 @@ import pytest
 from freezegun import freeze_time
 from prices import Money, TaxedMoney, fixed_discount
 
-from .....core.prices import quantize_price
-from .....discount import DiscountValueType, VoucherType
-from .....discount.models import PromotionRule
-from .....graphql.core.utils import to_global_id_or_none
-from .....order import OrderStatus
-from .....order.calculations import fetch_order_prices_if_expired
-from .....order.models import Order
-from .....order.utils import update_discount_for_order_line
-from .....plugins.manager import get_plugins_manager
-from .....tests.fixtures import recalculate_order
-from .....webhook.event_types import WebhookEventSyncType
-from .....webhook.models import Webhook
-from .....webhook.transport.synchronous.transport import (
+from ....core.prices import quantize_price
+from ....discount import DiscountValueType, VoucherType
+from ....discount.models import PromotionRule
+from ....graphql.core.utils import to_global_id_or_none
+from ....order import OrderStatus
+from ....order.calculations import fetch_order_prices_if_expired
+from ....order.models import Order
+from ....order.utils import update_discount_for_order_line
+from ....plugins.manager import get_plugins_manager
+from ....tests.fixtures import recalculate_order
+from ...event_types import WebhookEventSyncType
+from ...models import Webhook
+from ...transport.synchronous.transport import (
     create_delivery_for_subscription_sync_event,
 )
 
