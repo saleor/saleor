@@ -141,7 +141,10 @@ class WebhookCreate(ModelMutation, NotifyUserEventValidationMixin):
             if len(filterable_channel_slugs) > MAX_FILTERABLE_CHANNEL_SLUGS_LIMIT:
                 raise_validation_error(
                     field="query",
-                    message="Too many channel slugs provided in the query",
+                    message=(
+                        "Too many channels provided in the filter, the maximum number "
+                        f"is {MAX_FILTERABLE_CHANNEL_SLUGS_LIMIT}"
+                    ),
                     code=WebhookErrorCode.INVALID,
                 )
             cleaned_data["filterable_channel_slugs"] = filterable_channel_slugs

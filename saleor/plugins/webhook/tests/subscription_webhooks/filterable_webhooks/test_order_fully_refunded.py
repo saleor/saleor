@@ -11,7 +11,7 @@ from .....manager import get_plugins_manager
 
 ORDER_FULLY_REFUNDED_SUBSCRIPTION = """
 subscription {
-  orderFullyRefunded(channels: ["default-channel"]) {
+  orderFullyRefunded(channels: ["%s"]) {
     order {
       id
       number
@@ -31,17 +31,18 @@ subscription {
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
-def test_order_fully_refunded(mocked_async, order_line, subscription_webhook):
+def test_order_fully_refunded(mocked_async, order_line, subscription_webhook, settings):
     # given
     manager = get_plugins_manager(False)
     order = order_line.order
     channel = order.channel
-    channel.slug = "default-channel"
-    channel.save()
+    assert channel.slug == settings.DEFAULT_CHANNEL_SLUG
+
     event_type = WebhookEventAsyncType.ORDER_FULLY_REFUNDED
 
-    webhook = subscription_webhook(ORDER_FULLY_REFUNDED_SUBSCRIPTION, event_type)
-    subscription_query = SubscriptionQuery(ORDER_FULLY_REFUNDED_SUBSCRIPTION)
+    query = ORDER_FULLY_REFUNDED_SUBSCRIPTION % settings.DEFAULT_CHANNEL_SLUG
+    webhook = subscription_webhook(query, event_type)
+    subscription_query = SubscriptionQuery(query)
     webhook.filterable_channel_slugs = subscription_query.get_filterable_channel_slugs()
     webhook.save()
 
@@ -164,20 +165,21 @@ def test_order_fully_refunded_without_channels_input(
 def test_order_fully_refunded_with_different_channel(
     mocked_async,
     mocked_create_event_delivery_list_for_webhooks,
-    order_line,
+    order_with_lines_channel_PLN,
     subscription_webhook,
+    settings,
 ):
     # given
-    order = order_line.order
-    channel = order.channel
-    channel.slug = "different-channel"
-    channel.save()
     manager = get_plugins_manager(False)
+    order = order_with_lines_channel_PLN
+    channel = order.channel
+    assert channel.slug != settings.DEFAULT_CHANNEL_SLUG
 
     event_type = WebhookEventAsyncType.ORDER_FULLY_REFUNDED
 
-    webhook = subscription_webhook(ORDER_FULLY_REFUNDED_SUBSCRIPTION, event_type)
-    subscription_query = SubscriptionQuery(ORDER_FULLY_REFUNDED_SUBSCRIPTION)
+    query = ORDER_FULLY_REFUNDED_SUBSCRIPTION % settings.DEFAULT_CHANNEL_SLUG
+    webhook = subscription_webhook(query, event_type)
+    subscription_query = SubscriptionQuery(query)
     webhook.filterable_channel_slugs = subscription_query.get_filterable_channel_slugs()
     webhook.save()
 
@@ -203,18 +205,19 @@ def test_different_event_doesnt_trigger_webhook(
     mocked_create_event_delivery_list_for_webhooks,
     order_line,
     subscription_webhook,
+    settings,
 ):
     # given
     manager = get_plugins_manager(False)
     order = order_line.order
     channel = order.channel
-    channel.slug = "default-channel"
-    channel.save()
+    assert channel.slug == settings.DEFAULT_CHANNEL_SLUG
 
     event_type = WebhookEventAsyncType.ORDER_CREATED
 
-    webhook = subscription_webhook(ORDER_FULLY_REFUNDED_SUBSCRIPTION, event_type)
-    subscription_query = SubscriptionQuery(ORDER_FULLY_REFUNDED_SUBSCRIPTION)
+    query = ORDER_FULLY_REFUNDED_SUBSCRIPTION % settings.DEFAULT_CHANNEL_SLUG
+    webhook = subscription_webhook(query, event_type)
+    subscription_query = SubscriptionQuery(query)
     webhook.filterable_channel_slugs = subscription_query.get_filterable_channel_slugs()
     webhook.save()
 
