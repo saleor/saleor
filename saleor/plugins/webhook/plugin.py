@@ -1369,7 +1369,7 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.DRAFT_ORDER_CREATED
-        if webhooks := self._get_webhooks_for_event(event_type, webhooks):
+        if webhooks := self._get_webhooks_for_order_events(event_type, order, webhooks):
             order_data_generator = partial(
                 generate_order_payload, order, self.requestor
             )
@@ -1389,7 +1389,7 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.DRAFT_ORDER_UPDATED
-        if webhooks := self._get_webhooks_for_event(event_type, webhooks):
+        if webhooks := self._get_webhooks_for_order_events(event_type, order, webhooks):
             order_data_generator = partial(
                 generate_order_payload, order, self.requestor
             )
@@ -1409,7 +1409,7 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.DRAFT_ORDER_DELETED
-        if webhooks := self._get_webhooks_for_event(event_type, webhooks):
+        if webhooks := self._get_webhooks_for_order_events(event_type, order, webhooks):
             order_data_generator = partial(
                 generate_order_payload, order, self.requestor
             )

@@ -2722,6 +2722,32 @@ class Subscription(SubscriptionObjectType):
         Event,
         description="Look up subscription event." + ADDED_IN_32,
     )
+    draft_order_created = graphene.Field(
+        DraftOrderCreated,
+        description=(
+            "Event sent when new draft order is created."
+            + ADDED_IN_320
+            + PREVIEW_FEATURE
+        ),
+        resolver=default_order_resolver,
+        channels=channels_argument,
+    )
+    draft_order_updated = graphene.Field(
+        DraftOrderUpdated,
+        description=(
+            "Event sent when draft order is updated." + ADDED_IN_320 + PREVIEW_FEATURE
+        ),
+        resolver=default_order_resolver,
+        channels=channels_argument,
+    )
+    draft_order_deleted = graphene.Field(
+        DraftOrderDeleted,
+        description=(
+            "Event sent when draft order is deleted." + ADDED_IN_320 + PREVIEW_FEATURE
+        ),
+        resolver=default_order_resolver,
+        channels=channels_argument,
+    )
     order_created = graphene.Field(
         OrderCreated,
         description=(
