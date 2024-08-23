@@ -1,4 +1,5 @@
 import graphene
+from django.conf import settings
 from graphene import AbstractType, Union
 from rx import Observable
 
@@ -33,6 +34,7 @@ from ...product.models import (
 )
 from ...shipping.models import ShippingMethodTranslation
 from ...thumbnail.views import TYPE_TO_MODEL_DATA_MAPPING
+from ...webhook.const import MAX_FILTERABLE_CHANNEL_SLUGS_LIMIT
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..account.types import User as UserType
 from ..app.types import App as AppType
@@ -58,6 +60,7 @@ from ..core.descriptions import (
     ADDED_IN_317,
     ADDED_IN_318,
     ADDED_IN_319,
+    ADDED_IN_320,
     DEPRECATED_IN_3X_EVENT,
     PREVIEW_FEATURE,
 )
@@ -2700,10 +2703,149 @@ class WarehouseMetadataUpdated(SubscriptionObjectType, WarehouseBase):
         description = "Event sent when warehouse metadata is updated." + ADDED_IN_38
 
 
+def default_order_resolver(root, info, channels=None):
+    return Observable.from_([root])
+
+
+channels_argument = graphene.Argument(
+    NonNullList(graphene.String),
+    description=(
+        "List of channel slugs. The event will be sent only if the order "
+        "belongs to one of the provided channels. If the channel slug list is "
+        "empty, orders that belong to any channel will be sent. Maximally "
+        f"{MAX_FILTERABLE_CHANNEL_SLUGS_LIMIT} items."
+    ),
+)
+
+
 class Subscription(SubscriptionObjectType):
     event = graphene.Field(
         Event,
         description="Look up subscription event." + ADDED_IN_32,
+    )
+    draft_order_created = graphene.Field(
+        DraftOrderCreated,
+        description=(
+            "Event sent when new draft order is created."
+            + ADDED_IN_320
+            + PREVIEW_FEATURE
+        ),
+        resolver=default_order_resolver,
+        channels=channels_argument,
+    )
+    draft_order_updated = graphene.Field(
+        DraftOrderUpdated,
+        description=(
+            "Event sent when draft order is updated." + ADDED_IN_320 + PREVIEW_FEATURE
+        ),
+        resolver=default_order_resolver,
+        channels=channels_argument,
+    )
+    draft_order_deleted = graphene.Field(
+        DraftOrderDeleted,
+        description=(
+            "Event sent when draft order is deleted." + ADDED_IN_320 + PREVIEW_FEATURE
+        ),
+        resolver=default_order_resolver,
+        channels=channels_argument,
+    )
+    order_created = graphene.Field(
+        OrderCreated,
+        description=(
+            "Event sent when new order is created." + ADDED_IN_320 + PREVIEW_FEATURE
+        ),
+        resolver=default_order_resolver,
+        channels=channels_argument,
+    )
+    order_updated = graphene.Field(
+        OrderUpdated,
+        description=(
+            "Event sent when order is updated." + ADDED_IN_320 + PREVIEW_FEATURE
+        ),
+        resolver=default_order_resolver,
+        channels=channels_argument,
+    )
+    order_confirmed = graphene.Field(
+        OrderConfirmed,
+        description=(
+            "Event sent when order is confirmed." + ADDED_IN_320 + PREVIEW_FEATURE
+        ),
+        resolver=default_order_resolver,
+        channels=channels_argument,
+    )
+    order_paid = graphene.Field(
+        OrderPaid,
+        description=(
+            "Payment has been made. The order may be partially or fully paid."
+            + ADDED_IN_320
+            + PREVIEW_FEATURE
+        ),
+        resolver=default_order_resolver,
+        channels=channels_argument,
+    )
+    order_fully_paid = graphene.Field(
+        OrderFullyPaid,
+        description=(
+            "Event sent when order is fully paid." + ADDED_IN_320 + PREVIEW_FEATURE
+        ),
+        resolver=default_order_resolver,
+        channels=channels_argument,
+    )
+    order_refunded = graphene.Field(
+        OrderRefunded,
+        description=(
+            "The order received a refund. The order may be partially or fully "
+            "refunded." + ADDED_IN_320 + PREVIEW_FEATURE
+        ),
+        resolver=default_order_resolver,
+        channels=channels_argument,
+    )
+    order_fully_refunded = graphene.Field(
+        OrderFullyRefunded,
+        description=("The order is fully refunded." + ADDED_IN_320 + PREVIEW_FEATURE),
+        resolver=default_order_resolver,
+        channels=channels_argument,
+    )
+    order_fulfilled = graphene.Field(
+        OrderFulfilled,
+        description=(
+            "Event sent when order is fulfilled." + ADDED_IN_320 + PREVIEW_FEATURE
+        ),
+        resolver=default_order_resolver,
+        channels=channels_argument,
+    )
+    order_cancelled = graphene.Field(
+        OrderCancelled,
+        description=(
+            "Event sent when order is cancelled." + ADDED_IN_320 + PREVIEW_FEATURE
+        ),
+        resolver=default_order_resolver,
+        channels=channels_argument,
+    )
+    order_expired = graphene.Field(
+        OrderExpired,
+        description=(
+            "Event sent when order becomes expired." + ADDED_IN_320 + PREVIEW_FEATURE
+        ),
+        resolver=default_order_resolver,
+        channels=channels_argument,
+    )
+    order_metadata_updated = graphene.Field(
+        OrderMetadataUpdated,
+        description=(
+            "Event sent when order metadata is updated."
+            + ADDED_IN_320
+            + PREVIEW_FEATURE
+        ),
+        resolver=default_order_resolver,
+        channels=channels_argument,
+    )
+    order_bulk_created = graphene.Field(
+        OrderBulkCreated,
+        description=(
+            "Event sent when orders are imported." + ADDED_IN_320 + PREVIEW_FEATURE
+        ),
+        channels=channels_argument,
     )
 
     class Meta:
@@ -2711,6 +2853,26 @@ class Subscription(SubscriptionObjectType):
 
     @staticmethod
     def resolve_event(root, info: ResolveInfo):
+        return Observable.from_([root])
+
+    @staticmethod
+    def resolve_order_bulk_created(root, info: ResolveInfo, channels=None):
+        event_type, orders = root
+        if event_type != WebhookEventAsyncType.ORDER_BULK_CREATED:
+            return Observable.from_([])
+
+        orders_to_return = []
+        if channels:
+            channel_ids = (
+                Channel.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+                .filter(slug__in=channels)
+                .values_list("id", flat=True)
+            )
+            for order in orders:
+                if order.channel_id in channel_ids:
+                    orders_to_return.append(order)
+            root = (event_type, orders_to_return)
+            return Observable.from_([root])
         return Observable.from_([root])
 
 
