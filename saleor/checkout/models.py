@@ -7,8 +7,9 @@ from typing import TYPE_CHECKING, Optional
 from uuid import uuid4
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
-from django.db import models
+from django.db import DatabaseError, models
 from django.utils import timezone
 from django.utils.encoding import smart_str
 from django_countries.fields import Country, CountryField
@@ -22,6 +23,7 @@ from ..giftcard.models import GiftCard
 from ..permission.enums import CheckoutPermissions
 from ..shipping.models import ShippingMethod
 from . import CheckoutAuthorizeStatus, CheckoutChargeStatus
+from .error_codes import CheckoutErrorCode
 
 if TYPE_CHECKING:
     from ..payment.models import Payment
@@ -272,6 +274,23 @@ class Checkout(models.Model):
         if not country_code == saved_country.code:
             self.set_country(country_code, commit=True)
         return country_code
+
+    def save_or_database_error(self, fields_to_update: Optional[list] = None) -> None:
+        removed_error = "Save with update_fields did not affect any rows."
+        params = {"update_fields": fields_to_update} if fields_to_update else {}
+        try:
+            self.save(**params)  # type: ignore[arg-type]
+        except DatabaseError as error:
+            if type(error) is DatabaseError and str(error) == removed_error:
+                raise ValidationError(
+                    {
+                        "checkout": ValidationError(
+                            "Checkout does no longer exists.",
+                            code=CheckoutErrorCode.DELETED.value,
+                        )
+                    }
+                )
+            raise
 
 
 class CheckoutLine(ModelWithMetadata):
