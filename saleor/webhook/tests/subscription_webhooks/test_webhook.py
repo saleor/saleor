@@ -1,4 +1,3 @@
-import dataclasses
 import json
 from unittest import mock
 
@@ -8,13 +7,6 @@ from ...models import Webhook
 from ...transport.asynchronous import trigger_webhooks_async
 from ...transport.synchronous import trigger_webhook_sync
 from .payloads import generate_payment_payload
-
-TEST_ID = "test_id"
-
-
-@dataclasses.dataclass
-class FakeDelivery:
-    id = TEST_ID
 
 
 @mock.patch(
