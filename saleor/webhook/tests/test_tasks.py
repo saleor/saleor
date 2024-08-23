@@ -8,17 +8,17 @@ from freezegun import freeze_time
 from graphene import Node
 from requests_hardened import HTTPSession
 
-from ....core import EventDeliveryStatus
-from ....core.models import EventDelivery, EventPayload
-from ....payment import TransactionEventType
-from ....payment.interface import TransactionActionData
-from ....payment.models import TransactionEvent
-from ....payment.transaction_item_calculations import recalculate_transaction_amounts
-from ....tests.utils import flush_post_commit_hooks
-from ....webhook.event_types import WebhookEventSyncType
-from ....webhook.payloads import generate_transaction_action_request_payload
-from ....webhook.transport.synchronous.transport import handle_transaction_request_task
-from ....webhook.transport.utils import trigger_transaction_request
+from ...core import EventDeliveryStatus
+from ...core.models import EventDelivery, EventPayload
+from ...payment import TransactionEventType
+from ...payment.interface import TransactionActionData
+from ...payment.models import TransactionEvent
+from ...payment.transaction_item_calculations import recalculate_transaction_amounts
+from ...tests.utils import flush_post_commit_hooks
+from ..event_types import WebhookEventSyncType
+from ..payloads import generate_transaction_action_request_payload
+from ..transport.synchronous.transport import handle_transaction_request_task
+from ..transport.utils import trigger_transaction_request
 
 
 @pytest.fixture

@@ -4,17 +4,15 @@ from decimal import Decimal
 
 import graphene
 
-from .....channel import TransactionFlowStrategy
-from .....payment.interface import (
+from ....channel import TransactionFlowStrategy
+from ....payment.interface import (
     PaymentGatewayData,
     TransactionProcessActionData,
     TransactionSessionData,
 )
-from .....webhook.event_types import WebhookEventSyncType
-from .....webhook.models import Webhook
-from .....webhook.transport.asynchronous.transport import (
-    create_deliveries_for_subscriptions,
-)
+from ...event_types import WebhookEventSyncType
+from ...models import Webhook
+from ...transport.asynchronous import create_deliveries_for_subscriptions
 
 TRANSACTION_INITIALIZE_SESSION = """
 subscription {

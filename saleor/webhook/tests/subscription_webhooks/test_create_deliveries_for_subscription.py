@@ -7,19 +7,19 @@ import pytest
 from django.core.files import File
 from freezegun import freeze_time
 
-from .....channel.models import Channel
-from .....giftcard.models import GiftCard
-from .....graphql.webhook.subscription_query import SubscriptionQuery
-from .....menu.models import Menu, MenuItem
-from .....product.models import Category
-from .....shipping.models import ShippingMethod, ShippingZone
-from .....site.models import SiteSettings
-from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
-from .....webhook.transport.asynchronous.transport import (
+from ....channel.models import Channel
+from ....giftcard.models import GiftCard
+from ....graphql.webhook.subscription_query import SubscriptionQuery
+from ....menu.models import Menu, MenuItem
+from ....product.models import Category
+from ....shipping.models import ShippingMethod, ShippingZone
+from ....site.models import SiteSettings
+from ...event_types import WebhookEventAsyncType, WebhookEventSyncType
+from ...transport.asynchronous.transport import (
     create_deliveries_for_subscriptions,
     logger,
 )
-from .....webhook.transport.synchronous.transport import (
+from ...transport.synchronous.transport import (
     create_delivery_for_subscription_sync_event,
 )
 from . import subscription_queries

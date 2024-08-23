@@ -1,9 +1,9 @@
 import pytest
 
-from ....app.models import App
-from ....webhook.event_types import WebhookEventAsyncType
-from ....webhook.models import Webhook, WebhookEvent
-from ....webhook.utils import get_webhooks_for_event
+from ...app.models import App
+from ..event_types import WebhookEventAsyncType
+from ..models import Webhook, WebhookEvent
+from ..utils import get_webhooks_for_event
 
 
 @pytest.fixture

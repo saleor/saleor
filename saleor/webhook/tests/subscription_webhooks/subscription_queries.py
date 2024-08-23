@@ -2,8 +2,8 @@ from enum import Enum
 
 from graphene.utils.str_converters import to_snake_case
 
-from .....graphql.tests.queries import fragments
-from .....graphql.webhook.subscription_types import TRANSLATIONS_TYPES_MAP
+from ....graphql.tests.queries import fragments
+from ....graphql.webhook.subscription_types import TRANSLATIONS_TYPES_MAP
 
 ACCOUNT_CONFIRMATION_REQUESTED = (
     fragments.CUSTOMER_DETAILS

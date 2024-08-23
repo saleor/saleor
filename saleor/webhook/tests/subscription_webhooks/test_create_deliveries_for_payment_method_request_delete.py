@@ -2,11 +2,9 @@ import json
 
 import graphene
 
-from .....payment.interface import StoredPaymentMethodRequestDeleteData
-from .....webhook.event_types import WebhookEventSyncType
-from .....webhook.transport.asynchronous.transport import (
-    create_deliveries_for_subscriptions,
-)
+from ....payment.interface import StoredPaymentMethodRequestDeleteData
+from ...event_types import WebhookEventSyncType
+from ...transport.asynchronous import create_deliveries_for_subscriptions
 
 STORED_PAYMENT_METHOD_DELETE_REQUESTED = """
 subscription {

@@ -9,10 +9,10 @@ from django.core.serializers import serialize
 from google.cloud.pubsub_v1 import PublisherClient
 from requests_hardened import HTTPSession
 
-from ....core.models import EventDelivery
-from ....webhook.event_types import WebhookEventAsyncType
-from ....webhook.transport import signature_for_payload
-from ....webhook.transport.asynchronous.transport import trigger_webhooks_async
+from ...core.models import EventDelivery
+from ..event_types import WebhookEventAsyncType
+from ..transport import signature_for_payload
+from ..transport.asynchronous import trigger_webhooks_async
 
 
 @pytest.mark.parametrize(

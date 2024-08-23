@@ -116,7 +116,6 @@ from ..payment.utils import create_manual_adjustment_events
 from ..permission.enums import get_permissions
 from ..permission.models import Permission
 from ..plugins.manager import get_plugins_manager
-from ..plugins.webhook.tests.subscription_webhooks import subscription_queries
 from ..product import ProductMediaTypes, ProductTypeKind
 from ..product.models import (
     Category,
@@ -162,6 +161,7 @@ from ..warehouse.models import (
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..webhook.models import Webhook, WebhookEvent
 from ..webhook.observability import WebhookData
+from ..webhook.tests.subscription_webhooks import subscription_queries
 from ..webhook.transport.utils import WebhookResponse, to_payment_app_id
 from .utils import dummy_editorjs
 
