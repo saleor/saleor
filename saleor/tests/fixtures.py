@@ -7893,33 +7893,6 @@ def tax_app_with_subscription_webhooks(db, permission_handle_taxes):
 
 
 @pytest.fixture
-def tax_checkout_webhook(tax_app):
-    webhook = Webhook.objects.create(
-        name="Tax checkout webhook",
-        app=tax_app,
-        target_url="https://www.example.com/tax-checkout",
-    )
-    webhook.events.create(event_type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES)
-    return webhook
-
-
-@pytest.fixture
-def tax_order_webhook(tax_app):
-    webhook = Webhook.objects.create(
-        name="Tax order webhook",
-        app=tax_app,
-        target_url="https://www.example.com/tax-order",
-    )
-    webhook.events.create(event_type=WebhookEventSyncType.ORDER_CALCULATE_TAXES)
-    return webhook
-
-
-@pytest.fixture
-def tax_app_with_webhooks(tax_app, tax_checkout_webhook, tax_order_webhook):
-    return tax_app
-
-
-@pytest.fixture
 def observability_webhook(db, permission_manage_observability):
     app = App.objects.create(name="Observability App", is_active=True)
     app.tokens.create(name="Default")

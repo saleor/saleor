@@ -12,6 +12,7 @@ from ..transport.utils import parse_tax_data
 
 @pytest.fixture
 def tax_checkout_webhooks(tax_app):
+    tax_app.webhooks.all().delete()
     webhooks = [
         Webhook(
             name=f"Tax checkout webhook no {i}",
@@ -39,13 +40,16 @@ def tax_checkout_webhooks(tax_app):
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_trigger_tax_webhook_sync(
     mock_request,
-    tax_checkout_webhook,
+    tax_app,
     tax_data_response,
 ):
     # given
     mock_request.return_value = tax_data_response
     event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
     data = '{"key": "value"}'
+    webhook = tax_app.webhooks.get(name="tax-webhook-1")
+    webhook.subscription_query = None
+    webhook.save(update_fields=["subscription_query"])
 
     # when
     tax_data = trigger_all_webhooks_sync(event_type, lambda: data, parse_tax_data)
@@ -57,7 +61,7 @@ def test_trigger_tax_webhook_sync(
     assert delivery.status == EventDeliveryStatus.PENDING
     assert delivery.event_type == event_type
     assert delivery.payload == payload
-    assert delivery.webhook == tax_checkout_webhook
+    assert delivery.webhook == webhook
     mock_request.assert_called_once_with(delivery)
     assert tax_data == parse_tax_data(tax_data_response)
 
