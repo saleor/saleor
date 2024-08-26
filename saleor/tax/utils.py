@@ -1,6 +1,6 @@
 from collections.abc import Iterable
 from decimal import Decimal
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 from django.conf import settings
 from prices import TaxedMoney
@@ -262,4 +262,11 @@ def check_negative_values_in_tax_data(tax_data: TaxData) -> bool:
         if line.total_gross_amount < 0 or line.total_net_amount < 0:
             return True
 
+    return False
+
+
+def check_negative_values_in_tax_data_from_plugin(tax_data: dict[str, Any]) -> bool:
+    for line in tax_data.get("lines", []):
+        if line.get("lineAmount", 0) < 0:
+            return True
     return False
