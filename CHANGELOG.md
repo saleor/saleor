@@ -14,6 +14,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### GraphQL API
 
 - Add `CheckoutCustomerNoteUpdate` mutation - #16315 by @pitkes22
+- Add `customerNote` field to `Checkout` type to make it consistent with `Order` model - #16561 by @Air-t
 
 ### Webhooks
 

@@ -10859,8 +10859,15 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   """The shipping address of the checkout."""
   shippingAddress: Address
 
+  """
+  The customer note for the checkout. 
+  
+  Added in Saleor 3.21.
+  """
+  customerNote: String!
+
   """The note for the checkout."""
-  note: String!
+  note: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `customerNote` instead.")
 
   """
   The total discount applied to the checkout. Note: Only discount created via voucher are included in this field.
