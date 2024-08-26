@@ -605,4 +605,4 @@ def _set_checkout_base_subtotal_and_total_on_checkout_creation(
     # base total and subtotal is the same, as there is no option to set the
     # delivery method during checkout creation
     checkout.base_total = checkout.base_subtotal
-    checkout.save(update_fields=["base_subtotal_amount", "base_total_amount"])
+    checkout.save_if_not_deleted(["base_subtotal_amount", "base_total_amount"])

@@ -216,11 +216,8 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         invalidate_prices_updated_fields = invalidate_checkout(
             checkout_info, lines, manager, save=False
         )
-        checkout.save(
-            update_fields=[
-                "shipping_method",
-            ]
-            + invalidate_prices_updated_fields
+        checkout.save_if_not_deleted(
+            ["shipping_method"] + invalidate_prices_updated_fields
         )
         get_checkout_metadata(checkout).save()
 
@@ -257,11 +254,8 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         invalidate_prices_updated_fields = invalidate_checkout(
             checkout_info, lines, manager, save=False
         )
-        checkout.save(
-            update_fields=[
-                "shipping_method",
-            ]
-            + invalidate_prices_updated_fields
+        checkout.save_if_not_deleted(
+            ["shipping_method"] + invalidate_prices_updated_fields
         )
         get_checkout_metadata(checkout).save()
         call_checkout_info_event(
@@ -280,11 +274,8 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         invalidate_prices_updated_fields = invalidate_checkout(
             checkout_info, lines, manager, save=False
         )
-        checkout.save(
-            update_fields=[
-                "shipping_method",
-            ]
-            + invalidate_prices_updated_fields
+        checkout.save_if_not_deleted(
+            ["shipping_method"] + invalidate_prices_updated_fields
         )
         get_checkout_metadata(checkout).save()
 

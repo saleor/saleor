@@ -1,8 +1,13 @@
 from unittest.mock import call, patch
 
+import before_after
+import pytest
+from django.db import DatabaseError, OperationalError
 from django.test import override_settings
 
 from .....checkout.actions import call_checkout_event
+from .....checkout.error_codes import CheckoutErrorCode
+from .....checkout.models import Checkout
 from .....core.models import EventDelivery
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....core.utils import to_global_id_or_none
@@ -139,3 +144,63 @@ def test_checkout_update_language_code_triggers_webhooks(
         ]
     )
     assert wrapped_call_checkout_event.called
+
+
+def test_checkout_update_language_code_deleted_database_error(
+    user_api_client,
+    checkout_with_gift_card,
+    customer_user2,
+    permission_impersonate_user,
+):
+    # given
+    language_code = "PL"
+    variables = {
+        "id": to_global_id_or_none(checkout_with_gift_card),
+        "languageCode": language_code,
+    }
+
+    # when
+    with before_after.before(
+        "saleor.checkout.models.Checkout.save_or_database_error",
+        lambda *args, **kwargs: Checkout.objects.all().delete(),
+    ):
+        response = user_api_client.post_graphql(
+            MUTATION_CHECKOUT_UPDATE_LANGUAGE_CODE, variables
+        )
+    # then
+    data = get_graphql_content(response)["data"]["checkoutLanguageCodeUpdate"]
+    errors = data["errors"]
+
+    assert len(errors) == 1
+    assert errors[0]["field"] == "checkout"
+    assert errors[0]["message"] == "Checkout does no longer exists."
+    assert errors[0]["code"] == CheckoutErrorCode.DELETED.name
+
+
+@pytest.mark.parametrize("error", [OperationalError, DatabaseError])
+def test_checkout_update_language_code_raise_error_which_inherits_from_database_error(
+    user_api_client,
+    checkout_with_gift_card,
+    customer_user2,
+    permission_impersonate_user,
+    error,
+):
+    # given
+    language_code = "PL"
+    variables = {
+        "id": to_global_id_or_none(checkout_with_gift_card),
+        "languageCode": language_code,
+    }
+    # when
+    with patch.object(Checkout, "save", side_effect=error):
+        response = user_api_client.post_graphql(
+            MUTATION_CHECKOUT_UPDATE_LANGUAGE_CODE, variables
+        )
+
+    # then
+    data = get_graphql_content(response, ignore_errors=True)
+    errors = data["errors"]
+
+    assert len(errors) == 1
+    assert errors[0]["message"] == "Internal Server Error"
+    assert errors[0]["extensions"]["exception"]["code"] == error.__name__

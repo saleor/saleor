@@ -65,7 +65,7 @@ class CheckoutLanguageCodeUpdate(BaseMutation):
         checkout = get_checkout(cls, info, checkout_id=checkout_id, token=token, id=id)
 
         checkout.language_code = language_code
-        checkout.save(update_fields=["language_code", "last_change"])
+        checkout.save_if_not_deleted(["language_code", "last_change"])
         manager = get_plugin_manager_promise(info.context).get()
         call_checkout_event(
             manager,

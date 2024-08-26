@@ -52,7 +52,7 @@ class CheckoutCustomerNoteUpdate(BaseMutation):
 
         checkout.note = customer_note
         cls.clean_instance(info, checkout)
-        checkout.save(update_fields=["note", "last_change"])
+        checkout.save_if_not_deleted(["note", "last_change"])
         manager = get_plugin_manager_promise(info.context).get()
         call_checkout_event(
             manager,

@@ -78,7 +78,7 @@ class CheckoutEmailUpdate(BaseMutation):
 
         checkout.email = email
         cls.clean_instance(info, checkout)
-        checkout.save(update_fields=["email", "last_change"])
+        checkout.save_if_not_deleted(["email", "last_change"])
         manager = get_plugin_manager_promise(info.context).get()
         call_checkout_event(
             manager,

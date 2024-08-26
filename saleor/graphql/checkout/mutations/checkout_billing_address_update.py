@@ -103,9 +103,8 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
                 recalculate_discount=False,
                 save=False,
             )
-            checkout.save(
-                update_fields=change_address_updated_fields
-                + invalidate_prices_updated_fields
+            checkout.save_if_not_deleted(
+                change_address_updated_fields + invalidate_prices_updated_fields
             )
 
         call_checkout_info_event(

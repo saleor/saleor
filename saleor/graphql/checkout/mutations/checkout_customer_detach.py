@@ -67,7 +67,7 @@ class CheckoutCustomerDetach(BaseMutation):
                 )
 
         checkout.user = None
-        checkout.save(update_fields=["user", "last_change"])
+        checkout.save_if_not_deleted(["user", "last_change"])
         manager = get_plugin_manager_promise(info.context).get()
 
         call_checkout_event(

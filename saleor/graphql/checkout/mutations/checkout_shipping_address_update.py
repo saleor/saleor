@@ -211,9 +211,8 @@ class CheckoutShippingAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixi
         invalidate_prices_updated_fields = invalidate_checkout(
             checkout_info, lines, manager, save=False
         )
-        checkout.save(
-            update_fields=shipping_address_updated_fields
-            + invalidate_prices_updated_fields
+        checkout.save_if_not_deleted(
+            shipping_address_updated_fields + invalidate_prices_updated_fields
         )
 
         call_checkout_info_event(

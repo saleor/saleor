@@ -1,10 +1,14 @@
 from unittest import mock
 from unittest.mock import call, patch
 
+import before_after
 import pytest
+from django.db import DatabaseError, OperationalError
 from django.test import override_settings
 
 from .....checkout.actions import call_checkout_info_event
+from .....checkout.error_codes import CheckoutErrorCode
+from .....checkout.models import Checkout
 from .....checkout.utils import invalidate_checkout
 from .....core.models import EventDelivery
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
@@ -719,3 +723,63 @@ def test_checkout_billing_address_triggers_webhooks(
         ]
     )
     assert wrapped_call_checkout_info_event.called
+
+
+def test_checkout_billing_address_update_checkout_deleted_database_error(
+    user_api_client,
+    checkout_with_item,
+    graphql_address_data,
+):
+    billing_address = graphql_address_data
+    variables = {
+        "id": to_global_id_or_none(checkout_with_item),
+        "billingAddress": billing_address,
+    }
+
+    # when
+    with before_after.after(
+        (
+            "saleor.graphql.checkout.mutations."
+            "checkout_billing_address_update.invalidate_checkout"
+        ),
+        lambda *args, **kwargs: Checkout.objects.all().delete(),
+    ):
+        response = user_api_client.post_graphql(
+            MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE, variables
+        )
+    # then
+    data = get_graphql_content(response)["data"]["checkoutBillingAddressUpdate"]
+    errors = data["errors"]
+
+    assert len(errors) == 1
+    assert errors[0]["field"] == "checkout"
+    assert errors[0]["message"] == "Checkout does no longer exists."
+    assert errors[0]["code"] == CheckoutErrorCode.DELETED.name
+
+
+@pytest.mark.parametrize("error", [OperationalError, DatabaseError])
+def test_checkout_billing_address_update_raise_error_which_inherits_from_database_error(
+    user_api_client,
+    checkout_with_item,
+    graphql_address_data,
+    error,
+):
+    billing_address = graphql_address_data
+    variables = {
+        "id": to_global_id_or_none(checkout_with_item),
+        "billingAddress": billing_address,
+    }
+
+    # when
+    with patch.object(Checkout, "save", side_effect=error):
+        response = user_api_client.post_graphql(
+            MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE, variables
+        )
+
+    # then
+    data = get_graphql_content(response, ignore_errors=True)
+    errors = data["errors"]
+
+    assert len(errors) == 1
+    assert errors[0]["message"] == "Internal Server Error"
+    assert errors[0]["extensions"]["exception"]["code"] == error.__name__

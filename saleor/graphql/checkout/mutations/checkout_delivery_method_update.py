@@ -266,7 +266,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         invalidate_prices_updated_fields = invalidate_checkout(
             checkout_info, lines, manager, save=False
         )
-        checkout.save_or_database_error(
+        checkout.save_if_not_deleted(
             checkout_fields_to_update + invalidate_prices_updated_fields
         )
 
