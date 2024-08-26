@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Optional
 from django.conf import settings
 from prices import TaxedMoney
 
+from ..core.taxes import TaxData
 from ..core.utils.country import get_active_country
 from . import TaxCalculationStrategy
 
@@ -248,3 +249,17 @@ def get_shipping_tax_class_kwargs_for_order(tax_class: Optional["TaxClass"]):
         "shipping_tax_class_private_metadata": tax_class.private_metadata,
         "shipping_tax_class_metadata": tax_class.metadata,
     }
+
+
+def check_negative_values_in_tax_data(tax_data: TaxData) -> bool:
+    if (
+        tax_data.shipping_price_gross_amount < 0
+        or tax_data.shipping_price_net_amount < 0
+    ):
+        return True
+
+    for line in tax_data.lines:
+        if line.total_gross_amount < 0 or line.total_net_amount < 0:
+            return True
+
+    return False

@@ -3,6 +3,7 @@ from collections.abc import Iterable
 from decimal import Decimal
 from typing import Optional
 
+import graphene
 from django.conf import settings
 from django.db import transaction
 from django.db.models import prefetch_related_objects
@@ -10,7 +11,13 @@ from prices import Money, TaxedMoney
 
 from ..core.db.connection import allow_writer
 from ..core.prices import quantize_price
-from ..core.taxes import TaxData, TaxEmptyData, TaxError, zero_taxed_money
+from ..core.taxes import (
+    TaxData,
+    TaxDataWithNegativeValues,
+    TaxEmptyData,
+    TaxError,
+    zero_taxed_money,
+)
 from ..discount.utils.order import create_or_update_discount_objects_for_order
 from ..payment.model_helpers import get_subtotal
 from ..plugins import PLUGIN_IDENTIFIER_PREFIX
@@ -19,6 +26,7 @@ from ..tax import TaxCalculationStrategy
 from ..tax.calculations import get_taxed_undiscounted_price
 from ..tax.calculations.order import update_order_prices_with_flat_rates
 from ..tax.utils import (
+    check_negative_values_in_tax_data,
     get_charge_taxes_for_order,
     get_tax_app_identifier_for_order,
     get_tax_calculation_strategy_for_order,
@@ -361,6 +369,16 @@ def _apply_tax_data(
     """Apply all prices from tax data to order and order lines."""
     if not tax_data:
         return
+
+    if check_negative_values_in_tax_data(tax_data):
+        logger.error(
+            "Tax data contains negative values",
+            extra={
+                "tax_data": tax_data,
+                "order_id": graphene.Node.to_global_id("Order", order.pk),
+            },
+        )
+        raise TaxDataWithNegativeValues("Tax data contains negative values.")
 
     currency = order.currency
     shipping_price = TaxedMoney(

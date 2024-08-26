@@ -3,6 +3,7 @@ from collections.abc import Iterable
 from decimal import Decimal
 from typing import TYPE_CHECKING, Optional, cast
 
+import graphene
 from django.conf import settings
 from django.utils import timezone
 from prices import Money, TaxedMoney
@@ -10,7 +11,13 @@ from prices import Money, TaxedMoney
 from ..checkout import base_calculations
 from ..core.db.connection import allow_writer
 from ..core.prices import quantize_price
-from ..core.taxes import TaxData, TaxEmptyData, zero_money, zero_taxed_money
+from ..core.taxes import (
+    TaxData,
+    TaxDataWithNegativeValues,
+    TaxEmptyData,
+    zero_money,
+    zero_taxed_money,
+)
 from ..discount.utils.checkout import (
     create_or_update_discount_objects_from_promotion_for_checkout,
 )
@@ -19,6 +26,7 @@ from ..plugins import PLUGIN_IDENTIFIER_PREFIX
 from ..tax import TaxCalculationStrategy
 from ..tax.calculations.checkout import update_checkout_prices_with_flat_rates
 from ..tax.utils import (
+    check_negative_values_in_tax_data,
     get_charge_taxes_for_checkout,
     get_tax_app_identifier_for_checkout,
     get_tax_calculation_strategy_for_checkout,
@@ -516,6 +524,16 @@ def _apply_tax_data(
 ) -> None:
     if not tax_data:
         return
+
+    if check_negative_values_in_tax_data(tax_data):
+        logger.error(
+            "Tax data contains negative values",
+            extra={
+                "tax_data": tax_data,
+                "checkout_id": graphene.Node.to_global_id("Checkout", checkout.pk),
+            },
+        )
+        raise TaxDataWithNegativeValues("Tax data contains negative values.")
 
     currency = checkout.currency
     for line_info, tax_line_data in zip(lines, tax_data.lines):
