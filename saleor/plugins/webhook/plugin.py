@@ -3212,6 +3212,8 @@ class WebhookPlugin(BasePlugin):
                 self.requestor,
             )
 
+    # Note: this method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from plugin to core modules.
     def get_shipping_methods_for_checkout(
         self, checkout: "Checkout", previous_value: Any
     ) -> list["ShippingMethodData"]:
