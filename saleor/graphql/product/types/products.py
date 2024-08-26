@@ -808,9 +808,6 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
     @staticmethod
     def __resolve_references(roots: list["ProductVariant"], info):
         requestor = get_user_or_app_from_context(info.context)
-        requestor_has_access_to_all = has_one_of_permissions(
-            requestor, ALL_PRODUCTS_PERMISSIONS
-        )
 
         channels = defaultdict(set)
         roots_ids = []
@@ -827,7 +824,6 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
             limited_channel_access = False if channel_slug is None else True
             qs = resolve_product_variants(
                 info,
-                requestor_has_access_to_all,
                 requestor,
                 ids=ids,
                 channel=channels_map.get(channel_slug),
@@ -1067,6 +1063,7 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
 
     @staticmethod
     def resolve_tax_type(root: ChannelContext[models.Product], info):
+        @allow_writer_in_context(info.context)
         def with_tax_class(data):
             tax_class, manager = data
             tax_data = manager.get_tax_code_from_object_meta(
@@ -1729,6 +1726,7 @@ class ProductType(ModelObjectType[models.ProductType]):
 
     @staticmethod
     def resolve_tax_type(root: models.ProductType, info):
+        @allow_writer_in_context(info.context)
         def with_tax_class(data):
             tax_class, manager = data
             tax_data = manager.get_tax_code_from_object_meta(tax_class)

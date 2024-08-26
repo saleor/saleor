@@ -3,25 +3,15 @@ from collections.abc import Iterable
 from copy import copy
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    Optional,
-    Union,
-)
+from typing import TYPE_CHECKING, Any, Callable, Optional, Union
 
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
 from django.utils.functional import SimpleLazyObject
-from graphene import Mutation
-from graphql import GraphQLError
-from graphql.execution import ExecutionResult
 from prices import TaxedMoney
 from promise.promise import Promise
 
 from ..core.models import EventDelivery
-from ..graphql.core import ResolveInfo
 from ..payment.interface import (
     CustomerSource,
     GatewayResponse,
@@ -455,25 +445,25 @@ class BasePlugin:
     #
     # Overwrite this method if you need to trigger specific logic when a checkout is
     # created.
-    checkout_created: Callable[["Checkout", Any], Any]
+    checkout_created: Callable[["Checkout", Any, None], Any]
 
     # Trigger when checkout is updated.
     #
     # Overwrite this method if you need to trigger specific logic when a checkout is
     # updated.
-    checkout_updated: Callable[["Checkout", Any], Any]
+    checkout_updated: Callable[["Checkout", Any, None], Any]
 
     # Trigger when checkout is fully paid with transactions.
     #
     # Overwrite this method if you need to trigger specific logic when a checkout is
     # updated.
-    checkout_fully_paid: Callable[["Checkout", Any], Any]
+    checkout_fully_paid: Callable[["Checkout", Any, None], Any]
 
     # Trigger when checkout metadata is updated.
     #
     # Overwrite this method if you need to trigger specific logic when a checkout
     # metadata is updated.
-    checkout_metadata_updated: Callable[["Checkout", Any], Any]
+    checkout_metadata_updated: Callable[["Checkout", Any, None], Any]
 
     # Trigger when collection is created.
     #
@@ -604,7 +594,7 @@ class BasePlugin:
     ]
 
     get_taxes_for_checkout: Callable[
-        ["CheckoutInfo", Iterable["CheckoutLineInfo"], str, Any],
+        ["CheckoutInfo", Iterable["CheckoutLineInfo"], str, Any, Optional[dict]],
         Optional["TaxData"],
     ]
 
@@ -678,6 +668,24 @@ class BasePlugin:
     # Overwrite this method if you need to trigger specific logic after a gift cards
     # export is completed.
     gift_card_export_completed: Callable[["ExportFile", None], None]
+
+    # Trigger when draft order is created.
+    #
+    # Overwrite this method if you need to trigger specific logic after an order is
+    # created.
+    draft_order_created: Callable[["Order", Any, None], Any]
+
+    # Trigger when draft order is updated.
+    #
+    # Overwrite this method if you need to trigger specific logic when an order is
+    # changed.
+    draft_order_updated: Callable[["Order", Any, None], Any]
+
+    # Trigger when draft order is deleted.
+    #
+    # Overwrite this method if you need to trigger specific logic when an order is
+    # changed.
+    draft_order_deleted: Callable[["Order", Any, None], Any]
 
     initialize_payment: Callable[
         [dict, Optional[InitializedPaymentResponse]], InitializedPaymentResponse
@@ -789,49 +797,49 @@ class BasePlugin:
     #
     # Overwrite this method if you need to trigger specific logic when an order is
     # expired.
-    order_expired: Callable[["Order", Any], Any]
+    order_expired: Callable[["Order", Any, None], Any]
 
     # Trigger when order is confirmed by staff.
     #
     # Overwrite this method if you need to trigger specific logic after an order is
     # confirmed.
-    order_confirmed: Callable[["Order", Any], Any]
+    order_confirmed: Callable[["Order", Any, None], Any]
 
     # Trigger when order is created.
     #
     # Overwrite this method if you need to trigger specific logic after an order is
     # created.
-    order_created: Callable[["Order", Any], Any]
+    order_created: Callable[["Order", Any, None], Any]
 
     # Trigger when order is fulfilled.
     #
     # Overwrite this method if you need to trigger specific logic when an order is
     # fulfilled.
-    order_fulfilled: Callable[["Order", Any], Any]
+    order_fulfilled: Callable[["Order", Any, None], Any]
 
     # Trigger when order is fully paid.
     #
     # Overwrite this method if you need to trigger specific logic when an order is
     # fully paid.
-    order_fully_paid: Callable[["Order", Any], Any]
+    order_fully_paid: Callable[["Order", Any, None], Any]
 
     # Trigger when order is paid.
     #
     # Overwrite this method if you need to trigger specific logic when an order is
     # received the payment.
-    order_paid: Callable[["Order", Any], Any]
+    order_paid: Callable[["Order", Any, None], Any]
 
     # Trigger when order is refunded.
     #
     # Overwrite this method if you need to trigger specific logic when an order is
     # refunded.
-    order_refunded: Callable[["Order", Any], Any]
+    order_refunded: Callable[["Order", Any, None], Any]
 
     # Trigger when order is fully refunded.
     #
     # Overwrite this method if you need to trigger specific logic when an order is
     # fully refunded.
-    order_fully_refunded: Callable[["Order", Any], Any]
+    order_fully_refunded: Callable[["Order", Any, None], Any]
 
     # Trigger when order is updated.
     #
@@ -843,7 +851,7 @@ class BasePlugin:
     #
     # Overwrite this method if you need to trigger specific logic when an order
     # metadata is changed.
-    order_metadata_updated: Callable[["Order", Any], Any]
+    order_metadata_updated: Callable[["Order", Any, None], Any]
 
     # Trigger when orders are imported.
     #
@@ -1258,26 +1266,6 @@ class BasePlugin:
 
     # Triggers retry mechanism for event delivery
     event_delivery_retry: Callable[["EventDelivery", Any], EventDelivery]
-
-    # Invoked before each mutation is executed
-    #
-    # This allows to trigger specific logic before the mutation is executed
-    # but only once the permissions are checked.
-    #
-    # Returns one of:
-    #    - null if the execution shall continue
-    #    - an execution result
-    #    - graphql.GraphQLError
-    perform_mutation: Callable[
-        [
-            Optional[Union[ExecutionResult, GraphQLError]],  # previous value
-            Mutation,  # mutation class
-            Any,  # mutation root
-            ResolveInfo,  # resolve info
-            dict,  # mutation data
-        ],
-        Optional[Union[ExecutionResult, GraphQLError]],
-    ]
 
     def token_is_required_as_payment_input(self, previous_value):
         return previous_value

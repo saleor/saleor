@@ -74,6 +74,27 @@ def validate_input_against_model(model: type[Model], input_data: dict):
     instance.full_clean(exclude=exclude_fields, validate_unique=False)
 
 
+def validate_slug_already_exists(
+    instance, translation_instance, input_data, language_code
+):
+    slug = input_data.get("slug")
+
+    if slug and slug != translation_instance.slug:
+        existing_instance = instance.translations.model.objects.filter(
+            language_code=language_code, slug=input_data["slug"]
+        ).first()
+
+        if existing_instance and existing_instance != translation_instance:
+            raise ValidationError(
+                {
+                    "slug": ValidationError(
+                        "Translation with this slug and language code already exists",
+                        code=TranslationErrorCode.UNIQUE.value,
+                    )
+                }
+            )
+
+
 class BaseTranslateMutation(ModelMutation):
     class Meta:
         abstract = True
@@ -113,7 +134,7 @@ class BaseTranslateMutation(ModelMutation):
         validate_input_against_model(cls._meta.model, input_data)
 
     @classmethod
-    def pre_update_or_create(cls, instance, input_data):
+    def pre_update_or_create(cls, instance, input_data, language_code):
         return input_data
 
     @classmethod
@@ -124,7 +145,7 @@ class BaseTranslateMutation(ModelMutation):
         instance = cls.get_node_or_error(info, node_id, only_type=model_type)
         cls.validate_input(input)
 
-        input = cls.pre_update_or_create(instance, input)
+        input = cls.pre_update_or_create(instance, input, language_code)
 
         translation, created = instance.translations.update_or_create(
             language_code=language_code, defaults=input
@@ -139,11 +160,33 @@ class BaseTranslateMutation(ModelMutation):
         return cls(**{cls._meta.return_field_name: instance})
 
 
+class BaseTranslateMutationWithSlug(BaseTranslateMutation):
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def pre_update_or_create(cls, instance, input_data, language_code):
+        if input_data.get("slug") is not None:
+            translation_instance = instance.translations.filter(
+                language_code=language_code
+            ).first()
+
+            if translation_instance is None:
+                translation_instance = instance.translations.model()
+
+            validate_slug_already_exists(
+                instance, translation_instance, input_data, language_code
+            )
+
+        return input_data
+
+
 class NameTranslationInput(graphene.InputObjectType):
     name = graphene.String()
 
 
 class SeoTranslationInput(graphene.InputObjectType):
+    slug = graphene.String()
     seo_title = graphene.String()
     seo_description = graphene.String()
 

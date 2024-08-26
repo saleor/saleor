@@ -1,6 +1,8 @@
 import json
+from unittest.mock import patch
 
 import graphene
+import pytest
 
 from .....app.models import App
 from ....core.enums import WebhookErrorCode
@@ -49,6 +51,7 @@ def test_webhook_update_by_app(app_api_client, app, webhook):
 
     # then
     assert webhook.is_active is False
+    assert webhook.filterable_channel_slugs == []
     events = webhook.events.all()
     assert len(events) == 1
     assert events[0].event_type == WebhookEventTypeAsyncEnum.ORDER_CREATED.value
@@ -172,6 +175,7 @@ def test_webhook_update_by_staff(staff_api_client, webhook, permission_manage_ap
 
     # then
     assert webhook.is_active is False
+    assert webhook.filterable_channel_slugs == []
     assert webhook.custom_headers == {"x-key": "Value", "authorization-key": "Value"}
     events = webhook.events.all()
     assert len(events) == 1
@@ -332,3 +336,97 @@ def test_webhook_update_notify_user_with_another_event(app_api_client, webhook):
     error = data["errors"][0]
     assert error["field"] == "asyncEvents"
     assert error["code"] == WebhookErrorCode.INVALID_NOTIFY_WITH_SUBSCRIPTION.name
+
+
+FILTERABLE_SUBSCRIPTION = """
+subscription {
+  orderCreated(channels: [%s]) {
+    order {
+      id
+      number
+      lines {
+        id
+        variant {
+          id
+        }
+      }
+    }
+  }
+}
+"""
+
+
+@pytest.mark.parametrize(
+    ("channel_slugs", "previous_slugs"),
+    [
+        (["channel-1", "channel-2"], ["previous-channel"]),
+        (["channel-1"], ["previous-channel"]),
+        (["channel-1"], ["channel-1"]),
+        (["channel-1", "channel-2"], []),
+        ([], ["previous-channel"]),
+    ],
+)
+def test_webhook_update_filterable_channel_slugs(
+    channel_slugs, previous_slugs, app_api_client, app, webhook
+):
+    # given
+    webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
+    webhook.filterable_channel_slugs = previous_slugs
+    webhook.save()
+    variables = {
+        "id": webhook_id,
+        "input": {
+            "query": FILTERABLE_SUBSCRIPTION
+            % ",".join([f'"{slug}"' for slug in channel_slugs])
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(WEBHOOK_UPDATE, variables=variables)
+    get_graphql_content(response)
+    webhook.refresh_from_db()
+
+    # then
+    assert webhook.filterable_channel_slugs == channel_slugs
+    events = webhook.events.all()
+    assert len(events) == 1
+    assert events[0].event_type == WebhookEventTypeAsyncEnum.ORDER_CREATED.value
+
+
+@pytest.mark.parametrize(
+    "channel_slugs",
+    [
+        ["channel-1", "channel-2"],
+        ["channel-1", "channel-2", "channel-3"],
+    ],
+)
+@patch(
+    "saleor.graphql.webhook.mutations.webhook_create.MAX_FILTERABLE_CHANNEL_SLUGS_LIMIT"
+)
+def test_webhook_create_assigns_filterable_channel_slugs_above_max_limit(
+    mocked_limit, channel_slugs, app_api_client, webhook
+):
+    # given
+    mocked_limit.__lt__ = lambda self, compare: True
+
+    webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
+    webhook.filterable_channel_slugs = ["previous-channel"]
+    webhook.save()
+
+    variables = {
+        "id": webhook_id,
+        "input": {
+            "query": FILTERABLE_SUBSCRIPTION
+            % ",".join([f'"{slug}"' for slug in channel_slugs])
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(WEBHOOK_UPDATE, variables=variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert len(content["data"]["webhookUpdate"]["errors"]) == 1
+    error = content["data"]["webhookUpdate"]["errors"][0]
+    assert error["field"] == "query"
+    assert error["code"] == WebhookErrorCode.INVALID.name

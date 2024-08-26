@@ -82,11 +82,9 @@ class PromotionCreateInput(PromotionInput):
         description=(
             "Defines the promotion type. Implicate the required promotion rules "
             "predicate type and whether the promotion rules will give the catalogue "
-            "or order discount. "
-            "\n\nThe default value is `Catalogue`."
-            "\n\nThis field will be required from Saleor 3.20." + ADDED_IN_319
+            "or order discount. " + ADDED_IN_319
         ),
-        required=False,
+        required=True,
     )
     rules = NonNullList(PromotionRuleInput, description="List of promotion rules.")
 
@@ -133,7 +131,7 @@ class PromotionCreate(ModelMutation):
             error.code = PromotionCreateErrorCode.INVALID.value
             errors["end_date"].append(error)
 
-        promotion_type = cleaned_input.get("type", PromotionType.CATALOGUE)
+        promotion_type = cleaned_input.get("type")
         if rules := cleaned_input.get("rules"):
             cleaned_rules, errors = cls.clean_rules(info, rules, promotion_type, errors)
             cleaned_input["rules"] = cleaned_rules

@@ -9,6 +9,7 @@ from ....checkout.fetch import get_variant_channel_listing
 from ....core.taxes import zero_money, zero_taxed_money
 from ....discount.interface import fetch_variant_rules_info
 from ....order import ORDER_EDITABLE_STATUS, OrderStatus, events
+from ....order.actions import call_order_event
 from ....order.error_codes import OrderErrorCode
 from ....order.utils import invalidate_order_prices
 from ....payment import PaymentError
@@ -17,6 +18,7 @@ from ....plugins.manager import PluginsManager
 from ....product import models as product_models
 from ....shipping.interface import ShippingMethodData
 from ....shipping.models import ShippingMethodChannelListing
+from ....webhook.event_types import WebhookEventAsyncType
 from ..utils import get_shipping_method_availability_error
 
 SHIPPING_METHOD_UPDATE_FIELDS = [
@@ -25,6 +27,7 @@ SHIPPING_METHOD_UPDATE_FIELDS = [
     "shipping_price_net_amount",
     "shipping_price_gross_amount",
     "base_shipping_price_amount",
+    "undiscounted_base_shipping_price_amount",
     "shipping_method_name",
     "shipping_tax_class",
     "shipping_tax_class_name",
@@ -62,6 +65,7 @@ class ShippingMethodUpdateMixin:
     def clear_shipping_method_from_order(cls, order):
         order.shipping_method = None
         order.base_shipping_price = zero_money(order.currency)
+        order.undiscounted_base_shipping_price = zero_money(order.currency)
         order.shipping_price = zero_taxed_money(order.currency)
         order.shipping_method_name = None
         order.shipping_tax_rate = None
@@ -108,6 +112,7 @@ class ShippingMethodUpdateMixin:
     ):
         if not shipping_channel_listing:
             order.base_shipping_price = zero_money(order.currency)
+            order.undiscounted_base_shipping_price = zero_money(order.currency)
             return
 
         if (
@@ -116,8 +121,10 @@ class ShippingMethodUpdateMixin:
             and order.is_shipping_required()
         ):
             order.base_shipping_price = shipping_channel_listing.price
+            order.undiscounted_base_shipping_price = shipping_channel_listing.price
         else:
             order.base_shipping_price = zero_money(order.currency)
+            order.undiscounted_base_shipping_price = zero_money(order.currency)
 
 
 def clean_order_update_shipping(
@@ -139,11 +146,15 @@ def clean_order_update_shipping(
         raise ValidationError({"shipping_method": error})
 
 
-def get_webhook_handler_by_order_status(status, manager):
-    if status == OrderStatus.DRAFT:
-        return manager.draft_order_updated
+def call_event_by_order_status(order, manager):
+    if order.status == OrderStatus.DRAFT:
+        call_order_event(
+            manager,
+            WebhookEventAsyncType.DRAFT_ORDER_UPDATED,
+            order,
+        )
     else:
-        return manager.order_updated
+        call_order_event(manager, WebhookEventAsyncType.ORDER_UPDATED, order)
 
 
 def try_payment_action(order, user, app, payment, func, *args, **kwargs):

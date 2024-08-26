@@ -70,7 +70,7 @@ def delete_categories(categories_ids: list[Union[str, int]], manager):
 
 def collect_categories_tree_products(category: "Category") -> "QuerySet[Product]":
     """Collect products from all levels in category tree."""
-    products = category.products.prefetched_for_webhook(single_object=False)
+    products = category.products.all()
     descendants = category.get_descendants()
     for descendant in descendants:
         products = products | descendant.products.all()

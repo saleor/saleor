@@ -97,3 +97,13 @@ HTTP_IP_FILTER_ENABLED = False
 HTTP_IP_FILTER_ALLOW_LOOPBACK_IPS = True
 
 MIDDLEWARE.insert(0, "saleor.core.db.connection.restrict_writer_middleware")  # noqa: F405
+
+CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME = "checkout_events_queue"
+ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME = "order_events_queue"
+
+# Raise error when using writer DB in Celery tasks, without explicit "allow_writer"
+# context manager.
+CELERY_RESTRICT_WRITER_METHOD = "saleor.core.db.connection.restrict_writer"
+
+PRIVATE_FILE_STORAGE = "saleor.tests.storages.PrivateFileSystemStorage"
+PRIVATE_MEDIA_ROOT: str = os.path.join(PROJECT_ROOT, "private-media")  # noqa: F405

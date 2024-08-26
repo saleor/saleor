@@ -1,6 +1,7 @@
 import graphene
 from django.forms import ValidationError
 
+from ....checkout.actions import call_checkout_event
 from ....checkout.error_codes import CheckoutErrorCode
 from ....core.exceptions import PermissionDenied
 from ....permission.auth_filters import AuthorizationFilters
@@ -116,5 +117,11 @@ class CheckoutCustomerAttach(BaseMutation):
         checkout.email = customer.email
         checkout.save(update_fields=["email", "user", "last_change"])
         manager = get_plugin_manager_promise(info.context).get()
-        cls.call_event(manager.checkout_updated, checkout)
+
+        call_checkout_event(
+            manager,
+            event_name=WebhookEventAsyncType.CHECKOUT_UPDATED,
+            checkout=checkout,
+        )
+
         return CheckoutCustomerAttach(checkout=checkout)

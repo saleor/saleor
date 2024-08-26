@@ -1,11 +1,8 @@
-from typing import Optional
-
 import graphene
 from django.core.exceptions import ValidationError
 
-from .....account import models
 from .....account.error_codes import AccountErrorCode
-from .....account.utils import retrieve_user_by_email
+from .....account.throttling import authenticate_with_throttling
 from .....core.jwt import create_access_token, create_refresh_token
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_38
@@ -47,17 +44,8 @@ class CreateToken(BaseMutation):
     user = graphene.Field(User, description="A user instance.")
 
     @classmethod
-    def _retrieve_user_from_credentials(cls, email, password) -> Optional[models.User]:
-        user = retrieve_user_by_email(email)
-
-        if user and user.check_password(password):
-            return user
-        return None
-
-    @classmethod
     def get_user(cls, info: ResolveInfo, email, password):
-        site_settings = get_site_promise(info.context).get().settings
-        user = cls._retrieve_user_from_credentials(email, password)
+        user = authenticate_with_throttling(info.context, email, password)
         if not user:
             raise ValidationError(
                 {
@@ -67,6 +55,8 @@ class CreateToken(BaseMutation):
                     )
                 }
             )
+
+        site_settings = get_site_promise(info.context).get().settings
         if (
             not user.is_confirmed
             and not site_settings.allow_login_without_confirmation

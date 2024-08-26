@@ -300,7 +300,7 @@ def test_plugin_update_saves_boolean_as_boolean(
     content = get_graphql_content(response)
     assert len(content["data"]["pluginUpdate"]["errors"]) == 0
     use_sandbox_new_value = get_config_value("Use sandbox", plugin.configuration)
-    assert type(use_sandbox) == type(use_sandbox_new_value)
+    assert type(use_sandbox) is type(use_sandbox_new_value)
 
 
 def test_plugin_configuration_update_as_customer_user(user_api_client, settings):

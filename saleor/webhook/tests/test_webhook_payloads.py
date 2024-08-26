@@ -73,7 +73,7 @@ def parse_django_datetime(date):
 
 
 @pytest.fixture
-def order_for_payload(fulfilled_order):
+def order_for_payload(fulfilled_order, voucher_percentage):
     order = fulfilled_order
 
     new_order = Order.objects.create(
@@ -97,6 +97,7 @@ def order_for_payload(fulfilled_order):
         value=Decimal("10"),
         amount_value=Decimal("16.5"),
         name="Voucher",
+        voucher=voucher_percentage,
     )
 
     discount.created_at = datetime.now(pytz.utc) + timedelta(days=1)
@@ -380,7 +381,7 @@ def test_generate_order_payload_for_tax_calculation(
 @freeze_time()
 @pytest.mark.parametrize("prices_entered_with_tax", [True, False])
 @mock.patch("saleor.webhook.payloads._generate_order_lines_payload_for_tax_calculation")
-def test_generate_order_payload_for_tax_calculation_voucher_discounts(
+def test_generate_order_payload_for_tax_calculation_entire_order_voucher(
     mocked_order_lines, order_for_payload, prices_entered_with_tax, voucher
 ):
     # given
@@ -397,10 +398,10 @@ def test_generate_order_payload_for_tax_calculation_voucher_discounts(
     order = order_for_payload
     discount_1, discount_2 = list(order.discounts.all())
     voucher.type = VoucherType.ENTIRE_ORDER
-    voucher.apply_once_per_order = True
+    voucher.apply_once_per_order = False
     voucher.save()
-    discount_1.voucher = voucher
-    discount_1.save()
+    discount_2.voucher = voucher
+    discount_2.save()
     user = order.user
 
     # when
@@ -454,6 +455,44 @@ def test_generate_order_payload_for_tax_calculation_voucher_discounts(
         ],
         "lines": json.loads(order_lines),
     }
+    mocked_order_lines.assert_called_once()
+
+
+@freeze_time()
+@pytest.mark.parametrize("prices_entered_with_tax", [True, False])
+@mock.patch("saleor.webhook.payloads._generate_order_lines_payload_for_tax_calculation")
+def test_generate_order_payload_for_tax_calculation_line_level_voucher_excluded(
+    mocked_order_lines, order_for_payload, prices_entered_with_tax, voucher
+):
+    # given
+    order = order_for_payload
+
+    tax_configuration = order.channel.tax_configuration
+    tax_configuration.prices_entered_with_tax = prices_entered_with_tax
+    tax_configuration.save(update_fields=["prices_entered_with_tax"])
+
+    order_lines = '"order_lines"'
+    mocked_order_lines.return_value = order_lines
+
+    order = order_for_payload
+    discount_1, discount_2 = list(order.discounts.all())
+    voucher.type = VoucherType.ENTIRE_ORDER
+    # line level vouchers should be excluded from discounts
+    voucher.apply_once_per_order = True
+    voucher.save()
+    discount_2.voucher = voucher
+    discount_2.save()
+
+    # when
+    payload = json.loads(generate_order_payload_for_tax_calculation(order))[0]
+
+    # then
+    assert payload["discounts"] == [
+        {
+            "name": discount_1.name,
+            "amount": str(quantize_price(discount_1.amount_value, order.currency)),
+        },
+    ]
     mocked_order_lines.assert_called_once()
 
 

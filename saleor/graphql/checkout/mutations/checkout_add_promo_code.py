@@ -1,6 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 
+from ....checkout.actions import call_checkout_info_event
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import (
     fetch_checkout_info,
@@ -120,6 +121,11 @@ class CheckoutAddPromoCode(BaseMutation):
             recalculate_discount=False,
             save=True,
         )
-        cls.call_event(manager.checkout_updated, checkout)
+        call_checkout_info_event(
+            manager=manager,
+            event_name=WebhookEventAsyncType.CHECKOUT_UPDATED,
+            checkout_info=checkout_info,
+            lines=lines,
+        )
 
         return CheckoutAddPromoCode(checkout=checkout)

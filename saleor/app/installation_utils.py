@@ -17,6 +17,7 @@ from requests import HTTPError, Response
 from .. import schema_version
 from ..app.headers import AppHeaders, DeprecatedAppHeaders
 from ..celeryconf import app
+from ..core.db.connection import allow_writer
 from ..core.http_client import HTTPClient
 from ..core.utils import build_absolute_uri, get_domain
 from ..permission.enums import get_permission_names
@@ -33,7 +34,7 @@ from .types import AppExtensionTarget, AppType
 MAX_ICON_FILE_SIZE = 1024 * 1024 * 10  # 10MB
 
 logger = logging.getLogger(__name__)
-task_logger = get_task_logger(__name__)
+task_logger = get_task_logger(f"{__name__}.celery")
 
 
 class AppInstallationError(HTTPError):
@@ -150,6 +151,7 @@ def _set_brand_data(brand_obj: Optional[Union[App, AppInstallation]], logo: File
 
 
 @app.task(bind=True, retry_backoff=2700, retry_kwargs={"max_retries": 5})
+@allow_writer()
 def fetch_brand_data_task(
     self, brand_data: dict, *, app_installation_id=None, app_id=None
 ):

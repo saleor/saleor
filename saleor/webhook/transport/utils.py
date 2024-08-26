@@ -30,6 +30,7 @@ from ...core.models import (
     EventDeliveryStatus,
     EventPayload,
 )
+from ...core.tasks import delete_files_from_private_storage_task
 from ...core.taxes import TaxData, TaxLineData
 from ...core.utils import build_absolute_uri
 from ...core.utils.events import call_event
@@ -53,7 +54,7 @@ from ..models import Webhook
 from . import signature_for_payload
 
 logger = logging.getLogger(__name__)
-task_logger = get_task_logger(__name__)
+task_logger = get_task_logger(f"{__name__}.celery")
 
 
 DEFAULT_TAX_CODE = "UNMAPPED"
@@ -363,7 +364,7 @@ def get_delivery_for_webhook(event_delivery_id) -> Optional["EventDelivery"]:
             id=event_delivery_id
         )
     except EventDelivery.DoesNotExist:
-        logger.error("Event delivery id: %r not found", event_delivery_id)
+        logger.warning("Event delivery id: %r not found", event_delivery_id)
         return None
 
     if not delivery.webhook.is_active:
@@ -425,7 +426,18 @@ def clear_successful_delivery(delivery: "EventDelivery"):
         payload_id = delivery.payload_id
         delivery.delete()
         if payload_id:
-            EventPayload.objects.filter(pk=payload_id, deliveries__isnull=True).delete()
+            payloads_to_delete = EventPayload.objects.filter(
+                pk=payload_id, deliveries__isnull=True
+            )
+            files_to_delete = [
+                event_payload.payload_file.name
+                for event_payload in payloads_to_delete.using(
+                    settings.DATABASE_CONNECTION_REPLICA_NAME
+                )
+                if event_payload.payload_file
+            ]
+            payloads_to_delete.delete()
+            delete_files_from_private_storage_task(files_to_delete)
 
 
 @allow_writer()
@@ -492,7 +504,7 @@ def trigger_transaction_request(
             transaction_data, requestor
         )
         with allow_writer():
-            event_payload = EventPayload.objects.create(payload=payload)
+            event_payload = EventPayload.objects.create_with_payload_file(payload)
             delivery = EventDelivery.objects.create(
                 status=EventDeliveryStatus.PENDING,
                 event_type=event_type,

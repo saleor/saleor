@@ -1,10 +1,14 @@
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 import graphene
+from django.test import override_settings
 
+from .....core.models import EventDelivery
 from .....order import OrderStatus
+from .....order.actions import call_order_event
 from .....order.error_codes import OrderErrorCode
 from .....product.models import ProductVariant
+from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 ORDER_UPDATE_MUTATION = """
@@ -81,7 +85,7 @@ def test_order_update(
     assert order.user is None
     assert order.status == OrderStatus.UNFULFILLED
     assert order.external_reference == external_reference
-    order_updated_webhook_mock.assert_called_once_with(order)
+    order_updated_webhook_mock.assert_called_once_with(order, webhooks=set())
 
 
 def test_order_update_by_user_no_channel_access(
@@ -167,7 +171,7 @@ def test_order_update_by_app(
     assert order.user is None
     assert order.status == OrderStatus.UNFULFILLED
     assert order.external_reference == external_reference
-    order_updated_webhook_mock.assert_called_once_with(order)
+    order_updated_webhook_mock.assert_called_once_with(order, webhooks=set())
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
@@ -510,3 +514,75 @@ def test_order_update_invalid_address_skip_validation(
     assert order.shipping_address.validation_skipped is True
     assert order.billing_address.postal_code == invalid_postal_code
     assert order.billing_address.validation_skipped is True
+
+
+@patch(
+    "saleor.graphql.order.mutations.order_update.call_order_event",
+    wraps=call_order_event,
+)
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_order_update_triggers_webhooks(
+    mocked_send_webhook_request_async,
+    mocked_send_webhook_request_sync,
+    wrapped_call_order_event,
+    setup_order_webhooks,
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+    graphql_address_data,
+    settings,
+    django_capture_on_commit_callbacks,
+):
+    # given
+    mocked_send_webhook_request_sync.return_value = []
+    (
+        tax_webhook,
+        shipping_filter_webhook,
+        order_webhook,
+    ) = setup_order_webhooks(WebhookEventAsyncType.ORDER_UPDATED)
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
+    order.save()
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    variables = {
+        "id": order_id,
+        "address": graphql_address_data,
+    }
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(ORDER_UPDATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["orderUpdate"]["errors"]
+
+    # confirm that event delivery was generated for each webhook.
+    order_delivery = EventDelivery.objects.get(webhook_id=order_webhook.id)
+    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
+    filter_shipping_delivery = EventDelivery.objects.get(
+        webhook_id=shipping_filter_webhook.id,
+        event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
+    )
+
+    mocked_send_webhook_request_async.assert_called_once_with(
+        kwargs={"event_delivery_id": order_delivery.id},
+        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+        bind=True,
+        retry_backoff=10,
+        retry_kwargs={"max_retries": 5},
+    )
+    mocked_send_webhook_request_sync.assert_has_calls(
+        [
+            call(tax_delivery),
+            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
+        ]
+    )
+    assert wrapped_call_order_event.called

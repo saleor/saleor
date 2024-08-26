@@ -4,6 +4,7 @@ import graphene
 from django.conf import settings
 
 from ....checkout import AddressType, models
+from ....checkout.actions import call_checkout_event
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.utils import add_variants_to_checkout
 from ....core.tracing import traced_atomic_transaction
@@ -404,8 +405,13 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         if channel:
             input["channel"] = channel
         response = super().perform_mutation(_root, info, input=input)
-        manager = get_plugin_manager_promise(info.context).get()
-        cls.call_event(manager.checkout_created, response.checkout)
+        checkout = response.checkout
         apply_gift_reward_if_applicable_on_checkout_creation(response.checkout)
+        manager = get_plugin_manager_promise(info.context).get()
+        call_checkout_event(
+            manager,
+            event_name=WebhookEventAsyncType.CHECKOUT_CREATED,
+            checkout=checkout,
+        )
         response.created = True
         return response

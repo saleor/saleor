@@ -11,20 +11,20 @@ repos:
         exclude_types: [svg]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.4.10
+    rev: v0.5.4
     hooks:
       - id: ruff
       - id: ruff-format
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.10.0
+    rev: v1.7.1
     hooks:
       - id: mypy
         language: system
         exclude: tests/
 
   - repo: https://github.com/fpgmaas/deptry.git
-    rev: "0.16.1"
+    rev: "0.17.0"
     hooks:
       - id: deptry
 
@@ -46,9 +46,6 @@ repos:
         - --error
         # Do not check for version updates, it slows down the execution.
         - --disable-version-check
-        # Do not append directory names to the rules, otherwise
-        # it may misbehave.
-        - --no-rewrite-rule-ids
         # Quiet mode in order to not pollute the pre-commit outputs.
         # Replace --quiet with --verbose to debug issues.
         - --quiet

@@ -37,7 +37,12 @@ from ....discount.interface import VariantPromotionRuleInfo
 from ....discount.utils.checkout import (
     create_or_update_discount_objects_from_promotion_for_checkout,
 )
+from ....graphql.discount.enums import DiscountValueTypeEnum
 from ....graphql.discount.utils import convert_migrated_sale_predicate_to_catalogue_info
+from ....graphql.order.tests.mutations.test_order_discount import ORDER_DISCOUNT_ADD
+from ....graphql.product.tests.mutations.test_product_create import (
+    CREATE_PRODUCT_MUTATION,
+)
 from ....payment import TransactionAction, TransactionEventType
 from ....payment.interface import TransactionActionData
 from ....payment.models import TransactionItem
@@ -74,7 +79,7 @@ third_url = "http://www.example.com/third/"
     ],
 )
 @mock.patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.delay"
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
 def test_trigger_webhooks_for_event_calls_expected_events(
     mock_request,
@@ -111,16 +116,17 @@ def test_trigger_webhooks_for_event_calls_expected_events(
         target_url="http://www.example.com/third/"
     )
     third_webhook.events.create(event_type=WebhookEventAsyncType.ANY)
-    event_payload = EventPayload.objects.create()
+    payload = ""
     trigger_webhooks_async(
-        event_payload,
+        payload,
         event_name,
         get_webhooks_for_event(event_name),
         allow_replica=False,
     )
+
     deliveries_called = {
-        EventDelivery.objects.get(id=delivery_id[0][0])
-        for delivery_id in mock_request.call_args_list
+        EventDelivery.objects.get(id=request.kwargs["kwargs"]["event_delivery_id"])
+        for request in mock_request.call_args_list
     }
     urls_called = {delivery.webhook.target_url for delivery in deliveries_called}
     assert mock_request.call_count == total_webhook_calls
@@ -149,6 +155,7 @@ def test_order_created(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -178,6 +185,7 @@ def test_order_confirmed(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -207,6 +215,7 @@ def test_draft_order_created(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -236,6 +245,7 @@ def test_draft_order_deleted(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -265,6 +275,7 @@ def test_draft_order_updated(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -351,6 +362,7 @@ def test_customer_metadata_updated(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=None,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -379,6 +391,7 @@ def test_order_fully_paid(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -412,6 +425,7 @@ def test_order_paid(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -445,6 +459,7 @@ def test_order_refunded(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -478,6 +493,7 @@ def test_order_fully_refunded(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -594,6 +610,7 @@ def test_collection_metadata_updated(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=None,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -726,6 +743,7 @@ def test_product_metadata_updated(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=None,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -842,6 +860,7 @@ def test_product_variant_metadata_updated(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=None,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -931,6 +950,7 @@ def test_order_updated(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -960,6 +980,7 @@ def test_order_cancelled(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -989,6 +1010,7 @@ def test_order_expired(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -1018,6 +1040,7 @@ def test_order_metadata_updated(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -1047,6 +1070,7 @@ def test_checkout_created(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -1194,6 +1218,7 @@ def test_checkout_updated(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -1227,6 +1252,7 @@ def test_checkout_fully_paid(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -1256,6 +1282,7 @@ def test_checkout_metadata_updated(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=None,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -1453,6 +1480,7 @@ def test_fulfillment_metadata_updated(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=None,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -1482,6 +1510,7 @@ def test_gift_card_metadata_updated(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=None,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -1511,6 +1540,7 @@ def test_voucher_metadata_updated(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=None,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -1541,6 +1571,7 @@ def test_shop_metadata_updated(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=None,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -1570,6 +1601,7 @@ def test_shipping_zone_metadata_updated(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=None,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -1599,6 +1631,7 @@ def test_warehouse_metadata_updated(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=None,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -1628,6 +1661,7 @@ def test_transaction_item_metadata_updated(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=None,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -1708,9 +1742,8 @@ def test_create_event_payload_reference_with_error(
     webhook.target_url = "testy"
     webhook.save()
     expected_data = serialize("json", [order_with_lines])
-    event_payload = EventPayload.objects.create(payload=expected_data)
     trigger_webhooks_async(
-        event_payload,
+        expected_data,
         WebhookEventAsyncType.ORDER_CREATED,
         [webhook],
         allow_replica=False,
@@ -1718,6 +1751,7 @@ def test_create_event_payload_reference_with_error(
     delivery = EventDelivery.objects.first()
     send_webhook_request_async(delivery.id)
     attempt = EventDeliveryAttempt.objects.first()
+    payload = EventPayload.objects.first()
 
     assert delivery
     assert attempt
@@ -1727,6 +1761,8 @@ def test_create_event_payload_reference_with_error(
     assert delivery.status == "failed"
     assert attempt.task_id == ANY
     assert attempt.duration == ANY
+    assert payload.get_payload() == expected_data
+    assert payload.payload_file
 
 
 @freeze_time("1914-06-28 10:50")
@@ -1916,7 +1952,7 @@ def test_send_webhook_request_async(
         "mirumee.com",
         event_delivery.webhook.secret_key,
         event_delivery.event_type,
-        event_delivery.payload.payload,
+        event_delivery.payload.get_payload(),
         event_delivery.webhook.custom_headers,
     )
     mocked_clear_delivery.assert_called_once_with(event_delivery)
@@ -2275,7 +2311,7 @@ def test_send_webhook_request_async_with_request_exception(
 ):
     # given
     event_payload = event_delivery.payload
-    data = event_payload.payload
+    data = event_payload.get_payload()
     webhook = event_delivery.webhook
     domain = Site.objects.get_current().domain
     message = data.encode("utf-8")
@@ -2340,3 +2376,86 @@ def test_is_event_active(settings, webhook, permission_manage_orders):
 
     # then
     assert is_active == expected_is_active
+
+
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@mock.patch("saleor.webhook.transport.synchronous.transport.get_webhooks_for_event")
+@mock.patch(
+    "saleor.webhook.transport.synchronous.transport.generate_payload_from_subscription"
+)
+def test_trigger_webhook_sync_with_subscription_within_mutation_use_default_db(
+    mocked_generate_payload,
+    mocked_get_webhooks_for_event,
+    mocked_request,
+    draft_order,
+    app_api_client,
+    permission_manage_orders,
+    settings,
+    subscription_calculate_taxes_for_order,
+):
+    # given
+    webhook = subscription_calculate_taxes_for_order
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    mocked_get_webhooks_for_event.return_value = [webhook]
+    variables = {
+        "orderId": graphene.Node.to_global_id("Order", draft_order.pk),
+        "input": {
+            "valueType": DiscountValueTypeEnum.PERCENTAGE.name,
+            "value": Decimal("50"),
+        },
+    }
+    app_api_client.app.permissions.add(permission_manage_orders)
+
+    # when
+    app_api_client.post_graphql(ORDER_DISCOUNT_ADD, variables)
+
+    # then
+    mocked_generate_payload.assert_called_once()
+    assert not mocked_generate_payload.call_args[1]["request"].allow_replica
+
+
+@mock.patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async"
+)
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch(
+    "saleor.webhook.transport.asynchronous.transport.generate_payload_from_subscription"
+)
+def test_trigger_webhook_async_with_subscription_use_main_db(
+    mocked_generate_payload,
+    mocked_get_webhooks_for_event,
+    mocked_request,
+    staff_api_client,
+    product_type,
+    category,
+    permission_manage_products,
+    subscription_product_created_webhook,
+    settings,
+):
+    # given
+    webhook = subscription_product_created_webhook
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    mocked_get_webhooks_for_event.return_value = [webhook]
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "test name"
+    product_slug = "product-test-slug"
+
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "slug": product_slug,
+        }
+    }
+
+    # when
+    staff_api_client.post_graphql(
+        CREATE_PRODUCT_MUTATION, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    mocked_generate_payload.assert_called_once()
+    assert not mocked_generate_payload.call_args[1]["request"].allow_replica

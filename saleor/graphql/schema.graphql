@@ -392,17 +392,31 @@ type Query {
 
     """Slug of the category"""
     slug: String
+
+    """
+    Language code of the category slug, omit to use primary slug.
+    
+    Added in Saleor 3.21.
+    """
+    slugLanguageCode: LanguageCodeEnum
   ): Category @doc(category: "Products")
 
   """
-  Look up a collection by ID. Requires one of the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
+  Look up a collection by ID or slug. If slugLanguageCode is provided, category will be fetched by slug translation. Requires one of the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
   """
   collection(
     """ID of the collection."""
     id: ID
 
-    """Slug of the category"""
+    """Slug of the collection"""
     slug: String
+
+    """
+    Language code of the collection slug, omit to use primary slug.
+    
+    Added in Saleor 3.21.
+    """
+    slugLanguageCode: LanguageCodeEnum
 
     """Slug of a channel for which the data should be returned."""
     channel: String
@@ -456,6 +470,13 @@ type Query {
 
     """Slug of the product."""
     slug: String
+
+    """
+    Language code of the product slug, omit to use primary slug.
+    
+    Added in Saleor 3.21.
+    """
+    slugLanguageCode: LanguageCodeEnum
 
     """
     External ID of the product. 
@@ -701,6 +722,13 @@ type Query {
 
     """The slug of the page."""
     slug: String
+
+    """
+    Language code of the page slug, omit to use primary slug.
+    
+    Added in Saleor 3.21.
+    """
+    slugLanguageCode: LanguageCodeEnum
   ): Page @doc(category: "Pages")
 
   """List of the shop's pages."""
@@ -5264,7 +5292,11 @@ type ShippingMethodsPerCountry @doc(category: "Shipping") {
   shippingMethods: [ShippingMethod!]
 }
 
-"""An enumeration."""
+"""
+Represents country codes defined by the ISO 3166-1 alpha-2 standard.
+
+The `EU` value is DEPRECATED and will be removed in Saleor 3.21.
+"""
 enum CountryCode {
   AF
   AX
@@ -7609,6 +7641,13 @@ type CategoryTranslation implements Node @doc(category: "Products") {
   """Translated SEO description."""
   seoDescription: String
 
+  """
+  Translated category slug.
+  
+  Added in Saleor 3.21.
+  """
+  slug: String
+
   """Translated category name."""
   name: String
 
@@ -7653,6 +7692,13 @@ type CategoryTranslatableContent implements Node @doc(category: "Products") {
 
   """SEO description to translate."""
   seoDescription: String
+
+  """
+  Slug to translate.
+  
+  Added in Saleor 3.21.
+  """
+  slug: String
 
   """Name of the category translatable content."""
   name: String!
@@ -8604,6 +8650,13 @@ type CollectionTranslation implements Node @doc(category: "Products") {
   """Translated SEO description."""
   seoDescription: String
 
+  """
+  Translated collection slug.
+  
+  Added in Saleor 3.21.
+  """
+  slug: String
+
   """Translated collection name."""
   name: String
 
@@ -8648,6 +8701,13 @@ type CollectionTranslatableContent implements Node @doc(category: "Products") {
 
   """SEO description to translate."""
   seoDescription: String
+
+  """
+  Slug to translate
+  
+  Added in Saleor 3.21.
+  """
+  slug: String
 
   """Collection's name to translate."""
   name: String!
@@ -8710,6 +8770,13 @@ type ProductTranslation implements Node @doc(category: "Products") {
   """Translated SEO description."""
   seoDescription: String
 
+  """
+  Translated product slug.
+  
+  Added in Saleor 3.21.
+  """
+  slug: String
+
   """Translated product name."""
   name: String
 
@@ -8754,6 +8821,13 @@ type ProductTranslatableContent implements Node @doc(category: "Products") {
 
   """SEO description to translate."""
   seoDescription: String
+
+  """
+  Slug to translate.
+  
+  Added in Saleor 3.21.
+  """
+  slug: String
 
   """Product's name to translate."""
   name: String!
@@ -8881,6 +8955,13 @@ type PageTranslatableContent implements Node @doc(category: "Pages") {
   """SEO description to translate."""
   seoDescription: String
 
+  """
+  Slug to translate.
+  
+  Added in Saleor 3.21.
+  """
+  slug: String
+
   """Page title to translate."""
   title: String!
 
@@ -8926,6 +9007,13 @@ type PageTranslation implements Node @doc(category: "Pages") {
 
   """Translated SEO description."""
   seoDescription: String
+
+  """
+  Translated page slug.
+  
+  Added in Saleor 3.21.
+  """
+  slug: String
 
   """Translated page title."""
   title: String
@@ -10415,7 +10503,7 @@ type Shop implements ObjectWithMetadata {
   
   Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
   """
-  limits: LimitInfo!
+  limits: LimitInfo! @deprecated(reason: "This field will be removed in Saleor 4.0.")
 
   """
   Saleor API version.
@@ -11820,6 +11908,13 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
 
   """Shipping method for this order."""
   shippingMethod: ShippingMethod @deprecated(reason: "This field will be removed in Saleor 4.0. Use `deliveryMethod` instead.")
+
+  """
+  Undiscounted total price of shipping.
+  
+  Added in Saleor 3.19.
+  """
+  undiscountedShippingPrice: Money!
 
   """Total price of shipping."""
   shippingPrice: TaxedMoney!
@@ -14057,6 +14152,7 @@ input OrderFilterInput @doc(category: "Orders") {
   isClickAndCollect: Boolean
   isPreorder: Boolean
   ids: [ID!]
+  checkoutTokens: [UUID!]
   giftCardUsed: Boolean
   giftCardBought: Boolean
   numbers: [String!]
@@ -19033,6 +19129,22 @@ type Mutation {
   ): CheckoutCustomerDetach @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [])
 
   """
+  Updates customer note in the existing checkout object.
+  
+  Added in Saleor 3.21.
+  
+  Triggers the following webhook events:
+  - CHECKOUT_UPDATED (async): A checkout was updated.
+  """
+  checkoutCustomerNoteUpdate(
+    """New customer note content."""
+    customerNote: String!
+
+    """The checkout's ID."""
+    id: ID!
+  ): CheckoutCustomerNoteUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [])
+
+  """
   Updates email address in the existing checkout object.
   
   Triggers the following webhook events:
@@ -21655,6 +21767,7 @@ enum TranslationErrorCode {
   INVALID
   NOT_FOUND
   REQUIRED
+  UNIQUE
 }
 
 input ShopSettingsTranslationInput {
@@ -22298,6 +22411,7 @@ type CategoryTranslate @doc(category: "Products") {
 }
 
 input TranslationInput {
+  slug: String
   seoTitle: String
   seoDescription: String
   name: String
@@ -25435,6 +25549,7 @@ type PageTranslate @doc(category: "Pages") {
 }
 
 input PageTranslationInput {
+  slug: String
   seoTitle: String
   seoDescription: String
   title: String
@@ -27937,13 +28052,9 @@ input PromotionCreateInput @doc(category: "Discounts") {
   """
   Defines the promotion type. Implicate the required promotion rules predicate type and whether the promotion rules will give the catalogue or order discount. 
   
-  The default value is `Catalogue`.
-  
-  This field will be required from Saleor 3.20.
-  
   Added in Saleor 3.19.
   """
-  type: PromotionTypeEnum
+  type: PromotionTypeEnum!
 
   """List of promotion rules."""
   rules: [PromotionRuleInput!]
@@ -29453,6 +29564,21 @@ type CheckoutCustomerDetach @doc(category: "Checkout") @webhookEventsInfo(asyncE
 }
 
 """
+Updates customer note in the existing checkout object.
+
+Added in Saleor 3.21.
+
+Triggers the following webhook events:
+- CHECKOUT_UPDATED (async): A checkout was updated.
+"""
+type CheckoutCustomerNoteUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: []) {
+  """An updated checkout."""
+  checkout: Checkout
+  checkoutErrors: [CheckoutError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [CheckoutError!]!
+}
+
+"""
 Updates email address in the existing checkout object.
 
 Triggers the following webhook events:
@@ -30063,7 +30189,9 @@ type ChannelDelete @doc(category: "Channels") @webhookEventsInfo(asyncEvents: [C
 }
 
 input ChannelDeleteInput @doc(category: "Channels") {
-  """ID of channel to migrate orders from origin channel."""
+  """
+  ID of a channel to migrate orders from the origin channel. Target channel has to have the same currency as the origin.
+  """
   channelId: ID!
 }
 
@@ -31237,6 +31365,8 @@ enum AccountErrorCode @doc(category: "Users") {
   CHANNEL_INACTIVE
   MISSING_CHANNEL_SLUG
   ACCOUNT_NOT_CONFIRMED
+  LOGIN_ATTEMPT_DELAYED
+  UNKNOWN_IP_ADDRESS
 }
 
 """
@@ -32317,6 +32447,216 @@ type Subscription @doc(category: "Miscellaneous") {
   Added in Saleor 3.2.
   """
   event: Event
+
+  """
+  Event sent when new draft order is created.
+  
+  Added in Saleor 3.20.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  draftOrderCreated(
+    """
+    List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
+    """
+    channels: [String!]
+  ): DraftOrderCreated
+
+  """
+  Event sent when draft order is updated.
+  
+  Added in Saleor 3.20.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  draftOrderUpdated(
+    """
+    List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
+    """
+    channels: [String!]
+  ): DraftOrderUpdated
+
+  """
+  Event sent when draft order is deleted.
+  
+  Added in Saleor 3.20.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  draftOrderDeleted(
+    """
+    List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
+    """
+    channels: [String!]
+  ): DraftOrderDeleted
+
+  """
+  Event sent when new order is created.
+  
+  Added in Saleor 3.20.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  orderCreated(
+    """
+    List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
+    """
+    channels: [String!]
+  ): OrderCreated
+
+  """
+  Event sent when order is updated.
+  
+  Added in Saleor 3.20.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  orderUpdated(
+    """
+    List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
+    """
+    channels: [String!]
+  ): OrderUpdated
+
+  """
+  Event sent when order is confirmed.
+  
+  Added in Saleor 3.20.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  orderConfirmed(
+    """
+    List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
+    """
+    channels: [String!]
+  ): OrderConfirmed
+
+  """
+  Payment has been made. The order may be partially or fully paid.
+  
+  Added in Saleor 3.20.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  orderPaid(
+    """
+    List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
+    """
+    channels: [String!]
+  ): OrderPaid
+
+  """
+  Event sent when order is fully paid.
+  
+  Added in Saleor 3.20.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  orderFullyPaid(
+    """
+    List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
+    """
+    channels: [String!]
+  ): OrderFullyPaid
+
+  """
+  The order received a refund. The order may be partially or fully refunded.
+  
+  Added in Saleor 3.20.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  orderRefunded(
+    """
+    List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
+    """
+    channels: [String!]
+  ): OrderRefunded
+
+  """
+  The order is fully refunded.
+  
+  Added in Saleor 3.20.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  orderFullyRefunded(
+    """
+    List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
+    """
+    channels: [String!]
+  ): OrderFullyRefunded
+
+  """
+  Event sent when order is fulfilled.
+  
+  Added in Saleor 3.20.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  orderFulfilled(
+    """
+    List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
+    """
+    channels: [String!]
+  ): OrderFulfilled
+
+  """
+  Event sent when order is cancelled.
+  
+  Added in Saleor 3.20.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  orderCancelled(
+    """
+    List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
+    """
+    channels: [String!]
+  ): OrderCancelled
+
+  """
+  Event sent when order becomes expired.
+  
+  Added in Saleor 3.20.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  orderExpired(
+    """
+    List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
+    """
+    channels: [String!]
+  ): OrderExpired
+
+  """
+  Event sent when order metadata is updated.
+  
+  Added in Saleor 3.20.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  orderMetadataUpdated(
+    """
+    List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
+    """
+    channels: [String!]
+  ): OrderMetadataUpdated
+
+  """
+  Event sent when orders are imported.
+  
+  Added in Saleor 3.20.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  orderBulkCreated(
+    """
+    List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
+    """
+    channels: [String!]
+  ): OrderBulkCreated
 }
 
 interface Event {
@@ -32334,6 +32674,346 @@ interface Event {
 }
 
 union IssuingPrincipal = App | User
+
+"""
+Event sent when new draft order is created.
+
+Added in Saleor 3.2.
+"""
+type DraftOrderCreated implements Event @doc(category: "Orders") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The order the event relates to."""
+  order: Order
+}
+
+"""
+Event sent when draft order is updated.
+
+Added in Saleor 3.2.
+"""
+type DraftOrderUpdated implements Event @doc(category: "Orders") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The order the event relates to."""
+  order: Order
+}
+
+"""
+Event sent when draft order is deleted.
+
+Added in Saleor 3.2.
+"""
+type DraftOrderDeleted implements Event @doc(category: "Orders") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The order the event relates to."""
+  order: Order
+}
+
+"""
+Event sent when new order is created.
+
+Added in Saleor 3.2.
+"""
+type OrderCreated implements Event @doc(category: "Orders") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The order the event relates to."""
+  order: Order
+}
+
+"""
+Event sent when order is updated.
+
+Added in Saleor 3.2.
+"""
+type OrderUpdated implements Event @doc(category: "Orders") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The order the event relates to."""
+  order: Order
+}
+
+"""
+Event sent when order is confirmed.
+
+Added in Saleor 3.2.
+"""
+type OrderConfirmed implements Event @doc(category: "Orders") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The order the event relates to."""
+  order: Order
+}
+
+"""
+Payment has been made. The order may be partially or fully paid.
+
+Added in Saleor 3.14.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type OrderPaid implements Event @doc(category: "Orders") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The order the event relates to."""
+  order: Order
+}
+
+"""
+Event sent when order is fully paid.
+
+Added in Saleor 3.2.
+"""
+type OrderFullyPaid implements Event @doc(category: "Orders") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The order the event relates to."""
+  order: Order
+}
+
+"""
+The order received a refund. The order may be partially or fully refunded.
+
+Added in Saleor 3.14.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type OrderRefunded implements Event @doc(category: "Orders") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The order the event relates to."""
+  order: Order
+}
+
+"""
+The order is fully refunded.
+
+Added in Saleor 3.14.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type OrderFullyRefunded implements Event @doc(category: "Orders") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The order the event relates to."""
+  order: Order
+}
+
+"""
+Event sent when order is fulfilled.
+
+Added in Saleor 3.2.
+"""
+type OrderFulfilled implements Event @doc(category: "Orders") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The order the event relates to."""
+  order: Order
+}
+
+"""
+Event sent when order is canceled.
+
+Added in Saleor 3.2.
+"""
+type OrderCancelled implements Event @doc(category: "Orders") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The order the event relates to."""
+  order: Order
+}
+
+"""
+Event sent when order becomes expired.
+
+Added in Saleor 3.13.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type OrderExpired implements Event @doc(category: "Orders") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The order the event relates to."""
+  order: Order
+}
+
+"""
+Event sent when order metadata is updated.
+
+Added in Saleor 3.8.
+"""
+type OrderMetadataUpdated implements Event @doc(category: "Orders") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The order the event relates to."""
+  order: Order
+}
+
+"""
+Event sent when orders are imported.
+
+Added in Saleor 3.14.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type OrderBulkCreated implements Event @doc(category: "Orders") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The orders the event relates to."""
+  orders: [Order!]
+}
 
 """An enumeration."""
 enum DistanceUnitsEnum {
@@ -33392,346 +34072,6 @@ type MenuItemDeleted implements Event @doc(category: "Menu") {
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): MenuItem
-}
-
-"""
-Event sent when new order is created.
-
-Added in Saleor 3.2.
-"""
-type OrderCreated implements Event @doc(category: "Orders") {
-  """Time of the event."""
-  issuedAt: DateTime
-
-  """Saleor version that triggered the event."""
-  version: String
-
-  """The user or application that triggered the event."""
-  issuingPrincipal: IssuingPrincipal
-
-  """The application receiving the webhook."""
-  recipient: App
-
-  """The order the event relates to."""
-  order: Order
-}
-
-"""
-Event sent when order is updated.
-
-Added in Saleor 3.2.
-"""
-type OrderUpdated implements Event @doc(category: "Orders") {
-  """Time of the event."""
-  issuedAt: DateTime
-
-  """Saleor version that triggered the event."""
-  version: String
-
-  """The user or application that triggered the event."""
-  issuingPrincipal: IssuingPrincipal
-
-  """The application receiving the webhook."""
-  recipient: App
-
-  """The order the event relates to."""
-  order: Order
-}
-
-"""
-Event sent when order is confirmed.
-
-Added in Saleor 3.2.
-"""
-type OrderConfirmed implements Event @doc(category: "Orders") {
-  """Time of the event."""
-  issuedAt: DateTime
-
-  """Saleor version that triggered the event."""
-  version: String
-
-  """The user or application that triggered the event."""
-  issuingPrincipal: IssuingPrincipal
-
-  """The application receiving the webhook."""
-  recipient: App
-
-  """The order the event relates to."""
-  order: Order
-}
-
-"""
-Event sent when order is fully paid.
-
-Added in Saleor 3.2.
-"""
-type OrderFullyPaid implements Event @doc(category: "Orders") {
-  """Time of the event."""
-  issuedAt: DateTime
-
-  """Saleor version that triggered the event."""
-  version: String
-
-  """The user or application that triggered the event."""
-  issuingPrincipal: IssuingPrincipal
-
-  """The application receiving the webhook."""
-  recipient: App
-
-  """The order the event relates to."""
-  order: Order
-}
-
-"""
-Payment has been made. The order may be partially or fully paid.
-
-Added in Saleor 3.14.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
-type OrderPaid implements Event @doc(category: "Orders") {
-  """Time of the event."""
-  issuedAt: DateTime
-
-  """Saleor version that triggered the event."""
-  version: String
-
-  """The user or application that triggered the event."""
-  issuingPrincipal: IssuingPrincipal
-
-  """The application receiving the webhook."""
-  recipient: App
-
-  """The order the event relates to."""
-  order: Order
-}
-
-"""
-The order received a refund. The order may be partially or fully refunded.
-
-Added in Saleor 3.14.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
-type OrderRefunded implements Event @doc(category: "Orders") {
-  """Time of the event."""
-  issuedAt: DateTime
-
-  """Saleor version that triggered the event."""
-  version: String
-
-  """The user or application that triggered the event."""
-  issuingPrincipal: IssuingPrincipal
-
-  """The application receiving the webhook."""
-  recipient: App
-
-  """The order the event relates to."""
-  order: Order
-}
-
-"""
-The order is fully refunded.
-
-Added in Saleor 3.14.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
-type OrderFullyRefunded implements Event @doc(category: "Orders") {
-  """Time of the event."""
-  issuedAt: DateTime
-
-  """Saleor version that triggered the event."""
-  version: String
-
-  """The user or application that triggered the event."""
-  issuingPrincipal: IssuingPrincipal
-
-  """The application receiving the webhook."""
-  recipient: App
-
-  """The order the event relates to."""
-  order: Order
-}
-
-"""
-Event sent when order is fulfilled.
-
-Added in Saleor 3.2.
-"""
-type OrderFulfilled implements Event @doc(category: "Orders") {
-  """Time of the event."""
-  issuedAt: DateTime
-
-  """Saleor version that triggered the event."""
-  version: String
-
-  """The user or application that triggered the event."""
-  issuingPrincipal: IssuingPrincipal
-
-  """The application receiving the webhook."""
-  recipient: App
-
-  """The order the event relates to."""
-  order: Order
-}
-
-"""
-Event sent when order is canceled.
-
-Added in Saleor 3.2.
-"""
-type OrderCancelled implements Event @doc(category: "Orders") {
-  """Time of the event."""
-  issuedAt: DateTime
-
-  """Saleor version that triggered the event."""
-  version: String
-
-  """The user or application that triggered the event."""
-  issuingPrincipal: IssuingPrincipal
-
-  """The application receiving the webhook."""
-  recipient: App
-
-  """The order the event relates to."""
-  order: Order
-}
-
-"""
-Event sent when order becomes expired.
-
-Added in Saleor 3.13.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
-type OrderExpired implements Event @doc(category: "Orders") {
-  """Time of the event."""
-  issuedAt: DateTime
-
-  """Saleor version that triggered the event."""
-  version: String
-
-  """The user or application that triggered the event."""
-  issuingPrincipal: IssuingPrincipal
-
-  """The application receiving the webhook."""
-  recipient: App
-
-  """The order the event relates to."""
-  order: Order
-}
-
-"""
-Event sent when order metadata is updated.
-
-Added in Saleor 3.8.
-"""
-type OrderMetadataUpdated implements Event @doc(category: "Orders") {
-  """Time of the event."""
-  issuedAt: DateTime
-
-  """Saleor version that triggered the event."""
-  version: String
-
-  """The user or application that triggered the event."""
-  issuingPrincipal: IssuingPrincipal
-
-  """The application receiving the webhook."""
-  recipient: App
-
-  """The order the event relates to."""
-  order: Order
-}
-
-"""
-Event sent when orders are imported.
-
-Added in Saleor 3.14.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
-type OrderBulkCreated implements Event @doc(category: "Orders") {
-  """Time of the event."""
-  issuedAt: DateTime
-
-  """Saleor version that triggered the event."""
-  version: String
-
-  """The user or application that triggered the event."""
-  issuingPrincipal: IssuingPrincipal
-
-  """The application receiving the webhook."""
-  recipient: App
-
-  """The orders the event relates to."""
-  orders: [Order!]
-}
-
-"""
-Event sent when new draft order is created.
-
-Added in Saleor 3.2.
-"""
-type DraftOrderCreated implements Event @doc(category: "Orders") {
-  """Time of the event."""
-  issuedAt: DateTime
-
-  """Saleor version that triggered the event."""
-  version: String
-
-  """The user or application that triggered the event."""
-  issuingPrincipal: IssuingPrincipal
-
-  """The application receiving the webhook."""
-  recipient: App
-
-  """The order the event relates to."""
-  order: Order
-}
-
-"""
-Event sent when draft order is updated.
-
-Added in Saleor 3.2.
-"""
-type DraftOrderUpdated implements Event @doc(category: "Orders") {
-  """Time of the event."""
-  issuedAt: DateTime
-
-  """Saleor version that triggered the event."""
-  version: String
-
-  """The user or application that triggered the event."""
-  issuingPrincipal: IssuingPrincipal
-
-  """The application receiving the webhook."""
-  recipient: App
-
-  """The order the event relates to."""
-  order: Order
-}
-
-"""
-Event sent when draft order is deleted.
-
-Added in Saleor 3.2.
-"""
-type DraftOrderDeleted implements Event @doc(category: "Orders") {
-  """Time of the event."""
-  issuedAt: DateTime
-
-  """Saleor version that triggered the event."""
-  version: String
-
-  """The user or application that triggered the event."""
-  issuingPrincipal: IssuingPrincipal
-
-  """The application receiving the webhook."""
-  recipient: App
-
-  """The order the event relates to."""
-  order: Order
 }
 
 """

@@ -2,20 +2,20 @@ from collections import defaultdict
 from decimal import Decimal
 from typing import TYPE_CHECKING, Optional, Union
 
+from .. import DiscountType
 from ..models import (
     CheckoutDiscount,
     CheckoutLineDiscount,
     OrderDiscount,
     OrderLineDiscount,
     PromotionRule,
-    Voucher,
 )
 
 if TYPE_CHECKING:
     from ..models import Voucher
 
 
-def update_line_discount(
+def update_discount(
     rule: Optional["PromotionRule"],
     voucher: Optional["Voucher"],
     discount_name: str,
@@ -29,6 +29,7 @@ def update_line_discount(
         "CheckoutLineDiscount", "CheckoutDiscount", "OrderLineDiscount", "OrderDiscount"
     ],
     updated_fields: list[str],
+    voucher_code: Optional[str],
 ):
     if voucher and discount_to_update.voucher_id != voucher.id:
         discount_to_update.voucher_id = voucher.id
@@ -59,6 +60,9 @@ def update_line_discount(
         if discount_to_update.unique_type is None:
             discount_to_update.unique_type = unique_type
             updated_fields.append("unique_type")
+    if voucher_code and discount_to_update.voucher_code != voucher_code:
+        discount_to_update.voucher_code = voucher_code
+        updated_fields.append("voucher_code")
 
 
 def update_line_info_cached_discounts(
@@ -79,3 +83,12 @@ def update_line_info_cached_discounts(
         ]
         if discount := line_id_line_discounts_map.get(line_info.line.id):
             line_info.discounts.extend(discount)
+
+
+def is_order_level_discount(discount: OrderDiscount) -> bool:
+    from .voucher import is_order_level_voucher
+
+    return discount.type in [
+        DiscountType.MANUAL,
+        DiscountType.ORDER_PROMOTION,
+    ] or is_order_level_voucher(discount.voucher)

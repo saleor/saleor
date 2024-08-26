@@ -8,13 +8,13 @@ from ....payment.interface import ListStoredPaymentMethodsRequestData
 from ....settings import WEBHOOK_SYNC_TIMEOUT
 from ....webhook.const import WEBHOOK_CACHE_DEFAULT_TIMEOUT
 from ....webhook.event_types import WebhookEventSyncType
+from ....webhook.tests.subscription_webhooks.subscription_queries import (
+    LIST_STORED_PAYMENT_METHODS as LIST_STORED_PAYMENT_METHODS_SUBSCRIPTION,
+)
 from ....webhook.transport.list_stored_payment_methods import (
     get_list_stored_payment_methods_from_response,
 )
 from ....webhook.transport.utils import generate_cache_key_for_webhook
-from .subscription_webhooks.subscription_queries import (
-    LIST_STORED_PAYMENT_METHODS as LIST_STORED_PAYMENT_METHODS_SUBSCRIPTION,
-)
 
 LIST_STORED_PAYMENT_METHODS = """
 subscription {
@@ -122,7 +122,7 @@ def test_list_stored_payment_methods_subscription_issuing_principal(
     delivery = EventDelivery.objects.get()
     mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
 
-    delivery_subscription_payload = json.loads(delivery.payload.payload)
+    delivery_subscription_payload = json.loads(delivery.payload.get_payload())
     assert delivery_subscription_payload == {
         "issuingPrincipal": {"id": graphene.Node.to_global_id("User", customer_user.pk)}
     }
@@ -168,7 +168,7 @@ def test_list_stored_payment_methods_subscription_issuing_principal_as_app(
     delivery = EventDelivery.objects.get()
     mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
 
-    delivery_subscription_payload = json.loads(delivery.payload.payload)
+    delivery_subscription_payload = json.loads(delivery.payload.get_payload())
     assert delivery_subscription_payload == {
         "issuingPrincipal": {
             "id": graphene.Node.to_global_id("App", list_stored_payment_methods_app.pk)
