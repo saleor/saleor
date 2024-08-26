@@ -3502,6 +3502,7 @@ class WebhookPlugin(BasePlugin):
         checkout: "Checkout",
         available_shipping_methods: list["ShippingMethodData"],
         previous_value: list[ExcludedShippingMethod],
+        pregenerated_subscription_payloads: Optional[dict] = {},
     ) -> list[ExcludedShippingMethod]:
         generate_function = generate_excluded_shipping_methods_for_checkout_payload
         payload_function = lambda: generate_function(  # noqa: E731
@@ -3514,6 +3515,7 @@ class WebhookPlugin(BasePlugin):
             payload_fun=payload_function,
             subscribable_object=checkout,
             allow_replica=self.allow_replica,
+            pregenerated_subscription_payloads=pregenerated_subscription_payloads,
         )
 
     def is_event_active(self, event: str, channel=Optional[str]):

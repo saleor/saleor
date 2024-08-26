@@ -119,10 +119,16 @@ class CheckoutInfo:
             self.database_connection_name,
         )
         # Filter shipping methods using sync webhooks
+        pregenerated_payloads = {
+            1: {"ba56363a3342a924d5fd3f375ad134aa": {"key": "SAMPLE PAYLOAD"}},
+            2: {"ba56363a3342a924d5fd3f375ad134aa": {"key": "SAMPLE PAYLOAD2"}},
+        }
+
         excluded_methods = self.manager.excluded_shipping_methods_for_checkout(
             self.checkout,
             self.channel,
             all_methods,
+            pregenerated_payloads,
         )
         initialize_shipping_method_active_status(all_methods, excluded_methods)
         return all_methods
