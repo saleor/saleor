@@ -107,6 +107,7 @@ class CheckoutInfo:
     voucher: Optional["Voucher"] = None
     voucher_code: Optional["VoucherCode"] = None
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME
+    pregenerated_payloads_for_excluded_shipping_method: Optional[dict] = None
 
     @cached_property
     def all_shipping_methods(self) -> list["ShippingMethodData"]:
@@ -119,16 +120,11 @@ class CheckoutInfo:
             self.database_connection_name,
         )
         # Filter shipping methods using sync webhooks
-        pregenerated_payloads = {
-            1: {"ba56363a3342a924d5fd3f375ad134aa": {"key": "SAMPLE PAYLOAD"}},
-            2: {"ba56363a3342a924d5fd3f375ad134aa": {"key": "SAMPLE PAYLOAD2"}},
-        }
-
         excluded_methods = self.manager.excluded_shipping_methods_for_checkout(
             self.checkout,
             self.channel,
             all_methods,
-            pregenerated_payloads,
+            self.pregenerated_payloads_for_excluded_shipping_method,
         )
         initialize_shipping_method_active_status(all_methods, excluded_methods)
         return all_methods
