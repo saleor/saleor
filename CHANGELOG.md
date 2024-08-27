@@ -14,7 +14,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - `ConfirmAccount`,
   - `RequestPasswordReset`,
     `RequestPasswordReset` will now require `channel` as input  for staff users,
-  - `SetPassword`, #16243 by @kadewu
+  - `SetPassword` - #16243 by @kadewu
 
 ### GraphQL API
 - Add `translatableContent` to all translation types; add translated object id to all translatable content types - #15617 by @zedzior

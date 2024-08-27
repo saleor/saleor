@@ -34,7 +34,7 @@ class RequestPasswordReset(BaseMutation):
             ),
         )
         channel = graphene.String(
-            description=("Slug of a channel which will be used for notify user.")
+            description="Slug of a channel which will be used for notify user."
         )
 
     class Meta:
