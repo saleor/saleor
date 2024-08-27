@@ -315,7 +315,7 @@ def _fetch_checkout_prices_if_expired(
                 database_connection_name=database_connection_name,
                 pregenerated_subscription_payloads=pregenerated_subscription_payloads,
             )
-        except TaxEmptyData as e:
+        except (TaxEmptyData, TaxDataWithNegativeValues) as e:
             _set_checkout_base_prices(checkout, checkout_info, lines)
             checkout.tax_error = str(e)
 
@@ -342,7 +342,7 @@ def _fetch_checkout_prices_if_expired(
                     database_connection_name=database_connection_name,
                     pregenerated_subscription_payloads=pregenerated_subscription_payloads,
                 )
-            except TaxEmptyData as e:
+            except (TaxEmptyData, TaxDataWithNegativeValues) as e:
                 _set_checkout_base_prices(checkout, checkout_info, lines)
                 checkout.tax_error = str(e)
         else:
@@ -527,7 +527,7 @@ def _apply_tax_data(
 
     if check_negative_values_in_tax_data(tax_data):
         logger.error(
-            "Tax data contains negative values",
+            "Tax data contains negative values.",
             extra={
                 "checkout_id": graphene.Node.to_global_id("Checkout", checkout.pk),
             },

@@ -754,12 +754,15 @@ class AvataxPlugin(BasePlugin):
 
         if check_negative_values_in_tax_data_from_plugin(response):
             logger.error(
-                "Tax data contains negative values",
+                "Tax data contains negative values.",
                 extra={
                     "checkout_id": graphene.Node.to_global_id(
                         "Checkout", checkout_info.checkout.pk
                     ),
                 },
+            )
+            self._set_checkout_tax_error(
+                checkout_info, lines_info, message="Tax data contains negative values."
             )
             return None
 
@@ -769,10 +772,11 @@ class AvataxPlugin(BasePlugin):
         self,
         checkout_info: "CheckoutInfo",
         lines_info: Iterable["CheckoutLineInfo"],
+        message: Optional[str] = "Empty tax data.",
     ) -> None:
         app_identifier = get_tax_app_identifier_for_checkout(checkout_info, lines_info)
         if app_identifier == self.PLUGIN_IDENTIFIER:
-            checkout_info.checkout.tax_error = "Empty tax data."
+            checkout_info.checkout.tax_error = message
 
     def _get_order_tax_data(
         self, order: "Order", base_value: Union[Decimal, OrderTaxedPricesData]
@@ -793,19 +797,24 @@ class AvataxPlugin(BasePlugin):
 
         if check_negative_values_in_tax_data_from_plugin(response):
             logger.error(
-                "Tax data contains negative values",
+                "Tax data contains negative values.",
                 extra={
                     "order_id": graphene.Node.to_global_id("Order", order.pk),
                 },
+            )
+            self._set_order_tax_error(
+                order, message="Tax data contains negative values."
             )
             return None
 
         return response
 
-    def _set_order_tax_error(self, order: "Order") -> None:
+    def _set_order_tax_error(
+        self, order: "Order", message: Optional[str] = "Empty tax data."
+    ) -> None:
         app_identifier = get_tax_app_identifier_for_order(order)
         if app_identifier == self.PLUGIN_IDENTIFIER:
-            order.tax_error = "Empty tax data."
+            order.tax_error = message
 
     @staticmethod
     def _get_unit_tax_rate(

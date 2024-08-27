@@ -6364,3 +6364,73 @@ def test_get_checkout_tax_data_set_tax_error(
 
     # then
     assert checkout_with_item.tax_error == "Empty tax data."
+
+
+@pytest.mark.vcr
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_checkout_negative_values_in_tax_data(
+    checkout_with_item,
+    ship_to_pl_address,
+    monkeypatch,
+    shipping_zone,
+    plugin_configuration,
+    caplog,
+):
+    plugin_configuration()
+    manager = get_plugins_manager(allow_replica=False)
+
+    checkout_with_item.shipping_address = ship_to_pl_address
+    checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
+    checkout_with_item.save()
+
+    channel = checkout_with_item.channel
+    tax_configuration = channel.tax_configuration
+    tax_configuration.tax_app_id = AvataxPlugin.PLUGIN_IDENTIFIER
+    tax_configuration.save(update_fields=["tax_app_id"])
+
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
+    checkout_line_info = lines[0]
+
+    # when
+    manager.calculate_checkout_line_total(
+        checkout_info,
+        lines,
+        checkout_line_info,
+        checkout_with_item.shipping_address,
+    )
+
+    # then
+    assert checkout_info.checkout.tax_error == "Tax data contains negative values."
+    assert "Tax data contains negative values" in caplog.text
+
+
+@pytest.mark.vcr
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_order_negative_values_in_tax_data(
+    order_line, shipping_zone, site_settings, address, plugin_configuration, caplog
+):
+    # given
+    plugin_configuration()
+    manager = get_plugins_manager(allow_replica=False)
+
+    order = order_line.order
+    method = shipping_zone.shipping_methods.get()
+    order.shipping_address = order.billing_address.get_copy()
+    order_set_shipping_method(order, method)
+    order.save()
+
+    channel = order.channel
+    tax_configuration = channel.tax_configuration
+    tax_configuration.tax_app_id = AvataxPlugin.PLUGIN_IDENTIFIER
+    tax_configuration.save(update_fields=["tax_app_id"])
+
+    site_settings.company_address = address
+    site_settings.save()
+
+    # when
+    manager.calculate_order_total(order, order.lines.all())
+
+    # then
+    assert order.tax_error == "Tax data contains negative values."
+    assert "Tax data contains negative values" in caplog.text

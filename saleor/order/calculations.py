@@ -169,7 +169,7 @@ def _recalculate_prices(
                 prices_entered_with_tax,
                 database_connection_name=database_connection_name,
             )
-        except TaxEmptyData as e:
+        except (TaxEmptyData, TaxDataWithNegativeValues) as e:
             order.tax_error = str(e)
 
         if not should_charge_tax:
@@ -192,7 +192,7 @@ def _recalculate_prices(
                     prices_entered_with_tax,
                     database_connection_name=database_connection_name,
                 )
-            except TaxEmptyData as e:
+            except (TaxEmptyData, TaxDataWithNegativeValues) as e:
                 order.tax_error = str(e)
         else:
             _remove_tax(order, lines)
@@ -372,7 +372,7 @@ def _apply_tax_data(
 
     if check_negative_values_in_tax_data(tax_data):
         logger.error(
-            "Tax data contains negative values",
+            "Tax data contains negative values.",
             extra={"order_id": graphene.Node.to_global_id("Order", order.pk)},
         )
         raise TaxDataWithNegativeValues("Tax data contains negative values.")
