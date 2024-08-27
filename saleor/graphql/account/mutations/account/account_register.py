@@ -71,11 +71,10 @@ class AccountRegister(ModelMutation):
     class Meta:
         description = "Register a new user."
         doc_category = DOC_CATEGORY_USERS
-        exclude = ["password"]
-        model = models.User
-        object_type = User
         error_type_class = AccountError
         error_type_field = "account_errors"
+        model = models.User
+        object_type = User
         support_meta_field = True
         webhook_events_info = [
             WebhookEventInfo(
@@ -102,6 +101,9 @@ class AccountRegister(ModelMutation):
         response.requires_confirmation = (
             site.settings.enable_account_confirmation_by_email
         )
+        # we don't want to leak id's as it will allow to deduce if user exists
+        if response.user:
+            response.user.DO_NOT_LEAK_ID = True
         return response
 
     @classmethod
@@ -143,6 +145,35 @@ class AccountRegister(ModelMutation):
 
         data["language_code"] = data.get("language_code", settings.LANGUAGE_CODE)
         return super().clean_input(info, instance, data, **kwargs)
+
+    @classmethod
+    def clean_instance(cls, info: ResolveInfo, instance, /):
+        user_exists = False
+
+        try:
+            instance.full_clean(exclude=["password"])
+        except ValidationError as error:
+            user_exists, error.error_dict = cls._clean_errors(error)
+
+            if error.error_dict:
+                raise error
+
+        return user_exists
+
+    @classmethod
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
+        instance = models.User()
+        data = data.get("input")
+        cleaned_input = cls.clean_input(info, instance, data)
+        metadata_list = cleaned_input.pop("metadata", None)
+        private_metadata_list = cleaned_input.pop("private_metadata", None)
+
+        instance = cls.construct_instance(instance, cleaned_input)
+        cls.validate_and_update_metadata(instance, metadata_list, private_metadata_list)
+        user_exists = cls.clean_instance(info, instance)
+        if not user_exists:
+            cls.save(info, instance, cleaned_input)
+        return cls.success_response(instance)
 
     @classmethod
     def save(cls, info: ResolveInfo, user, cleaned_input):
@@ -188,3 +219,46 @@ class AccountRegister(ModelMutation):
 
             cls.call_event(manager.customer_created, user)
         account_events.customer_account_created_event(user=user)
+
+    @classmethod
+    def _clean_email_errors(cls, errors):
+        """Clean email errors.
+
+        Iterates over errors for field `email` with purpose to
+        not leak `unique` error in case when user already exists in database which would
+        allow user enumeration.
+        Returns boolean value if user exists and filtered errors
+        that can be displayed to the end user.
+        """
+        existing_user = False
+        filtered_errors = []
+
+        for error in errors:
+            if error.code == "unique":
+                existing_user = True
+                continue
+            filtered_errors.append(error)
+
+        return existing_user, filtered_errors
+
+    @classmethod
+    def _clean_errors(cls, error):
+        """Clean errors.
+
+        Iterate over errors for field `email` with purpose to
+        not leak error indicating user existence in the system.
+        Returns boolean value if user exists and filtered errors
+        that can be displayed to the end user.
+        """
+        existing_user = False
+        error_dict = {}
+
+        for field, errors in error.error_dict.items():
+            if field == "email":
+                existing_user, errors = cls._clean_email_errors(errors)
+                if not errors:
+                    continue
+
+            error_dict[field] = errors
+
+        return existing_user, error_dict

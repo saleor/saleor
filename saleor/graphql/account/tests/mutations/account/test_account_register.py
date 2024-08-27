@@ -5,7 +5,6 @@ from django.contrib.auth.tokens import default_token_generator
 from django.test import override_settings
 
 from ......account import events as account_events
-from ......account.error_codes import AccountErrorCode
 from ......account.models import User
 from ......account.notifications import get_default_user_payload
 from ......account.search import generate_user_fields_search_document_value
@@ -103,12 +102,79 @@ def test_customer_register(
     assert called_kwargs["payload_func"]() == expected_payload
     assert called_kwargs["channel_slug"] == channel_PLN.slug
 
+
+@override_settings(
+    ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=True, ALLOWED_CLIENT_HOSTS=["localhost"]
+)
+@patch("saleor.account.notifications.default_token_generator.make_token")
+@patch("saleor.plugins.manager.PluginsManager.notify")
+def test_customer_register_twice(
+    mocked_notify,
+    mocked_generator,
+    api_client,
+    channel_PLN,
+    order,
+    site_settings,
+):
+    # given
+    mocked_generator.return_value = "token"
+    email = "customer@example.com"
+
+    redirect_url = "http://localhost:3000"
+    variables = {
+        "input": {
+            "email": email,
+            "password": "Password",
+            "redirectUrl": redirect_url,
+            "firstName": "saleor",
+            "lastName": "rocks",
+            "languageCode": "PL",
+            "metadata": [{"key": "meta", "value": "data"}],
+            "channel": channel_PLN.slug,
+        }
+    }
+    query = ACCOUNT_REGISTER_MUTATION
+    mutation_name = "accountRegister"
+
+    # when
+    response = api_client.post_graphql(query, variables)
+
+    # then
+    new_user = User.objects.get(email=email)
+    content = get_graphql_content(response)
+    data = content["data"][mutation_name]
+    params = urlencode({"email": email, "token": "token"})
+    confirm_url = prepare_url(params, redirect_url)
+
+    expected_payload = {
+        "user": get_default_user_payload(new_user),
+        "token": "token",
+        "confirm_url": confirm_url,
+        "recipient_email": new_user.email,
+        "channel_slug": channel_PLN.slug,
+        **get_site_context_payload(site_settings.site),
+    }
+    assert new_user.metadata == {"meta": "data"}
+    assert new_user.language_code == "pl"
+    assert new_user.first_name == variables["input"]["firstName"]
+    assert new_user.last_name == variables["input"]["lastName"]
+    assert new_user.search_document == generate_user_fields_search_document_value(
+        new_user
+    )
+    assert not data["errors"]
+    assert mocked_notify.call_count == 1
+    call_args = mocked_notify.call_args_list[0]
+    called_args = call_args.args
+    called_kwargs = call_args.kwargs
+    assert called_args[0] == NotifyEventType.ACCOUNT_CONFIRMATION
+    assert len(called_kwargs) == 2
+    assert called_kwargs["payload_func"]() == expected_payload
+    assert called_kwargs["channel_slug"] == channel_PLN.slug
+
     response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"][mutation_name]
-    assert data["errors"]
-    assert data["errors"][0]["field"] == "email"
-    assert data["errors"][0]["code"] == AccountErrorCode.UNIQUE.name
+    assert not data["errors"]
 
     customer_creation_event = account_events.CustomerEvent.objects.get()
     assert customer_creation_event.type == account_events.CustomerEvents.ACCOUNT_CREATED
@@ -251,3 +317,56 @@ def test_customer_register_no_channel_email_confirmation_unset(
     assert not data["errors"]
     assert data["user"]["email"].lower()
     mocked_notify.assert_not_called()
+
+
+def test_account_register_properly_filter_errors(
+    api_client, channel_PLN, site_settings
+):
+    # given
+    site_settings.enable_account_confirmation_by_email = False
+    site_settings.save(update_fields=["enable_account_confirmation_by_email"])
+
+    email = "customer"
+    variables = {
+        "input": {
+            "email": email,
+            "password": "Password",
+            "firstName": "saleor",
+            "lastName": "rocks",
+        }
+    }
+
+    # when
+    response = api_client.post_graphql(ACCOUNT_REGISTER_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["accountRegister"]["errors"]
+    assert errors
+    assert errors[0]["code"] == "INVALID"
+    assert errors[0]["field"] == "email"
+
+
+def test_account_register_returns_empty_id(
+    api_client, channel_PLN, site_settings, customer_user
+):
+    # given
+    site_settings.enable_account_confirmation_by_email = False
+    site_settings.save(update_fields=["enable_account_confirmation_by_email"])
+
+    variables = {
+        "input": {
+            "email": customer_user.email,
+            "password": "Password",
+        }
+    }
+
+    # when
+    response = api_client.post_graphql(ACCOUNT_REGISTER_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["accountRegister"]
+    assert not data["errors"]
+    assert data["user"]["id"] == ""
+    assert data["user"]["email"] == customer_user.email

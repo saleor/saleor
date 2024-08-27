@@ -18152,9 +18152,7 @@ type Mutation {
   - STAFF_SET_PASSWORD_REQUESTED (async): Setting a new password for the staff account is requested.
   """
   requestPasswordReset(
-    """
-    Slug of a channel which will be used for notify user. Optional when only one channel exists.
-    """
+    """Slug of a channel which will be used for notify user."""
     channel: String
 
     """Email of the user that will be used for password recovery."""
