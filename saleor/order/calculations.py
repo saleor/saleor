@@ -373,10 +373,7 @@ def _apply_tax_data(
     if check_negative_values_in_tax_data(tax_data):
         logger.error(
             "Tax data contains negative values",
-            extra={
-                "tax_data": tax_data,
-                "order_id": graphene.Node.to_global_id("Order", order.pk),
-            },
+            extra={"order_id": graphene.Node.to_global_id("Order", order.pk)},
         )
         raise TaxDataWithNegativeValues("Tax data contains negative values.")
 

@@ -529,7 +529,6 @@ def _apply_tax_data(
         logger.error(
             "Tax data contains negative values",
             extra={
-                "tax_data": tax_data,
                 "checkout_id": graphene.Node.to_global_id("Checkout", checkout.pk),
             },
         )

@@ -11,7 +11,12 @@ from prices import Money, TaxedMoney
 
 from ...checkout.utils import add_promo_code_to_checkout, set_external_shipping_id
 from ...core.prices import quantize_price
-from ...core.taxes import TaxData, TaxLineData, zero_taxed_money
+from ...core.taxes import (
+    TaxData,
+    TaxDataWithNegativeValues,
+    TaxLineData,
+    zero_taxed_money,
+)
 from ...plugins import PLUGIN_IDENTIFIER_PREFIX
 from ...plugins.manager import get_plugins_manager
 from ...plugins.tests.sample_plugins import PluginSample
@@ -752,3 +757,31 @@ def test_calculate_and_add_tax_empty_tax_data_logging_address(
         f"Fetching tax data for checkout with address validation skipped. "
         f"Address ID: {address.pk}" in caplog.text
     )
+
+
+def test_apply_tax_data_with_negative_values(checkout_with_item, caplog):
+    # given
+    checkout = checkout_with_item
+    line = checkout.lines.get()
+
+    tax_data = TaxData(
+        shipping_price_net_amount=Decimal("1"),
+        shipping_price_gross_amount=Decimal("1.5"),
+        shipping_tax_rate=Decimal("50"),
+        lines=[
+            TaxLineData(
+                total_net_amount=Decimal("2"),
+                total_gross_amount=Decimal("-3"),
+                tax_rate=Decimal("50"),
+            )
+        ],
+    )
+
+    # when & then
+    with pytest.raises(TaxDataWithNegativeValues):
+        _apply_tax_data(
+            checkout,
+            [Mock(spec=CheckoutLineInfo, line=line, variant=line.variant)],
+            tax_data,
+        )
+    assert "Tax data contains negative values" in caplog.text

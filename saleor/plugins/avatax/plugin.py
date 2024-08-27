@@ -756,7 +756,6 @@ class AvataxPlugin(BasePlugin):
             logger.error(
                 "Tax data contains negative values",
                 extra={
-                    "tax_data": response,
                     "checkout_id": graphene.Node.to_global_id(
                         "Checkout", checkout_info.checkout.pk
                     ),
@@ -796,7 +795,6 @@ class AvataxPlugin(BasePlugin):
             logger.error(
                 "Tax data contains negative values",
                 extra={
-                    "tax_data": response,
                     "order_id": graphene.Node.to_global_id("Order", order.pk),
                 },
             )

@@ -7,7 +7,13 @@ from django.test import override_settings
 from prices import Money, TaxedMoney
 
 from ...core.prices import quantize_price
-from ...core.taxes import TaxData, TaxError, TaxLineData, zero_taxed_money
+from ...core.taxes import (
+    TaxData,
+    TaxDataWithNegativeValues,
+    TaxError,
+    TaxLineData,
+    zero_taxed_money,
+)
 from ...discount import DiscountValueType
 from ...plugins import PLUGIN_IDENTIFIER_PREFIX
 from ...plugins.manager import get_plugins_manager
@@ -1277,3 +1283,24 @@ def test_recalculate_prices_empty_tax_data_logging_address(
         f"Fetching tax data for order with address validation skipped. "
         f"Address ID: {address.pk}" in caplog.text
     )
+
+
+def test_apply_tax_data_with_negative_values(order_line, caplog):
+    # given
+    tax_data = TaxData(
+        shipping_price_net_amount=Decimal("1"),
+        shipping_price_gross_amount=Decimal("1.5"),
+        shipping_tax_rate=Decimal("50"),
+        lines=[
+            TaxLineData(
+                total_net_amount=Decimal("2"),
+                total_gross_amount=Decimal("-3"),
+                tax_rate=Decimal("50"),
+            )
+        ],
+    )
+
+    # when & then
+    with pytest.raises(TaxDataWithNegativeValues):
+        calculations._apply_tax_data(order_line.order, order_line, tax_data, True)
+    assert "Tax data contains negative values" in caplog.text
