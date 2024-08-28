@@ -1,22 +1,117 @@
+import base64
 import json
 import logging
 from collections import defaultdict
-from typing import Callable, Optional, Union
+from typing import Any, Callable, Optional, Union
 
 from django.db.models import QuerySet
 from graphql import GraphQLError
+from prices import Money
 
+from ...app.models import App
 from ...checkout.models import Checkout
 from ...graphql.core.utils import from_global_id_or_error
 from ...graphql.shipping.types import ShippingMethod
 from ...order.models import Order
 from ...plugins.base_plugin import ExcludedShippingMethod, RequestorOrLazyObject
 from ...settings import WEBHOOK_SYNC_TIMEOUT
+from ...shipping.interface import ShippingMethodData
 from ...webhook.utils import get_webhooks_for_event
 from ..const import APP_ID_PREFIX, CACHE_EXCLUDED_SHIPPING_TIME
 from .synchronous.transport import trigger_webhook_sync_if_not_cached
 
 logger = logging.getLogger(__name__)
+
+
+def to_shipping_app_id(app: "App", shipping_method_id: str) -> "str":
+    app_identifier = app.identifier or app.id
+    return base64.b64encode(
+        str.encode(f"{APP_ID_PREFIX}:{app_identifier}:{shipping_method_id}")
+    ).decode("utf-8")
+
+
+def convert_to_app_id_with_identifier(shipping_app_id: str):
+    """Prepare the shipping_app_id in format `app:<app-identifier>/method_id>`.
+
+    The format of shipping_app_id has been changes so we need to support both of them.
+    This method is preparing the new shipping_app_id format based on assumptions
+    that right now the old one is used which is `app:<app-pk>:method_id>`
+    """
+    decoded_id = base64.b64decode(shipping_app_id).decode()
+    splitted_id = decoded_id.split(":")
+    if len(splitted_id) != 3:
+        return
+    try:
+        app_id = int(splitted_id[1])
+    except (TypeError, ValueError):
+        return None
+    app = App.objects.filter(id=app_id).first()
+    if app is None:
+        return None
+    return to_shipping_app_id(app, splitted_id[2])
+
+
+def method_metadata_is_valid(metadata) -> bool:
+    if not isinstance(metadata, dict):
+        return False
+    for key, value in metadata.items():
+        if not isinstance(key, str) or not isinstance(value, str) or not key.strip():
+            return False
+    return True
+
+
+def parse_list_shipping_methods_response(
+    response_data: Any, app: "App"
+) -> list["ShippingMethodData"]:
+    shipping_methods = []
+    for shipping_method_data in response_data:
+        if not validate_shipping_method_data(shipping_method_data):
+            continue
+        method_id = shipping_method_data.get("id")
+        method_name = shipping_method_data.get("name")
+        method_amount = shipping_method_data.get("amount")
+        method_currency = shipping_method_data.get("currency")
+        method_maximum_delivery_days = shipping_method_data.get("maximum_delivery_days")
+        method_minimum_delivery_days = shipping_method_data.get("minimum_delivery_days")
+        method_description = shipping_method_data.get("description")
+        method_metadata = shipping_method_data.get("metadata")
+        if method_metadata:
+            method_metadata = (
+                method_metadata if method_metadata_is_valid(method_metadata) else {}
+            )
+
+        shipping_methods.append(
+            ShippingMethodData(
+                id=to_shipping_app_id(app, method_id),
+                name=method_name,
+                price=Money(method_amount, method_currency),
+                maximum_delivery_days=method_maximum_delivery_days,
+                minimum_delivery_days=method_minimum_delivery_days,
+                description=method_description,
+                metadata=method_metadata,
+            )
+        )
+    return shipping_methods
+
+
+def validate_shipping_method_data(shipping_method_data):
+    if not isinstance(shipping_method_data, dict):
+        return False
+    keys = ["id", "name", "amount", "currency"]
+    return all(key in shipping_method_data for key in keys)
+
+
+def get_cache_data_for_shipping_list_methods_for_checkout(payload: str) -> dict:
+    key_data = json.loads(payload)
+
+    # drop fields that change between requests but are not relevant for cache key
+    key_data[0].pop("last_change")
+    key_data[0].pop("meta")
+    # Drop the external_app_shipping_id from the cache key as it should not have an
+    # impact on cache invalidation
+    if "external_app_shipping_id" in key_data[0].get("private_metadata", {}):
+        del key_data[0]["private_metadata"]["external_app_shipping_id"]
+    return key_data
 
 
 def get_cache_data_for_exclude_shipping_methods(payload: str) -> dict:

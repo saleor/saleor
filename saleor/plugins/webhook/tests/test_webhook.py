@@ -620,35 +620,6 @@ def test_collection_metadata_updated(
 @freeze_time("1914-06-28 10:50")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_product_created(
-    mocked_webhook_trigger,
-    mocked_get_webhooks_for_event,
-    any_webhook,
-    settings,
-    product,
-):
-    mocked_get_webhooks_for_event.return_value = [any_webhook]
-    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
-    manager = get_plugins_manager(allow_replica=False)
-    manager.product_created(product)
-
-    mocked_webhook_trigger.assert_called_once_with(
-        None,
-        WebhookEventAsyncType.PRODUCT_CREATED,
-        [any_webhook],
-        product,
-        None,
-        legacy_data_generator=ANY,
-        allow_replica=False,
-    )
-    assert isinstance(
-        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
-    )
-
-
-@freeze_time("1914-06-28 10:50")
-@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
-@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_product_updated(
     mocked_webhook_trigger,
     mocked_get_webhooks_for_event,

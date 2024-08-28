@@ -88,7 +88,7 @@ CREATE_PRODUCT_MUTATION = """
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
-@patch("saleor.plugins.manager.PluginsManager.product_created")
+@patch("saleor.product.webhooks.ProductCreated.trigger_webhook_async")
 def test_create_product(
     created_webhook_mock,
     updated_webhook_mock,
@@ -184,7 +184,8 @@ def test_create_product(
     assert product.metadata == {metadata_key: metadata_value}
     assert product.private_metadata == {metadata_key: metadata_value}
 
-    created_webhook_mock.assert_called_once_with(product)
+    created_webhook_mock.assert_called_once()
+    assert created_webhook_mock.call_args[0][0] == product
     updated_webhook_mock.assert_not_called()
     for rule in get_active_catalogue_promotion_rules():
         assert rule.variants_dirty

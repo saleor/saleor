@@ -30,7 +30,7 @@ class AsyncWebhookBase(WebhookBase):
     def trigger_webhook_async(
         cls,
         subscribable_object: Any,
-        requestor: Optional[Requestor],
+        requestor: Optional[Requestor] = None,
         webhooks: Optional[Iterable[Webhook]] = None,
         allow_replica: bool = True,
         legacy_data_generator: Optional[Callable] = None,

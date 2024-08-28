@@ -14,9 +14,6 @@ from ...app.models import App
 from ...channel.models import Channel
 from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
 from ...checkout.models import Checkout
-from ...checkout.webhooks.list_shipping_methods import (
-    get_cache_data_for_shipping_list_methods_for_checkout,
-)
 from ...core import EventDeliveryStatus
 from ...core.models import EventDelivery
 from ...core.notify_events import NotifyEventType
@@ -98,7 +95,11 @@ from ...webhook.transport.list_stored_payment_methods import (
     get_response_for_stored_payment_method_request_delete,
     invalidate_cache_for_stored_payment_methods,
 )
-from ...webhook.transport.shipping import get_excluded_shipping_data
+from ...webhook.transport.shipping import (
+    get_cache_data_for_shipping_list_methods_for_checkout,
+    get_excluded_shipping_data,
+    parse_list_shipping_methods_response,
+)
 from ...webhook.transport.synchronous.transport import (
     trigger_all_webhooks_sync,
     trigger_webhook_sync,
@@ -3241,10 +3242,6 @@ class WebhookPlugin(BasePlugin):
                 )
 
                 if response_data:
-                    from ...checkout.webhooks.list_shipping_methods import (
-                        parse_list_shipping_methods_response,
-                    )
-
                     shipping_methods = parse_list_shipping_methods_response(
                         response_data, webhook.app
                     )

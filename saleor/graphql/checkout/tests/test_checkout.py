@@ -760,9 +760,11 @@ def test_checkout_available_shipping_methods_excluded_postal_codes(
     assert data["availableShippingMethods"] == []
 
 
-@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@mock.patch(
+    "saleor.webhook.transport.synchronous.transport.trigger_webhook_sync_if_not_cached"
+)
 def test_checkout_available_shipping_methods_with_price_displayed(
-    send_webhook_request_sync,
+    mock_trigger_webhook_sync_if_not_cached,
     monkeypatch,
     api_client,
     checkout_with_item,

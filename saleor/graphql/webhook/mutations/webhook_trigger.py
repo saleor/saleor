@@ -10,6 +10,7 @@ from ....permission.auth_filters import AuthorizationFilters
 from ....webhook.error_codes import WebhookTriggerErrorCode
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.models import Webhook
+from ....webhook.utils import get_async_subscription_type
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_311, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_WEBHOOKS
@@ -88,6 +89,9 @@ class WebhookTrigger(BaseMutation):
     def _get_async_event_or_raise_error(cls, event_type):
         if event := ASYNC_WEBHOOK_TYPES_MAP.get(event_type):
             return event
+        elif event := get_async_subscription_type(event_type):
+            return event
+
         event_name = (
             event_type[0].upper() + to_camel_case(event_type)[1:] if event_type else ""
         )

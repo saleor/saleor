@@ -27,7 +27,6 @@ from ....core.scalars import WeightScalar
 from ....core.types import BaseInputObjectType, NonNullList, ProductError, SeoInput
 from ....core.validators import clean_seo_fields, validate_slug_and_generate_if_needed
 from ....meta.inputs import MetadataInput
-from ....plugins.dataloaders import get_plugin_manager_promise
 from ....utils import get_user_or_app_from_context
 from ...types import Product
 from ..utils import clean_tax_code

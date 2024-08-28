@@ -25,10 +25,7 @@ from ..shipping.utils import (
 )
 from ..warehouse import WarehouseClickAndCollectOption
 from ..warehouse.models import Warehouse
-from .webhooks.list_shipping_methods import (
-    ShippingListMethodsForCheckout,
-    convert_to_app_id_with_identifier,
-)
+from .webhooks.list_shipping_methods import ShippingListMethodsForCheckout
 
 if TYPE_CHECKING:
     from ..account.models import Address, User
@@ -111,6 +108,7 @@ class CheckoutInfo:
 
     @property
     def delivery_method_info(self) -> "DeliveryMethodBase":
+        from ..webhook.transport.shipping import convert_to_app_id_with_identifier
         from .utils import get_external_shipping_id
 
         delivery_method: Optional[Union[ShippingMethodData, Warehouse, Callable]] = None
