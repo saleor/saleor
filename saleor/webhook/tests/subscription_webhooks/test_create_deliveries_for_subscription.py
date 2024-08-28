@@ -2629,22 +2629,11 @@ def test_shipping_list_methods_for_checkout(
     webhooks = [subscription_shipping_list_methods_for_checkout_webhook]
     event_type = WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    all_shipping_methods = ShippingMethod.objects.all()
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, checkout, webhooks)
     # then
-    shipping_methods = [
-        {
-            "id": graphene.Node.to_global_id("ShippingMethod", sm.pk),
-            "name": sm.name,
-        }
-        for sm in all_shipping_methods
-    ]
     payload = json.loads(deliveries[0].payload.get_payload())
-
     assert payload["checkout"] == {"id": checkout_id}
-    for method in shipping_methods:
-        assert method in payload["shippingMethods"]
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 

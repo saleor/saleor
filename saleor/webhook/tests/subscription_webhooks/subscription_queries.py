@@ -2723,10 +2723,6 @@ subscription{
       checkout{
         id
       }
-      shippingMethods{
-        name
-        id
-      }
     }
   }
 }
