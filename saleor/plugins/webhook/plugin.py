@@ -1642,27 +1642,6 @@ class WebhookPlugin(BasePlugin):
             WebhookEventAsyncType.COLLECTION_METADATA_UPDATED, collection
         )
 
-    def product_created(
-        self, product: "Product", previous_value: Any, webhooks=None
-    ) -> Any:
-        if not self.active:
-            return previous_value
-
-        from ...product.webhooks import ProductCreated
-
-        if webhooks := self._get_webhooks_for_event(ProductCreated, webhooks):
-            product_data_generator = partial(
-                generate_product_payload, product, self.requestor
-            )
-            self.trigger_webhooks_async(
-                None,
-                ProductCreated,
-                webhooks,
-                product,
-                self.requestor,
-                legacy_data_generator=product_data_generator,
-            )
-
     def product_updated(
         self, product: "Product", previous_value: Any, webhooks=None
     ) -> Any:

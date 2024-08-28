@@ -270,14 +270,15 @@ def test_product_bulk_create_with_no_slug_and_name_with_unslugify_characters(
     assert len(products) == 2
 
 
-@patch("saleor.plugins.manager.PluginsManager.product_created")
+@patch("saleor.webhook.transport.asynchronous.transport.trigger_webhooks_async")
 def test_product_bulk_create_send_product_created_webhook(
-    created_webhook_mock,
+    mocked_webhook_trigger,
     staff_api_client,
     product_type,
     category,
     description_json,
     permission_manage_products,
+    django_capture_on_commit_callbacks,
 ):
     # given
     description_json_string = json.dumps(description_json)
@@ -314,10 +315,11 @@ def test_product_bulk_create_send_product_created_webhook(
 
     # when
     staff_api_client.user.user_permissions.add(permission_manage_products)
-    response = staff_api_client.post_graphql(
-        PRODUCT_BULK_CREATE_MUTATION,
-        {"products": products},
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(
+            PRODUCT_BULK_CREATE_MUTATION,
+            {"products": products},
+        )
     content = get_graphql_content(response)
     data = content["data"]["productBulkCreate"]
 
@@ -325,9 +327,9 @@ def test_product_bulk_create_send_product_created_webhook(
     assert not data["results"][0]["errors"]
     assert not data["results"][1]["errors"]
     assert data["count"] == 2
-    assert created_webhook_mock.call_count == 2
-    for call in created_webhook_mock.call_args_list:
-        assert isinstance(call.args[0], Product)
+    assert mocked_webhook_trigger.call_count == 2
+    for call in mocked_webhook_trigger.call_args_list:
+        assert isinstance(call.kwargs["subscribable_object"], Product)
 
 
 def test_product_bulk_create_with_same_name_and_no_slug(
@@ -1375,9 +1377,9 @@ def test_product_bulk_create_with_variants_with_duplicated_sku(
     "product_bulk_create.get_webhooks_for_event"
 )
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")
-@patch("saleor.plugins.manager.PluginsManager.product_created")
+@patch("saleor.webhook.transport.asynchronous.transport.trigger_webhooks_async")
 def test_product_bulk_create_with_variants_send_product_variant_created_event(
-    product_created_webhook_mock,
+    mocked_webhook_trigger,
     variant_created_webhook_mock,
     mocked_get_webhooks_for_event,
     staff_api_client,
@@ -1389,6 +1391,7 @@ def test_product_bulk_create_with_variants_send_product_variant_created_event(
     gift_card_expiry_date,
     any_webhook,
     settings,
+    django_capture_on_commit_callbacks,
 ):
     # given
     mocked_get_webhooks_for_event.return_value = [any_webhook]
@@ -1470,9 +1473,10 @@ def test_product_bulk_create_with_variants_send_product_variant_created_event(
 
     # when
     staff_api_client.user.user_permissions.add(permission_manage_products)
-    response = staff_api_client.post_graphql(
-        PRODUCT_BULK_CREATE_MUTATION, {"products": products}
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(
+            PRODUCT_BULK_CREATE_MUTATION, {"products": products}
+        )
     content = get_graphql_content(response)
     data = content["data"]["productBulkCreate"]
 
@@ -1480,7 +1484,7 @@ def test_product_bulk_create_with_variants_send_product_variant_created_event(
     assert not data["results"][0]["errors"]
     assert not data["results"][1]["errors"]
     assert data["count"] == 2
-    assert product_created_webhook_mock.call_count == 2
+    assert mocked_webhook_trigger.call_count == 2
     assert variant_created_webhook_mock.call_count == 3
 
 
@@ -1692,11 +1696,11 @@ def test_product_bulk_create_with_variants_and_invalid_stock(
     "saleor.graphql.product.bulk_mutations."
     "product_bulk_create.get_webhooks_for_event"
 )
-@patch("saleor.plugins.manager.PluginsManager.product_created")
+@patch("saleor.webhook.transport.asynchronous.transport.trigger_webhooks_async")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")
 def test_product_bulk_create_with_variants_and_channel_listings(
     product_variant_created_mock,
-    product_created_mock,
+    mocked_webhook_trigger,
     mocked_get_webhooks_for_event,
     staff_api_client,
     product_type,
@@ -1827,7 +1831,7 @@ def test_product_bulk_create_with_variants_and_channel_listings(
     assert product_2_variant.channel_listings.last().channel_id == channel_USD.id
 
     assert product_variant_created_mock.called
-    assert product_created_mock.called
+    assert mocked_webhook_trigger.called
 
 
 def test_product_bulk_create_with_variants_and_channel_listings_with_wrong_price(

@@ -92,9 +92,7 @@ MUTATION_UPDATE_PRODUCT = """
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
-@patch("saleor.plugins.manager.PluginsManager.product_created")
 def test_update_product(
-    created_webhook_mock,
     updated_webhook_mock,
     staff_api_client,
     category,
@@ -188,7 +186,6 @@ def test_update_product(
     assert attributes[0]["values"][0]["slug"] == "rainbow"
 
     updated_webhook_mock.assert_called_once_with(product)
-    created_webhook_mock.assert_not_called()
 
 
 def test_update_and_search_product_by_description(
@@ -2938,9 +2935,7 @@ MUTATION_UPDATE_PRODUCT_BY_EXTERNAL_REFERENCE = """
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
-@patch("saleor.plugins.manager.PluginsManager.product_created")
 def test_update_product_by_external_reference(
-    created_webhook_mock,
     updated_webhook_mock,
     staff_api_client,
     product,
@@ -2975,7 +2970,6 @@ def test_update_product_by_external_reference(
     )
 
     updated_webhook_mock.assert_called_once_with(product)
-    created_webhook_mock.assert_not_called()
 
 
 def test_update_product_by_both_id_and_external_reference(

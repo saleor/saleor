@@ -958,12 +958,6 @@ class BasePlugin:
     # item metadata is updated.
     transaction_item_metadata_updated: Callable[["TransactionItem", Any], Any]
 
-    # Trigger when product is created.
-    #
-    # Overwrite this method if you need to trigger specific logic after a product is
-    # created.
-    product_created: Callable[["Product", Any, None], Any]
-
     # Trigger when product is deleted.
     #
     # Overwrite this method if you need to trigger specific logic after a product is

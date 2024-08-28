@@ -1,5 +1,3 @@
-from functools import partial
-
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -220,15 +218,12 @@ class ProductCreate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, _cleaned_input):
-        from .....webhook.payloads import generate_product_payload
-
         product = models.Product.objects.get(pk=instance.pk)
         requestor = get_user_or_app_from_context(info.context)
         ProductCreated.trigger_webhook_async(
             product,
             requestor,
             allow_replica=getattr(info.context, "allow_replica", True),
-            legacy_data_generator=partial(generate_product_payload, product, requestor),
         )
 
     @classmethod

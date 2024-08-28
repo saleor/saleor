@@ -29,6 +29,6 @@ def test_product_created(
         webhooks=[any_webhook],
         subscribable_object=product,
         requestor=None,
-        legacy_data_generator=None,
+        legacy_data_generator=mock.ANY,
         allow_replica=True,
     )

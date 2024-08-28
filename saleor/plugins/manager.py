@@ -752,16 +752,6 @@ class PluginsManager(PaymentInterface):
             "collection_metadata_updated", default_value, collection, channel_slug=None
         )
 
-    def product_created(self, product: "Product", webhooks=None):
-        default_value = None
-        return self.__run_method_on_plugins(
-            "product_created",
-            default_value,
-            product,
-            webhooks=webhooks,
-            channel_slug=None,
-        )
-
     def product_updated(self, product: "Product", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(

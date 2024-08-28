@@ -19,7 +19,6 @@ CACHE_TIME_SHIPPING_LIST_METHODS_FOR_CHECKOUT: Final[int] = 3600 * 12
 class ShippingListMethodsForCheckout(SyncWebhookBase):
     description = "Fetch external shipping methods for checkout."
     event_type = "shipping_list_methods_for_checkout"
-    legacy_manager_func = None
     name = "List shipping methods for checkout"
     permission = ShippingPermissions.MANAGE_SHIPPING
     subscription_type = (
@@ -33,7 +32,6 @@ class ShippingListMethodsForCheckout(SyncWebhookBase):
         requestor: Optional[Requestor],
         allow_replica: bool = True,
     ) -> Iterable[ShippingMethodData]:
-        from ...plugins.manager import get_plugins_manager
         from ...webhook.payloads import generate_checkout_payload
         from ...webhook.transport.shipping import (
             get_cache_data_for_shipping_list_methods_for_checkout,
@@ -47,17 +45,11 @@ class ShippingListMethodsForCheckout(SyncWebhookBase):
         if not webhooks or not checkout:
             return []
 
-        if settings.USE_LEGACY_WEBHOOK_PLUGIN:
-            manager = get_plugins_manager(allow_replica)
-            return manager.list_shipping_methods_for_checkout(
-                checkout=checkout, channel_slug=checkout.channel.slug
-            )
-
         methods = []
 
         payload = generate_checkout_payload(checkout, requestor)
-
         cache_data = get_cache_data_for_shipping_list_methods_for_checkout(payload)
+
         for webhook in webhooks:
             response_data = trigger_webhook_sync_if_not_cached(
                 event_type=cls.event_type,
