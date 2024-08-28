@@ -193,7 +193,6 @@ def trigger_webhook_sync_if_not_cached(
         cache_data, webhook.target_url, event_type, webhook.app_id
     )
     response_data = cache.get(cache_key)
-    response_data = None
     if response_data is None:
         response_data = trigger_webhook_sync(
             event_type,

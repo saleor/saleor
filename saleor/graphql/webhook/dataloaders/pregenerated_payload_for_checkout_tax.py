@@ -14,7 +14,7 @@ from ....tax.utils import (
 from ....webhook.event_types import WebhookEventSyncType
 from ....webhook.utils import get_webhooks_for_event
 from ...app.dataloaders import AppByIdLoader
-from ...checkout.dataloaders import (
+from ...checkout.dataloaders.checkout_infos import (
     CheckoutInfoByCheckoutTokenLoader,
     CheckoutLinesInfoByCheckoutTokenLoader,
 )

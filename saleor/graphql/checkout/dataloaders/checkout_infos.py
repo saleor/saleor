@@ -35,6 +35,9 @@ from ...tax.dataloaders import TaxClassByVariantIdLoader, TaxConfigurationByChan
 from ...warehouse.dataloaders import (
     WarehouseByIdLoader,
 )
+from ...webhook.dataloaders.pregenerated_payloads_for_checkout_filter_shipping_methods import (
+    PregeneratedCheckoutFilterShippingMethodPayloadsByCheckoutTokenLoader,
+)
 from .models import CheckoutByTokenLoader, CheckoutLinesByCheckoutTokenLoader
 from .promotion_rule_infos import VariantPromotionRuleInfoByCheckoutLineIdLoader
 
@@ -44,7 +47,13 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
 
     def batch_load(self, keys):
         def with_checkout(data):
-            checkouts, checkout_line_infos, checkout_discounts, manager = data
+            (
+                checkouts,
+                checkout_line_infos,
+                checkout_discounts,
+                manager,
+                pregenerated_payloads_for_excluded_shipping_methods,
+            ) = data
 
             channel_pks = [checkout.channel_id for checkout in checkouts]
 
@@ -133,12 +142,20 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
                     }
 
                     checkout_info_map = {}
-                    for key, checkout, channel, checkout_lines, discounts in zip(
+                    for (
+                        key,
+                        checkout,
+                        channel,
+                        checkout_lines,
+                        discounts,
+                        pregenerated_payloads_for_excluded_shipping_method,
+                    ) in zip(
                         keys,
                         checkouts,
                         channels,
                         checkout_line_infos,
                         checkout_discounts,
+                        pregenerated_payloads_for_excluded_shipping_methods,
                     ):
                         shipping_method = shipping_method_map.get(
                             checkout.shipping_method_id
@@ -154,50 +171,6 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
                             for listing in channel_listings
                             if listing.channel_id == channel.id
                         ]
-                        payload = {
-                            "__typename": "CheckoutFilterShippingMethods",
-                            "checkout": {
-                                "id": "Q2hlY2tvdXQ6ZTk1YWQ1NjYtYTZhYi00NTYyLTg3YTQtNmU2NjRkOThkYzg5"
-                            },
-                            "shippingMethods": [
-                                {
-                                    "id": "U2hpcHBpbmdNZXRob2Q6MQ==",
-                                    "metafields": {},
-                                    "name": "Default",
-                                },
-                                {
-                                    "id": "U2hpcHBpbmdNZXRob2Q6MTU=",
-                                    "metafields": {},
-                                    "name": "FedEx",
-                                },
-                                {
-                                    "id": "U2hpcHBpbmdNZXRob2Q6MTQ=",
-                                    "metafields": {"exclude": "False"},
-                                    "name": "UPS",
-                                },
-                                {
-                                    "id": "U2hpcHBpbmdNZXRob2Q6MTY=",
-                                    "metafields": {"Exclude": "true"},
-                                    "name": "EMS",
-                                },
-                                {
-                                    "id": "U2hpcHBpbmdNZXRob2Q6MTM=",
-                                    "metafields": {
-                                        "SomeMetadata": "123",
-                                        "exclude": "True",
-                                    },
-                                    "name": "DHL",
-                                },
-                            ],
-                        }
-                        pregenerated_payloads = {
-                            1: {"ba56363a3342a924d5fd3f375ad134aa": payload},
-                            2: {
-                                "ba56363a3342a924d5fd3f375ad134aa": {
-                                    "key": "SAMPLE PAYLOAD2"
-                                }
-                            },
-                        }
 
                         checkout_info = CheckoutInfo(
                             checkout=checkout,
@@ -221,7 +194,9 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
                             voucher=voucher_code.voucher if voucher_code else None,
                             voucher_code=voucher_code,
                             database_connection_name=self.database_connection_name,
-                            pregenerated_payloads_for_excluded_shipping_method=pregenerated_payloads,
+                            pregenerated_payloads_for_excluded_shipping_method=(
+                                pregenerated_payloads_for_excluded_shipping_method
+                            ),
                         )
                         checkout_info_map[key] = checkout_info
 
@@ -251,9 +226,20 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
         ).load_many(keys)
         discounts = CheckoutDiscountByCheckoutIdLoader(self.context).load_many(keys)
         manager = get_plugin_manager_promise(self.context)
-        return Promise.all([checkouts, checkout_line_infos, discounts, manager]).then(
-            with_checkout
+        pregenerated_payloads_for_excluded_shipping_methods_loader = (
+            PregeneratedCheckoutFilterShippingMethodPayloadsByCheckoutTokenLoader(
+                self.context
+            ).load_many(keys)
         )
+        return Promise.all(
+            [
+                checkouts,
+                checkout_line_infos,
+                discounts,
+                manager,
+                pregenerated_payloads_for_excluded_shipping_methods_loader,
+            ]
+        ).then(with_checkout)
 
 
 class CheckoutLinesInfoByCheckoutTokenLoader(
