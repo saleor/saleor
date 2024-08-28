@@ -44,6 +44,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Introduce the `allow_writer` context manager to explicitly control when the writer database should be used - #15651 by @maarcingebala
 - Improve performance of the `productVariants` resolvers by using JOINs instead of subqueries - #16262 by @maarcingebala
 - Extend valid address values - #15877 by @zedzior
+- Skipped obsolete payload save and cleanup for successful sync webhooks - #16809 by @cmiacz
 
 # 3.19.0
 

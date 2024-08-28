@@ -385,8 +385,9 @@ def catch_duration_time():
 def create_attempt(
     delivery: "EventDelivery",
     task_id: Optional[str] = None,
+    with_save: bool = True,
 ):
-    attempt = EventDeliveryAttempt.objects.create(
+    attempt = EventDeliveryAttempt(
         delivery=delivery,
         task_id=task_id,
         duration=None,
@@ -395,6 +396,8 @@ def create_attempt(
         response_headers=None,
         status=EventDeliveryStatus.PENDING,
     )
+    if with_save:
+        attempt.save()
     return attempt
 
 
@@ -409,42 +412,62 @@ def attempt_update(
     attempt.response_status_code = webhook_response.response_status_code
     attempt.request_headers = json.dumps(webhook_response.request_headers)
     attempt.status = webhook_response.status
-    attempt.save(
-        update_fields=[
-            "duration",
-            "response",
-            "response_headers",
-            "response_status_code",
-            "request_headers",
-            "status",
-        ]
-    )
+
+    if attempt.id:
+        attempt.save(
+            update_fields=[
+                "duration",
+                "response",
+                "response_headers",
+                "response_status_code",
+                "request_headers",
+                "status",
+            ]
+        )
 
 
 @allow_writer()
 def clear_successful_delivery(delivery: "EventDelivery"):
-    if delivery.status == EventDeliveryStatus.SUCCESS:
-        payload_id = delivery.payload_id
-        delivery.delete()
-        if payload_id:
-            payloads_to_delete = EventPayload.objects.filter(
-                pk=payload_id, deliveries__isnull=True
+    if not delivery.id or delivery.status != EventDeliveryStatus.SUCCESS:
+        return
+
+    payload_id = delivery.payload_id
+    delivery.delete()
+    if payload_id:
+        payloads_to_delete = EventPayload.objects.filter(
+            pk=payload_id, deliveries__isnull=True
+        )
+        files_to_delete = [
+            event_payload.payload_file.name
+            for event_payload in payloads_to_delete.using(
+                settings.DATABASE_CONNECTION_REPLICA_NAME
             )
-            files_to_delete = [
-                event_payload.payload_file.name
-                for event_payload in payloads_to_delete.using(
-                    settings.DATABASE_CONNECTION_REPLICA_NAME
-                )
-                if event_payload.payload_file
-            ]
-            payloads_to_delete.delete()
-            delete_files_from_private_storage_task(files_to_delete)
+            if event_payload.payload_file
+        ]
+        payloads_to_delete.delete()
+        delete_files_from_private_storage_task(files_to_delete)
 
 
 @allow_writer()
 def delivery_update(delivery: "EventDelivery", status: str):
     delivery.status = status
-    delivery.save(update_fields=["status"])
+    if delivery.id:
+        delivery.save(update_fields=["status"])
+
+
+@allow_writer()
+def save_unsuccessful_delivery_attempt(attempt: "EventDeliveryAttempt"):
+    delivery = attempt.delivery
+    if not delivery or delivery.status == EventDeliveryStatus.SUCCESS:
+        return
+
+    event_payload = delivery.payload
+    if event_payload:
+        event_payload.save_as_file()
+
+    delivery.save()
+    if not attempt.id:
+        attempt.save()
 
 
 def trigger_transaction_request(
