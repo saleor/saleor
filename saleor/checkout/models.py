@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING, Optional
 from uuid import uuid4
 
 from django.conf import settings
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils import timezone
@@ -23,7 +22,6 @@ from ..giftcard.models import GiftCard
 from ..permission.enums import CheckoutPermissions
 from ..shipping.models import ShippingMethod
 from . import CheckoutAuthorizeStatus, CheckoutChargeStatus
-from .error_codes import CheckoutErrorCode
 
 if TYPE_CHECKING:
     from ..payment.models import Payment
@@ -274,20 +272,6 @@ class Checkout(models.Model):
         if not country_code == saved_country.code:
             self.set_country(country_code, commit=True)
         return country_code
-
-    def save_if_not_deleted(self, fields_to_update: Optional[list] = None) -> None:
-        try:
-            Checkout.objects.get(pk=self.pk)
-        except ObjectDoesNotExist:
-            raise ValidationError(
-                {
-                    "checkout": ValidationError(
-                        "Checkout does no longer exists.",
-                        code=CheckoutErrorCode.DELETED.value,
-                    )
-                }
-            )
-        self.save(**{"update_fields": fields_to_update} if fields_to_update else {})  # type: ignore[arg-type]
 
 
 class CheckoutLine(ModelWithMetadata):

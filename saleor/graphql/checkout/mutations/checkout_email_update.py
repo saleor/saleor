@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 
 from ....checkout.actions import call_checkout_event
 from ....checkout.error_codes import CheckoutErrorCode
+from ....checkout.utils import save_checkout_if_not_deleted
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
@@ -78,7 +79,7 @@ class CheckoutEmailUpdate(BaseMutation):
 
         checkout.email = email
         cls.clean_instance(info, checkout)
-        checkout.save_if_not_deleted(["email", "last_change"])
+        save_checkout_if_not_deleted(checkout, ["email", "last_change"])
         manager = get_plugin_manager_promise(info.context).get()
         call_checkout_event(
             manager,

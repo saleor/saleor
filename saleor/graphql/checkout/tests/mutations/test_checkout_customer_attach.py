@@ -331,10 +331,12 @@ def test_checkout_customer_attach_deleted_database_error(
         "id": to_global_id_or_none(checkout_with_item),
         "customerId": customer_id,
     }
-
     # when
     with before_after.before(
-        "saleor.checkout.models.Checkout.save_or_database_error",
+        (
+            "saleor.graphql.checkout.mutations."
+            "checkout_customer_attach.save_checkout_if_not_deleted"
+        ),
         lambda *args, **kwargs: Checkout.objects.all().delete(),
     ):
         response = user_api_client.post_graphql(

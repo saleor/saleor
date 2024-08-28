@@ -17,6 +17,7 @@ from ....checkout.utils import (
     get_or_create_checkout_metadata,
     invalidate_checkout,
     is_shipping_required,
+    save_checkout_if_not_deleted,
     set_external_shipping_id,
 )
 from ....shipping import interface as shipping_interface
@@ -266,8 +267,8 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         invalidate_prices_updated_fields = invalidate_checkout(
             checkout_info, lines, manager, save=False
         )
-        checkout.save_if_not_deleted(
-            checkout_fields_to_update + invalidate_prices_updated_fields
+        save_checkout_if_not_deleted(
+            checkout, checkout_fields_to_update + invalidate_prices_updated_fields
         )
 
         get_or_create_checkout_metadata(checkout).save()

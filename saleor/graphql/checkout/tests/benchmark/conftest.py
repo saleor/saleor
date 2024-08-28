@@ -3,7 +3,11 @@ import pytest
 from .....checkout import calculations
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import CheckoutLine
-from .....checkout.utils import add_variant_to_checkout, add_voucher_to_checkout
+from .....checkout.utils import (
+    add_variant_to_checkout,
+    add_voucher_to_checkout,
+    save_checkout_if_not_deleted,
+)
 from .....payment import ChargeStatus, TransactionKind
 from .....payment.models import Payment
 from .....plugins.manager import get_plugins_manager
@@ -39,7 +43,7 @@ def checkout_with_variants(
     )
     add_variant_to_checkout(checkout_info, product_with_two_variants.variants.last(), 5)
 
-    checkout.save_if_not_deleted()
+    save_checkout_if_not_deleted(checkout)
     return checkout
 
 
@@ -69,7 +73,7 @@ def checkout_with_shipping_address(checkout_with_variants, address):
     checkout = checkout_with_variants
 
     checkout.shipping_address = address.get_copy()
-    checkout.save_if_not_deleted()
+    save_checkout_if_not_deleted(checkout)
 
     return checkout
 
@@ -79,7 +83,7 @@ def checkout_with_shipping_address_for_cc(checkout_with_variants_for_cc, address
     checkout = checkout_with_variants_for_cc
 
     checkout.shipping_address = address.get_copy()
-    checkout.save_if_not_deleted()
+    save_checkout_if_not_deleted(checkout)
 
     return checkout
 
@@ -89,7 +93,7 @@ def checkout_with_shipping_method(checkout_with_shipping_address, shipping_metho
     checkout = checkout_with_shipping_address
 
     checkout.shipping_method = shipping_method
-    checkout.save_if_not_deleted()
+    save_checkout_if_not_deleted(checkout)
 
     return checkout
 
@@ -101,7 +105,7 @@ def checkout_with_delivery_method_for_cc(
     checkout = checkout_with_shipping_address_for_cc
     checkout.collection_point = warehouses_for_cc[1]
 
-    checkout.save_if_not_deleted()
+    save_checkout_if_not_deleted(checkout)
 
     return checkout
 
@@ -111,7 +115,7 @@ def checkout_with_billing_address(checkout_with_shipping_method, address):
     checkout = checkout_with_shipping_method
 
     checkout.billing_address = address
-    checkout.save_if_not_deleted()
+    save_checkout_if_not_deleted(checkout)
 
     return checkout
 
@@ -121,7 +125,7 @@ def checkout_with_billing_address_for_cc(checkout_with_delivery_method_for_cc, a
     checkout = checkout_with_delivery_method_for_cc
 
     checkout.billing_address = address
-    checkout.save_if_not_deleted()
+    save_checkout_if_not_deleted(checkout)
 
     return checkout
 

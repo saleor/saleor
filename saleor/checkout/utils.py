@@ -1070,3 +1070,20 @@ def get_address_for_checkout_taxes(
 ) -> Optional["Address"]:
     shipping_address = checkout_info.delivery_method_info.shipping_address
     return shipping_address or checkout_info.billing_address
+
+
+def save_checkout_if_not_deleted(
+    checkout, fields_to_update: Optional[list] = None
+) -> None:
+    with transaction.atomic():
+        # check if checkout still exists and lock item for updates
+        if not Checkout.objects.select_for_update().filter(pk=checkout.pk).first():
+            raise ValidationError(
+                {
+                    "checkout": ValidationError(
+                        "Checkout does no longer exists.",
+                        code=CheckoutErrorCode.DELETED.value,
+                    )
+                }
+            )
+        checkout.save(**{"update_fields": fields_to_update} if fields_to_update else {})
