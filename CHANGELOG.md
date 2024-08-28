@@ -1,4 +1,3 @@
-
 # Changelog
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/saleor/saleor/releases) page.
@@ -9,7 +8,15 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Breaking changes
 
-- Drop the `manager.perform_mutation` method. - #16515 by @maarcingebala
+- Drop the `manager.perform_mutation` method - #16515 by @maarcingebala
+- Drop manager methods used by WebhookPlugin - #16487 by @maarcingebala
+
+  Webhook functionality is moved from plugin to core. As a result the following manager methods are removed:
+
+  - `get_shipping_methods_for_checkout`
+  - `product_created`
+
+  See [the migration guide](https://docs.saleor.io/upgrade-guides/3-20-to-3-21#deprecated-webhookplugin-and-webhook-related-plugin-hooks) for more details.
 
 ### GraphQL API
 
