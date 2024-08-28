@@ -76,6 +76,7 @@ from ..utils.filters import (
     filter_range_field,
     filter_where_by_id_field,
     filter_where_by_numeric_field,
+    filter_where_by_numeric_field_raw,
     filter_where_by_string_field,
     filter_where_range_field,
 )
@@ -511,32 +512,14 @@ def filter_collections(qs, _, value):
 
 
 def _filter_products_is_published(qs, _, value, channel_slug):
-    channel = Channel.objects.using(qs.db).filter(slug=channel_slug).values("pk")
-    product_channel_listings = (
-        ProductChannelListing.objects.using(qs.db)
-        .filter(Exists(channel.filter(pk=OuterRef("channel_id"))), is_published=value)
-        .values("product_id")
-    )
-
-    # Filter out product for which there is no variant with price
-    variant_channel_listings = (
-        ProductVariantChannelListing.objects.using(qs.db)
-        .filter(
-            Exists(channel.filter(pk=OuterRef("channel_id"))),
-            price_amount__isnull=False,
+    if channel := Channel.objects.using(qs.db).filter(slug=channel_slug).first():
+        return qs.filter(
+            channel_listings__channel_id=channel.id,
+            channel_listings__is_published=value,
+            variants__channel_listings__price_amount__isnull=False,
+            variants__channel_listings__channel_id=channel.id,
         )
-        .values("id")
-    )
-    variants = (
-        ProductVariant.objects.using(qs.db)
-        .filter(Exists(variant_channel_listings.filter(variant_id=OuterRef("pk"))))
-        .values("product_id")
-    )
-
-    return qs.filter(
-        Exists(product_channel_listings.filter(product_id=OuterRef("pk"))),
-        Exists(variants.filter(product_id=OuterRef("pk"))),
-    )
+    return qs
 
 
 def _filter_products_is_available(qs, _, value, channel_slug):
@@ -1246,20 +1229,16 @@ class ProductWhere(MetadataWhereFilterBase):
 
     def filter_variant_price(self, qs, _, value):
         channel_slug = get_channel_slug_from_filter_data(self.data)
-        channel_id = Channel.objects.using(qs.db).filter(slug=channel_slug).values("pk")
-        variant_listing = ProductVariantChannelListing.objects.using(qs.db).filter(
-            Exists(channel_id.filter(pk=OuterRef("channel_id")))
-        )
-        variant_listing = filter_where_by_numeric_field(
-            variant_listing, "price_amount", value
-        )
-        variant_listing = variant_listing.values("variant_id")
-        variants = (
-            ProductVariant.objects.using(qs.db)
-            .filter(Exists(variant_listing.filter(variant_id=OuterRef("pk"))))
-            .values("product_id")
-        )
-        return qs.filter(Exists(variants.filter(product_id=OuterRef("pk"))))
+        channel = Channel.objects.using(qs.db).filter(slug=channel_slug).first()
+        if not channel:
+            return qs
+        if lte_gte_filter := filter_where_by_numeric_field_raw(
+            "variants__channel_listings__price_amount", value
+        ):
+            return qs.filter(
+                variants__channel_listings__channel_id=channel.id, **lte_gte_filter
+            )
+        return qs.none()
 
     def filter_minimal_price(self, qs, _, value):
         channel_slug = get_channel_slug_from_filter_data(self.data)
