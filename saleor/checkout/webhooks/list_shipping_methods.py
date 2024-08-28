@@ -26,12 +26,14 @@ class ShippingListMethodsForCheckout(SyncWebhookBase):
     )
 
     @classmethod
-    def trigger_webhook(
+    def list_shipping_methods(
         cls,
         checkout: Optional[Checkout],
-        requestor: Optional[Requestor],
+        requestor: Optional[Requestor] = None,
         allow_replica: bool = True,
     ) -> Iterable[ShippingMethodData]:
+        """Fetch list of external shipping methods for checkout."""
+
         from ...webhook.payloads import generate_checkout_payload
         from ...webhook.transport.shipping import (
             get_cache_data_for_shipping_list_methods_for_checkout,
@@ -69,3 +71,28 @@ class ShippingListMethodsForCheckout(SyncWebhookBase):
                 )
                 methods.extend(shipping_methods)
         return methods
+
+    @classmethod
+    def get_shipping_method(
+        cls,
+        shipping_method_id: str,
+        checkout: Optional[Checkout],
+        requestor: Optional[Requestor],
+        allow_replica: bool = True,
+    ) -> Optional[ShippingMethodData]:
+        """Fetch a single external shipping method for checkout.
+
+        This is a helper method that uses `shipping_list_methods_for_checkout` webhook
+        underneath to fetch external shipping methods and get one by ID.
+        """
+
+        if not checkout:
+            return None
+
+        methods = {
+            method.id: method
+            for method in cls.list_shipping_methods(
+                checkout=checkout, requestor=requestor, allow_replica=allow_replica
+            )
+        }
+        return methods.get(shipping_method_id)

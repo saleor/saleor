@@ -557,7 +557,7 @@ def get_all_shipping_methods_list(
                 shipping_channel_listings,
                 database_connection_name=database_connection_name,
             ),
-            ShippingListMethodsForCheckout.trigger_webhook(
+            ShippingListMethodsForCheckout.list_shipping_methods(
                 checkout_info.checkout, requestor
             ),
         )

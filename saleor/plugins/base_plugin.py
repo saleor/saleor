@@ -60,7 +60,6 @@ if TYPE_CHECKING:
         ProductType,
         ProductVariant,
     )
-    from ..shipping.interface import ShippingMethodData
     from ..shipping.models import ShippingMethod, ShippingZone
     from ..site.models import SiteSettings
     from ..tax.models import TaxClass
@@ -609,10 +608,6 @@ class BasePlugin:
 
     get_order_shipping_tax_rate: Callable[["Order", Any], Any]
     get_payment_config: Callable[[Any], Any]
-
-    get_shipping_methods_for_checkout: Callable[
-        ["Checkout", Any], list["ShippingMethodData"]
-    ]
 
     get_supported_currencies: Callable[[Any], Any]
 

@@ -1103,7 +1103,9 @@ def test_checkout_lines_add_custom_price_and_catalogue_promotion(
     assert line_discount.value_type == promotion_rule.reward_value_type
 
 
-@mock.patch("saleor.plugins.manager.PluginsManager.list_shipping_methods_for_checkout")
+@mock.patch(
+    "saleor.checkout.webhooks.ShippingListMethodsForCheckout.list_shipping_methods"
+)
 def test_checkout_lines_add_deletes_external_shipping_method_if_invalid(
     mocked_webhook, app_api_client, checkout_with_item, permission_handle_checkouts
 ):
@@ -1139,7 +1141,9 @@ def test_checkout_lines_add_deletes_external_shipping_method_if_invalid(
     assert metadata.private_metadata == {}
 
 
-@mock.patch("saleor.plugins.manager.PluginsManager.list_shipping_methods_for_checkout")
+@mock.patch(
+    "saleor.checkout.webhooks.ShippingListMethodsForCheckout.list_shipping_methods"
+)
 def test_checkout_lines_add_doesnt_delete_external_shipping_method_if_valid(
     mocked_webhook,
     app_api_client,

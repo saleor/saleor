@@ -10,26 +10,27 @@ from ....webhook.transport.shipping import (
     get_cache_data_for_shipping_list_methods_for_checkout,
 )
 from ....webhook.transport.utils import generate_cache_key_for_webhook
-from ..plugin import CACHE_TIME_SHIPPING_LIST_METHODS_FOR_CHECKOUT
+from ..list_shipping_methods import (
+    CACHE_TIME_SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+    ShippingListMethodsForCheckout,
+)
 
 
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_get_shipping_methods_for_checkout_webhook_response_none(
     mocked_webhook,
-    webhook_plugin,
     checkout_ready_to_complete,
     shipping_app,
 ):
     # given
     checkout = checkout_ready_to_complete
-    plugin = webhook_plugin()
     mocked_webhook.return_value = None
 
     # when
-    response = plugin.get_shipping_methods_for_checkout(checkout, None)
+    methods = ShippingListMethodsForCheckout.list_shipping_methods(checkout)
 
     # then
-    assert not response
+    assert not methods
 
 
 @mock.patch("saleor.webhook.transport.synchronous.transport.cache.set")
@@ -37,7 +38,6 @@ def test_get_shipping_methods_for_checkout_webhook_response_none(
 def test_get_shipping_methods_for_checkout_set_cache(
     mocked_webhook,
     mocked_cache_set,
-    webhook_plugin,
     checkout_with_item,
     shipping_app,
 ):
@@ -50,10 +50,9 @@ def test_get_shipping_methods_for_checkout_set_cache(
             "currency": "GBP",
         }
     ]
-    plugin = webhook_plugin()
 
     # when
-    plugin.get_shipping_methods_for_checkout(checkout_with_item, None)
+    ShippingListMethodsForCheckout.list_shipping_methods(checkout_with_item)
 
     # then
     assert mocked_webhook.called
@@ -65,16 +64,14 @@ def test_get_shipping_methods_for_checkout_set_cache(
 def test_get_shipping_methods_no_webhook_response_does_not_set_cache(
     mocked_webhook,
     mocked_cache_set,
-    webhook_plugin,
     checkout_with_item,
     shipping_app,
 ):
     # given
     mocked_webhook.return_value = None
-    plugin = webhook_plugin()
 
     # when
-    plugin.get_shipping_methods_for_checkout(checkout_with_item, None)
+    ShippingListMethodsForCheckout.list_shipping_methods(checkout_with_item)
 
     # then
     assert mocked_webhook.called
@@ -86,7 +83,6 @@ def test_get_shipping_methods_no_webhook_response_does_not_set_cache(
 def test_get_shipping_methods_for_checkout_use_cache(
     mocked_webhook,
     mocked_cache_get,
-    webhook_plugin,
     checkout_with_item,
     shipping_app,
 ):
@@ -99,10 +95,9 @@ def test_get_shipping_methods_for_checkout_use_cache(
             "currency": "GBP",
         }
     ]
-    plugin = webhook_plugin()
 
     # when
-    plugin.get_shipping_methods_for_checkout(checkout_with_item, None)
+    ShippingListMethodsForCheckout.list_shipping_methods(checkout_with_item)
 
     # then
     assert not mocked_webhook.called
@@ -114,16 +109,14 @@ def test_get_shipping_methods_for_checkout_use_cache(
 def test_get_shipping_methods_for_checkout_use_cache_for_empty_list(
     mocked_webhook,
     mocked_cache_get,
-    webhook_plugin,
     checkout_with_item,
     shipping_app,
 ):
     # given
     mocked_cache_get.return_value = []
-    plugin = webhook_plugin()
 
     # when
-    plugin.get_shipping_methods_for_checkout(checkout_with_item, None)
+    ShippingListMethodsForCheckout.list_shipping_methods(checkout_with_item)
 
     # then
     assert not mocked_webhook.called
@@ -137,7 +130,6 @@ def test_checkout_change_invalidates_cache_key(
     mocked_webhook,
     mocked_cache_get,
     mocked_cache_set,
-    webhook_plugin,
     checkout_with_item,
     shipping_app,
 ):
@@ -162,7 +154,6 @@ def test_checkout_change_invalidates_cache_key(
         WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
         shipping_app.id,
     )
-    plugin = webhook_plugin()
 
     # when
     checkout_with_item.email = "newemail@example.com"
@@ -175,7 +166,7 @@ def test_checkout_change_invalidates_cache_key(
         WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
         shipping_app.id,
     )
-    plugin.get_shipping_methods_for_checkout(checkout_with_item, None)
+    ShippingListMethodsForCheckout.list_shipping_methods(checkout_with_item)
 
     # then
     assert cache_key != new_cache_key
@@ -194,7 +185,6 @@ def test_ignore_selected_fields_on_generating_cache_key(
     mocked_webhook,
     mocked_cache_get,
     mocked_cache_set,
-    webhook_plugin,
     checkout_with_item,
     shipping_app,
 ):
@@ -219,7 +209,6 @@ def test_ignore_selected_fields_on_generating_cache_key(
         WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
         shipping_app.id,
     )
-    plugin = webhook_plugin()
 
     # when
     checkout_with_item.last_change = timezone.now() + timedelta(seconds=30)
@@ -232,7 +221,7 @@ def test_ignore_selected_fields_on_generating_cache_key(
         WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
         shipping_app.id,
     )
-    plugin.get_shipping_methods_for_checkout(checkout_with_item, None)
+    ShippingListMethodsForCheckout.list_shipping_methods(checkout_with_item)
 
     # then
     assert cache_key == new_cache_key

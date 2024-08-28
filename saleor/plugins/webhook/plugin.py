@@ -4,7 +4,7 @@ from collections import defaultdict
 from collections.abc import Iterable
 from decimal import Decimal
 from functools import partial
-from typing import TYPE_CHECKING, Any, Callable, Final, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, Optional, Union
 
 import graphene
 from django.conf import settings
@@ -96,9 +96,7 @@ from ...webhook.transport.list_stored_payment_methods import (
     invalidate_cache_for_stored_payment_methods,
 )
 from ...webhook.transport.shipping import (
-    get_cache_data_for_shipping_list_methods_for_checkout,
     get_excluded_shipping_data,
-    parse_list_shipping_methods_response,
 )
 from ...webhook.transport.synchronous.transport import (
     trigger_all_webhooks_sync,
@@ -146,12 +144,6 @@ if TYPE_CHECKING:
     from ...tax.models import TaxClass
     from ...warehouse.models import Stock, Warehouse
     from ...webhook.models import Webhook
-
-
-# Set the timeout for the shipping methods cache to 12 hours as it was the lowest
-# time labels were valid for when checking documentation for the carriers
-# (FedEx, UPS, TNT, DHL).
-CACHE_TIME_SHIPPING_LIST_METHODS_FOR_CHECKOUT: Final[int] = 3600 * 12
 
 
 logger = logging.getLogger(__name__)
@@ -3197,35 +3189,6 @@ class WebhookPlugin(BasePlugin):
                 order,
                 self.requestor,
             )
-
-    def get_shipping_methods_for_checkout(
-        self, checkout: "Checkout", previous_value: Any
-    ) -> list["ShippingMethodData"]:
-        methods = []
-        event_type = WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
-        webhooks = get_webhooks_for_event(event_type)
-        if webhooks:
-            payload = generate_checkout_payload(checkout, self.requestor)
-            cache_data = get_cache_data_for_shipping_list_methods_for_checkout(payload)
-            for webhook in webhooks:
-                response_data = trigger_webhook_sync_if_not_cached(
-                    event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
-                    payload=payload,
-                    webhook=webhook,
-                    cache_data=cache_data,
-                    allow_replica=self.allow_replica,
-                    subscribable_object=checkout,
-                    request_timeout=WEBHOOK_SYNC_TIMEOUT,
-                    cache_timeout=CACHE_TIME_SHIPPING_LIST_METHODS_FOR_CHECKOUT,
-                    requestor=self.requestor,
-                )
-
-                if response_data:
-                    shipping_methods = parse_list_shipping_methods_response(
-                        response_data, webhook.app
-                    )
-                    methods.extend(shipping_methods)
-        return methods
 
     def get_tax_code_from_object_meta(
         self,

@@ -13,6 +13,8 @@ from ....checkout.utils import (
     is_shipping_required,
     set_external_shipping_id,
 )
+from ....checkout.webhooks.list_shipping_methods import ShippingListMethodsForCheckout
+from ....graphql.utils import get_user_or_app_from_context
 from ....shipping import interface as shipping_interface
 from ....shipping import models as shipping_models
 from ....shipping.utils import convert_to_shipping_method_data
@@ -242,17 +244,18 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         checkout,
         manager,
     ):
-        delivery_method = manager.get_shipping_method(
-            checkout=checkout,
-            channel_slug=checkout.channel.slug,
+        requestor = get_user_or_app_from_context(info.context)
+        delivery_method = ShippingListMethodsForCheckout.get_shipping_method(
             shipping_method_id=shipping_method_id,
+            checkout=checkout,
+            requestor=requestor,
         )
 
         cls._check_delivery_method(
             checkout_info, lines, delivery_method=delivery_method
         )
 
-        set_external_shipping_id(checkout=checkout, app_shipping_id=delivery_method.id)
+        set_external_shipping_id(checkout=checkout, app_shipping_id=delivery_method.id)  # type: ignore # deliver_method is not None here
         checkout.shipping_method = None
         invalidate_prices_updated_fields = invalidate_checkout(
             checkout_info, lines, manager, save=False
