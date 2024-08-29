@@ -7973,6 +7973,21 @@ def any_webhook(app):
 
 
 @pytest.fixture
+def subscription_webhook(webhook_app):
+    def fun(query, event_type, name="Subscription", app=webhook_app):
+        webhook = Webhook.objects.create(
+            name=name,
+            app=app,
+            target_url="http://www.example.com/any",
+            subscription_query=query,
+        )
+        webhook.events.create(event_type=event_type)
+        return webhook
+
+    return fun
+
+
+@pytest.fixture
 def fake_payment_interface(mocker):
     return mocker.Mock(spec=PaymentInterface)
 
@@ -8993,7 +9008,6 @@ def async_subscription_webhooks_with_root_objects(
     subscription_shipping_zone_deleted_webhook,
     subscription_shipping_zone_metadata_updated_webhook,
     subscription_product_updated_webhook,
-    subscription_product_created_webhook,
     subscription_product_deleted_webhook,
     subscription_product_export_completed_webhook,
     subscription_product_media_updated_webhook,
@@ -9216,7 +9230,6 @@ def async_subscription_webhooks_with_root_objects(
         events.DRAFT_ORDER_CREATED: [subscription_draft_order_created_webhook, order],
         events.DRAFT_ORDER_UPDATED: [subscription_draft_order_updated_webhook, order],
         events.DRAFT_ORDER_DELETED: [subscription_draft_order_deleted_webhook, order],
-        events.PRODUCT_CREATED: [subscription_product_created_webhook, product],
         events.PRODUCT_UPDATED: [subscription_product_updated_webhook, product],
         events.PRODUCT_DELETED: [subscription_product_deleted_webhook, product],
         events.PRODUCT_EXPORT_COMPLETED: [

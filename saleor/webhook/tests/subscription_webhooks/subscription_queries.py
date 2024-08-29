@@ -938,17 +938,6 @@ PRODUCT_UPDATED = """
     }
 """
 
-PRODUCT_CREATED = """
-    subscription{
-      event{
-        ...on ProductCreated{
-          product{
-            id
-          }
-        }
-      }
-    }
-"""
 
 PRODUCT_DELETED = """
     subscription{
@@ -2708,19 +2697,6 @@ subscription{
       }
       shippingMethods{
         name
-        id
-      }
-    }
-  }
-}
-"""
-
-
-SHIPPING_LIST_METHODS_FOR_CHECKOUT = """
-subscription{
-  event{
-    ...on ShippingListMethodsForCheckout{
-      checkout{
         id
       }
     }

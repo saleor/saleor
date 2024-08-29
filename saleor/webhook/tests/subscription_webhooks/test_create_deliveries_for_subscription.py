@@ -1192,18 +1192,6 @@ def test_staff_set_password_requested(
     assert deliveries[0].webhook == webhooks[0]
 
 
-def test_product_created(product, subscription_product_created_webhook):
-    webhooks = [subscription_product_created_webhook]
-    event_type = WebhookEventAsyncType.PRODUCT_CREATED
-    product_id = graphene.Node.to_global_id("Product", product.id)
-    deliveries = create_deliveries_for_subscriptions(event_type, product, webhooks)
-    expected_payload = json.dumps({"product": {"id": product_id}})
-
-    assert deliveries[0].payload.get_payload() == expected_payload
-    assert len(deliveries) == len(webhooks)
-    assert deliveries[0].webhook == webhooks[0]
-
-
 def test_product_updated(product, subscription_product_updated_webhook):
     webhooks = [subscription_product_updated_webhook]
     event_type = WebhookEventAsyncType.PRODUCT_UPDATED
@@ -2612,28 +2600,6 @@ def test_transaction_item_metadata_updated(
     # then
     expected_payload = json.dumps({"transaction": {"id": transaction_item_id}})
     assert deliveries[0].payload.get_payload() == expected_payload
-    assert len(deliveries) == len(webhooks)
-    assert deliveries[0].webhook == webhooks[0]
-
-
-def test_shipping_list_methods_for_checkout(
-    checkout_with_shipping_required,
-    subscription_shipping_list_methods_for_checkout_webhook,
-    address,
-    shipping_method,
-):
-    # given
-    checkout = checkout_with_shipping_required
-    checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
-    webhooks = [subscription_shipping_list_methods_for_checkout_webhook]
-    event_type = WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    # when
-    deliveries = create_deliveries_for_subscriptions(event_type, checkout, webhooks)
-    # then
-    payload = json.loads(deliveries[0].payload.get_payload())
-    assert payload["checkout"] == {"id": checkout_id}
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 

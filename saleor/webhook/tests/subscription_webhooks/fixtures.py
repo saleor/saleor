@@ -1,23 +1,7 @@
 import pytest
 
 from ...event_types import WebhookEventAsyncType, WebhookEventSyncType
-from ...models import Webhook
 from . import subscription_queries as queries
-
-
-@pytest.fixture
-def subscription_webhook(webhook_app):
-    def fun(query, event_type, name="Subscription", app=webhook_app):
-        webhook = Webhook.objects.create(
-            name=name,
-            app=app,
-            target_url="http://www.example.com/any",
-            subscription_query=query,
-        )
-        webhook.events.create(event_type=event_type)
-        return webhook
-
-    return fun
 
 
 @pytest.fixture
@@ -371,13 +355,6 @@ def subscription_shipping_zone_metadata_updated_webhook(subscription_webhook):
 def subscription_product_updated_webhook(subscription_webhook):
     return subscription_webhook(
         queries.PRODUCT_UPDATED, WebhookEventAsyncType.PRODUCT_UPDATED
-    )
-
-
-@pytest.fixture
-def subscription_product_created_webhook(subscription_webhook):
-    return subscription_webhook(
-        queries.PRODUCT_CREATED, WebhookEventAsyncType.PRODUCT_CREATED
     )
 
 
@@ -1298,14 +1275,6 @@ def subscription_checkout_filter_shipping_methods_webhook(subscription_webhook):
     return subscription_webhook(
         queries.CHECKOUT_FILTER_SHIPPING_METHODS,
         WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
-    )
-
-
-@pytest.fixture
-def subscription_shipping_list_methods_for_checkout_webhook(subscription_webhook):
-    return subscription_webhook(
-        queries.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
-        WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
     )
 
 
