@@ -2685,3 +2685,4 @@ Just so you know, changes mentioned in this section are in a preview state and c
 
 - Add createdb note to getting started for Windows - #3106 by @ajostergaard
 - Update docs on pipenv - #3045 by @jxltom
+- Fixed a bug when saving webhook payload to Azure Storage - #16585 by @delemeator
