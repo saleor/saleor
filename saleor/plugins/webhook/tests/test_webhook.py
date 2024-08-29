@@ -30,7 +30,7 @@ from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....core import EventDeliveryStatus
 from ....core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ....core.notification.utils import get_site_context
-from ....core.notify_events import NotifyEventType
+from ....core.notify import NotifyEventType
 from ....core.utils.url import prepare_url
 from ....discount import RewardType, RewardValueType
 from ....discount.interface import VariantPromotionRuleInfo
