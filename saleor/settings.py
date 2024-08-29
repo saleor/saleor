@@ -17,6 +17,7 @@ import sentry_sdk
 import sentry_sdk.utils
 from celery.schedules import crontab
 from django.conf import global_settings
+from django.core.cache import CacheKeyWarning
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.utils import get_random_secret_key
 from django.core.validators import URLValidator
@@ -92,7 +93,9 @@ INTERNAL_IPS = get_list(os.environ.get("INTERNAL_IPS", "127.0.0.1"))
 # Maximum time in seconds Django can keep the database connections opened.
 # Set the value to 0 to disable connection persistence, database connections
 # will be closed after each request.
-DB_CONN_MAX_AGE = int(os.environ.get("DB_CONN_MAX_AGE", 600))
+# For Django 4, the default value was changed to 0 as persistent DB connections
+# are not supported.
+DB_CONN_MAX_AGE = int(os.environ.get("DB_CONN_MAX_AGE", 0))
 
 DATABASE_CONNECTION_DEFAULT_NAME = "default"
 # TODO: For local envs will be activated in separate PR.
@@ -124,7 +127,6 @@ LANGUAGE_CODE = "en"
 LANGUAGES = CORE_LANGUAGES
 LOCALE_PATHS = [os.path.join(PROJECT_ROOT, "locale")]
 USE_I18N = True
-USE_L10N = True
 USE_TZ = True
 
 FORM_RENDERER = "django.forms.renderers.TemplatesSetting"
@@ -992,3 +994,8 @@ TRANSACTION_ITEMS_LIMIT = 100
 ENABLE_DEPRECATED_MANAGER_PERFORM_MUTATION = get_bool_from_env(
     "ENABLE_DEPRECATED_MANAGER_PERFORM_MUTATION", True
 )
+
+
+# Disable Django warnings regarding too long cache keys being incompatible with
+# memcached to avoid leaking key values.
+warnings.filterwarnings("ignore", category=CacheKeyWarning)
