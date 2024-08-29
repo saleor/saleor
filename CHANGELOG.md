@@ -2685,8 +2685,4 @@ Just so you know, changes mentioned in this section are in a preview state and c
 
 - Add createdb note to getting started for Windows - #3106 by @ajostergaard
 - Update docs on pipenv - #3045 by @jxltom
-- Added support for numeric and lower-case boolean environment variables - #16313 by @NyanKiyoshi
-- Fixed a potential crash when Checkout metadata is accessed with high concurrency - #16411 by @patrys
-- Add slugs to product/category/collection/page translations. Allow to query by translated slug - #16449 by @delemeator
-- Fixed a crash when the Decimal scalar is passed a non-normal value - #16520 by @patrys
 - Fixed a bug when saving webhook payload to Azure Storage - #16585 by @delemeator
