@@ -114,3 +114,14 @@ def test_get_product_image_thumbnail_simulate_json_dump_and_load(product_with_im
 
     # then
     assert thumbnail == image_data["original"]["128"]
+
+
+def test_get_product_image_thumbnail_image_missing(product_with_image):
+    # given
+    image_data = None
+
+    # when
+    thumbnail = get_product_image_thumbnail(None, 100, image_data)
+
+    # then
+    assert thumbnail is None
