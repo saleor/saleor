@@ -1,0 +1,27 @@
+name: Create tag and release on release PR merge
+on:
+  pull_request:
+    types:
+     - closed
+
+jobs:
+  run-release-trigger:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'release')
+    env:
+      GH_REF: ${{ github.event.pull_request.head.ref }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - run: echo "PR_TAG_REF=$GH_REF" | sed "s/release-//" >> $GITHUB_ENV
+      - name: Create tag
+        uses: actions/github-script@v5
+        with:
+          script: |
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: `refs/tags/${process.env.PR_TAG_REF}`,
+              sha: context.sha
+            })
+      - run: |
+          gh release create "$PR_TAG_REF" --repo="$GITHUB_REPOSITORY" --generate-notes --draft --verify-tag
