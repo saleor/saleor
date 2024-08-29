@@ -91,6 +91,7 @@ def test_step_3_query_promotions_first_10_start_date_before_CORE_2118(
     base_date = datetime(2023, 1, 1, 14, 1, 34, 61119)
 
     with freeze_time(base_date):
+        e2e_staff_api_client.regenerate_access_token()
         for i in range(10):
             promotion_name = f"Promotion start date before {i + 1}"
             start_date = (base_date - timedelta(days=i + 1)).isoformat() + "+00:00"
@@ -102,6 +103,7 @@ def test_step_3_query_promotions_first_10_start_date_before_CORE_2118(
             )
             assert promotion["startDate"] == start_date
 
+    e2e_staff_api_client.regenerate_access_token()
     promotions_list = promotions_query(
         e2e_staff_api_client,
         first=11,
@@ -348,6 +350,7 @@ def test_step_10_promotions_with_end_date_after_CORE_2118(
     promotion_type = "CATALOGUE"
 
     with freeze_time(now):
+        e2e_staff_api_client.regenerate_access_token()
         for i in range(10):
             promotion_name = f"Promotion end date after {i + 1}"
             end_date = (
@@ -363,6 +366,7 @@ def test_step_10_promotions_with_end_date_after_CORE_2118(
             )
             assert promotion["endDate"] == end_date
 
+    e2e_staff_api_client.regenerate_access_token()
     promotion_dnm = create_promotion(
         e2e_staff_api_client,
         "Promotion does not match",
@@ -420,6 +424,7 @@ def test_step_11_promotions_with_no_date_CORE_2118(
     now = base_date.isoformat()
 
     with freeze_time(now):
+        e2e_staff_api_client.regenerate_access_token()
         end_date = datetime.fromisoformat(
             "2023-10-08T10:19:50.812975+00:00"
         ).isoformat()
@@ -431,6 +436,7 @@ def test_step_11_promotions_with_no_date_CORE_2118(
             end_date=end_date,
         )
 
+    e2e_staff_api_client.regenerate_access_token()
     promotions_list = promotions_query(
         e2e_staff_api_client,
         first=11,

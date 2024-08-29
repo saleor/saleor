@@ -66,7 +66,7 @@ documentation = "https://docs.saleor.io/"
   prices = "^1.0"
   promise = "^2.3"
   pybars3 = "^0.9.7"
-  pyjwt = "2.5.0" # Version 2.6.0 changed iat validation which causes tests to fail: https://github.com/saleor/saleor/issues/11047
+  pyjwt = "^2.9.0"
   python-dateutil = "^2.8.2"
   python-http-client = "^3.3.7"
   python-json-logger = ">=0.1.11,<2.1.0"

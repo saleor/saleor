@@ -2,10 +2,8 @@ import copy
 import json
 from unittest import mock
 
-import freezegun
 import graphene
 import pytest
-from freezegun import freeze_time
 
 from ...order import OrderStatus
 from ..event_types import WebhookEventAsyncType
@@ -29,7 +27,6 @@ def _remove_anonymized_order_data(order_data: dict) -> dict:
     return order_data
 
 
-@freezegun.freeze_time("1914-06-28 10:50", ignore=["faker"])
 @pytest.mark.parametrize(
     ("event_name", "order_status"),
     [
@@ -66,11 +63,11 @@ def test_generate_sample_payload_order(
     # Remove anonymized data
     payload = _remove_anonymized_order_data(payload[0])
     order_payload = _remove_anonymized_order_data(order_payload[0])
+    del payload["meta"]["issued_at"], order_payload["meta"]["issued_at"]
     # Compare the payloads
     assert payload == order_payload
 
 
-@freeze_time("1914-06-28 10:50", ignore=["faker"])
 def test_generate_sample_payload_fulfillment_created(fulfillment):
     sample_fulfillment_payload = generate_sample_payload(
         WebhookEventAsyncType.FULFILLMENT_CREATED
@@ -101,6 +98,10 @@ def test_generate_sample_payload_fulfillment_created(fulfillment):
     )
     fulfillment_payload["order"] = _remove_anonymized_order_data(
         fulfillment_payload["order"]
+    )
+    del (
+        sample_fulfillment_payload["meta"]["issued_at"],
+        fulfillment_payload["meta"]["issued_at"],
     )
     # Compare the payloads
     assert sample_fulfillment_payload == fulfillment_payload
@@ -156,12 +157,13 @@ def test_generate_sample_customer_payload(customer_user):
     assert payload[0]["email"] != customer_user.email
 
 
-@freeze_time("1914-06-28 10:50")
 def test_generate_sample_product_payload(variant):
     payload = generate_sample_payload(WebhookEventAsyncType.PRODUCT_CREATED)
     product = variant.product
     product.refresh_from_db()
-    assert payload == json.loads(generate_product_payload(variant.product))
+    expected_payload = json.loads(generate_product_payload(variant.product))
+    del payload[0]["meta"]["issued_at"], expected_payload[0]["meta"]["issued_at"]
+    assert payload == expected_payload
 
 
 def _remove_anonymized_checkout_data(checkout_data: dict) -> dict:
@@ -176,7 +178,6 @@ def _remove_anonymized_checkout_data(checkout_data: dict) -> dict:
     return checkout_data
 
 
-@freeze_time("1914-06-28 10:50", ignore=["faker"])
 @pytest.mark.parametrize(
     "user_checkouts", ["regular", "click_and_collect"], indirect=True
 )
@@ -207,5 +208,6 @@ def test_generate_sample_checkout_payload(user_checkouts):
         # Remove anonymized data
         payload = _remove_anonymized_checkout_data(payload)
         checkout_payload = _remove_anonymized_checkout_data(checkout_payload)
+        del payload[0]["meta"]["issued_at"], checkout_payload[0]["meta"]["issued_at"]
         # Compare the payloads
         assert payload == checkout_payload

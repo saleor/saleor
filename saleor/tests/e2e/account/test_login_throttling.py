@@ -31,6 +31,7 @@ def test_customer_should_not_be_able_to_perform_credential_guessing_attacks_core
     shop_permissions,
     setup_mock_for_cache,
 ):
+    e2e_staff_api_client.regenerate_access_token()
     # Before
     now = timezone.now()
     dummy_cache = {}
