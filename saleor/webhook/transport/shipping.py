@@ -101,19 +101,6 @@ def validate_shipping_method_data(shipping_method_data):
     return all(key in shipping_method_data for key in keys)
 
 
-def get_cache_data_for_shipping_list_methods_for_checkout(payload: str) -> dict:
-    key_data = json.loads(payload)
-
-    # drop fields that change between requests but are not relevant for cache key
-    key_data[0].pop("last_change")
-    key_data[0].pop("meta")
-    # Drop the external_app_shipping_id from the cache key as it should not have an
-    # impact on cache invalidation
-    if "external_app_shipping_id" in key_data[0].get("private_metadata", {}):
-        del key_data[0]["private_metadata"]["external_app_shipping_id"]
-    return key_data
-
-
 def get_cache_data_for_exclude_shipping_methods(payload: str) -> dict:
     payload_dict = json.loads(payload)
     source_object = payload_dict.get("checkout", payload_dict.get("order", {}))
@@ -237,3 +224,16 @@ def parse_excluded_shipping_methods(
             )
         )
     return excluded_methods_map
+
+
+def get_cache_data_for_shipping_list_methods_for_checkout(payload: str) -> dict:
+    key_data = json.loads(payload)
+
+    # drop fields that change between requests but are not relevant for cache key
+    key_data[0].pop("last_change")
+    key_data[0].pop("meta")
+    # Drop the external_app_shipping_id from the cache key as it should not have an
+    # impact on cache invalidation
+    if "external_app_shipping_id" in key_data[0].get("private_metadata", {}):
+        del key_data[0]["private_metadata"]["external_app_shipping_id"]
+    return key_data
