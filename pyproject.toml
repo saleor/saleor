@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "saleor"
-version = "3.20.21"
+version = "3.20.22"
 description = "A modular, high performance, headless e-commerce platform built with Python, GraphQL, Django, and React."
 authors = [ "Saleor Commerce <hello@saleor.io>" ]
 license = "BSD-3-Clause"
@@ -84,7 +84,10 @@ documentation = "https://docs.saleor.io/"
   urllib3 = "^1.26.19"
   weasyprint = ">=53.0"
   setuptools = "^70.1.0"
-  psycopg = {version = "^3.1.8", extras = ["binary"]}
+
+    [tool.poetry.dependencies.psycopg]
+    version = "^3.1.8"
+    extras = [ "binary" ]
 
     [tool.poetry.dependencies.django]
     version = "^4.2"
