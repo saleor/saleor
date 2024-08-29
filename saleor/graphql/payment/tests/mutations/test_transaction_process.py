@@ -1167,7 +1167,7 @@ def test_checkout_fully_paid(
     assert not content["data"]["transactionProcess"]["errors"]
 
     checkout.refresh_from_db()
-    mocked_fully_paid.assert_called_once_with(checkout)
+    mocked_fully_paid.assert_called_once_with(checkout, webhooks=set())
     assert checkout.charge_status == CheckoutChargeStatus.FULL
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
 

@@ -79,7 +79,7 @@ def test_create_refund_fulfillment_only_order_lines(
             order_lines_to_refund=order_refund_lines,
         ),
     )
-    mocked_order_updated.assert_called_once_with(order_with_lines)
+    mocked_order_updated.assert_called_once_with(order_with_lines, webhooks=set())
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
@@ -141,7 +141,7 @@ def test_create_refund_fulfillment_included_shipping_costs(
             refund_shipping_costs=True,
         ),
     )
-    mocked_order_updated.assert_called_once_with(order_with_lines)
+    mocked_order_updated.assert_called_once_with(order_with_lines, webhooks=set())
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
@@ -195,7 +195,7 @@ def test_create_refund_fulfillment_only_fulfillment_lines(
             fulfillment_lines_to_refund=fulfillment_refund_lines,
         ),
     )
-    mocked_order_updated.assert_called_once_with(fulfilled_order)
+    mocked_order_updated.assert_called_once_with(fulfilled_order, webhooks=set())
 
     assert returned_fulfillemnt.total_refund_amount == amount
     assert returned_fulfillemnt.shipping_refund_amount is None
@@ -252,7 +252,7 @@ def test_create_refund_fulfillment_custom_amount(
             refund_amount_is_automatically_calculated=False,
         ),
     )
-    mocked_order_updated.assert_called_once_with(fulfilled_order)
+    mocked_order_updated.assert_called_once_with(fulfilled_order, webhooks=set())
 
     assert returned_fulfillemnt.total_refund_amount == amount
     assert returned_fulfillemnt.shipping_refund_amount is None

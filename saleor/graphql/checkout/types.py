@@ -50,6 +50,7 @@ from ..core.descriptions import (
     ADDED_IN_315,
     ADDED_IN_318,
     ADDED_IN_319,
+    ADDED_IN_321,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -531,7 +532,14 @@ class Checkout(ModelObjectType[models.Checkout]):
         "saleor.graphql.account.types.Address",
         description="The shipping address of the checkout.",
     )
-    note = graphene.String(required=True, description="The note for the checkout.")
+    customer_note = graphene.String(
+        required=True, description=f"The customer note for the checkout. {ADDED_IN_321}"
+    )
+    note = graphene.String(
+        required=True,
+        description="The note for the checkout.",
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use `customerNote` instead.",
+    )
     discount = graphene.Field(
         Money,
         description=(
@@ -815,6 +823,10 @@ class Checkout(ModelObjectType[models.Checkout]):
         description = "Checkout object."
         model = models.Checkout
         interfaces = [graphene.relay.Node, ObjectWithMetadata]
+
+    @staticmethod
+    def resolve_customer_note(root: models.Checkout, _info: ResolveInfo):
+        return root.note
 
     @staticmethod
     def resolve_created(root: models.Checkout, _info: ResolveInfo):

@@ -13,7 +13,7 @@ from ...discount.models import VoucherCustomer
 from ...warehouse.models import Allocation
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from .. import OrderEvents, OrderStatus
-from ..actions import call_order_event
+from ..actions import call_order_event, call_order_events
 from ..models import Order, OrderEvent, get_order_number
 from ..tasks import (
     _bulk_release_voucher_usage,
@@ -382,8 +382,8 @@ def test_expire_orders_task_after(order_list, allocations, channel_USD):
 
 
 @patch(
-    "saleor.order.tasks.call_order_event",
-    wraps=call_order_event,
+    "saleor.order.tasks.call_order_events",
+    wraps=call_order_events,
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
@@ -393,7 +393,7 @@ def test_expire_orders_task_after(order_list, allocations, channel_USD):
 def test_expire_orders_task_do_not_call_sync_webhooks(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
-    wrapped_call_order_event,
+    wrapped_call_order_events,
     setup_order_webhooks,
     order_list,
     channel_USD,
@@ -461,7 +461,7 @@ def test_expire_orders_task_do_not_call_sync_webhooks(
     )
 
     assert not mocked_send_webhook_request_sync.called
-    assert wrapped_call_order_event.called
+    assert wrapped_call_order_events.called
 
 
 @freeze_time("2020-03-18 12:00:00")

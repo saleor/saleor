@@ -8,13 +8,13 @@ from ....payment.interface import ListStoredPaymentMethodsRequestData
 from ....settings import WEBHOOK_SYNC_TIMEOUT
 from ....webhook.const import WEBHOOK_CACHE_DEFAULT_TIMEOUT
 from ....webhook.event_types import WebhookEventSyncType
+from ....webhook.tests.subscription_webhooks.subscription_queries import (
+    LIST_STORED_PAYMENT_METHODS as LIST_STORED_PAYMENT_METHODS_SUBSCRIPTION,
+)
 from ....webhook.transport.list_stored_payment_methods import (
     get_list_stored_payment_methods_from_response,
 )
 from ....webhook.transport.utils import generate_cache_key_for_webhook
-from .subscription_webhooks.subscription_queries import (
-    LIST_STORED_PAYMENT_METHODS as LIST_STORED_PAYMENT_METHODS_SUBSCRIPTION,
-)
 
 LIST_STORED_PAYMENT_METHODS = """
 subscription {

@@ -1,12 +1,7 @@
 from collections import defaultdict
 from collections.abc import Iterable
 from decimal import Decimal
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Optional,
-    Union,
-)
+from typing import TYPE_CHECKING, Any, Optional, Union
 
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
@@ -337,16 +332,16 @@ class PluginSample(BasePlugin):
             app_identifier="321", response=None, error="Some error"
         )
 
-    def checkout_fully_paid(self, checkout, previous_value):
+    def checkout_fully_paid(self, checkout, previous_value, webhooks):
         return None
 
-    def order_fully_refunded(self, order, previous_value):
+    def order_fully_refunded(self, order, previous_value, webhooks):
         return None
 
     def order_paid(self, order, previous_value):
         return None
 
-    def order_refunded(self, order, previous_value):
+    def order_refunded(self, order, previous_value, webhooks):
         return None
 
     def list_stored_payment_methods(

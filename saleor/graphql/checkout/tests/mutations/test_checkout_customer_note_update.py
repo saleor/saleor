@@ -15,6 +15,7 @@ CHECKOUT_CUSTOMER_NOTE_UPDATE_MUTATION = """
             checkout {
                 id,
                 note
+                customerNote
             },
             errors {
                 field,
@@ -51,6 +52,7 @@ def test_checkout_customer_note_update(user_api_client, checkout_with_item):
     assert not data["errors"]
     checkout.refresh_from_db()
     assert checkout.note == customer_note
+    assert data["checkout"]["customerNote"] == data["checkout"]["note"] == customer_note
     assert checkout.last_change != previous_last_change
 
 

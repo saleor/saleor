@@ -9,7 +9,7 @@ from .....core.models import EventDelivery
 from .....giftcard import GiftCardEvents
 from .....giftcard.models import GiftCard, GiftCardEvent
 from .....order import FulfillmentStatus, OrderStatus
-from .....order.actions import call_order_event, order_fulfilled
+from .....order.actions import call_order_events, order_fulfilled
 from .....order.error_codes import OrderErrorCode
 from .....order.models import Fulfillment, FulfillmentLine
 from .....product.models import ProductVariant
@@ -1554,8 +1554,8 @@ def test_order_fulfill_tracking_number_updated_event_triggered(
 
 
 @patch(
-    "saleor.order.actions.call_order_event",
-    wraps=call_order_event,
+    "saleor.order.actions.call_order_events",
+    wraps=call_order_events,
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
@@ -1565,7 +1565,7 @@ def test_order_fulfill_tracking_number_updated_event_triggered(
 def test_order_fulfill_triggers_webhooks(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
-    wrapped_call_order_event,
+    wrapped_call_order_events,
     setup_order_webhooks,
     staff_api_client,
     order_with_lines,
@@ -1658,4 +1658,4 @@ def test_order_fulfill_triggers_webhooks(
         ],
         any_order=True,
     )
-    assert wrapped_call_order_event.called
+    assert wrapped_call_order_events.called

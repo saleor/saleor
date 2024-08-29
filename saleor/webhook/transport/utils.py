@@ -434,6 +434,7 @@ def clear_successful_delivery(delivery: "EventDelivery"):
                 for event_payload in payloads_to_delete.using(
                     settings.DATABASE_CONNECTION_REPLICA_NAME
                 )
+                if event_payload.payload_file
             ]
             payloads_to_delete.delete()
             delete_files_from_private_storage_task(files_to_delete)

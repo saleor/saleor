@@ -14,6 +14,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### GraphQL API
 
 - Add `CheckoutCustomerNoteUpdate` mutation - #16315 by @pitkes22
+- Add `customerNote` field to `Checkout` type to make it consistent with `Order` model - #16561 by @Air-t
 
 ### Webhooks
 
@@ -21,5 +22,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 - Added support for numeric and lower-case boolean environment variables - #16313 by @NyanKiyoshi
 - Fixed a potential crash when Checkout metadata is accessed with high concurrency - #16411 by @patrys
+- Add slugs to product/category/collection/page translations. Allow to query by translated slug - #16449 by @delemeator
 - Fixed a crash when the Decimal scalar is passed a non-normal value - #16520 by @patrys
 - New release flow - #16565 by @tomaszszymanski129
+- Fixed a bug when saving webhook payload to Azure Storage - #16585 by @delemeator
