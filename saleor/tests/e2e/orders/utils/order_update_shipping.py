@@ -1,6 +1,6 @@
 from saleor.graphql.tests.utils import get_graphql_content
 
-DRAFT_ORDER_UPDATE_MUTATION = """
+ORDER_UPDATE_SHIPPING_MUTATION = """
 mutation OrderUpdateShipping($input: OrderUpdateShippingInput!, $id: ID!) {
   orderUpdateShipping(input: $input, order: $id) {
     errors {
@@ -69,7 +69,7 @@ def order_update_shipping(
     variables = {"id": id, "input": input}
 
     response = api_client.post_graphql(
-        DRAFT_ORDER_UPDATE_MUTATION,
+        ORDER_UPDATE_SHIPPING_MUTATION,
         variables=variables,
     )
     content = get_graphql_content(response)
