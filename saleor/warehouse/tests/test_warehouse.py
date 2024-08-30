@@ -501,3 +501,190 @@ def test_applicable_for_click_and_collect_empty_result_when_not_all_products_ava
 
     # then
     assert len(result) == 0
+
+
+def test_applicable_for_click_and_collect_no_quantity_check_stock_available(
+    warehouses_for_cc, checkout_with_item_for_cc, channel_USD
+):
+    """
+    Ensure that when the stock exists in the warehouse, the warehouse is returned.
+    """
+    # given
+    line = checkout_with_item_for_cc.lines.first()
+    line.quantity = 10
+    line.save(update_fields=["quantity"])
+
+    all_warehouse = warehouses_for_cc[1]
+    local_warehouse = warehouses_for_cc[2]
+
+    Stock.objects.bulk_create(
+        [
+            Stock(warehouse=all_warehouse, product_variant=line.variant, quantity=0),
+            Stock(warehouse=local_warehouse, product_variant=line.variant, quantity=1),
+        ]
+    )
+
+    lines = checkout_with_item_for_cc.lines.all()
+
+    # when
+    result = Warehouse.objects.applicable_for_click_and_collect_no_quantity_check(
+        lines, channel_USD.id
+    )
+
+    # then
+    assert len(result) == 2
+    assert set(result.values_list("id", flat=True)) == {
+        all_warehouse.id,
+        local_warehouse.id,
+    }
+
+
+def test_applicable_for_click_and_collect_no_quantity_check_stock_available_in_local(
+    warehouses_for_cc, checkout_with_item_for_cc, channel_USD
+):
+    """Ensure that when the stock is available in the local warehouse, also
+    the warehouse with `ALL_WAREHOUSES` option is returned."""
+    # given
+    line = checkout_with_item_for_cc.lines.first()
+    line.quantity = 10
+    line.save(update_fields=["quantity"])
+
+    all_warehouse = warehouses_for_cc[1]
+    local_warehouse = warehouses_for_cc[2]
+
+    Stock.objects.bulk_create(
+        [
+            Stock(warehouse=local_warehouse, product_variant=line.variant, quantity=1),
+        ]
+    )
+
+    lines = checkout_with_item_for_cc.lines.all()
+
+    # when
+    result = Warehouse.objects.applicable_for_click_and_collect_no_quantity_check(
+        lines, channel_USD.id
+    )
+
+    # then
+    assert len(result) == 2
+    assert set(result.values_list("id", flat=True)) == {
+        all_warehouse.id,
+        local_warehouse.id,
+    }
+
+
+def test_applicable_for_click_and_collect_no_quantity_check_stock_available_in_disabled(
+    warehouses_for_cc, checkout_with_item_for_cc, channel_USD
+):
+    """Ensure that when the stock is available in the warehouse with `DISABLED`
+    click and collect option, also the warehouse with `ALL_WAREHOUSES`
+    option is returned."""
+    # given
+    line = checkout_with_item_for_cc.lines.first()
+    line.quantity = 10
+    line.save(update_fields=["quantity"])
+
+    all_warehouse = warehouses_for_cc[1]
+    disabled_warehouse = warehouses_for_cc[0]
+
+    Stock.objects.bulk_create(
+        [
+            Stock(
+                warehouse=disabled_warehouse, product_variant=line.variant, quantity=1
+            ),
+        ]
+    )
+
+    lines = checkout_with_item_for_cc.lines.all()
+
+    # when
+    result = Warehouse.objects.applicable_for_click_and_collect_no_quantity_check(
+        lines, channel_USD.id
+    )
+
+    # then
+    assert len(result) == 1
+    assert result.first().id == all_warehouse.id
+
+
+def test_applicable_for_click_and_collect_no_quantity_check_no_stocks(
+    warehouses_for_cc, checkout_with_item_for_cc, channel_USD
+):
+    """Ensure that when there are no stocks, no warehouse is returned."""
+    # given
+    line = checkout_with_item_for_cc.lines.first()
+    line.quantity = 10
+    line.save(update_fields=["quantity"])
+
+    lines = checkout_with_item_for_cc.lines.all()
+
+    # when
+    result = Warehouse.objects.applicable_for_click_and_collect_no_quantity_check(
+        lines, channel_USD.id
+    )
+
+    # then
+    assert len(result) == 0
+
+
+def test_applicable_for_click_and_collect_no_quantity_check_one_line_without_stock(
+    warehouses_for_cc, checkout_with_items_for_cc, channel_USD
+):
+    """Ensure that when there are no stocks, no warehouse is returned."""
+    # given
+    line_1, line_2, line_3 = checkout_with_items_for_cc.lines.all()
+
+    all_warehouse = warehouses_for_cc[1]
+    local_warehouse = warehouses_for_cc[2]
+
+    Stock.objects.bulk_create(
+        [
+            Stock(
+                warehouse=local_warehouse,
+                product_variant=line_1.variant,
+                quantity=0,
+            ),
+            Stock(warehouse=all_warehouse, product_variant=line_2.variant, quantity=0),
+        ]
+    )
+    lines = checkout_with_items_for_cc.lines.all()
+
+    # when
+    result = Warehouse.objects.applicable_for_click_and_collect_no_quantity_check(
+        lines, channel_USD.id
+    )
+
+    # then
+    assert len(result) == 0
+
+
+def test_applicable_for_click_and_collect_no_quantity_check_no_channels(
+    warehouses_for_cc, checkout_with_item_for_cc, channel_USD
+):
+    """Ensure that when the warehouse is not returned when it's not available
+    in the given channel."""
+    # given
+    line = checkout_with_item_for_cc.lines.first()
+    line.quantity = 10
+    line.save(update_fields=["quantity"])
+
+    all_warehouse = warehouses_for_cc[1]
+    local_warehouse = warehouses_for_cc[2]
+
+    Stock.objects.bulk_create(
+        [
+            Stock(warehouse=local_warehouse, product_variant=line.variant, quantity=1),
+        ]
+    )
+
+    all_warehouse.channels.remove(channel_USD)
+    lines = checkout_with_item_for_cc.lines.all()
+
+    # when
+    result = Warehouse.objects.applicable_for_click_and_collect_no_quantity_check(
+        lines, channel_USD.id
+    )
+
+    # then
+    assert len(result) == 1
+    assert result.first().id == local_warehouse.id
