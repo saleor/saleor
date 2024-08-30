@@ -107,6 +107,7 @@ class WarehouseQueryset(models.QuerySet["Warehouse"]):
         This method should be used only if stocks quantity will be checked in further
         validation steps, for instance in checkout completion.
         """
+        warehouse_cc_option_enum = WarehouseClickAndCollectOption
         if all(
             line.variant.is_preorder_active() if line.variant else False
             for line in lines_qs.select_related("variant").only("variant_id")
@@ -114,9 +115,8 @@ class WarehouseQueryset(models.QuerySet["Warehouse"]):
             return self._for_channel_click_and_collect(channel_id)
 
         stocks_qs = Stock.objects.filter(
-            product_variant__id__in=lines_qs.values("variant_id"),
-        ).select_related("product_variant")
-        warehouse_cc_option_enum = WarehouseClickAndCollectOption
+            product_variant_id__in=lines_qs.values("variant_id"),
+        )
 
         number_of_variants = (
             lines_qs.order_by("variant_id").distinct("variant_id").count()
@@ -135,7 +135,7 @@ class WarehouseQueryset(models.QuerySet["Warehouse"]):
             )
             .filter(
                 stock_num__gte=number_of_variants,
-                click_and_collect_option__in=warehouse_cc_option_enum.LOCAL_STOCK,
+                click_and_collect_option=warehouse_cc_option_enum.LOCAL_STOCK,
             )
             .values("id")
         )
@@ -143,14 +143,12 @@ class WarehouseQueryset(models.QuerySet["Warehouse"]):
         # if the stocks can cover the all variants, all C&C warehouses with
         # `ALL_WAREHOUSES` option should be returned, as there is an option
         # to ship the products to this point from another warehouse
-        stocks_count = (
-            stocks_qs.values_list("product_variant_id", flat=True).distinct().count()
-        )
+        stocks_count = len(set(stocks_qs.values_list("product_variant_id", flat=True)))
         if stocks_count == number_of_variants:
             lookup |= Q(
                 click_and_collect_option=warehouse_cc_option_enum.ALL_WAREHOUSES
             )
-        return self.filter(lookup)
+        return warehouses_for_channel.filter(lookup)
 
     def applicable_for_click_and_collect(
         self,
@@ -168,7 +166,6 @@ class WarehouseQueryset(models.QuerySet["Warehouse"]):
         warehouses, and the quantity of a single variant can be split across multiple
         warehouses.
         """
-        # breakpoint()
         warehouse_cc_option_enum = WarehouseClickAndCollectOption
         if all(
             line.variant.is_preorder_active() if line.variant else False
