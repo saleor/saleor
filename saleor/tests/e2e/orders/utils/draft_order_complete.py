@@ -11,41 +11,20 @@ mutation DraftOrderComplete($id: ID!) {
     order {
       id
       undiscountedTotal {
-        gross {
-          amount
-        }
+        ...BaseTaxedMoney
       }
       totalBalance {
         amount
       }
       total {
-        gross {
-          amount
-        }
-        net {
-          amount
-        }
-        tax {
-          amount
-        }
+        ...BaseTaxedMoney
       }
       subtotal {
-        gross {
-          amount
-        }
+        ...BaseTaxedMoney
       }
       shippingPrice {
-        gross {
-          amount
-        }
-        net {
-          amount
-        }
-        tax {
-          amount
-        }
+        ...BaseTaxedMoney
       }
-      displayGrossPrices
       status
       voucher {
         id
@@ -65,14 +44,10 @@ mutation DraftOrderComplete($id: ID!) {
           amount
         }
         undiscountedUnitPrice {
-          gross {
-            amount
-          }
+          ...BaseTaxedMoney
         }
         unitPrice {
-          gross {
-            amount
-          }
+          ...BaseTaxedMoney
         }
         unitDiscountReason
         unitDiscountType
@@ -80,6 +55,19 @@ mutation DraftOrderComplete($id: ID!) {
       }
     }
   }
+}
+
+fragment BaseTaxedMoney on TaxedMoney {
+  gross {
+    amount
+  }
+  net {
+    amount
+  }
+  tax {
+    amount
+  }
+  currency
 }
 """
 

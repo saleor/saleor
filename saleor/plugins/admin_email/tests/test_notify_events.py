@@ -1,6 +1,7 @@
 from unittest import mock
 
 from ....account.notifications import get_default_user_payload
+from ....core.notify import NotifyHandler
 from ....order.notifications import get_default_order_payload
 from ..notify_events import (
     send_csv_export_failed,
@@ -28,8 +29,9 @@ def test_send_account_password_reset_event(
         "site_name": "Saleor",
     }
     config = {"host": "localhost", "port": "1025"}
+    handler = NotifyHandler(lambda: payload)
     send_staff_reset_password(
-        payload=payload, config=config, plugin=admin_email_plugin()
+        payload_func=handler.payload, config=config, plugin=admin_email_plugin()
     )
     mocked_email_task.assert_called_with(
         payload["recipient_email"], payload, config, mock.ANY, mock.ANY
@@ -53,8 +55,9 @@ def test_send_account_password_reset_event_empty_template(
         "site_name": "Saleor",
     }
     config = {"host": "localhost", "port": "1025"}
+    handler = NotifyHandler(lambda: payload)
     send_staff_reset_password(
-        payload=payload,
+        payload_func=handler.payload,
         config=config,
         plugin=admin_email_plugin(staff_password_reset_template=""),
     )
@@ -71,8 +74,9 @@ def test_send_set_staff_password_email(mocked_email_task, admin_email_plugin):
         "token": "token123",
     }
     config = {"host": "localhost", "port": "1025"}
+    handler = NotifyHandler(lambda: payload)
     send_set_staff_password_email(
-        payload=payload, config=config, plugin=admin_email_plugin()
+        payload_func=handler.payload, config=config, plugin=admin_email_plugin()
     )
     mocked_email_task.assert_called_with(
         payload["recipient_email"], payload, config, mock.ANY, mock.ANY
@@ -91,8 +95,9 @@ def test_send_set_staff_password_email_empty_template(
         "token": "token123",
     }
     config = {"host": "localhost", "port": "1025"}
+    handler = NotifyHandler(lambda: payload)
     send_set_staff_password_email(
-        payload=payload,
+        payload_func=handler.payload,
         config=config,
         plugin=admin_email_plugin(set_staff_password_template=""),
     )
@@ -109,7 +114,10 @@ def test_send_csv_export_success(mocked_email_task, admin_email_plugin):
         "csv_link": "http://127.0.0.1:8000/download/csv",
     }
     config = {"host": "localhost", "port": "1025"}
-    send_csv_export_success(payload=payload, config=config, plugin=admin_email_plugin())
+    handler = NotifyHandler(lambda: payload)
+    send_csv_export_success(
+        payload_func=handler.payload, config=config, plugin=admin_email_plugin()
+    )
     mocked_email_task.assert_called_with(
         payload["recipient_email"], payload, config, mock.ANY, mock.ANY
     )
@@ -127,8 +135,11 @@ def test_send_csv_product_export_success_empty_template(
         "csv_link": "http://127.0.0.1:8000/download/csv",
     }
     config = {"host": "localhost", "port": "1025"}
+    handler = NotifyHandler(lambda: payload)
     send_csv_export_success(
-        payload=payload, config=config, plugin=admin_email_plugin(csv_product_export="")
+        payload_func=handler.payload,
+        config=config,
+        plugin=admin_email_plugin(csv_product_export=""),
     )
     assert not mocked_email_task.called
 
@@ -144,8 +155,9 @@ def test_send_staff_order_confirmation(mocked_email_task, order, admin_email_plu
         "recipient_list": ["admin@example.com"],
     }
     config = {"host": "localhost", "port": "1025"}
+    handler = NotifyHandler(lambda: payload)
     send_staff_order_confirmation(
-        payload=payload, config=config, plugin=admin_email_plugin()
+        payload_func=handler.payload, config=config, plugin=admin_email_plugin()
     )
     mocked_email_task.assert_called_with(
         payload["recipient_list"], payload, config, mock.ANY, mock.ANY
@@ -165,8 +177,9 @@ def test_send_staff_order_confirmation_empty_template(
         "recipient_list": ["admin@example.com"],
     }
     config = {"host": "localhost", "port": "1025"}
+    handler = NotifyHandler(lambda: payload)
     send_staff_order_confirmation(
-        payload=payload,
+        payload_func=handler.payload,
         config=config,
         plugin=admin_email_plugin(staff_order_confirmation=""),
     )
@@ -181,7 +194,10 @@ def test_send_csv_export_failed(mocked_email_task, admin_email_plugin):
         "recipient_email": "admin@example.com",
     }
     config = {"host": "localhost", "port": "1025"}
-    send_csv_export_failed(payload=payload, config=config, plugin=admin_email_plugin())
+    handler = NotifyHandler(lambda: payload)
+    send_csv_export_failed(
+        payload_func=handler.payload, config=config, plugin=admin_email_plugin()
+    )
     mocked_email_task.assert_called_with(
         payload["recipient_email"], payload, config, mock.ANY, mock.ANY
     )
@@ -195,8 +211,9 @@ def test_send_csv_export_failed_empty_template(mocked_email_task, admin_email_pl
         "recipient_email": "admin@example.com",
     }
     config = {"host": "localhost", "port": "1025"}
+    handler = NotifyHandler(lambda: payload)
     send_csv_export_failed(
-        payload=payload,
+        payload_func=handler.payload,
         config=config,
         plugin=admin_email_plugin(csv_product_export_failed=""),
     )

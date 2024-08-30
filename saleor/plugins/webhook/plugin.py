@@ -16,7 +16,7 @@ from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
 from ...checkout.models import Checkout
 from ...core import EventDeliveryStatus
 from ...core.models import EventDelivery
-from ...core.notify_events import NotifyEventType
+from ...core.notify import NotifyEventType
 from ...core.taxes import TaxData, TaxType
 from ...core.utils import build_absolute_uri
 from ...core.utils.json_serializer import CustomJsonEncoder
@@ -1937,12 +1937,13 @@ class WebhookPlugin(BasePlugin):
         )
 
     def notify(
-        self, event: Union[NotifyEventType, str], payload: dict, previous_value
+        self, event: Union[NotifyEventType, str], payload_func: Callable, previous_value
     ) -> Any:
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.NOTIFY_USER
         if webhooks := get_webhooks_for_event(event_type):
+            payload = payload_func()
             data = self._serialize_payload(
                 {
                     "notify_event": event,

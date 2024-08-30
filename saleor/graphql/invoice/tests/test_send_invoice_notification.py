@@ -3,7 +3,7 @@ from unittest.mock import patch
 import graphene
 
 from ....core import JobStatus
-from ....core.notify_events import NotifyEventType
+from ....core.notify import NotifyEventType
 from ....core.tests.utils import get_site_context_payload
 from ....graphql.tests.utils import assert_no_permission, get_graphql_content
 from ....invoice.models import Invoice
@@ -51,11 +51,15 @@ def test_invoice_send_notification_by_user(
         **get_site_context_payload(site_settings.site),
     }
 
-    mock_notify.assert_called_once_with(
-        NotifyEventType.INVOICE_READY,
-        expected_payload,
-        channel_slug=invoice.order.channel.slug,
-    )
+    assert mock_notify.call_count == 1
+    call_args = mock_notify.call_args_list[0]
+    called_args = call_args.args
+    called_kwargs = call_args.kwargs
+    assert called_args[0] == NotifyEventType.INVOICE_READY
+    assert len(called_kwargs) == 2
+    assert called_kwargs["payload_func"]() == expected_payload
+    assert called_kwargs["channel_slug"] == invoice.order.channel.slug
+
     assert not content["data"]["invoiceSendNotification"]["errors"]
 
 
@@ -109,11 +113,15 @@ def test_invoice_send_notification_by_app(
         **get_site_context_payload(site_settings.site),
     }
 
-    mock_notify.assert_called_once_with(
-        NotifyEventType.INVOICE_READY,
-        expected_payload,
-        channel_slug=invoice.order.channel.slug,
-    )
+    assert mock_notify.call_count == 1
+    call_args = mock_notify.call_args_list[0]
+    called_args = call_args.args
+    called_kwargs = call_args.kwargs
+    assert called_args[0] == NotifyEventType.INVOICE_READY
+    assert len(called_kwargs) == 2
+    assert called_kwargs["payload_func"]() == expected_payload
+    assert called_kwargs["channel_slug"] == invoice.order.channel.slug
+
     assert not content["data"]["invoiceSendNotification"]["errors"]
 
 
