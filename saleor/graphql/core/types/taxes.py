@@ -380,7 +380,13 @@ class TaxableObject(BaseObjectType):
                 checkout = checkout_info.checkout
                 discount_name = checkout.discount_name
                 return (
-                    [{"name": discount_name, "amount": checkout.discount}]
+                    [
+                        {
+                            "name": discount_name,
+                            "amount": checkout.discount,
+                            "type": TaxableObjectDiscountTypeEnum.SUBTOTAL,
+                        }
+                    ]
                     if checkout.discount
                     and (
                         is_order_level_voucher(checkout_info.voucher)
@@ -403,7 +409,7 @@ class TaxableObject(BaseObjectType):
             for discount in discounts:
                 if discount.type != DiscountType.MANUAL:
                     continue
-                subtotal = root.subtotal
+                subtotal = root.subtotal.net
                 shipping = root.base_shipping_price
                 subtotal_discount, shipping_discount = split_manual_discount(
                     discount, subtotal, shipping
@@ -412,12 +418,12 @@ class TaxableObject(BaseObjectType):
                     [
                         {
                             "name": discount.name,
-                            "amount": subtotal_discount.amount,
+                            "amount": subtotal_discount,
                             "type": TaxableObjectDiscountTypeEnum.SUBTOTAL,
                         },
                         {
                             "name": discount.name,
-                            "amount": shipping_discount.amount,
+                            "amount": shipping_discount,
                             "type": TaxableObjectDiscountTypeEnum.SHIPPING,
                         },
                     ]
@@ -431,10 +437,11 @@ class TaxableObject(BaseObjectType):
                         "type": TaxableObjectDiscountTypeEnum.SUBTOTAL,
                     }
                     for discount in discounts
-                    if is_order_level_voucher(discount)
+                    if is_order_level_voucher(discount.voucher)
                     or discount.type == DiscountType.ORDER_PROMOTION
                 ]
             )
+
             return taxable_discounts
 
         return (

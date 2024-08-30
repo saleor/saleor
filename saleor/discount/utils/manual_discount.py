@@ -4,6 +4,7 @@ from typing import Optional, Union
 
 from prices import Money, TaxedMoney, fixed_discount, percentage_discount
 
+from ...core.prices import quantize_price
 from ...core.taxes import zero_money
 from .. import DiscountValueType
 from ..models import OrderDiscount
@@ -59,7 +60,9 @@ def split_manual_discount(
                 price_to_discount=total,
             )
             total_discount = total - discounted_total
-            subtotal_discount = subtotal / total * total_discount
+            subtotal_discount = quantize_price(
+                subtotal / total * total_discount, currency
+            )
             shipping_discount = total_discount - subtotal_discount
 
     return subtotal_discount, shipping_discount
