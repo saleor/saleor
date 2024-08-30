@@ -1030,6 +1030,41 @@ def test_checkout_avail_collect_points_only_all_warehouse_quantity_collected(
     ]
 
 
+def test_checkout_avail_collect_points_all_warehouse_quantity_from_disabled_warehouse(
+    api_client, checkout_with_item_for_cc, warehouses_for_cc
+):
+    # given
+    query = GET_CHECKOUT_AVAILABLE_COLLECTION_POINTS
+    line = checkout_with_item_for_cc.lines.first()
+    line.quantity = 5
+    line.save(update_fields=["quantity"])
+
+    all_warehouse = warehouses_for_cc[1]
+    disabled_warehouse = warehouses_for_cc[0]
+
+    Stock.objects.bulk_create(
+        [
+            Stock(warehouse=all_warehouse, product_variant=line.variant, quantity=0),
+            Stock(
+                warehouse=disabled_warehouse, product_variant=line.variant, quantity=10
+            ),
+        ]
+    )
+
+    variables = {"id": to_global_id_or_none(checkout_with_item_for_cc)}
+
+    # when
+    response = api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    assert data["availableCollectionPoints"] == [
+        {"address": {"streetAddress1": "Tęczowa 7"}, "name": all_warehouse.name}
+    ]
+
+
 def test_checkout_avail_collect_points_returns_empty_list_when_no_channels(
     api_client, warehouse_for_cc, checkout_with_items_for_cc
 ):
