@@ -210,9 +210,7 @@ def test_recalculate_discounted_price_for_products_task_updates_only_dirty_listi
 
     # then
     assert update_discounted_prices_for_promotion_mock.called
-    recalculate_discounted_price_for_products_task_mock.called_once_with(
-        listing_marked_as_dirty.product, only_dirty_products=True
-    )
+    recalculate_discounted_price_for_products_task_mock.assert_called_once_with()
 
 
 @patch("saleor.product.tasks.recalculate_discounted_price_for_products_task.delay")

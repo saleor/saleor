@@ -171,7 +171,7 @@ def test_on_task_failure_for_app(send_export_failed_info_mock, app_export_file):
         "error_type": info_type,
     }
 
-    send_export_failed_info_mock.called_once_with(app_export_file, ANY)
+    send_export_failed_info_mock.assert_called_once_with(app_export_file, ANY)
 
 
 def test_on_task_success(user_export_file):

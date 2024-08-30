@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 import graphene
 
@@ -858,7 +858,7 @@ def test_customers_bulk_update_metadata_empty_key_in_one_input(
         customer_2.private_metadata.get(private_metadata_2["key"])
         == private_metadata_2["value"]
     )
-    mocked_customer_metadata_updated.called_once_with(customer_2)
+    mocked_customer_metadata_updated.assert_called_once_with(customer_2, webhooks=ANY)
 
 
 def test_customers_bulk_update_trigger_gift_card_search_vector_update(
