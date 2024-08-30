@@ -1,3 +1,4 @@
+from .draft_order_bulk_delete import draft_order_bulk_delete
 from .draft_order_complete import draft_order_complete, raw_draft_order_complete
 from .draft_order_create import draft_order_create
 from .draft_order_delete import draft_order_delete
@@ -35,5 +36,6 @@ __all__ = [
     "order_fulfillment_cancel",
     "order_invoice_create",
     "order_update_shipping",
+    "draft_order_bulk_delete",
     "order_line_update",
 ]
