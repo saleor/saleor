@@ -1441,6 +1441,7 @@ def order_generator(customer_user, channel_USD):
             private_metadata=private_metadata,
             checkout_token=checkout_token,
             status=status,
+            undiscounted_base_shipping_price_amount=Decimal("0.0"),
         )
         if search_vector_class:
             search_vector = search_vector_class(
