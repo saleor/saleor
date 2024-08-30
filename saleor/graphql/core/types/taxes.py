@@ -7,8 +7,9 @@ from promise import Promise
 from ....checkout import base_calculations
 from ....checkout.models import Checkout, CheckoutLine
 from ....core.prices import quantize_price
+from ....discount import DiscountType
 from ....discount.utils.checkout import has_checkout_order_promotion
-from ....discount.utils.shared import is_order_level_discount
+from ....discount.utils.manual_discount import split_manual_discount
 from ....discount.utils.voucher import is_order_level_voucher
 from ....order.models import Order, OrderLine
 from ....order.utils import get_order_country
@@ -395,13 +396,46 @@ class TaxableObject(BaseObjectType):
             )
 
         def map_discounts(discounts):
-            return [
-                {"name": discount.name, "amount": discount.amount}
-                for discount in discounts
-                # Only order level discounts, like entire order vouchers,
-                # order promotions and manual discounts should be taken into account
-                if is_order_level_discount(discount)
-            ]
+            # Only order level discounts, like entire order vouchers,
+            # order promotions and manual discounts should be taken into account.
+            # Manual discount needs to be split into subtotal and shipping portions.
+            taxable_discounts = []
+            for discount in discounts:
+                if discount.type != DiscountType.MANUAL:
+                    continue
+                subtotal = root.subtotal
+                shipping = root.base_shipping_price
+                subtotal_discount, shipping_discount = split_manual_discount(
+                    discount, subtotal, shipping
+                )
+                taxable_discounts.extend(
+                    [
+                        {
+                            "name": discount.name,
+                            "amount": subtotal_discount.amount,
+                            "type": TaxableObjectDiscountTypeEnum.SUBTOTAL,
+                        },
+                        {
+                            "name": discount.name,
+                            "amount": shipping_discount.amount,
+                            "type": TaxableObjectDiscountTypeEnum.SHIPPING,
+                        },
+                    ]
+                )
+
+            taxable_discounts.extend(
+                [
+                    {
+                        "name": discount.name,
+                        "amount": discount.amount,
+                        "type": TaxableObjectDiscountTypeEnum.SUBTOTAL,
+                    }
+                    for discount in discounts
+                    if is_order_level_voucher(discount)
+                    or discount.type == DiscountType.ORDER_PROMOTION
+                ]
+            )
+            return taxable_discounts
 
         return (
             OrderDiscountsByOrderIDLoader(info.context)
