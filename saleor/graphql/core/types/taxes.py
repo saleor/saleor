@@ -36,6 +36,7 @@ from ...tax.dataloaders import (
     TaxConfigurationByChannelId,
     TaxConfigurationPerCountryByTaxConfigurationIDLoader,
 )
+from ...tax.enums import TaxableObjectDiscountTypeEnum
 from .. import ResolveInfo
 from .common import NonNullList
 from .money import Money
@@ -266,6 +267,11 @@ class TaxableObjectDiscount(BaseObjectType):
     name = graphene.String(description="The name of the discount.")
     amount = graphene.Field(
         Money, description="The amount of the discount.", required=True
+    )
+    type = TaxableObjectDiscountTypeEnum(
+        required=True,
+        default_value=TaxableObjectDiscountTypeEnum.SUBTOTAL,
+        description="Indicates which part of the order the discount should affect: SUBTOTAL or SHIPPING.",
     )
 
     class Meta:
