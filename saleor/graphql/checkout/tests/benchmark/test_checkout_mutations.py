@@ -566,6 +566,7 @@ def test_create_checkout_with_order_promotion(
     }
 
     # when
+    user_api_client.ensure_access_token()
     with django_assert_num_queries(80):
         response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
 
@@ -821,6 +822,7 @@ def test_update_checkout_lines_with_reservations(
         reservation_length=5,
     )
 
+    user_api_client.ensure_access_token()
     with django_assert_num_queries(95):
         variant_id = graphene.Node.to_global_id("ProductVariant", variants[0].pk)
         variables = {
@@ -1079,6 +1081,7 @@ def test_add_checkout_lines_with_reservations(
         variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
         new_lines.append({"quantity": 2, "variantId": variant_id})
 
+    user_api_client.ensure_access_token()
     # Adding multiple lines to checkout has same query count as adding one
     with django_assert_num_queries(94):
         variables = {
@@ -1143,6 +1146,7 @@ def test_add_checkout_lines_catalogue_discount_applies(
     }
 
     # when
+    user_api_client.ensure_access_token()
     with django_assert_num_queries(86):
         response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
 
@@ -1228,6 +1232,7 @@ def test_add_checkout_lines_multiple_catalogue_discount_applies(
     }
 
     # when
+    user_api_client.ensure_access_token()
     with django_assert_num_queries(86):
         response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
 
@@ -1263,6 +1268,7 @@ def test_add_checkout_lines_order_discount_applies(
     }
 
     # when
+    user_api_client.ensure_access_token()
     with django_assert_num_queries(89):
         response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
 
@@ -1297,6 +1303,7 @@ def test_add_checkout_lines_gift_discount_applies(
     }
 
     # when
+    user_api_client.ensure_access_token()
     with django_assert_num_queries(115):
         response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
 

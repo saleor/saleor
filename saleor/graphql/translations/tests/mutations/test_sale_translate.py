@@ -53,6 +53,7 @@ def test_sale_translate(
     description_json,
 ):
     # given
+    staff_api_client.regenerate_access_token()
     promotion = promotion_converted_from_sale
     mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]

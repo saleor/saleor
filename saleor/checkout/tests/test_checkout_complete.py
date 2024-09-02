@@ -2133,9 +2133,10 @@ def test_complete_checkout_invalid_shipping_method(
     )
     assert not voucher_customer.exists()
 
-    mocked_payment_refund_or_void.called_once_with(
-        payment, manager, channel_slug=checkout.channel.slug
-    )
+    assert mocked_payment_refund_or_void.call_args_list == [
+        mock.call(payment, manager, channel_slug=checkout.channel.slug),
+        mock.call(payment, manager, channel_slug=checkout.channel.slug),
+    ]
     checkout.refresh_from_db()
     assert checkout.is_voucher_usage_increased is False
 

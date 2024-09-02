@@ -23,6 +23,7 @@ def test_order_promotion_not_applied_when_not_within_time_range_CORE_2110(
     permission_manage_discounts,
     permission_manage_orders,
 ):
+    e2e_staff_api_client.regenerate_access_token()
     # Before
     permissions = [
         *shop_permissions,

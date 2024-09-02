@@ -2,7 +2,6 @@ import json
 from unittest import mock
 
 import graphene
-from freezegun import freeze_time
 
 from ....graphql.product.tests.mutations.test_product_create import (
     CREATE_PRODUCT_MUTATION,
@@ -11,7 +10,6 @@ from ....webhook.transport.asynchronous import create_deliveries_for_subscriptio
 from ..product_created import ProductCreated
 
 
-@freeze_time("2024-01-01 10:00")
 @mock.patch("saleor.webhook.utils.get_webhooks_for_event")
 @mock.patch("saleor.webhook.transport.asynchronous.transport.trigger_webhooks_async")
 def test_product_created_trigger(
