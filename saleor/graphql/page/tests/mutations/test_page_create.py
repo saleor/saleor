@@ -172,7 +172,6 @@ def test_page_create_mutation_with_published_at_date(
     assert tag_value_slug in values
 
 
-@freeze_time("1914-06-28 10:50")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_page_create_trigger_page_webhook(

@@ -4,7 +4,6 @@ from unittest.mock import ANY, patch
 import graphene
 import pytest
 from django.utils.functional import SimpleLazyObject
-from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
 from .....attribute.models import AttributeValue
@@ -105,7 +104,6 @@ def test_delete_product_with_image(
     mocked_recalculate_orders_task.assert_not_called()
 
 
-@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 @patch("saleor.order.tasks.recalculate_orders_task.delay")

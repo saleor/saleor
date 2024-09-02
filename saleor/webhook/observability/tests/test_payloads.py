@@ -443,12 +443,12 @@ def test_generate_event_delivery_attempt_payload_raises_error_when_no_payload(
 def test_generate_event_delivery_attempt_payload_with_next_retry_date(
     event_attempt,
 ):
-    next_retry_date = datetime(1914, 6, 28, 10, 50, tzinfo=timezone.utc)
+    next_retry_date = datetime(2004, 5, 1, 0, 0, tzinfo=timezone.utc)
     payload = generate_event_delivery_attempt_payload(
         event_attempt, next_retry_date, 1024
     )
 
-    assert json.loads(payload)["nextRetry"] == "1914-06-28T10:50:00Z"
+    assert json.loads(payload)["nextRetry"] == "2004-05-01T00:00:00Z"
 
 
 def test_generate_event_delivery_attempt_payload_with_non_empty_headers(event_attempt):
