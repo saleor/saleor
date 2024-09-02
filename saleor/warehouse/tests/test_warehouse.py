@@ -237,7 +237,9 @@ def test_applicable_for_click_and_collect_returns_empty_collection_if_different_
 def test_applicable_for_click_and_collect_stock_only_in_local_all_and_local_returned(
     warehouses_for_cc, checkout_with_item_for_cc, channel_USD
 ):
-    """Ensure that when the stock is available only in local warehouse, but not
+    """Esnure the `ALL` warehouse is returned when the stock is availble in local one.
+
+    When the stock is available only in local warehouse, but not
     available in the warehouse with `ALL_WAREHOUSES` option, both warehouses
     are returned.
     """
@@ -270,7 +272,9 @@ def test_applicable_for_click_and_collect_stock_only_in_local_all_and_local_retu
 def test_applicable_for_click_and_collect_stock_only_in_warehouse_with_all_option(
     warehouses_for_cc, checkout_with_item_for_cc, channel_USD
 ):
-    """Ensure that when the stock is available only in warehouse with `ALL_WAREHOUSES`
+    """Ensure that only `ALL` warehouse is returned when stock is available only there.
+
+    When the stock is available only in warehouse with `ALL_WAREHOUSES`
     click and collect option, only this one is returned.
     """
     # given
@@ -299,7 +303,9 @@ def test_applicable_for_click_and_collect_stock_only_in_warehouse_with_all_optio
 def test_applicable_for_click_and_collect_all_returned_stock_collected_from_local(
     warehouses_for_cc, checkout_with_item_for_cc, channel_USD
 ):
-    """Ensure that when the stock is not available in warehouse with `ALL_WAREHOUSES`
+    """Ensure that stocks can be collected from local warehouse to `ALL` warehouse.
+
+    When the stock is not available in warehouse with `ALL_WAREHOUSES`
     click and collect option, but can be collected from the different warehouses,
     the warehouse with `ALL_WAREHOUSES` click and collect option is returned.
     """
@@ -337,7 +343,9 @@ def test_applicable_for_click_and_collect_all_returned_stock_collected_from_loca
 def test_applicable_for_click_and_collect_stock_from_local_but_not_all_in_channel(
     warehouses_for_cc, checkout_with_item_for_cc, channel_USD
 ):
-    """Ensure that when the stock is not available in warehouse with `ALL_WAREHOUSES`
+    """Ensure the warehouse isn't returned when it's not available in the given channel.
+
+    When the stock is not available in warehouse with `ALL_WAREHOUSES`
     click and collect option, but can be collected from the different warehouses,
     and the all warehouse is not available in given channel, the warehouse
     is not returned.
@@ -376,7 +384,9 @@ def test_applicable_for_click_and_collect_stock_from_local_but_not_all_in_channe
 def test_applicable_for_click_and_collect_all_returned_stock_from_disabled_warehouse(
     warehouses_for_cc, checkout_with_item_for_cc, channel_USD
 ):
-    """Ensure that when the stock is not available in warehouse with `ALL_WAREHOUSES`
+    """Ensure that stocks can be collected from disabled warehouse to `ALL` warehouse.
+
+    When the stock is not available in warehouse with `ALL_WAREHOUSES`
     click and collect option, but can be collected from the different warehouse
     with `DISABLED` click and collect option, the warehouse with `ALL_WAREHOUSES`
     option is returned.
@@ -409,7 +419,9 @@ def test_applicable_for_click_and_collect_all_returned_stock_from_disabled_wareh
 def test_applicable_for_click_and_collect_stock_collected_from_different_warehouses(
     warehouses_for_cc, checkout_with_items_for_cc, channel_USD
 ):
-    """Ensure that when the all stock is not available in warehouse with
+    """Ensure that stock can be collected from mutliple different warehouses.
+
+    When the all stock is not available in warehouse with
     `ALL_WAREHOUSES` click and collect option, but can be collected from the
     different warehouses, the warehouse with `ALL_WAREHOUSES` click and collect
     option is returned, only when the stock for all products can be collected.
@@ -459,7 +471,9 @@ def test_applicable_for_click_and_collect_stock_collected_from_different_warehou
 def test_applicable_for_click_and_collect_empty_result_when_not_all_products_available(
     warehouses_for_cc, checkout_with_items_for_cc, channel_USD
 ):
-    """Ensure that when there is no enough stock for at least one product, no warehouse
+    """Ensure that stocks for all lines must be covered to return the warehouse.
+
+    When there is no enough stock for at least one product, no warehouse
     is returned.
     """
     # given
@@ -503,12 +517,65 @@ def test_applicable_for_click_and_collect_empty_result_when_not_all_products_ava
     assert len(result) == 0
 
 
+def test_applicable_for_click_and_collect_additional_stocks(
+    warehouses_for_cc, checkout_with_items_for_cc, channel_USD, variant
+):
+    """Ensure that stock of another variant will be not taken into account.
+
+    When the warehouse has additional stock for another variant, and the warehouse stock
+    number is equal to the number of variants, the warehouse is not returned.
+    """
+    # given
+    line_1, line_2, line_3 = checkout_with_items_for_cc.lines.all()
+    line_1.quantity = 5
+    line_2.quantity = 3
+    line_3.quantity = 7
+    OrderLine.objects.bulk_update([line_1, line_2, line_3], ["quantity"])
+
+    all_warehouse = warehouses_for_cc[1]
+    local_warehouse_1 = warehouses_for_cc[2]
+    local_warehouse_2 = warehouses_for_cc[3]
+    disabled_warehouse = warehouses_for_cc[0]
+
+    Stock.objects.bulk_create(
+        [
+            Stock(warehouse=all_warehouse, product_variant=line_1.variant, quantity=0),
+            Stock(warehouse=all_warehouse, product_variant=line_2.variant, quantity=3),
+            Stock(warehouse=all_warehouse, product_variant=line_3.variant, quantity=0),
+            Stock(
+                warehouse=local_warehouse_1, product_variant=line_1.variant, quantity=3
+            ),
+            Stock(
+                warehouse=local_warehouse_2, product_variant=line_1.variant, quantity=4
+            ),
+            Stock(
+                warehouse=disabled_warehouse, product_variant=line_3.variant, quantity=5
+            ),
+            Stock(
+                warehouse=local_warehouse_2, product_variant=line_3.variant, quantity=3
+            ),
+            # stocks for different variant, causes that the number of stocks for
+            # local_warehouse_2 is equal to the number of variants;
+            # should not be taken into consideration, and local_warehouse_2 should
+            # not be returned
+            Stock(warehouse=local_warehouse_2, product_variant=variant, quantity=3),
+        ]
+    )
+
+    lines = checkout_with_items_for_cc.lines.all()
+
+    # when
+    result = Warehouse.objects.applicable_for_click_and_collect(lines, channel_USD.id)
+
+    # then
+    assert len(result) == 1
+    assert result.first().id == all_warehouse.id
+
+
 def test_applicable_for_click_and_collect_no_quantity_check_stock_available(
     warehouses_for_cc, checkout_with_item_for_cc, channel_USD
 ):
-    """
-    Ensure that when the stock exists in the warehouse, the warehouse is returned.
-    """
+    """Ensure that when the stock exists in the warehouse, the warehouse is returned."""
     # given
     line = checkout_with_item_for_cc.lines.first()
     line.quantity = 10
@@ -542,8 +609,11 @@ def test_applicable_for_click_and_collect_no_quantity_check_stock_available(
 def test_applicable_for_click_and_collect_no_quantity_check_stock_available_in_local(
     warehouses_for_cc, checkout_with_item_for_cc, channel_USD
 ):
-    """Ensure that when the stock is available in the local warehouse, also
-    the warehouse with `ALL_WAREHOUSES` option is returned."""
+    """Ensure that the stock for `ALL` warehouse can be collected from local one.
+
+    When the stock is available in the local warehouse, also
+    the warehouse with `ALL_WAREHOUSES` option is returned.
+    """
     # given
     line = checkout_with_item_for_cc.lines.first()
     line.quantity = 10
@@ -576,9 +646,12 @@ def test_applicable_for_click_and_collect_no_quantity_check_stock_available_in_l
 def test_applicable_for_click_and_collect_no_quantity_check_stock_available_in_disabled(
     warehouses_for_cc, checkout_with_item_for_cc, channel_USD
 ):
-    """Ensure that when the stock is available in the warehouse with `DISABLED`
+    """Ensure that the stock for `ALL` warehouse can be collected from disabled one.
+
+    When the stock is available in the warehouse with `DISABLED`
     click and collect option, also the warehouse with `ALL_WAREHOUSES`
-    option is returned."""
+    option is returned.
+    """
     # given
     line = checkout_with_item_for_cc.lines.first()
     line.quantity = 10
@@ -630,7 +703,7 @@ def test_applicable_for_click_and_collect_no_quantity_check_no_stocks(
 def test_applicable_for_click_and_collect_no_quantity_check_one_line_without_stock(
     warehouses_for_cc, checkout_with_items_for_cc, channel_USD
 ):
-    """Ensure that when there are no stocks, no warehouse is returned."""
+    """Ensure that when there are no stocks for all lines, no warehouse is returned."""
     # given
     line_1, line_2, line_3 = checkout_with_items_for_cc.lines.all()
 
@@ -661,8 +734,7 @@ def test_applicable_for_click_and_collect_no_quantity_check_one_line_without_sto
 def test_applicable_for_click_and_collect_no_quantity_check_no_channels(
     warehouses_for_cc, checkout_with_item_for_cc, channel_USD
 ):
-    """Ensure that when the warehouse is not returned when it's not available
-    in the given channel."""
+    """Ensure the warehouse isn't returned when it's not available in the given channel."""
     # given
     line = checkout_with_item_for_cc.lines.first()
     line.quantity = 10
@@ -688,3 +760,50 @@ def test_applicable_for_click_and_collect_no_quantity_check_no_channels(
     # then
     assert len(result) == 1
     assert result.first().id == local_warehouse.id
+
+
+def test_applicable_for_click_and_collect_no_quantity_check_additional_stock(
+    warehouses_for_cc, checkout_with_items_for_cc, channel_USD, variant
+):
+    """Ensure that stock of another variant will be not taken into account.
+
+    When the warehouse has additional stock for another variant, and the warehouse stock
+    number is equal to the number of variants, the warehouse is not returned.
+    """
+    # given
+    line_1, line_2, line_3 = checkout_with_items_for_cc.lines.all()
+
+    all_warehouse = warehouses_for_cc[1]
+    local_warehouse_1 = warehouses_for_cc[2]
+    local_warehouse_2 = warehouses_for_cc[3]
+
+    Stock.objects.bulk_create(
+        [
+            Stock(warehouse=all_warehouse, product_variant=line_1.variant, quantity=1),
+            Stock(
+                warehouse=local_warehouse_1, product_variant=line_1.variant, quantity=1
+            ),
+            Stock(
+                warehouse=local_warehouse_1, product_variant=line_2.variant, quantity=1
+            ),
+            Stock(
+                warehouse=local_warehouse_2, product_variant=line_3.variant, quantity=1
+            ),
+            # stock for different variant, causes that the number of stocks for
+            # local_warehouse_1 is equal to the number of variants;
+            # should not be taken into consideration, and local_warehouse_2 should
+            # not be returned
+            Stock(warehouse=local_warehouse_1, product_variant=variant, quantity=1),
+        ]
+    )
+
+    lines = checkout_with_items_for_cc.lines.all()
+
+    # when
+    result = Warehouse.objects.applicable_for_click_and_collect_no_quantity_check(
+        lines, channel_USD.id
+    )
+
+    # then
+    assert len(result) == 1
+    assert result.first().id == all_warehouse.id

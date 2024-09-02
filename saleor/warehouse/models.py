@@ -232,11 +232,7 @@ class WarehouseQueryset(models.QuerySet["Warehouse"]):
             self.for_channel(channel_id)
             .prefetch_related(Prefetch("stock_set", queryset=stocks_qs))
             .filter(stock__in=stocks_qs)
-            .annotate(
-                stock_num=Count(
-                    "stock__id", filter=Q(stock__in=stocks_qs), distinct=True
-                )
-            )
+            .annotate(stock_num=Count("stock__id"))
             .filter(
                 stock_num__gte=number_of_variants,
                 click_and_collect_option__in=[
