@@ -834,9 +834,7 @@ class ShippingMethodTranslation(
     id = graphene.GlobalID(
         required=True, description="The ID of the shipping method translation."
     )
-    name = graphene.String(
-        required=True, description="Translated shipping method name."
-    )
+    name = graphene.String(description="Translated shipping method name.")
     description = JSONString(
         description="Translated description of the shipping method." + RICH_CONTENT
     )
