@@ -4,71 +4,27 @@ from typing import Any
 from django.utils import timezone
 from promise import Promise
 
-from ...core.db.connection import allow_writer_in_context
-from ...core.models import EventPayload
-from ...tax import TaxCalculationStrategy
-from ...tax.utils import (
+from ....core.db.connection import allow_writer_in_context
+from ....tax import TaxCalculationStrategy
+from ....tax.utils import (
     get_tax_app_id,
     get_tax_calculation_strategy,
     get_tax_configuration_for_checkout,
 )
-from ...webhook.event_types import WebhookEventSyncType
-from ...webhook.models import Webhook, WebhookEvent
-from ...webhook.utils import get_webhooks_for_event
-from ..app.dataloaders import AppByIdLoader
-from ..checkout.dataloaders import (
+from ....webhook.event_types import WebhookEventSyncType
+from ....webhook.utils import get_webhooks_for_event
+from ...app.dataloaders import AppByIdLoader
+from ...checkout.dataloaders import (
     CheckoutInfoByCheckoutTokenLoader,
     CheckoutLinesInfoByCheckoutTokenLoader,
 )
-from ..core.dataloaders import DataLoader
-from ..utils import get_user_or_app_from_context
-from .subscription_payload import (
+from ...core.dataloaders import DataLoader
+from ...utils import get_user_or_app_from_context
+from ..subscription_payload import (
     generate_payload_promise_from_subscription,
     initialize_request,
 )
-from .utils import get_subscription_query_hash
-
-
-class PayloadByIdLoader(DataLoader[str, str]):
-    context_key = "payload_by_id"
-
-    def batch_load(self, keys):
-        payloads = EventPayload.objects.using(self.database_connection_name).in_bulk(
-            keys
-        )
-
-        return [
-            payloads[payload_id].get_payload() if payloads.get(payload_id) else None
-            for payload_id in keys
-        ]
-
-
-class WebhookEventsByWebhookIdLoader(DataLoader):
-    context_key = "webhook_events_by_webhook_id"
-
-    def batch_load(self, keys):
-        webhook_events = WebhookEvent.objects.using(
-            self.database_connection_name
-        ).filter(webhook_id__in=keys)
-
-        webhook_events_map = defaultdict(list)
-        for event in webhook_events:
-            webhook_events_map[event.webhook_id].append(event)
-
-        return [webhook_events_map.get(webhook_id, []) for webhook_id in keys]
-
-
-class WebhooksByAppIdLoader(DataLoader):
-    context_key = "webhooks_by_app_id"
-
-    def batch_load(self, keys):
-        webhooks = Webhook.objects.using(self.database_connection_name).filter(
-            app_id__in=keys
-        )
-        webhooks_by_app_map = defaultdict(list)
-        for webhook in webhooks:
-            webhooks_by_app_map[webhook.app_id].append(webhook)
-        return [webhooks_by_app_map.get(app_id, []) for app_id in keys]
+from ..utils import get_subscription_query_hash
 
 
 class PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(DataLoader):
@@ -141,7 +97,7 @@ class PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(DataLoader):
                                 webhook.subscription_query
                             )
                             checkout = checkout_info.checkout
-                            checkout_token = str(checkout.pk)
+                            checkout_token = str(checkout.token)
 
                             promise_payload = (
                                 generate_payload_promise_from_subscription(
