@@ -1,3 +1,3 @@
-from .list_shipping_methods import ShippingListMethodsForCheckout
+from .shipping_list_methods_for_checkout import ShippingListMethodsForCheckout
 
 __all__ = ["ShippingListMethodsForCheckout"]

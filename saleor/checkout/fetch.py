@@ -25,7 +25,7 @@ from ..shipping.utils import (
 )
 from ..warehouse import WarehouseClickAndCollectOption
 from ..warehouse.models import Warehouse
-from .webhooks.list_shipping_methods import ShippingListMethodsForCheckout
+from .webhooks.shipping_list_methods_for_checkout import ShippingListMethodsForCheckout
 
 if TYPE_CHECKING:
     from ..account.models import Address, User

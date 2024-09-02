@@ -19,7 +19,9 @@ from ....checkout.utils import (
     is_shipping_required,
     set_external_shipping_id,
 )
-from ....checkout.webhooks.list_shipping_methods import ShippingListMethodsForCheckout
+from ....checkout.webhooks.shipping_list_methods_for_checkout import (
+    ShippingListMethodsForCheckout,
+)
 from ....graphql.utils import get_user_or_app_from_context
 from ....shipping import interface as shipping_interface
 from ....shipping import models as shipping_models
@@ -136,7 +138,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         cls,
         info: ResolveInfo,
         shipping_method_id,
-        checkout_info,
+        checkout_info: "CheckoutInfo",
         lines,
         checkout,
         manager,

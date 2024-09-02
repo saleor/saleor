@@ -1,5 +1,5 @@
-from ..core.descriptions import ADDED_IN_32
-from ..webhook.subscription_types import Event, ProductBase, SubscriptionObjectType
+from ...core.descriptions import ADDED_IN_32
+from ...webhook.subscription_types import Event, ProductBase, SubscriptionObjectType
 
 
 class ProductCreated(SubscriptionObjectType, ProductBase):

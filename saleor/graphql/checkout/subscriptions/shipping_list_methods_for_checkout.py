@@ -1,13 +1,13 @@
 from django.conf import settings
 
-from ..core import ResolveInfo
-from ..core.context import get_database_connection_name
-from ..core.descriptions import ADDED_IN_36
-from ..core.doc_category import DOC_CATEGORY_CHECKOUT
-from ..core.types import NonNullList, SubscriptionObjectType
-from ..plugins.dataloaders import plugin_manager_promise_callback
-from ..shipping.types import ShippingMethod
-from ..webhook.subscription_types import (
+from ...core import ResolveInfo
+from ...core.context import get_database_connection_name
+from ...core.descriptions import ADDED_IN_36
+from ...core.doc_category import DOC_CATEGORY_CHECKOUT
+from ...core.types import NonNullList, SubscriptionObjectType
+from ...plugins.dataloaders import plugin_manager_promise_callback
+from ...shipping.types import ShippingMethod
+from ...webhook.subscription_types import (
     CheckoutBase,
     Event,
 )
@@ -19,7 +19,7 @@ def resolve_shipping_methods_for_checkout(
     manager,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
-    from ...checkout.fetch import (
+    from ....checkout.fetch import (
         fetch_checkout_info,
         fetch_checkout_lines,
         get_all_shipping_methods_list,

@@ -13,7 +13,7 @@ from ....webhook.transport.shipping import (
     get_cache_data_for_shipping_list_methods_for_checkout,
 )
 from ....webhook.transport.utils import generate_cache_key_for_webhook
-from ..list_shipping_methods import (
+from ..shipping_list_methods_for_checkout import (
     CACHE_TIME_SHIPPING_LIST_METHODS_FOR_CHECKOUT,
     ShippingListMethodsForCheckout,
 )

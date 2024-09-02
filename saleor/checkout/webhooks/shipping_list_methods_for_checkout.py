@@ -1,5 +1,5 @@
 from collections.abc import Iterable
-from typing import Final, Optional
+from typing import Optional
 
 from django.conf import settings
 
@@ -7,13 +7,9 @@ from ...core.middleware import Requestor
 from ...permission.enums import ShippingPermissions
 from ...shipping.interface import ShippingMethodData
 from ...webhook.base import SyncWebhookBase
+from ...webhook.const import CACHE_TIME_SHIPPING_LIST_METHODS_FOR_CHECKOUT
 from ...webhook.utils import get_webhooks_for_event
 from ..models import Checkout
-
-# Set the timeout for the shipping methods cache to 12 hours as it was the lowest
-# time labels were valid for when checking documentation for the carriers
-# (FedEx, UPS, TNT, DHL).
-CACHE_TIME_SHIPPING_LIST_METHODS_FOR_CHECKOUT: Final[int] = 3600 * 12
 
 
 class ShippingListMethodsForCheckout(SyncWebhookBase):
@@ -28,7 +24,7 @@ class ShippingListMethodsForCheckout(SyncWebhookBase):
     @classmethod
     def list_shipping_methods(
         cls,
-        checkout: Optional[Checkout],
+        checkout: Checkout,
         requestor: Optional[Requestor] = None,
         allow_replica: bool = True,
     ) -> Iterable[ShippingMethodData]:
@@ -76,7 +72,7 @@ class ShippingListMethodsForCheckout(SyncWebhookBase):
     def get_shipping_method(
         cls,
         shipping_method_id: str,
-        checkout: Optional[Checkout],
+        checkout: Checkout,
         requestor: Optional[Requestor],
         allow_replica: bool = True,
     ) -> Optional[ShippingMethodData]:
@@ -85,10 +81,6 @@ class ShippingListMethodsForCheckout(SyncWebhookBase):
         This is a helper method that uses `shipping_list_methods_for_checkout` webhook
         underneath to fetch external shipping methods and get one by ID.
         """
-
-        if not checkout:
-            return None
-
         methods = {
             method.id: method
             for method in cls.list_shipping_methods(
