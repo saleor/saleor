@@ -10,6 +10,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Breaking changes
 
 - Drop the `manager.perform_mutation` method. - #16515 by @maarcingebala
+- Dropped the invoicing plugin. For an example of a replacement, see https://docs.saleor.io/developer/app-store/apps/invoices - #16631 by @patrys
 
 ### GraphQL API
 

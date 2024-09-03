@@ -25,13 +25,7 @@ class Invoice(ModelObjectType[models.Invoice]):
         required=True, description="Date and time at which invoice was updated."
     )
     message = graphene.String(description="Message associated with an invoice.")
-    url = graphene.String(
-        description=(
-            "URL to view/download an invoice. "
-            "This can be an internal URL if the Invoicing Plugin was used "
-            "or an external URL if it has been provided."
-        )
-    )
+    url = graphene.String(description=("URL to view/download an invoice."))
     order = graphene.Field(
         "saleor.graphql.order.types.Order",
         description="Order related to the invoice." + ADDED_IN_310,
