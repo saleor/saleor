@@ -29,7 +29,7 @@ from ....checkout.utils import (
     delete_external_shipping_id,
     get_external_shipping_id,
     is_shipping_required,
-    save_checkout_if_not_deleted,
+    save_checkout_with_update_fields,
 )
 from ....core.exceptions import InsufficientStock, PermissionDenied
 from ....discount import DiscountType, DiscountValueType
@@ -606,6 +606,6 @@ def _set_checkout_base_subtotal_and_total_on_checkout_creation(
     # base total and subtotal is the same, as there is no option to set the
     # delivery method during checkout creation
     checkout.base_total = checkout.base_subtotal
-    save_checkout_if_not_deleted(
+    save_checkout_with_update_fields(
         checkout, ["base_subtotal_amount", "base_total_amount"]
     )

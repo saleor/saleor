@@ -3,7 +3,7 @@ from django.forms import ValidationError
 
 from ....checkout.actions import call_checkout_event
 from ....checkout.error_codes import CheckoutErrorCode
-from ....checkout.utils import save_checkout_if_not_deleted
+from ....checkout.utils import save_checkout_with_update_fields
 from ....core.exceptions import PermissionDenied
 from ....permission.auth_filters import AuthorizationFilters
 from ....permission.enums import AccountPermissions
@@ -117,7 +117,7 @@ class CheckoutCustomerAttach(BaseMutation):
         checkout.user = customer
         checkout.email = customer.email
 
-        save_checkout_if_not_deleted(checkout, ["email", "user", "last_change"])
+        save_checkout_with_update_fields(checkout, ["email", "user", "last_change"])
         manager = get_plugin_manager_promise(info.context).get()
 
         call_checkout_event(

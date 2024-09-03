@@ -16,7 +16,7 @@ from ....checkout.utils import (
     change_shipping_address_in_checkout,
     invalidate_checkout,
     is_shipping_required,
-    save_checkout_if_not_deleted,
+    save_checkout_with_update_fields,
 )
 from ....core.tracing import traced_atomic_transaction
 from ....graphql.account.mixins import AddressMetadataMixin
@@ -212,7 +212,7 @@ class CheckoutShippingAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixi
         invalidate_prices_updated_fields = invalidate_checkout(
             checkout_info, lines, manager, save=False
         )
-        save_checkout_if_not_deleted(
+        save_checkout_with_update_fields(
             checkout, shipping_address_updated_fields + invalidate_prices_updated_fields
         )
 

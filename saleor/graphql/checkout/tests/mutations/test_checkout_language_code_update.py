@@ -163,7 +163,7 @@ def test_checkout_update_language_code_deleted_database_error(
     with before_after.before(
         (
             "saleor.graphql.checkout.mutations."
-            "checkout_language_code_update.save_checkout_if_not_deleted"
+            "checkout_language_code_update.save_checkout_with_update_fields"
         ),
         lambda *args, **kwargs: Checkout.objects.all().delete(),
     ):

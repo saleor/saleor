@@ -6,7 +6,7 @@ from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import (
     change_billing_address_in_checkout,
     invalidate_checkout,
-    save_checkout_if_not_deleted,
+    save_checkout_with_update_fields,
 )
 from ....core.tracing import traced_atomic_transaction
 from ....webhook.event_types import WebhookEventAsyncType
@@ -107,7 +107,7 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
                 recalculate_discount=False,
                 save=False,
             )
-            save_checkout_if_not_deleted(
+            save_checkout_with_update_fields(
                 checkout,
                 change_address_updated_fields + invalidate_prices_updated_fields,
             )

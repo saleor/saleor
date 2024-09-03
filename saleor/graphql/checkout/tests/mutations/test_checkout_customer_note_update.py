@@ -170,7 +170,7 @@ def test_checkout_customer_note_update_deleted_database_error(
     with before_after.before(
         (
             "saleor.graphql.checkout.mutations."
-            "checkout_customer_note_update.save_checkout_if_not_deleted"
+            "checkout_customer_note_update.save_checkout_with_update_fields"
         ),
         lambda *args, **kwargs: Checkout.objects.all().delete(),
     ):

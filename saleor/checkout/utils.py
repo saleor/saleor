@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Optional, Union, cast
 import graphene
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.db import transaction
+from django.db import DatabaseError, transaction
 from django.db.models import prefetch_related_objects
 from django.utils import timezone
 from prices import Money
@@ -1072,12 +1072,22 @@ def get_address_for_checkout_taxes(
     return shipping_address or checkout_info.billing_address
 
 
-def save_checkout_if_not_deleted(
-    checkout, fields_to_update: Optional[list] = None
-) -> None:
-    with transaction.atomic():
-        # check if checkout still exists and lock item for updates
-        if not Checkout.objects.select_for_update().filter(pk=checkout.pk).first():
+def save_checkout_with_update_fields(checkout, update_fields: list[str]) -> None:
+    """Try to save the checkout object with providing fields to update.
+
+    The method is used to handle the DatabaseError that can occur when the save with
+    `update_fields` is performed on a deleted object. In such a case, the method raises
+    a ValidationError with the proper error.
+    """
+    removed_error = "Save with update_fields did not affect any rows."
+    try:
+        # additional transaction to keep DB consistency in case of exception
+        # according to docs:
+        # https://docs.djangoproject.com/en/5.1/topics/db/transactions/#controlling-transactions-explicitly
+        with transaction.atomic():
+            checkout.save(update_fields=update_fields)
+    except DatabaseError as error:
+        if str(error) == removed_error:
             raise ValidationError(
                 {
                     "checkout": ValidationError(
@@ -1086,4 +1096,4 @@ def save_checkout_if_not_deleted(
                     )
                 }
             )
-        checkout.save(**{"update_fields": fields_to_update} if fields_to_update else {})
+        raise
