@@ -1,5 +1,5 @@
 ### Build and install packages
-FROM python:3.12 as build-python
+FROM python:3.12 AS build-python
 
 RUN apt-get -y update \
   && apt-get install -y gettext \
@@ -11,6 +11,7 @@ RUN apt-get -y update \
 WORKDIR /app
 RUN --mount=type=cache,mode=0755,target=/root/.cache/pip pip install poetry==1.7.0
 RUN poetry config virtualenvs.create false
+COPY vendored/ /app/vendored/
 COPY poetry.lock pyproject.toml /app/
 RUN --mount=type=cache,mode=0755,target=/root/.cache/pypoetry poetry install --no-root
 
@@ -49,11 +50,11 @@ COPY . /app
 WORKDIR /app
 
 ARG STATIC_URL
-ENV STATIC_URL ${STATIC_URL:-/static/}
+ENV STATIC_URL=${STATIC_URL:-/static/}
 RUN SECRET_KEY=dummy STATIC_URL=${STATIC_URL} python3 manage.py collectstatic --no-input
 
 EXPOSE 8000
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONUNBUFFERED=1
 
 LABEL org.opencontainers.image.title="saleor/saleor"                                  \
       org.opencontainers.image.description="\
