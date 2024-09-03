@@ -4576,6 +4576,7 @@ def order_line_with_allocation_in_many_stocks(
         user=customer_user,
         channel=channel_USD,
         origin=OrderOrigin.CHECKOUT,
+        undiscounted_base_shipping_price_amount=Decimal("0.0"),
     )
 
     product = variant.product

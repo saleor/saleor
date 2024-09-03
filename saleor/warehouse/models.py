@@ -117,7 +117,7 @@ class WarehouseQueryset(models.QuerySet["Warehouse"]):
         )
 
         number_of_variants = (
-            lines_qs.order_by("variant_id").distinct("variant_id").count()
+            lines_qs.order_by().distinct("variant_id").only("variant_id").count()
         )
 
         warehouse_ids_with_stock_available = self._for_channel_lines_and_stocks(
@@ -179,7 +179,7 @@ class WarehouseQueryset(models.QuerySet["Warehouse"]):
         )
 
         number_of_variants = (
-            lines_qs.order_by("variant_id").distinct("variant_id").count()
+            lines_qs.order_by().distinct("variant_id").only("variant_id").count()
         )
         warehouses_for_channel = self.for_channel(channel_id)
         warehouse_ids_with_stock_available = self._for_channel_lines_and_stocks(
