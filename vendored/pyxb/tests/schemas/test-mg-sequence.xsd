@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<schema targetNamespace="URN:test-mg-sequence" xmlns="http://www.w3.org/2001/XMLSchema" xmlns:tns="URN:test-mg-sequence">
+	<element name="wrapper" type="tns:sequence"/>
+	<element name="altwrapper" type="tns:altsequence"/>
+	<complexType name="sequence">
+		<sequence>
+			<element name="first"/>
+			<element name="second_opt" minOccurs="0"/>
+			<element name="third" />
+			<element name="fourth_0_2" maxOccurs="2" minOccurs="0"/>
+		</sequence>
+	</complexType>
+	<complexType name="altsequence">
+		<sequence>
+			<element name="first" maxOccurs="2"/>
+			<element name="second_multi" minOccurs="0" maxOccurs="3"/>
+			<element name="third" />
+		</sequence>
+	</complexType>
+</schema>

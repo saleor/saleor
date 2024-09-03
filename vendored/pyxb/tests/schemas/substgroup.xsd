@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:element name="sgTime" abstract="true"/>
+	<xs:element name="ISO8601" substitutionGroup="sgTime" type="xs:dateTime"/>
+	<xs:element name="pairTime" substitutionGroup="sgTime">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="seconds" type="xs:double"/>
+				<xs:element name="fractionalSeconds" type="xs:double" default="0.0" minOccurs="0"/>
+			</xs:sequence>
+			<xs:attribute name="epoch" type="xs:string"/>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="when">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="sgTime"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

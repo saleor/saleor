@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:simpleType name="english">
+		<xs:annotation>
+			<xs:documentation>Some words in English.  Note that we specifically set the whitespace handling in this one to be collapse, as opposed to the welsh enumeration, so we can test that handling..</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:whiteSpace value="collapse"/>
+			<xs:enumeration value="one"/>
+			<xs:enumeration value="two"/>
+			<xs:enumeration value="three"/>
+		</xs:restriction>
+	</xs:simpleType>
+</xs:schema>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="wrapper" type="sequence"/>
+  <xs:complexType name="sequence">
+    <xs:sequence>
+      <xs:element name="first" type="xs:string"/>
+      <xs:element name="second_opt" minOccurs="0" type="xs:string"/>
+      <xs:element name="third" type="xs:int" />
+      <xs:element name="fourth_0_2" type="xs:string" maxOccurs="2" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="attr_opt" type="xs:string"/>
+    <xs:attribute name="attr_req" type="xs:string" use="required"/>
+  </xs:complexType>
+</xs:schema>

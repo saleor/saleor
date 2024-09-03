@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xs:schema xmlns="http://www.example.com/ModelB/BB" xmlns:modela.aa="http://www.example.com/ModelA/AA" xmlns:modelb.a="http://www.example.com/ModelB/AUXBB" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" targetNamespace="http://www.example.com/ModelB/BB" xsi:schemaLocation="http://www.example.com/ModelA/AA ../ModelA/AA.xsd http://www.example.com/ModelB/AUXBB AUXBB.xsd">
+  <xs:import namespace="http://www.example.com/ModelA/AA" schemaLocation="../ModelA/AA.xsd"/>
+  <xs:import namespace="http://www.example.com/ModelB/AUXBB" schemaLocation="AUXBB.xsd"/>
+  <xs:complexType abstract="true" id="ModelB.BB.__BASE_ClassBA" name="__BASE_ClassBA">
+    <xs:sequence>
+      <xs:element maxOccurs="1" minOccurs="1" name="b" type="REFClassBB"/>
+    </xs:sequence>
+    <xs:attribute name="OID" type="xs:ID" use="optional"/>
+  </xs:complexType>
+  <xs:complexType id="ModelB.BB.REFClassBB" name="REFClassBB">
+    <xs:attribute name="OIDREF" type="xs:IDREF" use="required"/>
+  </xs:complexType>
+  <xs:complexType id="ModelB.BB.ClassBB" name="ClassBB">
+    <xs:complexContent>
+      <xs:restriction base="__BASE_ClassBB">
+        <xs:sequence>
+          <xs:element maxOccurs="1" minOccurs="1" name="a" type="REFClassBA"/>
+        </xs:sequence>
+        <xs:attribute name="OID" type="xs:ID" use="required"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType abstract="true" id="ModelB.BB.__BASE_ClassBB" name="__BASE_ClassBB">
+    <xs:sequence>
+      <xs:element maxOccurs="1" minOccurs="1" name="a" type="REFClassBA"/>
+    </xs:sequence>
+    <xs:attribute name="OID" type="xs:ID" use="optional"/>
+  </xs:complexType>
+  <xs:complexType id="ModelB.BB.REFClassBC" name="REFClassBC">
+    <xs:complexContent>
+      <xs:restriction base="REFClassBA">
+        <xs:attribute name="OIDREF" type="xs:IDREF" use="required"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType id="ModelB.BB.ClassBC" name="ClassBC">
+    <xs:complexContent>
+      <xs:restriction base="__BASE_ClassBC">
+        <xs:sequence>
+          <xs:element maxOccurs="1" minOccurs="1" name="b" type="REFClassBB"/>
+          <xs:element maxOccurs="1" minOccurs="1" name="Property" type="modela.aa:TypeAA"/>
+        </xs:sequence>
+        <xs:attribute name="OID" type="xs:ID" use="required"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType abstract="true" id="ModelB.BB.__BASE_ClassBC" name="__BASE_ClassBC">
+    <xs:complexContent>
+      <xs:extension base="modelb.a:__EXTENSION_BASE_ClassBC">
+        <xs:sequence>
+          <xs:element maxOccurs="1" minOccurs="1" name="Property" type="modela.aa:TypeAA"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType id="ModelB.BB.REFClassBA" name="REFClassBA">
+    <xs:attribute name="OIDREF" type="xs:IDREF" use="required"/>
+  </xs:complexType>
+  <xs:complexType id="ModelB.BB.ClassBA" name="ClassBA">
+    <xs:complexContent>
+      <xs:restriction base="__BASE_ClassBA">
+        <xs:sequence>
+          <xs:element maxOccurs="1" minOccurs="1" name="b" type="REFClassBB"/>
+        </xs:sequence>
+        <xs:attribute name="OID" type="xs:ID" use="required"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+</xs:schema>

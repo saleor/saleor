@@ -1,0 +1,21 @@
+# Invoke with additional bundles as command line arguments.  An argument of
+# @ is replaced by the default set of bundles (part of distribution), and %
+# is replaced by the auxiliary set of bundles (not part of distribution).
+# E.g.::
+#  ${PYXB_ROOT}/maintainer/genbundles @ opengis
+# will build the standard bundles as well as the OpenGIS bindings, while::
+#  ${PYXB_ROOT}/maintainer/genbundles @ %
+# will build all bundles.
+#
+# Bundles may have dependencies, and are built in the specified order.  All
+# previous bundles are made available during the build.
+
+BUNDLES="common wssplat saml20 dc"
+AUX_BUNDLES="opengis ecma376"
+if [ 0 -lt $# ] ; then
+  BUNDLES=$(echo ${@} | sed -e "s/@/${BUNDLES}/" -e "s/%/${AUX_BUNDLES}/")
+fi
+
+for bundle in ${BUNDLES} ; do
+  pyxb/bundles/${bundle}/scripts/genbind || (echo 1>&2 Error building bundle ${bundle} ; exit 1 )
+done

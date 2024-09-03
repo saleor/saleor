@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Schema with intentional name conflicts with generated bindings -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:complexType name="CTD_empty">
+		<xs:sequence>
+			<xs:element name="Factory" type="xs:double"/>
+			<xs:element name="content" type="xs:boolean"/>
+		</xs:sequence>
+		<xs:attribute name="Factory" type="xs:string"/>
+		<xs:attribute name="toDOM" type="xs:boolean"/>
+	</xs:complexType>
+</xs:schema>

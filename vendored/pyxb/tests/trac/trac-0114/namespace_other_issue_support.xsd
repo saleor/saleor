@@ -1,0 +1,9 @@
+<schema
+        targetNamespace="urn:schema:b"
+        xmlns="http://www.w3.org/2001/XMLSchema"
+        elementFormDefault="unqualified"
+        attributeFormDefault="unqualified"
+        blockDefault="substitution"
+        version="2.0">
+    <element name="xyz" type="NCName"/>
+</schema>

@@ -1,0 +1,125 @@
+.. _validating:
+
+Debugging Validation Errors
+===========================
+
+.. note::
+
+   This material should be expanded in a future release when
+   :ticket:`trac/171 <171>` is addressed.
+
+In the 1.1.x release series of PyXB a common and valid complaint was that
+PyXB would validate documents and binding instances, but did not provide
+useful information explaining why a particular document was invalid.  The
+content validation approach described in :ref:`validating-content` allows
+the application to diagnose:
+
+- the element or instance data that failed to satisfy the content model;
+
+- the location of that element within a document being parsed;
+
+- the point in the XML schema where the containing complex type was defined;
+
+- the content that was expected to have been encountered.
+
+Perhaps the quickest way to see the information PyXB now provides is to look
+at the :ref:`ex_ndfd` example, and in particular the ``latlon.py`` script.
+This script uses WSDL to obtain the near-term forecast for a location within
+the United States using latitude and longitude.
+
+In the course of validating PyXB 1.2.0, it was discovered that the National
+Weather Service has added some new elements to their schema, with the result
+that the servers no longer provide valid XML: in particular, order
+constraints on individual forecast characteristics are violated.  This
+caused the example to fail.
+
+While the script needs to be cleaned up considerably, the following code
+block shows how the retrieved XML document is converted into a binding
+instance:
+
+.. code-block:: python
+
+   # Create the binding instance from the response.  If there's a
+   # problem, diagnose the issue, then try again with validation
+   # disabled.
+   r = None
+   try:
+       r = DWML.CreateFromDocument(rxml)
+   except pyxb.UnrecognizedContentError as e:
+       print '*** ERROR validating response:'
+       print e.details()
+   if r is None:
+       pyxb.RequireValidWhenParsing(False)
+       r = DWML.CreateFromDocument(rxml)
+
+When invoking the program, the following diagnostic output is provided
+through the :api:`details <pyxb.exceptions_.ValidationError.details>`
+method:
+
+.. code-block:: none
+   :linenos:
+
+   *** ERROR validating response:
+   The containing element parameters is defined at ndfd_data.xsd[29:12].
+   The containing element type parametersType is defined at parameters.xsd[21:4]
+   The unrecognized content probability-of-precipitation begins at <unknown>[217:6]
+   The parametersType automaton is in an accepting state.
+   The following element and wildcard content would be accepted:
+        An element cloud-amount per parameters.xsd[379:12]
+        An element humidity per parameters.xsd[416:12]
+        An element weather per parameters.xsd[449:12]
+        An element conditions-icon per parameters.xsd[566:12]
+        An element hazards per parameters.xsd[585:12]
+        An element wordedForecast per parameters.xsd[701:11]
+        An element pressure per parameters.xsd[715:12]
+        An element probabilisticCondition per parameters.xsd[751:12]
+        An element water-state per parameters.xsd[785:12]
+
+This tells the user that:
+
+2. A problem was encountered processing an element ``parameters`` from an
+   element declaration found in the ``ndfd_data.xsd`` schema starting at
+   column 12 on line 29.
+
+3. The ``parameters`` element is of type ``parametersType``, and its content
+   model can be found in the complex type definition in the
+   ``parameters.xsd`` schema starting on line 21.
+
+4. The error in the document was failure to recognize an element
+   ``probability-of-precipitation`` which was found at line 217 of the
+   input.  (The document is being parsed from a Python string, so no URI is
+   available).
+
+5. Had the containing ``parameters`` element ended before this point, the
+   element would be valid.
+
+6. The names and definition locations of element data that would have been
+   acceptable at that point follow in lines 7 through 15.
+
+A much shorter but still useful synopsis of the invalidity would be
+available through the ``str`` operation on the exception.  Full details are
+available through attributes on the :api:`UnrecognizedContentError
+<pyxb.exceptions_.UnrecognizedContentError>` and other exceptions.
+
+In cases where the service generating the documents is under your control,
+you can use this information to correct the documents.  In cases like this
+where the error is in a production server, the proper approach is to `report
+the error
+<http://groups.yahoo.com/neo/groups/NDFD_SOAP_Service/conversations/messages/2218>`_,
+disable validation, and move on with ones life.
+
+Runtime Exception Hierarchy
+---------------------------
+
+Details on the interfaces presented by these exceptions can be found through
+the :api:`API Documentation <pyxb.exceptions_.ValidationError>`.
+
+.. image:: Images/RuntimeExceptions.jpg
+
+.. image:: Images/CTDValidationExceptions.jpg
+
+.. ignored
+   ## Local Variables:
+   ## fill-column:78
+   ## indent-tabs-mode:nil
+   ## End:

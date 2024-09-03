@@ -1,0 +1,22 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:tns="URN:SOAP"
+           targetNamespace="URN:SOAP" >
+
+  <!-- Envelope, header and body -->
+  <xs:element name="Envelope" type="tns:Envelope" />
+  <xs:complexType name="Envelope" >
+    <xs:sequence>
+      <xs:element name="Header" type="xs:string" minOccurs="0" />
+      <xs:element name="Body" type="xs:string" minOccurs="1" />
+      <xs:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax" />
+    </xs:sequence>
+    <xs:anyAttribute namespace="##other" processContents="lax" />
+  </xs:complexType>
+
+  <xs:simpleType name="encodingStyle" >
+    <xs:list itemType="xs:anyURI" />
+  </xs:simpleType>
+
+  <xs:attribute name="encodingStyle" type="tns:encodingStyle" />
+
+</xs:schema>

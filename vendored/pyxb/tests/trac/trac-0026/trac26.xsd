@@ -1,0 +1,177 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <!-- *** Material related to abstract elements -->
+  <xs:simpleType name="tCardCymru">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="un"/>
+      <xs:enumeration value="dau"/>
+      <xs:enumeration value="tri"/>
+      <xs:enumeration value="pedwar"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="tCardEnglish">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="one"/>
+      <xs:enumeration value="two"/>
+      <xs:enumeration value="three"/>
+      <xs:enumeration value="four"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="eAbstractCard" abstract="true"/>
+  <xs:element name="eConcCardCymru" substitutionGroup="eAbstractCard" type="tCardCymru"/>
+  <xs:element name="eConcCardEnglish" substitutionGroup="eAbstractCard" type="tCardEnglish"/>
+  <xs:complexType name="tCardinals">
+    <xs:sequence minOccurs="0" maxOccurs="unbounded">
+      <xs:element ref="eAbstractCard"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="eCardinals" type="tCardinals"/>
+
+  <!-- *** Material related to abstract types -->
+  <xs:complexType abstract="true" name="tAbstract"/>
+  <xs:complexType name="tConcSubCymru">
+    <xs:complexContent>
+      <xs:extension base="tAbstract">
+        <xs:sequence>
+          <xs:element name="welsh" type="tCardCymru"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="tConcSubEnglish">
+    <xs:complexContent>
+      <xs:extension base="tAbstract">
+        <xs:sequence>
+          <xs:element name="english" type="tCardEnglish"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="eAbstract" type="tAbstract"/>
+  <xs:element name="eUseAbstract">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="eAbstract"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <!-- *** Material related to simple type content -->
+  <xs:complexType name="tCTwSC"><!-- that's Complex Type with Simple Content -->
+    <xs:simpleContent>
+      <xs:extension base="xs:int"/>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:element name="eCTwSC" type="tCTwSC"/>
+  <xs:element name="eCTwSCSequence">
+    <xs:complexType>
+      <xs:sequence minOccurs="0" maxOccurs="unbounded">
+        <xs:element ref="eCTwSC"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="eInt" type="xs:int"/>
+  <xs:element name="eInts">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="eInt"  minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="eIntsPlus">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="eInt"  minOccurs="0" maxOccurs="unbounded"/>
+        <xs:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <!-- *** Material related to empty and mixed content -->
+  <xs:complexType name="tEmpty"/>
+  <xs:element name="eEmpty" type="tEmpty"/>
+
+  <!-- *** Material related to attribute validation -->
+  <xs:complexType name="tAttributes">
+    <xs:attribute name="aReq" use="required" type="xs:int"/>
+    <xs:attribute name="aFixed" fixed="5" type="xs:int"/>
+    <xs:attribute name="aProhibited" type="xs:int"/>
+    <xs:attribute name="aCardCymru" type="tCardCymru"/>
+  </xs:complexType>
+  <xs:element name="eAttributes" type="tAttributes"/>
+  <xs:complexType name="tAttributeReqFixed">
+    <xs:attribute name="aReqFixed" use="required" fixed="9" type="xs:int"/>
+  </xs:complexType>
+  <xs:element name="eAttributeReqFixed" type="tAttributeReqFixed"/>
+  <xs:complexType name="tAttributesProhibited">
+    <xs:complexContent>
+      <xs:restriction base="tAttributes">
+        <xs:attribute name="aProhibited" use="prohibited"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="eAttributesProhibited" type="tAttributesProhibited"/>
+
+  <!-- *** Material related to content model validation -->
+  <xs:complexType name="tTranslateCard">
+    <xs:sequence>
+      <xs:all> <!-- This is illegal, but PyXB accepts it.  trac/176 -->
+        <xs:element ref="eConcCardCymru"/>
+        <xs:element ref="eConcCardEnglish"/>
+      </xs:all>
+      <xs:element name="cardinal" type="xs:int"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="eTranslateCard" type="tTranslateCard"/>
+  <xs:complexType name="tTranslateCardMulti">
+    <xs:sequence minOccurs="0" maxOccurs="unbounded">
+      <xs:element ref="eConcCardCymru"/>
+      <xs:element ref="eConcCardEnglish"/>
+      <xs:element name="cardinal" type="xs:int"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="eTranslateCardMulti" type="tTranslateCardMulti"/>
+
+  <!-- *** Nillable validation -->
+  <xs:element name="eNilInt" nillable="true" type="xs:int"/>
+  <xs:element name="eNilCTwSC" nillable="true" type="tCTwSC"/>
+  <xs:element name="eNilInts" nillable="true">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="eInt" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="eNilOneInt" nillable="true">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="eInt"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <!-- *** Simple type validation -->
+  <xs:simpleType name="tTLA">
+    <xs:restriction base="xs:string">
+      <xs:length value="3"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="eTLA" type="tTLA"/>
+  <xs:simpleType name="tListCardCymru">
+    <xs:list itemType="tCardCymru"/>
+  </xs:simpleType>
+  <xs:element name="eListCardCymru" type="tListCardCymru"/>
+  <xs:simpleType name="tUnionCard">
+    <xs:union memberTypes="tCardCymru tCardEnglish xs:int"/>
+  </xs:simpleType>
+  <xs:element name="eUnionCard" type="tUnionCard"/>
+  <xs:element name="eSimpleInstance">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="eListCardCymru" minOccurs="0"/>
+        <xs:element ref="eUnionCard" minOccurs="0"/>
+	<xs:element ref="eTLA" minOccurs="0"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>

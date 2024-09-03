@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<xs:complexType name="concreteBase">
+		<xs:sequence>
+			<xs:element name="basement" type="xs:string"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="oneFloor" abstract="true">
+		<xs:complexContent>
+			<xs:extension base="concreteBase">
+				<xs:sequence>
+					<xs:element name="lobby" type="xs:string"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="restaurant">
+		<xs:complexContent>
+			<xs:extension base="oneFloor">
+				<xs:sequence>
+					<xs:element name="room" type="xs:string"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="office">
+		<xs:complexContent>
+			<xs:extension base="oneFloor">
+				<xs:sequence>
+					<xs:element name="room" type="xs:string"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType abstract="true" name="base"/>
+	<xs:complexType name="alt1">
+		<xs:complexContent>
+			<xs:extension base="base">
+				<xs:sequence>
+					<xs:element name="first" type="xs:string"/>
+				</xs:sequence>
+				<xs:attribute name="attrOne" use="optional" type="xs:string"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="alt2">
+		<xs:complexContent>
+			<xs:extension base="base">
+				<xs:sequence>
+					<xs:element name="second"/>
+				</xs:sequence>
+				<xs:attribute name="attrTwo" use="optional" type="xs:string"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="subAlt">
+		<xs:complexContent>
+			<xs:extension base="alt2">
+				<xs:sequence>
+					<xs:element name="subsecond"/>
+				</xs:sequence>
+				<xs:attribute name="attrSubTwo" use="optional" type="xs:string"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="notAlt">
+		<xs:sequence>
+			<xs:element name="first" type="xs:string"/>
+		</xs:sequence>
+		<xs:attribute name="attrOne" use="optional" type="xs:string"/>
+	</xs:complexType>
+	<xs:element name="elt" type="base"/>
+	<xs:element name="concreteBase" type="concreteBase"/>
+	<xs:element name="notAlt" type="notAlt"/>
+	<xs:element name="alt1" type="alt1"/>
+	<xs:element name="oneFloor" type="oneFloor"/>
+	<xs:element name="restaurant" type="restaurant"/>
+	<xs:element name="block">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="oneFloor" minOccurs="0" maxOccurs="unbounded"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

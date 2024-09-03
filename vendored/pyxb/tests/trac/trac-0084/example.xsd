@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://schema.example.com/SUBSYSTEM/1.0"
+    xmlns:tns="http://schema.example.com/SUBSYSTEM/1.0"
+    elementFormDefault="qualified"
+    version="1.0">
+
+    <xsd:complexType name="XVendorConfig">
+        <xsd:sequence>
+            <xsd:any namespace="##local" processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+</xsd:schema>

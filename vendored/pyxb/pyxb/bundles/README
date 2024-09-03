@@ -1,0 +1,26 @@
+This directory contains groups of bindings for related schema.  Each
+subdirectory represents a particular group.
+
+With a bundle directory, the following are expected:
+
+- A scripts directory, containing an executable genbind which retrieves the
+  schema and invokes pyxbgen to build the bindings
+
+- A schemas directory, into which the genbind script stores the schemas that
+  were used to build the bindings
+
+- The Python module files for namespace modules.  Normally these are
+  customization wrappers
+
+- A raw subdirectory, into which the generated bindings are placed.  Note
+  that this directory is normally removed and recreated as a consequence of
+  running genbind; ddn't expect anything in it to be persistent.
+
+- An examples directory, with programs that show how to use the capabilities
+  in the bundle
+
+- A tests directory which validates customizations
+
+Each directory also has a .svnignore file which is used to set the
+corresponding directory property in a development workspace.  It is
+recommended that you NOT add to this

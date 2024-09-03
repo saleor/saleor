@@ -1,0 +1,13 @@
+<xsd:schema targetNamespace="urn:trac-0073:profile"
+   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+   xmlns:base="urn:trac-0073:base"
+   elementFormDefault="qualified">
+ <xsd:import namespace="urn:trac-0073:base"/>
+       <xsd:complexType name="AbstractFeatureBaseType" abstract="true">
+                <xsd:complexContent>
+                        <xsd:restriction base="base:DynamicFeatureType">
+                                <xsd:attribute ref="base:id" use="required"/>
+                        </xsd:restriction>
+                </xsd:complexContent>
+        </xsd:complexType>
+</xsd:schema>

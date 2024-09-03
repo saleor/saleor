@@ -1,0 +1,123 @@
+# Attempt to prevent catastrophe by validating required settings
+# and aborting on any subshell error
+set -e
+if [ -z "${PYXB_ROOT+notset}" ] ; then
+  echo 1>&2 ERROR: PYXB_ROOT not set
+  exit 1
+fi
+
+prog=$(basename ${0})
+
+BUNDLE_TAG=ecma376
+
+. ${PYXB_ROOT}/maintainer/bundlesupport.sh
+
+fail () {
+    echo 2>&1 "${prog}: ${@}"
+    exit 1
+}
+
+DOWNLOAD_DIR="${BUNDLE_ROOT}/Downloads"
+UNPACK_DIR="${BUNDLE_ROOT}/Unpacked"
+
+schema_to_args () {
+  SCHEMA_ARGS=""
+  for fn in "${@}" ; do
+    mn=`basename ${fn} .xsd | tr '[\055]' '[.]'`
+    SCHEMA_ARGS="${SCHEMA_ARGS} ${fn} ${mn} "
+  done
+}
+
+process_schema () {
+  url="${1}" ; shift
+  target_zip="${1}" ; shift
+  submodule_prefix="${1}" ; shift
+  archive="${1}" ; shift
+  fn=`basename ${url} | sed -e 's@%20@ @g'`
+  fn="${DOWNLOAD_DIR}/${fn}"
+  [ -f "${fn}" ] || wget -P ${DOWNLOAD_DIR} "${url}" || fail cannot download ${url}
+  rm -rf ${UNPACK_DIR}
+  mkdir -p ${UNPACK_DIR}
+  ( unzip -q "${fn}" ${target_zip} -d ${UNPACK_DIR} \
+    && unzip -q ${UNPACK_DIR}/${target_zip} -d ${UNPACK_DIR} ) \
+  || fail cannot unpack schema from ${target_zip}
+  rm -f ${target_zip}
+  module_prefix="pyxb.bundles.${BUNDLE_TAG}.${submodule_prefix}"
+  submodule_path=`echo ${submodule_prefix} | tr [.] [/]`
+  dd="${SCHEMA_DIR}/${submodule_path}"
+  mkdir -p ${dd}
+  SCHEMA_ARGS=""
+  for fp in ${UNPACK_DIR}/*.xsd ; do
+    fn=`basename ${fp}`
+    mn=`basename ${fn} .xsd | tr '[\055]' '[.]'`
+    SCHEMA_ARGS="${SCHEMA_ARGS}-u ${fn} -m ${mn} "
+    mv -f ${fp} ${dd}
+  done
+  echo "Generating bindings for ${module_prefix}"
+  set -x
+  ARCHIVE_DIR=${BUNDLE_ROOT}/${submodule_path}
+  pyxbgen \
+    --module-prefix=${module_prefix} \
+    --schema-root="${dd}" \
+    --archive-path=${ARCHIVE_DIR}:'&pyxb/bundles/dc//':+ \
+    --archive-to-file=${ARCHIVE_DIR}/${archive}.wxs \
+    --uri-content-archive-directory=${CONTENT_COPY_DIR} \
+    ${AUX_PYXBGEN_FLAGS} \
+    ${SCHEMA_ARGS} \
+  || failure "${submodule_prefix}"
+  set +x
+}
+
+# Remove the schema.  We unpack them from downloaded zip files.
+rm -rf ${SCHEMA_DIR}
+
+# Remove the two destination directories; presence of outdated archives
+# causes issues.  Note that we don't support customizing these bindings,
+# mostly because it makes it harder to clean out the old ones.
+rm -rf ${BUNDLE_ROOT}/v2006
+rm -rf ${BUNDLE_ROOT}/v2008
+
+# Module ecma376.v2006 is the 1st edition of ECMA-376 which supports a
+# transitional structure leading to ISO/IEC 29500.  It is not superseded by
+# subsequent editions.
+
+process_schema \
+  "http://www.ecma-international.org/publications/files/ECMA-ST/Office%20Open%20XML%201st%20edition%20Part%202%20(DOCX).zip" \
+  OpenPackagingConventions-XMLSchema.zip \
+  v2006 \
+  packaging \
+  "Packaging schema for ECMA-376 1e (2006)"
+
+process_schema \
+  "http://www.ecma-international.org/publications/files/ECMA-ST/Office%20Open%20XML%201st%20edition%20Part%204%20(DOCX).zip" \
+  OfficeOpenXML-XMLSchema.zip \
+  v2006 \
+  core \
+  "Document schema for ECMA-376 1e (2006)"
+
+# Module ecma376.v2008 supports ISO/IEC 29500:2008.  The 4th edition
+# supersedes the 2nd and 3rd editions.  There are strict and transitional
+# versions of the schema; both share the packaging schema.
+
+process_schema \
+  http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-376,%20Fourth%20Edition,%20Part%201%20-%20Fundamentals%20And%20Markup%20Language%20Reference.zip \
+  OfficeOpenXML-XMLSchema-Strict.zip \
+  v2008.strict \
+  core \
+  "Strict schema for ECMA-376 4e (ISO/IEC 29500:2011)"
+
+process_schema \
+  http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-376,%20Fourth%20Edition,%20Part%204%20-%20Transitional%20Migration%20Features.zip \
+  OfficeOpenXML-XMLSchema-Transitional.zip \
+  v2008.transitional \
+  core \
+  "Transitional schema for ECMA-376 4e (ISO/IEC 29500:2011)"
+
+process_schema \
+  http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-376,%20Fourth%20Edition,%20Part%202%20-%20Open%20Packaging%20Conventions.zip \
+  OpenPackagingConventions-XMLSchema.zip \
+  v2008 \
+  packaging \
+  "Packaging schema for ECMA-376 4e (ISO/IEC 29500:2011)"
+
+rm -rf ${UNPACK_DIR}

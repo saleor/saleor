@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+        <xs:simpleType name="tBase">
+                <xs:restriction base="xs:normalizedString">
+                        <xs:enumeration value="A"/>
+                        <xs:enumeration value="B"/>
+                        <xs:enumeration value="C"/>
+                        <xs:enumeration value="D"/>
+                </xs:restriction>
+        </xs:simpleType>
+        <xs:simpleType name="tRestr">
+                <xs:restriction base="tBase"/>
+        </xs:simpleType>
+        <xs:simpleType name="tAltRestr">
+                <xs:restriction base="tBase">
+                    <xs:enumeration value="C"/>
+		</xs:restriction>
+        </xs:simpleType>
+	<xs:element name="base" type="tBase"/>
+	<xs:element name="restr" type="tRestr"/>
+	<xs:element name="altrestr" type="tAltRestr"/>
+</xs:schema>

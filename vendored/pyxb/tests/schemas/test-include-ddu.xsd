@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema targetNamespace="URN:declared-ddu" xmlns:xs="http://www.w3.org/2001/XMLSchema"  xmlns:tns="URN:declared-ddu" elementFormDefault="unqualified">
+  <xs:include schemaLocation="incl-ddu.xsd"/>
+	<xs:complexType name="entry">
+		<xs:sequence>
+			<xs:element name="from" type="tns:english"/>
+			<xs:element name="to" type="xs:string" form="qualified"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="entry" type="tns:entry"/>
+</xs:schema>

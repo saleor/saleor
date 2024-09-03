@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="globalSimple" type="xs:string"/>
+  <xs:complexType name="structure">
+    <xs:sequence>
+      <xs:element ref="globalSimple" minOccurs="0"/>
+      <xs:element name="innerComplex" type="structure" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="globalComplex" type="structure"/>
+</xs:schema>

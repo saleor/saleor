@@ -1,0 +1,6 @@
+The containing element shipTo is defined at po1.xsd[6:6].
+The containing element type USAddress is defined at po1.xsd[13:2]
+The unrecognized content streeet begins at badcontent.xml[5:4]
+The USAddress automaton is not in an accepting state.
+The following element and wildcard content would be accepted:
+	An element street per po1.xsd[16:6]

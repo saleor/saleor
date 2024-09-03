@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema targetNamespace="URN:nsdep:B" elementFormDefault="qualified" xmlns:tns="URN:nsdep:B" xmlns:A="URN:nsdep:A" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:import namespace="URN:nsdep:A" schemaLocation="a_b.xsd"/>
+	<xs:include schemaLocation="b_b.xsd"/>
+	<xs:complexType name="tB_c">
+		<xs:sequence>
+			<xs:element ref="tns:e1"/>
+			<xs:element ref="A:e1"/>
+			<xs:element ref="tns:B_b_e1"/>
+			<xs:element ref="A:A_b_e1"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="B_c_e1" type="tns:tB_c"/>
+</xs:schema>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	   targetNamespace="urn:test"
+	   xmlns:tns="urn:test">
+  <xs:simpleType name="unionContents">
+    <xs:union memberTypes="xs:time xs:dateTime xs:anyURI xs:decimal"/>
+  </xs:simpleType>
+  <xs:element name="time" type="tns:myTime"/>
+  <xs:complexType name="myTime">
+    <xs:simpleContent>
+      <xs:extension base="xs:anyURI">
+        <xs:attribute name="frame" type="xs:anyURI" use="optional" default="#ISO-8601"/>
+        <xs:attribute name="calendarEraName" type="xs:string" use="optional"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+</xs:schema>

@@ -1,0 +1,13 @@
+<xs:schema targetNamespace='urn:common' xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="urn:common" elementFormDefault="qualified">
+  <xs:include schemaLocation="base.xsd"/>
+  <xs:complexType name="extended">
+    <xs:complexContent>
+      <xs:extension base="tns:base">
+        <xs:sequence>
+         <xs:element name="extElt" type="xs:string"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="extended" type="tns:extended"/>
+</xs:schema>
