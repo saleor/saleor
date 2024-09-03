@@ -16,6 +16,7 @@ from ..models import (
     VoucherCode,
     VoucherCustomer,
 )
+from ..utils.manual_discount import split_manual_discount
 from ..utils.promotion import (
     get_discount_name,
     get_discount_translated_name,
@@ -672,3 +673,40 @@ def test_get_the_cheapest_line(checkout_with_items, channel_USD):
     line_info = _get_the_cheapest_line(lines)
     # then
     assert line_info == lines[0]
+
+
+@pytest.mark.parametrize(
+    ("value", "value_type", "subtotal_portion", "shipping_portion"),
+    [
+        (20, DiscountValueType.FIXED, 15, 5),
+        (100, DiscountValueType.FIXED, 30, 10),
+        (13.77, DiscountValueType.FIXED, Decimal("10.33"), Decimal("3.44")),
+        (0, DiscountValueType.FIXED, 0, 0),
+        (0, DiscountValueType.PERCENTAGE, 0, 0),
+        (50, DiscountValueType.PERCENTAGE, 15, 5),
+        (33.33, DiscountValueType.PERCENTAGE, 10, Decimal("3.33")),
+        (100, DiscountValueType.PERCENTAGE, 30, 10),
+    ],
+)
+def test_split_manual_discount(
+    value,
+    value_type,
+    subtotal_portion,
+    shipping_portion,
+    draft_order_with_fixed_discount_order,
+):
+    # given
+    subtotal = Money(Decimal(30), currency="USD")
+    shipping = Money(Decimal(10), currency="USD")
+    discount = draft_order_with_fixed_discount_order.discounts.first()
+    discount.value = value
+    discount.value_type = value_type
+
+    # when
+    subtotal_discount, shipping_discount = split_manual_discount(
+        discount, subtotal, shipping
+    )
+
+    # then
+    assert subtotal_discount == Money(subtotal_portion, "USD")
+    assert shipping_discount == Money(shipping_portion, "USD")

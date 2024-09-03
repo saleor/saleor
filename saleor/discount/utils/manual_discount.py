@@ -33,6 +33,7 @@ def apply_discount_to_value(
 def split_manual_discount(
     discount: OrderDiscount, subtotal: Money, shipping_price: Money
 ) -> tuple[Money, Money]:
+    """Discounts sent to tax app must be split into subtotal and shipping portion."""
     currency = subtotal.currency
     subtotal_discount, shipping_discount = zero_money(currency), zero_money(currency)
     if discount.value_type == DiscountValueType.PERCENTAGE:
@@ -60,9 +61,9 @@ def split_manual_discount(
                 price_to_discount=total,
             )
             total_discount = total - discounted_total
-            subtotal_discount = quantize_price(
-                subtotal / total * total_discount, currency
-            )
+            subtotal_discount = subtotal / total * total_discount
             shipping_discount = total_discount - subtotal_discount
 
-    return subtotal_discount, shipping_discount
+    return quantize_price(subtotal_discount, currency), quantize_price(
+        shipping_discount, currency
+    )
