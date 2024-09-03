@@ -1,0 +1,148 @@
+#!/usr/bin/env python
+
+from __future__ import print_function
+import pyxb.binding.generate
+import os.path
+import sys
+import textwrap
+import re
+import optparse
+
+program = 'pyxbgen'
+
+parser = pyxb.binding.generate.Generator().optionParser()
+group = optparse.OptionGroup(parser, 'WSDL Options', 'Options relevant to generating bindings from WSDL service descriptions')
+group.add_option('-W', '--wsdl-location', metavar='FILE_or_URL',
+                  action='append',
+                  help=\
+'''Generate bindings for the C{types} stanza of the WSDL at this
+location.  This option is equivalent to retrieving the WSDL,
+extracting the schema part of its C{types} block to a file, and using
+that file as a C{--schema-location}.''')
+parser.add_option_group(group)
+
+class OptionGroupDocumentation:
+
+    __optionList = None
+    __longOptions = None
+    __shortOptions = None
+    __metavars = None
+    __descriptions = None
+
+    __predent = '   '
+    __indent = '  '
+
+    __Epydoc_Code_re = re.compile("C{(?P<text>[^}]*)}")
+    __Epydoc_Ital_re = re.compile("I{(?P<text>[^}]*)}")
+    __Conversions = ( ( __Epydoc_Code_re, lambda _x: '``%s``' % (_x.group('text'),) ),
+                      ( __Epydoc_Ital_re, lambda _x: '*%s*' % (_x.group('text'),) ),
+                      )
+
+
+    def __init__ (self, option_list=None, group=None, title=None, description=None, underscore=None, sub_underscore=None):
+        if group is not None:
+            option_list = group.option_list
+            title = group.title
+            description = group.description
+        self.__title = title
+        self.__description = description
+        self.__underscore = underscore
+        self.__subUnderscore = sub_underscore
+        self.__optionList = option_list
+        self.__longOptions = []
+        self.__shortOptions = []
+        self.__metavars = []
+        self.__descriptions = []
+        self._extractColumnData()
+
+    def _extractColumnData (self):
+        for opt in self.__optionList:
+            self.__longOptions.append(' '.join('``%s``' % (_o,) for _o in opt._long_opts) )
+            self.__shortOptions.append(' '.join('``%s``' % (_o,) for _o in opt._short_opts) )
+            if opt.metavar is None:
+                if opt.choices is None:
+                    self.__metavars.append('')
+                else:
+                    self.__metavars.append(', '.join(["``%s``" % (_c,) for _c in opt.choices]))
+            else:
+                self.__metavars.append('*%s*' % opt.metavar)
+            text = opt.help
+            for (pattern, translation) in self.__Conversions:
+                text = pattern.sub(translation, text)
+            self.__descriptions.append(text)
+
+        self.__longHeader = ' Long Option'
+        self.__metavarHeader = ' Argument'
+        self.__shortHeader = ' Alt'
+        self.__descriptionHeader = ' Description'
+        self.__longWidth = max([len(_s) for _s in self.__longOptions + [self.__longHeader]])
+        self.__metavarWidth = max([len(_s) for _s in self.__metavars + [self.__metavarHeader]])
+        self.__shortWidth = max([len(_s) for _s in self.__shortOptions + [self.__shortHeader]])
+        self.__descriptionWidth = 50
+
+        self.__fields = ( ( self.__longHeader, self.__longWidth ),
+                          ( self.__metavarHeader, self.__metavarWidth ),
+                          ( self.__shortHeader, self.__shortWidth ),
+                          ( self.__descriptionHeader, self.__descriptionWidth ) )
+
+        self.__separator = self.__predent
+        self.__header = self.__predent
+        for (name, width) in self.__fields:
+            self.__separator += ('=' * width) + self.__indent
+            self.__header += name.ljust(width) + self.__indent
+
+    def __str__ (self):
+        rv = []
+        rv.append(self.__title)
+        rv.append(self.__underscore * len(self.__title))
+        rv.append('')
+        rv.append(self.__description)
+        rv.append('')
+
+        rv.append('.. table:: %s' % (self.__title,))
+        rv.append('')
+        rv.append(self.__separator)
+        rv.append(self.__header)
+        rv.append(self.__separator)
+        for i in range(len(self.__longOptions)):
+            opt = self.__optionList[i]
+            long_val = self.__longOptions[i]
+            metavar_val = self.__metavars[i]
+            short_val = self.__shortOptions[i]
+            ref_label = '%s%s' % (program, opt._long_opts[0])
+            wrapped_help = textwrap.wrap(self.__descriptions[i], self.__descriptionWidth)
+            help_text = wrapped_help[0].replace('`', '')
+            if 1 < len(wrapped_help):
+                help_text += '...'
+            help_val = ':ref:`%s<%s>`' % (help_text, ref_label)
+            rv.append( ''.join([ self.__predent, long_val.ljust(self.__longWidth),
+                                 self.__indent, metavar_val.ljust(self.__metavarWidth),
+                                 self.__indent, short_val.ljust(self.__shortWidth),
+                                 self.__indent, help_val.ljust(self.__descriptionWidth)]))
+        rv.append(self.__separator)
+        rv.append('')
+        for i in range(len(self.__longOptions)):
+            opt = self.__optionList[i]
+            for long_opt in opt._long_opts:
+                rv.extend(['.. _%s%s:' % (program, long_opt), ''])
+            long_opt = "``%s``" % (opt._long_opts[0],)
+            rv.append(long_opt)
+            rv.append(self.__subUnderscore * len(long_opt))
+            rv.extend(textwrap.wrap(self.__descriptions[i], 72))
+            rv.append('')
+
+        return "\n".join(rv)
+
+print('.. _%s-cli:' % (program,))
+print()
+title = "``%s`` Command Line Options" % (program,)
+print(title)
+print('=' * len(title))
+
+print(OptionGroupDocumentation(option_list=parser.option_list, title='Generic Options', underscore='-', sub_underscore='^', description=''))
+for g in parser.option_groups:
+    print(OptionGroupDocumentation(group=g, underscore='-', sub_underscore='^'))
+
+# LocalVariables:
+# mode:python
+# End:

@@ -1,0 +1,88 @@
+How to use it
+=============
+
+Installation
+------------
+
+PyXB 1.2.x requires Python version 2.6 or higher (including 3.x as of PyXB
+1.2.4).  Among other things the implementation relies on decorators
+(:PEP:`318`) like ``@classref`` that are not present in earlier versions.  The
+distribution is tested with the latest release in the Python version 2.6, 2.7,
+and 3.4 series prior to release.
+
+PyXB is distributed through `SourceForge
+<https://sourceforge.net/projects/pyxb/files/>`_.  As of the 1.1.4 release,
+separated :ref:`bundles <bundles>` are no longer distributed.  The `source
+distribution <http://sourceforge.net/projects/pyxb/files/latest/download>`_
+includes pre-built bindings for the :ref:`common (core XML) <bundle_common>`,
+:ref:`WS-* (web services) <bundle_wssplat>`, and :ref:`SAML (Security
+Assertion Markup Languge) <bundle_saml20>` bundles, as well as the user and
+API documentation.  The :ref:`OpenGIS <bundle_opengis>` bundle infrastructure
+is present, but due to the size of the bindings and archives is not pre-built.
+
+Install in the usual manner::
+
+ python setup.py install
+
+You can test the distribution with::
+
+ python setup.py test
+
+which will run all the unit tests.  Some of them will print warnings and
+other noise, but if at the end they all pass, don't worry about it.
+
+If you need more help with installation, see
+http://docs.python.org/install/index.html.
+
+Generating Bindings
+-------------------
+
+The ``pyxbgen`` script is used to translate XML schema and WSDL documents into
+Python data bindings.  There are two key components to generating bindings:
+
+- The URI to the definition of the data structures.  This can be a URL, or a
+  path to a local file.
+
+- The module path into which the binding will be installed.  This is the
+  path that users of the binding will import.
+
+There are many additional parameters; see :ref:`pyxbgen` and
+:ref:`pyxbgen-cli`.
+
+WSDL Functions
+--------------
+
+The ``pyxbwsdl`` script is used to examine and operate on WSDL definition
+documents.  In this release, it retrieves the WSDL document specified by the
+URI passed as an argument, and prints the available services with their
+operations and parameters.  For example::
+
+  vmfed9[343]$ pyxbwsdl http://api.google.com/GoogleSearch.wsdl
+  Need to dynamically create schema
+  Importing pyxb.standard.bindings.soap
+  Attempting to load a namespace from /home/pab/pyxb/dev/pyxb/standard/bindings/raw/wsdl.wxs
+  Attempting to load a namespace from /home/pab/pyxb/dev/pyxb/standard/bindings/raw/soapenc.wxs
+  Attempting to load a namespace from /home/pab/pyxb/dev/pyxb/standard/bindings/raw/soap.wxs
+  Service: GoogleSearchService
+    Port GoogleSearchPort at http://api.google.com/search/beta2
+      doGetCachedPage (at action=urn:GoogleSearchAction)
+        Input: typens:doGetCachedPage
+        Output: typens:doGetCachedPageResponse
+      doSpellingSuggestion (at action=urn:GoogleSearchAction)
+        Input: typens:doSpellingSuggestion
+        Output: typens:doSpellingSuggestionResponse
+      doGoogleSearch (at action=urn:GoogleSearchAction)
+        Input: typens:doGoogleSearch
+        Output: typens:doGoogleSearchResponse
+
+Currently, this is an unmaintained example.  In the future, this script may
+provide a more powerful display of available services, and perhaps support for
+generating functions which interact with the service using the appropriate
+encoding.
+
+.. ignored
+   ## Local Variables:
+   ## fill-column:78
+   ## indent-tabs-mode:nil
+   ## End:
+

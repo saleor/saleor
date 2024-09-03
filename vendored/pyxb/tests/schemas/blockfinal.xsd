@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:simpleType name="st1" final="list union">
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:complexType name="ct1" block="restriction" final="extension"/>
+	<xs:element name="elt" final="extension restriction" block="substitution restriction extension"></xs:element>
+</xs:schema>

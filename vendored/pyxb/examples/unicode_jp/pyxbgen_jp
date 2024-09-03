@@ -1,0 +1,85 @@
+#!/usr/bin/env python
+#
+# Stripped down version of pyxbgen incorporating Japanese-to-Romaji
+# transliteration provided by Hiroaki Itoh.
+
+from __future__ import print_function
+import pyxb.xmlschema
+import pyxb.binding.generate
+import pyxb.utils.utility
+import pyxb.utils.domutils
+from pyxb.utils import six
+import pyxb.utils.saxutils
+import os.path
+import sys
+import optparse
+import re
+
+# trac/139: Ensure that libxml2's XmlReader is used.  This must be done
+# before external schema are resolved.
+pyxb.utils.saxutils.SetCreateParserModules(['drv_libxml2'])
+
+# trac/141: Replace the standard routine for generating identifiers with
+# one that transliterates Japanese characters into characters allowed
+# in Python2 identifiers
+
+_AllAsciiMatch_re = re.compile(r'^[ -~]+$')
+def ConvertJPIdentifier (identifier):
+    identifier = six.text_type(identifier)
+    if _AllAsciiMatch_re.match(identifier):
+        return identifier
+    identifier = _tagger2.parse(_tagger1.parse(identifier.encode('utf-8')))
+    identifier = "_".join(map(romkan.to_roma, identifier.decode('utf-8').split(" ")))
+    return identifier
+
+try:
+    import MeCab
+    import romkan
+    _tagger1 = MeCab.Tagger("-Owakati")
+    _tagger2 = MeCab.Tagger("-Oyomi")
+    pyxb.utils.utility._SetXMLIdentifierToPython(ConvertJPIdentifier)
+except ImportError as e:
+    print('WARNING: No Kanji/Hiragana/Katana-to-ASCII transliteration available')
+    print(e)
+
+# The rest of this is the standard pyxbgen, with the WSDL support code
+# removed.
+
+generator = pyxb.binding.generate.Generator()
+parser = generator.optionParser()
+
+(options, args) = parser.parse_args()
+
+generator.applyOptionValues(options, args)
+
+generator.resolveExternalSchema()
+
+if 0 == len(generator.namespaces()):
+    parser.print_help()
+    sys.exit(1)
+
+import sys
+import traceback
+
+# Save binding source first, so name-in-binding is stored in the
+# parsed schema file
+try:
+    tns = generator.namespaces().pop()
+    modules = generator.bindingModules()
+    print('Python for %s requires %d modules' % (tns, len(modules)))
+
+    top_module = None
+    path_dirs = set()
+    for m in modules:
+        m.writeToModuleFile()
+
+    generator.writeNamespaceArchive()
+except Exception as e:
+    print('Exception generating bindings: %s' % (e,))
+    traceback.print_exception(*sys.exc_info())
+    sys.exit(3)
+
+# LocalVariables:
+# mode:python
+# End:
+

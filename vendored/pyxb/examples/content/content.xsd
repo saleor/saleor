@@ -1,0 +1,19 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="numbers">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="simple" type="xs:integer"/>
+        <xs:element name="complex">
+          <xs:complexType>
+            <xs:simpleContent>
+              <xs:extension base="xs:integer">
+                <xs:attribute name="style" type="xs:string"/>
+              </xs:extension>
+            </xs:simpleContent>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+      <xs:attribute name="attribute" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

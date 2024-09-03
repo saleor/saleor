@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    version="1.0"
+    targetNamespace="urn:trac:198:wsse"
+    xmlns:tns="urn:trac:198:wsse"
+    xmlns:wsu="urn:trac:198:wsu"
+    elementFormDefault="unqualified"
+    attributeFormDefault="unqualified">
+  <xsd:import namespace="urn:trac:198:wsu"/>
+  <xsd:complexType name="tAttributedString">
+    <xsd:simpleContent>
+      <xsd:extension base="xsd:string">
+	<xsd:attribute ref="wsu:Id"/>
+	<xsd:attributeGroup ref="wsu:ag"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:element name="AttributedString" type="tns:tAttributedString"/>
+  <xsd:complexType name="tComplexElt">
+    <xsd:attribute ref="wsu:Id"/>
+    <xsd:sequence>
+      <xsd:element ref="wsu:Elt"/>
+      <xsd:element name="local" type="xsd:string"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:element name="ComplexElt" type="tns:tComplexElt"/>
+</xsd:schema>

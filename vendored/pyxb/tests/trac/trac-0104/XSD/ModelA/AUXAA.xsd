@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xs:schema xmlns:AUXAA="http://www.example.com/ModelA/AUXAA" xmlns:modela.aa="http://www.example.com/ModelA/AA" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" targetNamespace="http://www.example.com/ModelA/AUXAA" xsi:schemaLocation="http://www.example.com/ModelA/AA AA.xsd">
+  <xs:annotation>
+    <xs:documentation>This XML Schema contains XML type definitions that are unlikely to be needed
+by developers using a generated API</xs:documentation>
+  </xs:annotation>
+  <xs:import namespace="http://www.example.com/ModelA/AA" schemaLocation="AA.xsd"/>
+  <xs:complexType abstract="true" id="ModelA.AA.__EXTENSION_BASE_ClassAC" name="__EXTENSION_BASE_ClassAC">
+    <xs:complexContent>
+      <xs:restriction base="modela.aa:__BASE_ClassAA">
+        <xs:sequence>
+          <xs:element maxOccurs="1" minOccurs="1" name="classAB" type="modela.aa:REFClassAB"/>
+        </xs:sequence>
+        <xs:attribute name="OID" type="xs:ID" use="optional"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+</xs:schema>

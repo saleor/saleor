@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema targetNamespace="URN:unionTest" xmlns:tns="URN:unionTest" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:annotation>
+		<xs:documentation>Test case for unions</xs:documentation>
+	</xs:annotation>
+	<xs:element name="myElement" type="tns:myUnion"/>
+	<xs:simpleType name="singleDigit">
+		<xs:restriction base="xs:byte">
+			<xs:minInclusive value="0"/>
+			<xs:maxInclusive value="9"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="english">
+		<xs:annotation>
+			<xs:documentation>Some words in English.  Note that we specifically set the whitespace handling in this one to be collapse, as opposed to the welsh enumeration, so we can test that handling..</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:whiteSpace value="collapse"/>
+			<xs:enumeration value="one"/>
+			<xs:enumeration value="two"/>
+			<xs:enumeration value="three"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="welsh">
+		<xs:annotation>
+			<xs:documentation>Some words in Welsh.  Note that we specifically set the whitespace handling in this one to be replace, as opposed to the english enumeration, so we can test that handling..</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:whiteSpace value="replace"/>
+			<xs:enumeration value="un"/>
+			<xs:enumeration value="dau"/>
+			<xs:enumeration value="tri"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="words">
+		<xs:union memberTypes="tns:english tns:welsh"/>
+	</xs:simpleType>
+	<xs:simpleType name="myUnion">
+		<xs:union memberTypes="tns:singleDigit tns:words"/>
+	</xs:simpleType>
+	<xs:simpleType name="unionList">
+		<xs:list itemType="tns:myUnion"/>
+	</xs:simpleType>
+	<xs:simpleType name="ones">
+		<xs:restriction base="tns:words">
+			<xs:enumeration value="one"/>
+			<xs:enumeration value="un"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="words2">
+		<xs:union>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:enumeration value="four"/>
+					<xs:enumeration value="five"/>
+				</xs:restriction>
+			</xs:simpleType>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:enumeration value="pedwar"/>
+					<xs:enumeration value="pump"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:union>
+	</xs:simpleType>
+	<xs:simpleType name="fiveWords">
+          <xs:union memberTypes="tns:words tns:words2"/>
+        </xs:simpleType>
+</xs:schema>

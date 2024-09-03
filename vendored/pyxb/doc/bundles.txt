@@ -1,0 +1,469 @@
+.. _bundles:
+
+Examples of Supported Schema
+============================
+
+PyXB comes with pre-defined *bundles* which aggregate related namespaces
+into pre-generated bindings that allow you to use them without having to
+generate and manage them yourself.  These bundles also demonstrate the
+complexity of schema that PyXB is prepared to handle.  Not all namespaces
+have been fully tested, but they are expected to function correctly.
+
+Although the generating scripts and infrastructure are part of PyXB proper,
+not all these bundles may have been pre-built in your PyXB distribution.
+See `Generating Bundled Bindings`_ for details on building these bundles.
+
+.. _bundle_common:
+
+common
+------
+
+The following namespaces are available in support of general XML use:
+
+.. PYXB_ARCHIVE_PATH=${PYXB_ROOT}/pyxb/bundles/common// ${PYXB_ROOT}/scripts/pyxbdump \
+   | awk '$2~/pyxb.bundles.common/ { print $2, $1; }' \
+   | sed \
+      -e 's@^@``@' \
+      -e 's@ @``\t``@' \
+      -e 's@$@``@' \
+   | expand -40 \
+   | sort \
+   > /tmp/x
+
+=====================================   ==========================================================
+Binding Module                          Namespace
+=====================================   ==========================================================
+``pyxb.bundles.common.xhtml1``          ``http://www.w3.org/1999/xhtml``
+``pyxb.bundles.common.xlink``           ``http://www.w3.org/1999/xlink``
+``pyxb.bundles.common.xsd_hfp``         ``http://www.w3.org/2001/XMLSchema-hasFacetAndProperty``
+=====================================   ==========================================================
+
+.. _bundle_wssplat:
+
+WS-*
+----
+
+The following namespaces are available in support of web service
+development:
+
+.. PYXB_ARCHIVE_PATH=${PYXB_ROOT}/pyxb/bundles/wssplat// ${PYXB_ROOT}/scripts/pyxbdump \
+   | awk '$2~/pyxb.bundles.wssplat/ { print $2, $1; }' \
+   | sed \
+      -e 's@^@``@' \
+      -e 's@ @``\t``@' \
+      -e 's@$@``@' \
+   | expand -40 \
+   | sort \
+   > /tmp/x
+
+=====================================   ==========================================================
+Binding Module                          Namespace
+=====================================   ==========================================================
+``pyxb.bundles.wssplat.bpws``           ``http://schemas.xmlsoap.org/ws/2003/03/business-process/``
+``pyxb.bundles.wssplat.ds``             ``http://www.w3.org/2000/09/xmldsig#``
+``pyxb.bundles.wssplat.httpbind``       ``http://schemas.xmlsoap.org/wsdl/http/``
+``pyxb.bundles.wssplat.mimebind``       ``http://schemas.xmlsoap.org/wsdl/mime/``
+``pyxb.bundles.wssplat.sawsdl``         ``http://www.w3.org/ns/sawsdl``
+``pyxb.bundles.wssplat.soap11``         ``http://schemas.xmlsoap.org/soap/envelope/``
+``pyxb.bundles.wssplat.soap12``         ``http://www.w3.org/2003/05/soap-envelope``
+``pyxb.bundles.wssplat.soapbind11``     ``http://schemas.xmlsoap.org/wsdl/soap/``
+``pyxb.bundles.wssplat.soapbind12``     ``http://schemas.xmlsoap.org/wsdl/soap12/``
+``pyxb.bundles.wssplat.soapenc``        ``http://schemas.xmlsoap.org/soap/encoding/``
+``pyxb.bundles.wssplat.whttp``          ``http://www.w3.org/ns/wsdl/http``
+``pyxb.bundles.wssplat.wsa``            ``http://www.w3.org/2005/08/addressing``
+``pyxb.bundles.wssplat.wsam``           ``http://www.w3.org/2007/02/addressing/metadata``
+``pyxb.bundles.wssplat.wscoor``         ``http://docs.oasis-open.org/ws-tx/wscoor/2006/06``
+``pyxb.bundles.wssplat.wsdl11``         ``http://schemas.xmlsoap.org/wsdl/``
+``pyxb.bundles.wssplat.wsdl20``         ``http://www.w3.org/ns/wsdl``
+``pyxb.bundles.wssplat.wsdli``          ``http://www.w3.org/ns/wsdl-instance``
+``pyxb.bundles.wssplat.wsdlx``          ``http://www.w3.org/ns/wsdl-extensions``
+``pyxb.bundles.wssplat.wsnt``           ``http://docs.oasis-open.org/wsn/b-2``
+``pyxb.bundles.wssplat.wsoap``          ``http://www.w3.org/ns/wsdl/soap``
+``pyxb.bundles.wssplat.wsp200607``      ``http://www.w3.org/2006/07/ws-policy``
+``pyxb.bundles.wssplat.wsp``            ``http://www.w3.org/ns/ws-policy``
+``pyxb.bundles.wssplat.wsrf_bf``        ``http://docs.oasis-open.org/wsrf/bf-2``
+``pyxb.bundles.wssplat.wsrf_br``        ``http://docs.oasis-open.org/wsn/br-2``
+``pyxb.bundles.wssplat.wsrm``           ``http://docs.oasis-open.org/ws-rx/wsrm/200702``
+``pyxb.bundles.wssplat.wsse``           ``http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd``
+``pyxb.bundles.wssplat.wstop``          ``http://docs.oasis-open.org/wsn/t-1``
+``pyxb.bundles.wssplat.wsu``            ``http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd``
+``pyxb.bundles.wssplat.xenc``           ``http://www.w3.org/2001/04/xmlenc#``
+=====================================   ==========================================================
+
+.. _bundle_saml20:
+
+SAML
+----
+
+The following namespaces are available in support of the `Security Assertion
+Markup Language <http://saml.xml.org/about-saml>`_:
+
+.. PYXB_ARCHIVE_PATH=${PYXB_ROOT}/pyxb/bundles/saml20// ${PYXB_ROOT}/scripts/pyxbdump \
+   | awk '$2~/pyxb.bundles.saml20/ { print $2, $1; }' \
+   | sed \
+      -e 's@^@``@' \
+      -e 's@ @``\t``@' \
+      -e 's@$@``@' \
+   | expand -40 \
+   | sort \
+   > /tmp/x
+
+=====================================   ==========================================================
+Binding Module                          Namespace
+=====================================   ==========================================================
+``pyxb.bundles.saml20.assertion``       ``urn:oasis:names:tc:SAML:2.0:assertion``
+``pyxb.bundles.saml20.dce``             ``urn:oasis:names:tc:SAML:2.0:profiles:attribute:DCE``
+``pyxb.bundles.saml20.ecp``             ``urn:oasis:names:tc:SAML:2.0:profiles:SSO:ecp``
+``pyxb.bundles.saml20.metadata``        ``urn:oasis:names:tc:SAML:2.0:metadata``
+``pyxb.bundles.saml20.protocol``        ``urn:oasis:names:tc:SAML:2.0:protocol``
+``pyxb.bundles.saml20.x500``            ``urn:oasis:names:tc:SAML:2.0:profiles:attribute:X500``
+``pyxb.bundles.saml20.xacml``           ``urn:oasis:names:tc:SAML:2.0:profiles:attribute:XACML``
+=====================================   ==========================================================
+
+.. _bundle_dc:
+
+Dublin Core
+-----------
+
+The following namespaces are available in support of the `Dublin Core(R)
+Metadata Initiative <http://dublincore.org/>`_.
+
+.. PYXB_ARCHIVE_PATH=${PYXB_ROOT}/pyxb/bundles/dc// ${PYXB_ROOT}/scripts/pyxbdump \
+   | awk '$2~/pyxb.bundles.dc/ { print $2, $1; }' \
+   | sed \
+      -e 's@^@``@' \
+      -e 's@ @``\t``@' \
+      -e 's@$@``@' \
+   | expand -40 \
+   | sort \
+   > /tmp/x
+
+=====================================   ==========================================================
+Binding Module                          Namespace
+=====================================   ==========================================================
+``pyxb.bundles.dc.dc``                  ``http://purl.org/dc/elements/1.1/``
+``pyxb.bundles.dc.dcmitype``            ``http://purl.org/dc/dcmitype/``
+``pyxb.bundles.dc.dcterms``             ``http://purl.org/dc/terms/``
+=====================================   ==========================================================
+
+.. _bundle_ecma376:
+
+ECMA-376 (Open Office XML)
+--------------------------
+
+`ECMA 376 <http://www.ecma-international.org/publications/standards/Ecma-376.htm>`_
+aka "Office Open XML" aka "ISO/IEC 29500" is a standard for XML-based office
+software suite documents, including Microsoft Office 2007 and 2010.
+
+This bundle is not populated in the distributed versions of PyXB because it
+requires some 250MB of space to hold the schemas, generated bindings, and
+archive files.  To build it, set ``PYXB_ROOT`` environment variable to the
+absolute path of the unpacked PyXB distribution (the directory containing
+:file:`setup.py`) and run these commands::
+
+  cd ${PYXB_ROOT}
+  pyxb/bundles/ecma376/scripts/genbind
+
+This will download the schemas from OGC and generate bindings for both sets
+of namespaces below.
+
+Note that there are two incompatible schema sets which share namespaces.
+Import only one.  If you wish to extend the classes in these namespaces,
+ensure your ``PYXB_ARCHIVE_PATH`` includes only the one you intend to
+extend.
+
+ECMA-376 1st Edition (2006)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The first edition of ECMA-376 was a transitional version leading to ISO/IEC
+29500, but is not compatible with that standard.  It may be needed for older
+documents, including those processed by Microsoft Office 2007.
+
+.. PYXB_ARCHIVE_PATH=${PYXB_ROOT}/pyxb/bundles/ecma376/v2006// ${PYXB_ROOT}/scripts/pyxbdump \
+   | awk '$2~/pyxb.bundles.ecma376.v2006/ { print $2, $1; }' \
+   | sed \
+      -e 's@^@``@' \
+      -e 's@ @``\t``@' \
+      -e 's@$@``@' \
+   | expand -70 \
+   | sort \
+   > /tmp/x
+
+====================================================================  ==========================================================
+Binding Module                                                        Namespace
+====================================================================  ==========================================================
+``pyxb.bundles.ecma376.v2006.dml.audioVideo``                         ``http://schemas.openxmlformats.org/drawingml/2006/main``
+``pyxb.bundles.ecma376.v2006.dml.chartDrawing``                       ``http://schemas.openxmlformats.org/drawingml/2006/chartDrawing``
+``pyxb.bundles.ecma376.v2006.dml.chart``                              ``http://schemas.openxmlformats.org/drawingml/2006/chart``
+``pyxb.bundles.ecma376.v2006.dml.compatibility``                      ``http://schemas.openxmlformats.org/drawingml/2006/compatibility``
+``pyxb.bundles.ecma376.v2006.dml.diagramColorTransform``              ``http://schemas.openxmlformats.org/drawingml/2006/diagram``
+``pyxb.bundles.ecma376.v2006.dml.lockedCanvas``                       ``http://schemas.openxmlformats.org/drawingml/2006/lockedCanvas``
+``pyxb.bundles.ecma376.v2006.dml.picture``                            ``http://schemas.openxmlformats.org/drawingml/2006/picture``
+``pyxb.bundles.ecma376.v2006.dml.spreadsheetDrawing``                 ``http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing``
+``pyxb.bundles.ecma376.v2006.dml.wordprocessingDrawing``              ``http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing``
+``pyxb.bundles.ecma376.v2006.opc.contentTypes``                       ``http://schemas.openxmlformats.org/package/2006/content-types``
+``pyxb.bundles.ecma376.v2006.opc.coreProperties``                     ``http://schemas.openxmlformats.org/package/2006/metadata/core-properties``
+``pyxb.bundles.ecma376.v2006.opc.digSig``                             ``http://schemas.openxmlformats.org/package/2006/digital-signature``
+``pyxb.bundles.ecma376.v2006.opc.relationships``                      ``http://schemas.openxmlformats.org/package/2006/relationships``
+``pyxb.bundles.ecma376.v2006.pml.animationInfo``                      ``http://schemas.openxmlformats.org/presentationml/2006/main``
+``pyxb.bundles.ecma376.v2006.shared.additionalCharacteristics``       ``http://schemas.openxmlformats.org/officeDocument/2006/characteristics``
+``pyxb.bundles.ecma376.v2006.shared.bibliography``                    ``http://schemas.openxmlformats.org/officeDocument/2006/bibliography``
+``pyxb.bundles.ecma376.v2006.shared.customXmlDataProperties``         ``http://schemas.openxmlformats.org/officeDocument/2006/customXml``
+``pyxb.bundles.ecma376.v2006.shared.customXmlSchemaProperties``       ``http://schemas.openxmlformats.org/schemaLibrary/2006/main``
+``pyxb.bundles.ecma376.v2006.shared.documentPropertiesCustom``        ``http://schemas.openxmlformats.org/officeDocument/2006/custom-properties``
+``pyxb.bundles.ecma376.v2006.shared.documentPropertiesExtended``      ``http://schemas.openxmlformats.org/officeDocument/2006/extended-properties``
+``pyxb.bundles.ecma376.v2006.shared.documentPropertiesVariantTypes``  ``http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes``
+``pyxb.bundles.ecma376.v2006.shared.math``                            ``http://schemas.openxmlformats.org/officeDocument/2006/math``
+``pyxb.bundles.ecma376.v2006.shared.relationshipReference``           ``http://schemas.openxmlformats.org/officeDocument/2006/relationships``
+``pyxb.bundles.ecma376.v2006.sml.autoFilter``                         ``http://schemas.openxmlformats.org/spreadsheetml/2006/main``
+``pyxb.bundles.ecma376.v2006.vml.main``                               ``urn:schemas-microsoft-com:vml``
+``pyxb.bundles.ecma376.v2006.vml.officeDrawing``                      ``urn:schemas-microsoft-com:office:office``
+``pyxb.bundles.ecma376.v2006.vml.presentationDrawing``                ``urn:schemas-microsoft-com:office:powerpoint``
+``pyxb.bundles.ecma376.v2006.vml.spreadsheetDrawing``                 ``urn:schemas-microsoft-com:office:excel``
+``pyxb.bundles.ecma376.v2006.vml.wordprocessingDrawing``              ``urn:schemas-microsoft-com:office:word``
+``pyxb.bundles.ecma376.v2006.wml``                                    ``http://schemas.openxmlformats.org/wordprocessingml/2006/main``
+====================================================================  ==========================================================
+
+ECMA-376 2e/3e/4e (2008)
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+The ISO/IEC 29500:2008 version has distinct transitional and strict
+hierarchies.  Use one or the other.  The packaging schema are shared between
+these versions, and in fact appear to be unchanged from the 2006 schema
+except for comments and other whitespace in the schema documents.  The
+various editions contain changes intended to increase conformance to ISO/IEC
+29500:2008 and the bundle script is configured to build the 4th edition
+(December 2012).
+
+.. PYXB_ARCHIVE_PATH=${PYXB_ROOT}/pyxb/bundles/ecma376/v2008// ${PYXB_ROOT}/scripts/pyxbdump \
+   | awk '$2~/pyxb.bundles.ecma376.v2008/ { print $2, $1; }' \
+   | sed \
+      -e 's@^@``@' \
+      -e 's@ @``\t``@' \
+      -e 's@$@``@' \
+   | expand -82 \
+   | sort \
+   > /tmp/x
+
+================================================================================= ==========================================================
+Binding Module                                                                    Namespace
+================================================================================= ==========================================================
+``pyxb.bundles.ecma376.v2008.opc.contentTypes``                                   ``http://schemas.openxmlformats.org/package/2006/content-types``
+``pyxb.bundles.ecma376.v2008.opc.coreProperties``                                 ``http://schemas.openxmlformats.org/package/2006/metadata/core-properties``
+``pyxb.bundles.ecma376.v2008.opc.digSig``                                         ``http://schemas.openxmlformats.org/package/2006/digital-signature``
+``pyxb.bundles.ecma376.v2008.opc.relationships``                                  ``http://schemas.openxmlformats.org/package/2006/relationships``
+``pyxb.bundles.ecma376.v2008.strict.dml.chartDrawing``                            ``http://purl.oclc.org/ooxml/drawingml/chartDrawing``
+``pyxb.bundles.ecma376.v2008.strict.dml.chart``                                   ``http://purl.oclc.org/ooxml/drawingml/chart``
+``pyxb.bundles.ecma376.v2008.strict.dml.diagram``                                 ``http://purl.oclc.org/ooxml/drawingml/diagram``
+``pyxb.bundles.ecma376.v2008.strict.dml.lockedCanvas``                            ``http://purl.oclc.org/ooxml/drawingml/lockedCanvas``
+``pyxb.bundles.ecma376.v2008.strict.dml.main``                                    ``http://purl.oclc.org/ooxml/drawingml/main``
+``pyxb.bundles.ecma376.v2008.strict.dml.picture``                                 ``http://purl.oclc.org/ooxml/drawingml/picture``
+``pyxb.bundles.ecma376.v2008.strict.dml.spreadsheetDrawing``                      ``http://purl.oclc.org/ooxml/drawingml/spreadsheetDrawing``
+``pyxb.bundles.ecma376.v2008.strict.dml.wordprocessingDrawing``                   ``http://purl.oclc.org/ooxml/drawingml/wordprocessingDrawing``
+``pyxb.bundles.ecma376.v2008.strict.pml``                                         ``http://purl.oclc.org/ooxml/presentationml/main``
+``pyxb.bundles.ecma376.v2008.strict.shared.additionalCharacteristics``            ``http://purl.oclc.org/ooxml/officeDocument/characteristics``
+``pyxb.bundles.ecma376.v2008.strict.shared.bibliography``                         ``http://purl.oclc.org/ooxml/officeDocument/bibliography``
+``pyxb.bundles.ecma376.v2008.strict.shared.commonSimpleTypes``                    ``http://purl.oclc.org/ooxml/officeDocument/sharedTypes``
+``pyxb.bundles.ecma376.v2008.strict.shared.customXmlDataProperties``              ``http://purl.oclc.org/ooxml/officeDocument/customXml``
+``pyxb.bundles.ecma376.v2008.strict.shared.customXmlSchemaProperties``            ``http://purl.oclc.org/ooxml/schemaLibrary/main``
+``pyxb.bundles.ecma376.v2008.strict.shared.documentPropertiesCustom``             ``http://purl.oclc.org/ooxml/officeDocument/customProperties``
+``pyxb.bundles.ecma376.v2008.strict.shared.documentPropertiesExtended``           ``http://purl.oclc.org/ooxml/officeDocument/extendedProperties``
+``pyxb.bundles.ecma376.v2008.strict.shared.documentPropertiesVariantTypes``       ``http://purl.oclc.org/ooxml/officeDocument/docPropsVTypes``
+``pyxb.bundles.ecma376.v2008.strict.shared.math``                                 ``http://purl.oclc.org/ooxml/officeDocument/math``
+``pyxb.bundles.ecma376.v2008.strict.shared.relationshipReference``                ``http://purl.oclc.org/ooxml/officeDocument/relationships``
+``pyxb.bundles.ecma376.v2008.strict.sml``                                         ``http://purl.oclc.org/ooxml/spreadsheetml/main``
+``pyxb.bundles.ecma376.v2008.strict.wml``                                         ``http://purl.oclc.org/ooxml/wordprocessingml/main``
+``pyxb.bundles.ecma376.v2008.transitional.dml.chartDrawing``                      ``http://schemas.openxmlformats.org/drawingml/2006/chartDrawing``
+``pyxb.bundles.ecma376.v2008.transitional.dml.chart``                             ``http://schemas.openxmlformats.org/drawingml/2006/chart``
+``pyxb.bundles.ecma376.v2008.transitional.dml.diagram``                           ``http://schemas.openxmlformats.org/drawingml/2006/diagram``
+``pyxb.bundles.ecma376.v2008.transitional.dml.lockedCanvas``                      ``http://schemas.openxmlformats.org/drawingml/2006/lockedCanvas``
+``pyxb.bundles.ecma376.v2008.transitional.dml.main``                              ``http://schemas.openxmlformats.org/drawingml/2006/main``
+``pyxb.bundles.ecma376.v2008.transitional.dml.picture``                           ``http://schemas.openxmlformats.org/drawingml/2006/picture``
+``pyxb.bundles.ecma376.v2008.transitional.dml.spreadsheetDrawing``                ``http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing``
+``pyxb.bundles.ecma376.v2008.transitional.dml.wordprocessingDrawing``             ``http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing``
+``pyxb.bundles.ecma376.v2008.transitional.pml``                                   ``http://schemas.openxmlformats.org/presentationml/2006/main``
+``pyxb.bundles.ecma376.v2008.transitional.shared.additionalCharacteristics``      ``http://schemas.openxmlformats.org/officeDocument/2006/characteristics``
+``pyxb.bundles.ecma376.v2008.transitional.shared.bibliography``                   ``http://schemas.openxmlformats.org/officeDocument/2006/bibliography``
+``pyxb.bundles.ecma376.v2008.transitional.shared.commonSimpleTypes``              ``http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes``
+``pyxb.bundles.ecma376.v2008.transitional.shared.customXmlDataProperties``        ``http://schemas.openxmlformats.org/officeDocument/2006/customXml``
+``pyxb.bundles.ecma376.v2008.transitional.shared.customXmlSchemaProperties``      ``http://schemas.openxmlformats.org/schemaLibrary/2006/main``
+``pyxb.bundles.ecma376.v2008.transitional.shared.documentPropertiesCustom``       ``http://schemas.openxmlformats.org/officeDocument/2006/custom-properties``
+``pyxb.bundles.ecma376.v2008.transitional.shared.documentPropertiesExtended``     ``http://schemas.openxmlformats.org/officeDocument/2006/extended-properties``
+``pyxb.bundles.ecma376.v2008.transitional.shared.documentPropertiesVariantTypes`` ``http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes``
+``pyxb.bundles.ecma376.v2008.transitional.shared.math``                           ``http://schemas.openxmlformats.org/officeDocument/2006/math``
+``pyxb.bundles.ecma376.v2008.transitional.shared.relationshipReference``          ``http://schemas.openxmlformats.org/officeDocument/2006/relationships``
+``pyxb.bundles.ecma376.v2008.transitional.sml``                                   ``http://schemas.openxmlformats.org/spreadsheetml/2006/main``
+``pyxb.bundles.ecma376.v2008.transitional.vml.main``                              ``urn:schemas-microsoft-com:vml``
+``pyxb.bundles.ecma376.v2008.transitional.vml.officeDrawing``                     ``urn:schemas-microsoft-com:office:office``
+``pyxb.bundles.ecma376.v2008.transitional.vml.presentationDrawing``               ``urn:schemas-microsoft-com:office:powerpoint``
+``pyxb.bundles.ecma376.v2008.transitional.vml.spreadsheetDrawing``                ``urn:schemas-microsoft-com:office:excel``
+``pyxb.bundles.ecma376.v2008.transitional.vml.wordprocessingDrawing``             ``urn:schemas-microsoft-com:office:word``
+``pyxb.bundles.ecma376.v2008.transitional.wml``                                   ``http://schemas.openxmlformats.org/wordprocessingml/2006/main``
+================================================================================= ==========================================================
+
+.. _bundle_opengis:
+
+OpenGIS
+-------
+
+.. note::
+   As of PyXB 1.2.0, this bundle supports the version of the OGC Schema that
+   use the W3C XLink 1.1 instead of the older OGC XLink schema.  See
+   http://www.opengeospatial.org/blog/1597 for more information about this
+   change.
+
+The following namespaces are available in support of `Open Geospatial
+Consortium <http://www.opengeospatial.org/standards>`_ Geographic
+Information System processing.  Note that several of these namespaces are
+"private" bindings generated because the OGC definitions include their own
+schema for use local to another schema.  The modules corresponding to these
+namespace uses begin with an underscore, and should generally not be used in
+other contexts.
+
+This bundle is not populated in the distributed versions of PyXB because it
+requires some 168MB of space to hold the schemas, generated bindings, and
+archive files.  To build it, set ``PYXB_ROOT`` environment variable to the
+absolute path of the unpacked PyXB distribution (the directory containing
+:file:`setup.py`) and run these commands::
+
+  cd ${PYXB_ROOT}
+  pyxb/bundles/opengis/scripts/genbind
+  python setup.py install
+
+This will download the schemas from OGC, generate bindings for the
+namespaces below, and (re-)install PyXB including the new bindings.  Other
+namespaces are available and can be added by modifying the ``genbind``
+script and re-running the commands above.
+
+.. PYXB_ARCHIVE_PATH=${PYXB_ROOT}/pyxb/bundles/opengis// ${PYXB_ROOT}/scripts/pyxbdump \
+   | awk '$2~/pyxb.bundles.opengis/ { print $2, $1; }' \
+   | sed \
+      -e 's@^@``@' \
+      -e 's@ @``\t``@' \
+      -e 's@$@``@' \
+   | expand -50 \
+   | sort \
+   > /tmp/x
+
+================================================  ==========================================================
+Binding Module                                    Namespace
+================================================  ==========================================================
+``pyxb.bundles.opengis._ogc``                     ``http://www.opengis.net/ogc``
+``pyxb.bundles.opengis._sam``                     ``http://www.opengis.net/sampling/2.0``
+``pyxb.bundles.opengis._sams``                    ``http://www.opengis.net/samplingSpatial/2.0``
+``pyxb.bundles.opengis.atom``                     ``http://www.w3.org/2005/Atom``
+``pyxb.bundles.opengis.citygml.appearance``       ``http://www.opengis.net/citygml/appearance/1.0``
+``pyxb.bundles.opengis.citygml.base``             ``http://www.opengis.net/citygml/1.0``
+``pyxb.bundles.opengis.citygml.building``         ``http://www.opengis.net/citygml/building/1.0``
+``pyxb.bundles.opengis.citygml.cityFurniture``    ``http://www.opengis.net/citygml/cityfurniture/1.0``
+``pyxb.bundles.opengis.citygml.cityObjectGroup``  ``http://www.opengis.net/citygml/cityobjectgroup/1.0``
+``pyxb.bundles.opengis.citygml.generics``         ``http://www.opengis.net/citygml/generics/1.0``
+``pyxb.bundles.opengis.citygml.landUse``          ``http://www.opengis.net/citygml/landuse/1.0``
+``pyxb.bundles.opengis.citygml.relief``           ``http://www.opengis.net/citygml/relief/1.0``
+``pyxb.bundles.opengis.citygml.texturedSurface``  ``http://www.opengis.net/citygml/texturedsurface/1.0``
+``pyxb.bundles.opengis.citygml.transportation``   ``http://www.opengis.net/citygml/transportation/1.0``
+``pyxb.bundles.opengis.citygml.vegetation``       ``http://www.opengis.net/citygml/vegetation/1.0``
+``pyxb.bundles.opengis.citygml.waterBody``        ``http://www.opengis.net/citygml/waterbody/1.0``
+``pyxb.bundles.opengis.csw_2_0_2``                ``http://www.opengis.net/cat/csw/2.0.2``
+``pyxb.bundles.opengis.csw_dc``                   ``http://purl.org/dc/elements/1.1/``
+``pyxb.bundles.opengis.csw_dct``                  ``http://purl.org/dc/terms/``
+``pyxb.bundles.opengis.fes_2_0``                  ``http://www.opengis.net/fes/2.0``
+``pyxb.bundles.opengis.filter``                   ``http://www.opengis.net/ogc``
+``pyxb.bundles.opengis.gml_3_2``                  ``http://www.opengis.net/gml/3.2``
+``pyxb.bundles.opengis.gml_3_3.ce``               ``http://www.opengis.net/gml/3.3/ce``
+``pyxb.bundles.opengis.gml_3_3.exr``              ``http://www.opengis.net/gml/3.3/exr``
+``pyxb.bundles.opengis.gml_3_3.lr``               ``http://www.opengis.net/gml/3.3/lr``
+``pyxb.bundles.opengis.gml_3_3.lro``              ``http://www.opengis.net/gml/3.3/lro``
+``pyxb.bundles.opengis.gml_3_3.lrov``             ``http://www.opengis.net/gml/3.3/lrov``
+``pyxb.bundles.opengis.gml_3_3.lrtr``             ``http://www.opengis.net/gml/3.3/lrtr``
+``pyxb.bundles.opengis.gml_3_3.rgrid``            ``http://www.opengis.net/gml/3.3/rgrid``
+``pyxb.bundles.opengis.gml_3_3.tin``              ``http://www.opengis.net/gml/3.3/tin``
+``pyxb.bundles.opengis.gml_3_3.xbt``              ``http://www.opengis.net/gml/3.3/xbt``
+``pyxb.bundles.opengis.gml``                      ``http://www.opengis.net/gml``
+``pyxb.bundles.opengis.gmlsf``                    ``http://www.opengis.net/gmlsf``
+``pyxb.bundles.opengis.ic_ism_2_1``               ``urn:us:gov:ic:ism:v2``
+``pyxb.bundles.opengis.iso19139.v20070417.gco``   ``http://www.isotc211.org/2005/gco``
+``pyxb.bundles.opengis.iso19139.v20070417.gmd``   ``http://www.isotc211.org/2005/gmd``
+``pyxb.bundles.opengis.iso19139.v20070417.gmx``   ``http://www.isotc211.org/2005/gmx``
+``pyxb.bundles.opengis.iso19139.v20070417.gsr``   ``http://www.isotc211.org/2005/gsr``
+``pyxb.bundles.opengis.iso19139.v20070417.gss``   ``http://www.isotc211.org/2005/gss``
+``pyxb.bundles.opengis.iso19139.v20070417.gts``   ``http://www.isotc211.org/2005/gts``
+``pyxb.bundles.opengis.misc.xAL``                 ``urn:oasis:names:tc:ciq:xsdschema:xAL:2.0``
+``pyxb.bundles.opengis.ogckml22``                 ``http://www.opengis.net/kml/2.2``
+``pyxb.bundles.opengis.om_1_0``                   ``http://www.opengis.net/om/1.0``
+``pyxb.bundles.opengis.om_2_0``                   ``http://www.opengis.net/om/2.0``
+``pyxb.bundles.opengis.oseo_1_0``                 ``http://www.opengis.net/oseo/1.0``
+``pyxb.bundles.opengis.ows_1_1``                  ``http://www.opengis.net/ows/1.1``
+``pyxb.bundles.opengis.ows_2_0``                  ``http://www.opengis.net/ows/2.0``
+``pyxb.bundles.opengis.ows``                      ``http://www.opengis.net/ows``
+``pyxb.bundles.opengis.sampling_1_0``             ``http://www.opengis.net/sampling/1.0``
+``pyxb.bundles.opengis.sensorML_1_0_1``           ``http://www.opengis.net/sensorML/1.0.1``
+``pyxb.bundles.opengis.smil20``                   ``http://www.w3.org/2001/SMIL20/``
+``pyxb.bundles.opengis.smil20lang``               ``http://www.w3.org/2001/SMIL20/Language``
+``pyxb.bundles.opengis.sos_1_0``                  ``http://www.opengis.net/sos/1.0``
+``pyxb.bundles.opengis.sos_2_0``                  ``http://www.opengis.net/sos/2.0``
+``pyxb.bundles.opengis.swe_1_0_0``                ``http://www.opengis.net/swe/1.0``
+``pyxb.bundles.opengis.swe_1_0_1``                ``http://www.opengis.net/swe/1.0.1``
+``pyxb.bundles.opengis.swe_2_0``                  ``http://www.opengis.net/swe/2.0``
+``pyxb.bundles.opengis.swes_2_0``                 ``http://www.opengis.net/swes/2.0``
+``pyxb.bundles.opengis.tml``                      ``http://www.opengis.net/tml``
+``pyxb.bundles.opengis.waterml``                  ``http://www.opengis.net/waterml/2.0``
+``pyxb.bundles.opengis.wcs_1_1``                  ``http://www.opengis.net/wcs/1.1``
+``pyxb.bundles.opengis.wfs``                      ``http://www.opengis.net/wfs``
+``pyxb.bundles.opengis.wps_1_0_0``                ``http://www.opengis.net/wps/1.0.0``
+================================================  ==========================================================
+
+.. _bundle_layout:
+
+Layout of a Bundle Directory
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The ``pyxb/bundles`` directory contains groups of bindings for related
+schema.  These groups are called "bundles", and each subdirectory represents
+a particular bundle.
+
+With a bundle directory, the following are expected:
+
+- A ``scripts`` directory, containing an executable ``genbind`` which
+  retrieves the schema and invokes ``pyxbgen`` to build the bindings
+
+- A ``schemas`` directory, into which the ``genbind`` script stores the
+  schemas that were used to build the bindings
+
+- The Python module files for namespace modules.  Normally these are
+  :ref:`customization wrappers <customized_bindings>`
+
+- A ``raw`` subdirectory, into which the generated bindings are placed.
+  This directory is normally removed and recreated as a consequence of
+  running genbind; don't expect anything in it to be persistent.
+
+- An ``examples`` directory, with programs that show how to use the
+  capabilities in the bundle
+
+- A ``tests`` directory which validates customizations
+
+Generating Bundled Bindings
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To create the support infrastructure for a particular bundle, set the
+``PYXB_ROOT`` environment variable to the root of an unpacked PyXB
+distribution and run the ``scripts/genbind`` script in the bundle root.  For
+example::
+
+  cd ${PYXB_ROOT}
+  pyxb/bundles/wssplat/scripts/genbind
+
+will invoke the :manpage:`wget(1)` program to retrieve the XML schema for a
+variety of namespaces related to web services and then generate bindings and
+archive files for them.
+
+Generating bundles should be a one-time action for each release of PyXB.
+
+.. note::
+
+   Some servers, including http://www.w3.org, enforce an artificial delay in
+   retrieving schema documents in order to encourage systems to use cached
+   local copies.  The :file:`genbind` infrastructure will cache the schemas
+   it downloads, but running the generation scripts for the `common`_
+   bundle, and possibly others, may result in errors if the caches are
+   removed and the scripts run too frequently.

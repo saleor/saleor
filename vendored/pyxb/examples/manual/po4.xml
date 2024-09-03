@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<purchaseOrder orderDate="1999-10-20">
+  <shipTo planet="SOL3">
+    <name>Alice Smith</name>
+    <street>123 Maple Street</street>
+    <city>Anytown</city>
+  </shipTo>
+  <billTo country="US">
+    <name>Robert Smith</name>
+    <street>8 Oak Avenue</street>
+    <city>Anytown</city><state>AK</state><zip>12341</zip>
+  </billTo>
+  <items>
+    <item partNum="833-AA">
+      <productName>Lapis necklace</productName>
+      <quantity>1</quantity>
+      <USPrice>99.95</USPrice>
+      <comment>Want this for the holidays!</comment>
+      <shipDate>1999-12-05</shipDate>
+    </item>
+    <item partNum="833-AB">
+      <productName>Plastic necklace</productName>
+      <quantity>4</quantity>
+      <USPrice>3.95</USPrice>
+      <shipDate>1999-12-24</shipDate>
+    </item>
+  </items>
+</purchaseOrder>

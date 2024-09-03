@@ -1,0 +1,137 @@
+# Attempt to prevent catastrophe by validating required settings
+# and aborting on any subshell error
+set -e
+if [ -z "${PYXB_ROOT+notset}" ] ; then
+  echo 1>&2 ERROR: PYXB_ROOT not set
+  exit 1
+fi
+
+BUNDLE_TAG=opengis
+
+. ${PYXB_ROOT}/maintainer/bundlesupport.sh
+
+# Need access to common (for xlink) and wssplat.
+export PYXB_ARCHIVE_PATH=${RAW_DIR}//:${PYXB_ROOT}/pyxb/bundles/common//:${PYXB_ROOT}/pyxb/bundles/wssplat//:+
+
+(
+mkdir -p ${SCHEMA_DIR}
+cd ${SCHEMA_DIR} ;
+if [ ! -d gml ] ; then
+  rm -rf [a-z]*
+fi
+if [ ! -f SCHEMAS_OPENGIS_NET.tgz ] ; then
+  wget http://schemas.opengis.net/SCHEMAS_OPENGIS_NET.tgz
+fi
+if [ ! -d gml ] ; then
+  echo "Unpacking schemas"
+  tar xzf SCHEMAS_OPENGIS_NET.tgz
+fi
+)
+
+find ${RAW_DIR} -name '*.wxs' | xargs rm -f
+
+# Build GML 3.1.1 (the most recent version not identified in the namespace)
+pyxbgen \
+  --location-prefix-rewrite=http://schemas.opengis.net/=${SCHEMA_DIR}/ \
+  --schema-location=${SCHEMA_DIR}/gml/3.1.1/base/gml.xsd --module=gml \
+  --schema-location=${SCHEMA_DIR}/gml/3.1.1/smil/smil20.xsd --module=smil20 \
+  --schema-location=${SCHEMA_DIR}/gml/3.1.1/smil/smil20-language.xsd --module=smil20lang \
+  --module-prefix=${MODULE_PREFIX} \
+  --write-for-customization \
+  --archive-to-file=${ARCHIVE_DIR}/gml_3_1_1.wxs \
+ || failure gml
+
+# Build all the ISO19139:2007 schemas.  Yes, these do reference GML 3.2.
+pyxbgen \
+  --location-prefix-rewrite=http://schemas.opengis.net/=${SCHEMA_DIR}/ \
+  --schema-location=${SCHEMA_DIR}/gml/3.2.1/gml.xsd --module=gml_3_2 \
+  --schema-location=${SCHEMA_DIR}/iso/19139/20070417/gco/gco.xsd --module=iso19139.v20070417.gco \
+  --schema-location=${SCHEMA_DIR}/iso/19139/20070417/gmd/gmd.xsd --module=iso19139.v20070417.gmd \
+  --schema-location=${SCHEMA_DIR}/iso/19139/20070417/gmx/gmx.xsd --module=iso19139.v20070417.gmx \
+  --schema-location=${SCHEMA_DIR}/iso/19139/20070417/gsr/gsr.xsd --module=iso19139.v20070417.gsr \
+  --schema-location=${SCHEMA_DIR}/iso/19139/20070417/gss/gss.xsd --module=iso19139.v20070417.gss \
+  --schema-location=${SCHEMA_DIR}/iso/19139/20070417/gts/gts.xsd --module=iso19139.v20070417.gts \
+  --module-prefix=${MODULE_PREFIX} \
+  --write-for-customization \
+  --archive-to-file=${ARCHIVE_DIR}/gml_3_2.wxs \
+ || failure gml_3_2
+
+( cat <<EOText
+${SCHEMA_DIR}/citygml/xAL/xAL.xsd misc.xAL
+${SCHEMA_DIR}/ows/1.0.0/owsAll.xsd ows
+${SCHEMA_DIR}/ows/1.1.0/owsAll.xsd ows_1_1
+${SCHEMA_DIR}/ows/2.0/owsAll.xsd ows_2_0
+${SCHEMA_DIR}/filter/1.1.0/filter.xsd filter
+${SCHEMA_DIR}/filter/2.0/filterAll.xsd fes_2_0
+${SCHEMA_DIR}/sweCommon/1.0.0/swe.xsd swe_1_0_0
+${SCHEMA_DIR}/sweCommon/1.0.1/swe.xsd swe_1_0_1
+${SCHEMA_DIR}/sweCommon/2.0/swe.xsd swe_2_0
+${SCHEMA_DIR}/citygml/1.0/cityGMLBase.xsd citygml.base
+${SCHEMA_DIR}/ic/2.1/IC-ISM-v2.1.xsd ic_ism_2_1
+${SCHEMA_DIR}/sensorML/1.0.1/sensorML.xsd sensorML_1_0_1
+${SCHEMA_DIR}/om/1.0.0/om.xsd om_1_0
+${SCHEMA_DIR}/om/2.0/observation.xsd om_2_0
+${SCHEMA_DIR}/swes/2.0/swes.xsd swes_2_0
+${SCHEMA_DIR}/sos/1.0.0/sosAll.xsd sos_1_0 --import-augmentable-namespace=http://www.opengis.net/ogc
+${SCHEMA_DIR}/sos/2.0/sos.xsd sos_2_0
+${SCHEMA_DIR}/sampling/1.0.0/sampling.xsd sampling_1_0
+${SCHEMA_DIR}/tml/1.0.0/tml.xsd tml
+${SCHEMA_DIR}/wfs/1.1.0/wfs.xsd wfs
+${SCHEMA_DIR}/wcs/1.1/wcsAll.xsd wcs_1_1
+${SCHEMA_DIR}/gml/3.1.1/profiles/gmlsfProfile/1.0.0/gmlsfLevels.xsd gmlsf
+${SCHEMA_DIR}/citygml/appearance/1.0/appearance.xsd citygml.appearance
+${SCHEMA_DIR}/citygml/building/1.0/building.xsd citygml.building
+${SCHEMA_DIR}/citygml/cityfurniture/1.0/cityFurniture.xsd citygml.cityFurniture
+${SCHEMA_DIR}/citygml/cityobjectgroup/1.0/cityObjectGroup.xsd citygml.cityObjectGroup
+${SCHEMA_DIR}/citygml/generics/1.0/generics.xsd citygml.generics
+${SCHEMA_DIR}/citygml/landuse/1.0/landUse.xsd citygml.landUse
+${SCHEMA_DIR}/citygml/relief/1.0/relief.xsd citygml.relief
+${SCHEMA_DIR}/citygml/texturedsurface/1.0/texturedSurface.xsd citygml.texturedSurface
+${SCHEMA_DIR}/citygml/transportation/1.0/transportation.xsd citygml.transportation
+${SCHEMA_DIR}/citygml/vegetation/1.0/vegetation.xsd citygml.vegetation
+${SCHEMA_DIR}/citygml/waterbody/1.0/waterBody.xsd citygml.waterBody
+${SCHEMA_DIR}/waterml/2.0/waterml2.xsd waterml
+${SCHEMA_DIR}/oseo/1.0/oseo.xsd oseo_1_0
+${SCHEMA_DIR}/wps/1.0.0/wpsAll.xsd wps_1_0_0
+EOText
+) | generateBindings \
+      --location-prefix-rewrite=http://schemas.opengis.net/=${SCHEMA_DIR}/
+
+# OGC's version of KML
+pyxbgen \
+  --location-prefix-rewrite=http://schemas.opengis.net/=${SCHEMA_DIR}/ \
+  --schema-location=${SCHEMA_DIR}/kml/2.2.0/ogckml22.xsd --module=ogckml22 \
+  --schema-location=${SCHEMA_DIR}/kml/2.2.0/atom-author-link.xsd --module=atom \
+  --module-prefix=${MODULE_PREFIX} \
+  --write-for-customization \
+  --archive-to-file=${ARCHIVE_DIR}/kml_2_2.wxs \
+ || failure kml_2_2
+
+# Catalog schema has some external namespaces
+pyxbgen \
+  --location-prefix-rewrite=http://schemas.opengis.net/=${SCHEMA_DIR}/ \
+  --schema-location=${SCHEMA_DIR}/csw/2.0.2/csw.xsd --module=csw_2_0_2 \
+  --schema-location=${SCHEMA_DIR}/csw/2.0.2/record.xsd --module=csw_2_0_2 \
+  --schema-location=${SCHEMA_DIR}/csw/2.0.2/rec-dcmes.xsd --module=csw_dc \
+  --schema-location=${SCHEMA_DIR}/csw/2.0.2/rec-dcterms.xsd --module=csw_dct \
+  --module-prefix=${MODULE_PREFIX} \
+  --write-for-customization \
+  --archive-to-file=${ARCHIVE_DIR}/csw_2_0_2.wxs \
+ || failure gml_3_3
+
+# Build all the GML 3.3 schemas, which reference the GML 3.2 ones
+pyxbgen \
+  --location-prefix-rewrite=http://schemas.opengis.net/=${SCHEMA_DIR}/ \
+  --schema-location=${SCHEMA_DIR}/gml/3.3/extdBaseTypes.xsd --module=gml_3_3.xbt \
+  --schema-location=${SCHEMA_DIR}/gml/3.3/extdEncRule.xsd --module=gml_3_3.exr \
+  --schema-location=${SCHEMA_DIR}/gml/3.3/geometryCompact.xsd --module=gml_3_3.ce \
+  --schema-location=${SCHEMA_DIR}/gml/3.3/linearRef.xsd --module=gml_3_3.lr \
+  --schema-location=${SCHEMA_DIR}/gml/3.3/linearRefOffset.xsd --module=gml_3_3.lro \
+  --schema-location=${SCHEMA_DIR}/gml/3.3/linearRefOffsetVector.xsd --module=gml_3_3.lrov \
+  --schema-location=${SCHEMA_DIR}/gml/3.3/linearRefTowardsReferent.xsd --module=gml_3_3.lrtr \
+  --schema-location=${SCHEMA_DIR}/gml/3.3/referenceableGrid.xsd --module=gml_3_3.rgrid \
+  --schema-location=${SCHEMA_DIR}/gml/3.3/tin.xsd --module=gml_3_3.tin \
+  --module-prefix=${MODULE_PREFIX} \
+  --write-for-customization \
+  --archive-to-file=${ARCHIVE_DIR}/gml_3_3.wxs \
+ || failure gml_3_3

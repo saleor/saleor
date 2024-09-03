@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema targetNamespace="URN:shared-types" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="URN:shared-types">
+	<xs:simpleType name="english">
+		<xs:annotation>
+			<xs:documentation>Some words in English.  Note that we specifically set the whitespace handling in this one to be collapse, as opposed to the welsh enumeration, so we can test that handling..</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:whiteSpace value="collapse"/>
+			<xs:enumeration value="one"/>
+			<xs:enumeration value="two"/>
+			<xs:enumeration value="three"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="welsh">
+		<xs:annotation>
+			<xs:documentation>Some words in Welsh.  Note that we specifically set the whitespace handling in this one to be replace, as opposed to the english enumeration, so we can test that handling..</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:whiteSpace value="replace"/>
+			<xs:enumeration value="un"/>
+			<xs:enumeration value="dau"/>
+			<xs:enumeration value="tri"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="words">
+		<xs:union memberTypes="tns:english tns:welsh"/>
+	</xs:simpleType>
+	<xs:complexType name="langwords">
+		<xs:simpleContent>
+			<xs:extension base="tns:words">
+				<xs:attribute name="language" type="xs:language"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="personName">
+		<xs:sequence>
+			<xs:element name="title" minOccurs="0"/>
+			<xs:element name="forename" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="surname"/>
+		</xs:sequence>
+		<xs:attribute name="pAttr" type="xs:string"/>
+		<xs:attribute name="pUse" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="extendedName">
+		<xs:complexContent>
+			<xs:extension base="tns:personName">
+				<xs:sequence>
+					<xs:element name="generation" minOccurs="0"/>
+				</xs:sequence>
+				<xs:attribute name="eAttr" type="xs:string"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+</xs:schema>

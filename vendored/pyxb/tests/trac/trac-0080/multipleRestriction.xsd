@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema"
+        targetNamespace="http://www.example.org/multipleRestriction"
+        xmlns:tns="http://www.example.org/multipleRestriction"
+        elementFormDefault="qualified">
+
+   <complexType name="Type4">
+      <attribute name="anAttribute" type="normalizedString" use="optional" />
+   </complexType>
+
+   <complexType name="Type3">
+      <complexContent>
+         <restriction base="tns:Type4">
+            <attribute name="anAttribute" type="token" use="optional" />
+         </restriction>
+      </complexContent>
+   </complexType>
+
+   <complexType name="Type2">
+      <complexContent>
+         <extension base="tns:Type3">
+            <sequence>
+               <element minOccurs="0" maxOccurs="1" name="isSet" type="boolean" />
+            </sequence>
+         </extension>
+      </complexContent>
+   </complexType>
+
+   <complexType name="Type1">
+      <complexContent>
+         <restriction base="tns:Type2">
+            <sequence>
+               <element minOccurs="0" maxOccurs="1" name="isSet" type="boolean" />
+            </sequence>
+            <attribute name="anAttribute" type="NCName" use="optional" />
+         </restriction>
+      </complexContent>
+   </complexType>
+
+   <element name="root">
+      <complexType>
+         <complexContent>
+            <restriction base="tns:Type1">
+               <sequence>
+                  <element minOccurs="0" maxOccurs="1" name="isSet" type="boolean" />
+               </sequence>
+               <attribute name="anAttribute" type="NCName" use="required" />
+            </restriction>
+         </complexContent>
+      </complexType>
+   </element>
+</schema>

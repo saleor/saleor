@@ -1,0 +1,201 @@
+.. _contentModel:
+
+Content Model
+=============
+
+PyXB's content model is used to complete the link between the
+:ref:`componentModel` and the :ref:`bindingModel`.  These classes are the
+ones that:
+
+- determine what Python class attribute is used to store which XML
+  element or attribute;
+- distinguish those elements that can occur at most once from those that
+  require an aggregation; and
+- ensure that the ordering and occurrence constraints imposed by the XML
+  `model group <http://www.w3.org/TR/xmlschema-1/#Model_Groups>`_ are
+  satisfied, when XML is converted to Python instances and vice-versa.
+
+Associating XML and Python Objects
+----------------------------------
+
+Most of the classes involved in the content model are in the
+:api:`pyxb.binding.content` module.  The relations among these classes are
+displayed in the following diagram.
+
+.. _cd_contentModel:
+
+.. image:: Images/ContentModel.jpg
+
+In the standard code generation template, both element and attribute values
+are stored in Python class fields.  As noted in
+:ref:`binding_deconflictingNames` it is necessary to ensure an attribute and
+an element which have the same name in their containing complex type have
+distinct names in the Python class corresponding to that type.  Use
+information for each of these is maintained in the type class.  This use
+information comprises:
+
+- the original :api:`name <pyxb.binding.content.AttributeUse.name>` of the element/attribute in the XML
+- its :api:`deconflicted name <pyxb.binding.content.AttributeUse.id>` in Python
+- the private name by which the value is stored in the Python instance dictionary
+
+Other information is specific to the type of use.  The
+:api:`pyxb.binding.basis.complexTypeDefinition` retains maps from the
+component's name the attribute use or element use instance corresponding to
+the component's use.
+
+.. _attributeUse:
+
+Attribute Uses
+^^^^^^^^^^^^^^
+
+The information associated with an `attribute use
+<http://www.w3.org/TR/xmlschema-1/#cAttributeUse>`_ is recorded in an
+:api:`pyxb.binding.content.AttributeUse` instance.  This class provides:
+
+- The :api:`name <pyxb.binding.content.AttributeUse.name>` of the
+  attribute
+
+- The :api:`default value <pyxb.binding.content.AttributeUse.defaultValue>` of
+  the attribute
+
+- Whether the attribute value is :api:`fixed <pyxb.binding.content.AttributeUse.fixed>`
+
+- Whether the `attribute use
+  <http://www.w3.org/TR/xmlschema-1/#cAttributeUse>`_ is
+  :api:`required <pyxb.binding.content.AttributeUse.required>`
+  or :api:`prohibited <pyxb.binding.content.AttributeUse.prohibited>`
+
+- The :api:`type <pyxb.binding.content.AttributeUse.dataType>` of the
+  attribute, as a subclass of :api:`pyxb.binding.basis.simpleTypeDefinition`
+
+- Methods to :api:`read <pyxb.binding.content.AttributeUse.value>`, :api:`set
+  <pyxb.binding.content.AttributeUse.set>`, and :api:`reset
+  <pyxb.binding.content.AttributeUse.reset>` the value of the attribute in a
+  given binding instance.
+
+A :api:`map <pyxb.binding.basis.complexTypeDefinition._AttributeMap>` is used
+to map from expanded names to AttributeUse instances.  This map is defined
+within the class definition itself.
+
+.. _elementUse:
+
+Element Uses
+^^^^^^^^^^^^
+
+The element analog to an attribute use is an `element declaration
+<http://www.w3.org/TR/xmlschema-1/#cElement_Declarations>`_, and the
+corresponding information is stored in a
+:api:`pyxb.binding.content.ElementDeclaration` instance.  This class provides:
+
+- The :api:`element binding <pyxb.binding.content.ElementDeclaration.elementBinding>`
+  that defines the properties of the referenced element, including its type
+
+- Whether the use allows :api:`multiple occurrences
+  <pyxb.binding.content.ElementDeclaration.isPlural>`
+
+- The :api:`default value <pyxb.binding.content.ElementDeclaration.defaultValue>` of
+  the element.  Currently this is either C{None} or an empty list, depending
+  on :api:`pyxb.binding.content.ElementDeclaration.isPlural`
+
+- Methods to :api:`read <pyxb.binding.content.ElementDeclaration.value>`, :api:`set
+  <pyxb.binding.content.ElementDeclaration.set>`, :api:`append to
+  <pyxb.binding.content.ElementDeclaration.append>` (only for plural elements), and
+  :api:`reset <pyxb.binding.content.ElementDeclaration.reset>` the value of the
+  element in a given binding instance
+
+- The :api:`setOrAppend <pyxb.binding.content.ElementDeclaration.setOrAppend>` method,
+  which is most commonly used to provide new content to a value
+
+A :api:`map <pyxb.binding.basis.complexTypeDefinition._ElementMap>` is used to
+map from expanded names to ElementDeclaration instances.  This map is defined
+within the class definition itself.  As mentioned before, when the same
+element name appears at multiple places within the element content the uses
+are collapsed into a single attribute on the complex type; thus the map is to
+the :api:`ElementDeclaration <pyxb.binding.content.ElementDeclaration>`, not
+the :api:`ElementUse <pyxb.binding.content.ElementUse>`.
+
+.. _validating-content:
+
+Validating the Content Model
+----------------------------
+
+As of :ref:`PyXB 1.2.0 <pyxb-1.2.0>`, content validation is performed using
+the **Finite Automata with Counters (FAC)** data structure, as described in
+`Regular Expressions with Numerical Constraints and Automata with Counters
+<http://bora.uib.no/handle/1956/3628>`_, `Dag Hovland
+<http://www.ii.uib.no/~dagh/>`_, Lecture Notes in Computer Science, 2009,
+Volume 5684, Theoretical Aspects of Computing - ICTAC 2009, Pages 231-245.
+
+This structure allows accurate validation of occurrence and order constraints
+without the complexity of the original back-tracking validation solution from
+:ref:`PyXB 1.1.1 <pyxb-1.1.1>` and earlier.  It also avoids the
+:ticket:`incorrect rejection of valid documents <112>` that (rarely) occurred
+with the greedy algorithm introduced in :ref:`PyXB 1.1.2 <pyxb-1.1.2>`.
+Conversion to this data structure also enabled the distinction between
+:api:`element declaration <pyxb.binding.content.ElementDeclaration>` and
+:api:`element use <pyxb.binding.content.ElementUse>` nodes, allowing
+diagnostics to trace back to the element references in context.
+
+The data structures for the automaton and the configuration structure
+that represents a processing automaton are:
+
+.. image:: Images/FACAutomaton.jpg
+
+The implementation in PyXB is generally follows the description in the ICTAC
+2009 paper.  Calculation of first/follow sets has been enhanced to support
+term trees with more than two children per node.  In addition, support for
+unordered catenation as required for the `"all" model group
+<http://www.w3.org/TR/xmlschema-1/#element-all>`_ is implemented by a state
+that maintains a distinct sub-automaton for each alternative, requiring a
+layered approach where executon of an automaton is suspended until the
+subordinate automaton has accepted and a transition out of it is encountered.
+
+For more information on the implementation, please see the :api:`FAC module
+<pyxb.utils.fac>`.  This module has been written to be independent of PyXB
+infrastructure, and may be re-used in other code in accordance with the
+:ref:`PyXB license <pyxb-license>`.
+
+FAC and the PyXB Content Model
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+As depicted in the :ref:`Content Model class diagram <cd_contentModel>` each
+complex type binding class has a :api:`_Automaton <pyxb.utils.fac.Automaton>`
+which encodes the content model of the type as a Finite Automaton with
+Counters.  This representation models the occurrence constraints and
+sub-element orders, referencing the specific element and wildcard uses as they
+appear in the schema.  Each instance of a complex binding supports an
+:api:`AutomatonConfiguration <pyxb.binding.content.AutomatonConfiguration>`
+that is used to validate the binding content against the model.
+
+An :api:`ElementUse <pyxb.binding.content.ElementUse>` instance is provided as
+the metadata for automaton states that correspond an element declaration in the
+schema.  Similarly, a :api:`WildcardUse <pyxb.binding.content.WildcardUse>`
+instance is used as the metadata for automaton states that correspond to an
+instance of the `xs:any <http://www.w3.org/TR/xmlschema-1/#Wildcards>`_
+wildcard schema component.  Validation in the automaton delegates through the
+:api:`SymbolMatch_mixin <pyxb.utils.fac.SymbolMatch_mixin>` interface to see
+whether content in the form of a complex type binding instance is conformant
+to the restrictions on symbols associated with a particular state.
+
+When parsing, a transition taken results in the storage of the consumed symbol
+into the appropriate element attribute or wildcard list in the binding
+instance.  In many cases, the transition from one state to a next is uniquely
+determined by the content; as long as this condition holds, the
+:api:`AutomatonConfiguration <pyxb.binding.content.AutomatonConfiguration>`
+instance retains a single underlying :api:`FAC Configuration
+<pyxb.utils.fac.Configuration>` representing the current state.
+
+To generate the XML corresponding to a binding instance, the element and
+wildcard content of the instance are loaded into a Python dictionary, keyed by
+the :api:`ElementDeclaration <pyxb.binding.content.ElementDeclaration>`.
+These subordinate elements are appended to a list of child nodes as
+transitions that recognize them are encountered.  As of :ref:`PyXB 1.2.0
+<pyxb-1.2.0>` the first legal transition in the order imposed by the schema is
+taken, and there is no provision for influencing the order in the generated
+document when multiple orderings are valid.
+
+.. ignored
+   ## Local Variables:
+   ## fill-column:78
+   ## indent-tabs-mode:nil
+   ## End:

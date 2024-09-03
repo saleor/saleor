@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    version="1.0"
+    targetNamespace="urn:trac:196:mix"
+    xmlns:qq="urn:trac:196:qq"
+    xmlns:qu="urn:trac:196:qu"
+    xmlns:uq="urn:trac:196:uq"
+    xmlns:uu="urn:trac:196:uu"
+    elementFormDefault="unqualified"
+    attributeFormDefault="unqualified">
+  <xsd:import namespace="urn:trac:196:qq"/>
+  <xsd:import namespace="urn:trac:196:qu"/>
+  <xsd:import namespace="urn:trac:196:uq"/>
+  <xsd:import namespace="urn:trac:196:uu"/>
+  <xsd:element name="elt">
+    <xsd:complexType>
+      <xsd:sequence>
+	<xsd:element ref="qq:qqe"/>
+	<xsd:element ref="qu:que"/>
+	<xsd:element ref="uq:uqe"/>
+	<xsd:element ref="uu:uue"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="uue">
+    <xsd:complexType>
+      <xsd:attribute ref="uu:a"/>
+    </xsd:complexType>
+  </xsd:element>
+
+</xsd:schema>

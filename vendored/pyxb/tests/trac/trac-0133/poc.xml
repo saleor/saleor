@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<purchaseOrder xmlns="http://www.example.com/PO1" orderDate="1999-10-20" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.example.com/PO1 poc.xsd">
+  <shipTo country="US">
+    <name>Alice Smith</name>
+    <street>123 Maple Street</street>
+    <city>Anytown</city><state>PA</state><zip>12341</zip>
+  </shipTo>
+  <billTo country="US">
+    <name>Robert Smith</name>
+    <street>8 Oak Avenue</street>
+    <city>Anytown</city><state>PA</state><zip>12341</zip>
+  </billTo>
+  <items>
+    <item partNum="833-AA">
+      <productName>Lapis necklace</productName>
+      <quantity>1</quantity>
+      <USPrice>99.95</USPrice>
+      <!--<comment>Want this for the holidays!</comment>-->
+      <shipDate>1999-12-05</shipDate>
+	  <!--
+	  <shipTo country="US">
+	    <name>Alice Smith</name>
+	    <street>123 Maple Street</street>
+	    <city>Anytown</city><state>PA</state><zip>12341</zip>
+	  </shipTo>
+	  -->
+    </item>
+    <item partNum="833-AB">
+      <productName>Plastic necklace</productName>
+      <quantity>4</quantity>
+      <!--<USPrice>3.95</USPrice>-->
+	  <comment>Want this for the holidays!</comment>
+      <shipDate>1999-12-24</shipDate>
+	  <!--
+	  <shipTo country="US">
+	    <name>Alice Smith</name>
+	    <street>123 Maple Street</street>
+	    <city>Anytown</city><state>PA</state><zip>12341</zip>
+	  </shipTo>
+	  -->
+    </item>
+  </items>
+</purchaseOrder>

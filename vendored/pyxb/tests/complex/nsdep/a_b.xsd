@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema targetNamespace="URN:nsdep:A" xmlns:tns="URN:nsdep:A" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:include schemaLocation="shared.xsd"/>
+	<xs:simpleType name="strA">
+<!-- Use a restricted type so we can distinguish it from other strings -->
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="10"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:element name="A_b_e1" type="tns:strA"/>
+	<xs:element name="s" type="xs:string"/>
+</xs:schema>

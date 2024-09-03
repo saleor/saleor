@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    version="1.0"
+    targetNamespace="urn:trac:197:s"
+    xmlns:X="urn:trac:197:X">
+  <xsd:import namespace="urn:trac:197:X"/>
+  <xsd:element name="X" type="X:C"/>
+  <xsd:element name="other" type="X:C"/>
+</xsd:schema>

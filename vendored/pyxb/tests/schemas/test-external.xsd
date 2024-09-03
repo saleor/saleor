@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema targetNamespace="URN:test-external" xsi:schemaLocation="URN:shared-types /home/pab/pyxb/dev/tests/schemas/shared-types.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:st="URN:shared-types" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tns="URN:test-external">
+  <xs:import namespace="URN:shared-types"/>
+	<xs:complexType name="word">
+		<xs:sequence>
+			<xs:element name="from" type="st:english"/>
+			<xs:element name="to" type="st:welsh"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="word" type="tns:word"/>
+	<xs:element name="english" type="st:english"/>
+	<xs:complexType name="extlangword">
+		<xs:complexContent>
+			<xs:extension base="st:langwords">
+				<xs:attribute name="newlanguage" default="welsh"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:element name="lwords" type="tns:extlangword"/>
+	<xs:complexType name="restExtName">
+		<xs:complexContent>
+			<xs:restriction base="st:extendedName">
+				<xs:sequence><!-- Update minOccurs of existing element -->
+					<xs:element name="title" minOccurs="0"/>
+					<xs:element name="forename" minOccurs="0" maxOccurs="unbounded"/>
+					<xs:element name="surname"/>
+					<xs:element name="generation" minOccurs="1"/>
+				</xs:sequence>
+			</xs:restriction>
+		</xs:complexContent>
+	</xs:complexType>
+  <xs:simpleType name="uMorewords">
+    <xs:union memberTypes="st:words">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="ichi"/>
+          <xs:enumeration value="ni"/>
+          <xs:enumeration value="san"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:union>
+  </xs:simpleType>
+  <xs:element name="morewords" type="tns:uMorewords"/>
+</xs:schema>

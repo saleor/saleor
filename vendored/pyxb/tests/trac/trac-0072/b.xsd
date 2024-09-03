@@ -1,0 +1,3 @@
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="urn:trac-0072:b">
+ <xsd:element name="b" type="xsd:string"/>
+</xsd:schema>

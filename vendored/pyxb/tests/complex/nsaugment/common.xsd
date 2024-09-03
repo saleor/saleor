@@ -1,0 +1,8 @@
+<xs:schema targetNamespace='urn:common' xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="urn:common" elementFormDefault="qualified">
+  <xs:complexType name="base">
+    <xs:sequence>
+      <xs:element name="bstr" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="base" type="tns:base"/>
+</xs:schema>

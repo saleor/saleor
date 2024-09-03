@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:simpleType name="tString">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="one"/>
+			<xs:enumeration value="two"/>
+			<xs:enumeration value="three"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:element name="eString" type="tString"/>
+	<xs:simpleType name="tInteger">
+		<xs:restriction base="xs:int">
+			<xs:enumeration value="1"/>
+			<xs:enumeration value="2"/>
+			<xs:enumeration value="3"/>
+			<xs:enumeration value="5"/>
+			<xs:enumeration value="8"/>
+			<xs:enumeration value="13"/>
+			<xs:enumeration value="21"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:element name="eInteger" type="tInteger"/>
+	<xs:simpleType name="tDouble">
+		<xs:restriction base="xs:double">
+			<xs:enumeration value="1.0"/>
+			<xs:enumeration value="1.5"/>
+			<xs:enumeration value="1.7"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:element name="eDouble" type="tDouble"/>
+	<xs:simpleType name="tAny">
+		<xs:annotation>
+			<xs:documentation>This was originally testing derivation from anySimpleType, but it turns out you can't do that.  What you can do is put the base type as an anonymous definition inside the restriction, which didn't used to work..</xs:documentation>
+		</xs:annotation>
+		<xs:restriction>
+			<xs:simpleType>
+				<xs:restriction base="xs:string"/>
+			</xs:simpleType>
+			<xs:enumeration value="one"/>
+			<xs:enumeration value="1"/>
+			<xs:enumeration value="1.0"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:element name="eAny" type="tAny"/>
+	<xs:simpleType name="lInteger_">
+		<xs:list itemType="xs:int"/>
+	</xs:simpleType>
+	<xs:simpleType name="lInteger">
+		<xs:restriction base="lInteger_">
+		  <xs:maxLength value="10"/>
+                </xs:restriction>
+	</xs:simpleType>
+	<xs:element name="justList" type="lInteger"/>
+	<xs:simpleType name="tListInt">
+		<xs:restriction base="lInteger">
+			<xs:enumeration value="1"/>
+			<xs:enumeration value="1 1"/>
+			<xs:enumeration value="1    1     2"/><!-- Value space restriction, whitespace will  be ignored when value calculated -->
+			<xs:enumeration value="1 1 2 3"/>
+			<xs:enumeration value="1 1 2 3 5"/>
+			<xs:enumeration value="1 1 2 3 5 8"/>
+			<xs:enumeration value="1 1 2 3 5 8 13"/>
+			<xs:enumeration value="1 1 2 3 5 8 13 21"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:element name="eListInt" type="tListInt"/>
+	<xs:simpleType name="uVarious">
+		<xs:union memberTypes="tString tDouble tListInt"/>
+	</xs:simpleType>
+	<xs:element name="eJustVarious" type="uVarious"/>
+	<xs:simpleType name="tVarious">
+		<xs:restriction base="uVarious">
+			<xs:enumeration value="one"/>
+			<xs:enumeration value="1.0"/>
+			<xs:enumeration value="1 1 2 3"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:element name="eVarious" type="tVarious"/>
+</xs:schema>
