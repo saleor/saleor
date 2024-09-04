@@ -476,11 +476,11 @@ def test_checkout_complete_calls_correct_tax_app(
     user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
     # then
-    delivery = EventDelivery.objects.get()
+    mock_request.assert_called_once()
+    delivery = mock_request.call_args[0][0]
     assert delivery.status == EventDeliveryStatus.PENDING
     assert delivery.event_type == WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
     assert delivery.webhook.app == tax_app
-    mock_request.assert_called_once_with(delivery)
 
     checkout.refresh_from_db()
     assert checkout.price_expiration == timezone.now() + settings.CHECKOUT_PRICES_TTL
@@ -587,11 +587,11 @@ def test_checkout_complete_calls_correct_force_tax_calculation_when_tax_error_wa
     user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
     # then
-    delivery = EventDelivery.objects.get()
+    mock_request.assert_called_once()
+    delivery = mock_request.call_args[0][0]
     assert delivery.status == EventDeliveryStatus.PENDING
     assert delivery.event_type == WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
     assert delivery.webhook.app == tax_app
-    mock_request.assert_called_once_with(delivery)
 
     checkout.refresh_from_db()
     assert checkout.price_expiration == timezone.now() + settings.CHECKOUT_PRICES_TTL
