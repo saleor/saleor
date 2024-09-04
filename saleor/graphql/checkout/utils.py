@@ -1,6 +1,10 @@
+from typing import Optional
+
 import graphene
 from django.core.exceptions import ValidationError
 
+from ...checkout.error_codes import CheckoutErrorCode
+from ...checkout.models import Checkout
 from ...core.exceptions import CircularSubscriptionSyncEvent
 from ...webhook.event_types import WebhookEventSyncType
 
@@ -44,3 +48,19 @@ def prevent_sync_event_circular_query(func):
         return func(*args, **kwargs)
 
     return wrapper
+
+
+def save_checkout_if_not_deleted(
+    checkout: "Checkout", update_fields: Optional[list[str]] = None
+):
+    try:
+        checkout.save_if_not_deleted(update_fields=update_fields)
+    except Checkout.DoesNotExist:
+        raise ValidationError(
+            {
+                "checkout": ValidationError(
+                    "Checkout does no longer exists.",
+                    code=CheckoutErrorCode.NOT_FOUND.value,
+                )
+            }
+        )

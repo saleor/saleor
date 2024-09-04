@@ -16,7 +16,6 @@ from ....checkout.utils import (
     change_shipping_address_in_checkout,
     invalidate_checkout,
     is_shipping_required,
-    save_checkout_with_update_fields,
 )
 from ....core.tracing import traced_atomic_transaction
 from ....graphql.account.mixins import AddressMetadataMixin
@@ -33,6 +32,7 @@ from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...site.dataloaders import get_site_promise
 from ..types import Checkout
+from ..utils import save_checkout_if_not_deleted
 from .checkout_create import CheckoutAddressValidationRules
 from .utils import (
     ERROR_CC_ADDRESS_CHANGE_FORBIDDEN,
@@ -212,7 +212,7 @@ class CheckoutShippingAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixi
         invalidate_prices_updated_fields = invalidate_checkout(
             checkout_info, lines, manager, save=False
         )
-        save_checkout_with_update_fields(
+        save_checkout_if_not_deleted(
             checkout, shipping_address_updated_fields + invalidate_prices_updated_fields
         )
 

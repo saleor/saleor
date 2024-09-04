@@ -29230,7 +29230,6 @@ enum CheckoutErrorCode @doc(category: "Checkout") {
   NON_EDITABLE_GIFT_LINE
   NON_REMOVABLE_GIFT_LINE
   SHIPPING_CHANGE_FORBIDDEN
-  DELETED
 }
 
 """

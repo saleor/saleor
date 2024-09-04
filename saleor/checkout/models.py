@@ -8,7 +8,7 @@ from uuid import uuid4
 
 from django.conf import settings
 from django.core.validators import MinValueValidator
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 from django.utils.encoding import smart_str
 from django_countries.fields import Country, CountryField
@@ -211,6 +211,16 @@ class Checkout(models.Model):
 
     def __iter__(self):
         return iter(self.lines.all())
+
+    def save_if_not_deleted(self, update_fields: Optional[list] = None):
+        with transaction.atomic():
+            # check if checkout still exists and lock item for updates
+            if not Checkout.objects.select_for_update().filter(pk=self.pk).first():
+                raise Checkout.DoesNotExist("Checkout does no longer exists.")
+            if update_fields:
+                return self.save(update_fields=update_fields)
+            else:
+                return self.save()
 
     def get_customer_email(self) -> Optional[str]:
         return self.user.email if self.user else self.email

@@ -1,7 +1,6 @@
 import graphene
 
 from ....checkout.actions import call_checkout_event
-from ....checkout.utils import save_checkout_with_update_fields
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_321
@@ -11,6 +10,7 @@ from ...core.types import CheckoutError
 from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Checkout
+from ..utils import save_checkout_if_not_deleted
 
 
 class CheckoutCustomerNoteUpdate(BaseMutation):
@@ -53,7 +53,7 @@ class CheckoutCustomerNoteUpdate(BaseMutation):
 
         checkout.note = customer_note
         cls.clean_instance(info, checkout)
-        save_checkout_with_update_fields(checkout, ["note", "last_change"])
+        save_checkout_if_not_deleted(checkout, ["note", "last_change"])
         manager = get_plugin_manager_promise(info.context).get()
         call_checkout_event(
             manager,

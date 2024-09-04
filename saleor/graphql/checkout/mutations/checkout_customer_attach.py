@@ -3,7 +3,6 @@ from django.forms import ValidationError
 
 from ....checkout.actions import call_checkout_event
 from ....checkout.error_codes import CheckoutErrorCode
-from ....checkout.utils import save_checkout_with_update_fields
 from ....core.exceptions import PermissionDenied
 from ....permission.auth_filters import AuthorizationFilters
 from ....permission.enums import AccountPermissions
@@ -19,6 +18,7 @@ from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils import get_user_or_app_from_context
 from ..types import Checkout
+from ..utils import save_checkout_if_not_deleted
 from .utils import get_checkout
 
 
@@ -117,7 +117,7 @@ class CheckoutCustomerAttach(BaseMutation):
         checkout.user = customer
         checkout.email = customer.email
 
-        save_checkout_with_update_fields(checkout, ["email", "user", "last_change"])
+        save_checkout_if_not_deleted(checkout, ["email", "user", "last_change"])
         manager = get_plugin_manager_promise(info.context).get()
 
         call_checkout_event(

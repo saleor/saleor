@@ -1367,7 +1367,7 @@ def test_checkout_email_update(api_client, checkout_with_variants, count_queries
     }
     with patch(
         "saleor.graphql.checkout.mutations."
-        "checkout_email_update.save_checkout_with_update_fields"
+        "checkout_email_update.save_checkout_if_not_deleted"
     ) as mocked_save:
         response = get_graphql_content(api_client.post_graphql(query, variables))
     assert not response["data"]["checkoutEmailUpdate"]["errors"]

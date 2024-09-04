@@ -29,7 +29,6 @@ from ....checkout.utils import (
     delete_external_shipping_id,
     get_external_shipping_id,
     is_shipping_required,
-    save_checkout_with_update_fields,
 )
 from ....core.exceptions import InsufficientStock, PermissionDenied
 from ....discount import DiscountType, DiscountValueType
@@ -48,6 +47,7 @@ from ....warehouse.availability import check_stock_and_preorder_quantity_bulk
 from ...core import ResolveInfo
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ..types import Checkout
+from ..utils import save_checkout_if_not_deleted
 
 if TYPE_CHECKING:
     from ...core.mutations import BaseMutation
@@ -606,6 +606,6 @@ def _set_checkout_base_subtotal_and_total_on_checkout_creation(
     # base total and subtotal is the same, as there is no option to set the
     # delivery method during checkout creation
     checkout.base_total = checkout.base_subtotal
-    save_checkout_with_update_fields(
+    save_checkout_if_not_deleted(
         checkout, ["base_subtotal_amount", "base_total_amount"]
     )
