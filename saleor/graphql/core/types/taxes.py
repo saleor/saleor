@@ -2,6 +2,7 @@ from functools import partial
 from typing import Union
 
 import graphene
+from prices import Money
 from promise import Promise
 
 from ....checkout import base_calculations
@@ -40,7 +41,7 @@ from ...tax.dataloaders import (
 from ...tax.enums import TaxableObjectDiscountTypeEnum
 from .. import ResolveInfo
 from .common import NonNullList
-from .money import Money
+from .money import Money as MoneyType
 from .order_or_checkout import OrderOrCheckoutBase
 
 
@@ -78,7 +79,7 @@ class TaxableObjectLine(BaseObjectType):
     product_sku = graphene.String(description="The product sku.")
 
     unit_price = graphene.Field(
-        Money,
+        MoneyType,
         description=(
             "Price of the single item in the order line. "
             "The price includes catalogue promotions, specific product "
@@ -88,7 +89,7 @@ class TaxableObjectLine(BaseObjectType):
         required=True,
     )
     total_price = graphene.Field(
-        Money,
+        MoneyType,
         description=(
             "Price of the order line. "
             "The price includes catalogue promotions, specific product "
@@ -267,7 +268,7 @@ class TaxableObjectLine(BaseObjectType):
 class TaxableObjectDiscount(BaseObjectType):
     name = graphene.String(description="The name of the discount.")
     amount = graphene.Field(
-        Money, description="The amount of the discount.", required=True
+        MoneyType, description="The amount of the discount.", required=True
     )
     type = TaxableObjectDiscountTypeEnum(
         required=True,
@@ -291,7 +292,7 @@ class TaxableObject(BaseObjectType):
     )
     currency = graphene.String(required=True, description="The currency of the object.")
     shipping_price = graphene.Field(
-        Money,
+        MoneyType,
         required=True,
         description=(
             "The price of shipping method, includes shipping voucher discount "
@@ -379,6 +380,8 @@ class TaxableObject(BaseObjectType):
             def calculate_checkout_discounts(checkout_info):
                 checkout = checkout_info.checkout
                 discount_name = checkout.discount_name
+                # All order level discounts applicable for checkout, like entire order
+                # vouchers and order promotions, reduce subtotal value
                 return (
                     [
                         {
@@ -406,41 +409,38 @@ class TaxableObject(BaseObjectType):
             # order promotions and manual discounts should be taken into account.
             # Manual discount needs to be split into subtotal and shipping portions.
             taxable_discounts = []
+            currency = root.currency
             for discount in discounts:
-                if discount.type != DiscountType.MANUAL:
-                    continue
-                subtotal = root.subtotal.net
-                shipping = root.base_shipping_price
-                subtotal_discount, shipping_discount = split_manual_discount(
-                    discount, subtotal, shipping
-                )
-                taxable_discounts.extend(
-                    [
+                shipping_discount = Money(0, currency)
+                subtotal_discount = Money(0, currency)
+                if discount.type == DiscountType.MANUAL:
+                    subtotal = root.subtotal.net
+                    shipping = root.base_shipping_price
+                    subtotal_discount, shipping_discount = split_manual_discount(
+                        discount, subtotal, shipping
+                    )
+                if (
+                    is_order_level_voucher(discount.voucher)
+                    or discount.type == DiscountType.ORDER_PROMOTION
+                ):
+                    subtotal_discount = discount.amount
+
+                if subtotal_discount.amount:
+                    taxable_discounts.append(
                         {
                             "name": discount.name,
                             "amount": subtotal_discount,
                             "type": TaxableObjectDiscountTypeEnum.SUBTOTAL,
-                        },
+                        }
+                    )
+                if shipping_discount.amount:
+                    taxable_discounts.append(
                         {
                             "name": discount.name,
                             "amount": shipping_discount,
                             "type": TaxableObjectDiscountTypeEnum.SHIPPING,
-                        },
-                    ]
-                )
-
-            taxable_discounts.extend(
-                [
-                    {
-                        "name": discount.name,
-                        "amount": discount.amount,
-                        "type": TaxableObjectDiscountTypeEnum.SUBTOTAL,
-                    }
-                    for discount in discounts
-                    if is_order_level_voucher(discount.voucher)
-                    or discount.type == DiscountType.ORDER_PROMOTION
-                ]
-            )
+                        }
+                    )
 
             return taxable_discounts
 
