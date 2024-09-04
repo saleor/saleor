@@ -31,6 +31,7 @@ from ..calculations import (
     _calculate_and_add_tax,
     _set_checkout_base_prices,
     fetch_checkout_data,
+    validate_tax_data,
 )
 from ..fetch import CheckoutLineInfo, fetch_checkout_info, fetch_checkout_lines
 
@@ -573,6 +574,7 @@ def test_fetch_checkout_data_calls_plugin(
 
 
 @freeze_time()
+@patch("saleor.order.calculations.validate_tax_data")
 @patch("saleor.plugins.manager.PluginsManager.calculate_checkout_total")
 @patch("saleor.plugins.manager.PluginsManager.get_taxes_for_checkout")
 @patch("saleor.checkout.calculations._apply_tax_data")
@@ -581,6 +583,7 @@ def test_fetch_checkout_data_calls_tax_app(
     mock_apply_tax_data,
     mock_get_taxes,
     mock_calculate_checkout_total,
+    mock_validate_tax_data,
     fetch_kwargs,
     checkout_with_items,
 ):
@@ -759,10 +762,9 @@ def test_calculate_and_add_tax_empty_tax_data_logging_address(
     )
 
 
-def test_apply_tax_data_with_negative_values(checkout_with_item, caplog):
+def test_validate_tax_data_with_negative_values(checkout_info, caplog):
     # given
-    checkout = checkout_with_item
-    line = checkout.lines.get()
+    lines = checkout_info.checkout.lines.all()
 
     tax_data = TaxData(
         shipping_price_net_amount=Decimal("1"),
@@ -779,9 +781,12 @@ def test_apply_tax_data_with_negative_values(checkout_with_item, caplog):
 
     # when & then
     with pytest.raises(TaxDataWithNegativeValues):
-        _apply_tax_data(
-            checkout,
-            [Mock(spec=CheckoutLineInfo, line=line, variant=line.variant)],
+        validate_tax_data(
             tax_data,
+            checkout_info,
+            [
+                Mock(spec=CheckoutLineInfo, line=line, variant=line.variant)
+                for line in lines
+            ],
         )
     assert "Tax data contains negative values" in caplog.text

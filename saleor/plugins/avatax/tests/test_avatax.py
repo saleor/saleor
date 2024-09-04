@@ -6376,6 +6376,7 @@ def test_calculate_checkout_negative_values_in_tax_data(
     plugin_configuration,
     caplog,
 ):
+    # given
     plugin_configuration()
     manager = get_plugins_manager(allow_replica=False)
 

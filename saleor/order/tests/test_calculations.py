@@ -1187,6 +1187,7 @@ def test_fetch_order_data_calls_plugin(
     mock_get_taxes.assert_not_called()
 
 
+@patch("saleor.order.calculations.validate_tax_data")
 @patch("saleor.plugins.manager.PluginsManager.calculate_order_total")
 @patch("saleor.plugins.manager.PluginsManager.get_taxes_for_order")
 @patch("saleor.order.calculations._apply_tax_data")
@@ -1195,6 +1196,7 @@ def test_fetch_order_data_calls_tax_app(
     mock_apply_tax_data,
     mock_get_taxes,
     mock_calculate_order_total,
+    mock_validate_tax_data,
     order_with_lines,
     order_lines,
 ):
@@ -1285,7 +1287,7 @@ def test_recalculate_prices_empty_tax_data_logging_address(
     )
 
 
-def test_apply_tax_data_with_negative_values(order_line, caplog):
+def test_validate_tax_data_with_negative_values(order_line, caplog):
     # given
     tax_data = TaxData(
         shipping_price_net_amount=Decimal("1"),
@@ -1302,5 +1304,5 @@ def test_apply_tax_data_with_negative_values(order_line, caplog):
 
     # when & then
     with pytest.raises(TaxDataWithNegativeValues):
-        calculations._apply_tax_data(order_line.order, order_line, tax_data, True)
+        calculations.validate_tax_data(tax_data, order_line.order, [order_line])
     assert "Tax data contains negative values" in caplog.text

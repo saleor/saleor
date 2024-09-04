@@ -216,8 +216,7 @@ def _calculate_and_add_tax(
             _recalculate_with_plugins(manager, order, lines, prices_entered_with_tax)
             # Get the taxes calculated with apps and apply to order.
             tax_data = manager.get_taxes_for_order(order, tax_app_identifier)
-            if not tax_data:
-                log_address_if_validation_skipped_for_order(order, logger)
+            validate_tax_data(tax_data, order, lines, log_only=True)
             _apply_tax_data(order, lines, tax_data, prices_entered_with_tax)
         else:
             _call_plugin_or_tax_app(
@@ -262,9 +261,7 @@ def _call_plugin_or_tax_app(
             raise TaxEmptyData("Empty tax data.")
     else:
         tax_data = manager.get_taxes_for_order(order, tax_app_identifier)
-        if tax_data is None:
-            log_address_if_validation_skipped_for_order(order, logger)
-            raise TaxEmptyData("Empty tax data.")
+        validate_tax_data(tax_data, order, lines)
         _apply_tax_data(order, lines, tax_data, prices_entered_with_tax)
 
 
@@ -369,13 +366,6 @@ def _apply_tax_data(
     """Apply all prices from tax data to order and order lines."""
     if not tax_data:
         return
-
-    if check_negative_values_in_tax_data(tax_data):
-        logger.error(
-            "Tax data contains negative values.",
-            extra={"order_id": graphene.Node.to_global_id("Order", order.pk)},
-        )
-        raise TaxDataWithNegativeValues("Tax data contains negative values.")
 
     currency = order.currency
     shipping_price = TaxedMoney(
@@ -748,3 +738,23 @@ def order_undiscounted_total(
         database_connection_name=database_connection_name,
     )
     return quantize_price(order.undiscounted_total, currency)
+
+
+def validate_tax_data(
+    tax_data: Optional[TaxData],
+    order: Order,
+    lines: Iterable[OrderLine],
+    log_only: bool = False,
+):
+    if not tax_data:
+        log_address_if_validation_skipped_for_order(order, logger)
+        if not log_only:
+            raise TaxEmptyData("Empty tax data.")
+
+    if check_negative_values_in_tax_data(tax_data):
+        logger.error(
+            "Tax data contains negative values.",
+            extra={"order_id": graphene.Node.to_global_id("Order", order.pk)},
+        )
+        if not log_only:
+            raise TaxDataWithNegativeValues("Tax data contains negative values.")
