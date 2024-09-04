@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable
 
 from ..email_common import get_email_subject, get_email_template_or_default
 from . import constants
@@ -15,9 +15,8 @@ if TYPE_CHECKING:
 
 
 def send_set_staff_password_email(
-    payload: dict, config: dict, plugin: "AdminEmailPlugin"
+    payload_func: Callable[[], dict], config: dict, plugin: "AdminEmailPlugin"
 ):
-    recipient_email = payload["recipient_email"]
     template = get_email_template_or_default(
         plugin,
         constants.SET_STAFF_PASSWORD_TEMPLATE_FIELD,
@@ -27,6 +26,8 @@ def send_set_staff_password_email(
     if not template:
         # Empty template means that we don't want to trigger a given event.
         return
+    payload = payload_func()
+    recipient_email = payload["recipient_email"]
     subject = get_email_subject(
         plugin.configuration,
         constants.SET_STAFF_PASSWORD_SUBJECT_FIELD,
@@ -37,32 +38,35 @@ def send_set_staff_password_email(
     )
 
 
-def send_csv_export_success(payload: dict, config: dict, plugin: "AdminEmailPlugin"):
+def send_csv_export_success(
+    payload_func: Callable[[], dict], config: dict, plugin: "AdminEmailPlugin"
+):
+    template = get_email_template_or_default(
+        plugin,
+        constants.CSV_EXPORT_SUCCESS_TEMPLATE_FIELD,
+        constants.CSV_EXPORT_SUCCESS_DEFAULT_TEMPLATE,
+        constants.DEFAULT_EMAIL_TEMPLATES_PATH,
+    )
+    if not template:
+        # Empty template means that we don't want to trigger a given event.
+        return
+    payload = payload_func()
     recipient_email = payload.get("recipient_email")
-    if recipient_email:
-        template = get_email_template_or_default(
-            plugin,
-            constants.CSV_EXPORT_SUCCESS_TEMPLATE_FIELD,
-            constants.CSV_EXPORT_SUCCESS_DEFAULT_TEMPLATE,
-            constants.DEFAULT_EMAIL_TEMPLATES_PATH,
-        )
-        if not template:
-            # Empty template means that we don't want to trigger a given event.
-            return
-        subject = get_email_subject(
-            plugin.configuration,
-            constants.CSV_EXPORT_SUCCESS_SUBJECT_FIELD,
-            constants.CSV_EXPORT_SUCCESS_DEFAULT_SUBJECT,
-        )
-        send_email_with_link_to_download_file_task.delay(
-            recipient_email, payload, config, subject, template
-        )
+    if not recipient_email:
+        return
+    subject = get_email_subject(
+        plugin.configuration,
+        constants.CSV_EXPORT_SUCCESS_SUBJECT_FIELD,
+        constants.CSV_EXPORT_SUCCESS_DEFAULT_SUBJECT,
+    )
+    send_email_with_link_to_download_file_task.delay(
+        recipient_email, payload, config, subject, template
+    )
 
 
 def send_staff_order_confirmation(
-    payload: dict, config: dict, plugin: "AdminEmailPlugin"
+    payload_func: Callable[[], dict], config: dict, plugin: "AdminEmailPlugin"
 ):
-    recipient_list = payload.get("recipient_list")
     template = get_email_template_or_default(
         plugin,
         constants.STAFF_ORDER_CONFIRMATION_TEMPLATE_FIELD,
@@ -72,6 +76,8 @@ def send_staff_order_confirmation(
     if not template:
         # Empty template means that we don't want to trigger a given event.
         return
+    payload = payload_func()
+    recipient_list = payload.get("recipient_list")
     subject = get_email_subject(
         plugin.configuration,
         constants.STAFF_ORDER_CONFIRMATION_SUBJECT_FIELD,
@@ -82,45 +88,53 @@ def send_staff_order_confirmation(
     )
 
 
-def send_csv_export_failed(payload: dict, config: dict, plugin: "AdminEmailPlugin"):
+def send_csv_export_failed(
+    payload_func: Callable[[], dict], config: dict, plugin: "AdminEmailPlugin"
+):
+    template = get_email_template_or_default(
+        plugin,
+        constants.CSV_EXPORT_FAILED_TEMPLATE_FIELD,
+        constants.CSV_EXPORT_FAILED_TEMPLATE_DEFAULT_TEMPLATE,
+        constants.DEFAULT_EMAIL_TEMPLATES_PATH,
+    )
+    if not template:
+        # Empty template means that we don't want to trigger a given event.
+        return
+    payload = payload_func()
     recipient_email = payload.get("recipient_email")
-    if recipient_email:
-        template = get_email_template_or_default(
-            plugin,
-            constants.CSV_EXPORT_FAILED_TEMPLATE_FIELD,
-            constants.CSV_EXPORT_FAILED_TEMPLATE_DEFAULT_TEMPLATE,
-            constants.DEFAULT_EMAIL_TEMPLATES_PATH,
-        )
-        if not template:
-            # Empty template means that we don't want to trigger a given event.
-            return
-        subject = get_email_subject(
-            plugin.configuration,
-            constants.CSV_EXPORT_FAILED_SUBJECT_FIELD,
-            constants.CSV_EXPORT_FAILED_DEFAULT_SUBJECT,
-        )
-        send_export_failed_email_task.delay(
-            recipient_email, payload, config, subject, template
-        )
+    if not recipient_email:
+        return
+    subject = get_email_subject(
+        plugin.configuration,
+        constants.CSV_EXPORT_FAILED_SUBJECT_FIELD,
+        constants.CSV_EXPORT_FAILED_DEFAULT_SUBJECT,
+    )
+    send_export_failed_email_task.delay(
+        recipient_email, payload, config, subject, template
+    )
 
 
-def send_staff_reset_password(payload: dict, config: dict, plugin: "AdminEmailPlugin"):
+def send_staff_reset_password(
+    payload_func: Callable[[], dict], config: dict, plugin: "AdminEmailPlugin"
+):
+    template = get_email_template_or_default(
+        plugin,
+        constants.STAFF_PASSWORD_RESET_TEMPLATE_FIELD,
+        constants.STAFF_PASSWORD_RESET_DEFAULT_TEMPLATE,
+        constants.DEFAULT_EMAIL_TEMPLATES_PATH,
+    )
+    if not template:
+        # Empty template means that we don't want to trigger a given event.
+        return
+    payload = payload_func()
     recipient_email = payload.get("recipient_email")
-    if recipient_email:
-        template = get_email_template_or_default(
-            plugin,
-            constants.STAFF_PASSWORD_RESET_TEMPLATE_FIELD,
-            constants.STAFF_PASSWORD_RESET_DEFAULT_TEMPLATE,
-            constants.DEFAULT_EMAIL_TEMPLATES_PATH,
-        )
-        if not template:
-            # Empty template means that we don't want to trigger a given event.
-            return
-        subject = get_email_subject(
-            plugin.configuration,
-            constants.STAFF_PASSWORD_RESET_SUBJECT_FIELD,
-            constants.STAFF_PASSWORD_RESET_DEFAULT_SUBJECT,
-        )
-        send_staff_password_reset_email_task.delay(
-            recipient_email, payload, config, subject, template
-        )
+    if not recipient_email:
+        return
+    subject = get_email_subject(
+        plugin.configuration,
+        constants.STAFF_PASSWORD_RESET_SUBJECT_FIELD,
+        constants.STAFF_PASSWORD_RESET_DEFAULT_SUBJECT,
+    )
+    send_staff_password_reset_email_task.delay(
+        recipient_email, payload, config, subject, template
+    )

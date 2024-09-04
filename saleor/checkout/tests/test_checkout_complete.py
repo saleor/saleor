@@ -14,7 +14,7 @@ from ...account.models import CustomerEvent
 from ...channel import MarkAsPaidStrategy
 from ...checkout import CheckoutAuthorizeStatus
 from ...core.exceptions import InsufficientStock
-from ...core.notify_events import NotifyEventType
+from ...core.notify import NotifyEventType
 from ...core.taxes import zero_money, zero_taxed_money
 from ...core.tests.utils import get_site_context_payload
 from ...discount.models import VoucherCustomer
@@ -167,21 +167,36 @@ def test_create_order_captured_payment_creates_expected_events(
     # ensure the event parameters are empty
     assert order_confirmed_event.parameters == {}
 
-    mock_notify.assert_has_calls(
-        [
-            mock.call(
-                NotifyEventType.ORDER_CONFIRMATION,
-                expected_order_payload,
-                channel_slug=channel_USD.slug,
-            ),
-            mock.call(
-                NotifyEventType.ORDER_PAYMENT_CONFIRMATION,
-                expected_payment_payload,
-                channel_slug=channel_USD.slug,
-            ),
-        ],
-        any_order=True,
+    assert mock_notify.call_count == 2
+
+    order_confirmation_call = [
+        call
+        for call in mock_notify.call_args_list
+        if call.args[0] == NotifyEventType.ORDER_CONFIRMATION
+    ][0]
+    order_confirmation_called_args = order_confirmation_call.args
+    order_confirmation_called_kwargs = order_confirmation_call.kwargs
+    assert order_confirmation_called_args[0] == NotifyEventType.ORDER_CONFIRMATION
+    assert len(order_confirmation_called_kwargs) == 2
+    assert order_confirmation_called_kwargs["payload_func"]() == expected_order_payload
+    assert order_confirmation_called_kwargs["channel_slug"] == channel_USD.slug
+
+    payment_confirmation_call = [
+        call
+        for call in mock_notify.call_args_list
+        if call.args[0] == NotifyEventType.ORDER_PAYMENT_CONFIRMATION
+    ][0]
+    payment_confirmation_called_args = payment_confirmation_call.args
+    payment_confirmation_called_kwargs = payment_confirmation_call.kwargs
+    assert (
+        payment_confirmation_called_args[0]
+        == NotifyEventType.ORDER_PAYMENT_CONFIRMATION
     )
+    assert len(payment_confirmation_called_kwargs) == 2
+    assert (
+        payment_confirmation_called_kwargs["payload_func"]() == expected_payment_payload
+    )
+    assert payment_confirmation_called_kwargs["channel_slug"] == channel_USD.slug
 
     # Ensure the correct customer event was created if the user was not anonymous
     placement_event = customer_user.events.get()  # type: CustomerEvent
@@ -316,21 +331,36 @@ def test_create_order_captured_payment_creates_expected_events_anonymous_user(
     # ensure the event parameters are empty
     assert order_confirmed_event.parameters == {}
 
-    mock_notify.assert_has_calls(
-        [
-            mock.call(
-                NotifyEventType.ORDER_CONFIRMATION,
-                expected_order_payload,
-                channel_slug=channel_USD.slug,
-            ),
-            mock.call(
-                NotifyEventType.ORDER_PAYMENT_CONFIRMATION,
-                expected_payment_payload,
-                channel_slug=channel_USD.slug,
-            ),
-        ],
-        any_order=True,
+    assert mock_notify.call_count == 2
+
+    order_confirmation_call = [
+        call
+        for call in mock_notify.call_args_list
+        if call.args[0] == NotifyEventType.ORDER_CONFIRMATION
+    ][0]
+    order_confirmation_called_args = order_confirmation_call.args
+    order_confirmation_called_kwargs = order_confirmation_call.kwargs
+    assert order_confirmation_called_args[0] == NotifyEventType.ORDER_CONFIRMATION
+    assert len(order_confirmation_called_kwargs) == 2
+    assert order_confirmation_called_kwargs["payload_func"]() == expected_order_payload
+    assert order_confirmation_called_kwargs["channel_slug"] == channel_USD.slug
+
+    payment_confirmation_call = [
+        call
+        for call in mock_notify.call_args_list
+        if call.args[0] == NotifyEventType.ORDER_PAYMENT_CONFIRMATION
+    ][0]
+    payment_confirmation_called_args = payment_confirmation_call.args
+    payment_confirmation_called_kwargs = payment_confirmation_call.kwargs
+    assert (
+        payment_confirmation_called_args[0]
+        == NotifyEventType.ORDER_PAYMENT_CONFIRMATION
     )
+    assert len(payment_confirmation_called_kwargs) == 2
+    assert (
+        payment_confirmation_called_kwargs["payload_func"]() == expected_payment_payload
+    )
+    assert payment_confirmation_called_kwargs["channel_slug"] == channel_USD.slug
 
     # Check no event was created if the user was anonymous
     assert not CustomerEvent.objects.exists()  # should not have created any event
@@ -432,11 +462,14 @@ def test_create_order_preauth_payment_creates_expected_events(
     # ensure the event parameters are empty
     assert order_confirmed_event.parameters == {}
 
-    mock_notify.assert_called_once_with(
-        NotifyEventType.ORDER_CONFIRMATION,
-        expected_payload,
-        channel_slug=channel_USD.slug,
-    )
+    assert mock_notify.call_count == 1
+    call_args = mock_notify.call_args_list[0]
+    called_args = call_args.args
+    called_kwargs = call_args.kwargs
+    assert called_args[0] == NotifyEventType.ORDER_CONFIRMATION
+    assert len(called_kwargs) == 2
+    assert called_kwargs["payload_func"]() == expected_payload
+    assert called_kwargs["channel_slug"] == channel_USD.slug
 
     # Ensure the correct customer event was created if the user was not anonymous
     placement_event = customer_user.events.get()  # type: CustomerEvent
@@ -543,11 +576,14 @@ def test_create_order_preauth_payment_creates_expected_events_anonymous_user(
     # ensure the event parameters are empty
     assert order_confirmed_event.parameters == {}
 
-    mock_notify.assert_called_once_with(
-        NotifyEventType.ORDER_CONFIRMATION,
-        expected_payload,
-        channel_slug=channel_USD.slug,
-    )
+    assert mock_notify.call_count == 1
+    call_args = mock_notify.call_args_list[0]
+    called_args = call_args.args
+    called_kwargs = call_args.kwargs
+    assert called_args[0] == NotifyEventType.ORDER_CONFIRMATION
+    assert len(called_kwargs) == 2
+    assert called_kwargs["payload_func"]() == expected_payload
+    assert called_kwargs["channel_slug"] == channel_USD.slug
 
     # Check no event was created if the user was anonymous
     assert not CustomerEvent.objects.exists()  # should not have created any event
@@ -1303,6 +1339,12 @@ def test_complete_checkout_0_total_captured_payment_creates_expected_events(
         **get_site_context_payload(site_settings.site),
     }
 
+    expected_payment_payload = {
+        "order": get_default_order_payload(order),
+        "recipient_email": order.get_customer_email(),
+        **get_site_context_payload(site_settings.site),
+    }
+
     assert order_fully_paid.type == OrderEvents.ORDER_FULLY_PAID
     assert order_fully_paid.user == checkout_user
 
@@ -1318,16 +1360,36 @@ def test_complete_checkout_0_total_captured_payment_creates_expected_events(
     # ensure the event parameters are empty
     assert order_confirmed_event.parameters == {}
 
-    mock_notify.assert_has_calls(
-        [
-            mock.call(
-                NotifyEventType.ORDER_CONFIRMATION,
-                expected_order_payload,
-                channel_slug=channel_USD.slug,
-            )
-        ],
-        any_order=True,
+    assert mock_notify.call_count == 2
+
+    order_confirmation_call = [
+        call
+        for call in mock_notify.call_args_list
+        if call.args[0] == NotifyEventType.ORDER_CONFIRMATION
+    ][0]
+    order_confirmation_called_args = order_confirmation_call.args
+    order_confirmation_called_kwargs = order_confirmation_call.kwargs
+    assert order_confirmation_called_args[0] == NotifyEventType.ORDER_CONFIRMATION
+    assert len(order_confirmation_called_kwargs) == 2
+    assert order_confirmation_called_kwargs["payload_func"]() == expected_order_payload
+    assert order_confirmation_called_kwargs["channel_slug"] == channel_USD.slug
+
+    payment_confirmation_call = [
+        call
+        for call in mock_notify.call_args_list
+        if call.args[0] == NotifyEventType.ORDER_PAYMENT_CONFIRMATION
+    ][0]
+    payment_confirmation_called_args = payment_confirmation_call.args
+    payment_confirmation_called_kwargs = payment_confirmation_call.kwargs
+    assert (
+        payment_confirmation_called_args[0]
+        == NotifyEventType.ORDER_PAYMENT_CONFIRMATION
     )
+    assert len(payment_confirmation_called_kwargs) == 2
+    assert (
+        payment_confirmation_called_kwargs["payload_func"]() == expected_payment_payload
+    )
+    assert payment_confirmation_called_kwargs["channel_slug"] == channel_USD.slug
 
     # Ensure the correct customer event was created if the user was not anonymous
     placement_event = customer_user.events.get()  # type: CustomerEvent
