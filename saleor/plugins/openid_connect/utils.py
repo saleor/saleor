@@ -132,19 +132,19 @@ def get_user_info(user_info_url, access_token) -> Optional[dict]:
     except requests.exceptions.HTTPError as e:
         logger.warning(
             "Fetching OIDC user info failed. HTTP error occurred",
-            extra={"user_info_url": user_info_url, "error": e},
+            extra={"user_info_url": user_info_url, "error": str(e)},
         )
         return None
     except requests.exceptions.RequestException as e:
         logger.warning(
             "Fetching OIDC user info failed",
-            extra={"user_info_url": user_info_url, "error": e},
+            extra={"user_info_url": user_info_url, "error": str(e)},
         )
         return None
     except json.JSONDecodeError as e:
         logger.warning(
             "Invalid OIDC user info response",
-            extra={"user_info_url": user_info_url, "error": e},
+            extra={"user_info_url": user_info_url, "error": str(e)},
         )
         return None
 
@@ -154,7 +154,8 @@ def decode_access_token(token, jwks_url):
         return get_decoded_token(token, jwks_url)
     except (JoseError, ValueError) as e:
         logger.info(
-            "Invalid OIDC access token format", extra={"error": e, "jwks_url": jwks_url}
+            "Invalid OIDC access token format",
+            extra={"error": str(e), "jwks_url": jwks_url},
         )
         return None
 
@@ -173,7 +174,7 @@ def get_user_from_oauth_access_token_in_jwt_format(
     except (JoseError, ValueError) as e:
         logger.info(
             "OIDC access token validation failed",
-            extra={"error": e, "user_info_url": user_info_url},
+            extra={"error": str(e), "user_info_url": user_info_url},
         )
         return None
 
@@ -196,7 +197,7 @@ def get_user_from_oauth_access_token_in_jwt_format(
             last_login=token_payload.get("iat"),
         )
     except AuthenticationError as e:
-        logger.info("Unable to create a user object", extra={"error": e})
+        logger.info("Unable to create a user object", extra={"error": str(e)})
         return None
 
     scope = token_payload.get("scope")
