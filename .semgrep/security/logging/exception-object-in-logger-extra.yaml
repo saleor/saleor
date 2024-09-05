@@ -1,0 +1,23 @@
+rules:
+  - id: exception-object-in-logger-extra
+    patterns:
+      - pattern-inside: |
+          try:
+            ...
+          except ... as $EXC:
+            ...
+      - pattern: |
+          $LOGGER.$LOG_FUNC(..., extra={..., ...: $EXC, ...})
+      - metavariable-regex:
+          metavariable: $LOGGER
+          regex: (?i)(logger|logging)
+      - metavariable-regex:
+          metavariable: $LOG_FUNC
+          regex: (debug|info|warn|warning|error|exception|critical)
+    # e.g., it can cause Sentry to hold the thread reference which leads to threads to not be freed. This is especially true with asgiref as it can spin N threads per HTTP request.
+    message: >-
+      Exception objects should not be put inside a logger's `extra` field, it can lead to high memory usage. Instead, use str(exc) to log the message.
+    languages: [python]
+    severity: WARNING
+    focus-metavariable: $EXC
+

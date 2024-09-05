@@ -213,7 +213,9 @@ def create_order(payment, checkout, manager):
         )
     except ValidationError as e:
         logger.info(
-            "Failed to create order from checkout %s.", checkout.pk, extra={"error": e}
+            "Failed to create order from checkout %s.",
+            checkout.pk,
+            extra={"error": str(e)},
         )
         return None
     # Refresh the payment to assign the newly created order
@@ -292,7 +294,9 @@ def handle_authorization(notification: dict[str, Any], gateway_config: GatewayCo
             amount.get("value"), amount.get("currency")
         )
     except TypeError as e:
-        logger.exception("Cannot convert amount from minor unit", extra={"error": e})
+        logger.exception(
+            "Cannot convert amount from minor unit", extra={"error": str(e)}
+        )
         return
 
     if notification_payment_amount < payment.total:
