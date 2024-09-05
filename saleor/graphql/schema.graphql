@@ -4247,7 +4247,7 @@ type ShippingMethodTranslation implements Node @doc(category: "Shipping") {
   language: LanguageDisplay!
 
   """Translated shipping method name."""
-  name: String!
+  name: String
 
   """
   Translated description of the shipping method.
