@@ -1808,8 +1808,8 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.PRODUCT_VARIANT_STOCK_UPDATED
         if webhooks := self._get_webhooks_for_event(event_type, webhooks):
-            product_variant_data_generator = (
-                generate_product_variant_with_stock_payload([stock], self.requestor)
+            product_variant_data_generator = partial(
+                generate_product_variant_with_stock_payload, [stock], self.requestor
             )
             self.trigger_webhooks_async(
                 None,
