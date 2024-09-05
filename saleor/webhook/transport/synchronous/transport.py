@@ -8,6 +8,7 @@ from django.conf import settings
 from django.core.cache import cache
 
 from ....celeryconf import app
+from ....circuit_breaker import breaker_sync
 from ....core import EventDeliveryStatus
 from ....core.db.connection import allow_writer
 from ....core.models import EventDelivery, EventPayload
@@ -85,6 +86,7 @@ def handle_transaction_request_task(self, delivery_id, request_event_id):
     )
 
 
+@breaker_sync
 def _send_webhook_request_sync(
     delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT, attempt=None
 ) -> tuple[WebhookResponse, Optional[dict[Any, Any]]]:
