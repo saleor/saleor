@@ -18,6 +18,6 @@ rules:
     message: >-
       Exception objects should not be put inside a logger's `extra` field, it can lead to high memory usage. Instead, use str(exc) to log the message.
     languages: [python]
-    severity: WARNING
+    severity: ERROR
     focus-metavariable: $EXC
 
