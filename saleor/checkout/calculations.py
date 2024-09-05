@@ -3,7 +3,6 @@ from collections.abc import Iterable
 from decimal import Decimal
 from typing import TYPE_CHECKING, Optional, cast
 
-import graphene
 from django.conf import settings
 from django.utils import timezone
 from prices import Money, TaxedMoney
@@ -677,7 +676,10 @@ def validate_tax_data(
     checkout_lines_info: Iterable["CheckoutLineInfo"],
     log_only: bool = False,
 ):
-    from .utils import log_address_if_validation_skipped_for_checkout
+    from .utils import (
+        checkout_info_for_logs,
+        log_address_if_validation_skipped_for_checkout,
+    )
 
     if tax_data is None:
         log_address_if_validation_skipped_for_checkout(checkout_info, logger)
@@ -685,13 +687,7 @@ def validate_tax_data(
             raise TaxEmptyData("Empty tax data.")
 
     if check_negative_values_in_tax_data(tax_data):
-        logger.error(
-            "Tax data contains negative values.",
-            extra={
-                "checkout_id": graphene.Node.to_global_id(
-                    "Checkout", checkout_info.checkout.pk
-                ),
-            },
-        )
+        extra = checkout_info_for_logs(checkout_info, checkout_lines_info)
+        logger.error("Tax data contains negative values.", extra=extra)
         if not log_only:
             raise TaxDataWithNegativeValues("Tax data contains negative values.")

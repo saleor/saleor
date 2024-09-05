@@ -764,7 +764,7 @@ def test_calculate_and_add_tax_empty_tax_data_logging_address(
 
 def test_validate_tax_data_with_negative_values(checkout_info, caplog):
     # given
-    lines = checkout_info.checkout.lines.all()
+    lines_info = checkout_info.lines
 
     tax_data = TaxData(
         shipping_price_net_amount=Decimal("1"),
@@ -781,12 +781,6 @@ def test_validate_tax_data_with_negative_values(checkout_info, caplog):
 
     # when & then
     with pytest.raises(TaxDataWithNegativeValues):
-        validate_tax_data(
-            tax_data,
-            checkout_info,
-            [
-                Mock(spec=CheckoutLineInfo, line=line, variant=line.variant)
-                for line in lines
-            ],
-        )
+        validate_tax_data(tax_data, checkout_info, lines_info)
+
     assert "Tax data contains negative values" in caplog.text
