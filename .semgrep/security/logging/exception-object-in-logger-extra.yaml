@@ -7,7 +7,7 @@ rules:
           except ... as $EXC:
             ...
       - pattern: |
-          $LOGGER.$LOG_FUNC(..., extra={..., ...: $EXC, ...})
+          $LOGGER.$LOG_FUNC(..., extra={..., ...: $EXC, ...}, ...)
       - metavariable-regex:
           metavariable: $LOGGER
           regex: (?i)(logger|logging)
@@ -18,6 +18,6 @@ rules:
     message: >-
       Exception objects should not be put inside a logger's `extra` field, it can lead to high memory usage. Instead, use str(exc) to log the message.
     languages: [python]
-    severity: ERROR
+    severity: ERROR 
     focus-metavariable: $EXC
 
