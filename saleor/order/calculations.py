@@ -3,7 +3,6 @@ from collections.abc import Iterable
 from decimal import Decimal
 from typing import Optional
 
-import graphene
 from django.conf import settings
 from django.db import transaction
 from django.db.models import prefetch_related_objects
@@ -37,7 +36,7 @@ from .base_calculations import apply_order_discounts, base_order_line_total
 from .fetch import EditableOrderLineInfo, fetch_draft_order_lines_info
 from .interface import OrderTaxedPricesData
 from .models import Order, OrderLine
-from .utils import log_address_if_validation_skipped_for_order
+from .utils import log_address_if_validation_skipped_for_order, order_info_for_logs
 
 logger = logging.getLogger(__name__)
 
@@ -216,7 +215,7 @@ def _calculate_and_add_tax(
             _recalculate_with_plugins(manager, order, lines, prices_entered_with_tax)
             # Get the taxes calculated with apps and apply to order.
             tax_data = manager.get_taxes_for_order(order, tax_app_identifier)
-            validate_tax_data(tax_data, order, lines, log_only=True)
+            validate_tax_data(tax_data, order, lines, allow_empty_tax_data=True)
             _apply_tax_data(order, lines, tax_data, prices_entered_with_tax)
         else:
             _call_plugin_or_tax_app(
@@ -744,17 +743,14 @@ def validate_tax_data(
     tax_data: Optional[TaxData],
     order: Order,
     lines: Iterable[OrderLine],
-    log_only: bool = False,
+    allow_empty_tax_data: bool = False,
 ):
     if not tax_data:
         log_address_if_validation_skipped_for_order(order, logger)
-        if not log_only:
+        if not allow_empty_tax_data:
             raise TaxEmptyData("Empty tax data.")
 
     if check_negative_values_in_tax_data(tax_data):
-        logger.error(
-            "Tax data contains negative values.",
-            extra={"order_id": graphene.Node.to_global_id("Order", order.pk)},
-        )
-        if not log_only:
-            raise TaxDataWithNegativeValues("Tax data contains negative values.")
+        extra = order_info_for_logs(order, lines)
+        logger.error("Tax data contains negative values.", extra=extra)
+        raise TaxDataWithNegativeValues("Tax data contains negative values.")

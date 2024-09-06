@@ -39,6 +39,7 @@ from ..discount.utils.checkout import (
 from ..discount.utils.promotion import (
     delete_gift_line,
 )
+from ..discount.utils.shared import discount_info_for_logs
 from ..discount.utils.voucher import (
     get_discounted_lines,
     get_products_voucher_discount,
@@ -1105,69 +1106,28 @@ def checkout_info_for_logs(
             "prices_entered_with_tax": tax_configuration.prices_entered_with_tax,
             "tax_app_id": tax_configuration.tax_app_id,
         },
-        "discounts": _discounts_for_logs(checkout_info.discounts),
+        "discounts": discount_info_for_logs(checkout_info.discounts),
         "lines": [
             {
                 "id": graphene.Node.to_global_id("CheckoutLine", line_info.line.pk),
+                "variant_id": graphene.Node.to_global_id(
+                    "ProductVariant", line_info.line.variant_id
+                ),
                 "quantity": line_info.line.quantity,
                 "is_gift": line_info.line.is_gift,
                 "price_override": line_info.line.price_override,
                 "total_price_net_amount": line_info.line.total_price_net_amount,
                 "total_price_gross_amount": line_info.line.total_price_gross_amount,
-                "variant_id": graphene.Node.to_global_id(
-                    "ProductVariant", line_info.line.variant_id
-                ),
-                "variant_listing_price": line_info.variant.channel_listings.get(
-                    channel=channel
-                ).price_amount,
-                "variant_listing_discounted_price": line_info.variant.channel_listings.get(
-                    channel=channel
-                ).discounted_price_amount,
+                "variant_listing_price": line_info.channel_listing.price_amount,
+                "variant_listing_discounted_price": line_info.channel_listing.discounted_price_amount,
                 "product_listing_discounted_price": line_info.product.channel_listings.get(
                     channel=channel
                 ).discounted_price_amount,
                 "product_discounted_price_dirty": line_info.product.channel_listings.get(
                     channel=channel
                 ).discounted_price_dirty,
-                "discounts": _discounts_for_logs(line_info.discounts),
+                "discounts": discount_info_for_logs(line_info.discounts),
             }
             for line_info in checkout_lines_info
         ],
     }
-
-
-def _discounts_for_logs(discounts):
-    return [
-        {
-            "type": discount.type,
-            "value_type": discount.value_type,
-            "value": discount.value,
-            "amount_value": discount.amount_value,
-            "reason": discount.reason,
-            "promotion_rule": {
-                "id": graphene.Node.to_global_id(
-                    "PromotionRule", discount.promotion_rule.id
-                ),
-                "promotion_id": graphene.Node.to_global_id(
-                    "Promotion", discount.promotion_rule.promotion_id
-                ),
-                "catalogue_predicate": discount.promotion_rule.catalogue_predicate,
-                "order_predicate": discount.promotion_rule.order_predicate,
-                "reward_value_type": discount.promotion_rule.reward_value_type,
-                "reward_value": discount.promotion_rule.reward_value,
-                "reward_type": discount.promotion_rule.reward_type,
-                "variants_dirty": discount.promotion_rule.variants_dirty,
-            }
-            if discount.promotion_rule
-            else None,
-            "voucher": {
-                "id": graphene.Node.to_global_id("Voucher", discount.voucher.id),
-                "type": discount.voucher.type,
-                "discount_value_type": discount.voucher.discount_value_type,
-                "apply_once_per_order": discount.voucher.apply_once_per_order,
-            }
-            if discount.voucher
-            else None,
-        }
-        for discount in discounts
-    ]

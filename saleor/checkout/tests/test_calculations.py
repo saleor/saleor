@@ -839,4 +839,5 @@ def test_fetch_checkout_data_tax_data_with_negative_values(
 
     # then
     assert checkout_info.checkout.tax_error == "Tax data contains negative values."
+    assert "Tax data contains negative values" in caplog.text
     mock_set_base_prices.assert_called_once()

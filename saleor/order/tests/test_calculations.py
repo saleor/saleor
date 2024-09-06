@@ -1305,4 +1305,5 @@ def test_validate_tax_data_with_negative_values(order_line, caplog):
     # when & then
     with pytest.raises(TaxDataWithNegativeValues):
         calculations.validate_tax_data(tax_data, order_line.order, [order_line])
+
     assert "Tax data contains negative values" in caplog.text

@@ -1,11 +1,12 @@
 from decimal import Decimal
+from unittest.mock import Mock
 
 import before_after
 import graphene
 import pytest
 
 from ...core.prices import quantize_price
-from ...core.taxes import zero_money
+from ...core.taxes import TaxData, TaxLineData, zero_money, zero_taxed_money
 from ...discount import DiscountType, DiscountValueType, VoucherType
 from ...discount.models import (
     OrderDiscount,
@@ -15,6 +16,7 @@ from ...discount.models import (
 from ...tax import TaxCalculationStrategy
 from ...tests.utils import round_down, round_up
 from .. import OrderStatus, calculations
+from ..interface import OrderTaxedPricesData
 
 
 @pytest.fixture
@@ -2652,3 +2654,59 @@ def test_fetch_order_prices_voucher_shipping_percentage(
         order.undiscounted_total_gross_amount
         == subtotal.amount + undiscounted_shipping_price
     )
+
+
+@pytest.mark.parametrize(
+    ("prices_entered_with_tax", "tax_app_id"),
+    [(True, None), (True, "test.app"), (False, None), (False, "test.app")],
+)
+def test_fetch_order_prices_tax_data_with_negative_values(
+    prices_entered_with_tax,
+    tax_app_id,
+    order_with_lines,
+    caplog,
+):
+    # given
+    order = order_with_lines
+
+    channel = order.channel
+    channel.tax_configuration.tax_app_id = tax_app_id
+    channel.tax_configuration.prices_entered_with_tax = prices_entered_with_tax
+    channel.tax_configuration.save()
+
+    tax_data = TaxData(
+        shipping_price_net_amount=Decimal("1"),
+        shipping_price_gross_amount=Decimal("1.5"),
+        shipping_tax_rate=Decimal("50"),
+        lines=[
+            TaxLineData(
+                total_net_amount=Decimal("2"),
+                total_gross_amount=Decimal("-3"),
+                tax_rate=Decimal("50"),
+            )
+        ],
+    )
+    order = order_with_lines
+    zero_money = zero_taxed_money(order.currency)
+    zero_prices = OrderTaxedPricesData(
+        undiscounted_price=zero_money,
+        price_with_discounts=zero_money,
+    )
+
+    manager_methods = {
+        "calculate_order_line_unit": Mock(return_value=zero_prices),
+        "calculate_order_line_total": Mock(return_value=zero_prices),
+        "calculate_order_total": Mock(return_value=zero_money),
+        "calculate_order_shipping": Mock(return_value=zero_money),
+        "get_order_line_tax_rate": Mock(return_value=Decimal("0.00")),
+        "get_order_shipping_tax_rate": Mock(return_value=Decimal("0.00")),
+        "get_taxes_for_order": Mock(return_value=tax_data),
+    }
+    manager = Mock(**manager_methods)
+
+    # when
+    calculations.fetch_order_prices_if_expired(order, manager, None, True)
+
+    # then
+    assert order.tax_error == "Tax data contains negative values."
+    assert "Tax data contains negative values" in caplog.text
