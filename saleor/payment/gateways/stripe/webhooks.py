@@ -72,12 +72,12 @@ def handle_webhook(
     except ValueError as e:
         # Invalid payload
         logger.warning(
-            "Received invalid payload for Stripe webhook", extra={"error": e}
+            "Received invalid payload for Stripe webhook", extra={"error": str(e)}
         )
         return HttpResponse(status=400)
     except SignatureVerificationError as e:
         # Invalid signature
-        logger.warning("Invalid signature for Stripe webhook", extra={"error": e})
+        logger.warning("Invalid signature for Stripe webhook", extra={"error": str(e)})
         return HttpResponse(status=400)
 
     webhook_handlers = {
@@ -218,7 +218,9 @@ def _finalize_checkout(
             app=None,
         )
     except ValidationError as e:
-        logger.info("Failed to complete checkout %s.", checkout.pk, extra={"error": e})
+        logger.info(
+            "Failed to complete checkout %s.", checkout.pk, extra={"error": str(e)}
+        )
         return None
 
 
