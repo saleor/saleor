@@ -414,7 +414,7 @@ def _calculate_and_add_tax(
                 tax_app_identifier,
                 pregenerated_subscription_payloads,
             )
-            validate_tax_data(tax_data, checkout_info, lines, log_only=True)
+            validate_tax_data(tax_data, checkout_info, lines, allow_empty_tax_data=True)
             _apply_tax_data(checkout, lines, tax_data)
         else:
             _call_plugin_or_tax_app(
@@ -674,7 +674,7 @@ def validate_tax_data(
     tax_data: Optional[TaxData],
     checkout_info: "CheckoutInfo",
     checkout_lines_info: Iterable["CheckoutLineInfo"],
-    log_only: bool = False,
+    allow_empty_tax_data: bool = False,
 ):
     from .utils import (
         checkout_info_for_logs,
@@ -683,11 +683,10 @@ def validate_tax_data(
 
     if tax_data is None:
         log_address_if_validation_skipped_for_checkout(checkout_info, logger)
-        if not log_only:
+        if not allow_empty_tax_data:
             raise TaxEmptyData("Empty tax data.")
 
     if check_negative_values_in_tax_data(tax_data):
         extra = checkout_info_for_logs(checkout_info, checkout_lines_info)
         logger.error("Tax data contains negative values.", extra=extra)
-        if not log_only:
-            raise TaxDataWithNegativeValues("Tax data contains negative values.")
+        raise TaxDataWithNegativeValues("Tax data contains negative values.")

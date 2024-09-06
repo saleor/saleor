@@ -16,7 +16,10 @@ from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from ...checkout import base_calculations
 from ...checkout.fetch import fetch_checkout_lines
-from ...checkout.utils import log_address_if_validation_skipped_for_checkout
+from ...checkout.utils import (
+    checkout_info_for_logs,
+    log_address_if_validation_skipped_for_checkout,
+)
 from ...core.taxes import TaxError, TaxType, zero_taxed_money
 from ...order import base_calculations as order_base_calculation
 from ...order.interface import OrderTaxedPricesData
@@ -753,14 +756,8 @@ class AvataxPlugin(BasePlugin):
             return None
 
         if check_negative_values_in_tax_data_from_plugin(response):
-            logger.error(
-                "Tax data contains negative values.",
-                extra={
-                    "checkout_id": graphene.Node.to_global_id(
-                        "Checkout", checkout_info.checkout.pk
-                    ),
-                },
-            )
+            extra = checkout_info_for_logs(checkout_info, lines_info)
+            logger.error("Tax data contains negative values.", extra=extra)
             self._set_checkout_tax_error(
                 checkout_info, lines_info, message="Tax data contains negative values."
             )
