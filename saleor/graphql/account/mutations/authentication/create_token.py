@@ -1,9 +1,5 @@
-from datetime import timedelta
-
 import graphene
-from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.utils import timezone
 
 from .....account.error_codes import AccountErrorCode
 from .....account.throttling import authenticate_with_throttling
@@ -15,7 +11,7 @@ from ....core.mutations import BaseMutation
 from ....core.types import AccountError
 from ....site.dataloaders import get_site_promise
 from ...types import User
-from .utils import _get_new_csrf_token
+from .utils import _get_new_csrf_token, update_user_last_login_if_required
 
 
 class CreateToken(BaseMutation):
@@ -108,12 +104,7 @@ class CreateToken(BaseMutation):
         setattr(info.context, "refresh_token", refresh_token)
         info.context.user = user
         info.context._cached_user = user
-        time_now = timezone.now()
-        threshold_delta = timedelta(seconds=settings.TOKEN_UPDATE_LAST_LOGIN_THRESHOLD)
-
-        if not user.last_login or user.last_login + threshold_delta < time_now:
-            user.last_login = time_now
-            user.save(update_fields=["last_login", "updated_at"])
+        update_user_last_login_if_required(user)
         return cls(
             errors=[],
             user=user,
