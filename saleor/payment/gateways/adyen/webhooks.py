@@ -293,10 +293,8 @@ def handle_authorization(notification: dict[str, Any], gateway_config: GatewayCo
         notification_payment_amount = price_from_minor_unit(
             amount.get("value"), amount.get("currency")
         )
-    except TypeError as e:
-        logger.exception(
-            "Cannot convert amount from minor unit", extra={"error": str(e)}
-        )
+    except TypeError:
+        logger.exception("Cannot convert amount from minor unit")
         return
 
     if notification_payment_amount < payment.total:
