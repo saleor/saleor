@@ -858,7 +858,7 @@ def handle_order_closed(notification: dict[str, Any], gateway_config: GatewayCon
             get_plugins_manager(allow_replica=False),
         )
     except Exception as e:
-        logger.exception("Exception during order creation", extra={"error": e})
+        logger.exception("Exception during order creation")
         return
     finally:
         if not order and adyen_partial_payments:
