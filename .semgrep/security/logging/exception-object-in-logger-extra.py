@@ -21,7 +21,7 @@ def test_log_catch_multiple_exceptions():
 #     try:
 #         do_something()
 #     except* Exception as exc:
-#         <add-ruleid-comment-here>: exception-object-in-logger-extra
+#         <ruleid>: exception-object-in-logger-extra
 #         logger.info("Failed", extra={"error": exc})
 
 # Should match when logging an exception in the middle
@@ -90,16 +90,16 @@ def test_log_exception_with_else_block():
     else:
         do_something_else()
 
-# Should match when using a 'finally' and 'else' block
+# Should match when using a 'else' and 'finally' block
 def test_log_exception_with_finally_else_block():
     try:
         do_something()
     except Exception as exc:
         # ruleid: exception-object-in-logger-extra
         logger.info("Failed", extra={"error": exc})
-    finally:
-        do_something_else()
     else:
+        do_something_else()
+    finally:
         do_something_else()
 
 # Should not match when converting an exception object to string.
