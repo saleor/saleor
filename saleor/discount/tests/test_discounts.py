@@ -27,6 +27,7 @@ from ..utils import (
     increase_voucher_code_usage_value,
     is_order_level_voucher,
     remove_voucher_usage_by_customer,
+    split_manual_discount,
     validate_voucher,
 )
 
@@ -670,3 +671,55 @@ def test_get_the_cheapest_line(checkout_with_items, channel_USD):
     line_info = _get_the_cheapest_line(lines)
     # then
     assert line_info == lines[0]
+
+
+@pytest.mark.parametrize(
+    (
+        "value",
+        "value_type",
+        "subtotal",
+        "shipping_price",
+        "subtotal_portion",
+        "shipping_portion",
+    ),
+    [
+        (20, DiscountValueType.FIXED, 30, 10, 15, 5),
+        (100, DiscountValueType.FIXED, 30, 10, 30, 10),
+        (13.77, DiscountValueType.FIXED, 30, 10, Decimal("10.33"), Decimal("3.44")),
+        (0, DiscountValueType.FIXED, 30, 10, 0, 0),
+        (20, DiscountValueType.FIXED, 0, 10, 0, 10),
+        (50, DiscountValueType.FIXED, 30, 0, 30, 0),
+        (50, DiscountValueType.FIXED, 0, 0, 0, 0),
+        (0, DiscountValueType.PERCENTAGE, 30, 10, 0, 0),
+        (50, DiscountValueType.PERCENTAGE, 30, 10, 15, 5),
+        (33.33, DiscountValueType.PERCENTAGE, 30, 10, 10, Decimal("3.33")),
+        (100, DiscountValueType.PERCENTAGE, 30, 10, 30, 10),
+        (50, DiscountValueType.PERCENTAGE, 0, 10, 0, 5),
+        (50, DiscountValueType.PERCENTAGE, 30, 0, 15, 0),
+        (50, DiscountValueType.PERCENTAGE, 0, 0, 0, 0),
+    ],
+)
+def test_split_manual_discount(
+    value,
+    value_type,
+    subtotal,
+    shipping_price,
+    subtotal_portion,
+    shipping_portion,
+    draft_order_with_fixed_discount_order,
+):
+    # given
+    subtotal = Money(subtotal, currency="USD")
+    shipping = Money(shipping_price, currency="USD")
+    discount = draft_order_with_fixed_discount_order.discounts.first()
+    discount.value = value
+    discount.value_type = value_type
+
+    # when
+    subtotal_discount, shipping_discount = split_manual_discount(
+        discount, subtotal, shipping
+    )
+
+    # then
+    assert subtotal_discount == Money(subtotal_portion, "USD")
+    assert shipping_discount == Money(shipping_portion, "USD")
