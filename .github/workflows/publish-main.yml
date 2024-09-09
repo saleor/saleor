@@ -1,0 +1,16 @@
+name: Publish main
+
+on:
+  push:
+    branches:
+      - main
+      - ci/**
+
+jobs:
+  publish:
+    uses: ./.github/workflows/publish-containers.yml
+    with:
+      prefix: unstable-
+    secrets:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_CLOUD_CI_WEBHOOK_URL }}
+      SLACK_MENTION_GROUP_ID: ${{ secrets.SLACK_CORE_SUPPORT_GROUP_ID }}
