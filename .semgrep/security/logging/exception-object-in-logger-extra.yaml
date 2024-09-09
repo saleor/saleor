@@ -1,11 +1,46 @@
 rules:
   - id: exception-object-in-logger-extra
+    # e.g., it can cause Sentry to hold the thread reference which leads to threads to not be freed.
+    # This is especially true with asgiref as it can spin N threads per HTTP request.
+    message: >-
+      Exception objects should not be put inside a logger's `extra` field, it
+      can lead to high memory usage. Instead, use str(exc) to log the message.
     patterns:
-      - pattern-inside: |
-          try:
-            ...
-          except ... as $EXC:
-            ...
+      # - Matches all combinations of the 'try' statement
+      #   from https://docs.python.org/3.12/reference/compound_stmts.html#the-try-statement
+      # - Except exception groups ('except*', https://docs.python.org/3.12/reference/compound_stmts.html#except-star),
+      #   due to being unsupported by the Semgrep Engine.
+      #   Ticket: https://github.com/semgrep/semgrep/issues/10511
+      # - Maybe somehow we can avoid listing the different possible statements.
+      - pattern-either:
+          - pattern-inside: |
+              try:
+                ...
+              except ... as $EXC:
+                ...
+          - pattern-inside: |
+              try:
+                ...
+              except ... as $EXC:
+                ...
+              finally:
+                ...
+          - pattern-inside: |
+              try:
+                ...
+              except ... as $EXC:
+                ...
+              else:
+                ...
+          - pattern-inside: |
+              try:
+                ...
+              except ... as $EXC:
+                ...
+              else:
+                ...
+              finally:
+                ...
       - pattern: |
           $LOGGER.$LOG_FUNC(..., extra={..., ...: $EXC, ...}, ...)
       - metavariable-regex:
@@ -14,10 +49,19 @@ rules:
       - metavariable-regex:
           metavariable: $LOG_FUNC
           regex: (debug|info|warn|warning|error|exception|critical)
-    # e.g., it can cause Sentry to hold the thread reference which leads to threads to not be freed. This is especially true with asgiref as it can spin N threads per HTTP request.
-    message: >-
-      Exception objects should not be put inside a logger's `extra` field, it can lead to high memory usage. Instead, use str(exc) to log the message.
-    languages: [python]
-    severity: ERROR 
     focus-metavariable: $EXC
+    languages:
+      - python
+    severity: ERROR
+    metadata:
+      category: security
+      subcategory:
+        - audit
+      cwe:
+        - "CWE 400: Uncontrolled Resource Consumption"
+      confidence: MEDIUM
+      likelihood: MEDIUM
+      impact: MEDIUM
+      technology:
+        - python
 
