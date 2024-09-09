@@ -277,3 +277,22 @@ def check_negative_values_in_tax_data_from_plugin(tax_data: dict[str, Any]) -> b
             return True
 
     return False
+
+
+def get_tax_data_for_logs(tax_data: Optional[TaxData]):
+    if not tax_data:
+        return {}
+
+    return {
+        "shipping_price_gross_amount": tax_data.shipping_price_gross_amount,
+        "shipping_price_net_amount": tax_data.shipping_price_net_amount,
+        "shipping_ta_rate": tax_data.shipping_tax_rate,
+        "lines": [
+            {
+                "total_gross_amount": line.total_gross_amount,
+                "total_net_amount": line.total_net_amount,
+                "tax_rate": line.tax_rate,
+            }
+            for line in tax_data.lines
+        ],
+    }

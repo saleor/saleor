@@ -29,6 +29,7 @@ from ..tax.utils import (
     get_charge_taxes_for_checkout,
     get_tax_app_identifier_for_checkout,
     get_tax_calculation_strategy_for_checkout,
+    get_tax_data_for_logs,
     normalize_tax_rate_for_db,
 )
 from .fetch import find_checkout_line_info
@@ -688,5 +689,6 @@ def validate_tax_data(
 
     if check_negative_values_in_tax_data(tax_data):
         extra = checkout_info_for_logs(checkout_info, checkout_lines_info)
+        extra.update({"tax_data": get_tax_data_for_logs(tax_data)})
         logger.error("Tax data contains negative values.", extra=extra)
         raise TaxDataWithNegativeValues("Tax data contains negative values.")
