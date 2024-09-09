@@ -92,9 +92,15 @@ class VoucherUpdate(VoucherCreate):
     def is_voucher_used(cls, instance) -> bool:
         voucher_codes = instance.codes.all()
         used_codes = voucher_codes.filter(
-            Exists(order_models.Order.objects.filter(voucher_code=OuterRef("code")))
+            Exists(
+                order_models.Order.objects.filter(
+                    voucher_code=OuterRef("code"), voucher_id=OuterRef("voucher_id")
+                )
+            )
             | Exists(
-                order_models.OrderLine.objects.filter(voucher_code=OuterRef("code"))
+                order_models.OrderLine.objects.filter(
+                    voucher_code=OuterRef("code"),
+                )
             )
             | Exists(
                 checkout_models.Checkout.objects.filter(voucher_code=OuterRef("code"))
