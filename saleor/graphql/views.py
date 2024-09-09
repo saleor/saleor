@@ -161,6 +161,7 @@ class GraphQLView(View):
         # Add `child_of=span_ontext` to `start_active_span`
         with tracer.start_active_span("http") as scope:
             span = scope.span
+            span.set_tag("resource.name", request.path)
             span.set_tag(opentracing.tags.COMPONENT, "http")
             span.set_tag(opentracing.tags.HTTP_METHOD, request.method)
             span.set_tag(
@@ -277,6 +278,7 @@ class GraphQLView(View):
             _query_identifier = query_identifier(document)
             self._query = _query_identifier
             raw_query_string = document.document_string
+            span.set_tag("resource.name", raw_query_string)
             span.set_tag("graphql.query", raw_query_string)
             span.set_tag("graphql.query_identifier", _query_identifier)
             span.set_tag("graphql.query_fingerprint", query_fingerprint(document))
