@@ -2665,7 +2665,7 @@ test = ["pytest", "pytest-cov"]
 
 [[package]]
 name = "memray"
-version = "1.13.0"
+version = "1.13.4"
 description = "A memory profiler for Python applications"
 optional = false
 python-versions = ">=3.7.0"
