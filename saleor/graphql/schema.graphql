@@ -12566,9 +12566,7 @@ type Invoice implements ObjectWithMetadata & Job & Node @doc(category: "Orders")
   """URL to view an invoice."""
   externalUrl: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use `url` field.This field will be removed in 4.0")
 
-  """
-  URL to view/download an invoice. This can be an internal URL if the Invoicing Plugin was used or an external URL if it has been provided.
-  """
+  """URL to view/download an invoice."""
   url: String
 
   """
