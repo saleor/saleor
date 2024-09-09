@@ -296,3 +296,20 @@ def get_tax_data_for_logs(tax_data: Optional[TaxData]):
             for line in tax_data.lines
         ],
     }
+
+
+def get_plugin_tax_data_for_logs(tax_data: dict[str, Any]):
+    if not tax_data:
+        return {}
+
+    return [
+        {
+            "line_amount": line.get("lineAmount"),
+            "discount_amount": line.get("discountAmount"),
+            "variant_sku": line.get("itemCode"),
+            "quantity": line.get("quantity"),
+            "tax": line.get("tax"),
+            "taxable_amount": line.get("taxableAmount"),
+        }
+        for line in tax_data.get("lines", [])
+    ]

@@ -6376,6 +6376,11 @@ def test_calculate_checkout_negative_values_in_tax_data(
     plugin_configuration,
     caplog,
 ):
+    """Test Saleor behaviour when Avatax plugin return negative line values.
+
+    Since this is an anomaly and we don't know how to trigger such a case, cassette was
+    updated manually.
+    """
     # given
     plugin_configuration()
     manager = get_plugins_manager(allow_replica=False)
@@ -6404,6 +6409,9 @@ def test_calculate_checkout_negative_values_in_tax_data(
     # then
     assert checkout_info.checkout.tax_error == "Tax data contains negative values."
     assert "Tax data contains negative values" in caplog.text
+    extra_log_info = caplog.records[2]
+    assert extra_log_info.checkout
+    assert extra_log_info.tax_data[0]["line_amount"] == -24.39
 
 
 @pytest.mark.vcr
@@ -6411,6 +6419,11 @@ def test_calculate_checkout_negative_values_in_tax_data(
 def test_calculate_order_negative_values_in_tax_data(
     order_line, shipping_zone, site_settings, address, plugin_configuration, caplog
 ):
+    """Test Saleor behaviour when Avatax plugin return negative line values.
+
+    Since this is an anomaly and we don't know how to trigger such a case, cassette was
+    updated manually.
+    """
     # given
     plugin_configuration()
     manager = get_plugins_manager(allow_replica=False)
@@ -6435,3 +6448,6 @@ def test_calculate_order_negative_values_in_tax_data(
     # then
     assert order.tax_error == "Tax data contains negative values."
     assert "Tax data contains negative values" in caplog.text
+    extra_log_info = caplog.records[2]
+    assert extra_log_info.order
+    assert extra_log_info.tax_data[1]["line_amount"] == -8.13

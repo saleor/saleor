@@ -6,7 +6,6 @@ from functools import partial
 from typing import TYPE_CHECKING, Any, Callable, Optional, Union
 from urllib.parse import urljoin
 
-import graphene
 import opentracing
 import opentracing.tags
 from django.core.exceptions import ValidationError
@@ -23,12 +22,14 @@ from ...checkout.utils import (
 from ...core.taxes import TaxError, TaxType, zero_taxed_money
 from ...order import base_calculations as order_base_calculation
 from ...order.interface import OrderTaxedPricesData
+from ...order.utils import order_info_for_logs
 from ...product.models import ProductType
 from ...tax import TaxCalculationStrategy
 from ...tax.utils import (
     check_negative_values_in_tax_data_from_plugin,
     get_charge_taxes_for_checkout,
     get_charge_taxes_for_order,
+    get_plugin_tax_data_for_logs,
     get_tax_app_identifier_for_checkout,
     get_tax_app_identifier_for_order,
     get_tax_calculation_strategy_for_checkout,
@@ -757,6 +758,7 @@ class AvataxPlugin(BasePlugin):
 
         if check_negative_values_in_tax_data_from_plugin(response):
             extra = checkout_info_for_logs(checkout_info, lines_info)
+            extra.update({"tax_data": get_plugin_tax_data_for_logs(response)})
             logger.error("Tax data contains negative values.", extra=extra)
             self._set_checkout_tax_error(
                 checkout_info, lines_info, message="Tax data contains negative values."
@@ -793,12 +795,9 @@ class AvataxPlugin(BasePlugin):
             return None
 
         if check_negative_values_in_tax_data_from_plugin(response):
-            logger.error(
-                "Tax data contains negative values.",
-                extra={
-                    "order_id": graphene.Node.to_global_id("Order", order.pk),
-                },
-            )
+            extra = order_info_for_logs(order, order.lines.all())
+            extra.update({"tax_data": get_plugin_tax_data_for_logs(response)})
+            logger.error("Tax data contains negative values.", extra=extra)
             self._set_order_tax_error(
                 order, message="Tax data contains negative values."
             )
