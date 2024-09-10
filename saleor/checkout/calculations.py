@@ -19,6 +19,7 @@ from ..plugins import PLUGIN_IDENTIFIER_PREFIX
 from ..tax import TaxCalculationStrategy
 from ..tax.calculations.checkout import update_checkout_prices_with_flat_rates
 from ..tax.utils import (
+    check_negative_values_in_tax_data,
     get_charge_taxes_for_checkout,
     get_tax_app_identifier_for_checkout,
     get_tax_calculation_strategy_for_checkout,
@@ -308,6 +309,7 @@ def _fetch_checkout_prices_if_expired(
                 pregenerated_subscription_payloads=pregenerated_subscription_payloads,
             )
         except TaxEmptyData as e:
+            # TODO zedzior why we don't set base prices when handling order
             _set_checkout_base_prices(checkout, checkout_info, lines)
             checkout.tax_error = str(e)
 
@@ -389,8 +391,6 @@ def _calculate_and_add_tax(
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
     pregenerated_subscription_payloads: Optional[dict] = None,
 ):
-    from .utils import log_address_if_validation_skipped_for_checkout
-
     if pregenerated_subscription_payloads is None:
         pregenerated_subscription_payloads = {}
     if tax_calculation_strategy == TaxCalculationStrategy.TAX_APP:
@@ -409,8 +409,7 @@ def _calculate_and_add_tax(
                 tax_app_identifier,
                 pregenerated_subscription_payloads,
             )
-            if not tax_data:
-                log_address_if_validation_skipped_for_checkout(checkout_info, logger)
+            validate_tax_data(tax_data, checkout_info, allow_empty_tax_data=True)
             _apply_tax_data(checkout, lines, tax_data)
         else:
             _call_plugin_or_tax_app(
@@ -443,8 +442,6 @@ def _call_plugin_or_tax_app(
     address: Optional["Address"] = None,
     pregenerated_subscription_payloads: Optional[dict] = None,
 ):
-    from .utils import log_address_if_validation_skipped_for_checkout
-
     if pregenerated_subscription_payloads is None:
         pregenerated_subscription_payloads = {}
 
@@ -474,9 +471,7 @@ def _call_plugin_or_tax_app(
             tax_app_identifier,
             pregenerated_subscription_payloads=pregenerated_subscription_payloads,
         )
-        if tax_data is None:
-            log_address_if_validation_skipped_for_checkout(checkout_info, logger)
-            raise TaxEmptyData("Empty tax data.")
+        validate_tax_data(tax_data, checkout_info)
         _apply_tax_data(checkout, lines, tax_data)
 
 
@@ -668,3 +663,20 @@ def fetch_checkout_data(
         )
 
     return checkout_info, lines
+
+
+def validate_tax_data(
+    tax_data: Optional[TaxData],
+    checkout_info: "CheckoutInfo",
+    allow_empty_tax_data: bool = False,
+):
+    from .utils import log_address_if_validation_skipped_for_checkout
+
+    if tax_data is None:
+        log_address_if_validation_skipped_for_checkout(checkout_info, logger)
+        if not allow_empty_tax_data:
+            raise TaxEmptyData("Empty tax data.")
+
+    if check_negative_values_in_tax_data(tax_data):
+        logger.warning("Tax data contains negative values.")
+        raise TaxEmptyData("Tax data contains negative values.")

@@ -11,7 +11,7 @@ from prices import Money, TaxedMoney
 
 from ...checkout.utils import add_promo_code_to_checkout, set_external_shipping_id
 from ...core.prices import quantize_price
-from ...core.taxes import TaxData, TaxLineData, zero_taxed_money
+from ...core.taxes import TaxData, TaxEmptyData, TaxLineData, zero_taxed_money
 from ...plugins import PLUGIN_IDENTIFIER_PREFIX
 from ...plugins.manager import get_plugins_manager
 from ...plugins.tests.sample_plugins import PluginSample
@@ -26,6 +26,7 @@ from ..calculations import (
     _calculate_and_add_tax,
     _set_checkout_base_prices,
     fetch_checkout_data,
+    validate_tax_data,
 )
 from ..fetch import CheckoutLineInfo, fetch_checkout_info, fetch_checkout_lines
 
@@ -528,12 +529,14 @@ def test_fetch_checkout_prices_when_tax_exemption_and_not_include_taxes_in_price
 
 
 @freeze_time()
+@patch("saleor.checkout.calculations.validate_tax_data")
 @patch("saleor.plugins.manager.PluginsManager.calculate_checkout_total")
 @patch("saleor.plugins.manager.PluginsManager.get_taxes_for_checkout")
 @override_settings(PLUGINS=["saleor.plugins.tests.sample_plugins.PluginSample"])
 def test_fetch_checkout_data_calls_plugin(
     mock_get_taxes,
     mock_calculate_checkout_total,
+    mock_validate_tax_data,
     checkout_with_items,
 ):
     # given
@@ -752,3 +755,83 @@ def test_calculate_and_add_tax_empty_tax_data_logging_address(
         f"Fetching tax data for checkout with address validation skipped. "
         f"Address ID: {address.pk}" in caplog.text
     )
+
+
+def test_validate_tax_data_with_negative_values(checkout_info, caplog):
+    # given
+    lines_info = checkout_info.lines
+
+    tax_data = TaxData(
+        shipping_price_net_amount=Decimal("-1"),
+        shipping_price_gross_amount=Decimal("1.5"),
+        shipping_tax_rate=Decimal("50"),
+        lines=[
+            TaxLineData(
+                total_net_amount=Decimal("2"),
+                total_gross_amount=Decimal("3"),
+                tax_rate=Decimal("50"),
+            )
+        ],
+    )
+
+    # when & then
+    with pytest.raises(TaxEmptyData):
+        validate_tax_data(tax_data, checkout_info, lines_info)
+
+    assert "Tax data contains negative values" in caplog.text
+
+
+@pytest.mark.parametrize(
+    ("prices_entered_with_tax", "tax_app_id"),
+    [(True, None), (True, "test.app"), (False, None), (False, "test.app")],
+)
+@patch("saleor.checkout.calculations._set_checkout_base_prices")
+def test_fetch_checkout_data_tax_data_with_negative_values(
+    mock_set_base_prices,
+    prices_entered_with_tax,
+    tax_app_id,
+    checkout_with_single_item,
+    caplog,
+):
+    # given
+    checkout = checkout_with_single_item
+
+    channel = checkout.channel
+    channel.tax_configuration.tax_app_id = tax_app_id
+    channel.tax_configuration.prices_entered_with_tax = prices_entered_with_tax
+    channel.tax_configuration.save()
+
+    tax_data = TaxData(
+        shipping_price_net_amount=Decimal("1"),
+        shipping_price_gross_amount=Decimal("1.5"),
+        shipping_tax_rate=Decimal("50"),
+        lines=[
+            TaxLineData(
+                total_net_amount=Decimal("2"),
+                total_gross_amount=Decimal("-3"),
+                tax_rate=Decimal("50"),
+            )
+        ],
+    )
+
+    zero_money = zero_taxed_money(checkout.currency)
+    manager_methods = {
+        "calculate_checkout_total": Mock(return_value=zero_money),
+        "calculate_checkout_subtotal": Mock(return_value=zero_money),
+        "calculate_checkout_line_total": Mock(return_value=zero_money),
+        "calculate_checkout_shipping": Mock(return_value=zero_money),
+        "get_checkout_shipping_tax_rate": Mock(return_value=Decimal("0.00")),
+        "get_checkout_line_tax_rate": Mock(return_value=Decimal("0.00")),
+        "get_taxes_for_checkout": Mock(return_value=tax_data),
+    }
+    manager = Mock(**manager_methods)
+
+    checkout_lines_info, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, checkout_lines_info, manager)
+
+    # when
+    fetch_checkout_data(checkout_info, manager, checkout_lines_info, force_update=True)
+
+    # then
+    assert checkout_info.checkout.tax_error == "Tax data contains negative values."
+    assert "Tax data contains negative values" in caplog.text
