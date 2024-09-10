@@ -8,8 +8,8 @@ class TaxError(Exception):
     """Default tax error."""
 
 
-class TaxEmptyData(Exception):
-    """Empty tax data received from Tax App error."""
+class TaxDataError(Exception):
+    """Error in tax data received from tax app or plugin."""
 
 
 def zero_money(currency: str) -> Money:

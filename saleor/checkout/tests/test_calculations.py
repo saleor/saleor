@@ -13,8 +13,8 @@ from ...checkout.utils import add_promo_code_to_checkout, set_external_shipping_
 from ...core.prices import quantize_price
 from ...core.taxes import (
     TaxData,
+    TaxDataError,
     TaxDataErrorMessage,
-    TaxEmptyData,
     TaxLineData,
     zero_taxed_money,
 )
@@ -786,7 +786,7 @@ def test_validate_tax_data_with_negative_values(checkout_info, caplog):
     )
 
     # when & then
-    with pytest.raises(TaxEmptyData):
+    with pytest.raises(TaxDataError):
         validate_tax_data(tax_data, checkout_info, lines_info)
 
     assert TaxDataErrorMessage.NEGATIVE_VALUE in caplog.text
@@ -866,7 +866,7 @@ def test_validate_tax_data_line_number(checkout_info, caplog):
     )
 
     # when & then
-    with pytest.raises(TaxEmptyData):
+    with pytest.raises(TaxDataError):
         validate_tax_data(tax_data, checkout_info, lines_info)
 
     assert TaxDataErrorMessage.LINE_NUMBER in caplog.text

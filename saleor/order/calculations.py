@@ -10,7 +10,7 @@ from prices import Money, TaxedMoney
 
 from ..core.db.connection import allow_writer
 from ..core.prices import quantize_price
-from ..core.taxes import TaxData, TaxEmptyData, TaxError, zero_taxed_money
+from ..core.taxes import TaxData, TaxDataError, TaxError, zero_taxed_money
 from ..discount.utils.order import create_or_update_discount_objects_for_order
 from ..payment.model_helpers import get_subtotal
 from ..plugins import PLUGIN_IDENTIFIER_PREFIX
@@ -161,7 +161,7 @@ def _recalculate_prices(
                 prices_entered_with_tax,
                 database_connection_name=database_connection_name,
             )
-        except TaxEmptyData as e:
+        except TaxDataError as e:
             order.tax_error = str(e)
 
         if not should_charge_tax:
@@ -184,7 +184,7 @@ def _recalculate_prices(
                     prices_entered_with_tax,
                     database_connection_name=database_connection_name,
                 )
-            except TaxEmptyData as e:
+            except TaxDataError as e:
                 order.tax_error = str(e)
         else:
             _remove_tax(order, lines)
@@ -242,7 +242,7 @@ def _call_plugin_or_tax_app(
             order.channel.slug, active_only=True, plugin_ids=plugin_ids
         )
         if not plugins:
-            raise TaxEmptyData("Empty tax data.")
+            raise TaxDataError("Empty tax data.")
         _recalculate_with_plugins(
             manager,
             order,
@@ -251,12 +251,12 @@ def _call_plugin_or_tax_app(
             plugin_ids=plugin_ids,
         )
         if order.tax_error:
-            raise TaxEmptyData("Empty tax data.")
+            raise TaxDataError("Empty tax data.")
     else:
         tax_data = manager.get_taxes_for_order(order, tax_app_identifier)
         if tax_data is None:
             log_address_if_validation_skipped_for_order(order, logger)
-            raise TaxEmptyData("Empty tax data.")
+            raise TaxDataError("Empty tax data.")
         _apply_tax_data(order, lines, tax_data, prices_entered_with_tax)
 
 

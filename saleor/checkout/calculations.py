@@ -12,8 +12,8 @@ from ..core.db.connection import allow_writer
 from ..core.prices import quantize_price
 from ..core.taxes import (
     TaxData,
+    TaxDataError,
     TaxDataErrorMessage,
-    TaxEmptyData,
     zero_money,
     zero_taxed_money,
 )
@@ -315,7 +315,7 @@ def _fetch_checkout_prices_if_expired(
                 database_connection_name=database_connection_name,
                 pregenerated_subscription_payloads=pregenerated_subscription_payloads,
             )
-        except TaxEmptyData as e:
+        except TaxDataError as e:
             # TODO zedzior why we don't set base prices when handling order
             _set_checkout_base_prices(checkout, checkout_info, lines)
             checkout.tax_error = str(e)
@@ -343,7 +343,7 @@ def _fetch_checkout_prices_if_expired(
                     database_connection_name=database_connection_name,
                     pregenerated_subscription_payloads=pregenerated_subscription_payloads,
                 )
-            except TaxEmptyData as e:
+            except TaxDataError as e:
                 _set_checkout_base_prices(checkout, checkout_info, lines)
                 checkout.tax_error = str(e)
         else:
@@ -460,7 +460,7 @@ def _call_plugin_or_tax_app(
             plugin_ids=plugin_ids,
         )
         if not plugins:
-            raise TaxEmptyData("Empty tax data.")
+            raise TaxDataError("Empty tax data.")
         _apply_tax_data_from_plugins(
             checkout,
             manager,
@@ -470,7 +470,7 @@ def _call_plugin_or_tax_app(
             plugin_ids=plugin_ids,
         )
         if checkout.tax_error:
-            raise TaxEmptyData("Empty tax data.")
+            raise TaxDataError("Empty tax data.")
     else:
         tax_data = manager.get_taxes_for_checkout(
             checkout_info,
@@ -683,12 +683,12 @@ def validate_tax_data(
     if tax_data is None:
         log_address_if_validation_skipped_for_checkout(checkout_info, logger)
         if not allow_empty_tax_data:
-            raise TaxEmptyData(TaxDataErrorMessage.EMPTY)
+            raise TaxDataError(TaxDataErrorMessage.EMPTY)
 
     if check_negative_values_in_tax_data(tax_data):
         logger.warning(TaxDataErrorMessage.NEGATIVE_VALUE)
-        raise TaxEmptyData(TaxDataErrorMessage.NEGATIVE_VALUE)
+        raise TaxDataError(TaxDataErrorMessage.NEGATIVE_VALUE)
 
     if check_line_number_in_tax_data(tax_data, lines):
         logger.warning(TaxDataErrorMessage.LINE_NUMBER)
-        raise TaxEmptyData(TaxDataErrorMessage.LINE_NUMBER)
+        raise TaxDataError(TaxDataErrorMessage.LINE_NUMBER)
