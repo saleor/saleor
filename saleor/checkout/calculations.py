@@ -10,7 +10,13 @@ from prices import Money, TaxedMoney
 from ..checkout import base_calculations
 from ..core.db.connection import allow_writer
 from ..core.prices import quantize_price
-from ..core.taxes import TaxData, TaxEmptyData, zero_money, zero_taxed_money
+from ..core.taxes import (
+    TaxData,
+    TaxDataErrorMessage,
+    TaxEmptyData,
+    zero_money,
+    zero_taxed_money,
+)
 from ..discount.utils.checkout import (
     create_or_update_discount_objects_from_promotion_for_checkout,
 )
@@ -19,6 +25,7 @@ from ..plugins import PLUGIN_IDENTIFIER_PREFIX
 from ..tax import TaxCalculationStrategy
 from ..tax.calculations.checkout import update_checkout_prices_with_flat_rates
 from ..tax.utils import (
+    check_line_number_in_tax_data,
     check_negative_values_in_tax_data,
     get_charge_taxes_for_checkout,
     get_tax_app_identifier_for_checkout,
@@ -409,7 +416,7 @@ def _calculate_and_add_tax(
                 tax_app_identifier,
                 pregenerated_subscription_payloads,
             )
-            validate_tax_data(tax_data, checkout_info, allow_empty_tax_data=True)
+            validate_tax_data(tax_data, checkout_info, lines, allow_empty_tax_data=True)
             _apply_tax_data(checkout, lines, tax_data)
         else:
             _call_plugin_or_tax_app(
@@ -471,7 +478,7 @@ def _call_plugin_or_tax_app(
             tax_app_identifier,
             pregenerated_subscription_payloads=pregenerated_subscription_payloads,
         )
-        validate_tax_data(tax_data, checkout_info)
+        validate_tax_data(tax_data, checkout_info, lines)
         _apply_tax_data(checkout, lines, tax_data)
 
 
@@ -668,6 +675,7 @@ def fetch_checkout_data(
 def validate_tax_data(
     tax_data: Optional[TaxData],
     checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
     allow_empty_tax_data: bool = False,
 ):
     from .utils import log_address_if_validation_skipped_for_checkout
@@ -675,8 +683,12 @@ def validate_tax_data(
     if tax_data is None:
         log_address_if_validation_skipped_for_checkout(checkout_info, logger)
         if not allow_empty_tax_data:
-            raise TaxEmptyData("Empty tax data.")
+            raise TaxEmptyData(TaxDataErrorMessage.EMPTY)
 
     if check_negative_values_in_tax_data(tax_data):
-        logger.warning("Tax data contains negative values.")
-        raise TaxEmptyData("Tax data contains negative values.")
+        logger.warning(TaxDataErrorMessage.NEGATIVE_VALUE)
+        raise TaxEmptyData(TaxDataErrorMessage.NEGATIVE_VALUE)
+
+    if check_line_number_in_tax_data(tax_data, lines):
+        logger.warning(TaxDataErrorMessage.LINE_NUMBER)
+        raise TaxEmptyData(TaxDataErrorMessage.LINE_NUMBER)

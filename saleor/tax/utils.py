@@ -271,3 +271,15 @@ def check_negative_values_in_tax_data(tax_data: Optional[TaxData]) -> bool:
             return True
 
     return False
+
+
+def check_line_number_in_tax_data(
+    tax_data: Optional[TaxData], lines: Iterable["CheckoutLineInfo"]
+) -> bool:
+    if not tax_data:
+        return False
+
+    if len(tax_data.lines) != sum(1 for _ in lines):
+        return True
+
+    return False
