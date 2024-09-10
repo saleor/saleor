@@ -12,7 +12,9 @@ jobs:
       GH_REF: ${{ github.event.pull_request.head.ref }}
       GH_TOKEN: ${{ github.token }}
     steps:
-      - run: echo "PR_TAG_REF=$GH_REF" | sed "s/release-//" >> $GITHUB_ENV
+      - name: Prepare release tag version
+        id: prepare-tag
+        run: echo "PR_TAG_REF=$GH_REF" | sed "s/release-//" >> $GITHUB_OUTPUT
       - name: Create tag
         uses: actions/github-script@v5
         with:
@@ -20,8 +22,21 @@ jobs:
             github.rest.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              ref: `refs/tags/${process.env.PR_TAG_REF}`,
+              ref: "refs/tags/${{ steps.prepare-tag.outputs.PR_TAG_REF }}",
               sha: context.sha
             })
-      - run: |
-          gh release create "$PR_TAG_REF" --repo="$GITHUB_REPOSITORY" --generate-notes --draft --verify-tag
+      - name: Create github release
+        run: |
+          gh release create "${{ steps.prepare-tag.outputs.PR_TAG_REF }}" --repo="$GITHUB_REPOSITORY" --generate-notes --draft --verify-tag
+    outputs:
+      version: ${{ steps.prepare-tag.outputs.PR_TAG_REF }}
+
+  publish:
+    needs:
+      - run-release-trigger
+    uses: ./.github/workflows/publish-containers.yml
+    with:
+      version: ${{ needs.run-release-trigger.outputs.version }}
+    secrets:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_CLOUD_CI_WEBHOOK_URL }}
+      SLACK_MENTION_GROUP_ID: ${{ secrets.SLACK_CORE_SUPPORT_GROUP_ID }}
