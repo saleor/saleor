@@ -44,10 +44,10 @@ class DataLoader(BaseLoader, Generic[K, R]):
         self, keys: Iterable[K]
     ) -> Promise[list[R]]:
         with opentracing.global_tracer().start_active_span(
-            self.__class__.__name__
+            "dataloader.batch_load"
         ) as scope:
             span = scope.span
-            span.set_tag(opentracing.tags.COMPONENT, "dataloaders")
+            span.set_tag("resource.name", self.__class__.__name__)
 
             with allow_writer_in_context(self.context):
                 results = self.batch_load(keys)
