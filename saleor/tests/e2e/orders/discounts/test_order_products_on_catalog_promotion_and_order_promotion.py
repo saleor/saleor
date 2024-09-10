@@ -189,6 +189,7 @@ def test_draft_order_products_on_catalog_promotion_and_order_promotion_CORE_2132
     country = "US"
     order_promotion_value = 25
     order_promotion_discount_type = "PERCENTAGE"
+    order_promotion_total_predicate = 500
 
     tax_settings = {
         "charge_taxes": True,
@@ -262,7 +263,7 @@ def test_draft_order_products_on_catalog_promotion_and_order_promotion_CORE_2132
         channel_id,
         discount_value=order_promotion_value,
         discount_type=order_promotion_discount_type,
-        order_predicate_total_value=500,
+        order_predicate_total_value=order_promotion_total_predicate,
     )
 
     # Step 1 - Create a draft order for a product with fixed promotion
@@ -365,7 +366,7 @@ def test_draft_order_products_on_catalog_promotion_and_order_promotion_CORE_2132
     undiscounted_total_before_shipping = order["order"]["undiscountedTotal"]["gross"][
         "amount"
     ]
-    assert undiscounted_total_before_shipping > 500
+    assert undiscounted_total_before_shipping > order_promotion_total_predicate
 
     # Assert discounts
     assert order["order"]["discounts"][0]["type"] == "ORDER_PROMOTION"
