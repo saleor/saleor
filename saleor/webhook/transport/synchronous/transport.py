@@ -87,7 +87,6 @@ def handle_transaction_request_task(self, delivery_id, request_event_id):
     )
 
 
-@BreakerBoard
 def _send_webhook_request_sync(
     delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT, attempt=None
 ) -> tuple[WebhookResponse, Optional[dict[Any, Any]]]:

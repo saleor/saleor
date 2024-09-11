@@ -1,70 +1,70 @@
-from typing import Any, Optional
+import time
+
 from saleor.core import EventDeliveryStatus
 from saleor.core.models import EventDelivery
-
 from saleor.webhook.event_types import WebhookEventSyncType
-from saleor.webhook.models import Webhook
+from saleor.webhook.transport.synchronous.circuit_breaker.storage import (
+    Storage,
+)
 from saleor.webhook.transport.utils import WebhookResponse
-WebhookEventSyncType
-
-
-ENABLED_WEBHOOK_EVENT_TYPES = [
-    WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
-]
 
 
 # TODO - check - given how this is running in production (gunicorn, uvicorn) does this code NEED
 # to be thread safe (in a span of a single process)
 class BreakerBoard:
-    """
-    Base class for breaker board implementations.
+    """Base class for breaker board implementations.
 
     Breaker board serves as single point of entry for different Webhooks from different
     Apps. Basing on the input it checks appropriate circuit breaker state and controls
     webhook execution.
     """
 
-    def __init__(self, func=None):
-        self.func = func
+    def __init__(self, storage: Storage, failure_threshold: int):
+        self.storage = storage
 
-    def raise_if_func_is_not_set(self):
-        if self.func is None:
-            raise RuntimeError("Function not set, breaker board can only observe the circuit breakers state")
+        # TODO - make everything below configurable
+        self.failure_threshold = failure_threshold
+        self.webhook_event_types = [WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT]
+        self.cooldown_seconds = 5 * 60
+        self.ttl = 10 * 60
 
     def is_closed(self, app_id: int):
-        return True
+        # TODO - cache last open to optimize?
+        return self.storage.last_open(app_id) < (time.time() - self.cooldown_seconds)
 
-    def register_failure(self, app_id: int):
-        pass
+    def register_error(self, app_id: int):
+        errors = self.storage.register_event_returning_count(f"{0}-{1}".format(app_id, "error"), self.ttl)
+
+        if errors >= self.failure_threshold:
+            self.storage.update_open(app_id, int(time.time()))
 
     def register_success(self, app_id: int):
-        pass
+        self.storage.register_event_returning_count(f"{0}-{1}".format(app_id, "total"), self.ttl)
 
-    def __call__(self, *args, **kwargs) -> tuple[WebhookResponse, Optional[dict[Any, Any]]]:
-        self.raise_if_func_is_not_set()
+        last_open = self.storage.last_open(app_id)
+        if last_open == 0:
+            return
 
-        delivery: EventDelivery = args[0]
-        webhook: Webhook = delivery.webhook
+        if last_open < (time.time() - self.cooldown_seconds):
+            self.storage.update_open(app_id, 0)
 
-        # TODO - change webhook.name to webhook event type (?)
-        if webhook.name not in ENABLED_WEBHOOK_EVENT_TYPES:
-            return self.func(*args, **kwargs)
+    def __call__(self, func):
+        def inner(*args, **kwargs):
+            delivery: EventDelivery = args[0]
+            if delivery.event_type not in self.webhook_event_types:
+                return func(*args, **kwargs)
 
-        # TODO - ensure app.id is preloaded
-        app = webhook.app
+            # TODO - ensure webhook and app are preloaded
+            app = delivery.webhook.app
 
-        if not self.is_closed(app.id):
-            return WebhookResponse(content=""), None
+            if not self.is_closed(app.id):
+                return WebhookResponse(content=""), None
 
-        response, data = self.func(*args, **kwargs)
-        if response.status == EventDeliveryStatus.FAILED:
-            self.register_failure(app.id)
-        else:
-            self.register_success(app.id)
+            response, data = func(*args, **kwargs)
+            if response.status == EventDeliveryStatus.FAILED:
+                self.register_error(app.id)
+            else:
+                self.register_success(app.id)
 
-        return response, data
-
-
-# TODO
-class RedisBreakerBoard:
-    pass
+            return response, data
+        return inner
