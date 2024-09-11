@@ -13,7 +13,7 @@ from .....checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from .....checkout.calculations import fetch_checkout_data
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....order import OrderGrantedRefundStatus, OrderStatus
-from .....payment import TransactionEventType
+from .....payment import OPTIONAL_AMOUNT_EVENTS, TransactionEventType
 from .....payment.models import TransactionEvent
 from .....payment.transaction_item_calculations import recalculate_transaction_amounts
 from ....core.enums import TransactionEventReportErrorCode
@@ -2320,3 +2320,88 @@ def test_transaction_event_report_updates_granted_refund_status_when_needed(
     response = get_graphql_content(response)
     granted_refund.refresh_from_db()
     assert granted_refund.status == expected_status
+
+
+@pytest.mark.parametrize(
+    "event_type", [event_type for event_type in OPTIONAL_AMOUNT_EVENTS]
+)
+def test_transaction_event_report_missing_amount(
+    event_type,
+    transaction_item_generator,
+    transaction_events_generator,
+    app_api_client,
+    permission_manage_payments,
+):
+    # given
+    transaction = transaction_item_generator(
+        app=app_api_client.app, authorized_value=Decimal("10")
+    )
+    psp_reference = "111-abc"
+    expected_amount = 10
+    event_types = [
+        TransactionEventType.AUTHORIZATION_SUCCESS,
+        TransactionEventType.CHARGE_SUCCESS,
+        TransactionEventType.REFUND_SUCCESS,
+    ]
+    transaction_events_generator(
+        transaction=transaction,
+        psp_references=[
+            psp_reference,
+        ]
+        * len(event_types),
+        types=event_types,
+        amounts=[
+            expected_amount,
+        ]
+        * len(event_types),
+    )
+    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
+    variables = {
+        "id": transaction_id,
+        "type": event_type.upper(),
+        "pspReference": psp_reference,
+    }
+    query = (
+        MUTATION_DATA_FRAGMENT
+        + """
+    mutation TransactionEventReport(
+        $id: ID
+        $type: TransactionEventTypeEnum!
+        $amount: PositiveDecimal
+        $pspReference: String!
+    ) {
+        transactionEventReport(
+            id: $id
+            type: $type
+            amount: $amount
+            pspReference: $pspReference
+        ) {
+            ...TransactionEventData
+        }
+    }
+    """
+    )
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    response = get_graphql_content(response)
+    transaction_report_data = response["data"]["transactionEventReport"]
+    assert not transaction_report_data["errors"]
+    assert transaction_report_data["alreadyProcessed"] is False
+
+    event = TransactionEvent.objects.last()
+    assert event
+    assert event.psp_reference == psp_reference
+    assert event.type == event_type
+    expected_amount = (
+        expected_amount if event_type != TransactionEventType.INFO else Decimal("0")
+    )
+    assert event.amount_value == expected_amount
+    assert event.currency == transaction.currency
+    assert event.transaction == transaction
+    assert event.app_identifier == app_api_client.app.identifier
+    assert event.app == app_api_client.app
+    assert event.user is None

@@ -16977,7 +16977,7 @@ type Mutation {
   """
   transactionEventReport(
     """The amount of the event to report."""
-    amount: PositiveDecimal!
+    amount: PositiveDecimal
 
     """List of all possible actions for the transaction"""
     availableActions: [TransactionActionEnum!]
@@ -24891,6 +24891,7 @@ enum TransactionEventReportErrorCode @doc(category: "Payments") {
   NOT_FOUND
   INCORRECT_DETAILS
   ALREADY_EXISTS
+  REQUIRED
 }
 
 """
