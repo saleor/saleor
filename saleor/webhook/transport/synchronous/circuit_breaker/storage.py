@@ -37,3 +37,6 @@ class InMemoryStorage(Storage):
         filtered_entries = [event for event in events if event >= now - ttl_seconds]
         self._events[key] = filtered_entries
         return len(filtered_entries)
+
+    def get_event_count(self, key: str) -> int:
+        return len(self._events[key])

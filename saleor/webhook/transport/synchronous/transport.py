@@ -42,10 +42,9 @@ from ..utils import (
     send_webhook_using_http,
 )
 from .circuit_breaker.breaker_board import BreakerBoard
-from .circuit_breaker.storage import InMemoryStorage
 
 # TODO - adjust the failure threshold appropriately
-breaker_board = BreakerBoard(storage=InMemoryStorage(), failure_threshold=5)
+breaker_board = BreakerBoard()
 
 
 if TYPE_CHECKING:

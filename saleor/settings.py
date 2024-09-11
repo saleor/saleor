@@ -994,3 +994,10 @@ TRANSACTION_ITEMS_LIMIT = 100
 # Disable Django warnings regarding too long cache keys being incompatible with
 # memcached to avoid leaking key values.
 warnings.filterwarnings("ignore", category=CacheKeyWarning)
+
+
+# Circuit breaker settings
+BREAKER_MODE = os.environ.get("BREAKER_MODE", "none")  # none / fixed / percentage
+BREAKER_FAILURE_THRESHOLD = float(os.environ.get("BREAKER_FAILURE_THRESHOLD"))
+BREAKER_COOLDOWN = int(os.environ.get("BREAKER_COOLDOWN", 5 * 60))
+BREAKER_TTL = int(os.environ.get("BREAKER_TTL", 10 * 60))
