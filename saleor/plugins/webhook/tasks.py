@@ -15,7 +15,7 @@ from ...celeryconf import app
 def send_webhook_request_async(self, event_delivery_id):
     from ...webhook.transport.asynchronous.transport import send_webhook_request_async
 
-    send_webhook_request_async(self, event_delivery_id)
+    send_webhook_request_async(event_delivery_id)
 
 
 @app.task
