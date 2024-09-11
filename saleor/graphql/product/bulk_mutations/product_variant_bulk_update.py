@@ -636,7 +636,7 @@ class ProductVariantBulkUpdate(BaseMutation):
 
     @classmethod
     @traced_atomic_transaction()
-    def save_variants(cls, variants_data_with_errors_list):
+    def save_variants(cls, variants_data_with_errors_list, error_policy):
         variants_to_update: list = []
         stocks_to_create: list = []
         stocks_to_update: list = []
@@ -686,7 +686,12 @@ class ProductVariantBulkUpdate(BaseMutation):
                 "external_reference",
             ],
         )
-        warehouse_models.Stock.objects.bulk_create(stocks_to_create)
+        if error_policy == ErrorPolicyEnum.REJECT_EVERYTHING.value:
+            warehouse_models.Stock.objects.bulk_create(stocks_to_create)
+        else:
+            warehouse_models.Stock.objects.bulk_create(
+                stocks_to_create, ignore_conflicts=True
+            )
         warehouse_models.Stock.objects.bulk_update(stocks_to_update, ["quantity"])
         models.ProductVariantChannelListing.objects.bulk_create(listings_to_create)
         models.ProductVariantChannelListing.objects.bulk_update(
@@ -821,7 +826,7 @@ class ProductVariantBulkUpdate(BaseMutation):
                         data["instance"] = None
 
         # save all objects
-        cls.save_variants(instances_data_with_errors_list)
+        cls.save_variants(instances_data_with_errors_list, error_policy)
 
         # prepare and return data
         results = get_results(instances_data_with_errors_list)
