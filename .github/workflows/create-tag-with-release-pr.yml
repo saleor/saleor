@@ -40,3 +40,20 @@ jobs:
     secrets:
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_CLOUD_CI_WEBHOOK_URL }}
       SLACK_MENTION_GROUP_ID: ${{ secrets.SLACK_CORE_SUPPORT_GROUP_ID }}
+
+  deploy:
+    runs-on: ubuntu-20.04
+    needs:
+      - publish
+    steps:
+      - name: Trigger staging deployment for tagged release
+        run: |
+          GITHUB_TOKEN=$( \
+            curl --request GET --url ${{ secrets.VAULT_URL}} --header "Authorization: JWT ${{ secrets.VAULT_JWT }}" | jq -r .token \
+          )
+
+          curl -f -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            https://api.github.com/repos/saleor/saleor-multitenant/dispatches \
+            -d "{\"event_type\":\"deploy-staging\",\"client_payload\":{\"version\":\"${{ needs.publish.outputs.version }}\"}}"
