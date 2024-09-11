@@ -1441,7 +1441,6 @@ def order_generator(customer_user, channel_USD):
             private_metadata=private_metadata,
             checkout_token=checkout_token,
             status=status,
-            undiscounted_base_shipping_price_amount=Decimal("0.0"),
         )
         if search_vector_class:
             search_vector = search_vector_class(
@@ -4576,7 +4575,6 @@ def order_line_with_allocation_in_many_stocks(
         user=customer_user,
         channel=channel_USD,
         origin=OrderOrigin.CHECKOUT,
-        undiscounted_base_shipping_price_amount=Decimal("0.0"),
     )
 
     product = variant.product
