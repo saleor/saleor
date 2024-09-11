@@ -35,4 +35,3 @@ def test_register_event_returning_count(storage):
 
     with freeze_time("2012-01-14 11:01:01"):
         assert storage.register_event_returning_count(failures_key, ttl_seconds) == 2
-

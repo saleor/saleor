@@ -27,8 +27,10 @@ def app_with_webhook(db):
     webhook.events.bulk_create(
         [
             WebhookEvent(event_type=event_type, webhook=webhook)
-            for event_type in [WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
-                               WebhookEventSyncType.PAYMENT_CAPTURE]
+            for event_type in [
+                WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+                WebhookEventSyncType.PAYMENT_CAPTURE,
+            ]
         ]
     )
     return app
@@ -37,21 +39,33 @@ def app_with_webhook(db):
 @pytest.fixture
 def success_response_function_mock():
     mocked_func = MagicMock()
-    mocked_func.return_value = WebhookResponse(content="good", status=EventDeliveryStatus.SUCCESS), "good"
+    mocked_func.return_value = (
+        WebhookResponse(content="good", status=EventDeliveryStatus.SUCCESS),
+        "good",
+    )
     return mocked_func
 
 
 @pytest.fixture
 def failed_response_function_mock():
     mocked_func = MagicMock()
-    mocked_func.return_value = WebhookResponse(content="bad", status=EventDeliveryStatus.FAILED), "bad"
+    mocked_func.return_value = (
+        WebhookResponse(content="bad", status=EventDeliveryStatus.FAILED),
+        "bad",
+    )
     return mocked_func
+
 
 def test_breaker_board_failure(app_with_webhook, failed_response_function_mock):
     breaker_board = BreakerBoard(storage=InMemoryStorage(), failure_threshold=1)
 
-    event = WebhookEvent.objects.get(event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT)
-    assert WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT in breaker_board.webhook_event_types
+    event = WebhookEvent.objects.get(
+        event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
+    )
+    assert (
+        WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
+        in breaker_board.webhook_event_types
+    )
     wrapped_function_mock = breaker_board(failed_response_function_mock)
 
     assert failed_response_function_mock.call_count == 0
@@ -64,7 +78,9 @@ def test_breaker_board_failure(app_with_webhook, failed_response_function_mock):
     assert breaker_board.storage.last_open(app_with_webhook.id) != 0
 
 
-def test_breaker_board_failure_ignored_webhook_event_type(app_with_webhook, failed_response_function_mock):
+def test_breaker_board_failure_ignored_webhook_event_type(
+    app_with_webhook, failed_response_function_mock
+):
     breaker_board = BreakerBoard(storage=InMemoryStorage(), failure_threshold=1)
 
     event = WebhookEvent.objects.get(event_type=WebhookEventSyncType.PAYMENT_CAPTURE)
@@ -84,8 +100,13 @@ def test_breaker_board_failure_ignored_webhook_event_type(app_with_webhook, fail
 def test_breaker_board_success(app_with_webhook, success_response_function_mock):
     breaker_board = BreakerBoard(storage=InMemoryStorage(), failure_threshold=1)
 
-    event = WebhookEvent.objects.get(event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT)
-    assert WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT in breaker_board.webhook_event_types
+    event = WebhookEvent.objects.get(
+        event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
+    )
+    assert (
+        WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
+        in breaker_board.webhook_event_types
+    )
     wrapped_function_mock = breaker_board(success_response_function_mock)
 
     assert success_response_function_mock.call_count == 0

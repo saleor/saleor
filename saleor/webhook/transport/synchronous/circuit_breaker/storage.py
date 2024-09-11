@@ -3,13 +3,13 @@ from collections import defaultdict
 
 
 class Storage:
-    def last_open(self, app_id: int) -> int:
+    def last_open(self, app_id: int) -> int: # type: ignore[empty-body]
         pass
 
     def update_open(self, app_id: int, open_time_seconds: int):
         pass
 
-    def register_event_returning_count(self, key: str, ttl_seconds: int) -> int:
+    def register_event_returning_count(self, key: str, ttl_seconds: int) -> int: # type: ignore[empty-body]
         pass
 
 
