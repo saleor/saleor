@@ -7,8 +7,6 @@ from urllib.parse import urlparse
 from django.conf import settings
 from django.core.cache import cache
 
-from saleor.webhook.transport.synchronous.circuit_breaker.breaker_board import BreakerBoard
-
 from ....celeryconf import app
 from ....core import EventDeliveryStatus
 from ....core.db.connection import allow_writer
@@ -43,6 +41,12 @@ from ..utils import (
     handle_webhook_retry,
     send_webhook_using_http,
 )
+from .circuit_breaker.breaker_board import BreakerBoard
+from .circuit_breaker.storage import InMemoryStorage
+
+# TODO - adjust the failure threshold appropriately
+breaker_board = BreakerBoard(storage=InMemoryStorage(), failure_threshold=5)
+
 
 if TYPE_CHECKING:
     from ....webhook.models import Webhook
@@ -276,6 +280,7 @@ def create_delivery_for_subscription_sync_event(
     return event_delivery
 
 
+@breaker_board
 def trigger_webhook_sync(
     event_type: str,
     payload: str,
