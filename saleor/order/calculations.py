@@ -147,14 +147,6 @@ def _recalculate_prices(
     tax_app_identifier = get_tax_app_identifier_for_order(order)
 
     order.tax_error = None
-
-    # propagate the order level discount on the prices without taxes.
-    apply_order_discounts(
-        order,
-        lines,
-        assign_prices=True,
-        database_connection_name=database_connection_name,
-    )
     if prices_entered_with_tax:
         # If prices are entered with tax, we need to always calculate it anyway, to
         # display the tax rate to the user.
@@ -230,8 +222,16 @@ def _calculate_and_add_tax(
                 lines,
                 manager,
                 prices_entered_with_tax,
+                database_connection_name,
             )
     else:
+        # propagate the order level discount on the prices without taxes.
+        apply_order_discounts(
+            order,
+            lines,
+            assign_prices=True,
+            database_connection_name=database_connection_name,
+        )
         # Get taxes calculated with flat rates and apply to order.
         update_order_prices_with_flat_rates(
             order,
@@ -247,8 +247,16 @@ def _call_plugin_or_tax_app(
     lines: Iterable["OrderLine"],
     manager: "PluginsManager",
     prices_entered_with_tax: bool,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     if tax_app_identifier.startswith(PLUGIN_IDENTIFIER_PREFIX):
+        # propagate the order level discount on the prices without taxes.
+        apply_order_discounts(
+            order,
+            lines,
+            assign_prices=True,
+            database_connection_name=database_connection_name,
+        )
         plugin_ids = [tax_app_identifier.replace(PLUGIN_IDENTIFIER_PREFIX, "")]
         plugins = manager.get_plugins(
             order.channel.slug, active_only=True, plugin_ids=plugin_ids

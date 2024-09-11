@@ -326,7 +326,6 @@ def assign_order_prices(
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     shipping_price = quantize_price(shipping_price, order.currency)
-    order.base_shipping_price_amount = shipping_price.amount
     order.shipping_price_net_amount = shipping_price.amount
     order.shipping_price_gross_amount = shipping_price.amount
     order.total_net_amount = subtotal.amount + shipping_price.amount
