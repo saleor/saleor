@@ -1,12 +1,14 @@
 import time
+from typing import TYPE_CHECKING
 
-from saleor.core import EventDeliveryStatus
-from saleor.core.models import EventDelivery
 from saleor.webhook.event_types import WebhookEventSyncType
 from saleor.webhook.transport.synchronous.circuit_breaker.storage import (
     Storage,
 )
 from saleor.webhook.transport.utils import WebhookResponse
+
+if TYPE_CHECKING:
+    from .....webhook.models import Webhook
 
 
 # TODO - check - given how this is running in production (gunicorn, uvicorn) does this code NEED
@@ -24,22 +26,28 @@ class BreakerBoard:
 
         # TODO - make everything below configurable
         self.failure_threshold = failure_threshold
-        self.webhook_event_types = [WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT]
-        self.cooldown_seconds = 5 * 60
-        self.ttl = 10 * 60
+        self.webhook_event_types = [
+            WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
+        ]
+        self.cooldown_seconds = 5 * 60  # 5 minutes
+        self.ttl = 10 * 60  # 10 minutes
 
     def is_closed(self, app_id: int):
         # TODO - cache last open to optimize?
         return self.storage.last_open(app_id) < (time.time() - self.cooldown_seconds)
 
     def register_error(self, app_id: int):
-        errors = self.storage.register_event_returning_count(f"{0}-{1}".format(app_id, "error"), self.ttl)
+        errors = self.storage.register_event_returning_count(
+            f"{0}-{1}".format(app_id, "error"), self.ttl
+        )
 
         if errors >= self.failure_threshold:
             self.storage.update_open(app_id, int(time.time()))
 
     def register_success(self, app_id: int):
-        self.storage.register_event_returning_count(f"{0}-{1}".format(app_id, "total"), self.ttl)
+        self.storage.register_event_returning_count(
+            f"{0}-{1}".format(app_id, "total"), self.ttl
+        )
 
         last_open = self.storage.last_open(app_id)
         if last_open == 0:
@@ -50,21 +58,24 @@ class BreakerBoard:
 
     def __call__(self, func):
         def inner(*args, **kwargs):
-            delivery: EventDelivery = args[0]
-            if delivery.event_type not in self.webhook_event_types:
+            event_type: str = args[0]
+            webhook: Webhook = args[2]
+
+            if event_type not in self.webhook_event_types:
                 return func(*args, **kwargs)
 
             # TODO - ensure webhook and app are preloaded
-            app = delivery.webhook.app
+            app = webhook.app
 
             if not self.is_closed(app.id):
                 return WebhookResponse(content=""), None
 
-            response, data = func(*args, **kwargs)
-            if response.status == EventDeliveryStatus.FAILED:
+            response = func(*args, **kwargs)
+            if response is None:
                 self.register_error(app.id)
             else:
                 self.register_success(app.id)
 
-            return response, data
+            return response
+
         return inner
