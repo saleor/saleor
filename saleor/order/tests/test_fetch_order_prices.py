@@ -1940,7 +1940,7 @@ def test_fetch_order_prices_manual_order_discount_and_voucher_apply_once_per_ord
     order.save(update_fields=["voucher", "voucher_code"])
 
     # create manual order discount
-    order_discount_amount = Decimal("10")
+    order_discount_amount = Decimal("8")
     order_discount = order.discounts.create(
         value_type=DiscountValueType.FIXED,
         value=order_discount_amount,
