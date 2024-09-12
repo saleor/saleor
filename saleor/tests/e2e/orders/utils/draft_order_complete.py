@@ -30,6 +30,17 @@ mutation DraftOrderComplete($id: ID!) {
         id
         code
       }
+      discounts {
+        id
+        type
+        name
+        valueType
+        value
+        reason
+        amount {
+          amount
+        }
+      }
       paymentStatus
       isPaid
       channel {
