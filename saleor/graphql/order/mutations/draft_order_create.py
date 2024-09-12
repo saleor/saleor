@@ -14,6 +14,7 @@ from ....discount.utils.voucher import (
     get_active_voucher_code,
     get_voucher_code_instance,
     increase_voucher_usage,
+    release_voucher_code_usage,
 )
 from ....order import OrderOrigin, OrderStatus, events, models
 from ....order.actions import call_order_event
@@ -528,6 +529,8 @@ class DraftOrderCreate(
         is_new_instance,
         app,
         manager,
+        old_voucher=None,
+        old_voucher_code=None,
     ):
         updated_fields = []
         with traced_atomic_transaction():
@@ -568,11 +571,17 @@ class DraftOrderCreate(
                 )
                 updated_fields.append("undiscounted_base_shipping_price_amount")
 
+            if "voucher" in cleaned_input:
+                cls.handle_order_voucher(
+                    cleaned_input,
+                    instance,
+                    is_new_instance,
+                    old_voucher,
+                    old_voucher_code,
+                )
+
             # Save any changes create/update the draft
             cls._commit_changes(info, instance, cleaned_input, is_new_instance, app)
-
-            if voucher := cleaned_input.get("voucher"):
-                cls.handle_order_voucher(cleaned_input, instance, voucher)
 
             update_order_display_gross_prices(instance)
 
@@ -606,13 +615,23 @@ class DraftOrderCreate(
                 )
 
     @classmethod
-    def handle_order_voucher(cls, cleaned_input, instance, voucher):
-        code_instance = cleaned_input.pop("voucher_code_instance", None)
+    def handle_order_voucher(
+        cls, cleaned_input, instance, is_new_instance, old_voucher, old_voucher_code
+    ):
+        user_email = instance.user_email or instance.user and instance.user.email
         channel = instance.channel
-        if channel.include_draft_order_in_voucher_usage:
+        if not channel.include_draft_order_in_voucher_usage:
+            return
+
+        if voucher := cleaned_input["voucher"]:
+            code_instance = cleaned_input.pop("voucher_code_instance", None)
             increase_voucher_usage(
                 voucher,
                 code_instance,
-                instance.user_email or instance.user and instance.user.email,
+                user_email,
                 increase_voucher_customer_usage=False,
             )
+        elif not is_new_instance and old_voucher:
+            # handle removing voucher
+            voucher_code = VoucherCode.objects.filter(code=old_voucher_code).first()
+            release_voucher_code_usage(voucher_code, old_voucher, user_email)
