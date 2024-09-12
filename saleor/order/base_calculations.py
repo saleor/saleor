@@ -112,6 +112,7 @@ def propagate_order_discount_on_order_prices(
                     currency=currency,
                     price_to_discount=subtotal,
                 )
+            # TODO zedzior this function should handle order-level promotion only
             elif voucher and voucher.type == VoucherType.SHIPPING:
                 shipping_voucher_discount = order_discount
         elif order_discount.type == DiscountType.ORDER_PROMOTION:
