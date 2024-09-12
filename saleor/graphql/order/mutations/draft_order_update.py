@@ -75,3 +75,37 @@ class DraftOrderUpdate(DraftOrderCreate, ModelWithExtRefMutation):
             app=app,
             manager=manager,
         )
+
+    @classmethod
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
+        instance = cls.get_instance(info, **data)
+        channel_id = cls.get_instance_channel_id(instance, **data)
+        cls.check_channel_permissions(info, [channel_id])
+        old_voucher = instance.voucher
+        old_voucher_code = instance.voucher_code
+        data = data.get("input")
+        cleaned_input = cls.clean_input(info, instance, data)
+        instance = cls.construct_instance(instance, cleaned_input)
+        cls.clean_instance(info, instance)
+        cls.save_draft_order(
+            info, instance, cleaned_input, old_voucher, old_voucher_code
+        )
+        cls._save_m2m(info, instance, cleaned_input)
+        return cls.success_response(instance)
+
+    @classmethod
+    def save_draft_order(
+        cls, info: ResolveInfo, instance, cleaned_input, old_voucher, old_voucher_code
+    ):
+        manager = get_plugin_manager_promise(info.context).get()
+        app = get_app_promise(info.context).get()
+        return cls._save_draft_order(
+            info,
+            instance,
+            cleaned_input,
+            is_new_instance=False,
+            app=app,
+            manager=manager,
+            old_voucher=old_voucher,
+            old_voucher_code=old_voucher_code,
+        )
