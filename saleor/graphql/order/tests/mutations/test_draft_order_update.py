@@ -469,7 +469,16 @@ def test_draft_order_update_clear_voucher(
     # given
     order = draft_order
     order.voucher = voucher
-    order.save(update_fields=["voucher"])
+    code_instance = voucher.codes.first()
+    order.voucher_code = code_instance.code
+    order.save(update_fields=["voucher", "voucher_code"])
+
+    code_instance.used += 1
+    code_instance.save(update_fields=["used"])
+    code_used = code_instance.used
+
+    voucher.usage_limit = 5
+    voucher.save(update_fields=["usage_limit"])
 
     voucher_listing = voucher.channel_listings.get(channel=order.channel)
     discount_amount = voucher_listing.discount_value
@@ -504,6 +513,8 @@ def test_draft_order_update_clear_voucher(
 
     assert data["order"]["undiscountedTotal"]["net"]["amount"] == order_total
     assert data["order"]["total"]["net"]["amount"] == order_total
+    assert not data["order"]["voucher"]
+    assert not data["order"]["voucherCode"]
 
     assert not data["errors"]
     order.refresh_from_db()
@@ -511,6 +522,8 @@ def test_draft_order_update_clear_voucher(
     assert order.search_vector
 
     assert not order.discounts.count()
+    code_instance.refresh_from_db()
+    assert code_instance.used == code_used
 
 
 def test_draft_order_update_clear_voucher_code(
@@ -521,8 +534,17 @@ def test_draft_order_update_clear_voucher_code(
 ):
     # given
     order = draft_order
+    code_instance = voucher.codes.first()
     order.voucher = voucher
-    order.save(update_fields=["voucher"])
+    order.voucher_code = code_instance.code
+    order.save(update_fields=["voucher", "voucher_code"])
+
+    code_instance.used += 1
+    code_instance.save(update_fields=["used"])
+    code_used = code_instance.used
+
+    voucher.usage_limit = 5
+    voucher.save(update_fields=["usage_limit"])
 
     voucher_listing = voucher.channel_listings.get(channel=order.channel)
     discount_amount = voucher_listing.discount_value
@@ -557,6 +579,8 @@ def test_draft_order_update_clear_voucher_code(
 
     assert data["order"]["undiscountedTotal"]["net"]["amount"] == order_total
     assert data["order"]["total"]["net"]["amount"] == order_total
+    assert not data["order"]["voucher"]
+    assert not data["order"]["voucherCode"]
 
     assert not data["errors"]
     order.refresh_from_db()
@@ -564,6 +588,148 @@ def test_draft_order_update_clear_voucher_code(
     assert order.search_vector
 
     assert not order.discounts.count()
+    code_instance.refresh_from_db()
+    assert code_instance.used == code_used
+
+
+def test_draft_order_update_clear_voucher_and_reduce_voucher_usage(
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    voucher,
+):
+    # given
+    order = draft_order
+    order.voucher = voucher
+    code_instance = voucher.codes.first()
+    order.voucher_code = code_instance.code
+    order.save(update_fields=["voucher", "voucher_code"])
+
+    code_instance.used += 1
+    code_instance.save(update_fields=["used"])
+    code_used = code_instance.used
+
+    voucher.usage_limit = 5
+    voucher.save(update_fields=["usage_limit"])
+
+    channel = order.channel
+    channel.include_draft_order_in_voucher_usage = True
+    channel.save(update_fields=["include_draft_order_in_voucher_usage"])
+
+    voucher_listing = voucher.channel_listings.get(channel=channel)
+    discount_amount = voucher_listing.discount_value
+    order.discounts.create(
+        voucher=voucher,
+        value=discount_amount,
+        type=DiscountType.VOUCHER,
+    )
+
+    order.total_gross_amount -= discount_amount
+    order.total_net_amount -= discount_amount
+    order.save(update_fields=["total_net_amount", "total_gross_amount"])
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    order_total = order.undiscounted_total_net_amount
+
+    variables = {
+        "id": order_id,
+        "input": {
+            "voucher": None,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+
+    assert data["order"]["undiscountedTotal"]["net"]["amount"] == order_total
+    assert data["order"]["total"]["net"]["amount"] == order_total
+    assert not data["order"]["voucher"]
+    assert not data["order"]["voucherCode"]
+
+    assert not data["errors"]
+    order.refresh_from_db()
+    assert not order.voucher
+    assert order.search_vector
+
+    assert not order.discounts.count()
+    code_instance.refresh_from_db()
+    assert code_instance.used == code_used - 1
+
+
+def test_draft_order_update_clear_voucher_code_and_reduce_voucher_usage(
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    voucher,
+):
+    # given
+    order = draft_order
+    code_instance = voucher.codes.first()
+    order.voucher = voucher
+    order.voucher_code = code_instance.code
+    order.save(update_fields=["voucher", "voucher_code"])
+
+    code_instance.used += 1
+    code_instance.save(update_fields=["used"])
+    code_used = code_instance.used
+
+    voucher.usage_limit = 5
+    voucher.save(update_fields=["usage_limit"])
+
+    channel = order.channel
+    channel.include_draft_order_in_voucher_usage = True
+    channel.save(update_fields=["include_draft_order_in_voucher_usage"])
+
+    voucher_listing = voucher.channel_listings.get(channel=channel)
+    discount_amount = voucher_listing.discount_value
+    order.discounts.create(
+        voucher=voucher,
+        value=discount_amount,
+        type=DiscountType.VOUCHER,
+    )
+
+    order.total_gross_amount -= discount_amount
+    order.total_net_amount -= discount_amount
+    order.save(update_fields=["total_net_amount", "total_gross_amount"])
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    order_total = order.undiscounted_total_net_amount
+
+    variables = {
+        "id": order_id,
+        "input": {
+            "voucherCode": None,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+
+    assert data["order"]["undiscountedTotal"]["net"]["amount"] == order_total
+    assert data["order"]["total"]["net"]["amount"] == order_total
+    assert not data["order"]["voucher"]
+    assert not data["order"]["voucherCode"]
+
+    assert not data["errors"]
+    order.refresh_from_db()
+    assert not order.voucher
+    assert order.search_vector
+
+    assert not order.discounts.count()
+    code_instance.refresh_from_db()
+    assert code_instance.used == code_used - 1
 
 
 def test_draft_order_update_with_voucher_and_voucher_code(
