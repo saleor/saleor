@@ -51,6 +51,7 @@ mutation DraftOrderUpdate($input: DraftOrderInput!, $id: ID!) {
           amount
         }
       }
+      voucherCode
       voucher {
         id
         code
