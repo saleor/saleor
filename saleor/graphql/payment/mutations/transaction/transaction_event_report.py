@@ -82,7 +82,14 @@ class TransactionEventReport(ModelMutation):
             description="Current status of the event to report.",
         )
         amount = PositiveDecimal(
-            description="The amount of the event to report.", required=False
+            description=(
+                "The amount of the event to report. \n\nRequired for all `REQUEST`, "
+                "`SUCCESS`, `ACTION_REQUIRED`, and `ADJUSTMENT` events. For other events, "
+                "the amount will be calculated based on the previous events with "
+                "the same pspReference. "
+                "If not possible to calculate, the mutation will return an error."
+            ),
+            required=False,
         )
         time = DateTime(
             description=(
