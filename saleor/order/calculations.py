@@ -190,6 +190,12 @@ def _recalculate_prices(
                     logger.warning(str(e), extra=order_info_for_logs(order, lines))
                 order.tax_error = str(e)
         else:
+            apply_order_discounts(
+                order,
+                lines,
+                assign_prices=True,
+                database_connection_name=database_connection_name,
+            )
             _remove_tax(order, lines)
 
 

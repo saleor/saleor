@@ -81,6 +81,7 @@ from ..discount.models import (
     VoucherTranslation,
 )
 from ..discount.utils.voucher import (
+    create_or_update_discount_object_from_order_level_voucher,
     get_products_voucher_discount,
     validate_voucher_in_order,
 )
@@ -90,7 +91,7 @@ from ..graphql.core.utils import to_global_id_or_none
 from ..menu.models import Menu, MenuItem, MenuItemTranslation
 from ..order import OrderOrigin, OrderStatus
 from ..order.actions import cancel_fulfillment, fulfill_order_lines
-from ..order.base_calculations import apply_order_discounts
+from ..order.base_calculations import base_order_subtotal
 from ..order.events import (
     OrderEvents,
     fulfillment_refunded_event,
@@ -5805,7 +5806,12 @@ def draft_order_with_free_shipping_voucher(
 
     order.voucher = voucher_free_shipping
     order.voucher_code = voucher_code.code
-    subtotal, shipping_price = apply_order_discounts(order, order.lines.all())
+    create_or_update_discount_object_from_order_level_voucher(
+        order, settings.DATABASE_CONNECTION_DEFAULT_NAME
+    )
+
+    subtotal = base_order_subtotal(order, order.lines.all())
+    shipping_price = order.base_shipping_price
     order.subtotal = TaxedMoney(gross=subtotal, net=subtotal)
     order.shipping_price = TaxedMoney(net=shipping_price, gross=shipping_price)
     total = subtotal + shipping_price

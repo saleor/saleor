@@ -179,48 +179,6 @@ def test_apply_order_discounts_manual_discount(order_with_lines):
     assert order_discount.amount_value == discount_amount
 
 
-def test_apply_order_discounts_shipping_voucher(
-    order_with_lines, voucher_free_shipping
-):
-    # given
-    order = order_with_lines
-    lines = order.lines.all()
-    shipping_price = order.shipping_price.net
-    currency = order.currency
-    subtotal = zero_money(currency)
-    for line in lines:
-        subtotal += line.base_unit_price * line.quantity
-
-    discount_amount = shipping_price.amount
-    order_discount = order.discounts.create(
-        type=DiscountType.VOUCHER,
-        value_type=DiscountValueType.FIXED,
-        value=discount_amount,
-        name="Voucher",
-        translated_name="VoucherPL",
-        currency=currency,
-        amount_value=discount_amount,
-        voucher=voucher_free_shipping,
-    )
-
-    # when
-    discounted_subtotal, discounted_shipping_price = apply_order_discounts(order, lines)
-
-    # then
-    assert discounted_shipping_price == zero_money(currency)
-    assert discounted_subtotal == subtotal
-    assert order.subtotal_net_amount == discounted_subtotal.amount
-    assert order.subtotal_gross_amount == discounted_subtotal.amount
-    assert order.total_net == discounted_subtotal + discounted_shipping_price
-    assert order.total_gross == discounted_subtotal + discounted_shipping_price
-    assert order.shipping_price_net == discounted_shipping_price
-    assert order.shipping_price_gross == discounted_shipping_price
-    assert order.undiscounted_total_net == subtotal + shipping_price
-    assert order.undiscounted_total_gross == subtotal + shipping_price
-    order_discount.refresh_from_db()
-    assert order_discount.amount_value == shipping_price.amount
-
-
 def test_apply_order_discounts_zero_discount(order_with_lines):
     # given
     order = order_with_lines
