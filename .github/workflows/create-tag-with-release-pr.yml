@@ -37,6 +37,7 @@ jobs:
     uses: ./.github/workflows/publish-containers.yml
     with:
       version: ${{ needs.run-release-trigger.outputs.version }}
+      ref: ${{ needs.run-release-trigger.outputs.version }}
     secrets:
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_CLOUD_CI_WEBHOOK_URL }}
       SLACK_MENTION_GROUP_ID: ${{ secrets.SLACK_CORE_SUPPORT_GROUP_ID }}
