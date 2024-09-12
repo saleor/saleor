@@ -346,12 +346,13 @@ def create_or_update_discount_object_from_order_level_voucher(
         )
     if is_shipping_voucher(voucher):
         discount_amount = voucher.get_discount_amount_for(
-            order.shipping_price_net, order.channel
+            order.undiscounted_base_shipping_price, order.channel
         )
         # Shipping voucher is tricky: it is associated with an order, but it
         # decreases base price, similar to line level discounts
         order.base_shipping_price = max(
-            order.shipping_price_net - discount_amount, zero_money(order.currency)
+            order.undiscounted_base_shipping_price - discount_amount,
+            zero_money(order.currency),
         )
 
     discount_reason = f"Voucher code: {order.voucher_code}"

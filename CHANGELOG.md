@@ -28,3 +28,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fixed a crash when the Decimal scalar is passed a non-normal value - #16520 by @patrys
 - Fixed a bug when saving webhook payload to Azure Storage - #16585 by @delemeator
 - Added validation for tax data received from tax app - #16720 by @zedzior
+- Fixed order-level discounts handling when using tax app for tax calculation - #16696 by @zedzior
