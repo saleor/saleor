@@ -147,6 +147,20 @@ def _recalculate_prices(
     tax_app_identifier = get_tax_app_identifier_for_order(order)
 
     order.tax_error = None
+
+    # Flat rates, plugin and tax exemption strategies require to propagate order-level
+    # discounts to order lines. Tax app does it itself.
+    is_tax_app_strategy = (
+        tax_calculation_strategy == TaxCalculationStrategy.TAX_APP
+        and tax_app_identifier
+        and not tax_app_identifier.startswith(PLUGIN_IDENTIFIER_PREFIX)
+    )
+    apply_order_discounts(
+        order,
+        lines,
+        assign_prices=not is_tax_app_strategy,
+        database_connection_name=database_connection_name,
+    )
     if prices_entered_with_tax:
         # If prices are entered with tax, we need to always calculate it anyway, to
         # display the tax rate to the user.
@@ -190,12 +204,6 @@ def _recalculate_prices(
                     logger.warning(str(e), extra=order_info_for_logs(order, lines))
                 order.tax_error = str(e)
         else:
-            apply_order_discounts(
-                order,
-                lines,
-                assign_prices=True,
-                database_connection_name=database_connection_name,
-            )
             _remove_tax(order, lines)
 
 
@@ -213,9 +221,10 @@ def _calculate_and_add_tax(
         # If taxAppId is provided run tax plugin or Tax App. taxAppId can be
         # configured with Avatax plugin identifier.
         if not tax_app_identifier:
-            # Get the taxes calculated with plugins.
+            # This is deprecated flow, kept to maintain backward compatibility.
+            # In Saleor 4.0 `tax_app_identifier` should be required and the flow should
+            # be dropped.
             _recalculate_with_plugins(manager, order, lines, prices_entered_with_tax)
-            # Get the taxes calculated with apps and apply to order.
             tax_data = manager.get_taxes_for_order(order, tax_app_identifier)
             if not tax_data:
                 log_address_if_validation_skipped_for_order(order, logger)
@@ -228,16 +237,8 @@ def _calculate_and_add_tax(
                 lines,
                 manager,
                 prices_entered_with_tax,
-                database_connection_name,
             )
     else:
-        # propagate the order level discount on the prices without taxes.
-        apply_order_discounts(
-            order,
-            lines,
-            assign_prices=True,
-            database_connection_name=database_connection_name,
-        )
         # Get taxes calculated with flat rates and apply to order.
         update_order_prices_with_flat_rates(
             order,
@@ -253,16 +254,9 @@ def _call_plugin_or_tax_app(
     lines: Iterable["OrderLine"],
     manager: "PluginsManager",
     prices_entered_with_tax: bool,
-    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     if tax_app_identifier.startswith(PLUGIN_IDENTIFIER_PREFIX):
         # propagate the order level discount on the prices without taxes.
-        apply_order_discounts(
-            order,
-            lines,
-            assign_prices=True,
-            database_connection_name=database_connection_name,
-        )
         plugin_ids = [tax_app_identifier.replace(PLUGIN_IDENTIFIER_PREFIX, "")]
         plugins = manager.get_plugins(
             order.channel.slug, active_only=True, plugin_ids=plugin_ids
