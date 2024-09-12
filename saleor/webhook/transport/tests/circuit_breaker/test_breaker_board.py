@@ -3,14 +3,12 @@ from unittest.mock import MagicMock
 import pytest
 
 from saleor.app.models import App
-from saleor.core import EventDeliveryStatus
 from saleor.webhook.event_types import WebhookEventSyncType
 from saleor.webhook.models import Webhook, WebhookEvent
 from saleor.webhook.transport.synchronous.circuit_breaker.breaker_board import (
     BreakerBoard,
 )
 from saleor.webhook.transport.synchronous.circuit_breaker.storage import InMemoryStorage
-from saleor.webhook.transport.utils import WebhookResponse
 
 
 @pytest.fixture
