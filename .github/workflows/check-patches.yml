@@ -39,4 +39,4 @@ jobs:
         id: apply_patches
         run: |
           cd workflows-test
-          git apply ../saleor-multitenant/patches/**.patch
+          git apply ../saleor-multitenant/patches/**.patch > /dev/null 2>&1
