@@ -1,11 +1,9 @@
 {
-  "git": {
-    "commit": true,
-    "tag": false,
-    "push": false
-  },
   "github": {
-    "release": false
+    "release": true,
+    "draft": true,
+    "releaseName": "${version}",
+    "assets": ["saleor/graphql/schema.graphql"]
   },
   "npm": {
     "publish": false
@@ -23,17 +21,5 @@
         }
       ]
     }
-  },
-  "hooks": {
-    "before:bump": [
-      "git rev-parse --abbrev-ref HEAD > .base_ver_release.txt"
-    ],
-    "after:bump": [
-      "git checkout -B release-${version} --track"
-    ],
-    "after:release": [
-      "git push origin release-${version}",
-      "gh pr create --base `cat .base_ver_release.txt` --head release-${version} --title \"Release ${version}\" --body \"${changelog}\" --label release"
-    ]
   }
 }
