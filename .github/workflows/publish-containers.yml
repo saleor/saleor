@@ -3,6 +3,10 @@ name: Publish
 on:
   workflow_call:
     inputs:
+      ref:
+        description: Optional ref name for custom build
+        required: false
+        type: string
       prefix:
         description: Optional image prefix for branch build
         required: false
@@ -33,6 +37,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
 
       # Outputs the name of the repository (owner/repo)
       - name: Build Image Name
