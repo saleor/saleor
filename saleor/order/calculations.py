@@ -256,7 +256,6 @@ def _call_plugin_or_tax_app(
     prices_entered_with_tax: bool,
 ):
     if tax_app_identifier.startswith(PLUGIN_IDENTIFIER_PREFIX):
-        # propagate the order level discount on the prices without taxes.
         plugin_ids = [tax_app_identifier.replace(PLUGIN_IDENTIFIER_PREFIX, "")]
         plugins = manager.get_plugins(
             order.channel.slug, active_only=True, plugin_ids=plugin_ids
