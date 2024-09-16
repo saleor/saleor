@@ -17031,8 +17031,12 @@ type Mutation {
   Requires the following permissions: OWNER and HANDLE_PAYMENTS for apps, HANDLE_PAYMENTS for staff users. Staff user cannot update a transaction that is owned by the app.
   """
   transactionEventReport(
-    """The amount of the event to report."""
-    amount: PositiveDecimal!
+    """
+    The amount of the event to report. 
+    
+    Required for all `REQUEST`, `SUCCESS`, `ACTION_REQUIRED`, and `ADJUSTMENT` events. For other events, the amount will be calculated based on the previous events with the same pspReference. If not possible to calculate, the mutation will return an error.
+    """
+    amount: PositiveDecimal
 
     """List of all possible actions for the transaction"""
     availableActions: [TransactionActionEnum!]
@@ -24934,6 +24938,7 @@ enum TransactionEventReportErrorCode @doc(category: "Payments") {
   NOT_FOUND
   INCORRECT_DETAILS
   ALREADY_EXISTS
+  REQUIRED
 }
 
 """
