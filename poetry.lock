@@ -4502,13 +4502,13 @@ files = [
 
 [[package]]
 name = "types-pytz"
-version = "2024.1.0.20240417"
+version = "2024.2.0.20240913"
 description = "Typing stubs for pytz"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "types-pytz-2024.1.0.20240417.tar.gz", hash = "sha256:6810c8a1f68f21fdf0f4f374a432487c77645a0ac0b31de4bf4690cf21ad3981"},
-    {file = "types_pytz-2024.1.0.20240417-py3-none-any.whl", hash = "sha256:8335d443310e2db7b74e007414e74c4f53b67452c0cb0d228ca359ccfba59659"},
+    {file = "types-pytz-2024.2.0.20240913.tar.gz", hash = "sha256:4433b5df4a6fc587bbed41716d86a5ba5d832b4378e506f40d34bc9c81df2c24"},
+    {file = "types_pytz-2024.2.0.20240913-py3-none-any.whl", hash = "sha256:a1eebf57ebc6e127a99d2fa2ba0a88d2b173784ef9b3defcc2004ab6855a44df"},
 ]
 
 [[package]]
@@ -5158,4 +5158,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.12"
-content-hash = "5fbdf363a706e59509e56abe8f3e3673ffbdc2f389b526ee72a59a53be3c3015"
+content-hash = "ae2a11372ed41efa262078a70d30af3033d87f9495fe03381b6c9a5e3590958e"
