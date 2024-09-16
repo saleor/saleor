@@ -851,6 +851,7 @@ def test_fetch_checkout_data_tax_data_with_negative_values(
 def test_validate_tax_data_line_number(checkout_info, caplog):
     # given
     lines_info = checkout_info.lines
+    assert len(lines_info) == 4
 
     tax_data = TaxData(
         shipping_price_net_amount=Decimal("1"),
