@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 from unittest.mock import patch
 
@@ -27,6 +27,7 @@ from ..utils import (
     create_transaction_event_from_request_and_webhook_response,
     get_channel_slug_from_payment,
     get_correct_event_types_based_on_request_type,
+    get_transaction_event_amount,
     parse_transaction_action_data,
     recalculate_refundable_for_checkout,
     try_void_or_refund_inactive_payment,
@@ -2513,3 +2514,231 @@ def test_recalculate_refundable_for_checkout_update_missing_checkout(
     # then
     transaction_item.refresh_from_db()
     assert transaction_item.last_refund_success is False
+
+
+@pytest.mark.parametrize(
+    ("input_event_type", "event_type_to_create"),
+    [
+        (TransactionEventType.CHARGE_FAILURE, TransactionEventType.CHARGE_SUCCESS),
+        (TransactionEventType.CHARGE_FAILURE, TransactionEventType.CHARGE_REQUEST),
+        (
+            TransactionEventType.CHARGE_FAILURE,
+            TransactionEventType.AUTHORIZATION_SUCCESS,
+        ),
+        (
+            TransactionEventType.CHARGE_FAILURE,
+            TransactionEventType.AUTHORIZATION_REQUEST,
+        ),
+        (
+            TransactionEventType.CHARGE_FAILURE,
+            TransactionEventType.AUTHORIZATION_FAILURE,
+        ),
+        (TransactionEventType.REFUND_FAILURE, TransactionEventType.REFUND_SUCCESS),
+        (TransactionEventType.REFUND_FAILURE, TransactionEventType.REFUND_REQUEST),
+        (TransactionEventType.REFUND_FAILURE, TransactionEventType.CHARGE_SUCCESS),
+        (TransactionEventType.REFUND_FAILURE, TransactionEventType.CHARGE_REQUEST),
+        (TransactionEventType.REFUND_FAILURE, TransactionEventType.CHARGE_FAILURE),
+        (TransactionEventType.CANCEL_FAILURE, TransactionEventType.CANCEL_SUCCESS),
+        (TransactionEventType.CANCEL_FAILURE, TransactionEventType.CANCEL_REQUEST),
+        (
+            TransactionEventType.CANCEL_FAILURE,
+            TransactionEventType.AUTHORIZATION_SUCCESS,
+        ),
+        (
+            TransactionEventType.CANCEL_FAILURE,
+            TransactionEventType.AUTHORIZATION_REQUEST,
+        ),
+        (
+            TransactionEventType.CANCEL_FAILURE,
+            TransactionEventType.AUTHORIZATION_FAILURE,
+        ),
+        (
+            TransactionEventType.AUTHORIZATION_FAILURE,
+            TransactionEventType.AUTHORIZATION_SUCCESS,
+        ),
+        (
+            TransactionEventType.AUTHORIZATION_FAILURE,
+            TransactionEventType.AUTHORIZATION_REQUEST,
+        ),
+        (TransactionEventType.REFUND_REVERSE, TransactionEventType.REFUND_SUCCESS),
+        (TransactionEventType.CHARGE_BACK, TransactionEventType.CHARGE_SUCCESS),
+    ],
+)
+def test_get_transaction_event_amount(
+    input_event_type,
+    event_type_to_create,
+    transaction_events_generator,
+    transaction_item,
+):
+    # given
+    expected_amount = 10
+    psp_reference = "xyz"
+    transaction_events_generator(
+        transaction=transaction_item,
+        psp_references=[
+            psp_reference,
+        ],
+        types=[
+            event_type_to_create,
+        ],
+        amounts=[
+            expected_amount,
+        ],
+    )
+
+    # when
+    amount = get_transaction_event_amount(input_event_type, psp_reference)
+
+    # then
+    assert amount == expected_amount
+
+
+def test_get_transaction_event_amount_match_the_newest_event(
+    transaction_events_generator, transaction_item
+):
+    # given
+    psp_reference = "xyz"
+    event_types = [
+        TransactionEventType.CHARGE_SUCCESS,
+        TransactionEventType.CHARGE_REQUEST,
+        TransactionEventType.AUTHORIZATION_SUCCESS,
+        TransactionEventType.AUTHORIZATION_REQUEST,
+        TransactionEventType.AUTHORIZATION_FAILURE,
+    ]
+    events = transaction_events_generator(
+        transaction=transaction_item,
+        psp_references=[
+            psp_reference,
+        ]
+        * len(event_types),
+        types=event_types,
+        amounts=[10, 5, 4, 3, 2],
+    )
+    newest_event = events[-1]
+    for event in events[:-1]:
+        event.created_at = newest_event.created_at - timedelta(minutes=10)
+    TransactionEvent.objects.bulk_update(events[:-1], ["created_at"])
+
+    # when
+    amount = get_transaction_event_amount(
+        TransactionEventType.CHARGE_FAILURE, psp_reference
+    )
+
+    # then
+    assert amount == newest_event.amount_value
+
+
+@pytest.mark.parametrize(
+    ("input_event_type", "event_types_to_create"),
+    [
+        (TransactionEventType.CHARGE_FAILURE, [TransactionEventType.REFUND_FAILURE]),
+        (TransactionEventType.CHARGE_FAILURE, []),
+        (
+            TransactionEventType.REFUND_FAILURE,
+            [TransactionEventType.AUTHORIZATION_FAILURE],
+        ),
+        (TransactionEventType.REFUND_FAILURE, []),
+        (TransactionEventType.CANCEL_FAILURE, [TransactionEventType.CHARGE_FAILURE]),
+        (TransactionEventType.CANCEL_FAILURE, []),
+        (
+            TransactionEventType.AUTHORIZATION_FAILURE,
+            [TransactionEventType.CHARGE_SUCCESS],
+        ),
+        (TransactionEventType.AUTHORIZATION_FAILURE, []),
+        (TransactionEventType.REFUND_REVERSE, [TransactionEventType.REFUND_FAILURE]),
+        (TransactionEventType.REFUND_REVERSE, []),
+        (TransactionEventType.CHARGE_BACK, [TransactionEventType.CHARGE_FAILURE]),
+        (TransactionEventType.CHARGE_BACK, []),
+    ],
+)
+def test_get_transaction_event_amount_missing_matching_event(
+    input_event_type,
+    event_types_to_create,
+    transaction_events_generator,
+    transaction_item,
+):
+    # given
+    amount = 10
+    psp_reference = "xyz"
+    if event_types_to_create:
+        transaction_events_generator(
+            transaction=transaction_item,
+            psp_references=[
+                psp_reference,
+            ],
+            types=event_types_to_create,
+            amounts=[
+                amount,
+            ],
+        )
+
+    # when & then
+    with pytest.raises(
+        ValueError, match=f"Unable to deduce the amount for {input_event_type} event."
+    ):
+        get_transaction_event_amount(input_event_type, psp_reference)
+
+
+def test_get_transaction_event_amount_missing_matching_event_different_psp_reference(
+    transaction_events_generator, transaction_item
+):
+    # given
+    psp_reference = "xyz"
+    transaction_events_generator(
+        transaction=transaction_item,
+        psp_references=[
+            "123",
+        ],
+        types=[TransactionEventType.CHARGE_SUCCESS],
+        amounts=[10],
+    )
+    event_type = TransactionEventType.CHARGE_FAILURE
+
+    # when & then
+    with pytest.raises(
+        ValueError, match=f"Unable to deduce the amount for {event_type} event."
+    ):
+        get_transaction_event_amount(event_type, psp_reference)
+
+
+def test_get_transaction_event_amount_invalid_event_type(
+    transaction_events_generator, transaction_item
+):
+    # given
+    psp_reference = "xyz"
+    transaction_events_generator(
+        transaction=transaction_item,
+        psp_references=[
+            psp_reference,
+        ],
+        types=[TransactionEventType.CHARGE_FAILURE],
+        amounts=[10],
+    )
+    event_type = TransactionEventType.CHARGE_SUCCESS
+
+    # when & then
+    with pytest.raises(
+        ValueError, match=f"Unable to deduce the amount for {event_type} event."
+    ):
+        get_transaction_event_amount(event_type, psp_reference)
+
+
+def test_get_transaction_event_amount_for_info_event_type(
+    transaction_events_generator, transaction_item
+):
+    # given
+    psp_reference = "xyz"
+    transaction_events_generator(
+        transaction=transaction_item,
+        psp_references=[
+            "123",
+        ],
+        types=[TransactionEventType.CHARGE_SUCCESS],
+        amounts=[10],
+    )
+
+    # when
+    amount = get_transaction_event_amount(TransactionEventType.INFO, psp_reference)
+
+    # then
+    assert amount == 0
