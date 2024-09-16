@@ -1,5 +1,6 @@
 from datetime import datetime
 from unittest.mock import Mock, patch
+from django.core.exceptions import ImproperlyConfigured
 
 import fakeredis
 import pytest
@@ -71,4 +72,8 @@ def test_register_event_returning_count_does_not_crash_on_empty_response(storage
         assert storage.register_event_returning_count(KEY, TTL_SECONDS) == 0
 
 
-# TODO ImproperlyConfigured on __init__
+def test_storage_raises_on_non_redis_cache_url(settings):
+    settings.CACHE_URL = "definitelynotredis://localhost:7000"
+
+    with pytest.raises(ImproperlyConfigured):
+        RedisStorage()
