@@ -43,7 +43,7 @@ from .enums import (
     PaymentChargeStatusEnum,
     TokenizedPaymentFlowEnum,
     TransactionActionEnum,
-    TransactionEventTypeEnum,
+    TransactionEventTypeOutputEnum,
     TransactionKindEnum,
 )
 
@@ -335,7 +335,7 @@ class TransactionEvent(ModelObjectType[models.TransactionEvent]):
         description="The amount related to this event." + ADDED_IN_313,
     )
     type = graphene.Field(
-        TransactionEventTypeEnum,
+        TransactionEventTypeOutputEnum,
         description="The type of action related to this event." + ADDED_IN_313,
     )
 
