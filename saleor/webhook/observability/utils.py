@@ -97,7 +97,7 @@ def put_event(generate_payload: Callable[[], Any]):
             if get_buffer(get_buffer_name()).put_event(payload):
                 logger.warning("Observability buffer full, event dropped.")
     except TruncationError as err:
-        logger.warning("Observability event dropped. %s", err, extra=err.extra)
+        logger.warning("Observability event dropped. %s", str(err), extra=err.extra)
     except Exception:
         logger.error("Observability event dropped.", exc_info=True)
 
