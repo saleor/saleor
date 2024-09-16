@@ -1,9 +1,9 @@
 from datetime import datetime
 from unittest.mock import Mock, patch
-from django.core.exceptions import ImproperlyConfigured
 
 import fakeredis
 import pytest
+from django.core.exceptions import ImproperlyConfigured
 from freezegun import freeze_time
 from redis.client import Pipeline
 

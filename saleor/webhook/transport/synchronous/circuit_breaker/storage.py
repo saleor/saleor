@@ -49,7 +49,6 @@ class InMemoryStorage(Storage):
         return len(filtered_entries)
 
 
-# TODO - _client expects str not int for keys (and other mypy)
 # TODO - key names (redis storage circuit breaker prefix?)
 # TODO - Redis timeouts
 # TODO - change register_event_returning_count signature to accept `app_id` and `key`
@@ -68,11 +67,11 @@ class RedisStorage(Storage):
                     "Redis storage cannot be used when Redis cache is not configured"
                 )
 
-            self._client = cache._cache.get_client()
+            self._client = cache._cache.get_client()  # type: ignore[attr-defined]
 
     def last_open(self, app_id: int) -> int:
         try:
-            result = self._client.get(app_id)
+            result = self._client.get(str(app_id))
         except RedisError:
             logger.warning(self.WARNING_MESSAGE, exc_info=True)
             return 0
@@ -84,7 +83,7 @@ class RedisStorage(Storage):
 
     def update_open(self, app_id: int, open_time_seconds: int):
         try:
-            self._client.set(app_id, open_time_seconds)
+            self._client.set(str(app_id), open_time_seconds)
         except RedisError:
             logger.warning(self.WARNING_MESSAGE, exc_info=True)
 
