@@ -14,13 +14,14 @@ from .....order.actions import order_transaction_updated
 from .....order.fetch import fetch_order_info
 from .....order.search import update_order_search_vector
 from .....order.utils import updates_amounts_for_order
-from .....payment import TransactionEventType
+from .....payment import OPTIONAL_AMOUNT_EVENTS, TransactionEventType
 from .....payment import models as payment_models
 from .....payment.transaction_item_calculations import recalculate_transaction_amounts
 from .....payment.utils import (
     authorization_success_already_exists,
     create_failed_transaction_event,
     get_already_existing_event,
+    get_transaction_event_amount,
 )
 from .....permission.auth_filters import AuthorizationFilters
 from .....permission.enums import PaymentPermissions
@@ -78,7 +79,14 @@ class TransactionEventReport(ModelMutation):
             description="Current status of the event to report.",
         )
         amount = PositiveDecimal(
-            description="The amount of the event to report.", required=True
+            description=(
+                "The amount of the event to report. \n\nRequired for all `REQUEST`, "
+                "`SUCCESS`, `ACTION_REQUIRED`, and `ADJUSTMENT` events. For other events, "
+                "the amount will be calculated based on the previous events with "
+                "the same pspReference. "
+                "If not possible to calculate, the mutation will return an error."
+            ),
+            required=False,
         )
         time = DateTime(
             description=(
@@ -167,6 +175,33 @@ class TransactionEventReport(ModelMutation):
         transaction.save(update_fields=fields_to_update)
 
     @classmethod
+    def clean_amount_value(
+        cls, amount: Optional[float], event_type: str, psp_reference: str, currency: str
+    ):
+        if amount is None:
+            if event_type not in OPTIONAL_AMOUNT_EVENTS:
+                raise ValidationError(
+                    {
+                        "amount": ValidationError(
+                            f"The `amount` field is required for {event_type} event.",
+                            code=TransactionEventReportErrorCode.REQUIRED.value,
+                        )
+                    }
+                )
+            try:
+                amount = get_transaction_event_amount(event_type, psp_reference)
+            except ValueError as error:
+                raise ValidationError(
+                    {
+                        "amount": ValidationError(
+                            str(error),
+                            code=TransactionEventReportErrorCode.REQUIRED.value,
+                        )
+                    },
+                )
+        return quantize_price(amount, currency)
+
+    @classmethod
     def perform_mutation(  # type: ignore[override]
         cls,
         root,
@@ -175,7 +210,7 @@ class TransactionEventReport(ModelMutation):
         *,
         psp_reference,
         type,
-        amount,
+        amount=None,
         token=None,
         id=None,
         time=None,
@@ -199,7 +234,9 @@ class TransactionEventReport(ModelMutation):
                 ]
             )
 
-        amount = quantize_price(amount, transaction.currency)
+        amount = cls.clean_amount_value(
+            amount, type, psp_reference, transaction.currency
+        )
         app_identifier = None
         if app and app.identifier:
             app_identifier = app.identifier

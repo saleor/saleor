@@ -1630,3 +1630,60 @@ def handle_transaction_process_session(
     )
     data_to_return = response_data.get("data") if response_data else None
     return created_event, data_to_return
+
+
+def get_transaction_event_amount(event_type: str, psp_reference: str):
+    """Deduce the transaction event amount if possible.
+
+    - In case of missing amount for event INFO, use 0
+    - In case of missing amount for *_FAILURE the amount is taken from *_SUCCESS or
+    *_REQUEST event with the same pspReference.
+    - In case of REFUND_REVERSE, the amount is taken from REFUND_SUCCESS with the same
+    pspReference.
+    - In case of CHARGEBACK the amount is taken from CHARGE_SUCCESS with the same
+    pspReference.
+    - If the specific event for the pspReference doesn't exist, the exception is raised.
+    """
+    if event_type == TransactionEventType.INFO:
+        return Decimal(0)
+
+    event_type_map = {
+        TransactionEventType.CHARGE_FAILURE: [
+            TransactionEventType.CHARGE_SUCCESS,
+            TransactionEventType.CHARGE_REQUEST,
+            TransactionEventType.AUTHORIZATION_SUCCESS,
+            TransactionEventType.AUTHORIZATION_REQUEST,
+            TransactionEventType.AUTHORIZATION_FAILURE,
+        ],
+        TransactionEventType.REFUND_FAILURE: [
+            TransactionEventType.REFUND_SUCCESS,
+            TransactionEventType.REFUND_REQUEST,
+            TransactionEventType.CHARGE_SUCCESS,
+            TransactionEventType.CHARGE_REQUEST,
+            TransactionEventType.CHARGE_FAILURE,
+        ],
+        TransactionEventType.CANCEL_FAILURE: [
+            TransactionEventType.CANCEL_SUCCESS,
+            TransactionEventType.CANCEL_REQUEST,
+            TransactionEventType.AUTHORIZATION_SUCCESS,
+            TransactionEventType.AUTHORIZATION_REQUEST,
+            TransactionEventType.AUTHORIZATION_FAILURE,
+        ],
+        TransactionEventType.AUTHORIZATION_FAILURE: [
+            TransactionEventType.AUTHORIZATION_SUCCESS,
+            TransactionEventType.AUTHORIZATION_REQUEST,
+        ],
+        TransactionEventType.REFUND_REVERSE: [TransactionEventType.REFUND_SUCCESS],
+        TransactionEventType.CHARGE_BACK: [TransactionEventType.CHARGE_SUCCESS],
+    }
+    allowed_event_types = event_type_map.get(event_type, [])
+    matched_event = (
+        TransactionEvent.objects.filter(
+            psp_reference=psp_reference, type__in=allowed_event_types
+        )
+        .order_by("-created_at")
+        .first()
+    )
+    if matched_event is None:
+        raise ValueError(f"Unable to deduce the amount for {event_type} event.")
+    return matched_event.amount_value
