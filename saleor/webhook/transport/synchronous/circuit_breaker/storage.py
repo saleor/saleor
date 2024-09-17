@@ -19,7 +19,9 @@ class Storage:
     def update_open(self, app_id: int, open_time_seconds: int):
         pass
 
-    def register_event_returning_count(self, key: str, ttl_seconds: int) -> int:  # type: ignore[empty-body]
+    def register_event_returning_count(  # type: ignore[empty-body]
+        self, app_id: int, name: str, ttl_seconds: int
+    ) -> int:
         pass
 
 
@@ -38,7 +40,10 @@ class InMemoryStorage(Storage):
     def update_open(self, app_id: int, open_time_seconds: int):
         self._last_open[app_id] = open_time_seconds
 
-    def register_event_returning_count(self, key: str, ttl_seconds: int) -> int:
+    def register_event_returning_count(
+        self, app_id: int, name: str, ttl_seconds: int
+    ) -> int:
+        key = f"{app_id}-{name}"
         events = self._events[key]
 
         now = int(time.time())
@@ -49,10 +54,9 @@ class InMemoryStorage(Storage):
         return len(filtered_entries)
 
 
+# TODO - TTL for all values set in Redis
 # TODO - key names (redis storage circuit breaker prefix?)
 # TODO - Redis timeouts
-# TODO - change register_event_returning_count signature to accept `app_id` and `key`
-# for consistency with last_open and update_open
 class RedisStorage(Storage):
     WARNING_MESSAGE = "An error occurred when interacting with Redis"
 
@@ -87,7 +91,10 @@ class RedisStorage(Storage):
         except RedisError:
             logger.warning(self.WARNING_MESSAGE, exc_info=True)
 
-    def register_event_returning_count(self, key: str, ttl_seconds: int) -> int:
+    def register_event_returning_count(
+        self, app_id: int, name: str, ttl_seconds: int
+    ) -> int:
+        key = f"{app_id}-{name}"
         now = int(time.time())
 
         try:

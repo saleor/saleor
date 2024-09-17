@@ -37,17 +37,13 @@ class BreakerBoard:
         return self.storage.last_open(app_id) < (time.time() - self.cooldown_seconds)
 
     def register_error(self, app_id: int):
-        errors = self.storage.register_event_returning_count(
-            f"{0}-{1}".format(app_id, "error"), self.ttl
-        )
+        errors = self.storage.register_event_returning_count(app_id, "error", self.ttl)
 
         if errors >= self.failure_threshold:
             self.storage.update_open(app_id, int(time.time()))
 
     def register_success(self, app_id: int):
-        self.storage.register_event_returning_count(
-            f"{0}-{1}".format(app_id, "total"), self.ttl
-        )
+        self.storage.register_event_returning_count(app_id, "total", self.ttl)
 
         last_open = self.storage.last_open(app_id)
         if last_open == 0:
