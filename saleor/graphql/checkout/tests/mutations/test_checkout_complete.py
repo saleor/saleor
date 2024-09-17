@@ -438,9 +438,11 @@ def test_checkout_complete_fails_with_invalid_tax_app(
 
 @freeze_time()
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+@mock.patch("saleor.checkout.calculations.validate_tax_data")
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_checkout_complete_calls_correct_tax_app(
     mock_request,
+    mock_validate_tax_data,
     user_api_client,
     checkout_without_shipping_required,
     channel_USD,
@@ -545,9 +547,11 @@ def test_checkout_complete_calls_failing_plugin(
 
 @freeze_time()
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+@mock.patch("saleor.checkout.calculations.validate_tax_data")
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_checkout_complete_calls_correct_force_tax_calculation_when_tax_error_was_saved(
     mock_request,
+    mock_validate_tax_data,
     user_api_client,
     checkout_without_shipping_required,
     channel_USD,
