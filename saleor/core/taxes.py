@@ -54,3 +54,4 @@ class TaxDataErrorMessage:
     LINE_NUMBER = (
         "Number of lines from tax data doesn't match the line number from checkout."
     )
+    OVERFLOW = "Tax data contains overflow numbers."

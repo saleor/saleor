@@ -13,7 +13,6 @@ from ..core.prices import quantize_price
 from ..core.taxes import (
     TaxData,
     TaxDataError,
-    TaxDataErrorMessage,
     TaxError,
     zero_taxed_money,
 )
@@ -25,12 +24,11 @@ from ..tax import TaxCalculationStrategy
 from ..tax.calculations import get_taxed_undiscounted_price
 from ..tax.calculations.order import update_order_prices_with_flat_rates
 from ..tax.utils import (
-    check_line_number_in_tax_data,
-    check_negative_values_in_tax_data,
     get_charge_taxes_for_order,
     get_tax_app_identifier_for_order,
     get_tax_calculation_strategy_for_order,
     normalize_tax_rate_for_db,
+    validate_tax_data,
 )
 from . import ORDER_EDITABLE_STATUS
 from .base_calculations import apply_order_discounts, base_order_line_total
@@ -216,7 +214,9 @@ def _calculate_and_add_tax(
             _recalculate_with_plugins(manager, order, lines, prices_entered_with_tax)
             # Get the taxes calculated with apps and apply to order.
             tax_data = manager.get_taxes_for_order(order, tax_app_identifier)
-            validate_tax_data(tax_data, order, lines, allow_empty_tax_data=True)
+            if not tax_data:
+                log_address_if_validation_skipped_for_order(order, logger)
+            validate_tax_data(tax_data, lines, allow_empty_tax_data=True)
             _apply_tax_data(order, lines, tax_data, prices_entered_with_tax)
         else:
             _call_plugin_or_tax_app(
@@ -261,7 +261,9 @@ def _call_plugin_or_tax_app(
             raise TaxDataError("Empty tax data.")
     else:
         tax_data = manager.get_taxes_for_order(order, tax_app_identifier)
-        validate_tax_data(tax_data, order, lines)
+        if tax_data is None:
+            log_address_if_validation_skipped_for_order(order, logger)
+        validate_tax_data(tax_data, lines)
         _apply_tax_data(order, lines, tax_data, prices_entered_with_tax)
 
 
@@ -449,26 +451,6 @@ def _find_order_line(
     return next(
         (line for line in (lines or []) if line.pk == order_line.pk), order_line
     )
-
-
-def validate_tax_data(
-    tax_data: Optional[TaxData],
-    order: "Order",
-    lines: Iterable["OrderLine"],
-    allow_empty_tax_data: bool = False,
-):
-    if tax_data is None:
-        log_address_if_validation_skipped_for_order(order, logger)
-        if not allow_empty_tax_data:
-            raise TaxDataError(TaxDataErrorMessage.EMPTY)
-
-    if check_negative_values_in_tax_data(tax_data):
-        logger.warning(TaxDataErrorMessage.NEGATIVE_VALUE)
-        raise TaxDataError(TaxDataErrorMessage.NEGATIVE_VALUE)
-
-    if check_line_number_in_tax_data(tax_data, lines):
-        logger.warning(TaxDataErrorMessage.LINE_NUMBER)
-        raise TaxDataError(TaxDataErrorMessage.LINE_NUMBER)
 
 
 def order_line_unit(
