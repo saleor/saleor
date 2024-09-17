@@ -14,9 +14,11 @@ def prepare_product(
     warehouse_id,
     channel_id,
     variant_price,
+    product_type_slug="default",
 ):
     product_type_data = create_product_type(
         e2e_staff_api_client,
+        slug=product_type_slug,
     )
     product_type_id = product_type_data["id"]
 
