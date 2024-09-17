@@ -322,12 +322,15 @@ def create_or_update_discount_object_from_order_level_voucher(
     order, database_connection_name
 ):
     """Create or update discount object for ENTIRE_ORDER and SHIPPING voucher."""
-    if not order.voucher_id:
+    voucher = order.voucher
+    if not order.voucher_id or (
+        is_order_level_voucher(voucher)
+        and order.discounts.filter(type=DiscountType.MANUAL)
+    ):
         with allow_writer():
             order.discounts.filter(type=DiscountType.VOUCHER).delete()
             return
 
-    voucher = order.voucher
     if not is_order_level_voucher(voucher) and not is_shipping_voucher(voucher):
         return
 
