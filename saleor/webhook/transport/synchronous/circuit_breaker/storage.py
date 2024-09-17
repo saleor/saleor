@@ -55,10 +55,10 @@ class InMemoryStorage(Storage):
 
 
 # TODO - TTL for all values set in Redis
-# TODO - key names (redis storage circuit breaker prefix?)
 # TODO - Redis timeouts
 class RedisStorage(Storage):
     WARNING_MESSAGE = "An error occurred when interacting with Redis"
+    KEY_PREFIX = "bbrs"  # as in "breaker board redis storage"
 
     def __init__(self, client: Optional[Redis] = None):
         super().__init__()
@@ -75,7 +75,7 @@ class RedisStorage(Storage):
 
     def last_open(self, app_id: int) -> int:
         try:
-            result = self._client.get(str(app_id))
+            result = self._client.get(f"{self.KEY_PREFIX}-{app_id}")
         except RedisError:
             logger.warning(self.WARNING_MESSAGE, exc_info=True)
             return 0
@@ -87,14 +87,14 @@ class RedisStorage(Storage):
 
     def update_open(self, app_id: int, open_time_seconds: int):
         try:
-            self._client.set(str(app_id), open_time_seconds)
+            self._client.set(f"{self.KEY_PREFIX}-{app_id}", open_time_seconds)
         except RedisError:
             logger.warning(self.WARNING_MESSAGE, exc_info=True)
 
     def register_event_returning_count(
         self, app_id: int, name: str, ttl_seconds: int
     ) -> int:
-        key = f"{app_id}-{name}"
+        key = f"{self.KEY_PREFIX}-{app_id}-{name}"
         now = int(time.time())
 
         try:
