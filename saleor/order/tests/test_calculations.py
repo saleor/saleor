@@ -1351,7 +1351,7 @@ def test_fetch_order_data_tax_data_with_negative_values(
     ("prices_entered_with_tax", "tax_app_id"),
     [(True, None), (True, "test.app"), (False, None), (False, "test.app")],
 )
-def test_fetch_checkout_data_tax_data_with_wrong_number_of_lines(
+def test_fetch_order_data_tax_data_with_wrong_number_of_lines(
     prices_entered_with_tax,
     tax_app_id,
     order_with_lines,
@@ -1405,7 +1405,7 @@ def test_fetch_checkout_data_tax_data_with_wrong_number_of_lines(
     ("prices_entered_with_tax", "tax_app_id"),
     [(True, None), (True, "test.app"), (False, None), (False, "test.app")],
 )
-def test_fetch_checkout_data_tax_data_with_price_overflow(
+def test_fetch_order_data_tax_data_with_price_overflow(
     prices_entered_with_tax,
     tax_app_id,
     order_with_lines,

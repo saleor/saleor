@@ -27,3 +27,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add slugs to product/category/collection/page translations. Allow to query by translated slug - #16449 by @delemeator
 - Fixed a crash when the Decimal scalar is passed a non-normal value - #16520 by @patrys
 - Fixed a bug when saving webhook payload to Azure Storage - #16585 by @delemeator
+- Added validation for tax data received from tax app - #16720 by @zedzior

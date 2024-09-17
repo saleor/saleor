@@ -52,6 +52,6 @@ class TaxDataErrorMessage:
     EMPTY = "Empty tax data."
     NEGATIVE_VALUE = "Tax data contains negative values."
     LINE_NUMBER = (
-        "Number of lines from tax data doesn't match the line number from checkout."
+        "Number of lines from tax data doesn't match the line number from order."
     )
     OVERFLOW = "Tax data contains overflow numbers."

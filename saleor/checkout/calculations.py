@@ -10,12 +10,7 @@ from prices import Money, TaxedMoney
 from ..checkout import base_calculations
 from ..core.db.connection import allow_writer
 from ..core.prices import quantize_price
-from ..core.taxes import (
-    TaxData,
-    TaxDataError,
-    zero_money,
-    zero_taxed_money,
-)
+from ..core.taxes import TaxData, TaxDataError, zero_money, zero_taxed_money
 from ..discount.utils.checkout import (
     create_or_update_discount_objects_from_promotion_for_checkout,
 )
@@ -314,7 +309,6 @@ def _fetch_checkout_prices_if_expired(
                 pregenerated_subscription_payloads=pregenerated_subscription_payloads,
             )
         except TaxDataError as e:
-            # TODO zedzior why we don't set base prices when handling order
             _set_checkout_base_prices(checkout, checkout_info, lines)
             checkout.tax_error = str(e)
 
