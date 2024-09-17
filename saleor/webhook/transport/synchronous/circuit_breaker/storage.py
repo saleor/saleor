@@ -54,8 +54,6 @@ class InMemoryStorage(Storage):
         return len(filtered_entries)
 
 
-# TODO - TTL for all values set in Redis
-# TODO - Redis timeouts
 class RedisStorage(Storage):
     WARNING_MESSAGE = "An error occurred when interacting with Redis"
     KEY_PREFIX = "bbrs"  # as in "breaker board redis storage"
