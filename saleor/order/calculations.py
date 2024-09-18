@@ -13,6 +13,7 @@ from ..core.prices import quantize_price
 from ..core.taxes import (
     TaxData,
     TaxDataError,
+    TaxDataErrorMessage,
     TaxError,
     zero_taxed_money,
 )
@@ -249,7 +250,7 @@ def _call_plugin_or_tax_app(
             order.channel.slug, active_only=True, plugin_ids=plugin_ids
         )
         if not plugins:
-            raise TaxDataError("Empty tax data.")
+            raise TaxDataError(TaxDataErrorMessage.EMPTY)
         _recalculate_with_plugins(
             manager,
             order,
@@ -258,7 +259,7 @@ def _call_plugin_or_tax_app(
             plugin_ids=plugin_ids,
         )
         if order.tax_error:
-            raise TaxDataError("Empty tax data.")
+            raise TaxDataError(TaxDataErrorMessage.EMPTY)
     else:
         tax_data = manager.get_taxes_for_order(order, tax_app_identifier)
         if tax_data is None:

@@ -10,7 +10,13 @@ from prices import Money, TaxedMoney
 from ..checkout import base_calculations
 from ..core.db.connection import allow_writer
 from ..core.prices import quantize_price
-from ..core.taxes import TaxData, TaxDataError, zero_money, zero_taxed_money
+from ..core.taxes import (
+    TaxData,
+    TaxDataError,
+    TaxDataErrorMessage,
+    zero_money,
+    zero_taxed_money,
+)
 from ..discount.utils.checkout import (
     create_or_update_discount_objects_from_promotion_for_checkout,
 )
@@ -458,7 +464,7 @@ def _call_plugin_or_tax_app(
             plugin_ids=plugin_ids,
         )
         if not plugins:
-            raise TaxDataError("Empty tax data.")
+            raise TaxDataError(TaxDataErrorMessage.EMPTY)
         _apply_tax_data_from_plugins(
             checkout,
             manager,
@@ -468,7 +474,7 @@ def _call_plugin_or_tax_app(
             plugin_ids=plugin_ids,
         )
         if checkout.tax_error:
-            raise TaxDataError("Empty tax data.")
+            raise TaxDataError(TaxDataErrorMessage.EMPTY)
     else:
         tax_data = manager.get_taxes_for_checkout(
             checkout_info,

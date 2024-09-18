@@ -587,6 +587,8 @@ def test_fetch_checkout_data_calls_tax_app(
     checkout_with_items,
 ):
     # given
+    mock_validate_tax_data.return_value = False
+
     checkout = checkout_with_items
     checkout.price_expiration = timezone.now()
     checkout.save()

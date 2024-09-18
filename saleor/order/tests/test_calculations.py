@@ -1201,6 +1201,8 @@ def test_fetch_order_data_calls_tax_app(
     order_lines,
 ):
     # given
+    mock_validate_tax_data.return_value = False
+
     order = order_with_lines
     order.channel.tax_configuration.tax_app_id = "test.app"
     order.channel.tax_configuration.save()

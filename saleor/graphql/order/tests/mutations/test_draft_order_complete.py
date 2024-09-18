@@ -1127,6 +1127,7 @@ def test_draft_order_complete_force_tax_calculation_when_tax_error_was_saved(
 ):
     # given
     mock_request.return_value = tax_data_response
+    mock_validate_tax_data.return_value = False
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     order = draft_order
@@ -1174,6 +1175,7 @@ def test_draft_order_complete_calls_correct_tax_app(
 ):
     # given
     mock_request.return_value = tax_data_response
+    mock_validate_tax_data.return_value = False
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     order = draft_order

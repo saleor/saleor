@@ -304,7 +304,7 @@ def check_line_number_in_tax_data(tax_data: Optional[TaxData], lines: Iterable) 
     if not tax_data:
         return False
 
-    if len(tax_data.lines) != sum(1 for _ in lines):
+    if len(tax_data.lines) != len(list(lines)):
         return True
 
     return False

@@ -453,7 +453,7 @@ def test_checkout_complete_calls_correct_tax_app(
 ):
     # given
     mock_request.return_value = tax_data_response
-
+    mock_validate_tax_data.return_value = False
     checkout = checkout_without_shipping_required
     checkout.billing_address = address
     checkout.price_expiration = timezone.now()
@@ -562,6 +562,7 @@ def test_checkout_complete_calls_correct_force_tax_calculation_when_tax_error_wa
 ):
     # given
     mock_request.return_value = tax_data_response
+    mock_validate_tax_data.return_value = False
 
     checkout = checkout_without_shipping_required
     checkout.billing_address = address
