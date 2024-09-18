@@ -64,7 +64,7 @@ class RedisStorage(Storage):
         if client:
             self._client = client
         else:
-            if not settings.CACHE_URL.startswith("redis"):
+            if settings.CACHE_URL is None or not settings.CACHE_URL.startswith("redis"):
                 raise ImproperlyConfigured(
                     "Redis storage cannot be used when Redis cache is not configured"
                 )

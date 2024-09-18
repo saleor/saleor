@@ -36,6 +36,7 @@ pytest_plugins = [
     "saleor.graphql.webhook.tests.benchmark.fixtures",
     "saleor.tax.tests.fixtures",
     "saleor.webhook.tests.subscription_webhooks.fixtures",
+    "saleor.webhook.transport.tests.circuit_breaker.fixtures",
 ]
 
 

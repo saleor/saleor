@@ -74,4 +74,6 @@ class BreakerBoard:
 
             return response
 
+        inner.__wrapped__ = func  # type: ignore[attr-defined]
+
         return inner

@@ -851,8 +851,11 @@ if JAEGER_HOST:
 
 # Some cloud providers (Heroku) export REDIS_URL variable instead of CACHE_URL
 REDIS_URL = os.environ.get("REDIS_URL")
-if REDIS_URL:
-    CACHE_URL = os.environ.setdefault("CACHE_URL", REDIS_URL)
+CACHE_URL = (
+    os.environ.setdefault("CACHE_URL", REDIS_URL)
+    if REDIS_URL
+    else os.environ.get("CACHE_URL")
+)
 CACHES = {"default": django_cache_url.config()}
 CACHES["default"]["TIMEOUT"] = parse(os.environ.get("CACHE_TIMEOUT", "7 days"))
 
@@ -994,3 +997,14 @@ TRANSACTION_ITEMS_LIMIT = 100
 # Disable Django warnings regarding too long cache keys being incompatible with
 # memcached to avoid leaking key values.
 warnings.filterwarnings("ignore", category=CacheKeyWarning)
+
+
+# Breaker board configuration
+ENABLE_BREAKER_BOARD = get_bool_from_env("ENABLE_BREAKER_BOARD", False)
+BREAKER_BOARD_STORAGE_CLASS_STRING = os.environ.get(
+    "BREAKER_BOARD_STORAGE_CLASS_STRING"
+)
+if ENABLE_BREAKER_BOARD is True and BREAKER_BOARD_STORAGE_CLASS_STRING is None:
+    raise ImproperlyConfigured(
+        "BREAKER_BOARD_STORAGE_CLASS_STRING must be defined when ENABLE_BREAKER_BOARD is set to True"
+    )
