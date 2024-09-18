@@ -368,19 +368,22 @@ def trigger_all_webhooks_sync(
                 return None
         else:
             with allow_writer():
-                # Use transaction to ensure EventPayload and EventDelivery are created together, preventing inconsistent DB state.
-                with transaction.atomic():
-                    if event_payload is None:
+                delivery = EventDelivery(
+                    status=EventDeliveryStatus.PENDING,
+                    event_type=event_type,
+                    payload=event_payload,
+                    webhook=webhook,
+                )
+                if event_payload is None:
+                    # Use transaction to ensure EventPayload and EventDelivery are created together, preventing inconsistent DB state.
+                    with transaction.atomic():
                         event_payload = EventPayload.objects.create_with_payload_file(
                             generate_payload()
                         )
-                    delivery = EventDelivery.objects.create(
-                        status=EventDeliveryStatus.PENDING,
-                        event_type=event_type,
-                        payload=event_payload,
-                        webhook=webhook,
-                    )
-
+                        delivery.payload = event_payload
+                        delivery.save()
+                else:
+                    delivery.save()
         response_data = send_webhook_request_sync(delivery)
         if parsed_response := parse_response(response_data):
             return parsed_response
