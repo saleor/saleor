@@ -13,7 +13,7 @@ name: Test Patches
 
 on:
   pull_request:
-    types: [labeled, opened, synchronize, unlabeled]
+    types: [labeled, opened, synchronize]
 
 jobs:
   apply-patches:
