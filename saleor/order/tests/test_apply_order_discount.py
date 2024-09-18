@@ -179,6 +179,38 @@ def test_apply_order_discounts_manual_discount(order_with_lines):
     assert order_discount.amount_value == discount_amount
 
 
+def test_apply_order_discounts_shipping_voucher(
+    order_with_lines, voucher_free_shipping
+):
+    # given
+    order = order_with_lines
+    lines = order.lines.all()
+    shipping_price = order.shipping_price.net
+    currency = order.currency
+    subtotal = zero_money(currency)
+    for line in lines:
+        subtotal += line.base_unit_price * line.quantity
+
+    discount_amount = shipping_price.amount
+    order.discounts.create(
+        type=DiscountType.VOUCHER,
+        value_type=DiscountValueType.FIXED,
+        value=discount_amount,
+        name="Voucher",
+        translated_name="VoucherPL",
+        currency=currency,
+        amount_value=discount_amount,
+        voucher=voucher_free_shipping,
+    )
+
+    # when
+    discounted_subtotal, discounted_shipping_price = apply_order_discounts(order, lines)
+
+    # then
+    assert discounted_shipping_price == shipping_price
+    assert discounted_subtotal == subtotal
+
+
 def test_apply_order_discounts_zero_discount(order_with_lines):
     # given
     order = order_with_lines

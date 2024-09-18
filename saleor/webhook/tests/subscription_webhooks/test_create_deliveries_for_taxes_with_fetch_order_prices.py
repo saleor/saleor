@@ -4,25 +4,25 @@ from unittest.mock import Mock
 
 import pytest
 
-from ...discount import (
+from saleor.discount import (
     DiscountType,
     DiscountValueType,
     RewardType,
     RewardValueType,
     VoucherType,
 )
-from ...graphql.core.utils import to_global_id_or_none
-from ...tax import TaxableObjectDiscountType, TaxCalculationStrategy
-from ...webhook.event_types import WebhookEventSyncType
-from ...webhook.tests.subscription_webhooks.test_create_deliveries_for_taxes import (
+from saleor.graphql.core.utils import to_global_id_or_none
+from saleor.order import OrderStatus
+from saleor.order.calculations import fetch_order_prices_if_expired
+from saleor.order.utils import create_order_discount_for_order
+from saleor.tax import TaxableObjectDiscountType, TaxCalculationStrategy
+from saleor.webhook.event_types import WebhookEventSyncType
+from saleor.webhook.tests.subscription_webhooks.test_create_deliveries_for_taxes import (
     TAXES_SUBSCRIPTION_QUERY,
 )
-from ...webhook.transport.synchronous.transport import (
+from saleor.webhook.transport.synchronous.transport import (
     create_delivery_for_subscription_sync_event,
 )
-from .. import OrderStatus
-from ..calculations import fetch_order_prices_if_expired
-from ..utils import create_order_discount_for_order
 
 
 @pytest.fixture
