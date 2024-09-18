@@ -8,6 +8,7 @@ from urllib.parse import urlparse
 from celery import group
 from celery.utils.log import get_task_logger
 from django.conf import settings
+from django.db import transaction
 
 from ....celeryconf import app
 from ....core import EventDeliveryStatus
@@ -136,10 +137,12 @@ def create_deliveries_for_subscriptions(
         )
 
     with allow_writer():
-        EventPayload.objects.bulk_create_with_payload_files(
-            event_payloads, event_payloads_data
-        )
-        return EventDelivery.objects.bulk_create(event_deliveries)
+        # Use transaction to ensure EventPayload and EventDelivery are created together, preventing inconsistent DB state.
+        with transaction.atomic():
+            EventPayload.objects.bulk_create_with_payload_files(
+                event_payloads, event_payloads_data
+            )
+            return EventDelivery.objects.bulk_create(event_deliveries)
 
 
 def group_webhooks_by_subscription(webhooks):
@@ -213,14 +216,16 @@ def trigger_webhooks_async(
             raise NotImplementedError("No payload was provided for regular webhooks.")
 
         with allow_writer():
-            payload = EventPayload.objects.create_with_payload_file(data)
-            deliveries.extend(
-                create_event_delivery_list_for_webhooks(
-                    webhooks=regular_webhooks,
-                    event_payload=payload,
-                    event_type=event_type,
+            # Use transaction to ensure EventPayload and EventDelivery are created together, preventing inconsistent DB state.
+            with transaction.atomic():
+                payload = EventPayload.objects.create_with_payload_file(data)
+                deliveries.extend(
+                    create_event_delivery_list_for_webhooks(
+                        webhooks=regular_webhooks,
+                        event_payload=payload,
+                        event_type=event_type,
+                    )
                 )
-            )
     if subscription_webhooks:
         deliveries.extend(
             create_deliveries_for_subscriptions(
