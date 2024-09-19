@@ -6,6 +6,7 @@ from urllib.parse import urlparse
 
 from django.conf import settings
 from django.core.cache import cache
+from django.db import transaction
 
 from ....celeryconf import app
 from ....core import EventDeliveryStatus
@@ -261,15 +262,17 @@ def create_delivery_for_subscription_sync_event(
         # log the issue and continue without creating a delivery.
         return None
     with allow_writer():
-        event_payload = EventPayload.objects.create_with_payload_file(
-            json.dumps({**data})
-        )
-        event_delivery = EventDelivery.objects.create(
-            status=EventDeliveryStatus.PENDING,
-            event_type=event_type,
-            payload=event_payload,
-            webhook=webhook,
-        )
+        # Use transaction to ensure EventPayload and EventDelivery are created together, preventing inconsistent DB state.
+        with transaction.atomic():
+            event_payload = EventPayload.objects.create_with_payload_file(
+                json.dumps({**data})
+            )
+            event_delivery = EventDelivery.objects.create(
+                status=EventDeliveryStatus.PENDING,
+                event_type=event_type,
+                payload=event_payload,
+                webhook=webhook,
+            )
     return event_delivery
 
 
@@ -299,13 +302,15 @@ def trigger_webhook_sync(
             return None
     else:
         with allow_writer():
-            event_payload = EventPayload.objects.create_with_payload_file(payload)
-            delivery = EventDelivery.objects.create(
-                status=EventDeliveryStatus.PENDING,
-                event_type=event_type,
-                payload=event_payload,
-                webhook=webhook,
-            )
+            # Use transaction to ensure EventPayload and EventDelivery are created together, preventing inconsistent DB state.
+            with transaction.atomic():
+                event_payload = EventPayload.objects.create_with_payload_file(payload)
+                delivery = EventDelivery.objects.create(
+                    status=EventDeliveryStatus.PENDING,
+                    event_type=event_type,
+                    payload=event_payload,
+                    webhook=webhook,
+                )
 
     kwargs = {}
     if timeout:
@@ -363,17 +368,22 @@ def trigger_all_webhooks_sync(
                 return None
         else:
             with allow_writer():
-                if event_payload is None:
-                    event_payload = EventPayload.objects.create_with_payload_file(
-                        generate_payload()
-                    )
-                delivery = EventDelivery.objects.create(
+                delivery = EventDelivery(
                     status=EventDeliveryStatus.PENDING,
                     event_type=event_type,
                     payload=event_payload,
                     webhook=webhook,
                 )
-
+                if event_payload is None:
+                    # Use transaction to ensure EventPayload and EventDelivery are created together, preventing inconsistent DB state.
+                    with transaction.atomic():
+                        event_payload = EventPayload.objects.create_with_payload_file(
+                            generate_payload()
+                        )
+                        delivery.payload = event_payload
+                        delivery.save()
+                else:
+                    delivery.save()
         response_data = send_webhook_request_sync(delivery)
         if parsed_response := parse_response(response_data):
             return parsed_response
