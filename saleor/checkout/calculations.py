@@ -474,7 +474,7 @@ def _call_plugin_or_tax_app(
             plugin_ids=plugin_ids,
         )
         if checkout.tax_error:
-            raise TaxDataError(TaxDataErrorMessage.EMPTY)
+            raise TaxDataError(checkout.tax_error)
     else:
         tax_data = manager.get_taxes_for_checkout(
             checkout_info,

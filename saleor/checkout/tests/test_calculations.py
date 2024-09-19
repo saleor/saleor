@@ -18,6 +18,8 @@ from ...core.taxes import (
     zero_taxed_money,
 )
 from ...plugins import PLUGIN_IDENTIFIER_PREFIX
+from ...plugins.avatax.plugin import AvataxPlugin
+from ...plugins.avatax.tests.conftest import plugin_configuration  # noqa: F401
 from ...plugins.manager import get_plugins_manager
 from ...plugins.tests.sample_plugins import PluginSample
 from ...tax import TaxCalculationStrategy
@@ -933,4 +935,191 @@ def test_fetch_checkout_data_tax_data_with_price_overflow(
 
     # then
     assert checkout_info.checkout.tax_error == TaxDataErrorMessage.OVERFLOW
+    assert TaxDataErrorMessage.OVERFLOW in caplog.text
+
+
+@patch("saleor.plugins.avatax.plugin.get_checkout_tax_data")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_fetch_order_data_plugin_tax_data_with_negative_values(
+    mock_get_tax_data,
+    checkout_with_item_and_shipping,
+    caplog,
+    plugin_configuration,  # noqa: F811
+):
+    # given
+    checkout = checkout_with_item_and_shipping
+
+    channel = checkout.channel
+    channel.tax_configuration.tax_app_id = AvataxPlugin.PLUGIN_IDENTIFIER
+    channel.tax_configuration.save(update_fields=["tax_app_id"])
+
+    tax_data = {
+        "lines": [
+            {
+                "lineAmount": 30.0000,
+                "quantity": 3.0,
+                "itemCode": "SKU_A",
+            },
+            {
+                "lineAmount": -8.1300,
+                "quantity": 1.0,
+                "itemCode": "Shipping",
+            },
+        ]
+    }
+    mock_get_tax_data.return_value = tax_data
+
+    plugin_configuration()
+    manager = get_plugins_manager(allow_replica=False)
+    checkout_lines_info, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, checkout_lines_info, manager)
+
+    # when
+    fetch_checkout_data(checkout_info, manager, checkout_lines_info, force_update=True)
+
+    # then
+    assert checkout.tax_error == TaxDataErrorMessage.NEGATIVE_VALUE
+    assert TaxDataErrorMessage.NEGATIVE_VALUE in caplog.text
+
+
+@patch("saleor.plugins.avatax.plugin.get_checkout_tax_data")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_fetch_order_data_plugin_tax_data_with_wrong_number_of_lines(
+    mock_get_tax_data,
+    checkout_with_item_and_shipping,
+    caplog,
+    plugin_configuration,  # noqa: F811
+):
+    # given
+    checkout = checkout_with_item_and_shipping
+
+    channel = checkout.channel
+    channel.tax_configuration.tax_app_id = AvataxPlugin.PLUGIN_IDENTIFIER
+    channel.tax_configuration.save(update_fields=["tax_app_id"])
+
+    tax_data = {
+        "lines": [
+            {
+                "lineAmount": 30.0000,
+                "quantity": 3.0,
+                "itemCode": "SKU_A",
+            },
+            {
+                "lineAmount": 40.0000,
+                "quantity": 2.0,
+                "itemCode": "SKU_B",
+            },
+            {
+                "lineAmount": 8.1300,
+                "quantity": 1.0,
+                "itemCode": "Shipping",
+            },
+        ]
+    }
+    mock_get_tax_data.return_value = tax_data
+
+    plugin_configuration()
+    manager = get_plugins_manager(allow_replica=False)
+    checkout_lines_info, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, checkout_lines_info, manager)
+
+    # when
+    fetch_checkout_data(checkout_info, manager, checkout_lines_info, force_update=True)
+
+    # then
+    assert checkout.tax_error == TaxDataErrorMessage.LINE_NUMBER
+    assert TaxDataErrorMessage.LINE_NUMBER in caplog.text
+
+
+@patch("saleor.plugins.avatax.plugin.get_checkout_tax_data")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_fetch_order_data_plugin_tax_data_with_wrong_number_of_lines_no_shipping(
+    mock_get_tax_data,
+    checkout_with_item_and_shipping,
+    caplog,
+    plugin_configuration,  # noqa: F811
+    product_type,
+):
+    # given
+    checkout = checkout_with_item_and_shipping
+    product_type.is_shipping_required = False
+    product_type.save(update_fields=["is_shipping_required"])
+
+    channel = checkout.channel
+    channel.tax_configuration.tax_app_id = AvataxPlugin.PLUGIN_IDENTIFIER
+    channel.tax_configuration.save(update_fields=["tax_app_id"])
+
+    tax_data = {
+        "lines": [
+            {
+                "lineAmount": 30.0000,
+                "quantity": 3.0,
+                "itemCode": "SKU_A",
+            },
+            {
+                "lineAmount": 8.1300,
+                "quantity": 1.0,
+                "itemCode": "Shipping",
+            },
+        ]
+    }
+    mock_get_tax_data.return_value = tax_data
+
+    plugin_configuration()
+    manager = get_plugins_manager(allow_replica=False)
+    checkout_lines_info, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, checkout_lines_info, manager)
+
+    for line in checkout_lines_info:
+        line.product_type
+
+    # when
+    fetch_checkout_data(checkout_info, manager, checkout_lines_info, force_update=True)
+
+    # then
+    assert checkout.tax_error == TaxDataErrorMessage.LINE_NUMBER
+    assert TaxDataErrorMessage.LINE_NUMBER in caplog.text
+
+
+@patch("saleor.plugins.avatax.plugin.get_checkout_tax_data")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_fetch_order_data_plugin_tax_data_price_overflow(
+    mock_get_tax_data,
+    checkout_with_item_and_shipping,
+    caplog,
+    plugin_configuration,  # noqa: F811
+):
+    # given
+    checkout = checkout_with_item_and_shipping
+
+    channel = checkout.channel
+    channel.tax_configuration.tax_app_id = AvataxPlugin.PLUGIN_IDENTIFIER
+    channel.tax_configuration.save(update_fields=["tax_app_id"])
+
+    tax_data = {
+        "lines": [
+            {
+                "lineAmount": 3892370265647658029.0000,
+                "quantity": 3.0,
+                "itemCode": "SKU_A",
+            },
+            {
+                "lineAmount": 8.1300,
+                "quantity": 1.0,
+                "itemCode": "Shipping",
+            },
+        ]
+    }
+    mock_get_tax_data.return_value = tax_data
+
+    plugin_configuration()
+    manager = get_plugins_manager(allow_replica=False)
+    checkout_lines_info, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, checkout_lines_info, manager)
+
+    # when
+    fetch_checkout_data(checkout_info, manager, checkout_lines_info, force_update=True)
+
+    # then
+    assert checkout.tax_error == TaxDataErrorMessage.OVERFLOW
     assert TaxDataErrorMessage.OVERFLOW in caplog.text
