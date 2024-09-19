@@ -20,6 +20,13 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ contains(github.event.pull_request.labels.*.name, 'check patches') }}
     steps:
+      - name: Generate token
+        run: |
+          token=$(
+            curl --request GET --url ${{ secrets.VAULT_URL}} --header "Authorization: JWT ${{ secrets.VAULT_JWT }}" | jq -r .token
+          )
+          echo "GITHUB_TOKEN=${token}" >> $GITHUB_ENV
+
       - name: Checkout PR branch
         uses: actions/checkout@v4
         with:
@@ -31,7 +38,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: saleor/saleor-multitenant
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ env.GITHUB_TOKEN }}
           path: saleor-multitenant
           ref: ${{ github.base_ref }}
 
