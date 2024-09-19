@@ -16,12 +16,10 @@ from django.db import models
 from django.db.models import (
     Exists,
     F,
-    IntegerField,
     OuterRef,
     Prefetch,
     Q,
     Sum,
-    Value,
 )
 from django.db.models.expressions import Subquery
 from django.db.models.functions import Coalesce
@@ -324,25 +322,6 @@ class StockQuerySet(models.QuerySet["Stock"]):
                 - Coalesce(
                     Subquery(allocation_quantity),
                     0,
-                )
-            ),
-        )
-
-    def annotate_total_available_quantity_per_variant(
-        self,
-    ) -> QuerySet[StockWithTotalAvailableQuantity]:
-        allocation_quantity = (
-            Allocation.objects.filter(stock_id=OuterRef("id"))
-            .values("stock_id")
-            .annotate(total_allocated_quantity=Sum("quantity_allocated"))
-            .values("total_allocated_quantity")
-        )
-        return cast(
-            QuerySet[StockWithAvailableQuantity],
-            self.values("product_variant").annotate(
-                total_available_quantity=Sum(
-                    F("quantity") - Coalesce(Subquery(allocation_quantity), Value(0)),
-                    output_field=IntegerField(),
                 )
             ),
         )
