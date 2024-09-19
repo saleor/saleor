@@ -113,18 +113,28 @@ class WarehouseQueryset(models.QuerySet["Warehouse"]):
         ):
             return self._for_channel_click_and_collect(channel_id)
 
+        warehouses_for_channel = self.for_channel(channel_id)
         stocks_qs = Stock.objects.filter(
             product_variant_id__in=lines_qs.values("variant_id"),
+        ).order_by()
+        warehouses_with_stock_available = (
+            warehouses_for_channel._cc_points_for_stocks(stocks_qs)
+            .order_by()
+            .only("id")
         )
 
-        number_of_variants = (
-            lines_qs.order_by().distinct("variant_id").only("variant_id").count()
+        number_of_variants = len(
+            set(lines_qs.order_by().values_list("variant_id", flat=True))
         )
+        # Find out warehouses that can cover the order from a single warehouse
+        warehouse_ids = []
+        for warehouse in warehouses_with_stock_available:
+            # the `warehouses_with_stock_available` contains prefetched stocks
+            # that contains only stocks for the given variants (from the `stocks_qs`)
+            if warehouse.stock_set.count() == number_of_variants:
+                warehouse_ids.append(warehouse.id)
 
-        warehouse_ids_with_stock_available = self._for_channel_lines_and_stocks(
-            number_of_variants, stocks_qs, channel_id
-        ).values("id")
-        lookup = Q(id__in=warehouse_ids_with_stock_available)
+        lookup = Q(id__in=warehouse_ids)
         # if the stocks can cover the all variants, all C&C warehouses with
         # `ALL_WAREHOUSES` option should be returned, as there is an option
         # to ship the products to this point from another warehouse
@@ -133,7 +143,7 @@ class WarehouseQueryset(models.QuerySet["Warehouse"]):
             lookup |= Q(
                 click_and_collect_option=WarehouseClickAndCollectOption.ALL_WAREHOUSES
             )
-        return self.for_channel(channel_id).filter(lookup)
+        return warehouses_for_channel.filter(lookup)
 
     def applicable_for_click_and_collect(
         self,
@@ -192,14 +202,7 @@ class WarehouseQueryset(models.QuerySet["Warehouse"]):
         if stock_ids:
             # Find out warehouses that can cover the order from a single warehouse
             stocks = Stock.objects.filter(id__in=stock_ids)
-            warehouses = (
-                warehouses_for_channel.filter(
-                    Exists(stocks.filter(warehouse_id=OuterRef("id")))
-                )
-                .exclude(click_and_collect_option=warehouse_cc_option_enum.DISABLED)
-                .prefetch_related(Prefetch("stock_set", queryset=stocks))
-                .only("id")
-            )
+            warehouses = warehouses_for_channel._cc_points_for_stocks(stocks).only("id")
             warehouse_ids = []
             for warehouse in warehouses:
                 if warehouse.stock_set.count() == number_of_variants:
@@ -225,6 +228,13 @@ class WarehouseQueryset(models.QuerySet["Warehouse"]):
                 click_and_collect_option=warehouse_cc_option_enum.ALL_WAREHOUSES
             )
         return self.none()
+
+    def _cc_points_for_stocks(self, stocks_qs: QuerySet["Stock"]):
+        return (
+            self.filter(Exists(stocks_qs.filter(warehouse_id=OuterRef("id"))))
+            .exclude(click_and_collect_option=WarehouseClickAndCollectOption.DISABLED)
+            .prefetch_related(Prefetch("stock_set", queryset=stocks_qs))
+        )
 
     def _for_channel_lines_and_stocks(
         self,
