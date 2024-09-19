@@ -10,6 +10,9 @@ if TYPE_CHECKING:
 
 PriceType = TypeVar("PriceType", TaxedMoney, Money, Decimal, TaxedMoneyRange)
 
+# The maximum price value we can save in the database
+MAXIMUM_PRICE = 999999999
+
 
 def quantize_price(price: PriceType, currency: str) -> PriceType:
     precision = get_currency_precision(currency)

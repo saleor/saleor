@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Optional
 from django.conf import settings
 from prices import TaxedMoney
 
+from ..core.prices import MAXIMUM_PRICE
 from ..core.taxes import TaxData, TaxDataError, TaxDataErrorMessage
 from ..core.utils.country import get_active_country
 from . import TaxCalculationStrategy
@@ -315,18 +316,17 @@ def check_overflows_in_tax_data(tax_data: Optional[TaxData]) -> bool:
     if not tax_data:
         return False
 
-    max_price = 999999999
     if (
-        tax_data.shipping_price_gross_amount > max_price
-        or tax_data.shipping_price_net_amount > max_price
+        tax_data.shipping_price_gross_amount > MAXIMUM_PRICE
+        or tax_data.shipping_price_net_amount > MAXIMUM_PRICE
         or tax_data.shipping_tax_rate > 100
     ):
         return True
 
     for line in tax_data.lines:
         if (
-            line.total_gross_amount > max_price
-            or line.total_net_amount > max_price
+            line.total_gross_amount > MAXIMUM_PRICE
+            or line.total_net_amount > MAXIMUM_PRICE
             or line.tax_rate > 100
         ):
             return True
