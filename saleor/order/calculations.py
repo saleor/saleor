@@ -259,7 +259,7 @@ def _call_plugin_or_tax_app(
             plugin_ids=plugin_ids,
         )
         if order.tax_error:
-            raise TaxDataError(TaxDataErrorMessage.EMPTY)
+            raise TaxDataError(order.tax_error)
     else:
         tax_data = manager.get_taxes_for_order(order, tax_app_identifier)
         if tax_data is None:

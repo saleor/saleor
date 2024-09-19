@@ -19,7 +19,13 @@ from ....checkout.fetch import (
 )
 from ....checkout.utils import add_variant_to_checkout
 from ....core.prices import quantize_price
-from ....core.taxes import TaxError, TaxType, zero_money, zero_taxed_money
+from ....core.taxes import (
+    TaxDataErrorMessage,
+    TaxError,
+    TaxType,
+    zero_money,
+    zero_taxed_money,
+)
 from ....discount import DiscountType, DiscountValueType, RewardValueType, VoucherType
 from ....discount.models import CheckoutLineDiscount, Promotion, PromotionRule
 from ....discount.utils.checkout import (
@@ -6364,3 +6370,99 @@ def test_get_checkout_tax_data_set_tax_error(
 
     # then
     assert checkout_with_item.tax_error == "Empty tax data."
+
+
+def test_validate_plugin_tax_data_no_data(order_with_lines, lines_info):
+    # given
+    tax_data = {}
+
+    # when
+    error_message = AvataxPlugin.validate_tax_data(tax_data, lines_info, True)
+
+    # then
+    assert error_message == TaxDataErrorMessage.EMPTY
+
+
+def test_validate_plugin_tax_data_with_negative_values(lines_info, caplog):
+    # given
+    tax_data = {
+        "lines": [
+            {
+                "lineAmount": -30.0000,
+                "quantity": 3.0,
+                "itemCode": "SKU_A",
+            },
+            {
+                "lineAmount": 40.0000,
+                "quantity": 2.0,
+                "itemCode": "SKU_B",
+            },
+            {
+                "lineAmount": 8.1300,
+                "quantity": 1.0,
+                "itemCode": "Shipping",
+            },
+        ]
+    }
+
+    # when
+    error_message = AvataxPlugin.validate_tax_data(tax_data, lines_info, True)
+
+    # then
+    assert error_message == TaxDataErrorMessage.NEGATIVE_VALUE
+    assert TaxDataErrorMessage.NEGATIVE_VALUE in caplog.text
+
+
+def test_validate_plugin_tax_data_line_number(lines_info, caplog):
+    # given
+    tax_data = {
+        "lines": [
+            {
+                "lineAmount": 30.0000,
+                "quantity": 3.0,
+                "itemCode": "SKU_A",
+            },
+            {
+                "lineAmount": 8.1300,
+                "quantity": 1.0,
+                "itemCode": "Shipping",
+            },
+        ]
+    }
+
+    # when
+    error_message = AvataxPlugin.validate_tax_data(tax_data, lines_info, True)
+
+    # then
+    assert error_message == TaxDataErrorMessage.LINE_NUMBER
+    assert TaxDataErrorMessage.LINE_NUMBER in caplog.text
+
+
+def test_validate_plugin_tax_data_price_overflow(lines_info, caplog):
+    # given
+    tax_data = {
+        "lines": [
+            {
+                "lineAmount": 30.0000,
+                "quantity": 3.0,
+                "itemCode": "SKU_A",
+            },
+            {
+                "lineAmount": 99999999999.0000,
+                "quantity": 2.0,
+                "itemCode": "SKU_B",
+            },
+            {
+                "lineAmount": 8.1300,
+                "quantity": 1.0,
+                "itemCode": "Shipping",
+            },
+        ]
+    }
+
+    # when
+    error_message = AvataxPlugin.validate_tax_data(tax_data, lines_info, True)
+
+    # then
+    assert error_message == TaxDataErrorMessage.OVERFLOW
+    assert TaxDataErrorMessage.OVERFLOW in caplog.text

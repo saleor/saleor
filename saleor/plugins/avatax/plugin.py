@@ -21,6 +21,7 @@ from ...checkout.utils import (
 from ...checkout.utils import (
     log_address_if_validation_skipped_for_checkout,
 )
+from ...core.prices import MAXIMUM_PRICE
 from ...core.taxes import (
     TaxDataErrorMessage,
     TaxError,
@@ -946,7 +947,7 @@ class AvataxPlugin(BasePlugin):
     def validate_tax_data(
         cls, tax_data: dict[str, Any], lines: Iterable, is_shipping_required: bool
     ) -> str:
-        if tax_data is None:
+        if not tax_data:
             return TaxDataErrorMessage.EMPTY
 
         if cls.check_negative_values_in_plugin_tax_data(tax_data):
@@ -962,6 +963,8 @@ class AvataxPlugin(BasePlugin):
         if cls.check_overflows_in_plugin_tax_data(tax_data):
             logger.warning(TaxDataErrorMessage.OVERFLOW)
             return TaxDataErrorMessage.OVERFLOW
+
+        return ""
 
     @classmethod
     def check_negative_values_in_plugin_tax_data(cls, tax_data: dict[str, Any]) -> bool:
@@ -997,9 +1000,8 @@ class AvataxPlugin(BasePlugin):
         if not tax_data:
             return False
 
-        max_price = 999999999
         for line in tax_data.get("lines", []):
-            if line.get("lineAmount", 0) > max_price:
+            if line.get("lineAmount", 0) > MAXIMUM_PRICE:
                 return True
 
         return False
