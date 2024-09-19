@@ -45,5 +45,5 @@ jobs:
       - name: Apply patches
         id: apply_patches
         run: |
-          cd workflows-test
+          cd saleor
           git apply ../saleor-multitenant/patches/**.patch > /dev/null 2>&1
