@@ -2658,3 +2658,270 @@ def test_fetch_order_prices_voucher_shipping_percentage(
         order.undiscounted_total_gross_amount
         == (subtotal.amount + undiscounted_shipping_price) * tax_rate
     )
+
+
+def test_fetch_order_prices_voucher_shipping_and_manual_discount_fixed(
+    order_with_lines, voucher, plugins_manager
+):
+    # given
+    voucher.type = VoucherType.SHIPPING
+    voucher.discount_value_type = DiscountValueType.FIXED
+    voucher.save(update_fields=["type", "discount_value_type"])
+
+    order = order_with_lines
+    tax_rate = Decimal("1.23")
+
+    voucher_listing = voucher.channel_listings.get(channel=order.channel)
+    voucher_discount_amount = Decimal("4")
+    voucher_listing.discount_value = voucher_discount_amount
+    voucher_listing.save(update_fields=["discount_value"])
+
+    order.voucher = voucher
+    code = voucher.codes.first().code
+    order.voucher_code = code
+
+    undiscounted_shipping_price = order.shipping_price.net.amount
+    base_shipping_price = Decimal(undiscounted_shipping_price - voucher_discount_amount)
+    currency = order.currency
+    undiscounted_subtotal = Decimal(0)
+    lines = order.lines.all()
+    for line in lines:
+        undiscounted_subtotal += line.base_unit_price_amount * line.quantity
+
+    # create manual order discount
+    manual_discount_amount = Decimal("10")
+    manual_discount = order.discounts.create(
+        value_type=DiscountValueType.FIXED,
+        value=manual_discount_amount,
+        name="Manual order discount",
+        type=DiscountType.MANUAL,
+        currency=currency,
+    )
+
+    total_with_shipping_voucher_discount = undiscounted_subtotal + base_shipping_price
+    subtotal_manual_reward_portion = round(
+        (undiscounted_subtotal / total_with_shipping_voucher_discount)
+        * manual_discount_amount,
+        2,
+    )
+    shipping_manual_reward_portion = round(
+        manual_discount_amount - subtotal_manual_reward_portion, 2
+    )
+
+    expected_subtotal = undiscounted_subtotal - subtotal_manual_reward_portion
+    expected_shipping = base_shipping_price - shipping_manual_reward_portion
+    expected_total = expected_subtotal + expected_shipping
+
+    # when
+    order, lines = calculations.fetch_order_prices_if_expired(
+        order, plugins_manager, None, True
+    )
+
+    # then
+    assert OrderDiscount.objects.count() == 2
+    voucher_discount = order.discounts.filter(type=DiscountType.VOUCHER).first()
+    assert voucher_discount.voucher == voucher
+    assert voucher_discount.voucher_code == code
+    assert (
+        voucher_discount.amount_value
+        == undiscounted_shipping_price - base_shipping_price
+    )
+
+    manual_discount.refresh_from_db()
+    assert manual_discount.amount.amount == manual_discount_amount
+
+    assert order.undiscounted_base_shipping_price_amount == undiscounted_shipping_price
+    assert order.base_shipping_price_amount == base_shipping_price
+    assert order.shipping_price_net_amount == expected_shipping
+    assert order.shipping_price_gross.amount == round(expected_shipping * tax_rate, 2)
+    assert order.subtotal_net_amount == expected_subtotal
+    assert order.subtotal_gross_amount == round(expected_subtotal * tax_rate, 2)
+    assert order.total_net_amount == expected_total
+    assert order.total_gross_amount == round(expected_total * tax_rate, 2)
+    assert (
+        order.undiscounted_total_net_amount
+        == undiscounted_subtotal + undiscounted_shipping_price
+    )
+    assert order.undiscounted_total_gross_amount == round(
+        (undiscounted_subtotal + undiscounted_shipping_price) * tax_rate, 2
+    )
+
+
+def test_fetch_order_prices_voucher_shipping_and_manual_discount_percentage(
+    order_with_lines, voucher, plugins_manager
+):
+    # given
+    voucher.type = VoucherType.SHIPPING
+    voucher.discount_value_type = DiscountValueType.FIXED
+    voucher.save(update_fields=["type", "discount_value_type"])
+
+    order = order_with_lines
+    tax_rate = Decimal("1.23")
+
+    voucher_listing = voucher.channel_listings.get(channel=order.channel)
+    voucher_discount_amount = Decimal("4")
+    voucher_listing.discount_value = voucher_discount_amount
+    voucher_listing.save(update_fields=["discount_value"])
+
+    order.voucher = voucher
+    code = voucher.codes.first().code
+    order.voucher_code = code
+
+    undiscounted_shipping_price = order.shipping_price.net.amount
+    base_shipping_price = Decimal(undiscounted_shipping_price - voucher_discount_amount)
+    currency = order.currency
+    undiscounted_subtotal = Decimal(0)
+    lines = order.lines.all()
+    for line in lines:
+        undiscounted_subtotal += line.base_unit_price_amount * line.quantity
+
+    # create manual order discount
+    manual_discount_value = Decimal("10")
+    manual_discount = order.discounts.create(
+        value_type=DiscountValueType.PERCENTAGE,
+        value=manual_discount_value,
+        name="Manual order discount",
+        type=DiscountType.MANUAL,
+        currency=currency,
+    )
+
+    total_with_shipping_voucher_discount = undiscounted_subtotal + base_shipping_price
+    manual_discount_amount = round(
+        total_with_shipping_voucher_discount * manual_discount_value / 100, 2
+    )
+    subtotal_manual_reward_portion = round(
+        (undiscounted_subtotal / total_with_shipping_voucher_discount)
+        * manual_discount_amount,
+        2,
+    )
+    shipping_manual_reward_portion = round(
+        manual_discount_amount - subtotal_manual_reward_portion, 2
+    )
+
+    expected_subtotal = undiscounted_subtotal - subtotal_manual_reward_portion
+    expected_shipping = base_shipping_price - shipping_manual_reward_portion
+    expected_total = expected_subtotal + expected_shipping
+
+    # when
+    order, lines = calculations.fetch_order_prices_if_expired(
+        order, plugins_manager, None, True
+    )
+
+    # then
+    assert OrderDiscount.objects.count() == 2
+    voucher_discount = order.discounts.filter(type=DiscountType.VOUCHER).first()
+    assert voucher_discount.voucher == voucher
+    assert voucher_discount.voucher_code == code
+    assert (
+        voucher_discount.amount_value
+        == undiscounted_shipping_price - base_shipping_price
+    )
+
+    manual_discount.refresh_from_db()
+    assert manual_discount.amount.amount == manual_discount_amount
+
+    assert order.undiscounted_base_shipping_price_amount == undiscounted_shipping_price
+    assert order.base_shipping_price_amount == base_shipping_price
+    assert order.shipping_price_net_amount == expected_shipping
+    assert order.shipping_price_gross.amount == round(expected_shipping * tax_rate, 2)
+    assert order.subtotal_net_amount == expected_subtotal
+    assert order.subtotal_gross_amount == round(expected_subtotal * tax_rate, 2)
+    assert order.total_net_amount == expected_total
+    assert order.total_gross_amount == round(expected_total * tax_rate, 2)
+    assert (
+        order.undiscounted_total_net_amount
+        == undiscounted_subtotal + undiscounted_shipping_price
+    )
+    assert order.undiscounted_total_gross_amount == round(
+        (undiscounted_subtotal + undiscounted_shipping_price) * tax_rate, 2
+    )
+
+
+def test_fetch_order_prices_voucher_shipping_and_manual_discount_fixed_exceed_total(
+    order_with_lines, voucher, plugins_manager
+):
+    # given
+    voucher.type = VoucherType.SHIPPING
+    voucher.discount_value_type = DiscountValueType.FIXED
+    voucher.save(update_fields=["type", "discount_value_type"])
+
+    order = order_with_lines
+    tax_rate = Decimal("1.23")
+
+    voucher_listing = voucher.channel_listings.get(channel=order.channel)
+    voucher_discount_amount = Decimal("4")
+    voucher_listing.discount_value = voucher_discount_amount
+    voucher_listing.save(update_fields=["discount_value"])
+
+    order.voucher = voucher
+    code = voucher.codes.first().code
+    order.voucher_code = code
+
+    undiscounted_shipping_price = order.shipping_price.net.amount
+    base_shipping_price = Decimal(undiscounted_shipping_price - voucher_discount_amount)
+    currency = order.currency
+    undiscounted_subtotal = Decimal(0)
+    lines = order.lines.all()
+    for line in lines:
+        undiscounted_subtotal += line.base_unit_price_amount * line.quantity
+
+    # create manual order discount
+    manual_discount_value = Decimal("1000")
+    manual_discount = order.discounts.create(
+        value_type=DiscountValueType.FIXED,
+        value=manual_discount_value,
+        name="Manual order discount",
+        type=DiscountType.MANUAL,
+        currency=currency,
+    )
+
+    total_with_shipping_voucher_discount = undiscounted_subtotal + base_shipping_price
+    assert manual_discount_value > total_with_shipping_voucher_discount
+    manual_discount_amount = total_with_shipping_voucher_discount
+    subtotal_manual_reward_portion = round(
+        (undiscounted_subtotal / total_with_shipping_voucher_discount)
+        * manual_discount_amount,
+        2,
+    )
+    shipping_manual_reward_portion = round(
+        manual_discount_amount - subtotal_manual_reward_portion, 2
+    )
+
+    expected_subtotal = undiscounted_subtotal - subtotal_manual_reward_portion
+    expected_shipping = base_shipping_price - shipping_manual_reward_portion
+    expected_total = expected_subtotal + expected_shipping
+
+    # when
+    order, lines = calculations.fetch_order_prices_if_expired(
+        order, plugins_manager, None, True
+    )
+
+    # then
+    assert OrderDiscount.objects.count() == 2
+    voucher_discount = order.discounts.filter(type=DiscountType.VOUCHER).first()
+    assert voucher_discount.voucher == voucher
+    assert voucher_discount.voucher_code == code
+    assert (
+        voucher_discount.amount_value
+        == undiscounted_shipping_price - base_shipping_price
+    )
+
+    manual_discount.refresh_from_db()
+    assert manual_discount.amount.amount == total_with_shipping_voucher_discount
+
+    assert order.undiscounted_base_shipping_price_amount == undiscounted_shipping_price
+    assert order.base_shipping_price_amount == base_shipping_price
+    assert order.shipping_price_net_amount == expected_shipping
+    assert order.shipping_price_gross.amount == round(expected_shipping * tax_rate, 2)
+    assert order.subtotal_net_amount == expected_subtotal
+    assert order.subtotal_gross_amount == round(expected_subtotal * tax_rate, 2)
+    assert order.total_net_amount == expected_total
+    assert order.total_gross_amount == round(expected_total * tax_rate, 2)
+    # FIXME: If discounts exceed total value, undiscounted prices are set to 0
+    # assert (
+    #     order.undiscounted_total_net_amount
+    #     == undiscounted_subtotal + undiscounted_shipping_price
+    # )
+    # assert order.undiscounted_total_gross_amount == round(
+    #     (undiscounted_subtotal + undiscounted_shipping_price) * tax_rate, 2
+    # )
