@@ -11,6 +11,7 @@ from typing import (
     cast,
 )
 
+from django.contrib.postgres.indexes import BTreeIndex
 from django.db import models
 from django.db.models import (
     Exists,
@@ -286,7 +287,13 @@ class Warehouse(ModelWithMetadata, ModelWithExternalReference):
 
     class Meta(ModelWithMetadata.Meta):
         ordering = ("-slug",)
-        # TODO: Add index for click_and_collect_option
+        indexes = [
+            *ModelWithMetadata.Meta.indexes,
+            BTreeIndex(  # type: ignore
+                name="click_and_collect_option_idx",
+                fields=["click_and_collect_option"],
+            ),
+        ]
 
     def __str__(self):
         return self.name
