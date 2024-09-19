@@ -16,6 +16,7 @@ def validate_storefront_url(url):
     """
     try:
         parsed_url = urlparse(url)
+        # testing
         domain, _ = split_domain_port(parsed_url.netloc)
         if not parsed_url.netloc:
             raise ValidationError(
