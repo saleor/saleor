@@ -23,5 +23,3 @@ class PatchedSubscriberExecutionContext:
 _major, _minor, _ = __version__.split(".", 2)
 schema_version = f"{_major}.{_minor}"
 user_agent_version = f"Saleor/{schema_version}"
-
-# testing
