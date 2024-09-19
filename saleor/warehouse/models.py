@@ -13,7 +13,6 @@ from typing import (
 
 from django.db import models
 from django.db.models import (
-    Count,
     Exists,
     F,
     IntegerField,
@@ -234,27 +233,6 @@ class WarehouseQueryset(models.QuerySet["Warehouse"]):
             self.filter(Exists(stocks_qs.filter(warehouse_id=OuterRef("id"))))
             .exclude(click_and_collect_option=WarehouseClickAndCollectOption.DISABLED)
             .prefetch_related(Prefetch("stock_set", queryset=stocks_qs))
-        )
-
-    def _for_channel_lines_and_stocks(
-        self,
-        number_of_variants: int,
-        stocks_qs: QuerySet["Stock"],
-        channel_id: int,
-    ) -> QuerySet["Warehouse"]:
-        warehouse_cc_option_enum = WarehouseClickAndCollectOption
-        return (
-            self.for_channel(channel_id)
-            .prefetch_related(Prefetch("stock_set", queryset=stocks_qs))
-            .filter(stock__in=stocks_qs)
-            .annotate(stock_num=Count("stock__id", distinct=True))
-            .filter(
-                stock_num__gte=number_of_variants,
-                click_and_collect_option__in=[
-                    warehouse_cc_option_enum.LOCAL_STOCK,
-                    warehouse_cc_option_enum.ALL_WAREHOUSES,
-                ],
-            )
         )
 
     def _for_channel_click_and_collect(self, channel_id: int) -> QuerySet["Warehouse"]:
