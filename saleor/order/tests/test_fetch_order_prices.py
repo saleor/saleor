@@ -12,25 +12,8 @@ from ...discount.models import (
     OrderLineDiscount,
     PromotionRule,
 )
-from ...tax import TaxCalculationStrategy
 from ...tests.utils import round_down, round_up
 from .. import OrderStatus, calculations
-
-
-@pytest.fixture
-def order_with_lines(order_with_lines):
-    order_with_lines.status = OrderStatus.UNCONFIRMED
-    return order_with_lines
-
-
-@pytest.fixture
-def channel_USD(channel_USD):
-    tc = channel_USD.tax_configuration
-    tc.country_exceptions.all().delete()
-    tc.prices_entered_with_tax = False
-    tc.tax_calculation_strategy = TaxCalculationStrategy.FLAT_RATES
-    tc.save()
-    return channel_USD
 
 
 @pytest.mark.parametrize("create_new_discounts", [True, False])
@@ -38,12 +21,14 @@ def test_fetch_order_prices_catalogue_discount_flat_rates(
     order_with_lines_and_catalogue_promotion,
     plugins_manager,
     create_new_discounts,
+    tax_configuration_flat_rates,
 ):
     # given
     if create_new_discounts:
         OrderLineDiscount.objects.all().delete()
 
     order = order_with_lines_and_catalogue_promotion
+    order.status = OrderStatus.UNCONFIRMED
     channel = order.channel
     rule = PromotionRule.objects.get()
     promotion_id = graphene.Node.to_global_id("Promotion", rule.promotion_id)
@@ -159,12 +144,14 @@ def test_fetch_order_prices_order_discount_flat_rates(
     order_with_lines_and_order_promotion,
     plugins_manager,
     create_new_discounts,
+    tax_configuration_flat_rates,
 ):
     # given
     if create_new_discounts:
         OrderDiscount.objects.all().delete()
 
     order = order_with_lines_and_order_promotion
+    order.status = OrderStatus.UNCONFIRMED
     currency = order.currency
     rule = PromotionRule.objects.get()
     reward_amount = rule.reward_value
@@ -289,12 +276,14 @@ def test_fetch_order_prices_gift_discount_flat_rates(
     order_with_lines_and_gift_promotion,
     plugins_manager,
     create_new_discounts,
+    tax_configuration_flat_rates,
 ):
     # given
     if create_new_discounts:
         OrderLineDiscount.objects.all().delete()
 
     order = order_with_lines_and_gift_promotion
+    order.status = OrderStatus.UNCONFIRMED
     rule = PromotionRule.objects.get()
     promotion_id = graphene.Node.to_global_id("Promotion", rule.promotion_id)
 
@@ -415,6 +404,7 @@ def test_fetch_order_prices_gift_discount_flat_rates(
 def test_fetch_order_prices_catalogue_and_order_discounts_flat_rates(
     draft_order_and_promotions,
     plugins_manager,
+    tax_configuration_flat_rates,
 ):
     # given
     order, rule_catalogue, rule_total, _ = draft_order_and_promotions
@@ -567,6 +557,7 @@ def test_fetch_order_prices_catalogue_and_order_discounts_flat_rates(
 def test_fetch_order_prices_catalogue_and_gift_discounts_flat_rates(
     draft_order_and_promotions,
     plugins_manager,
+    tax_configuration_flat_rates,
 ):
     # given
     order, rule_catalogue, rule_total, rule_gift = draft_order_and_promotions
@@ -725,6 +716,7 @@ def test_fetch_order_prices_catalogue_and_gift_discounts_flat_rates(
 def test_fetch_order_prices_catalogue_and_order_discounts_exceed_total_flat_rates(
     draft_order_and_promotions,
     plugins_manager,
+    tax_configuration_flat_rates,
 ):
     # given
     order, rule_catalogue, rule_total, _ = draft_order_and_promotions
@@ -844,9 +836,11 @@ def test_fetch_order_prices_catalogue_and_order_discounts_exceed_total_flat_rate
 def test_fetch_order_prices_manual_discount_and_order_discount_flat_rates(
     order_with_lines_and_order_promotion,
     plugins_manager,
+    tax_configuration_flat_rates,
 ):
     # given
     order = order_with_lines_and_order_promotion
+    order.status = OrderStatus.UNCONFIRMED
     assert OrderDiscount.objects.exists()
     currency = order.currency
 
@@ -978,9 +972,11 @@ def test_fetch_order_prices_manual_discount_and_order_discount_flat_rates(
 def test_fetch_order_prices_manual_discount_and_gift_discount_flat_rates(
     order_with_lines_and_gift_promotion,
     plugins_manager,
+    tax_configuration_flat_rates,
 ):
     # given
     order = order_with_lines_and_gift_promotion
+    order.status = OrderStatus.UNCONFIRMED
     assert OrderLineDiscount.objects.exists()
     currency = order.currency
 
@@ -1121,9 +1117,11 @@ def test_fetch_order_prices_manual_discount_and_gift_discount_flat_rates(
 def test_fetch_order_prices_manual_discount_and_catalogue_discount_flat_rates(
     order_with_lines_and_catalogue_promotion,
     plugins_manager,
+    tax_configuration_flat_rates,
 ):
     # given
     order = order_with_lines_and_catalogue_promotion
+    order.status = OrderStatus.UNCONFIRMED
     currency = order.currency
     rule = PromotionRule.objects.get()
     rule_catalogue_reward = rule.reward_value
@@ -1286,9 +1284,11 @@ def test_fetch_order_prices_manual_discount_and_catalogue_discount_flat_rates(
 def test_fetch_order_prices_manual_line_discount_and_catalogue_discount_flat_rates(
     order_with_lines_and_catalogue_promotion,
     plugins_manager,
+    tax_configuration_flat_rates,
 ):
     # given
     order = order_with_lines_and_catalogue_promotion
+    order.status = OrderStatus.UNCONFIRMED
 
     line_1 = order.lines.get(quantity=3)
     variant_1 = line_1.variant
@@ -1335,10 +1335,14 @@ def test_fetch_order_prices_manual_line_discount_and_catalogue_discount_flat_rat
 
 
 def test_fetch_order_prices_voucher_specific_product_fixed(
-    order_with_lines, voucher_specific_product_type, plugins_manager
+    order_with_lines,
+    voucher_specific_product_type,
+    plugins_manager,
+    tax_configuration_flat_rates,
 ):
     # given
     order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
     voucher = voucher_specific_product_type
     tax_rate = Decimal("1.23")
 
@@ -1426,10 +1430,14 @@ def test_fetch_order_prices_voucher_specific_product_fixed(
 
 
 def test_fetch_order_prices_voucher_specific_product_discount_line_object_updated(
-    order_with_lines, voucher_specific_product_type, plugins_manager
+    order_with_lines,
+    voucher_specific_product_type,
+    plugins_manager,
+    tax_configuration_flat_rates,
 ):
     # given
     order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
     voucher = voucher_specific_product_type
     tax_rate = Decimal("1.23")
 
@@ -1524,10 +1532,14 @@ def test_fetch_order_prices_voucher_specific_product_discount_line_object_update
 
 
 def test_fetch_order_prices_voucher_specific_product_percentage(
-    order_with_lines, voucher_specific_product_type, plugins_manager
+    order_with_lines,
+    voucher_specific_product_type,
+    plugins_manager,
+    tax_configuration_flat_rates,
 ):
     # given
     order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
     voucher = voucher_specific_product_type
     tax_rate = Decimal("1.23")
 
@@ -1622,10 +1634,14 @@ def test_fetch_order_prices_voucher_specific_product_percentage(
 
 
 def test_fetch_order_prices_voucher_apply_once_per_order_fixed(
-    order_with_lines, voucher, plugins_manager
+    order_with_lines,
+    voucher,
+    plugins_manager,
+    tax_configuration_flat_rates,
 ):
     # given
     order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
     tax_rate = Decimal("1.23")
 
     voucher_listing = voucher.channel_listings.get(channel=order.channel)
@@ -1712,10 +1728,14 @@ def test_fetch_order_prices_voucher_apply_once_per_order_fixed(
 
 
 def test_fetch_order_prices_voucher_apply_once_per_order_percentage(
-    order_with_lines, voucher, plugins_manager
+    order_with_lines,
+    voucher,
+    plugins_manager,
+    tax_configuration_flat_rates,
 ):
     # given
     order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
     tax_rate = Decimal("1.23")
 
     voucher_listing = voucher.channel_listings.get(channel=order.channel)
@@ -1805,10 +1825,14 @@ def test_fetch_order_prices_voucher_apply_once_per_order_percentage(
 
 
 def test_fetch_order_prices_manual_order_discount_voucher_specific_product(
-    order_with_lines, voucher_specific_product_type, plugins_manager
+    order_with_lines,
+    voucher_specific_product_type,
+    plugins_manager,
+    tax_configuration_flat_rates,
 ):
     # given
     order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
     voucher = voucher_specific_product_type
     tax_rate = Decimal("1.23")
 
@@ -1919,10 +1943,14 @@ def test_fetch_order_prices_manual_order_discount_voucher_specific_product(
 
 
 def test_fetch_order_prices_manual_order_discount_and_voucher_apply_once_per_order(
-    order_with_lines, voucher, plugins_manager
+    order_with_lines,
+    voucher,
+    plugins_manager,
+    tax_configuration_flat_rates,
 ):
     # given
     order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
     tax_rate = Decimal("1.23")
 
     voucher_listing = voucher.channel_listings.get(channel=order.channel)
@@ -2034,10 +2062,14 @@ def test_fetch_order_prices_manual_order_discount_and_voucher_apply_once_per_ord
 
 
 def test_fetch_order_prices_manual_line_discount_voucher_specific_product(
-    order_with_lines, voucher_specific_product_type, plugins_manager
+    order_with_lines,
+    voucher_specific_product_type,
+    plugins_manager,
+    tax_configuration_flat_rates,
 ):
     # given
     order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
     voucher = voucher_specific_product_type
     tax_rate = Decimal("1.23")
 
@@ -2148,10 +2180,14 @@ def test_fetch_order_prices_manual_line_discount_voucher_specific_product(
 
 
 def test_fetch_order_prices_manual_line_discount_and_voucher_apply_once_per_order(
-    order_with_lines, voucher, plugins_manager
+    order_with_lines,
+    voucher,
+    plugins_manager,
+    tax_configuration_flat_rates,
 ):
     # given
     order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
     tax_rate = Decimal("1.23")
 
     voucher_listing = voucher.channel_listings.get(channel=order.channel)
@@ -2277,9 +2313,11 @@ def test_fetch_order_prices_manual_line_discount_and_voucher_apply_once_per_orde
 def test_fetch_order_prices_catalogue_discount_race_condition(
     order_with_lines_and_catalogue_promotion,
     plugins_manager,
+    tax_configuration_flat_rates,
 ):
     # given
     order = order_with_lines_and_catalogue_promotion
+    order.status = OrderStatus.UNCONFIRMED
     OrderLineDiscount.objects.all().delete()
 
     # when
@@ -2298,13 +2336,17 @@ def test_fetch_order_prices_catalogue_discount_race_condition(
 
 
 def test_fetch_order_prices_voucher_entire_order_fixed(
-    order_with_lines, voucher, plugins_manager
+    order_with_lines,
+    voucher,
+    plugins_manager,
+    tax_configuration_flat_rates,
 ):
     # given
     assert voucher.type == VoucherType.ENTIRE_ORDER
     assert voucher.discount_value_type == DiscountValueType.FIXED
 
     order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
     tax_rate = Decimal("1.23")
 
     voucher_listing = voucher.channel_listings.get(channel=order.channel)
@@ -2409,7 +2451,10 @@ def test_fetch_order_prices_voucher_entire_order_fixed(
 
 
 def test_fetch_order_prices_voucher_entire_order_percentage(
-    order_with_lines, voucher, plugins_manager
+    order_with_lines,
+    voucher,
+    plugins_manager,
+    tax_configuration_flat_rates,
 ):
     # given
     assert voucher.type == VoucherType.ENTIRE_ORDER
@@ -2417,6 +2462,7 @@ def test_fetch_order_prices_voucher_entire_order_percentage(
     voucher.save(update_fields=["discount_value_type"])
 
     order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
     tax_rate = Decimal("1.23")
 
     voucher_listing = voucher.channel_listings.get(channel=order.channel)
@@ -2515,7 +2561,10 @@ def test_fetch_order_prices_voucher_entire_order_percentage(
 
 
 def test_fetch_order_prices_voucher_shipping_fixed(
-    order_with_lines, voucher, plugins_manager
+    order_with_lines,
+    voucher,
+    plugins_manager,
+    tax_configuration_flat_rates,
 ):
     # given
     voucher.type = VoucherType.SHIPPING
@@ -2523,6 +2572,7 @@ def test_fetch_order_prices_voucher_shipping_fixed(
     voucher.save(update_fields=["type", "discount_value_type"])
 
     order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
     tax_rate = Decimal("1.23")
 
     voucher_listing = voucher.channel_listings.get(channel=order.channel)
@@ -2588,7 +2638,10 @@ def test_fetch_order_prices_voucher_shipping_fixed(
 
 
 def test_fetch_order_prices_voucher_shipping_percentage(
-    order_with_lines, voucher, plugins_manager
+    order_with_lines,
+    voucher,
+    plugins_manager,
+    tax_configuration_flat_rates,
 ):
     # given
     voucher.type = VoucherType.SHIPPING
@@ -2596,6 +2649,7 @@ def test_fetch_order_prices_voucher_shipping_percentage(
     voucher.save(update_fields=["type", "discount_value_type"])
 
     order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
     tax_rate = Decimal("1.23")
 
     voucher_listing = voucher.channel_listings.get(channel=order.channel)
@@ -2661,7 +2715,10 @@ def test_fetch_order_prices_voucher_shipping_percentage(
 
 
 def test_fetch_order_prices_voucher_shipping_and_manual_discount_fixed(
-    order_with_lines, voucher, plugins_manager
+    order_with_lines,
+    voucher,
+    plugins_manager,
+    tax_configuration_flat_rates,
 ):
     # given
     voucher.type = VoucherType.SHIPPING
@@ -2669,6 +2726,7 @@ def test_fetch_order_prices_voucher_shipping_and_manual_discount_fixed(
     voucher.save(update_fields=["type", "discount_value_type"])
 
     order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
     tax_rate = Decimal("1.23")
 
     voucher_listing = voucher.channel_listings.get(channel=order.channel)
@@ -2748,7 +2806,10 @@ def test_fetch_order_prices_voucher_shipping_and_manual_discount_fixed(
 
 
 def test_fetch_order_prices_voucher_shipping_and_manual_discount_percentage(
-    order_with_lines, voucher, plugins_manager
+    order_with_lines,
+    voucher,
+    plugins_manager,
+    tax_configuration_flat_rates,
 ):
     # given
     voucher.type = VoucherType.SHIPPING
@@ -2756,6 +2817,7 @@ def test_fetch_order_prices_voucher_shipping_and_manual_discount_percentage(
     voucher.save(update_fields=["type", "discount_value_type"])
 
     order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
     tax_rate = Decimal("1.23")
 
     voucher_listing = voucher.channel_listings.get(channel=order.channel)
@@ -2838,7 +2900,10 @@ def test_fetch_order_prices_voucher_shipping_and_manual_discount_percentage(
 
 
 def test_fetch_order_prices_voucher_shipping_and_manual_discount_fixed_exceed_total(
-    order_with_lines, voucher, plugins_manager
+    order_with_lines,
+    voucher,
+    plugins_manager,
+    tax_configuration_flat_rates,
 ):
     # given
     voucher.type = VoucherType.SHIPPING
@@ -2846,6 +2911,7 @@ def test_fetch_order_prices_voucher_shipping_and_manual_discount_fixed_exceed_to
     voucher.save(update_fields=["type", "discount_value_type"])
 
     order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
     tax_rate = Decimal("1.23")
 
     voucher_listing = voucher.channel_listings.get(channel=order.channel)

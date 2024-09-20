@@ -148,6 +148,7 @@ from ..shipping.models import (
 )
 from ..shipping.utils import convert_to_shipping_method_data
 from ..site.models import SiteSettings
+from ..tax import TaxCalculationStrategy
 from ..tax.utils import calculate_tax_rate, get_tax_class_kwargs_for_order_line
 from ..thumbnail.models import Thumbnail
 from ..warehouse import WarehouseClickAndCollectOption
@@ -9876,3 +9877,25 @@ def setup_order_webhooks(
         )
 
     return _setup
+
+
+@pytest.fixture
+def tax_configuration_flat_rates(channel_USD):
+    tc = channel_USD.tax_configuration
+    tc.country_exceptions.all().delete()
+    tc.prices_entered_with_tax = False
+    tc.tax_calculation_strategy = TaxCalculationStrategy.FLAT_RATES
+    tc.tax_app_id = "avatax.app"
+    tc.save()
+    return tc
+
+
+@pytest.fixture
+def tax_configuration_tax_app(channel_USD):
+    tc = channel_USD.tax_configuration
+    tc.country_exceptions.all().delete()
+    tc.prices_entered_with_tax = False
+    tc.tax_calculation_strategy = TaxCalculationStrategy.TAX_APP
+    tc.tax_app_id = "avatax.app"
+    tc.save()
+    return tc
