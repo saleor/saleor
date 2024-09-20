@@ -3,7 +3,7 @@ from saleor.graphql.tests.utils import get_graphql_content
 ORDER_QUERY = """
 query OrderDetails($id: ID!) {
   order(id: $id) {
-    shippingMethods {
+    availableShippingMethods {
       id
       active
     }
