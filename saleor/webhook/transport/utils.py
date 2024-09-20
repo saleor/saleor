@@ -15,6 +15,7 @@ from celery import Task
 from celery.exceptions import MaxRetriesExceededError, Retry
 from celery.utils.log import get_task_logger
 from django.conf import settings
+from django.db import transaction
 from django.urls import reverse
 from google.cloud import pubsub_v1
 from requests import RequestException
@@ -504,13 +505,15 @@ def trigger_transaction_request(
             transaction_data, requestor
         )
         with allow_writer():
-            event_payload = EventPayload.objects.create_with_payload_file(payload)
-            delivery = EventDelivery.objects.create(
-                status=EventDeliveryStatus.PENDING,
-                event_type=event_type,
-                payload=event_payload,
-                webhook=webhook,
-            )
+            # Use transaction to ensure EventPayload and EventDelivery are created together, preventing inconsistent DB state.
+            with transaction.atomic():
+                event_payload = EventPayload.objects.create_with_payload_file(payload)
+                delivery = EventDelivery.objects.create(
+                    status=EventDeliveryStatus.PENDING,
+                    event_type=event_type,
+                    payload=event_payload,
+                    webhook=webhook,
+                )
     call_event(
         handle_transaction_request_task.delay,
         delivery.id,
