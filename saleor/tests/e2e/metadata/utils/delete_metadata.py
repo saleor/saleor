@@ -1,11 +1,11 @@
 from ...utils import get_graphql_content
 
-METADATA_UPDATE_MUTATION = """
-mutation UpdateMetadata(
+METADATA_DELETE_MUTATION = """
+mutation DeleteMetadata(
     $id: ID!,
-    $input:[MetadataInput!]!,
+    $keys:[String!]!,
    ) {
-  updateMetadata(id: $id, input: $input) {
+  deleteMetadata(id: $id, keys: $keys) {
     errors {
         message
         field
@@ -21,21 +21,21 @@ mutation UpdateMetadata(
 """
 
 
-def update_metadata(
+def delete_metadata(
     staff_api_client,
     id,
-    input,
+    keys,
 ):
-    variables = {"id": id, "input": input}
+    variables = {"id": id, "keys": keys}
     response = staff_api_client.post_graphql(
-        METADATA_UPDATE_MUTATION,
+        METADATA_DELETE_MUTATION,
         variables,
     )
 
     content = get_graphql_content(response)
 
-    assert content["data"]["updateMetadata"]["errors"] == []
+    assert content["data"]["deleteMetadata"]["errors"] == []
 
-    metadata = content["data"]["updateMetadata"]["item"]["metadata"]
+    metadata = content["data"]["deleteMetadata"]["item"]["metadata"]
     assert metadata is not None
     return metadata

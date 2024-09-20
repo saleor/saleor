@@ -3,7 +3,7 @@ from saleor.graphql.tests.utils import get_graphql_content
 ORDER_QUERY = """
 query OrderDetails($id: ID!) {
   order(id: $id) {
-    availableShippingMethods {
+    shippingMethods {
       id
       active
     }
@@ -17,8 +17,8 @@ query OrderDetails($id: ID!) {
       token
     }
     events {
-        type
-      }
+      type
+    }
     channel {
       id
       name
@@ -56,9 +56,16 @@ query OrderDetails($id: ID!) {
     transactions {
       id
     }
+    metadata {
+      key
+      value
+    }
+    privateMetadata {
+      key
+      value
+    }
   }
 }
-
 """
 
 
