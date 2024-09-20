@@ -63,6 +63,7 @@ mutation DraftOrderComplete($id: ID!) {
         unitDiscountReason
         unitDiscountType
         unitDiscountValue
+        isGift
       }
     }
   }
