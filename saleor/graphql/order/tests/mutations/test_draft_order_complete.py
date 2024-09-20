@@ -1217,9 +1217,11 @@ def test_draft_order_complete_calls_failing_plugin(
     channel_USD,
 ):
     # given
+    tax_error_message = "Test error"
+
     def side_effect(order, *args, **kwargs):
         price = Money("10.0", order.currency)
-        order.tax_error = "Test error"
+        order.tax_error = tax_error_message
         return OrderTaxedPricesData(
             price_with_discounts=TaxedMoney(price, price),
             undiscounted_price=TaxedMoney(price, price),
@@ -1253,7 +1255,7 @@ def test_draft_order_complete_calls_failing_plugin(
 
     order.refresh_from_db()
     assert not order.should_refresh_prices
-    assert order.tax_error == "Empty tax data."
+    assert order.tax_error == tax_error_message
 
 
 DRAFT_ORDER_COMPLETE_WITH_DISCOUNTS_MUTATION = """

@@ -503,9 +503,11 @@ def test_checkout_complete_calls_failing_plugin(
     settings,
 ):
     # given
+    tax_error_message = "Test error"
+
     def side_effect(checkout_info, *args, **kwargs):
         price = Money("10.0", checkout_info.checkout.currency)
-        checkout_info.checkout.tax_error = "Test error"
+        checkout_info.checkout.tax_error = tax_error_message
         return TaxedMoney(price, price)
 
     mock_calculate_checkout_line_total.side_effect = side_effect
@@ -542,7 +544,7 @@ def test_checkout_complete_calls_failing_plugin(
 
     checkout.refresh_from_db()
     assert checkout.price_expiration == timezone.now() + settings.CHECKOUT_PRICES_TTL
-    assert checkout.tax_error == "Empty tax data."
+    assert checkout.tax_error == tax_error_message
 
 
 @freeze_time()
