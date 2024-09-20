@@ -22,6 +22,9 @@ mutation DraftOrderComplete($id: ID!) {
       subtotal {
         ...BaseTaxedMoney
       }
+      undiscountedShippingPrice {
+        amount
+      }
       shippingPrice {
         ...BaseTaxedMoney
       }
