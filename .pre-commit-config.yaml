@@ -15,7 +15,7 @@ repos:
         exclude_types: [svg]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.6.5
+    rev: v0.6.7
     hooks:
       - id: ruff
       - id: ruff-format
@@ -33,7 +33,7 @@ repos:
       - id: deptry
 
   - repo: https://github.com/returntocorp/semgrep
-    rev: v1.84.1
+    rev: v1.89.0
     hooks:
     - id: semgrep
       exclude_types:
