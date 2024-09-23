@@ -10,6 +10,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="app",
             name="identifier",
-            field=models.CharField(max_length=256, blank=True),
+            field=models.CharField(max_length=128, blank=True),
         ),
     ]
