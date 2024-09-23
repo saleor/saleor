@@ -17,6 +17,7 @@ from ...core.taxes import (
     TaxLineData,
     zero_taxed_money,
 )
+from ...graphql.core.utils import to_global_id_or_none
 from ...plugins import PLUGIN_IDENTIFIER_PREFIX
 from ...plugins.avatax.plugin import AvataxPlugin
 from ...plugins.avatax.tests.conftest import plugin_configuration  # noqa: F401
@@ -819,6 +820,7 @@ def test_fetch_checkout_data_tax_data_with_negative_values(
     # then
     assert checkout_info.checkout.tax_error == TaxDataErrorMessage.NEGATIVE_VALUE
     assert TaxDataErrorMessage.NEGATIVE_VALUE in caplog.text
+    assert caplog.records[0].checkout_id == to_global_id_or_none(checkout)
 
 
 @pytest.mark.parametrize(
@@ -880,6 +882,7 @@ def test_fetch_checkout_data_tax_data_with_wrong_number_of_lines(
     # then
     assert checkout_info.checkout.tax_error == TaxDataErrorMessage.LINE_NUMBER
     assert TaxDataErrorMessage.LINE_NUMBER in caplog.text
+    assert caplog.records[0].checkout_id == to_global_id_or_none(checkout)
 
 
 @pytest.mark.parametrize(
@@ -936,6 +939,7 @@ def test_fetch_checkout_data_tax_data_with_price_overflow(
     # then
     assert checkout_info.checkout.tax_error == TaxDataErrorMessage.OVERFLOW
     assert TaxDataErrorMessage.OVERFLOW in caplog.text
+    assert caplog.records[0].checkout_id == to_global_id_or_none(checkout)
 
 
 @patch("saleor.plugins.avatax.plugin.get_checkout_tax_data")
@@ -980,6 +984,7 @@ def test_fetch_order_data_plugin_tax_data_with_negative_values(
     # then
     assert checkout.tax_error == TaxDataErrorMessage.NEGATIVE_VALUE
     assert TaxDataErrorMessage.NEGATIVE_VALUE in caplog.text
+    assert caplog.records[0].checkout_id == to_global_id_or_none(checkout)
 
 
 @patch("saleor.plugins.avatax.plugin.get_checkout_tax_data")
@@ -1029,6 +1034,7 @@ def test_fetch_order_data_plugin_tax_data_with_wrong_number_of_lines(
     # then
     assert checkout.tax_error == TaxDataErrorMessage.LINE_NUMBER
     assert TaxDataErrorMessage.LINE_NUMBER in caplog.text
+    assert caplog.records[0].checkout_id == to_global_id_or_none(checkout)
 
 
 @patch("saleor.plugins.avatax.plugin.get_checkout_tax_data")
@@ -1079,6 +1085,7 @@ def test_fetch_order_data_plugin_tax_data_with_wrong_number_of_lines_no_shipping
     # then
     assert checkout.tax_error == TaxDataErrorMessage.LINE_NUMBER
     assert TaxDataErrorMessage.LINE_NUMBER in caplog.text
+    assert caplog.records[0].checkout_id == to_global_id_or_none(checkout)
 
 
 @patch("saleor.plugins.avatax.plugin.get_checkout_tax_data")
@@ -1123,3 +1130,4 @@ def test_fetch_order_data_plugin_tax_data_price_overflow(
     # then
     assert checkout.tax_error == TaxDataErrorMessage.OVERFLOW
     assert TaxDataErrorMessage.OVERFLOW in caplog.text
+    assert caplog.records[0].checkout_id == to_global_id_or_none(checkout)

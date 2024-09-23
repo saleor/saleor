@@ -951,17 +951,14 @@ class AvataxPlugin(BasePlugin):
             return TaxDataErrorMessage.EMPTY
 
         if cls.check_negative_values_in_plugin_tax_data(tax_data):
-            logger.warning(TaxDataErrorMessage.NEGATIVE_VALUE)
             return TaxDataErrorMessage.NEGATIVE_VALUE
 
         if cls.check_line_number_in_plugin_tax_data(
             tax_data, lines, is_shipping_required
         ):
-            logger.warning(TaxDataErrorMessage.LINE_NUMBER)
             return TaxDataErrorMessage.LINE_NUMBER
 
         if cls.check_overflows_in_plugin_tax_data(tax_data):
-            logger.warning(TaxDataErrorMessage.OVERFLOW)
             return TaxDataErrorMessage.OVERFLOW
 
         return ""

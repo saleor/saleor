@@ -7,7 +7,6 @@ import graphene
 from ...graphql.core.utils import to_global_id_or_none
 from .. import DiscountType
 from ..models import (
-    BaseDiscount,
     CheckoutDiscount,
     CheckoutLineDiscount,
     OrderDiscount,
@@ -98,7 +97,7 @@ def is_order_level_discount(discount: OrderDiscount) -> bool:
     ] or is_order_level_voucher(discount.voucher)
 
 
-def discount_info_for_logs(discounts: list[BaseDiscount]):
+def discount_info_for_logs(discounts):
     return [
         {
             "id": to_global_id_or_none(discount),

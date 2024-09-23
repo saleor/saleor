@@ -36,7 +36,7 @@ from .base_calculations import apply_order_discounts, base_order_line_total
 from .fetch import EditableOrderLineInfo, fetch_draft_order_lines_info
 from .interface import OrderTaxedPricesData
 from .models import Order, OrderLine
-from .utils import log_address_if_validation_skipped_for_order
+from .utils import log_address_if_validation_skipped_for_order, order_info_for_logs
 
 logger = logging.getLogger(__name__)
 
@@ -169,6 +169,8 @@ def _recalculate_prices(
                 database_connection_name=database_connection_name,
             )
         except TaxDataError as e:
+            if str(e) != TaxDataErrorMessage.EMPTY:
+                logger.warning(str(e), extra=order_info_for_logs(order, lines))
             order.tax_error = str(e)
 
         if not should_charge_tax:
@@ -192,6 +194,8 @@ def _recalculate_prices(
                     database_connection_name=database_connection_name,
                 )
             except TaxDataError as e:
+                if str(e) != TaxDataErrorMessage.EMPTY:
+                    logger.warning(str(e), extra=order_info_for_logs(order, lines))
                 order.tax_error = str(e)
         else:
             _remove_tax(order, lines)
