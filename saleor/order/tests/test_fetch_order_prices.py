@@ -2983,7 +2983,8 @@ def test_fetch_order_prices_voucher_shipping_and_manual_discount_fixed_exceed_to
     assert order.subtotal_gross_amount == round(expected_subtotal * tax_rate, 2)
     assert order.total_net_amount == expected_total
     assert order.total_gross_amount == round(expected_total * tax_rate, 2)
-    # FIXME: If discounts exceed total value, undiscounted prices are set to 0
+    # FIXME (SHOPX-1390): If discounts exceed total value and flat rates are used
+    #  undiscounted prices are set to 0
     # assert (
     #     order.undiscounted_total_net_amount
     #     == undiscounted_subtotal + undiscounted_shipping_price
