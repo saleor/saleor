@@ -988,8 +988,8 @@ class AvataxPlugin(BasePlugin):
 
         tax_lines = tax_data.get("lines", [])
         # shipping data is represented as additional order line
-        shipping_line = 1 if is_shipping_required else 0
-        if len(tax_lines) != sum(1 for _ in lines) + shipping_line:
+        expected_lines_length = len(list(lines)) + (1 if is_shipping_required else 0)
+        if len(tax_lines) != expected_lines_length:
             return True
 
         return False
