@@ -48,6 +48,13 @@ def test_update_metadata_draft_order_CORE_0245(
         e2e_staff_api_client, warehouse_id, channel_id, variant_price=product_price
     )
 
+    metadata_to_update = {"key": "metadataToBeUpdated", "value": "test value"}
+    metadata_to_remove = {"key": "metadataToBeRemoved", "value": "A"}
+    metadata_to_keep = {"key": "testEntityCode", "value": "A"}
+    metadata_updated = {"key": "metadataToBeUpdated", "value": "updated value"}
+    private_metadata_to_keep = {"key": "privateMetadata", "value": "private value"}
+    private_metadata_to_remove = {"key": "privateMetadataToBeRemoved", "value": "A"}
+
     # Step 1 - Create a draft order
     input = {
         "channelId": channel_id,
@@ -63,18 +70,15 @@ def test_update_metadata_draft_order_CORE_0245(
 
     # Step 2 - Add metadata to draft order
     metadata_input = [
-        {"key": "metadataToBeUpdated", "value": "test value"},
-        {"key": "metadataToBeRemoved", "value": "A"},
-        {"key": "testEntityCode", "value": "A"},
+        metadata_to_update,
+        metadata_to_remove,
+        metadata_to_keep,
     ]
     metadata = update_metadata(e2e_staff_api_client, order_id, metadata_input)
     assert len(metadata) == 3
-    assert metadata[0]["key"] == "metadataToBeRemoved"
-    assert metadata[0]["value"] == "A"
-    assert metadata[1]["key"] == "metadataToBeUpdated"
-    assert metadata[1]["value"] == "test value"
-    assert metadata[2]["key"] == "testEntityCode"
-    assert metadata[2]["value"] == "A"
+    assert metadata[0] == metadata_to_remove
+    assert metadata[1] == metadata_to_update
+    assert metadata[2] == metadata_to_keep
 
     # Step 3 - Add order lines to the order
     lines = [
@@ -84,15 +88,11 @@ def test_update_metadata_draft_order_CORE_0245(
     assert len(order["order"]["lines"]) == 1
 
     # Step 4 - Update draft order metadata value
-    metadata_input = [{"key": "metadataToBeUpdated", "value": "updated value"}]
-    metadata = update_metadata(e2e_staff_api_client, order_id, metadata_input)
+    metadata = update_metadata(e2e_staff_api_client, order_id, [metadata_updated])
     assert len(metadata) == 3
-    assert metadata[0]["key"] == "metadataToBeRemoved"
-    assert metadata[0]["value"] == "A"
-    assert metadata[1]["key"] == "metadataToBeUpdated"
-    assert metadata[1]["value"] == "updated value"
-    assert metadata[2]["key"] == "testEntityCode"
-    assert metadata[2]["value"] == "A"
+    assert metadata[0] == metadata_to_remove
+    assert metadata[1] == metadata_updated
+    assert metadata[2] == metadata_to_keep
 
     # Step 5 - Add a shipping method to the order
     input = {"shippingMethod": shipping_method_id}
@@ -100,36 +100,29 @@ def test_update_metadata_draft_order_CORE_0245(
     assert order["order"]["deliveryMethod"]["id"] is not None
 
     # Step 6 - Remove metadata from draft order
-    metadata_to_remove = ["metadataToBeRemoved"]
-    metadata = delete_metadata(e2e_staff_api_client, order_id, metadata_to_remove)
+    metadata = delete_metadata(e2e_staff_api_client, order_id, ["metadataToBeRemoved"])
     assert len(metadata) == 2
-    assert metadata[0]["key"] == "metadataToBeUpdated"
-    assert metadata[0]["value"] == "updated value"
-    assert metadata[1]["key"] == "testEntityCode"
-    assert metadata[1]["value"] == "A"
+    assert metadata[0] == metadata_updated
+    assert metadata[1] == metadata_to_keep
 
     # Step 7 - Update private metadata
     private_metadata = [
-        {"key": "privateMetadata", "value": "private value"},
-        {"key": "privateMetadataToBeRemoved", "value": "private value"},
+        private_metadata_to_keep,
+        private_metadata_to_remove,
     ]
     private_metadata = update_private_metadata(
         e2e_staff_api_client, order_id, private_metadata
     )
     assert len(private_metadata) == 2
-    assert private_metadata[0]["key"] == "privateMetadata"
-    assert private_metadata[0]["value"] == "private value"
-    assert private_metadata[1]["key"] == "privateMetadataToBeRemoved"
-    assert private_metadata[1]["value"] == "private value"
+    assert private_metadata[0] == private_metadata_to_keep
+    assert private_metadata[1] == private_metadata_to_remove
 
     # Step 8 - Delete private metadata
-    private_metadata_to_remove = ["privateMetadataToBeRemoved"]
     private_metadata = delete_private_metadata(
-        e2e_staff_api_client, order_id, private_metadata_to_remove
+        e2e_staff_api_client, order_id, ["privateMetadataToBeRemoved"]
     )
     assert len(private_metadata) == 1
-    assert private_metadata[0]["key"] == "privateMetadata"
-    assert private_metadata[0]["value"] == "private value"
+    assert private_metadata[0] == private_metadata_to_keep
 
     # Step 8 - Complete the draft order
     order = draft_order_complete(e2e_staff_api_client, order_id)
@@ -138,9 +131,6 @@ def test_update_metadata_draft_order_CORE_0245(
     order = order_query(e2e_staff_api_client, order_id)
     metadata = order["metadata"]
     private_metadata = order["privateMetadata"]
-    assert metadata[0]["key"] == "metadataToBeUpdated"
-    assert metadata[0]["value"] == "updated value"
-    assert metadata[1]["key"] == "testEntityCode"
-    assert metadata[1]["value"] == "A"
-    assert private_metadata[0]["key"] == "privateMetadata"
-    assert private_metadata[0]["value"] == "private value"
+    assert metadata[0] == metadata_updated
+    assert metadata[1] == metadata_to_keep
+    assert private_metadata[0] == private_metadata_to_keep
