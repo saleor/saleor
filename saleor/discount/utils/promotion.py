@@ -192,7 +192,7 @@ def prepare_line_discount_objects_for_catalogue_promotions(lines_info):
             # introducing unique_type on discount models, there was such a possibility.
             line_discounts_to_remove.extend(discounts_to_update[1:])
 
-        # manual line discount do not stack with other discounts
+        # manual line discount do not stack with other line discounts
         if [
             discount
             for discount in line_info.discounts
