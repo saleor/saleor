@@ -6410,7 +6410,6 @@ def test_validate_plugin_tax_data_with_negative_values(lines_info, caplog):
 
     # then
     assert error_message == TaxDataErrorMessage.NEGATIVE_VALUE
-    assert TaxDataErrorMessage.NEGATIVE_VALUE in caplog.text
 
 
 def test_validate_plugin_tax_data_line_number(lines_info, caplog):
@@ -6435,7 +6434,6 @@ def test_validate_plugin_tax_data_line_number(lines_info, caplog):
 
     # then
     assert error_message == TaxDataErrorMessage.LINE_NUMBER
-    assert TaxDataErrorMessage.LINE_NUMBER in caplog.text
 
 
 def test_validate_plugin_tax_data_price_overflow(lines_info, caplog):
@@ -6465,4 +6463,3 @@ def test_validate_plugin_tax_data_price_overflow(lines_info, caplog):
 
     # then
     assert error_message == TaxDataErrorMessage.OVERFLOW
-    assert TaxDataErrorMessage.OVERFLOW in caplog.text

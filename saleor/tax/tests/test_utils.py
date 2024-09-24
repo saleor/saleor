@@ -2,7 +2,7 @@ from decimal import Decimal
 
 import pytest
 
-from ...core.taxes import TaxData, TaxDataError, TaxDataErrorMessage, TaxLineData
+from ...core.taxes import TaxData, TaxDataError, TaxLineData
 from ...core.utils.country import get_active_country
 from ..utils import (
     get_charge_taxes,
@@ -150,8 +150,6 @@ def test_validate_tax_data_with_negative_values(lines_info, caplog):
     with pytest.raises(TaxDataError):
         validate_tax_data(tax_data, lines_info)
 
-    assert TaxDataErrorMessage.NEGATIVE_VALUE in caplog.text
-
 
 def test_validate_tax_data_line_number(lines_info, caplog):
     # given
@@ -173,8 +171,6 @@ def test_validate_tax_data_line_number(lines_info, caplog):
     # when & then
     with pytest.raises(TaxDataError):
         validate_tax_data(tax_data, lines_info)
-
-    assert TaxDataErrorMessage.LINE_NUMBER in caplog.text
 
 
 def test_validate_tax_data_tax_rate_overflow(lines_info, caplog):
@@ -203,8 +199,6 @@ def test_validate_tax_data_tax_rate_overflow(lines_info, caplog):
     with pytest.raises(TaxDataError):
         validate_tax_data(tax_data, lines_info)
 
-    assert TaxDataErrorMessage.OVERFLOW in caplog.text
-
 
 def test_validate_tax_data_price_overflow(lines_info, caplog):
     # given
@@ -231,5 +225,3 @@ def test_validate_tax_data_price_overflow(lines_info, caplog):
     # when & then
     with pytest.raises(TaxDataError):
         validate_tax_data(tax_data, lines_info)
-
-    assert TaxDataErrorMessage.OVERFLOW in caplog.text

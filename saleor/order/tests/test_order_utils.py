@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+import graphene
 import pytest
 from prices import Money, TaxedMoney
 
@@ -26,6 +27,7 @@ from ..utils import (
     get_total_order_discount_excluding_shipping,
     get_valid_shipping_methods_for_order,
     match_orders_with_new_user,
+    order_info_for_logs,
     update_order_display_gross_prices,
 )
 
@@ -705,3 +707,40 @@ def test_calculate_order_granted_refund_status(
     # then
     granted_refund.refresh_from_db()
     assert granted_refund.status == expected_granted_status
+
+
+def test_order_info_for_logs(order_with_lines, voucher, order_promotion_with_rule):
+    # given
+    order = order_with_lines
+    voucher_code = voucher.codes.first().code
+    order.voucher_code = voucher_code
+    order.voucher = voucher
+    order.status = OrderStatus.DRAFT
+    order.save(update_fields=["voucher_code", "voucher_id", "status"])
+
+    order.discounts.create(
+        type=DiscountType.ORDER_PROMOTION,
+        value_type=DiscountValueType.FIXED,
+        value=Decimal(5),
+        amount_value=Decimal(5),
+        promotion_rule=order_promotion_with_rule.rules.first(),
+        currency=order.currency,
+    )
+
+    lines = order.lines.all()
+    lines[0].discounts.create(
+        type=DiscountType.VOUCHER,
+        value_type=DiscountValueType.FIXED,
+        value=Decimal(5),
+        currency=order.currency,
+        amount_value=Decimal(5),
+        voucher=voucher,
+    )
+
+    # when
+    extra = order_info_for_logs(order, lines)
+
+    # then
+    assert extra["order_id"] == graphene.Node.to_global_id("Order", order.pk)
+    assert extra["discounts"]
+    assert extra["lines"][0]["discounts"]
