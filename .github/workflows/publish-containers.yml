@@ -1,13 +1,27 @@
 name: Publish
 
 on:
-  push:
-    tags:
-      # Matches stable and pre-releases
-      - "[0-9]+.[0-9]+.[0-9]+*"
-    branches:
-      - main
-      - ci/**
+  workflow_call:
+    inputs:
+      ref:
+        description: Optional ref name for custom build
+        required: false
+        type: string
+      prefix:
+        description: Optional image prefix for branch build
+        required: false
+        type: string
+      version:
+        description: Optional custom image version tag
+        required: false
+        type: string
+    secrets:
+      SLACK_WEBHOOK_URL:
+      SLACK_MENTION_GROUP_ID:
+    outputs:
+      version:
+        description: Docker image version
+        value: ${{ jobs.docker.outputs.version }}
 
 jobs:
   docker:
@@ -17,9 +31,14 @@ jobs:
       contents: read
       packages: write
 
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
 
       # Outputs the name of the repository (owner/repo)
       - name: Build Image Name
@@ -36,9 +55,11 @@ jobs:
           images: |
             ghcr.io/${{ steps.image.outputs.image_name }}
           tags: |
-            type=ref,event=branch,prefix=unstable-
+            type=ref,event=branch,prefix=${{ inputs.prefix }}
             type=pep440,pattern={{version}}
             type=pep440,pattern={{major}}.{{minor}}
+            type=raw,value=${{ inputs.version }},enable=${{ inputs.version != null }}
+          context: git
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -66,7 +87,7 @@ jobs:
           context: .
           labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64,linux/arm64
-          push: ${{ github.event_name != 'pull_request' }}
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
 
       - name: Image digest
@@ -75,21 +96,12 @@ jobs:
             Digest: ${{ steps.docker_build.outputs.digest }}
             Tags: ${{ steps.meta.outputs.tags }}"
 
-      - name: Trigger staging deployment for tagged release
-        if: ${{ startsWith(github.ref, 'refs/tags/') }}
-        run: |
-          curl -f -X POST \
-            -H "Accept: application/vnd.github.v3+json" \
-            -H "Authorization: Bearer ${{ secrets.SALEOR_RELEASE_TOKEN }}" \
-            https://api.github.com/repos/saleor/saleor-multitenant/dispatches \
-            -d "{\"event_type\":\"deploy-staging\",\"client_payload\":{\"version\":\"${{ steps.meta.outputs.version }}\"}}"
-
       - name: Notify Slack
         if: ${{ failure() }}
         env:
           JOB_STATUS: ${{ job.status }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_CLOUD_CI_WEBHOOK_URL }}
-          SLACK_MENTION_GROUP_ID: ${{ secrets.SLACK_CORE_SUPPORT_GROUP_ID }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_MENTION_GROUP_ID: ${{ secrets.SLACK_MENTION_GROUP_ID }}
           JOB_TITLE: "Build of Saleor Core ${{ steps.meta.outputs.version }}"
         run: |
           python3 ./.github/workflows/notify/notify-slack.py

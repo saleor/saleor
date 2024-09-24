@@ -9,6 +9,7 @@
 *.pot
 *.pyc
 local_settings.py
+.base_ver_release.txt
 __pycache__/
 build/
 coverage/
