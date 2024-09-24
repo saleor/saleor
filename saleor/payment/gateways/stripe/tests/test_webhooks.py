@@ -1,4 +1,5 @@
 import json
+import logging
 from decimal import Decimal
 from unittest.mock import Mock, patch
 
@@ -29,6 +30,7 @@ from ..consts import (
     WEBHOOK_SUCCESS_EVENT,
 )
 from ..webhooks import (
+    _channel_slug_is_different_from_payment_channel_slug,
     _finalize_checkout,
     _process_payment_with_checkout,
     _update_payment_with_new_transaction,
@@ -1676,3 +1678,94 @@ def test_handle_successful_payment_intent_for_checkout_when_already_processing_c
     assert payment.order
     transaction = payment.transactions.get(kind=TransactionKind.CAPTURE)
     assert transaction.token == payment_intent.id
+
+
+def test_channel_slug_is_different_from_payment_channel_slug_for_checkout_false(
+    payment, checkout
+):
+    # given
+    payment.checkout = checkout
+    payment.order = None
+    payment.save(update_fields=["checkout", "order"])
+
+    channel_slug = checkout.channel.slug
+
+    # when
+    result = _channel_slug_is_different_from_payment_channel_slug(channel_slug, payment)
+
+    # then
+    assert result is False
+
+
+def test_channel_slug_is_different_from_payment_channel_slug_for_checkout_true(
+    payment, checkout
+):
+    # given
+    payment.checkout = checkout
+    payment.order = None
+    payment.save(update_fields=["checkout", "order"])
+
+    channel_slug = "test"
+
+    # when
+    result = _channel_slug_is_different_from_payment_channel_slug(channel_slug, payment)
+
+    # then
+    assert result is True
+
+
+def test_channel_slug_is_different_from_payment_channel_slug_for_order_false(
+    payment, order
+):
+    # given
+    payment.checkout = None
+    payment.order = order
+    payment.save(update_fields=["checkout", "order"])
+
+    channel_slug = order.channel.slug
+
+    # when
+    result = _channel_slug_is_different_from_payment_channel_slug(channel_slug, payment)
+
+    # then
+    assert result is False
+
+
+def test_channel_slug_is_different_from_payment_channel_slug_for_order_true(
+    payment, order
+):
+    # given
+    payment.checkout = None
+    payment.order = order
+    payment.save(update_fields=["checkout", "order"])
+
+    channel_slug = "test"
+
+    # when
+    result = _channel_slug_is_different_from_payment_channel_slug(channel_slug, payment)
+
+    # then
+    assert result is True
+
+
+def test_channel_slug_is_different_from_payment_channel_slug_no_order_or_checkout(
+    payment, caplog
+):
+    # given
+    payment.checkout = None
+    payment.order = None
+    payment.save(update_fields=["checkout", "order"])
+    caplog.set_level(logging.WARNING)
+
+    channel_slug = "test"
+
+    # when
+    result = _channel_slug_is_different_from_payment_channel_slug(channel_slug, payment)
+
+    # then
+    assert result is True
+    assert (
+        caplog.records[0].message
+        == "Both payment.checkout and payment.order cannot be None"
+    )
+    assert caplog.records[0].payment_id == payment.id
