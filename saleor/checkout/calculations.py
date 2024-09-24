@@ -271,6 +271,8 @@ def _fetch_checkout_prices_if_expired(
     Prices can be updated only if force_update == True, or if time elapsed from the
     last price update is greater than settings.CHECKOUT_PRICES_TTL.
     """
+    from .utils import checkout_info_for_logs
+
     if pregenerated_subscription_payloads is None:
         pregenerated_subscription_payloads = {}
 
@@ -315,6 +317,10 @@ def _fetch_checkout_prices_if_expired(
                 pregenerated_subscription_payloads=pregenerated_subscription_payloads,
             )
         except TaxDataError as e:
+            if str(e) != TaxDataErrorMessage.EMPTY:
+                logger.warning(
+                    str(e), extra=checkout_info_for_logs(checkout_info, lines)
+                )
             _set_checkout_base_prices(checkout, checkout_info, lines)
             checkout.tax_error = str(e)
 
@@ -342,6 +348,10 @@ def _fetch_checkout_prices_if_expired(
                     pregenerated_subscription_payloads=pregenerated_subscription_payloads,
                 )
             except TaxDataError as e:
+                if str(e) != TaxDataErrorMessage.EMPTY:
+                    logger.warning(
+                        str(e), extra=checkout_info_for_logs(checkout_info, lines)
+                    )
                 _set_checkout_base_prices(checkout, checkout_info, lines)
                 checkout.tax_error = str(e)
         else:
@@ -474,7 +484,7 @@ def _call_plugin_or_tax_app(
             plugin_ids=plugin_ids,
         )
         if checkout.tax_error:
-            raise TaxDataError(TaxDataErrorMessage.EMPTY)
+            raise TaxDataError(checkout.tax_error)
     else:
         tax_data = manager.get_taxes_for_checkout(
             checkout_info,

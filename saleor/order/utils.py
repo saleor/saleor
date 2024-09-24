@@ -54,7 +54,7 @@ from . import (
     OrderStatus,
     events,
 )
-from .fetch import OrderLineInfo
+from .fetch import OrderLineInfo, fetch_draft_order_lines_info
 from .models import Order, OrderGrantedRefund, OrderLine
 
 if TYPE_CHECKING:
@@ -1210,3 +1210,71 @@ def get_address_for_order_taxes(order: "Order"):
     else:
         address = order.shipping_address or order.billing_address
     return address
+
+
+def order_info_for_logs(order: Order, lines: Iterable[OrderLine]):
+    from ..discount.utils.shared import discount_info_for_logs
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    tax_configuration = order.channel.tax_configuration
+    lines_info = fetch_draft_order_lines_info(order, lines)
+
+    return {
+        "order_id": order_id,
+        "orderId": order_id,
+        "order": {
+            "currency": order.currency,
+            "status": order.status,
+            "origin": order.origin,
+            "checkout_id": order.checkout_token,
+            "undiscounted_base_shipping_price_amount": order.undiscounted_base_shipping_price_amount,
+            "base_shipping_price_amount": order.base_shipping_price_amount,
+            "shipping_price_net_amount": order.shipping_price_net_amount,
+            "shipping_price_gross_amount": order.shipping_price_gross_amount,
+            "undiscounted_total_net_amount": order.undiscounted_total_net_amount,
+            "total_net_amount": order.total_net_amount,
+            "undiscounted_total_gross_amount": order.undiscounted_total_gross_amount,
+            "total_gross_amount": order.total_gross_amount,
+            "subtotal_net_amount": order.subtotal_net_amount,
+            "subtotal_gross_amount": order.subtotal_gross_amount,
+            "has_voucher_code": bool(order.voucher_code),
+            "tax_exemption": order.tax_exemption,
+            "tax_error": order.tax_error,
+        },
+        "tax_configuration": {
+            "charge_taxes": tax_configuration.charge_taxes,
+            "tax_calculation_strategy": tax_configuration.tax_calculation_strategy,
+            "prices_entered_with_tax": tax_configuration.prices_entered_with_tax,
+            "tax_app_id": tax_configuration.tax_app_id,
+        },
+        "discounts": discount_info_for_logs(order.discounts.all()),
+        "lines": [
+            {
+                "id": graphene.Node.to_global_id("OrderLine", line_info.line.pk),
+                "variant_id": graphene.Node.to_global_id(
+                    "ProductVariant", line_info.line.variant_id
+                ),
+                "quantity": line_info.line.quantity,
+                "is_gift_card": line_info.line.is_gift_card,
+                "is_price_overridden": line_info.line.is_price_overridden,
+                "undiscounted_base_unit_price_amount": line_info.line.undiscounted_base_unit_price_amount,
+                "base_unit_price_amount": line_info.line.base_unit_price_amount,
+                "undiscounted_unit_price_net_amount": line_info.line.undiscounted_unit_price_net_amount,
+                "undiscounted_unit_price_gross_amount": line_info.line.undiscounted_unit_price_gross_amount,
+                "unit_price_net_amount": line_info.line.unit_price_net_amount,
+                "unit_price_gross_amount": line_info.line.unit_price_gross_amount,
+                "undiscounted_total_price_net_amount": line_info.line.undiscounted_total_price_net_amount,
+                "undiscounted_total_price_gross_amount": line_info.line.undiscounted_total_price_gross_amount,
+                "total_price_net_amount": line_info.line.total_price_net_amount,
+                "total_price_gross_amount": line_info.line.total_price_gross_amount,
+                "has_voucher_code": bool(line_info.line.voucher_code),
+                "variant_listing_price": line_info.channel_listing.price_amount,
+                "variant_listing_discounted_price": line_info.channel_listing.discounted_price_amount,
+                "unit_discount_amount": line_info.line.unit_discount_amount,
+                "unit_discount_type": line_info.line.unit_discount_type,
+                "unit_discount_reason": line_info.line.unit_discount_reason,
+                "discounts": discount_info_for_logs(line_info.discounts),
+            }
+            for line_info in lines_info
+        ],
+    }

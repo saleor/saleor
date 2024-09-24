@@ -265,15 +265,12 @@ def validate_tax_data(
         raise TaxDataError(TaxDataErrorMessage.EMPTY)
 
     if check_negative_values_in_tax_data(tax_data):
-        logger.warning(TaxDataErrorMessage.NEGATIVE_VALUE)
         raise TaxDataError(TaxDataErrorMessage.NEGATIVE_VALUE)
 
     if check_line_number_in_tax_data(tax_data, lines):
-        logger.warning(TaxDataErrorMessage.LINE_NUMBER)
         raise TaxDataError(TaxDataErrorMessage.LINE_NUMBER)
 
     if check_overflows_in_tax_data(tax_data):
-        logger.warning(TaxDataErrorMessage.OVERFLOW)
         raise TaxDataError(TaxDataErrorMessage.OVERFLOW)
 
 
