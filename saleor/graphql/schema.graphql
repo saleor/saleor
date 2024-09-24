@@ -16713,13 +16713,6 @@ type Mutation {
     """The message related to the event."""
     message: String
 
-    """
-    Fields required to update the transaction metadata.
-    
-    Added in Saleor 3.17.
-    """
-    metadata: [MetadataInput!]
-
     """PSP Reference of the event to report."""
     pspReference: String!
 
@@ -16734,6 +16727,20 @@ type Mutation {
     Added in Saleor 3.14.
     """
     token: UUID
+
+    """
+    Fields required to update the transaction metadata.
+    
+    Added in Saleor 3.17.
+    """
+    transactionMetadata: [MetadataInput!]
+
+    """
+    Fields required to update the transaction private metadata.
+    
+    Added in Saleor 3.17.
+    """
+    transactionPrivateMetadata: [MetadataInput!]
 
     """Current status of the event to report."""
     type: TransactionEventTypeEnum!
