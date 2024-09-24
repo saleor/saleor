@@ -16907,6 +16907,11 @@ type Mutation {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
   Requires the following permissions: OWNER and HANDLE_PAYMENTS for apps, HANDLE_PAYMENTS for staff users. Staff user cannot update a transaction that is owned by the app.
+  
+  Triggers the following webhook events:
+  - TRANSACTION_ITEM_METADATA_UPDATED (async): Optionally called when transaction's metadata was updated.
+  - CHECKOUT_FULLY_PAID (async): Optionally called when the checkout charge status changed to `FULL` or `OVERCHARGED`.
+  - ORDER_UPDATED (async): Optionally called when the transaction is related to the order and the order was updated.
   """
   transactionEventReport(
     """
@@ -16930,6 +16935,13 @@ type Mutation {
     """The message related to the event."""
     message: String
 
+    """
+    Fields required to update the transaction metadata.
+    
+    Added in Saleor 3.17.
+    """
+    metadata: [MetadataInput!]
+
     """PSP Reference of the event to report."""
     pspReference: String!
 
@@ -16947,7 +16959,7 @@ type Mutation {
 
     """Current status of the event to report."""
     type: TransactionEventTypeEnum!
-  ): TransactionEventReport @doc(category: "Payments")
+  ): TransactionEventReport @doc(category: "Payments") @webhookEventsInfo(asyncEvents: [TRANSACTION_ITEM_METADATA_UPDATED, CHECKOUT_FULLY_PAID, ORDER_UPDATED], syncEvents: [])
 
   """
   Initializes a payment gateway session. It triggers the webhook `PAYMENT_GATEWAY_INITIALIZE_SESSION`, to the requested `paymentGateways`. If `paymentGateways` is not provided, the webhook will be send to all subscribed payment gateways. There is a limit of 100 transaction items per checkout / order.
@@ -24790,8 +24802,13 @@ Added in Saleor 3.13.
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 
 Requires the following permissions: OWNER and HANDLE_PAYMENTS for apps, HANDLE_PAYMENTS for staff users. Staff user cannot update a transaction that is owned by the app.
+
+Triggers the following webhook events:
+- TRANSACTION_ITEM_METADATA_UPDATED (async): Optionally called when transaction's metadata was updated.
+- CHECKOUT_FULLY_PAID (async): Optionally called when the checkout charge status changed to `FULL` or `OVERCHARGED`.
+- ORDER_UPDATED (async): Optionally called when the transaction is related to the order and the order was updated.
 """
-type TransactionEventReport @doc(category: "Payments") {
+type TransactionEventReport @doc(category: "Payments") @webhookEventsInfo(asyncEvents: [TRANSACTION_ITEM_METADATA_UPDATED, CHECKOUT_FULLY_PAID, ORDER_UPDATED], syncEvents: []) {
   """Defines if the reported event hasn't been processed earlier."""
   alreadyProcessed: Boolean
 
