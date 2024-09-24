@@ -29,3 +29,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fixed a bug when saving webhook payload to Azure Storage - #16585 by @delemeator
 - Added validation for tax data received from tax app - #16720 by @zedzior
 - Fixed order-level discounts handling when using tax app for tax calculation - #16696 by @zedzior
+- Fixed bug when manual line discount doesn't override line-level vouchers - #16738 by @zedzior
