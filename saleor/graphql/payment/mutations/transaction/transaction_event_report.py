@@ -121,10 +121,18 @@ class TransactionEventReport(ModelMutation):
             graphene.NonNull(TransactionActionEnum),
             description="List of all possible actions for the transaction",
         )
-        metadata = NonNullList(
+        transaction_metadata = NonNullList(
             MetadataInput,
             description=(
                 "Fields required to update the transaction metadata." + ADDED_IN_317
+            ),
+            required=False,
+        )
+        transaction_private_metadata = NonNullList(
+            MetadataInput,
+            description=(
+                "Fields required to update the transaction private metadata."
+                + ADDED_IN_317
             ),
             required=False,
         )
@@ -147,6 +155,7 @@ class TransactionEventReport(ModelMutation):
         object_type = TransactionEvent
         auto_permission_message = False
         support_meta_field = True
+        support_private_meta_field = True
         webhook_events_info = [
             WebhookEventInfo(
                 type=WebhookEventAsyncType.TRANSACTION_ITEM_METADATA_UPDATED,
@@ -183,6 +192,7 @@ class TransactionEventReport(ModelMutation):
         available_actions: Optional[list[str]] = None,
         app: Optional["App"] = None,
         metadata: Optional[list[dict]] = None,
+        private_metadata: Optional[list[dict]] = None,
     ):
         fields_to_update = [
             "authorized_value",
@@ -195,6 +205,7 @@ class TransactionEventReport(ModelMutation):
             "cancel_pending_value",
             "modified_at",
             "metadata",
+            "private_metadata",
         ]
 
         if (
@@ -283,7 +294,8 @@ class TransactionEventReport(ModelMutation):
         external_url=None,
         message=None,
         available_actions=None,
-        metadata=None,
+        transaction_metadata: Optional[list[dict]] = None,
+        transaction_private_metadata: Optional[list[dict]] = None,
     ):
         validate_one_of_args_is_in_mutation("id", id, "token", token)
         transaction = get_transaction_item(id, token)
@@ -335,7 +347,9 @@ class TransactionEventReport(ModelMutation):
             transaction_event, transaction_event_data
         )
 
-        cls.validate_and_update_metadata(transaction, metadata, None)
+        cls.validate_and_update_metadata(
+            transaction, transaction_metadata, transaction_private_metadata
+        )
         cls.clean_instance(info, transaction_event)
 
         if available_actions is not None:
@@ -390,7 +404,8 @@ class TransactionEventReport(ModelMutation):
                 transaction_event,
                 available_actions=available_actions,
                 app=app,
-                metadata=metadata,
+                metadata=transaction_metadata,
+                private_metadata=transaction_private_metadata,
             )
             if transaction.order_id:
                 order = cast(order_models.Order, transaction.order)
