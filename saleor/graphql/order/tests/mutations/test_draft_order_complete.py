@@ -1145,11 +1145,11 @@ def test_draft_order_complete_force_tax_calculation_when_tax_error_was_saved(
     get_graphql_content(response)
 
     # then
-    delivery = EventDelivery.objects.get()
+    mock_request.assert_called_once()
+    delivery = mock_request.mock_calls[0].args[0]
     assert delivery.status == EventDeliveryStatus.PENDING
     assert delivery.event_type == WebhookEventSyncType.ORDER_CALCULATE_TAXES
     assert delivery.webhook.app == tax_app
-    mock_request.assert_called_once_with(delivery)
 
     order.refresh_from_db()
     assert not order.should_refresh_prices
@@ -1189,11 +1189,11 @@ def test_draft_order_complete_calls_correct_tax_app(
     get_graphql_content(response)
 
     # then
-    delivery = EventDelivery.objects.get()
+    mock_request.assert_called_once()
+    delivery = mock_request.mock_calls[0].args[0]
     assert delivery.status == EventDeliveryStatus.PENDING
     assert delivery.event_type == WebhookEventSyncType.ORDER_CALCULATE_TAXES
     assert delivery.webhook.app == tax_app
-    mock_request.assert_called_once_with(delivery)
 
     order.refresh_from_db()
     assert not order.should_refresh_prices
@@ -1553,7 +1553,7 @@ def test_draft_order_complete_triggers_webhooks(
     content = get_graphql_content(response)
     assert not content["data"]["draftOrderComplete"]["errors"]
 
-    # confirm that event delivery was generated for each webhook.
+    # confirm that event delivery was generated for each async webhook.
     order_confirmed_delivery = EventDelivery.objects.get(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_CONFIRMED,
@@ -1562,12 +1562,6 @@ def test_draft_order_complete_triggers_webhooks(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_CREATED,
     )
-    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
-    filter_shipping_delivery = EventDelivery.objects.get(
-        webhook_id=shipping_filter_webhook.id,
-        event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
-    )
-
     order_deliveries = [
         order_confirmed_delivery,
         order_updated_delivery,
@@ -1586,10 +1580,23 @@ def test_draft_order_complete_triggers_webhooks(
         ],
         any_order=True,
     )
-    mocked_send_webhook_request_sync.assert_has_calls(
-        [
-            call(tax_delivery),
-            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
-        ]
+
+    # confirm each sync webhook was called without saving event delivery
+    assert mocked_send_webhook_request_sync.call_count == 2
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+
+    tax_delivery_call, filter_shipping_call = (
+        mocked_send_webhook_request_sync.mock_calls
     )
+
+    tax_delivery = tax_delivery_call.args[0]
+    assert tax_delivery.webhook_id == tax_webhook.id
+
+    filter_shipping_delivery = filter_shipping_call.args[0]
+    assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
+    assert (
+        filter_shipping_delivery.event_type
+        == WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
+    )
+
     assert wrapped_call_order_event.called

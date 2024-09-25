@@ -641,7 +641,7 @@ def test_change_in_public_metadata_triggers_webhooks(
         retry_kwargs={"max_retries": 5},
     )
 
-    # confirm each sync webhook con was called without saving event delivery
+    # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 2
     # TODO (PE-371): Assert EventDelivery DB object wasn't created
 
@@ -716,7 +716,7 @@ def test_change_in_private_metadata_triggers_webhooks(
         retry_kwargs={"max_retries": 5},
     )
 
-    # confirm each sync webhook con was called without saving event delivery
+    # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 2
     # TODO (PE-371): Assert EventDelivery DB object wasn't created
 
