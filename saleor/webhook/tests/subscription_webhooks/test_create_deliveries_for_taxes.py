@@ -1,11 +1,10 @@
 import json
 from decimal import Decimal
-from functools import partial
 from unittest.mock import ANY, Mock
 
 import pytest
 from freezegun import freeze_time
-from prices import Money, TaxedMoney, fixed_discount
+from prices import Money, TaxedMoney
 
 from ....core.prices import quantize_price
 from ....discount import (
@@ -26,7 +25,6 @@ from ....order.utils import (
 )
 from ....plugins.manager import get_plugins_manager
 from ....tax import TaxableObjectDiscountType
-from ....tests.fixtures import recalculate_order
 from ...event_types import WebhookEventSyncType
 from ...models import Webhook
 from ...transport.synchronous.transport import (
@@ -1024,33 +1022,31 @@ def test_draft_order_calculate_taxes_free_shipping_voucher(
 
 @freeze_time("2020-03-18 12:00:00")
 def test_order_calculate_taxes_with_manual_discount(
-    order_line,
+    order_with_lines,
     subscription_calculate_taxes_for_order,
+    tax_configuration_tax_app,
 ):
     # given
-    order = order_line.order
-    currency = order.currency
+    order = order_with_lines
+    shipping_price_amount = order.base_shipping_price_amount
 
-    order.total = order_line.total_price + order.shipping_price
-    order.undiscounted_total = order.total
-    order.save()
-
-    value = Decimal("20")
-    discount = partial(fixed_discount, discount=Money(value, order.currency))
-    order.total = discount(order.total)
-    order.save()
+    discount_value = Decimal("20")
     order.discounts.create(
         value_type=DiscountValueType.FIXED,
-        value=value,
+        value=discount_value,
         reason="Discount reason",
-        amount=(order.undiscounted_total - order.total).gross,
     )
 
-    shipping_price = Money(Decimal("10"), currency)
-    order.base_shipping_price = shipping_price
+    line_1, line_2 = order.lines.all()
+    line_1_unit_price = line_1.base_unit_price_amount
+    line_2_unit_price = line_2.base_unit_price_amount
+    subtotal_amount = (
+        line_1_unit_price * line_1.quantity + line_2_unit_price * line_2.quantity
+    )
+    total_amount = subtotal_amount + shipping_price_amount
 
-    recalculate_order(order)
-    order.refresh_from_db()
+    manager = Mock(get_taxes_for_order=Mock(return_value={}))
+    fetch_order_prices_if_expired(order, manager, [line_1, line_2], True)
 
     webhook = subscription_calculate_taxes_for_order
     webhook.subscription_query = TAXES_SUBSCRIPTION_QUERY
@@ -1058,10 +1054,8 @@ def test_order_calculate_taxes_with_manual_discount(
 
     # Manual discount applies both to subtotal and shipping. For tax calculation it
     # requires to be split into subtotal and shipping portion.
-    subtotal = order.subtotal.net
-    total = subtotal + shipping_price
-    manual_discount_subtotal_portion = subtotal / total * value
-    manual_discount_shipping_portion = value - manual_discount_subtotal_portion
+    manual_discount_subtotal_portion = subtotal_amount / total_amount * discount_value
+    manual_discount_shipping_portion = discount_value - manual_discount_subtotal_portion
 
     # when
     deliveries = create_delivery_for_subscription_sync_event(
@@ -1088,20 +1082,37 @@ def test_order_calculate_taxes_with_manual_discount(
             "lines": [
                 {
                     "chargeTaxes": True,
-                    "productName": "Test product",
-                    "productSku": "SKU_A",
-                    "quantity": 3,
+                    "productName": line_1.product_name,
+                    "productSku": line_1.product_sku,
+                    "quantity": line_1.quantity,
                     "sourceLine": {
                         "__typename": "OrderLine",
-                        "id": to_global_id_or_none(order_line),
+                        "id": to_global_id_or_none(line_1),
                     },
-                    "totalPrice": {"amount": 36.9},
-                    "unitPrice": {"amount": 12.3},
-                    "variantName": "SKU_A",
-                }
+                    "totalPrice": {
+                        "amount": float(line_1_unit_price * line_1.quantity)
+                    },
+                    "unitPrice": {"amount": float(line_1_unit_price)},
+                    "variantName": line_1.variant_name,
+                },
+                {
+                    "chargeTaxes": True,
+                    "productName": line_2.product_name,
+                    "productSku": line_2.product_sku,
+                    "quantity": line_2.quantity,
+                    "sourceLine": {
+                        "__typename": "OrderLine",
+                        "id": to_global_id_or_none(line_2),
+                    },
+                    "totalPrice": {
+                        "amount": float(line_2_unit_price * line_2.quantity)
+                    },
+                    "unitPrice": {"amount": float(line_2_unit_price)},
+                    "variantName": line_2.variant_name,
+                },
             ],
-            "pricesEnteredWithTax": True,
-            "shippingPrice": {"amount": float(shipping_price.amount)},
+            "pricesEnteredWithTax": False,
+            "shippingPrice": {"amount": float(shipping_price_amount)},
             "sourceObject": {"__typename": "Order", "id": to_global_id_or_none(order)},
         },
     }
