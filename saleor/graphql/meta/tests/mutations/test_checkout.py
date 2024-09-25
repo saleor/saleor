@@ -413,7 +413,7 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_checkout_updated(
         retry_kwargs={"max_retries": 5},
     )
 
-    # confirm each sync webhoo# con was called without saving event delivery
+    # confirm each sync webhook con was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 3
     # TODO (PE-371): Assert EventDelivery DB object wasn't created
 
@@ -493,7 +493,7 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_updated_metadata(
         retry_kwargs={"max_retries": 5},
     )
 
-    # confirm each sync webhoo# con was called without saving event delivery
+    # confirm each sync webhook con was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 3
     # TODO (PE-371): Assert EventDelivery DB object wasn't created
 
