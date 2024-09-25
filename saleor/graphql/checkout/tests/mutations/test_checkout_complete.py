@@ -438,9 +438,11 @@ def test_checkout_complete_fails_with_invalid_tax_app(
 
 @freeze_time()
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+@mock.patch("saleor.checkout.calculations.validate_tax_data")
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_checkout_complete_calls_correct_tax_app(
     mock_request,
+    mock_validate_tax_data,
     user_api_client,
     checkout_without_shipping_required,
     channel_USD,
@@ -451,7 +453,7 @@ def test_checkout_complete_calls_correct_tax_app(
 ):
     # given
     mock_request.return_value = tax_data_response
-
+    mock_validate_tax_data.return_value = False
     checkout = checkout_without_shipping_required
     checkout.billing_address = address
     checkout.price_expiration = timezone.now()
@@ -501,9 +503,11 @@ def test_checkout_complete_calls_failing_plugin(
     settings,
 ):
     # given
+    tax_error_message = "Test error"
+
     def side_effect(checkout_info, *args, **kwargs):
         price = Money("10.0", checkout_info.checkout.currency)
-        checkout_info.checkout.tax_error = "Test error"
+        checkout_info.checkout.tax_error = tax_error_message
         return TaxedMoney(price, price)
 
     mock_calculate_checkout_line_total.side_effect = side_effect
@@ -540,14 +544,16 @@ def test_checkout_complete_calls_failing_plugin(
 
     checkout.refresh_from_db()
     assert checkout.price_expiration == timezone.now() + settings.CHECKOUT_PRICES_TTL
-    assert checkout.tax_error == "Empty tax data."
+    assert checkout.tax_error == tax_error_message
 
 
 @freeze_time()
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+@mock.patch("saleor.checkout.calculations.validate_tax_data")
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_checkout_complete_calls_correct_force_tax_calculation_when_tax_error_was_saved(
     mock_request,
+    mock_validate_tax_data,
     user_api_client,
     checkout_without_shipping_required,
     channel_USD,
@@ -558,6 +564,7 @@ def test_checkout_complete_calls_correct_force_tax_calculation_when_tax_error_wa
 ):
     # given
     mock_request.return_value = tax_data_response
+    mock_validate_tax_data.return_value = False
 
     checkout = checkout_without_shipping_required
     checkout.billing_address = address

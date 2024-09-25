@@ -25,6 +25,7 @@ from ..core.exceptions import InsufficientStock
 from ..core.prices import quantize_price
 from ..core.taxes import zero_money
 from ..core.utils.promo_code import InvalidPromoCode
+from ..graphql.core.utils import to_global_id_or_none
 from ..order.models import Order
 from ..product.models import (
     Product,
@@ -2076,3 +2077,39 @@ def split_manual_discount(
     return quantize_price(subtotal_discount, currency), quantize_price(
         shipping_discount, currency
     )
+
+
+def discount_info_for_logs(discounts):
+    return [
+        {
+            "id": to_global_id_or_none(discount),
+            "type": discount.type,
+            "value_type": discount.value_type,
+            "value": discount.value,
+            "amount_value": discount.amount_value,
+            "reason": discount.reason,
+            "promotion_rule": {
+                "id": to_global_id_or_none(discount.promotion_rule),
+                "promotion_id": graphene.Node.to_global_id(
+                    "Promotion", discount.promotion_rule.promotion_id
+                ),
+                "catalogue_predicate": discount.promotion_rule.catalogue_predicate,
+                "order_predicate": discount.promotion_rule.order_predicate,
+                "reward_value_type": discount.promotion_rule.reward_value_type,
+                "reward_value": discount.promotion_rule.reward_value,
+                "reward_type": discount.promotion_rule.reward_type,
+                "variants_dirty": discount.promotion_rule.variants_dirty,
+            }
+            if discount.promotion_rule
+            else None,
+            "voucher": {
+                "id": to_global_id_or_none(discount.voucher),
+                "type": discount.voucher.type,
+                "discount_value_type": discount.voucher.discount_value_type,
+                "apply_once_per_order": discount.voucher.apply_once_per_order,
+            }
+            if discount.voucher
+            else None,
+        }
+        for discount in discounts
+    ]
