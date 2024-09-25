@@ -80,7 +80,7 @@ documentation = "https://docs.saleor.io/"
   semantic-version = "^2.10.0"
   sendgrid = "^6.7.1"
   sentry-sdk = "^2.12"
-  stripe = "^3.0.0"
+  stripe = "^10.12.0"
   text-unidecode = "^1.2"
   urllib3 = "^1.26.19"
   uvicorn = {version = "^0.30.0", extras = ["standard"]}
