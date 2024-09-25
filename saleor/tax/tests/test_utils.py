@@ -1,7 +1,15 @@
+from decimal import Decimal
+
 import pytest
 
+from ...core.taxes import TaxData, TaxDataError, TaxLineData
 from ...core.utils.country import get_active_country
-from ..utils import get_charge_taxes, get_display_gross_prices, get_tax_app_id
+from ..utils import (
+    get_charge_taxes,
+    get_display_gross_prices,
+    get_tax_app_id,
+    validate_tax_data,
+)
 
 
 def test_get_display_gross_prices(channel_USD):
@@ -107,3 +115,113 @@ def test_get_tax_country_fallbacks_to_channel_country(channel_USD):
 
     # then
     assert country == channel_USD.default_country.code
+
+
+def test_validate_tax_data_no_data(order_with_lines, lines_info):
+    # given
+    tax_data = None
+
+    # when & then
+    with pytest.raises(TaxDataError):
+        validate_tax_data(tax_data, lines_info)
+
+
+def test_validate_tax_data_with_negative_values(lines_info, caplog):
+    # given
+    tax_data = TaxData(
+        shipping_price_net_amount=Decimal("-1"),
+        shipping_price_gross_amount=Decimal("-1.5"),
+        shipping_tax_rate=Decimal("50"),
+        lines=[
+            TaxLineData(
+                total_net_amount=Decimal("2"),
+                total_gross_amount=Decimal("3"),
+                tax_rate=Decimal("50"),
+            ),
+            TaxLineData(
+                total_net_amount=Decimal("4"),
+                total_gross_amount=Decimal("6"),
+                tax_rate=Decimal("50"),
+            ),
+        ],
+    )
+
+    # when & then
+    with pytest.raises(TaxDataError):
+        validate_tax_data(tax_data, lines_info)
+
+
+def test_validate_tax_data_line_number(lines_info, caplog):
+    # given
+    assert len(lines_info) == 2
+
+    tax_data = TaxData(
+        shipping_price_net_amount=Decimal("1"),
+        shipping_price_gross_amount=Decimal("1.5"),
+        shipping_tax_rate=Decimal("50"),
+        lines=[
+            TaxLineData(
+                total_net_amount=Decimal("2"),
+                total_gross_amount=Decimal("3"),
+                tax_rate=Decimal("50"),
+            ),
+        ],
+    )
+
+    # when & then
+    with pytest.raises(TaxDataError):
+        validate_tax_data(tax_data, lines_info)
+
+
+def test_validate_tax_data_tax_rate_overflow(lines_info, caplog):
+    # given
+    assert len(lines_info) == 2
+
+    tax_data = TaxData(
+        shipping_price_net_amount=Decimal("1"),
+        shipping_price_gross_amount=Decimal("1.5"),
+        shipping_tax_rate=Decimal("120"),
+        lines=[
+            TaxLineData(
+                total_net_amount=Decimal("2"),
+                total_gross_amount=Decimal("3"),
+                tax_rate=Decimal("50"),
+            ),
+            TaxLineData(
+                total_net_amount=Decimal("4"),
+                total_gross_amount=Decimal("6"),
+                tax_rate=Decimal("50"),
+            ),
+        ],
+    )
+
+    # when & then
+    with pytest.raises(TaxDataError):
+        validate_tax_data(tax_data, lines_info)
+
+
+def test_validate_tax_data_price_overflow(lines_info, caplog):
+    # given
+    assert len(lines_info) == 2
+
+    tax_data = TaxData(
+        shipping_price_net_amount=Decimal("9999999999999999"),
+        shipping_price_gross_amount=Decimal("1.5"),
+        shipping_tax_rate=Decimal("50"),
+        lines=[
+            TaxLineData(
+                total_net_amount=Decimal("2"),
+                total_gross_amount=Decimal("3"),
+                tax_rate=Decimal("50"),
+            ),
+            TaxLineData(
+                total_net_amount=Decimal("4"),
+                total_gross_amount=Decimal("6"),
+                tax_rate=Decimal("50"),
+            ),
+        ],
+    )
+
+    # when & then
+    with pytest.raises(TaxDataError):
+        validate_tax_data(tax_data, lines_info)

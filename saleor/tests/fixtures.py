@@ -955,6 +955,15 @@ def checkout_with_items_and_shipping(checkout_with_items, address, shipping_meth
 
 
 @pytest.fixture
+def checkout_with_item_and_shipping(checkout_with_item, address, shipping_method):
+    checkout_with_item.shipping_address = address
+    checkout_with_item.shipping_method = shipping_method
+    checkout_with_item.billing_address = address
+    checkout_with_item.save()
+    return checkout_with_item
+
+
+@pytest.fixture
 def checkout_with_voucher(checkout, product, voucher):
     variant = product.variants.get()
     checkout_info = fetch_checkout_info(
