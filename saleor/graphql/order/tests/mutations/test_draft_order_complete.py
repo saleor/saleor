@@ -1113,9 +1113,11 @@ def test_draft_order_complete_fails_with_invalid_tax_app(
 
 @freeze_time()
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+@patch("saleor.order.calculations.validate_tax_data")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_draft_order_complete_force_tax_calculation_when_tax_error_was_saved(
     mock_request,
+    mock_validate_tax_data,
     staff_api_client,
     permission_group_manage_orders,
     draft_order,
@@ -1125,6 +1127,7 @@ def test_draft_order_complete_force_tax_calculation_when_tax_error_was_saved(
 ):
     # given
     mock_request.return_value = tax_data_response
+    mock_validate_tax_data.return_value = False
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     order = draft_order
@@ -1158,9 +1161,11 @@ def test_draft_order_complete_force_tax_calculation_when_tax_error_was_saved(
 
 @freeze_time()
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+@patch("saleor.order.calculations.validate_tax_data")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_draft_order_complete_calls_correct_tax_app(
     mock_request,
+    mock_validate_tax_data,
     staff_api_client,
     permission_group_manage_orders,
     draft_order,
@@ -1170,6 +1175,7 @@ def test_draft_order_complete_calls_correct_tax_app(
 ):
     # given
     mock_request.return_value = tax_data_response
+    mock_validate_tax_data.return_value = False
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     order = draft_order
@@ -1211,9 +1217,11 @@ def test_draft_order_complete_calls_failing_plugin(
     channel_USD,
 ):
     # given
+    tax_error_message = "Test error"
+
     def side_effect(order, *args, **kwargs):
         price = Money("10.0", order.currency)
-        order.tax_error = "Test error"
+        order.tax_error = tax_error_message
         return OrderTaxedPricesData(
             price_with_discounts=TaxedMoney(price, price),
             undiscounted_price=TaxedMoney(price, price),
@@ -1247,7 +1255,7 @@ def test_draft_order_complete_calls_failing_plugin(
 
     order.refresh_from_db()
     assert not order.should_refresh_prices
-    assert order.tax_error == "Empty tax data."
+    assert order.tax_error == tax_error_message
 
 
 DRAFT_ORDER_COMPLETE_WITH_DISCOUNTS_MUTATION = """
