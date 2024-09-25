@@ -36,33 +36,17 @@ def split_manual_discount(
     """Discounts sent to tax app must be split into subtotal and shipping portion."""
     currency = subtotal.currency
     subtotal_discount, shipping_discount = zero_money(currency), zero_money(currency)
-    if discount.value_type == DiscountValueType.PERCENTAGE:
-        discounted_subtotal = apply_discount_to_value(
+    total = subtotal + shipping_price
+    if total.amount > 0:
+        discounted_total = apply_discount_to_value(
             value=discount.value,
             value_type=discount.value_type,
             currency=currency,
-            price_to_discount=subtotal,
+            price_to_discount=total,
         )
-        subtotal_discount = subtotal - discounted_subtotal
-        discounted_shipping_price = apply_discount_to_value(
-            value=discount.value,
-            value_type=discount.value_type,
-            currency=currency,
-            price_to_discount=shipping_price,
-        )
-        shipping_discount = shipping_price - discounted_shipping_price
-    elif discount.value_type == DiscountValueType.FIXED:
-        total = subtotal + shipping_price
-        if total.amount > 0:
-            discounted_total = apply_discount_to_value(
-                value=discount.value,
-                value_type=discount.value_type,
-                currency=currency,
-                price_to_discount=total,
-            )
-            total_discount = total - discounted_total
-            subtotal_discount = subtotal / total * total_discount
-            shipping_discount = total_discount - subtotal_discount
+        total_discount = total - discounted_total
+        subtotal_discount = subtotal / total * total_discount
+        shipping_discount = total_discount - subtotal_discount
 
     return quantize_price(subtotal_discount, currency), quantize_price(
         shipping_discount, currency
