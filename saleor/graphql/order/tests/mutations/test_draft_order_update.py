@@ -2327,7 +2327,7 @@ def test_draft_order_update_triggers_webhooks(
         retry_backoff=10,
         retry_kwargs={"max_retries": 5},
     )
-    
+
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 2
     # TODO (PE-371): Assert EventDelivery DB object wasn't created
@@ -2406,7 +2406,7 @@ def test_draft_order_update_triggers_webhooks_when_tax_webhook_not_needed(
     # confirm that event delivery was generated for each async webhook.
     draft_order_updated_delivery = EventDelivery.objects.get(
         webhook_id=draft_order_updated_webhook.id
-    )    
+    )
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={"event_delivery_id": draft_order_updated_delivery.id},
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
@@ -2427,6 +2427,6 @@ def test_draft_order_update_triggers_webhooks_when_tax_webhook_not_needed(
         filter_shipping_delivery.event_type
         == WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
     )
-    assert filter_shipping_call.kwargs["timeout"] ==  settings.WEBHOOK_SYNC_TIMEOUT
+    assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
 
     assert wrapped_call_order_event.called

@@ -284,7 +284,7 @@ def test_order_note_update_user_triggers_webhooks(
         retry_backoff=10,
         retry_kwargs={"max_retries": 5},
     )
-    
+
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 2
     # TODO (PE-371): Assert EventDelivery DB object wasn't created
