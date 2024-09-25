@@ -19,6 +19,5 @@ RUN apt-get update \
 WORKDIR /app
 RUN pip install poetry==1.7.0
 RUN poetry config virtualenvs.create false
-COPY vendored/ /app/vendored/
 COPY poetry.lock pyproject.toml /app/
 RUN poetry install --no-root
