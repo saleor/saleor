@@ -19,7 +19,7 @@ documentation = "https://docs.saleor.io/"
   aniso8601 = "^7.0.0"
   asgiref = "^3.7.2"
   Authlib = "^1.3.1"
-  authorizenet = {path = "vendored/authorizenet", develop = true}
+  authorizenet = "^1.1.5"
   azure-common = "^1.1.28"
   azure-storage-blob = "^12.12.0"
   azure-storage-common = "^2.1.0"
@@ -71,7 +71,6 @@ documentation = "https://docs.saleor.io/"
   python-json-logger = ">=0.1.11,<2.1.0"
   pytimeparse = "^1.1.8"
   pytz = "^2024.1"
-  pyxb = {path = "vendored/pyxb", develop = true}
   razorpay = "^1.2"
   redis = "^5.0.1"
   requests = "^2.32"
@@ -155,7 +154,7 @@ types-six = "^1.16.17"
 vcrpy = ">=4.0,<7.0"
 
 [tool.deptry]
-extend_exclude = [ "conftest\\.py", ".*/conftest\\.py", ".*/tests/.*", "vendored/.*" ]
+extend_exclude = [ "conftest\\.py", ".*/conftest\\.py", ".*/tests/.*" ]
 
   [tool.deptry.package_module_name_map]
   graphql-core = "graphql"
@@ -195,8 +194,7 @@ plugins = [
 ]
 
 exclude = [
-  "tests/",
-  "vendored/"
+  "tests/"
 ]
 
   [[tool.mypy.overrides]]

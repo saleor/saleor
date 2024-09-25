@@ -104,21 +104,18 @@ cryptography = "*"
 
 [[package]]
 name = "authorizenet"
-version = "1.1.4"
+version = "1.1.5"
 description = "Authorize.Net Python SDK"
 optional = false
 python-versions = "*"
-files = []
-develop = true
+files = [
+    {file = "authorizenet-1.1.5.tar.gz", hash = "sha256:ba8b538028201c01d7ed097ea0842f7732c220472006d105b4a6b948ddcaf4dc"},
+]
 
 [package.dependencies]
 lxml = "==4.*"
-pyxb = "1.2.5"
+PyXB-X = "*"
 requests = "==2.*"
-
-[package.source]
-type = "directory"
-url = "vendored/authorizenet"
 
 [[package]]
 name = "azure-common"
@@ -3790,17 +3787,15 @@ files = [
 ]
 
 [[package]]
-name = "PyXB"
-version = "1.2.5"
-description = "PyXB (\"pixbee\") is a pure Python package that generates Python source code for classes that correspond to data structures defined by XMLSchema."
+name = "pyxb-x"
+version = "1.2.6.2"
+description = "PyXB-X (\"pixbix\") is a pure Python package that generates Python source code for classes that correspond to data structures defined by XMLSchema."
 optional = false
 python-versions = "*"
-files = []
-develop = true
-
-[package.source]
-type = "directory"
-url = "vendored/pyxb"
+files = [
+    {file = "PyXB-X-1.2.6.2.tar.gz", hash = "sha256:3bebab03b5020bd31be4f5e8439f44600b3ba10e45580d01d631029c3c531c9e"},
+    {file = "PyXB_X-1.2.6.2-py3-none-any.whl", hash = "sha256:7d130e824c9e08acc3d43a0b454a48613588b27cee09d9f34d947081a92691e2"},
+]
 
 [[package]]
 name = "pyyaml"
@@ -5388,4 +5383,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.12"
-content-hash = "5b6e471b1178f8a3009f31e90db5498be5e5aafc3306b5a8e94dd306b1dd1932"
+content-hash = "b6304e96cc0bdd095364c7c8c2132f902bde954710012734fc7d022154a424a6"

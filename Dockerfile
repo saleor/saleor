@@ -11,7 +11,6 @@ RUN apt-get -y update \
 WORKDIR /app
 RUN --mount=type=cache,mode=0755,target=/root/.cache/pip pip install poetry==1.7.0
 RUN poetry config virtualenvs.create false
-COPY vendored/ /app/vendored/
 COPY poetry.lock pyproject.toml /app/
 RUN --mount=type=cache,mode=0755,target=/root/.cache/pypoetry poetry install --no-root
 
