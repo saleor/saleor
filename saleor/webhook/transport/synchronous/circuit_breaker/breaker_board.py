@@ -5,7 +5,6 @@ from saleor.webhook.event_types import WebhookEventSyncType
 from saleor.webhook.transport.synchronous.circuit_breaker.storage import (
     Storage,
 )
-from saleor.webhook.transport.utils import WebhookResponse
 
 if TYPE_CHECKING:
     from .....webhook.models import Webhook
@@ -64,7 +63,7 @@ class BreakerBoard:
             app = webhook.app
 
             if not self.is_closed(app.id):
-                return WebhookResponse(content=""), None
+                return None
 
             response = func(*args, **kwargs)
             if response is None:
