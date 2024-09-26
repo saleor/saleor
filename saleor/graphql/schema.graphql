@@ -29953,6 +29953,13 @@ input CheckoutSettingsInput @doc(category: "Checkout") {
   DEPRECATED: this field will be removed in Saleor 4.0.
   """
   useLegacyErrorFlow: Boolean
+
+  """
+  Default `false`. Determines if the paid checkouts should be automatically completed. This setting applies only to checkouts where payment was processed through transactions.When enabled, the checkout will be automatically completed once the checkout `charge_status` reaches `FULL`. This occurs when the total sum of charged and authorized transaction amounts equals or exceeds the checkout's total amount.
+  
+  Added in Saleor 3.20.
+  """
+  automaticallyCompletePaidCheckouts: Boolean
 }
 
 input PaymentSettingsInput @doc(category: "Payments") {

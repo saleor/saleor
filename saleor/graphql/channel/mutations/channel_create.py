@@ -18,6 +18,7 @@ from ...core.descriptions import (
     ADDED_IN_315,
     ADDED_IN_316,
     ADDED_IN_318,
+    ADDED_IN_320,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
 )
@@ -75,6 +76,18 @@ class CheckoutSettingsInput(BaseInputObjectType):
             + ADDED_IN_315
             + DEPRECATED_IN_3X_INPUT
         )
+    )
+    automatically_complete_paid_checkouts = graphene.Boolean(
+        description=(
+            "Default `false`. Determines if the paid checkouts should be automatically "
+            "completed. This setting applies only to checkouts where payment "
+            "was processed through transactions."
+            "When enabled, the checkout will be automatically completed once the "
+            "checkout `charge_status` reaches `FULL`. This occurs when the total sum "
+            "of charged and authorized transaction amounts equals or exceeds the "
+            "checkout's total amount."
+        )
+        + ADDED_IN_320,
     )
 
     class Meta:
