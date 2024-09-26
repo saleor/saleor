@@ -1739,9 +1739,13 @@ class Order(ModelObjectType[models.Order]):
     @traced_resolver
     @prevent_sync_event_circular_query
     def resolve_undiscounted_shipping_price(root: models.Order, info):
+        @allow_writer_in_context(info.context)
         def _resolve_undiscounted_shipping_price(data):
             lines, manager = data
-            return calculations.order_undiscounted_shipping(root, manager, lines)
+            database_connection_name = get_database_connection_name(info.context)
+            return calculations.order_undiscounted_shipping(
+                root, manager, lines, database_connection_name=database_connection_name
+            )
 
         lines = OrderLinesByOrderIdLoader(info.context).load(root.id)
         manager = get_plugin_manager_promise(info.context)

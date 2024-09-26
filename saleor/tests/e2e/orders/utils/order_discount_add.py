@@ -28,6 +28,19 @@ mutation OrderDiscountAdd($input: OrderDiscountCommonInput!, $id: ID!) {
     }
   }
 }
+
+fragment BaseTaxedMoney on TaxedMoney {
+  gross {
+    amount
+  }
+  net {
+    amount
+  }
+  tax {
+    amount
+  }
+  currency
+}
 """
 
 

@@ -421,8 +421,12 @@ def test_apply_order_discounts_voucher_entire_order_and_manual_discount_fixed(
     assert quantize_price(order.total_gross, currency) == quantize_price(
         expected_shipping + expected_subtotal, currency
     )
-    assert order.shipping_price_net == discounted_shipping_price
-    assert order.shipping_price_gross == discounted_shipping_price
+    assert order.shipping_price_net == quantize_price(
+        discounted_shipping_price, currency
+    )
+    assert order.shipping_price_gross == quantize_price(
+        discounted_shipping_price, currency
+    )
     assert order.undiscounted_total_net == undiscounted_total
     assert order.undiscounted_total_gross == undiscounted_total
     voucher_order_discount.refresh_from_db()

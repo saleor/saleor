@@ -372,20 +372,7 @@ class TaxableObject(BaseObjectType):
                 ]
             ).then(calculate_shipping_price)
 
-        # TODO (SHOPX-875): after adding `undiscounted_base_shipping_price` to
-        # Order model, the `root.base_shipping_price` should be used
-        def shipping_price_with_discount(tax_config):
-            return (
-                root.shipping_price_gross
-                if tax_config.prices_entered_with_tax
-                else root.shipping_price_net
-            )
-
-        return (
-            TaxConfigurationByChannelId(info.context)
-            .load(root.channel_id)
-            .then(shipping_price_with_discount)
-        )
+        return root.base_shipping_price
 
     @staticmethod
     def resolve_discounts(root: Union[Checkout, Order], info: ResolveInfo):
