@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from decimal import Decimal
-from unittest.mock import Mock, call, patch
+from unittest.mock import Mock, patch
 
 import graphene
 import pytest
