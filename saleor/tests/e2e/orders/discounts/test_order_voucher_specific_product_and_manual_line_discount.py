@@ -57,7 +57,7 @@ def prepare_voucher(
 
 
 @pytest.mark.e2e
-def test_draft_order_with_voucher_specific_product_and_manual_line_discount(
+def test_draft_order_with_voucher_specific_product_and_manual_line_discount_CORE_0250(
     e2e_staff_api_client,
     shop_permissions,
     permission_manage_product_types_and_attributes,
