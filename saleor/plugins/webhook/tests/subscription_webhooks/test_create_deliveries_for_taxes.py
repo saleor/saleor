@@ -1290,7 +1290,7 @@ def test_order_calculate_taxes_order_voucher_and_manual_discount(
     assert manual_discount.amount_value == manual_reward
     assert not order.discounts.filter(type=DiscountType.VOUCHER).first()
 
-    assert json.loads(deliveries.payload.get_payload()) == {
+    assert json.loads(deliveries.payload.payload) == {
         "__typename": "CalculateTaxes",
         "taxBase": {
             "address": {"id": to_global_id_or_none(order.shipping_address)},
@@ -1395,7 +1395,7 @@ def test_order_calculate_taxes_order_promotion_and_manual_discount(
     assert manual_discount.amount_value == manual_reward
     assert not order.discounts.filter(type=DiscountType.ORDER_PROMOTION).first()
 
-    assert json.loads(deliveries.payload.get_payload()) == {
+    assert json.loads(deliveries.payload.payload) == {
         "__typename": "CalculateTaxes",
         "taxBase": {
             "address": {"id": to_global_id_or_none(order.shipping_address)},
@@ -1494,7 +1494,7 @@ def test_order_calculate_taxes_free_shipping_voucher_and_manual_discount_fixed(
     voucher_discount = order.discounts.get(type=DiscountType.VOUCHER)
     assert voucher_discount.amount_value == shipping_price_amount
 
-    assert json.loads(deliveries.payload.get_payload()) == {
+    assert json.loads(deliveries.payload.payload) == {
         "__typename": "CalculateTaxes",
         "taxBase": {
             "address": {"id": to_global_id_or_none(order.shipping_address)},
@@ -1595,7 +1595,7 @@ def test_order_calculate_taxes_free_shipping_voucher_and_manual_discount_percent
     voucher_discount = order.discounts.get(type=DiscountType.VOUCHER)
     assert voucher_discount.amount_value == shipping_price_amount
 
-    assert json.loads(deliveries.payload.get_payload()) == {
+    assert json.loads(deliveries.payload.payload) == {
         "__typename": "CalculateTaxes",
         "taxBase": {
             "address": {"id": to_global_id_or_none(order.shipping_address)},
