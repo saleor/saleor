@@ -1768,11 +1768,14 @@ def create_or_update_discount_objects_from_voucher(order, lines_info):
 
 def create_or_update_discount_object_from_order_level_voucher(order):
     """Create or update discount object for ENTIRE_ORDER and SHIPPING voucher."""
-    if not order.voucher_id:
+    voucher = order.voucher
+    if not order.voucher_id or (
+        is_order_level_voucher(voucher)
+        and order.discounts.filter(type=DiscountType.MANUAL)
+    ):
         order.discounts.filter(type=DiscountType.VOUCHER).delete()
         return
 
-    voucher = order.voucher
     if not is_order_level_voucher(voucher) and not is_shipping_voucher(voucher):
         return
 
@@ -1782,13 +1785,22 @@ def create_or_update_discount_object_from_order_level_voucher(order):
     if not voucher_channel_listing:
         return
 
-    price_to_discount = zero_money(order.currency)
+    discount_amount = zero_money(order.currency)
     if is_order_level_voucher(voucher):
-        price_to_discount = order.subtotal.net
+        discount_amount = voucher.get_discount_amount_for(
+            order.subtotal.net, order.channel
+        )
     if is_shipping_voucher(voucher):
-        price_to_discount = order.shipping_price_net
+        discount_amount = voucher.get_discount_amount_for(
+            order.undiscounted_base_shipping_price, order.channel
+        )
+        # Shipping voucher is tricky: it is associated with an order, but it
+        # decreases base price, similar to line level discounts
+        order.base_shipping_price = max(
+            order.undiscounted_base_shipping_price - discount_amount,
+            zero_money(order.currency),
+        )
 
-    discount_amount = voucher.get_discount_amount_for(price_to_discount, order.channel)
     discount_reason = f"Voucher code: {order.voucher_code}"
     discount_name = voucher.name or ""
 
@@ -2046,33 +2058,17 @@ def split_manual_discount(
     """Discounts sent to tax app must be split into subtotal and shipping portion."""
     currency = subtotal.currency
     subtotal_discount, shipping_discount = zero_money(currency), zero_money(currency)
-    if discount.value_type == DiscountValueType.PERCENTAGE:
-        discounted_subtotal = apply_discount_to_value(
+    total = subtotal + shipping_price
+    if total.amount > 0:
+        discounted_total = apply_discount_to_value(
             value=discount.value,
             value_type=discount.value_type,
             currency=currency,
-            price_to_discount=subtotal,
+            price_to_discount=total,
         )
-        subtotal_discount = subtotal - discounted_subtotal
-        discounted_shipping_price = apply_discount_to_value(
-            value=discount.value,
-            value_type=discount.value_type,
-            currency=currency,
-            price_to_discount=shipping_price,
-        )
-        shipping_discount = shipping_price - discounted_shipping_price
-    elif discount.value_type == DiscountValueType.FIXED:
-        total = subtotal + shipping_price
-        if total.amount > 0:
-            discounted_total = apply_discount_to_value(
-                value=discount.value,
-                value_type=discount.value_type,
-                currency=currency,
-                price_to_discount=total,
-            )
-            total_discount = total - discounted_total
-            subtotal_discount = subtotal / total * total_discount
-            shipping_discount = total_discount - subtotal_discount
+        total_discount = total - discounted_total
+        subtotal_discount = subtotal / total * total_discount
+        shipping_discount = total_discount - subtotal_discount
 
     return quantize_price(subtotal_discount, currency), quantize_price(
         shipping_discount, currency
