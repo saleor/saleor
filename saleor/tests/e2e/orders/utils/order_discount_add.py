@@ -16,6 +16,15 @@ mutation OrderDiscountAdd($input: OrderDiscountCommonInput!, $id: ID!) {
         valueType
         type
       }
+      shippingPrice {
+        ...BaseTaxedMoney
+      }
+      total {
+        ...BaseTaxedMoney
+      }
+      subtotal {
+        ...BaseTaxedMoney
+      }
     }
   }
 }

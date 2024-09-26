@@ -148,11 +148,17 @@ def _recalculate_prices(
 
     order.tax_error = None
 
-    # propagate the order level discount on the prices without taxes.
+    # Flat rates, plugin and tax exemption strategies require to propagate order-level
+    # discounts to order lines. Tax app does it itself.
+    using_tax_app = (
+        tax_calculation_strategy == TaxCalculationStrategy.TAX_APP
+        and tax_app_identifier
+        and not tax_app_identifier.startswith(PLUGIN_IDENTIFIER_PREFIX)
+    )
     apply_order_discounts(
         order,
         lines,
-        assign_prices=True,
+        assign_prices=not using_tax_app,
         database_connection_name=database_connection_name,
     )
     if prices_entered_with_tax:
@@ -215,9 +221,10 @@ def _calculate_and_add_tax(
         # If taxAppId is provided run tax plugin or Tax App. taxAppId can be
         # configured with Avatax plugin identifier.
         if not tax_app_identifier:
-            # Get the taxes calculated with plugins.
+            # This is deprecated flow, kept to maintain backward compatibility.
+            # In Saleor 4.0 `tax_app_identifier` should be required and the flow should
+            # be dropped.
             _recalculate_with_plugins(manager, order, lines, prices_entered_with_tax)
-            # Get the taxes calculated with apps and apply to order.
             tax_data = manager.get_taxes_for_order(order, tax_app_identifier)
             if not tax_data:
                 log_address_if_validation_skipped_for_order(order, logger)
