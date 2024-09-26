@@ -446,7 +446,7 @@ def test_handle_fully_paid_order_triggers_webhooks(
         handle_fully_paid_order(plugins_manager, order_info, webhook_event_map)
 
     # then
-    # confirm that event delivery was generated for each webhook.
+    # confirm that event delivery was generated for each async webhook.
     order_fully_paid_delivery = EventDelivery.objects.get(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_FULLY_PAID,
@@ -455,13 +455,8 @@ def test_handle_fully_paid_order_triggers_webhooks(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_UPDATED,
     )
-    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
 
     order_deliveries = [order_updated_delivery, order_fully_paid_delivery]
-    filter_shipping_delivery = EventDelivery.objects.get(
-        webhook_id=shipping_filter_webhook.id,
-        event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
-    )
 
     mocked_send_webhook_request_async.assert_has_calls(
         [
@@ -476,12 +471,26 @@ def test_handle_fully_paid_order_triggers_webhooks(
         ],
         any_order=True,
     )
-    mocked_send_webhook_request_sync.assert_has_calls(
-        [
-            call(tax_delivery),
-            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
-        ]
+
+    # confirm each sync webhook was called without saving event delivery
+    assert mocked_send_webhook_request_sync.call_count == 2
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+
+    tax_delivery_call, filter_shipping_call = (
+        mocked_send_webhook_request_sync.mock_calls
     )
+
+    tax_delivery = tax_delivery_call.args[0]
+    assert tax_delivery.webhook_id == tax_webhook.id
+
+    filter_shipping_delivery = filter_shipping_call.args[0]
+    assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
+    assert (
+        filter_shipping_delivery.event_type
+        == WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
+    )
+    assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
+
     wrapped_call_order_events.assert_called_once_with(
         plugins_manager,
         [WebhookEventAsyncType.ORDER_FULLY_PAID, WebhookEventAsyncType.ORDER_UPDATED],
@@ -698,7 +707,7 @@ def test_cancel_order_dont_trigger_webhooks(
         cancel_order(order, None, None, plugins_manager)
 
     # then
-    # confirm that event delivery was generated for each webhook.
+    # confirm that event delivery was generated for each async webhook.
     order_updated_delivery = EventDelivery.objects.get(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_UPDATED,
@@ -874,7 +883,7 @@ def test_order_refunded_triggers_webhooks(
         order_refunded(order, None, app, amount, payment, plugins_manager)
 
     # then
-    # confirm that event delivery was generated for each webhook.
+    # confirm that event delivery was generated for each async webhook.
     order_updated_delivery = EventDelivery.objects.get(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_UPDATED,
@@ -887,11 +896,7 @@ def test_order_refunded_triggers_webhooks(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_FULLY_REFUNDED,
     )
-    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
-    filter_shipping_delivery = EventDelivery.objects.get(
-        webhook_id=shipping_filter_webhook.id,
-        event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
-    )
+
     order_deliveries = [
         order_updated_delivery,
         order_fully_refunded_delivery,
@@ -911,12 +916,25 @@ def test_order_refunded_triggers_webhooks(
         ],
         any_order=True,
     )
-    mocked_send_webhook_request_sync.assert_has_calls(
-        [
-            call(tax_delivery),
-            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
-        ]
+
+    # confirm each sync webhook was called without saving event delivery
+    assert mocked_send_webhook_request_sync.call_count == 2
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+
+    tax_delivery_call, filter_shipping_call = (
+        mocked_send_webhook_request_sync.mock_calls
     )
+
+    tax_delivery = tax_delivery_call.args[0]
+    assert tax_delivery.webhook_id == tax_webhook.id
+
+    filter_shipping_delivery = filter_shipping_call.args[0]
+    assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
+    assert (
+        filter_shipping_delivery.event_type
+        == WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
+    )
+    assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
 
     wrapped_call_order_events.assert_called_once_with(
         plugins_manager,
@@ -978,18 +996,11 @@ def test_order_voided_triggers_webhooks(
         order_voided(order, None, app, payment, plugins_manager)
 
     # then
-    # confirm that event delivery was generated for each webhook.
+    # confirm that event delivery was generated for each async webhook.
     order_updated_delivery = EventDelivery.objects.get(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_UPDATED,
     )
-
-    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
-    filter_shipping_delivery = EventDelivery.objects.get(
-        webhook_id=shipping_filter_webhook.id,
-        event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
-    )
-
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={"event_delivery_id": order_updated_delivery.id},
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
@@ -997,12 +1008,26 @@ def test_order_voided_triggers_webhooks(
         retry_backoff=10,
         retry_kwargs={"max_retries": 5},
     )
-    mocked_send_webhook_request_sync.assert_has_calls(
-        [
-            call(tax_delivery),
-            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
-        ]
+
+    # confirm each sync webhook was called without saving event delivery
+    assert mocked_send_webhook_request_sync.call_count == 2
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+
+    tax_delivery_call, filter_shipping_call = (
+        mocked_send_webhook_request_sync.mock_calls
     )
+
+    tax_delivery = tax_delivery_call.args[0]
+    assert tax_delivery.webhook_id == tax_webhook.id
+
+    filter_shipping_delivery = filter_shipping_call.args[0]
+    assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
+    assert (
+        filter_shipping_delivery.event_type
+        == WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
+    )
+    assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
+
     wrapped_call_order_event.assert_called_once_with(
         plugins_manager,
         WebhookEventAsyncType.ORDER_UPDATED,
@@ -1060,7 +1085,7 @@ def test_order_fulfilled_dont_trigger_webhooks(
         )
 
     # then
-    # confirm that event delivery was generated for each webhook.
+    # confirm that event delivery was generated for each async webhook.
     order_updated_delivery = EventDelivery.objects.get(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_UPDATED,
@@ -1162,16 +1187,10 @@ def test_order_awaits_fulfillment_approval_triggers_webhooks(
         )
 
     # then
-    # confirm that event delivery was generated for each webhook.
+    # confirm that event delivery was generated for each async webhook.
     order_updated_delivery = EventDelivery.objects.get(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_UPDATED,
-    )
-
-    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
-    filter_shipping_delivery = EventDelivery.objects.get(
-        webhook_id=shipping_filter_webhook.id,
-        event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
     )
 
     mocked_send_webhook_request_async.assert_called_once_with(
@@ -1181,12 +1200,26 @@ def test_order_awaits_fulfillment_approval_triggers_webhooks(
         retry_backoff=10,
         retry_kwargs={"max_retries": 5},
     )
-    mocked_send_webhook_request_sync.assert_has_calls(
-        [
-            call(tax_delivery),
-            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
-        ]
+
+    # confirm each sync webhook was called without saving event delivery
+    assert mocked_send_webhook_request_sync.call_count == 2
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+
+    tax_delivery_call, filter_shipping_call = (
+        mocked_send_webhook_request_sync.mock_calls
     )
+
+    tax_delivery = tax_delivery_call.args[0]
+    assert tax_delivery.webhook_id == tax_webhook.id
+
+    filter_shipping_delivery = filter_shipping_call.args[0]
+    assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
+    assert (
+        filter_shipping_delivery.event_type
+        == WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
+    )
+    assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
+
     wrapped_call_order_event.assert_called_once_with(
         plugins_manager,
         WebhookEventAsyncType.ORDER_UPDATED,
@@ -1246,18 +1279,11 @@ def test_order_authorized_triggers_webhooks(
         )
 
     # then
-    # confirm that event delivery was generated for each webhook.
+    # confirm that event delivery was generated for each async webhook.
     order_updated_delivery = EventDelivery.objects.get(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_UPDATED,
     )
-
-    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
-    filter_shipping_delivery = EventDelivery.objects.get(
-        webhook_id=shipping_filter_webhook.id,
-        event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
-    )
-
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={"event_delivery_id": order_updated_delivery.id},
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
@@ -1265,12 +1291,26 @@ def test_order_authorized_triggers_webhooks(
         retry_backoff=10,
         retry_kwargs={"max_retries": 5},
     )
-    mocked_send_webhook_request_sync.assert_has_calls(
-        [
-            call(tax_delivery),
-            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
-        ]
+
+    # confirm each sync webhook was called without saving event delivery
+    assert mocked_send_webhook_request_sync.call_count == 2
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+
+    tax_delivery_call, filter_shipping_call = (
+        mocked_send_webhook_request_sync.mock_calls
     )
+
+    tax_delivery = tax_delivery_call.args[0]
+    assert tax_delivery.webhook_id == tax_webhook.id
+
+    filter_shipping_delivery = filter_shipping_call.args[0]
+    assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
+    assert (
+        filter_shipping_delivery.event_type
+        == WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
+    )
+    assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
+
     wrapped_call_order_event.assert_called_once_with(
         plugins_manager,
         WebhookEventAsyncType.ORDER_UPDATED,
@@ -1338,7 +1378,7 @@ def test_order_charged_triggers_webhooks(
         )
 
     # then
-    # confirm that event delivery was generated for each webhook.
+    # confirm that event delivery was generated for each async webhook.
     order_updated_delivery = EventDelivery.objects.get(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_UPDATED,
@@ -1350,12 +1390,6 @@ def test_order_charged_triggers_webhooks(
     order_paid_delivery = EventDelivery.objects.get(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_PAID,
-    )
-
-    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
-    filter_shipping_delivery = EventDelivery.objects.get(
-        webhook_id=shipping_filter_webhook.id,
-        event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
     )
 
     order_deliveries = [
@@ -1378,12 +1412,25 @@ def test_order_charged_triggers_webhooks(
         any_order=True,
     )
 
-    mocked_send_webhook_request_sync.assert_has_calls(
-        [
-            call(tax_delivery),
-            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
-        ]
+    # confirm each sync webhook was called without saving event delivery
+    assert mocked_send_webhook_request_sync.call_count == 2
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+
+    tax_delivery_call, filter_shipping_call = (
+        mocked_send_webhook_request_sync.mock_calls
     )
+
+    tax_delivery = tax_delivery_call.args[0]
+    assert tax_delivery.webhook_id == tax_webhook.id
+
+    filter_shipping_delivery = filter_shipping_call.args[0]
+    assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
+    assert (
+        filter_shipping_delivery.event_type
+        == WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
+    )
+    assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
+
     wrapped_call_order_events.assert_called_once_with(
         plugins_manager,
         [WebhookEventAsyncType.ORDER_FULLY_PAID, WebhookEventAsyncType.ORDER_UPDATED],
@@ -1713,7 +1760,7 @@ def test_order_transaction_updated_for_charged_triggers_webhooks(
         )
 
     # then
-    # confirm that event delivery was generated for each webhook.
+    # confirm that event delivery was generated for each async webhook.
     order_updated_delivery = EventDelivery.objects.get(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_UPDATED,
@@ -1727,11 +1774,6 @@ def test_order_transaction_updated_for_charged_triggers_webhooks(
         event_type=WebhookEventAsyncType.ORDER_PAID,
     )
 
-    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
-    filter_shipping_delivery = EventDelivery.objects.get(
-        webhook_id=shipping_filter_webhook.id,
-        event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
-    )
     order_deliveries = [
         order_updated_delivery,
         order_fully_paid_delivery,
@@ -1751,12 +1793,25 @@ def test_order_transaction_updated_for_charged_triggers_webhooks(
         ],
         any_order=True,
     )
-    mocked_send_webhook_request_sync.assert_has_calls(
-        [
-            call(tax_delivery),
-            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
-        ]
+
+    # confirm each sync webhook was called without saving event delivery
+    assert mocked_send_webhook_request_sync.call_count == 2
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+
+    tax_delivery_call, filter_shipping_call = (
+        mocked_send_webhook_request_sync.mock_calls
     )
+
+    tax_delivery = tax_delivery_call.args[0]
+    assert tax_delivery.webhook_id == tax_webhook.id
+
+    filter_shipping_delivery = filter_shipping_call.args[0]
+    assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
+    assert (
+        filter_shipping_delivery.event_type
+        == WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
+    )
+    assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
 
     wrapped_call_order_events.assert_called_once_with(
         plugins_manager,
@@ -1835,17 +1890,11 @@ def test_order_transaction_updated_for_authorized_triggers_webhooks(
         )
 
     # then
-    # confirm that event delivery was generated for each webhook.
+    # confirm that event delivery was generated for each async webhook.
     order_updated_delivery = EventDelivery.objects.get(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_UPDATED,
     )
-    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
-    filter_shipping_delivery = EventDelivery.objects.get(
-        webhook_id=shipping_filter_webhook.id,
-        event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
-    )
-
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={"event_delivery_id": order_updated_delivery.id},
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
@@ -1854,12 +1903,24 @@ def test_order_transaction_updated_for_authorized_triggers_webhooks(
         retry_kwargs={"max_retries": 5},
     )
 
-    mocked_send_webhook_request_sync.assert_has_calls(
-        [
-            call(tax_delivery),
-            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
-        ]
+    # confirm each sync webhook was called without saving event delivery
+    assert mocked_send_webhook_request_sync.call_count == 2
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+
+    tax_delivery_call, filter_shipping_call = (
+        mocked_send_webhook_request_sync.mock_calls
     )
+
+    tax_delivery = tax_delivery_call.args[0]
+    assert tax_delivery.webhook_id == tax_webhook.id
+
+    filter_shipping_delivery = filter_shipping_call.args[0]
+    assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
+    assert (
+        filter_shipping_delivery.event_type
+        == WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
+    )
+    assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
 
     wrapped_call_order_event.assert_called_once_with(
         plugins_manager,
@@ -1936,7 +1997,7 @@ def test_order_transaction_updated_for_refunded_triggers_webhooks(
         )
 
     # then
-    # confirm that event delivery was generated for each webhook.
+    # confirm that event delivery was generated for each async webhook.
     order_updated_delivery = EventDelivery.objects.get(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_UPDATED,
@@ -1950,11 +2011,6 @@ def test_order_transaction_updated_for_refunded_triggers_webhooks(
         event_type=WebhookEventAsyncType.ORDER_FULLY_REFUNDED,
     )
 
-    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
-    filter_shipping_delivery = EventDelivery.objects.get(
-        webhook_id=shipping_filter_webhook.id,
-        event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
-    )
     order_deliveries = [
         order_updated_delivery,
         order_fully_refunded_delivery,
@@ -1974,12 +2030,26 @@ def test_order_transaction_updated_for_refunded_triggers_webhooks(
         ],
         any_order=True,
     )
-    mocked_send_webhook_request_sync.assert_has_calls(
-        [
-            call(tax_delivery),
-            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
-        ]
+
+    # confirm each sync webhook was called without saving event delivery
+    assert mocked_send_webhook_request_sync.call_count == 2
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+
+    tax_delivery_call, filter_shipping_call = (
+        mocked_send_webhook_request_sync.mock_calls
     )
+
+    tax_delivery = tax_delivery_call.args[0]
+    assert tax_delivery.webhook_id == tax_webhook.id
+
+    filter_shipping_delivery = filter_shipping_call.args[0]
+    assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
+    assert (
+        filter_shipping_delivery.event_type
+        == WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
+    )
+    assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
+
     wrapped_call_order_events.assert_called_once_with(
         plugins_manager,
         [
@@ -2416,12 +2486,6 @@ def test_call_order_event_triggers_sync_webhook(
 
     # then
     order_delivery = EventDelivery.objects.get(webhook_id=order_webhook.id)
-    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
-    filter_shipping_delivery = EventDelivery.objects.get(
-        webhook_id=shipping_filter_webhook.id,
-        event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
-    )
-
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={"event_delivery_id": order_delivery.id},
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
@@ -2429,12 +2493,25 @@ def test_call_order_event_triggers_sync_webhook(
         retry_backoff=10,
         retry_kwargs={"max_retries": 5},
     )
-    mocked_send_webhook_request_sync.assert_has_calls(
-        [
-            call(tax_delivery),
-            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
-        ]
+
+    # confirm each sync webhook was called without saving event delivery
+    assert mocked_send_webhook_request_sync.call_count == 2
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+
+    tax_delivery_call, filter_shipping_call = (
+        mocked_send_webhook_request_sync.mock_calls
     )
+
+    tax_delivery = tax_delivery_call.args[0]
+    assert tax_delivery.webhook_id == tax_webhook.id
+
+    filter_shipping_delivery = filter_shipping_call.args[0]
+    assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
+    assert (
+        filter_shipping_delivery.event_type
+        == WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
+    )
+
     mocked_call_event_including_protected_events.assert_called_once_with(
         ANY, order_with_lines, webhooks={order_webhook}
     )
@@ -2543,13 +2620,6 @@ def test_call_order_event_missing_filter_shipping_method_webhook(
 
     # then
     order_delivery = EventDelivery.objects.get(webhook_id=order_webhook.id)
-    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
-    filter_shipping_delivery = EventDelivery.objects.filter(
-        webhook_id=shipping_filter_webhook.id,
-        event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
-    ).first()
-    assert not filter_shipping_delivery
-
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={"event_delivery_id": order_delivery.id},
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
@@ -2557,7 +2627,12 @@ def test_call_order_event_missing_filter_shipping_method_webhook(
         retry_backoff=10,
         retry_kwargs={"max_retries": 5},
     )
-    mocked_send_webhook_request_sync.assert_called_once_with(tax_delivery)
+
+    mocked_send_webhook_request_sync.assert_called_once()
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    tax_delivery = mocked_send_webhook_request_sync.mock_calls[0].args[0]
+    assert tax_delivery.webhook_id == tax_webhook.id
+
     mocked_call_event_including_protected_events.assert_called_once_with(
         ANY, order_with_lines, webhooks={order_webhook}
     )
@@ -2627,12 +2702,6 @@ def test_call_order_event_skips_tax_webhook_when_prices_are_valid(
 
     # then
     order_delivery = EventDelivery.objects.get(webhook_id=order_webhook.id)
-    tax_delivery = EventDelivery.objects.filter(webhook_id=tax_webhook.id).first()
-    filter_shipping_delivery = EventDelivery.objects.get(
-        webhook_id=shipping_filter_webhook.id,
-        event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
-    )
-    assert not tax_delivery
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={"event_delivery_id": order_delivery.id},
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
@@ -2640,9 +2709,20 @@ def test_call_order_event_skips_tax_webhook_when_prices_are_valid(
         retry_backoff=10,
         retry_kwargs={"max_retries": 5},
     )
-    mocked_send_webhook_request_sync.assert_called_once_with(
-        filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT
+
+    # confirm each sync webhook was called without saving event delivery
+    mocked_send_webhook_request_sync.assert_called_once()
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+
+    filter_shipping_call = mocked_send_webhook_request_sync.mock_calls[0]
+    filter_shipping_delivery = filter_shipping_call.args[0]
+    assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
+    assert (
+        filter_shipping_delivery.event_type
+        == WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
     )
+    assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
+
     mocked_call_event_including_protected_events.assert_called_once_with(
         ANY, order_with_lines, webhooks={order_webhook}
     )
@@ -2712,13 +2792,6 @@ def test_call_order_event_skips_sync_webhooks_when_order_not_editable(
 
     # then
     order_delivery = EventDelivery.objects.get(webhook_id=order_webhook.id)
-    tax_delivery = EventDelivery.objects.filter(webhook_id=tax_webhook.id).first()
-    filter_shipping_delivery = EventDelivery.objects.filter(
-        webhook_id=shipping_filter_webhook.id,
-        event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
-    ).first()
-    assert not filter_shipping_delivery
-    assert not tax_delivery
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={"event_delivery_id": order_delivery.id},
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
@@ -2727,6 +2800,7 @@ def test_call_order_event_skips_sync_webhooks_when_order_not_editable(
         retry_kwargs={"max_retries": 5},
     )
     assert not mocked_send_webhook_request_sync.called
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
     mocked_call_event_including_protected_events.assert_called_once_with(
         ANY, order_with_lines, webhooks={order_webhook}
     )
@@ -2954,12 +3028,6 @@ def test_call_order_events_triggers_sync_webhook(
 
     # then
     order_delivery = EventDelivery.objects.get(webhook_id=order_webhook.id)
-    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
-    filter_shipping_delivery = EventDelivery.objects.get(
-        webhook_id=shipping_filter_webhook.id,
-        event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
-    )
-
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={"event_delivery_id": order_delivery.id},
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
@@ -2967,12 +3035,25 @@ def test_call_order_events_triggers_sync_webhook(
         retry_backoff=10,
         retry_kwargs={"max_retries": 5},
     )
-    mocked_send_webhook_request_sync.assert_has_calls(
-        [
-            call(tax_delivery),
-            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
-        ]
+    # confirm each sync webhook was called without saving event delivery
+    assert mocked_send_webhook_request_sync.call_count == 2
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+
+    tax_delivery_call, filter_shipping_call = (
+        mocked_send_webhook_request_sync.mock_calls
     )
+
+    tax_delivery = tax_delivery_call.args[0]
+    assert tax_delivery.webhook_id == tax_webhook.id
+
+    filter_shipping_delivery = filter_shipping_call.args[0]
+    assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
+    assert (
+        filter_shipping_delivery.event_type
+        == WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
+    )
+    assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
+
     mocked_call_event_including_protected_events.assert_has_calls(
         [
             call(
@@ -3101,13 +3182,6 @@ def test_call_order_events_missing_filter_shipping_method_webhook(
 
     # then
     order_delivery = EventDelivery.objects.get(webhook_id=order_webhook.id)
-    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
-    filter_shipping_delivery = EventDelivery.objects.filter(
-        webhook_id=shipping_filter_webhook.id,
-        event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
-    ).first()
-    assert not filter_shipping_delivery
-
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={"event_delivery_id": order_delivery.id},
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
@@ -3115,7 +3189,13 @@ def test_call_order_events_missing_filter_shipping_method_webhook(
         retry_backoff=10,
         retry_kwargs={"max_retries": 5},
     )
-    mocked_send_webhook_request_sync.assert_called_once_with(tax_delivery)
+
+    # confirm each sync webhook was called without saving event delivery
+    mocked_send_webhook_request_sync.assert_called_once()
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    tax_delivery = mocked_send_webhook_request_sync.mock_calls[0].args[0]
+    assert tax_delivery.webhook_id == tax_webhook.id
+
     mocked_call_event_including_protected_events.assert_has_calls(
         [
             call(
@@ -3196,12 +3276,6 @@ def test_call_order_events_skips_tax_webhook_when_prices_are_valid(
 
     # then
     order_delivery = EventDelivery.objects.get(webhook_id=order_webhook.id)
-    tax_delivery = EventDelivery.objects.filter(webhook_id=tax_webhook.id).first()
-    filter_shipping_delivery = EventDelivery.objects.get(
-        webhook_id=shipping_filter_webhook.id,
-        event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
-    )
-    assert not tax_delivery
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={"event_delivery_id": order_delivery.id},
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
@@ -3209,9 +3283,20 @@ def test_call_order_events_skips_tax_webhook_when_prices_are_valid(
         retry_backoff=10,
         retry_kwargs={"max_retries": 5},
     )
-    mocked_send_webhook_request_sync.assert_called_once_with(
-        filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT
+
+    # confirm each sync webhook was called without saving event delivery
+    mocked_send_webhook_request_sync.assert_called_once()
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+
+    filter_shipping_call = mocked_send_webhook_request_sync.mock_calls[0]
+    filter_shipping_delivery = filter_shipping_call.args[0]
+    assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
+    assert (
+        filter_shipping_delivery.event_type
+        == WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
     )
+    assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
+
     mocked_call_event_including_protected_events.assert_has_calls(
         [
             call(
@@ -3574,7 +3659,7 @@ def test_order_created_triggers_webhooks(
         order_created(order_info, user=customer_user, app=None, manager=plugins_manager)
 
     # then
-    # confirm that event delivery was generated for each webhook.
+    # confirm that event delivery was generated for each async webhook.
     order_confirmed_delivery = EventDelivery.objects.get(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_CONFIRMED,
@@ -3591,11 +3676,7 @@ def test_order_created_triggers_webhooks(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_FULLY_PAID,
     )
-    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
-    filter_shipping_delivery = EventDelivery.objects.get(
-        webhook_id=shipping_filter_webhook.id,
-        event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
-    )
+
     order_deliveries = [
         order_confirmed_delivery,
         order_updated_delivery,
@@ -3616,12 +3697,25 @@ def test_order_created_triggers_webhooks(
         ],
         any_order=True,
     )
-    mocked_send_webhook_request_sync.assert_has_calls(
-        [
-            call(tax_delivery),
-            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
-        ]
+    # confirm each sync webhook was called without saving event delivery
+    assert mocked_send_webhook_request_sync.call_count == 2
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+
+    tax_delivery_call, filter_shipping_call = (
+        mocked_send_webhook_request_sync.mock_calls
     )
+
+    tax_delivery = tax_delivery_call.args[0]
+    assert tax_delivery.webhook_id == tax_webhook.id
+
+    filter_shipping_delivery = filter_shipping_call.args[0]
+    assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
+    assert (
+        filter_shipping_delivery.event_type
+        == WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
+    )
+    assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
+
     wrapped_call_order_events.assert_called_once_with(
         plugins_manager,
         [WebhookEventAsyncType.ORDER_FULLY_PAID, WebhookEventAsyncType.ORDER_UPDATED],
@@ -3695,18 +3789,11 @@ def test_order_confirmed_triggers_webhooks(
         order_confirmed(order, user=customer_user, app=None, manager=plugins_manager)
 
     # then
-    # confirm that event delivery was generated for each webhook.
+    # confirm that event delivery was generated for each async webhook.
     order_confirmed_delivery = EventDelivery.objects.get(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_CONFIRMED,
     )
-
-    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
-    filter_shipping_delivery = EventDelivery.objects.get(
-        webhook_id=shipping_filter_webhook.id,
-        event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
-    )
-
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={"event_delivery_id": order_confirmed_delivery.id},
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
@@ -3714,10 +3801,24 @@ def test_order_confirmed_triggers_webhooks(
         retry_backoff=10,
         retry_kwargs={"max_retries": 5},
     )
-    mocked_send_webhook_request_sync.assert_has_calls(
-        [
-            call(tax_delivery),
-            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
-        ]
+
+    # confirm each sync webhook was called without saving event delivery
+    assert mocked_send_webhook_request_sync.call_count == 2
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+
+    tax_delivery_call, filter_shipping_call = (
+        mocked_send_webhook_request_sync.mock_calls
     )
+
+    tax_delivery = tax_delivery_call.args[0]
+    assert tax_delivery.webhook_id == tax_webhook.id
+
+    filter_shipping_delivery = filter_shipping_call.args[0]
+    assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
+    assert (
+        filter_shipping_delivery.event_type
+        == WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
+    )
+    assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
+
     assert wrapped_call_order_event.called
