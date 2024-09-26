@@ -2075,8 +2075,8 @@ def test_fetch_order_prices_manual_line_discount_voucher_specific_product(
     tax_rate = Decimal("1.23")
 
     voucher_listing = voucher.channel_listings.get(channel=order.channel)
-    voucher_discount_amount = Decimal("2")
-    voucher_listing.discount_value = voucher_discount_amount
+    voucher_discount_value = Decimal("2")
+    voucher_listing.discount_value = voucher_discount_value
     voucher_listing.save(update_fields=["discount_value"])
 
     voucher.discount_value_type = DiscountValueType.FIXED
@@ -2089,10 +2089,10 @@ def test_fetch_order_prices_manual_line_discount_voucher_specific_product(
     order.voucher_code = voucher.codes.first().code
 
     # create manual order line discount
-    manual_line_discount_amount = Decimal("3")
+    manual_line_discount_value = Decimal("3")
     manual_line_discount = discounted_line.discounts.create(
         value_type=DiscountValueType.FIXED,
-        value=manual_line_discount_amount,
+        value=manual_line_discount_value,
         name="Manual line discount",
         type=DiscountType.MANUAL,
         reason="Manual line discount",
@@ -2113,24 +2113,43 @@ def test_fetch_order_prices_manual_line_discount_voucher_specific_product(
     discounted_line.refresh_from_db()
     line_1.refresh_from_db()
 
-    manual_discount_amount = manual_line_discount_amount * discounted_line.quantity
+    manual_discount_amount = manual_line_discount_value * discounted_line.quantity
     assert (
-        order.total_gross_amount
+        order.total_net_amount
         == subtotal.amount + shipping_price.amount - manual_discount_amount
     )
-    assert order.subtotal_gross_amount == subtotal.amount - manual_discount_amount
-    assert order.undiscounted_total_gross == subtotal + shipping_price
-    assert order.shipping_price_gross == shipping_price
+    assert (
+        order.total_gross_amount
+        == (subtotal.amount + shipping_price.amount - manual_discount_amount) * tax_rate
+    )
+    assert order.subtotal_net_amount == subtotal.amount - manual_discount_amount
+    assert (
+        order.subtotal_gross_amount
+        == (subtotal.amount - manual_discount_amount) * tax_rate
+    )
+    assert order.undiscounted_total_net == subtotal + shipping_price
+    assert order.undiscounted_total_gross == (subtotal + shipping_price) * tax_rate
+    assert order.shipping_price_net == shipping_price
+    assert order.shipping_price_gross == shipping_price * tax_rate
     assert order.base_shipping_price == shipping_price
 
     assert (
         discounted_line.base_unit_price_amount
         == discounted_line.undiscounted_base_unit_price_amount
-        - manual_line_discount_amount
+        - manual_line_discount_value
+    )
+    assert (
+        discounted_line.total_price_net_amount
+        == discounted_line.unit_price_net_amount * discounted_line.quantity
     )
     assert (
         discounted_line.total_price_gross_amount
-        == discounted_line.unit_price_gross_amount * discounted_line.quantity
+        == discounted_line.unit_price_net_amount * discounted_line.quantity * tax_rate
+    )
+    assert (
+        discounted_line.undiscounted_total_price_net_amount
+        == discounted_line.undiscounted_base_unit_price_amount
+        * discounted_line.quantity
     )
     assert (
         discounted_line.undiscounted_total_price_gross_amount
@@ -2138,14 +2157,23 @@ def test_fetch_order_prices_manual_line_discount_voucher_specific_product(
         * discounted_line.quantity
         * tax_rate
     )
-    assert discounted_line.unit_discount_amount == manual_line_discount_amount
+    assert discounted_line.unit_discount_amount == manual_line_discount_value
     assert discounted_line.unit_discount_type == DiscountValueType.FIXED
     assert discounted_line.unit_discount_reason == manual_line_discount.reason
 
     assert line_1.base_unit_price_amount == line_1.undiscounted_base_unit_price_amount
     assert (
+        line_1.total_price_net_amount
+        == order.subtotal_net_amount - discounted_line.total_price_net_amount
+    )
+    assert (
         line_1.total_price_gross_amount
-        == order.subtotal_gross_amount - discounted_line.total_price_gross_amount
+        == (order.subtotal_net_amount - discounted_line.total_price_net_amount)
+        * tax_rate
+    )
+    assert (
+        line_1.undiscounted_total_price_net_amount
+        == line_1.undiscounted_base_unit_price_amount * line_1.quantity
     )
     assert (
         line_1.undiscounted_total_price_gross_amount
@@ -2212,15 +2240,25 @@ def test_fetch_order_prices_manual_line_discount_and_voucher_apply_once_per_orde
     # then
     discounted_line.refresh_from_db()
     line_1.refresh_from_db()
-    manual_line_discount_amount = manual_line_discount_value * discounted_line.quantity
+
+    manual_discount_amount = manual_line_discount_value * discounted_line.quantity
+    assert (
+        order.total_net_amount
+        == subtotal.amount + shipping_price.amount - manual_discount_amount
+    )
     assert (
         order.total_gross_amount
-        == subtotal.amount + shipping_price.amount - manual_line_discount_amount
+        == (subtotal.amount + shipping_price.amount - manual_discount_amount) * tax_rate
     )
-
-    assert order.subtotal_gross_amount == subtotal.amount - manual_line_discount_amount
-    assert order.undiscounted_total_gross == subtotal + shipping_price
-    assert order.shipping_price_gross == shipping_price
+    assert order.subtotal_net_amount == subtotal.amount - manual_discount_amount
+    assert (
+        order.subtotal_gross_amount
+        == (subtotal.amount - manual_discount_amount) * tax_rate
+    )
+    assert order.undiscounted_total_net == subtotal + shipping_price
+    assert order.undiscounted_total_gross == (subtotal + shipping_price) * tax_rate
+    assert order.shipping_price_net == shipping_price
+    assert order.shipping_price_gross == shipping_price * tax_rate
     assert order.base_shipping_price == shipping_price
 
     assert (
@@ -2229,8 +2267,17 @@ def test_fetch_order_prices_manual_line_discount_and_voucher_apply_once_per_orde
         - manual_line_discount_value
     )
     assert (
+        discounted_line.total_price_net_amount
+        == discounted_line.unit_price_net_amount * discounted_line.quantity
+    )
+    assert (
         discounted_line.total_price_gross_amount
-        == discounted_line.unit_price_gross_amount * discounted_line.quantity
+        == discounted_line.unit_price_net_amount * discounted_line.quantity * tax_rate
+    )
+    assert (
+        discounted_line.undiscounted_total_price_net_amount
+        == discounted_line.undiscounted_base_unit_price_amount
+        * discounted_line.quantity
     )
     assert (
         discounted_line.undiscounted_total_price_gross_amount
@@ -2244,8 +2291,17 @@ def test_fetch_order_prices_manual_line_discount_and_voucher_apply_once_per_orde
 
     assert line_1.base_unit_price_amount == line_1.undiscounted_base_unit_price_amount
     assert (
+        line_1.total_price_net_amount
+        == order.subtotal_net_amount - discounted_line.total_price_net_amount
+    )
+    assert (
         line_1.total_price_gross_amount
-        == order.subtotal_gross_amount - discounted_line.total_price_gross_amount
+        == (order.subtotal_net_amount - discounted_line.total_price_net_amount)
+        * tax_rate
+    )
+    assert (
+        line_1.undiscounted_total_price_net_amount
+        == line_1.undiscounted_base_unit_price_amount * line_1.quantity
     )
     assert (
         line_1.undiscounted_total_price_gross_amount
@@ -2258,7 +2314,7 @@ def test_fetch_order_prices_manual_line_discount_and_voucher_apply_once_per_orde
     assert discounted_line.discounts.count() == 1
 
     manual_line_discount.refresh_from_db()
-    assert manual_line_discount.amount_value == manual_line_discount_amount
+    assert manual_line_discount.amount_value == manual_discount_amount
     assert manual_line_discount.type == DiscountType.MANUAL
 
 
