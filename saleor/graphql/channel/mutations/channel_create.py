@@ -77,7 +77,7 @@ class CheckoutSettingsInput(BaseInputObjectType):
             + DEPRECATED_IN_3X_INPUT
         )
     )
-    automatically_complete_paid_checkouts = graphene.Boolean(
+    automatically_complete_fully_paid_checkouts = graphene.Boolean(
         description=(
             "Default `false`. Determines if the paid checkouts should be automatically "
             "completed. This setting applies only to checkouts where payment "

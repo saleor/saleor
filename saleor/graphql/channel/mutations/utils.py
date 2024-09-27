@@ -80,7 +80,7 @@ def clean_input_order_settings(
 def clean_input_checkout_settings(checkout_settings: dict, cleaned_input: dict):
     input_to_model_fields = {
         "use_legacy_error_flow": "use_legacy_error_flow_for_checkout",
-        "automatically_complete_paid_checkouts": "automatically_complete_paid_checkouts",
+        "automatically_complete_fully_paid_checkouts": "automatically_complete_fully_paid_checkouts",
     }
     for input_field, model_field in input_to_model_fields.items():
         if input_field in checkout_settings:

@@ -452,7 +452,7 @@ QUERY_CHANNEL_CHECKOUT_SETTINGS = """
             id
             checkoutSettings {
                 useLegacyErrorFlow
-                automaticallyCompletePaidCheckouts
+                automaticallyCompleteFullyPaidCheckouts
             }
         }
     }
@@ -464,11 +464,11 @@ def test_query_channel_checkout_settings_as_staff_user(
 ):
     # given
     channel_USD.use_legacy_error_flow_for_checkout = False
-    channel_USD.automatically_complete_paid_checkouts = True
+    channel_USD.automatically_complete_fully_paid_checkouts = True
     channel_USD.save(
         update_fields=[
             "use_legacy_error_flow_for_checkout",
-            "automatically_complete_paid_checkouts",
+            "automatically_complete_fully_paid_checkouts",
         ]
     )
 
@@ -491,8 +491,8 @@ def test_query_channel_checkout_settings_as_staff_user(
         == channel_USD.use_legacy_error_flow_for_checkout
     )
     assert (
-        channel_data["checkoutSettings"]["automaticallyCompletePaidCheckouts"]
-        == channel_USD.automatically_complete_paid_checkouts
+        channel_data["checkoutSettings"]["automaticallyCompleteFullyPaidCheckouts"]
+        == channel_USD.automatically_complete_fully_paid_checkouts
     )
 
 
@@ -521,8 +521,8 @@ def test_query_channel_checkout_settings_as_app(
         == channel_USD.use_legacy_error_flow_for_checkout
     )
     assert (
-        channel_data["checkoutSettings"]["automaticallyCompletePaidCheckouts"]
-        == channel_USD.automatically_complete_paid_checkouts
+        channel_data["checkoutSettings"]["automaticallyCompleteFullyPaidCheckouts"]
+        == channel_USD.automatically_complete_fully_paid_checkouts
     )
 
 
@@ -566,11 +566,11 @@ def test_query_channel_checkout_settings_with_manage_checkouts(
 ):
     # given
     channel_USD.use_legacy_error_flow_for_checkout = False
-    channel_USD.automatically_complete_paid_checkouts = True
+    channel_USD.automatically_complete_fully_paid_checkouts = True
     channel_USD.save(
         update_fields=[
             "use_legacy_error_flow_for_checkout",
-            "automatically_complete_paid_checkouts",
+            "automatically_complete_fully_paid_checkouts",
         ]
     )
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
@@ -592,8 +592,8 @@ def test_query_channel_checkout_settings_with_manage_checkouts(
         == channel_USD.use_legacy_error_flow_for_checkout
     )
     assert (
-        channel_data["checkoutSettings"]["automaticallyCompletePaidCheckouts"]
-        == channel_USD.automatically_complete_paid_checkouts
+        channel_data["checkoutSettings"]["automaticallyCompleteFullyPaidCheckouts"]
+        == channel_USD.automatically_complete_fully_paid_checkouts
     )
 
 

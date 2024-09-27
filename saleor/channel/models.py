@@ -47,7 +47,7 @@ class Channel(ModelWithMetadata):
     include_draft_order_in_voucher_usage = models.BooleanField(default=False)
 
     use_legacy_error_flow_for_checkout = models.BooleanField(default=True)
-    automatically_complete_paid_checkouts = models.BooleanField(default=False)
+    automatically_complete_fully_paid_checkouts = models.BooleanField(default=False)
 
     class Meta(ModelWithMetadata.Meta):
         ordering = ("slug",)

@@ -50,7 +50,7 @@ CHANNEL_CREATE_MUTATION = """
                 }
                 checkoutSettings {
                     useLegacyErrorFlow
-                    automaticallyCompletePaidCheckouts
+                    automaticallyCompleteFullyPaidCheckouts
                 }
                 paymentSettings {
                     defaultTransactionFlowStrategy
@@ -124,7 +124,8 @@ def test_channel_create_mutation_as_staff_user(
     assert channel_data["orderSettings"]["includeDraftOrderInVoucherUsage"] is True
     assert channel_data["checkoutSettings"]["useLegacyErrorFlow"] is False
     assert (
-        channel_data["checkoutSettings"]["automaticallyCompletePaidCheckouts"] is False
+        channel_data["checkoutSettings"]["automaticallyCompleteFullyPaidCheckouts"]
+        is False
     )
 
 
@@ -145,7 +146,7 @@ def test_channel_create_mutation_as_app(
             "defaultCountry": default_country,
             "checkoutSettings": {
                 "useLegacyErrorFlow": False,
-                "automaticallyCompletePaidCheckouts": True,
+                "automaticallyCompleteFullyPaidCheckouts": True,
             },
         }
     }
@@ -184,7 +185,8 @@ def test_channel_create_mutation_as_app(
     assert channel_data["orderSettings"]["includeDraftOrderInVoucherUsage"] is False
     assert channel_data["checkoutSettings"]["useLegacyErrorFlow"] is False
     assert (
-        channel_data["checkoutSettings"]["automaticallyCompletePaidCheckouts"] is True
+        channel_data["checkoutSettings"]["automaticallyCompleteFullyPaidCheckouts"]
+        is True
     )
 
 
@@ -774,7 +776,7 @@ def test_channel_create_set_checkout_use_legacy_error_flow(
     assert channel.use_legacy_error_flow_for_checkout is False
 
 
-def test_channel_create_set_automatically_complete_paid_checkouts(
+def test_channel_create_set_automatically_complete_fully_paid_checkouts(
     permission_manage_channels,
     staff_api_client,
 ):
@@ -789,7 +791,7 @@ def test_channel_create_set_automatically_complete_paid_checkouts(
             "slug": slug,
             "currencyCode": currency_code,
             "defaultCountry": default_country,
-            "checkoutSettings": {"automaticallyCompletePaidCheckouts": True},
+            "checkoutSettings": {"automaticallyCompleteFullyPaidCheckouts": True},
         }
     }
 
@@ -807,9 +809,10 @@ def test_channel_create_set_automatically_complete_paid_checkouts(
     channel_data = data["channel"]
     channel = Channel.objects.get()
     assert (
-        channel_data["checkoutSettings"]["automaticallyCompletePaidCheckouts"] is True
+        channel_data["checkoutSettings"]["automaticallyCompleteFullyPaidCheckouts"]
+        is True
     )
-    assert channel.automatically_complete_paid_checkouts is True
+    assert channel.automatically_complete_fully_paid_checkouts is True
 
 
 @pytest.mark.parametrize("allowUnpaid", [True, False])

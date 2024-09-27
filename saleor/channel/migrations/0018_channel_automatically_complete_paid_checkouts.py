@@ -11,13 +11,13 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name="channel",
-            name="automatically_complete_paid_checkouts",
+            name="automatically_complete_fully_paid_checkouts",
             field=models.BooleanField(default=False),
         ),
         migrations.RunSQL(
             """
             ALTER TABLE channel_channel
-            ALTER COLUMN automatically_complete_paid_checkouts
+            ALTER COLUMN automatically_complete_fully_paid_checkouts
             SET DEFAULT false;
             """,
             migrations.RunSQL.noop,

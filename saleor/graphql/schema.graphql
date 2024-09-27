@@ -5751,7 +5751,7 @@ type CheckoutSettings {
   
   Added in Saleor 3.20.
   """
-  automaticallyCompletePaidCheckouts: Boolean!
+  automaticallyCompleteFullyPaidCheckouts: Boolean!
 }
 
 """Represents the channel-specific payment settings."""
@@ -29959,7 +29959,7 @@ input CheckoutSettingsInput @doc(category: "Checkout") {
   
   Added in Saleor 3.20.
   """
-  automaticallyCompletePaidCheckouts: Boolean
+  automaticallyCompleteFullyPaidCheckouts: Boolean
 }
 
 input PaymentSettingsInput @doc(category: "Payments") {

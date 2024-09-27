@@ -201,7 +201,7 @@ class CheckoutSettings(ObjectType):
             + DEPRECATED_IN_3X_FIELD
         ),
     )
-    automatically_complete_paid_checkouts = graphene.Boolean(
+    automatically_complete_fully_paid_checkouts = graphene.Boolean(
         required=True,
         description=(
             "Default `false`. Determines if the paid checkouts should be automatically "
@@ -590,10 +590,10 @@ class Channel(ModelObjectType):
 
     @staticmethod
     def resolve_checkout_settings(root: models.Channel, _info):
-        complete_paid_checkouts = root.automatically_complete_paid_checkouts
+        complete_paid_checkouts = root.automatically_complete_fully_paid_checkouts
         return CheckoutSettings(
             use_legacy_error_flow=root.use_legacy_error_flow_for_checkout,
-            automatically_complete_paid_checkouts=complete_paid_checkouts,
+            automatically_complete_fully_paid_checkouts=complete_paid_checkouts,
         )
 
     @staticmethod
