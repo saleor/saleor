@@ -1200,7 +1200,7 @@ def test_transaction_create_for_checkout_fully_paid(
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
     checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
 
-    assert checkout.channel.automatically_complete_paid_checkouts is False
+    assert checkout.channel.automatically_complete_fully_paid_checkouts is False
 
     variables = {
         "id": graphene.Node.to_global_id("Checkout", checkout.pk),
@@ -1254,8 +1254,8 @@ def test_transaction_create_for_checkout_fully_paid_automatic_completion(
     checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
 
     channel = checkout_info.channel
-    channel.automatically_complete_paid_checkouts = True
-    channel.save(update_fields=["automatically_complete_paid_checkouts"])
+    channel.automatically_complete_fully_paid_checkouts = True
+    channel.save(update_fields=["automatically_complete_fully_paid_checkouts"])
 
     checkout_token = checkout.pk
 
@@ -1314,7 +1314,7 @@ def test_transaction_create_for_checkout_fully_authorized(
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
     checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
 
-    assert checkout.channel.automatically_complete_paid_checkouts is False
+    assert checkout.channel.automatically_complete_fully_paid_checkouts is False
 
     variables = {
         "id": graphene.Node.to_global_id("Checkout", checkout.pk),
@@ -1368,8 +1368,8 @@ def test_transaction_create_for_checkout_fully_authorized_automatic_completion(
     checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
 
     channel = checkout_info.channel
-    channel.automatically_complete_paid_checkouts = True
-    channel.save(update_fields=["automatically_complete_paid_checkouts"])
+    channel.automatically_complete_fully_paid_checkouts = True
+    channel.save(update_fields=["automatically_complete_fully_paid_checkouts"])
 
     checkout_token = checkout.pk
 

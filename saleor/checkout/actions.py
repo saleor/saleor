@@ -247,7 +247,7 @@ def transaction_amounts_for_checkout_updated(
 
     channel = checkout_info.channel
     if (
-        channel.automatically_complete_paid_checkouts
+        channel.automatically_complete_fully_paid_checkouts
         and checkout.authorize_status == CheckoutAuthorizeStatus.FULL
     ):
         complete_checkout(

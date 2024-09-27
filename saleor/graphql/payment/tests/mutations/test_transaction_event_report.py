@@ -1367,7 +1367,7 @@ def test_transaction_event_updates_checkout_full_paid_with_charged_amount(
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
     checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
 
-    assert checkout.channel.automatically_complete_paid_checkouts is False
+    assert checkout.channel.automatically_complete_fully_paid_checkouts is False
 
     psp_reference = "111-abc"
     transaction = transaction_item_generator(
@@ -1504,8 +1504,8 @@ def test_transaction_event_updates_checkout_full_paid_automatic_completion(
     checkout_token = checkout.token
 
     channel = checkout_info.channel
-    channel.automatically_complete_paid_checkouts = True
-    channel.save(update_fields=["automatically_complete_paid_checkouts"])
+    channel.automatically_complete_fully_paid_checkouts = True
+    channel.save(update_fields=["automatically_complete_fully_paid_checkouts"])
 
     psp_reference = "111-abc"
     transaction = transaction_item_generator(
@@ -1578,8 +1578,8 @@ def test_transaction_event_updates_checkout_full_paid_pending_charge_automatic_c
     checkout_token = checkout.token
 
     channel = checkout_info.channel
-    channel.automatically_complete_paid_checkouts = True
-    channel.save(update_fields=["automatically_complete_paid_checkouts"])
+    channel.automatically_complete_fully_paid_checkouts = True
+    channel.save(update_fields=["automatically_complete_fully_paid_checkouts"])
 
     psp_reference = "111-abc"
     transaction = transaction_item_generator(
@@ -1652,7 +1652,7 @@ def test_transaction_event_updates_checkout_fully_authorized(
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
     checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
 
-    assert checkout.channel.automatically_complete_paid_checkouts is False
+    assert checkout.channel.automatically_complete_fully_paid_checkouts is False
 
     psp_reference = "111-abc"
     transaction = transaction_item_generator(
@@ -1723,8 +1723,8 @@ def test_transaction_event_updates_checkout_fully_authorized_automatic_complete(
     checkout_token = checkout.token
 
     channel = checkout_info.channel
-    channel.automatically_complete_paid_checkouts = True
-    channel.save(update_fields=["automatically_complete_paid_checkouts"])
+    channel.automatically_complete_fully_paid_checkouts = True
+    channel.save(update_fields=["automatically_complete_fully_paid_checkouts"])
 
     psp_reference = "111-abc"
     transaction = transaction_item_generator(
@@ -1796,8 +1796,8 @@ def test_transaction_event_updates_checkout_fully_authorized_pending_automatic_c
     checkout_token = checkout.token
 
     channel = checkout_info.channel
-    channel.automatically_complete_paid_checkouts = True
-    channel.save(update_fields=["automatically_complete_paid_checkouts"])
+    channel.automatically_complete_fully_paid_checkouts = True
+    channel.save(update_fields=["automatically_complete_fully_paid_checkouts"])
 
     psp_reference = "111-abc"
     transaction = transaction_item_generator(

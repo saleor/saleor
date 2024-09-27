@@ -41,7 +41,7 @@ def test_transaction_amounts_for_checkout_updated_fully_paid(
     transaction = transaction_item_generator(
         checkout_id=checkout.pk, charged_value=checkout_info.checkout.total.gross.amount
     )
-    assert checkout_info.channel.automatically_complete_paid_checkouts is False
+    assert checkout_info.channel.automatically_complete_fully_paid_checkouts is False
 
     # when
     transaction_amounts_for_checkout_updated(
@@ -76,8 +76,8 @@ def test_transaction_amounts_for_checkout_fully_paid_automatic_checkout_complete
         checkout_id=checkout.pk, charged_value=checkout_info.checkout.total.gross.amount
     )
     channel = checkout_info.channel
-    channel.automatically_complete_paid_checkouts = True
-    channel.save(update_fields=["automatically_complete_paid_checkouts"])
+    channel.automatically_complete_fully_paid_checkouts = True
+    channel.save(update_fields=["automatically_complete_fully_paid_checkouts"])
 
     # when
     transaction_amounts_for_checkout_updated(
@@ -120,8 +120,8 @@ def test_transaction_amounts_for_checkout_updated_not_fully_paid_no_automatic_co
         charged_value=checkout_info.checkout.total.gross.amount / 2,
     )
     channel = checkout_info.channel
-    channel.automatically_complete_paid_checkouts = True
-    channel.save(update_fields=["automatically_complete_paid_checkouts"])
+    channel.automatically_complete_fully_paid_checkouts = True
+    channel.save(update_fields=["automatically_complete_fully_paid_checkouts"])
 
     # when
     transaction_amounts_for_checkout_updated(
@@ -154,7 +154,7 @@ def test_transaction_amounts_for_checkout_updated_with_already_fully_paid(
     transaction_item_generator(
         checkout_id=checkout.pk, charged_value=checkout_info.checkout.total.gross.amount
     )
-    assert checkout_info.channel.automatically_complete_paid_checkouts is False
+    assert checkout_info.channel.automatically_complete_fully_paid_checkouts is False
 
     fetch_checkout_data(checkout_info, plugins_manager, lines, force_status_update=True)
 
@@ -192,8 +192,8 @@ def test_transaction_amounts_for_checkout_updated_0_checkout_automatic_complete(
     checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
     transaction = transaction_item_generator(checkout_id=checkout.pk, charged_value=0)
     channel = checkout_info.channel
-    channel.automatically_complete_paid_checkouts = True
-    channel.save(update_fields=["automatically_complete_paid_checkouts"])
+    channel.automatically_complete_fully_paid_checkouts = True
+    channel.save(update_fields=["automatically_complete_fully_paid_checkouts"])
 
     # when
     transaction_amounts_for_checkout_updated(
@@ -235,7 +235,7 @@ def test_transaction_amounts_for_checkout_updated_fully_authorized(
         checkout_id=checkout.pk,
         authorized_value=checkout_info.checkout.total.gross.amount,
     )
-    assert checkout_info.channel.automatically_complete_paid_checkouts is False
+    assert checkout_info.channel.automatically_complete_fully_paid_checkouts is False
 
     # when
     transaction_amounts_for_checkout_updated(
@@ -271,8 +271,8 @@ def test_transaction_amounts_for_checkout_fully_authorized_automatic_checkout_co
         authorized_value=checkout_info.checkout.total.gross.amount,
     )
     channel = checkout_info.channel
-    channel.automatically_complete_paid_checkouts = True
-    channel.save(update_fields=["automatically_complete_paid_checkouts"])
+    channel.automatically_complete_fully_paid_checkouts = True
+    channel.save(update_fields=["automatically_complete_fully_paid_checkouts"])
 
     # when
     transaction_amounts_for_checkout_updated(
