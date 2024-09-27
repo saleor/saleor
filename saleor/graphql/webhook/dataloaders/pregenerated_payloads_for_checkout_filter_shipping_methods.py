@@ -41,7 +41,6 @@ class PregeneratedCheckoutFilterShippingMethodPayloadsByCheckoutTokenLoader(Data
 
         """
 
-        # TODO Owczar: Add validation if request is not cached.
         results: dict[str, dict[int, dict[str, dict[str, Any]]]] = defaultdict(
             lambda: defaultdict(dict)
         )
