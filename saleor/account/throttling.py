@@ -24,7 +24,7 @@ def authenticate_with_throttling(request, email, password) -> Optional[models.Us
     if not ip:
         logger.warning("Unknown request's IP address.")
         raise ValidationError(
-            "Can't indentify requester IP address.",
+            "Can't identify requester IP address.",
             code=AccountErrorCode.UNKNOWN_IP_ADDRESS.value,
         )
 
