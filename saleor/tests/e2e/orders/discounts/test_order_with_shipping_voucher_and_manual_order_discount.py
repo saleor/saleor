@@ -46,7 +46,7 @@ def prepare_shipping_voucher(
 
 
 @pytest.mark.e2e
-def test_order_with_shipping_voucher_and_manual_order_discount(
+def test_order_with_shipping_voucher_and_manual_order_discount_CORE_0249(
     e2e_staff_api_client,
     shop_permissions,
     permission_manage_product_types_and_attributes,
