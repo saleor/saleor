@@ -1231,6 +1231,7 @@ def _create_order_from_checkout(
 
     # voucher
     voucher = checkout_info.voucher
+    voucher_code = checkout_info.checkout.voucher_code
 
     # shipping
     undiscounted_base_shipping_price = base_checkout_undiscounted_delivery_price(
@@ -1280,6 +1281,7 @@ def _create_order_from_checkout(
         total=taxed_total,  # money field not supported by mypy_django_plugin
         shipping_tax_rate=shipping_tax_rate,
         voucher=voucher,
+        voucher_code=voucher_code,
         checkout_token=str(checkout_info.checkout.token),
         origin=OrderOrigin.CHECKOUT,
         channel=checkout_info.channel,
