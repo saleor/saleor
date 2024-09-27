@@ -19,12 +19,9 @@ from ...checkout.dataloaders.checkout_infos import (
     CheckoutLinesInfoByCheckoutTokenLoader,
 )
 from ...core.dataloaders import DataLoader
-from ...utils import get_user_or_app_from_context
-from ..subscription_payload import (
-    generate_payload_promise_from_subscription,
-    initialize_request,
-)
+from ..subscription_payload import generate_payload_promise_from_subscription
 from ..utils import get_subscription_query_hash
+from .utils import PayloadsRequestContextByEventTypeLoader
 
 
 class PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(DataLoader):
@@ -54,19 +51,12 @@ class PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(DataLoader):
         )
 
         event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
-        requestor = get_user_or_app_from_context(self.context)
-        request_context = initialize_request(
-            requestor,
-            sync_event=True,
-            allow_replica=False,
-            event_type=event_type,
-        )
         webhooks = get_webhooks_for_event(event_type)
         apps_ids = [webhook.app_id for webhook in webhooks]
 
         @allow_writer_in_context(self.context)
         def generate_payloads(data):
-            checkouts_info, checkout_lines_info, apps = data
+            checkouts_info, checkout_lines_info, apps, request_context = data
             apps_map = {app.id: app for app in apps}
             promises = []
             for checkout_info, lines_info in zip(checkouts_info, checkout_lines_info):
@@ -131,4 +121,9 @@ class PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(DataLoader):
         checkouts_info = CheckoutInfoByCheckoutTokenLoader(self.context).load_many(keys)
         lines = CheckoutLinesInfoByCheckoutTokenLoader(self.context).load_many(keys)
         apps = AppByIdLoader(self.context).load_many(apps_ids)
-        return Promise.all([checkouts_info, lines, apps]).then(generate_payloads)
+        request_context = PayloadsRequestContextByEventTypeLoader(self.context).load(
+            event_type
+        )
+        return Promise.all([checkouts_info, lines, apps, request_context]).then(
+            generate_payloads
+        )

@@ -8,12 +8,11 @@ from ....webhook.utils import get_webhooks_for_event
 from ...app.dataloaders import AppByIdLoader
 from ...checkout.dataloaders.models import CheckoutByTokenLoader
 from ...core.dataloaders import DataLoader
-from ...utils import get_user_or_app_from_context
 from ..subscription_payload import (
     generate_payload_promise_from_subscription,
-    initialize_request,
 )
 from ..utils import get_subscription_query_hash
+from .utils import PayloadsRequestContextByEventTypeLoader
 
 
 class PregeneratedCheckoutFilterShippingMethodPayloadsByCheckoutTokenLoader(DataLoader):
@@ -46,18 +45,11 @@ class PregeneratedCheckoutFilterShippingMethodPayloadsByCheckoutTokenLoader(Data
         )
 
         event_type = WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
-        requestor = get_user_or_app_from_context(self.context)
-        request_context = initialize_request(
-            requestor,
-            sync_event=True,
-            allow_replica=False,
-            event_type=event_type,
-        )
         webhooks = get_webhooks_for_event(event_type)
         apps_ids = [webhook.app_id for webhook in webhooks]
 
         def generate_payloads(data):
-            checkouts, apps = data
+            checkouts, apps, request_context = data
             apps_map = {app.id: app for app in apps}
             promises = []
             for checkout in checkouts:
@@ -95,4 +87,7 @@ class PregeneratedCheckoutFilterShippingMethodPayloadsByCheckoutTokenLoader(Data
 
         checkouts = CheckoutByTokenLoader(self.context).load_many(keys)
         apps = AppByIdLoader(self.context).load_many(apps_ids)
-        return Promise.all([checkouts, apps]).then(generate_payloads)
+        request_context = PayloadsRequestContextByEventTypeLoader(self.context).load(
+            event_type
+        )
+        return Promise.all([checkouts, apps, request_context]).then(generate_payloads)
