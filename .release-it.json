@@ -33,7 +33,9 @@
     ],
     "after:release": [
       "git push origin release-${version}",
-      "gh pr create --base `cat .base_ver_release.txt` --head release-${version} --title \"Release ${version}\" --body '${changelog}' --label release --assignee @me"
+      "npx release-it --changelog > .release_changelog.txt",
+      "gh pr create --base `cat .base_ver_release.txt` --head release-${version} --title \"Release ${version}\" --body-file '.release_changelog.txt' --label release --assignee @me",
+      "rm .release_changelog.txt .base_ver_release.txt"
     ]
   }
 }

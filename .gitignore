@@ -9,6 +9,7 @@
 *.pot
 *.pyc
 local_settings.py
+.release_changelog.txt
 .base_ver_release.txt
 __pycache__/
 build/
