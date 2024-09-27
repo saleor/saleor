@@ -713,10 +713,10 @@ def test_split_manual_discount(
     draft_order_with_fixed_discount_order,
 ):
     # given
-    subtotal = Money(subtotal, currency="USD")
-    shipping = Money(shipping_price, currency="USD")
+    subtotal = Money(Decimal(subtotal), currency="USD")
+    shipping = Money(Decimal(shipping_price), currency="USD")
     discount = draft_order_with_fixed_discount_order.discounts.first()
-    discount.value = value
+    discount.value = Decimal(value)
     discount.value_type = value_type
 
     # when
@@ -725,8 +725,8 @@ def test_split_manual_discount(
     )
 
     # then
-    assert subtotal_discount == Money(subtotal_portion, "USD")
-    assert shipping_discount == Money(shipping_portion, "USD")
+    assert subtotal_discount == Money(Decimal(subtotal_portion), "USD")
+    assert shipping_discount == Money(Decimal(shipping_portion), "USD")
 
 
 def test_discount_info_for_logs(order_with_lines, voucher, order_promotion_with_rule):
