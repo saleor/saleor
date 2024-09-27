@@ -77,6 +77,12 @@ mutation DraftOrderComplete($id: ID!) {
             amount
           }
         }
+        undiscountedTotalPrice {
+          ...BaseTaxedMoney
+        }
+        totalPrice {
+          ...BaseTaxedMoney
+        }
         unitDiscountReason
         unitDiscountType
         unitDiscountValue
