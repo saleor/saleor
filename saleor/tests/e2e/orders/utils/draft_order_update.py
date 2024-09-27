@@ -11,6 +11,7 @@ mutation DraftOrderUpdate($input: DraftOrderInput!, $id: ID!) {
     order {
       id
       lines {
+        id
         totalPrice {
           gross {
             amount
