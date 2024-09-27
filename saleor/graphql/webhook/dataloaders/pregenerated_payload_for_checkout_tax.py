@@ -13,7 +13,6 @@ from ....tax.utils import (
 )
 from ....webhook.event_types import WebhookEventSyncType
 from ....webhook.utils import get_webhooks_for_event
-from ...app.dataloaders import AppByIdLoader
 from ...checkout.dataloaders.checkout_infos import (
     CheckoutInfoByCheckoutTokenLoader,
     CheckoutLinesInfoByCheckoutTokenLoader,
@@ -21,7 +20,7 @@ from ...checkout.dataloaders.checkout_infos import (
 from ...core.dataloaders import DataLoader
 from ..subscription_payload import generate_payload_promise_from_subscription
 from ..utils import get_subscription_query_hash
-from .utils import PayloadsRequestContextByEventTypeLoader
+from .utils import AppByEventTypeLoader, PayloadsRequestContextByEventTypeLoader
 
 
 class PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(DataLoader):
@@ -52,7 +51,6 @@ class PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(DataLoader):
 
         event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
         webhooks = get_webhooks_for_event(event_type)
-        apps_ids = [webhook.app_id for webhook in webhooks]
 
         @allow_writer_in_context(self.context)
         def generate_payloads(data):
@@ -120,7 +118,7 @@ class PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(DataLoader):
 
         checkouts_info = CheckoutInfoByCheckoutTokenLoader(self.context).load_many(keys)
         lines = CheckoutLinesInfoByCheckoutTokenLoader(self.context).load_many(keys)
-        apps = AppByIdLoader(self.context).load_many(apps_ids)
+        apps = AppByEventTypeLoader(self.context).load(event_type)
         request_context = PayloadsRequestContextByEventTypeLoader(self.context).load(
             event_type
         )
