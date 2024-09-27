@@ -18,8 +18,8 @@ def test_should_bulk_update_customers_metadata_core_1513(
     # Step 1 - Create customers
     customer_ids = []
     for i in range(5):
-        email = f"test_{i + 1}@saleor.io"
-        user_data = create_customer(e2e_staff_api_client, email)
+        customer_input = {"email": f"test_{i + 1}@saleor.io"}
+        user_data = create_customer(e2e_staff_api_client, customer_input)
         user_id = user_data["id"]
         customer_ids.append(user_id)
         assert customer_ids is not None

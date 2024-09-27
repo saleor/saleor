@@ -11,6 +11,11 @@ mutation OrderDraftCreate($input: DraftOrderCreateInput!) {
     order {
       id
       created
+      status
+      user {
+        id
+        email
+      }
       discounts {
         amount {
           amount
