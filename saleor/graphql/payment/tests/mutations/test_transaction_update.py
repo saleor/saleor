@@ -8,7 +8,9 @@ from freezegun import freeze_time
 from .....checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from .....checkout.calculations import fetch_checkout_data
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from .....checkout.models import Checkout
 from .....order import OrderAuthorizeStatus, OrderChargeStatus, OrderEvents, OrderStatus
+from .....order.models import Order
 from .....payment import TransactionEventType
 from .....payment.error_codes import TransactionUpdateErrorCode
 from .....payment.models import TransactionEvent, TransactionItem
@@ -2584,9 +2586,11 @@ def test_transaction_update_for_checkout_updates_payment_statuses(
     assert checkout_with_items.authorize_status == CheckoutAuthorizeStatus.PARTIAL
 
 
+@patch("saleor.checkout.complete_checkout.complete_checkout")
 @patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
 def test_transaction_update_for_checkout_fully_paid(
     mocked_checkout_fully_paid,
+    mocked_complete_checkout,
     checkout_with_prices,
     permission_manage_payments,
     app_api_client,
@@ -2609,6 +2613,8 @@ def test_transaction_update_for_checkout_fully_paid(
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
     checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
 
+    assert checkout.channel.automatically_complete_fully_paid_checkouts is False
+
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
@@ -2630,6 +2636,170 @@ def test_transaction_update_for_checkout_fully_paid(
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
 
     mocked_checkout_fully_paid.assert_called_once_with(checkout, webhooks=set())
+    mocked_complete_checkout.assert_not_called()
+
+
+@patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
+def test_transaction_update_for_checkout_fully_paid_automatic_completion(
+    mocked_checkout_fully_paid,
+    checkout_with_prices,
+    permission_manage_payments,
+    app_api_client,
+    transaction_item_generator,
+    app,
+    plugins_manager,
+):
+    # given
+    current_authorized_value = Decimal("1")
+    current_charged_value = Decimal("2")
+    transaction = transaction_item_generator(
+        checkout_id=checkout_with_prices.pk,
+        app=app,
+        authorized_value=current_authorized_value,
+        charged_value=current_charged_value,
+    )
+
+    checkout = checkout_with_prices
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+    checkout_token = checkout.token
+
+    channel = checkout_info.channel
+    channel.automatically_complete_fully_paid_checkouts = True
+    channel.save(update_fields=["automatically_complete_fully_paid_checkouts"])
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "transaction": {
+            "amountCharged": {
+                "amount": checkout_info.checkout.total.gross.amount,
+                "currency": "USD",
+            },
+        },
+    }
+
+    # when
+    app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    with pytest.raises(Checkout.DoesNotExist):
+        checkout.refresh_from_db()
+
+    order = Order.objects.get(checkout_token=checkout_token)
+    assert order.charge_status == CheckoutChargeStatus.FULL
+    assert order.authorize_status == CheckoutAuthorizeStatus.FULL
+
+    mocked_checkout_fully_paid.assert_called_once_with(checkout, webhooks=set())
+
+
+@patch("saleor.checkout.complete_checkout.complete_checkout")
+@patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
+def test_transaction_update_for_checkout_fully_authorized(
+    mocked_checkout_fully_paid,
+    mocked_complete_checkout,
+    checkout_with_prices,
+    permission_manage_payments,
+    app_api_client,
+    transaction_item_generator,
+    app,
+    plugins_manager,
+):
+    # given
+    current_authorized_value = Decimal("1")
+    current_charged_value = Decimal("2")
+    transaction = transaction_item_generator(
+        checkout_id=checkout_with_prices.pk,
+        app=app,
+        authorized_value=current_authorized_value,
+        charged_value=current_charged_value,
+    )
+
+    checkout = checkout_with_prices
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+
+    assert checkout.channel.automatically_complete_fully_paid_checkouts is False
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "transaction": {
+            "amountAuthorized": {
+                "amount": checkout_info.checkout.total.gross.amount,
+                "currency": "USD",
+            },
+        },
+    }
+
+    # when
+    app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    checkout.refresh_from_db()
+    assert checkout.charge_status == CheckoutChargeStatus.PARTIAL
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
+
+    mocked_checkout_fully_paid.assert_not_called()
+    mocked_complete_checkout.assert_not_called()
+
+
+@patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
+def test_transaction_update_for_checkout_fully_authorized_automatic_completion(
+    mocked_checkout_fully_paid,
+    checkout_with_prices,
+    permission_manage_payments,
+    app_api_client,
+    transaction_item_generator,
+    app,
+    plugins_manager,
+):
+    # given
+    current_authorized_value = Decimal("1")
+    transaction = transaction_item_generator(
+        checkout_id=checkout_with_prices.pk,
+        app=app,
+        authorized_value=current_authorized_value,
+    )
+
+    checkout = checkout_with_prices
+    checkout_token = checkout.token
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+
+    channel = checkout_info.channel
+    channel.automatically_complete_fully_paid_checkouts = True
+    channel.save(update_fields=["automatically_complete_fully_paid_checkouts"])
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "transaction": {
+            "amountAuthorized": {
+                "amount": checkout_info.checkout.total.gross.amount,
+                "currency": "USD",
+            },
+        },
+    }
+
+    # when
+    app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    with pytest.raises(Checkout.DoesNotExist):
+        checkout.refresh_from_db()
+
+    order = Order.objects.get(checkout_token=checkout_token)
+    assert order.charge_status == CheckoutChargeStatus.NONE
+    assert order.authorize_status == CheckoutAuthorizeStatus.FULL
+
+    mocked_checkout_fully_paid.assert_not_called()
 
 
 def test_transaction_update_accepts_old_id_for_old_transaction(
