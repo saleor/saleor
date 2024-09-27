@@ -440,7 +440,10 @@ def prepare_line_discount_objects_for_voucher(
         if discounts_to_update := line_info.get_voucher_discounts():
             discount_to_update = discounts_to_update[0]
 
-        if not discount_amount or line.is_gift:
+        # manual line discount do not stack with other line discounts
+        manual_line_discount = line_info.get_manual_line_discount()
+
+        if not discount_amount or line.is_gift or manual_line_discount:
             if discount_to_update:
                 line_discounts_to_remove.append(discount_to_update)
             continue
