@@ -12,7 +12,7 @@ from ..core.utils.events import (
 from ..payment.models import TransactionItem
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..webhook.utils import get_webhooks_for_multiple_events
-from . import CheckoutChargeStatus
+from . import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from .calculations import fetch_checkout_data
 from .fetch import (
     CheckoutInfo,
@@ -24,7 +24,8 @@ from .models import Checkout
 from .payment_utils import update_refundable_for_checkout
 
 if TYPE_CHECKING:
-    from ..account.models import Address
+    from ..account.models import Address, User
+    from ..app.models import App
     from ..webhook.models import Webhook
 
 from ..plugins.manager import PluginsManager
@@ -203,7 +204,11 @@ def update_last_transaction_modified_at_for_checkout(
 def transaction_amounts_for_checkout_updated(
     transaction: TransactionItem,
     manager: "PluginsManager",
+    user: Optional["User"],
+    app: Optional["App"],
 ):
+    from .complete_checkout import complete_checkout
+
     if not transaction.checkout_id:
         return
     checkout = cast(Checkout, transaction.checkout)
@@ -238,4 +243,19 @@ def transaction_amounts_for_checkout_updated(
             event_name=WebhookEventAsyncType.CHECKOUT_FULLY_PAID,
             checkout_info=checkout_info,
             lines=lines,
+        )
+
+    channel = checkout_info.channel
+    if (
+        channel.automatically_complete_paid_checkouts
+        and checkout.authorize_status == CheckoutAuthorizeStatus.FULL
+    ):
+        complete_checkout(
+            manager=manager,
+            checkout_info=checkout_info,
+            lines=lines,
+            payment_data={},
+            store_source=False,
+            user=user,
+            app=app,
         )

@@ -253,6 +253,6 @@ class TransactionUpdate(TransactionCreate):
             )
         if instance.checkout_id and money_data:
             manager = get_plugin_manager_promise(info.context).get()
-            transaction_amounts_for_checkout_updated(instance, manager)
+            transaction_amounts_for_checkout_updated(instance, manager, user, app)
 
         return TransactionUpdate(transaction=instance)

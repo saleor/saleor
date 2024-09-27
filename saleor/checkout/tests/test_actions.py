@@ -24,9 +24,14 @@ from ..calculations import fetch_checkout_data
 from ..fetch import fetch_checkout_info, fetch_checkout_lines
 
 
+@patch("saleor.checkout.complete_checkout.complete_checkout")
 @patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
 def test_transaction_amounts_for_checkout_updated_fully_paid(
-    mocked_fully_paid, checkout_with_items, transaction_item_generator, plugins_manager
+    mocked_fully_paid,
+    mocked_complete_checkout,
+    checkout_with_items,
+    transaction_item_generator,
+    plugins_manager,
 ):
     # given
     checkout = checkout_with_items
@@ -36,9 +41,12 @@ def test_transaction_amounts_for_checkout_updated_fully_paid(
     transaction = transaction_item_generator(
         checkout_id=checkout.pk, charged_value=checkout_info.checkout.total.gross.amount
     )
+    assert checkout_info.channel.automatically_complete_paid_checkouts is False
 
     # when
-    transaction_amounts_for_checkout_updated(transaction, manager=plugins_manager)
+    transaction_amounts_for_checkout_updated(
+        transaction, manager=plugins_manager, user=None, app=None
+    )
 
     # then
     flush_post_commit_hooks()
@@ -46,11 +54,97 @@ def test_transaction_amounts_for_checkout_updated_fully_paid(
     assert checkout.charge_status == CheckoutChargeStatus.FULL
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
     mocked_fully_paid.assert_called_with(checkout, webhooks=set())
+    assert not mocked_complete_checkout.called
 
 
+@patch("saleor.checkout.complete_checkout.complete_checkout")
+@patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
+def test_transaction_amounts_for_checkout_fully_paid_automatic_checkout_complete(
+    mocked_fully_paid,
+    mocked_complete_checkout,
+    checkout_with_items,
+    transaction_item_generator,
+    plugins_manager,
+    app,
+):
+    # given
+    checkout = checkout_with_items
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+    transaction = transaction_item_generator(
+        checkout_id=checkout.pk, charged_value=checkout_info.checkout.total.gross.amount
+    )
+    channel = checkout_info.channel
+    channel.automatically_complete_paid_checkouts = True
+    channel.save(update_fields=["automatically_complete_paid_checkouts"])
+
+    # when
+    transaction_amounts_for_checkout_updated(
+        transaction, manager=plugins_manager, user=None, app=app
+    )
+
+    # then
+    flush_post_commit_hooks()
+    checkout.refresh_from_db()
+    assert checkout.charge_status == CheckoutChargeStatus.FULL
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
+    mocked_fully_paid.assert_called_once_with(checkout, webhooks=set())
+    mocked_complete_checkout.assert_called_once_with(
+        manager=plugins_manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        payment_data={},
+        store_source=False,
+        user=None,
+        app=app,
+    )
+
+
+@patch("saleor.checkout.complete_checkout.complete_checkout")
+@patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
+def test_transaction_amounts_for_checkout_updated_not_fully_paid_no_automatic_complete(
+    mocked_fully_paid,
+    mocked_complete_checkout,
+    checkout_with_items,
+    transaction_item_generator,
+    plugins_manager,
+):
+    # given
+    checkout = checkout_with_items
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+    transaction = transaction_item_generator(
+        checkout_id=checkout.pk,
+        charged_value=checkout_info.checkout.total.gross.amount / 2,
+    )
+    channel = checkout_info.channel
+    channel.automatically_complete_paid_checkouts = True
+    channel.save(update_fields=["automatically_complete_paid_checkouts"])
+
+    # when
+    transaction_amounts_for_checkout_updated(
+        transaction, manager=plugins_manager, user=None, app=None
+    )
+
+    # then
+    flush_post_commit_hooks()
+    checkout.refresh_from_db()
+    assert checkout.charge_status == CheckoutChargeStatus.PARTIAL
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.PARTIAL
+    assert not mocked_fully_paid.called
+    assert not mocked_complete_checkout.called
+
+
+@patch("saleor.checkout.complete_checkout.complete_checkout")
 @patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
 def test_transaction_amounts_for_checkout_updated_with_already_fully_paid(
-    mocked_fully_paid, checkout_with_items, transaction_item_generator, plugins_manager
+    mocked_fully_paid,
+    mocked_complete_checkout,
+    checkout_with_items,
+    transaction_item_generator,
+    plugins_manager,
 ):
     # given
     checkout = checkout_with_items
@@ -60,6 +154,7 @@ def test_transaction_amounts_for_checkout_updated_with_already_fully_paid(
     transaction_item_generator(
         checkout_id=checkout.pk, charged_value=checkout_info.checkout.total.gross.amount
     )
+    assert checkout_info.channel.automatically_complete_paid_checkouts is False
 
     fetch_checkout_data(checkout_info, plugins_manager, lines, force_status_update=True)
 
@@ -68,7 +163,7 @@ def test_transaction_amounts_for_checkout_updated_with_already_fully_paid(
     )
     # when
     transaction_amounts_for_checkout_updated(
-        second_transaction, manager=plugins_manager
+        second_transaction, manager=plugins_manager, user=None, app=None
     )
 
     # then
@@ -77,6 +172,128 @@ def test_transaction_amounts_for_checkout_updated_with_already_fully_paid(
     assert checkout.charge_status == CheckoutChargeStatus.OVERCHARGED
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
     assert not mocked_fully_paid.called
+    assert not mocked_complete_checkout.called
+
+
+@patch("saleor.checkout.complete_checkout.complete_checkout")
+@patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
+def test_transaction_amounts_for_checkout_updated_0_checkout_automatic_complete(
+    mocked_fully_paid,
+    mocked_complete_checkout,
+    checkout_with_item_total_0,
+    transaction_item_generator,
+    plugins_manager,
+    app,
+):
+    # given
+    checkout = checkout_with_item_total_0
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+    transaction = transaction_item_generator(checkout_id=checkout.pk, charged_value=0)
+    channel = checkout_info.channel
+    channel.automatically_complete_paid_checkouts = True
+    channel.save(update_fields=["automatically_complete_paid_checkouts"])
+
+    # when
+    transaction_amounts_for_checkout_updated(
+        transaction, manager=plugins_manager, user=None, app=app
+    )
+
+    # then
+    flush_post_commit_hooks()
+    checkout.refresh_from_db()
+    assert checkout.charge_status == CheckoutChargeStatus.FULL
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
+    mocked_fully_paid.assert_called_with(checkout, webhooks=set())
+    mocked_complete_checkout.assert_called_once_with(
+        manager=plugins_manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        payment_data={},
+        store_source=False,
+        user=None,
+        app=app,
+    )
+
+
+@patch("saleor.checkout.complete_checkout.complete_checkout")
+@patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
+def test_transaction_amounts_for_checkout_updated_fully_authorized(
+    mocked_fully_paid,
+    mocked_complete_checkout,
+    checkout_with_items,
+    transaction_item_generator,
+    plugins_manager,
+):
+    # given
+    checkout = checkout_with_items
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+    transaction = transaction_item_generator(
+        checkout_id=checkout.pk,
+        authorized_value=checkout_info.checkout.total.gross.amount,
+    )
+    assert checkout_info.channel.automatically_complete_paid_checkouts is False
+
+    # when
+    transaction_amounts_for_checkout_updated(
+        transaction, manager=plugins_manager, user=None, app=None
+    )
+
+    # then
+    flush_post_commit_hooks()
+    checkout.refresh_from_db()
+    assert checkout.charge_status == CheckoutChargeStatus.NONE
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
+    assert not mocked_fully_paid.called
+    assert not mocked_complete_checkout.called
+
+
+@patch("saleor.checkout.complete_checkout.complete_checkout")
+@patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
+def test_transaction_amounts_for_checkout_fully_authorized_automatic_checkout_complete(
+    mocked_fully_paid,
+    mocked_complete_checkout,
+    checkout_with_items,
+    transaction_item_generator,
+    plugins_manager,
+    staff_user,
+):
+    # given
+    checkout = checkout_with_items
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+    transaction = transaction_item_generator(
+        checkout_id=checkout.pk,
+        authorized_value=checkout_info.checkout.total.gross.amount,
+    )
+    channel = checkout_info.channel
+    channel.automatically_complete_paid_checkouts = True
+    channel.save(update_fields=["automatically_complete_paid_checkouts"])
+
+    # when
+    transaction_amounts_for_checkout_updated(
+        transaction, manager=plugins_manager, user=staff_user, app=None
+    )
+
+    # then
+    flush_post_commit_hooks()
+    checkout.refresh_from_db()
+    assert checkout.charge_status == CheckoutChargeStatus.NONE
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
+    assert not mocked_fully_paid.called
+    mocked_complete_checkout.assert_called_once_with(
+        manager=plugins_manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        payment_data={},
+        store_source=False,
+        user=staff_user,
+        app=None,
+    )
 
 
 @pytest.mark.parametrize(
@@ -109,7 +326,9 @@ def test_transaction_amounts_for_checkout_updated_updates_last_transaction_modif
     )
 
     # when
-    transaction_amounts_for_checkout_updated(transaction, manager=plugins_manager)
+    transaction_amounts_for_checkout_updated(
+        transaction, manager=plugins_manager, user=None, app=None
+    )
 
     # then
     flush_post_commit_hooks()
@@ -138,7 +357,9 @@ def test_get_checkout_refundable_with_transaction_and_last_refund_success(
     )
 
     # when
-    transaction_amounts_for_checkout_updated(transaction, manager=plugins_manager)
+    transaction_amounts_for_checkout_updated(
+        transaction, manager=plugins_manager, user=None, app=None
+    )
 
     # then
     checkout.refresh_from_db()
@@ -167,7 +388,9 @@ def test_get_checkout_refundable_with_transaction_and_last_refund_failure(
     )
 
     # when
-    transaction_amounts_for_checkout_updated(transaction, manager=plugins_manager)
+    transaction_amounts_for_checkout_updated(
+        transaction, manager=plugins_manager, user=None, app=None
+    )
 
     # then
     checkout.refresh_from_db()
@@ -196,7 +419,9 @@ def test_get_checkout_refundable_with_transaction_without_funds(
     )
 
     # when
-    transaction_amounts_for_checkout_updated(transaction, manager=plugins_manager)
+    transaction_amounts_for_checkout_updated(
+        transaction, manager=plugins_manager, user=None, app=None
+    )
 
     # then
     checkout.refresh_from_db()
@@ -226,7 +451,9 @@ def test_get_checkout_refundable_with_multiple_transactions_without_funds(
     transaction_item_generator(checkout_id=checkout.pk, charged_value=Decimal(0))
 
     # when
-    transaction_amounts_for_checkout_updated(first_transaction, manager=plugins_manager)
+    transaction_amounts_for_checkout_updated(
+        first_transaction, manager=plugins_manager, user=None, app=None
+    )
 
     # then
     checkout.refresh_from_db()
@@ -258,7 +485,9 @@ def test_get_checkout_refundable_with_multiple_transactions_with_failure_refund(
     )
 
     # when
-    transaction_amounts_for_checkout_updated(first_transaction, manager=plugins_manager)
+    transaction_amounts_for_checkout_updated(
+        first_transaction, manager=plugins_manager, app=None, user=None
+    )
 
     # then
     checkout.refresh_from_db()
@@ -293,7 +522,9 @@ def test_get_checkout_refundable_with_multiple_active_transactions(
     )
 
     # when
-    transaction_amounts_for_checkout_updated(first_transaction, manager=plugins_manager)
+    transaction_amounts_for_checkout_updated(
+        first_transaction, manager=plugins_manager, user=None, app=None
+    )
 
     # then
     checkout.refresh_from_db()
@@ -970,7 +1201,9 @@ def test_transaction_amounts_for_checkout_fully_paid_triggers_sync_webhook(
 
     # when
     with django_capture_on_commit_callbacks(execute=True):
-        transaction_amounts_for_checkout_updated(transaction, manager=plugins_manager)
+        transaction_amounts_for_checkout_updated(
+            transaction, manager=plugins_manager, user=None, app=None
+        )
 
     # then
 
