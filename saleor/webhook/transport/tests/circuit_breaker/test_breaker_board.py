@@ -6,7 +6,13 @@ from saleor.webhook.transport.synchronous.circuit_breaker.storage import InMemor
 
 
 def test_breaker_board_failure(app_with_webhook, failed_response_function_mock):
-    breaker_board = BreakerBoard(storage=InMemoryStorage(), failure_threshold=1)
+    breaker_board = BreakerBoard(
+        storage=InMemoryStorage(),
+        failure_threshold=1,
+        failure_min_count=0,
+        cooldown_seconds=10,
+        ttl=10,
+    )
     app, webhook = app_with_webhook
 
     assert (
@@ -32,7 +38,13 @@ def test_breaker_board_failure(app_with_webhook, failed_response_function_mock):
 def test_breaker_board_failure_ignored_webhook_event_type(
     app_with_webhook, failed_response_function_mock
 ):
-    breaker_board = BreakerBoard(storage=InMemoryStorage(), failure_threshold=1)
+    breaker_board = BreakerBoard(
+        storage=InMemoryStorage(),
+        failure_threshold=1,
+        failure_min_count=0,
+        cooldown_seconds=10,
+        ttl=10,
+    )
     app, webhook = app_with_webhook
 
     assert WebhookEventSyncType.PAYMENT_CAPTURE not in breaker_board.webhook_event_types
@@ -49,7 +61,13 @@ def test_breaker_board_failure_ignored_webhook_event_type(
 
 
 def test_breaker_board_success(app_with_webhook, success_response_function_mock):
-    breaker_board = BreakerBoard(storage=InMemoryStorage(), failure_threshold=1)
+    breaker_board = BreakerBoard(
+        storage=InMemoryStorage(),
+        failure_threshold=1,
+        failure_min_count=0,
+        cooldown_seconds=10,
+        ttl=10,
+    )
     app, webhook = app_with_webhook
 
     assert (
