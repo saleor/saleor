@@ -1,5 +1,6 @@
 import itertools
 import uuid
+from collections import defaultdict
 from collections.abc import Iterable
 from typing import (
     TYPE_CHECKING,
@@ -10,8 +11,16 @@ from typing import (
     cast,
 )
 
+from django.contrib.postgres.indexes import BTreeIndex
 from django.db import models
-from django.db.models import Count, Exists, F, OuterRef, Prefetch, Q, Sum
+from django.db.models import (
+    Exists,
+    F,
+    OuterRef,
+    Prefetch,
+    Q,
+    Sum,
+)
 from django.db.models.expressions import Subquery
 from django.db.models.functions import Coalesce
 from django.db.models.query import QuerySet
@@ -33,9 +42,16 @@ if TYPE_CHECKING:
     class WithAvailableQuantity(TypedDict):
         available_quantity: int
 
+    class WithTotalAvailableQuantity(TypedDict):
+        available_quantity: int
+
     StockWithAvailableQuantity = WithAnnotations["Stock", WithAvailableQuantity]
+    StockWithTotalAvailableQuantity = WithAnnotations[
+        "Stock", WithTotalAvailableQuantity
+    ]
 else:
     StockWithAvailableQuantity = "Stock"
+    StockWithTotalAvailableQuantity = "Stock"
 
 
 class WarehouseQueryset(models.QuerySet["Warehouse"]):
@@ -95,11 +111,37 @@ class WarehouseQueryset(models.QuerySet["Warehouse"]):
         ):
             return self._for_channel_click_and_collect(channel_id)
 
+        warehouses_for_channel = self.for_channel(channel_id)
         stocks_qs = Stock.objects.filter(
-            product_variant__id__in=lines_qs.values("variant_id"),
-        ).select_related("product_variant")
+            product_variant_id__in=lines_qs.values("variant_id"),
+        ).order_by()
+        warehouses_with_stock_available = (
+            warehouses_for_channel._cc_points_for_stocks(stocks_qs)
+            .order_by()
+            .only("id")
+        )
 
-        return self._for_channel_lines_and_stocks(lines_qs, stocks_qs, channel_id)
+        number_of_variants = len(
+            set(lines_qs.order_by().values_list("variant_id", flat=True))
+        )
+        # Find out warehouses that can cover the order from a single warehouse
+        warehouse_ids = []
+        for warehouse in warehouses_with_stock_available:
+            # the `warehouses_with_stock_available` contains prefetched stocks
+            # that contains only stocks for the given variants (from the `stocks_qs`)
+            if warehouse.stock_set.count() == number_of_variants:
+                warehouse_ids.append(warehouse.id)
+
+        lookup = Q(id__in=warehouse_ids)
+        # if the stocks can cover the all variants, all C&C warehouses with
+        # `ALL_WAREHOUSES` option should be returned, as there is an option
+        # to ship the products to this point from another warehouse
+        stocks_count = len(set(stocks_qs.values_list("product_variant_id", flat=True)))
+        if stocks_count == number_of_variants:
+            lookup |= Q(
+                click_and_collect_option=WarehouseClickAndCollectOption.ALL_WAREHOUSES
+            )
+        return warehouses_for_channel.filter(lookup)
 
     def applicable_for_click_and_collect(
         self,
@@ -109,59 +151,87 @@ class WarehouseQueryset(models.QuerySet["Warehouse"]):
         """Return Warehouses which support click and collect.
 
         Note additional check of stocks quantity for given `CheckoutLine`s.
-        For `WarehouseClickAndCollect.LOCAL` all `CheckoutLine`s must be available from
-        a single warehouse.
+
+        For WarehouseClickAndCollect.LOCAL, all CheckoutLine items must be available for
+        collection from a single warehouse.
+        For WarehouseClickAndCollect.ALL, each CheckoutLine item must be available
+        for collection from any warehouse. Variants may be collected from different
+        warehouses, and the quantity of a single variant can be split across multiple
+        warehouses.
         """
+        warehouse_cc_option_enum = WarehouseClickAndCollectOption
         if all(
             line.variant.is_preorder_active() if line.variant else False
             for line in lines_qs.select_related("variant").only("variant_id")
         ):
             return self._for_channel_click_and_collect(channel_id)
 
-        lines_quantity = (
-            lines_qs.filter(variant_id=OuterRef("product_variant_id"))
-            .order_by("variant_id")
-            .values("variant_id")
-            .annotate(prod_sum=Sum("quantity"))
-            .values("prod_sum")
-        )
+        # prepare the mapping of variant_id to total quantity of this variant
+        # in the order
+        line_variant_id_to_total_qty: dict[Optional[int], int] = defaultdict(int)
+        for line in lines_qs:
+            line_variant_id_to_total_qty[line.variant_id] += line.quantity
 
+        number_of_variants = len(line_variant_id_to_total_qty)
+        warehouses_for_channel = self.for_channel(channel_id)
+
+        # Fetch the stocks for the variants in the order
         stocks_qs = (
             Stock.objects.using(self.db)
+            .filter(Exists(lines_qs.filter(variant_id=OuterRef("product_variant_id"))))
             .annotate_available_quantity()
-            .annotate(line_quantity=F("available_quantity") - Subquery(lines_quantity))
-            .order_by("line_quantity")
-            .filter(
-                product_variant__id__in=lines_qs.values("variant_id"),
-                line_quantity__gte=0,
+        )
+
+        stock_ids = []
+        variant_id_to_total_stock_qty: dict[Optional[int], int] = defaultdict(int)
+        # Filter out the stocks that have enough quantity to fulfill the order
+        # Prepare the mapping of variant_id to the sum of total available quantity of
+        # the given variant from all stocks
+        for stock in stocks_qs:
+            if (
+                stock.available_quantity
+                >= line_variant_id_to_total_qty[stock.product_variant_id]
+            ):
+                stock_ids.append(stock.id)
+            variant_id_to_total_stock_qty[stock.product_variant_id] += (
+                stock.available_quantity
             )
-            .select_related("product_variant")
-        )
 
-        return self._for_channel_lines_and_stocks(lines_qs, stocks_qs, channel_id)
+        if stock_ids:
+            # Find out warehouses that can cover the order from a single warehouse
+            stocks = Stock.objects.filter(id__in=stock_ids)
+            warehouses = warehouses_for_channel._cc_points_for_stocks(stocks).only("id")
+            warehouse_ids = []
+            for warehouse in warehouses:
+                if warehouse.stock_set.count() == number_of_variants:
+                    warehouse_ids.append(warehouse.id)
 
-    def _for_channel_lines_and_stocks(
-        self,
-        lines_qs: Union[QuerySet[CheckoutLine], QuerySet[OrderLine]],
-        stocks_qs: QuerySet["Stock"],
-        channel_id: int,
-    ) -> QuerySet["Warehouse"]:
-        warehouse_cc_option_enum = WarehouseClickAndCollectOption
+            # if there is any valid local warehouse it means that it is possible
+            # to ship products to any warehouse with `all warehouses` option
+            if warehouse_ids:
+                return warehouses_for_channel.filter(
+                    Q(id__in=warehouse_ids)
+                    | Q(
+                        click_and_collect_option=warehouse_cc_option_enum.ALL_WAREHOUSES
+                    )
+                )
 
-        number_of_variants = (
-            lines_qs.order_by("variant_id").distinct("variant_id").count()
-        )
+        # Check if the ordered line quantities can be fulfilled using stock from
+        # different warehouses.
+        if len(variant_id_to_total_stock_qty) == number_of_variants and all(
+            variant_id_to_total_stock_qty[variant_id] >= variant_total_qty
+            for variant_id, variant_total_qty in line_variant_id_to_total_qty.items()
+        ):
+            return warehouses_for_channel.filter(
+                click_and_collect_option=warehouse_cc_option_enum.ALL_WAREHOUSES
+            )
+        return self.none()
 
+    def _cc_points_for_stocks(self, stocks_qs: QuerySet["Stock"]):
         return (
-            self.for_channel(channel_id)
+            self.filter(Exists(stocks_qs.filter(warehouse_id=OuterRef("id"))))
+            .exclude(click_and_collect_option=WarehouseClickAndCollectOption.DISABLED)
             .prefetch_related(Prefetch("stock_set", queryset=stocks_qs))
-            .filter(stock__in=stocks_qs)
-            .annotate(stock_num=Count("stock__id", distinct=True))
-            .filter(
-                Q(stock_num=number_of_variants)
-                & Q(click_and_collect_option=warehouse_cc_option_enum.LOCAL_STOCK)
-                | Q(click_and_collect_option=warehouse_cc_option_enum.ALL_WAREHOUSES)
-            )
         )
 
     def _for_channel_click_and_collect(self, channel_id: int) -> QuerySet["Warehouse"]:
@@ -215,6 +285,13 @@ class Warehouse(ModelWithMetadata, ModelWithExternalReference):
 
     class Meta(ModelWithMetadata.Meta):
         ordering = ("-slug",)
+        indexes = [
+            *ModelWithMetadata.Meta.indexes,
+            BTreeIndex(  # type: ignore
+                name="click_and_collect_option_idx",
+                fields=["click_and_collect_option"],
+            ),
+        ]
 
     def __str__(self):
         return self.name
@@ -232,15 +309,18 @@ class Warehouse(ModelWithMetadata, ModelWithExternalReference):
 
 class StockQuerySet(models.QuerySet["Stock"]):
     def annotate_available_quantity(self) -> QuerySet[StockWithAvailableQuantity]:
+        allocation_quantity = (
+            Allocation.objects.filter(stock_id=OuterRef("id"))
+            .values("stock_id")
+            .annotate(total_allocated_quantity=Sum("quantity_allocated"))
+            .values("total_allocated_quantity")
+        )
         return cast(
             QuerySet[StockWithAvailableQuantity],
             self.annotate(
                 available_quantity=F("quantity")
                 - Coalesce(
-                    Sum(
-                        "allocations__quantity_allocated",
-                        filter=Q(allocations__quantity_allocated__gt=0),
-                    ),
+                    Subquery(allocation_quantity),
                     0,
                 )
             ),
