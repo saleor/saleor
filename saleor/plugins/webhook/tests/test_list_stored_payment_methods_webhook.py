@@ -3,7 +3,6 @@ from unittest import mock
 
 import graphene
 
-from ....core.models import EventDelivery
 from ....payment.interface import ListStoredPaymentMethodsRequestData
 from ....settings import WEBHOOK_SYNC_TIMEOUT
 from ....webhook.const import WEBHOOK_CACHE_DEFAULT_TIMEOUT

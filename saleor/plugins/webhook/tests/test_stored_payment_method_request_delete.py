@@ -4,7 +4,6 @@ from unittest import mock
 import graphene
 import pytest
 
-from ....core.models import EventDelivery
 from ....payment.interface import (
     ListStoredPaymentMethodsRequestData,
     StoredPaymentMethodRequestDeleteData,
@@ -450,7 +449,10 @@ def test_stored_payment_method_request_delete_invalidates_cache_for_app(
     # TODO (PE-371): Assert EventDelivery DB object wasn't created
 
     delivery = mocked_request.mock_calls[-1].args[0]
-    assert delivery.event_type==WebhookEventSyncType.STORED_PAYMENT_METHOD_DELETE_REQUESTED
+    assert (
+        delivery.event_type
+        == WebhookEventSyncType.STORED_PAYMENT_METHOD_DELETE_REQUESTED
+    )
     assert delivery.payload.get_payload() == json.dumps(
         {
             "user": {"id": graphene.Node.to_global_id("User", customer_user.pk)},

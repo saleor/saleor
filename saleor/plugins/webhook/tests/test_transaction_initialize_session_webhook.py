@@ -122,7 +122,7 @@ def _assert_fields(payload, webhook, expected_response, response, mock_request):
     webhook_app = webhook.app
     mock_request.assert_called_once()
     # TODO (PE-371): Assert EventDelivery DB object wasn't created
-    
+
     delivery = mock_request.mock_calls[0].args[0]
 
     assert json.loads(delivery.payload.get_payload()) == payload

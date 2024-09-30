@@ -3,7 +3,6 @@ from unittest import mock
 import pytest
 
 from ...core import EventDeliveryStatus
-from ...core.models import EventDelivery, EventPayload
 from ..event_types import WebhookEventSyncType
 from ..models import Webhook, WebhookEvent
 from ..transport.synchronous import trigger_all_webhooks_sync
@@ -112,9 +111,7 @@ def test_trigger_tax_webhook_sync_multiple_webhooks_last(
     assert mock_request.call_count == 3
     # TODO (PE-371): Assert EventDelivery DB object wasn't created
 
-    for call, webhook in zip(
-        mock_request.mock_calls, tax_checkout_webhooks
-    ):
+    for call, webhook in zip(mock_request.mock_calls, tax_checkout_webhooks):
         delivery = call.args[0]
         assert delivery.status == EventDeliveryStatus.PENDING
         assert delivery.event_type == event_type

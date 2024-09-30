@@ -4,7 +4,6 @@ from unittest import mock
 import graphene
 import pytest
 
-from ....core.models import EventDelivery
 from ....payment import TokenizedPaymentFlow
 from ....payment.interface import (
     ListStoredPaymentMethodsRequestData,
@@ -509,7 +508,10 @@ def test_expected_result_invalidates_cache_for_app(
     # TODO (PE-371): Assert EventDelivery DB object wasn't created
 
     delivery = mocked_request.mock_calls[-1].args[0]
-    assert delivery.event_type==WebhookEventSyncType.PAYMENT_METHOD_INITIALIZE_TOKENIZATION_SESSION
+    assert (
+        delivery.event_type
+        == WebhookEventSyncType.PAYMENT_METHOD_INITIALIZE_TOKENIZATION_SESSION
+    )
     assert json.loads(delivery.payload.get_payload()) == {
         "user": {"id": graphene.Node.to_global_id("User", customer_user.pk)},
         "data": expected_data,

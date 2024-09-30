@@ -5,7 +5,6 @@ from unittest.mock import call
 import graphene
 import pytest
 
-from ....core.models import EventDelivery
 from ....graphql.tests.utils import get_graphql_content
 from ....order import OrderStatus
 from ....webhook.const import CACHE_EXCLUDED_SHIPPING_TIME

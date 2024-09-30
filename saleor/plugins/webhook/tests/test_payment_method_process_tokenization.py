@@ -4,7 +4,6 @@ from unittest import mock
 import graphene
 import pytest
 
-from ....core.models import EventDelivery
 from ....payment.interface import (
     ListStoredPaymentMethodsRequestData,
     PaymentMethodProcessTokenizationRequestData,

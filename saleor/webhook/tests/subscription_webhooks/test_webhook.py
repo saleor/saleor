@@ -82,4 +82,3 @@ def test_trigger_webhook_sync_with_subscription(
 
     delivery = mock_request.mock_calls[0].args[0]
     assert json.loads(delivery.payload.get_payload()) == expected_payment_payload
-
