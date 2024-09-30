@@ -1189,6 +1189,7 @@ CHANNEL_UPDATE_MUTATION_WITH_CHECKOUT_SETTINGS = """
                 currencyCode
                 checkoutSettings {
                     useLegacyErrorFlow
+                    automaticallyCompleteFullyPaidCheckouts
                 }
             }
             errors{
@@ -1203,15 +1204,21 @@ CHANNEL_UPDATE_MUTATION_WITH_CHECKOUT_SETTINGS = """
 """
 
 
-def test_channel_update_set_checkout_use_legacy_error_flow(
+def test_channel_update_channel_settings(
     permission_manage_channels, staff_api_client, channel_USD
 ):
     # given
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    use_legacy_error_flow = False
+    automatically_complete_fully_paid_checkouts = True
+
     variables = {
         "id": channel_id,
         "input": {
-            "checkoutSettings": {"useLegacyErrorFlow": False},
+            "checkoutSettings": {
+                "useLegacyErrorFlow": use_legacy_error_flow,
+                "automaticallyCompleteFullyPaidCheckouts": automatically_complete_fully_paid_checkouts,
+            },
         },
     }
 
@@ -1227,20 +1234,36 @@ def test_channel_update_set_checkout_use_legacy_error_flow(
     data = content["data"]["channelUpdate"]
     assert not data["errors"]
     channel_data = data["channel"]
+    assert (
+        channel_data["checkoutSettings"]["useLegacyErrorFlow"] == use_legacy_error_flow
+    )
+    assert (
+        channel_data["checkoutSettings"]["automaticallyCompleteFullyPaidCheckouts"]
+        == automatically_complete_fully_paid_checkouts
+    )
     channel_USD.refresh_from_db()
-    assert channel_data["checkoutSettings"]["useLegacyErrorFlow"] is False
-    assert channel_USD.use_legacy_error_flow_for_checkout is False
+    assert channel_USD.use_legacy_error_flow_for_checkout == use_legacy_error_flow
+    assert (
+        channel_USD.automatically_complete_fully_paid_checkouts
+        == automatically_complete_fully_paid_checkouts
+    )
 
 
-def test_channel_update_set_checkout_use_legacy_error_flow_with_checkout_permission(
+def test_channel_update_channel_settings_with_checkout_permission(
     permission_manage_checkouts, staff_api_client, channel_USD
 ):
     # given
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    use_legacy_error_flow = False
+    automatically_complete_fully_paid_checkouts = True
+
     variables = {
         "id": channel_id,
         "input": {
-            "checkoutSettings": {"useLegacyErrorFlow": False},
+            "checkoutSettings": {
+                "useLegacyErrorFlow": use_legacy_error_flow,
+                "automaticallyCompleteFullyPaidCheckouts": automatically_complete_fully_paid_checkouts,
+            },
         },
     }
 
@@ -1256,12 +1279,22 @@ def test_channel_update_set_checkout_use_legacy_error_flow_with_checkout_permiss
     data = content["data"]["channelUpdate"]
     assert not data["errors"]
     channel_data = data["channel"]
+    assert (
+        channel_data["checkoutSettings"]["useLegacyErrorFlow"] == use_legacy_error_flow
+    )
+    assert (
+        channel_data["checkoutSettings"]["automaticallyCompleteFullyPaidCheckouts"]
+        == automatically_complete_fully_paid_checkouts
+    )
     channel_USD.refresh_from_db()
-    assert channel_data["checkoutSettings"]["useLegacyErrorFlow"] is False
-    assert channel_USD.use_legacy_error_flow_for_checkout is False
+    assert channel_USD.use_legacy_error_flow_for_checkout == use_legacy_error_flow
+    assert (
+        channel_USD.automatically_complete_fully_paid_checkouts
+        == automatically_complete_fully_paid_checkouts
+    )
 
 
-def test_channel_update_set_checkout_use_legacy_error_flow_without_permission(
+def test_channel_update_channel_settings_without_permission(
     staff_api_client, channel_USD
 ):
     # given
@@ -1269,7 +1302,10 @@ def test_channel_update_set_checkout_use_legacy_error_flow_without_permission(
     variables = {
         "id": channel_id,
         "input": {
-            "checkoutSettings": {"useLegacyErrorFlow": False},
+            "checkoutSettings": {
+                "useLegacyErrorFlow": False,
+                "automaticallyCompleteFullyPaidCheckouts": True,
+            },
         },
     }
 
