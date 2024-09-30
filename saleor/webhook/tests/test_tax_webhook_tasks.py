@@ -55,14 +55,15 @@ def test_trigger_tax_webhook_sync(
     tax_data = trigger_all_webhooks_sync(event_type, lambda: data, parse_tax_data)
 
     # then
-    payload = EventPayload.objects.get()
-    assert payload.get_payload() == data
-    delivery = EventDelivery.objects.get()
+    mock_request.assert_called_once()
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+
+    delivery = mock_request.mock_calls[0].args[0]
+
+    assert delivery.payload.get_payload() == data
     assert delivery.status == EventDeliveryStatus.PENDING
     assert delivery.event_type == event_type
-    assert delivery.payload == payload
     assert delivery.webhook == webhook
-    mock_request.assert_called_once_with(delivery)
     assert tax_data == parse_tax_data(tax_data_response)
 
 
@@ -82,15 +83,14 @@ def test_trigger_tax_webhook_sync_multiple_webhooks_first(
 
     # then
     successful_webhook = tax_checkout_webhooks[0]
+    mock_request.assert_called_once()
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
 
-    payload = EventPayload.objects.get()
-    assert payload.get_payload() == data
-    delivery = EventDelivery.objects.order_by("pk").first()
+    delivery = mock_request.mock_calls[0].args[0]
+    assert delivery.payload.get_payload() == data
     assert delivery.status == EventDeliveryStatus.PENDING
     assert delivery.event_type == event_type
-    assert delivery.payload == payload
     assert delivery.webhook == successful_webhook
-    mock_request.assert_called_once_with(delivery)
     assert tax_data == parse_tax_data(tax_data_response)
 
 
@@ -109,20 +109,18 @@ def test_trigger_tax_webhook_sync_multiple_webhooks_last(
     tax_data = trigger_all_webhooks_sync(event_type, lambda: data, parse_tax_data)
 
     # then
+    assert mock_request.call_count == 3
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
 
-    payload = EventPayload.objects.get()
-    assert payload.get_payload() == data
-    deliveries = list(EventDelivery.objects.order_by("pk"))
-    for call, delivery, webhook in zip(
-        mock_request.call_args_list, deliveries, tax_checkout_webhooks
+    for call, webhook in zip(
+        mock_request.mock_calls, tax_checkout_webhooks
     ):
+        delivery = call.args[0]
         assert delivery.status == EventDeliveryStatus.PENDING
         assert delivery.event_type == event_type
-        assert delivery.payload == payload
+        assert delivery.payload.get_payload() == data
         assert delivery.webhook == webhook
-        assert call[0] == (delivery,)
 
-    assert mock_request.call_count == 3
     assert tax_data == parse_tax_data(tax_data_response)
 
 
