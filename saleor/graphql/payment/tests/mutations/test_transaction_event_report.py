@@ -42,6 +42,14 @@ fragment TransactionEventData on TransactionEventReport {
                 id
             }
         }
+        metadata {
+            key
+            value
+        }
+        privateMetadata {
+            key
+            value
+        }
     }
     transactionEvent {
         id
@@ -2465,3 +2473,223 @@ def test_transaction_event_report_missing_amount_error_raised(
     assert len(errors) == 1
     assert errors[0]["field"] == "amount"
     assert errors[0]["code"] == TransactionEventReportErrorCode.REQUIRED.name
+
+
+@patch("saleor.plugins.manager.PluginsManager.transaction_item_metadata_updated")
+def test_transaction_event_report_update_transaction_metadata(
+    transaction_item_metadata_updated_mock,
+    transaction_item_generator,
+    app_api_client,
+    permission_manage_payments,
+):
+    # given
+    transaction = transaction_item_generator(
+        app=app_api_client.app, authorized_value=Decimal("10")
+    )
+    psp_reference = "111-abc"
+    amount = Decimal("11.00")
+    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
+    metadata = {"key": "test key", "value": "test value"}
+    variables = {
+        "id": transaction_id,
+        "type": TransactionEventTypeEnum.CHARGE_SUCCESS.name,
+        "amount": amount,
+        "pspReference": psp_reference,
+        "transactionMetadata": [metadata],
+    }
+    query = (
+        MUTATION_DATA_FRAGMENT
+        + """
+    mutation TransactionEventReport(
+        $id: ID
+        $type: TransactionEventTypeEnum!
+        $amount: PositiveDecimal!
+        $pspReference: String!
+        $transactionMetadata: [MetadataInput!]
+    ) {
+        transactionEventReport(
+            id: $id
+            type: $type
+            amount: $amount
+            pspReference: $pspReference
+            transactionMetadata: $transactionMetadata
+        ) {
+            ...TransactionEventData
+        }
+    }
+    """
+    )
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    response = get_graphql_content(response)
+    transaction_report_data = response["data"]["transactionEventReport"]
+    assert transaction_report_data["alreadyProcessed"] is False
+
+    transaction_data = transaction_report_data["transaction"]
+    assert len(transaction_data["metadata"]) == 1
+    assert transaction_data["metadata"][0] == metadata
+
+    event = TransactionEvent.objects.filter(
+        type=TransactionEventType.CHARGE_SUCCESS
+    ).first()
+    assert event
+    assert event.psp_reference == psp_reference
+    assert event.type == TransactionEventTypeEnum.CHARGE_SUCCESS.value
+    assert event.amount_value == amount
+    assert event.currency == transaction.currency
+    assert event.transaction == transaction
+    assert event.app_identifier == app_api_client.app.identifier
+    assert event.app == app_api_client.app
+    assert event.user is None
+    transaction_item_metadata_updated_mock.assert_called_once_with(transaction)
+
+
+@patch("saleor.plugins.manager.PluginsManager.transaction_item_metadata_updated")
+def test_transaction_event_report_metadata_not_provided(
+    transaction_item_metadata_updated_mock,
+    transaction_item_generator,
+    app_api_client,
+    permission_manage_payments,
+):
+    # given
+    transaction = transaction_item_generator(
+        app=app_api_client.app, authorized_value=Decimal("10")
+    )
+    psp_reference = "111-abc"
+    amount = Decimal("11.00")
+    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
+    variables = {
+        "id": transaction_id,
+        "type": TransactionEventTypeEnum.CHARGE_SUCCESS.name,
+        "amount": amount,
+        "pspReference": psp_reference,
+        "transactionMetadata": [],
+        "transactionPrivateMetadata": [],
+    }
+    query = (
+        MUTATION_DATA_FRAGMENT
+        + """
+    mutation TransactionEventReport(
+        $id: ID
+        $type: TransactionEventTypeEnum!
+        $amount: PositiveDecimal!
+        $pspReference: String!
+        $transactionMetadata: [MetadataInput!]
+        $transactionPrivateMetadata: [MetadataInput!]
+    ) {
+        transactionEventReport(
+            id: $id
+            type: $type
+            amount: $amount
+            pspReference: $pspReference
+            transactionMetadata: $transactionMetadata
+            transactionPrivateMetadata: $transactionPrivateMetadata
+        ) {
+            ...TransactionEventData
+        }
+    }
+    """
+    )
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    response = get_graphql_content(response)
+    transaction_report_data = response["data"]["transactionEventReport"]
+    assert transaction_report_data["alreadyProcessed"] is False
+
+    transaction_data = transaction_report_data["transaction"]
+    assert len(transaction_data["metadata"]) == 0
+
+    event = TransactionEvent.objects.filter(
+        type=TransactionEventType.CHARGE_SUCCESS
+    ).first()
+    assert event
+    assert event.psp_reference == psp_reference
+    assert event.type == TransactionEventTypeEnum.CHARGE_SUCCESS.value
+    assert event.amount_value == amount
+    assert event.currency == transaction.currency
+    assert event.transaction == transaction
+    assert event.app_identifier == app_api_client.app.identifier
+    assert event.app == app_api_client.app
+    assert event.user is None
+    transaction_item_metadata_updated_mock.assert_not_called()
+
+
+@patch("saleor.plugins.manager.PluginsManager.transaction_item_metadata_updated")
+def test_transaction_event_report_update_transaction_private_metadata(
+    transaction_item_metadata_updated_mock,
+    transaction_item_generator,
+    app_api_client,
+    permission_manage_payments,
+):
+    # given
+    transaction = transaction_item_generator(
+        app=app_api_client.app, authorized_value=Decimal("10")
+    )
+    psp_reference = "111-abc"
+    amount = Decimal("11.00")
+    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
+    private_metadata = {"key": "test key", "value": "test value"}
+    variables = {
+        "id": transaction_id,
+        "type": TransactionEventTypeEnum.CHARGE_SUCCESS.name,
+        "amount": amount,
+        "pspReference": psp_reference,
+        "transactionPrivateMetadata": [private_metadata],
+    }
+    query = (
+        MUTATION_DATA_FRAGMENT
+        + """
+    mutation TransactionEventReport(
+        $id: ID
+        $type: TransactionEventTypeEnum!
+        $amount: PositiveDecimal!
+        $pspReference: String!
+        $transactionPrivateMetadata: [MetadataInput!]
+    ) {
+        transactionEventReport(
+            id: $id
+            type: $type
+            amount: $amount
+            pspReference: $pspReference
+            transactionPrivateMetadata: $transactionPrivateMetadata
+        ) {
+            ...TransactionEventData
+        }
+    }
+    """
+    )
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    response = get_graphql_content(response)
+    transaction_report_data = response["data"]["transactionEventReport"]
+    assert transaction_report_data["alreadyProcessed"] is False
+
+    transaction_data = transaction_report_data["transaction"]
+    assert len(transaction_data["privateMetadata"]) == 1
+    assert transaction_data["privateMetadata"][0] == private_metadata
+
+    event = TransactionEvent.objects.filter(
+        type=TransactionEventType.CHARGE_SUCCESS
+    ).first()
+    assert event
+    assert event.psp_reference == psp_reference
+    assert event.type == TransactionEventTypeEnum.CHARGE_SUCCESS.value
+    assert event.amount_value == amount
+    assert event.currency == transaction.currency
+    assert event.transaction == transaction
+    assert event.app_identifier == app_api_client.app.identifier
+    assert event.app == app_api_client.app
+    assert event.user is None
+    transaction_item_metadata_updated_mock.assert_not_called()
