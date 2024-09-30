@@ -32,6 +32,7 @@ from ..discount.utils import (
     create_checkout_discount_objects_for_order_promotions,
     create_checkout_line_discount_objects_for_catalogue_promotions,
     delete_gift_line,
+    discount_info_for_logs,
     get_discounted_lines,
     get_products_voucher_discount,
     get_voucher_code_instance,
@@ -451,7 +452,7 @@ def get_prices_of_discounted_specific_product(
     product to child category won't work.
     """
     voucher_info = fetch_voucher_info(voucher)
-    discounted_lines: Iterable["LineInfo"] = get_discounted_lines(lines, voucher_info)
+    discounted_lines: Iterable[LineInfo] = get_discounted_lines(lines, voucher_info)
     line_prices = get_base_lines_prices(discounted_lines)
 
     return line_prices
@@ -1020,3 +1021,63 @@ def get_address_for_checkout_taxes(
 ) -> Optional["Address"]:
     shipping_address = checkout_info.delivery_method_info.shipping_address
     return shipping_address or checkout_info.billing_address
+
+
+def checkout_info_for_logs(
+    checkout_info: "CheckoutInfo",
+    checkout_lines_info: Iterable["CheckoutLineInfo"],
+):
+    checkout = checkout_info.checkout
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    tax_configuration = checkout_info.tax_configuration
+    channel = checkout.channel
+
+    return {
+        "checkout_id": checkout_id,
+        "checkoutId": checkout_id,
+        "checkout": {
+            "currency": checkout.currency,
+            "total_net_amount": checkout.total_net_amount,
+            "total_gross_amount": checkout.total_gross_amount,
+            "base_total_amount": checkout.base_total_amount,
+            "subtotal_net_amount": checkout.subtotal_net_amount,
+            "subtotal_gross_amount": checkout.subtotal_gross_amount,
+            "base_subtotal_amount": checkout.base_subtotal_amount,
+            "shipping_price_net_amount": checkout.shipping_price_net_amount,
+            "shipping_price_gross_amount": checkout.shipping_price_gross_amount,
+            "discount_amount": checkout.discount_amount,
+            "has_voucher_code": bool(checkout.voucher_code),
+            "tax_exemption": checkout.tax_exemption,
+            "tax_error": checkout.tax_error,
+        },
+        "tax_configuration": {
+            "charge_taxes": tax_configuration.charge_taxes,
+            "tax_calculation_strategy": tax_configuration.tax_calculation_strategy,
+            "prices_entered_with_tax": tax_configuration.prices_entered_with_tax,
+            "tax_app_id": tax_configuration.tax_app_id,
+        },
+        "discounts": discount_info_for_logs(checkout_info.discounts),
+        "lines": [
+            {
+                "id": graphene.Node.to_global_id("CheckoutLine", line_info.line.pk),
+                "variant_id": graphene.Node.to_global_id(
+                    "ProductVariant", line_info.line.variant_id
+                ),
+                "quantity": line_info.line.quantity,
+                "is_gift": line_info.line.is_gift,
+                "price_override": line_info.line.price_override,
+                "total_price_net_amount": line_info.line.total_price_net_amount,
+                "total_price_gross_amount": line_info.line.total_price_gross_amount,
+                "variant_listing_price": line_info.channel_listing.price_amount,
+                "variant_listing_discounted_price": line_info.channel_listing.discounted_price_amount,
+                "product_listing_discounted_price": line_info.product.channel_listings.get(
+                    channel=channel
+                ).discounted_price_amount,
+                "product_discounted_price_dirty": line_info.product.channel_listings.get(
+                    channel=channel
+                ).discounted_price_dirty,
+                "discounts": discount_info_for_logs(line_info.discounts),
+            }
+            for line_info in checkout_lines_info
+        ],
+    }

@@ -8,7 +8,13 @@ from django.db.models import prefetch_related_objects
 from prices import Money, TaxedMoney
 
 from ..core.prices import quantize_price
-from ..core.taxes import TaxData, TaxEmptyData, TaxError, zero_taxed_money
+from ..core.taxes import (
+    TaxData,
+    TaxDataError,
+    TaxDataErrorMessage,
+    TaxError,
+    zero_taxed_money,
+)
 from ..discount.utils import create_or_update_discount_objects_for_order
 from ..payment.model_helpers import get_subtotal
 from ..plugins import PLUGIN_IDENTIFIER_PREFIX
@@ -21,13 +27,14 @@ from ..tax.utils import (
     get_tax_app_identifier_for_order,
     get_tax_calculation_strategy_for_order,
     normalize_tax_rate_for_db,
+    validate_tax_data,
 )
 from . import ORDER_EDITABLE_STATUS
 from .base_calculations import apply_order_discounts, base_order_line_total
 from .fetch import EditableOrderLineInfo, fetch_draft_order_lines_info
 from .interface import OrderTaxedPricesData
 from .models import Order, OrderLine
-from .utils import log_address_if_validation_skipped_for_order
+from .utils import log_address_if_validation_skipped_for_order, order_info_for_logs
 
 logger = logging.getLogger(__name__)
 
@@ -141,7 +148,9 @@ def _recalculate_prices(
                 manager,
                 prices_entered_with_tax,
             )
-        except TaxEmptyData as e:
+        except TaxDataError as e:
+            if str(e) != TaxDataErrorMessage.EMPTY:
+                logger.warning(str(e), extra=order_info_for_logs(order, lines))
             order.tax_error = str(e)
 
         if not should_charge_tax:
@@ -163,7 +172,9 @@ def _recalculate_prices(
                     manager,
                     prices_entered_with_tax,
                 )
-            except TaxEmptyData as e:
+            except TaxDataError as e:
+                if str(e) != TaxDataErrorMessage.EMPTY:
+                    logger.warning(str(e), extra=order_info_for_logs(order, lines))
                 order.tax_error = str(e)
         else:
             _remove_tax(order, lines)
@@ -188,6 +199,7 @@ def _calculate_and_add_tax(
             tax_data = manager.get_taxes_for_order(order, tax_app_identifier)
             if not tax_data:
                 log_address_if_validation_skipped_for_order(order, logger)
+            validate_tax_data(tax_data, lines, allow_empty_tax_data=True)
             _apply_tax_data(order, lines, tax_data, prices_entered_with_tax)
         else:
             _call_plugin_or_tax_app(
@@ -215,7 +227,7 @@ def _call_plugin_or_tax_app(
             order.channel.slug, active_only=True, plugin_ids=plugin_ids
         )
         if not plugins:
-            raise TaxEmptyData("Empty tax data.")
+            raise TaxDataError(TaxDataErrorMessage.EMPTY)
         _recalculate_with_plugins(
             manager,
             order,
@@ -224,12 +236,12 @@ def _call_plugin_or_tax_app(
             plugin_ids=plugin_ids,
         )
         if order.tax_error:
-            raise TaxEmptyData("Empty tax data.")
+            raise TaxDataError(order.tax_error)
     else:
         tax_data = manager.get_taxes_for_order(order, tax_app_identifier)
         if tax_data is None:
             log_address_if_validation_skipped_for_order(order, logger)
-            raise TaxEmptyData("Empty tax data.")
+        validate_tax_data(tax_data, lines)
         _apply_tax_data(order, lines, tax_data, prices_entered_with_tax)
 
 

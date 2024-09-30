@@ -8,7 +8,8 @@ from prices import Money, TaxedMoney
 
 from ...checkout.fetch import CheckoutLineInfo
 from ...discount.interface import VariantPromotionRuleInfo
-from .. import DiscountValueType, RewardValueType, VoucherType
+from ...order import OrderStatus
+from .. import DiscountType, DiscountValueType, RewardValueType, VoucherType
 from ..models import (
     NotApplicable,
     Voucher,
@@ -22,6 +23,7 @@ from ..utils import (
     add_voucher_usage_by_customer,
     deactivate_voucher_code,
     decrease_voucher_code_usage_value,
+    discount_info_for_logs,
     get_discount_name,
     get_discount_translated_name,
     increase_voucher_code_usage_value,
@@ -723,3 +725,54 @@ def test_split_manual_discount(
     # then
     assert subtotal_discount == Money(subtotal_portion, "USD")
     assert shipping_discount == Money(shipping_portion, "USD")
+
+
+def test_discount_info_for_logs(order_with_lines, voucher, order_promotion_with_rule):
+    # given
+    order = order_with_lines
+    promotion = order_promotion_with_rule
+    rule = promotion.rules.first()
+    voucher_code = voucher.codes.first().code
+    order.voucher_code = voucher_code
+    order.voucher = voucher
+    order.status = OrderStatus.DRAFT
+    order.save(update_fields=["voucher_code", "voucher_id", "status"])
+
+    order_discount = order.discounts.create(
+        type=DiscountType.ORDER_PROMOTION,
+        value_type=DiscountValueType.FIXED,
+        value=Decimal(5),
+        amount_value=Decimal(5),
+        promotion_rule=order_promotion_with_rule.rules.first(),
+        currency=order.currency,
+    )
+
+    lines = order.lines.all()
+    line_discount = lines[0].discounts.create(
+        type=DiscountType.VOUCHER,
+        value_type=DiscountValueType.FIXED,
+        value=Decimal(5),
+        currency=order.currency,
+        amount_value=Decimal(5),
+        voucher=voucher,
+    )
+
+    # when
+    extra = discount_info_for_logs([order_discount, line_discount])
+
+    # then
+    assert extra[0]["id"] == graphene.Node.to_global_id(
+        "OrderDiscount", order_discount.pk
+    )
+    assert extra[0]["promotion_rule"]["id"] == graphene.Node.to_global_id(
+        "PromotionRule", rule.pk
+    )
+    assert extra[0]["promotion_rule"]["promotion_id"] == graphene.Node.to_global_id(
+        "Promotion", promotion.pk
+    )
+    assert extra[1]["id"] == graphene.Node.to_global_id(
+        "OrderLineDiscount", line_discount.pk
+    )
+    assert extra[1]["voucher"]["id"] == graphene.Node.to_global_id(
+        "Voucher", voucher.pk
+    )
