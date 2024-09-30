@@ -66,14 +66,14 @@ def test_get_taxes_for_order(
     tax_data = plugin.get_taxes_for_order(order, app_identifier, None)
 
     # then
-    payload = EventPayload.objects.get()
-    assert payload.get_payload() == generate_order_payload_for_tax_calculation(order)
-    delivery = EventDelivery.objects.get()
+    mock_request.assert_called_once()
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    
+    delivery = mock_request.mock_calls[0].args[0]
+    assert delivery.payload.get_payload() == generate_order_payload_for_tax_calculation(order)
     assert delivery.status == EventDeliveryStatus.PENDING
     assert delivery.event_type == WebhookEventSyncType.ORDER_CALCULATE_TAXES
-    assert delivery.payload == payload
     assert delivery.webhook == webhook
-    mock_request.assert_called_once_with(delivery)
     mock_fetch.assert_not_called()
     assert tax_data == parse_tax_data(tax_data_response)
 
@@ -182,14 +182,14 @@ def test_get_taxes_for_order_with_sync_subscription(
     tax_data = plugin.get_taxes_for_order(order, app_identifier, None)
 
     # then
-    payload = EventPayload.objects.get()
-    assert payload.get_payload() == json.dumps({"taxBase": {"currency": "USD"}})
-    delivery = EventDelivery.objects.get()
+    mock_request.assert_called_once()
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+
+    delivery = mock_request.mock_calls[0].args[0]
+    assert delivery.payload.get_payload() == json.dumps({"taxBase": {"currency": "USD"}})
     assert delivery.status == EventDeliveryStatus.PENDING
     assert delivery.event_type == WebhookEventSyncType.ORDER_CALCULATE_TAXES
-    assert delivery.payload == payload
     assert delivery.webhook == webhook
-    mock_request.assert_called_once_with(delivery)
     mock_fetch.assert_not_called()
     assert tax_data == parse_tax_data(tax_data_response)
 
@@ -234,14 +234,14 @@ def test_get_taxes_for_checkout_with_sync_subscription(
         request=ANY,  # SaleorContext,
         app=tax_app,
     )
-    payload = EventPayload.objects.get()
-    assert payload.get_payload() == json.dumps(expected_payload)
-    delivery = EventDelivery.objects.get()
+    mock_request.assert_called_once()
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+
+    delivery = mock_request.mock_calls[0].args[0]
+    assert delivery.payload.get_payload() == json.dumps(expected_payload)
     assert delivery.status == EventDeliveryStatus.PENDING
     assert delivery.event_type == WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
-    assert delivery.payload == payload
     assert delivery.webhook == webhook
-    mock_request.assert_called_once_with(delivery)
     mock_fetch.assert_not_called()
     assert tax_data == parse_tax_data(tax_data_response)
 
@@ -289,13 +289,13 @@ def test_get_taxes_for_checkout_with_sync_subscription_with_pregenerated_payload
 
     # then
     mock_generate_payload.assert_not_called()
-    payload = EventPayload.objects.get()
-    assert payload.get_payload() == json.dumps(expected_payload)
-    delivery = EventDelivery.objects.get()
+    mock_request.assert_called_once()
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+
+    delivery = mock_request.mock_calls[0].args[0]
+    assert delivery.payload.get_payload() == json.dumps(expected_payload)
     assert delivery.status == EventDeliveryStatus.PENDING
     assert delivery.event_type == WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
-    assert delivery.payload == payload
     assert delivery.webhook == webhook
-    mock_request.assert_called_once_with(delivery)
     mock_fetch.assert_not_called()
     assert tax_data == parse_tax_data(tax_data_response)
