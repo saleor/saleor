@@ -34,6 +34,9 @@ mutation DraftOrderComplete($id: ID!) {
           amount
         }
       }
+      undiscountedShippingPrice {
+        amount
+      }
       shippingPrice {
         gross {
           amount

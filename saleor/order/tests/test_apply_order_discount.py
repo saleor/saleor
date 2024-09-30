@@ -236,7 +236,7 @@ def test_apply_order_discounts_shipping_voucher(
         subtotal += line.base_unit_price * line.quantity
 
     discount_amount = shipping_price.amount
-    order_discount = order.discounts.create(
+    order.discounts.create(
         type=DiscountType.VOUCHER,
         value_type=DiscountValueType.FIXED,
         value=discount_amount,
@@ -251,18 +251,8 @@ def test_apply_order_discounts_shipping_voucher(
     discounted_subtotal, discounted_shipping_price = apply_order_discounts(order, lines)
 
     # then
-    assert discounted_shipping_price == zero_money(currency)
+    assert discounted_shipping_price == shipping_price
     assert discounted_subtotal == subtotal
-    assert order.subtotal_net_amount == discounted_subtotal.amount
-    assert order.subtotal_gross_amount == discounted_subtotal.amount
-    assert order.total_net == discounted_subtotal + discounted_shipping_price
-    assert order.total_gross == discounted_subtotal + discounted_shipping_price
-    assert order.shipping_price_net == discounted_shipping_price
-    assert order.shipping_price_gross == discounted_shipping_price
-    assert order.undiscounted_total_net == subtotal + shipping_price
-    assert order.undiscounted_total_gross == subtotal + shipping_price
-    order_discount.refresh_from_db()
-    assert order_discount.amount_value == shipping_price.amount
 
 
 def test_apply_order_discounts_zero_discount(order_with_lines):
@@ -475,8 +465,12 @@ def test_apply_order_discounts_voucher_entire_order_and_manual_discount_fixed(
     assert quantize_price(order.total_gross, currency) == quantize_price(
         expected_shipping + expected_subtotal, currency
     )
-    assert order.shipping_price_net == discounted_shipping_price
-    assert order.shipping_price_gross == discounted_shipping_price
+    assert order.shipping_price_net == quantize_price(
+        discounted_shipping_price, currency
+    )
+    assert order.shipping_price_gross == quantize_price(
+        discounted_shipping_price, currency
+    )
     assert order.undiscounted_total_net == undiscounted_total
     assert order.undiscounted_total_gross == undiscounted_total
     voucher_order_discount.refresh_from_db()
