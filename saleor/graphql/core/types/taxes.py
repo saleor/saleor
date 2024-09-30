@@ -12,6 +12,7 @@ from ....discount import DiscountType
 from ....discount.utils.checkout import has_checkout_order_promotion
 from ....discount.utils.manual_discount import split_manual_discount
 from ....discount.utils.voucher import is_order_level_voucher
+from ....order.base_calculations import base_order_subtotal
 from ....order.models import Order, OrderLine
 from ....order.utils import get_order_country
 from ....tax.utils import get_charge_taxes
@@ -371,20 +372,7 @@ class TaxableObject(BaseObjectType):
                 ]
             ).then(calculate_shipping_price)
 
-        # TODO (SHOPX-875): after adding `undiscounted_base_shipping_price` to
-        # Order model, the `root.base_shipping_price` should be used
-        def shipping_price_with_discount(tax_config):
-            return (
-                root.shipping_price_gross
-                if tax_config.prices_entered_with_tax
-                else root.shipping_price_net
-            )
-
-        return (
-            TaxConfigurationByChannelId(info.context)
-            .load(root.channel_id)
-            .then(shipping_price_with_discount)
-        )
+        return root.base_shipping_price
 
     @staticmethod
     def resolve_discounts(root: Union[Checkout, Order], info: ResolveInfo):
@@ -417,17 +405,21 @@ class TaxableObject(BaseObjectType):
                 .then(calculate_checkout_discounts)
             )
 
-        def map_discounts(discounts):
+        discounts = OrderDiscountsByOrderIDLoader(info.context).load(root.id)
+        order_lines = OrderLinesByOrderIdLoader(info.context).load(root.id)
+
+        def calculate_order_discounts(results):
             # Only order level discounts, like entire order vouchers,
             # order promotions and manual discounts should be taken into account.
             # Manual discount needs to be split into subtotal and shipping portions.
+            (discounts, order_lines) = results
             taxable_discounts = []
             currency = root.currency
             for discount in discounts:
                 shipping_discount = Money(0, currency)
                 subtotal_discount = Money(0, currency)
                 if discount.type == DiscountType.MANUAL:
-                    subtotal = root.subtotal.net
+                    subtotal = base_order_subtotal(root, order_lines)
                     shipping = root.base_shipping_price
                     subtotal_discount, shipping_discount = split_manual_discount(
                         discount, subtotal, shipping
@@ -457,11 +449,7 @@ class TaxableObject(BaseObjectType):
 
             return taxable_discounts
 
-        return (
-            OrderDiscountsByOrderIDLoader(info.context)
-            .load(root.id)
-            .then(map_discounts)
-        )
+        return Promise.all([discounts, order_lines]).then(calculate_order_discounts)
 
     @staticmethod
     def resolve_lines(root: Union[Checkout, Order], info: ResolveInfo):

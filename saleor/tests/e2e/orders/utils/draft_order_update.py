@@ -97,6 +97,9 @@ mutation DraftOrderUpdate($input: DraftOrderInput!, $id: ID!) {
           amount
         }
       }
+      undiscountedShippingPrice {
+        amount
+      }
       shippingMethod {
         id
       }
