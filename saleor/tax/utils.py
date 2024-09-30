@@ -1,3 +1,4 @@
+import logging
 from collections.abc import Iterable
 from decimal import Decimal
 from typing import TYPE_CHECKING, Optional
@@ -5,6 +6,8 @@ from typing import TYPE_CHECKING, Optional
 from django.conf import settings
 from prices import TaxedMoney
 
+from ..core.prices import MAXIMUM_PRICE
+from ..core.taxes import TaxData, TaxDataError, TaxDataErrorMessage
 from ..core.utils.country import get_active_country
 from . import TaxCalculationStrategy
 
@@ -13,6 +16,9 @@ if TYPE_CHECKING:
     from ..order.models import Order
     from ..tax.models import TaxClass, TaxClassCountryRate
     from .models import TaxConfiguration, TaxConfigurationPerCountry
+
+
+logger = logging.getLogger(__name__)
 
 
 def get_display_gross_prices(
@@ -248,3 +254,78 @@ def get_shipping_tax_class_kwargs_for_order(tax_class: Optional["TaxClass"]):
         "shipping_tax_class_private_metadata": tax_class.private_metadata,
         "shipping_tax_class_metadata": tax_class.metadata,
     }
+
+
+def validate_tax_data(
+    tax_data: Optional[TaxData],
+    lines: Iterable,
+    allow_empty_tax_data: bool = False,
+):
+    if tax_data is None and not allow_empty_tax_data:
+        raise TaxDataError(TaxDataErrorMessage.EMPTY)
+
+    if check_negative_values_in_tax_data(tax_data):
+        raise TaxDataError(TaxDataErrorMessage.NEGATIVE_VALUE)
+
+    if check_line_number_in_tax_data(tax_data, lines):
+        raise TaxDataError(TaxDataErrorMessage.LINE_NUMBER)
+
+    if check_overflows_in_tax_data(tax_data):
+        raise TaxDataError(TaxDataErrorMessage.OVERFLOW)
+
+
+def check_negative_values_in_tax_data(tax_data: Optional[TaxData]) -> bool:
+    """Check if tax data contains negative values."""
+    if not tax_data:
+        return False
+
+    if (
+        tax_data.shipping_price_gross_amount < 0
+        or tax_data.shipping_price_net_amount < 0
+        or tax_data.shipping_tax_rate < 0
+    ):
+        return True
+
+    for line in tax_data.lines:
+        if (
+            line.total_gross_amount < 0
+            or line.total_net_amount < 0
+            or line.tax_rate < 0
+        ):
+            return True
+
+    return False
+
+
+def check_line_number_in_tax_data(tax_data: Optional[TaxData], lines: Iterable) -> bool:
+    """Check if tax data contains same line number as input data."""
+    if not tax_data:
+        return False
+
+    if len(tax_data.lines) != len(list(lines)):
+        return True
+
+    return False
+
+
+def check_overflows_in_tax_data(tax_data: Optional[TaxData]) -> bool:
+    """Check if tax rates exceed 100% and line prices are lower than a billion."""
+    if not tax_data:
+        return False
+
+    if (
+        tax_data.shipping_price_gross_amount > MAXIMUM_PRICE
+        or tax_data.shipping_price_net_amount > MAXIMUM_PRICE
+        or tax_data.shipping_tax_rate > 100
+    ):
+        return True
+
+    for line in tax_data.lines:
+        if (
+            line.total_gross_amount > MAXIMUM_PRICE
+            or line.total_net_amount > MAXIMUM_PRICE
+            or line.tax_rate > 100
+        ):
+            return True
+
+    return False
