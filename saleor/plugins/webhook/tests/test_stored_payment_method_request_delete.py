@@ -79,7 +79,11 @@ def test_stored_payment_method_request_delete_with_static_payload(
     )
 
     # then
-    delivery = EventDelivery.objects.get()
+    mock_request.assert_called_once()
+    assert mock_request.mock_calls[0].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+
+    delivery = mock_request.mock_calls[0].args[0]
     assert delivery.payload.get_payload() == json.dumps(
         {
             "payment_method_id": payment_method_id,
@@ -87,7 +91,6 @@ def test_stored_payment_method_request_delete_with_static_payload(
             "channel_slug": channel_USD.slug,
         }
     )
-    mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
 
     assert response == StoredPaymentMethodRequestDeleteResponseData(
         result=StoredPaymentMethodRequestDeleteResult.SUCCESSFULLY_DELETED, error=None
@@ -133,7 +136,11 @@ def test_stored_payment_method_request_delete_with_subscription_payload(
     )
 
     # then
-    delivery = EventDelivery.objects.get()
+    mock_request.assert_called_once()
+    assert mock_request.mock_calls[0].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+
+    delivery = mock_request.mock_calls[0].args[0]
     assert delivery.payload.get_payload() == json.dumps(
         {
             "user": {"id": graphene.Node.to_global_id("User", customer_user.pk)},
@@ -141,7 +148,6 @@ def test_stored_payment_method_request_delete_with_subscription_payload(
             "channel": {"id": graphene.Node.to_global_id("Channel", channel_USD.pk)},
         }
     )
-    mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
 
     assert response == StoredPaymentMethodRequestDeleteResponseData(
         result=StoredPaymentMethodRequestDeleteResult.SUCCESSFULLY_DELETED, error=None
@@ -187,7 +193,11 @@ def test_stored_payment_method_request_delete_failure_from_app(
     )
 
     # then
-    delivery = EventDelivery.objects.get()
+    mock_request.assert_called_once()
+    assert mock_request.mock_calls[0].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+
+    delivery = mock_request.mock_calls[0].args[0]
     assert delivery.payload.get_payload() == json.dumps(
         {
             "payment_method_id": payment_method_id,
@@ -195,7 +205,6 @@ def test_stored_payment_method_request_delete_failure_from_app(
             "channel_slug": channel_USD.slug,
         }
     )
-    mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
 
     assert response == StoredPaymentMethodRequestDeleteResponseData(
         result=StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELETE,
@@ -242,9 +251,9 @@ def test_stored_payment_method_request_delete_missing_response_from_webhook(
     )
 
     # then
-    delivery = EventDelivery.objects.get()
-
-    mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
+    mock_request.assert_called_once()
+    assert mock_request.mock_calls[0].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
 
     assert response == StoredPaymentMethodRequestDeleteResponseData(
         result=StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELIVER,
@@ -291,9 +300,9 @@ def test_stored_payment_method_request_delete_incorrect_result_response_from_web
     )
 
     # then
-    delivery = EventDelivery.objects.get()
-
-    mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
+    mock_request.assert_called_once()
+    assert mock_request.mock_calls[0].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
 
     assert response == StoredPaymentMethodRequestDeleteResponseData(
         result=StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELETE,
@@ -340,9 +349,9 @@ def test_stored_payment_method_request_delete_missing_result_in_response_from_we
     )
 
     # then
-    delivery = EventDelivery.objects.get()
-
-    mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
+    mock_request.assert_called_once()
+    assert mock_request.mock_calls[0].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
 
     assert response == StoredPaymentMethodRequestDeleteResponseData(
         result=StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELETE,
@@ -436,9 +445,12 @@ def test_stored_payment_method_request_delete_invalidates_cache_for_app(
     )
 
     # then
-    delivery = EventDelivery.objects.filter(
-        event_type=WebhookEventSyncType.STORED_PAYMENT_METHOD_DELETE_REQUESTED
-    ).first()
+    mocked_request.assert_called()
+    assert mocked_request.mock_calls[-1].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+
+    delivery = mocked_request.mock_calls[-1].args[0]
+    assert delivery.event_type==WebhookEventSyncType.STORED_PAYMENT_METHOD_DELETE_REQUESTED
     assert delivery.payload.get_payload() == json.dumps(
         {
             "user": {"id": graphene.Node.to_global_id("User", customer_user.pk)},
@@ -448,8 +460,6 @@ def test_stored_payment_method_request_delete_invalidates_cache_for_app(
     )
     # delete the same cache key as created when fetching stored payment methods
     mocked_cache_delete.assert_called_once_with(expected_cache_key)
-
-    mocked_request.assert_called_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
 
     assert response == StoredPaymentMethodRequestDeleteResponseData(
         result=StoredPaymentMethodRequestDeleteResult.SUCCESSFULLY_DELETED, error=None
