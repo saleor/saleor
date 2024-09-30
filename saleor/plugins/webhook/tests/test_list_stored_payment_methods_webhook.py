@@ -71,8 +71,9 @@ def test_list_stored_payment_methods_with_static_payload(
     response = plugin.list_stored_payment_methods(data, [])
 
     # then
-    delivery = EventDelivery.objects.get()
-    mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
+    mock_request.assert_called_once()
+    assert mock_request.mock_calls[0].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
 
     mocked_cache_get.assert_called_once_with(expected_cache_key)
     mocked_cache_set.assert_called_once_with(
@@ -119,9 +120,11 @@ def test_list_stored_payment_methods_subscription_issuing_principal(
     response = plugin.list_stored_payment_methods(data, [])
 
     # then
-    delivery = EventDelivery.objects.get()
-    mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
+    mock_request.assert_called_once()
+    assert mock_request.mock_calls[0].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
 
+    delivery = mock_request.mock_calls[0].args[0]
     delivery_subscription_payload = json.loads(delivery.payload.get_payload())
     assert delivery_subscription_payload == {
         "issuingPrincipal": {"id": graphene.Node.to_global_id("User", customer_user.pk)}
@@ -165,9 +168,11 @@ def test_list_stored_payment_methods_subscription_issuing_principal_as_app(
     response = plugin.list_stored_payment_methods(data, [])
 
     # then
-    delivery = EventDelivery.objects.get()
-    mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
+    mock_request.assert_called_once()
+    assert mock_request.mock_calls[0].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
 
+    delivery = mock_request.mock_calls[0].args[0]
     delivery_subscription_payload = json.loads(delivery.payload.get_payload())
     assert delivery_subscription_payload == {
         "issuingPrincipal": {
@@ -225,8 +230,9 @@ def test_list_stored_payment_methods_with_subscription_payload(
     response = plugin.list_stored_payment_methods(data, [])
 
     # then
-    delivery = EventDelivery.objects.get()
-    mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
+    mock_request.assert_called_once()
+    assert mock_request.mock_calls[0].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
 
     mocked_cache_get.assert_called_once_with(expected_cache_key)
     mocked_cache_set.assert_called_once_with(
@@ -339,8 +345,9 @@ def test_list_stored_payment_methods_app_returns_incorrect_response(
     response = plugin.list_stored_payment_methods(data, [])
 
     # then
-    delivery = EventDelivery.objects.get()
-    mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
+    mock_request.assert_called_once()
+    assert mock_request.mock_calls[0].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
 
     mocked_cache_get.assert_called_once_with(expected_cache_key)
     assert not mocked_cache_set.called
