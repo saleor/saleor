@@ -20,7 +20,7 @@ from .....order.utils import (
 from .....payment import ChargeStatus, TransactionAction
 from .....payment.models import TransactionEvent, TransactionItem
 from .....shipping.models import ShippingMethod, ShippingMethodChannelListing
-from .....warehouse.models import Warehouse
+from .....warehouse.models import Stock, Warehouse
 from ....order.enums import OrderAuthorizeStatusEnum, OrderChargeStatusEnum
 from ....payment.types import PaymentChargeStatusEnum
 from ....tests.utils import (
@@ -363,7 +363,7 @@ def test_order_query(
         channel_id=order.channel_id,
     )
     expected_collection_points = Warehouse.objects.applicable_for_click_and_collect(
-        lines_qs=order.lines, channel_id=order.channel.id
+        lines_qs=order.lines.all(), channel_id=order.channel.id
     )
 
     assert len(order_data["availableShippingMethods"]) == (expected_methods.count())
@@ -493,6 +493,45 @@ def test_order_query_total_price_is_0(
         order_data["paymentStatusDisplay"]
         == dict(ChargeStatus.CHOICES)[payment_charge_status.value]
     )
+
+
+def test_order_avail_collect_points_all_warehouse_quantity_from_disabled_warehouse(
+    staff_api_client,
+    permission_group_manage_orders,
+    permission_group_manage_shipping,
+    order_line,
+    warehouses_for_cc,
+):
+    # given
+    order = order_line.order
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    permission_group_manage_shipping.user_set.add(staff_api_client.user)
+
+    line = order.lines.first()
+    line.quantity = 5
+    line.save(update_fields=["quantity"])
+
+    all_warehouse = warehouses_for_cc[1]
+    disabled_warehouse = warehouses_for_cc[0]
+
+    Stock.objects.bulk_create(
+        [
+            Stock(warehouse=all_warehouse, product_variant=line.variant, quantity=0),
+            Stock(
+                warehouse=disabled_warehouse, product_variant=line.variant, quantity=10
+            ),
+        ]
+    )
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_FULL_QUERY)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    order_line = order_data["lines"][0]
+    assert len(order_data["availableCollectionPoints"]) == 1
+    assert order_data["availableCollectionPoints"][0]["name"] == all_warehouse.name
 
 
 def test_order_query_shows_non_draft_orders(
