@@ -1,0 +1,49 @@
+# The action fetches code from the PR's source branch, takes the target branch, and
+# tries to fetch and apply patches using PR's target branch.
+# Example: if a PR targets a version branch `3.20`, the action would checkout to `3.20`
+# branch in the patches repo and try to apply patches from that branch. If patches
+# apply, the action succeeds, otherwise it returns an error, and indicates that patches
+# need to be adjusted.
+#
+# - Action runs on all branches.
+# - Action runs only when label is applied: `check patches` (will be changed to all PRs
+# when workflow is more tested).
+
+name: Test Patches
+
+on:
+  pull_request:
+    types: [labeled, opened, synchronize]
+
+jobs:
+  apply-patches:
+    runs-on: ubuntu-latest
+    if: ${{ contains(github.event.pull_request.labels.*.name, 'check patches') }}
+    steps:
+      - name: Generate token
+        run: |
+          token=$(
+            curl --request GET --url ${{ secrets.VAULT_URL}} --header "Authorization: JWT ${{ secrets.VAULT_JWT }}" | jq -r .token
+          )
+          echo "GITHUB_TOKEN=${token}" >> $GITHUB_ENV
+
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          path: saleor
+          ref: ${{ github.head_ref }}
+
+      - name: Checkout patches
+        id: checkout-patches
+        uses: actions/checkout@v4
+        with:
+          repository: saleor/saleor-multitenant
+          token: ${{ env.GITHUB_TOKEN }}
+          path: saleor-multitenant
+          ref: ${{ github.base_ref }}
+
+      - name: Apply patches
+        id: apply_patches
+        run: |
+          cd saleor
+          git apply ../saleor-multitenant/patches/**.patch > /dev/null 2>&1
