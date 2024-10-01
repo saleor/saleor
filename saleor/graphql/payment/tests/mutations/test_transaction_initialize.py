@@ -1816,13 +1816,13 @@ def test_order_doesnt_exists(
 @pytest.mark.parametrize(
     "result", [TransactionEventType.CHARGE_REQUEST, TransactionEventType.CHARGE_SUCCESS]
 )
-@mock.patch("saleor.checkout.complete_checkout.complete_checkout")
+@mock.patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
 @mock.patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
 @mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
 def test_checkout_fully_paid(
     mocked_initialize,
     mocked_fully_paid,
-    mocked_complete_checkout,
+    mocked_automatic_checkout_completion_task,
     result,
     user_api_client,
     checkout_with_prices,
@@ -1865,7 +1865,7 @@ def test_checkout_fully_paid(
     assert not content["data"]["transactionInitialize"]["errors"]
     checkout.refresh_from_db()
     mocked_fully_paid.assert_called_once_with(checkout, webhooks=set())
-    mocked_complete_checkout.assert_not_called()
+    mocked_automatic_checkout_completion_task.assert_not_called()
     assert checkout.charge_status == CheckoutChargeStatus.FULL
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
 
@@ -1989,13 +1989,13 @@ def test_checkout_fully_paid_pending_charge_automatic_completion(
         TransactionEventType.AUTHORIZATION_SUCCESS,
     ],
 )
-@mock.patch("saleor.checkout.complete_checkout.complete_checkout")
+@mock.patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
 @mock.patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
 @mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
 def test_checkout_fully_authorized(
     mocked_initialize,
     mocked_fully_paid,
-    mocked_complete_checkout,
+    mocked_automatic_checkout_completion_task,
     result,
     user_api_client,
     checkout_with_prices,
@@ -2039,7 +2039,7 @@ def test_checkout_fully_authorized(
     checkout.refresh_from_db()
     assert checkout.charge_status == CheckoutChargeStatus.NONE
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
-    mocked_complete_checkout.assert_not_called()
+    mocked_automatic_checkout_completion_task.assert_not_called()
     mocked_fully_paid.assert_not_called()
 
 

@@ -2586,11 +2586,11 @@ def test_transaction_update_for_checkout_updates_payment_statuses(
     assert checkout_with_items.authorize_status == CheckoutAuthorizeStatus.PARTIAL
 
 
-@patch("saleor.checkout.complete_checkout.complete_checkout")
+@patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
 def test_transaction_update_for_checkout_fully_paid(
     mocked_checkout_fully_paid,
-    mocked_complete_checkout,
+    mocked_automatic_checkout_completion_task,
     checkout_with_prices,
     permission_manage_payments,
     app_api_client,
@@ -2636,7 +2636,7 @@ def test_transaction_update_for_checkout_fully_paid(
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
 
     mocked_checkout_fully_paid.assert_called_once_with(checkout, webhooks=set())
-    mocked_complete_checkout.assert_not_called()
+    mocked_automatic_checkout_completion_task.assert_not_called()
 
 
 @patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
@@ -2695,11 +2695,11 @@ def test_transaction_update_for_checkout_fully_paid_automatic_completion(
     mocked_checkout_fully_paid.assert_called_once_with(checkout, webhooks=set())
 
 
-@patch("saleor.checkout.complete_checkout.complete_checkout")
+@patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
 def test_transaction_update_for_checkout_fully_authorized(
     mocked_checkout_fully_paid,
-    mocked_complete_checkout,
+    mocked_automatic_checkout_completion_task,
     checkout_with_prices,
     permission_manage_payments,
     app_api_client,
@@ -2745,7 +2745,7 @@ def test_transaction_update_for_checkout_fully_authorized(
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
 
     mocked_checkout_fully_paid.assert_not_called()
-    mocked_complete_checkout.assert_not_called()
+    mocked_automatic_checkout_completion_task.assert_not_called()
 
 
 @patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")

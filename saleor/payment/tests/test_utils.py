@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from decimal import Decimal
-from unittest.mock import ANY, patch
+from unittest.mock import patch
 
 import pytest
 import pytz
@@ -988,11 +988,11 @@ def test_create_transaction_event_from_request_and_webhook_response_full_event(
     assert event.type == event_type
 
 
-@patch("saleor.checkout.complete_checkout.complete_checkout")
+@patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
 def test_create_transaction_event_from_request_when_paid(
     mocked_checkout_fully_paid,
-    mocked_complete_checkout,
+    mocked_automatic_checkout_completion_task,
     transaction_item_generator,
     app,
     checkout_with_prices,
@@ -1029,14 +1029,14 @@ def test_create_transaction_event_from_request_when_paid(
     checkout.refresh_from_db()
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
     mocked_checkout_fully_paid.assert_called_once_with(checkout, webhooks=set())
-    mocked_complete_checkout.assert_not_called()
+    mocked_automatic_checkout_completion_task.assert_not_called()
 
 
-@patch("saleor.checkout.complete_checkout.complete_checkout")
+@patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
 def test_create_transaction_event_from_request_when_authorized(
     mocked_checkout_fully_paid,
-    mocked_complete_checkout,
+    mocked_automatic_checkout_completion_task,
     transaction_item_generator,
     app,
     checkout_with_prices,
@@ -1076,14 +1076,14 @@ def test_create_transaction_event_from_request_when_authorized(
     checkout.refresh_from_db()
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
     mocked_checkout_fully_paid.assert_not_called()
-    mocked_complete_checkout.assert_not_called()
+    mocked_automatic_checkout_completion_task.assert_not_called()
 
 
-@patch("saleor.checkout.complete_checkout.complete_checkout")
+@patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
 def test_create_transaction_event_from_request_when_paid_triggers_checkout_completion(
     mocked_checkout_fully_paid,
-    mocked_complete_checkout,
+    mocked_automatic_checkout_completion_task,
     transaction_item_generator,
     app,
     checkout_with_prices,
@@ -1127,22 +1127,16 @@ def test_create_transaction_event_from_request_when_paid_triggers_checkout_compl
     checkout.refresh_from_db()
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
     mocked_checkout_fully_paid.assert_called_once_with(checkout, webhooks=set())
-    mocked_complete_checkout.assert_called_once_with(
-        manager=ANY,
-        checkout_info=checkout_info,
-        lines=lines,
-        payment_data={},
-        store_source=False,
-        user=None,
-        app=app,
+    mocked_automatic_checkout_completion_task.assert_called_once_with(
+        checkout.pk, None, app.id
     )
 
 
-@patch("saleor.checkout.complete_checkout.complete_checkout")
+@patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
 def test_create_transaction_event_from_request_when_authorized_triggers_checkout_completion(
     mocked_checkout_fully_paid,
-    mocked_complete_checkout,
+    mocked_automatic_checkout_completion_task,
     transaction_item_generator,
     app,
     checkout_with_prices,
@@ -1186,14 +1180,8 @@ def test_create_transaction_event_from_request_when_authorized_triggers_checkout
     checkout.refresh_from_db()
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
     mocked_checkout_fully_paid.assert_not_called()
-    mocked_complete_checkout.assert_called_once_with(
-        manager=ANY,
-        checkout_info=checkout_info,
-        lines=lines,
-        payment_data={},
-        store_source=False,
-        user=None,
-        app=app,
+    mocked_automatic_checkout_completion_task.assert_called_once_with(
+        checkout.pk, None, app.id
     )
 
 

@@ -24,11 +24,11 @@ from ..calculations import fetch_checkout_data
 from ..fetch import fetch_checkout_info, fetch_checkout_lines
 
 
-@patch("saleor.checkout.complete_checkout.complete_checkout")
+@patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
 def test_transaction_amounts_for_checkout_updated_fully_paid(
     mocked_fully_paid,
-    mocked_complete_checkout,
+    mocked_automatic_checkout_completion_task,
     checkout_with_items,
     transaction_item_generator,
     plugins_manager,
@@ -54,7 +54,7 @@ def test_transaction_amounts_for_checkout_updated_fully_paid(
     assert checkout.charge_status == CheckoutChargeStatus.FULL
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
     mocked_fully_paid.assert_called_with(checkout, webhooks=set())
-    assert not mocked_complete_checkout.called
+    assert not mocked_automatic_checkout_completion_task.called
 
 
 @patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
