@@ -1627,7 +1627,6 @@ def test_transaction_event_updates_checkout_full_paid_pending_charge_automatic_c
         checkout.refresh_from_db()
 
     order = Order.objects.get(checkout_token=checkout_token)
-    # TODO:  to verify if it's correct
     assert order.charge_status == CheckoutChargeStatus.NONE
     assert order.authorize_status == CheckoutAuthorizeStatus.NONE
 
@@ -1846,7 +1845,6 @@ def test_transaction_event_updates_checkout_fully_authorized_pending_automatic_c
 
     order = Order.objects.get(checkout_token=checkout_token)
     assert order.charge_status == CheckoutChargeStatus.NONE
-    # TODO: to verify if it's correct
     assert order.authorize_status == CheckoutAuthorizeStatus.NONE
     mocked_fully_paid.assert_not_called()
 

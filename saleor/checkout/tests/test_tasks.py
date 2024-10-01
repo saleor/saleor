@@ -491,7 +491,7 @@ def test_automatic_checkout_completion_task(
         f"Automatic checkout completion triggered for checkout: {checkout_id}."
     )
     assert caplog.records[0].checkout_id == checkout_id
-    assert caplog.records[1].levelno == logging.INFO
+    assert caplog.records[0].levelno == logging.INFO
 
     assert caplog.records[1].message == (
         f"Automatic checkout completion succeeded for checkout: {checkout_id}."
