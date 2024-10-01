@@ -4,7 +4,6 @@ from unittest import mock
 import graphene
 import pytest
 
-from ....core.models import EventDelivery
 from ....payment.interface import (
     PaymentGatewayInitializeTokenizationRequestData,
     PaymentGatewayInitializeTokenizationResponseData,
@@ -73,13 +72,16 @@ def test_payment_gateway_initialize_tokenization_with_static_payload(
     )
 
     # then
-    delivery = EventDelivery.objects.get()
+    mock_request.assert_called_once()
+    assert mock_request.mock_calls[0].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+
+    delivery = mock_request.mock_calls[0].args[0]
     assert json.loads(delivery.payload.get_payload()) == {
         "user_id": graphene.Node.to_global_id("User", customer_user.pk),
         "channel_slug": channel_USD.slug,
         "data": expected_data,
     }
-    mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
 
     assert response == PaymentGatewayInitializeTokenizationResponseData(
         result=PaymentGatewayInitializeTokenizationResult.SUCCESSFULLY_INITIALIZED,
@@ -127,13 +129,16 @@ def test_payment_gateway_initialize_tokenization_with_subscription_payload(
     )
 
     # then
-    delivery = EventDelivery.objects.get()
+    mock_request.assert_called_once()
+    assert mock_request.mock_calls[0].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+
+    delivery = mock_request.mock_calls[0].args[0]
     assert json.loads(delivery.payload.get_payload()) == {
         "user": {"id": graphene.Node.to_global_id("User", customer_user.pk)},
         "data": expected_data,
         "channel": {"id": graphene.Node.to_global_id("Channel", channel_USD.pk)},
     }
-    mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
 
     assert response == PaymentGatewayInitializeTokenizationResponseData(
         result=PaymentGatewayInitializeTokenizationResult.SUCCESSFULLY_INITIALIZED,
@@ -180,9 +185,9 @@ def test_payment_gateway_initialize_tokenization_missing_correct_response_from_w
     )
 
     # then
-    delivery = EventDelivery.objects.get()
-
-    mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
+    mock_request.assert_called_once()
+    assert mock_request.mock_calls[0].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
 
     assert response == PaymentGatewayInitializeTokenizationResponseData(
         result=PaymentGatewayInitializeTokenizationResult.FAILED_TO_DELIVER,
@@ -229,13 +234,16 @@ def test_payment_gateway_initialize_tokenization_failure_from_app(
     )
 
     # then
-    delivery = EventDelivery.objects.get()
+    mock_request.assert_called_once()
+    assert mock_request.mock_calls[0].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+
+    delivery = mock_request.mock_calls[0].args[0]
     assert json.loads(delivery.payload.get_payload()) == {
         "user_id": graphene.Node.to_global_id("User", customer_user.pk),
         "channel_slug": channel_USD.slug,
         "data": expected_data,
     }
-    mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
 
     assert response == PaymentGatewayInitializeTokenizationResponseData(
         result=PaymentGatewayInitializeTokenizationResult.FAILED_TO_INITIALIZE,

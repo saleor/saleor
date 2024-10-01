@@ -5,7 +5,6 @@ from unittest.mock import call
 import graphene
 import pytest
 
-from ....core.models import EventDelivery
 from ....graphql.tests.utils import get_graphql_content
 from ....order import OrderStatus
 from ....webhook.const import CACHE_EXCLUDED_SHIPPING_TIME
@@ -681,8 +680,8 @@ def test_trigger_webhook_sync(mock_request, shipping_app):
     trigger_webhook_sync(
         WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT, data, webhook, False
     )
-    event_delivery = EventDelivery.objects.first()
-    mock_request.assert_called_once_with(event_delivery)
+    mock_request.assert_called_once()
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
 
 
 @mock.patch("saleor.webhook.transport.synchronous.transport.cache.set")

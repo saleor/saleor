@@ -73,16 +73,16 @@ def _assert_with_static_payload(
 
 def _assert_fields(payload, webhook, expected_data, response, mock_request):
     webhook_app = webhook.app
-    event_payload = EventPayload.objects.get()
+    mock_request.assert_called_once()
+    delivery = mock_request.mock_calls[0].args[0]
+    event_payload = delivery.payload
     assert json.loads(event_payload.get_payload()) == payload
-    delivery = EventDelivery.objects.get()
     assert delivery.status == EventDeliveryStatus.PENDING
     assert (
         delivery.event_type == WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_SESSION
     )
     assert delivery.payload == event_payload
     assert delivery.webhook == webhook
-    mock_request.assert_called_once_with(delivery)
     assert response == [
         PaymentGatewayData(app_identifier=webhook_app.identifier, data=expected_data)
     ]
