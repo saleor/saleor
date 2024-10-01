@@ -1,5 +1,6 @@
 import graphene
 from django.core.exceptions import ValidationError
+from django.db.models import ProtectedError
 
 from ....core.tracing import traced_atomic_transaction
 from ....discount.models import VoucherCode
@@ -53,12 +54,27 @@ class DraftOrderDelete(
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         order = cls.get_instance(info, **data)
         manager = get_plugin_manager_promise(info.context).get()
-        with traced_atomic_transaction():
-            response = super().perform_mutation(_root, info, **data)
-            call_order_event(
-                manager,
-                WebhookEventAsyncType.DRAFT_ORDER_DELETED,
-                order,
+        try:
+            with traced_atomic_transaction():
+                response = super().perform_mutation(_root, info, **data)
+                call_order_event(
+                    manager,
+                    WebhookEventAsyncType.DRAFT_ORDER_DELETED,
+                    order,
+                )
+        except ProtectedError as e:
+            items = ", ".join(
+                [
+                    item._meta.object_name
+                    for item in e.protected_objects
+                    if item._meta.object_name
+                ]
+            )
+            raise ValidationError(
+                ValidationError(
+                    f"Draft order has attached items: {items}.",
+                    code=OrderErrorCode.CANNOT_DELETE.value,
+                )
             )
         return response
 
