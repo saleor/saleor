@@ -12,7 +12,6 @@ from ....tax.utils import (
     get_tax_configuration_for_checkout,
 )
 from ....webhook.event_types import WebhookEventSyncType
-from ....webhook.utils import get_webhooks_for_event
 from ...checkout.dataloaders.checkout_infos import (
     CheckoutInfoByCheckoutTokenLoader,
     CheckoutLinesInfoByCheckoutTokenLoader,
@@ -20,7 +19,11 @@ from ...checkout.dataloaders.checkout_infos import (
 from ...core.dataloaders import DataLoader
 from ..subscription_payload import generate_payload_promise_from_subscription
 from ..utils import get_subscription_query_hash
-from .utils import AppByEventTypeLoader, PayloadsRequestContextByEventTypeLoader
+from .utils import (
+    AppByEventTypeLoader,
+    PayloadsRequestContextByEventTypeLoader,
+    WebhookByEventTypeLoader,
+)
 
 
 class PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(DataLoader):
@@ -50,11 +53,10 @@ class PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(DataLoader):
         )
 
         event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
-        webhooks = get_webhooks_for_event(event_type)
 
         @allow_writer_in_context(self.context)
         def generate_payloads(data):
-            checkouts_info, checkout_lines_info, apps, request_context = data
+            checkouts_info, checkout_lines_info, apps, request_context, webhooks = data
             apps_map = {app.id: app for app in apps}
             promises = []
             for checkout_info, lines_info in zip(checkouts_info, checkout_lines_info):
@@ -122,6 +124,7 @@ class PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(DataLoader):
         request_context = PayloadsRequestContextByEventTypeLoader(self.context).load(
             event_type
         )
-        return Promise.all([checkouts_info, lines, apps, request_context]).then(
-            generate_payloads
-        )
+        webhooks = WebhookByEventTypeLoader(self.context).load(event_type)
+        return Promise.all(
+            [checkouts_info, lines, apps, request_context, webhooks]
+        ).then(generate_payloads)
