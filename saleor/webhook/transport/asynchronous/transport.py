@@ -1,14 +1,17 @@
 import datetime
 import json
 import logging
+from collections import defaultdict
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Optional
+from multiprocessing.pool import ThreadPool
+from typing import Optional
 from urllib.parse import urlparse
 
 from celery import group
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.db import transaction
+from django.db.models import Count, Q
 
 from ....celeryconf import app
 from ....core import EventDeliveryStatus
@@ -23,6 +26,7 @@ from ....graphql.webhook.subscription_payload import (
     initialize_request,
 )
 from ....graphql.webhook.subscription_types import WEBHOOK_TYPES_MAP
+from ....webhook.models import Webhook
 from ... import observability
 from ...event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...observability import WebhookData
@@ -37,10 +41,6 @@ from ..utils import (
     handle_webhook_retry,
     send_webhook_using_scheme_method,
 )
-
-if TYPE_CHECKING:
-    from ....webhook.models import Webhook
-
 
 logger = logging.getLogger(__name__)
 task_logger = get_task_logger(f"{__name__}.celery")
@@ -196,6 +196,10 @@ def trigger_webhooks_async(
 ):
     """Trigger async webhooks - both regular and subscription.
 
+    Note: this function doesn't handle the actual delivery, instead it only creates
+    `EventDelivery` objects, which schedules events to be delivered. Events are picked
+    up by a periodic Celery tasks that handles the actual delivery.
+
     :param data: used as payload in regular webhooks.
         Note: this is a legacy parameter, thus it is optional; if it's not provided,
         `legacy_data_generator` function is used to generate the payload when needed.
@@ -238,17 +242,53 @@ def trigger_webhooks_async(
                 request_time=request_time,
             )
         )
-    for delivery in deliveries:
-        send_webhook_request_async.apply_async(
-            kwargs={"event_delivery_id": delivery.id},
-            queue=get_queue_name_for_webhook(
-                delivery.webhook,
-                default_queue=queue or settings.WEBHOOK_CELERY_QUEUE_NAME,
-            ),
-            bind=True,
-            retry_backoff=10,
-            retry_kwargs={"max_retries": 5},
+
+
+# todo: queue: what about using get_queue_name_for_webhook
+@app.task(queue=settings.WEBHOOK_CELERY_QUEUE_NAME)
+def schedule_pending_webhooks():
+    webhooks = Webhook.objects.annotate(
+        events_count=Count(
+            "eventdelivery",
+            filter=Q(eventdelivery__status=EventDeliveryStatus.PENDING),
         )
+    ).values("events_count", "app_id")
+
+    events_by_app: dict[int, int] = defaultdict(int)
+    for webhook in webhooks:
+        events_by_app[webhook["app_id"]] += webhook["events_count"]
+
+    for app_id, event_ids in events_by_app.items():
+        if event_ids:
+            send_app_webhooks.delay(app_id)
+
+
+@app.task(queue=settings.WEBHOOK_CELERY_QUEUE_NAME)
+def send_app_webhooks(app_id):
+    print("Trigger app delivery: ", app_id)  # noqa
+
+    def send_webhook_request_in_pool(event: EventDelivery):
+        # todo: implement this func
+        print(f"[{app_id}] Sending event {event.id} to {event.webhook.target_url}")  # noqa
+
+    batch_size = 10
+
+    # todo: check if returned events are distinct
+    # todo: log deliveries that were failed to fetch from DB (see `get_delivery_for_webhook`)?
+    events = EventDelivery.objects.filter(
+        status=EventDeliveryStatus.PENDING,
+        webhook__app_id=app_id,
+    ).order_by("created_at")[:batch_size]
+
+    # update status to STARTED
+    event_ids = list(events.values_list("id", flat=True))
+    EventDelivery.objects.filter(id__in=event_ids).update(
+        status=EventDeliveryStatus.STARTED
+    )
+
+    concurrency = 5
+    with ThreadPool(concurrency) as pool:
+        pool.map(send_webhook_request_in_pool, events)
 
 
 @app.task(
