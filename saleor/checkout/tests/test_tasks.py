@@ -4,6 +4,7 @@ from decimal import Decimal
 from unittest import mock
 from uuid import UUID
 
+import graphene
 import pytest
 from django.utils import timezone
 
@@ -469,7 +470,9 @@ def test_automatic_checkout_completion_task(
     checkout = checkout_with_prices
     checkout_pk = checkout.pk
 
-    caplog.set_level(logging.INFO, logger=task_logger.name)
+    # allow catching the log in caplog
+    parent_logger = task_logger.parent
+    parent_logger.propagate = True
 
     transaction_item_generator(
         checkout_id=checkout.pk, charged_value=checkout.total.gross.amount
@@ -482,19 +485,19 @@ def test_automatic_checkout_completion_task(
     assert not Checkout.objects.filter(pk=checkout_pk).exists()
     assert Order.objects.filter(checkout_token=checkout_pk).exists()
 
-    # checkout_id = graphene.Node.to_global_id("Checkout", checkout_pk)
-    # assert len(caplog.records) == 2
-    # assert caplog.records[0].message == (
-    #     f"Automatic checkout completion triggered for checkout: {checkout_id}"
-    # )
-    # assert caplog.records[0].checkout_id == checkout_id
-    # assert caplog.records[1].levelname == logging.INFO
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout_pk)
+    assert len(caplog.records) == 2
+    assert caplog.records[0].message == (
+        f"Automatic checkout completion triggered for checkout: {checkout_id}."
+    )
+    assert caplog.records[0].checkout_id == checkout_id
+    assert caplog.records[1].levelno == logging.INFO
 
-    # assert caplog.records[1].message == (
-    #     f"Automatic checkout completion succeeded for checkout: : {checkout_id}"
-    # )
-    # assert caplog.records[1].checkout_id == checkout_id
-    # assert caplog.records[1].levelname == logging.INFO
+    assert caplog.records[1].message == (
+        f"Automatic checkout completion succeeded for checkout: {checkout_id}."
+    )
+    assert caplog.records[1].checkout_id == checkout_id
+    assert caplog.records[1].levelno == logging.INFO
 
 
 def test_automatic_checkout_completion_task_missing_checkout(checkout, caplog):
@@ -502,8 +505,9 @@ def test_automatic_checkout_completion_task_missing_checkout(checkout, caplog):
     checkout_pk = checkout.pk
     checkout.delete()
 
-    caplog.set_level(logging.WARNING)
-    caplog.set_level(logging.INFO)
+    # allow catching the log in caplog
+    parent_logger = task_logger.parent
+    parent_logger.propagate = True
 
     # when
     automatic_checkout_completion_task(checkout_pk, None, None)
@@ -518,25 +522,26 @@ def test_automatic_checkout_completion_task_error_raised(checkout, app, caplog):
     checkout.billing_address = None
     checkout.save(update_fields=["billing_address"])
 
-    caplog.set_level(logging.INFO, logger=task_logger.name)
-    caplog.set_level(logging.WARNING, logger=task_logger.name)
+    # allow catching the log in caplog
+    parent_logger = task_logger.parent
+    parent_logger.propagate = True
 
     # when
     automatic_checkout_completion_task(checkout_pk, None, app.id)
 
     # then
     assert Checkout.objects.filter(pk=checkout_pk).exists()
-    # checkout_id = graphene.Node.to_global_id("Checkout", checkout_pk)
-    # assert len(caplog.records) == 2
-    # assert caplog.records[0].message == (
-    #     f"Automatic checkout completion triggered for checkout: {checkout_id}"
-    # )
-    # assert caplog.records[0].checkout_id == checkout_id
-    # assert caplog.records[1].levelinfo == logging.INFO
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout_pk)
+    assert len(caplog.records) == 2
+    assert caplog.records[0].message == (
+        f"Automatic checkout completion triggered for checkout: {checkout_id}."
+    )
+    assert caplog.records[0].checkout_id == checkout_id
+    assert caplog.records[0].levelno == logging.INFO
 
-    # assert caplog.records[1].message == (
-    #     f"Automatic checkout completion failed for checkout: {checkout_id}"
-    # )
-    # assert caplog.records[1].checkout_id == checkout_id
-    # assert caplog.records[1].error
-    # assert caplog.records[1].levelinfo == logging.WARNING
+    assert caplog.records[1].message == (
+        f"Automatic checkout completion failed for checkout: {checkout_id}."
+    )
+    assert caplog.records[1].checkout_id == checkout_id
+    assert caplog.records[1].error
+    assert caplog.records[1].levelno == logging.WARNING
