@@ -26868,6 +26868,9 @@ input OrderBulkCreateOrderLineInput @doc(category: "Orders") {
   """The name of the product."""
   productName: String
 
+  """The SKU of the product."""
+  productSku: String
+
   """Translation of the product variant name."""
   translatedVariantName: String
 

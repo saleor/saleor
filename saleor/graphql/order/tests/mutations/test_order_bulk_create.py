@@ -70,6 +70,7 @@ ORDER_BULK_CREATE = """
                             id
                         }
                         productName
+                        productSku
                         variantName
                         translatedVariantName
                         translatedProductName
@@ -603,6 +604,7 @@ def test_order_bulk_create(
         "ProductVariant", variant.id
     )
     assert order_line["productName"] == "Product Name"
+    assert order_line["productSku"] is None
     assert order_line["variantName"] == "Variant Name"
     assert order_line["translatedProductName"] == "Nazwa Produktu"
     assert order_line["translatedVariantName"] == "Nazwa Wariantu"
@@ -632,6 +634,7 @@ def test_order_bulk_create(
     db_order_line = OrderLine.objects.get()
     assert db_order_line.variant == variant
     assert db_order_line.product_name == "Product Name"
+    assert db_order_line.product_sku is None
     assert db_order_line.variant_name == "Variant Name"
     assert db_order_line.translated_product_name == "Nazwa Produktu"
     assert db_order_line.translated_variant_name == "Nazwa Wariantu"
@@ -822,6 +825,7 @@ def test_order_bulk_create_multiple_lines(
     line_2["variantId"] = graphene.Node.to_global_id("ProductVariant", variant_2.id)
     line_2["totalPrice"]["gross"] = 60
     line_2["totalPrice"]["net"] = 50
+    line_2["productSku"] = "TEST-SKU"
     order["lines"].append(line_2)
 
     staff_api_client.user.user_permissions.add(
@@ -845,17 +849,21 @@ def test_order_bulk_create_multiple_lines(
     line_1 = order["lines"][0]
     assert line_1["unitPrice"]["gross"]["amount"] == Decimal(120 / 5)
     assert line_1["unitPrice"]["net"]["amount"] == Decimal(100 / 5)
+    assert line_1["productSku"] is None
     line_2 = order["lines"][1]
     assert line_2["unitPrice"]["gross"]["amount"] == Decimal(60 / 5)
     assert line_2["unitPrice"]["net"]["amount"] == Decimal(50 / 5)
+    assert line_2["productSku"] == "TEST-SKU"
 
     db_lines = OrderLine.objects.all()
     db_line_1 = db_lines[0]
     assert db_line_1.unit_price.gross.amount == Decimal(120 / 5)
     assert db_line_1.unit_price.net.amount == Decimal(100 / 5)
+    assert db_line_1.product_sku is None
     db_line_2 = db_lines[1]
     assert db_line_2.unit_price.gross.amount == Decimal(60 / 5)
     assert db_line_2.unit_price.net.amount == Decimal(50 / 5)
+    assert db_line_2.product_sku == "TEST-SKU"
 
     assert order["total"]["gross"]["amount"] == 180
     assert order["total"]["net"]["amount"] == 150
