@@ -48,17 +48,20 @@ jobs:
       - publish
     steps:
       - name: Trigger staging deployment for tagged release
+        env:
+          VERSION: ${{ needs.publish.outputs.version }}
         run: |
-          set -x
-
           export GITHUB_TOKEN=$( \
             curl --request GET --url ${{ secrets.VAULT_URL}} --header "Authorization: JWT ${{ secrets.VAULT_JWT }}" | jq -r .token \
           )
+          
+          payload=$(
+              jq --arg version "$VERSION" --null-input '
+                {
+                  "event_type": "deploy-staging",
+                  "client_payload": {"version": $version}
+                }
+              '
+          )
 
-          gh api /repos/saleor/saleor-multitenant/dispatches \
-            --input - <<< '{
-              "event_type": "deploy-staging",
-              "client_payload": {
-                "version": "${{ needs.publish.outputs.version }}"
-              }
-            }'
+          gh api /repos/saleor/saleor-multitenant/dispatches --input - <<< $payload
