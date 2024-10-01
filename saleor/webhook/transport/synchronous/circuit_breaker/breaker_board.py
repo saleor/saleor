@@ -50,7 +50,7 @@ class BreakerBoard:
         if total < self.failure_min_count:
             return
 
-        if (errors / total) * 100 > self.failure_threshold:
+        if (errors / total) * 100 >= self.failure_threshold:
             self.storage.update_open(app_id, int(time.time()))
 
     def register_success(self, app_id: int):
