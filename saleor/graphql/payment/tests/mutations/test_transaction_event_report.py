@@ -13,7 +13,7 @@ from .....checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from .....checkout.calculations import fetch_checkout_data
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
-from .....order import OrderGrantedRefundStatus, OrderStatus
+from .....order import OrderEvents, OrderGrantedRefundStatus, OrderStatus
 from .....order.models import Order
 from .....payment import OPTIONAL_AMOUNT_EVENTS, TransactionEventType
 from .....payment.models import TransactionEvent
@@ -1556,6 +1556,9 @@ def test_transaction_event_updates_checkout_full_paid_automatic_completion(
     order = Order.objects.get(checkout_token=checkout_token)
     assert order.charge_status == CheckoutChargeStatus.FULL
     assert order.authorize_status == CheckoutAuthorizeStatus.FULL
+    assert order.events.filter(
+        type=OrderEvents.PLACED_AUTOMATICALLY_FROM_PAID_CHECKOUT
+    ).exists()
 
     mocked_fully_paid.assert_called_once_with(checkout, webhooks=set())
 
@@ -1773,6 +1776,9 @@ def test_transaction_event_updates_checkout_fully_authorized_automatic_complete(
     order = Order.objects.get(checkout_token=checkout_token)
     assert order.charge_status == CheckoutChargeStatus.NONE
     assert order.authorize_status == CheckoutAuthorizeStatus.FULL
+    assert order.events.filter(
+        type=OrderEvents.PLACED_AUTOMATICALLY_FROM_PAID_CHECKOUT
+    ).exists()
     mocked_fully_paid.assert_not_called()
 
 

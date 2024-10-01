@@ -1287,7 +1287,9 @@ def test_transaction_create_for_checkout_fully_paid_automatic_completion(
     order = Order.objects.get(checkout_token=checkout_token)
     assert order.charge_status == CheckoutChargeStatus.FULL
     assert order.authorize_status == CheckoutAuthorizeStatus.FULL
-    # TODO: check order events
+    assert order.events.filter(
+        type=OrderEvents.PLACED_AUTOMATICALLY_FROM_PAID_CHECKOUT
+    ).exists()
 
 
 @patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
@@ -1402,7 +1404,9 @@ def test_transaction_create_for_checkout_fully_authorized_automatic_completion(
     order = Order.objects.get(checkout_token=checkout_token)
     assert order.charge_status == CheckoutChargeStatus.NONE
     assert order.authorize_status == CheckoutAuthorizeStatus.FULL
-    # TODO: check order events
+    assert order.events.filter(
+        type=OrderEvents.PLACED_AUTOMATICALLY_FROM_PAID_CHECKOUT
+    ).exists()
 
 
 @pytest.mark.parametrize(

@@ -2691,6 +2691,9 @@ def test_transaction_update_for_checkout_fully_paid_automatic_completion(
     order = Order.objects.get(checkout_token=checkout_token)
     assert order.charge_status == CheckoutChargeStatus.FULL
     assert order.authorize_status == CheckoutAuthorizeStatus.FULL
+    assert order.events.filter(
+        type=OrderEvents.PLACED_AUTOMATICALLY_FROM_PAID_CHECKOUT
+    ).exists()
 
     mocked_checkout_fully_paid.assert_called_once_with(checkout, webhooks=set())
 
@@ -2798,6 +2801,9 @@ def test_transaction_update_for_checkout_fully_authorized_automatic_completion(
     order = Order.objects.get(checkout_token=checkout_token)
     assert order.charge_status == CheckoutChargeStatus.NONE
     assert order.authorize_status == CheckoutAuthorizeStatus.FULL
+    assert order.events.filter(
+        type=OrderEvents.PLACED_AUTOMATICALLY_FROM_PAID_CHECKOUT
+    ).exists()
 
     mocked_checkout_fully_paid.assert_not_called()
 
