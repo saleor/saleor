@@ -57,11 +57,11 @@ def test_transaction_amounts_for_checkout_updated_fully_paid(
     assert not mocked_complete_checkout.called
 
 
-@patch("saleor.checkout.complete_checkout.complete_checkout")
+@patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
 def test_transaction_amounts_for_checkout_fully_paid_automatic_checkout_complete(
     mocked_fully_paid,
-    mocked_complete_checkout,
+    mocked_automatic_checkout_completion_task,
     checkout_with_items,
     transaction_item_generator,
     plugins_manager,
@@ -90,22 +90,16 @@ def test_transaction_amounts_for_checkout_fully_paid_automatic_checkout_complete
     assert checkout.charge_status == CheckoutChargeStatus.FULL
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
     mocked_fully_paid.assert_called_once_with(checkout, webhooks=set())
-    mocked_complete_checkout.assert_called_once_with(
-        manager=plugins_manager,
-        checkout_info=checkout_info,
-        lines=lines,
-        payment_data={},
-        store_source=False,
-        user=None,
-        app=app,
+    mocked_automatic_checkout_completion_task.assert_called_once_with(
+        checkout.pk, None, app.id
     )
 
 
-@patch("saleor.checkout.complete_checkout.complete_checkout")
+@patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
 def test_transaction_amounts_for_checkout_updated_not_fully_paid_no_automatic_complete(
     mocked_fully_paid,
-    mocked_complete_checkout,
+    mocked_automatic_checkout_completion_task,
     checkout_with_items,
     transaction_item_generator,
     plugins_manager,
@@ -134,14 +128,14 @@ def test_transaction_amounts_for_checkout_updated_not_fully_paid_no_automatic_co
     assert checkout.charge_status == CheckoutChargeStatus.PARTIAL
     assert checkout.authorize_status == CheckoutAuthorizeStatus.PARTIAL
     assert not mocked_fully_paid.called
-    assert not mocked_complete_checkout.called
+    assert not mocked_automatic_checkout_completion_task.called
 
 
-@patch("saleor.checkout.complete_checkout.complete_checkout")
+@patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
 def test_transaction_amounts_for_checkout_updated_with_already_fully_paid(
     mocked_fully_paid,
-    mocked_complete_checkout,
+    mocked_automatic_checkout_completion_task,
     checkout_with_items,
     transaction_item_generator,
     plugins_manager,
@@ -172,14 +166,14 @@ def test_transaction_amounts_for_checkout_updated_with_already_fully_paid(
     assert checkout.charge_status == CheckoutChargeStatus.OVERCHARGED
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
     assert not mocked_fully_paid.called
-    assert not mocked_complete_checkout.called
+    assert not mocked_automatic_checkout_completion_task.called
 
 
-@patch("saleor.checkout.complete_checkout.complete_checkout")
+@patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
 def test_transaction_amounts_for_checkout_updated_0_checkout_automatic_complete(
     mocked_fully_paid,
-    mocked_complete_checkout,
+    mocked_automatic_checkout_completion_task,
     checkout_with_item_total_0,
     transaction_item_generator,
     plugins_manager,
@@ -206,22 +200,16 @@ def test_transaction_amounts_for_checkout_updated_0_checkout_automatic_complete(
     assert checkout.charge_status == CheckoutChargeStatus.FULL
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
     mocked_fully_paid.assert_called_with(checkout, webhooks=set())
-    mocked_complete_checkout.assert_called_once_with(
-        manager=plugins_manager,
-        checkout_info=checkout_info,
-        lines=lines,
-        payment_data={},
-        store_source=False,
-        user=None,
-        app=app,
+    mocked_automatic_checkout_completion_task.assert_called_once_with(
+        checkout.pk, None, app.id
     )
 
 
-@patch("saleor.checkout.complete_checkout.complete_checkout")
+@patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
 def test_transaction_amounts_for_checkout_updated_fully_authorized(
     mocked_fully_paid,
-    mocked_complete_checkout,
+    mocked_automatic_checkout_completion_task,
     checkout_with_items,
     transaction_item_generator,
     plugins_manager,
@@ -248,14 +236,14 @@ def test_transaction_amounts_for_checkout_updated_fully_authorized(
     assert checkout.charge_status == CheckoutChargeStatus.NONE
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
     assert not mocked_fully_paid.called
-    assert not mocked_complete_checkout.called
+    assert not mocked_automatic_checkout_completion_task.called
 
 
-@patch("saleor.checkout.complete_checkout.complete_checkout")
+@patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
 def test_transaction_amounts_for_checkout_fully_authorized_automatic_checkout_complete(
     mocked_fully_paid,
-    mocked_complete_checkout,
+    mocked_automatic_checkout_completion_task,
     checkout_with_items,
     transaction_item_generator,
     plugins_manager,
@@ -285,14 +273,8 @@ def test_transaction_amounts_for_checkout_fully_authorized_automatic_checkout_co
     assert checkout.charge_status == CheckoutChargeStatus.NONE
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
     assert not mocked_fully_paid.called
-    mocked_complete_checkout.assert_called_once_with(
-        manager=plugins_manager,
-        checkout_info=checkout_info,
-        lines=lines,
-        payment_data={},
-        store_source=False,
-        user=staff_user,
-        app=None,
+    mocked_automatic_checkout_completion_task.assert_called_once_with(
+        checkout.pk, staff_user.id, None
     )
 
 

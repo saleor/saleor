@@ -207,7 +207,7 @@ def transaction_amounts_for_checkout_updated(
     user: Optional["User"],
     app: Optional["App"],
 ):
-    from .complete_checkout import complete_checkout
+    from .tasks import automatic_checkout_completion_task
 
     if not transaction.checkout_id:
         return
@@ -250,12 +250,6 @@ def transaction_amounts_for_checkout_updated(
         channel.automatically_complete_fully_paid_checkouts
         and checkout.authorize_status == CheckoutAuthorizeStatus.FULL
     ):
-        complete_checkout(
-            manager=manager,
-            checkout_info=checkout_info,
-            lines=lines,
-            payment_data={},
-            store_source=False,
-            user=user,
-            app=app,
-        )
+        user_id = user.id if user else None
+        app_id = app.id if app else None
+        automatic_checkout_completion_task.delay(checkout.pk, user_id, app_id)
