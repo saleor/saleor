@@ -15,7 +15,7 @@ from django.db.models import Model as DjangoModel
 from django.db.models import Q, QuerySet
 from graphene.relay import Connection
 from graphql import GraphQLError
-from graphql.language.ast import FragmentSpread
+from graphql.language.ast import FragmentSpread, InlineFragment, SelectionSet
 from graphql_relay.connection.arrayconnection import connection_from_list_slice
 from graphql_relay.connection.connectiontypes import Edge, PageInfo
 from graphql_relay.utils import base64, unbase64
@@ -402,17 +402,20 @@ def _validate_slice_args(
             args["last"] = min(last, max_limit)
 
 
-def _is_first_or_last_required(info):
-    """Disable `enforce_first_or_last` if not querying for `edges`."""
-    selections = info.field_asts[0].selection_set.selections
-    values = [field.name.value for field in selections]
+def _edges_in_selections(selection_set: SelectionSet, info: "ResolveInfo") -> bool:
+    values = [
+        field.name.value
+        for field in selection_set.selections
+        if not isinstance(field, InlineFragment)
+    ]
     if "edges" in values:
         return True
 
     fragments = [
-        field.name.value for field in selections if isinstance(field, FragmentSpread)
+        field.name.value
+        for field in selection_set.selections
+        if isinstance(field, FragmentSpread)
     ]
-
     for fragment in fragments:
         fragment_values = [
             field.name.value
@@ -421,7 +424,22 @@ def _is_first_or_last_required(info):
         if "edges" in fragment_values:
             return True
 
+    sub_selection_sets = [
+        field.selection_set
+        for field in selection_set.selections
+        if isinstance(field, InlineFragment)
+    ]
+    for sub_selection_set in sub_selection_sets:
+        if _edges_in_selections(sub_selection_set, info):
+            return True
+
     return False
+
+
+def _is_first_or_last_required(info: "ResolveInfo") -> bool:
+    """Disable `enforce_first_or_last` if not querying for `edges`."""
+    selection_set = info.field_asts[0].selection_set
+    return _edges_in_selections(selection_set, info)
 
 
 def slice_connection_iterable(

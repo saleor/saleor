@@ -310,3 +310,46 @@ def test_query_with_pagination_and_fragments_no_first_or_last_raises_an_error(bo
         "the `books` connection."
     )
     assert str(result.errors[0]) == expected_err_msg
+
+
+QUERY_PAGINATION_WITH_INLINE_FRAGMENTS = """
+    query BooksPaginationTest($first: Int, $last: Int, $after: String, $before: String){
+        books(first: $first, last: $last, after: $after, before: $before) {
+            ...on BookTypeCountableConnection {
+                pageInfo {
+                    ...on PageInfo {
+                        endCursor
+                        hasNextPage
+                        hasPreviousPage
+                        startCursor
+                        __typename
+                    }
+                    __typename
+                }
+                edges {
+                    cursor
+                    node {
+                        ...on BookType {
+                            name
+                            __typename
+                        }
+                        __typename
+                    }
+                    __typename
+                }
+                __typename
+            }
+        }
+    }
+"""
+
+
+def test_query_with_pagination_and_inline_fragments(books):
+    page_size = 10
+    variables = {"first": page_size}
+
+    result = schema.execute(QUERY_PAGINATION_WITH_INLINE_FRAGMENTS, variables=variables)
+
+    assert not result.errors
+    content = result.data
+    assert len(content["books"]["edges"]) == page_size
