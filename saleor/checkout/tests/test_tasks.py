@@ -8,7 +8,9 @@ import graphene
 import pytest
 from django.utils import timezone
 
+from ...order import OrderEvents
 from ...order.models import Order
+from ...tests.utils import flush_post_commit_hooks
 from ..models import Checkout
 from ..tasks import (
     automatic_checkout_completion_task,
@@ -463,7 +465,7 @@ def test_aborts_deleting_checkouts_when_invocation_count_exhausted(
     mocked_task.assert_not_called()
 
 
-def test_automatic_checkout_completion_task(
+def test_automatic_checkout_completion_task_transaction_flow(
     checkout_with_prices, transaction_item_generator, app, caplog
 ):
     # given
@@ -482,8 +484,54 @@ def test_automatic_checkout_completion_task(
     automatic_checkout_completion_task(checkout_pk, None, app.id)
 
     # then
+    flush_post_commit_hooks()
     assert not Checkout.objects.filter(pk=checkout_pk).exists()
-    assert Order.objects.filter(checkout_token=checkout_pk).exists()
+    order = Order.objects.filter(checkout_token=checkout_pk).first()
+    assert order
+    assert order.events.filter(
+        type=OrderEvents.PLACED_AUTOMATICALLY_FROM_PAID_CHECKOUT
+    ).exists()
+
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout_pk)
+    assert len(caplog.records) == 2
+    assert caplog.records[0].message == (
+        f"Automatic checkout completion triggered for checkout: {checkout_id}."
+    )
+    assert caplog.records[0].checkout_id == checkout_id
+    assert caplog.records[1].levelno == logging.INFO
+
+    assert caplog.records[1].message == (
+        f"Automatic checkout completion succeeded for checkout: {checkout_id}."
+    )
+    assert caplog.records[1].checkout_id == checkout_id
+    assert caplog.records[1].levelno == logging.INFO
+
+
+def test_automatic_checkout_completion_task_payment_flow(
+    checkout_ready_to_complete, payment_dummy, app, caplog
+):
+    # given
+    checkout = checkout_ready_to_complete
+    checkout_pk = checkout.pk
+
+    checkout.gift_cards.clear()
+    checkout.payments.add(payment_dummy)
+
+    # allow catching the log in caplog
+    parent_logger = task_logger.parent
+    parent_logger.propagate = True
+
+    # when
+    automatic_checkout_completion_task(checkout_pk, None, app.id)
+
+    # then
+    flush_post_commit_hooks()
+    assert not Checkout.objects.filter(pk=checkout_pk).exists()
+    order = Order.objects.filter(checkout_token=checkout_pk).first()
+    assert order
+    assert order.events.filter(
+        type=OrderEvents.PLACED_AUTOMATICALLY_FROM_PAID_CHECKOUT
+    ).exists()
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout_pk)
     assert len(caplog.records) == 2

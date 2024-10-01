@@ -154,6 +154,7 @@ def automatic_checkout_completion_task(
             store_source=False,
             user=user,
             app=app,
+            is_automatic_completion=True,
         )
     except ValidationError as error:
         task_logger.warning(

@@ -283,9 +283,12 @@ def order_created(
     manager: "PluginsManager",
     from_draft: bool = False,
     site_settings: Optional["SiteSettings"] = None,
+    automatic: bool = False,
 ):
     order = order_info.order
-    events.order_created_event(order=order, user=user, app=app, from_draft=from_draft)
+    events.order_created_event(
+        order=order, user=user, app=app, from_draft=from_draft, automatic=automatic
+    )
 
     webhook_event_map = get_webhooks_for_multiple_events(
         WEBHOOK_EVENTS_FOR_ORDER_CREATED
@@ -2023,7 +2026,7 @@ def _process_refund(
             user=user,
             app=app,
             refunded_lines=list(lines_to_refund.values()),
-            amount=amount,
+            amount=amount,  # type: ignore
             shipping_costs_included=refund_shipping_costs,
         )
     )
