@@ -54,7 +54,7 @@ jobs:
           export GITHUB_TOKEN=$( \
             curl --request GET --url ${{ secrets.VAULT_URL}} --header "Authorization: JWT ${{ secrets.VAULT_JWT }}" | jq -r .token \
           )
-          
+
           gh api /repos/saleor/saleor-multitenant/dispatches \
             --input - <<< '{
               "event_type": "deploy-staging",
