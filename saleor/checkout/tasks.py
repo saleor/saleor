@@ -118,7 +118,7 @@ def delete_expired_checkouts(
     return total_deleted, has_more
 
 
-@app.task
+@app.task(queue=settings.AUTOMATIC_CHECKOUT_COMPLETION_QUEUE_NAME)
 def automatic_checkout_completion_task(
     checkout_pk,
     user_id,
