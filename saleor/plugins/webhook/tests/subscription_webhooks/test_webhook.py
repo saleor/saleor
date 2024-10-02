@@ -91,11 +91,11 @@ def test_trigger_webhook_sync_with_subscription(
         False,
         payment,
     )
-    event_delivery = EventDelivery.objects.first()
 
     # then
+    mock_request.assert_called_once()
+    event_delivery = mock_request.mock_calls[0].args[0]
     assert json.loads(event_delivery.payload.get_payload()) == expected_payment_payload
-    mock_request.assert_called_once_with(event_delivery)
 
 
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
