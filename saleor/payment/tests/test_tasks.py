@@ -31,7 +31,9 @@ def test_transaction_release_funds_for_checkout_task_checkout_with_new_last_chan
             checkout_id=checkout.pk,
             charged_value=Decimal(100),
         )
-        transaction_amounts_for_checkout_updated(transaction_item, plugins_manager)
+        transaction_amounts_for_checkout_updated(
+            transaction_item, plugins_manager, user=None, app=None
+        )
 
     with freeze_time(time_before_ttl):
         checkout.automatically_refundable = True
@@ -64,7 +66,9 @@ def test_transaction_release_funds_for_checkout_task_checkout_not_refundable(
             checkout_id=checkout.pk,
             charged_value=Decimal(100),
         )
-        transaction_amounts_for_checkout_updated(transaction_item, plugins_manager)
+        transaction_amounts_for_checkout_updated(
+            transaction_item, plugins_manager, user=None, app=None
+        )
         checkout.automatically_refundable = False
         checkout.save(update_fields=["automatically_refundable", "last_change"])
 
@@ -96,7 +100,9 @@ def test_transaction_release_funds_for_checkout_task_checkout_with_new_tr_modifi
             checkout_id=checkout.pk,
             charged_value=Decimal(100),
         )
-        transaction_amounts_for_checkout_updated(transaction_item, plugins_manager)
+        transaction_amounts_for_checkout_updated(
+            transaction_item, plugins_manager, user=None, app=None
+        )
 
     with freeze_time(time_after_ttl):
         checkout.automatically_refundable = True
@@ -129,7 +135,9 @@ def test_transaction_release_funds_for_checkout_task_checkout_with_none_status(
             checkout_id=checkout.pk,
             charged_value=0,
         )
-        transaction_amounts_for_checkout_updated(transaction_item, plugins_manager)
+        transaction_amounts_for_checkout_updated(
+            transaction_item, plugins_manager, user=None, app=None
+        )
         checkout.automatically_refundable = True
         checkout.save(update_fields=["automatically_refundable", "last_change"])
 
@@ -251,7 +259,9 @@ def test_transaction_release_funds_for_checkout_task_refund_already_requested(
             checkout_id=checkout.pk,
             charged_value=Decimal(100),
         )
-        transaction_amounts_for_checkout_updated(transaction_item, plugins_manager)
+        transaction_amounts_for_checkout_updated(
+            transaction_item, plugins_manager, user=None, app=None
+        )
         checkout.automatically_refundable = True
         checkout.save(update_fields=["automatically_refundable", "last_change"])
     transaction_item.events.create(type=TransactionEventType.REFUND_REQUEST)
@@ -283,7 +293,9 @@ def test_transaction_release_funds_for_checkout_task_cancel_already_requested(
             checkout_id=checkout.pk,
             authorized_value=Decimal(100),
         )
-        transaction_amounts_for_checkout_updated(transaction_item, plugins_manager)
+        transaction_amounts_for_checkout_updated(
+            transaction_item, plugins_manager, user=None, app=None
+        )
         checkout.automatically_refundable = True
         checkout.save(update_fields=["automatically_refundable", "last_change"])
     transaction_item.events.create(type=TransactionEventType.CANCEL_REQUEST)
@@ -315,7 +327,9 @@ def test_transaction_release_funds_for_checkout_task_transaction_with_authorizat
             checkout_id=checkout.pk,
             authorized_value=Decimal(100),
         )
-        transaction_amounts_for_checkout_updated(transaction_item, plugins_manager)
+        transaction_amounts_for_checkout_updated(
+            transaction_item, plugins_manager, user=None, app=None
+        )
         checkout.automatically_refundable = True
         checkout.save(update_fields=["automatically_refundable", "last_change"])
 
@@ -359,7 +373,9 @@ def test_transaction_release_funds_for_checkout_task_transaction_with_charge(
             checkout_id=checkout.pk,
             charged_value=Decimal(100),
         )
-        transaction_amounts_for_checkout_updated(transaction_item, plugins_manager)
+        transaction_amounts_for_checkout_updated(
+            transaction_item, plugins_manager, user=None, app=None
+        )
         checkout.automatically_refundable = True
         checkout.save(update_fields=["automatically_refundable", "last_change"])
 

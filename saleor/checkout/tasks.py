@@ -1,14 +1,21 @@
 import logging
 from decimal import Decimal
 
+import graphene
 from celery.utils.log import get_task_logger
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db.models import Exists, OuterRef, Q, QuerySet, Subquery
 from django.utils import timezone
 
+from ..account.models import User
+from ..app.models import App
 from ..celeryconf import app
 from ..core.db.connection import allow_writer
 from ..payment.models import TransactionItem
+from ..plugins.manager import get_plugins_manager
+from .complete_checkout import complete_checkout
+from .fetch import fetch_checkout_info, fetch_checkout_lines
 from .models import Checkout, CheckoutLine
 
 task_logger: logging.Logger = get_task_logger(__name__)
@@ -114,3 +121,57 @@ def delete_expired_checkouts(
         else:
             task_logger.warning("Invocation limit reached, aborting task")
     return total_deleted, has_more
+
+
+@app.task
+def automatic_checkout_completion_task(
+    checkout_pk,
+    user_id,
+    app_id,
+):
+    """Try to automatically complete the checkout.
+
+    If any error is raised during the process, it will be caught and logged.
+    """
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout_pk)
+    try:
+        checkout = Checkout.objects.get(pk=checkout_pk)
+    except Checkout.DoesNotExist:
+        return
+
+    user = User.objects.filter(pk=user_id).first()
+    app = App.objects.filter(pk=app_id).first()
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    task_logger.info(
+        "Automatic checkout completion triggered for checkout: %s.",
+        checkout_id,
+        extra={"checkout_id": checkout_id},
+    )
+    try:
+        complete_checkout(
+            manager=manager,
+            checkout_info=checkout_info,
+            lines=lines,
+            payment_data={},
+            store_source=False,
+            user=user,
+            app=app,
+        )
+    except ValidationError as error:
+        task_logger.warning(
+            "Automatic checkout completion failed for checkout: %s.",
+            checkout_id,
+            extra={
+                "checkout_id": checkout_id,
+                "error": str(error),
+            },
+        )
+    else:
+        task_logger.info(
+            "Automatic checkout completion succeeded for checkout: %s.",
+            checkout_id,
+            extra={"checkout_id": checkout_id},
+        )
