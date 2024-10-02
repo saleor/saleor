@@ -101,8 +101,8 @@ def test_automatically_complete_checkout_paid_by_transaction_create_authorizatio
     shipping_price = checkout_data["deliveryMethod"]["price"]["amount"]
     assert shipping_price == 10
     assert total_gross_amount == subtotal_gross_amount + shipping_price
-    # assert checkout_data["chargeStatus"] == "NONE"
-    # assert checkout_data["authorizeStatus"] == "NONE"
+    assert checkout_data["chargeStatus"] == "NONE"
+    assert checkout_data["authorizeStatus"] == "NONE"
 
     # Step 3 - Create transaction that authorize payment
     psp_reference = "PSP-test"
@@ -124,3 +124,5 @@ def test_automatically_complete_checkout_paid_by_transaction_create_authorizatio
     assert len(order_data["transactions"]) == 1
     assert order_data["transactions"][0]["id"] == transaction_id
     assert order_data["transactions"][0]["pspReference"] == psp_reference
+    event_types = [event_data["type"] for event_data in order_data["events"]]
+    assert "PLACED_AUTOMATICALLY_FROM_PAID_CHECKOUT" in event_types
