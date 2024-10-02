@@ -1,6 +1,6 @@
 from saleor.graphql.tests.utils import get_graphql_content
 
-ORDER_QUERY = """
+ORDER_BY_CHECKOUT_ID_QUERY = """
 query OrderByCheckoutIdDetails($checkout_id: ID!) {
   orders(first:1, filter: {checkoutIds: [$checkout_id]}) {
     totalCount
@@ -76,7 +76,7 @@ def order_by_checkout_id_query(
 ):
     variables = {"checkout_id": checkout_id}
 
-    response = api_client.post_graphql(ORDER_QUERY, variables)
+    response = api_client.post_graphql(ORDER_BY_CHECKOUT_ID_QUERY, variables)
     content = get_graphql_content(response)
 
     return content["data"]["orders"]["edges"][0]["node"]

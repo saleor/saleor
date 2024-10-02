@@ -3,7 +3,7 @@ import pytest
 from ..orders.utils import order_by_checkout_id_query
 from ..product.utils.preparing_product import prepare_product
 from ..shop.utils import prepare_shop
-from ..transactions.utils import create_transaction
+from ..transactions.utils import create_transaction, transaction_event_report
 from ..utils import assign_permissions
 from .utils import (
     checkout_create,
@@ -12,7 +12,7 @@ from .utils import (
 
 
 @pytest.mark.e2e
-def test_automatically_complete_checkout_paid_by_transaction_create_authorization_flow_CORE_0127(
+def test_automatically_complete_checkout_paid_by_transaction_create_charge_flow_CORE_0128(
     e2e_app_api_client,
     e2e_not_logged_api_client,
     permission_manage_product_types_and_attributes,
@@ -104,22 +104,37 @@ def test_automatically_complete_checkout_paid_by_transaction_create_authorizatio
     assert checkout_data["chargeStatus"] == "NONE"
     assert checkout_data["authorizeStatus"] == "NONE"
 
-    # Step 3 - Create transaction that authorize payment
+    # Step 3 - Create transaction
     psp_reference = "PSP-test"
     transaction_data = create_transaction(
         e2e_app_api_client,
         checkout_id,
         transaction_name="transaction",
         psp_reference=psp_reference,
-        available_actions=["CHARGE", "CANCEL"],
-        amount_authorized=total_gross_amount,
+        available_actions=["CHARGE"],
     )
     transaction_id = transaction_data["id"]
 
-    # Step 4 - verify if the order has been created
+    # Step 4 - report charge success
+    event_type = "CHARGE_SUCCESS"
+    transaction_data = transaction_event_report(
+        e2e_app_api_client,
+        transaction_id,
+        event_type,
+        total_gross_amount,
+        psp_reference,
+        external_url="https://saleor.io/event-details/123",
+        available_actions=["REFUND"],
+    )
+    assert transaction_data["transactionEvent"]["type"] == event_type
+    assert (
+        transaction_data["transactionEvent"]["amount"]["amount"] == total_gross_amount
+    )
+
+    # Step 5 - verify if the order has been created
     order_data = order_by_checkout_id_query(e2e_app_api_client, checkout_id)
 
-    assert order_data["chargeStatus"] == "NONE"
+    assert order_data["chargeStatus"] == "FULL"
     assert order_data["authorizeStatus"] == "FULL"
     assert len(order_data["transactions"]) == 1
     assert order_data["transactions"][0]["id"] == transaction_id
