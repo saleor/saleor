@@ -215,6 +215,7 @@ def transaction_amounts_for_checkout_updated(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     previous_charge_status = checkout_info.checkout.charge_status
+    previous_authorize_status = checkout_info.checkout.authorize_status
     fetch_checkout_data(checkout_info, manager, lines, force_status_update=True)
     previous_charge_status_is_fully_paid = previous_charge_status in [
         CheckoutChargeStatus.FULL,
@@ -248,7 +249,12 @@ def transaction_amounts_for_checkout_updated(
     channel = checkout_info.channel
     if (
         channel.automatically_complete_fully_paid_checkouts
-        and checkout.authorize_status == CheckoutAuthorizeStatus.FULL
+        and
+        # ensure that checkout completion is triggered only once
+        (
+            previous_authorize_status != CheckoutAuthorizeStatus.FULL
+            and checkout_info.checkout.authorize_status == CheckoutAuthorizeStatus.FULL
+        )
     ):
         user_id = user.id if user else None
         app_id = app.id if app else None
