@@ -1927,6 +1927,7 @@ class WebhookPlugin(BasePlugin):
                 self.requestor,
                 legacy_data_generator=checkout_data_generator,
                 queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+                defer_payload_generation=True,
             )
 
     def checkout_fully_paid(
