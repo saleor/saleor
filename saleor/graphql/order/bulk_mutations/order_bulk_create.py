@@ -453,7 +453,7 @@ class OrderBulkCreateOrderLineInput(BaseInputObjectType):
     product_name = graphene.String(description="The name of the product.")
     product_sku = graphene.String(
         required=False,
-        description="The SKU of the product.",
+        description="The SKU of the product." + ADDED_IN_318,
     )
     translated_variant_name = graphene.String(
         description="Translation of the product variant name."
