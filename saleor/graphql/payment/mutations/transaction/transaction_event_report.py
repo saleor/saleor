@@ -369,7 +369,9 @@ class TransactionEventReport(ModelMutation):
                     calculate_order_granted_refund_status(related_granted_refund)
             if transaction.checkout_id:
                 manager = get_plugin_manager_promise(info.context).get()
-                transaction_amounts_for_checkout_updated(transaction, manager)
+                transaction_amounts_for_checkout_updated(
+                    transaction, manager, user, app
+                )
         elif available_actions is not None and set(
             transaction.available_actions
         ) != set(available_actions):
