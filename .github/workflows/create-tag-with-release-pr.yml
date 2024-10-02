@@ -46,7 +46,7 @@ jobs:
           VERSION: ${{ steps.set-version.outputs.VERSION }}
           IS_LATEST: ${{ steps.check-latest.outputs.IS_LATEST }}
         run: |
-          gh release create "$VERSION" --repo="$GITHUB_REPOSITORY" --latest=$IS_LATEST --generate-notes --verify-tag
+          gh release create "$VERSION" --repo="$GITHUB_REPOSITORY" --latest="$IS_LATEST" --generate-notes --verify-tag
 
   publish:
     needs:
@@ -81,4 +81,4 @@ jobs:
               '
           )
 
-          gh api /repos/saleor/saleor-multitenant/dispatches --input - <<< $payload
+          gh api /repos/saleor/saleor-multitenant/dispatches --input - <<< "$payload"
