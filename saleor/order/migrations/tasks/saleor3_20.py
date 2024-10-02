@@ -1,14 +1,18 @@
 from decimal import Decimal
 
 from django.db import transaction
-from django.db.models import Exists, F, OuterRef, Q
+from django.db.models import Exists, F, OuterRef, Q, Sum
 
 from ....celeryconf import app
 from ....discount.models import OrderDiscount, Voucher
 from ...models import Order, OrderLine
+from ...utils import updates_amounts_for_order
 
 # The batch of size 250 takes ~0.2 second and consumes ~20MB memory at peak
 ORDER_SET_SHIPPING_PRICE_BATCH_SIZE = 250
+
+# The batch of size 100 takes ~0.2 second and consumes 6.5MB memory
+ORDER_SET_SUBTOTAL_PRICE_FOR_ORDER_FROM_BULK = 100
 
 
 @app.task
@@ -125,6 +129,67 @@ def _set_undiscounted_base_shipping_price(orders):
         )
 
 
+def _set_subtotal_for_orders_created_from_bulk(order_ids: list[str]):
+    orders = (
+        Order.objects.prefetch_related(
+            "payments", "payment_transactions", "granted_refunds"
+        )
+        .filter(id__in=order_ids)
+        .annotate(
+            sum_line_total_price_net_amount=Sum("lines__total_price_net_amount"),
+            sum_line_total_price_gross_amount=Sum("lines__total_price_gross_amount"),
+            sum_line_undiscounted_total_price_net_amount=Sum(
+                "lines__undiscounted_total_price_net_amount"
+            ),
+            sum_line_undiscounted_total_price_gross_amount=Sum(
+                "lines__undiscounted_total_price_gross_amount"
+            ),
+        )
+    )
+
+    for order in orders:
+        order.subtotal_net_amount = order.sum_line_total_price_net_amount
+        order.subtotal_gross_amount = order.sum_line_total_price_gross_amount
+        order.total_net_amount = (
+            order.subtotal_net_amount + order.shipping_price_net_amount
+        )
+        order.total_gross_amount = (
+            order.subtotal_gross_amount + order.shipping_price_gross_amount
+        )
+
+        # using order.shipping_price as this value is used for storing undiscounted
+        # shipping price, received as mutation input or fetched from db.
+        order.undiscounted_total_net_amount = (
+            order.sum_line_undiscounted_total_price_net_amount
+            + order.shipping_price_net_amount
+        )
+        order.undiscounted_total_gross_amount = (
+            order.sum_line_undiscounted_total_price_gross_amount
+            + order.shipping_price_gross_amount
+        )
+        updates_amounts_for_order(order, save=False)
+
+    with transaction.atomic():
+        _orders = list(
+            Order.objects.filter(id__in=order_ids).select_for_update(of=(["self"]))
+        )
+        Order.objects.bulk_update(
+            orders,
+            [
+                "subtotal_net_amount",
+                "subtotal_gross_amount",
+                "total_net_amount",
+                "total_gross_amount",
+                "undiscounted_total_gross_amount",
+                "undiscounted_total_net_amount",
+                "total_charged_amount",
+                "charge_status",
+                "total_authorized_amount",
+                "authorize_status",
+            ],
+        )
+
+
 @app.task
 def set_udniscounted_base_shipping_price_on_draft_orders_task():
     qs = Order.objects.filter(
@@ -139,3 +204,21 @@ def set_udniscounted_base_shipping_price_on_draft_orders_task():
         orders = Order.objects.filter(id__in=order_ids)
         _set_undiscounted_base_shipping_price(orders)
         set_udniscounted_base_shipping_price_on_draft_orders_task.delay()
+
+
+@app.task
+def set_order_subtotal_for_orders_created_from_bulk():
+    order_lines_qs = OrderLine.objects.filter(total_price_gross_amount__gt=0).values(
+        "order_id"
+    )
+    qs = Order.objects.filter(
+        Exists(order_lines_qs.filter(order_id=OuterRef("id"))),
+        origin="bulk_create",
+        subtotal_gross_amount=Decimal(0),
+    )
+    order_ids = list(
+        qs.values_list("pk", flat=True)[:ORDER_SET_SUBTOTAL_PRICE_FOR_ORDER_FROM_BULK]
+    )
+    if order_ids:
+        _set_subtotal_for_orders_created_from_bulk(order_ids)
+        set_order_subtotal_for_orders_created_from_bulk.delay()
