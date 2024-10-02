@@ -7,6 +7,7 @@ from freezegun import freeze_time
 
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....core import EventDeliveryStatus
+from ....core.models import EventDelivery
 from ....core.taxes import TaxType
 from ....graphql.webhook.utils import get_subscription_query_hash
 from ....webhook.event_types import WebhookEventSyncType
@@ -65,7 +66,7 @@ def test_get_taxes_for_order(
 
     # then
     mock_request.assert_called_once()
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exists()
 
     delivery = mock_request.mock_calls[0].args[0]
     assert delivery.payload.get_payload() == generate_order_payload_for_tax_calculation(
@@ -187,7 +188,7 @@ def test_get_taxes_for_order_with_sync_subscription(
 
     # then
     mock_request.assert_called_once()
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exists()
 
     delivery = mock_request.mock_calls[0].args[0]
     assert delivery.payload.get_payload() == json.dumps(
@@ -245,7 +246,7 @@ def test_get_taxes_for_checkout_with_sync_subscription(
         app=tax_app,
     )
     mock_request.assert_called_once()
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exists()
 
     delivery = mock_request.mock_calls[0].args[0]
     assert delivery.payload.get_payload() == json.dumps(expected_payload)
@@ -304,7 +305,7 @@ def test_get_taxes_for_checkout_with_sync_subscription_with_pregenerated_payload
     # then
     mock_generate_payload.assert_not_called()
     mock_request.assert_called_once()
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exists()
 
     delivery = mock_request.mock_calls[0].args[0]
     assert delivery.payload.get_payload() == json.dumps(expected_payload)

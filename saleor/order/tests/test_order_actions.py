@@ -474,7 +474,9 @@ def test_handle_fully_paid_order_triggers_webhooks(
 
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 2
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exclude(
+        webhook_id=additional_order_webhook.id
+    ).exists()
 
     tax_delivery_call, filter_shipping_call = (
         mocked_send_webhook_request_sync.mock_calls
@@ -919,7 +921,9 @@ def test_order_refunded_triggers_webhooks(
 
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 2
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exclude(
+        webhook_id=additional_order_webhook.id
+    ).exists()
 
     tax_delivery_call, filter_shipping_call = (
         mocked_send_webhook_request_sync.mock_calls
@@ -1011,7 +1015,9 @@ def test_order_voided_triggers_webhooks(
 
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 2
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exclude(
+        webhook_id=additional_order_webhook.id
+    ).exists()
 
     tax_delivery_call, filter_shipping_call = (
         mocked_send_webhook_request_sync.mock_calls
@@ -1203,7 +1209,9 @@ def test_order_awaits_fulfillment_approval_triggers_webhooks(
 
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 2
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exclude(
+        webhook_id=additional_order_webhook.id
+    ).exists()
 
     tax_delivery_call, filter_shipping_call = (
         mocked_send_webhook_request_sync.mock_calls
@@ -1294,7 +1302,9 @@ def test_order_authorized_triggers_webhooks(
 
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 2
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exclude(
+        webhook_id=additional_order_webhook.id
+    ).exists()
 
     tax_delivery_call, filter_shipping_call = (
         mocked_send_webhook_request_sync.mock_calls
@@ -1414,7 +1424,9 @@ def test_order_charged_triggers_webhooks(
 
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 2
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exclude(
+        webhook_id=additional_order_webhook.id
+    ).exists()
 
     tax_delivery_call, filter_shipping_call = (
         mocked_send_webhook_request_sync.mock_calls
@@ -1796,7 +1808,9 @@ def test_order_transaction_updated_for_charged_triggers_webhooks(
 
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 2
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exclude(
+        webhook_id=additional_order_webhook.id
+    ).exists()
 
     tax_delivery_call, filter_shipping_call = (
         mocked_send_webhook_request_sync.mock_calls
@@ -1905,7 +1919,9 @@ def test_order_transaction_updated_for_authorized_triggers_webhooks(
 
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 2
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exclude(
+        webhook_id=additional_order_webhook.id
+    ).exists()
 
     tax_delivery_call, filter_shipping_call = (
         mocked_send_webhook_request_sync.mock_calls
@@ -2033,7 +2049,10 @@ def test_order_transaction_updated_for_refunded_triggers_webhooks(
 
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 2
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+
+    assert not EventDelivery.objects.exclude(
+        webhook_id=additional_order_webhook.id
+    ).exists()
 
     tax_delivery_call, filter_shipping_call = (
         mocked_send_webhook_request_sync.mock_calls
@@ -2496,7 +2515,7 @@ def test_call_order_event_triggers_sync_webhook(
 
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 2
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exclude(webhook_id=order_webhook.id).exists()
 
     tax_delivery_call, filter_shipping_call = (
         mocked_send_webhook_request_sync.mock_calls
@@ -2629,7 +2648,8 @@ def test_call_order_event_missing_filter_shipping_method_webhook(
     )
 
     mocked_send_webhook_request_sync.assert_called_once()
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exclude(webhook_id=order_webhook.id).exists()
+
     tax_delivery = mocked_send_webhook_request_sync.mock_calls[0].args[0]
     assert tax_delivery.webhook_id == tax_webhook.id
 
@@ -2712,7 +2732,7 @@ def test_call_order_event_skips_tax_webhook_when_prices_are_valid(
 
     # confirm each sync webhook was called without saving event delivery
     mocked_send_webhook_request_sync.assert_called_once()
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exclude(webhook_id=order_webhook.id).exists()
 
     filter_shipping_call = mocked_send_webhook_request_sync.mock_calls[0]
     filter_shipping_delivery = filter_shipping_call.args[0]
@@ -2800,7 +2820,7 @@ def test_call_order_event_skips_sync_webhooks_when_order_not_editable(
         retry_kwargs={"max_retries": 5},
     )
     assert not mocked_send_webhook_request_sync.called
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exclude(webhook_id=order_webhook.id).exists()
     mocked_call_event_including_protected_events.assert_called_once_with(
         ANY, order_with_lines, webhooks={order_webhook}
     )
@@ -3037,7 +3057,7 @@ def test_call_order_events_triggers_sync_webhook(
     )
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 2
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exclude(webhook_id=order_webhook.id).exists()
 
     tax_delivery_call, filter_shipping_call = (
         mocked_send_webhook_request_sync.mock_calls
@@ -3192,7 +3212,8 @@ def test_call_order_events_missing_filter_shipping_method_webhook(
 
     # confirm each sync webhook was called without saving event delivery
     mocked_send_webhook_request_sync.assert_called_once()
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exclude(webhook_id=order_webhook.id).exists()
+
     tax_delivery = mocked_send_webhook_request_sync.mock_calls[0].args[0]
     assert tax_delivery.webhook_id == tax_webhook.id
 
@@ -3286,7 +3307,7 @@ def test_call_order_events_skips_tax_webhook_when_prices_are_valid(
 
     # confirm each sync webhook was called without saving event delivery
     mocked_send_webhook_request_sync.assert_called_once()
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exclude(webhook_id=order_webhook.id).exists()
 
     filter_shipping_call = mocked_send_webhook_request_sync.mock_calls[0]
     filter_shipping_delivery = filter_shipping_call.args[0]
@@ -3699,7 +3720,9 @@ def test_order_created_triggers_webhooks(
     )
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 2
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exclude(
+        webhook_id=additional_order_webhook.id
+    ).exists()
 
     tax_delivery_call, filter_shipping_call = (
         mocked_send_webhook_request_sync.mock_calls
@@ -3804,7 +3827,9 @@ def test_order_confirmed_triggers_webhooks(
 
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 2
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exclude(
+        webhook_id=additional_order_webhook.id
+    ).exists()
 
     tax_delivery_call, filter_shipping_call = (
         mocked_send_webhook_request_sync.mock_calls

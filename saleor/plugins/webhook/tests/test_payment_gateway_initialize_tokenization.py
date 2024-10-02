@@ -4,6 +4,7 @@ from unittest import mock
 import graphene
 import pytest
 
+from ....core.models import EventDelivery
 from ....payment.interface import (
     PaymentGatewayInitializeTokenizationRequestData,
     PaymentGatewayInitializeTokenizationResponseData,
@@ -74,7 +75,7 @@ def test_payment_gateway_initialize_tokenization_with_static_payload(
     # then
     mock_request.assert_called_once()
     assert mock_request.mock_calls[0].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exists()
 
     delivery = mock_request.mock_calls[0].args[0]
     assert json.loads(delivery.payload.get_payload()) == {
@@ -131,7 +132,7 @@ def test_payment_gateway_initialize_tokenization_with_subscription_payload(
     # then
     mock_request.assert_called_once()
     assert mock_request.mock_calls[0].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exists()
 
     delivery = mock_request.mock_calls[0].args[0]
     assert json.loads(delivery.payload.get_payload()) == {
@@ -187,7 +188,7 @@ def test_payment_gateway_initialize_tokenization_missing_correct_response_from_w
     # then
     mock_request.assert_called_once()
     assert mock_request.mock_calls[0].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exists()
 
     assert response == PaymentGatewayInitializeTokenizationResponseData(
         result=PaymentGatewayInitializeTokenizationResult.FAILED_TO_DELIVER,
@@ -236,7 +237,7 @@ def test_payment_gateway_initialize_tokenization_failure_from_app(
     # then
     mock_request.assert_called_once()
     assert mock_request.mock_calls[0].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exists()
 
     delivery = mock_request.mock_calls[0].args[0]
     assert json.loads(delivery.payload.get_payload()) == {

@@ -3,6 +3,7 @@ from unittest import mock
 
 import graphene
 
+from ....core.models import EventDelivery
 from ....payment.interface import ListStoredPaymentMethodsRequestData
 from ....settings import WEBHOOK_SYNC_TIMEOUT
 from ....webhook.const import WEBHOOK_CACHE_DEFAULT_TIMEOUT
@@ -72,7 +73,7 @@ def test_list_stored_payment_methods_with_static_payload(
     # then
     mock_request.assert_called_once()
     assert mock_request.mock_calls[0].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exists()
 
     mocked_cache_get.assert_called_once_with(expected_cache_key)
     mocked_cache_set.assert_called_once_with(
@@ -121,7 +122,7 @@ def test_list_stored_payment_methods_subscription_issuing_principal(
     # then
     mock_request.assert_called_once()
     assert mock_request.mock_calls[0].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exists()
 
     delivery = mock_request.mock_calls[0].args[0]
     delivery_subscription_payload = json.loads(delivery.payload.get_payload())
@@ -169,7 +170,7 @@ def test_list_stored_payment_methods_subscription_issuing_principal_as_app(
     # then
     mock_request.assert_called_once()
     assert mock_request.mock_calls[0].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exists()
 
     delivery = mock_request.mock_calls[0].args[0]
     delivery_subscription_payload = json.loads(delivery.payload.get_payload())
@@ -231,7 +232,7 @@ def test_list_stored_payment_methods_with_subscription_payload(
     # then
     mock_request.assert_called_once()
     assert mock_request.mock_calls[0].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exists()
 
     mocked_cache_get.assert_called_once_with(expected_cache_key)
     mocked_cache_set.assert_called_once_with(
@@ -346,7 +347,7 @@ def test_list_stored_payment_methods_app_returns_incorrect_response(
     # then
     mock_request.assert_called_once()
     assert mock_request.mock_calls[0].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exists()
 
     mocked_cache_get.assert_called_once_with(expected_cache_key)
     assert not mocked_cache_set.called

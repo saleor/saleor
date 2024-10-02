@@ -4,6 +4,7 @@ from unittest import mock
 import graphene
 import pytest
 
+from ....core.models import EventDelivery
 from ....payment import TokenizedPaymentFlow
 from ....payment.interface import (
     ListStoredPaymentMethodsRequestData,
@@ -84,7 +85,7 @@ def test_payment_method_initialize_tokenization_with_static_payload(
     # then
     mock_request.assert_called_once()
     assert mock_request.mock_calls[0].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exists()
 
     delivery = mock_request.mock_calls[0].args[0]
     assert json.loads(delivery.payload.get_payload()) == {
@@ -147,7 +148,7 @@ def test_payment_method_initialize_tokenization_with_subscription_payload(
     # then
     mock_request.assert_called_once()
     assert mock_request.mock_calls[0].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exists()
 
     delivery = mock_request.mock_calls[0].args[0]
     assert json.loads(delivery.payload.get_payload()) == {
@@ -209,7 +210,7 @@ def test_payment_method_initialize_tokenization_missing_correct_response_from_we
     # then
     mock_request.assert_called_once()
     assert mock_request.mock_calls[0].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exists()
 
     assert response == PaymentMethodTokenizationResponseData(
         result=PaymentMethodTokenizationResult.FAILED_TO_DELIVER,
@@ -260,7 +261,7 @@ def test_payment_method_initialize_tokenization_failure_from_app(
     # then
     mock_request.assert_called_once()
     assert mock_request.mock_calls[0].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exists()
 
     delivery = mock_request.mock_calls[0].args[0]
     assert json.loads(delivery.payload.get_payload()) == {
@@ -320,7 +321,7 @@ def test_payment_method_initialize_tokenization_additional_action_required(
     # then
     mock_request.assert_called_once()
     assert mock_request.mock_calls[0].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exists()
 
     delivery = mock_request.mock_calls[0].args[0]
     assert json.loads(delivery.payload.get_payload()) == {
@@ -388,7 +389,7 @@ def test_payment_method_initialize_tokenization_missing_required_id(
     # then
     mock_request.assert_called_once()
     assert mock_request.mock_calls[0].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exists()
 
     delivery = mock_request.mock_calls[0].args[0]
     assert json.loads(delivery.payload.get_payload()) == {
@@ -505,7 +506,7 @@ def test_expected_result_invalidates_cache_for_app(
     # then
     mocked_request.assert_called()
     assert mocked_request.mock_calls[-1].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exists()
 
     delivery = mocked_request.mock_calls[-1].args[0]
     assert (
