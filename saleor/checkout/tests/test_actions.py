@@ -2,6 +2,7 @@ import datetime
 from decimal import Decimal
 from unittest.mock import call, patch
 
+import before_after
 import pytest
 import pytz
 from django.test import override_settings
@@ -11,7 +12,6 @@ from freezegun import freeze_time
 from ...core.models import EventDelivery
 from ...core.utils.events import call_event_including_protected_events
 from ...plugins.manager import get_plugins_manager
-from ...tests.utils import flush_post_commit_hooks
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from .. import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from ..actions import (
@@ -32,6 +32,7 @@ def test_transaction_amounts_for_checkout_updated_fully_paid(
     checkout_with_items,
     transaction_item_generator,
     plugins_manager,
+    django_capture_on_commit_callbacks,
 ):
     # given
     checkout = checkout_with_items
@@ -44,12 +45,12 @@ def test_transaction_amounts_for_checkout_updated_fully_paid(
     assert checkout_info.channel.automatically_complete_fully_paid_checkouts is False
 
     # when
-    transaction_amounts_for_checkout_updated(
-        transaction, manager=plugins_manager, user=None, app=None
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        transaction_amounts_for_checkout_updated(
+            transaction, manager=plugins_manager, user=None, app=None
+        )
 
     # then
-    flush_post_commit_hooks()
     checkout.refresh_from_db()
     assert checkout.charge_status == CheckoutChargeStatus.FULL
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
@@ -66,6 +67,7 @@ def test_transaction_amounts_for_checkout_fully_paid_automatic_checkout_complete
     transaction_item_generator,
     plugins_manager,
     app,
+    django_capture_on_commit_callbacks,
 ):
     # given
     checkout = checkout_with_items
@@ -80,12 +82,12 @@ def test_transaction_amounts_for_checkout_fully_paid_automatic_checkout_complete
     channel.save(update_fields=["automatically_complete_fully_paid_checkouts"])
 
     # when
-    transaction_amounts_for_checkout_updated(
-        transaction, manager=plugins_manager, user=None, app=app
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        transaction_amounts_for_checkout_updated(
+            transaction, manager=plugins_manager, user=None, app=app
+        )
 
     # then
-    flush_post_commit_hooks()
     checkout.refresh_from_db()
     assert checkout.charge_status == CheckoutChargeStatus.FULL
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
@@ -103,6 +105,7 @@ def test_transaction_amounts_for_checkout_updated_not_fully_paid_no_automatic_co
     checkout_with_items,
     transaction_item_generator,
     plugins_manager,
+    django_capture_on_commit_callbacks,
 ):
     # given
     checkout = checkout_with_items
@@ -118,12 +121,12 @@ def test_transaction_amounts_for_checkout_updated_not_fully_paid_no_automatic_co
     channel.save(update_fields=["automatically_complete_fully_paid_checkouts"])
 
     # when
-    transaction_amounts_for_checkout_updated(
-        transaction, manager=plugins_manager, user=None, app=None
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        transaction_amounts_for_checkout_updated(
+            transaction, manager=plugins_manager, user=None, app=None
+        )
 
     # then
-    flush_post_commit_hooks()
     checkout.refresh_from_db()
     assert checkout.charge_status == CheckoutChargeStatus.PARTIAL
     assert checkout.authorize_status == CheckoutAuthorizeStatus.PARTIAL
@@ -139,6 +142,7 @@ def test_transaction_amounts_for_checkout_updated_with_already_fully_paid(
     checkout_with_items,
     transaction_item_generator,
     plugins_manager,
+    django_capture_on_commit_callbacks,
 ):
     # given
     checkout = checkout_with_items
@@ -156,12 +160,12 @@ def test_transaction_amounts_for_checkout_updated_with_already_fully_paid(
         checkout_id=checkout.pk, charged_value=checkout_info.checkout.total.gross.amount
     )
     # when
-    transaction_amounts_for_checkout_updated(
-        second_transaction, manager=plugins_manager, user=None, app=None
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        transaction_amounts_for_checkout_updated(
+            second_transaction, manager=plugins_manager, user=None, app=None
+        )
 
     # then
-    flush_post_commit_hooks()
     checkout.refresh_from_db()
     assert checkout.charge_status == CheckoutChargeStatus.OVERCHARGED
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
@@ -178,6 +182,7 @@ def test_transaction_amounts_for_checkout_updated_0_checkout_automatic_complete(
     transaction_item_generator,
     plugins_manager,
     app,
+    django_capture_on_commit_callbacks,
 ):
     # given
     checkout = checkout_with_item_total_0
@@ -190,12 +195,12 @@ def test_transaction_amounts_for_checkout_updated_0_checkout_automatic_complete(
     channel.save(update_fields=["automatically_complete_fully_paid_checkouts"])
 
     # when
-    transaction_amounts_for_checkout_updated(
-        transaction, manager=plugins_manager, user=None, app=app
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        transaction_amounts_for_checkout_updated(
+            transaction, manager=plugins_manager, user=None, app=app
+        )
 
     # then
-    flush_post_commit_hooks()
     checkout.refresh_from_db()
     assert checkout.charge_status == CheckoutChargeStatus.FULL
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
@@ -213,6 +218,7 @@ def test_transaction_amounts_for_checkout_updated_fully_authorized(
     checkout_with_items,
     transaction_item_generator,
     plugins_manager,
+    django_capture_on_commit_callbacks,
 ):
     # given
     checkout = checkout_with_items
@@ -226,12 +232,12 @@ def test_transaction_amounts_for_checkout_updated_fully_authorized(
     assert checkout_info.channel.automatically_complete_fully_paid_checkouts is False
 
     # when
-    transaction_amounts_for_checkout_updated(
-        transaction, manager=plugins_manager, user=None, app=None
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        transaction_amounts_for_checkout_updated(
+            transaction, manager=plugins_manager, user=None, app=None
+        )
 
     # then
-    flush_post_commit_hooks()
     checkout.refresh_from_db()
     assert checkout.charge_status == CheckoutChargeStatus.NONE
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
@@ -248,6 +254,7 @@ def test_transaction_amounts_for_checkout_fully_authorized_automatic_checkout_co
     transaction_item_generator,
     plugins_manager,
     staff_user,
+    django_capture_on_commit_callbacks,
 ):
     # given
     checkout = checkout_with_items
@@ -263,18 +270,66 @@ def test_transaction_amounts_for_checkout_fully_authorized_automatic_checkout_co
     channel.save(update_fields=["automatically_complete_fully_paid_checkouts"])
 
     # when
-    transaction_amounts_for_checkout_updated(
-        transaction, manager=plugins_manager, user=staff_user, app=None
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        transaction_amounts_for_checkout_updated(
+            transaction, manager=plugins_manager, user=staff_user, app=None
+        )
 
     # then
-    flush_post_commit_hooks()
     checkout.refresh_from_db()
     assert checkout.charge_status == CheckoutChargeStatus.NONE
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
     assert not mocked_fully_paid.called
     mocked_automatic_checkout_completion_task.assert_called_once_with(
         checkout.pk, staff_user.id, None
+    )
+
+
+@patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
+@patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
+def test_transaction_amounts_automatic_checkout_complete_called_once(
+    mocked_fully_paid,
+    mocked_automatic_checkout_completion_task,
+    checkout_with_items,
+    transaction_item_generator,
+    plugins_manager,
+    app,
+    django_capture_on_commit_callbacks,
+):
+    # given
+    checkout = checkout_with_items
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+    transaction = transaction_item_generator(
+        checkout_id=checkout.pk, charged_value=checkout_info.checkout.total.gross.amount
+    )
+    channel = checkout_info.channel
+    channel.automatically_complete_fully_paid_checkouts = True
+    channel.save(update_fields=["automatically_complete_fully_paid_checkouts"])
+
+    # when
+    def call_again(*args, **kwargs):
+        transaction_amounts_for_checkout_updated(
+            transaction, manager=plugins_manager, user=None, app=app
+        )
+
+    with django_capture_on_commit_callbacks(execute=True):
+        with before_after.after(
+            "saleor.checkout.actions.update_last_transaction_modified_at_for_checkout",
+            call_again,
+        ):
+            transaction_amounts_for_checkout_updated(
+                transaction, manager=plugins_manager, user=None, app=app
+            )
+
+    # then
+    checkout.refresh_from_db()
+    assert checkout.charge_status == CheckoutChargeStatus.FULL
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
+    mocked_fully_paid.assert_called_once_with(checkout, webhooks=set())
+    mocked_automatic_checkout_completion_task.assert_called_once_with(
+        checkout.pk, None, app.id
     )
 
 
@@ -290,6 +345,7 @@ def test_transaction_amounts_for_checkout_updated_updates_last_transaction_modif
     checkout_with_items,
     transaction_item_generator,
     plugins_manager,
+    django_capture_on_commit_callbacks,
 ):
     # given
     checkout = checkout_with_items
@@ -308,12 +364,12 @@ def test_transaction_amounts_for_checkout_updated_updates_last_transaction_modif
     )
 
     # when
-    transaction_amounts_for_checkout_updated(
-        transaction, manager=plugins_manager, user=None, app=None
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        transaction_amounts_for_checkout_updated(
+            transaction, manager=plugins_manager, user=None, app=None
+        )
 
     # then
-    flush_post_commit_hooks()
     checkout.refresh_from_db()
     assert checkout.last_transaction_modified_at == transaction.modified_at
     mocked_fully_paid.assert_called_with(checkout, webhooks=set())
