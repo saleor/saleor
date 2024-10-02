@@ -618,6 +618,7 @@ def _create_order(
     site_settings: Optional["SiteSettings"] = None,
     metadata_list: Optional[list] = None,
     private_metadata_list: Optional[list] = None,
+    is_automatic_completion: bool = False,
 ) -> Order:
     """Create an order from the checkout.
 
@@ -737,6 +738,7 @@ def _create_order(
             app=app,
             manager=manager,
             site_settings=site_settings,
+            automatic=is_automatic_completion,
         )
     )
 
@@ -984,6 +986,7 @@ def complete_checkout_post_payment_part(
     site_settings=None,
     metadata_list: Optional[list] = None,
     private_metadata_list: Optional[list] = None,
+    is_automatic_completion: bool = False,
 ) -> tuple[Optional[Order], bool, dict]:
     action_required = False
     action_data: dict[str, str] = {}
@@ -1015,6 +1018,7 @@ def complete_checkout_post_payment_part(
                 site_settings=site_settings,
                 metadata_list=metadata_list,
                 private_metadata_list=private_metadata_list,
+                is_automatic_completion=is_automatic_completion,
             )
             # remove checkout after order is successfully created
             checkout_info.checkout.delete()
@@ -1175,6 +1179,7 @@ def _post_create_order_actions(
     user: Optional[User],
     app: Optional["App"],
     site_settings: "SiteSettings",
+    is_automatic_completion: bool,
 ):
     order_info = OrderInfo(
         order=order,
@@ -1191,6 +1196,7 @@ def _post_create_order_actions(
             app=app,
             manager=manager,
             site_settings=site_settings,
+            automatic=is_automatic_completion,
         )
     )
 
@@ -1210,6 +1216,7 @@ def _create_order_from_checkout(
     app: Optional["App"],
     metadata_list: Optional[list] = None,
     private_metadata_list: Optional[list] = None,
+    is_automatic_completion: bool = False,
 ):
     from ..order.utils import add_gift_cards_to_order
 
@@ -1374,6 +1381,7 @@ def _create_order_from_checkout(
         user=user,
         app=app,
         site_settings=site_settings,
+        is_automatic_completion=is_automatic_completion,
     )
     return order
 
@@ -1386,6 +1394,7 @@ def create_order_from_checkout(
     delete_checkout: bool = True,
     metadata_list: Optional[list] = None,
     private_metadata_list: Optional[list] = None,
+    is_automatic_completion: bool = False,
 ) -> Order:
     """Crate order from checkout.
 
@@ -1435,6 +1444,7 @@ def create_order_from_checkout(
                 app=app,
                 metadata_list=metadata_list,
                 private_metadata_list=private_metadata_list,
+                is_automatic_completion=is_automatic_completion,
             )
             if delete_checkout:
                 checkout_info.checkout.delete()
@@ -1482,6 +1492,7 @@ def complete_checkout(
     redirect_url: Optional[str] = None,
     metadata_list: Optional[list] = None,
     private_metadata_list: Optional[list] = None,
+    is_automatic_completion: bool = False,
 ) -> tuple[Optional[Order], bool, dict]:
     checkout = checkout_info.checkout
     transactions = checkout_info.checkout.payment_transactions.all()
@@ -1529,6 +1540,7 @@ def complete_checkout(
             redirect_url=redirect_url,
             metadata_list=metadata_list,
             private_metadata_list=private_metadata_list,
+            is_automatic_completion=is_automatic_completion,
         )
         return order, False, {}
 
@@ -1543,6 +1555,7 @@ def complete_checkout(
         redirect_url=redirect_url,
         metadata_list=metadata_list,
         private_metadata_list=private_metadata_list,
+        is_automatic_completion=is_automatic_completion,
     )
 
 
@@ -1555,6 +1568,7 @@ def complete_checkout_with_transaction(
     redirect_url: Optional[str] = None,
     metadata_list: Optional[list] = None,
     private_metadata_list: Optional[list] = None,
+    is_automatic_completion: bool = False,
 ) -> Optional[Order]:
     try:
         _prepare_checkout_with_transactions(
@@ -1572,6 +1586,7 @@ def complete_checkout_with_transaction(
             delete_checkout=True,
             metadata_list=metadata_list,
             private_metadata_list=private_metadata_list,
+            is_automatic_completion=is_automatic_completion,
         )
     except NotApplicable:
         raise ValidationError(
@@ -1600,6 +1615,7 @@ def complete_checkout_with_payment(
     redirect_url=None,
     metadata_list: Optional[list] = None,
     private_metadata_list: Optional[list] = None,
+    is_automatic_completion: bool = False,
 ) -> tuple[Optional[Order], bool, dict]:
     """Logic required to finalize the checkout and convert it to order.
 
@@ -1711,6 +1727,7 @@ def complete_checkout_with_payment(
             site_settings=site_settings,
             metadata_list=metadata_list,
             private_metadata_list=private_metadata_list,
+            is_automatic_completion=is_automatic_completion,
         )
         if checkout.pk:
             checkout.completing_started_at = None
