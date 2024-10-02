@@ -17,6 +17,18 @@ jobs:
       - name: Set version
         id: set-version
         run: echo "VERSION=$GH_REF" | sed "s/release-//" >> $GITHUB_OUTPUT
+      - name: Check latest version
+        id: check-latest
+        env:
+          VERSION: ${{ steps.set-version.outputs.VERSION }}
+        run: | 
+          latest=$(gh api --jq .name /repos/saleor/saleor/releases/latest)
+          if [ "$VERSION" \> "$latest" ]
+          then
+            echo "IS_LATEST=true" >> $GITHUB_OUTPUT
+          else
+            echo "IS_LATEST=false" >> $GITHUB_OUTPUT
+          fi
       - name: Create tag
         uses: actions/github-script@v5
         env:
@@ -32,9 +44,9 @@ jobs:
       - name: Create github release
         env:
           VERSION: ${{ steps.set-version.outputs.VERSION }}
+          IS_LATEST: ${{ steps.check-latest.outputs.IS_LATEST }}
         run: |
-          gh release create "$VERSION" --repo="$GITHUB_REPOSITORY" --generate-notes --verify-tag
-
+          gh release create "$VERSION" --repo="$GITHUB_REPOSITORY" --latest=$IS_LATEST --generate-notes --verify-tag
 
   publish:
     needs:
