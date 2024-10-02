@@ -2184,6 +2184,7 @@ def test_checkout_complete_pick_transaction_flow(
         redirect_url=None,
         metadata_list=None,
         private_metadata_list=None,
+        is_automatic_completion=False,
     )
 
 
@@ -2235,6 +2236,7 @@ def test_checkout_complete_pick_transaction_flow_when_checkout_total_zero(
         redirect_url=None,
         metadata_list=None,
         private_metadata_list=None,
+        is_automatic_completion=False,
     )
 
 
@@ -2294,6 +2296,7 @@ def test_checkout_complete_pick_transaction_flow_not_authorized_no_active_paymen
         redirect_url=None,
         metadata_list=None,
         private_metadata_list=None,
+        is_automatic_completion=False,
     )
 
 
@@ -2344,6 +2347,7 @@ def test_checkout_complete_pick_payment_flow(
         redirect_url=None,
         metadata_list=None,
         private_metadata_list=None,
+        is_automatic_completion=False,
     )
 
 
@@ -2404,6 +2408,7 @@ def test_checkout_complete_pick_payment_flow_not_authorized_active_payment(
         redirect_url=None,
         metadata_list=None,
         private_metadata_list=None,
+        is_automatic_completion=False,
     )
 
 
