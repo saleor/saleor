@@ -14,7 +14,7 @@ from .....checkout.calculations import fetch_checkout_data
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
 from .....core.prices import quantize_price
-from .....order import OrderChargeStatus, OrderStatus
+from .....order import OrderChargeStatus, OrderEvents, OrderStatus
 from .....order.models import Order
 from .....payment import TransactionEventType, TransactionItemIdempotencyUniqueError
 from .....payment.interface import (
@@ -1923,6 +1923,9 @@ def test_checkout_fully_paid_automatic_completion(
     order = Order.objects.get(checkout_token=checkout_token)
     assert order.charge_status == CheckoutChargeStatus.FULL
     assert order.authorize_status == CheckoutAuthorizeStatus.FULL
+    assert order.events.filter(
+        type=OrderEvents.PLACED_AUTOMATICALLY_FROM_PAID_CHECKOUT
+    ).exists()
     mocked_fully_paid.assert_called_once_with(checkout, webhooks=set())
 
 
@@ -2096,6 +2099,9 @@ def test_checkout_fully_authorized_automatic_completion(
     order = Order.objects.get(checkout_token=checkout_token)
     assert order.charge_status == CheckoutChargeStatus.NONE
     assert order.authorize_status == CheckoutAuthorizeStatus.FULL
+    assert order.events.filter(
+        type=OrderEvents.PLACED_AUTOMATICALLY_FROM_PAID_CHECKOUT
+    ).exists()
     mocked_fully_paid.assert_not_called()
 
 
