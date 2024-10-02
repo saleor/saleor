@@ -1,5 +1,5 @@
 from decimal import Decimal
-from unittest.mock import call, patch
+from unittest.mock import patch
 
 import graphene
 import pytest
@@ -590,15 +590,8 @@ def test_order_update_shipping_triggers_webhooks(
     content = get_graphql_content(response)
     assert not content["data"]["orderUpdateShipping"]["errors"]
 
-    # confirm that event delivery was generated for each webhook.
+    # confirm that event delivery was generated for each async webhook.
     order_delivery = EventDelivery.objects.get(webhook_id=order_webhook.id)
-    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
-    filter_shipping_deliveries = EventDelivery.objects.filter(
-        webhook_id=shipping_filter_webhook.id,
-        event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
-    ).order_by("pk")
-    assert len(filter_shipping_deliveries) == 2
-
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={"event_delivery_id": order_delivery.id},
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
@@ -606,18 +599,32 @@ def test_order_update_shipping_triggers_webhooks(
         retry_backoff=10,
         retry_kwargs={"max_retries": 5},
     )
-    mocked_send_webhook_request_sync.assert_has_calls(
-        [
-            # FIXME: This is the issue with current way of caching filter shipping
-            #  webhooks. Mutation calls the webhook to validates the shipping methods.
-            #  WebhookPlugin makes a cache based on the order payload. Then when
-            #  tax-webhook exists, we can get different price values, which will
-            #  change the data used to build the cache key. This should be solved
-            #  after providing similar way of handling sync webhooks as we have for
-            #  tax webhooks.
-            call(filter_shipping_deliveries[0], timeout=settings.WEBHOOK_SYNC_TIMEOUT),
-            call(tax_delivery),
-            call(filter_shipping_deliveries[1], timeout=settings.WEBHOOK_SYNC_TIMEOUT),
-        ]
+
+    # confirm each sync webhook was called without saving event delivery
+    assert mocked_send_webhook_request_sync.call_count == 3
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+
+    # FIXME: This is the issue with current way of caching filter shipping
+    #  webhooks. Mutation calls the webhook to validates the shipping methods.
+    #  WebhookPlugin makes a cache based on the order payload. Then when
+    #  tax-webhook exists, we can get different price values, which will
+    #  change the data used to build the cache key. This should be solved
+    #  after providing similar way of handling sync webhooks as we have for
+    #  tax webhooks.
+    filter_shipping_call_1, tax_delivery_call, filter_shipping_call_2 = (
+        mocked_send_webhook_request_sync.mock_calls
     )
+
+    tax_delivery = tax_delivery_call.args[0]
+    assert tax_delivery.webhook_id == tax_webhook.id
+
+    for filter_shipping_call in [filter_shipping_call_1, filter_shipping_call_2]:
+        filter_shipping_delivery = filter_shipping_call.args[0]
+        assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
+        assert (
+            filter_shipping_delivery.event_type
+            == WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
+        )
+        assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
+
     assert wrapped_call_order_event.called
