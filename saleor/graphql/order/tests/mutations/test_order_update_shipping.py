@@ -602,7 +602,7 @@ def test_order_update_shipping_triggers_webhooks(
 
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 3
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exclude(webhook_id=order_webhook.id).exists()
 
     # FIXME: This is the issue with current way of caching filter shipping
     #  webhooks. Mutation calls the webhook to validates the shipping methods.

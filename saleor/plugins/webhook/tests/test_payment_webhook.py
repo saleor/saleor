@@ -73,7 +73,7 @@ def test_trigger_webhook_sync(mock_request, payment_app):
         WebhookEventSyncType.PAYMENT_CAPTURE, data, payment_app.webhooks.first(), False
     )
     mock_request.assert_called_once()
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exists()
 
 
 @mock.patch(
@@ -158,7 +158,7 @@ def test_send_webhook_request_sync_successful_attempt(
     # then
     mock_clear_delivery.assert_called_once_with(event_delivery)
     mock_observability.assert_called_once()
-    # TODO (PE-371): Assert EventDeliveryAttempt DB object wasn't created
+    assert not EventDeliveryAttempt.objects.exists()
 
     attempt = mock_observability.mock_calls[0].args[0]
     assert event_delivery.status == EventDeliveryStatus.SUCCESS
