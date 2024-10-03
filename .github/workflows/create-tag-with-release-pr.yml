@@ -21,7 +21,7 @@ jobs:
         id: check-latest
         env:
           VERSION: ${{ steps.set-version.outputs.VERSION }}
-        run: | 
+        run: |
           latest=$(gh api --jq .name /repos/saleor/saleor/releases/latest)
           if [ "$VERSION" \> "$latest" ]
           then
@@ -71,7 +71,7 @@ jobs:
           export GITHUB_TOKEN=$( \
             curl --request GET --url ${{ secrets.VAULT_URL}} --header "Authorization: JWT ${{ secrets.VAULT_JWT }}" | jq -r .token \
           )
-          
+
           payload=$(
               jq --arg version "$VERSION" --null-input '
                 {
