@@ -323,7 +323,10 @@ def trigger_webhook_sync(
 if settings.ENABLE_BREAKER_BOARD:
     trigger_webhook_sync = BreakerBoard(
         storage=import_string(settings.BREAKER_BOARD_STORAGE_CLASS_STRING)(),  # type: ignore[arg-type]
-        failure_threshold=settings.BREAKER_BOARD_FAILURE_THRESHOLD,
+        failure_threshold=settings.BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE,
+        failure_min_count=settings.BREAKER_BOARD_FAILURE_MIN_COUNT,
+        cooldown_seconds=settings.BREAKER_BOARD_COOLDOWN_SECONDS,
+        ttl=settings.BREAKER_BOARD_TTL,
     )(trigger_webhook_sync)
 
 

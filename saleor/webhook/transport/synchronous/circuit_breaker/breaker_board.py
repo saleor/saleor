@@ -20,16 +20,24 @@ class BreakerBoard:
     webhook execution.
     """
 
-    def __init__(self, storage: Storage, failure_threshold: int):
+    def __init__(
+        self,
+        storage: Storage,
+        failure_threshold: int,
+        failure_min_count: int,
+        cooldown_seconds: int,
+        ttl: int,
+    ):
         self.storage = storage
 
-        # TODO - make everything below configurable
-        self.failure_threshold = failure_threshold
+        # TODO - make event types configurable
         self.webhook_event_types = [
             WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
         ]
-        self.cooldown_seconds = 5 * 60  # 5 minutes
-        self.ttl = 10 * 60  # 10 minutes
+        self.failure_threshold = failure_threshold
+        self.failure_min_count = failure_min_count
+        self.cooldown_seconds = cooldown_seconds
+        self.ttl = ttl
 
     def is_closed(self, app_id: int):
         # TODO - cache last open to optimize?
@@ -37,8 +45,12 @@ class BreakerBoard:
 
     def register_error(self, app_id: int):
         errors = self.storage.register_event_returning_count(app_id, "error", self.ttl)
+        total = self.storage.register_event_returning_count(app_id, "total", self.ttl)
 
-        if errors >= self.failure_threshold:
+        if total < self.failure_min_count:
+            return
+
+        if (errors / total) * 100 >= self.failure_threshold:
             self.storage.update_open(app_id, int(time.time()))
 
     def register_success(self, app_id: int):
