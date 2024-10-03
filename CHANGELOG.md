@@ -31,3 +31,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fixed order-level discounts handling when using tax app for tax calculation - #16696 by @zedzior
 - Fixed bug when manual line discount doesn't override line-level vouchers - #16738 by @zedzior
 - Skipped obsolete payload save and cleanup for successful sync webhooks - #16632 by @cmiacz
+- Fixed playground not displaying docs if api is hidden behind reverse proxy - #16810 by @jqob
