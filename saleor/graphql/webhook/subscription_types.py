@@ -1564,8 +1564,10 @@ class CheckoutFullyPaid(SubscriptionObjectType, CheckoutBase):
         interfaces = (Event,)
         description = (
             "Event sent when checkout is fully paid with transactions."
-            + ADDED_IN_313
-            + PREVIEW_FEATURE
+            " The checkout is considered as fully paid when the checkout "
+            "`charge_status` is `FULL` or `OVERCHARGED`. "
+            "The event is not sent when the checkout authorization flow strategy "
+            "is used." + ADDED_IN_313 + PREVIEW_FEATURE
         )
 
 
