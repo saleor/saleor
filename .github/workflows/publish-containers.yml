@@ -3,6 +3,10 @@ name: Publish
 on:
   workflow_call:
     inputs:
+      ref:
+        description: Optional ref name for custom build
+        required: false
+        type: string
       prefix:
         description: Optional image prefix for branch build
         required: false
@@ -21,7 +25,7 @@ on:
 
 jobs:
   docker:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
 
     permissions:
       contents: read
@@ -33,6 +37,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
 
       # Outputs the name of the repository (owner/repo)
       - name: Build Image Name
@@ -53,6 +59,7 @@ jobs:
             type=pep440,pattern={{version}}
             type=pep440,pattern={{major}}.{{minor}}
             type=raw,value=${{ inputs.version }},enable=${{ inputs.version != null }}
+          context: git
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
