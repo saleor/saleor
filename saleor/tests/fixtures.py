@@ -81,6 +81,7 @@ from ..discount.models import (
     VoucherTranslation,
 )
 from ..discount.utils.voucher import (
+    create_or_update_discount_object_from_order_level_voucher,
     get_products_voucher_discount,
     validate_voucher_in_order,
 )
@@ -90,7 +91,7 @@ from ..graphql.core.utils import to_global_id_or_none
 from ..menu.models import Menu, MenuItem, MenuItemTranslation
 from ..order import OrderOrigin, OrderStatus
 from ..order.actions import cancel_fulfillment, fulfill_order_lines
-from ..order.base_calculations import apply_order_discounts
+from ..order.base_calculations import base_order_subtotal
 from ..order.events import (
     OrderEvents,
     fulfillment_refunded_event,
@@ -147,6 +148,7 @@ from ..shipping.models import (
 )
 from ..shipping.utils import convert_to_shipping_method_data
 from ..site.models import SiteSettings
+from ..tax import TaxCalculationStrategy
 from ..tax.utils import calculate_tax_rate, get_tax_class_kwargs_for_order_line
 from ..thumbnail.models import Thumbnail
 from ..warehouse import WarehouseClickAndCollectOption
@@ -955,6 +957,15 @@ def checkout_with_items_and_shipping(checkout_with_items, address, shipping_meth
 
 
 @pytest.fixture
+def checkout_with_item_and_shipping(checkout_with_item, address, shipping_method):
+    checkout_with_item.shipping_address = address
+    checkout_with_item.shipping_method = shipping_method
+    checkout_with_item.billing_address = address
+    checkout_with_item.save()
+    return checkout_with_item
+
+
+@pytest.fixture
 def checkout_with_voucher(checkout, product, voucher):
     variant = product.variants.get()
     checkout_info = fetch_checkout_info(
@@ -1441,6 +1452,7 @@ def order_generator(customer_user, channel_USD):
             private_metadata=private_metadata,
             checkout_token=checkout_token,
             status=status,
+            undiscounted_base_shipping_price_amount=Decimal("0.0"),
         )
         if search_vector_class:
             search_vector = search_vector_class(
@@ -4575,6 +4587,7 @@ def order_line_with_allocation_in_many_stocks(
         user=customer_user,
         channel=channel_USD,
         origin=OrderOrigin.CHECKOUT,
+        undiscounted_base_shipping_price_amount=Decimal("0.0"),
     )
 
     product = variant.product
@@ -5796,7 +5809,12 @@ def draft_order_with_free_shipping_voucher(
 
     order.voucher = voucher_free_shipping
     order.voucher_code = voucher_code.code
-    subtotal, shipping_price = apply_order_discounts(order, order.lines.all())
+    create_or_update_discount_object_from_order_level_voucher(
+        order, settings.DATABASE_CONNECTION_DEFAULT_NAME
+    )
+
+    subtotal = base_order_subtotal(order, order.lines.all())
+    shipping_price = order.base_shipping_price
     order.subtotal = TaxedMoney(gross=subtotal, net=subtotal)
     order.shipping_price = TaxedMoney(net=shipping_price, gross=shipping_price)
     total = subtotal + shipping_price
@@ -9861,3 +9879,25 @@ def setup_order_webhooks(
         )
 
     return _setup
+
+
+@pytest.fixture
+def tax_configuration_flat_rates(channel_USD):
+    tc = channel_USD.tax_configuration
+    tc.country_exceptions.all().delete()
+    tc.prices_entered_with_tax = False
+    tc.tax_calculation_strategy = TaxCalculationStrategy.FLAT_RATES
+    tc.tax_app_id = "avatax.app"
+    tc.save()
+    return tc
+
+
+@pytest.fixture
+def tax_configuration_tax_app(channel_USD):
+    tc = channel_USD.tax_configuration
+    tc.country_exceptions.all().delete()
+    tc.prices_entered_with_tax = False
+    tc.tax_calculation_strategy = TaxCalculationStrategy.TAX_APP
+    tc.tax_app_id = "avatax.app"
+    tc.save()
+    return tc

@@ -28,10 +28,22 @@ mutation OrderUpdateShipping($input: OrderUpdateShippingInput!, $id: ID!) {
       shippingPrice {
         ...BaseTaxedMoney
       }
+      undiscountedShippingPrice {
+        amount
+      }
       voucher {
         id
         code
         discountValue
+      }
+      discounts {
+        type
+        value
+        reason
+        valueType
+        amount {
+          amount
+        }
       }
       lines {
         totalPrice {
@@ -41,6 +53,7 @@ mutation OrderUpdateShipping($input: OrderUpdateShippingInput!, $id: ID!) {
           ...BaseTaxedMoney
         }
         unitDiscountReason
+        isGift
       }
     }
   }

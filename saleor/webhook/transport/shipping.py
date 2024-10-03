@@ -74,7 +74,7 @@ def parse_list_shipping_methods_response(
         method_maximum_delivery_days = shipping_method_data.get("maximum_delivery_days")
         method_minimum_delivery_days = shipping_method_data.get("minimum_delivery_days")
         method_description = shipping_method_data.get("description")
-        method_metadata = shipping_method_data.get("metadata")
+        method_metadata = shipping_method_data.get("metadata") or {}
         if method_metadata:
             method_metadata = (
                 method_metadata if method_metadata_is_valid(method_metadata) else {}

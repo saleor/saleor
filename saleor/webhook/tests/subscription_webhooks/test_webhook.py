@@ -75,8 +75,10 @@ def test_trigger_webhook_sync_with_subscription(
         False,
         payment,
     )
-    event_delivery = EventDelivery.objects.first()
 
     # then
-    assert json.loads(event_delivery.payload.get_payload()) == expected_payment_payload
-    mock_request.assert_called_once_with(event_delivery)
+    mock_request.assert_called_once()
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+
+    delivery = mock_request.mock_calls[0].args[0]
+    assert json.loads(delivery.payload.get_payload()) == expected_payment_payload

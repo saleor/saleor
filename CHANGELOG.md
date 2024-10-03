@@ -10,11 +10,13 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Breaking changes
 
 - Drop the `manager.perform_mutation` method. - #16515 by @maarcingebala
+- Dropped the invoicing plugin. For an example of a replacement, see https://docs.saleor.io/developer/app-store/apps/invoices - #16631 by @patrys
 
 ### GraphQL API
 
 - Add `CheckoutCustomerNoteUpdate` mutation - #16315 by @pitkes22
 - Add `customerNote` field to `Checkout` type to make it consistent with `Order` model - #16561 by @Air-t
+- Add `type` field to `TaxableObjectDiscount` type - #16630 by @zedzior
 
 ### Webhooks
 
@@ -25,3 +27,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add slugs to product/category/collection/page translations. Allow to query by translated slug - #16449 by @delemeator
 - Fixed a crash when the Decimal scalar is passed a non-normal value - #16520 by @patrys
 - Fixed a bug when saving webhook payload to Azure Storage - #16585 by @delemeator
+- Added validation for tax data received from tax app - #16720 by @zedzior
+- Fixed order-level discounts handling when using tax app for tax calculation - #16696 by @zedzior
+- Fixed bug when manual line discount doesn't override line-level vouchers - #16738 by @zedzior

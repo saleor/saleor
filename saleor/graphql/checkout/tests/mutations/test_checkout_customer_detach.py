@@ -1,4 +1,4 @@
-from unittest.mock import call, patch
+from unittest.mock import patch
 
 from django.test import override_settings
 
@@ -157,20 +157,12 @@ def test_checkout_customer_detach_triggers_webhooks(
     content = get_graphql_content(response)
     assert not content["data"]["checkoutCustomerDetach"]["errors"]
 
-    # confirm that event delivery was generated for each webhook.
+    assert wrapped_call_checkout_event.called
+
+    # confirm that event delivery was generated for each async webhook.
     checkout_update_delivery = EventDelivery.objects.get(
         webhook_id=checkout_updated_webhook.id
     )
-    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
-    shipping_methods_delivery = EventDelivery.objects.get(
-        webhook_id=shipping_webhook.id,
-        event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
-    )
-    filter_shipping_delivery = EventDelivery.objects.get(
-        webhook_id=shipping_filter_webhook.id,
-        event_type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
-    )
-
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={"event_delivery_id": checkout_update_delivery.id},
         queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
@@ -178,11 +170,29 @@ def test_checkout_customer_detach_triggers_webhooks(
         retry_backoff=10,
         retry_kwargs={"max_retries": 5},
     )
-    mocked_send_webhook_request_sync.assert_has_calls(
-        [
-            call(shipping_methods_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
-            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
-            call(tax_delivery),
-        ]
+
+    # confirm each sync webhook was called without saving event delivery
+    assert mocked_send_webhook_request_sync.call_count == 3
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+
+    shipping_methods_call, filter_shipping_call, tax_delivery_call = (
+        mocked_send_webhook_request_sync.mock_calls
     )
-    assert wrapped_call_checkout_event.called
+    shipping_methods_delivery = shipping_methods_call.args[0]
+    assert shipping_methods_delivery.webhook_id == shipping_webhook.id
+    assert (
+        shipping_methods_delivery.event_type
+        == WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
+    )
+    assert shipping_methods_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
+
+    filter_shipping_delivery = filter_shipping_call.args[0]
+    assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
+    assert (
+        filter_shipping_delivery.event_type
+        == WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
+    )
+    assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
+
+    tax_delivery = tax_delivery_call.args[0]
+    assert tax_delivery.webhook_id == tax_webhook.id

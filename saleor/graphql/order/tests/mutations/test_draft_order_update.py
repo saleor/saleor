@@ -1,5 +1,5 @@
 from decimal import Decimal
-from unittest.mock import call, patch
+from unittest.mock import patch
 
 import graphene
 import pytest
@@ -469,7 +469,16 @@ def test_draft_order_update_clear_voucher(
     # given
     order = draft_order
     order.voucher = voucher
-    order.save(update_fields=["voucher"])
+    code_instance = voucher.codes.first()
+    order.voucher_code = code_instance.code
+    order.save(update_fields=["voucher", "voucher_code"])
+
+    code_instance.used += 1
+    code_instance.save(update_fields=["used"])
+    code_used = code_instance.used
+
+    voucher.usage_limit = 5
+    voucher.save(update_fields=["usage_limit"])
 
     voucher_listing = voucher.channel_listings.get(channel=order.channel)
     discount_amount = voucher_listing.discount_value
@@ -504,6 +513,8 @@ def test_draft_order_update_clear_voucher(
 
     assert data["order"]["undiscountedTotal"]["net"]["amount"] == order_total
     assert data["order"]["total"]["net"]["amount"] == order_total
+    assert not data["order"]["voucher"]
+    assert not data["order"]["voucherCode"]
 
     assert not data["errors"]
     order.refresh_from_db()
@@ -511,6 +522,8 @@ def test_draft_order_update_clear_voucher(
     assert order.search_vector
 
     assert not order.discounts.count()
+    code_instance.refresh_from_db()
+    assert code_instance.used == code_used
 
 
 def test_draft_order_update_clear_voucher_code(
@@ -521,8 +534,17 @@ def test_draft_order_update_clear_voucher_code(
 ):
     # given
     order = draft_order
+    code_instance = voucher.codes.first()
     order.voucher = voucher
-    order.save(update_fields=["voucher"])
+    order.voucher_code = code_instance.code
+    order.save(update_fields=["voucher", "voucher_code"])
+
+    code_instance.used += 1
+    code_instance.save(update_fields=["used"])
+    code_used = code_instance.used
+
+    voucher.usage_limit = 5
+    voucher.save(update_fields=["usage_limit"])
 
     voucher_listing = voucher.channel_listings.get(channel=order.channel)
     discount_amount = voucher_listing.discount_value
@@ -557,6 +579,8 @@ def test_draft_order_update_clear_voucher_code(
 
     assert data["order"]["undiscountedTotal"]["net"]["amount"] == order_total
     assert data["order"]["total"]["net"]["amount"] == order_total
+    assert not data["order"]["voucher"]
+    assert not data["order"]["voucherCode"]
 
     assert not data["errors"]
     order.refresh_from_db()
@@ -564,6 +588,148 @@ def test_draft_order_update_clear_voucher_code(
     assert order.search_vector
 
     assert not order.discounts.count()
+    code_instance.refresh_from_db()
+    assert code_instance.used == code_used
+
+
+def test_draft_order_update_clear_voucher_and_reduce_voucher_usage(
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    voucher,
+):
+    # given
+    order = draft_order
+    order.voucher = voucher
+    code_instance = voucher.codes.first()
+    order.voucher_code = code_instance.code
+    order.save(update_fields=["voucher", "voucher_code"])
+
+    code_instance.used += 1
+    code_instance.save(update_fields=["used"])
+    code_used = code_instance.used
+
+    voucher.usage_limit = 5
+    voucher.save(update_fields=["usage_limit"])
+
+    channel = order.channel
+    channel.include_draft_order_in_voucher_usage = True
+    channel.save(update_fields=["include_draft_order_in_voucher_usage"])
+
+    voucher_listing = voucher.channel_listings.get(channel=channel)
+    discount_amount = voucher_listing.discount_value
+    order.discounts.create(
+        voucher=voucher,
+        value=discount_amount,
+        type=DiscountType.VOUCHER,
+    )
+
+    order.total_gross_amount -= discount_amount
+    order.total_net_amount -= discount_amount
+    order.save(update_fields=["total_net_amount", "total_gross_amount"])
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    order_total = order.undiscounted_total_net_amount
+
+    variables = {
+        "id": order_id,
+        "input": {
+            "voucher": None,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+
+    assert data["order"]["undiscountedTotal"]["net"]["amount"] == order_total
+    assert data["order"]["total"]["net"]["amount"] == order_total
+    assert not data["order"]["voucher"]
+    assert not data["order"]["voucherCode"]
+
+    assert not data["errors"]
+    order.refresh_from_db()
+    assert not order.voucher
+    assert order.search_vector
+
+    assert not order.discounts.count()
+    code_instance.refresh_from_db()
+    assert code_instance.used == code_used - 1
+
+
+def test_draft_order_update_clear_voucher_code_and_reduce_voucher_usage(
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    voucher,
+):
+    # given
+    order = draft_order
+    code_instance = voucher.codes.first()
+    order.voucher = voucher
+    order.voucher_code = code_instance.code
+    order.save(update_fields=["voucher", "voucher_code"])
+
+    code_instance.used += 1
+    code_instance.save(update_fields=["used"])
+    code_used = code_instance.used
+
+    voucher.usage_limit = 5
+    voucher.save(update_fields=["usage_limit"])
+
+    channel = order.channel
+    channel.include_draft_order_in_voucher_usage = True
+    channel.save(update_fields=["include_draft_order_in_voucher_usage"])
+
+    voucher_listing = voucher.channel_listings.get(channel=channel)
+    discount_amount = voucher_listing.discount_value
+    order.discounts.create(
+        voucher=voucher,
+        value=discount_amount,
+        type=DiscountType.VOUCHER,
+    )
+
+    order.total_gross_amount -= discount_amount
+    order.total_net_amount -= discount_amount
+    order.save(update_fields=["total_net_amount", "total_gross_amount"])
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    order_total = order.undiscounted_total_net_amount
+
+    variables = {
+        "id": order_id,
+        "input": {
+            "voucherCode": None,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+
+    assert data["order"]["undiscountedTotal"]["net"]["amount"] == order_total
+    assert data["order"]["total"]["net"]["amount"] == order_total
+    assert not data["order"]["voucher"]
+    assert not data["order"]["voucherCode"]
+
+    assert not data["errors"]
+    order.refresh_from_db()
+    assert not order.voucher
+    assert order.search_vector
+
+    assert not order.discounts.count()
+    code_instance.refresh_from_db()
+    assert code_instance.used == code_used - 1
 
 
 def test_draft_order_update_with_voucher_and_voucher_code(
@@ -2150,16 +2316,10 @@ def test_draft_order_update_triggers_webhooks(
     assert not data["errors"]
     order.refresh_from_db()
 
-    # confirm that event delivery was generated for each webhook.
+    # confirm that event delivery was generated for each async webhook.
     draft_order_updated_delivery = EventDelivery.objects.get(
         webhook_id=draft_order_updated_webhook.id
     )
-    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
-    filter_shipping_delivery = EventDelivery.objects.get(
-        webhook_id=shipping_filter_webhook.id,
-        event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
-    )
-
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={"event_delivery_id": draft_order_updated_delivery.id},
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
@@ -2167,12 +2327,25 @@ def test_draft_order_update_triggers_webhooks(
         retry_backoff=10,
         retry_kwargs={"max_retries": 5},
     )
-    mocked_send_webhook_request_sync.assert_has_calls(
-        [
-            call(tax_delivery),
-            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
-        ]
+
+    # confirm each sync webhook was called without saving event delivery
+    assert mocked_send_webhook_request_sync.call_count == 2
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+
+    tax_delivery_call, filter_shipping_call = (
+        mocked_send_webhook_request_sync.mock_calls
     )
+
+    tax_delivery = tax_delivery_call.args[0]
+    assert tax_delivery.webhook_id == tax_webhook.id
+
+    filter_shipping_delivery = filter_shipping_call.args[0]
+    assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
+    assert (
+        filter_shipping_delivery.event_type
+        == WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
+    )
+
     assert wrapped_call_order_event.called
 
 
@@ -2228,18 +2401,12 @@ def test_draft_order_update_triggers_webhooks_when_tax_webhook_not_needed(
     assert not data["errors"]
     order.refresh_from_db()
 
-    # confirm that event delivery was generated for each webhook.
+    assert not order.should_refresh_prices
+
+    # confirm that event delivery was generated for each async webhook.
     draft_order_updated_delivery = EventDelivery.objects.get(
         webhook_id=draft_order_updated_webhook.id
     )
-    tax_delivery = EventDelivery.objects.filter(webhook_id=tax_webhook.id)
-    filter_shipping_delivery = EventDelivery.objects.get(
-        webhook_id=shipping_filter_webhook.id,
-        event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
-    )
-
-    assert not tax_delivery
-    assert not order.should_refresh_prices
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={"event_delivery_id": draft_order_updated_delivery.id},
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
@@ -2247,7 +2414,19 @@ def test_draft_order_update_triggers_webhooks_when_tax_webhook_not_needed(
         retry_backoff=10,
         retry_kwargs={"max_retries": 5},
     )
-    mocked_send_webhook_request_sync.assert_called_once_with(
-        filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT
+
+    # confirm each sync webhook was called without saving event delivery
+    mocked_send_webhook_request_sync.assert_called_once()
+    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+
+    filter_shipping_call = mocked_send_webhook_request_sync.mock_calls[0]
+
+    filter_shipping_delivery = filter_shipping_call.args[0]
+    assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
+    assert (
+        filter_shipping_delivery.event_type
+        == WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
     )
+    assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
+
     assert wrapped_call_order_event.called

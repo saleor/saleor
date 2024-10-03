@@ -213,7 +213,9 @@ def create_order(payment, checkout, manager):
         )
     except ValidationError as e:
         logger.info(
-            "Failed to create order from checkout %s.", checkout.pk, extra={"error": e}
+            "Failed to create order from checkout %s.",
+            checkout.pk,
+            extra={"error": str(e)},
         )
         return None
     # Refresh the payment to assign the newly created order
@@ -291,8 +293,8 @@ def handle_authorization(notification: dict[str, Any], gateway_config: GatewayCo
         notification_payment_amount = price_from_minor_unit(
             amount.get("value"), amount.get("currency")
         )
-    except TypeError as e:
-        logger.exception("Cannot convert amount from minor unit", extra={"error": e})
+    except TypeError:
+        logger.exception("Cannot convert amount from minor unit")
         return
 
     if notification_payment_amount < payment.total:
@@ -855,8 +857,8 @@ def handle_order_closed(notification: dict[str, Any], gateway_config: GatewayCon
             kind,
             get_plugins_manager(allow_replica=False),
         )
-    except Exception as e:
-        logger.exception("Exception during order creation", extra={"error": e})
+    except Exception:
+        logger.exception("Exception during order creation")
         return
     finally:
         if not order and adyen_partial_payments:

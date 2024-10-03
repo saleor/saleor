@@ -15,25 +15,25 @@ repos:
         exclude_types: [svg]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.5.4
+    rev: v0.6.7
     hooks:
       - id: ruff
       - id: ruff-format
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.7.1
+    rev: v1.11.2
     hooks:
       - id: mypy
         language: system
         exclude: (tests|vendored)/
 
   - repo: https://github.com/fpgmaas/deptry.git
-    rev: "0.17.0"
+    rev: "0.20.0"
     hooks:
       - id: deptry
 
   - repo: https://github.com/returntocorp/semgrep
-    rev: v1.73.0
+    rev: v1.89.0
     hooks:
     - id: semgrep
       exclude_types:

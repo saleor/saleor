@@ -54,7 +54,7 @@ jobs:
       - name: Install dependencies
         if: steps.cached-poetry-dependencies-restore.outputs.cache-hit != 'true'
         run: |
-          poetry env use python3.9
+          poetry env use python3.12
           poetry install --sync --no-root
 
       - name: Add Python Virtual Environment to PATH

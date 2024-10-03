@@ -4247,7 +4247,7 @@ type ShippingMethodTranslation implements Node @doc(category: "Shipping") {
   language: LanguageDisplay!
 
   """Translated shipping method name."""
-  name: String!
+  name: String
 
   """
   Translated description of the shipping method.
@@ -12566,9 +12566,7 @@ type Invoice implements ObjectWithMetadata & Job & Node @doc(category: "Orders")
   """URL to view an invoice."""
   externalUrl: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use `url` field.This field will be removed in 4.0")
 
-  """
-  URL to view/download an invoice. This can be an internal URL if the Invoicing Plugin was used or an external URL if it has been provided.
-  """
+  """URL to view/download an invoice."""
   url: String
 
   """
@@ -17031,10 +17029,19 @@ type Mutation {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
   Requires the following permissions: OWNER and HANDLE_PAYMENTS for apps, HANDLE_PAYMENTS for staff users. Staff user cannot update a transaction that is owned by the app.
+  
+  Triggers the following webhook events:
+  - TRANSACTION_ITEM_METADATA_UPDATED (async): Optionally called when transaction's metadata was updated.
+  - CHECKOUT_FULLY_PAID (async): Optionally called when the checkout charge status changed to `FULL` or `OVERCHARGED`.
+  - ORDER_UPDATED (async): Optionally called when the transaction is related to the order and the order was updated.
   """
   transactionEventReport(
-    """The amount of the event to report."""
-    amount: PositiveDecimal!
+    """
+    The amount of the event to report. 
+    
+    Required for all `REQUEST`, `SUCCESS`, `ACTION_REQUIRED`, and `ADJUSTMENT` events. For other events, the amount will be calculated based on the previous events with the same pspReference. If not possible to calculate, the mutation will return an error.
+    """
+    amount: PositiveDecimal
 
     """List of all possible actions for the transaction"""
     availableActions: [TransactionActionEnum!]
@@ -17065,9 +17072,23 @@ type Mutation {
     """
     token: UUID
 
+    """
+    Fields required to update the transaction metadata.
+    
+    Added in Saleor 3.17.
+    """
+    transactionMetadata: [MetadataInput!]
+
+    """
+    Fields required to update the transaction private metadata.
+    
+    Added in Saleor 3.17.
+    """
+    transactionPrivateMetadata: [MetadataInput!]
+
     """Current status of the event to report."""
     type: TransactionEventTypeEnum!
-  ): TransactionEventReport @doc(category: "Payments")
+  ): TransactionEventReport @doc(category: "Payments") @webhookEventsInfo(asyncEvents: [TRANSACTION_ITEM_METADATA_UPDATED, CHECKOUT_FULLY_PAID, ORDER_UPDATED], syncEvents: [])
 
   """
   Initializes a payment gateway session. It triggers the webhook `PAYMENT_GATEWAY_INITIALIZE_SESSION`, to the requested `paymentGateways`. If `paymentGateways` is not provided, the webhook will be send to all subscribed payment gateways. There is a limit of 100 transaction items per checkout / order.
@@ -24902,8 +24923,13 @@ Added in Saleor 3.13.
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 
 Requires the following permissions: OWNER and HANDLE_PAYMENTS for apps, HANDLE_PAYMENTS for staff users. Staff user cannot update a transaction that is owned by the app.
+
+Triggers the following webhook events:
+- TRANSACTION_ITEM_METADATA_UPDATED (async): Optionally called when transaction's metadata was updated.
+- CHECKOUT_FULLY_PAID (async): Optionally called when the checkout charge status changed to `FULL` or `OVERCHARGED`.
+- ORDER_UPDATED (async): Optionally called when the transaction is related to the order and the order was updated.
 """
-type TransactionEventReport @doc(category: "Payments") {
+type TransactionEventReport @doc(category: "Payments") @webhookEventsInfo(asyncEvents: [TRANSACTION_ITEM_METADATA_UPDATED, CHECKOUT_FULLY_PAID, ORDER_UPDATED], syncEvents: []) {
   """Defines if the reported event hasn't been processed earlier."""
   alreadyProcessed: Boolean
 
@@ -24936,6 +24962,7 @@ enum TransactionEventReportErrorCode @doc(category: "Payments") {
   NOT_FOUND
   INCORRECT_DETAILS
   ALREADY_EXISTS
+  REQUIRED
 }
 
 """
@@ -35093,7 +35120,7 @@ type CheckoutUpdated implements Event @doc(category: "Checkout") {
 }
 
 """
-Event sent when checkout is fully paid with transactions.
+Event sent when checkout is fully paid with transactions. The checkout is considered as fully paid when the checkout `charge_status` is `FULL` or `OVERCHARGED`. The event is not sent when the checkout authorization flow strategy is used.
 
 Added in Saleor 3.13.
 
@@ -36420,6 +36447,19 @@ type TaxableObjectDiscount @doc(category: "Taxes") {
 
   """The amount of the discount."""
   amount: Money!
+
+  """
+  Indicates which part of the order the discount should affect: SUBTOTAL or SHIPPING.
+  """
+  type: TaxableObjectDiscountTypeEnum!
+}
+
+"""
+Indicates which part of the order the discount should affect: SUBTOTAL or SHIPPING.
+"""
+enum TaxableObjectDiscountTypeEnum @doc(category: "Taxes") {
+  SUBTOTAL
+  SHIPPING
 }
 
 type TaxableObjectLine @doc(category: "Taxes") {
