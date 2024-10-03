@@ -62,10 +62,11 @@ def prepare_shop(
     created_channels = []
     for channel_index, channel in enumerate(channels):
         if channel is None:
-            channel = []
+            channel = {}
         created_channel = create_channel(
             e2e_staff_api_client,
             order_settings=channel["order_settings"],
+            checkout_settings=channel.get("checkout_settings", {}),
             warehouse_ids=[warehouse_id],
         )
         channel_id = created_channel["id"]
@@ -76,6 +77,7 @@ def prepare_shop(
                 "slug": created_channel["slug"],
                 "shipping_zones": [],
                 "order_settings": created_channel["orderSettings"],
+                "checkout_settings": created_channel["checkoutSettings"],
             }
         )
 

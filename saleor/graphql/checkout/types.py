@@ -1232,6 +1232,7 @@ class Checkout(ModelObjectType[models.Checkout]):
 
     @staticmethod
     def resolve_authorize_status(root: models.Checkout, info):
+        @allow_writer_in_context(info.context)
         def _resolve_authorize_status(data):
             address, lines, checkout_info, manager, payloads, transactions = data
             database_connection_name = get_database_connection_name(info.context)
@@ -1255,6 +1256,7 @@ class Checkout(ModelObjectType[models.Checkout]):
 
     @staticmethod
     def resolve_charge_status(root: models.Checkout, info):
+        @allow_writer_in_context(info.context)
         def _resolve_charge_status(data):
             address, lines, checkout_info, manager, payloads, transactions = data
             database_connection_name = get_database_connection_name(info.context)
