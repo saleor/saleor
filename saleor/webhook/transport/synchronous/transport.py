@@ -325,6 +325,7 @@ def trigger_webhook_sync(
     return send_webhook_request_sync(delivery, **kwargs)
 
 
+# TODO: should be called once an app starts, not on each request
 if settings.ENABLE_BREAKER_BOARD:
     trigger_webhook_sync = BreakerBoard(
         storage=import_string(settings.BREAKER_BOARD_STORAGE_CLASS_STRING)(),  # type: ignore[arg-type]
