@@ -124,6 +124,7 @@ def delete_expired_checkouts(
 
 
 @app.task(queue=settings.AUTOMATIC_CHECKOUT_COMPLETION_QUEUE_NAME)
+@allow_writer()
 def automatic_checkout_completion_task(
     checkout_pk,
     user_id,
@@ -141,6 +142,7 @@ def automatic_checkout_completion_task(
 
     user = User.objects.filter(pk=user_id).first()
     app = App.objects.filter(pk=app_id).first()
+
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
