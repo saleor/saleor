@@ -45,3 +45,28 @@ class WebhooksByAppIdLoader(DataLoader):
         for webhook in webhooks:
             webhooks_by_app_map[webhook.app_id].append(webhook)
         return [webhooks_by_app_map.get(app_id, []) for app_id in keys]
+
+
+class WebhookEventsByEventTypeLoader(DataLoader):
+    context_key = "webhook_events_by_event_type"
+
+    def batch_load(self, keys):
+        webhook_events_by_event_type: dict[str, list[WebhookEvent]] = defaultdict(list)
+        webhooks_events = WebhookEvent.objects.using(
+            self.database_connection_name
+        ).filter(event_type__in=keys)
+        for webhook_event in webhooks_events:
+            webhook_events_by_event_type[webhook_event.event_type].append(webhook_event)
+        return [webhook_events_by_event_type[event_type] for event_type in keys]
+
+
+class ActiveWebhooksByIdLoader(DataLoader):
+    context_key = "active_webhooks_by_id"
+
+    def batch_load(self, keys):
+        webhooks_map = (
+            Webhook.objects.using(self.database_connection_name)
+            .filter(is_active=True)
+            .in_bulk(keys)
+        )
+        return [webhooks_map.get(webhook_id) for webhook_id in keys]

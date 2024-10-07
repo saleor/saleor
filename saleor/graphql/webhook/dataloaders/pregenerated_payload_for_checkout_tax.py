@@ -20,9 +20,9 @@ from ...core.dataloaders import DataLoader
 from ..subscription_payload import generate_payload_promise_from_subscription
 from ..utils import get_subscription_query_hash
 from .utils import (
-    AppByEventTypeLoader,
+    AppsByEventTypeLoader,
     PayloadsRequestContextByEventTypeLoader,
-    WebhookByEventTypeLoader,
+    WebhooksByEventTypeLoader,
 )
 
 
@@ -120,11 +120,11 @@ class PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(DataLoader):
 
         checkouts_info = CheckoutInfoByCheckoutTokenLoader(self.context).load_many(keys)
         lines = CheckoutLinesInfoByCheckoutTokenLoader(self.context).load_many(keys)
-        apps = AppByEventTypeLoader(self.context).load(event_type)
+        apps = AppsByEventTypeLoader(self.context).load(event_type)
         request_context = PayloadsRequestContextByEventTypeLoader(self.context).load(
             event_type
         )
-        webhooks = WebhookByEventTypeLoader(self.context).load(event_type)
+        webhooks = WebhooksByEventTypeLoader(self.context).load(event_type)
         return Promise.all(
             [checkouts_info, lines, apps, request_context, webhooks]
         ).then(generate_payloads)

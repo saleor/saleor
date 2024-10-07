@@ -11,9 +11,9 @@ from ..subscription_payload import (
 )
 from ..utils import get_subscription_query_hash
 from .utils import (
-    AppByEventTypeLoader,
+    AppsByEventTypeLoader,
     PayloadsRequestContextByEventTypeLoader,
-    WebhookByEventTypeLoader,
+    WebhooksByEventTypeLoader,
 )
 
 
@@ -86,11 +86,11 @@ class PregeneratedCheckoutFilterShippingMethodPayloadsByCheckoutTokenLoader(Data
             return Promise.all(promises).then(return_payloads)
 
         checkouts = CheckoutByTokenLoader(self.context).load_many(keys)
-        apps = AppByEventTypeLoader(self.context).load(event_type)
+        apps = AppsByEventTypeLoader(self.context).load(event_type)
         request_context = PayloadsRequestContextByEventTypeLoader(self.context).load(
             event_type
         )
-        webhooks = WebhookByEventTypeLoader(self.context).load(event_type)
+        webhooks = WebhooksByEventTypeLoader(self.context).load(event_type)
         return Promise.all([checkouts, apps, request_context, webhooks]).then(
             generate_payloads
         )

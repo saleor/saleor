@@ -1,4 +1,4 @@
-from .app import AppByIdLoader, AppByTokenLoader
+from .app import ActiveAppByIdLoader, AppByIdLoader, AppByTokenLoader
 from .app_extension import AppExtensionByAppIdLoader, AppExtensionByIdLoader
 from .app_tokens import AppTokensByAppIdLoader
 from .apps import ActiveAppsByAppIdentifierLoader
@@ -9,6 +9,7 @@ from .thumbnail import (
 from .utils import app_promise_callback, get_app_promise
 
 __all__ = [
+    "ActiveAppByIdLoader",
     "ActiveAppsByAppIdentifierLoader",
     "app_promise_callback",
     "AppByIdLoader",

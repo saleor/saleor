@@ -554,7 +554,7 @@ def test_shipping_methods_and_taxes_use_pregenerated_payload(
 ):
     # given
     checkout = checkout_with_shipping_address
-    checkout.price_expiration = timezone.now() - timedelta(days=1)
+    checkout.price_expiration = timezone.now() - datetime.timedelta(days=1)
     checkout.save()
     checkout_global_id = to_global_id_or_none(checkout)
     shipping_methods = ShippingMethod.objects.order_by("id").all()
