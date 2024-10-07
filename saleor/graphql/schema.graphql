@@ -32382,7 +32382,7 @@ type Subscription @doc(category: "Miscellaneous") {
     List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
     """
     channels: [String!]
-  ): DraftOrderCreated
+  ): DraftOrderCreated @doc(category: "Orders")
 
   """
   Event sent when draft order is updated.
@@ -32396,7 +32396,7 @@ type Subscription @doc(category: "Miscellaneous") {
     List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
     """
     channels: [String!]
-  ): DraftOrderUpdated
+  ): DraftOrderUpdated @doc(category: "Orders")
 
   """
   Event sent when draft order is deleted.
@@ -32410,7 +32410,7 @@ type Subscription @doc(category: "Miscellaneous") {
     List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
     """
     channels: [String!]
-  ): DraftOrderDeleted
+  ): DraftOrderDeleted @doc(category: "Orders")
 
   """
   Event sent when new order is created.
@@ -32424,7 +32424,7 @@ type Subscription @doc(category: "Miscellaneous") {
     List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
     """
     channels: [String!]
-  ): OrderCreated
+  ): OrderCreated @doc(category: "Orders")
 
   """
   Event sent when order is updated.
@@ -32438,7 +32438,7 @@ type Subscription @doc(category: "Miscellaneous") {
     List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
     """
     channels: [String!]
-  ): OrderUpdated
+  ): OrderUpdated @doc(category: "Orders")
 
   """
   Event sent when order is confirmed.
@@ -32452,7 +32452,7 @@ type Subscription @doc(category: "Miscellaneous") {
     List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
     """
     channels: [String!]
-  ): OrderConfirmed
+  ): OrderConfirmed @doc(category: "Orders")
 
   """
   Payment has been made. The order may be partially or fully paid.
@@ -32466,7 +32466,7 @@ type Subscription @doc(category: "Miscellaneous") {
     List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
     """
     channels: [String!]
-  ): OrderPaid
+  ): OrderPaid @doc(category: "Orders")
 
   """
   Event sent when order is fully paid.
@@ -32480,7 +32480,7 @@ type Subscription @doc(category: "Miscellaneous") {
     List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
     """
     channels: [String!]
-  ): OrderFullyPaid
+  ): OrderFullyPaid @doc(category: "Orders")
 
   """
   The order received a refund. The order may be partially or fully refunded.
@@ -32494,7 +32494,7 @@ type Subscription @doc(category: "Miscellaneous") {
     List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
     """
     channels: [String!]
-  ): OrderRefunded
+  ): OrderRefunded @doc(category: "Orders")
 
   """
   The order is fully refunded.
@@ -32508,7 +32508,7 @@ type Subscription @doc(category: "Miscellaneous") {
     List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
     """
     channels: [String!]
-  ): OrderFullyRefunded
+  ): OrderFullyRefunded @doc(category: "Orders")
 
   """
   Event sent when order is fulfilled.
@@ -32522,7 +32522,7 @@ type Subscription @doc(category: "Miscellaneous") {
     List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
     """
     channels: [String!]
-  ): OrderFulfilled
+  ): OrderFulfilled @doc(category: "Orders")
 
   """
   Event sent when order is cancelled.
@@ -32536,7 +32536,7 @@ type Subscription @doc(category: "Miscellaneous") {
     List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
     """
     channels: [String!]
-  ): OrderCancelled
+  ): OrderCancelled @doc(category: "Orders")
 
   """
   Event sent when order becomes expired.
@@ -32550,7 +32550,7 @@ type Subscription @doc(category: "Miscellaneous") {
     List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
     """
     channels: [String!]
-  ): OrderExpired
+  ): OrderExpired @doc(category: "Orders")
 
   """
   Event sent when order metadata is updated.
@@ -32564,7 +32564,7 @@ type Subscription @doc(category: "Miscellaneous") {
     List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
     """
     channels: [String!]
-  ): OrderMetadataUpdated
+  ): OrderMetadataUpdated @doc(category: "Orders")
 
   """
   Event sent when orders are imported.
@@ -32578,7 +32578,7 @@ type Subscription @doc(category: "Miscellaneous") {
     List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
     """
     channels: [String!]
-  ): OrderBulkCreated
+  ): OrderBulkCreated @doc(category: "Orders")
 }
 
 interface Event {

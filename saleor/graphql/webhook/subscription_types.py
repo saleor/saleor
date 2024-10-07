@@ -76,6 +76,7 @@ from ..core.doc_category import (
     DOC_CATEGORY_TAXES,
     DOC_CATEGORY_USERS,
 )
+from ..core.fields import BaseField
 from ..core.scalars import JSON, DateTime, PositiveDecimal
 from ..core.types import NonNullList, SubscriptionObjectType
 from ..core.types.order_or_checkout import OrderOrCheckout
@@ -2725,7 +2726,7 @@ class Subscription(SubscriptionObjectType):
         Event,
         description="Look up subscription event." + ADDED_IN_32,
     )
-    draft_order_created = graphene.Field(
+    draft_order_created = BaseField(
         DraftOrderCreated,
         description=(
             "Event sent when new draft order is created."
@@ -2734,48 +2735,54 @@ class Subscription(SubscriptionObjectType):
         ),
         resolver=default_order_resolver,
         channels=channels_argument,
+        doc_category=DOC_CATEGORY_ORDERS,
     )
-    draft_order_updated = graphene.Field(
+    draft_order_updated = BaseField(
         DraftOrderUpdated,
         description=(
             "Event sent when draft order is updated." + ADDED_IN_320 + PREVIEW_FEATURE
         ),
         resolver=default_order_resolver,
         channels=channels_argument,
+        doc_category=DOC_CATEGORY_ORDERS,
     )
-    draft_order_deleted = graphene.Field(
+    draft_order_deleted = BaseField(
         DraftOrderDeleted,
         description=(
             "Event sent when draft order is deleted." + ADDED_IN_320 + PREVIEW_FEATURE
         ),
         resolver=default_order_resolver,
         channels=channels_argument,
+        doc_category=DOC_CATEGORY_ORDERS,
     )
-    order_created = graphene.Field(
+    order_created = BaseField(
         OrderCreated,
         description=(
             "Event sent when new order is created." + ADDED_IN_320 + PREVIEW_FEATURE
         ),
         resolver=default_order_resolver,
         channels=channels_argument,
+        doc_category=DOC_CATEGORY_ORDERS,
     )
-    order_updated = graphene.Field(
+    order_updated = BaseField(
         OrderUpdated,
         description=(
             "Event sent when order is updated." + ADDED_IN_320 + PREVIEW_FEATURE
         ),
         resolver=default_order_resolver,
         channels=channels_argument,
+        doc_category=DOC_CATEGORY_ORDERS,
     )
-    order_confirmed = graphene.Field(
+    order_confirmed = BaseField(
         OrderConfirmed,
         description=(
             "Event sent when order is confirmed." + ADDED_IN_320 + PREVIEW_FEATURE
         ),
         resolver=default_order_resolver,
         channels=channels_argument,
+        doc_category=DOC_CATEGORY_ORDERS,
     )
-    order_paid = graphene.Field(
+    order_paid = BaseField(
         OrderPaid,
         description=(
             "Payment has been made. The order may be partially or fully paid."
@@ -2784,16 +2791,18 @@ class Subscription(SubscriptionObjectType):
         ),
         resolver=default_order_resolver,
         channels=channels_argument,
+        doc_category=DOC_CATEGORY_ORDERS,
     )
-    order_fully_paid = graphene.Field(
+    order_fully_paid = BaseField(
         OrderFullyPaid,
         description=(
             "Event sent when order is fully paid." + ADDED_IN_320 + PREVIEW_FEATURE
         ),
         resolver=default_order_resolver,
         channels=channels_argument,
+        doc_category=DOC_CATEGORY_ORDERS,
     )
-    order_refunded = graphene.Field(
+    order_refunded = BaseField(
         OrderRefunded,
         description=(
             "The order received a refund. The order may be partially or fully "
@@ -2801,38 +2810,43 @@ class Subscription(SubscriptionObjectType):
         ),
         resolver=default_order_resolver,
         channels=channels_argument,
+        doc_category=DOC_CATEGORY_ORDERS,
     )
-    order_fully_refunded = graphene.Field(
+    order_fully_refunded = BaseField(
         OrderFullyRefunded,
         description=("The order is fully refunded." + ADDED_IN_320 + PREVIEW_FEATURE),
         resolver=default_order_resolver,
         channels=channels_argument,
+        doc_category=DOC_CATEGORY_ORDERS,
     )
-    order_fulfilled = graphene.Field(
+    order_fulfilled = BaseField(
         OrderFulfilled,
         description=(
             "Event sent when order is fulfilled." + ADDED_IN_320 + PREVIEW_FEATURE
         ),
         resolver=default_order_resolver,
         channels=channels_argument,
+        doc_category=DOC_CATEGORY_ORDERS,
     )
-    order_cancelled = graphene.Field(
+    order_cancelled = BaseField(
         OrderCancelled,
         description=(
             "Event sent when order is cancelled." + ADDED_IN_320 + PREVIEW_FEATURE
         ),
         resolver=default_order_resolver,
         channels=channels_argument,
+        doc_category=DOC_CATEGORY_ORDERS,
     )
-    order_expired = graphene.Field(
+    order_expired = BaseField(
         OrderExpired,
         description=(
             "Event sent when order becomes expired." + ADDED_IN_320 + PREVIEW_FEATURE
         ),
         resolver=default_order_resolver,
         channels=channels_argument,
+        doc_category=DOC_CATEGORY_ORDERS,
     )
-    order_metadata_updated = graphene.Field(
+    order_metadata_updated = BaseField(
         OrderMetadataUpdated,
         description=(
             "Event sent when order metadata is updated."
@@ -2841,13 +2855,15 @@ class Subscription(SubscriptionObjectType):
         ),
         resolver=default_order_resolver,
         channels=channels_argument,
+        doc_category=DOC_CATEGORY_ORDERS,
     )
-    order_bulk_created = graphene.Field(
+    order_bulk_created = BaseField(
         OrderBulkCreated,
         description=(
             "Event sent when orders are imported." + ADDED_IN_320 + PREVIEW_FEATURE
         ),
         channels=channels_argument,
+        doc_category=DOC_CATEGORY_ORDERS,
     )
 
     class Meta:
