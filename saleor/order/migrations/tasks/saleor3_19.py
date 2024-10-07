@@ -9,7 +9,7 @@ from ....celeryconf import app
 from ....discount.models import OrderDiscount, Voucher
 from ....warehouse.models import Warehouse
 from ...models import Order, OrderLine
-from ...utils import updates_amounts_for_order
+from ...utils import update_order_authorize_status, update_order_charge_status
 
 # The batch of size 250 takes ~0.5 second and consumes ~20MB memory at peak
 ADDRESS_UPDATE_BATCH_SIZE = 250
@@ -169,6 +169,7 @@ def _set_subtotal_for_orders_created_from_bulk(order_ids: list[str]):
             sum_line_undiscounted_total_price_gross_amount=Sum(
                 "lines__undiscounted_total_price_gross_amount"
             ),
+            sum_granted_refunds=Sum("granted_refunds__amount_value"),
         )
     )
 
@@ -192,7 +193,12 @@ def _set_subtotal_for_orders_created_from_bulk(order_ids: list[str]):
             order.sum_line_undiscounted_total_price_gross_amount
             + order.shipping_price_gross_amount
         )
-        updates_amounts_for_order(order, save=False)
+        update_order_authorize_status(
+            order, granted_refund_amount=order.sum_granted_refunds or Decimal(0)
+        )
+        update_order_charge_status(
+            order, granted_refund_amount=order.sum_granted_refunds or Decimal(0)
+        )
 
     with transaction.atomic():
         _orders = list(
@@ -207,9 +213,7 @@ def _set_subtotal_for_orders_created_from_bulk(order_ids: list[str]):
                 "total_gross_amount",
                 "undiscounted_total_gross_amount",
                 "undiscounted_total_net_amount",
-                "total_charged_amount",
                 "charge_status",
-                "total_authorized_amount",
                 "authorize_status",
             ],
         )
