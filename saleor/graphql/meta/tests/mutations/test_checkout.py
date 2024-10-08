@@ -415,7 +415,9 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_checkout_updated(
 
     # confirm each sync webhook con was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 3
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exclude(
+        webhook_id=checkout_updated_webhook.id
+    ).exists()
 
     shipping_methods_call, filter_shipping_call, tax_delivery_call = (
         mocked_send_webhook_request_sync.mock_calls
@@ -495,7 +497,9 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_updated_metadata(
 
     # confirm each sync webhook con was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 3
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exclude(
+        webhook_id=checkout_metadata_updated_webhook.id
+    ).exists()
 
     shipping_methods_call, filter_shipping_call, tax_delivery_call = (
         mocked_send_webhook_request_sync.mock_calls
