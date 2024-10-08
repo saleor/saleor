@@ -2035,8 +2035,8 @@ def test_send_webhook_request_async_when_webhook_is_disabled(
     event_delivery.refresh_from_db()
 
     # then
-    mocked_clear_delivery.not_called()
-    mocked_observability.not_called()
+    assert not mocked_clear_delivery.called
+    assert not mocked_observability.called
     assert event_delivery.status == EventDeliveryStatus.FAILED
 
 

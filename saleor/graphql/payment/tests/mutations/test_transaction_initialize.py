@@ -272,7 +272,7 @@ def test_for_checkout_transactions_limit_on_transaction_initialize(
     assert error["code"] == TransactionInitializeErrorCode.INVALID.name
     assert error["field"] == "id"
     assert error["message"] == (
-        "Checkout transactions limit of " f"{settings.TRANSACTION_ITEMS_LIMIT} reached."
+        f"Checkout transactions limit of {settings.TRANSACTION_ITEMS_LIMIT} reached."
     )
 
 
