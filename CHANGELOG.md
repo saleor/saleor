@@ -1,4 +1,3 @@
-
 # Changelog
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/saleor/saleor/releases) page.
@@ -2688,9 +2687,3 @@ Just so you know, changes mentioned in this section are in a preview state and c
 - Add createdb note to getting started for Windows - #3106 by @ajostergaard
 - Update docs on pipenv - #3045 by @jxltom
 - Fixed a bug when saving webhook payload to Azure Storage - #16585 by @delemeator
-- Added validation for tax data received from tax app - #16720 by @zedzior
-- Fixed order-level discounts handling when using tax app for tax calculation - #16696 by @zedzior
-- Fixed bug when manual line discount doesn't override line-level vouchers - #16738 by @zedzior
-- Skipped obsolete payload save and cleanup for successfull sync webhooks - #16632 by @cmiacz
-- Skiped obsolete payload save and cleanup for successfull sync webhooks - #16632 by @cmmiacz
-- Skiped obsolete payload save and cleanup for successfull sync webhooks - #16632 by @cmiacz
