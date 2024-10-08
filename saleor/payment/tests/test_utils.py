@@ -7,6 +7,7 @@ import pytz
 from django.utils import timezone
 from freezegun import freeze_time
 
+from ...checkout import CheckoutAuthorizeStatus
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...order import OrderAuthorizeStatus, OrderChargeStatus, OrderGrantedRefundStatus
 from ...plugins.manager import get_plugins_manager
@@ -985,6 +986,203 @@ def test_create_transaction_event_from_request_and_webhook_response_full_event(
     assert event.external_url == event_url
     assert event.message == event_cause
     assert event.type == event_type
+
+
+@patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
+@patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
+def test_create_transaction_event_from_request_when_paid(
+    mocked_checkout_fully_paid,
+    mocked_automatic_checkout_completion_task,
+    transaction_item_generator,
+    app,
+    checkout_with_prices,
+):
+    # given
+    checkout = checkout_with_prices
+
+    transaction = transaction_item_generator(checkout_id=checkout.pk)
+    request_event = TransactionEvent.objects.create(
+        type=TransactionEventType.CHARGE_REQUEST,
+        amount_value=checkout.total.gross.amount,
+        currency="USD",
+        transaction_id=transaction.id,
+    )
+
+    event_amount = checkout.total.gross.amount
+    event_type = TransactionEventType.CHARGE_SUCCESS
+
+    expected_psp_reference = "psp:122:222"
+
+    response_data = {
+        "pspReference": expected_psp_reference,
+        "amount": event_amount,
+        "result": event_type.upper(),
+    }
+
+    # when
+    create_transaction_event_from_request_and_webhook_response(
+        request_event, app, response_data
+    )
+
+    # then
+    flush_post_commit_hooks()
+    checkout.refresh_from_db()
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
+    mocked_checkout_fully_paid.assert_called_once_with(checkout, webhooks=set())
+    mocked_automatic_checkout_completion_task.assert_not_called()
+
+
+@patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
+@patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
+def test_create_transaction_event_from_request_when_authorized(
+    mocked_checkout_fully_paid,
+    mocked_automatic_checkout_completion_task,
+    transaction_item_generator,
+    app,
+    checkout_with_prices,
+):
+    # given
+    checkout = checkout_with_prices
+
+    channel = checkout.channel
+    assert channel.automatically_complete_fully_paid_checkouts is False
+
+    transaction = transaction_item_generator(checkout_id=checkout.pk)
+    request_event = TransactionEvent.objects.create(
+        type=TransactionEventType.AUTHORIZATION_REQUEST,
+        amount_value=checkout.total.gross.amount,
+        currency="USD",
+        transaction_id=transaction.id,
+    )
+
+    event_amount = checkout.total.gross.amount
+    event_type = TransactionEventType.AUTHORIZATION_SUCCESS
+
+    expected_psp_reference = "psp:122:222"
+
+    response_data = {
+        "pspReference": expected_psp_reference,
+        "amount": event_amount,
+        "result": event_type.upper(),
+    }
+
+    # when
+    create_transaction_event_from_request_and_webhook_response(
+        request_event, app, response_data
+    )
+
+    # then
+    flush_post_commit_hooks()
+    checkout.refresh_from_db()
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
+    mocked_checkout_fully_paid.assert_not_called()
+    mocked_automatic_checkout_completion_task.assert_not_called()
+
+
+@patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
+@patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
+def test_create_transaction_event_from_request_when_paid_triggers_checkout_completion(
+    mocked_checkout_fully_paid,
+    mocked_automatic_checkout_completion_task,
+    transaction_item_generator,
+    app,
+    checkout_with_prices,
+    plugins_manager,
+):
+    # given
+    checkout = checkout_with_prices
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+
+    channel = checkout_info.channel
+    channel.automatically_complete_fully_paid_checkouts = True
+    channel.save(update_fields=["automatically_complete_fully_paid_checkouts"])
+
+    transaction = transaction_item_generator(checkout_id=checkout.pk)
+    request_event = TransactionEvent.objects.create(
+        type=TransactionEventType.CHARGE_REQUEST,
+        amount_value=checkout.total.gross.amount,
+        currency="USD",
+        transaction_id=transaction.id,
+    )
+
+    event_amount = checkout.total.gross.amount
+    event_type = TransactionEventType.CHARGE_SUCCESS
+
+    expected_psp_reference = "psp:122:222"
+
+    response_data = {
+        "pspReference": expected_psp_reference,
+        "amount": event_amount,
+        "result": event_type.upper(),
+    }
+
+    # when
+    create_transaction_event_from_request_and_webhook_response(
+        request_event, app, response_data
+    )
+
+    # then
+    flush_post_commit_hooks()
+    checkout.refresh_from_db()
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
+    mocked_checkout_fully_paid.assert_called_once_with(checkout, webhooks=set())
+    mocked_automatic_checkout_completion_task.assert_called_once_with(
+        checkout.pk, None, app.id
+    )
+
+
+@patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
+@patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
+def test_create_transaction_event_from_request_when_authorized_triggers_checkout_completion(
+    mocked_checkout_fully_paid,
+    mocked_automatic_checkout_completion_task,
+    transaction_item_generator,
+    app,
+    checkout_with_prices,
+    plugins_manager,
+):
+    # given
+    checkout = checkout_with_prices
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+
+    channel = checkout_info.channel
+    channel.automatically_complete_fully_paid_checkouts = True
+    channel.save(update_fields=["automatically_complete_fully_paid_checkouts"])
+
+    transaction = transaction_item_generator(checkout_id=checkout.pk)
+    request_event = TransactionEvent.objects.create(
+        type=TransactionEventType.AUTHORIZATION_REQUEST,
+        amount_value=checkout.total.gross.amount,
+        currency="USD",
+        transaction_id=transaction.id,
+    )
+
+    event_amount = checkout.total.gross.amount
+    event_type = TransactionEventType.AUTHORIZATION_SUCCESS
+
+    expected_psp_reference = "psp:122:222"
+
+    response_data = {
+        "pspReference": expected_psp_reference,
+        "amount": event_amount,
+        "result": event_type.upper(),
+    }
+
+    # when
+    create_transaction_event_from_request_and_webhook_response(
+        request_event, app, response_data
+    )
+
+    # then
+    flush_post_commit_hooks()
+    checkout.refresh_from_db()
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
+    mocked_checkout_fully_paid.assert_not_called()
+    mocked_automatic_checkout_completion_task.assert_called_once_with(
+        checkout.pk, None, app.id
+    )
 
 
 def test_create_transaction_event_from_request_and_webhook_response_incorrect_data(

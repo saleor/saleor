@@ -1281,7 +1281,9 @@ def create_transaction_event_for_transaction_session(
                 previous_refunded_value=previous_refunded_value,
             )
         elif transaction_item.checkout_id:
-            transaction_amounts_for_checkout_updated(transaction_item, manager)
+            transaction_amounts_for_checkout_updated(
+                transaction_item, manager, app=app, user=None
+            )
     elif event.psp_reference and transaction_item.psp_reference != event.psp_reference:
         transaction_item.psp_reference = event.psp_reference
         transaction_item.save(update_fields=["psp_reference", "modified_at"])
@@ -1388,7 +1390,9 @@ def create_transaction_event_from_request_and_webhook_response(
     elif transaction_item.checkout_id:
         manager = get_plugins_manager(allow_replica=True)
         recalculate_refundable_for_checkout(transaction_item, request_event, event)
-        transaction_amounts_for_checkout_updated(transaction_item, manager)
+        transaction_amounts_for_checkout_updated(
+            transaction_item, manager, app=app, user=None
+        )
     return event
 
 
