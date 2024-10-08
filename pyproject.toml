@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "saleor"
-version = "3.20.35"
+version = "3.20.36"
 description = "A modular, high performance, headless e-commerce platform built with Python, GraphQL, Django, and React."
 authors = [ "Saleor Commerce <hello@saleor.io>" ]
 license = "BSD-3-Clause"
@@ -188,19 +188,12 @@ show_error_context = true
 show_traceback = true
 warn_redundant_casts = true
 warn_unused_ignores = true
-
-plugins = [
-  "mypy_django_plugin.main"
-]
-
-exclude = [
-  "tests/"
-]
+plugins = [ "mypy_django_plugin.main" ]
+exclude = [ "tests/" ]
 
   [[tool.mypy.overrides]]
-  module = ["saleor.*.migrations.*"]
+  module = [ "saleor.*.migrations.*" ]
   ignore_errors = true
-
 
 [tool.ruff]
 target-version = "py39"
