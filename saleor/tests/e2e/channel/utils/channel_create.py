@@ -41,6 +41,9 @@ mutation ChannelCreate($input: ChannelCreateInput!) {
         expireOrdersAfter
         deleteExpiredOrdersAfter
       }
+      checkoutSettings {
+        automaticallyCompleteFullyPaidCheckouts
+      }
     }
   }
 }
@@ -57,6 +60,7 @@ def create_channel(
     shipping_zones=None,
     is_active=True,
     order_settings={},
+    checkout_settings={},
 ):
     if not warehouse_ids:
         warehouse_ids = []
@@ -81,6 +85,9 @@ def create_channel(
                 "expireOrdersAfter": 60,
                 "deleteExpiredOrdersAfter": 1,
                 **order_settings,
+            },
+            "checkoutSettings": {
+                **checkout_settings,
             },
         }
     }

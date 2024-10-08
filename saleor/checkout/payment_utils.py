@@ -54,7 +54,7 @@ def _update_authorize_status(
         checkout_has_lines and checkout_total_gross <= zero_money_amount
     )
 
-    if total_covered <= zero_money_amount and checkout_with_only_zero_price_lines:
+    if checkout_with_only_zero_price_lines:
         checkout.authorize_status = CheckoutAuthorizeStatus.FULL
     elif total_covered == zero_money_amount:
         checkout.authorize_status = CheckoutAuthorizeStatus.NONE

@@ -394,7 +394,9 @@ class TransactionCreate(BaseMutation):
                 previous_refunded_value=Decimal(0),
             )
         if transaction_data.get("checkout_id") and money_data:
-            transaction_amounts_for_checkout_updated(new_transaction, manager)
+            transaction_amounts_for_checkout_updated(
+                new_transaction, manager, user, app
+            )
 
         if transaction_event:
             cls.create_transaction_event(transaction_event, new_transaction, user, app)

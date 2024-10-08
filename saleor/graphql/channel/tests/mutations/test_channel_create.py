@@ -50,6 +50,7 @@ CHANNEL_CREATE_MUTATION = """
                 }
                 checkoutSettings {
                     useLegacyErrorFlow
+                    automaticallyCompleteFullyPaidCheckouts
                 }
                 paymentSettings {
                     defaultTransactionFlowStrategy
@@ -122,6 +123,10 @@ def test_channel_create_mutation_as_staff_user(
     assert channel_data["orderSettings"]["expireOrdersAfter"] == 10
     assert channel_data["orderSettings"]["includeDraftOrderInVoucherUsage"] is True
     assert channel_data["checkoutSettings"]["useLegacyErrorFlow"] is False
+    assert (
+        channel_data["checkoutSettings"]["automaticallyCompleteFullyPaidCheckouts"]
+        is False
+    )
 
 
 def test_channel_create_mutation_as_app(
@@ -139,7 +144,10 @@ def test_channel_create_mutation_as_app(
             "slug": slug,
             "currencyCode": currency_code,
             "defaultCountry": default_country,
-            "checkoutSettings": {"useLegacyErrorFlow": False},
+            "checkoutSettings": {
+                "useLegacyErrorFlow": False,
+                "automaticallyCompleteFullyPaidCheckouts": True,
+            },
         }
     }
 
@@ -176,6 +184,10 @@ def test_channel_create_mutation_as_app(
     assert channel_data["orderSettings"]["expireOrdersAfter"] is None
     assert channel_data["orderSettings"]["includeDraftOrderInVoucherUsage"] is False
     assert channel_data["checkoutSettings"]["useLegacyErrorFlow"] is False
+    assert (
+        channel_data["checkoutSettings"]["automaticallyCompleteFullyPaidCheckouts"]
+        is True
+    )
 
 
 def test_channel_create_mutation_as_customer(user_api_client):
@@ -762,6 +774,45 @@ def test_channel_create_set_checkout_use_legacy_error_flow(
     channel = Channel.objects.get()
     assert channel_data["checkoutSettings"]["useLegacyErrorFlow"] is False
     assert channel.use_legacy_error_flow_for_checkout is False
+
+
+def test_channel_create_set_automatically_complete_fully_paid_checkouts(
+    permission_manage_channels,
+    staff_api_client,
+):
+    # given
+    name = "testName"
+    slug = "test_slug"
+    currency_code = "USD"
+    default_country = "US"
+    variables = {
+        "input": {
+            "name": name,
+            "slug": slug,
+            "currencyCode": currency_code,
+            "defaultCountry": default_country,
+            "checkoutSettings": {"automaticallyCompleteFullyPaidCheckouts": True},
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_CREATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["channelCreate"]
+    assert not data["errors"]
+    channel_data = data["channel"]
+    channel = Channel.objects.get()
+    assert (
+        channel_data["checkoutSettings"]["automaticallyCompleteFullyPaidCheckouts"]
+        is True
+    )
+    assert channel.automatically_complete_fully_paid_checkouts is True
 
 
 @pytest.mark.parametrize("allowUnpaid", [True, False])
