@@ -68,7 +68,7 @@ if TYPE_CHECKING:
 
     from ..account.models import Address
     from ..core.pricing.interface import LineInfo
-    from ..order.models import Order
+    from ..order.models import Order, OrderLine
     from .fetch import CheckoutInfo, CheckoutLineInfo
 
 
@@ -1131,3 +1131,24 @@ def checkout_info_for_logs(
             for line_info in checkout_lines_info
         ],
     }
+
+
+def log_unknown_discount_reason(
+    order_lines: Iterable["OrderLine"],
+    checkout_info: "CheckoutInfo",
+    checkout_lines_info: Iterable["CheckoutLineInfo"],
+    logger,
+):
+    prices_entered_with_tax = checkout_info.tax_configuration.prices_entered_with_tax
+    for line in order_lines:
+        discount_price = line.undiscounted_unit_price - line.unit_price
+        if prices_entered_with_tax:
+            discount_amount = discount_price.gross
+        else:
+            discount_amount = discount_price.net
+        if discount_amount.amount > 0 and not line.unit_discount_reason:
+            logger.warning(
+                "Unknown discount reason",
+                extra=checkout_info_for_logs(checkout_info, checkout_lines_info),
+            )
+            return

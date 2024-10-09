@@ -4964,3 +4964,61 @@ def test_checkout_complete_with_invalid_address(
     order = Order.objects.get(checkout_token=checkout.token)
     assert order.shipping_address.postal_code == invalid_postal_code
     assert order.billing_address.postal_code == invalid_postal_code
+
+
+@patch("saleor.checkout.complete_checkout._get_unit_discount_reason")
+def test_checkout_complete_log_unknown_discount_reason(
+    mocked_discount_reason,
+    user_api_client,
+    checkout_with_item_and_voucher_specific_products,
+    voucher_specific_product_type,
+    payment_dummy,
+    address,
+    shipping_method,
+    caplog,
+):
+    # given
+    mocked_discount_reason.return_value = None
+
+    checkout = checkout_with_item_and_voucher_specific_products
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save(
+        update_fields=["shipping_address", "shipping_method", "billing_address"]
+    )
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    assert not payment.transactions.exists()
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "redirectUrl": "https://www.example.com",
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+
+    order = Order.objects.first()
+    order_line = order.lines.first()
+    assert not order_line.unit_discount_reason
+    assert "Unknown discount reason" in caplog.text
+    assert caplog.records[0].checkout_id == to_global_id_or_none(checkout)
