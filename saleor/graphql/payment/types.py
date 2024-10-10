@@ -433,7 +433,7 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
     refund_pending_amount = graphene.Field(
         Money,
         required=True,
-        description=("Total amount of ongoing refund requests for the transaction."),
+        description="Total amount of ongoing refund requests for the transaction.",
     )
 
     canceled_amount = graphene.Field(
@@ -444,7 +444,7 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
     cancel_pending_amount = graphene.Field(
         Money,
         required=True,
-        description=("Total amount of ongoing cancel requests for the transaction."),
+        description="Total amount of ongoing cancel requests for the transaction.",
     )
     charged_amount = graphene.Field(
         Money, description="Total amount charged for this payment.", required=True
@@ -452,7 +452,7 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
     charge_pending_amount = graphene.Field(
         Money,
         required=True,
-        description=("Total amount of ongoing charge requests for the transaction."),
+        description="Total amount of ongoing charge requests for the transaction.",
     )
     name = graphene.String(description="Name of the transaction.", required=True)
     message = graphene.String(

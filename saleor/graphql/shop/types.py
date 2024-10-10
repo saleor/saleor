@@ -186,7 +186,7 @@ class Shop(graphene.ObjectType):
     )
     channel_currencies = PermissionsField(
         NonNullList(graphene.String),
-        description=("List of all currencies supported by shop's channels."),
+        description="List of all currencies supported by shop's channels.",
         required=True,
         permissions=[
             AuthorizationFilters.AUTHENTICATED_STAFF_USER,
@@ -307,7 +307,7 @@ class Shop(graphene.ObjectType):
     )
     enable_account_confirmation_by_email = PermissionsField(
         graphene.Boolean,
-        description=("Determines if account confirmation by email is enabled."),
+        description="Determines if account confirmation by email is enabled.",
         permissions=[SitePermissions.MANAGE_SETTINGS],
     )
     allow_login_without_confirmation = PermissionsField(

@@ -255,11 +255,11 @@ class GiftCard(ModelObjectType[models.GiftCard]):
     )
     created_by = graphene.Field(
         "saleor.graphql.account.types.User",
-        description=("The user who bought or issued a gift card."),
+        description="The user who bought or issued a gift card.",
     )
     used_by = graphene.Field(
         "saleor.graphql.account.types.User",
-        description=("The customer who used a gift card."),
+        description="The customer who used a gift card.",
         deprecation_reason=DEPRECATED_IN_3X_FIELD,
     )
     created_by_email = graphene.String(
@@ -273,7 +273,7 @@ class GiftCard(ModelObjectType[models.GiftCard]):
     )
     used_by_email = graphene.String(
         required=False,
-        description=("Email address of the customer who used a gift card."),
+        description="Email address of the customer who used a gift card.",
         deprecation_reason=DEPRECATED_IN_3X_FIELD,
     )
     last_used_on = DateTime(description="Date and time when gift card was last used.")
@@ -295,7 +295,7 @@ class GiftCard(ModelObjectType[models.GiftCard]):
         filter=GiftCardEventFilterInput(
             description="Filtering options for gift card events."
         ),
-        description=("List of events associated with the gift card."),
+        description="List of events associated with the gift card.",
         required=True,
         permissions=[
             GiftcardPermissions.MANAGE_GIFT_CARD,
@@ -310,7 +310,7 @@ class GiftCard(ModelObjectType[models.GiftCard]):
         ],
     )
     bought_in_channel = graphene.String(
-        description=("Slug of the channel where the gift card was bought."),
+        description="Slug of the channel where the gift card was bought.",
         required=False,
     )
     is_active = graphene.Boolean(required=True)

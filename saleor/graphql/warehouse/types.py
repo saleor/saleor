@@ -101,7 +101,7 @@ class Warehouse(ModelObjectType[models.Warehouse]):
         ),
     )
     click_and_collect_option = WarehouseClickAndCollectOptionEnum(
-        description=("Click and collect options: local, all or disabled."),
+        description="Click and collect options: local, all or disabled.",
         required=True,
     )
     shipping_zones = ConnectionField(
