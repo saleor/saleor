@@ -52,11 +52,7 @@ type Query {
     """ID of a warehouse."""
     id: ID
 
-    """
-    External ID of a warehouse. 
-    
-    Added in Saleor 3.10.
-    """
+    """External ID of a warehouse."""
     externalReference: String
   ): Warehouse @doc(category: "Products")
 
@@ -128,8 +124,6 @@ type Query {
   """
   Look up a tax configuration.
   
-  Added in Saleor 3.9.
-  
   Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
   """
   taxConfiguration(
@@ -139,8 +133,6 @@ type Query {
 
   """
   List of tax configurations.
-  
-  Added in Saleor 3.9.
   
   Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
   """
@@ -168,8 +160,6 @@ type Query {
   """
   Look up a tax class.
   
-  Added in Saleor 3.9.
-  
   Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
   """
   taxClass(
@@ -179,8 +169,6 @@ type Query {
 
   """
   List of tax classes.
-  
-  Added in Saleor 3.9.
   
   Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
   """
@@ -353,13 +341,7 @@ type Query {
     """Filtering options for categories."""
     filter: CategoryFilterInput
 
-    """
-    Where filtering options.
-    
-    Added in Saleor 3.14.
-    
-    Note: this API is currently in Feature Preview and can be subject to changes at later point.
-    """
+    """Where filtering options."""
     where: CategoryWhereInput
 
     """Sort categories."""
@@ -429,13 +411,7 @@ type Query {
     """Filtering options for collections."""
     filter: CollectionFilterInput
 
-    """
-    Where filtering options.
-    
-    Added in Saleor 3.14.
-    
-    Note: this API is currently in Feature Preview and can be subject to changes at later point.
-    """
+    """Where filtering options."""
     where: CollectionWhereInput
 
     """Sort collections."""
@@ -478,11 +454,7 @@ type Query {
     """
     slugLanguageCode: LanguageCodeEnum
 
-    """
-    External ID of the product. 
-    
-    Added in Saleor 3.10.
-    """
+    """External ID of the product."""
     externalReference: String
 
     """Slug of a channel for which the data should be returned."""
@@ -496,23 +468,13 @@ type Query {
     """Filtering options for products."""
     filter: ProductFilterInput
 
-    """
-    Where filtering options.
-    
-    Added in Saleor 3.14.
-    
-    Note: this API is currently in Feature Preview and can be subject to changes at later point.
-    """
+    """Where filtering options."""
     where: ProductWhereInput
 
     """Sort products."""
     sortBy: ProductOrder
 
-    """
-    Search products.
-    
-    Added in Saleor 3.14.
-    """
+    """Search products."""
     search: String
 
     """Slug of a channel for which the data should be returned."""
@@ -576,11 +538,7 @@ type Query {
     """SKU of the product variant."""
     sku: String
 
-    """
-    External ID of the product. 
-    
-    Added in Saleor 3.10.
-    """
+    """External ID of the product."""
     externalReference: String
 
     """Slug of a channel for which the data should be returned."""
@@ -600,13 +558,7 @@ type Query {
     """Filtering options for product variant."""
     filter: ProductVariantFilterInput
 
-    """
-    Where filtering options.
-    
-    Added in Saleor 3.14.
-    
-    Note: this API is currently in Feature Preview and can be subject to changes at later point.
-    """
+    """Where filtering options."""
     where: ProductVariantWhereInput
 
     """Sort products variants."""
@@ -696,10 +648,6 @@ type Query {
 
   """
   Look up a transaction by ID.
-  
-  Added in Saleor 3.6.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
   Requires one of the following permissions: HANDLE_PAYMENTS.
   """
@@ -1003,26 +951,14 @@ type Query {
   Requires one of the following permissions: MANAGE_GIFT_CARD.
   """
   giftCards(
-    """
-    Sort gift cards.
-    
-    Added in Saleor 3.1.
-    """
+    """Sort gift cards."""
     sortBy: GiftCardSortingInput
 
-    """
-    Filtering options for gift cards.
-    
-    Added in Saleor 3.1.
-    """
+    """Filtering options for gift cards."""
     filter: GiftCardFilterInput
 
     """
     Search gift cards by email and name of user, who created or used the gift card, and by code.
-    
-    Added in Saleor 3.15.
-    
-    Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
     search: String
 
@@ -1046,16 +982,12 @@ type Query {
   """
   List of gift card currencies.
   
-  Added in Saleor 3.1.
-  
   Requires one of the following permissions: MANAGE_GIFT_CARD.
   """
   giftCardCurrencies: [String!]! @doc(category: "Gift cards")
 
   """
   List of gift card tags.
-  
-  Added in Saleor 3.1.
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
   """
@@ -1381,11 +1313,7 @@ type Query {
     """ID of the channel."""
     id: ID
 
-    """
-    Slug of the channel.
-    
-    Added in Saleor 3.6.
-    """
+    """Slug of the channel."""
     slug: String
   ): Channel @doc(category: "Channels")
 
@@ -3791,11 +3719,7 @@ type Warehouse implements Node & ObjectWithMetadata @doc(category: "Products") {
   """Warehouse company name."""
   companyName: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `Address.companyName` instead.")
 
-  """
-  Click and collect options: local, all or disabled.
-  
-  Added in Saleor 3.1.
-  """
+  """Click and collect options: local, all or disabled."""
   clickAndCollectOption: WarehouseClickAndCollectOptionEnum!
 
   """Shipping zones supported by the warehouse."""
@@ -3842,11 +3766,7 @@ type Warehouse implements Node & ObjectWithMetadata @doc(category: "Products") {
     last: Int
   ): StockCountableConnection
 
-  """
-  External ID of this warehouse. 
-  
-  Added in Saleor 3.10.
-  """
+  """External ID of this warehouse."""
   externalReference: String
 }
 
@@ -4234,11 +4154,7 @@ type ShippingMethodTranslation implements Node @doc(category: "Shipping") {
   """
   description: JSONString
 
-  """
-  Represents the shipping method fields to translate.
-  
-  Added in Saleor 3.14.
-  """
+  """Represents the shipping method fields to translate."""
   translatableContent: ShippingMethodTranslatableContent
 }
 
@@ -5039,11 +4955,7 @@ type ShippingMethodTranslatableContent implements Node @doc(category: "Shipping"
   """The ID of the shipping method translatable content."""
   id: ID!
 
-  """
-  The ID of the shipping method to translate.
-  
-  Added in Saleor 3.14.
-  """
+  """The ID of the shipping method to translate."""
   shippingMethodId: ID!
 
   """Shipping method name to translate."""
@@ -5093,11 +5005,7 @@ type Channel implements Node & ObjectWithMetadata @doc(category: "Channels") {
   """The ID of the channel."""
   id: ID!
 
-  """
-  List of private metadata items. Requires staff permissions to access.
-  
-  Added in Saleor 3.15.
-  """
+  """List of private metadata items. Requires staff permissions to access."""
   privateMetadata: [MetadataItem!]!
 
   """
@@ -5105,22 +5013,18 @@ type Channel implements Node & ObjectWithMetadata @doc(category: "Channels") {
   
   Tip: Use GraphQL aliases to fetch multiple keys.
   
-  Added in Saleor 3.15.
+  Added in Saleor 3.3.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
-  Added in Saleor 3.15.
+  Added in Saleor 3.3.
   """
   privateMetafields(keys: [String!]): Metadata
 
-  """
-  List of public metadata items. Can be accessed without permissions.
-  
-  Added in Saleor 3.15.
-  """
+  """List of public metadata items. Can be accessed without permissions."""
   metadata: [MetadataItem!]!
 
   """
@@ -5128,14 +5032,14 @@ type Channel implements Node & ObjectWithMetadata @doc(category: "Channels") {
   
   Tip: Use GraphQL aliases to fetch multiple keys.
   
-  Added in Saleor 3.15.
+  Added in Saleor 3.3.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
-  Added in Saleor 3.15.
+  Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
 
@@ -5173,8 +5077,6 @@ type Channel implements Node & ObjectWithMetadata @doc(category: "Channels") {
   """
   Default country for the channel. Default country can be used in checkout to determine the stock quantities or calculate taxes when the country was not explicitly provided.
   
-  Added in Saleor 3.1.
-  
   Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
   """
   defaultCountry: CountryDisplay!
@@ -5182,30 +5084,18 @@ type Channel implements Node & ObjectWithMetadata @doc(category: "Channels") {
   """
   List of warehouses assigned to this channel.
   
-  Added in Saleor 3.5.
-  
   Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
   """
   warehouses: [Warehouse!]!
 
-  """
-  List of shippable countries for the channel.
-  
-  Added in Saleor 3.6.
-  """
+  """List of shippable countries for the channel."""
   countries: [CountryDisplay!]
 
-  """
-  Shipping methods that are available for the channel.
-  
-  Added in Saleor 3.6.
-  """
+  """Shipping methods that are available for the channel."""
   availableShippingMethodsPerCountry(countries: [CountryCode!]): [ShippingMethodsPerCountry!]
 
   """
   Define the stock setting for this channel.
-  
-  Added in Saleor 3.7.
   
   Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
   """
@@ -5214,8 +5104,6 @@ type Channel implements Node & ObjectWithMetadata @doc(category: "Channels") {
   """
   Channel-specific order settings.
   
-  Added in Saleor 3.12.
-  
   Requires one of the following permissions: MANAGE_CHANNELS, MANAGE_ORDERS.
   """
   orderSettings: OrderSettings!
@@ -5223,20 +5111,12 @@ type Channel implements Node & ObjectWithMetadata @doc(category: "Channels") {
   """
   Channel-specific checkout settings.
   
-  Added in Saleor 3.15.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  
   Requires one of the following permissions: MANAGE_CHANNELS, MANAGE_CHECKOUTS.
   """
   checkoutSettings: CheckoutSettings!
 
   """
   Channel-specific payment settings.
-  
-  Added in Saleor 3.16.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
   Requires one of the following permissions: MANAGE_CHANNELS, HANDLE_PAYMENTS.
   """
@@ -5252,11 +5132,7 @@ type Channel implements Node & ObjectWithMetadata @doc(category: "Channels") {
   taxConfiguration: TaxConfiguration!
 }
 
-"""
-List of shipping methods available for the country.
-
-Added in Saleor 3.6.
-"""
+"""List of shipping methods available for the country."""
 type ShippingMethodsPerCountry @doc(category: "Shipping") {
   """The country code."""
   countryCode: CountryCode!
@@ -5624,11 +5500,7 @@ enum WeightUnitsEnum {
   TONNE
 }
 
-"""
-Represents the channel stock settings.
-
-Added in Saleor 3.7.
-"""
+"""Represents the channel stock settings."""
 type StockSettings @doc(category: "Products") {
   """
   Allocation strategy defines the preference of warehouses for allocations and reservations.
@@ -5663,10 +5535,6 @@ type OrderSettings {
 
   """
   Expiration time in minutes. Default null - means do not expire any orders.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   expireOrdersAfter: Minute
 
@@ -5674,28 +5542,14 @@ type OrderSettings {
   Determine what strategy will be used to mark the order as paid. Based on the chosen option, the proper object will be created and attached to the order when it's manually marked as paid.
   `PAYMENT_FLOW` - [default option] creates the `Payment` object.
   `TRANSACTION_FLOW` - creates the `TransactionItem` object.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   markAsPaidStrategy: MarkAsPaidStrategyEnum!
 
-  """
-  The time in days after expired orders will be deleted.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The time in days after expired orders will be deleted."""
   deleteExpiredOrdersAfter: Day!
 
   """
   Determine if it is possible to place unpaid order by calling `checkoutComplete` mutation.
-  
-  Added in Saleor 3.15.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   allowUnpaidOrders: Boolean!
 
@@ -5731,18 +5585,10 @@ enum MarkAsPaidStrategyEnum @doc(category: "Channels") {
 """The `Day` scalar type represents number of days by integer value."""
 scalar Day
 
-"""
-Represents the channel-specific checkout settings.
-
-Added in Saleor 3.15.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""Represents the channel-specific checkout settings."""
 type CheckoutSettings {
   """
-  Default `true`. Determines if the checkout mutations should use legacy error flow. In legacy flow, all mutations can raise an exception unrelated to the requested action - (e.g. out-of-stock exception when updating checkoutShippingAddress.) If `false`, the errors will be aggregated in `checkout.problems` field. Some of the `problems` can block the finalizing checkout process. The legacy flow will be removed in Saleor 4.0. The flow with `checkout.problems` will be the default one.
-  
-  Added in Saleor 3.15.This field will be removed in Saleor 4.0.
+  Default `true`. Determines if the checkout mutations should use legacy error flow. In legacy flow, all mutations can raise an exception unrelated to the requested action - (e.g. out-of-stock exception when updating checkoutShippingAddress.) If `false`, the errors will be aggregated in `checkout.problems` field. Some of the `problems` can block the finalizing checkout process. The legacy flow will be removed in Saleor 4.0. The flow with `checkout.problems` will be the default one.This field will be removed in Saleor 4.0.
   """
   useLegacyErrorFlow: Boolean!
 
@@ -5758,10 +5604,6 @@ type CheckoutSettings {
 type PaymentSettings {
   """
   Determine the transaction flow strategy to be used. Include the selected option in the payload sent to the payment app, as a requested action for the transaction.
-  
-  Added in Saleor 3.16.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   defaultTransactionFlowStrategy: TransactionFlowStrategyEnum!
 }
@@ -5777,11 +5619,7 @@ enum TransactionFlowStrategyEnum @doc(category: "Payments") {
   CHARGE
 }
 
-"""
-Channel-specific tax configuration.
-
-Added in Saleor 3.9.
-"""
+"""Channel-specific tax configuration."""
 type TaxConfiguration implements Node & ObjectWithMetadata @doc(category: "Taxes") {
   """The ID of the object."""
   id: ID!
@@ -5857,11 +5695,7 @@ enum TaxCalculationStrategy @doc(category: "Taxes") {
   TAX_APP
 }
 
-"""
-Country-specific exceptions of a channel's tax configuration.
-
-Added in Saleor 3.9.
-"""
+"""Country-specific exceptions of a channel's tax configuration."""
 type TaxConfigurationPerCountry @doc(category: "Taxes") {
   """Country in which this configuration applies."""
   country: CountryDisplay!
@@ -6316,8 +6150,6 @@ type TaxType @doc(category: "Taxes") {
 
 """
 Tax class is a named object used to define tax rates per country. Tax class can be assigned to product types, products and shipping methods to define their tax rates.
-
-Added in Saleor 3.9.
 """
 type TaxClass implements Node & ObjectWithMetadata @doc(category: "Taxes") {
   """The ID of the object."""
@@ -6370,8 +6202,6 @@ type TaxClass implements Node & ObjectWithMetadata @doc(category: "Taxes") {
 
 """
 Tax rate for a country. When tax class is null, it represents the default tax rate for that country; otherwise it's a country tax rate specific to the given tax class.
-
-Added in Saleor 3.9.
 """
 type TaxClassCountryRate @doc(category: "Taxes") {
   """Country in which this tax rate applies."""
@@ -6721,11 +6551,7 @@ type AttributeValueTranslation implements Node @doc(category: "Attributes") {
   """Translated plain text attribute value ."""
   plainText: String
 
-  """
-  Represents the attribute value fields to translate.
-  
-  Added in Saleor 3.14.
-  """
+  """Represents the attribute value fields to translate."""
   translatableContent: AttributeValueTranslatableContent
 }
 
@@ -6736,11 +6562,7 @@ type AttributeValueTranslatableContent implements Node @doc(category: "Attribute
   """The ID of the attribute value translatable content."""
   id: ID!
 
-  """
-  The ID of the attribute value to translate.
-  
-  Added in Saleor 3.14.
-  """
+  """The ID of the attribute value to translate."""
   attributeValueId: ID!
 
   """Name of the attribute value to translate."""
@@ -6765,11 +6587,7 @@ type AttributeValueTranslatableContent implements Node @doc(category: "Attribute
   """Represents a value of an attribute."""
   attributeValue: AttributeValue @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
 
-  """
-  Associated attribute that can be translated.
-  
-  Added in Saleor 3.9.
-  """
+  """Associated attribute that can be translated."""
   attribute: AttributeTranslatableContent
 }
 
@@ -6780,11 +6598,7 @@ type AttributeTranslatableContent implements Node @doc(category: "Attributes") {
   """The ID of the attribute translatable content."""
   id: ID!
 
-  """
-  The ID of the attribute to translate.
-  
-  Added in Saleor 3.14.
-  """
+  """The ID of the attribute to translate."""
   attributeId: ID!
 
   """Name of the attribute to translate."""
@@ -6811,11 +6625,7 @@ type AttributeTranslation implements Node @doc(category: "Attributes") {
   """Translated attribute name."""
   name: String!
 
-  """
-  Represents the attribute fields to translate.
-  
-  Added in Saleor 3.14.
-  """
+  """Represents the attribute fields to translate."""
   translatableContent: AttributeTranslatableContent
 }
 
@@ -7240,32 +7050,16 @@ input ProductFilterInput @doc(category: "Products") {
   search: String
   metadata: [MetadataFilter!]
 
-  """
-  Filter by the publication date. 
-  
-  Added in Saleor 3.8.
-  """
+  """Filter by the publication date."""
   publishedFrom: DateTime
 
-  """
-  Filter by availability for purchase. 
-  
-  Added in Saleor 3.8.
-  """
+  """Filter by availability for purchase."""
   isAvailable: Boolean
 
-  """
-  Filter by the date of availability for purchase. 
-  
-  Added in Saleor 3.8.
-  """
+  """Filter by the date of availability for purchase."""
   availableFrom: DateTime
 
-  """
-  Filter by visibility in product listings. 
-  
-  Added in Saleor 3.8.
-  """
+  """Filter by visibility in product listings."""
   isVisibleInListing: Boolean
   price: PriceRangeInput
 
@@ -7576,11 +7370,7 @@ enum ProductOrderField @doc(category: "Products") {
   """Sort products by rating."""
   RATING
 
-  """
-  Sort products by creation date.
-  
-  Added in Saleor 3.8.
-  """
+  """Sort products by creation date."""
   CREATED_AT
 }
 
@@ -7637,11 +7427,7 @@ type CategoryTranslation implements Node @doc(category: "Products") {
   """
   descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
 
-  """
-  Represents the category fields to translate.
-  
-  Added in Saleor 3.14.
-  """
+  """Represents the category fields to translate."""
   translatableContent: CategoryTranslatableContent
 }
 
@@ -7652,11 +7438,7 @@ type CategoryTranslatableContent implements Node @doc(category: "Products") {
   """The ID of the category translatable content."""
   id: ID!
 
-  """
-  The ID of the category to translate.
-  
-  Added in Saleor 3.14.
-  """
+  """The ID of the category to translate."""
   categoryId: ID!
 
   """SEO title to translate."""
@@ -8167,11 +7949,7 @@ type ProductVariantTranslation implements Node @doc(category: "Products") {
   """Translated product variant name."""
   name: String!
 
-  """
-  Represents the product variant fields to translate.
-  
-  Added in Saleor 3.14.
-  """
+  """Represents the product variant fields to translate."""
   translatableContent: ProductVariantTranslatableContent
 }
 
@@ -8182,11 +7960,7 @@ type ProductVariantTranslatableContent implements Node @doc(category: "Products"
   """The ID of the product variant translatable content."""
   id: ID!
 
-  """
-  The ID of the product variant to translate.
-  
-  Added in Saleor 3.14.
-  """
+  """The ID of the product variant to translate."""
   productVariantId: ID!
 
   """Name of the product variant to translate."""
@@ -8645,11 +8419,7 @@ type CollectionTranslation implements Node @doc(category: "Products") {
   """
   descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
 
-  """
-  Represents the collection fields to translate.
-  
-  Added in Saleor 3.14.
-  """
+  """Represents the collection fields to translate."""
   translatableContent: CollectionTranslatableContent
 }
 
@@ -8660,11 +8430,7 @@ type CollectionTranslatableContent implements Node @doc(category: "Products") {
   """The ID of the collection translatable content."""
   id: ID!
 
-  """
-  The ID of the collection to translate.
-  
-  Added in Saleor 3.14.
-  """
+  """The ID of the collection to translate."""
   collectionId: ID!
 
   """SEO title to translate."""
@@ -8765,11 +8531,7 @@ type ProductTranslation implements Node @doc(category: "Products") {
   """
   descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
 
-  """
-  Represents the product fields to translate.
-  
-  Added in Saleor 3.14.
-  """
+  """Represents the product fields to translate."""
   translatableContent: ProductTranslatableContent
 }
 
@@ -8780,11 +8542,7 @@ type ProductTranslatableContent implements Node @doc(category: "Products") {
   """The ID of the product translatable content."""
   id: ID!
 
-  """
-  The ID of the product to translate.
-  
-  Added in Saleor 3.14.
-  """
+  """The ID of the product to translate."""
   productId: ID!
 
   """SEO title to translate."""
@@ -8913,11 +8671,7 @@ type PageTranslatableContent implements Node @doc(category: "Pages") {
   """The ID of the page translatable content."""
   id: ID!
 
-  """
-  The ID of the page to translate.
-  
-  Added in Saleor 3.14.
-  """
+  """The ID of the page to translate."""
   pageId: ID!
 
   """SEO title to translate."""
@@ -9003,11 +8757,7 @@ type PageTranslation implements Node @doc(category: "Pages") {
   """
   contentJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `content` field instead.")
 
-  """
-  Represents the page fields to translate.
-  
-  Added in Saleor 3.14.
-  """
+  """Represents the page fields to translate."""
   translatableContent: PageTranslatableContent
 }
 
@@ -9073,11 +8823,7 @@ type Page implements Node & ObjectWithMetadata @doc(category: "Pages") {
   content: JSONString
   publicationDate: Date @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `publishedAt` field to fetch the publication date.")
 
-  """
-  The page publication date.
-  
-  Added in Saleor 3.3.
-  """
+  """The page publication date."""
   publishedAt: DateTime
 
   """Determines if the page is published."""
@@ -9204,11 +8950,7 @@ type VoucherTranslatableContent implements Node @doc(category: "Discounts") {
   """The ID of the voucher translatable content."""
   id: ID!
 
-  """
-  The ID of the voucher to translate.
-  
-  Added in Saleor 3.14.
-  """
+  """The ID of the voucher to translate."""
   voucherId: ID!
 
   """Voucher name to translate."""
@@ -9239,11 +8981,7 @@ type VoucherTranslation implements Node @doc(category: "Discounts") {
   """Translated voucher name."""
   name: String
 
-  """
-  Represents the voucher fields to translate.
-  
-  Added in Saleor 3.14.
-  """
+  """Represents the voucher fields to translate."""
   translatableContent: VoucherTranslatableContent
 }
 
@@ -9590,11 +9328,7 @@ type MenuItemTranslatableContent implements Node @doc(category: "Menu") {
   """The ID of the menu item translatable content."""
   id: ID!
 
-  """
-  The ID of the menu item to translate.
-  
-  Added in Saleor 3.14.
-  """
+  """The ID of the menu item to translate."""
   menuItemId: ID!
 
   """Name of the menu item to translate."""
@@ -9623,11 +9357,7 @@ type MenuItemTranslation implements Node @doc(category: "Menu") {
   """Translated menu item name."""
   name: String!
 
-  """
-  Represents the menu item fields to translate.
-  
-  Added in Saleor 3.14.
-  """
+  """Represents the menu item fields to translate."""
   translatableContent: MenuItemTranslatableContent
 }
 
@@ -9771,8 +9501,6 @@ type Menu implements Node & ObjectWithMetadata @doc(category: "Menu") {
 
 """
 Represents promotion's original translatable fields and related translations.
-
-Added in Saleor 3.17.
 """
 type PromotionTranslatableContent implements Node @doc(category: "Discounts") {
   """ID of the promotion translatable content."""
@@ -9798,11 +9526,7 @@ type PromotionTranslatableContent implements Node @doc(category: "Discounts") {
   ): PromotionTranslation
 }
 
-"""
-Represents promotion translations.
-
-Added in Saleor 3.17.
-"""
+"""Represents promotion translations."""
 type PromotionTranslation implements Node @doc(category: "Discounts") {
   """ID of the promotion translation."""
   id: ID!
@@ -9820,28 +9544,18 @@ type PromotionTranslation implements Node @doc(category: "Discounts") {
   """
   description: JSONString
 
-  """
-  Represents the promotion fields to translate.
-  
-  Added in Saleor 3.14.
-  """
+  """Represents the promotion fields to translate."""
   translatableContent: PromotionTranslatableContent
 }
 
 """
 Represents promotion rule's original translatable fields and related translations.
-
-Added in Saleor 3.17.
 """
 type PromotionRuleTranslatableContent implements Node @doc(category: "Discounts") {
   """ID of the promotion rule translatable content."""
   id: ID!
 
-  """
-  ID of the promotion rule to translate.
-  
-  Added in Saleor 3.14.
-  """
+  """ID of the promotion rule to translate."""
   promotionRuleId: ID!
 
   """Name of the promotion rule."""
@@ -9861,11 +9575,7 @@ type PromotionRuleTranslatableContent implements Node @doc(category: "Discounts"
   ): PromotionRuleTranslation
 }
 
-"""
-Represents promotion rule translations.
-
-Added in Saleor 3.17.
-"""
+"""Represents promotion rule translations."""
 type PromotionRuleTranslation implements Node @doc(category: "Discounts") {
   """ID of the promotion rule translation."""
   id: ID!
@@ -9883,11 +9593,7 @@ type PromotionRuleTranslation implements Node @doc(category: "Discounts") {
   """
   description: JSONString
 
-  """
-  Represents the promotion rule fields to translate.
-  
-  Added in Saleor 3.14.
-  """
+  """Represents the promotion rule fields to translate."""
   translatableContent: PromotionRuleTranslatableContent
 }
 
@@ -9900,11 +9606,7 @@ type SaleTranslatableContent implements Node @doc(category: "Discounts") {
   """The ID of the sale translatable content."""
   id: ID!
 
-  """
-  The ID of the sale to translate.
-  
-  Added in Saleor 3.14.
-  """
+  """The ID of the sale to translate."""
   saleId: ID!
 
   """Name of the sale to translate."""
@@ -9939,11 +9641,7 @@ type SaleTranslation implements Node @doc(category: "Discounts") {
   """Translated name of sale."""
   name: String
 
-  """
-  Represents the sale fields to translate.
-  
-  Added in Saleor 3.14.
-  """
+  """Represents the sale fields to translate."""
   translatableContent: SaleTranslatableContent
 }
 
@@ -10218,11 +9916,7 @@ input TaxClassFilterInput @doc(category: "Taxes") {
   countries: [CountryCode!]
 }
 
-"""
-Tax class rates grouped by country.
-
-Added in Saleor 3.9.
-"""
+"""Tax class rates grouped by country."""
 type TaxCountryConfiguration @doc(category: "Taxes") {
   """A country for which tax class rates are grouped."""
   country: CountryDisplay!
@@ -10301,8 +9995,6 @@ type Shop implements ObjectWithMetadata {
   """
   List of all currencies supported by shop's channels.
   
-  Added in Saleor 3.1.
-  
   Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
   """
   channelCurrencies: [String!]!
@@ -10358,18 +10050,10 @@ type Shop implements ObjectWithMetadata {
   """Header text."""
   headerText: String
 
-  """
-  Automatically approve all new fulfillments.
-  
-  Added in Saleor 3.1.
-  """
+  """Automatically approve all new fulfillments."""
   fulfillmentAutoApprove: Boolean!
 
-  """
-  Allow to approve fulfillments which are unpaid.
-  
-  Added in Saleor 3.1.
-  """
+  """Allow to approve fulfillments which are unpaid."""
   fulfillmentAllowUnpaid: Boolean!
 
   """
@@ -10396,8 +10080,6 @@ type Shop implements ObjectWithMetadata {
   """
   Default number of minutes stock will be reserved for anonymous checkout or null when stock reservation is disabled.
   
-  Added in Saleor 3.1.
-  
   Requires one of the following permissions: MANAGE_SETTINGS.
   """
   reserveStockDurationAnonymousUser: Int
@@ -10405,16 +10087,12 @@ type Shop implements ObjectWithMetadata {
   """
   Default number of minutes stock will be reserved for authenticated checkout or null when stock reservation is disabled.
   
-  Added in Saleor 3.1.
-  
   Requires one of the following permissions: MANAGE_SETTINGS.
   """
   reserveStockDurationAuthenticatedUser: Int
 
   """
   Default number of maximum line quantity in single checkout (per single checkout line).
-  
-  Added in Saleor 3.1.
   
   Requires one of the following permissions: MANAGE_SETTINGS.
   """
@@ -10450,16 +10128,12 @@ type Shop implements ObjectWithMetadata {
   """
   Determines if account confirmation by email is enabled.
   
-  Added in Saleor 3.14.
-  
   Requires one of the following permissions: MANAGE_SETTINGS.
   """
   enableAccountConfirmationByEmail: Boolean
 
   """
   Determines if user can login without confirmation when `enableAccountConfirmation` is enabled.
-  
-  Added in Saleor 3.15.
   
   Requires one of the following permissions: MANAGE_SETTINGS.
   """
@@ -10479,11 +10153,7 @@ type Shop implements ObjectWithMetadata {
   """
   version: String!
 
-  """
-  Minor Saleor API version.
-  
-  Added in Saleor 3.5.
-  """
+  """Minor Saleor API version."""
   schemaVersion: String!
 
   """
@@ -11148,34 +10818,20 @@ type GiftCard implements Node & ObjectWithMetadata @doc(category: "Gift cards") 
   """Date and time when gift card was created."""
   created: DateTime!
 
-  """
-  The user who bought or issued a gift card.
-  
-  Added in Saleor 3.1.
-  """
+  """The user who bought or issued a gift card."""
   createdBy: User
 
-  """
-  The customer who used a gift card.
-  
-  Added in Saleor 3.1.
-  """
+  """The customer who used a gift card."""
   usedBy: User @deprecated(reason: "This field will be removed in Saleor 4.0.")
 
   """
   Email address of the user who bought or issued gift card.
   
-  Added in Saleor 3.1.
-  
   Requires one of the following permissions: MANAGE_USERS, OWNER.
   """
   createdByEmail: String
 
-  """
-  Email address of the customer who used a gift card.
-  
-  Added in Saleor 3.1.
-  """
+  """Email address of the customer who used a gift card."""
   usedByEmail: String @deprecated(reason: "This field will be removed in Saleor 4.0.")
 
   """Date and time when gift card was last used."""
@@ -11187,23 +10843,15 @@ type GiftCard implements Node & ObjectWithMetadata @doc(category: "Gift cards") 
   """
   App which created the gift card.
   
-  Added in Saleor 3.1.
-  
   Requires one of the following permissions: MANAGE_APPS, OWNER.
   """
   app: App
 
-  """
-  Related gift card product.
-  
-  Added in Saleor 3.1.
-  """
+  """Related gift card product."""
   product: Product
 
   """
   List of events associated with the gift card.
-  
-  Added in Saleor 3.1.
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
   """
@@ -11215,17 +10863,11 @@ type GiftCard implements Node & ObjectWithMetadata @doc(category: "Gift cards") 
   """
   The gift card tag.
   
-  Added in Saleor 3.1.
-  
   Requires one of the following permissions: MANAGE_GIFT_CARD.
   """
   tags: [GiftCardTag!]!
 
-  """
-  Slug of the channel where the gift card was bought.
-  
-  Added in Saleor 3.1.
-  """
+  """Slug of the channel where the gift card was bought."""
   boughtInChannel: String
   isActive: Boolean!
   initialBalance: Money!
@@ -11241,11 +10883,7 @@ type GiftCard implements Node & ObjectWithMetadata @doc(category: "Gift cards") 
   startDate: DateTime @deprecated(reason: "This field will be removed in Saleor 4.0.")
 }
 
-"""
-History log of the gift card.
-
-Added in Saleor 3.1.
-"""
+"""History log of the gift card."""
 type GiftCardEvent implements Node @doc(category: "Gift cards") {
   """ID of the event associated with a gift card."""
   id: ID!
@@ -11328,11 +10966,7 @@ input GiftCardEventFilterInput @doc(category: "Gift cards") {
   orders: [ID!]
 }
 
-"""
-The gift card tag.
-
-Added in Saleor 3.1.
-"""
+"""The gift card tag."""
 type GiftCardTag implements Node @doc(category: "Gift cards") {
   """ID of the tag associated with a gift card."""
   id: ID!
@@ -11458,13 +11092,7 @@ Represents a delivery method chosen for the checkout. `Warehouse` type is used w
 """
 union DeliveryMethod = Warehouse | ShippingMethod
 
-"""
-Represents a payment transaction.
-
-Added in Saleor 3.4.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""Represents a payment transaction."""
 type TransactionItem implements Node & ObjectWithMetadata @doc(category: "Payments") {
   """The ID of the object."""
   id: ID!
@@ -11507,11 +11135,7 @@ type TransactionItem implements Node & ObjectWithMetadata @doc(category: "Paymen
   """
   metafields(keys: [String!]): Metadata
 
-  """
-  The transaction token.
-  
-  Added in Saleor 3.14.
-  """
+  """The transaction token."""
   token: UUID!
 
   """Date and time at which payment transaction was created."""
@@ -11528,96 +11152,50 @@ type TransactionItem implements Node & ObjectWithMetadata @doc(category: "Paymen
   """Total amount authorized for this payment."""
   authorizedAmount: Money!
 
-  """
-  Total amount of ongoing authorization requests for the transaction.
-  
-  Added in Saleor 3.13.
-  """
+  """Total amount of ongoing authorization requests for the transaction."""
   authorizePendingAmount: Money!
 
   """Total amount refunded for this payment."""
   refundedAmount: Money!
 
-  """
-  Total amount of ongoing refund requests for the transaction.
-  
-  Added in Saleor 3.13.
-  """
+  """Total amount of ongoing refund requests for the transaction."""
   refundPendingAmount: Money!
 
-  """
-  Total amount canceled for this payment.
-  
-  Added in Saleor 3.13.
-  """
+  """Total amount canceled for this payment."""
   canceledAmount: Money!
 
-  """
-  Total amount of ongoing cancel requests for the transaction.
-  
-  Added in Saleor 3.13.
-  """
+  """Total amount of ongoing cancel requests for the transaction."""
   cancelPendingAmount: Money!
 
   """Total amount charged for this payment."""
   chargedAmount: Money!
 
-  """
-  Total amount of ongoing charge requests for the transaction.
-  
-  Added in Saleor 3.13.
-  """
+  """Total amount of ongoing charge requests for the transaction."""
   chargePendingAmount: Money!
 
-  """
-  Name of the transaction.
-  
-  Added in Saleor 3.13.
-  """
+  """Name of the transaction."""
   name: String!
 
-  """
-  Message related to the transaction.
-  
-  Added in Saleor 3.13.
-  """
+  """Message related to the transaction."""
   message: String!
 
-  """
-  PSP reference of transaction.
-  
-  Added in Saleor 3.13.
-  """
+  """PSP reference of transaction."""
   pspReference: String!
 
-  """
-  The related order.
-  
-  Added in Saleor 3.6.
-  """
+  """The related order."""
   order: Order
 
-  """
-  The related checkout.
-  
-  Added in Saleor 3.14.
-  """
+  """The related checkout."""
   checkout: Checkout
 
   """List of all transaction's events."""
   events: [TransactionEvent!]!
 
-  """
-  User or App that created the transaction.
-  
-  Added in Saleor 3.13.
-  """
+  """User or App that created the transaction."""
   createdBy: UserOrApp
 
   """
   The url that will allow to redirect user to payment provider page with transaction details.
-  
-  Added in Saleor 3.13.
   """
   externalUrl: String!
 }
@@ -12344,11 +11922,7 @@ type Invoice implements ObjectWithMetadata & Job & Node @doc(category: "Orders")
   """URL to view/download an invoice."""
   url: String
 
-  """
-  Order related to the invoice.
-  
-  Added in Saleor 3.10.
-  """
+  """Order related to the invoice."""
   order: Order
 }
 
@@ -12554,18 +12128,10 @@ type Payment implements Node & ObjectWithMetadata @doc(category: "Payments") {
   """The details of the card used for this payment."""
   creditCard: CreditCard
 
-  """
-  Informs whether this is a partial payment.
-  
-  Added in Saleor 3.14.
-  """
+  """Informs whether this is a partial payment."""
   partial: Boolean!
 
-  """
-  PSP reference of the payment.
-  
-  Added in Saleor 3.14.
-  """
+  """PSP reference of the payment."""
   pspReference: String
 }
 
@@ -13011,53 +12577,27 @@ type TransactionEvent implements Node @doc(category: "Payments") {
   """Date and time at which a transaction event was created."""
   createdAt: DateTime!
 
-  """
-  PSP reference of transaction.
-  
-  Added in Saleor 3.13.
-  """
+  """PSP reference of transaction."""
   pspReference: String!
 
-  """
-  Message related to the transaction's event.
-  
-  Added in Saleor 3.13.
-  """
+  """Message related to the transaction's event."""
   message: String!
 
   """
   The url that will allow to redirect user to payment provider page with transaction details.
-  
-  Added in Saleor 3.13.
   """
   externalUrl: String!
 
-  """
-  The amount related to this event.
-  
-  Added in Saleor 3.13.
-  """
+  """The amount related to this event."""
   amount: Money!
 
-  """
-  The type of action related to this event.
-  
-  Added in Saleor 3.13.
-  """
+  """The type of action related to this event."""
   type: TransactionEventTypeEnum
 
-  """
-  User or App that created the transaction event.
-  
-  Added in Saleor 3.13.
-  """
+  """User or App that created the transaction event."""
   createdBy: UserOrApp
 
-  """
-  Idempotency key assigned to the event.
-  
-  Added in Saleor 3.14.
-  """
+  """Idempotency key assigned to the event."""
   idempotencyKey: String
 }
 
@@ -13156,10 +12696,6 @@ enum CheckoutChargeStatusEnum @doc(category: "Checkout") {
 
 """
 Represents a payment method stored for user (tokenized) in payment gateway.
-
-Added in Saleor 3.15.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type StoredPaymentMethod @doc(category: "Payments") {
   """Stored payment method ID."""
@@ -13377,8 +12913,6 @@ type PaymentSource @doc(category: "Payments") {
   """
   List of public metadata items.
   
-  Added in Saleor 3.1.
-  
   Can be accessed without permissions.
   """
   metadata: [MetadataItem!]!
@@ -13468,11 +13002,7 @@ input CategoryFilterInput @doc(category: "Products") {
   ids: [ID!]
   slugs: [String!]
 
-  """
-  Filter by when was the most recent update. 
-  
-  Added in Saleor 3.17.
-  """
+  """Filter by when was the most recent update."""
   updatedAt: DateTimeRangeInput
 }
 
@@ -13677,11 +13207,7 @@ type PaymentCountableEdge @doc(category: "Payments") {
 }
 
 input PaymentFilterInput @doc(category: "Payments") {
-  """
-  Filter by ids. 
-  
-  Added in Saleor 3.8.
-  """
+  """Filter by ids."""
   ids: [ID!]
   checkouts: [ID!]
 }
@@ -13989,11 +13515,7 @@ enum GiftCardSortField @doc(category: "Gift cards") {
   """Sort gift cards by current balance."""
   CURRENT_BALANCE
 
-  """
-  Sort gift cards by created at.
-  
-  Added in Saleor 3.8.
-  """
+  """Sort gift cards by created at."""
   CREATED_AT
 }
 
@@ -20527,11 +20049,7 @@ input WarehouseCreateInput @doc(category: "Products") {
   """The email address of the warehouse."""
   email: String
 
-  """
-  External ID of the warehouse.
-  
-  Added in Saleor 3.10.
-  """
+  """External ID of the warehouse."""
   externalReference: String
 
   """Warehouse name."""
@@ -20566,11 +20084,7 @@ input WarehouseUpdateInput @doc(category: "Products") {
   """The email address of the warehouse."""
   email: String
 
-  """
-  External ID of the warehouse.
-  
-  Added in Saleor 3.10.
-  """
+  """External ID of the warehouse."""
   externalReference: String
 
   """Warehouse name."""
@@ -20579,18 +20093,10 @@ input WarehouseUpdateInput @doc(category: "Products") {
   """Address of the warehouse."""
   address: AddressInput
 
-  """
-  Click and collect options: local, all or disabled.
-  
-  Added in Saleor 3.1.
-  """
+  """Click and collect options: local, all or disabled."""
   clickAndCollectOption: WarehouseClickAndCollectOptionEnum
 
-  """
-  Visibility of warehouse stocks.
-  
-  Added in Saleor 3.1.
-  """
+  """Visibility of warehouse stocks."""
   isPrivate: Boolean
 }
 
