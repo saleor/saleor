@@ -9,9 +9,6 @@ from ...app.dataloaders import get_app_promise
 from ...checkout.types import CheckoutLine
 from ...core import ResolveInfo
 from ...core.descriptions import (
-    ADDED_IN_31,
-    ADDED_IN_34,
-    ADDED_IN_36,
     DEPRECATED_IN_3X_INPUT,
 )
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
@@ -51,11 +48,10 @@ class CheckoutLineUpdateInput(BaseInputObjectType):
             "Custom price of the item. Can be set only by apps "
             "with `HANDLE_CHECKOUTS` permission. When the line with the same variant "
             "will be provided multiple times, the last price will be used."
-            + ADDED_IN_31
         ),
     )
     line_id = graphene.ID(
-        description="ID of the line." + ADDED_IN_36,
+        description="ID of the line.",
         required=False,
     )
 
@@ -68,7 +64,7 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
 
     class Arguments:
         id = graphene.ID(
-            description="The checkout's ID." + ADDED_IN_34,
+            description="The checkout's ID.",
             required=False,
         )
         token = UUID(

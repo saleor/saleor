@@ -10,7 +10,6 @@ from ....permission.enums import CheckoutPermissions
 from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_32, ADDED_IN_38
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import Error, NonNullList
@@ -59,16 +58,12 @@ class OrderCreateFromCheckout(BaseMutation):
         )
         private_metadata = NonNullList(
             MetadataInput,
-            description=(
-                "Fields required to update the checkout private metadata." + ADDED_IN_38
-            ),
+            description=("Fields required to update the checkout private metadata."),
             required=False,
         )
         metadata = NonNullList(
             MetadataInput,
-            description=(
-                "Fields required to update the checkout metadata." + ADDED_IN_38
-            ),
+            description=("Fields required to update the checkout metadata."),
             required=False,
         )
 
@@ -77,7 +72,6 @@ class OrderCreateFromCheckout(BaseMutation):
         description = (
             "Create new order from existing checkout. Requires the "
             "following permissions: AUTHENTICATED_APP and HANDLE_CHECKOUTS."
-            + ADDED_IN_32
         )
         doc_category = DOC_CATEGORY_ORDERS
         object_type = Order

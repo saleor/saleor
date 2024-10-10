@@ -818,8 +818,6 @@ type Query {
     """
     External ID of an order. 
     
-    Added in Saleor 3.10..
-    
     Requires one of the following permissions: MANAGE_ORDERS.
     """
     externalReference: String
@@ -1228,10 +1226,6 @@ type Query {
   """
   Look up a promotion by ID.
   
-  Added in Saleor 3.17.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   """
   promotion(
@@ -1241,10 +1235,6 @@ type Query {
 
   """
   List of the promotions.
-  
-  Added in Saleor 3.17.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   """
@@ -1320,11 +1310,7 @@ type Query {
   Requires one of the following permissions to query a checkout, if a checkout is in inactive channel: MANAGE_CHECKOUTS, IMPERSONATE_USER, HANDLE_PAYMENTS.
   """
   checkout(
-    """
-    The checkout's ID.
-    
-    Added in Saleor 3.4.
-    """
+    """The checkout's ID."""
     id: ID
 
     """
@@ -1341,18 +1327,10 @@ type Query {
   Requires one of the following permissions: MANAGE_CHECKOUTS, HANDLE_PAYMENTS.
   """
   checkouts(
-    """
-    Sort checkouts.
-    
-    Added in Saleor 3.1.
-    """
+    """Sort checkouts."""
     sortBy: CheckoutSortingInput
 
-    """
-    Filtering options for checkouts.
-    
-    Added in Saleor 3.1.
-    """
+    """Filtering options for checkouts."""
     filter: CheckoutFilterInput
 
     """Slug of a channel for which the data should be returned."""
@@ -9448,8 +9426,6 @@ type Voucher implements Node & ObjectWithMetadata @doc(category: "Discounts") {
   """
   List of product variants this voucher applies to.
   
-  Added in Saleor 3.1.
-  
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   """
   variants(
@@ -10103,8 +10079,6 @@ type Sale implements Node & ObjectWithMetadata @doc(category: "Discounts") {
 
   """
   List of product variants this sale applies to.
-  
-  Added in Saleor 3.1.
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   """
@@ -10914,11 +10888,7 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   """The date and time when the checkout was created."""
   created: DateTime!
 
-  """
-  Time of last modification of the given checkout.
-  
-  Added in Saleor 3.13.
-  """
+  """Time of last modification of the given checkout."""
   updatedAt: DateTime!
   lastChange: DateTime! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `updatedAt` instead.")
 
@@ -10989,11 +10959,7 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   """
   shippingMethods: [ShippingMethod!]! @webhookEventsInfo(asyncEvents: [], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT, CHECKOUT_FILTER_SHIPPING_METHODS])
 
-  """
-  Collection points that can be used for this order.
-  
-  Added in Saleor 3.1.
-  """
+  """Collection points that can be used for this order."""
   availableCollectionPoints: [Warehouse!]!
 
   """
@@ -11018,8 +10984,6 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
 
   """
   Date when oldest stock reservation for this checkout expires or null if no stock is reserved.
-  
-  Added in Saleor 3.1.
   """
   stockReservationExpires: DateTime
 
@@ -11048,8 +11012,6 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   """
   The delivery method selected for this checkout.
   
-  Added in Saleor 3.1.
-  
   Triggers the following webhook events:
   - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Optionally triggered when cached external shipping methods are invalid.
   - CHECKOUT_FILTER_SHIPPING_METHODS (sync): Optionally triggered when cached filtered shipping methods are invalid.
@@ -11064,11 +11026,7 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   """
   subtotalPrice: TaxedMoney! @webhookEventsInfo(asyncEvents: [], syncEvents: [CHECKOUT_CALCULATE_TAXES])
 
-  """
-  Returns True if checkout has to be exempt from taxes.
-  
-  Added in Saleor 3.8.
-  """
+  """Returns True if checkout has to be exempt from taxes."""
   taxExemption: Boolean!
 
   """The checkout's token."""
@@ -11085,10 +11043,6 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   """
   The difference between the paid and the checkout total amount.
   
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  
   Triggers the following webhook events:
   - CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.
   """
@@ -11099,26 +11053,14 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
 
   """
   List of transactions for the checkout. Requires one of the following permissions: MANAGE_CHECKOUTS, HANDLE_PAYMENTS.
-  
-  Added in Saleor 3.4.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   transactions: [TransactionItem!]
 
-  """
-  Determines whether displayed prices should include taxes.
-  
-  Added in Saleor 3.9.
-  """
+  """Determines whether displayed prices should include taxes."""
   displayGrossPrices: Boolean!
 
   """
   The authorize status of the checkout.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
   Triggers the following webhook events:
   - CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.
@@ -11128,10 +11070,6 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   """
   The charge status of the checkout.
   
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  
   Triggers the following webhook events:
   - CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.
   """
@@ -11139,23 +11077,13 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
 
   """
   List of user's stored payment methods that can be used in this checkout session. It uses the channel that the checkout was created in. When `amount` is not provided, `checkout.total` will be used as a default value.
-  
-  Added in Saleor 3.15.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   storedPaymentMethods(
     """Amount that will be used to fetch stored payment methods."""
     amount: PositiveDecimal
   ): [StoredPaymentMethod!]
 
-  """
-  List of problems with the checkout.
-  
-  Added in Saleor 3.15.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """List of problems with the checkout."""
   problems: [CheckoutProblem!]
 }
 
@@ -11418,11 +11346,7 @@ type CheckoutLine implements Node & ObjectWithMetadata @doc(category: "Checkout"
   """The ID of the checkout line."""
   id: ID!
 
-  """
-  List of private metadata items. Requires staff permissions to access.
-  
-  Added in Saleor 3.5.
-  """
+  """List of private metadata items. Requires staff permissions to access."""
   privateMetadata: [MetadataItem!]!
 
   """
@@ -11430,22 +11354,18 @@ type CheckoutLine implements Node & ObjectWithMetadata @doc(category: "Checkout"
   
   Tip: Use GraphQL aliases to fetch multiple keys.
   
-  Added in Saleor 3.5.
+  Added in Saleor 3.3.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
-  Added in Saleor 3.5.
+  Added in Saleor 3.3.
   """
   privateMetafields(keys: [String!]): Metadata
 
-  """
-  List of public metadata items. Can be accessed without permissions.
-  
-  Added in Saleor 3.5.
-  """
+  """List of public metadata items. Can be accessed without permissions."""
   metadata: [MetadataItem!]!
 
   """
@@ -11453,14 +11373,14 @@ type CheckoutLine implements Node & ObjectWithMetadata @doc(category: "Checkout"
   
   Tip: Use GraphQL aliases to fetch multiple keys.
   
-  Added in Saleor 3.5.
+  Added in Saleor 3.3.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
-  Added in Saleor 3.5.
+  Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
 
@@ -11495,13 +11415,7 @@ type CheckoutLine implements Node & ObjectWithMetadata @doc(category: "Checkout"
   """Indicates whether the item need to be delivered."""
   requiresShipping: Boolean!
 
-  """
-  List of problems with the checkout line.
-  
-  Added in Saleor 3.15.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """List of problems with the checkout line."""
   problems: [CheckoutLineProblem!]
 
   """
@@ -11514,21 +11428,11 @@ type CheckoutLine implements Node & ObjectWithMetadata @doc(category: "Checkout"
   isGift: Boolean
 }
 
-"""
-Represents an problem in the checkout line.
-
-Added in Saleor 3.15.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""Represents an problem in the checkout line."""
 union CheckoutLineProblem = CheckoutLineProblemInsufficientStock | CheckoutLineProblemVariantNotAvailable
 
 """
 Indicates insufficient stock for a given checkout line.Placing the order will not be possible until solving this problem.
-
-Added in Saleor 3.15.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type CheckoutLineProblemInsufficientStock @doc(category: "Checkout") {
   """Available quantity of a variant."""
@@ -11543,10 +11447,6 @@ type CheckoutLineProblemInsufficientStock @doc(category: "Checkout") {
 
 """
 The variant assigned to the checkout line is not available.Placing the order will not be possible until solving this problem.
-
-Added in Saleor 3.15.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type CheckoutLineProblemVariantNotAvailable @doc(category: "Checkout") {
   """The line that has variant that is not available."""
@@ -11555,8 +11455,6 @@ type CheckoutLineProblemVariantNotAvailable @doc(category: "Checkout") {
 
 """
 Represents a delivery method chosen for the checkout. `Warehouse` type is used when checkout is marked as "click and collect" and `ShippingMethod` otherwise.
-
-Added in Saleor 3.1.
 """
 union DeliveryMethod = Warehouse | ShippingMethod
 
@@ -11838,11 +11736,7 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   """Shipping methods related to this order."""
   shippingMethods: [ShippingMethod!]!
 
-  """
-  Collection points that can be used for this order.
-  
-  Added in Saleor 3.1.
-  """
+  """Collection points that can be used for this order."""
   availableCollectionPoints: [Warehouse!]!
 
   """
@@ -11868,31 +11762,17 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   """User-friendly payment status."""
   paymentStatusDisplay: String!
 
-  """
-  The authorize status of the order.
-  
-  Added in Saleor 3.4.
-  """
+  """The authorize status of the order."""
   authorizeStatus: OrderAuthorizeStatusEnum!
 
-  """
-  The charge status of the order.
-  
-  Added in Saleor 3.4.
-  """
+  """The charge status of the order."""
   chargeStatus: OrderChargeStatusEnum!
 
-  """
-  Returns True if order has to be exempt from taxes.
-  
-  Added in Saleor 3.8.
-  """
+  """Returns True if order has to be exempt from taxes."""
   taxExemption: Boolean!
 
   """
   List of transactions for the order. Requires one of the following permissions: MANAGE_ORDERS, HANDLE_PAYMENTS.
-  
-  Added in Saleor 3.4.
   """
   transactions: [TransactionItem!]!
 
@@ -11924,30 +11804,18 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   """
   Denormalized tax class assigned to the shipping method.
   
-  Added in Saleor 3.9.
-  
   Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
   """
   shippingTaxClass: TaxClass
 
-  """
-  Denormalized name of the tax class assigned to the shipping method.
-  
-  Added in Saleor 3.9.
-  """
+  """Denormalized name of the tax class assigned to the shipping method."""
   shippingTaxClassName: String
 
-  """
-  Denormalized public metadata of the shipping method's tax class.
-  
-  Added in Saleor 3.9.
-  """
+  """Denormalized public metadata of the shipping method's tax class."""
   shippingTaxClassMetadata: [MetadataItem!]!
 
   """
   Denormalized private metadata of the shipping method's tax class. Requires staff permissions to access.
-  
-  Added in Saleor 3.9.
   """
   shippingTaxClassPrivateMetadata: [MetadataItem!]!
   token: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `id` instead.")
@@ -11991,18 +11859,10 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   """Amount captured for the order."""
   totalCaptured: Money! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `totalCharged` instead.")
 
-  """
-  Amount charged for the order.
-  
-  Added in Saleor 3.13.
-  """
+  """Amount charged for the order."""
   totalCharged: Money!
 
-  """
-  Amount canceled for the order.
-  
-  Added in Saleor 3.13.
-  """
+  """Amount canceled for the order."""
   totalCanceled: Money!
 
   """
@@ -12023,11 +11883,7 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   """Returns True, if order requires shipping."""
   isShippingRequired: Boolean!
 
-  """
-  The delivery method selected for this order.
-  
-  Added in Saleor 3.1.
-  """
+  """The delivery method selected for this order."""
   deliveryMethod: DeliveryMethod
   languageCode: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `languageCodeEnum` field to fetch the language code. ")
 
@@ -12049,33 +11905,17 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   """List of errors that occurred during order validation."""
   errors: [OrderError!]!
 
-  """
-  Determines whether displayed prices should include taxes.
-  
-  Added in Saleor 3.9.
-  """
+  """Determines whether displayed prices should include taxes."""
   displayGrossPrices: Boolean!
 
-  """
-  External ID of this order. 
-  
-  Added in Saleor 3.10.
-  """
+  """External ID of this order."""
   externalReference: String
 
-  """
-  ID of the checkout that the order was created from. 
-  
-  Added in Saleor 3.11.
-  """
+  """ID of the checkout that the order was created from."""
   checkoutId: ID
 
   """
   List of granted refunds.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
   Requires one of the following permissions: MANAGE_ORDERS.
   """
@@ -12084,29 +11924,15 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   """
   Total amount of granted refund.
   
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  
   Requires one of the following permissions: MANAGE_ORDERS.
   """
   totalGrantedRefund: Money!
 
-  """
-  Total refund amount for the order.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Total refund amount for the order."""
   totalRefunded: Money!
 
   """
   Total amount of ongoing refund requests for the order's transactions.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
   Requires one of the following permissions: MANAGE_ORDERS.
   """
@@ -12115,20 +11941,12 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   """
   Total amount of ongoing authorize requests for the order's transactions.
   
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  
   Requires one of the following permissions: MANAGE_ORDERS.
   """
   totalAuthorizePending: Money!
 
   """
   Total amount of ongoing charge requests for the order's transactions.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
   Requires one of the following permissions: MANAGE_ORDERS.
   """
@@ -12137,20 +11955,12 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   """
   Total amount of ongoing cancel requests for the order's transactions.
   
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  
   Requires one of the following permissions: MANAGE_ORDERS.
   """
   totalCancelPending: Money!
 
   """
   The difference amount between granted refund and the amounts that are pending and refunded.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
   Requires one of the following permissions: MANAGE_ORDERS.
   """
@@ -12233,18 +12043,10 @@ type Fulfillment implements Node & ObjectWithMetadata @doc(category: "Orders") {
   """Warehouse from fulfillment was fulfilled."""
   warehouse: Warehouse
 
-  """
-  Amount of refunded shipping price.
-  
-  Added in Saleor 3.14.
-  """
+  """Amount of refunded shipping price."""
   shippingRefundedAmount: Money
 
-  """
-  Total refunded amount assigned to this fulfillment.
-  
-  Added in Saleor 3.14.
-  """
+  """Total refunded amount assigned to this fulfillment."""
   totalRefundedAmount: Money
 }
 
@@ -12275,11 +12077,7 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
   """ID of the order line."""
   id: ID!
 
-  """
-  List of private metadata items. Requires staff permissions to access.
-  
-  Added in Saleor 3.5.
-  """
+  """List of private metadata items. Requires staff permissions to access."""
   privateMetadata: [MetadataItem!]!
 
   """
@@ -12287,22 +12085,18 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
   
   Tip: Use GraphQL aliases to fetch multiple keys.
   
-  Added in Saleor 3.5.
+  Added in Saleor 3.3.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
-  Added in Saleor 3.5.
+  Added in Saleor 3.3.
   """
   privateMetafields(keys: [String!]): Metadata
 
-  """
-  List of public metadata items. Can be accessed without permissions.
-  
-  Added in Saleor 3.5.
-  """
+  """List of public metadata items. Can be accessed without permissions."""
   metadata: [MetadataItem!]!
 
   """
@@ -12310,14 +12104,14 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
   
   Tip: Use GraphQL aliases to fetch multiple keys.
   
-  Added in Saleor 3.5.
+  Added in Saleor 3.3.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
-  Added in Saleor 3.5.
+  Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
 
@@ -12382,11 +12176,7 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
   """Price of the order line without discounts."""
   undiscountedTotalPrice: TaxedMoney!
 
-  """
-  Returns True, if the line unit price was overridden.
-  
-  Added in Saleor 3.14.
-  """
+  """Returns True, if the line unit price was overridden."""
   isPriceOverridden: Boolean
 
   """
@@ -12409,16 +12199,10 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
 
   """
   Denormalized sale ID, set when order line is created for a product variant that is on sale.
-  
-  Added in Saleor 3.14.
   """
   saleId: ID
 
-  """
-  A quantity of items remaining to be fulfilled.
-  
-  Added in Saleor 3.1.
-  """
+  """A quantity of items remaining to be fulfilled."""
   quantityToFulfill: Int!
 
   """Type of the discount: fixed or percent"""
@@ -12427,38 +12211,22 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
   """
   Denormalized tax class of the product in this order line.
   
-  Added in Saleor 3.9.
-  
   Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
   """
   taxClass: TaxClass
 
-  """
-  Denormalized name of the tax class.
-  
-  Added in Saleor 3.9.
-  """
+  """Denormalized name of the tax class."""
   taxClassName: String
 
-  """
-  Denormalized public metadata of the tax class.
-  
-  Added in Saleor 3.9.
-  """
+  """Denormalized public metadata of the tax class."""
   taxClassMetadata: [MetadataItem!]!
 
   """
   Denormalized private metadata of the tax class. Requires staff permissions to access.
-  
-  Added in Saleor 3.9.
   """
   taxClassPrivateMetadata: [MetadataItem!]!
 
-  """
-  Voucher code that was used for this order line.
-  
-  Added in Saleor 3.14.
-  """
+  """Voucher code that was used for this order line."""
   voucherCode: String
 
   """
@@ -12931,13 +12699,7 @@ type OrderEvent implements Node @doc(category: "Orders") {
   """The order which is related to this order."""
   relatedOrder: Order
 
-  """
-  The order event which is related to this event.
-  
-  Added in Saleor 3.15.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The order event which is related to this event."""
   related: OrderEvent
 
   """The discount applied to the order."""
@@ -13158,13 +12920,7 @@ enum AddressTypeEnum {
   SHIPPING
 }
 
-"""
-The details of granted refund.
-
-Added in Saleor 3.13.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""The details of granted refund."""
 type OrderGrantedRefund @doc(category: "Orders") {
   id: ID!
 
@@ -13190,20 +12946,10 @@ type OrderGrantedRefund @doc(category: "Orders") {
 
   """
   If true, the refunded amount includes the shipping price.If false, the refunded amount does not include the shipping price.
-  
-  Added in Saleor 3.15.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   shippingCostsIncluded: Boolean!
 
-  """
-  Lines assigned to the granted refund.
-  
-  Added in Saleor 3.15.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Lines assigned to the granted refund."""
   lines: [OrderGrantedRefundLine!]
 
   """
@@ -13228,13 +12974,7 @@ type OrderGrantedRefund @doc(category: "Orders") {
   transaction: TransactionItem
 }
 
-"""
-Represents granted refund line.
-
-Added in Saleor 3.15.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""Represents granted refund line."""
 type OrderGrantedRefundLine {
   id: ID!
 
@@ -13462,13 +13202,7 @@ enum TokenizedPaymentFlowEnum @doc(category: "Payments") {
 
 scalar JSON
 
-"""
-Represents an problem in the checkout.
-
-Added in Saleor 3.15.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""Represents an problem in the checkout."""
 union CheckoutProblem = CheckoutLineProblemInsufficientStock | CheckoutLineProblemVariantNotAvailable
 
 type CheckoutCountableConnection @doc(category: "Checkout") {
@@ -14568,10 +14302,6 @@ enum VoucherSortField {
 
 """
 Represents the promotion that allow creating discounts based on given conditions, and is visible to all the customers.
-
-Added in Saleor 3.17.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type Promotion implements Node & ObjectWithMetadata @doc(category: "Discounts") {
   id: ID!
@@ -14661,10 +14391,6 @@ enum PromotionTypeEnum @doc(category: "Discounts") {
 
 """
 Represents the promotion rule that specifies the conditions that must be met to apply the promotion discount.
-
-Added in Saleor 3.17.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type PromotionRule implements Node @doc(category: "Discounts") {
   id: ID!
@@ -14764,13 +14490,7 @@ enum RewardTypeEnum @doc(category: "Discounts") {
 
 union PromotionEvent = PromotionCreatedEvent | PromotionUpdatedEvent | PromotionStartedEvent | PromotionEndedEvent | PromotionRuleCreatedEvent | PromotionRuleUpdatedEvent | PromotionRuleDeletedEvent
 
-"""
-History log of the promotion created event.
-
-Added in Saleor 3.17.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""History log of the promotion created event."""
 type PromotionCreatedEvent implements Node & PromotionEventInterface @doc(category: "Discounts") {
   id: ID!
 
@@ -14815,13 +14535,7 @@ enum PromotionEventsEnum @doc(category: "Discounts") {
   RULE_DELETED
 }
 
-"""
-History log of the promotion updated event.
-
-Added in Saleor 3.17.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""History log of the promotion updated event."""
 type PromotionUpdatedEvent implements Node & PromotionEventInterface @doc(category: "Discounts") {
   id: ID!
 
@@ -14839,13 +14553,7 @@ type PromotionUpdatedEvent implements Node & PromotionEventInterface @doc(catego
   createdBy: UserOrApp
 }
 
-"""
-History log of the promotion started event.
-
-Added in Saleor 3.17.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""History log of the promotion started event."""
 type PromotionStartedEvent implements Node & PromotionEventInterface @doc(category: "Discounts") {
   id: ID!
 
@@ -14863,13 +14571,7 @@ type PromotionStartedEvent implements Node & PromotionEventInterface @doc(catego
   createdBy: UserOrApp
 }
 
-"""
-History log of the promotion ended event.
-
-Added in Saleor 3.17.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""History log of the promotion ended event."""
 type PromotionEndedEvent implements Node & PromotionEventInterface @doc(category: "Discounts") {
   id: ID!
 
@@ -14887,13 +14589,7 @@ type PromotionEndedEvent implements Node & PromotionEventInterface @doc(category
   createdBy: UserOrApp
 }
 
-"""
-History log of the promotion rule created event.
-
-Added in Saleor 3.17.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""History log of the promotion rule created event."""
 type PromotionRuleCreatedEvent implements Node & PromotionEventInterface & PromotionRuleEventInterface @doc(category: "Discounts") {
   id: ID!
 
@@ -14914,25 +14610,13 @@ type PromotionRuleCreatedEvent implements Node & PromotionEventInterface & Promo
   ruleId: String
 }
 
-"""
-History log of the promotion event related to rule.
-
-Added in Saleor 3.17.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""History log of the promotion event related to rule."""
 interface PromotionRuleEventInterface {
   """The rule ID associated with the promotion event."""
   ruleId: String
 }
 
-"""
-History log of the promotion rule created event.
-
-Added in Saleor 3.17.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""History log of the promotion rule created event."""
 type PromotionRuleUpdatedEvent implements Node & PromotionEventInterface & PromotionRuleEventInterface @doc(category: "Discounts") {
   id: ID!
 
@@ -14953,13 +14637,7 @@ type PromotionRuleUpdatedEvent implements Node & PromotionEventInterface & Promo
   ruleId: String
 }
 
-"""
-History log of the promotion rule created event.
-
-Added in Saleor 3.17.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""History log of the promotion rule created event."""
 type PromotionRuleDeletedEvent implements Node & PromotionEventInterface & PromotionRuleEventInterface @doc(category: "Discounts") {
   id: ID!
 
@@ -18420,11 +18098,7 @@ type Mutation {
   ): ExternalNotificationTrigger @deprecated(reason: "\\n\\nDEPRECATED: this mutation will be removed in Saleor 4.0.")
 
   """
-  Creates a new promotion.
-  
-  Added in Saleor 3.17.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Creates a new promotion. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   
@@ -18438,11 +18112,7 @@ type Mutation {
   ): PromotionCreate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [PROMOTION_CREATED, PROMOTION_STARTED], syncEvents: [])
 
   """
-  Updates an existing promotion.
-  
-  Added in Saleor 3.17.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Updates an existing promotion. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   
@@ -18460,11 +18130,7 @@ type Mutation {
   ): PromotionUpdate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [PROMOTION_UPDATED, PROMOTION_STARTED, PROMOTION_ENDED], syncEvents: [])
 
   """
-  Deletes a promotion.
-  
-  Added in Saleor 3.17.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Deletes a promotion. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   
@@ -18477,11 +18143,7 @@ type Mutation {
   ): PromotionDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [PROMOTION_DELETED], syncEvents: [])
 
   """
-  Creates a new promotion rule.
-  
-  Added in Saleor 3.17.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Creates a new promotion rule. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   
@@ -18494,11 +18156,7 @@ type Mutation {
   ): PromotionRuleCreate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [PROMOTION_RULE_CREATED], syncEvents: [])
 
   """
-  Updates an existing promotion rule.
-  
-  Added in Saleor 3.17.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Updates an existing promotion rule. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   
@@ -18514,11 +18172,7 @@ type Mutation {
   ): PromotionRuleUpdate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [PROMOTION_RULE_UPDATED], syncEvents: [])
 
   """
-  Deletes a promotion rule.
-  
-  Added in Saleor 3.17.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Deletes a promotion rule. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   
@@ -18567,11 +18221,7 @@ type Mutation {
   ): PromotionRuleTranslate @doc(category: "Discounts")
 
   """
-  Deletes promotions.
-  
-  Added in Saleor 3.17.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Deletes promotions. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   
@@ -18921,11 +18571,7 @@ type Mutation {
     """
     checkoutId: ID
 
-    """
-    The checkout's ID.
-    
-    Added in Saleor 3.4.
-    """
+    """The checkout's ID."""
     id: ID
 
     """Gift card code or voucher code."""
@@ -18956,11 +18602,7 @@ type Mutation {
     """
     checkoutId: ID
 
-    """
-    The checkout's ID.
-    
-    Added in Saleor 3.4.
-    """
+    """The checkout's ID."""
     id: ID
 
     """
@@ -18970,11 +18612,7 @@ type Mutation {
     """
     token: UUID
 
-    """
-    The rules for changing validation for received billing address data.
-    
-    Added in Saleor 3.5.
-    """
+    """The rules for changing validation for received billing address data."""
     validationRules: CheckoutAddressValidationRules
   ): CheckoutBillingAddressUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [])
 
@@ -19001,18 +18639,10 @@ type Mutation {
     """
     checkoutId: ID
 
-    """
-    The checkout's ID.
-    
-    Added in Saleor 3.4.
-    """
+    """The checkout's ID."""
     id: ID
 
-    """
-    Fields required to update the checkout metadata.
-    
-    Added in Saleor 3.8.
-    """
+    """Fields required to update the checkout metadata."""
     metadata: [MetadataInput!]
 
     """Client-side generated data required to finalize the payment."""
@@ -19051,13 +18681,7 @@ type Mutation {
     input: CheckoutCreateInput!
   ): CheckoutCreate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_CREATED], syncEvents: [])
 
-  """
-  Create new checkout from existing order.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Create new checkout from existing order."""
   checkoutCreateFromOrder(
     """ID of a order that will be used to create the checkout."""
     id: ID!
@@ -19084,11 +18708,7 @@ type Mutation {
     """
     customerId: ID
 
-    """
-    The checkout's ID.
-    
-    Added in Saleor 3.4.
-    """
+    """The checkout's ID."""
     id: ID
 
     """
@@ -19115,11 +18735,7 @@ type Mutation {
     """
     checkoutId: ID
 
-    """
-    The checkout's ID.
-    
-    Added in Saleor 3.4.
-    """
+    """The checkout's ID."""
     id: ID
 
     """
@@ -19163,11 +18779,7 @@ type Mutation {
     """email."""
     email: String!
 
-    """
-    The checkout's ID.
-    
-    Added in Saleor 3.4.
-    """
+    """The checkout's ID."""
     id: ID
 
     """
@@ -19192,11 +18804,7 @@ type Mutation {
     """
     checkoutId: ID
 
-    """
-    The checkout's ID.
-    
-    Added in Saleor 3.4.
-    """
+    """The checkout's ID."""
     id: ID
 
     """ID of the checkout line to delete."""
@@ -19217,11 +18825,7 @@ type Mutation {
   - CHECKOUT_UPDATED (async): A checkout was updated.
   """
   checkoutLinesDelete(
-    """
-    The checkout's ID.
-    
-    Added in Saleor 3.4.
-    """
+    """The checkout's ID."""
     id: ID
 
     """A list of checkout lines."""
@@ -19249,11 +18853,7 @@ type Mutation {
     """
     checkoutId: ID
 
-    """
-    The checkout's ID.
-    
-    Added in Saleor 3.4.
-    """
+    """The checkout's ID."""
     id: ID
 
     """
@@ -19283,11 +18883,7 @@ type Mutation {
     """
     checkoutId: ID
 
-    """
-    The checkout's ID.
-    
-    Added in Saleor 3.4.
-    """
+    """The checkout's ID."""
     id: ID
 
     """
@@ -19317,11 +18913,7 @@ type Mutation {
     """
     checkoutId: ID
 
-    """
-    The checkout's ID.
-    
-    Added in Saleor 3.4.
-    """
+    """The checkout's ID."""
     id: ID
 
     """Gift card code or voucher code."""
@@ -19379,11 +18971,7 @@ type Mutation {
     """
     checkoutId: ID
 
-    """
-    The checkout's ID.
-    
-    Added in Saleor 3.4.
-    """
+    """The checkout's ID."""
     id: ID
 
     """The mailing address to where the checkout will be shipped."""
@@ -19396,11 +18984,7 @@ type Mutation {
     """
     token: UUID
 
-    """
-    The rules for changing validation for received shipping address data.
-    
-    Added in Saleor 3.5.
-    """
+    """The rules for changing validation for received shipping address data."""
     validationRules: CheckoutAddressValidationRules
   ): CheckoutShippingAddressUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [])
 
@@ -19419,11 +19003,7 @@ type Mutation {
     """
     checkoutId: ID
 
-    """
-    The checkout's ID.
-    
-    Added in Saleor 3.4.
-    """
+    """The checkout's ID."""
     id: ID
 
     """Shipping method."""
@@ -19440,8 +19020,6 @@ type Mutation {
   """
   Updates the delivery method (shipping method or pick up point) of the checkout. Updates the checkout shipping_address for click and collect delivery for a warehouse address. 
   
-  Added in Saleor 3.1.
-  
   Triggers the following webhook events:
   - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Triggered when updating the checkout delivery method with the external one.
   - CHECKOUT_UPDATED (async): A checkout was updated.
@@ -19450,11 +19028,7 @@ type Mutation {
     """Delivery Method ID (`Warehouse` ID or `ShippingMethod` ID)."""
     deliveryMethodId: ID
 
-    """
-    The checkout's ID.
-    
-    Added in Saleor 3.4.
-    """
+    """The checkout's ID."""
     id: ID
 
     """
@@ -19479,11 +19053,7 @@ type Mutation {
     """
     checkoutId: ID
 
-    """
-    The checkout's ID.
-    
-    Added in Saleor 3.4.
-    """
+    """The checkout's ID."""
     id: ID
 
     """New language code."""
@@ -19499,8 +19069,6 @@ type Mutation {
 
   """
   Create new order from existing checkout. Requires the following permissions: AUTHENTICATED_APP and HANDLE_CHECKOUTS.
-  
-  Added in Saleor 3.2.
   
   Triggers the following webhook events:
   - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Optionally triggered when cached external shipping methods are invalid.
@@ -19518,18 +19086,10 @@ type Mutation {
     """ID of a checkout that will be converted to an order."""
     id: ID!
 
-    """
-    Fields required to update the checkout metadata.
-    
-    Added in Saleor 3.8.
-    """
+    """Fields required to update the checkout metadata."""
     metadata: [MetadataInput!]
 
-    """
-    Fields required to update the checkout private metadata.
-    
-    Added in Saleor 3.8.
-    """
+    """Fields required to update the checkout private metadata."""
     privateMetadata: [MetadataInput!]
 
     """
@@ -27933,11 +27493,7 @@ input ExternalNotificationTriggerInput {
 }
 
 """
-Creates a new promotion.
-
-Added in Saleor 3.17.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Creates a new promotion. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 
@@ -28114,11 +27670,7 @@ input DiscountedObjectWhereInput @doc(category: "Discounts") {
 }
 
 """
-Updates an existing promotion.
-
-Added in Saleor 3.17.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Updates an existing promotion. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 
@@ -28167,11 +27719,7 @@ input PromotionUpdateInput {
 }
 
 """
-Deletes a promotion.
-
-Added in Saleor 3.17.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Deletes a promotion. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 
@@ -28202,11 +27750,7 @@ enum PromotionDeleteErrorCode {
 }
 
 """
-Creates a new promotion rule.
-
-Added in Saleor 3.17.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Creates a new promotion rule. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 
@@ -28313,11 +27857,7 @@ input PromotionRuleCreateInput {
 }
 
 """
-Updates an existing promotion rule.
-
-Added in Saleor 3.17.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Updates an existing promotion rule. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 
@@ -28430,11 +27970,7 @@ input PromotionRuleUpdateInput {
 }
 
 """
-Deletes a promotion rule.
-
-Added in Saleor 3.17.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Deletes a promotion rule. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 
@@ -28511,11 +28047,7 @@ input PromotionRuleTranslationInput {
 }
 
 """
-Deletes promotions.
-
-Added in Saleor 3.17.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Deletes promotions. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 
@@ -28684,11 +28216,7 @@ input CatalogueInput @doc(category: "Discounts") {
   """Collections related to the discount."""
   collections: [ID!]
 
-  """
-  Product variant related to the discount.
-  
-  Added in Saleor 3.1.
-  """
+  """Product variant related to the discount."""
   variants: [ID!]
 }
 
@@ -28800,11 +28328,7 @@ input VoucherInput @doc(category: "Discounts") {
   """Products discounted by the voucher."""
   products: [ID!]
 
-  """
-  Variants discounted by the voucher.
-  
-  Added in Saleor 3.1.
-  """
+  """Variants discounted by the voucher."""
   variants: [ID!]
 
   """Collections discounted by the voucher."""
@@ -29366,11 +28890,7 @@ input CheckoutCreateInput @doc(category: "Checkout") {
   """Checkout language code."""
   languageCode: LanguageCodeEnum
 
-  """
-  The checkout validation rules that can be changed.
-  
-  Added in Saleor 3.5.
-  """
+  """The checkout validation rules that can be changed."""
   validationRules: CheckoutValidationRules
 }
 
@@ -29383,23 +28903,15 @@ input CheckoutLineInput @doc(category: "Checkout") {
 
   """
   Custom price of the item. Can be set only by apps with `HANDLE_CHECKOUTS` permission. When the line with the same variant will be provided multiple times, the last price will be used.
-  
-  Added in Saleor 3.1.
   """
   price: PositiveDecimal
 
   """
-  Flag that allow force splitting the same variant into multiple lines by skipping the matching logic. 
-  
-  Added in Saleor 3.6.
+  Flag that allow force splitting the same variant into multiple lines by skipping the matching logic.
   """
   forceNewLine: Boolean = false
 
-  """
-  Fields required to update the object's metadata.
-  
-  Added in Saleor 3.8.
-  """
+  """Fields required to update the object's metadata."""
   metadata: [MetadataInput!]
 }
 
@@ -29415,13 +28927,7 @@ input CheckoutValidationRules @doc(category: "Checkout") {
   billingAddress: CheckoutAddressValidationRules
 }
 
-"""
-Create new checkout from existing order.
-
-Added in Saleor 3.14.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""Create new checkout from existing order."""
 type CheckoutCreateFromOrder @doc(category: "Checkout") {
   """Variants that were not attached to the checkout."""
   unavailableVariants: [CheckoutCreateFromOrderUnavailableVariant!]
@@ -29599,16 +29105,10 @@ input CheckoutLineUpdateInput @doc(category: "Checkout") {
 
   """
   Custom price of the item. Can be set only by apps with `HANDLE_CHECKOUTS` permission. When the line with the same variant will be provided multiple times, the last price will be used.
-  
-  Added in Saleor 3.1.
   """
   price: PositiveDecimal
 
-  """
-  ID of the line.
-  
-  Added in Saleor 3.6.
-  """
+  """ID of the line."""
   lineId: ID
 }
 
@@ -29716,8 +29216,6 @@ type CheckoutShippingMethodUpdate @doc(category: "Checkout") @webhookEventsInfo(
 """
 Updates the delivery method (shipping method or pick up point) of the checkout. Updates the checkout shipping_address for click and collect delivery for a warehouse address. 
 
-Added in Saleor 3.1.
-
 Triggers the following webhook events:
 - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Triggered when updating the checkout delivery method with the external one.
 - CHECKOUT_UPDATED (async): A checkout was updated.
@@ -29743,8 +29241,6 @@ type CheckoutLanguageCodeUpdate @doc(category: "Checkout") @webhookEventsInfo(as
 
 """
 Create new order from existing checkout. Requires the following permissions: AUTHENTICATED_APP and HANDLE_CHECKOUTS.
-
-Added in Saleor 3.2.
 
 Triggers the following webhook events:
 - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Optionally triggered when cached external shipping methods are invalid.

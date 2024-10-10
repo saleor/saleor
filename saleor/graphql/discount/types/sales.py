@@ -15,7 +15,7 @@ from ...channel.types import (
 from ...core import ResolveInfo
 from ...core.connection import CountableConnection, create_connection_slice
 from ...core.context import get_database_connection_name
-from ...core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_TYPE
+from ...core.descriptions import DEPRECATED_IN_3X_TYPE
 from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.fields import ConnectionField, PermissionsField
 from ...core.scalars import DateTime
@@ -98,7 +98,7 @@ class Sale(ChannelContextTypeWithMetadata, ModelObjectType[models.Promotion]):
     )
     variants = ConnectionField(
         ProductVariantCountableConnection,
-        description="List of product variants this sale applies to." + ADDED_IN_31,
+        description="List of product variants this sale applies to.",
         permissions=[
             DiscountPermissions.MANAGE_DISCOUNTS,
         ],

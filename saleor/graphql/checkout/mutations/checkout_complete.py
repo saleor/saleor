@@ -23,7 +23,7 @@ from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...account.i18n import I18nMixin
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_34, ADDED_IN_38, DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.fields import JSONString
 from ...core.mutations import BaseMutation
@@ -59,7 +59,7 @@ class CheckoutComplete(BaseMutation, I18nMixin):
 
     class Arguments:
         id = graphene.ID(
-            description="The checkout's ID." + ADDED_IN_34,
+            description="The checkout's ID.",
             required=False,
         )
         token = UUID(
@@ -94,9 +94,7 @@ class CheckoutComplete(BaseMutation, I18nMixin):
         )
         metadata = NonNullList(
             MetadataInput,
-            description=(
-                "Fields required to update the checkout metadata." + ADDED_IN_38
-            ),
+            description=("Fields required to update the checkout metadata."),
             required=False,
         )
 
