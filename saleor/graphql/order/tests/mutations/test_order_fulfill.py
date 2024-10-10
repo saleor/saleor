@@ -13,7 +13,6 @@ from .....order.actions import call_order_events, order_fulfilled
 from .....order.error_codes import OrderErrorCode
 from .....order.models import Fulfillment, FulfillmentLine
 from .....product.models import ProductVariant
-from .....tests.utils import flush_post_commit_hooks
 from .....warehouse.models import Allocation, Stock
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -660,7 +659,9 @@ def test_order_fulfill_with_gift_cards(
     gift_card_shippable_order_line,
     permission_group_manage_orders,
     warehouse,
+    django_capture_on_commit_callbacks,
 ):
+    # given
     query = ORDER_FULFILL_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
     permission_group_manage_orders.user_set.add(staff_api_client.user)
@@ -687,10 +688,15 @@ def test_order_fulfill_with_gift_cards(
             ],
         },
     }
-    response = staff_api_client.post_graphql(query, variables)
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(query, variables)
+
     content = get_graphql_content(response)
-    flush_post_commit_hooks()
     data = content["data"]["orderFulfill"]
+
+    # then
     assert not data["errors"]
     gift_cards = GiftCard.objects.all()
     assert gift_cards.count() == 2
@@ -1507,6 +1513,7 @@ def test_order_fulfill_tracking_number_updated_event_triggered(
     warehouse,
     site_settings,
     settings,
+    django_capture_on_commit_callbacks,
 ):
     # given
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
@@ -1538,8 +1545,8 @@ def test_order_fulfill_tracking_number_updated_event_triggered(
         },
     }
     # when
-    staff_api_client.post_graphql(query, variables)
-    flush_post_commit_hooks()
+    with django_capture_on_commit_callbacks(execute=True):
+        staff_api_client.post_graphql(query, variables)
 
     # then
     assert mocked_webhooks.call_count == 2

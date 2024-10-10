@@ -7,7 +7,6 @@ from .....order import FulfillmentStatus
 from .....order import events as order_events
 from .....order.error_codes import OrderErrorCode
 from .....payment import ChargeStatus
-from .....tests.utils import flush_post_commit_hooks
 from ....payment.types import PaymentChargeStatusEnum
 from ....tests.utils import assert_no_permission, get_graphql_content
 
@@ -39,6 +38,7 @@ def test_order_refund(
     staff_api_client,
     permission_group_manage_orders,
     payment_txn_captured,
+    django_capture_on_commit_callbacks,
 ):
     # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
@@ -49,7 +49,8 @@ def test_order_refund(
     variables = {"id": order_id, "amount": amount}
 
     # when
-    response = staff_api_client.post_graphql(query, variables)
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(query, variables)
 
     # then
     content = get_graphql_content(response)
@@ -75,7 +76,6 @@ def test_order_refund(
     assert refunded_fulfillment.total_refund_amount == amount
     assert refunded_fulfillment.shipping_refund_amount is None
 
-    flush_post_commit_hooks()
     mock_order_updated.assert_called_once_with(order, webhooks=set())
     mock_order_refunded.assert_called_once_with(order, webhooks=set())
     assert amount < order.total.gross.amount
@@ -92,6 +92,7 @@ def test_order_fully_refunded(
     staff_api_client,
     permission_group_manage_orders,
     payment_txn_captured,
+    django_capture_on_commit_callbacks,
 ):
     # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
@@ -106,7 +107,8 @@ def test_order_fully_refunded(
     variables = {"id": order_id, "amount": amount}
 
     # when
-    response = staff_api_client.post_graphql(query, variables)
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(query, variables)
 
     # then
     content = get_graphql_content(response)
@@ -130,7 +132,6 @@ def test_order_fully_refunded(
     assert refunded_fulfillment.total_refund_amount == payment_txn_captured.total
     assert refunded_fulfillment.shipping_refund_amount is None
 
-    flush_post_commit_hooks()
     mock_order_updated.assert_called_once_with(order, webhooks=set())
     mock_order_refunded.assert_called_once_with(order, webhooks=set())
     mock_order_fully_refunded.assert_called_once_with(order, webhooks=set())
@@ -170,6 +171,7 @@ def test_order_refund_by_app(
     app_api_client,
     permission_manage_orders,
     payment_txn_captured,
+    django_capture_on_commit_callbacks,
 ):
     # given
     order = payment_txn_captured.order
@@ -179,9 +181,10 @@ def test_order_refund_by_app(
     variables = {"id": order_id, "amount": amount}
 
     # when
-    response = app_api_client.post_graphql(
-        query, variables, permissions=(permission_manage_orders,)
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        response = app_api_client.post_graphql(
+            query, variables, permissions=(permission_manage_orders,)
+        )
 
     # then
     content = get_graphql_content(response)
@@ -205,7 +208,6 @@ def test_order_refund_by_app(
     assert refunded_fulfillment.total_refund_amount == payment_txn_captured.total
     assert refunded_fulfillment.shipping_refund_amount is None
 
-    flush_post_commit_hooks()
     mock_order_updated.assert_called_once_with(order, webhooks=set())
     mock_order_refunded.assert_called_once_with(order, webhooks=set())
     mock_order_fully_refunded.assert_called_once_with(order, webhooks=set())

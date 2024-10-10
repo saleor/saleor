@@ -8,7 +8,6 @@ from .....discount.utils.promotion import get_active_catalogue_promotion_rules
 from .....order import OrderEvents, OrderStatus
 from .....order.models import OrderEvent, OrderLine
 from .....product.models import ProductVariant
-from .....tests.utils import flush_post_commit_hooks
 from ....tests.utils import get_graphql_content
 
 DELETE_VARIANT_BY_SKU_MUTATION = """
@@ -31,6 +30,7 @@ def test_delete_variant_by_sku(
     staff_api_client,
     product,
     permission_manage_products,
+    django_capture_on_commit_callbacks,
 ):
     # given
     variant = product.variants.first()
@@ -38,13 +38,13 @@ def test_delete_variant_by_sku(
     variables = {"sku": variant_sku}
 
     # when
-    response = staff_api_client.post_graphql(
-        DELETE_VARIANT_BY_SKU_MUTATION,
-        variables,
-        permissions=[permission_manage_products],
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(
+            DELETE_VARIANT_BY_SKU_MUTATION,
+            variables,
+            permissions=[permission_manage_products],
+        )
     content = get_graphql_content(response)
-    flush_post_commit_hooks()
     data = content["data"]["productVariantDelete"]
 
     # then
@@ -77,17 +77,18 @@ def test_delete_variant(
     staff_api_client,
     product,
     permission_manage_products,
+    django_capture_on_commit_callbacks,
 ):
     query = DELETE_VARIANT_MUTATION
     variant = product.variants.first()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     variant_sku = variant.sku
     variables = {"id": variant_id}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(
+            query, variables, permissions=[permission_manage_products]
+        )
     content = get_graphql_content(response)
-    flush_post_commit_hooks()
     data = content["data"]["productVariantDelete"]
 
     product_variant_deleted_webhook_mock.assert_called_once_with(variant)
@@ -103,17 +104,18 @@ def test_delete_variant_remove_checkout_lines(
     staff_api_client,
     checkout_with_items,
     permission_manage_products,
+    django_capture_on_commit_callbacks,
 ):
     query = DELETE_VARIANT_MUTATION
     line = checkout_with_items.lines.first()
     variant = line.variant
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     variables = {"id": variant_id}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(
+            query, variables, permissions=[permission_manage_products]
+        )
     content = get_graphql_content(response)
-    flush_post_commit_hooks()
     data = content["data"]["productVariantDelete"]
 
     assert data["productVariant"]["sku"] == variant.sku
@@ -134,6 +136,7 @@ def test_delete_variant_with_image(
     variant_with_image,
     permission_manage_products,
     media_root,
+    django_capture_on_commit_callbacks,
 ):
     """Ensure deleting variant doesn't delete linked product image."""
 
@@ -142,11 +145,11 @@ def test_delete_variant_with_image(
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     variables = {"id": variant_id}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(
+            query, variables, permissions=[permission_manage_products]
+        )
     content = get_graphql_content(response)
-    flush_post_commit_hooks()
     data = content["data"]["productVariantDelete"]
 
     product_variant_deleted_webhook_mock.assert_called_once_with(variant)
@@ -378,6 +381,7 @@ def test_delete_variant_delete_product_channel_listing_without_available_channel
     staff_api_client,
     product,
     permission_manage_products,
+    django_capture_on_commit_callbacks,
 ):
     """Test that the product is unlisted if all listed variants are removed."""
     # given
@@ -393,13 +397,13 @@ def test_delete_variant_delete_product_channel_listing_without_available_channel
     assert product.channel_listings.count() == 1
 
     # when
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(
+            query, variables, permissions=[permission_manage_products]
+        )
 
     # then
     content = get_graphql_content(response)
-    flush_post_commit_hooks()
     data = content["data"]["productVariantDelete"]
 
     product_variant_deleted_webhook_mock.assert_called_once_with(variant)
@@ -419,6 +423,7 @@ def test_delete_variant_delete_product_channel_listing_not_deleted(
     staff_api_client,
     product_with_two_variants,
     permission_manage_products,
+    django_capture_on_commit_callbacks,
 ):
     """Test that the product listing persists if any variant listings remain."""
     # given
@@ -432,13 +437,13 @@ def test_delete_variant_delete_product_channel_listing_not_deleted(
     product_channel_listing_count = product.channel_listings.count()
 
     # when
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(
+            query, variables, permissions=[permission_manage_products]
+        )
 
     # then
     content = get_graphql_content(response)
-    flush_post_commit_hooks()
     data = content["data"]["productVariantDelete"]
 
     product_variant_deleted_webhook_mock.assert_called_once_with(variant)
@@ -474,6 +479,7 @@ def test_delete_variant_by_external_reference(
     staff_api_client,
     product,
     permission_manage_products,
+    django_capture_on_commit_callbacks,
 ):
     # given
     query = DELETE_VARIANT_BY_EXTERNAL_REFERENCE
@@ -484,13 +490,13 @@ def test_delete_variant_by_external_reference(
     variables = {"externalReference": ext_ref}
 
     # when
-    response = staff_api_client.post_graphql(
-        query,
-        variables,
-        permissions=[permission_manage_products],
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(
+            query,
+            variables,
+            permissions=[permission_manage_products],
+        )
     content = get_graphql_content(response)
-    flush_post_commit_hooks()
     data = content["data"]["productVariantDelete"]
 
     # then

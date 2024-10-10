@@ -11,7 +11,7 @@ from freezegun import freeze_time
 
 from .....discount.utils.promotion import get_active_catalogue_promotion_rules
 from .....product.error_codes import ProductErrorCode
-from .....tests.utils import dummy_editorjs, flush_post_commit_hooks
+from .....tests.utils import dummy_editorjs
 from ....core.enums import WeightUnitsEnum
 from ....tests.utils import get_graphql_content
 
@@ -87,6 +87,7 @@ def test_create_variant_with_name(
     product_type,
     permission_manage_products,
     warehouse,
+    django_capture_on_commit_callbacks,
 ):
     # given
     product_id = graphene.Node.to_global_id("Product", product.pk)
@@ -124,11 +125,11 @@ def test_create_variant_with_name(
     }
 
     # when
-    response = staff_api_client.post_graphql(
-        CREATE_VARIANT_MUTATION, variables, permissions=[permission_manage_products]
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(
+            CREATE_VARIANT_MUTATION, variables, permissions=[permission_manage_products]
+        )
     content = get_graphql_content(response)["data"]["productVariantCreate"]
-    flush_post_commit_hooks()
 
     # then
     assert not content["errors"]
@@ -164,6 +165,7 @@ def test_create_variant_without_name(
     product_type,
     permission_manage_products,
     warehouse,
+    django_capture_on_commit_callbacks,
 ):
     # given
     query = CREATE_VARIANT_MUTATION
@@ -194,11 +196,11 @@ def test_create_variant_without_name(
     }
 
     # when
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(
+            query, variables, permissions=[permission_manage_products]
+        )
     content = get_graphql_content(response)["data"]["productVariantCreate"]
-    flush_post_commit_hooks()
 
     # then
     assert not content["errors"]
@@ -271,6 +273,7 @@ def test_create_variant_preorder(
     product,
     product_type,
     permission_manage_products,
+    django_capture_on_commit_callbacks,
 ):
     query = CREATE_VARIANT_MUTATION
     product_id = graphene.Node.to_global_id("Product", product.pk)
@@ -299,11 +302,11 @@ def test_create_variant_preorder(
         }
     }
 
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(
+            query, variables, permissions=[permission_manage_products]
+        )
     content = get_graphql_content(response)["data"]["productVariantCreate"]
-    flush_post_commit_hooks()
 
     assert not content["errors"]
     data = content["productVariant"]
@@ -325,6 +328,7 @@ def test_create_variant_no_required_attributes(
     product_type,
     permission_manage_products,
     warehouse,
+    django_capture_on_commit_callbacks,
 ):
     query = CREATE_VARIANT_MUTATION
     product_id = graphene.Node.to_global_id("Product", product.pk)
@@ -352,11 +356,11 @@ def test_create_variant_no_required_attributes(
             "trackInventory": True,
         }
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(
+            query, variables, permissions=[permission_manage_products]
+        )
     content = get_graphql_content(response)["data"]["productVariantCreate"]
-    flush_post_commit_hooks()
 
     assert not content["errors"]
     data = content["productVariant"]
@@ -382,6 +386,7 @@ def test_create_variant_with_file_attribute(
     permission_manage_products,
     warehouse,
     site_settings,
+    django_capture_on_commit_callbacks,
 ):
     query = CREATE_VARIANT_MUTATION
     product_id = graphene.Node.to_global_id("Product", product.pk)
@@ -414,11 +419,11 @@ def test_create_variant_with_file_attribute(
             "trackInventory": True,
         }
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(
+            query, variables, permissions=[permission_manage_products]
+        )
     content = get_graphql_content(response)["data"]["productVariantCreate"]
-    flush_post_commit_hooks()
 
     assert not content["errors"]
     data = content["productVariant"]
@@ -449,6 +454,7 @@ def test_create_variant_with_boolean_attribute(
     boolean_attribute,
     size_attribute,
     warehouse,
+    django_capture_on_commit_callbacks,
 ):
     product_type.variant_attributes.add(
         boolean_attribute, through_defaults={"variant_selection": True}
@@ -477,11 +483,11 @@ def test_create_variant_with_boolean_attribute(
         }
     }
 
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(
+            query, variables, permissions=[permission_manage_products]
+        )
     content = get_graphql_content(response)["data"]["productVariantCreate"]
-    flush_post_commit_hooks()
     data = content["productVariant"]
 
     assert not content["errors"]
@@ -517,6 +523,7 @@ def test_create_variant_with_file_attribute_new_value(
     permission_manage_products,
     warehouse,
     site_settings,
+    django_capture_on_commit_callbacks,
 ):
     query = CREATE_VARIANT_MUTATION
     product_id = graphene.Node.to_global_id("Product", product.pk)
@@ -548,11 +555,11 @@ def test_create_variant_with_file_attribute_new_value(
             "trackInventory": True,
         }
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(
+            query, variables, permissions=[permission_manage_products]
+        )
     content = get_graphql_content(response)["data"]["productVariantCreate"]
-    flush_post_commit_hooks()
 
     assert not content["errors"]
     data = content["productVariant"]
@@ -581,6 +588,7 @@ def test_create_variant_with_file_attribute_no_file_url_given(
     file_attribute,
     permission_manage_products,
     warehouse,
+    django_capture_on_commit_callbacks,
 ):
     query = CREATE_VARIANT_MUTATION
     product_id = graphene.Node.to_global_id("Product", product.pk)
@@ -610,11 +618,11 @@ def test_create_variant_with_file_attribute_no_file_url_given(
             "trackInventory": True,
         }
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(
+            query, variables, permissions=[permission_manage_products]
+        )
     content = get_graphql_content(response)["data"]["productVariantCreate"]
-    flush_post_commit_hooks()
 
     errors = content["errors"]
     data = content["productVariant"]
@@ -645,6 +653,7 @@ def test_create_variant_with_page_reference_attribute(
     page_list,
     permission_manage_products,
     warehouse,
+    django_capture_on_commit_callbacks,
 ):
     query = CREATE_VARIANT_MUTATION
     product_id = graphene.Node.to_global_id("Product", product.pk)
@@ -677,11 +686,11 @@ def test_create_variant_with_page_reference_attribute(
             "trackInventory": True,
         }
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(
+            query, variables, permissions=[permission_manage_products]
+        )
     content = get_graphql_content(response)["data"]["productVariantCreate"]
-    flush_post_commit_hooks()
 
     assert not content["errors"]
     data = content["productVariant"]
@@ -740,6 +749,7 @@ def test_create_variant_with_page_reference_attribute_no_references_given(
     permission_manage_products,
     warehouse,
     site_settings,
+    django_capture_on_commit_callbacks,
 ):
     query = CREATE_VARIANT_MUTATION
     product_id = graphene.Node.to_global_id("Product", product.pk)
@@ -773,11 +783,11 @@ def test_create_variant_with_page_reference_attribute_no_references_given(
             "trackInventory": True,
         }
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(
+            query, variables, permissions=[permission_manage_products]
+        )
     content = get_graphql_content(response)["data"]["productVariantCreate"]
-    flush_post_commit_hooks()
     errors = content["errors"]
     data = content["productVariant"]
 
@@ -804,6 +814,7 @@ def test_create_variant_with_product_reference_attribute(
     product_list,
     permission_manage_products,
     warehouse,
+    django_capture_on_commit_callbacks,
 ):
     query = CREATE_VARIANT_MUTATION
     product_id = graphene.Node.to_global_id("Product", product.pk)
@@ -841,11 +852,11 @@ def test_create_variant_with_product_reference_attribute(
             "trackInventory": True,
         }
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(
+            query, variables, permissions=[permission_manage_products]
+        )
     content = get_graphql_content(response)["data"]["productVariantCreate"]
-    flush_post_commit_hooks()
 
     assert not content["errors"]
     data = content["productVariant"]
@@ -904,6 +915,7 @@ def test_create_variant_with_product_reference_attribute_no_references_given(
     permission_manage_products,
     warehouse,
     site_settings,
+    django_capture_on_commit_callbacks,
 ):
     query = CREATE_VARIANT_MUTATION
     product_id = graphene.Node.to_global_id("Product", product.pk)
@@ -937,11 +949,11 @@ def test_create_variant_with_product_reference_attribute_no_references_given(
             "trackInventory": True,
         }
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(
+            query, variables, permissions=[permission_manage_products]
+        )
     content = get_graphql_content(response)["data"]["productVariantCreate"]
-    flush_post_commit_hooks()
     errors = content["errors"]
     data = content["productVariant"]
 
@@ -968,6 +980,7 @@ def test_create_variant_with_variant_reference_attribute(
     product_list,
     permission_manage_products,
     warehouse,
+    django_capture_on_commit_callbacks,
 ):
     # given
     query = CREATE_VARIANT_MUTATION
@@ -1010,13 +1023,13 @@ def test_create_variant_with_variant_reference_attribute(
     }
 
     # when
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(
+            query, variables, permissions=[permission_manage_products]
+        )
 
     # then
     content = get_graphql_content(response)["data"]["productVariantCreate"]
-    flush_post_commit_hooks()
 
     assert not content["errors"]
     data = content["productVariant"]
@@ -1075,6 +1088,7 @@ def test_create_variant_with_variant_reference_attribute_no_references_given(
     permission_manage_products,
     warehouse,
     site_settings,
+    django_capture_on_commit_callbacks,
 ):
     # given
     query = CREATE_VARIANT_MUTATION
@@ -1111,13 +1125,13 @@ def test_create_variant_with_variant_reference_attribute_no_references_given(
     }
 
     # when
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(
+            query, variables, permissions=[permission_manage_products]
+        )
 
     # then
     content = get_graphql_content(response)["data"]["productVariantCreate"]
-    flush_post_commit_hooks()
     errors = content["errors"]
     data = content["productVariant"]
 
@@ -1479,6 +1493,7 @@ def test_create_variant_with_rich_text_attribute(
     staff_api_client,
     rich_text_attribute,
     warehouse,
+    django_capture_on_commit_callbacks,
 ):
     product_type.variant_attributes.add(rich_text_attribute)
     query = CREATE_VARIANT_MUTATION
@@ -1506,11 +1521,11 @@ def test_create_variant_with_rich_text_attribute(
         }
     }
 
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(
+            query, variables, permissions=[permission_manage_products]
+        )
     content = get_graphql_content(response)["data"]["productVariantCreate"]
-    flush_post_commit_hooks()
     data = content["productVariant"]
 
     assert not content["errors"]
@@ -1529,6 +1544,7 @@ def test_create_variant_with_plain_text_attribute(
     staff_api_client,
     plain_text_attribute,
     warehouse,
+    django_capture_on_commit_callbacks,
 ):
     # given
     product_type.variant_attributes.add(plain_text_attribute)
@@ -1558,13 +1574,13 @@ def test_create_variant_with_plain_text_attribute(
     }
 
     # when
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(
+            query, variables, permissions=[permission_manage_products]
+        )
 
     # then
     content = get_graphql_content(response)["data"]["productVariantCreate"]
-    flush_post_commit_hooks()
     data = content["productVariant"]
 
     assert not content["errors"]
@@ -1584,6 +1600,7 @@ def test_create_variant_with_date_attribute(
     staff_api_client,
     date_attribute,
     warehouse,
+    django_capture_on_commit_callbacks,
 ):
     product_type.variant_attributes.add(date_attribute)
 
@@ -1606,11 +1623,11 @@ def test_create_variant_with_date_attribute(
         }
     }
 
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(
+            query, variables, permissions=[permission_manage_products]
+        )
     content = get_graphql_content(response)["data"]["productVariantCreate"]
-    flush_post_commit_hooks()
     data = content["productVariant"]
     variant = product.variants.last()
     expected_attributes_data = {
@@ -1647,6 +1664,7 @@ def test_create_variant_with_date_time_attribute(
     staff_api_client,
     date_time_attribute,
     warehouse,
+    django_capture_on_commit_callbacks,
 ):
     product_type.variant_attributes.add(date_time_attribute)
 
@@ -1670,11 +1688,11 @@ def test_create_variant_with_date_time_attribute(
         }
     }
 
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(
+            query, variables, permissions=[permission_manage_products]
+        )
     content = get_graphql_content(response)["data"]["productVariantCreate"]
-    flush_post_commit_hooks()
     data = content["productVariant"]
     variant = product.variants.last()
     expected_attributes_data = {
@@ -1711,6 +1729,7 @@ def test_create_variant_with_empty_string_for_sku(
     product_type,
     permission_manage_products,
     warehouse,
+    django_capture_on_commit_callbacks,
 ):
     query = CREATE_VARIANT_MUTATION
     product_id = graphene.Node.to_global_id("Product", product.pk)
@@ -1738,11 +1757,11 @@ def test_create_variant_with_empty_string_for_sku(
             "trackInventory": True,
         }
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(
+            query, variables, permissions=[permission_manage_products]
+        )
     content = get_graphql_content(response)["data"]["productVariantCreate"]
-    flush_post_commit_hooks()
 
     assert not content["errors"]
     data = content["productVariant"]
@@ -1769,6 +1788,7 @@ def test_create_variant_without_sku(
     product_type,
     permission_manage_products,
     warehouse,
+    django_capture_on_commit_callbacks,
 ):
     query = CREATE_VARIANT_MUTATION
     product_id = graphene.Node.to_global_id("Product", product.pk)
@@ -1794,11 +1814,11 @@ def test_create_variant_without_sku(
             "trackInventory": True,
         }
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(
+            query, variables, permissions=[permission_manage_products]
+        )
     content = get_graphql_content(response)["data"]["productVariantCreate"]
-    flush_post_commit_hooks()
 
     assert not content["errors"]
     data = content["productVariant"]

@@ -7,7 +7,7 @@ from django.test.client import MULTIPART_CONTENT, Client
 from ...account.models import User
 from ...app.models import App
 from ...graphql.tests.fixtures import BaseApiClient
-from ..utils import flush_post_commit_hooks
+from ...tests.utils import flush_post_commit_hooks
 
 
 class E2eApiClient(BaseApiClient):

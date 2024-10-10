@@ -5,7 +5,6 @@ from django.test import override_settings
 
 from ...checkout import AddressType
 from ...plugins.manager import get_plugins_manager
-from ...tests.utils import flush_post_commit_hooks
 from ..models import Address, User
 from ..utils import (
     get_user_groups_permissions,
@@ -251,12 +250,13 @@ def test_send_user_event_no_webhook_sent(
     mock_customer_created_webhook,
     mock_customer_updated_webhook,
     customer_user,
+    django_capture_on_commit_callbacks,
 ):
     # when
-    send_user_event(customer_user, False, False)
+    with django_capture_on_commit_callbacks(execute=True):
+        send_user_event(customer_user, False, False)
 
     # then
-    flush_post_commit_hooks()
     mock_staff_created_webhook.assert_not_called()
     mock_staff_updated_webhook.assert_not_called()
     mock_customer_created_webhook.assert_not_called()
@@ -273,12 +273,13 @@ def test_send_user_event_customer_created_event(
     mock_customer_created_webhook,
     mock_customer_updated_webhook,
     customer_user,
+    django_capture_on_commit_callbacks,
 ):
     # when
-    send_user_event(customer_user, True, True)
+    with django_capture_on_commit_callbacks(execute=True):
+        send_user_event(customer_user, True, True)
 
     # then
-    flush_post_commit_hooks()
     mock_customer_created_webhook.assert_called_once_with(customer_user)
     mock_customer_updated_webhook.assert_not_called()
     mock_staff_created_webhook.assert_not_called()
@@ -295,12 +296,13 @@ def test_send_user_event_customer_updated_event(
     mock_customer_created_webhook,
     mock_customer_updated_webhook,
     customer_user,
+    django_capture_on_commit_callbacks,
 ):
     # when
-    send_user_event(customer_user, False, True)
+    with django_capture_on_commit_callbacks(execute=True):
+        send_user_event(customer_user, False, True)
 
     # then
-    flush_post_commit_hooks()
     mock_customer_updated_webhook.assert_called_once_with(customer_user)
     mock_customer_created_webhook.assert_not_called()
     mock_staff_created_webhook.assert_not_called()
@@ -317,12 +319,13 @@ def test_send_user_event_staff_created_event(
     mock_customer_created_webhook,
     mock_customer_updated_webhook,
     staff_user,
+    django_capture_on_commit_callbacks,
 ):
     # when
-    send_user_event(staff_user, True, True)
+    with django_capture_on_commit_callbacks(execute=True):
+        send_user_event(staff_user, True, True)
 
     # then
-    flush_post_commit_hooks()
     mock_staff_created_webhook.assert_called_once_with(staff_user)
     mock_staff_updated_webhook.assert_not_called()
     mock_customer_created_webhook.assert_not_called()
@@ -339,12 +342,13 @@ def test_send_user_event_staff_updated_event(
     mock_customer_created_webhook,
     mock_customer_updated_webhook,
     staff_user,
+    django_capture_on_commit_callbacks,
 ):
     # when
-    send_user_event(staff_user, False, True)
+    with django_capture_on_commit_callbacks(execute=True):
+        send_user_event(staff_user, False, True)
 
     # then
-    flush_post_commit_hooks()
     mock_staff_updated_webhook.assert_called_once_with(staff_user)
     mock_staff_created_webhook.assert_not_called()
     mock_customer_created_webhook.assert_not_called()

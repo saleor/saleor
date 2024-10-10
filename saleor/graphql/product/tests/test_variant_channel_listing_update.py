@@ -4,7 +4,6 @@ import graphene
 
 from ....product.error_codes import ProductErrorCode
 from ....product.models import ProductChannelListing
-from ....tests.utils import flush_post_commit_hooks
 from ...tests.utils import (
     assert_negative_positive_decimal_value,
     assert_no_permission,
@@ -188,6 +187,7 @@ def test_variant_channel_listing_update_as_staff_user(
     permission_manage_products,
     channel_USD,
     channel_PLN,
+    django_capture_on_commit_callbacks,
 ):
     # given
     product_pln_channel_listing = ProductChannelListing.objects.create(
@@ -214,11 +214,12 @@ def test_variant_channel_listing_update_as_staff_user(
     }
 
     # when
-    response = staff_api_client.post_graphql(
-        PRODUCT_VARIANT_CHANNEL_LISTING_UPDATE_MUTATION,
-        variables=variables,
-        permissions=(permission_manage_products,),
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(
+            PRODUCT_VARIANT_CHANNEL_LISTING_UPDATE_MUTATION,
+            variables=variables,
+            permissions=(permission_manage_products,),
+        )
     content = get_graphql_content(response)
 
     # then
@@ -320,6 +321,7 @@ def test_variant_channel_listing_update_trigger_webhook_product_variant_updated(
     permission_manage_products,
     channel_USD,
     channel_PLN,
+    django_capture_on_commit_callbacks,
 ):
     # given
     ProductChannelListing.objects.create(
@@ -346,13 +348,13 @@ def test_variant_channel_listing_update_trigger_webhook_product_variant_updated(
     }
 
     # when
-    response = staff_api_client.post_graphql(
-        PRODUCT_VARIANT_CHANNEL_LISTING_UPDATE_MUTATION,
-        variables=variables,
-        permissions=(permission_manage_products,),
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(
+            PRODUCT_VARIANT_CHANNEL_LISTING_UPDATE_MUTATION,
+            variables=variables,
+            permissions=(permission_manage_products,),
+        )
     get_graphql_content(response)
-    flush_post_commit_hooks()
 
     # then
     mock_product_variant_updated.assert_called_once_with(product.variants.last())

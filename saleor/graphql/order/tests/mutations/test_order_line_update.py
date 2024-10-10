@@ -13,7 +13,6 @@ from .....order.actions import call_order_event
 from .....order.error_codes import OrderErrorCode
 from .....order.models import OrderEvent
 from .....product.models import ProductVariant
-from .....tests.utils import flush_post_commit_hooks
 from .....warehouse.models import Allocation, Stock
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -60,7 +59,9 @@ def test_order_line_update_with_out_of_stock_webhook_for_two_lines_success_scena
     order_with_lines,
     permission_group_manage_orders,
     staff_api_client,
+    django_capture_on_commit_callbacks,
 ):
+    # given
     Stock.objects.update(quantity=5)
     query = ORDER_LINE_UPDATE_MUTATION
     order = order_with_lines
@@ -74,12 +75,14 @@ def test_order_line_update_with_out_of_stock_webhook_for_two_lines_success_scena
 
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
-    variables = {"lineId": first_line_id, "quantity": new_quantity}
-    staff_api_client.post_graphql(query, variables)
-    flush_post_commit_hooks()
-    variables = {"lineId": second_line_id, "quantity": new_quantity}
-    staff_api_client.post_graphql(query, variables)
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        variables = {"lineId": first_line_id, "quantity": new_quantity}
+        staff_api_client.post_graphql(query, variables)
+        variables = {"lineId": second_line_id, "quantity": new_quantity}
+        staff_api_client.post_graphql(query, variables)
 
+    # then
     assert out_of_stock_mock.call_count == 2
     out_of_stock_mock.assert_called_with(Stock.objects.last())
 

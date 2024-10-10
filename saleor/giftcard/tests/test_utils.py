@@ -17,7 +17,6 @@ from ...core.utils.promo_code import InvalidPromoCode
 from ...order.models import OrderLine
 from ...plugins.manager import get_plugins_manager
 from ...site import GiftCardSettingsExpiryType
-from ...tests.utils import flush_post_commit_hooks
 from ...webhook.event_types import WebhookEventAsyncType
 from ...webhook.payloads import generate_meta, generate_requestor
 from .. import GiftCardEvents, GiftCardLineData, events
@@ -197,6 +196,7 @@ def test_gift_cards_create(
     gift_card_non_shippable_order_line,
     site_settings,
     staff_user,
+    django_capture_on_commit_callbacks,
 ):
     # given
     manager = get_plugins_manager(allow_replica=False)
@@ -229,9 +229,10 @@ def test_gift_cards_create(
     ]
 
     # when
-    gift_cards = gift_cards_create(
-        order, lines_data, site_settings, staff_user, None, manager
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        gift_cards = gift_cards_create(
+            order, lines_data, site_settings, staff_user, None, manager
+        )
 
     # then
     assert len(gift_cards) == len(lines_data)
@@ -275,8 +276,6 @@ def test_gift_cards_create(
         "expiry_date": None,
     }
 
-    flush_post_commit_hooks()
-
     send_notification_mock.assert_called_once_with(
         staff_user,
         None,
@@ -297,6 +296,7 @@ def test_gift_cards_create_expiry_date_set(
     gift_card_non_shippable_order_line,
     site_settings,
     staff_user,
+    django_capture_on_commit_callbacks,
 ):
     # given
     manager = get_plugins_manager(allow_replica=False)
@@ -328,9 +328,10 @@ def test_gift_cards_create_expiry_date_set(
     ]
 
     # when
-    gift_cards = gift_cards_create(
-        order, lines_data, site_settings, staff_user, None, manager
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        gift_cards = gift_cards_create(
+            order, lines_data, site_settings, staff_user, None, manager
+        )
 
     # then
     assert len(gift_cards) == len(lines_data)
@@ -352,8 +353,6 @@ def test_gift_cards_create_expiry_date_set(
         "expiry_date": gift_card.expiry_date.isoformat(),
     }
 
-    flush_post_commit_hooks()
-
     send_notification_mock.assert_called_once_with(
         staff_user,
         None,
@@ -373,6 +372,7 @@ def test_gift_cards_create_multiple_quantity(
     gift_card_non_shippable_order_line,
     site_settings,
     staff_user,
+    django_capture_on_commit_callbacks,
 ):
     # given
     manager = get_plugins_manager(allow_replica=False)
@@ -394,12 +394,12 @@ def test_gift_cards_create_multiple_quantity(
     ]
 
     # when
-    gift_cards = gift_cards_create(
-        order, lines_data, site_settings, staff_user, None, manager
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        gift_cards = gift_cards_create(
+            order, lines_data, site_settings, staff_user, None, manager
+        )
 
     # then
-    flush_post_commit_hooks()
     assert len(gift_cards) == quantity
     price = gift_card_non_shippable_order_line.unit_price_gross
     for gift_card in gift_cards:
@@ -427,6 +427,7 @@ def test_gift_cards_create_trigger_webhook(
     gift_card_non_shippable_order_line,
     site_settings,
     staff_user,
+    django_capture_on_commit_callbacks,
 ):
     # given
     mocked_get_webhooks_for_event.return_value = [any_webhook]
@@ -461,12 +462,12 @@ def test_gift_cards_create_trigger_webhook(
     ]
 
     # when
-    gift_cards = gift_cards_create(
-        order, lines_data, site_settings, staff_user, None, manager
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        gift_cards = gift_cards_create(
+            order, lines_data, site_settings, staff_user, None, manager
+        )
 
     # then
-    flush_post_commit_hooks()
     assert len(gift_cards) == len(lines_data)
 
     gift_card = gift_cards[-1]
@@ -647,6 +648,7 @@ def test_fulfill_gift_card_lines(
     gift_card_non_shippable_order_line,
     gift_card_shippable_order_line,
     site_settings,
+    django_capture_on_commit_callbacks,
 ):
     # given
     manager = get_plugins_manager(allow_replica=False)
@@ -663,14 +665,14 @@ def test_fulfill_gift_card_lines(
     )
 
     # when
-    fulfillments = fulfill_gift_card_lines(
-        lines, staff_user, None, order, site_settings, manager
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        fulfillments = fulfill_gift_card_lines(
+            lines, staff_user, None, order, site_settings, manager
+        )
 
     # then
     assert len(fulfillments) == 1
     assert fulfillments[0].lines.count() == len(lines)
-    flush_post_commit_hooks()
     gift_cards = GiftCard.objects.all()
     assert gift_cards.count() == sum([line.quantity for line in lines])
     shippable_gift_cards = gift_cards.filter(
