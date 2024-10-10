@@ -14,7 +14,6 @@ from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCard, GiftCardEvent
 from ...plugins.manager import get_plugins_manager
 from ...product.models import ProductTranslation, ProductVariantTranslation
-from ...tests.utils import flush_post_commit_hooks
 from .. import calculations
 from ..complete_checkout import create_order_from_checkout
 from ..fetch import fetch_checkout_info, fetch_checkout_lines
@@ -291,6 +290,7 @@ def test_create_order_gift_card_bought(
     non_shippable_gift_card_product,
     app,
     payment_txn_captured,
+    django_capture_on_commit_callbacks,
 ):
     # given
     checkout_user = None if is_anonymous_user else customer_user
@@ -328,17 +328,16 @@ def test_create_order_gift_card_bought(
     payment.save(update_fields=["checkout", "captured_amount", "total"])
 
     # when
-    order = create_order_from_checkout(
-        checkout_info=checkout_info,
-        manager=manager,
-        user=None,
-        app=app,
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        order = create_order_from_checkout(
+            checkout_info=checkout_info,
+            manager=manager,
+            user=None,
+            app=app,
+        )
 
     # then
-    flush_post_commit_hooks()
     assert order.total.gross == total_gross
-    flush_post_commit_hooks()
     gift_card = GiftCard.objects.get()
     assert (
         gift_card.initial_balance
@@ -347,7 +346,6 @@ def test_create_order_gift_card_bought(
         ).unit_price_gross
     )
     assert GiftCardEvent.objects.filter(gift_card=gift_card, type=GiftCardEvents.BOUGHT)
-    flush_post_commit_hooks()
     send_notification_mock.assert_called_once_with(
         None,
         app,

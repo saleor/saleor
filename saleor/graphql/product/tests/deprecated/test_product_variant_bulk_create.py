@@ -7,7 +7,6 @@ import graphene
 from .....attribute import AttributeInputType
 from .....product.error_codes import ProductVariantBulkErrorCode
 from .....product.models import ProductChannelListing, ProductVariant
-from .....tests.utils import flush_post_commit_hooks
 from ....tests.utils import get_graphql_content
 
 PRODUCT_VARIANT_BULK_CREATE_MUTATION = """
@@ -74,6 +73,7 @@ def test_product_variant_bulk_create_by_name(
     permission_manage_products,
     any_webhook,
     settings,
+    django_capture_on_commit_callbacks,
 ):
     # given
     mocked_get_webhooks_for_event.return_value = [any_webhook]
@@ -100,11 +100,11 @@ def test_product_variant_bulk_create_by_name(
 
     # when
     staff_api_client.user.user_permissions.add(permission_manage_products)
-    response = staff_api_client.post_graphql(
-        PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(
+            PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
+        )
     content = get_graphql_content(response)
-    flush_post_commit_hooks()
     data = content["data"]["productVariantBulkCreate"]
 
     # then
@@ -133,6 +133,7 @@ def test_product_variant_bulk_create_by_attribute_id(
     permission_manage_products,
     any_webhook,
     settings,
+    django_capture_on_commit_callbacks,
 ):
     # given
     mocked_get_webhooks_for_event.return_value = [any_webhook]
@@ -154,11 +155,11 @@ def test_product_variant_bulk_create_by_attribute_id(
 
     variables = {"productId": product_id, "variants": variants}
     staff_api_client.user.user_permissions.add(permission_manage_products)
-    response = staff_api_client.post_graphql(
-        PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(
+            PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
+        )
     content = get_graphql_content(response)
-    flush_post_commit_hooks()
     data = content["data"]["productVariantBulkCreate"]
 
     assert not data["errors"]

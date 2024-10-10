@@ -24,7 +24,6 @@ from ....core.jwt import (
     jwt_user_payload,
 )
 from ....permission.models import Permission
-from ....tests.utils import flush_post_commit_hooks
 from ..exceptions import AuthenticationError
 from ..utils import (
     JWKS_CACHE_TIME,
@@ -618,7 +617,10 @@ def test_get_or_create_user_from_payload_last_login_modifies(
 
 @patch("saleor.plugins.manager.PluginsManager.customer_created")
 def test_jwt_token_without_expiration_claim(
-    mocked_customer_created_webhook, monkeypatch, decoded_access_token
+    mocked_customer_created_webhook,
+    monkeypatch,
+    decoded_access_token,
+    django_capture_on_commit_callbacks,
 ):
     # given
     monkeypatch.setattr(
@@ -636,19 +638,19 @@ def test_jwt_token_without_expiration_claim(
     )
 
     # when
-    user = get_user_from_oauth_access_token_in_jwt_format(
-        token_payload,
-        "https://example.com",
-        access_token="fake-token",
-        use_scope_permissions=False,
-        audience="",
-        staff_user_domains=[],
-        staff_default_group_name="",
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        user = get_user_from_oauth_access_token_in_jwt_format(
+            token_payload,
+            "https://example.com",
+            access_token="fake-token",
+            use_scope_permissions=False,
+            audience="",
+            staff_user_domains=[],
+            staff_default_group_name="",
+        )
 
     # then
     assert user.email == "test@example.org"
-    flush_post_commit_hooks()
     mocked_customer_created_webhook.assert_called_once_with(user)
 
 
@@ -663,6 +665,7 @@ def test_jwt_token_without_expiration_claim_mixed_permissions_from_group(
     monkeypatch,
     decoded_access_token,
     permission_group_manage_shipping,
+    django_capture_on_commit_callbacks,
 ):
     # given
     customer_user.groups.add(permission_group_manage_shipping)
@@ -683,15 +686,16 @@ def test_jwt_token_without_expiration_claim_mixed_permissions_from_group(
     mocked_cache_get.side_effect = lambda cache_key: None
 
     # when
-    user = get_user_from_oauth_access_token_in_jwt_format(
-        token_payload,
-        "https://example.com",
-        access_token="fake-token",
-        use_scope_permissions=True,
-        audience="",
-        staff_user_domains=[customer_user.email.split("@")[1]],
-        staff_default_group_name="",
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        user = get_user_from_oauth_access_token_in_jwt_format(
+            token_payload,
+            "https://example.com",
+            access_token="fake-token",
+            use_scope_permissions=True,
+            audience="",
+            staff_user_domains=[customer_user.email.split("@")[1]],
+            staff_default_group_name="",
+        )
 
     # then
     manage_shipping = permission_group_manage_shipping.permissions.first()
@@ -700,7 +704,6 @@ def test_jwt_token_without_expiration_claim_mixed_permissions_from_group(
     assert len(user.effective_permissions) > 1
     # ensure that manage_shipping is not from openID scope permissions
     assert "saleor:manage_shipping" not in token_payload["scope"]
-    flush_post_commit_hooks()
     mocked_customer_created_webhook.assert_not_called()
 
 

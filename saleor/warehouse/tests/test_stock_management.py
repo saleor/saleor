@@ -9,7 +9,6 @@ from ...core.exceptions import InsufficientStock
 from ...order.fetch import OrderLineInfo
 from ...order.models import OrderLine
 from ...plugins.manager import get_plugins_manager
-from ...tests.utils import flush_post_commit_hooks
 from ...warehouse.models import Stock
 from ..management import (
     allocate_preorders,
@@ -693,14 +692,16 @@ def test_increase_allocation_insufficient_stock(allocation):
 
 @mock.patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
 def test_increase_stock_with_back_in_stock_webhook_triggered_without_allocation(
-    product_variant_back_in_stock_webhook, allocation
+    product_variant_back_in_stock_webhook,
+    allocation,
+    django_capture_on_commit_callbacks,
 ):
     stock = allocation.stock
     stock.quantity = 0
     stock.save(update_fields=["quantity"])
 
-    increase_stock(allocation.order_line, stock.warehouse, 50, allocate=False)
-    flush_post_commit_hooks()
+    with django_capture_on_commit_callbacks(execute=True):
+        increase_stock(allocation.order_line, stock.warehouse, 50, allocate=False)
 
     stock.refresh_from_db()
     assert stock.quantity == 50
@@ -1034,41 +1035,47 @@ def test_deallocate_stock_for_order(order_line_with_allocation_in_many_stocks):
 
 @mock.patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
 def test_increase_stock_with_back_in_stock_webhook_not_triggered(
-    product_variant_back_in_stock_webhook, allocation
+    product_variant_back_in_stock_webhook,
+    allocation,
+    django_capture_on_commit_callbacks,
 ):
     stock = allocation.stock
     stock.quantity = 10
     stock.save(update_fields=["quantity"])
 
-    increase_stock(allocation.order_line, stock.warehouse, 50, allocate=False)
+    with django_capture_on_commit_callbacks(execute=True):
+        increase_stock(allocation.order_line, stock.warehouse, 50, allocate=False)
 
     stock.refresh_from_db()
     assert stock.quantity == 60
 
-    flush_post_commit_hooks()
     product_variant_back_in_stock_webhook.assert_not_called()
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
 def test_increase_stock_with_back_in_stock_webhook_not_triggered_with_allocation(
-    product_variant_back_in_stock_webhook, allocation
+    product_variant_back_in_stock_webhook,
+    allocation,
+    django_capture_on_commit_callbacks,
 ):
     stock = allocation.stock
     stock.quantity = 0
     stock.save(update_fields=["quantity"])
 
-    increase_stock(allocation.order_line, stock.warehouse, 30, allocate=True)
+    with django_capture_on_commit_callbacks(execute=True):
+        increase_stock(allocation.order_line, stock.warehouse, 30, allocate=True)
 
     stock.refresh_from_db()
     assert stock.quantity == 30
 
-    flush_post_commit_hooks()
     product_variant_back_in_stock_webhook.assert_not_called()
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
 def test_decrease_stock_with_out_of_stock_webhook_triggered(
-    product_variant_out_of_stock_webhook_mock, allocation
+    product_variant_out_of_stock_webhook_mock,
+    allocation,
+    django_capture_on_commit_callbacks,
 ):
     stock = allocation.stock
     stock.quantity = 50
@@ -1077,19 +1084,18 @@ def test_decrease_stock_with_out_of_stock_webhook_triggered(
     allocation.save(update_fields=["quantity_allocated"])
     warehouse_pk = allocation.stock.warehouse.pk
 
-    decrease_stock(
-        [
-            OrderLineInfo(
-                line=allocation.order_line,
-                quantity=50,
-                variant=stock.product_variant,
-                warehouse_pk=warehouse_pk,
-            )
-        ],
-        manager=get_plugins_manager(allow_replica=False),
-    )
-
-    flush_post_commit_hooks()
+    with django_capture_on_commit_callbacks(execute=True):
+        decrease_stock(
+            [
+                OrderLineInfo(
+                    line=allocation.order_line,
+                    quantity=50,
+                    variant=stock.product_variant,
+                    warehouse_pk=warehouse_pk,
+                )
+            ],
+            manager=get_plugins_manager(allow_replica=False),
+        )
 
     product_variant_out_of_stock_webhook_mock.assert_called_once()
 

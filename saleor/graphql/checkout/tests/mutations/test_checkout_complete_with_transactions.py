@@ -30,7 +30,6 @@ from .....payment.model_helpers import get_subtotal
 from .....payment.transaction_item_calculations import recalculate_transaction_amounts
 from .....plugins.manager import PluginsManager, get_plugins_manager
 from .....product.models import VariantChannelListingPromotionRule
-from .....tests.utils import flush_post_commit_hooks
 from .....warehouse.models import Reservation, Stock, WarehouseClickAndCollectOption
 from .....warehouse.tests.utils import get_available_quantity_for_stock
 from ....core.utils import to_global_id_or_none
@@ -1622,6 +1621,7 @@ def test_checkout_complete_gift_card_bought(
     shipping_method,
     transaction_events_generator,
     transaction_item_generator,
+    django_capture_on_commit_callbacks,
 ):
     # given
     checkout = prepare_checkout_for_test(
@@ -1649,19 +1649,18 @@ def test_checkout_complete_gift_card_bought(
     variables = {"id": to_global_id_or_none(checkout), "redirectUrl": redirect_url}
 
     # when
-    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    with django_capture_on_commit_callbacks(execute=True):
+        response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
     # then
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
     assert not data["errors"]
 
-    flush_post_commit_hooks()
     assert Order.objects.count() == 1
     order = Order.objects.first()
     assert order.status == OrderStatus.PARTIALLY_FULFILLED
 
-    flush_post_commit_hooks()
     gift_card = GiftCard.objects.get()
     assert GiftCardEvent.objects.filter(gift_card=gift_card, type=GiftCardEvents.BOUGHT)
     send_notification_mock.assert_called_once_with(
