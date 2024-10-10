@@ -5,15 +5,15 @@ import pytest
 from django.conf import settings
 from prices import Money, TaxedMoney, fixed_discount
 
-from saleor.discount import DiscountType, DiscountValueType
-from saleor.discount.models import VoucherCode
-from saleor.discount.utils.voucher import (
+from ....discount import DiscountType, DiscountValueType
+from ....discount.models import VoucherCode
+from ....discount.utils.voucher import (
     create_or_update_discount_object_from_order_level_voucher,
 )
-from saleor.order import OrderOrigin, OrderStatus
-from saleor.order.base_calculations import base_order_subtotal
-from saleor.order.models import Order
-from saleor.warehouse.models import Allocation, PreorderAllocation
+from ....warehouse.models import Allocation, PreorderAllocation
+from ... import OrderOrigin, OrderStatus
+from ...base_calculations import base_order_subtotal
+from ...models import Order
 
 
 @pytest.fixture

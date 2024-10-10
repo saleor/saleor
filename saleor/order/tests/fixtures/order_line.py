@@ -3,15 +3,10 @@ from decimal import Decimal
 import pytest
 from prices import Money, TaxedMoney
 
-from saleor.order import OrderOrigin
-from saleor.order.fetch import OrderLineInfo
-from saleor.order.models import (
-    Order,
-)
-from saleor.warehouse.models import (
-    Allocation,
-    Stock,
-)
+from ....warehouse.models import Allocation, Stock
+from ... import OrderOrigin
+from ...fetch import OrderLineInfo
+from ...models import Order
 
 
 @pytest.fixture

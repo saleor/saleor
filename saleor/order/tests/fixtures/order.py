@@ -9,55 +9,36 @@ from django.utils import timezone
 from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
-from saleor.checkout.utils import (
-    get_prices_of_discounted_specific_product,
-)
-from saleor.core import JobStatus
-from saleor.core.taxes import zero_money
-from saleor.discount import (
-    DiscountType,
-    RewardType,
-    RewardValueType,
-    VoucherType,
-)
-from saleor.discount.models import (
-    NotApplicable,
-    Voucher,
-)
-from saleor.discount.utils.voucher import (
+from ....checkout.utils import get_prices_of_discounted_specific_product
+from ....core import JobStatus
+from ....core.taxes import zero_money
+from ....discount import DiscountType, RewardType, RewardValueType, VoucherType
+from ....discount.models import NotApplicable, Voucher
+from ....discount.utils.voucher import (
     get_products_voucher_discount,
     validate_voucher_in_order,
 )
-from saleor.order import OrderOrigin, OrderStatus
-from saleor.order.actions import cancel_fulfillment, fulfill_order_lines
-from saleor.order.events import (
-    OrderEvents,
-    fulfillment_refunded_event,
-    order_added_products_event,
-)
-from saleor.order.fetch import OrderLineInfo
-from saleor.order.models import (
-    FulfillmentStatus,
-    Order,
-    OrderEvent,
-    OrderLine,
-)
-from saleor.order.search import prepare_order_search_vector_value
-from saleor.order.utils import get_voucher_discount_assigned_to_order
-from saleor.payment.model_helpers import get_subtotal
-from saleor.plugins.manager import get_plugins_manager
-from saleor.product.models import (
+from ....payment.model_helpers import get_subtotal
+from ....plugins.manager import get_plugins_manager
+from ....product.models import (
     Product,
     ProductChannelListing,
     ProductVariant,
     ProductVariantChannelListing,
 )
-from saleor.tax.utils import calculate_tax_rate, get_tax_class_kwargs_for_order_line
-from saleor.warehouse.models import (
-    Allocation,
-    PreorderAllocation,
-    Stock,
+from ....tax.utils import calculate_tax_rate, get_tax_class_kwargs_for_order_line
+from ....warehouse.models import Allocation, PreorderAllocation, Stock
+from ... import OrderOrigin, OrderStatus
+from ...actions import cancel_fulfillment, fulfill_order_lines
+from ...events import (
+    OrderEvents,
+    fulfillment_refunded_event,
+    order_added_products_event,
 )
+from ...fetch import OrderLineInfo
+from ...models import FulfillmentStatus, Order, OrderEvent, OrderLine
+from ...search import prepare_order_search_vector_value
+from ...utils import get_voucher_discount_assigned_to_order
 
 
 def recalculate_order(order):
