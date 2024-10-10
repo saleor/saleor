@@ -771,10 +771,10 @@ def _prepare_checkout(
     if redirect_url:
         try:
             validate_storefront_url(redirect_url)
-        except ValidationError as error:
+        except ValidationError as e:
             raise ValidationError(
-                {"redirect_url": error}, code=AccountErrorCode.INVALID.value
-            )
+                {"redirect_url": e}, code=AccountErrorCode.INVALID.value
+            ) from e
 
     to_update = []
     if redirect_url and redirect_url != checkout.redirect_url:
@@ -824,11 +824,11 @@ def _prepare_checkout_with_transactions(
     )
     try:
         manager.preprocess_order_creation(checkout_info, lines)
-    except TaxError as tax_error:
+    except TaxError as e:
         raise ValidationError(
-            f"Unable to calculate taxes - {str(tax_error)}",
+            f"Unable to calculate taxes - {str(e)}",
             code=CheckoutErrorCode.TAX_ERROR.value,
-        )
+        ) from e
 
 
 def _prepare_checkout_with_payment(
@@ -872,19 +872,19 @@ def _get_order_data(
         )
     except InsufficientStock as e:
         error = prepare_insufficient_stock_checkout_validation_error(e)
-        raise error
-    except NotApplicable:
+        raise error from e
+    except NotApplicable as e:
         raise ValidationError(
             "Voucher not applicable",
             code=CheckoutErrorCode.VOUCHER_NOT_APPLICABLE.value,
-        )
+        ) from e
     except GiftCardNotApplicable as e:
-        raise ValidationError(e.message, code=e.code)
-    except TaxError as tax_error:
+        raise ValidationError(e.message, code=e.code) from e
+    except TaxError as e:
         raise ValidationError(
-            f"Unable to calculate taxes - {str(tax_error)}",
+            f"Unable to calculate taxes - {str(e)}",
             code=CheckoutErrorCode.TAX_ERROR.value,
-        )
+        ) from e
     return order_data
 
 
@@ -924,7 +924,7 @@ def _process_payment(
             raise PaymentError(txn.error)
     except PaymentError as e:
         _complete_checkout_fail_handler(checkout_info, manager)
-        raise ValidationError(str(e), code=CheckoutErrorCode.PAYMENT_ERROR.value)
+        raise ValidationError(str(e), code=CheckoutErrorCode.PAYMENT_ERROR.value) from e
     return txn
 
 
@@ -1031,7 +1031,7 @@ def complete_checkout_post_payment_part(
                 payment=payment,
             )
             error = prepare_insufficient_stock_checkout_validation_error(e)
-            raise error
+            raise error from e
         except GiftCardNotApplicable as e:
             _complete_checkout_fail_handler(
                 checkout_info,
@@ -1040,7 +1040,7 @@ def complete_checkout_post_payment_part(
                 voucher=checkout_info.voucher,
                 payment=payment,
             )
-            raise ValidationError(code=e.code, message=e.message)
+            raise ValidationError(code=e.code, message=e.message) from e
 
         # if the order total value is 0 it is paid from the definition
         if order.total.net.amount == 0:
@@ -1588,7 +1588,7 @@ def complete_checkout_with_transaction(
             private_metadata_list=private_metadata_list,
             is_automatic_completion=is_automatic_completion,
         )
-    except NotApplicable:
+    except NotApplicable as e:
         raise ValidationError(
             {
                 "voucher_code": ValidationError(
@@ -1596,12 +1596,12 @@ def complete_checkout_with_transaction(
                     code=CheckoutErrorCode.VOUCHER_NOT_APPLICABLE.value,
                 )
             }
-        )
+        ) from e
     except InsufficientStock as e:
         error = prepare_insufficient_stock_checkout_validation_error(e)
-        raise error
+        raise error from e
     except GiftCardNotApplicable as e:
-        raise ValidationError({"gift_cards": e})
+        raise ValidationError({"gift_cards": e}) from e
 
 
 def complete_checkout_with_payment(

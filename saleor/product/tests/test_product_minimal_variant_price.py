@@ -482,7 +482,7 @@ def test_management_commmand_update_all_products_discounted_price(
     assert mock_update_discounted_prices_for_promotion.call_count == len(product_list)
 
     call_args_list = mock_update_discounted_prices_for_promotion.call_args_list
-    for (args, kwargs), product in zip(call_args_list, product_list):
+    for (args, _kwargs), product in zip(call_args_list, product_list):
         assert len(args[0]) == 1
         assert args[0][0].pk == product.pk
 

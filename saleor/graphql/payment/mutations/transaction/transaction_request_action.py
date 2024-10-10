@@ -181,5 +181,5 @@ class TransactionRequestAction(BaseMutation):
         except PaymentError as e:
             error_enum = TransactionRequestActionErrorCode
             code = error_enum.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK.value
-            raise ValidationError(str(e), code=code)
+            raise ValidationError(str(e), code=code) from e
         return TransactionRequestAction(transaction=transaction)

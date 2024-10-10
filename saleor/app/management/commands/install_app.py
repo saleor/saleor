@@ -28,8 +28,10 @@ class Command(BaseCommand):
         url_validator = AppURLValidator()
         try:
             url_validator(manifest_url)
-        except ValidationError:
-            raise CommandError(f"Incorrect format of manifest-url: {manifest_url}")
+        except ValidationError as e:
+            raise CommandError(
+                f"Incorrect format of manifest-url: {manifest_url}"
+            ) from e
 
     def handle(self, *args: Any, **options: Any) -> Optional[str]:
         activate = options["activate"]

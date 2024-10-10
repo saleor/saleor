@@ -724,7 +724,7 @@ def add_voucher_code_to_checkout(
         add_voucher_to_checkout(
             manager, checkout_info, lines, code_instance.voucher, code_instance
         )
-    except NotApplicable:
+    except NotApplicable as e:
         raise ValidationError(
             {
                 "promo_code": ValidationError(
@@ -732,7 +732,7 @@ def add_voucher_code_to_checkout(
                     code=CheckoutErrorCode.VOUCHER_NOT_APPLICABLE.value,
                 )
             }
-        )
+        ) from e
 
 
 def add_voucher_to_checkout(

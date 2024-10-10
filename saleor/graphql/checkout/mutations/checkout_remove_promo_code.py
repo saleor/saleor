@@ -93,8 +93,8 @@ class CheckoutRemovePromoCode(BaseMutation):
         if promo_code:
             try:
                 remove_promo_code_from_checkout_or_error(checkout_info, promo_code)
-            except ValidationError as error:
-                raise ValidationError({"promo_code": error})
+            except ValidationError as e:
+                raise ValidationError({"promo_code": e}) from e
         else:
             object_type, promo_code_pk = cls.clean_promo_code_id(promo_code_id)
             cls.remove_promo_code_by_id_or_error(
@@ -133,7 +133,7 @@ class CheckoutRemovePromoCode(BaseMutation):
                         str(e), code=CheckoutErrorCode.GRAPHQL_ERROR.value
                     )
                 }
-            )
+            ) from e
 
         if object_type not in (str(Voucher), str(GiftCard)):
             raise ValidationError(

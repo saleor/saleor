@@ -82,10 +82,12 @@ def from_global_id_or_error(
             id_ = global_id
         else:
             validate_if_int_or_uuid(id_)
-    except (binascii.Error, UnicodeDecodeError, ValueError, ValidationError):
+    except (binascii.Error, UnicodeDecodeError, ValueError, ValidationError) as e:
         if only_type:
-            raise GraphQLError(f"Invalid ID: {global_id}. Expected: {only_type}.")
-        raise GraphQLError(f"Invalid ID: {global_id}.")
+            raise GraphQLError(
+                f"Invalid ID: {global_id}. Expected: {only_type}."
+            ) from e
+        raise GraphQLError(f"Invalid ID: {global_id}.") from e
 
     if only_type and str(type_) != str(only_type):
         if not raise_error:

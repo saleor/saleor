@@ -197,7 +197,7 @@ class OrderCreateFromCheckout(BaseMutation):
                 metadata_list=metadata,
                 private_metadata_list=private_metadata,
             )
-        except NotApplicable:
+        except NotApplicable as e:
             code = OrderCreateFromCheckoutErrorCode.VOUCHER_NOT_APPLICABLE.value
             raise ValidationError(
                 {
@@ -206,11 +206,11 @@ class OrderCreateFromCheckout(BaseMutation):
                         code=code,
                     )
                 }
-            )
+            ) from e
         except InsufficientStock as e:
             error = prepare_insufficient_stock_checkout_validation_error(e)
-            raise error
+            raise error from e
         except GiftCardNotApplicable as e:
-            raise ValidationError({"gift_cards": e})
+            raise ValidationError({"gift_cards": e}) from e
 
         return OrderCreateFromCheckout(order=order)

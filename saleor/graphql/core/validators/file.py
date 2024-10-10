@@ -87,7 +87,7 @@ def clean_image_file(cleaned_input, img_field_name, error_class):
                     code=error_class.INVALID.value,
                 )
             }
-        )
+        ) from e
 
     try:
         # validate if the image MIME type is supported
@@ -95,7 +95,7 @@ def clean_image_file(cleaned_input, img_field_name, error_class):
     except ValueError as e:
         raise ValidationError(
             {img_field_name: ValidationError(str(e), code=error_class.INVALID.value)}
-        )
+        ) from e
 
     add_hash_to_file_name(img_file)
     return img_file
@@ -145,4 +145,4 @@ def _validate_image_exif(img, field_name, error_class):
                     code=error_class.INVALID.value,
                 )
             }
-        )
+        ) from e

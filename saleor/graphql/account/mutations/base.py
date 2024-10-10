@@ -294,10 +294,10 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
         if cleaned_input.get("redirect_url"):
             try:
                 validate_storefront_url(cleaned_input.get("redirect_url"))
-            except ValidationError as error:
+            except ValidationError as e:
                 raise ValidationError(
-                    {"redirect_url": error}, code=AccountErrorCode.INVALID.value
-                )
+                    {"redirect_url": e}, code=AccountErrorCode.INVALID.value
+                ) from e
 
         email = cleaned_input.get("email")
         if email:

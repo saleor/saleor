@@ -80,7 +80,8 @@ def clean_text_data(text: str):
         if url.scheme in BLACKLISTED_URL_SCHEMES:
             warnings.warn(
                 f"An invalid url was sent: {original_url} "
-                f"-- Scheme: {url.scheme} is blacklisted"
+                f"-- Scheme: {url.scheme} is blacklisted",
+                stacklevel=1,
             )
             new_url = "#invalid"
 

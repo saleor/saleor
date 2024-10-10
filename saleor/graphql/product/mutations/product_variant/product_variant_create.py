@@ -268,8 +268,8 @@ class ProductVariantCreate(ModelMutation):
                         "All required attributes must take a value.",
                         ProductErrorCode.REQUIRED.value,
                     )
-            except ValidationError as exc:
-                raise ValidationError({"attributes": exc})
+            except ValidationError as e:
+                raise ValidationError({"attributes": e}) from e
         else:
             if attributes:
                 raise ValidationError(

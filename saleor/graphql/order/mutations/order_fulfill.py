@@ -315,8 +315,8 @@ class OrderFulfill(BaseMutation):
                 approved=approved,
                 tracking_number=tracking_number,
             )
-        except InsufficientStock as exc:
-            errors = prepare_insufficient_stock_order_validation_errors(exc)
-            raise ValidationError({"stocks": errors})
+        except InsufficientStock as e:
+            errors = prepare_insufficient_stock_order_validation_errors(e)
+            raise ValidationError({"stocks": errors}) from e
 
         return OrderFulfill(fulfillments=fulfillments, order=instance)

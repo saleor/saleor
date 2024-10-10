@@ -1526,7 +1526,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 OrderBulkTransaction(transaction=new_transaction, events=events)
             )
         except ValidationError as error:
-            for field, err in error.error_dict.items():
+            for _field, err in error.error_dict.items():
                 message = str(err[0].message)
                 code = err[0].code
                 order_data.errors.append(

@@ -174,7 +174,7 @@ def try_payment_action(order, user, app, payment, func, *args, **kwargs):
                     message, code=OrderErrorCode.PAYMENT_ERROR.value
                 )
             }
-        )
+        ) from e
 
 
 def clean_payment(payment: Optional[payment_models.Payment]) -> payment_models.Payment:

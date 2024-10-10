@@ -205,8 +205,10 @@ class TaxConfigurationUpdate(ModelMutation):
         info: ResolveInfo,
         app_identifier,
         active_tax_app_identifiers,
-        country_codes=[],
+        country_codes=None,
     ):
+        if country_codes is None:
+            country_codes = []
         if app_identifier not in active_tax_app_identifiers:
             message = "Did not found Tax App with provided taxAppId."
             code = error_codes.TaxConfigurationUpdateErrorCode.NOT_FOUND.value

@@ -47,7 +47,7 @@ class VariantMediaUnassign(BaseMutation):
             variant_media = models.VariantMedia.objects.get(
                 media=media, variant=variant
             )
-        except models.VariantMedia.DoesNotExist:
+        except models.VariantMedia.DoesNotExist as e:
             raise ValidationError(
                 {
                     "media_id": ValidationError(
@@ -55,7 +55,7 @@ class VariantMediaUnassign(BaseMutation):
                         code=ProductErrorCode.NOT_PRODUCTS_IMAGE.value,
                     )
                 }
-            )
+            ) from e
         else:
             variant_media.delete()
 

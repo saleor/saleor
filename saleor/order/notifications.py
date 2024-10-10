@@ -108,7 +108,7 @@ def get_default_images_payload(images: list[ProductMedia]):
         first_image_payload = {"original": get_image_payload(first_image)}
     images_payload = None
     if images:
-        images_payload = [{"original": get_image_payload(image) for image in images}]
+        images_payload = [{"original": get_image_payload(image) for image in images}]  # noqa: B035
     return {"first_image": first_image_payload, "images": images_payload}
 
 

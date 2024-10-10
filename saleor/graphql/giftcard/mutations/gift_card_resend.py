@@ -58,7 +58,7 @@ class GiftCardResend(BaseMutation):
         if email := data.get("email"):
             try:
                 validate_email(email)
-            except ValidationError:
+            except ValidationError as e:
                 raise ValidationError(
                     {
                         "email": ValidationError(
@@ -66,7 +66,7 @@ class GiftCardResend(BaseMutation):
                             code=GiftCardErrorCode.INVALID.value,
                         )
                     }
-                )
+                ) from e
 
         return data
 

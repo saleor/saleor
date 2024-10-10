@@ -18,4 +18,4 @@ def test_site_settings_default_from_email(settings):
     assert site.settings.default_from_email == settings.DEFAULT_FROM_EMAIL
     settings.DEFAULT_FROM_EMAIL = None
     with pytest.raises(ImproperlyConfigured):
-        site.settings.default_from_email
+        _x = site.settings.default_from_email

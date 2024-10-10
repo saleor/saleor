@@ -101,9 +101,9 @@ class FulfillmentApprove(BaseMutation):
                 notify_customer=notify_customer,
                 allow_stock_to_be_exceeded=allow_stock_to_be_exceeded,
             )
-        except InsufficientStock as exc:
-            errors = prepare_insufficient_stock_order_validation_errors(exc)
-            raise ValidationError({"stocks": errors})
+        except InsufficientStock as e:
+            errors = prepare_insufficient_stock_order_validation_errors(e)
+            raise ValidationError({"stocks": errors}) from e
 
         order.refresh_from_db(fields=["status"])
         return FulfillmentApprove(fulfillment=fulfillment, order=order)

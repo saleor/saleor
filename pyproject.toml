@@ -185,9 +185,44 @@ exclude = [
 
 
 [tool.ruff]
-lint.extend-select = ["D", "I", "ISC001", "ISC002", "PIE", "PT", "T20", "UP"]
-lint.ignore = ["D100", "D101", "D102", "D103", "D104", "D105", "D106", "D107", "D202", "D203", "D206", "D213", "D407", "PT019"]
 target-version = "py39"
+
+  [tool.ruff.lint]
+  select = [
+    "ASYNC",
+    "B",
+    "D",
+    "E",
+    "F",
+    "I",
+    "ISC001",
+    "ISC002",
+    "PIE",
+    "PT",
+    "T20",
+    "UP",
+    "W"
+  ]
+  ignore = [
+    "B009", # Do not call getattr with a constant value
+    "B010", # Do not call setattr with a constant value
+    "B023", # Function definition does not bind loop variable
+    "D100", # Missing docstring in public module
+    "D101", # Missing docstring in public class
+    "D102", # Missing docstring in public method
+    "D103", # Missing docstring in public function
+    "D104", # Missing docstring in public package
+    "D105", # Missing docstring in magic method
+    "D106", # Missing docstring in public nested class
+    "D107", # Missing docstring in __init__
+    "D202", # No blank lines allowed after function docstring
+    "D203", # 1 blank line required before class docstring
+    "D206", # Docstring should be indented with spaces, not tabs
+    "D213", # Multi-line docstring summary should start at the second line
+    "D407", # Missing dashed underline after section
+    "E501", # Line too long
+    "PT019" # Fixture without value is injected as parameter, use @pytest.mark.usefixtures instead
+  ]
 
   [tool.ruff.lint.flake8-pytest-style]
   fixture-parentheses = false

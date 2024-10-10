@@ -51,7 +51,7 @@ def test_put_event(buffer, event_data):
 
 
 def test_buffer_put_events_max_size(buffer, event_data):
-    for i in range(MAX_SIZE * 2):
+    for _i in range(MAX_SIZE * 2):
         buffer.put_event(event_data)
     assert buffer.size() == MAX_SIZE
 

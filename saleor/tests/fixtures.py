@@ -1433,12 +1433,16 @@ def order_generator(customer_user, channel_USD):
         user=customer_user,
         origin=OrderOrigin.CHECKOUT,
         should_refresh_prices=False,
-        metadata={"key": "value"},
-        private_metadata={"secret_key": "secret_value"},
+        metadata=None,
+        private_metadata=None,
         checkout_token="",
         status=OrderStatus.UNFULFILLED,
         search_vector_class=None,
     ):
+        if metadata is None:
+            metadata = {"key": "value"}
+        if private_metadata is None:
+            private_metadata = {"secret_key": "secret_value"}
         order = Order.objects.create(
             billing_address=billing_address,
             channel=channel,

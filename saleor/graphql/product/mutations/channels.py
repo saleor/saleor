@@ -296,7 +296,7 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
 
         try:
             ProductVariantChannelListing.objects.bulk_create(variant_channel_listings)
-        except IntegrityError:
+        except IntegrityError as e:
             raise ValidationError(
                 {
                     "addVariants": ValidationError(
@@ -305,7 +305,7 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
                         code=ProductErrorCode.ALREADY_EXISTS.value,
                     )
                 }
-            )
+            ) from e
 
     @classmethod
     def remove_variants(

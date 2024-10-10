@@ -267,15 +267,15 @@ class TransactionEventReport(ModelMutation):
                 )
             try:
                 amount = get_transaction_event_amount(event_type, psp_reference)
-            except ValueError as error:
+            except ValueError as e:
                 raise ValidationError(
                     {
                         "amount": ValidationError(
-                            str(error),
+                            str(e),
                             code=TransactionEventReportErrorCode.REQUIRED.value,
                         )
                     },
-                )
+                ) from e
         return quantize_price(amount, currency)
 
     @classmethod

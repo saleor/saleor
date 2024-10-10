@@ -169,10 +169,10 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             return
         try:
             validate_storefront_url(return_url)
-        except ValidationError as error:
+        except ValidationError as e:
             raise ValidationError(
-                {"redirect_url": error}, code=PaymentErrorCode.INVALID.value
-            )
+                {"redirect_url": e}, code=PaymentErrorCode.INVALID.value
+            ) from e
 
     @classmethod
     def validate_metadata_keys(cls, metadata_list: list[dict]):

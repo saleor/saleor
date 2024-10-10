@@ -14,7 +14,7 @@ class NotifyHandler:
     def __init__(self, payload_func):
         self.generate_payload_func = payload_func
 
-    @cache
+    @cache  # noqa: B019
     def payload(self):
         return self.generate_payload_func()
 

@@ -16,6 +16,6 @@ if settings.ENABLE_DEBUG_TOOLBAR:
     try:
         from graphiql_debug_toolbar.middleware import DebugToolbarMiddleware
     except ImportError:
-        warnings.warn("The graphiql debug toolbar was not installed.")
+        warnings.warn("The graphiql debug toolbar was not installed.", stacklevel=1)
     else:
         DebugToolbarMiddleware.process_view = process_view

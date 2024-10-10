@@ -30,7 +30,7 @@ class OrderNoteCommon(BaseMutation):
     def clean_input(cls, _info, _instance, data):
         try:
             cleaned_input = validate_required_string_field(data, "message")
-        except ValidationError:
+        except ValidationError as e:
             raise ValidationError(
                 {
                     "message": ValidationError(
@@ -38,5 +38,5 @@ class OrderNoteCommon(BaseMutation):
                         code=OrderNoteAddErrorCode.REQUIRED.value,
                     )
                 }
-            )
+            ) from e
         return cleaned_input

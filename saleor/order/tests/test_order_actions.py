@@ -359,7 +359,7 @@ def test_handle_fully_paid_order_gift_cards_not_created(
     mock_send_payment_confirmation.assert_called_once_with(order_info, manager)
 
     assert not GiftCard.objects.exists()
-    send_notification_mock.assert_not_called
+    send_notification_mock.assert_not_called()
 
 
 @pytest.mark.parametrize("automatically_confirm_all_new_orders", [True, False])

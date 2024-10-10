@@ -265,7 +265,7 @@ class BaseMutation(graphene.Mutation):
         except GraphQLError as e:
             raise ValidationError(
                 {field: ValidationError(str(e), code="graphql_error")}
-            )
+            ) from e
         return pk
 
     @overload
@@ -364,7 +364,7 @@ class BaseMutation(graphene.Mutation):
         except (AssertionError, GraphQLError) as e:
             raise ValidationError(
                 {field: ValidationError(str(e), code="graphql_error")}
-            )
+            ) from e
         else:
             if node is None:
                 raise ValidationError(
@@ -390,7 +390,7 @@ class BaseMutation(graphene.Mutation):
         except GraphQLError as e:
             raise ValidationError(
                 {field: ValidationError(str(e), code="graphql_error")}
-            )
+            ) from e
         return pks
 
     @overload
@@ -412,7 +412,7 @@ class BaseMutation(graphene.Mutation):
         except GraphQLError as e:
             raise ValidationError(
                 {field: ValidationError(str(e), code="graphql_error")}
-            )
+            ) from e
         return instances
 
     @staticmethod

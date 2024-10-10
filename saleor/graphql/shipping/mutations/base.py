@@ -424,7 +424,7 @@ class ShippingPriceMixin:
                         instance.postal_code_rules.create(
                             start=start, end=end, inclusion_type=inclusion_type
                         )
-                    except IntegrityError:
+                    except IntegrityError as e:
                         raise ValidationError(
                             {
                                 "addPostalCodeRules": ValidationError(
@@ -432,7 +432,7 @@ class ShippingPriceMixin:
                                     code=ShippingErrorCode.ALREADY_EXISTS.value,
                                 )
                             }
-                        )
+                        ) from e
 
 
 class ShippingMethodTypeMixin:

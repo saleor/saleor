@@ -529,7 +529,7 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
         for (
             country_code,
             channel_slug,
-        ), variant_ids in variant_ids_by_country_and_channel_map.items():
+        ), _variant_ids in variant_ids_by_country_and_channel_map.items():
             warehouses = set()
             warehouses_in_country = set()
             # get warehouses from shipping zones in specific country

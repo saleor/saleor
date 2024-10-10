@@ -36,9 +36,11 @@ mutation createWarehouse($input: WarehouseCreateInput!) {
 def create_warehouse(
     staff_api_client,
     name="Test warehouse",
-    slug=f"warehouse_slug_{uuid.uuid4()}",
+    slug=None,
     address=DEFAULT_ADDRESS,
 ):
+    if slug is None:
+        slug = f"warehouse_slug_{uuid.uuid4()}"
     variables = {
         "input": {
             "name": name,

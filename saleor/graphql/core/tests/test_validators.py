@@ -99,7 +99,7 @@ def test_validate_one_of_args_is_in_query_single_arg():
 
 def test_validate_one_of_args_is_in_query_single_arg_absent():
     with pytest.raises(GraphQLError) as error:
-        validate_one_of_args_is_in_query("arg1", None) is None
+        assert validate_one_of_args_is_in_query("arg1", None) is None
     assert error.value.message == "At least one of arguments is required: 'arg1'."
 
 

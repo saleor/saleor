@@ -153,11 +153,11 @@ class ShopSettingsUpdate(BaseMutation):
         if data.get("customer_set_password_url"):
             try:
                 validate_storefront_url(data["customer_set_password_url"])
-            except ValidationError as error:
+            except ValidationError as e:
                 raise ValidationError(
-                    {"customer_set_password_url": error},
+                    {"customer_set_password_url": e},
                     code=ShopErrorCode.INVALID.value,
-                )
+                ) from e
 
         if "reserve_stock_duration_anonymous_user" in data:
             new_value = data["reserve_stock_duration_anonymous_user"]

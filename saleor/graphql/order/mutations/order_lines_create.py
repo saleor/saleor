@@ -129,9 +129,9 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
             channel = order.channel
             validate_product_is_published_in_channel(variants, channel)
             validate_variant_channel_listings(variants, channel)
-        except ValidationError as error:
-            cls.remap_error_fields(error, cls._meta.errors_mapping)
-            raise ValidationError(error)
+        except ValidationError as e:
+            cls.remap_error_fields(e, cls._meta.errors_mapping)
+            raise ValidationError(e) from e
 
     @staticmethod
     def add_lines_to_order(order, lines_data, user, app, manager):
@@ -147,11 +147,11 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
                     allocate_stock=order.is_unconfirmed(),
                 )
                 added_lines.append(line)
-        except TaxError as tax_error:
+        except TaxError as e:
             raise ValidationError(
-                f"Unable to calculate taxes - {str(tax_error)}",
+                f"Unable to calculate taxes - {str(e)}",
                 code=OrderErrorCode.TAX_ERROR.value,
-            )
+            ) from e
         return added_lines
 
     @classmethod

@@ -170,7 +170,10 @@ ENABLE_SSL: bool = get_bool_from_env("ENABLE_SSL", False)
 PUBLIC_URL: Optional[str] = get_url_from_env("PUBLIC_URL", schemes=["http", "https"])
 if PUBLIC_URL:
     if os.environ.get("ENABLE_SSL") is not None:
-        warnings.warn("ENABLE_SSL is ignored on URL generation if PUBLIC_URL is set.")
+        warnings.warn(
+            "ENABLE_SSL is ignored on URL generation if PUBLIC_URL is set.",
+            stacklevel=1,
+        )
     ENABLE_SSL = urlparse(PUBLIC_URL).scheme.lower() == "https"
 
 if ENABLE_SSL:
@@ -232,7 +235,9 @@ PASSWORD_HASHERS = [
 ]
 
 if not SECRET_KEY and DEBUG:
-    warnings.warn("SECRET_KEY not configured, using a random temporary key.")
+    warnings.warn(
+        "SECRET_KEY not configured, using a random temporary key.", stacklevel=1
+    )
     SECRET_KEY = get_random_secret_key()
 
 RSA_PRIVATE_KEY = os.environ.get("RSA_PRIVATE_KEY", None)
@@ -318,7 +323,7 @@ if ENABLE_DEBUG_TOOLBAR:
             f"{exc} -- Install the missing dependencies by "
             f"running `poetry install --no-root`"
         )
-        warnings.warn(msg)
+        warnings.warn(msg, stacklevel=1)
     else:
         INSTALLED_APPS += ["django.forms", "debug_toolbar", "graphiql_debug_toolbar"]
         MIDDLEWARE.append("saleor.graphql.middleware.DebugToolbarMiddleware")
@@ -727,7 +732,8 @@ if OBSERVABILITY_ACTIVE:
     if OBSERVABILITY_BUFFER_TIMEOUT < OBSERVABILITY_REPORT_PERIOD * 2:
         warnings.warn(
             "OBSERVABILITY_REPORT_PERIOD is too big compared to "
-            "OBSERVABILITY_BUFFER_TIMEOUT. That can lead to a loss of events."
+            "OBSERVABILITY_BUFFER_TIMEOUT. That can lead to a loss of events.",
+            stacklevel=1,
         )
 
 # Change this value if your application is running behind a proxy,

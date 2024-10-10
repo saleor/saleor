@@ -297,7 +297,7 @@ class DraftOrderCreate(
             # Validate voucher when it's included in voucher usage calculation
             try:
                 code_instance = get_active_voucher_code(voucher, channel.slug)
-            except ValidationError:
+            except ValidationError as e:
                 raise ValidationError(
                     {
                         "voucher": ValidationError(
@@ -305,7 +305,7 @@ class DraftOrderCreate(
                             code=OrderErrorCode.INVALID_VOUCHER.value,
                         )
                     }
-                )
+                ) from e
         else:
             cls.clean_voucher_listing(voucher, channel, "voucher")
         if not code_instance:
@@ -326,7 +326,7 @@ class DraftOrderCreate(
             # Validate voucher when it's included in voucher usage calculation
             try:
                 code_instance = get_voucher_code_instance(voucher_code, channel.slug)
-            except ValidationError:
+            except ValidationError as e:
                 raise ValidationError(
                     {
                         "voucher_code": ValidationError(
@@ -334,7 +334,7 @@ class DraftOrderCreate(
                             code=OrderErrorCode.INVALID_VOUCHER_CODE.value,
                         )
                     }
-                )
+                ) from e
             voucher = code_instance.voucher
         else:
             code_instance = VoucherCode.objects.filter(code=voucher_code).first()
@@ -454,9 +454,9 @@ class DraftOrderCreate(
     def clean_redirect_url(cls, redirect_url):
         try:
             validate_storefront_url(redirect_url)
-        except ValidationError as error:
-            error.code = OrderErrorCode.INVALID.value
-            raise ValidationError({"redirect_url": error})
+        except ValidationError as e:
+            e.code = OrderErrorCode.INVALID.value
+            raise ValidationError({"redirect_url": e}) from e
 
     @staticmethod
     def _save_addresses(instance: models.Order, cleaned_input):
@@ -543,11 +543,11 @@ class DraftOrderCreate(
                 cls._save_lines(
                     info, instance, cleaned_input.get("lines_data"), app, manager
                 )
-            except TaxError as tax_error:
+            except TaxError as e:
                 raise ValidationError(
-                    f"Unable to calculate taxes - {str(tax_error)}",
+                    f"Unable to calculate taxes - {str(e)}",
                     code=OrderErrorCode.TAX_ERROR.value,
-                )
+                ) from e
 
             if "shipping_method" in cleaned_input:
                 method = cleaned_input["shipping_method"]

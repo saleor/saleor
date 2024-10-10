@@ -267,7 +267,7 @@ class ProductAttributeAssign(BaseMutation, VariantAssignmentValidationMixin):
                     variant_selection=variant_selection,
                 )
         else:
-            for pk, variant_selection, _ in pks:
+            for pk, _variant_selection, _ in pks:
                 model.objects.create(
                     product_type=product_type,
                     attribute_id=pk,
@@ -596,7 +596,7 @@ class ProductTypeReorderAttributes(BaseReorderAttributesMutation):
             product_type = models.ProductType.objects.prefetch_related(m2m_field).get(
                 pk=pk
             )
-        except ObjectDoesNotExist:
+        except ObjectDoesNotExist as e:
             raise ValidationError(
                 {
                     "product_type_id": ValidationError(
@@ -604,15 +604,15 @@ class ProductTypeReorderAttributes(BaseReorderAttributesMutation):
                         code=ProductErrorCode.NOT_FOUND.value,
                     )
                 }
-            )
+            ) from e
 
         attributes_m2m = getattr(product_type, m2m_field)
 
         try:
             operations = cls.prepare_operations(moves, attributes_m2m)
-        except ValidationError as error:
-            error.code = ProductErrorCode.NOT_FOUND.value
-            raise ValidationError({"moves": error})
+        except ValidationError as e:
+            e.code = ProductErrorCode.NOT_FOUND.value
+            raise ValidationError({"moves": e}) from e
 
         with traced_atomic_transaction():
             perform_reordering(attributes_m2m, operations)
@@ -665,9 +665,9 @@ class ProductReorderAttributeValues(BaseReorderAttributeValuesMutation):
 
         try:
             operations = cls.prepare_operations(moves, values_m2m)
-        except ValidationError as error:
-            error.code = error_code_enum.NOT_FOUND.value
-            raise ValidationError({"moves": error})
+        except ValidationError as e:
+            e.code = error_code_enum.NOT_FOUND.value
+            raise ValidationError({"moves": e}) from e
 
         with traced_atomic_transaction():
             perform_reordering(values_m2m, operations)
@@ -693,7 +693,7 @@ class ProductReorderAttributeValues(BaseReorderAttributeValuesMutation):
 
         try:
             product = models.Product.objects.get(pk=pk)
-        except ObjectDoesNotExist:
+        except ObjectDoesNotExist as e:
             raise ValidationError(
                 {
                     "product_id": ValidationError(
@@ -701,7 +701,7 @@ class ProductReorderAttributeValues(BaseReorderAttributeValuesMutation):
                         code=ProductErrorCode.NOT_FOUND.value,
                     )
                 }
-            )
+            ) from e
         return product
 
     @classmethod
@@ -777,7 +777,7 @@ class ProductVariantReorderAttributeValues(BaseReorderAttributeValuesMutation):
             variant = models.ProductVariant.objects.prefetch_related("attributes").get(
                 pk=pk
             )
-        except ObjectDoesNotExist:
+        except ObjectDoesNotExist as e:
             raise ValidationError(
                 {
                     "variant_id": ValidationError(
@@ -785,5 +785,5 @@ class ProductVariantReorderAttributeValues(BaseReorderAttributeValuesMutation):
                         code=ProductErrorCode.NOT_FOUND.value,
                     )
                 }
-            )
+            ) from e
         return variant

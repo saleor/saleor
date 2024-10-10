@@ -53,7 +53,7 @@ class GiftCardAddNote(BaseMutation):
     def clean_input(cls, _info: ResolveInfo, _instance, data):
         try:
             cleaned_input = validate_required_string_field(data, "message")
-        except ValidationError:
+        except ValidationError as e:
             raise ValidationError(
                 {
                     "message": ValidationError(
@@ -61,7 +61,7 @@ class GiftCardAddNote(BaseMutation):
                         code=GiftCardErrorCode.REQUIRED.value,
                     )
                 }
-            )
+            ) from e
         return cleaned_input
 
     @classmethod

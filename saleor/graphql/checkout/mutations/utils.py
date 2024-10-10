@@ -220,7 +220,7 @@ def check_lines_quantity(
             )
             for item in e.items
         ]
-        raise ValidationError({"quantity": errors})
+        raise ValidationError({"quantity": errors}) from e
 
 
 def get_not_available_variants_for_purchase(
@@ -310,7 +310,7 @@ def get_checkout_by_token(
         )
     try:
         checkout = qs.get(token=token)
-    except ObjectDoesNotExist:
+    except ObjectDoesNotExist as e:
         raise ValidationError(
             {
                 "token": ValidationError(
@@ -318,7 +318,7 @@ def get_checkout_by_token(
                     code=CheckoutErrorCode.NOT_FOUND.value,
                 )
             }
-        )
+        ) from e
     return checkout
 
 

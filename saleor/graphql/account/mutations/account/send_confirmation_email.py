@@ -84,11 +84,11 @@ class SendConfirmationEmail(BaseMutation):
 
         try:
             validate_storefront_url(redirect_url)
-        except ValidationError as error:
+        except ValidationError as e:
             raise ValidationError(
-                {"redirect_url": error},
+                {"redirect_url": e},
                 code=SendConfirmationEmailErrorCode.INVALID.value,
-            )
+            ) from e
 
         return user
 

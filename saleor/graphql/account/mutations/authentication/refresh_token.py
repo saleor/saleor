@@ -54,7 +54,7 @@ class RefreshToken(BaseMutation):
         try:
             payload = get_payload(refresh_token)
         except ValidationError as e:
-            raise ValidationError({"refreshToken": e})
+            raise ValidationError({"refreshToken": e}) from e
         return payload
 
     @classmethod
@@ -117,7 +117,7 @@ class RefreshToken(BaseMutation):
         try:
             user = get_user(payload)
         except ValidationError as e:
-            raise ValidationError({"refresh_token": e})
+            raise ValidationError({"refresh_token": e}) from e
         return user
 
     @classmethod

@@ -126,14 +126,14 @@ class TransactionCreate(BaseMutation):
         validator = URLValidator()
         try:
             validator(external_url)
-        except ValidationError:
+        except ValidationError as e:
             raise ValidationError(
                 {
                     "transaction": ValidationError(
                         "Invalid format of `externalUrl`.", code=error_code
                     )
                 }
-            )
+            ) from e
 
     @classmethod
     def validate_metadata_keys(  # type: ignore[override]

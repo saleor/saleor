@@ -266,11 +266,11 @@ class OpenIDConnectPlugin(BasePlugin):
 
         try:
             state_data = signing.loads(state)
-        except signing.BadSignature:
+        except signing.BadSignature as e:
             msg = "Bad signature"
             raise ValidationError(
                 {"state": ValidationError(msg, code=PluginErrorCode.INVALID.value)}
-            )
+            ) from e
 
         redirect_uri = state_data.get("redirectUri")
         if not redirect_uri:
@@ -283,14 +283,14 @@ class OpenIDConnectPlugin(BasePlugin):
             token_data = self.oauth.fetch_token(
                 self.config.token_url, code=code, redirect_uri=redirect_uri
             )
-        except AuthlibBaseError as error:
+        except AuthlibBaseError as e:
             raise ValidationError(
                 {
                     "code": ValidationError(
-                        error.description, code=PluginErrorCode.INVALID.value
+                        e.description, code=PluginErrorCode.INVALID.value
                     )
                 }
-            )
+            ) from e
 
         try:
             parsed_id_token = get_parsed_id_token(
@@ -303,7 +303,7 @@ class OpenIDConnectPlugin(BasePlugin):
         except AuthenticationError as e:
             raise ValidationError(
                 {"code": ValidationError(str(e), code=PluginErrorCode.INVALID.value)}
-            )
+            ) from e
 
         user_permissions = []
         is_staff_user_email = self.is_staff_user_email(user)
@@ -398,7 +398,7 @@ class OpenIDConnectPlugin(BasePlugin):
                 token_endpoint,
                 refresh_token=saleor_refresh_token[OAUTH_TOKEN_REFRESH_FIELD],
             )
-        except (AuthlibBaseError, HTTPError):
+        except (AuthlibBaseError, HTTPError) as e:
             logger.warning("Unable to refresh the token.", exc_info=True)
             raise ValidationError(
                 {
@@ -407,7 +407,7 @@ class OpenIDConnectPlugin(BasePlugin):
                         code=error_code,
                     )
                 }
-            )
+            ) from e
         try:
             parsed_id_token = get_parsed_id_token(
                 token_data, self.config.json_web_key_set_url
@@ -429,7 +429,7 @@ class OpenIDConnectPlugin(BasePlugin):
         except AuthenticationError as e:
             raise ValidationError(
                 {"refreshToken": ValidationError(str(e), code=error_code)}
-            )
+            ) from e
 
     def get_and_update_user_permissions(
         self, user: User, use_scope_permissions: bool, scope: str
@@ -481,7 +481,7 @@ class OpenIDConnectPlugin(BasePlugin):
                 return previous_value
             user.is_staff = False
         except (ExpiredSignatureError, InvalidTokenError) as e:
-            raise ValidationError({"token": e})
+            raise ValidationError({"token": e}) from e
         permissions = payload.get(PERMISSIONS_FIELD)
         if permissions:
             user.is_staff = True
