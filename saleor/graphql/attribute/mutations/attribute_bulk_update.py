@@ -15,7 +15,6 @@ from ....core.tracing import traced_atomic_transaction
 from ....permission.enums import PageTypePermissions, ProductTypePermissions
 from ....webhook.utils import get_webhooks_for_event
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_315, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ...core.enums import ErrorPolicyEnum
 from ...core.mutations import BaseMutation, ModelMutation
@@ -99,7 +98,7 @@ class AttributeBulkUpdate(BaseMutation):
         )
 
     class Meta:
-        description = "Updates attributes." + ADDED_IN_315 + PREVIEW_FEATURE
+        description = "Updates attributes."
         doc_category = DOC_CATEGORY_ATTRIBUTES
         error_type_class = AttributeBulkUpdateError
         webhook_events_info = [

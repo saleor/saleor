@@ -5,7 +5,6 @@ from ....warehouse import models
 from ...account.i18n import I18nMixin
 from ...account.mixins import AddressMetadataMixin
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_316
 from ...core.mutations import ModelWithExtRefMutation
 from ...core.types import WarehouseError
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -31,7 +30,7 @@ class WarehouseUpdate(
         )
         external_reference = graphene.String(
             required=False,
-            description="External reference of a warehouse." + ADDED_IN_316,
+            description="External reference of a warehouse.",
         )
 
     @classmethod

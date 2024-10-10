@@ -19,7 +19,6 @@ from ....account.utils import (
     get_out_of_scope_users,
 )
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_314, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.enums import PermissionEnum
 from ....core.types import NonNullList, PermissionGroupError
@@ -44,15 +43,10 @@ class PermissionGroupUpdateInput(PermissionGroupInput):
         required=False,
     )
     remove_channels = NonNullList(
-        graphene.ID,
-        description="List of channels to unassign from this group."
-        + ADDED_IN_314
-        + PREVIEW_FEATURE,
+        graphene.ID, description="List of channels to unassign from this group."
     )
     restricted_access_to_channels = graphene.Boolean(
-        description="Determine if the group has restricted access to channels."
-        + ADDED_IN_314
-        + PREVIEW_FEATURE,
+        description="Determine if the group has restricted access to channels.",
         required=False,
     )
 

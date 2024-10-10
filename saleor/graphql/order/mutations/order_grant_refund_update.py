@@ -10,8 +10,6 @@ from ....order.utils import update_order_charge_data
 from ....permission.enums import OrderPermissions
 from ...core import ResolveInfo
 from ...core.descriptions import (
-    ADDED_IN_313,
-    ADDED_IN_315,
     ADDED_IN_320,
     PREVIEW_FEATURE,
 )
@@ -46,16 +44,12 @@ class OrderGrantRefundUpdateError(Error):
 
     add_lines = NonNullList(
         OrderGrantRefundUpdateLineError,
-        description="List of lines to add which cause the error."
-        + ADDED_IN_315
-        + PREVIEW_FEATURE,
+        description="List of lines to add which cause the error.",
         required=False,
     )
     remove_lines = NonNullList(
         OrderGrantRefundUpdateLineError,
-        description="List of lines to remove which cause the error."
-        + ADDED_IN_315
-        + PREVIEW_FEATURE,
+        description="List of lines to remove which cause the error.",
         required=False,
     )
 
@@ -85,22 +79,16 @@ class OrderGrantRefundUpdateInput(BaseInputObjectType):
     reason = graphene.String(description="Reason of the granted refund.")
     add_lines = NonNullList(
         OrderGrantRefundUpdateLineAddInput,
-        description="Lines to assign to granted refund."
-        + ADDED_IN_315
-        + PREVIEW_FEATURE,
+        description="Lines to assign to granted refund.",
         required=False,
     )
     remove_lines = NonNullList(
         graphene.ID,
-        description="Lines to remove from granted refund."
-        + ADDED_IN_315
-        + PREVIEW_FEATURE,
+        description="Lines to remove from granted refund.",
         required=False,
     )
     grant_refund_for_shipping = graphene.Boolean(
-        description="Determine if granted refund should include shipping costs."
-        + ADDED_IN_315
-        + PREVIEW_FEATURE,
+        description="Determine if granted refund should include shipping costs.",
         required=False,
     )
     transaction_id = graphene.ID(
@@ -138,7 +126,7 @@ class OrderGrantRefundUpdate(BaseMutation):
         )
 
     class Meta:
-        description = "Updates granted refund." + ADDED_IN_313 + PREVIEW_FEATURE
+        description = "Updates granted refund."
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderGrantRefundUpdateError
         doc_category = DOC_CATEGORY_ORDERS

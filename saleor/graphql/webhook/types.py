@@ -11,7 +11,7 @@ from ..core.connection import (
     filter_connection_queryset,
 )
 from ..core.context import get_database_connection_name
-from ..core.descriptions import ADDED_IN_312, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
+from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.fields import FilterConnectionField, JSONString
 from ..core.scalars import DateTime
 from ..core.types import ModelObjectType, NonNullList
@@ -201,8 +201,6 @@ class Webhook(ModelObjectType[models.Webhook]):
     )
     custom_headers = JSONString(
         description="Custom headers, which will be added to HTTP request."
-        + ADDED_IN_312
-        + PREVIEW_FEATURE
     )
 
     class Meta:

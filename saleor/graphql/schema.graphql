@@ -1653,13 +1653,7 @@ type Webhook implements Node @doc(category: "Webhooks") {
   """Used to define payloads for specific events."""
   subscriptionQuery: String
 
-  """
-  Custom headers, which will be added to HTTP request.
-  
-  Added in Saleor 3.12.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Custom headers, which will be added to HTTP request."""
   customHeaders: JSONString
 }
 
@@ -2703,15 +2697,11 @@ type App implements Node & ObjectWithMetadata @doc(category: "Apps") {
   A single key from private metadata. Requires staff permissions to access.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -2722,15 +2712,11 @@ type App implements Node & ObjectWithMetadata @doc(category: "Apps") {
   A single key from public metadata.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
 
@@ -3005,10 +2991,6 @@ type AppBrandLogo @doc(category: "Apps") {
 
     """
     The format of the image. When not provided, format of the original image will be used.
-    
-    Added in Saleor 3.14.
-    
-    Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
     format: IconThumbnailFormatEnum = ORIGINAL
   ): String!
@@ -3344,15 +3326,11 @@ type Warehouse implements Node & ObjectWithMetadata @doc(category: "Products") {
   A single key from private metadata. Requires staff permissions to access.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -3363,15 +3341,11 @@ type Warehouse implements Node & ObjectWithMetadata @doc(category: "Products") {
   A single key from public metadata.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
 
@@ -3456,15 +3430,11 @@ type Address implements Node & ObjectWithMetadata @doc(category: "Users") {
   A single key from private metadata. Requires staff permissions to access.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -3475,15 +3445,11 @@ type Address implements Node & ObjectWithMetadata @doc(category: "Users") {
   A single key from public metadata.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
 
@@ -3596,15 +3562,11 @@ type ShippingZone implements Node & ObjectWithMetadata @doc(category: "Shipping"
   A single key from private metadata. Requires staff permissions to access.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -3615,15 +3577,11 @@ type ShippingZone implements Node & ObjectWithMetadata @doc(category: "Shipping"
   A single key from public metadata.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
 
@@ -3686,15 +3644,11 @@ type ShippingMethodType implements Node & ObjectWithMetadata @doc(category: "Shi
   A single key from private metadata. Requires staff permissions to access.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -3705,15 +3659,11 @@ type ShippingMethodType implements Node & ObjectWithMetadata @doc(category: "Shi
   A single key from public metadata.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
 
@@ -4678,15 +4628,11 @@ type Channel implements Node & ObjectWithMetadata @doc(category: "Channels") {
   A single key from private metadata. Requires staff permissions to access.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -4697,15 +4643,11 @@ type Channel implements Node & ObjectWithMetadata @doc(category: "Channels") {
   A single key from public metadata.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
 
@@ -5297,15 +5239,11 @@ type TaxConfiguration implements Node & ObjectWithMetadata @doc(category: "Taxes
   A single key from private metadata. Requires staff permissions to access.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -5316,15 +5254,11 @@ type TaxConfiguration implements Node & ObjectWithMetadata @doc(category: "Taxes
   A single key from public metadata.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
 
@@ -5436,15 +5370,11 @@ type Product implements Node & ObjectWithMetadata @doc(category: "Products") {
   A single key from private metadata. Requires staff permissions to access.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -5455,15 +5385,11 @@ type Product implements Node & ObjectWithMetadata @doc(category: "Products") {
   A single key from public metadata.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
 
@@ -5527,8 +5453,6 @@ type Product implements Node & ObjectWithMetadata @doc(category: "Products") {
 
     """
     The format of the image. When not provided, format of the original image will be used.
-    
-    Added in Saleor 3.6.
     """
     format: ThumbnailFormatEnum = ORIGINAL
   ): Image
@@ -5556,11 +5480,7 @@ type Product implements Node & ObjectWithMetadata @doc(category: "Products") {
   """A type of tax. Assigned by enabled tax gateway"""
   taxType: TaxType @deprecated(reason: "This field will be removed in Saleor 4.0. Use `taxClass` field instead.")
 
-  """
-  Get a single attribute attached to product by attribute slug.
-  
-  Added in Saleor 3.9.
-  """
+  """Get a single attribute attached to product by attribute slug."""
   attribute(
     """Slug of the attribute"""
     slug: String!
@@ -5588,11 +5508,7 @@ type Product implements Node & ObjectWithMetadata @doc(category: "Products") {
     id: ID
   ): ProductImage @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `mediaById` field instead.")
 
-  """
-  Get a single variant by SKU or ID. 
-  
-  Added in Saleor 3.9.
-  """
+  """Get a single variant by SKU or ID."""
   variant(
     """ID of the variant."""
     id: ID
@@ -5608,11 +5524,7 @@ type Product implements Node & ObjectWithMetadata @doc(category: "Products") {
 
   """List of media for the product."""
   media(
-    """
-    Sort media. 
-    
-    Added in Saleor 3.9.
-    """
+    """Sort media."""
     sortBy: MediaSortingInput
   ): [ProductMedia!]
 
@@ -5648,11 +5560,7 @@ type Product implements Node & ObjectWithMetadata @doc(category: "Products") {
   """
   taxClass: TaxClass
 
-  """
-  External ID of this product. 
-  
-  Added in Saleor 3.10.
-  """
+  """External ID of this product."""
   externalReference: String
 }
 
@@ -5670,15 +5578,11 @@ type ProductType implements Node & ObjectWithMetadata @doc(category: "Products")
   A single key from private metadata. Requires staff permissions to access.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -5689,15 +5593,11 @@ type ProductType implements Node & ObjectWithMetadata @doc(category: "Products")
   A single key from public metadata.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
 
@@ -5762,8 +5662,6 @@ type ProductType implements Node & ObjectWithMetadata @doc(category: "Products")
 
   """
   Variant attributes of that product type with attached variant selection.
-  
-  Added in Saleor 3.1.
   """
   assignedVariantAttributes(
     """Define scope of returned attributes."""
@@ -5828,15 +5726,11 @@ type TaxClass implements Node & ObjectWithMetadata @doc(category: "Taxes") {
   A single key from private metadata. Requires staff permissions to access.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -5847,15 +5741,11 @@ type TaxClass implements Node & ObjectWithMetadata @doc(category: "Taxes") {
   A single key from public metadata.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
 
@@ -5894,15 +5784,11 @@ type Attribute implements Node & ObjectWithMetadata @doc(category: "Attributes")
   A single key from private metadata. Requires staff permissions to access.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -5913,15 +5799,11 @@ type Attribute implements Node & ObjectWithMetadata @doc(category: "Attributes")
   A single key from public metadata.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
 
@@ -6432,13 +6314,7 @@ input AttributeWhereInput @doc(category: "Attributes") {
   OR: [AttributeWhereInput!]
 }
 
-"""
-Define the filtering options for string fields.
-
-Added in Saleor 3.11.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""Define the filtering options for string fields."""
 input StringFilterInput {
   """The value equal to."""
   eq: String
@@ -6493,15 +6369,11 @@ type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
   A single key from private metadata. Requires staff permissions to access.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -6512,15 +6384,11 @@ type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
   A single key from public metadata.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
 
@@ -6556,11 +6424,7 @@ type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
   """
   descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
 
-  """
-  The date and time when the category was last updated.
-  
-  Added in Saleor 3.17.
-  """
+  """The date and time when the category was last updated."""
   updatedAt: DateTime!
 
   """List of ancestors of the category."""
@@ -6586,27 +6450,13 @@ type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
   List of products in the category. Requires the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
   """
   products(
-    """
-    Filtering options for products.
-    
-    Added in Saleor 3.10.
-    """
+    """Filtering options for products."""
     filter: ProductFilterInput
 
-    """
-    Filtering options for products.
-    
-    Added in Saleor 3.14.
-    
-    Note: this API is currently in Feature Preview and can be subject to changes at later point.
-    """
+    """Filtering options for products."""
     where: ProductWhereInput
 
-    """
-    Sort products.
-    
-    Added in Saleor 3.10.
-    """
+    """Sort products."""
     sortBy: ProductOrder
 
     """Slug of a channel for which the data should be returned."""
@@ -6657,8 +6507,6 @@ type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
 
     """
     The format of the image. When not provided, format of the original image will be used.
-    
-    Added in Saleor 3.6.
     """
     format: ThumbnailFormatEnum = ORIGINAL
   ): Image
@@ -6866,13 +6714,7 @@ input ProductWhereInput @doc(category: "Products") {
   OR: [ProductWhereInput!]
 }
 
-"""
-Define the filtering options for foreign key fields.
-
-Added in Saleor 3.14.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""Define the filtering options for foreign key fields."""
 input GlobalIDFilterInput {
   """The value equal to."""
   eq: ID
@@ -6881,13 +6723,7 @@ input GlobalIDFilterInput {
   oneOf: [ID!]
 }
 
-"""
-Define the filtering options for decimal fields.
-
-Added in Saleor 3.14.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""Define the filtering options for decimal fields."""
 input DecimalFilterInput {
   """The value equal to."""
   eq: Decimal
@@ -6915,13 +6751,7 @@ input DecimalRangeInput {
   lte: Decimal
 }
 
-"""
-Define the filtering options for date time fields.
-
-Added in Saleor 3.11.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""Define the filtering options for date time fields."""
 input DateTimeFilterInput {
   """The value equal to."""
   eq: DateTime
@@ -7143,15 +6973,11 @@ type ProductVariant implements Node & ObjectWithMetadata @doc(category: "Product
   A single key from private metadata. Requires staff permissions to access.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -7162,15 +6988,11 @@ type ProductVariant implements Node & ObjectWithMetadata @doc(category: "Product
   A single key from public metadata.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
 
@@ -7294,11 +7116,7 @@ type ProductVariant implements Node & ObjectWithMetadata @doc(category: "Product
     countryCode: CountryCode
   ): Int
 
-  """
-  Preorder data for product variant.
-  
-  Added in Saleor 3.1.
-  """
+  """Preorder data for product variant."""
   preorder: PreorderData
 
   """The date and time when the product variant was created."""
@@ -7307,11 +7125,7 @@ type ProductVariant implements Node & ObjectWithMetadata @doc(category: "Product
   """The date and time when the product variant was last updated."""
   updatedAt: DateTime!
 
-  """
-  External ID of this product. 
-  
-  Added in Saleor 3.10.
-  """
+  """External ID of this product."""
   externalReference: String
 }
 
@@ -7336,11 +7150,7 @@ type ProductVariantChannelListing implements Node @doc(category: "Products") {
   """
   margin: Int
 
-  """
-  Preorder variant data.
-  
-  Added in Saleor 3.1.
-  """
+  """Preorder variant data."""
   preorderThreshold: PreorderThreshold
 }
 
@@ -7486,8 +7296,6 @@ type ProductImage @doc(category: "Products") {
 
     """
     The format of the image. When not provided, format of the original image will be used.
-    
-    Added in Saleor 3.6.
     """
     format: ThumbnailFormatEnum = ORIGINAL
   ): String!
@@ -7498,49 +7306,33 @@ type ProductMedia implements Node & ObjectWithMetadata @doc(category: "Products"
   """The unique ID of the product media."""
   id: ID!
 
-  """
-  List of private metadata items. Requires staff permissions to access.
-  
-  Added in Saleor 3.12.
-  """
+  """List of private metadata items. Requires staff permissions to access."""
   privateMetadata: [MetadataItem!]!
 
   """
   A single key from private metadata. Requires staff permissions to access.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.12.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.12.
   """
   privateMetafields(keys: [String!]): Metadata
 
-  """
-  List of public metadata items. Can be accessed without permissions.
-  
-  Added in Saleor 3.12.
-  """
+  """List of public metadata items. Can be accessed without permissions."""
   metadata: [MetadataItem!]!
 
   """
   A single key from public metadata.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.12.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.12.
   """
   metafields(keys: [String!]): Metadata
 
@@ -7565,17 +7357,11 @@ type ProductMedia implements Node & ObjectWithMetadata @doc(category: "Products"
 
     """
     The format of the image. When not provided, format of the original image will be used.
-    
-    Added in Saleor 3.6.
     """
     format: ThumbnailFormatEnum = ORIGINAL
   ): String!
 
-  """
-  Product id the media refers to.
-  
-  Added in Saleor 3.12.
-  """
+  """Product id the media refers to."""
   productId: ID
 }
 
@@ -7637,15 +7423,11 @@ type DigitalContent implements Node & ObjectWithMetadata @doc(category: "Product
   A single key from private metadata. Requires staff permissions to access.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -7656,15 +7438,11 @@ type DigitalContent implements Node & ObjectWithMetadata @doc(category: "Product
   A single key from public metadata.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
 
@@ -7777,11 +7555,7 @@ type ProductPricingInfo @doc(category: "Products") {
   """The discount amount in the local currency."""
   discountLocalCurrency: TaxedMoney @deprecated(reason: "This field will be removed in Saleor 4.0. Always returns `null`.")
 
-  """
-  Determines whether displayed prices should include taxes.
-  
-  Added in Saleor 3.9.
-  """
+  """Determines whether displayed prices should include taxes."""
   displayGrossPrices: Boolean!
 
   """The discounted price range of the product variants."""
@@ -7811,11 +7585,7 @@ type ProductChannelListing implements Node @doc(category: "Products") {
   id: ID!
   publicationDate: Date @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `publishedAt` field to fetch the publication date.")
 
-  """
-  The product publication date time.
-  
-  Added in Saleor 3.3.
-  """
+  """The product publication date time."""
   publishedAt: DateTime
 
   """Indicates if the product is published in the channel."""
@@ -7828,11 +7598,7 @@ type ProductChannelListing implements Node @doc(category: "Products") {
   visibleInListings: Boolean!
   availableForPurchase: Date @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `availableForPurchaseAt` field to fetch the available for purchase date.")
 
-  """
-  The product available for purchase date time.
-  
-  Added in Saleor 3.3.
-  """
+  """The product available for purchase date time."""
   availableForPurchaseAt: DateTime
 
   """The price of the cheapest variant (including discounts)."""
@@ -7902,15 +7668,11 @@ type Collection implements Node & ObjectWithMetadata @doc(category: "Products") 
   A single key from private metadata. Requires staff permissions to access.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -7921,15 +7683,11 @@ type Collection implements Node & ObjectWithMetadata @doc(category: "Products") 
   A single key from public metadata.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
 
@@ -7969,13 +7727,7 @@ type Collection implements Node & ObjectWithMetadata @doc(category: "Products") 
     """Filtering options for products."""
     filter: ProductFilterInput
 
-    """
-    Filtering options for products.
-    
-    Added in Saleor 3.14.
-    
-    Note: this API is currently in Feature Preview and can be subject to changes at later point.
-    """
+    """Filtering options for products."""
     where: ProductWhereInput
 
     """Sort products."""
@@ -8007,8 +7759,6 @@ type Collection implements Node & ObjectWithMetadata @doc(category: "Products") 
 
     """
     The format of the image. When not provided, format of the original image will be used.
-    
-    Added in Saleor 3.6.
     """
     format: ThumbnailFormatEnum = ORIGINAL
   ): Image
@@ -8125,11 +7875,7 @@ type CollectionChannelListing implements Node @doc(category: "Products") {
   id: ID!
   publicationDate: Date @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `publishedAt` field to fetch the publication date.")
 
-  """
-  The collection publication date.
-  
-  Added in Saleor 3.3.
-  """
+  """The collection publication date."""
   publishedAt: DateTime
 
   """Indicates if the collection is published in the channel."""
@@ -8421,15 +8167,11 @@ type Page implements Node & ObjectWithMetadata @doc(category: "Pages") {
   A single key from private metadata. Requires staff permissions to access.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -8440,15 +8182,11 @@ type Page implements Node & ObjectWithMetadata @doc(category: "Pages") {
   A single key from public metadata.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
 
@@ -8515,15 +8253,11 @@ type PageType implements Node & ObjectWithMetadata @doc(category: "Pages") {
   A single key from private metadata. Requires staff permissions to access.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -8534,15 +8268,11 @@ type PageType implements Node & ObjectWithMetadata @doc(category: "Pages") {
   A single key from public metadata.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
 
@@ -8645,15 +8375,11 @@ type Voucher implements Node & ObjectWithMetadata @doc(category: "Discounts") {
   A single key from private metadata. Requires staff permissions to access.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -8664,15 +8390,11 @@ type Voucher implements Node & ObjectWithMetadata @doc(category: "Discounts") {
   A single key from public metadata.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
 
@@ -9021,15 +8743,11 @@ type MenuItem implements Node & ObjectWithMetadata @doc(category: "Menu") {
   A single key from private metadata. Requires staff permissions to access.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -9040,15 +8758,11 @@ type MenuItem implements Node & ObjectWithMetadata @doc(category: "Menu") {
   A single key from public metadata.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
 
@@ -9104,15 +8818,11 @@ type Menu implements Node & ObjectWithMetadata @doc(category: "Menu") {
   A single key from private metadata. Requires staff permissions to access.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -9123,15 +8833,11 @@ type Menu implements Node & ObjectWithMetadata @doc(category: "Menu") {
   A single key from public metadata.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
 
@@ -9307,15 +9013,11 @@ type Sale implements Node & ObjectWithMetadata @doc(category: "Discounts") {
   A single key from private metadata. Requires staff permissions to access.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -9326,15 +9028,11 @@ type Sale implements Node & ObjectWithMetadata @doc(category: "Discounts") {
   A single key from public metadata.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
 
@@ -9919,15 +9617,11 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
   A single key from private metadata. Requires staff permissions to access.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -9938,15 +9632,11 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
   A single key from public metadata.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
 
@@ -10083,8 +9773,6 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
 
     """
     The format of the image. When not provided, format of the original image will be used.
-    
-    Added in Saleor 3.6.
     """
     format: ThumbnailFormatEnum = ORIGINAL
   ): Image
@@ -10146,15 +9834,11 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   A single key from private metadata. Requires staff permissions to access.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -10165,15 +9849,11 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   A single key from public metadata.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
 
@@ -10393,15 +10073,11 @@ type GiftCard implements Node & ObjectWithMetadata @doc(category: "Gift cards") 
   A single key from private metadata. Requires staff permissions to access.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -10412,15 +10088,11 @@ type GiftCard implements Node & ObjectWithMetadata @doc(category: "Gift cards") 
   A single key from public metadata.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
 
@@ -10609,15 +10281,11 @@ type CheckoutLine implements Node & ObjectWithMetadata @doc(category: "Checkout"
   A single key from private metadata. Requires staff permissions to access.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -10628,15 +10296,11 @@ type CheckoutLine implements Node & ObjectWithMetadata @doc(category: "Checkout"
   A single key from public metadata.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
 
@@ -10726,15 +10390,11 @@ type TransactionItem implements Node & ObjectWithMetadata @doc(category: "Paymen
   A single key from private metadata. Requires staff permissions to access.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -10745,15 +10405,11 @@ type TransactionItem implements Node & ObjectWithMetadata @doc(category: "Paymen
   A single key from public metadata.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
 
@@ -10848,15 +10504,11 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   A single key from private metadata. Requires staff permissions to access.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -10867,15 +10519,11 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   A single key from public metadata.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
 
@@ -11191,15 +10839,11 @@ type Fulfillment implements Node & ObjectWithMetadata @doc(category: "Orders") {
   A single key from private metadata. Requires staff permissions to access.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -11210,15 +10854,11 @@ type Fulfillment implements Node & ObjectWithMetadata @doc(category: "Orders") {
   A single key from public metadata.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
 
@@ -11284,15 +10924,11 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
   A single key from private metadata. Requires staff permissions to access.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -11303,15 +10939,11 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
   A single key from public metadata.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
 
@@ -11350,8 +10982,6 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
 
     """
     The format of the image. When not provided, format of the original image will be used.
-    
-    Added in Saleor 3.6.
     """
     format: ThumbnailFormatEnum = ORIGINAL
   ): Image
@@ -11489,15 +11119,11 @@ type Invoice implements ObjectWithMetadata & Job & Node @doc(category: "Orders")
   A single key from private metadata. Requires staff permissions to access.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -11508,15 +11134,11 @@ type Invoice implements ObjectWithMetadata & Job & Node @doc(category: "Orders")
   A single key from public metadata.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
 
@@ -11648,15 +11270,11 @@ type Payment implements Node & ObjectWithMetadata @doc(category: "Payments") {
   A single key from private metadata. Requires staff permissions to access.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -11667,15 +11285,11 @@ type Payment implements Node & ObjectWithMetadata @doc(category: "Payments") {
   A single key from public metadata.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
 
@@ -13445,15 +13059,11 @@ type Promotion implements Node & ObjectWithMetadata @doc(category: "Discounts") 
   A single key from private metadata. Requires staff permissions to access.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -13464,15 +13074,11 @@ type Promotion implements Node & ObjectWithMetadata @doc(category: "Discounts") 
   A single key from public metadata.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
 
@@ -14388,11 +13994,7 @@ type Mutation {
   ): EventDeliveryRetry @doc(category: "Webhooks")
 
   """
-  Performs a dry run of a webhook event. Supports a single event (the first, if multiple provided in the `query`). Requires permission relevant to processed event.
-  
-  Added in Saleor 3.11.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Performs a dry run of a webhook event. Supports a single event (the first, if multiple provided in the `query`). Requires permission relevant to processed event. 
   
   Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
   """
@@ -14405,11 +14007,7 @@ type Mutation {
   ): WebhookDryRun @doc(category: "Webhooks")
 
   """
-  Trigger a webhook event. Supports a single event (the first, if multiple provided in the `webhook.subscription_query`). Requires permission relevant to processed event. Successfully delivered webhook returns `delivery` with status='PENDING' and empty payload.
-  
-  Added in Saleor 3.11.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Trigger a webhook event. Supports a single event (the first, if multiple provided in the `webhook.subscription_query`). Requires permission relevant to processed event. Successfully delivered webhook returns `delivery` with status='PENDING' and empty payload. 
   
   Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
   """
@@ -14437,11 +14035,7 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   updateWarehouse(
-    """
-    External reference of a warehouse.
-    
-    Added in Saleor 3.16.
-    """
+    """External reference of a warehouse."""
     externalReference: String
 
     """ID of a warehouse to update."""
@@ -14488,9 +14082,7 @@ type Mutation {
   ): WarehouseShippingZoneUnassign @doc(category: "Products")
 
   """
-  Create a tax class.
-  
-  Added in Saleor 3.9. 
+  Create a tax class. 
   
   Requires one of the following permissions: MANAGE_TAXES.
   """
@@ -14500,9 +14092,7 @@ type Mutation {
   ): TaxClassCreate @doc(category: "Taxes")
 
   """
-  Delete a tax class. After deleting the tax class any products, product types or shipping methods using it are updated to use the default tax class.
-  
-  Added in Saleor 3.9. 
+  Delete a tax class. After deleting the tax class any products, product types or shipping methods using it are updated to use the default tax class. 
   
   Requires one of the following permissions: MANAGE_TAXES.
   """
@@ -14512,9 +14102,7 @@ type Mutation {
   ): TaxClassDelete @doc(category: "Taxes")
 
   """
-  Update a tax class.
-  
-  Added in Saleor 3.9. 
+  Update a tax class. 
   
   Requires one of the following permissions: MANAGE_TAXES.
   """
@@ -14527,9 +14115,7 @@ type Mutation {
   ): TaxClassUpdate @doc(category: "Taxes")
 
   """
-  Update tax configuration for a channel.
-  
-  Added in Saleor 3.9. 
+  Update tax configuration for a channel. 
   
   Requires one of the following permissions: MANAGE_TAXES.
   """
@@ -14542,9 +14128,7 @@ type Mutation {
   ): TaxConfigurationUpdate @doc(category: "Taxes")
 
   """
-  Update tax class rates for a specific country.
-  
-  Added in Saleor 3.9. 
+  Update tax class rates for a specific country. 
   
   Requires one of the following permissions: MANAGE_TAXES.
   """
@@ -14559,9 +14143,7 @@ type Mutation {
   ): TaxCountryConfigurationUpdate @doc(category: "Taxes")
 
   """
-  Remove all tax class rates for a specific country.
-  
-  Added in Saleor 3.9. 
+  Remove all tax class rates for a specific country. 
   
   Requires one of the following permissions: MANAGE_TAXES.
   """
@@ -14571,9 +14153,7 @@ type Mutation {
   ): TaxCountryConfigurationDelete @doc(category: "Taxes")
 
   """
-  Exempt checkout or order from charging the taxes. When tax exemption is enabled, taxes won't be charged for the checkout or order. Taxes may still be calculated in cases when product prices are entered with the tax included and the net price needs to be known.
-  
-  Added in Saleor 3.8. 
+  Exempt checkout or order from charging the taxes. When tax exemption is enabled, taxes won't be charged for the checkout or order. Taxes may still be calculated in cases when product prices are entered with the tax included and the net price needs to be known. 
   
   Requires one of the following permissions: MANAGE_TAXES.
   """
@@ -14586,11 +14166,7 @@ type Mutation {
   ): TaxExemptionManage @doc(category: "Taxes")
 
   """
-  Updates stocks for a given variant and warehouse. Variant and warehouse selectors have to be the same for all stock inputs. Is not allowed to use 'variantId' in one input and 'variantExternalReference' in another.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Updates stocks for a given variant and warehouse. Variant and warehouse selectors have to be the same for all stock inputs. Is not allowed to use 'variantId' in one input and 'variantExternalReference' in another. 
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
   
@@ -14868,9 +14444,7 @@ type Mutation {
   ): ProductAttributeAssign @doc(category: "Products")
 
   """
-  Update attributes assigned to product variant for given product type.
-  
-  Added in Saleor 3.1. 
+  Update attributes assigned to product variant for given product type. 
   
   Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
   """
@@ -15086,11 +14660,7 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   productDelete(
-    """
-    External ID of a product to delete. 
-    
-    Added in Saleor 3.10.
-    """
+    """External ID of a product to delete."""
     externalReference: String
 
     """ID of a product to delete."""
@@ -15098,11 +14668,7 @@ type Mutation {
   ): ProductDelete @doc(category: "Products")
 
   """
-  Creates products.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Creates products. 
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
@@ -15130,11 +14696,7 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   productUpdate(
-    """
-    External ID of a product to update. 
-    
-    Added in Saleor 3.10.
-    """
+    """External ID of a product to update."""
     externalReference: String
 
     """ID of a product to update."""
@@ -15145,11 +14707,7 @@ type Mutation {
   ): ProductUpdate @doc(category: "Products")
 
   """
-  Creates/updates translations for products.
-  
-  Added in Saleor 3.15.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Creates/updates translations for products. 
   
   Requires one of the following permissions: MANAGE_TRANSLATIONS.
   
@@ -15400,21 +14958,13 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   productVariantDelete(
-    """
-    External ID of a product variant to update. 
-    
-    Added in Saleor 3.10.
-    """
+    """External ID of a product variant to update."""
     externalReference: String
 
     """ID of a product variant to delete."""
     id: ID
 
-    """
-    SKU of a product variant to delete.
-    
-    Added in Saleor 3.8.
-    """
+    """SKU of a product variant to delete."""
     sku: String
   ): ProductVariantDelete @doc(category: "Products")
 
@@ -15424,13 +14974,7 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   productVariantBulkCreate(
-    """
-    Policies of error handling. DEFAULT: REJECT_EVERYTHING
-    
-    Added in Saleor 3.11.
-    
-    Note: this API is currently in Feature Preview and can be subject to changes at later point.
-    """
+    """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
     errorPolicy: ErrorPolicyEnum
 
     """ID of the product to create the variants for."""
@@ -15441,11 +14985,7 @@ type Mutation {
   ): ProductVariantBulkCreate @doc(category: "Products")
 
   """
-  Update multiple product variants.
-  
-  Added in Saleor 3.11.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Update multiple product variants. 
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
@@ -15469,11 +15009,7 @@ type Mutation {
     """List of product variant IDs to delete."""
     ids: [ID!]
 
-    """
-    List of product variant SKUs to delete.
-    
-    Added in Saleor 3.8.
-    """
+    """List of product variant SKUs to delete."""
     skus: [String!]
   ): ProductVariantBulkDelete @doc(category: "Products")
 
@@ -15528,11 +15064,7 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   productVariantUpdate(
-    """
-    External ID of a product variant to update. 
-    
-    Added in Saleor 3.10.
-    """
+    """External ID of a product variant to update."""
     externalReference: String
 
     """ID of a product to update."""
@@ -15541,11 +15073,7 @@ type Mutation {
     """Fields required to update a product variant."""
     input: ProductVariantInput!
 
-    """
-    SKU of a product variant to update.
-    
-    Added in Saleor 3.8.
-    """
+    """SKU of a product variant to update."""
     sku: String
   ): ProductVariantUpdate @doc(category: "Products")
 
@@ -15579,11 +15107,7 @@ type Mutation {
   ): ProductVariantTranslate @doc(category: "Products")
 
   """
-  Creates/updates translations for products variants.
-  
-  Added in Saleor 3.15.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Creates/updates translations for products variants. 
   
   Requires one of the following permissions: MANAGE_TRANSLATIONS.
   
@@ -15613,11 +15137,7 @@ type Mutation {
     """
     input: [ProductVariantChannelListingAddInput!]!
 
-    """
-    SKU of a product variant to update.
-    
-    Added in Saleor 3.8.
-    """
+    """SKU of a product variant to update."""
     sku: String
   ): ProductVariantChannelListingUpdate @doc(category: "Products")
 
@@ -15638,9 +15158,7 @@ type Mutation {
   ): ProductVariantReorderAttributeValues @doc(category: "Products")
 
   """
-  Deactivates product variant preorder. It changes all preorder allocation into regular allocation.
-  
-  Added in Saleor 3.1. 
+  Deactivates product variant preorder. It changes all preorder allocation into regular allocation. 
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
@@ -15730,11 +15248,7 @@ type Mutation {
   ): PaymentCheckBalance @doc(category: "Payments")
 
   """
-  Create transaction for checkout or order.
-  
-  Added in Saleor 3.4.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Create transaction for checkout or order. 
   
   Requires one of the following permissions: HANDLE_PAYMENTS.
   """
@@ -15752,21 +15266,13 @@ type Mutation {
   """
   Update transaction.
   
-  Added in Saleor 3.4.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  
   Requires the following permissions: OWNER and HANDLE_PAYMENTS for apps, HANDLE_PAYMENTS for staff users. Staff user cannot update a transaction that is owned by the app.
   """
   transactionUpdate(
     """The ID of the transaction. One of field id or token is required."""
     id: ID
 
-    """
-    The token of the transaction. One of field id or token is required.
-    
-    Added in Saleor 3.14.
-    """
+    """The token of the transaction. One of field id or token is required."""
     token: UUID
 
     """Input data required to create a new transaction object."""
@@ -15777,11 +15283,7 @@ type Mutation {
   ): TransactionUpdate @doc(category: "Payments")
 
   """
-  Request an action for payment transaction.
-  
-  Added in Saleor 3.4.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Request an action for payment transaction. 
   
   Requires one of the following permissions: HANDLE_PAYMENTS.
   """
@@ -15797,20 +15299,12 @@ type Mutation {
     """The ID of the transaction. One of field id or token is required."""
     id: ID
 
-    """
-    The token of the transaction. One of field id or token is required.
-    
-    Added in Saleor 3.14.
-    """
+    """The token of the transaction. One of field id or token is required."""
     token: UUID
   ): TransactionRequestAction @doc(category: "Payments")
 
   """
-  Request a refund for payment transaction based on granted refund.
-  
-  Added in Saleor 3.15.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Request a refund for payment transaction based on granted refund. 
   
   Requires one of the following permissions: HANDLE_PAYMENTS.
   """
@@ -15831,10 +15325,6 @@ type Mutation {
 
   """
   Report the event for the transaction.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
   Requires the following permissions: OWNER and HANDLE_PAYMENTS for apps, HANDLE_PAYMENTS for staff users. Staff user cannot update a transaction that is owned by the app.
   
@@ -15873,25 +15363,13 @@ type Mutation {
     """
     time: DateTime
 
-    """
-    The token of the transaction. One of field id or token is required.
-    
-    Added in Saleor 3.14.
-    """
+    """The token of the transaction. One of field id or token is required."""
     token: UUID
 
-    """
-    Fields required to update the transaction metadata.
-    
-    Added in Saleor 3.17.
-    """
+    """Fields required to update the transaction metadata."""
     transactionMetadata: [MetadataInput!]
 
-    """
-    Fields required to update the transaction private metadata.
-    
-    Added in Saleor 3.17.
-    """
+    """Fields required to update the transaction private metadata."""
     transactionPrivateMetadata: [MetadataInput!]
 
     """Current status of the event to report."""
@@ -15900,10 +15378,6 @@ type Mutation {
 
   """
   Initializes a payment gateway session. It triggers the webhook `PAYMENT_GATEWAY_INITIALIZE_SESSION`, to the requested `paymentGateways`. If `paymentGateways` is not provided, the webhook will be send to all subscribed payment gateways. There is a limit of 100 transaction items per checkout / order.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   paymentGatewayInitialize(
     """
@@ -15920,10 +15394,6 @@ type Mutation {
 
   """
   Initializes a transaction session. It triggers the webhook `TRANSACTION_INITIALIZE_SESSION`, to the requested `paymentGateways`. There is a limit of 100 transaction items per checkout / order.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   transactionInitialize(
     """
@@ -15938,8 +15408,6 @@ type Mutation {
 
     """
     The customer's IP address. If not provided Saleor will try to determine the customer's IP address on its own. The customer's IP address will be passed to the payment app. The IP should be in ipv4 or ipv6 format. The field can be used only by an app that has `HANDLE_PAYMENTS` permission.
-    
-    Added in Saleor 3.16.
     """
     customerIpAddress: String
 
@@ -15948,8 +15416,6 @@ type Mutation {
 
     """
     The idempotency key assigned to the action. It will be passed to the payment app to discover potential duplicate actions. If not provided, the default one will be generated. If empty string provided, INVALID error code will be raised.
-    
-    Added in Saleor 3.14.
     """
     idempotencyKey: String
 
@@ -15958,17 +15424,11 @@ type Mutation {
   ): TransactionInitialize @doc(category: "Payments")
 
   """
-  Processes a transaction session. It triggers the webhook `TRANSACTION_PROCESS_SESSION`, to the assigned `paymentGateways`. 
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  Processes a transaction session. It triggers the webhook `TRANSACTION_PROCESS_SESSION`, to the assigned `paymentGateways`.
   """
   transactionProcess(
     """
     The customer's IP address. If not provided Saleor will try to determine the customer's IP address on its own. The customer's IP address will be passed to the payment app. The IP should be in ipv4 or ipv6 format. The field can be used only by an app that has `HANDLE_PAYMENTS` permission.
-    
-    Added in Saleor 3.16.
     """
     customerIpAddress: String
 
@@ -15982,18 +15442,12 @@ type Mutation {
 
     """
     The token of the transaction to process. One of field id or token is required.
-    
-    Added in Saleor 3.14.
     """
     token: UUID
   ): TransactionProcess @doc(category: "Payments")
 
   """
-  Request to delete a stored payment method on payment provider side.
-  
-  Added in Saleor 3.16.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Request to delete a stored payment method on payment provider side. 
   
   Requires one of the following permissions: AUTHENTICATED_USER.
   
@@ -16009,11 +15463,7 @@ type Mutation {
   ): StoredPaymentMethodRequestDelete @doc(category: "Payments") @webhookEventsInfo(asyncEvents: [], syncEvents: [STORED_PAYMENT_METHOD_DELETE_REQUESTED])
 
   """
-  Initializes payment gateway for tokenizing payment method session.
-  
-  Added in Saleor 3.16.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Initializes payment gateway for tokenizing payment method session. 
   
   Requires one of the following permissions: AUTHENTICATED_USER.
   
@@ -16032,11 +15482,7 @@ type Mutation {
   ): PaymentGatewayInitializeTokenization @doc(category: "Payments") @webhookEventsInfo(asyncEvents: [], syncEvents: [PAYMENT_GATEWAY_INITIALIZE_TOKENIZATION_SESSION])
 
   """
-  Tokenize payment method.
-  
-  Added in Saleor 3.16.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Tokenize payment method. 
   
   Requires one of the following permissions: AUTHENTICATED_USER.
   
@@ -16060,11 +15506,7 @@ type Mutation {
   ): PaymentMethodInitializeTokenization @doc(category: "Payments") @webhookEventsInfo(asyncEvents: [], syncEvents: [PAYMENT_METHOD_INITIALIZE_TOKENIZATION_SESSION])
 
   """
-  Tokenize payment method.
-  
-  Added in Saleor 3.16.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Tokenize payment method. 
   
   Requires one of the following permissions: AUTHENTICATED_USER.
   
@@ -16280,11 +15722,7 @@ type Mutation {
   Requires one of the following permissions: MANAGE_ORDERS.
   """
   draftOrderDelete(
-    """
-    External ID of a product to delete. 
-    
-    Added in Saleor 3.10.
-    """
+    """External ID of a product to delete."""
     externalReference: String
 
     """ID of a product to delete."""
@@ -16317,11 +15755,7 @@ type Mutation {
   Requires one of the following permissions: MANAGE_ORDERS.
   """
   draftOrderUpdate(
-    """
-    External ID of a draft order to update. 
-    
-    Added in Saleor 3.10.
-    """
+    """External ID of a draft order to update."""
     externalReference: String
 
     """ID of a draft order to update."""
@@ -16412,9 +15846,7 @@ type Mutation {
   ): FulfillmentCancel @doc(category: "Orders")
 
   """
-  Approve existing fulfillment.
-  
-  Added in Saleor 3.1. 
+  Approve existing fulfillment. 
   
   Requires one of the following permissions: MANAGE_ORDERS.
   
@@ -16475,11 +15907,7 @@ type Mutation {
   ): FulfillmentReturnProducts @doc(category: "Orders")
 
   """
-  Adds granted refund to the order.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Adds granted refund to the order. 
   
   Requires one of the following permissions: MANAGE_ORDERS.
   """
@@ -16492,11 +15920,7 @@ type Mutation {
   ): OrderGrantRefundCreate @doc(category: "Orders")
 
   """
-  Updates granted refund.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Updates granted refund. 
   
   Requires one of the following permissions: MANAGE_ORDERS.
   """
@@ -16604,11 +16028,7 @@ type Mutation {
   ): OrderLineDiscountRemove @doc(category: "Orders")
 
   """
-  Adds note to the order.
-  
-  Added in Saleor 3.15.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Adds note to the order. 
   
   Requires one of the following permissions: MANAGE_ORDERS.
   """
@@ -16621,11 +16041,7 @@ type Mutation {
   ): OrderNoteAdd @doc(category: "Orders")
 
   """
-  Updates note of an order.
-  
-  Added in Saleor 3.15.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Updates note of an order. 
   
   Requires one of the following permissions: MANAGE_ORDERS.
   """
@@ -16669,11 +16085,7 @@ type Mutation {
   Requires one of the following permissions: MANAGE_ORDERS.
   """
   orderUpdate(
-    """
-    External ID of an order to update. 
-    
-    Added in Saleor 3.10.
-    """
+    """External ID of an order to update."""
     externalReference: String
 
     """ID of an order to update."""
@@ -16717,11 +16129,7 @@ type Mutation {
   ): OrderBulkCancel @doc(category: "Orders")
 
   """
-  Creates multiple orders.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Creates multiple orders. 
   
   Requires one of the following permissions: MANAGE_ORDERS_IMPORT.
   """
@@ -17048,9 +16456,7 @@ type Mutation {
   ): GiftCardCreate @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [GIFT_CARD_CREATED, NOTIFY_USER], syncEvents: [])
 
   """
-  Delete gift card.
-  
-  Added in Saleor 3.1. 
+  Delete gift card. 
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
   
@@ -17092,9 +16498,7 @@ type Mutation {
   ): GiftCardUpdate @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [GIFT_CARD_UPDATED], syncEvents: [])
 
   """
-  Resend a gift card.
-  
-  Added in Saleor 3.1. 
+  Resend a gift card. 
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
   
@@ -17107,9 +16511,7 @@ type Mutation {
   ): GiftCardResend @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: [])
 
   """
-  Adds note to the gift card.
-  
-  Added in Saleor 3.1. 
+  Adds note to the gift card. 
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
   
@@ -17125,9 +16527,7 @@ type Mutation {
   ): GiftCardAddNote @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [GIFT_CARD_UPDATED], syncEvents: [])
 
   """
-  Create gift cards.
-  
-  Added in Saleor 3.1. 
+  Create gift cards. 
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
   
@@ -17141,9 +16541,7 @@ type Mutation {
   ): GiftCardBulkCreate @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [GIFT_CARD_CREATED, NOTIFY_USER], syncEvents: [])
 
   """
-  Delete gift cards.
-  
-  Added in Saleor 3.1. 
+  Delete gift cards. 
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
   
@@ -17156,9 +16554,7 @@ type Mutation {
   ): GiftCardBulkDelete @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [GIFT_CARD_DELETED], syncEvents: [])
 
   """
-  Activate gift cards.
-  
-  Added in Saleor 3.1. 
+  Activate gift cards. 
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
   
@@ -17171,9 +16567,7 @@ type Mutation {
   ): GiftCardBulkActivate @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [GIFT_CARD_STATUS_CHANGED], syncEvents: [])
 
   """
-  Deactivate gift cards.
-  
-  Added in Saleor 3.1. 
+  Deactivate gift cards. 
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
   
@@ -17203,8 +16597,6 @@ type Mutation {
 
   """
   Trigger sending a notification with the notify plugin method. Serializes nodes provided as ids parameter and includes this data in the notification payload.
-  
-  Added in Saleor 3.1.
   """
   externalNotificationTrigger(
     """
@@ -17307,9 +16699,7 @@ type Mutation {
   ): PromotionRuleDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [PROMOTION_RULE_DELETED], syncEvents: [])
 
   """
-  Creates/updates translations for a promotion.
-  
-  Added in Saleor 3.17. 
+  Creates/updates translations for a promotion. 
   
   Requires one of the following permissions: MANAGE_TRANSLATIONS.
   """
@@ -17325,9 +16715,7 @@ type Mutation {
   ): PromotionTranslate @doc(category: "Discounts")
 
   """
-  Creates/updates translations for a promotion rule.
-  
-  Added in Saleor 3.17. 
+  Creates/updates translations for a promotion rule. 
   
   Requires one of the following permissions: MANAGE_TRANSLATIONS.
   """
@@ -17637,9 +17025,7 @@ type Mutation {
   ): ExportProducts @doc(category: "Products") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, PRODUCT_EXPORT_COMPLETED], syncEvents: [])
 
   """
-  Export gift cards to csv file.
-  
-  Added in Saleor 3.1. 
+  Export gift cards to csv file. 
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
   
@@ -18061,11 +17447,7 @@ type Mutation {
     """
     checkoutId: ID
 
-    """
-    The checkout's ID.
-    
-    Added in Saleor 3.4.
-    """
+    """The checkout's ID."""
     id: ID
 
     """Data required to create a new payment."""
@@ -18296,9 +17678,7 @@ type Mutation {
   ): ChannelDeactivate @doc(category: "Channels") @webhookEventsInfo(asyncEvents: [CHANNEL_STATUS_CHANGED], syncEvents: [])
 
   """
-  Reorder the warehouses of a channel.
-  
-  Added in Saleor 3.7. 
+  Reorder the warehouses of a channel. 
   
   Requires one of the following permissions: MANAGE_CHANNELS.
   """
@@ -18330,11 +17710,7 @@ type Mutation {
   - ATTRIBUTE_DELETED (async): An attribute was deleted.
   """
   attributeDelete(
-    """
-    External ID of an attribute to delete. 
-    
-    Added in Saleor 3.10.
-    """
+    """External ID of an attribute to delete."""
     externalReference: String
 
     """ID of an attribute to delete."""
@@ -18350,11 +17726,7 @@ type Mutation {
   - ATTRIBUTE_UPDATED (async): An attribute was updated.
   """
   attributeUpdate(
-    """
-    External ID of an attribute to update. 
-    
-    Added in Saleor 3.10.
-    """
+    """External ID of an attribute to update."""
     externalReference: String
 
     """ID of an attribute to update."""
@@ -18366,10 +17738,6 @@ type Mutation {
 
   """
   Creates attributes.
-  
-  Added in Saleor 3.15.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
   Triggers the following webhook events:
   - ATTRIBUTE_CREATED (async): An attribute was created.
@@ -18384,10 +17752,6 @@ type Mutation {
 
   """
   Updates attributes.
-  
-  Added in Saleor 3.15.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
   Triggers the following webhook events:
   - ATTRIBUTE_UPDATED (async): An attribute was updated. Optionally called when new attribute value was created or deleted.
@@ -18419,11 +17783,7 @@ type Mutation {
   ): AttributeTranslate @doc(category: "Attributes")
 
   """
-  Creates/updates translations for attributes.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Creates/updates translations for attributes. 
   
   Requires one of the following permissions: MANAGE_TRANSLATIONS.
   """
@@ -18489,11 +17849,7 @@ type Mutation {
   - ATTRIBUTE_UPDATED (async): An attribute was updated.
   """
   attributeValueDelete(
-    """
-    External ID of a value to delete. 
-    
-    Added in Saleor 3.10.
-    """
+    """External ID of a value to delete."""
     externalReference: String
 
     """ID of a value to delete."""
@@ -18510,11 +17866,7 @@ type Mutation {
   - ATTRIBUTE_UPDATED (async): An attribute was updated.
   """
   attributeValueUpdate(
-    """
-    External ID of an AttributeValue to update. 
-    
-    Added in Saleor 3.10.
-    """
+    """External ID of an AttributeValue to update."""
     externalReference: String
 
     """ID of an AttributeValue to update."""
@@ -18525,11 +17877,7 @@ type Mutation {
   ): AttributeValueUpdate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_VALUE_UPDATED, ATTRIBUTE_UPDATED], syncEvents: [])
 
   """
-  Creates/updates translations for attributes values.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Creates/updates translations for attributes values. 
   
   Requires one of the following permissions: MANAGE_TRANSLATIONS.
   """
@@ -18714,8 +18062,6 @@ type Mutation {
   tokenCreate(
     """
     The audience that will be included to JWT tokens with prefix `custom:`.
-    
-    Added in Saleor 3.8.
     """
     audience: String
 
@@ -18821,11 +18167,7 @@ type Mutation {
   ): RequestPasswordReset @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, ACCOUNT_SET_PASSWORD_REQUESTED, STAFF_SET_PASSWORD_REQUESTED], syncEvents: [])
 
   """
-  Sends a notification confirmation.
-  
-  Added in Saleor 3.15.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Sends a notification confirmation. 
   
   Requires one of the following permissions: AUTHENTICATED_USER.
   
@@ -19156,11 +18498,7 @@ type Mutation {
   - CUSTOMER_METADATA_UPDATED (async): Optionally called when customer's metadata was updated.
   """
   customerUpdate(
-    """
-    External ID of a customer to update. 
-    
-    Added in Saleor 3.10.
-    """
+    """External ID of a customer to update."""
     externalReference: String
 
     """ID of a customer to update."""
@@ -19179,11 +18517,7 @@ type Mutation {
   - CUSTOMER_DELETED (async): A customer account was deleted.
   """
   customerDelete(
-    """
-    External ID of a customer to update. 
-    
-    Added in Saleor 3.10.
-    """
+    """External ID of a customer to update."""
     externalReference: String
 
     """ID of a customer to delete."""
@@ -19204,11 +18538,7 @@ type Mutation {
   ): CustomerBulkDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_DELETED], syncEvents: [])
 
   """
-  Updates customers.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Updates customers. 
   
   Requires one of the following permissions: MANAGE_USERS.
   
@@ -19426,19 +18756,11 @@ input WebhookCreateInput @doc(category: "Webhooks") {
   """
   secretKey: String
 
-  """
-  Subscription query used to define a webhook payload.
-  
-  Added in Saleor 3.2.
-  """
+  """Subscription query used to define a webhook payload."""
   query: String
 
   """
   Custom headers, which will be added to HTTP request. There is a limitation of 5 headers per webhook and 998 characters per header.Only `X-*`, `Authorization*`, and `BrokerProperties` keys are allowed.
-  
-  Added in Saleor 3.12.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   customHeaders: JSONString
 }
@@ -19498,19 +18820,11 @@ input WebhookUpdateInput @doc(category: "Webhooks") {
   """
   secretKey: String
 
-  """
-  Subscription query used to define a webhook payload.
-  
-  Added in Saleor 3.2.
-  """
+  """Subscription query used to define a webhook payload."""
   query: String
 
   """
   Custom headers, which will be added to HTTP request. There is a limitation of 5 headers per webhook and 998 characters per header.Only `X-*`, `Authorization*`, and `BrokerProperties` keys are allowed.
-  
-  Added in Saleor 3.12.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   customHeaders: JSONString
 }
@@ -19527,11 +18841,7 @@ type EventDeliveryRetry @doc(category: "Webhooks") {
 }
 
 """
-Performs a dry run of a webhook event. Supports a single event (the first, if multiple provided in the `query`). Requires permission relevant to processed event.
-
-Added in Saleor 3.11.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Performs a dry run of a webhook event. Supports a single event (the first, if multiple provided in the `query`). Requires permission relevant to processed event. 
 
 Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
 """
@@ -19567,11 +18877,7 @@ enum WebhookDryRunErrorCode @doc(category: "Webhooks") {
 }
 
 """
-Trigger a webhook event. Supports a single event (the first, if multiple provided in the `webhook.subscription_query`). Requires permission relevant to processed event. Successfully delivered webhook returns `delivery` with status='PENDING' and empty payload.
-
-Added in Saleor 3.11.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Trigger a webhook event. Supports a single event (the first, if multiple provided in the `webhook.subscription_query`). Requires permission relevant to processed event. Successfully delivered webhook returns `delivery` with status='PENDING' and empty payload. 
 
 Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
 """
@@ -19734,9 +19040,7 @@ type WarehouseShippingZoneUnassign @doc(category: "Products") {
 }
 
 """
-Create a tax class.
-
-Added in Saleor 3.9. 
+Create a tax class. 
 
 Requires one of the following permissions: MANAGE_TAXES.
 """
@@ -19786,9 +19090,7 @@ input CountryRateInput @doc(category: "Taxes") {
 }
 
 """
-Delete a tax class. After deleting the tax class any products, product types or shipping methods using it are updated to use the default tax class.
-
-Added in Saleor 3.9. 
+Delete a tax class. After deleting the tax class any products, product types or shipping methods using it are updated to use the default tax class. 
 
 Requires one of the following permissions: MANAGE_TAXES.
 """
@@ -19817,9 +19119,7 @@ enum TaxClassDeleteErrorCode @doc(category: "Taxes") {
 }
 
 """
-Update a tax class.
-
-Added in Saleor 3.9. 
+Update a tax class. 
 
 Requires one of the following permissions: MANAGE_TAXES.
 """
@@ -19877,9 +19177,7 @@ input CountryRateUpdateInput @doc(category: "Taxes") {
 }
 
 """
-Update tax configuration for a channel.
-
-Added in Saleor 3.9. 
+Update tax configuration for a channel. 
 
 Requires one of the following permissions: MANAGE_TAXES.
 """
@@ -19968,9 +19266,7 @@ input TaxConfigurationPerCountryInput @doc(category: "Taxes") {
 }
 
 """
-Update tax class rates for a specific country.
-
-Added in Saleor 3.9. 
+Update tax class rates for a specific country. 
 
 Requires one of the following permissions: MANAGE_TAXES.
 """
@@ -20013,9 +19309,7 @@ input TaxClassRateInput @doc(category: "Taxes") {
 }
 
 """
-Remove all tax class rates for a specific country.
-
-Added in Saleor 3.9. 
+Remove all tax class rates for a specific country. 
 
 Requires one of the following permissions: MANAGE_TAXES.
 """
@@ -20045,9 +19339,7 @@ enum TaxCountryConfigurationDeleteErrorCode @doc(category: "Taxes") {
 }
 
 """
-Exempt checkout or order from charging the taxes. When tax exemption is enabled, taxes won't be charged for the checkout or order. Taxes may still be calculated in cases when product prices are entered with the tax included and the net price needs to be known.
-
-Added in Saleor 3.8. 
+Exempt checkout or order from charging the taxes. When tax exemption is enabled, taxes won't be charged for the checkout or order. Taxes may still be calculated in cases when product prices are entered with the tax included and the net price needs to be known. 
 
 Requires one of the following permissions: MANAGE_TAXES.
 """
@@ -20079,11 +19371,7 @@ enum TaxExemptionManageErrorCode @doc(category: "Taxes") {
 }
 
 """
-Updates stocks for a given variant and warehouse. Variant and warehouse selectors have to be the same for all stock inputs. Is not allowed to use 'variantId' in one input and 'variantExternalReference' in another.
-
-Added in Saleor 3.13.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Updates stocks for a given variant and warehouse. Variant and warehouse selectors have to be the same for all stock inputs. Is not allowed to use 'variantId' in one input and 'variantExternalReference' in another. 
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
 
@@ -20279,18 +19567,10 @@ input ShopSettingsInput {
   """Enable automatic fulfillment for all digital products."""
   automaticFulfillmentDigitalProducts: Boolean
 
-  """
-  Enable automatic approval of all new fulfillments.
-  
-  Added in Saleor 3.1.
-  """
+  """Enable automatic approval of all new fulfillments."""
   fulfillmentAutoApprove: Boolean
 
-  """
-  Enable ability to approve fulfillments which are unpaid.
-  
-  Added in Saleor 3.1.
-  """
+  """Enable ability to approve fulfillments which are unpaid."""
   fulfillmentAllowUnpaid: Boolean
 
   """Default number of max downloads per digital content URL."""
@@ -20310,51 +19590,29 @@ input ShopSettingsInput {
 
   """
   Default number of minutes stock will be reserved for anonymous checkout. Enter 0 or null to disable.
-  
-  Added in Saleor 3.1.
   """
   reserveStockDurationAnonymousUser: Int
 
   """
   Default number of minutes stock will be reserved for authenticated checkout. Enter 0 or null to disable.
-  
-  Added in Saleor 3.1.
   """
   reserveStockDurationAuthenticatedUser: Int
 
   """
   Default number of maximum line quantity in single checkout. Minimum possible value is 1, default value is 50.
-  
-  Added in Saleor 3.1.
   """
   limitQuantityPerCheckout: Int
 
-  """
-  Enable automatic account confirmation by email.
-  
-  Added in Saleor 3.14.
-  """
+  """Enable automatic account confirmation by email."""
   enableAccountConfirmationByEmail: Boolean
 
-  """
-  Enable possibility to login without account confirmation.
-  
-  Added in Saleor 3.15.
-  """
+  """Enable possibility to login without account confirmation."""
   allowLoginWithoutConfirmation: Boolean
 
-  """
-  Shop public metadata.
-  
-  Added in Saleor 3.15.
-  """
+  """Shop public metadata."""
   metadata: [MetadataInput!]
 
-  """
-  Shop private metadata.
-  
-  Added in Saleor 3.15.
-  """
+  """Shop private metadata."""
   privateMetadata: [MetadataInput!]
 
   """
@@ -20904,8 +20162,6 @@ input ProductAttributeAssignInput @doc(category: "Products") {
 
   """
   Whether attribute is allowed in variant selection. Allowed types are: ['dropdown', 'boolean', 'swatch', 'numeric'].
-  
-  Added in Saleor 3.1.
   """
   variantSelection: Boolean
 }
@@ -20916,9 +20172,7 @@ enum ProductAttributeType @doc(category: "Products") {
 }
 
 """
-Update attributes assigned to product variant for given product type.
-
-Added in Saleor 3.1. 
+Update attributes assigned to product variant for given product type. 
 
 Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
 """
@@ -20935,8 +20189,6 @@ input ProductAttributeAssignmentUpdateInput @doc(category: "Products") {
 
   """
   Whether attribute is allowed in variant selection. Allowed types are: ['dropdown', 'boolean', 'swatch', 'numeric'].
-  
-  Added in Saleor 3.1.
   """
   variantSelection: Boolean!
 }
@@ -20987,18 +20239,10 @@ input CategoryInput @doc(category: "Products") {
   """Alt text for a product media."""
   backgroundImageAlt: String
 
-  """
-  Fields required to update the category metadata.
-  
-  Added in Saleor 3.8.
-  """
+  """Fields required to update the category metadata."""
   metadata: [MetadataInput!]
 
-  """
-  Fields required to update the category private metadata.
-  
-  Added in Saleor 3.8.
-  """
+  """Fields required to update the category private metadata."""
   privateMetadata: [MetadataInput!]
 }
 
@@ -21156,18 +20400,10 @@ input CollectionCreateInput @doc(category: "Products") {
   """
   publicationDate: Date
 
-  """
-  Fields required to update the collection metadata.
-  
-  Added in Saleor 3.8.
-  """
+  """Fields required to update the collection metadata."""
   metadata: [MetadataInput!]
 
-  """
-  Fields required to update the collection private metadata.
-  
-  Added in Saleor 3.8.
-  """
+  """Fields required to update the collection private metadata."""
   privateMetadata: [MetadataInput!]
 
   """List of products to be added to the collection."""
@@ -21275,18 +20511,10 @@ input CollectionInput @doc(category: "Products") {
   """
   publicationDate: Date
 
-  """
-  Fields required to update the collection metadata.
-  
-  Added in Saleor 3.8.
-  """
+  """Fields required to update the collection metadata."""
   metadata: [MetadataInput!]
 
-  """
-  Fields required to update the collection private metadata.
-  
-  Added in Saleor 3.8.
-  """
+  """Fields required to update the collection private metadata."""
   privateMetadata: [MetadataInput!]
 }
 
@@ -21357,11 +20585,7 @@ input PublishableChannelListingInput @doc(category: "Products") {
   """
   publicationDate: Date
 
-  """
-  Publication date time. ISO 8601 standard.
-  
-  Added in Saleor 3.3.
-  """
+  """Publication date time. ISO 8601 standard."""
   publishedAt: DateTime
 }
 
@@ -21427,25 +20651,13 @@ input ProductCreateInput @doc(category: "Products") {
   """Defines the product rating value."""
   rating: Float
 
-  """
-  Fields required to update the product metadata.
-  
-  Added in Saleor 3.8.
-  """
+  """Fields required to update the product metadata."""
   metadata: [MetadataInput!]
 
-  """
-  Fields required to update the product private metadata.
-  
-  Added in Saleor 3.8.
-  """
+  """Fields required to update the product private metadata."""
   privateMetadata: [MetadataInput!]
 
-  """
-  External ID of this product.
-  
-  Added in Saleor 3.10.
-  """
+  """External ID of this product."""
   externalReference: String
 
   """ID of the type that product belongs to."""
@@ -21533,11 +20745,7 @@ type ProductDelete @doc(category: "Products") {
 }
 
 """
-Creates products.
-
-Added in Saleor 3.13.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Creates products. 
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
 """
@@ -21729,39 +20937,21 @@ input ProductVariantBulkCreateInput @doc(category: "Products") {
   """Weight of the Product Variant."""
   weight: WeightScalar
 
-  """
-  Determines if variant is in preorder.
-  
-  Added in Saleor 3.1.
-  """
+  """Determines if variant is in preorder."""
   preorder: PreorderSettingsInput
 
   """
   Determines maximum quantity of `ProductVariant`,that can be bought in a single checkout.
-  
-  Added in Saleor 3.1.
   """
   quantityLimitPerCustomer: Int
 
-  """
-  Fields required to update the product variant metadata.
-  
-  Added in Saleor 3.8.
-  """
+  """Fields required to update the product variant metadata."""
   metadata: [MetadataInput!]
 
-  """
-  Fields required to update the product variant private metadata.
-  
-  Added in Saleor 3.8.
-  """
+  """Fields required to update the product variant private metadata."""
   privateMetadata: [MetadataInput!]
 
-  """
-  External ID of this product variant.
-  
-  Added in Saleor 3.10.
-  """
+  """External ID of this product variant."""
   externalReference: String
 
   """Stocks of a product available for sale."""
@@ -21775,11 +20965,7 @@ input BulkAttributeValueInput @doc(category: "Products") {
   """ID of the selected attribute."""
   id: ID
 
-  """
-  External ID of this attribute.
-  
-  Added in Saleor 3.14.
-  """
+  """External ID of this attribute."""
   externalReference: String
 
   """
@@ -21787,67 +20973,31 @@ input BulkAttributeValueInput @doc(category: "Products") {
   """
   values: [String!]
 
-  """
-  Attribute value ID.
-  
-  Added in Saleor 3.12.
-  """
+  """Attribute value ID."""
   dropdown: AttributeValueSelectableTypeInput
 
-  """
-  Attribute value ID.
-  
-  Added in Saleor 3.12.
-  """
+  """Attribute value ID."""
   swatch: AttributeValueSelectableTypeInput
 
-  """
-  List of attribute value IDs.
-  
-  Added in Saleor 3.12.
-  """
+  """List of attribute value IDs."""
   multiselect: [AttributeValueSelectableTypeInput!]
 
-  """
-  Numeric value of an attribute.
-  
-  Added in Saleor 3.12.
-  """
+  """Numeric value of an attribute."""
   numeric: String
 
-  """
-  URL of the file attribute. Every time, a new value is created.
-  
-  Added in Saleor 3.12.
-  """
+  """URL of the file attribute. Every time, a new value is created."""
   file: String
 
-  """
-  File content type.
-  
-  Added in Saleor 3.12.
-  """
+  """File content type."""
   contentType: String
 
-  """
-  List of entity IDs that will be used as references.
-  
-  Added in Saleor 3.12.
-  """
+  """List of entity IDs that will be used as references."""
   references: [ID!]
 
-  """
-  Text content in JSON format.
-  
-  Added in Saleor 3.12.
-  """
+  """Text content in JSON format."""
   richText: JSONString
 
-  """
-  Plain text content.
-  
-  Added in Saleor 3.12.
-  """
+  """Plain text content."""
   plainText: String
 
   """
@@ -21855,18 +21005,10 @@ input BulkAttributeValueInput @doc(category: "Products") {
   """
   boolean: Boolean
 
-  """
-  Represents the date value of the attribute value.
-  
-  Added in Saleor 3.12.
-  """
+  """Represents the date value of the attribute value."""
   date: Date
 
-  """
-  Represents the date/time value of the attribute value.
-  
-  Added in Saleor 3.12.
-  """
+  """Represents the date/time value of the attribute value."""
   dateTime: DateTime
 }
 
@@ -21896,11 +21038,7 @@ input ProductVariantChannelListingAddInput @doc(category: "Products") {
   """Cost price of the variant in channel."""
   costPrice: PositiveDecimal
 
-  """
-  The threshold for preorder variant in channel.
-  
-  Added in Saleor 3.1.
-  """
+  """The threshold for preorder variant in channel."""
   preorderThreshold: Int
 }
 
@@ -21978,34 +21116,18 @@ input ProductInput @doc(category: "Products") {
   """Defines the product rating value."""
   rating: Float
 
-  """
-  Fields required to update the product metadata.
-  
-  Added in Saleor 3.8.
-  """
+  """Fields required to update the product metadata."""
   metadata: [MetadataInput!]
 
-  """
-  Fields required to update the product private metadata.
-  
-  Added in Saleor 3.8.
-  """
+  """Fields required to update the product private metadata."""
   privateMetadata: [MetadataInput!]
 
-  """
-  External ID of this product.
-  
-  Added in Saleor 3.10.
-  """
+  """External ID of this product."""
   externalReference: String
 }
 
 """
-Creates/updates translations for products.
-
-Added in Saleor 3.15.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Creates/updates translations for products. 
 
 Requires one of the following permissions: MANAGE_TRANSLATIONS.
 
@@ -22134,11 +21256,7 @@ input ProductChannelListingAddInput @doc(category: "Products") {
   """
   publicationDate: Date
 
-  """
-  Publication date time. ISO 8601 standard.
-  
-  Added in Saleor 3.3.
-  """
+  """Publication date time. ISO 8601 standard."""
   publishedAt: DateTime
 
   """
@@ -22160,8 +21278,6 @@ input ProductChannelListingAddInput @doc(category: "Products") {
 
   """
   A start date time from which a product will be available for purchase. When not set and `isAvailable` is set to True, the current day is assumed.
-  
-  Added in Saleor 3.3.
   """
   availableForPurchaseAt: DateTime
 
@@ -22415,18 +21531,10 @@ input DigitalContentUploadInput @doc(category: "Products") {
   """Overwrite default automatic_fulfillment setting for variant."""
   automaticFulfillment: Boolean
 
-  """
-  Fields required to update the digital content metadata.
-  
-  Added in Saleor 3.8.
-  """
+  """Fields required to update the digital content metadata."""
   metadata: [MetadataInput!]
 
-  """
-  Fields required to update the digital content private metadata.
-  
-  Added in Saleor 3.8.
-  """
+  """Fields required to update the digital content private metadata."""
   privateMetadata: [MetadataInput!]
 
   """Represents an file in a multipart request."""
@@ -22473,18 +21581,10 @@ input DigitalContentInput @doc(category: "Products") {
   """Overwrite default automatic_fulfillment setting for variant."""
   automaticFulfillment: Boolean
 
-  """
-  Fields required to update the digital content metadata.
-  
-  Added in Saleor 3.8.
-  """
+  """Fields required to update the digital content metadata."""
   metadata: [MetadataInput!]
 
-  """
-  Fields required to update the digital content private metadata.
-  
-  Added in Saleor 3.8.
-  """
+  """Fields required to update the digital content private metadata."""
   privateMetadata: [MetadataInput!]
 }
 
@@ -22533,39 +21633,21 @@ input ProductVariantCreateInput @doc(category: "Products") {
   """Weight of the Product Variant."""
   weight: WeightScalar
 
-  """
-  Determines if variant is in preorder.
-  
-  Added in Saleor 3.1.
-  """
+  """Determines if variant is in preorder."""
   preorder: PreorderSettingsInput
 
   """
   Determines maximum quantity of `ProductVariant`,that can be bought in a single checkout.
-  
-  Added in Saleor 3.1.
   """
   quantityLimitPerCustomer: Int
 
-  """
-  Fields required to update the product variant metadata.
-  
-  Added in Saleor 3.8.
-  """
+  """Fields required to update the product variant metadata."""
   metadata: [MetadataInput!]
 
-  """
-  Fields required to update the product variant private metadata.
-  
-  Added in Saleor 3.8.
-  """
+  """Fields required to update the product variant private metadata."""
   privateMetadata: [MetadataInput!]
 
-  """
-  External ID of this product variant.
-  
-  Added in Saleor 3.10.
-  """
+  """External ID of this product variant."""
   externalReference: String
 
   """Product ID of which type is the variant."""
@@ -22598,11 +21680,7 @@ type ProductVariantBulkCreate @doc(category: "Products") {
   """List of the created variants.This field will be removed in Saleor 4.0."""
   productVariants: [ProductVariant!]!
 
-  """
-  List of the created variants.
-  
-  Added in Saleor 3.11.
-  """
+  """List of the created variants."""
   results: [ProductVariantBulkResult!]!
   bulkProductErrors: [BulkProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [BulkProductError!]!
@@ -22630,8 +21708,6 @@ type ProductVariantBulkError @doc(category: "Products") {
 
   """
   Path to field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
-  
-  Added in Saleor 3.14.
   """
   path: String
 
@@ -22644,18 +21720,10 @@ type ProductVariantBulkError @doc(category: "Products") {
   """List of warehouse IDs which causes the error."""
   warehouses: [ID!]
 
-  """
-  List of stocks IDs which causes the error.
-  
-  Added in Saleor 3.12.
-  """
+  """List of stocks IDs which causes the error."""
   stocks: [ID!]
 
-  """
-  List of channel IDs which causes the error.
-  
-  Added in Saleor 3.12.
-  """
+  """List of channel IDs which causes the error."""
   channels: [ID!]
 
   """List of channel listings IDs which causes the error."""
@@ -22707,11 +21775,7 @@ type BulkProductError @doc(category: "Products") {
 }
 
 """
-Update multiple product variants.
-
-Added in Saleor 3.11.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Update multiple product variants. 
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
 """
@@ -22724,11 +21788,7 @@ type ProductVariantBulkUpdate @doc(category: "Products") {
   errors: [ProductVariantBulkError!]!
 }
 
-"""
-Input fields to update product variants.
-
-Added in Saleor 3.11.
-"""
+"""Input fields to update product variants."""
 input ProductVariantBulkUpdateInput @doc(category: "Products") {
   """List of attributes specific to this variant."""
   attributes: [BulkAttributeValueInput!]
@@ -22747,57 +21807,27 @@ input ProductVariantBulkUpdateInput @doc(category: "Products") {
   """Weight of the Product Variant."""
   weight: WeightScalar
 
-  """
-  Determines if variant is in preorder.
-  
-  Added in Saleor 3.1.
-  """
+  """Determines if variant is in preorder."""
   preorder: PreorderSettingsInput
 
   """
   Determines maximum quantity of `ProductVariant`,that can be bought in a single checkout.
-  
-  Added in Saleor 3.1.
   """
   quantityLimitPerCustomer: Int
 
-  """
-  Fields required to update the product variant metadata.
-  
-  Added in Saleor 3.8.
-  """
+  """Fields required to update the product variant metadata."""
   metadata: [MetadataInput!]
 
-  """
-  Fields required to update the product variant private metadata.
-  
-  Added in Saleor 3.8.
-  """
+  """Fields required to update the product variant private metadata."""
   privateMetadata: [MetadataInput!]
 
-  """
-  External ID of this product variant.
-  
-  Added in Saleor 3.10.
-  """
+  """External ID of this product variant."""
   externalReference: String
 
-  """
-  Stocks input.
-  
-  Added in Saleor 3.12.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Stocks input."""
   stocks: ProductVariantStocksUpdateInput
 
-  """
-  Channel listings input.
-  
-  Added in Saleor 3.12.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Channel listings input."""
   channelListings: ProductVariantChannelListingUpdateInput
 
   """ID of the product variant to update."""
@@ -22969,39 +21999,21 @@ input ProductVariantInput @doc(category: "Products") {
   """Weight of the Product Variant."""
   weight: WeightScalar
 
-  """
-  Determines if variant is in preorder.
-  
-  Added in Saleor 3.1.
-  """
+  """Determines if variant is in preorder."""
   preorder: PreorderSettingsInput
 
   """
   Determines maximum quantity of `ProductVariant`,that can be bought in a single checkout.
-  
-  Added in Saleor 3.1.
   """
   quantityLimitPerCustomer: Int
 
-  """
-  Fields required to update the product variant metadata.
-  
-  Added in Saleor 3.8.
-  """
+  """Fields required to update the product variant metadata."""
   metadata: [MetadataInput!]
 
-  """
-  Fields required to update the product variant private metadata.
-  
-  Added in Saleor 3.8.
-  """
+  """Fields required to update the product variant private metadata."""
   privateMetadata: [MetadataInput!]
 
-  """
-  External ID of this product variant.
-  
-  Added in Saleor 3.10.
-  """
+  """External ID of this product variant."""
   externalReference: String
 }
 
@@ -23032,11 +22044,7 @@ input NameTranslationInput {
 }
 
 """
-Creates/updates translations for products variants.
-
-Added in Saleor 3.15.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Creates/updates translations for products variants. 
 
 Requires one of the following permissions: MANAGE_TRANSLATIONS.
 
@@ -23120,9 +22128,7 @@ type ProductVariantReorderAttributeValues @doc(category: "Products") {
 }
 
 """
-Deactivates product variant preorder. It changes all preorder allocation into regular allocation.
-
-Added in Saleor 3.1. 
+Deactivates product variant preorder. It changes all preorder allocation into regular allocation. 
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
 """
@@ -23295,11 +22301,7 @@ input MoneyInput {
 }
 
 """
-Create transaction for checkout or order.
-
-Added in Saleor 3.4.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Create transaction for checkout or order. 
 
 Requires one of the following permissions: HANDLE_PAYMENTS.
 """
@@ -23331,25 +22333,13 @@ enum TransactionCreateErrorCode @doc(category: "Payments") {
 }
 
 input TransactionCreateInput @doc(category: "Payments") {
-  """
-  Payment name of the transaction.
-  
-  Added in Saleor 3.13.
-  """
+  """Payment name of the transaction."""
   name: String
 
-  """
-  The message of the transaction.
-  
-  Added in Saleor 3.13.
-  """
+  """The message of the transaction."""
   message: String
 
-  """
-  PSP Reference of the transaction. 
-  
-  Added in Saleor 3.13.
-  """
+  """PSP Reference of the transaction."""
   pspReference: String
 
   """List of all possible actions for the transaction"""
@@ -23364,11 +22354,7 @@ input TransactionCreateInput @doc(category: "Payments") {
   """Amount refunded by this transaction."""
   amountRefunded: MoneyInput
 
-  """
-  Amount canceled by this transaction.
-  
-  Added in Saleor 3.13.
-  """
+  """Amount canceled by this transaction."""
   amountCanceled: MoneyInput
 
   """Payment public metadata."""
@@ -23379,34 +22365,20 @@ input TransactionCreateInput @doc(category: "Payments") {
 
   """
   The url that will allow to redirect user to payment provider page with transaction event details.
-  
-  Added in Saleor 3.13.
   """
   externalUrl: String
 }
 
 input TransactionEventInput @doc(category: "Payments") {
-  """
-  PSP Reference related to this action.
-  
-  Added in Saleor 3.13.
-  """
+  """PSP Reference related to this action."""
   pspReference: String
 
-  """
-  The message related to the event.
-  
-  Added in Saleor 3.13.
-  """
+  """The message related to the event."""
   message: String
 }
 
 """
 Update transaction.
-
-Added in Saleor 3.4.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 
 Requires the following permissions: OWNER and HANDLE_PAYMENTS for apps, HANDLE_PAYMENTS for staff users. Staff user cannot update a transaction that is owned by the app.
 """
@@ -23438,25 +22410,13 @@ enum TransactionUpdateErrorCode @doc(category: "Payments") {
 }
 
 input TransactionUpdateInput @doc(category: "Payments") {
-  """
-  Payment name of the transaction.
-  
-  Added in Saleor 3.13.
-  """
+  """Payment name of the transaction."""
   name: String
 
-  """
-  The message of the transaction.
-  
-  Added in Saleor 3.13.
-  """
+  """The message of the transaction."""
   message: String
 
-  """
-  PSP Reference of the transaction. 
-  
-  Added in Saleor 3.13.
-  """
+  """PSP Reference of the transaction."""
   pspReference: String
 
   """List of all possible actions for the transaction"""
@@ -23471,11 +22431,7 @@ input TransactionUpdateInput @doc(category: "Payments") {
   """Amount refunded by this transaction."""
   amountRefunded: MoneyInput
 
-  """
-  Amount canceled by this transaction.
-  
-  Added in Saleor 3.13.
-  """
+  """Amount canceled by this transaction."""
   amountCanceled: MoneyInput
 
   """Payment public metadata."""
@@ -23486,18 +22442,12 @@ input TransactionUpdateInput @doc(category: "Payments") {
 
   """
   The url that will allow to redirect user to payment provider page with transaction event details.
-  
-  Added in Saleor 3.13.
   """
   externalUrl: String
 }
 
 """
-Request an action for payment transaction.
-
-Added in Saleor 3.4.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Request an action for payment transaction. 
 
 Requires one of the following permissions: HANDLE_PAYMENTS.
 """
@@ -23527,11 +22477,7 @@ enum TransactionRequestActionErrorCode @doc(category: "Payments") {
 }
 
 """
-Request a refund for payment transaction based on granted refund.
-
-Added in Saleor 3.15.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Request a refund for payment transaction based on granted refund. 
 
 Requires one of the following permissions: HANDLE_PAYMENTS.
 """
@@ -23565,10 +22511,6 @@ enum TransactionRequestRefundForGrantedRefundErrorCode @doc(category: "Payments"
 
 """
 Report the event for the transaction.
-
-Added in Saleor 3.13.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 
 Requires the following permissions: OWNER and HANDLE_PAYMENTS for apps, HANDLE_PAYMENTS for staff users. Staff user cannot update a transaction that is owned by the app.
 
@@ -23615,10 +22557,6 @@ enum TransactionEventReportErrorCode @doc(category: "Payments") {
 
 """
 Initializes a payment gateway session. It triggers the webhook `PAYMENT_GATEWAY_INITIALIZE_SESSION`, to the requested `paymentGateways`. If `paymentGateways` is not provided, the webhook will be send to all subscribed payment gateways. There is a limit of 100 transaction items per checkout / order.
-
-Added in Saleor 3.13.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type PaymentGatewayInitialize @doc(category: "Payments") {
   """List of payment gateway configurations."""
@@ -23683,10 +22621,6 @@ input PaymentGatewayToInitialize @doc(category: "Payments") {
 
 """
 Initializes a transaction session. It triggers the webhook `TRANSACTION_INITIALIZE_SESSION`, to the requested `paymentGateways`. There is a limit of 100 transaction items per checkout / order.
-
-Added in Saleor 3.13.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type TransactionInitialize @doc(category: "Payments") {
   """The initialized transaction."""
@@ -23722,11 +22656,7 @@ enum TransactionInitializeErrorCode @doc(category: "Payments") {
 }
 
 """
-Processes a transaction session. It triggers the webhook `TRANSACTION_PROCESS_SESSION`, to the assigned `paymentGateways`. 
-
-Added in Saleor 3.13.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
+Processes a transaction session. It triggers the webhook `TRANSACTION_PROCESS_SESSION`, to the assigned `paymentGateways`.
 """
 type TransactionProcess @doc(category: "Payments") {
   """The processed transaction."""
@@ -23764,11 +22694,7 @@ enum TransactionProcessErrorCode @doc(category: "Payments") {
 }
 
 """
-Request to delete a stored payment method on payment provider side.
-
-Added in Saleor 3.16.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Request to delete a stored payment method on payment provider side. 
 
 Requires one of the following permissions: AUTHENTICATED_USER.
 
@@ -23818,11 +22744,7 @@ enum StoredPaymentMethodRequestDeleteErrorCode @doc(category: "Payments") {
 }
 
 """
-Initializes payment gateway for tokenizing payment method session.
-
-Added in Saleor 3.16.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Initializes payment gateway for tokenizing payment method session. 
 
 Requires one of the following permissions: AUTHENTICATED_USER.
 
@@ -23874,11 +22796,7 @@ enum PaymentGatewayInitializeTokenizationErrorCode @doc(category: "Payments") {
 }
 
 """
-Tokenize payment method.
-
-Added in Saleor 3.16.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Tokenize payment method. 
 
 Requires one of the following permissions: AUTHENTICATED_USER.
 
@@ -23937,11 +22855,7 @@ enum PaymentMethodInitializeTokenizationErrorCode @doc(category: "Payments") {
 }
 
 """
-Tokenize payment method.
-
-Added in Saleor 3.16.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Tokenize payment method. 
 
 Requires one of the following permissions: AUTHENTICATED_USER.
 
@@ -24048,11 +22962,7 @@ input PageCreateInput @doc(category: "Pages") {
   """
   publicationDate: String
 
-  """
-  Publication date time. ISO 8601 standard.
-  
-  Added in Saleor 3.3.
-  """
+  """Publication date time. ISO 8601 standard."""
   publishedAt: DateTime
 
   """Search engine optimization fields."""
@@ -24135,11 +23045,7 @@ input PageInput @doc(category: "Pages") {
   """
   publicationDate: String
 
-  """
-  Publication date time. ISO 8601 standard.
-  
-  Added in Saleor 3.3.
-  """
+  """Publication date time. ISO 8601 standard."""
   publishedAt: DateTime
 
   """Search engine optimization fields."""
@@ -24352,11 +23258,7 @@ input DraftOrderCreateInput @doc(category: "Orders") {
   """
   redirectUrl: String
 
-  """
-  External ID of this order.
-  
-  Added in Saleor 3.10.
-  """
+  """External ID of this order."""
   externalReference: String
 
   """Variant line input consisting of variant ID and quantity of products."""
@@ -24371,18 +23273,12 @@ input OrderLineCreateInput @doc(category: "Orders") {
   variantId: ID!
 
   """
-  Flag that allow force splitting the same variant into multiple lines by skipping the matching logic. 
-  
-  Added in Saleor 3.6.
+  Flag that allow force splitting the same variant into multiple lines by skipping the matching logic.
   """
   forceNewLine: Boolean = false
 
   """
   Custom price of the item.When the line with the same variant will be provided multiple times, the last price will be used.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   price: PositiveDecimal
 }
@@ -24473,11 +23369,7 @@ input DraftOrderInput @doc(category: "Orders") {
   """
   redirectUrl: String
 
-  """
-  External ID of this order.
-  
-  Added in Saleor 3.10.
-  """
+  """External ID of this order."""
   externalReference: String
 }
 
@@ -24573,11 +23465,7 @@ input OrderFulfillInput @doc(category: "Orders") {
   """If true, then allow proceed fulfillment when stock is exceeded."""
   allowStockToBeExceeded: Boolean = false
 
-  """
-  Fulfillment tracking number.
-  
-  Added in Saleor 3.6.
-  """
+  """Fulfillment tracking number."""
   trackingNumber: String
 }
 
@@ -24620,9 +23508,7 @@ input FulfillmentCancelInput @doc(category: "Orders") {
 }
 
 """
-Approve existing fulfillment.
-
-Added in Saleor 3.1. 
+Approve existing fulfillment. 
 
 Requires one of the following permissions: MANAGE_ORDERS.
 
@@ -24775,11 +23661,7 @@ input OrderReturnFulfillmentLineInput @doc(category: "Orders") {
 }
 
 """
-Adds granted refund to the order.
-
-Added in Saleor 3.13.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Adds granted refund to the order. 
 
 Requires one of the following permissions: MANAGE_ORDERS.
 """
@@ -24804,13 +23686,7 @@ type OrderGrantRefundCreateError @doc(category: "Orders") {
   """The error code."""
   code: OrderGrantRefundCreateErrorCode!
 
-  """
-  List of lines which cause the error.
-  
-  Added in Saleor 3.15.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """List of lines which cause the error."""
   lines: [OrderGrantRefundCreateLineError!]
 }
 
@@ -24854,22 +23730,10 @@ input OrderGrantRefundCreateInput @doc(category: "Orders") {
   """Reason of the granted refund."""
   reason: String
 
-  """
-  Lines to assign to granted refund.
-  
-  Added in Saleor 3.15.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Lines to assign to granted refund."""
   lines: [OrderGrantRefundCreateLineInput!]
 
-  """
-  Determine if granted refund should include shipping costs.
-  
-  Added in Saleor 3.15.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Determine if granted refund should include shipping costs."""
   grantRefundForShipping: Boolean
 
   """
@@ -24894,11 +23758,7 @@ input OrderGrantRefundCreateLineInput @doc(category: "Orders") {
 }
 
 """
-Updates granted refund.
-
-Added in Saleor 3.13.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Updates granted refund. 
 
 Requires one of the following permissions: MANAGE_ORDERS.
 """
@@ -24923,22 +23783,10 @@ type OrderGrantRefundUpdateError @doc(category: "Orders") {
   """The error code."""
   code: OrderGrantRefundUpdateErrorCode!
 
-  """
-  List of lines to add which cause the error.
-  
-  Added in Saleor 3.15.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """List of lines to add which cause the error."""
   addLines: [OrderGrantRefundUpdateLineError!]
 
-  """
-  List of lines to remove which cause the error.
-  
-  Added in Saleor 3.15.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """List of lines to remove which cause the error."""
   removeLines: [OrderGrantRefundUpdateLineError!]
 }
 
@@ -24982,31 +23830,13 @@ input OrderGrantRefundUpdateInput @doc(category: "Orders") {
   """Reason of the granted refund."""
   reason: String
 
-  """
-  Lines to assign to granted refund.
-  
-  Added in Saleor 3.15.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Lines to assign to granted refund."""
   addLines: [OrderGrantRefundUpdateLineAddInput!]
 
-  """
-  Lines to remove from granted refund.
-  
-  Added in Saleor 3.15.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Lines to remove from granted refund."""
   removeLines: [ID!]
 
-  """
-  Determine if granted refund should include shipping costs.
-  
-  Added in Saleor 3.15.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Determine if granted refund should include shipping costs."""
   grantRefundForShipping: Boolean
 
   """
@@ -25156,11 +23986,7 @@ type OrderLineDiscountRemove @doc(category: "Orders") {
 }
 
 """
-Adds note to the order.
-
-Added in Saleor 3.15.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Adds note to the order. 
 
 Requires one of the following permissions: MANAGE_ORDERS.
 """
@@ -25197,11 +24023,7 @@ input OrderNoteInput @doc(category: "Orders") {
 }
 
 """
-Updates note of an order.
-
-Added in Saleor 3.15.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Updates note of an order. 
 
 Requires one of the following permissions: MANAGE_ORDERS.
 """
@@ -25278,11 +24100,7 @@ input OrderUpdateInput @doc(category: "Orders") {
   """Shipping address of the customer."""
   shippingAddress: AddressInput
 
-  """
-  External ID of this order.
-  
-  Added in Saleor 3.10.
-  """
+  """External ID of this order."""
   externalReference: String
 }
 
@@ -25330,11 +24148,7 @@ type OrderBulkCancel @doc(category: "Orders") {
 }
 
 """
-Creates multiple orders.
-
-Added in Saleor 3.14.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Creates multiple orders. 
 
 Requires one of the following permissions: MANAGE_ORDERS_IMPORT.
 """
@@ -26049,18 +24863,10 @@ input InvoiceCreateInput @doc(category: "Orders") {
   """URL of an invoice to download."""
   url: String!
 
-  """
-  Fields required to update the invoice metadata.
-  
-  Added in Saleor 3.14.
-  """
+  """Fields required to update the invoice metadata."""
   metadata: [MetadataInput!]
 
-  """
-  Fields required to update the invoice private metadata.
-  
-  Added in Saleor 3.14.
-  """
+  """Fields required to update the invoice private metadata."""
   privateMetadata: [MetadataInput!]
 }
 
@@ -26093,18 +24899,10 @@ input UpdateInvoiceInput @doc(category: "Orders") {
   """URL of an invoice to download."""
   url: String
 
-  """
-  Fields required to update the invoice metadata.
-  
-  Added in Saleor 3.14.
-  """
+  """Fields required to update the invoice metadata."""
   metadata: [MetadataInput!]
 
-  """
-  Fields required to update the invoice private metadata.
-  
-  Added in Saleor 3.14.
-  """
+  """Fields required to update the invoice private metadata."""
   privateMetadata: [MetadataInput!]
 }
 
@@ -26181,18 +24979,10 @@ type GiftCardCreate @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents:
 }
 
 input GiftCardCreateInput @doc(category: "Gift cards") {
-  """
-  The gift card tags to add.
-  
-  Added in Saleor 3.1.
-  """
+  """The gift card tags to add."""
   addTags: [String!]
 
-  """
-  The gift card expiry date.
-  
-  Added in Saleor 3.1.
-  """
+  """The gift card expiry date."""
   expiryDate: Date
 
   """
@@ -26215,18 +25005,10 @@ input GiftCardCreateInput @doc(category: "Gift cards") {
   """Email of the customer to whom gift card will be sent."""
   userEmail: String
 
-  """
-  Slug of a channel from which the email should be sent.
-  
-  Added in Saleor 3.1.
-  """
+  """Slug of a channel from which the email should be sent."""
   channel: String
 
-  """
-  Determine if gift card is active.
-  
-  Added in Saleor 3.1.
-  """
+  """Determine if gift card is active."""
   isActive: Boolean!
 
   """
@@ -26236,11 +25018,7 @@ input GiftCardCreateInput @doc(category: "Gift cards") {
   """
   code: String
 
-  """
-  The gift card note from the staff member.
-  
-  Added in Saleor 3.1.
-  """
+  """The gift card note from the staff member."""
   note: String
 }
 
@@ -26253,9 +25031,7 @@ input PriceInput {
 }
 
 """
-Delete gift card.
-
-Added in Saleor 3.1. 
+Delete gift card. 
 
 Requires one of the following permissions: MANAGE_GIFT_CARD.
 
@@ -26298,18 +25074,10 @@ type GiftCardUpdate @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents:
 }
 
 input GiftCardUpdateInput @doc(category: "Gift cards") {
-  """
-  The gift card tags to add.
-  
-  Added in Saleor 3.1.
-  """
+  """The gift card tags to add."""
   addTags: [String!]
 
-  """
-  The gift card expiry date.
-  
-  Added in Saleor 3.1.
-  """
+  """The gift card expiry date."""
   expiryDate: Date
 
   """
@@ -26326,25 +25094,15 @@ input GiftCardUpdateInput @doc(category: "Gift cards") {
   """
   endDate: Date
 
-  """
-  The gift card tags to remove.
-  
-  Added in Saleor 3.1.
-  """
+  """The gift card tags to remove."""
   removeTags: [String!]
 
-  """
-  The gift card balance amount.
-  
-  Added in Saleor 3.1.
-  """
+  """The gift card balance amount."""
   balanceAmount: PositiveDecimal
 }
 
 """
-Resend a gift card.
-
-Added in Saleor 3.1. 
+Resend a gift card. 
 
 Requires one of the following permissions: MANAGE_GIFT_CARD.
 
@@ -26369,9 +25127,7 @@ input GiftCardResendInput @doc(category: "Gift cards") {
 }
 
 """
-Adds note to the gift card.
-
-Added in Saleor 3.1. 
+Adds note to the gift card. 
 
 Requires one of the following permissions: MANAGE_GIFT_CARD.
 
@@ -26393,9 +25149,7 @@ input GiftCardAddNoteInput @doc(category: "Gift cards") {
 }
 
 """
-Create gift cards.
-
-Added in Saleor 3.1. 
+Create gift cards. 
 
 Requires one of the following permissions: MANAGE_GIFT_CARD.
 
@@ -26430,9 +25184,7 @@ input GiftCardBulkCreateInput @doc(category: "Gift cards") {
 }
 
 """
-Delete gift cards.
-
-Added in Saleor 3.1. 
+Delete gift cards. 
 
 Requires one of the following permissions: MANAGE_GIFT_CARD.
 
@@ -26446,9 +25198,7 @@ type GiftCardBulkDelete @doc(category: "Gift cards") @webhookEventsInfo(asyncEve
 }
 
 """
-Activate gift cards.
-
-Added in Saleor 3.1. 
+Activate gift cards. 
 
 Requires one of the following permissions: MANAGE_GIFT_CARD.
 
@@ -26462,9 +25212,7 @@ type GiftCardBulkActivate @doc(category: "Gift cards") @webhookEventsInfo(asyncE
 }
 
 """
-Deactivate gift cards.
-
-Added in Saleor 3.1. 
+Deactivate gift cards. 
 
 Requires one of the following permissions: MANAGE_GIFT_CARD.
 
@@ -26528,8 +25276,6 @@ input ConfigurationItemInput {
 
 """
 Trigger sending a notification with the notify plugin method. Serializes nodes provided as ids parameter and includes this data in the notification payload.
-
-Added in Saleor 3.1.
 """
 type ExternalNotificationTrigger {
   errors: [ExternalNotificationError!]!
@@ -27081,9 +25827,7 @@ enum PromotionRuleDeleteErrorCode {
 }
 
 """
-Creates/updates translations for a promotion.
-
-Added in Saleor 3.17. 
+Creates/updates translations for a promotion. 
 
 Requires one of the following permissions: MANAGE_TRANSLATIONS.
 """
@@ -27104,9 +25848,7 @@ input PromotionTranslationInput {
 }
 
 """
-Creates/updates translations for a promotion rule.
-
-Added in Saleor 3.17. 
+Creates/updates translations for a promotion rule. 
 
 Requires one of the following permissions: MANAGE_TRANSLATIONS.
 """
@@ -27705,9 +26447,7 @@ enum FileTypesEnum {
 }
 
 """
-Export gift cards to csv file.
-
-Added in Saleor 3.1. 
+Export gift cards to csv file. 
 
 Requires one of the following permissions: MANAGE_GIFT_CARD.
 
@@ -28235,18 +26975,10 @@ input PaymentInput @doc(category: "Payments") {
   """
   returnUrl: String
 
-  """
-  Payment store type.
-  
-  Added in Saleor 3.1.
-  """
+  """Payment store type."""
   storePaymentMethod: StorePaymentMethodEnum = NONE
 
-  """
-  User public metadata.
-  
-  Added in Saleor 3.1.
-  """
+  """User public metadata."""
   metadata: [MetadataInput!]
 }
 
@@ -28425,60 +27157,28 @@ input ChannelCreateInput @doc(category: "Channels") {
   """Determine if channel will be set active or not."""
   isActive: Boolean
 
-  """
-  The channel stock settings.
-  
-  Added in Saleor 3.7.
-  """
+  """The channel stock settings."""
   stockSettings: StockSettingsInput
 
   """List of shipping zones to assign to the channel."""
   addShippingZones: [ID!]
 
-  """
-  List of warehouses to assign to the channel.
-  
-  Added in Saleor 3.5.
-  """
+  """List of warehouses to assign to the channel."""
   addWarehouses: [ID!]
 
-  """
-  The channel order settings
-  
-  Added in Saleor 3.12.
-  """
+  """The channel order settings"""
   orderSettings: OrderSettingsInput
 
-  """
-  Channel public metadata.
-  
-  Added in Saleor 3.15.
-  """
+  """Channel public metadata."""
   metadata: [MetadataInput!]
 
-  """
-  Channel private metadata.
-  
-  Added in Saleor 3.15.
-  """
+  """Channel private metadata."""
   privateMetadata: [MetadataInput!]
 
-  """
-  The channel checkout settings
-  
-  Added in Saleor 3.15.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The channel checkout settings"""
   checkoutSettings: CheckoutSettingsInput
 
-  """
-  The channel payment settings
-  
-  Added in Saleor 3.16.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The channel payment settings"""
   paymentSettings: PaymentSettingsInput
 
   """Name of the channel."""
@@ -28492,8 +27192,6 @@ input ChannelCreateInput @doc(category: "Channels") {
 
   """
   Default country for the channel. Default country can be used in checkout to determine the stock quantities or calculate taxes when the country was not explicitly provided.
-  
-  Added in Saleor 3.1.
   """
   defaultCountry: CountryCode!
 }
@@ -28518,19 +27216,11 @@ input OrderSettingsInput @doc(category: "Orders") {
 
   """
   Expiration time in minutes. Default null - means do not expire any orders. Enter 0 or null to disable.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   expireOrdersAfter: Minute
 
   """
   The time in days after expired orders will be deleted.Allowed range is from 1 to 120.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   deleteExpiredOrdersAfter: Day
 
@@ -28538,19 +27228,11 @@ input OrderSettingsInput @doc(category: "Orders") {
   Determine what strategy will be used to mark the order as paid. Based on the chosen option, the proper object will be created and attached to the order when it's manually marked as paid.
   `PAYMENT_FLOW` - [default option] creates the `Payment` object.
   `TRANSACTION_FLOW` - creates the `TransactionItem` object.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   markAsPaidStrategy: MarkAsPaidStrategyEnum
 
   """
   Determine if it is possible to place unpaid order by calling `checkoutComplete` mutation.
-  
-  Added in Saleor 3.15.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   allowUnpaidOrders: Boolean
 
@@ -28570,8 +27252,6 @@ input CheckoutSettingsInput @doc(category: "Checkout") {
   """
   Default `true`. Determines if the checkout mutations should use legacy error flow. In legacy flow, all mutations can raise an exception unrelated to the requested action - (e.g. out-of-stock exception when updating checkoutShippingAddress.) If `false`, the errors will be aggregated in `checkout.problems` field. Some of the `problems` can block the finalizing checkout process. The legacy flow will be removed in Saleor 4.0. The flow with `checkout.problems` will be the default one. 
   
-  Added in Saleor 3.15.
-  
   DEPRECATED: this field will be removed in Saleor 4.0.
   """
   useLegacyErrorFlow: Boolean
@@ -28587,10 +27267,6 @@ input CheckoutSettingsInput @doc(category: "Checkout") {
 input PaymentSettingsInput @doc(category: "Payments") {
   """
   Determine the transaction flow strategy to be used. Include the selected option in the payload sent to the payment app, as a requested action for the transaction.
-  
-  Added in Saleor 3.16.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   defaultTransactionFlowStrategy: TransactionFlowStrategyEnum
 }
@@ -28617,60 +27293,28 @@ input ChannelUpdateInput @doc(category: "Channels") {
   """Determine if channel will be set active or not."""
   isActive: Boolean
 
-  """
-  The channel stock settings.
-  
-  Added in Saleor 3.7.
-  """
+  """The channel stock settings."""
   stockSettings: StockSettingsInput
 
   """List of shipping zones to assign to the channel."""
   addShippingZones: [ID!]
 
-  """
-  List of warehouses to assign to the channel.
-  
-  Added in Saleor 3.5.
-  """
+  """List of warehouses to assign to the channel."""
   addWarehouses: [ID!]
 
-  """
-  The channel order settings
-  
-  Added in Saleor 3.12.
-  """
+  """The channel order settings"""
   orderSettings: OrderSettingsInput
 
-  """
-  Channel public metadata.
-  
-  Added in Saleor 3.15.
-  """
+  """Channel public metadata."""
   metadata: [MetadataInput!]
 
-  """
-  Channel private metadata.
-  
-  Added in Saleor 3.15.
-  """
+  """Channel private metadata."""
   privateMetadata: [MetadataInput!]
 
-  """
-  The channel checkout settings
-  
-  Added in Saleor 3.15.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The channel checkout settings"""
   checkoutSettings: CheckoutSettingsInput
 
-  """
-  The channel payment settings
-  
-  Added in Saleor 3.16.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The channel payment settings"""
   paymentSettings: PaymentSettingsInput
 
   """Name of the channel."""
@@ -28681,19 +27325,13 @@ input ChannelUpdateInput @doc(category: "Channels") {
 
   """
   Default country for the channel. Default country can be used in checkout to determine the stock quantities or calculate taxes when the country was not explicitly provided.
-  
-  Added in Saleor 3.1.
   """
   defaultCountry: CountryCode
 
   """List of shipping zones to unassign from the channel."""
   removeShippingZones: [ID!]
 
-  """
-  List of warehouses to unassign from the channel.
-  
-  Added in Saleor 3.5.
-  """
+  """List of warehouses to unassign from the channel."""
   removeWarehouses: [ID!]
 }
 
@@ -28749,9 +27387,7 @@ type ChannelDeactivate @doc(category: "Channels") @webhookEventsInfo(asyncEvents
 }
 
 """
-Reorder the warehouses of a channel.
-
-Added in Saleor 3.7. 
+Reorder the warehouses of a channel. 
 
 Requires one of the following permissions: MANAGE_CHANNELS.
 """
@@ -28855,11 +27491,7 @@ input AttributeCreateInput @doc(category: "Attributes") {
   """
   availableInGrid: Boolean
 
-  """
-  External ID of this attribute.
-  
-  Added in Saleor 3.10.
-  """
+  """External ID of this attribute."""
   externalReference: String
 }
 
@@ -28891,11 +27523,7 @@ input AttributeValueCreateInput @doc(category: "Attributes") {
   """File content type."""
   contentType: String
 
-  """
-  External ID of this attribute value.
-  
-  Added in Saleor 3.10.
-  """
+  """External ID of this attribute value."""
   externalReference: String
 
   """Name of a value displayed in the interface."""
@@ -28984,11 +27612,7 @@ input AttributeUpdateInput @doc(category: "Attributes") {
   """
   availableInGrid: Boolean
 
-  """
-  External ID of this product.
-  
-  Added in Saleor 3.10.
-  """
+  """External ID of this product."""
   externalReference: String
 }
 
@@ -29020,11 +27644,7 @@ input AttributeValueUpdateInput @doc(category: "Attributes") {
   """File content type."""
   contentType: String
 
-  """
-  External ID of this attribute value.
-  
-  Added in Saleor 3.10.
-  """
+  """External ID of this attribute value."""
   externalReference: String
 
   """Name of a value displayed in the interface."""
@@ -29033,10 +27653,6 @@ input AttributeValueUpdateInput @doc(category: "Attributes") {
 
 """
 Creates attributes.
-
-Added in Saleor 3.15.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 
 Triggers the following webhook events:
 - ATTRIBUTE_CREATED (async): An attribute was created.
@@ -29085,10 +27701,6 @@ enum AttributeBulkCreateErrorCode @doc(category: "Attributes") {
 
 """
 Updates attributes.
-
-Added in Saleor 3.15.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 
 Triggers the following webhook events:
 - ATTRIBUTE_UPDATED (async): An attribute was updated. Optionally called when new attribute value was created or deleted.
@@ -29160,11 +27772,7 @@ type AttributeTranslate @doc(category: "Attributes") {
 }
 
 """
-Creates/updates translations for attributes.
-
-Added in Saleor 3.14.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Creates/updates translations for attributes. 
 
 Requires one of the following permissions: MANAGE_TRANSLATIONS.
 """
@@ -29302,11 +27910,7 @@ type AttributeValueUpdate @doc(category: "Attributes") @webhookEventsInfo(asyncE
 }
 
 """
-Creates/updates translations for attributes values.
-
-Added in Saleor 3.14.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Creates/updates translations for attributes values. 
 
 Requires one of the following permissions: MANAGE_TRANSLATIONS.
 """
@@ -29713,10 +28317,6 @@ type AppManifestBrandLogo @doc(category: "Apps") {
 
     """
     The format of the image. When not provided, format of the original image will be used.
-    
-    Added in Saleor 3.14.
-    
-    Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
     format: IconThumbnailFormatEnum = ORIGINAL
   ): String!
@@ -29945,11 +28545,7 @@ type RequestPasswordReset @doc(category: "Users") @webhookEventsInfo(asyncEvents
 }
 
 """
-Sends a notification confirmation.
-
-Added in Saleor 3.15.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Sends a notification confirmation. 
 
 Requires one of the following permissions: AUTHENTICATED_USER.
 
@@ -30197,11 +28793,7 @@ input AccountInput @doc(category: "Users") {
   """Shipping address of the customer."""
   defaultShippingAddress: AddressInput
 
-  """
-  Fields required to update the user metadata.
-  
-  Added in Saleor 3.14.
-  """
+  """Fields required to update the user metadata."""
   metadata: [MetadataInput!]
 }
 
@@ -30335,34 +28927,20 @@ input UserCreateInput @doc(category: "Users") {
   """A note about the user."""
   note: String
 
-  """
-  Fields required to update the user metadata.
-  
-  Added in Saleor 3.14.
-  """
+  """Fields required to update the user metadata."""
   metadata: [MetadataInput!]
 
-  """
-  Fields required to update the user private metadata.
-  
-  Added in Saleor 3.14.
-  """
+  """Fields required to update the user private metadata."""
   privateMetadata: [MetadataInput!]
 
   """User language code."""
   languageCode: LanguageCodeEnum
 
-  """
-  External ID of the customer.
-  
-  Added in Saleor 3.10.
-  """
+  """External ID of the customer."""
   externalReference: String
 
   """
   User account is confirmed.
-  
-  Added in Saleor 3.15.
   
   DEPRECATED: this field will be removed in Saleor 4.0.
   
@@ -30418,35 +28996,19 @@ input CustomerInput @doc(category: "Users") {
   """A note about the user."""
   note: String
 
-  """
-  Fields required to update the user metadata.
-  
-  Added in Saleor 3.14.
-  """
+  """Fields required to update the user metadata."""
   metadata: [MetadataInput!]
 
-  """
-  Fields required to update the user private metadata.
-  
-  Added in Saleor 3.14.
-  """
+  """Fields required to update the user private metadata."""
   privateMetadata: [MetadataInput!]
 
   """User language code."""
   languageCode: LanguageCodeEnum
 
-  """
-  External ID of the customer.
-  
-  Added in Saleor 3.10.
-  """
+  """External ID of the customer."""
   externalReference: String
 
-  """
-  User account is confirmed.
-  
-  Added in Saleor 3.15.
-  """
+  """User account is confirmed."""
   isConfirmed: Boolean
 }
 
@@ -30480,11 +29042,7 @@ type CustomerBulkDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: 
 }
 
 """
-Updates customers.
-
-Added in Saleor 3.13.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Updates customers. 
 
 Requires one of the following permissions: MANAGE_USERS.
 
@@ -30602,18 +29160,10 @@ input StaffCreateInput @doc(category: "Users") {
   """A note about the user."""
   note: String
 
-  """
-  Fields required to update the user metadata.
-  
-  Added in Saleor 3.14.
-  """
+  """Fields required to update the user metadata."""
   metadata: [MetadataInput!]
 
-  """
-  Fields required to update the user private metadata.
-  
-  Added in Saleor 3.14.
-  """
+  """Fields required to update the user private metadata."""
   privateMetadata: [MetadataInput!]
 
   """List of permission group IDs to which user should be assigned."""
@@ -30656,18 +29206,10 @@ input StaffUpdateInput @doc(category: "Users") {
   """A note about the user."""
   note: String
 
-  """
-  Fields required to update the user metadata.
-  
-  Added in Saleor 3.14.
-  """
+  """Fields required to update the user metadata."""
   metadata: [MetadataInput!]
 
-  """
-  Fields required to update the user private metadata.
-  
-  Added in Saleor 3.14.
-  """
+  """Fields required to update the user private metadata."""
   privateMetadata: [MetadataInput!]
 
   """List of permission group IDs to which user should be assigned."""
@@ -30797,13 +29339,7 @@ input PermissionGroupCreateInput @doc(category: "Users") {
   """List of users to assign to this group."""
   addUsers: [ID!]
 
-  """
-  List of channels to assign to this group.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """List of channels to assign to this group."""
   addChannels: [ID!]
 
   """Group name."""
@@ -30811,10 +29347,6 @@ input PermissionGroupCreateInput @doc(category: "Users") {
 
   """
   Determine if the group has restricted access to channels.  DEFAULT: False
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   restrictedAccessToChannels: Boolean = false
 }
@@ -30840,13 +29372,7 @@ input PermissionGroupUpdateInput @doc(category: "Users") {
   """List of users to assign to this group."""
   addUsers: [ID!]
 
-  """
-  List of channels to assign to this group.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """List of channels to assign to this group."""
   addChannels: [ID!]
 
   """Group name."""
@@ -30858,22 +29384,10 @@ input PermissionGroupUpdateInput @doc(category: "Users") {
   """List of users to unassign from this group."""
   removeUsers: [ID!]
 
-  """
-  List of channels to unassign from this group.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """List of channels to unassign from this group."""
   removeChannels: [ID!]
 
-  """
-  Determine if the group has restricted access to channels.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Determine if the group has restricted access to channels."""
   restrictedAccessToChannels: Boolean
 }
 

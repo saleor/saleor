@@ -36,12 +36,8 @@ from ...app.dataloaders import get_app_promise
 from ...channel.types import Channel
 from ...core import ResolveInfo
 from ...core.descriptions import (
-    ADDED_IN_36,
-    ADDED_IN_310,
-    ADDED_IN_314,
     ADDED_IN_318,
     DEPRECATED_IN_3X_FIELD,
-    PREVIEW_FEATURE,
 )
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import ModelWithRestrictedChannelAccessMutation
@@ -82,7 +78,7 @@ class OrderLineCreateInput(OrderLineInput):
         default_value=False,
         description=(
             "Flag that allow force splitting the same variant into multiple lines "
-            "by skipping the matching logic. " + ADDED_IN_36
+            "by skipping the matching logic. "
         ),
     )
     price = PositiveDecimal(
@@ -91,8 +87,6 @@ class OrderLineCreateInput(OrderLineInput):
             "Custom price of the item."
             "When the line with the same variant "
             "will be provided multiple times, the last price will be used."
-            + ADDED_IN_314
-            + PREVIEW_FEATURE
         ),
     )
 
@@ -132,7 +126,7 @@ class DraftOrderInput(BaseInputObjectType):
         ),
     )
     external_reference = graphene.String(
-        description="External ID of this order." + ADDED_IN_310, required=False
+        description="External ID of this order.", required=False
     )
 
     class Meta:

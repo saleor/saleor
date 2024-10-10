@@ -9,7 +9,6 @@ from ....permission.enums import GiftcardPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_31
 from ...core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ...core.mutations import BaseMutation
 from ...core.types import BaseInputObjectType, GiftCardError
@@ -42,7 +41,7 @@ class GiftCardResend(BaseMutation):
         )
 
     class Meta:
-        description = "Resend a gift card." + ADDED_IN_31
+        description = "Resend a gift card."
         doc_category = DOC_CATEGORY_GIFT_CARDS
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError

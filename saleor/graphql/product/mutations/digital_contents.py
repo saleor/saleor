@@ -9,7 +9,6 @@ from ....product.error_codes import ProductErrorCode
 from ...channel import ChannelContext
 from ...core import ResolveInfo
 from ...core.context import disallow_replica_in_context
-from ...core.descriptions import ADDED_IN_38
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.mutations import BaseMutation, ModelMutation
 from ...core.types import BaseInputObjectType, NonNullList, ProductError, Upload
@@ -42,17 +41,12 @@ class DigitalContentInput(BaseInputObjectType):
     )
     metadata = NonNullList(
         MetadataInput,
-        description=(
-            "Fields required to update the digital content metadata." + ADDED_IN_38
-        ),
+        description=("Fields required to update the digital content metadata."),
         required=False,
     )
     private_metadata = NonNullList(
         MetadataInput,
-        description=(
-            "Fields required to update the digital content private metadata."
-            + ADDED_IN_38
-        ),
+        description=("Fields required to update the digital content private metadata."),
         required=False,
     )
 

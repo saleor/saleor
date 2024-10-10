@@ -25,7 +25,6 @@ from .....payment.utils import create_manual_adjustment_events
 from .....permission.enums import PaymentPermissions
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_34, ADDED_IN_313, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_PAYMENTS
 from ....core.mutations import BaseMutation
 from ....core.types import BaseInputObjectType
@@ -39,16 +38,10 @@ from ..payment.payment_check_balance import MoneyInput
 
 
 class TransactionCreateInput(BaseInputObjectType):
-    name = graphene.String(
-        description="Payment name of the transaction." + ADDED_IN_313
-    )
-    message = graphene.String(
-        description="The message of the transaction." + ADDED_IN_313
-    )
+    name = graphene.String(description="Payment name of the transaction.")
+    message = graphene.String(description="The message of the transaction.")
 
-    psp_reference = graphene.String(
-        description=("PSP Reference of the transaction. " + ADDED_IN_313)
-    )
+    psp_reference = graphene.String(description=("PSP Reference of the transaction. "))
     available_actions = graphene.List(
         graphene.NonNull(TransactionActionEnum),
         description="List of all possible actions for the transaction",
@@ -57,9 +50,7 @@ class TransactionCreateInput(BaseInputObjectType):
     amount_charged = MoneyInput(description="Amount charged by this transaction.")
     amount_refunded = MoneyInput(description="Amount refunded by this transaction.")
 
-    amount_canceled = MoneyInput(
-        description="Amount canceled by this transaction." + ADDED_IN_313
-    )
+    amount_canceled = MoneyInput(description="Amount canceled by this transaction.")
 
     metadata = graphene.List(
         graphene.NonNull(MetadataInput),
@@ -74,7 +65,7 @@ class TransactionCreateInput(BaseInputObjectType):
     external_url = graphene.String(
         description=(
             "The url that will allow to redirect user to "
-            "payment provider page with transaction event details." + ADDED_IN_313
+            "payment provider page with transaction event details."
         )
     )
 
@@ -84,12 +75,10 @@ class TransactionCreateInput(BaseInputObjectType):
 
 class TransactionEventInput(BaseInputObjectType):
     psp_reference = graphene.String(
-        description=("PSP Reference related to this action." + ADDED_IN_313)
+        description=("PSP Reference related to this action.")
     )
 
-    message = graphene.String(
-        description="The message related to the event." + ADDED_IN_313
-    )
+    message = graphene.String(description="The message related to the event.")
 
     class Meta:
         doc_category = DOC_CATEGORY_PAYMENTS
@@ -112,9 +101,7 @@ class TransactionCreate(BaseMutation):
         )
 
     class Meta:
-        description = (
-            "Create transaction for checkout or order." + ADDED_IN_34 + PREVIEW_FEATURE
-        )
+        description = "Create transaction for checkout or order."
         doc_category = DOC_CATEGORY_PAYMENTS
         error_type_class = common_types.TransactionCreateError
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)

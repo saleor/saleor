@@ -16,7 +16,6 @@ from ....warehouse import models as warehouse_models
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
 from ...attribute.utils import AttributeAssignmentMixin
-from ...core.descriptions import ADDED_IN_311, ADDED_IN_312, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.enums import ErrorPolicyEnum
 from ...core.mutations import BaseMutation, ModelMutation
@@ -102,18 +101,18 @@ class ProductVariantBulkUpdateInput(ProductVariantBulkCreateInput):
     )
     stocks = graphene.Field(
         ProductVariantStocksUpdateInput,
-        description="Stocks input." + ADDED_IN_312 + PREVIEW_FEATURE,
+        description="Stocks input.",
         required=False,
     )
 
     channel_listings = graphene.Field(
         ProductVariantChannelListingUpdateInput,
-        description="Channel listings input." + ADDED_IN_312 + PREVIEW_FEATURE,
+        description="Channel listings input.",
         required=False,
     )
 
     class Meta:
-        description = "Input fields to update product variants." + ADDED_IN_311
+        description = "Input fields to update product variants."
         doc_category = DOC_CATEGORY_PRODUCTS
 
 
@@ -150,9 +149,7 @@ class ProductVariantBulkUpdate(BaseMutation):
         )
 
     class Meta:
-        description = (
-            "Update multiple product variants." + ADDED_IN_311 + PREVIEW_FEATURE
-        )
+        description = "Update multiple product variants."
         doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductVariantBulkError
