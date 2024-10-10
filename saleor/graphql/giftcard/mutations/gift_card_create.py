@@ -132,7 +132,7 @@ class GiftCardCreate(ModelMutation):
         if email := data.get("user_email"):
             try:
                 validate_email(email)
-            except ValidationError:
+            except ValidationError as e:
                 raise ValidationError(
                     {
                         "email": ValidationError(
@@ -140,7 +140,7 @@ class GiftCardCreate(ModelMutation):
                             code=GiftCardErrorCode.INVALID.value,
                         )
                     }
-                )
+                ) from e
             if not data.get("channel"):
                 raise ValidationError(
                     {
@@ -184,9 +184,9 @@ class GiftCardCreate(ModelMutation):
             currency = balance["currency"]
             try:
                 validate_price_precision(amount, currency)
-            except ValidationError as error:
-                error.code = GiftCardErrorCode.INVALID.value
-                raise ValidationError({"balance": error})
+            except ValidationError as e:
+                e.code = GiftCardErrorCode.INVALID.value
+                raise ValidationError({"balance": e}) from e
             if instance.pk:
                 if currency != instance.currency:
                     raise ValidationError(

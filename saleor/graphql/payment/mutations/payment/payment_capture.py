@@ -47,5 +47,7 @@ class PaymentCapture(BaseMutation):
             )
             payment.refresh_from_db()
         except PaymentError as e:
-            raise ValidationError(str(e), code=PaymentErrorCode.PAYMENT_ERROR.value)
+            raise ValidationError(
+                str(e), code=PaymentErrorCode.PAYMENT_ERROR.value
+            ) from e
         return PaymentCapture(payment=payment)

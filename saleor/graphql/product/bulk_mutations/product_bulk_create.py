@@ -697,7 +697,7 @@ class ProductBulkCreate(BaseMutation):
     def create_variants(cls, info, product, variants_inputs, index, index_error_map):
         variants_instances_data = []
 
-        for variant_index, variant_data in enumerate(variants_inputs):
+        for variant_data in variants_inputs:
             if variant_data:
                 try:
                     metadata_list = variant_data.pop("metadata", None)

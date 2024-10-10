@@ -83,9 +83,9 @@ class PageCreate(ModelMutation):
             cleaned_input = validate_slug_and_generate_if_needed(
                 instance, "title", cleaned_input
             )
-        except ValidationError as error:
-            error.code = PageErrorCode.REQUIRED.value
-            raise ValidationError({"slug": error})
+        except ValidationError as e:
+            e.code = PageErrorCode.REQUIRED.value
+            raise ValidationError({"slug": e}) from e
 
         if "publication_date" in cleaned_input and "published_at" in cleaned_input:
             raise ValidationError(
@@ -116,8 +116,8 @@ class PageCreate(ModelMutation):
                 cleaned_input["attributes"] = cls.clean_attributes(
                     attributes, page_type
                 )
-            except ValidationError as exc:
-                raise ValidationError({"attributes": exc})
+            except ValidationError as e:
+                raise ValidationError({"attributes": e}) from e
 
         clean_seo_fields(cleaned_input)
 

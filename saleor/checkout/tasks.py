@@ -95,7 +95,7 @@ def delete_expired_checkouts(
 
     total_deleted: int = 0
     has_more: bool = True
-    for batch_number in range(batch_count):
+    for _batch_number in range(batch_count):
         ids = list(qs.values_list("pk", flat=True))
         with allow_writer():
             deleted_count, _ = Checkout.objects.filter(pk__in=ids).delete()

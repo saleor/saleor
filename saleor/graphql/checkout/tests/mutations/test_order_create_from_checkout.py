@@ -2061,7 +2061,7 @@ def test_order_from_draft_create_with_preorder_variant(
 
     assert order.lines.count() == len(variants_and_quantities)
     for variant_id, quantity in variants_and_quantities.items():
-        order.lines.get(variant_id=variant_id).quantity == quantity
+        assert order.lines.get(variant_id=variant_id).quantity == quantity
     assert order.shipping_address == address
     assert order.shipping_method == checkout.shipping_method
 

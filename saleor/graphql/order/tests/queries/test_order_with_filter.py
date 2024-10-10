@@ -1419,7 +1419,5 @@ def test_order_query_with_filter_checkout_tokens_empty_list(
     order_data = content["data"]["orders"]["edges"]
 
     assert len(order_data) == len(orders_from_checkout + [order])
-    for order in orders_from_checkout + [order]:
-        assert {
-            "node": {"id": graphene.Node.to_global_id("Order", order.pk)}
-        } in order_data
+    for o in orders_from_checkout + [order]:
+        assert {"node": {"id": graphene.Node.to_global_id("Order", o.pk)}} in order_data

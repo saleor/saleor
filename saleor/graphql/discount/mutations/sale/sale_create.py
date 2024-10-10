@@ -106,9 +106,9 @@ class SaleCreate(ModelMutation):
         end_date = instance.end_date
         try:
             validate_end_is_after_start(start_date, end_date)
-        except ValidationError as error:
-            error.code = DiscountErrorCode.INVALID.value
-            raise ValidationError({"end_date": error})
+        except ValidationError as e:
+            e.code = DiscountErrorCode.INVALID.value
+            raise ValidationError({"end_date": e}) from e
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):

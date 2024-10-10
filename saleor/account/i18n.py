@@ -313,6 +313,6 @@ COUNTRY_CHOICES = [
 # Sort choices list by country name
 COUNTRY_CHOICES = sorted(COUNTRY_CHOICES, key=lambda choice: str(choice[1]))
 
-for country, label in COUNTRY_CHOICES:
+for country, _label in COUNTRY_CHOICES:
     country_rules = i18naddress.get_validation_rules({"country_code": country})
     COUNTRY_FORMS[country] = construct_address_form(country, country_rules)

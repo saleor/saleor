@@ -180,8 +180,8 @@ def validate_checkout(
     # can raise TaxError
     try:
         manager.preprocess_order_creation(checkout_info, lines)
-    except TaxError as tax_error:
+    except TaxError as e:
         raise ValidationError(
-            f"Unable to calculate taxes - {str(tax_error)}",
+            f"Unable to calculate taxes - {str(e)}",
             code=OrderCreateFromCheckoutErrorCode.TAX_ERROR.value,
-        )
+        ) from e

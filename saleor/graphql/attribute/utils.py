@@ -164,7 +164,7 @@ class AttributeAssignmentMixin:
                 global_id, only_type="Attribute"
             )
         except GraphQLError as e:
-            raise ValidationError(str(e), code=error_class.GRAPHQL_ERROR.value)
+            raise ValidationError(str(e), code=error_class.GRAPHQL_ERROR.value) from e
         if not internal_id.isnumeric():
             raise ValidationError(
                 f"An invalid ID value was passed: {global_id}",
@@ -249,11 +249,11 @@ class AttributeAssignmentMixin:
                     external_reference,
                     use_camel_case=True,
                 )
-            except ValidationError as error:
+            except ValidationError as e:
                 raise ValidationError(
-                    error.message,
+                    e.message,
                     code=error_class.REQUIRED.value,
-                )
+                ) from e
 
             values = AttrValuesInput(
                 global_id=global_id,
@@ -346,10 +346,10 @@ class AttributeAssignmentMixin:
             )
             values.references = ref_instances
             return values
-        except GraphQLError:
+        except GraphQLError as e:
             raise ValidationError(
                 "Invalid reference type.", code=error_class.INVALID.value
-            )
+            ) from e
 
     @classmethod
     def _validate_attributes_input(

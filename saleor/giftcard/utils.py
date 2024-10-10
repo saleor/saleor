@@ -48,8 +48,8 @@ def add_gift_card_code_to_checkout(
             .filter(currency=currency)
             .get(code=promo_code)
         )
-    except GiftCard.DoesNotExist:
-        raise InvalidPromoCode()
+    except GiftCard.DoesNotExist as e:
+        raise InvalidPromoCode() from e
 
     checkout.gift_cards.add(gift_card)
     checkout.save(update_fields=["last_change"])

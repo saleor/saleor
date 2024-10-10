@@ -219,7 +219,9 @@ class JWTManager(JWTManagerBase):
         try:
             cls.get_private_key()
         except Exception as e:
-            raise ImproperlyConfigured(f"Unable to load provided PEM private key. {e}")
+            raise ImproperlyConfigured(
+                f"Unable to load provided PEM private key. {e}"
+            ) from e
 
     @classmethod
     def get_issuer(cls) -> str:

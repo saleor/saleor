@@ -541,12 +541,12 @@ def clean_fixed_discount_value(
 ):
     try:
         validate_price_precision(reward_value, currency_code)
-    except ValidationError:
+    except ValidationError as e:
         raise ValidationError(
             "Invalid amount precision.",
             code=error_code,
             params={"index": index} if index is not None else {},
-        )
+        ) from e
 
 
 def clean_percentage_discount_value(

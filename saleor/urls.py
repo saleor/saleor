@@ -63,7 +63,8 @@ if settings.DEBUG:
     except ImportError:
         warnings.warn(
             "The debug toolbar was not installed. Ignore the error. \
-            settings.py should already have warned the user about it."
+            settings.py should already have warned the user about it.",
+            stacklevel=1,
         )
     else:
         urlpatterns += [

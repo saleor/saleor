@@ -313,7 +313,7 @@ def validate_default_email_configuration(
                 )
                 for c in asdict(config).keys()
             }
-        )
+        ) from e
 
 
 def validate_format_of_provided_templates(

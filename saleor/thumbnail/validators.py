@@ -31,7 +31,7 @@ def validate_image_exif(img: Image.Image, error_code: str):
             "Invalid file. The following error was raised during the attempt "
             f"of getting the exchangeable image file data: {str(e)}.",
             code=error_code,
-        )
+        ) from e
 
 
 def validate_image_size(
@@ -68,6 +68,6 @@ def validate_icon_image(image_file, error_code: str):
             "Invalid file. The following error was raised during the attempt "
             f"of opening the file: {str(e)}",
             code=error_code,
-        )
+        ) from e
     finally:
         image_file.seek(file_pos)

@@ -73,8 +73,8 @@ def _prepare_filter_by_rank_expression(
     try:
         rank = Decimal(cursor[0])
         id = coerce_id(cursor[1])
-    except (InvalidOperation, ValueError, TypeError):
-        raise GraphQLError("Received cursor is invalid.")
+    except (InvalidOperation, ValueError, TypeError) as e:
+        raise GraphQLError("Received cursor is invalid.") from e
 
     # Because rank is float number, it gets mangled by PostgreSQL's query parser
     # making equal comparisons impossible. Instead we compare rank against small
@@ -270,8 +270,8 @@ def connection_from_queryset_slice(
     cursor = after or before
     try:
         cursor = from_global_cursor(cursor) if cursor else None
-    except ValueError:
-        raise GraphQLError("Received cursor is invalid.")
+    except ValueError as e:
+        raise GraphQLError("Received cursor is invalid.") from e
 
     sort_by = args.get("sort_by", {})
     sorting_fields = _get_sorting_fields(sort_by, qs)
@@ -290,8 +290,8 @@ def connection_from_queryset_slice(
     )
     try:
         filtered_qs = qs.filter(filter_kwargs)
-    except ValueError:
-        raise GraphQLError("Received cursor is invalid.")
+    except ValueError as e:
+        raise GraphQLError("Received cursor is invalid.") from e
     filtered_qs = filtered_qs[:end_margin]
     edges, page_info = _get_edges_for_connection(
         edge_type, filtered_qs, args, sorting_fields

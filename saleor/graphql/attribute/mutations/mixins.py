@@ -86,15 +86,15 @@ class AttributeMixin:
         attribute_value = models.AttributeValue(**value_data, attribute=attribute)
         try:
             attribute_value.full_clean()
-        except ValidationError as validation_errors:
-            for field, err in validation_errors.error_dict.items():
+        except ValidationError as e:
+            for field, err in e.error_dict.items():
                 if field == "attribute":
                     continue
                 errors = []
                 for error in err:
                     error.code = AttributeErrorCode.INVALID.value
                     errors.append(error)
-                raise ValidationError({cls.ATTRIBUTE_VALUES_FIELD: errors})
+                raise ValidationError({cls.ATTRIBUTE_VALUES_FIELD: errors}) from e
 
     @classmethod
     def validate_non_swatch_attr_value(cls, value_data: dict):
@@ -159,9 +159,9 @@ class AttributeMixin:
             cleaned_input = validate_slug_and_generate_if_needed(
                 instance, "name", cleaned_input
             )
-        except ValidationError as error:
-            error.code = AttributeErrorCode.REQUIRED.value
-            raise ValidationError({"slug": error})
+        except ValidationError as e:
+            e.code = AttributeErrorCode.REQUIRED.value
+            raise ValidationError({"slug": e}) from e
         cls._clean_attribute_settings(instance, cleaned_input)
 
         return cleaned_input

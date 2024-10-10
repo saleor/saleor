@@ -35,18 +35,18 @@ def get_user(payload):
 def get_payload(token):
     try:
         payload = jwt_decode(token)
-    except jwt.ExpiredSignatureError:
+    except jwt.ExpiredSignatureError as e:
         raise ValidationError(
             "Signature has expired", code=AccountErrorCode.JWT_SIGNATURE_EXPIRED.value
-        )
-    except jwt.DecodeError:
+        ) from e
+    except jwt.DecodeError as e:
         raise ValidationError(
             "Error decoding signature", code=AccountErrorCode.JWT_DECODE_ERROR.value
-        )
-    except jwt.InvalidTokenError:
+        ) from e
+    except jwt.InvalidTokenError as e:
         raise ValidationError(
             "Invalid token", code=AccountErrorCode.JWT_INVALID_TOKEN.value
-        )
+        ) from e
     return payload
 
 

@@ -235,7 +235,7 @@ def send_webhook_using_aws_sqs(
     with catch_duration_time() as duration:
         try:
             response = json.dumps(client.send_message(**message_kwargs))
-        except (ClientError,) as e:
+        except ClientError as e:
             return WebhookResponse(
                 content=str(e), status=EventDeliveryStatus.FAILED, duration=duration()
             )

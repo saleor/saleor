@@ -82,9 +82,9 @@ class CategoryCreate(ModelMutation):
             cleaned_input = validate_slug_and_generate_if_needed(
                 instance, "name", cleaned_input
             )
-        except ValidationError as error:
-            error.code = ProductErrorCode.REQUIRED.value
-            raise ValidationError({"slug": error})
+        except ValidationError as e:
+            e.code = ProductErrorCode.REQUIRED.value
+            raise ValidationError({"slug": e}) from e
         parent_id = data["parent_id"]
         if parent_id:
             parent = cls.get_node_or_error(

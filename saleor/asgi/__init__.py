@@ -23,7 +23,7 @@ def preload_app() -> None:
     from django.conf import settings
     from django.urls import get_resolver
 
-    get_resolver(settings.ROOT_URLCONF).url_patterns
+    getattr(get_resolver(settings.ROOT_URLCONF), "url_patterns")
 
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "saleor.settings")

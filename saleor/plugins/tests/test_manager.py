@@ -75,7 +75,7 @@ def test_manager_with_default_configuration_for_channel_plugins(
         manager.plugins_per_channel.keys()
     )
 
-    for channel_slug, plugins in manager.plugins_per_channel.items():
+    for _channel_slug, plugins in manager.plugins_per_channel.items():
         assert len(plugins) == 2
         assert all(
             [

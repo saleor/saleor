@@ -271,7 +271,7 @@ def test_app_fetch_manifest_handle_exception(
     staff_user, staff_api_client, permission_manage_apps, monkeypatch
 ):
     mocked_get = Mock()
-    mocked_get.side_effect = Exception()
+    mocked_get.side_effect = OSError("oops")
 
     monkeypatch.setattr(HTTPSession, "request", mocked_get)
     manifest_url = "http://localhost:3000/manifest-wrong-format"

@@ -52,14 +52,14 @@ class SetPassword(CreateToken):
     def _set_password_for_user(cls, email, password, token):
         try:
             user = models.User.objects.get(email=email)
-        except ObjectDoesNotExist:
+        except ObjectDoesNotExist as e:
             raise ValidationError(
                 {
                     "email": ValidationError(
                         "User doesn't exist", code=AccountErrorCode.NOT_FOUND.value
                     )
                 }
-            )
+            ) from e
         if not default_token_generator.check_token(user, token):
             raise ValidationError(
                 {
@@ -70,8 +70,8 @@ class SetPassword(CreateToken):
             )
         try:
             password_validation.validate_password(password, user)
-        except ValidationError as error:
-            raise ValidationError({"password": error})
+        except ValidationError as e:
+            raise ValidationError({"password": e}) from e
         fields_to_save = ["password", "updated_at"]
         user.set_password(password)
         # To reset the password user need to process the token sent separately by email,

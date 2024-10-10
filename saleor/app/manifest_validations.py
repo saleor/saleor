@@ -83,10 +83,10 @@ def clean_extension_url(extension: dict, manifest_data: dict):
 def clean_manifest_url(manifest_url):
     try:
         _clean_app_url(manifest_url)
-    except (ValidationError, AttributeError):
+    except (ValidationError, AttributeError) as e:
         msg = "Enter a valid URL."
         code = AppErrorCode.INVALID_URL_FORMAT.value
-        raise ValidationError({"manifest_url": ValidationError(msg, code=code)})
+        raise ValidationError({"manifest_url": ValidationError(msg, code=code)}) from e
 
 
 def clean_permissions(
@@ -355,9 +355,9 @@ def clean_required_saleor_version(
         return None
     try:
         spec = RequiredSaleorVersionSpec(required_version)
-    except Exception:
+    except Exception as e:
         msg = "Incorrect value for required Saleor version."
-        raise ValidationError(msg, code=AppErrorCode.INVALID.value)
+        raise ValidationError(msg, code=AppErrorCode.INVALID.value) from e
     version = parse_version(saleor_version)
     satisfied = spec.match(version)
     if raise_for_saleor_version and not satisfied:

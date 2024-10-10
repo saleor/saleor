@@ -196,7 +196,7 @@ class TransactionRequestRefundForGrantedRefund(BaseMutation):
         except PaymentError as e:
             error_enum = TransactionRequestActionErrorCode
             code = error_enum.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK.value
-            raise ValidationError(str(e), code=code)
+            raise ValidationError(str(e), code=code) from e
         finally:
             if assigned_granted_refund:
                 calculate_order_granted_refund_status(assigned_granted_refund)

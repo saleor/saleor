@@ -37,10 +37,12 @@ class BaseMetadataMutation(BaseMutation):
     def __init_subclass_with_meta__(
         cls,
         arguments=None,
-        permission_map=[],
+        permission_map=None,
         _meta=None,
         **kwargs,
     ):
+        if permission_map is None:
+            permission_map = []
         if not _meta:
             _meta = MetadataPermissionOptions(cls)
         if not arguments:
@@ -73,7 +75,7 @@ class BaseMetadataMutation(BaseMutation):
                         str(e), code=MetadataErrorCode.GRAPHQL_ERROR.value
                     )
                 }
-            )
+            ) from e
 
     @classmethod
     def get_instance_by_token(cls, object_id, qs):
@@ -230,7 +232,7 @@ class BaseMetadataMutation(BaseMutation):
             return None, None
         try:
             return from_global_id_or_error(object_id)
-        except GraphQLError:
+        except GraphQLError as e:
             if order := order_models.Order.objects.filter(id=object_id).first():
                 return "Order", order.pk
             if checkout := checkout_models.Checkout.objects.filter(
@@ -243,7 +245,7 @@ class BaseMetadataMutation(BaseMutation):
                         "Couldn't resolve to a node.", code="graphql_error"
                     )
                 }
-            )
+            ) from e
 
     @classmethod
     def perform_model_extra_actions(cls, root, info: ResolveInfo, type_name, **data):

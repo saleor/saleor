@@ -91,9 +91,9 @@ class PromotionUpdate(ModelMutation):
         end_date = cleaned_input.get("end_date") or instance.end_date
         try:
             validate_end_is_after_start(start_date, end_date)
-        except ValidationError as error:
-            error.code = PromotionUpdateErrorCode.INVALID.value
-            raise ValidationError({"endDate": error})
+        except ValidationError as e:
+            e.code = PromotionUpdateErrorCode.INVALID.value
+            raise ValidationError({"endDate": e}) from e
         return cleaned_input
 
     @classmethod

@@ -74,9 +74,9 @@ class GiftCardUpdate(GiftCardCreate):
         currency = instance.currency
         try:
             validate_price_precision(amount, currency)
-        except ValidationError as error:
-            error.code = GiftCardErrorCode.INVALID.value
-            raise ValidationError({"balance_amount": error})
+        except ValidationError as e:
+            e.code = GiftCardErrorCode.INVALID.value
+            raise ValidationError({"balance_amount": e}) from e
         cleaned_input["current_balance_amount"] = amount
         cleaned_input["initial_balance_amount"] = amount
 

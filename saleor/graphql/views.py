@@ -100,8 +100,10 @@ class GraphQLView(View):
             module_path, class_name = ".".join(parts[:-1]), parts[-1]
             module = importlib.import_module(module_path)
             return getattr(module, class_name)
-        except (ImportError, AttributeError):
-            raise ImportError(f"Cannot import '{middleware_name}' graphene middleware!")
+        except (ImportError, AttributeError) as e:
+            raise ImportError(
+                f"Cannot import '{middleware_name}' graphene middleware!"
+            ) from e
 
     @observability.report_view
     def dispatch(self, request, *args, **kwargs):

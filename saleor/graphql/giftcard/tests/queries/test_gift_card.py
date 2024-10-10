@@ -527,7 +527,7 @@ def test_query_gift_card_event_with_removed_app(
     permission_manage_users,
 ):
     # given
-    staff_api_client.user
+    assert staff_api_client.user
 
     GiftCardEvent.objects.create(
         app=removed_app,

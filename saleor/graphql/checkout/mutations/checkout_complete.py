@@ -265,7 +265,7 @@ class CheckoutComplete(BaseMutation, I18nMixin):
                                 code=CheckoutErrorCode.CHANNEL_INACTIVE.value,
                             )
                         }
-                    )
+                    ) from e
                 # The order is already created. We return it as a success
                 # checkoutComplete response. Order is anonymized for not logged in
                 # user

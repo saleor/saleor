@@ -1077,7 +1077,7 @@ def test_fetch_order_data_plugin_tax_data_with_wrong_number_of_lines_no_shipping
     checkout_info = fetch_checkout_info(checkout, checkout_lines_info, manager)
 
     for line in checkout_lines_info:
-        line.product_type
+        assert line.product_type
 
     # when
     fetch_checkout_data(checkout_info, manager, checkout_lines_info, force_update=True)

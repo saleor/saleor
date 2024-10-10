@@ -24,7 +24,7 @@ def get_oembed_data(url: str, field_name: str) -> tuple[dict[str, Any], str]:
             url, maxwidth=MEDIA_MAX_WIDTH, maxheight=MEDIA_MAX_HEIGHT
         )
         return oembed_data, SUPPORTED_MEDIA_TYPES[oembed_data["type"]]
-    except (micawber.exceptions.ProviderException, KeyError):
+    except (micawber.exceptions.ProviderException, KeyError) as e:
         raise ValidationError(
             {
                 field_name: ValidationError(
@@ -32,7 +32,7 @@ def get_oembed_data(url: str, field_name: str) -> tuple[dict[str, Any], str]:
                     code=ProductErrorCode.UNSUPPORTED_MEDIA_PROVIDER.value,
                 )
             }
-        )
+        ) from e
 
 
 def is_date_in_future(given_date):

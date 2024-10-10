@@ -129,9 +129,9 @@ class GiftCardBulkCreate(BaseMutation):
         currency = balance["currency"]
         try:
             validate_price_precision(amount, currency)
-        except ValidationError as error:
-            error.code = GiftCardErrorCode.INVALID.value
-            raise ValidationError({"balance": error})
+        except ValidationError as e:
+            e.code = GiftCardErrorCode.INVALID.value
+            raise ValidationError({"balance": e}) from e
         if not amount > 0:
             raise ValidationError(
                 {

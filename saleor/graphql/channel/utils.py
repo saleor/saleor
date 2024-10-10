@@ -31,7 +31,7 @@ def get_default_channel_or_graphql_error(allow_replica: bool = False) -> Channel
     try:
         channel = get_default_channel(allow_replica)
     except (ChannelNotDefined, NoDefaultChannel) as e:
-        raise GraphQLError(str(e))
+        raise GraphQLError(str(e)) from e
     else:
         return channel
 
@@ -39,7 +39,7 @@ def get_default_channel_or_graphql_error(allow_replica: bool = False) -> Channel
 def validate_channel(channel_slug, error_class):
     try:
         channel = Channel.objects.get(slug=channel_slug)
-    except Channel.DoesNotExist:
+    except Channel.DoesNotExist as e:
         raise ValidationError(
             {
                 "channel": ValidationError(
@@ -47,7 +47,7 @@ def validate_channel(channel_slug, error_class):
                     code=error_class.NOT_FOUND.value,
                 )
             }
-        )
+        ) from e
     if not channel.is_active:
         raise ValidationError(
             {
@@ -70,7 +70,7 @@ def clean_channel(
     else:
         try:
             channel = get_default_channel(allow_replica)
-        except ChannelNotDefined:
+        except ChannelNotDefined as e:
             raise ValidationError(
                 {
                     "channel": ValidationError(
@@ -78,7 +78,7 @@ def clean_channel(
                         code=error_class.MISSING_CHANNEL_SLUG.value,
                     )
                 }
-            )
+            ) from e
     return channel
 
 

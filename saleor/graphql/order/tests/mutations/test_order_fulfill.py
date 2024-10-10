@@ -823,7 +823,7 @@ def test_order_fulfill_with_gift_cards_by_app(
     assert not data["errors"]
     assert GiftCard.objects.count() == quantity
 
-    mock_send_notification.assert_not_called
+    mock_send_notification.assert_not_called()
 
 
 @patch("saleor.giftcard.utils.send_gift_card_notification")
@@ -884,7 +884,7 @@ def test_order_fulfill_with_gift_cards_multiple_warehouses(
     assert not data["errors"]
     assert GiftCard.objects.count() == quantity_1 + quantity_2
 
-    mock_send_notification.assert_not_called
+    mock_send_notification.assert_not_called()
 
 
 @patch("saleor.graphql.order.mutations.order_fulfill.create_fulfillments")

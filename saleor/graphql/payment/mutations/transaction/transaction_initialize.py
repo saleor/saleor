@@ -199,7 +199,7 @@ class TransactionInitialize(TransactionSessionBase):
                 manager=manager,
                 idempotency_key=idempotency_key,
             )
-        except TransactionItemIdempotencyUniqueError:
+        except TransactionItemIdempotencyUniqueError as e:
             if payment_ids:
                 activate_payments(payment_ids)
             raise ValidationError(
@@ -212,7 +212,7 @@ class TransactionInitialize(TransactionSessionBase):
                         code=TransactionInitializeErrorCode.UNIQUE.value,
                     )
                 }
-            )
+            ) from e
         return cls(transaction=transaction, transaction_event=event, data=data)
 
     @staticmethod

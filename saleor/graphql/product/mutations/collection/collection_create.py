@@ -103,9 +103,9 @@ class CollectionCreate(ModelMutation):
             cleaned_input = validate_slug_and_generate_if_needed(
                 instance, "name", cleaned_input
             )
-        except ValidationError as error:
-            error.code = CollectionErrorCode.REQUIRED.value
-            raise ValidationError({"slug": error})
+        except ValidationError as e:
+            e.code = CollectionErrorCode.REQUIRED.value
+            raise ValidationError({"slug": e}) from e
         if data.get("background_image"):
             clean_image_file(cleaned_input, "background_image", CollectionErrorCode)
         is_published = cleaned_input.get("is_published")

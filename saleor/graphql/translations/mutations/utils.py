@@ -108,7 +108,7 @@ class BaseTranslateMutation(ModelMutation):
 
         try:
             node_type, node_pk = from_global_id_or_error(id)
-        except GraphQLError:
+        except GraphQLError as e:
             raise ValidationError(
                 {
                     "id": ValidationError(
@@ -116,7 +116,7 @@ class BaseTranslateMutation(ModelMutation):
                         code=TranslationErrorCode.INVALID,
                     )
                 }
-            )
+            ) from e
 
         # This mutation accepts either model IDs or translatable content IDs. Below we
         # check if provided ID refers to a translatable content which matches with the

@@ -237,9 +237,9 @@ class VoucherCreate(ModelMutation):
 
         try:
             validate_end_is_after_start(start_date, end_date)
-        except ValidationError as error:
-            error.code = DiscountErrorCode.INVALID.value
-            raise ValidationError({"end_date": error})
+        except ValidationError as e:
+            e.code = DiscountErrorCode.INVALID.value
+            raise ValidationError({"end_date": e}) from e
 
     @classmethod
     def clean_codes_instance(cls, code_instances):

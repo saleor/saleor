@@ -58,11 +58,11 @@ class ProductVariantPreorderDeactivate(BaseMutation):
         with traced_atomic_transaction():
             try:
                 deactivate_preorder_for_variant(variant)
-            except PreorderAllocationError as error:
+            except PreorderAllocationError as e:
                 raise ValidationError(
-                    str(error),
+                    str(e),
                     code=ProductErrorCode.PREORDER_VARIANT_CANNOT_BE_DEACTIVATED.value,
-                )
+                ) from e
             manager = get_plugin_manager_promise(info.context).get()
             variant = ChannelContext(node=variant, channel_slug=None)
             cls.call_event(manager.product_variant_updated, variant.node)

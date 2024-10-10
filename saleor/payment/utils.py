@@ -532,8 +532,8 @@ def validate_gateway_response(response: GatewayResponse):
 
     try:
         json.dumps(response.raw_response, cls=DjangoJSONEncoder)
-    except (TypeError, ValueError):
-        raise GatewayError("Gateway response needs to be json serializable")
+    except (TypeError, ValueError) as e:
+        raise GatewayError("Gateway response needs to be json serializable") from e
 
 
 @traced_atomic_transaction()
@@ -1608,8 +1608,8 @@ def handle_transaction_initialize_session(
                 "idempotency_key": idempotency_key,
             },
         )
-    except IntegrityError:
-        raise TransactionItemIdempotencyUniqueError()
+    except IntegrityError as e:
+        raise TransactionItemIdempotencyUniqueError() from e
 
     session_data = TransactionSessionData(
         transaction=transaction_item,

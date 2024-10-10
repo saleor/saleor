@@ -91,9 +91,9 @@ def create_stocks(
                 for stock_data, warehouse in zip(stocks_data, warehouses)
             ]
         )
-    except IntegrityError:
+    except IntegrityError as e:
         msg = "Stock for one of warehouses already exists for this product variant."
-        raise ValidationError(msg)
+        raise ValidationError(msg) from e
     return new_stocks
 
 

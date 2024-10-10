@@ -66,10 +66,10 @@ class RequestPasswordReset(BaseMutation):
     def clean_user(cls, email, redirect_url, info: ResolveInfo):
         try:
             validate_storefront_url(redirect_url)
-        except ValidationError as error:
+        except ValidationError as e:
             raise ValidationError(
-                {"redirect_url": error}, code=AccountErrorCode.INVALID.value
-            )
+                {"redirect_url": e}, code=AccountErrorCode.INVALID.value
+            ) from e
 
         user = retrieve_user_by_email(email)
         if not user:

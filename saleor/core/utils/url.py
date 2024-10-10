@@ -21,8 +21,8 @@ def validate_storefront_url(url):
             raise ValidationError(
                 "Invalid URL. Please check if URL is in RFC 1808 format."
             )
-    except ValueError as error:
-        raise ValidationError(str(error))
+    except ValueError as e:
+        raise ValidationError(str(e)) from e
     if not validate_host(domain, settings.ALLOWED_CLIENT_HOSTS):
         error_message = (
             f"{domain or url} is not allowed. Please check "
