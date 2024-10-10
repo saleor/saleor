@@ -20,7 +20,7 @@ from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader
 from ..core.connection import CountableConnection
 from ..core.context import get_database_connection_name
-from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
+from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ..core.fields import PermissionsField
 from ..core.scalars import Date, DateTime
@@ -110,7 +110,7 @@ class GiftCardEvent(ModelObjectType[models.GiftCardEvent]):
     old_expiry_date = Date(description="Previous gift card expiry date.")
 
     class Meta:
-        description = "History log of the gift card." + ADDED_IN_31
+        description = "History log of the gift card."
         model = models.GiftCardEvent
         interfaces = [graphene.relay.Node]
 
@@ -224,7 +224,7 @@ class GiftCardTag(ModelObjectType[models.GiftCardTag]):
     )
 
     class Meta:
-        description = "The gift card tag." + ADDED_IN_31
+        description = "The gift card tag."
         model = models.GiftCardTag
         interfaces = [graphene.relay.Node]
 
@@ -255,18 +255,17 @@ class GiftCard(ModelObjectType[models.GiftCard]):
     )
     created_by = graphene.Field(
         "saleor.graphql.account.types.User",
-        description=("The user who bought or issued a gift card." + ADDED_IN_31),
+        description=("The user who bought or issued a gift card."),
     )
     used_by = graphene.Field(
         "saleor.graphql.account.types.User",
-        description=("The customer who used a gift card." + ADDED_IN_31),
+        description=("The customer who used a gift card."),
         deprecation_reason=DEPRECATED_IN_3X_FIELD,
     )
     created_by_email = graphene.String(
         required=False,
         description=(
             "Email address of the user who bought or issued gift card."
-            + ADDED_IN_31
             + "\n\nRequires one of the following permissions: "
             f"{AccountPermissions.MANAGE_USERS.name}, "
             f"{AuthorizationFilters.OWNER.name}."
@@ -274,9 +273,7 @@ class GiftCard(ModelObjectType[models.GiftCard]):
     )
     used_by_email = graphene.String(
         required=False,
-        description=(
-            "Email address of the customer who used a gift card." + ADDED_IN_31
-        ),
+        description=("Email address of the customer who used a gift card."),
         deprecation_reason=DEPRECATED_IN_3X_FIELD,
     )
     last_used_on = DateTime(description="Date and time when gift card was last used.")
@@ -285,21 +282,20 @@ class GiftCard(ModelObjectType[models.GiftCard]):
         App,
         description=(
             "App which created the gift card."
-            + ADDED_IN_31
             + "\n\nRequires one of the following permissions: "
             f"{AppPermission.MANAGE_APPS.name}, {AuthorizationFilters.OWNER.name}."
         ),
     )
     product = graphene.Field(
         "saleor.graphql.product.types.products.Product",
-        description="Related gift card product." + ADDED_IN_31,
+        description="Related gift card product.",
     )
     events = PermissionsField(
         NonNullList(GiftCardEvent),
         filter=GiftCardEventFilterInput(
             description="Filtering options for gift card events."
         ),
-        description=("List of events associated with the gift card." + ADDED_IN_31),
+        description=("List of events associated with the gift card."),
         required=True,
         permissions=[
             GiftcardPermissions.MANAGE_GIFT_CARD,
@@ -307,16 +303,14 @@ class GiftCard(ModelObjectType[models.GiftCard]):
     )
     tags = PermissionsField(
         NonNullList(GiftCardTag),
-        description="The gift card tag." + ADDED_IN_31,
+        description="The gift card tag.",
         required=True,
         permissions=[
             GiftcardPermissions.MANAGE_GIFT_CARD,
         ],
     )
     bought_in_channel = graphene.String(
-        description=(
-            "Slug of the channel where the gift card was bought." + ADDED_IN_31
-        ),
+        description=("Slug of the channel where the gift card was bought."),
         required=False,
     )
     is_active = graphene.Boolean(required=True)

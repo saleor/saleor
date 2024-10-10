@@ -1,4 +1,4 @@
-from ..core.descriptions import ADDED_IN_38, DEPRECATED_IN_3X_INPUT
+from ..core.descriptions import DEPRECATED_IN_3X_INPUT
 from ..core.doc_category import DOC_CATEGORY_PAGES
 from ..core.types import BaseEnum, SortInputObjectType
 
@@ -24,8 +24,6 @@ class PageSortField(BaseEnum):
                 description += DEPRECATED_IN_3X_INPUT
             if self.name == "CREATION_DATE":
                 description += DEPRECATED_IN_3X_INPUT
-            if self.name == "CREATED_AT":
-                description += ADDED_IN_38
             return description
         raise ValueError(f"Unsupported enum value: {self.value}")
 

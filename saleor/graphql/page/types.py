@@ -12,7 +12,7 @@ from ..core.connection import (
     filter_connection_queryset,
 )
 from ..core.context import get_database_connection_name
-from ..core.descriptions import ADDED_IN_33, DEPRECATED_IN_3X_FIELD, RICH_CONTENT
+from ..core.descriptions import DEPRECATED_IN_3X_FIELD, RICH_CONTENT
 from ..core.doc_category import DOC_CATEGORY_PAGES
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.fields import FilterConnectionField, JSONString, PermissionsField
@@ -131,7 +131,7 @@ class Page(ModelObjectType[models.Page]):
             "Use the `publishedAt` field to fetch the publication date."
         ),
     )
-    published_at = DateTime(description="The page publication date." + ADDED_IN_33)
+    published_at = DateTime(description="The page publication date.")
     is_published = graphene.Boolean(
         required=True, description="Determines if the page is published."
     )

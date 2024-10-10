@@ -1,7 +1,7 @@
 import graphene
 
 from ...invoice import models
-from ..core.descriptions import ADDED_IN_310, DEPRECATED_IN_3X_FIELD
+from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.scalars import DateTime
 from ..core.types import Job, ModelObjectType
 from ..meta.types import ObjectWithMetadata
@@ -28,7 +28,7 @@ class Invoice(ModelObjectType[models.Invoice]):
     url = graphene.String(description=("URL to view/download an invoice."))
     order = graphene.Field(
         "saleor.graphql.order.types.Order",
-        description="Order related to the invoice." + ADDED_IN_310,
+        description="Order related to the invoice.",
     )
 
     class Meta:

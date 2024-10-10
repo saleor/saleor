@@ -35,7 +35,6 @@ from ...product.models import (
 from ...product.search import search_products
 from ...warehouse.models import Allocation, Reservation, Stock, Warehouse
 from ..channel.filters import get_channel_slug_from_filter_data
-from ..core.descriptions import ADDED_IN_38, ADDED_IN_317
 from ..core.doc_category import DOC_CATEGORY_PRODUCTS
 from ..core.filters import (
     BooleanWhereFilter,
@@ -752,20 +751,20 @@ class ProductFilter(MetadataFilterBase):
     published_from = ObjectTypeFilter(
         input_class=DateTime,
         method="filter_published_from",
-        help_text=f"Filter by the publication date. {ADDED_IN_38}",
+        help_text="Filter by the publication date.",
     )
     is_available = django_filters.BooleanFilter(
         method="filter_is_available",
-        help_text=f"Filter by availability for purchase. {ADDED_IN_38}",
+        help_text="Filter by availability for purchase.",
     )
     available_from = ObjectTypeFilter(
         input_class=DateTime,
         method="filter_available_from",
-        help_text=f"Filter by the date of availability for purchase. {ADDED_IN_38}",
+        help_text="Filter by the date of availability for purchase.",
     )
     is_visible_in_listing = django_filters.BooleanFilter(
         method="filter_listed",
-        help_text=f"Filter by visibility in product listings. {ADDED_IN_38}",
+        help_text="Filter by visibility in product listings.",
     )
     collections = GlobalIDMultipleChoiceFilter(method=filter_collections)
     categories = GlobalIDMultipleChoiceFilter(method=filter_categories)
@@ -1360,7 +1359,7 @@ class CategoryFilter(MetadataFilterBase):
     updated_at = ObjectTypeFilter(
         input_class=DateTimeRangeInput,
         method=filter_updated_at_range,
-        help_text=f"Filter by when was the most recent update. {ADDED_IN_317}",
+        help_text="Filter by when was the most recent update.",
     )
 
     class Meta:
