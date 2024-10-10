@@ -3,7 +3,6 @@ import graphene
 from ...attribute import models
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
-from ..core.descriptions import ADDED_IN_310, ADDED_IN_311, PREVIEW_FEATURE
 from ..core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ..core.fields import BaseField, FilterConnectionField
 from ..core.utils.resolvers import resolve_by_global_id_slug_or_ext_ref
@@ -36,12 +35,8 @@ class AttributeQueries(graphene.ObjectType):
         AttributeCountableConnection,
         description="List of the shop's attributes.",
         filter=AttributeFilterInput(description="Filtering options for attributes."),
-        where=AttributeWhereInput(
-            description="Filtering options for attributes." + ADDED_IN_311
-        ),
-        search=graphene.String(
-            description="Search attributes." + ADDED_IN_311 + PREVIEW_FEATURE
-        ),
+        where=AttributeWhereInput(description="Filtering options for attributes."),
+        search=graphene.String(description="Search attributes."),
         sort_by=AttributeSortingInput(description="Sorting options for attributes."),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
@@ -53,7 +48,7 @@ class AttributeQueries(graphene.ObjectType):
         id=graphene.Argument(graphene.ID, description="ID of the attribute."),
         slug=graphene.Argument(graphene.String, description="Slug of the attribute."),
         external_reference=graphene.Argument(
-            graphene.String, description=f"External ID of the attribute. {ADDED_IN_310}"
+            graphene.String, description="External ID of the attribute."
         ),
         description="Look up an attribute by ID, slug or external reference.",
         doc_category=DOC_CATEGORY_ATTRIBUTES,

@@ -6,7 +6,6 @@ from ...permission.utils import message_one_of_permissions_required
 from ..app.dataloaders import app_promise_callback
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
-from ..core.descriptions import ADDED_IN_310
 from ..core.doc_category import DOC_CATEGORY_USERS
 from ..core.fields import BaseField, FilterConnectionField, PermissionsField
 from ..core.types import FilterInputObjectType
@@ -181,7 +180,7 @@ class AccountQueries(graphene.ObjectType):
             graphene.String, description="Email address of the user."
         ),
         external_reference=graphene.Argument(
-            graphene.String, description=f"External ID of the user. {ADDED_IN_310}"
+            graphene.String, description="External ID of the user."
         ),
         permissions=[
             AccountPermissions.MANAGE_STAFF,

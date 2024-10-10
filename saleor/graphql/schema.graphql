@@ -1329,20 +1329,10 @@ type Query {
     """Filtering options for attributes."""
     filter: AttributeFilterInput
 
-    """
-    Filtering options for attributes.
-    
-    Added in Saleor 3.11.
-    """
+    """Filtering options for attributes."""
     where: AttributeWhereInput
 
-    """
-    Search attributes.
-    
-    Added in Saleor 3.11.
-    
-    Note: this API is currently in Feature Preview and can be subject to changes at later point.
-    """
+    """Search attributes."""
     search: String
 
     """Sorting options for attributes."""
@@ -1376,11 +1366,7 @@ type Query {
     """Slug of the attribute."""
     slug: String
 
-    """
-    External ID of the attribute. 
-    
-    Added in Saleor 3.10.
-    """
+    """External ID of the attribute."""
     externalReference: String
   ): Attribute @doc(category: "Attributes")
 
@@ -1433,8 +1419,6 @@ type Query {
   """
   List of all extensions.
   
-  Added in Saleor 3.1.
-  
   Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
   """
   appExtensions(
@@ -1460,8 +1444,6 @@ type Query {
 
   """
   Look up an app extension by ID.
-  
-  Added in Saleor 3.1.
   
   Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
   """
@@ -1607,11 +1589,7 @@ type Query {
     """Email address of the user."""
     email: String
 
-    """
-    External ID of the user. 
-    
-    Added in Saleor 3.10.
-    """
+    """External ID of the user."""
     externalReference: String
   ): User @doc(category: "Users")
   _entities(representations: [_Any]): [_Entity]
@@ -1802,30 +1780,16 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """A gift card is deleted."""
   GIFT_CARD_DELETED
 
-  """
-  A gift card has been sent.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """A gift card has been sent."""
   GIFT_CARD_SENT
 
   """A gift card status is changed."""
   GIFT_CARD_STATUS_CHANGED
 
-  """
-  A gift card metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
+  """A gift card metadata is updated."""
   GIFT_CARD_METADATA_UPDATED
 
-  """
-  A gift card export is completed.
-  
-  Added in Saleor 3.16.
-  """
+  """A gift card export is completed."""
   GIFT_CARD_EXPORT_COMPLETED
 
   """A new menu created."""
@@ -1854,13 +1818,7 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """
   ORDER_CONFIRMED
 
-  """
-  Payment has been made. The order may be partially or fully paid.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Payment has been made. The order may be partially or fully paid."""
   ORDER_PAID
 
   """Payment is made and an order is fully paid."""
@@ -1868,20 +1826,10 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
 
   """
   The order received a refund. The order may be partially or fully refunded.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   ORDER_REFUNDED
 
-  """
-  The order is fully refunded.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The order is fully refunded."""
   ORDER_FULLY_REFUNDED
 
   """
@@ -1898,20 +1846,10 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """An order is fulfilled."""
   ORDER_FULFILLED
 
-  """
-  An order metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
+  """An order metadata is updated."""
   ORDER_METADATA_UPDATED
 
-  """
-  Orders are imported.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Orders are imported."""
   ORDER_BULK_CREATED
 
   """A new fulfillment is created."""
@@ -1923,11 +1861,7 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """A fulfillment is approved."""
   FULFILLMENT_APPROVED
 
-  """
-  A fulfillment metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
+  """A fulfillment metadata is updated."""
   FULFILLMENT_METADATA_UPDATED
   FULFILLMENT_TRACKING_NUMBER_UPDATED
 
@@ -1994,11 +1928,7 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """A customer account is deleted."""
   CUSTOMER_DELETED
 
-  """
-  A customer account metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
+  """A customer account metadata is updated."""
   CUSTOMER_METADATA_UPDATED
 
   """A new collection is created."""
@@ -2010,11 +1940,7 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """A collection is deleted."""
   COLLECTION_DELETED
 
-  """
-  A collection metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
+  """A collection metadata is updated."""
   COLLECTION_METADATA_UPDATED
 
   """A new product is created."""
@@ -2026,39 +1952,19 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """A product is deleted."""
   PRODUCT_DELETED
 
-  """
-  A product metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
+  """A product metadata is updated."""
   PRODUCT_METADATA_UPDATED
 
-  """
-  A product export is completed.
-  
-  Added in Saleor 3.16.
-  """
+  """A product export is completed."""
   PRODUCT_EXPORT_COMPLETED
 
-  """
-  A new product media is created.
-  
-  Added in Saleor 3.12.
-  """
+  """A new product media is created."""
   PRODUCT_MEDIA_CREATED
 
-  """
-  A product media is updated.
-  
-  Added in Saleor 3.12.
-  """
+  """A product media is updated."""
   PRODUCT_MEDIA_UPDATED
 
-  """
-  A product media is deleted.
-  
-  Added in Saleor 3.12.
-  """
+  """A product media is deleted."""
   PRODUCT_MEDIA_DELETED
 
   """A new product variant is created."""
@@ -2072,11 +1978,7 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """
   PRODUCT_VARIANT_DELETED
 
-  """
-  A product variant metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
+  """A product variant metadata is updated."""
   PRODUCT_VARIANT_METADATA_UPDATED
 
   """A product variant is out of stock."""
@@ -2097,11 +1999,7 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   CHECKOUT_UPDATED
   CHECKOUT_FULLY_PAID
 
-  """
-  A checkout metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
+  """A checkout metadata is updated."""
   CHECKOUT_METADATA_UPDATED
 
   """
@@ -2156,11 +2054,7 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """A shipping zone is deleted."""
   SHIPPING_ZONE_DELETED
 
-  """
-  A shipping zone metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
+  """A shipping zone metadata is updated."""
   SHIPPING_ZONE_METADATA_UPDATED
 
   """A new staff user is created."""
@@ -2175,11 +2069,7 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """Setting a new password for the staff account is requested."""
   STAFF_SET_PASSWORD_REQUESTED
 
-  """
-  Transaction item metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
+  """Transaction item metadata is updated."""
   TRANSACTION_ITEM_METADATA_UPDATED
 
   """A new translation is created."""
@@ -2197,11 +2087,7 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """A warehouse is deleted."""
   WAREHOUSE_DELETED
 
-  """
-  A warehouse metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
+  """A warehouse metadata is updated."""
   WAREHOUSE_METADATA_UPDATED
 
   """A new voucher created."""
@@ -2215,11 +2101,7 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   VOUCHER_CODES_CREATED
   VOUCHER_CODES_DELETED
 
-  """
-  A voucher metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
+  """A voucher metadata is updated."""
   VOUCHER_METADATA_UPDATED
 
   """
@@ -2232,18 +2114,10 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """An observability event is created."""
   OBSERVABILITY
 
-  """
-  A thumbnail is created.
-  
-  Added in Saleor 3.12.
-  """
+  """A thumbnail is created."""
   THUMBNAIL_CREATED
 
-  """
-  Shop metadata is updated.
-  
-  Added in Saleor 3.15.
-  """
+  """Shop metadata is updated."""
   SHOP_METADATA_UPDATED
 
   """Listing available payment gateways."""
@@ -2267,45 +2141,19 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """Process payment."""
   PAYMENT_PROCESS
 
-  """
-  Event called for checkout tax calculation.
-  
-  Added in Saleor 3.6.
-  """
+  """Event called for checkout tax calculation."""
   CHECKOUT_CALCULATE_TAXES
 
-  """
-  Event called for order tax calculation.
-  
-  Added in Saleor 3.6.
-  """
+  """Event called for order tax calculation."""
   ORDER_CALCULATE_TAXES
 
-  """
-  Event called when charge has been requested for transaction.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Event called when charge has been requested for transaction."""
   TRANSACTION_CHARGE_REQUESTED
 
-  """
-  Event called when refund has been requested for transaction.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Event called when refund has been requested for transaction."""
   TRANSACTION_REFUND_REQUESTED
 
-  """
-  Event called when cancel has been requested for transaction.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Event called when cancel has been requested for transaction."""
   TRANSACTION_CANCELATION_REQUESTED
 
   """Fetch external shipping methods for checkout."""
@@ -2358,45 +2206,19 @@ enum WebhookEventTypeSyncEnum @doc(category: "Webhooks") {
   """Process payment."""
   PAYMENT_PROCESS
 
-  """
-  Event called for checkout tax calculation.
-  
-  Added in Saleor 3.6.
-  """
+  """Event called for checkout tax calculation."""
   CHECKOUT_CALCULATE_TAXES
 
-  """
-  Event called for order tax calculation.
-  
-  Added in Saleor 3.6.
-  """
+  """Event called for order tax calculation."""
   ORDER_CALCULATE_TAXES
 
-  """
-  Event called when charge has been requested for transaction.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Event called when charge has been requested for transaction."""
   TRANSACTION_CHARGE_REQUESTED
 
-  """
-  Event called when refund has been requested for transaction.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Event called when refund has been requested for transaction."""
   TRANSACTION_REFUND_REQUESTED
 
-  """
-  Event called when cancel has been requested for transaction.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Event called when cancel has been requested for transaction."""
   TRANSACTION_CANCELATION_REQUESTED
 
   """Fetch external shipping methods for checkout."""
@@ -2528,30 +2350,16 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """A gift card is deleted."""
   GIFT_CARD_DELETED
 
-  """
-  A gift card has been sent.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """A gift card has been sent."""
   GIFT_CARD_SENT
 
   """A gift card status is changed."""
   GIFT_CARD_STATUS_CHANGED
 
-  """
-  A gift card metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
+  """A gift card metadata is updated."""
   GIFT_CARD_METADATA_UPDATED
 
-  """
-  A gift card export is completed.
-  
-  Added in Saleor 3.16.
-  """
+  """A gift card export is completed."""
   GIFT_CARD_EXPORT_COMPLETED
 
   """A new menu created."""
@@ -2580,13 +2388,7 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """
   ORDER_CONFIRMED
 
-  """
-  Payment has been made. The order may be partially or fully paid.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Payment has been made. The order may be partially or fully paid."""
   ORDER_PAID
 
   """Payment is made and an order is fully paid."""
@@ -2594,20 +2396,10 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
 
   """
   The order received a refund. The order may be partially or fully refunded.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   ORDER_REFUNDED
 
-  """
-  The order is fully refunded.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The order is fully refunded."""
   ORDER_FULLY_REFUNDED
 
   """
@@ -2624,20 +2416,10 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """An order is fulfilled."""
   ORDER_FULFILLED
 
-  """
-  An order metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
+  """An order metadata is updated."""
   ORDER_METADATA_UPDATED
 
-  """
-  Orders are imported.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Orders are imported."""
   ORDER_BULK_CREATED
 
   """A new fulfillment is created."""
@@ -2649,11 +2431,7 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """A fulfillment is approved."""
   FULFILLMENT_APPROVED
 
-  """
-  A fulfillment metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
+  """A fulfillment metadata is updated."""
   FULFILLMENT_METADATA_UPDATED
   FULFILLMENT_TRACKING_NUMBER_UPDATED
 
@@ -2720,11 +2498,7 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """A customer account is deleted."""
   CUSTOMER_DELETED
 
-  """
-  A customer account metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
+  """A customer account metadata is updated."""
   CUSTOMER_METADATA_UPDATED
 
   """A new collection is created."""
@@ -2736,11 +2510,7 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """A collection is deleted."""
   COLLECTION_DELETED
 
-  """
-  A collection metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
+  """A collection metadata is updated."""
   COLLECTION_METADATA_UPDATED
 
   """A new product is created."""
@@ -2752,39 +2522,19 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """A product is deleted."""
   PRODUCT_DELETED
 
-  """
-  A product metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
+  """A product metadata is updated."""
   PRODUCT_METADATA_UPDATED
 
-  """
-  A product export is completed.
-  
-  Added in Saleor 3.16.
-  """
+  """A product export is completed."""
   PRODUCT_EXPORT_COMPLETED
 
-  """
-  A new product media is created.
-  
-  Added in Saleor 3.12.
-  """
+  """A new product media is created."""
   PRODUCT_MEDIA_CREATED
 
-  """
-  A product media is updated.
-  
-  Added in Saleor 3.12.
-  """
+  """A product media is updated."""
   PRODUCT_MEDIA_UPDATED
 
-  """
-  A product media is deleted.
-  
-  Added in Saleor 3.12.
-  """
+  """A product media is deleted."""
   PRODUCT_MEDIA_DELETED
 
   """A new product variant is created."""
@@ -2798,11 +2548,7 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """
   PRODUCT_VARIANT_DELETED
 
-  """
-  A product variant metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
+  """A product variant metadata is updated."""
   PRODUCT_VARIANT_METADATA_UPDATED
 
   """A product variant is out of stock."""
@@ -2823,11 +2569,7 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   CHECKOUT_UPDATED
   CHECKOUT_FULLY_PAID
 
-  """
-  A checkout metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
+  """A checkout metadata is updated."""
   CHECKOUT_METADATA_UPDATED
 
   """
@@ -2882,11 +2624,7 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """A shipping zone is deleted."""
   SHIPPING_ZONE_DELETED
 
-  """
-  A shipping zone metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
+  """A shipping zone metadata is updated."""
   SHIPPING_ZONE_METADATA_UPDATED
 
   """A new staff user is created."""
@@ -2901,11 +2639,7 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """Setting a new password for the staff account is requested."""
   STAFF_SET_PASSWORD_REQUESTED
 
-  """
-  Transaction item metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
+  """Transaction item metadata is updated."""
   TRANSACTION_ITEM_METADATA_UPDATED
 
   """A new translation is created."""
@@ -2923,11 +2657,7 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """A warehouse is deleted."""
   WAREHOUSE_DELETED
 
-  """
-  A warehouse metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
+  """A warehouse metadata is updated."""
   WAREHOUSE_METADATA_UPDATED
 
   """A new voucher created."""
@@ -2941,11 +2671,7 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   VOUCHER_CODES_CREATED
   VOUCHER_CODES_DELETED
 
-  """
-  A voucher metadata is updated.
-  
-  Added in Saleor 3.8.
-  """
+  """A voucher metadata is updated."""
   VOUCHER_METADATA_UPDATED
 
   """
@@ -2958,18 +2684,10 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """An observability event is created."""
   OBSERVABILITY
 
-  """
-  A thumbnail is created.
-  
-  Added in Saleor 3.12.
-  """
+  """A thumbnail is created."""
   THUMBNAIL_CREATED
 
-  """
-  Shop metadata is updated.
-  
-  Added in Saleor 3.15.
-  """
+  """Shop metadata is updated."""
   SHOP_METADATA_UPDATED
 }
 
@@ -3073,11 +2791,7 @@ type App implements Node & ObjectWithMetadata @doc(category: "Apps") {
   """URL to iframe with the app."""
   appUrl: String
 
-  """
-  URL to manifest used during app's installation.
-  
-  Added in Saleor 3.5.
-  """
+  """URL to manifest used during app's installation."""
   manifestUrl: String
 
   """Version number of the app."""
@@ -3086,29 +2800,13 @@ type App implements Node & ObjectWithMetadata @doc(category: "Apps") {
   """JWT token used to authenticate by third-party app."""
   accessToken: String
 
-  """
-  The App's author name.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The App's author name."""
   author: String
 
-  """
-  App's dashboard extensions.
-  
-  Added in Saleor 3.1.
-  """
+  """App's dashboard extensions."""
   extensions: [AppExtension!]!
 
-  """
-  App's brand data.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """App's brand data."""
   brand: AppBrand
 }
 
@@ -3290,39 +2988,15 @@ enum AppExtensionTargetEnum @doc(category: "Apps") {
   APP_PAGE
 }
 
-"""
-Represents the app's brand data.
-
-Added in Saleor 3.14.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""Represents the app's brand data."""
 type AppBrand @doc(category: "Apps") {
-  """
-  App's logos details.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """App's logos details."""
   logo: AppBrandLogo!
 }
 
-"""
-Represents the app's brand logo data.
-
-Added in Saleor 3.14.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""Represents the app's brand logo data."""
 type AppBrandLogo @doc(category: "Apps") {
-  """
-  URL to the default logo image.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """URL to the default logo image."""
   default(
     """
     Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
@@ -3775,11 +3449,7 @@ type Address implements Node & ObjectWithMetadata @doc(category: "Users") {
   """The ID of the address."""
   id: ID!
 
-  """
-  List of private metadata items. Requires staff permissions to access.
-  
-  Added in Saleor 3.10.
-  """
+  """List of private metadata items. Requires staff permissions to access."""
   privateMetadata: [MetadataItem!]!
 
   """
@@ -3787,22 +3457,18 @@ type Address implements Node & ObjectWithMetadata @doc(category: "Users") {
   
   Tip: Use GraphQL aliases to fetch multiple keys.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.3.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.3.
   """
   privateMetafields(keys: [String!]): Metadata
 
-  """
-  List of public metadata items. Can be accessed without permissions.
-  
-  Added in Saleor 3.10.
-  """
+  """List of public metadata items. Can be accessed without permissions."""
   metadata: [MetadataItem!]!
 
   """
@@ -3810,14 +3476,14 @@ type Address implements Node & ObjectWithMetadata @doc(category: "Users") {
   
   Tip: Use GraphQL aliases to fetch multiple keys.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.3.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
 
@@ -6383,11 +6049,7 @@ type Attribute implements Node & ObjectWithMetadata @doc(category: "Attributes")
     last: Int
   ): ProductTypeCountableConnection!
 
-  """
-  External ID of this attribute. 
-  
-  Added in Saleor 3.10.
-  """
+  """External ID of this attribute."""
   externalReference: String
 }
 
@@ -6522,11 +6184,7 @@ type AttributeValue implements Node @doc(category: "Attributes") {
   """Represents the date/time value of the attribute value."""
   dateTime: DateTime
 
-  """
-  External ID of this attribute value. 
-  
-  Added in Saleor 3.10.
-  """
+  """External ID of this attribute value."""
   externalReference: String
 }
 
@@ -6691,8 +6349,6 @@ enum VariantAttributeScope @doc(category: "Products") {
 
 """
 Represents assigned attribute to variant with variant selection attached.
-
-Added in Saleor 3.1.
 """
 type AssignedVariantAttribute @doc(category: "Attributes") {
   """Attribute assigned to variant."""
@@ -6752,13 +6408,7 @@ input MetadataFilter {
   value: String
 }
 
-"""
-Where filtering options.
-
-Added in Saleor 3.11.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""Where filtering options."""
 input AttributeWhereInput @doc(category: "Attributes") {
   metadata: [MetadataFilter!]
   ids: [ID!]
@@ -7779,11 +7429,7 @@ input AddressInput {
   """
   phone: String
 
-  """
-  Address public metadata.
-  
-  Added in Saleor 3.15.
-  """
+  """Address public metadata."""
   metadata: [MetadataInput!]
 
   """
@@ -10319,11 +9965,7 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
   """Determine if the user is active."""
   isActive: Boolean!
 
-  """
-  Determines if user has confirmed email.
-  
-  Added in Saleor 3.15.
-  """
+  """Determines if user has confirmed email."""
   isConfirmed: Boolean!
 
   """List of all user's addresses."""
@@ -10344,11 +9986,7 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
     channel: String
   ): [ID!]
 
-  """
-  Returns checkouts assigned to this user.
-  
-  Added in Saleor 3.8.
-  """
+  """Returns checkouts assigned to this user."""
   checkouts(
     """Slug of a channel for which the data should be returned."""
     channel: String
@@ -10428,19 +10066,11 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
 
   """
   List of channels the user has access to. The sum of channels from all user groups. If at least one group has `restrictedAccessToChannels` set to False - all channels are returned.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   accessibleChannels: [Channel!]
 
   """
   Determine if user have restricted access to channels. False if at least one user group has `restrictedAccessToChannels` set to False.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   restrictedAccessToChannels: Boolean!
 
@@ -10483,11 +10113,7 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
   """The default billing address of the user."""
   defaultBillingAddress: Address
 
-  """
-  External ID of this user. 
-  
-  Added in Saleor 3.10.
-  """
+  """External ID of this user."""
   externalReference: String
 
   """The date when the user last time log in to the system."""
@@ -10501,10 +10127,6 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
 
   """
   Returns a list of user's stored payment methods that can be used in provided channel. The field returns a list of stored payment methods by payment apps. When `amount` is not provided, 0 will be used as default value.
-  
-  Added in Saleor 3.15.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   storedPaymentMethods(
     """Slug of a channel for which the data should be returned."""
@@ -12830,22 +12452,10 @@ type Group implements Node @doc(category: "Users") {
   """
   userCanManage: Boolean!
 
-  """
-  List of channels the group has access to.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """List of channels the group has access to."""
   accessibleChannels: [Channel!]
 
-  """
-  Determine if the group have restricted access to channels.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Determine if the group have restricted access to channels."""
   restrictedAccessToChannels: Boolean!
 }
 
@@ -14462,13 +14072,7 @@ type AppInstallation implements Node & Job @doc(category: "Apps") {
   """The URL address of manifest for the app installation."""
   manifestUrl: String!
 
-  """
-  App's brand data.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """App's brand data."""
   brand: AppBrand
 }
 
@@ -14655,11 +14259,7 @@ input CustomerFilterInput @doc(category: "Users") {
   search: String
   metadata: [MetadataFilter!]
 
-  """
-  Filter by ids. 
-  
-  Added in Saleor 3.8.
-  """
+  """Filter by ids."""
   ids: [ID!]
   updatedAt: DateTimeRangeInput
 }
@@ -21856,11 +21456,7 @@ input AttributeValueInput @doc(category: "Attributes") {
   """ID of the selected attribute."""
   id: ID
 
-  """
-  External ID of this attribute.
-  
-  Added in Saleor 3.14.
-  """
+  """External ID of this attribute."""
   externalReference: String
 
   """
@@ -21868,32 +21464,16 @@ input AttributeValueInput @doc(category: "Attributes") {
   """
   values: [String!]
 
-  """
-  Attribute value ID or external reference.
-  
-  Added in Saleor 3.9.
-  """
+  """Attribute value ID or external reference."""
   dropdown: AttributeValueSelectableTypeInput
 
-  """
-  Attribute value ID or external reference.
-  
-  Added in Saleor 3.9.
-  """
+  """Attribute value ID or external reference."""
   swatch: AttributeValueSelectableTypeInput
 
-  """
-  List of attribute value IDs or external references.
-  
-  Added in Saleor 3.9.
-  """
+  """List of attribute value IDs or external references."""
   multiselect: [AttributeValueSelectableTypeInput!]
 
-  """
-  Numeric value of an attribute.
-  
-  Added in Saleor 3.9.
-  """
+  """Numeric value of an attribute."""
   numeric: String
 
   """URL of the file attribute. Every time, a new value is created."""
@@ -21927,18 +21507,12 @@ Represents attribute value.
 2. If externalReference is provided, then attribute value will be resolved by external reference.
 3. If value is provided, then attribute value will be resolved by value. If this attribute value doesn't exist, then it will be created.
 4. If externalReference and value is provided then new attribute value will be created.
-
-Added in Saleor 3.9.
 """
 input AttributeValueSelectableTypeInput @doc(category: "Attributes") {
   """ID of an attribute value."""
   id: ID
 
-  """
-  External reference of an attribute value.
-  
-  Added in Saleor 3.14.
-  """
+  """External reference of an attribute value."""
   externalReference: String
 
   """
@@ -30064,45 +29638,19 @@ type Manifest @doc(category: "Apps") {
   """
   extensions: [AppManifestExtension!]!
 
-  """
-  List of the app's webhooks.
-  
-  Added in Saleor 3.5.
-  """
+  """List of the app's webhooks."""
   webhooks: [AppManifestWebhook!]!
 
-  """
-  The audience that will be included in all JWT tokens for the app.
-  
-  Added in Saleor 3.8.
-  """
+  """The audience that will be included in all JWT tokens for the app."""
   audience: String
 
-  """
-  Determines the app's required Saleor version as semver range.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Determines the app's required Saleor version as semver range."""
   requiredSaleorVersion: AppManifestRequiredSaleorVersion
 
-  """
-  The App's author name.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The App's author name."""
   author: String
 
-  """
-  App's brand data.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """App's brand data."""
   brand: AppManifestBrand
 }
 
@@ -30141,58 +29689,22 @@ type AppManifestWebhook @doc(category: "Apps") {
 }
 
 type AppManifestRequiredSaleorVersion @doc(category: "Apps") {
-  """
-  Required Saleor version as semver range.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Required Saleor version as semver range."""
   constraint: String!
 
-  """
-  Informs if the Saleor version matches the required one.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Informs if the Saleor version matches the required one."""
   satisfied: Boolean!
 }
 
-"""
-Represents the app's manifest brand data.
-
-Added in Saleor 3.14.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""Represents the app's manifest brand data."""
 type AppManifestBrand @doc(category: "Apps") {
-  """
-  App's logos details.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """App's logos details."""
   logo: AppManifestBrandLogo!
 }
 
-"""
-Represents the app's manifest brand data.
-
-Added in Saleor 3.14.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""Represents the app's manifest brand data."""
 type AppManifestBrandLogo @doc(category: "Apps") {
-  """
-  Data URL with a base64 encoded logo image.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Data URL with a base64 encoded logo image."""
   default(
     """
     Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
@@ -31380,11 +30892,7 @@ type PermissionGroupDelete @doc(category: "Users") @webhookEventsInfo(asyncEvent
 }
 
 type Subscription @doc(category: "Miscellaneous") {
-  """
-  Look up subscription event.
-  
-  Added in Saleor 3.2.
-  """
+  """Look up subscription event."""
   event: Event
 
   """
@@ -31614,11 +31122,7 @@ interface Event {
 
 union IssuingPrincipal = App | User
 
-"""
-Event sent when new draft order is created.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when new draft order is created."""
 type DraftOrderCreated implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
@@ -31636,11 +31140,7 @@ type DraftOrderCreated implements Event @doc(category: "Orders") {
   order: Order
 }
 
-"""
-Event sent when draft order is updated.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when draft order is updated."""
 type DraftOrderUpdated implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
@@ -31658,11 +31158,7 @@ type DraftOrderUpdated implements Event @doc(category: "Orders") {
   order: Order
 }
 
-"""
-Event sent when draft order is deleted.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when draft order is deleted."""
 type DraftOrderDeleted implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
@@ -31680,11 +31176,7 @@ type DraftOrderDeleted implements Event @doc(category: "Orders") {
   order: Order
 }
 
-"""
-Event sent when new order is created.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when new order is created."""
 type OrderCreated implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
@@ -31702,11 +31194,7 @@ type OrderCreated implements Event @doc(category: "Orders") {
   order: Order
 }
 
-"""
-Event sent when order is updated.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when order is updated."""
 type OrderUpdated implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
@@ -31724,11 +31212,7 @@ type OrderUpdated implements Event @doc(category: "Orders") {
   order: Order
 }
 
-"""
-Event sent when order is confirmed.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when order is confirmed."""
 type OrderConfirmed implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
@@ -31746,13 +31230,7 @@ type OrderConfirmed implements Event @doc(category: "Orders") {
   order: Order
 }
 
-"""
-Payment has been made. The order may be partially or fully paid.
-
-Added in Saleor 3.14.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""Payment has been made. The order may be partially or fully paid."""
 type OrderPaid implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
@@ -31770,11 +31248,7 @@ type OrderPaid implements Event @doc(category: "Orders") {
   order: Order
 }
 
-"""
-Event sent when order is fully paid.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when order is fully paid."""
 type OrderFullyPaid implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
@@ -31794,10 +31268,6 @@ type OrderFullyPaid implements Event @doc(category: "Orders") {
 
 """
 The order received a refund. The order may be partially or fully refunded.
-
-Added in Saleor 3.14.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type OrderRefunded implements Event @doc(category: "Orders") {
   """Time of the event."""
@@ -31816,13 +31286,7 @@ type OrderRefunded implements Event @doc(category: "Orders") {
   order: Order
 }
 
-"""
-The order is fully refunded.
-
-Added in Saleor 3.14.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""The order is fully refunded."""
 type OrderFullyRefunded implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
@@ -31840,11 +31304,7 @@ type OrderFullyRefunded implements Event @doc(category: "Orders") {
   order: Order
 }
 
-"""
-Event sent when order is fulfilled.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when order is fulfilled."""
 type OrderFulfilled implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
@@ -31862,11 +31322,7 @@ type OrderFulfilled implements Event @doc(category: "Orders") {
   order: Order
 }
 
-"""
-Event sent when order is canceled.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when order is canceled."""
 type OrderCancelled implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
@@ -31884,13 +31340,7 @@ type OrderCancelled implements Event @doc(category: "Orders") {
   order: Order
 }
 
-"""
-Event sent when order becomes expired.
-
-Added in Saleor 3.13.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""Event sent when order becomes expired."""
 type OrderExpired implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
@@ -31908,11 +31358,7 @@ type OrderExpired implements Event @doc(category: "Orders") {
   order: Order
 }
 
-"""
-Event sent when order metadata is updated.
-
-Added in Saleor 3.8.
-"""
+"""Event sent when order metadata is updated."""
 type OrderMetadataUpdated implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
@@ -31930,13 +31376,7 @@ type OrderMetadataUpdated implements Event @doc(category: "Orders") {
   order: Order
 }
 
-"""
-Event sent when orders are imported.
-
-Added in Saleor 3.14.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""Event sent when orders are imported."""
 type OrderBulkCreated implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
@@ -31994,8 +31434,6 @@ enum VolumeUnitsEnum {
 
 """
 Event sent when account confirmation requested. This event is always sent. enableAccountConfirmationByEmail flag set to True is not required.
-
-Added in Saleor 3.15.
 """
 type AccountConfirmationRequested implements Event @doc(category: "Users") {
   """Time of the event."""
@@ -32026,11 +31464,7 @@ type AccountConfirmationRequested implements Event @doc(category: "Users") {
   shop: Shop
 }
 
-"""
-Event sent when account change email is requested.
-
-Added in Saleor 3.15.
-"""
+"""Event sent when account change email is requested."""
 type AccountChangeEmailRequested implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
@@ -32063,11 +31497,7 @@ type AccountChangeEmailRequested implements Event @doc(category: "Users") {
   newEmail: String
 }
 
-"""
-Event sent when account email is changed.
-
-Added in Saleor 3.15.
-"""
+"""Event sent when account email is changed."""
 type AccountEmailChanged implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
@@ -32100,11 +31530,7 @@ type AccountEmailChanged implements Event @doc(category: "Users") {
   newEmail: String
 }
 
-"""
-Event sent when setting a new password is requested.
-
-Added in Saleor 3.15.
-"""
+"""Event sent when setting a new password is requested."""
 type AccountSetPasswordRequested implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
@@ -32134,11 +31560,7 @@ type AccountSetPasswordRequested implements Event @doc(category: "Users") {
   shop: Shop
 }
 
-"""
-Event sent when account is confirmed.
-
-Added in Saleor 3.15.
-"""
+"""Event sent when account is confirmed."""
 type AccountConfirmed implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
@@ -32168,11 +31590,7 @@ type AccountConfirmed implements Event @doc(category: "Users") {
   shop: Shop
 }
 
-"""
-Event sent when account delete is requested.
-
-Added in Saleor 3.15.
-"""
+"""Event sent when account delete is requested."""
 type AccountDeleteRequested implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
@@ -32202,11 +31620,7 @@ type AccountDeleteRequested implements Event @doc(category: "Users") {
   shop: Shop
 }
 
-"""
-Event sent when account is deleted.
-
-Added in Saleor 3.15.
-"""
+"""Event sent when account is deleted."""
 type AccountDeleted implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
@@ -32236,11 +31650,7 @@ type AccountDeleted implements Event @doc(category: "Users") {
   shop: Shop
 }
 
-"""
-Event sent when new address is created.
-
-Added in Saleor 3.5.
-"""
+"""Event sent when new address is created."""
 type AddressCreated implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
@@ -32258,11 +31668,7 @@ type AddressCreated implements Event @doc(category: "Users") {
   address: Address
 }
 
-"""
-Event sent when address is updated.
-
-Added in Saleor 3.5.
-"""
+"""Event sent when address is updated."""
 type AddressUpdated implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
@@ -32280,11 +31686,7 @@ type AddressUpdated implements Event @doc(category: "Users") {
   address: Address
 }
 
-"""
-Event sent when address is deleted.
-
-Added in Saleor 3.5.
-"""
+"""Event sent when address is deleted."""
 type AddressDeleted implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
@@ -32302,11 +31704,7 @@ type AddressDeleted implements Event @doc(category: "Users") {
   address: Address
 }
 
-"""
-Event sent when new app is installed.
-
-Added in Saleor 3.4.
-"""
+"""Event sent when new app is installed."""
 type AppInstalled implements Event @doc(category: "Apps") {
   """Time of the event."""
   issuedAt: DateTime
@@ -32324,11 +31722,7 @@ type AppInstalled implements Event @doc(category: "Apps") {
   app: App
 }
 
-"""
-Event sent when app is updated.
-
-Added in Saleor 3.4.
-"""
+"""Event sent when app is updated."""
 type AppUpdated implements Event @doc(category: "Apps") {
   """Time of the event."""
   issuedAt: DateTime
@@ -32346,11 +31740,7 @@ type AppUpdated implements Event @doc(category: "Apps") {
   app: App
 }
 
-"""
-Event sent when app is deleted.
-
-Added in Saleor 3.4.
-"""
+"""Event sent when app is deleted."""
 type AppDeleted implements Event @doc(category: "Apps") {
   """Time of the event."""
   issuedAt: DateTime
@@ -32368,11 +31758,7 @@ type AppDeleted implements Event @doc(category: "Apps") {
   app: App
 }
 
-"""
-Event sent when app status has changed.
-
-Added in Saleor 3.4.
-"""
+"""Event sent when app status has changed."""
 type AppStatusChanged implements Event @doc(category: "Apps") {
   """Time of the event."""
   issuedAt: DateTime
@@ -32390,11 +31776,7 @@ type AppStatusChanged implements Event @doc(category: "Apps") {
   app: App
 }
 
-"""
-Event sent when new attribute is created.
-
-Added in Saleor 3.5.
-"""
+"""Event sent when new attribute is created."""
 type AttributeCreated implements Event @doc(category: "Attributes") {
   """Time of the event."""
   issuedAt: DateTime
@@ -32412,11 +31794,7 @@ type AttributeCreated implements Event @doc(category: "Attributes") {
   attribute: Attribute
 }
 
-"""
-Event sent when attribute is updated.
-
-Added in Saleor 3.5.
-"""
+"""Event sent when attribute is updated."""
 type AttributeUpdated implements Event @doc(category: "Attributes") {
   """Time of the event."""
   issuedAt: DateTime
@@ -32434,11 +31812,7 @@ type AttributeUpdated implements Event @doc(category: "Attributes") {
   attribute: Attribute
 }
 
-"""
-Event sent when attribute is deleted.
-
-Added in Saleor 3.5.
-"""
+"""Event sent when attribute is deleted."""
 type AttributeDeleted implements Event @doc(category: "Attributes") {
   """Time of the event."""
   issuedAt: DateTime
@@ -32456,11 +31830,7 @@ type AttributeDeleted implements Event @doc(category: "Attributes") {
   attribute: Attribute
 }
 
-"""
-Event sent when new attribute value is created.
-
-Added in Saleor 3.5.
-"""
+"""Event sent when new attribute value is created."""
 type AttributeValueCreated implements Event @doc(category: "Attributes") {
   """Time of the event."""
   issuedAt: DateTime
@@ -32478,11 +31848,7 @@ type AttributeValueCreated implements Event @doc(category: "Attributes") {
   attributeValue: AttributeValue
 }
 
-"""
-Event sent when attribute value is updated.
-
-Added in Saleor 3.5.
-"""
+"""Event sent when attribute value is updated."""
 type AttributeValueUpdated implements Event @doc(category: "Attributes") {
   """Time of the event."""
   issuedAt: DateTime
@@ -32500,11 +31866,7 @@ type AttributeValueUpdated implements Event @doc(category: "Attributes") {
   attributeValue: AttributeValue
 }
 
-"""
-Event sent when attribute value is deleted.
-
-Added in Saleor 3.5.
-"""
+"""Event sent when attribute value is deleted."""
 type AttributeValueDeleted implements Event @doc(category: "Attributes") {
   """Time of the event."""
   issuedAt: DateTime
@@ -32522,11 +31884,7 @@ type AttributeValueDeleted implements Event @doc(category: "Attributes") {
   attributeValue: AttributeValue
 }
 
-"""
-Event sent when new category is created.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when new category is created."""
 type CategoryCreated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
@@ -32544,11 +31902,7 @@ type CategoryCreated implements Event @doc(category: "Products") {
   category: Category
 }
 
-"""
-Event sent when category is updated.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when category is updated."""
 type CategoryUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
@@ -32566,11 +31920,7 @@ type CategoryUpdated implements Event @doc(category: "Products") {
   category: Category
 }
 
-"""
-Event sent when category is deleted.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when category is deleted."""
 type CategoryDeleted implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
@@ -32588,11 +31938,7 @@ type CategoryDeleted implements Event @doc(category: "Products") {
   category: Category
 }
 
-"""
-Event sent when new channel is created.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when new channel is created."""
 type ChannelCreated implements Event @doc(category: "Channels") {
   """Time of the event."""
   issuedAt: DateTime
@@ -32610,11 +31956,7 @@ type ChannelCreated implements Event @doc(category: "Channels") {
   channel: Channel
 }
 
-"""
-Event sent when channel is updated.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when channel is updated."""
 type ChannelUpdated implements Event @doc(category: "Channels") {
   """Time of the event."""
   issuedAt: DateTime
@@ -32632,11 +31974,7 @@ type ChannelUpdated implements Event @doc(category: "Channels") {
   channel: Channel
 }
 
-"""
-Event sent when channel is deleted.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when channel is deleted."""
 type ChannelDeleted implements Event @doc(category: "Channels") {
   """Time of the event."""
   issuedAt: DateTime
@@ -32654,11 +31992,7 @@ type ChannelDeleted implements Event @doc(category: "Channels") {
   channel: Channel
 }
 
-"""
-Event sent when channel status has changed.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when channel status has changed."""
 type ChannelStatusChanged implements Event @doc(category: "Channels") {
   """Time of the event."""
   issuedAt: DateTime
@@ -32676,11 +32010,7 @@ type ChannelStatusChanged implements Event @doc(category: "Channels") {
   channel: Channel
 }
 
-"""
-Event sent when channel metadata is updated.
-
-Added in Saleor 3.15.
-"""
+"""Event sent when channel metadata is updated."""
 type ChannelMetadataUpdated implements Event @doc(category: "Channels") {
   """Time of the event."""
   issuedAt: DateTime
@@ -32698,11 +32028,7 @@ type ChannelMetadataUpdated implements Event @doc(category: "Channels") {
   channel: Channel
 }
 
-"""
-Event sent when new gift card is created.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when new gift card is created."""
 type GiftCardCreated implements Event @doc(category: "Gift cards") {
   """Time of the event."""
   issuedAt: DateTime
@@ -32720,11 +32046,7 @@ type GiftCardCreated implements Event @doc(category: "Gift cards") {
   giftCard: GiftCard
 }
 
-"""
-Event sent when gift card is updated.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when gift card is updated."""
 type GiftCardUpdated implements Event @doc(category: "Gift cards") {
   """Time of the event."""
   issuedAt: DateTime
@@ -32742,11 +32064,7 @@ type GiftCardUpdated implements Event @doc(category: "Gift cards") {
   giftCard: GiftCard
 }
 
-"""
-Event sent when gift card is deleted.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when gift card is deleted."""
 type GiftCardDeleted implements Event @doc(category: "Gift cards") {
   """Time of the event."""
   issuedAt: DateTime
@@ -32764,13 +32082,7 @@ type GiftCardDeleted implements Event @doc(category: "Gift cards") {
   giftCard: GiftCard
 }
 
-"""
-Event sent when gift card is e-mailed.
-
-Added in Saleor 3.13.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""Event sent when gift card is e-mailed."""
 type GiftCardSent implements Event @doc(category: "Gift cards") {
   """Time of the event."""
   issuedAt: DateTime
@@ -32794,11 +32106,7 @@ type GiftCardSent implements Event @doc(category: "Gift cards") {
   sentToEmail: String
 }
 
-"""
-Event sent when gift card status has changed.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when gift card status has changed."""
 type GiftCardStatusChanged implements Event @doc(category: "Gift cards") {
   """Time of the event."""
   issuedAt: DateTime
@@ -32816,11 +32124,7 @@ type GiftCardStatusChanged implements Event @doc(category: "Gift cards") {
   giftCard: GiftCard
 }
 
-"""
-Event sent when gift card metadata is updated.
-
-Added in Saleor 3.8.
-"""
+"""Event sent when gift card metadata is updated."""
 type GiftCardMetadataUpdated implements Event @doc(category: "Gift cards") {
   """Time of the event."""
   issuedAt: DateTime
@@ -32838,11 +32142,7 @@ type GiftCardMetadataUpdated implements Event @doc(category: "Gift cards") {
   giftCard: GiftCard
 }
 
-"""
-Event sent when gift card export is completed.
-
-Added in Saleor 3.16.
-"""
+"""Event sent when gift card export is completed."""
 type GiftCardExportCompleted implements Event @doc(category: "Gift cards") {
   """Time of the event."""
   issuedAt: DateTime
@@ -32860,11 +32160,7 @@ type GiftCardExportCompleted implements Event @doc(category: "Gift cards") {
   export: ExportFile
 }
 
-"""
-Event sent when new menu is created.
-
-Added in Saleor 3.4.
-"""
+"""Event sent when new menu is created."""
 type MenuCreated implements Event @doc(category: "Menu") {
   """Time of the event."""
   issuedAt: DateTime
@@ -32885,11 +32181,7 @@ type MenuCreated implements Event @doc(category: "Menu") {
   ): Menu
 }
 
-"""
-Event sent when menu is updated.
-
-Added in Saleor 3.4.
-"""
+"""Event sent when menu is updated."""
 type MenuUpdated implements Event @doc(category: "Menu") {
   """Time of the event."""
   issuedAt: DateTime
@@ -32910,11 +32202,7 @@ type MenuUpdated implements Event @doc(category: "Menu") {
   ): Menu
 }
 
-"""
-Event sent when menu is deleted.
-
-Added in Saleor 3.4.
-"""
+"""Event sent when menu is deleted."""
 type MenuDeleted implements Event @doc(category: "Menu") {
   """Time of the event."""
   issuedAt: DateTime
@@ -32935,11 +32223,7 @@ type MenuDeleted implements Event @doc(category: "Menu") {
   ): Menu
 }
 
-"""
-Event sent when new menu item is created.
-
-Added in Saleor 3.4.
-"""
+"""Event sent when new menu item is created."""
 type MenuItemCreated implements Event @doc(category: "Menu") {
   """Time of the event."""
   issuedAt: DateTime
@@ -32960,11 +32244,7 @@ type MenuItemCreated implements Event @doc(category: "Menu") {
   ): MenuItem
 }
 
-"""
-Event sent when menu item is updated.
-
-Added in Saleor 3.4.
-"""
+"""Event sent when menu item is updated."""
 type MenuItemUpdated implements Event @doc(category: "Menu") {
   """Time of the event."""
   issuedAt: DateTime
@@ -32985,11 +32265,7 @@ type MenuItemUpdated implements Event @doc(category: "Menu") {
   ): MenuItem
 }
 
-"""
-Event sent when menu item is deleted.
-
-Added in Saleor 3.4.
-"""
+"""Event sent when menu item is deleted."""
 type MenuItemDeleted implements Event @doc(category: "Menu") {
   """Time of the event."""
   issuedAt: DateTime
@@ -33010,11 +32286,7 @@ type MenuItemDeleted implements Event @doc(category: "Menu") {
   ): MenuItem
 }
 
-"""
-Event sent when new product is created.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when new product is created."""
 type ProductCreated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
@@ -33038,11 +32310,7 @@ type ProductCreated implements Event @doc(category: "Products") {
   category: Category
 }
 
-"""
-Event sent when product is updated.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when product is updated."""
 type ProductUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
@@ -33066,11 +32334,7 @@ type ProductUpdated implements Event @doc(category: "Products") {
   category: Category
 }
 
-"""
-Event sent when product is deleted.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when product is deleted."""
 type ProductDeleted implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
@@ -33094,11 +32358,7 @@ type ProductDeleted implements Event @doc(category: "Products") {
   category: Category
 }
 
-"""
-Event sent when product metadata is updated.
-
-Added in Saleor 3.8.
-"""
+"""Event sent when product metadata is updated."""
 type ProductMetadataUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
@@ -33122,11 +32382,7 @@ type ProductMetadataUpdated implements Event @doc(category: "Products") {
   category: Category
 }
 
-"""
-Event sent when product export is completed.
-
-Added in Saleor 3.16.
-"""
+"""Event sent when product export is completed."""
 type ProductExportCompleted implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
@@ -33144,11 +32400,7 @@ type ProductExportCompleted implements Event @doc(category: "Products") {
   export: ExportFile
 }
 
-"""
-Event sent when new product media is created.
-
-Added in Saleor 3.12.
-"""
+"""Event sent when new product media is created."""
 type ProductMediaCreated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
@@ -33166,11 +32418,7 @@ type ProductMediaCreated implements Event @doc(category: "Products") {
   productMedia: ProductMedia
 }
 
-"""
-Event sent when product media is updated.
-
-Added in Saleor 3.12.
-"""
+"""Event sent when product media is updated."""
 type ProductMediaUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
@@ -33188,11 +32436,7 @@ type ProductMediaUpdated implements Event @doc(category: "Products") {
   productMedia: ProductMedia
 }
 
-"""
-Event sent when product media is deleted.
-
-Added in Saleor 3.12.
-"""
+"""Event sent when product media is deleted."""
 type ProductMediaDeleted implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
@@ -33210,11 +32454,7 @@ type ProductMediaDeleted implements Event @doc(category: "Products") {
   productMedia: ProductMedia
 }
 
-"""
-Event sent when new product variant is created.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when new product variant is created."""
 type ProductVariantCreated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
@@ -33235,11 +32475,7 @@ type ProductVariantCreated implements Event @doc(category: "Products") {
   ): ProductVariant
 }
 
-"""
-Event sent when product variant is updated.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when product variant is updated."""
 type ProductVariantUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
@@ -33260,11 +32496,7 @@ type ProductVariantUpdated implements Event @doc(category: "Products") {
   ): ProductVariant
 }
 
-"""
-Event sent when product variant is out of stock.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when product variant is out of stock."""
 type ProductVariantOutOfStock implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
@@ -33288,11 +32520,7 @@ type ProductVariantOutOfStock implements Event @doc(category: "Products") {
   warehouse: Warehouse
 }
 
-"""
-Event sent when product variant is back in stock.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when product variant is back in stock."""
 type ProductVariantBackInStock implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
@@ -33316,13 +32544,7 @@ type ProductVariantBackInStock implements Event @doc(category: "Products") {
   warehouse: Warehouse
 }
 
-"""
-Event sent when product variant stock is updated.
-
-Added in Saleor 3.11.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""Event sent when product variant stock is updated."""
 type ProductVariantStockUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
@@ -33346,11 +32568,7 @@ type ProductVariantStockUpdated implements Event @doc(category: "Products") {
   warehouse: Warehouse
 }
 
-"""
-Event sent when product variant is deleted.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when product variant is deleted."""
 type ProductVariantDeleted implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
@@ -33371,11 +32589,7 @@ type ProductVariantDeleted implements Event @doc(category: "Products") {
   ): ProductVariant
 }
 
-"""
-Event sent when product variant metadata is updated.
-
-Added in Saleor 3.8.
-"""
+"""Event sent when product variant metadata is updated."""
 type ProductVariantMetadataUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
@@ -33398,8 +32612,6 @@ type ProductVariantMetadataUpdated implements Event @doc(category: "Products") {
 
 """
 Event sent when new sale is created.
-
-Added in Saleor 3.2.
 
 DEPRECATED: this event will be removed in Saleor 4.0. Use `PromotionCreated` event instead.
 """
@@ -33426,8 +32638,6 @@ type SaleCreated implements Event @doc(category: "Discounts") {
 """
 Event sent when sale is updated.
 
-Added in Saleor 3.2.
-
 DEPRECATED: this event will be removed in Saleor 4.0. Use `PromotionUpdated` event instead.
 """
 type SaleUpdated implements Event @doc(category: "Discounts") {
@@ -33452,8 +32662,6 @@ type SaleUpdated implements Event @doc(category: "Discounts") {
 
 """
 Event sent when sale is deleted.
-
-Added in Saleor 3.2.
 
 DEPRECATED: this event will be removed in Saleor 4.0. Use `PromotionDeleted` event instead.
 """
@@ -33480,8 +32688,6 @@ type SaleDeleted implements Event @doc(category: "Discounts") {
 """
 The event informs about the start or end of the sale.
 
-Added in Saleor 3.5.
-
 DEPRECATED: this event will be removed in Saleor 4.0. Use `PromotionStarted` and `PromotionEnded` events instead.
 """
 type SaleToggle implements Event @doc(category: "Discounts") {
@@ -33497,24 +32703,14 @@ type SaleToggle implements Event @doc(category: "Discounts") {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  The sale the event relates to.
-  
-  Added in Saleor 3.5.
-  """
+  """The sale the event relates to."""
   sale(
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): Sale
 }
 
-"""
-Event sent when new promotion is created.
-
-Added in Saleor 3.17.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""Event sent when new promotion is created."""
 type PromotionCreated implements Event @doc(category: "Discounts") {
   """Time of the event."""
   issuedAt: DateTime
@@ -33532,13 +32728,7 @@ type PromotionCreated implements Event @doc(category: "Discounts") {
   promotion: Promotion
 }
 
-"""
-Event sent when promotion is updated.
-
-Added in Saleor 3.17.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""Event sent when promotion is updated."""
 type PromotionUpdated implements Event @doc(category: "Discounts") {
   """Time of the event."""
   issuedAt: DateTime
@@ -33556,13 +32746,7 @@ type PromotionUpdated implements Event @doc(category: "Discounts") {
   promotion: Promotion
 }
 
-"""
-Event sent when promotion is deleted.
-
-Added in Saleor 3.17.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""Event sent when promotion is deleted."""
 type PromotionDeleted implements Event @doc(category: "Discounts") {
   """Time of the event."""
   issuedAt: DateTime
@@ -33580,13 +32764,7 @@ type PromotionDeleted implements Event @doc(category: "Discounts") {
   promotion: Promotion
 }
 
-"""
-The event informs about the start of the promotion.
-
-Added in Saleor 3.17.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""The event informs about the start of the promotion."""
 type PromotionStarted implements Event @doc(category: "Discounts") {
   """Time of the event."""
   issuedAt: DateTime
@@ -33604,13 +32782,7 @@ type PromotionStarted implements Event @doc(category: "Discounts") {
   promotion: Promotion
 }
 
-"""
-The event informs about the end of the promotion.
-
-Added in Saleor 3.17.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""The event informs about the end of the promotion."""
 type PromotionEnded implements Event @doc(category: "Discounts") {
   """Time of the event."""
   issuedAt: DateTime
@@ -33628,13 +32800,7 @@ type PromotionEnded implements Event @doc(category: "Discounts") {
   promotion: Promotion
 }
 
-"""
-Event sent when new promotion rule is created.
-
-Added in Saleor 3.17.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""Event sent when new promotion rule is created."""
 type PromotionRuleCreated implements Event @doc(category: "Discounts") {
   """Time of the event."""
   issuedAt: DateTime
@@ -33652,13 +32818,7 @@ type PromotionRuleCreated implements Event @doc(category: "Discounts") {
   promotionRule: PromotionRule
 }
 
-"""
-Event sent when new promotion rule is updated.
-
-Added in Saleor 3.17.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""Event sent when new promotion rule is updated."""
 type PromotionRuleUpdated implements Event @doc(category: "Discounts") {
   """Time of the event."""
   issuedAt: DateTime
@@ -33676,13 +32836,7 @@ type PromotionRuleUpdated implements Event @doc(category: "Discounts") {
   promotionRule: PromotionRule
 }
 
-"""
-Event sent when new promotion rule is deleted.
-
-Added in Saleor 3.17.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""Event sent when new promotion rule is deleted."""
 type PromotionRuleDeleted implements Event @doc(category: "Discounts") {
   """Time of the event."""
   issuedAt: DateTime
@@ -33700,11 +32854,7 @@ type PromotionRuleDeleted implements Event @doc(category: "Discounts") {
   promotionRule: PromotionRule
 }
 
-"""
-Event sent when invoice is requested.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when invoice is requested."""
 type InvoiceRequested implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
@@ -33721,19 +32871,11 @@ type InvoiceRequested implements Event @doc(category: "Orders") {
   """The invoice the event relates to."""
   invoice: Invoice
 
-  """
-  Order related to the invoice.
-  
-  Added in Saleor 3.10.
-  """
+  """Order related to the invoice."""
   order: Order!
 }
 
-"""
-Event sent when invoice is deleted.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when invoice is deleted."""
 type InvoiceDeleted implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
@@ -33750,19 +32892,11 @@ type InvoiceDeleted implements Event @doc(category: "Orders") {
   """The invoice the event relates to."""
   invoice: Invoice
 
-  """
-  Order related to the invoice.
-  
-  Added in Saleor 3.10.
-  """
+  """Order related to the invoice."""
   order: Order
 }
 
-"""
-Event sent when invoice is sent.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when invoice is sent."""
 type InvoiceSent implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
@@ -33779,19 +32913,11 @@ type InvoiceSent implements Event @doc(category: "Orders") {
   """The invoice the event relates to."""
   invoice: Invoice
 
-  """
-  Order related to the invoice.
-  
-  Added in Saleor 3.10.
-  """
+  """Order related to the invoice."""
   order: Order
 }
 
-"""
-Event sent when new fulfillment is created.
-
-Added in Saleor 3.4.
-"""
+"""Event sent when new fulfillment is created."""
 type FulfillmentCreated implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
@@ -33811,19 +32937,11 @@ type FulfillmentCreated implements Event @doc(category: "Orders") {
   """The order the fulfillment belongs to."""
   order: Order
 
-  """
-  If true, the app should send a notification to the customer.
-  
-  Added in Saleor 3.16.
-  """
+  """If true, the app should send a notification to the customer."""
   notifyCustomer: Boolean!
 }
 
-"""
-Event sent when the tracking number is updated.
-
-Added in Saleor 3.16.
-"""
+"""Event sent when the tracking number is updated."""
 type FulfillmentTrackingNumberUpdated implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
@@ -33844,11 +32962,7 @@ type FulfillmentTrackingNumberUpdated implements Event @doc(category: "Orders") 
   order: Order
 }
 
-"""
-Event sent when fulfillment is canceled.
-
-Added in Saleor 3.4.
-"""
+"""Event sent when fulfillment is canceled."""
 type FulfillmentCanceled implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
@@ -33869,11 +32983,7 @@ type FulfillmentCanceled implements Event @doc(category: "Orders") {
   order: Order
 }
 
-"""
-Event sent when fulfillment is approved.
-
-Added in Saleor 3.7.
-"""
+"""Event sent when fulfillment is approved."""
 type FulfillmentApproved implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
@@ -33893,19 +33003,11 @@ type FulfillmentApproved implements Event @doc(category: "Orders") {
   """The order the fulfillment belongs to."""
   order: Order
 
-  """
-  If true, send a notification to the customer.
-  
-  Added in Saleor 3.16.
-  """
+  """If true, send a notification to the customer."""
   notifyCustomer: Boolean!
 }
 
-"""
-Event sent when fulfillment metadata is updated.
-
-Added in Saleor 3.8.
-"""
+"""Event sent when fulfillment metadata is updated."""
 type FulfillmentMetadataUpdated implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
@@ -33926,11 +33028,7 @@ type FulfillmentMetadataUpdated implements Event @doc(category: "Orders") {
   order: Order
 }
 
-"""
-Event sent when new customer user is created.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when new customer user is created."""
 type CustomerCreated implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
@@ -33948,11 +33046,7 @@ type CustomerCreated implements Event @doc(category: "Users") {
   user: User
 }
 
-"""
-Event sent when customer user is updated.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when customer user is updated."""
 type CustomerUpdated implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
@@ -33970,11 +33064,7 @@ type CustomerUpdated implements Event @doc(category: "Users") {
   user: User
 }
 
-"""
-Event sent when customer user metadata is updated.
-
-Added in Saleor 3.8.
-"""
+"""Event sent when customer user metadata is updated."""
 type CustomerMetadataUpdated implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
@@ -33992,11 +33082,7 @@ type CustomerMetadataUpdated implements Event @doc(category: "Users") {
   user: User
 }
 
-"""
-Event sent when new collection is created.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when new collection is created."""
 type CollectionCreated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
@@ -34017,11 +33103,7 @@ type CollectionCreated implements Event @doc(category: "Products") {
   ): Collection
 }
 
-"""
-Event sent when collection is updated.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when collection is updated."""
 type CollectionUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
@@ -34042,11 +33124,7 @@ type CollectionUpdated implements Event @doc(category: "Products") {
   ): Collection
 }
 
-"""
-Event sent when collection is deleted.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when collection is deleted."""
 type CollectionDeleted implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
@@ -34067,11 +33145,7 @@ type CollectionDeleted implements Event @doc(category: "Products") {
   ): Collection
 }
 
-"""
-Event sent when collection metadata is updated.
-
-Added in Saleor 3.8.
-"""
+"""Event sent when collection metadata is updated."""
 type CollectionMetadataUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
@@ -34092,11 +33166,7 @@ type CollectionMetadataUpdated implements Event @doc(category: "Products") {
   ): Collection
 }
 
-"""
-Event sent when new checkout is created.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when new checkout is created."""
 type CheckoutCreated implements Event @doc(category: "Checkout") {
   """Time of the event."""
   issuedAt: DateTime
@@ -34114,11 +33184,7 @@ type CheckoutCreated implements Event @doc(category: "Checkout") {
   checkout: Checkout
 }
 
-"""
-Event sent when checkout is updated.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when checkout is updated."""
 type CheckoutUpdated implements Event @doc(category: "Checkout") {
   """Time of the event."""
   issuedAt: DateTime
@@ -34138,10 +33204,6 @@ type CheckoutUpdated implements Event @doc(category: "Checkout") {
 
 """
 Event sent when checkout is fully paid with transactions. The checkout is considered as fully paid when the checkout `charge_status` is `FULL` or `OVERCHARGED`. The event is not sent when the checkout authorization flow strategy is used.
-
-Added in Saleor 3.13.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type CheckoutFullyPaid implements Event @doc(category: "Checkout") {
   """Time of the event."""
@@ -34160,11 +33222,7 @@ type CheckoutFullyPaid implements Event @doc(category: "Checkout") {
   checkout: Checkout
 }
 
-"""
-Event sent when checkout metadata is updated.
-
-Added in Saleor 3.8.
-"""
+"""Event sent when checkout metadata is updated."""
 type CheckoutMetadataUpdated implements Event @doc(category: "Checkout") {
   """Time of the event."""
   issuedAt: DateTime
@@ -34182,11 +33240,7 @@ type CheckoutMetadataUpdated implements Event @doc(category: "Checkout") {
   checkout: Checkout
 }
 
-"""
-Event sent when new page is created.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when new page is created."""
 type PageCreated implements Event @doc(category: "Pages") {
   """Time of the event."""
   issuedAt: DateTime
@@ -34204,11 +33258,7 @@ type PageCreated implements Event @doc(category: "Pages") {
   page: Page
 }
 
-"""
-Event sent when page is updated.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when page is updated."""
 type PageUpdated implements Event @doc(category: "Pages") {
   """Time of the event."""
   issuedAt: DateTime
@@ -34226,11 +33276,7 @@ type PageUpdated implements Event @doc(category: "Pages") {
   page: Page
 }
 
-"""
-Event sent when page is deleted.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when page is deleted."""
 type PageDeleted implements Event @doc(category: "Pages") {
   """Time of the event."""
   issuedAt: DateTime
@@ -34248,11 +33294,7 @@ type PageDeleted implements Event @doc(category: "Pages") {
   page: Page
 }
 
-"""
-Event sent when new page type is created.
-
-Added in Saleor 3.5.
-"""
+"""Event sent when new page type is created."""
 type PageTypeCreated implements Event @doc(category: "Pages") {
   """Time of the event."""
   issuedAt: DateTime
@@ -34270,11 +33312,7 @@ type PageTypeCreated implements Event @doc(category: "Pages") {
   pageType: PageType
 }
 
-"""
-Event sent when page type is updated.
-
-Added in Saleor 3.5.
-"""
+"""Event sent when page type is updated."""
 type PageTypeUpdated implements Event @doc(category: "Pages") {
   """Time of the event."""
   issuedAt: DateTime
@@ -34292,11 +33330,7 @@ type PageTypeUpdated implements Event @doc(category: "Pages") {
   pageType: PageType
 }
 
-"""
-Event sent when page type is deleted.
-
-Added in Saleor 3.5.
-"""
+"""Event sent when page type is deleted."""
 type PageTypeDeleted implements Event @doc(category: "Pages") {
   """Time of the event."""
   issuedAt: DateTime
@@ -34314,11 +33348,7 @@ type PageTypeDeleted implements Event @doc(category: "Pages") {
   pageType: PageType
 }
 
-"""
-Event sent when new permission group is created.
-
-Added in Saleor 3.6.
-"""
+"""Event sent when new permission group is created."""
 type PermissionGroupCreated implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
@@ -34336,11 +33366,7 @@ type PermissionGroupCreated implements Event @doc(category: "Users") {
   permissionGroup: Group
 }
 
-"""
-Event sent when permission group is updated.
-
-Added in Saleor 3.6.
-"""
+"""Event sent when permission group is updated."""
 type PermissionGroupUpdated implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
@@ -34358,11 +33384,7 @@ type PermissionGroupUpdated implements Event @doc(category: "Users") {
   permissionGroup: Group
 }
 
-"""
-Event sent when permission group is deleted.
-
-Added in Saleor 3.6.
-"""
+"""Event sent when permission group is deleted."""
 type PermissionGroupDeleted implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
@@ -34380,11 +33402,7 @@ type PermissionGroupDeleted implements Event @doc(category: "Users") {
   permissionGroup: Group
 }
 
-"""
-Event sent when new shipping price is created.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when new shipping price is created."""
 type ShippingPriceCreated implements Event @doc(category: "Shipping") {
   """Time of the event."""
   issuedAt: DateTime
@@ -34411,11 +33429,7 @@ type ShippingPriceCreated implements Event @doc(category: "Shipping") {
   ): ShippingZone
 }
 
-"""
-Event sent when shipping price is updated.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when shipping price is updated."""
 type ShippingPriceUpdated implements Event @doc(category: "Shipping") {
   """Time of the event."""
   issuedAt: DateTime
@@ -34442,11 +33456,7 @@ type ShippingPriceUpdated implements Event @doc(category: "Shipping") {
   ): ShippingZone
 }
 
-"""
-Event sent when shipping price is deleted.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when shipping price is deleted."""
 type ShippingPriceDeleted implements Event @doc(category: "Shipping") {
   """Time of the event."""
   issuedAt: DateTime
@@ -34473,11 +33483,7 @@ type ShippingPriceDeleted implements Event @doc(category: "Shipping") {
   ): ShippingZone
 }
 
-"""
-Event sent when new shipping zone is created.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when new shipping zone is created."""
 type ShippingZoneCreated implements Event @doc(category: "Shipping") {
   """Time of the event."""
   issuedAt: DateTime
@@ -34498,11 +33504,7 @@ type ShippingZoneCreated implements Event @doc(category: "Shipping") {
   ): ShippingZone
 }
 
-"""
-Event sent when shipping zone is updated.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when shipping zone is updated."""
 type ShippingZoneUpdated implements Event @doc(category: "Shipping") {
   """Time of the event."""
   issuedAt: DateTime
@@ -34523,11 +33525,7 @@ type ShippingZoneUpdated implements Event @doc(category: "Shipping") {
   ): ShippingZone
 }
 
-"""
-Event sent when shipping zone is deleted.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when shipping zone is deleted."""
 type ShippingZoneDeleted implements Event @doc(category: "Shipping") {
   """Time of the event."""
   issuedAt: DateTime
@@ -34548,11 +33546,7 @@ type ShippingZoneDeleted implements Event @doc(category: "Shipping") {
   ): ShippingZone
 }
 
-"""
-Event sent when shipping zone metadata is updated.
-
-Added in Saleor 3.8.
-"""
+"""Event sent when shipping zone metadata is updated."""
 type ShippingZoneMetadataUpdated implements Event @doc(category: "Shipping") {
   """Time of the event."""
   issuedAt: DateTime
@@ -34573,11 +33567,7 @@ type ShippingZoneMetadataUpdated implements Event @doc(category: "Shipping") {
   ): ShippingZone
 }
 
-"""
-Event sent when shop metadata is updated.
-
-Added in Saleor 3.15.
-"""
+"""Event sent when shop metadata is updated."""
 type ShopMetadataUpdated implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -34595,11 +33585,7 @@ type ShopMetadataUpdated implements Event {
   shop: Shop
 }
 
-"""
-Event sent when new staff user is created.
-
-Added in Saleor 3.5.
-"""
+"""Event sent when new staff user is created."""
 type StaffCreated implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
@@ -34617,11 +33603,7 @@ type StaffCreated implements Event @doc(category: "Users") {
   user: User
 }
 
-"""
-Event sent when staff user is updated.
-
-Added in Saleor 3.5.
-"""
+"""Event sent when staff user is updated."""
 type StaffUpdated implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
@@ -34639,11 +33621,7 @@ type StaffUpdated implements Event @doc(category: "Users") {
   user: User
 }
 
-"""
-Event sent when staff user is deleted.
-
-Added in Saleor 3.5.
-"""
+"""Event sent when staff user is deleted."""
 type StaffDeleted implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
@@ -34661,11 +33639,7 @@ type StaffDeleted implements Event @doc(category: "Users") {
   user: User
 }
 
-"""
-Event sent when setting a new password for staff is requested.
-
-Added in Saleor 3.15.
-"""
+"""Event sent when setting a new password for staff is requested."""
 type StaffSetPasswordRequested implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
@@ -34695,11 +33669,7 @@ type StaffSetPasswordRequested implements Event @doc(category: "Users") {
   shop: Shop
 }
 
-"""
-Event sent when transaction item metadata is updated.
-
-Added in Saleor 3.8.
-"""
+"""Event sent when transaction item metadata is updated."""
 type TransactionItemMetadataUpdated implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
@@ -34717,11 +33687,7 @@ type TransactionItemMetadataUpdated implements Event @doc(category: "Payments") 
   transaction: TransactionItem
 }
 
-"""
-Event sent when new translation is created.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when new translation is created."""
 type TranslationCreated implements Event @doc(category: "Miscellaneous") {
   """Time of the event."""
   issuedAt: DateTime
@@ -34741,11 +33707,7 @@ type TranslationCreated implements Event @doc(category: "Miscellaneous") {
 
 union TranslationTypes = ProductTranslation | CollectionTranslation | CategoryTranslation | AttributeTranslation | AttributeValueTranslation | ProductVariantTranslation | PageTranslation | ShippingMethodTranslation | VoucherTranslation | MenuItemTranslation | PromotionTranslation | PromotionRuleTranslation | SaleTranslation
 
-"""
-Event sent when translation is updated.
-
-Added in Saleor 3.2.
-"""
+"""Event sent when translation is updated."""
 type TranslationUpdated implements Event @doc(category: "Miscellaneous") {
   """Time of the event."""
   issuedAt: DateTime
@@ -34763,11 +33725,7 @@ type TranslationUpdated implements Event @doc(category: "Miscellaneous") {
   translation: TranslationTypes
 }
 
-"""
-Event sent when new voucher is created.
-
-Added in Saleor 3.4.
-"""
+"""Event sent when new voucher is created."""
 type VoucherCreated implements Event @doc(category: "Discounts") {
   """Time of the event."""
   issuedAt: DateTime
@@ -34788,11 +33746,7 @@ type VoucherCreated implements Event @doc(category: "Discounts") {
   ): Voucher
 }
 
-"""
-Event sent when voucher is updated.
-
-Added in Saleor 3.4.
-"""
+"""Event sent when voucher is updated."""
 type VoucherUpdated implements Event @doc(category: "Discounts") {
   """Time of the event."""
   issuedAt: DateTime
@@ -34813,11 +33767,7 @@ type VoucherUpdated implements Event @doc(category: "Discounts") {
   ): Voucher
 }
 
-"""
-Event sent when voucher is deleted.
-
-Added in Saleor 3.4.
-"""
+"""Event sent when voucher is deleted."""
 type VoucherDeleted implements Event @doc(category: "Discounts") {
   """Time of the event."""
   issuedAt: DateTime
@@ -34882,11 +33832,7 @@ type VoucherCodesDeleted implements Event {
   voucherCodes: [VoucherCode!]
 }
 
-"""
-Event sent when voucher metadata is updated.
-
-Added in Saleor 3.8.
-"""
+"""Event sent when voucher metadata is updated."""
 type VoucherMetadataUpdated implements Event @doc(category: "Discounts") {
   """Time of the event."""
   issuedAt: DateTime
@@ -34929,11 +33875,7 @@ type VoucherCodeExportCompleted implements Event @doc(category: "Discounts") {
   export: ExportFile
 }
 
-"""
-Event sent when new warehouse is created.
-
-Added in Saleor 3.4.
-"""
+"""Event sent when new warehouse is created."""
 type WarehouseCreated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
@@ -34951,11 +33893,7 @@ type WarehouseCreated implements Event @doc(category: "Products") {
   warehouse: Warehouse
 }
 
-"""
-Event sent when warehouse is updated.
-
-Added in Saleor 3.4.
-"""
+"""Event sent when warehouse is updated."""
 type WarehouseUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
@@ -34973,11 +33911,7 @@ type WarehouseUpdated implements Event @doc(category: "Products") {
   warehouse: Warehouse
 }
 
-"""
-Event sent when warehouse is deleted.
-
-Added in Saleor 3.4.
-"""
+"""Event sent when warehouse is deleted."""
 type WarehouseDeleted implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
@@ -34995,11 +33929,7 @@ type WarehouseDeleted implements Event @doc(category: "Products") {
   warehouse: Warehouse
 }
 
-"""
-Event sent when warehouse metadata is updated.
-
-Added in Saleor 3.8.
-"""
+"""Event sent when warehouse metadata is updated."""
 type WarehouseMetadataUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
@@ -35017,11 +33947,7 @@ type WarehouseMetadataUpdated implements Event @doc(category: "Products") {
   warehouse: Warehouse
 }
 
-"""
-Event sent when thumbnail is created.
-
-Added in Saleor 3.12.
-"""
+"""Event sent when thumbnail is created."""
 type ThumbnailCreated implements Event @doc(category: "Miscellaneous") {
   """Time of the event."""
   issuedAt: DateTime
@@ -35035,40 +33961,20 @@ type ThumbnailCreated implements Event @doc(category: "Miscellaneous") {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  Thumbnail id.
-  
-  Added in Saleor 3.12.
-  """
+  """Thumbnail id."""
   id: ID
 
-  """
-  Thumbnail url.
-  
-  Added in Saleor 3.12.
-  """
+  """Thumbnail url."""
   url: String
 
-  """
-  Object the thumbnail refers to.
-  
-  Added in Saleor 3.12.
-  """
+  """Object the thumbnail refers to."""
   objectId: ID
 
-  """
-  Original media url.
-  
-  Added in Saleor 3.12.
-  """
+  """Original media url."""
   mediaUrl: String
 }
 
-"""
-Authorize payment.
-
-Added in Saleor 3.6.
-"""
+"""Authorize payment."""
 type PaymentAuthorize implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
@@ -35086,11 +33992,7 @@ type PaymentAuthorize implements Event @doc(category: "Payments") {
   payment: Payment
 }
 
-"""
-Capture payment.
-
-Added in Saleor 3.6.
-"""
+"""Capture payment."""
 type PaymentCaptureEvent implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
@@ -35108,11 +34010,7 @@ type PaymentCaptureEvent implements Event @doc(category: "Payments") {
   payment: Payment
 }
 
-"""
-Refund payment.
-
-Added in Saleor 3.6.
-"""
+"""Refund payment."""
 type PaymentRefundEvent implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
@@ -35130,11 +34028,7 @@ type PaymentRefundEvent implements Event @doc(category: "Payments") {
   payment: Payment
 }
 
-"""
-Void payment.
-
-Added in Saleor 3.6.
-"""
+"""Void payment."""
 type PaymentVoidEvent implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
@@ -35152,11 +34046,7 @@ type PaymentVoidEvent implements Event @doc(category: "Payments") {
   payment: Payment
 }
 
-"""
-Confirm payment.
-
-Added in Saleor 3.6.
-"""
+"""Confirm payment."""
 type PaymentConfirmEvent implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
@@ -35174,11 +34064,7 @@ type PaymentConfirmEvent implements Event @doc(category: "Payments") {
   payment: Payment
 }
 
-"""
-Process payment.
-
-Added in Saleor 3.6.
-"""
+"""Process payment."""
 type PaymentProcessEvent implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
@@ -35196,11 +34082,7 @@ type PaymentProcessEvent implements Event @doc(category: "Payments") {
   payment: Payment
 }
 
-"""
-List payment gateways.
-
-Added in Saleor 3.6.
-"""
+"""List payment gateways."""
 type PaymentListGateways implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
@@ -35218,13 +34100,7 @@ type PaymentListGateways implements Event @doc(category: "Payments") {
   checkout: Checkout
 }
 
-"""
-Event sent when transaction cancelation is requested.
-
-Added in Saleor 3.13.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""Event sent when transaction cancelation is requested."""
 type TransactionCancelationRequested implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
@@ -35252,21 +34128,11 @@ type TransactionAction @doc(category: "Payments") {
   """Transaction request amount. Null when action type is VOID."""
   amount: PositiveDecimal
 
-  """
-  Currency code.
-  
-  Added in Saleor 3.16.
-  """
+  """Currency code."""
   currency: String!
 }
 
-"""
-Event sent when transaction charge is requested.
-
-Added in Saleor 3.13.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""Event sent when transaction charge is requested."""
 type TransactionChargeRequested implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
@@ -35287,13 +34153,7 @@ type TransactionChargeRequested implements Event @doc(category: "Payments") {
   action: TransactionAction!
 }
 
-"""
-Event sent when transaction refund is requested.
-
-Added in Saleor 3.13.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""Event sent when transaction refund is requested."""
 type TransactionRefundRequested implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
@@ -35316,18 +34176,12 @@ type TransactionRefundRequested implements Event @doc(category: "Payments") {
   """
   Granted refund related to refund request.
   
-  Added in Saleor 3.15.
-  
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   grantedRefund: OrderGrantedRefund
 }
 
-"""
-Filter shipping methods for order.
-
-Added in Saleor 3.6.
-"""
+"""Filter shipping methods for order."""
 type OrderFilterShippingMethods implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
@@ -35344,19 +34198,11 @@ type OrderFilterShippingMethods implements Event @doc(category: "Orders") {
   """The order the event relates to."""
   order: Order
 
-  """
-  Shipping methods that can be used with this checkout.
-  
-  Added in Saleor 3.6.
-  """
+  """Shipping methods that can be used with this checkout."""
   shippingMethods: [ShippingMethod!]
 }
 
-"""
-Filter shipping methods for checkout.
-
-Added in Saleor 3.6.
-"""
+"""Filter shipping methods for checkout."""
 type CheckoutFilterShippingMethods implements Event @doc(category: "Checkout") {
   """Time of the event."""
   issuedAt: DateTime
@@ -35373,19 +34219,11 @@ type CheckoutFilterShippingMethods implements Event @doc(category: "Checkout") {
   """The checkout the event relates to."""
   checkout: Checkout
 
-  """
-  Shipping methods that can be used with this checkout.
-  
-  Added in Saleor 3.6.
-  """
+  """Shipping methods that can be used with this checkout."""
   shippingMethods: [ShippingMethod!]
 }
 
-"""
-List shipping methods for checkout.
-
-Added in Saleor 3.6.
-"""
+"""List shipping methods for checkout."""
 type ShippingListMethodsForCheckout implements Event @doc(category: "Checkout") {
   """Time of the event."""
   issuedAt: DateTime
@@ -35402,19 +34240,11 @@ type ShippingListMethodsForCheckout implements Event @doc(category: "Checkout") 
   """The checkout the event relates to."""
   checkout: Checkout
 
-  """
-  Shipping methods that can be used with this checkout.
-  
-  Added in Saleor 3.6.
-  """
+  """Shipping methods that can be used with this checkout."""
   shippingMethods: [ShippingMethod!]
 }
 
-"""
-Synchronous webhook for calculating checkout/order taxes.
-
-Added in Saleor 3.7.
-"""
+"""Synchronous webhook for calculating checkout/order taxes."""
 type CalculateTaxes implements Event @doc(category: "Taxes") {
   """Time of the event."""
   issuedAt: DateTime
@@ -35511,13 +34341,7 @@ type TaxableObjectLine @doc(category: "Taxes") {
 
 union TaxSourceLine = CheckoutLine | OrderLine
 
-"""
-Event sent when user wants to initialize the payment gateway.
-
-Added in Saleor 3.13.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""Event sent when user wants to initialize the payment gateway."""
 type PaymentGatewayInitializeSession implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
@@ -35543,13 +34367,7 @@ type PaymentGatewayInitializeSession implements Event @doc(category: "Payments")
 
 union OrderOrCheckout = Checkout | Order
 
-"""
-Event sent when user starts processing the payment.
-
-Added in Saleor 3.13.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""Event sent when user starts processing the payment."""
 type TransactionInitializeSession implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
@@ -35577,19 +34395,13 @@ type TransactionInitializeSession implements Event @doc(category: "Payments") {
 
   """
   The customer's IP address. If not provided as a parameter in the mutation, Saleor will try to determine the customer's IP address on its own.
-  
-  Added in Saleor 3.16.
   """
   customerIpAddress: String
 
   """Action to proceed for the transaction"""
   action: TransactionProcessAction!
 
-  """
-  Idempotency key assigned to the transaction initialize.
-  
-  Added in Saleor 3.14.
-  """
+  """Idempotency key assigned to the transaction initialize."""
   idempotencyKey: String!
 }
 
@@ -35602,13 +34414,7 @@ type TransactionProcessAction @doc(category: "Payments") {
   actionType: TransactionFlowStrategyEnum!
 }
 
-"""
-Event sent when user has additional payment action to process.
-
-Added in Saleor 3.13.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""Event sent when user has additional payment action to process."""
 type TransactionProcessSession implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
@@ -35636,8 +34442,6 @@ type TransactionProcessSession implements Event @doc(category: "Payments") {
 
   """
   The customer's IP address. If not provided as a parameter in the mutation, Saleor will try to determine the customer's IP address on its own.
-  
-  Added in Saleor 3.16.
   """
   customerIpAddress: String
 
@@ -35647,8 +34451,6 @@ type TransactionProcessSession implements Event @doc(category: "Payments") {
 
 """
 List payment methods stored for the user by payment gateway.
-
-Added in Saleor 3.15.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -35674,13 +34476,7 @@ type ListStoredPaymentMethods implements Event @doc(category: "Payments") {
   channel: Channel!
 }
 
-"""
-Event sent when user requests to delete a payment method.
-
-Added in Saleor 3.16.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""Event sent when user requests to delete a payment method."""
 type StoredPaymentMethodDeleteRequested implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
@@ -35709,11 +34505,7 @@ type StoredPaymentMethodDeleteRequested implements Event @doc(category: "Payment
 }
 
 """
-Event sent to initialize a new session in payment gateway to store the payment method. 
-
-Added in Saleor 3.16.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
+Event sent to initialize a new session in payment gateway to store the payment method.
 """
 type PaymentGatewayInitializeTokenizationSession implements Event @doc(category: "Payments") {
   """Time of the event."""
@@ -35738,13 +34530,7 @@ type PaymentGatewayInitializeTokenizationSession implements Event @doc(category:
   data: JSON
 }
 
-"""
-Event sent when user requests a tokenization of payment method.
-
-Added in Saleor 3.16.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""Event sent when user requests a tokenization of payment method."""
 type PaymentMethodInitializeTokenizationSession implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
@@ -35771,13 +34557,7 @@ type PaymentMethodInitializeTokenizationSession implements Event @doc(category: 
   paymentFlowToSupport: TokenizedPaymentFlowEnum!
 }
 
-"""
-Event sent when user continues a tokenization of payment method.
-
-Added in Saleor 3.16.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""Event sent when user continues a tokenization of payment method."""
 type PaymentMethodProcessTokenizationSession implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
