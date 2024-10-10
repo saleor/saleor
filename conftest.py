@@ -27,15 +27,14 @@ pytest_plugins = [
     "saleor.discount.tests.test_utils.fixtures",
     "saleor.plugins.tests.fixtures",
     "saleor.graphql.tests.fixtures",
-    "saleor.graphql.channel.tests.fixtures",
-    "saleor.graphql.channel.tests.benchmark.fixtures",
     "saleor.graphql.checkout.tests.benchmark.fixtures",
     "saleor.graphql.account.tests.benchmark.fixtures",
     "saleor.graphql.order.tests.benchmark.fixtures",
     "saleor.graphql.giftcard.tests.benchmark.fixtures",
     "saleor.graphql.webhook.tests.benchmark.fixtures",
-    "saleor.tax.tests.fixtures",
     "saleor.webhook.tests.subscription_webhooks.fixtures",
+    "saleor.tax.tests.fixtures",
+    "saleor.channel.tests.fixtures",
 ]
 
 

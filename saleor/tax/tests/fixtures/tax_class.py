@@ -1,13 +1,13 @@
 import pytest
 from django_countries import countries
 
-from ...plugins.avatax import (
+from ....plugins.avatax import (
     DEFAULT_TAX_CODE,
     META_CODE_KEY,
     META_DESCRIPTION_KEY,
     TAX_CODE_NON_TAXABLE_PRODUCT,
 )
-from ..models import TaxClass, TaxClassCountryRate
+from ...models import TaxClass, TaxClassCountryRate
 
 
 @pytest.fixture(autouse=True)
