@@ -24,14 +24,8 @@ from ..core import ResolveInfo, SaleorContext
 from ..core.connection import CountableConnection
 from ..core.context import get_database_connection_name
 from ..core.descriptions import (
-    ADDED_IN_31,
-    ADDED_IN_35,
-    ADDED_IN_38,
-    ADDED_IN_313,
-    ADDED_IN_314,
     ADDED_IN_319,
     DEPRECATED_IN_3X_FIELD,
-    PREVIEW_FEATURE,
 )
 from ..core.doc_category import DOC_CATEGORY_APPS
 from ..core.federation import federated_entity, resolve_federation_references
@@ -241,17 +235,11 @@ class AppManifestWebhook(BaseObjectType):
 class AppManifestRequiredSaleorVersion(BaseObjectType):
     constraint = graphene.String(
         required=True,
-        description=(
-            "Required Saleor version as semver range." + ADDED_IN_313 + PREVIEW_FEATURE
-        ),
+        description=("Required Saleor version as semver range."),
     )
     satisfied = graphene.Boolean(
         required=True,
-        description=(
-            "Informs if the Saleor version matches the required one."
-            + ADDED_IN_313
-            + PREVIEW_FEATURE
-        ),
+        description=("Informs if the Saleor version matches the required one."),
     )
 
     class Meta:
@@ -262,16 +250,12 @@ class AppManifestBrandLogo(BaseObjectType):
     default = IconThumbnailField(
         graphene.String,
         required=True,
-        description="Data URL with a base64 encoded logo image."
-        + ADDED_IN_314
-        + PREVIEW_FEATURE,
+        description="Data URL with a base64 encoded logo image.",
     )
 
     class Meta:
         doc_category = DOC_CATEGORY_APPS
-        description = (
-            "Represents the app's manifest brand data." + ADDED_IN_314 + PREVIEW_FEATURE
-        )
+        description = "Represents the app's manifest brand data."
 
     @staticmethod
     def resolve_default(
@@ -300,16 +284,12 @@ class AppManifestBrandLogo(BaseObjectType):
 
 class AppBrandLogo(BaseObjectType):
     default = IconThumbnailField(
-        graphene.String,
-        required=True,
-        description="URL to the default logo image." + ADDED_IN_314 + PREVIEW_FEATURE,
+        graphene.String, required=True, description="URL to the default logo image."
     )
 
     class Meta:
         doc_category = DOC_CATEGORY_APPS
-        description = (
-            "Represents the app's brand logo data." + ADDED_IN_314 + PREVIEW_FEATURE
-        )
+        description = "Represents the app's brand logo data."
 
     @staticmethod
     def resolve_default(
@@ -351,15 +331,11 @@ class AppBrandLogo(BaseObjectType):
 
 class AppBrand(BaseObjectType):
     logo = graphene.Field(
-        AppBrandLogo,
-        required=True,
-        description="App's logos details." + ADDED_IN_314 + PREVIEW_FEATURE,
+        AppBrandLogo, required=True, description="App's logos details."
     )
 
     class Meta:
-        description = (
-            "Represents the app's brand data." + ADDED_IN_314 + PREVIEW_FEATURE
-        )
+        description = "Represents the app's brand data."
         doc_category = DOC_CATEGORY_APPS
 
     @staticmethod
@@ -371,15 +347,11 @@ class AppBrand(BaseObjectType):
 
 class AppManifestBrand(BaseObjectType):
     logo = graphene.Field(
-        AppManifestBrandLogo,
-        required=True,
-        description="App's logos details." + ADDED_IN_314 + PREVIEW_FEATURE,
+        AppManifestBrandLogo, required=True, description="App's logos details."
     )
 
     class Meta:
-        description = (
-            "Represents the app's manifest brand data." + ADDED_IN_314 + PREVIEW_FEATURE
-        )
+        description = "Represents the app's manifest brand data."
         doc_category = DOC_CATEGORY_APPS
 
 
@@ -430,29 +402,20 @@ class Manifest(BaseObjectType):
     )
     webhooks = NonNullList(
         AppManifestWebhook,
-        description="List of the app's webhooks." + ADDED_IN_35,
+        description="List of the app's webhooks.",
         required=True,
     )
     audience = graphene.String(
-        description=(
-            "The audience that will be included in all JWT tokens for the app."
-            + ADDED_IN_38
-        )
+        description="The audience that will be included in all JWT tokens for the app."
     )
     required_saleor_version = graphene.Field(
         AppManifestRequiredSaleorVersion,
-        description=(
-            "Determines the app's required Saleor version as semver range."
-            + ADDED_IN_313
-            + PREVIEW_FEATURE
-        ),
+        description="Determines the app's required Saleor version as semver range.",
     )
-    author = graphene.String(
-        description=("The App's author name." + ADDED_IN_313 + PREVIEW_FEATURE)
-    )
+    author = graphene.String(description="The App's author name.")
     brand = graphene.Field(
         AppManifestBrand,
-        description="App's brand data." + ADDED_IN_314 + PREVIEW_FEATURE,
+        description="App's brand data.",
     )
 
     class Meta:
@@ -540,23 +503,19 @@ class App(ModelObjectType[models.App]):
     )
     app_url = graphene.String(description="URL to iframe with the app.")
     manifest_url = graphene.String(
-        description="URL to manifest used during app's installation." + ADDED_IN_35
+        description="URL to manifest used during app's installation."
     )
     version = graphene.String(description="Version number of the app.")
     access_token = graphene.String(
         description="JWT token used to authenticate by third-party app."
     )
-    author = graphene.String(
-        description=("The App's author name." + ADDED_IN_313 + PREVIEW_FEATURE)
-    )
+    author = graphene.String(description="The App's author name.")
     extensions = NonNullList(
         AppExtension,
-        description="App's dashboard extensions." + ADDED_IN_31,
+        description="App's dashboard extensions.",
         required=True,
     )
-    brand = graphene.Field(
-        AppBrand, description="App's brand data." + ADDED_IN_314 + PREVIEW_FEATURE
-    )
+    brand = graphene.Field(AppBrand, description="App's brand data.")
 
     class Meta:
         description = "Represents app data."
@@ -645,9 +604,7 @@ class AppInstallation(ModelObjectType[models.AppInstallation]):
         required=True,
         description="The URL address of manifest for the app installation.",
     )
-    brand = graphene.Field(
-        AppBrand, description="App's brand data." + ADDED_IN_314 + PREVIEW_FEATURE
-    )
+    brand = graphene.Field(AppBrand, description="App's brand data.")
 
     class Meta:
         model = models.AppInstallation

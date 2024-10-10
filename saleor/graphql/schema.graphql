@@ -1329,20 +1329,10 @@ type Query {
     """Filtering options for attributes."""
     filter: AttributeFilterInput
 
-    """
-    Filtering options for attributes.
-    
-    Added in Saleor 3.11.
-    """
+    """Filtering options for attributes."""
     where: AttributeWhereInput
 
-    """
-    Search attributes.
-    
-    Added in Saleor 3.11.
-    
-    Note: this API is currently in Feature Preview and can be subject to changes at later point.
-    """
+    """Search attributes."""
     search: String
 
     """Sorting options for attributes."""
@@ -1376,11 +1366,7 @@ type Query {
     """Slug of the attribute."""
     slug: String
 
-    """
-    External ID of the attribute. 
-    
-    Added in Saleor 3.10.
-    """
+    """External ID of the attribute."""
     externalReference: String
   ): Attribute @doc(category: "Attributes")
 
@@ -3073,11 +3059,7 @@ type App implements Node & ObjectWithMetadata @doc(category: "Apps") {
   """URL to iframe with the app."""
   appUrl: String
 
-  """
-  URL to manifest used during app's installation.
-  
-  Added in Saleor 3.5.
-  """
+  """URL to manifest used during app's installation."""
   manifestUrl: String
 
   """Version number of the app."""
@@ -3086,29 +3068,13 @@ type App implements Node & ObjectWithMetadata @doc(category: "Apps") {
   """JWT token used to authenticate by third-party app."""
   accessToken: String
 
-  """
-  The App's author name.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The App's author name."""
   author: String
 
-  """
-  App's dashboard extensions.
-  
-  Added in Saleor 3.1.
-  """
+  """App's dashboard extensions."""
   extensions: [AppExtension!]!
 
-  """
-  App's brand data.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """App's brand data."""
   brand: AppBrand
 }
 
@@ -3290,39 +3256,15 @@ enum AppExtensionTargetEnum @doc(category: "Apps") {
   APP_PAGE
 }
 
-"""
-Represents the app's brand data.
-
-Added in Saleor 3.14.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""Represents the app's brand data."""
 type AppBrand @doc(category: "Apps") {
-  """
-  App's logos details.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """App's logos details."""
   logo: AppBrandLogo!
 }
 
-"""
-Represents the app's brand logo data.
-
-Added in Saleor 3.14.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""Represents the app's brand logo data."""
 type AppBrandLogo @doc(category: "Apps") {
-  """
-  URL to the default logo image.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """URL to the default logo image."""
   default(
     """
     Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
@@ -3775,11 +3717,7 @@ type Address implements Node & ObjectWithMetadata @doc(category: "Users") {
   """The ID of the address."""
   id: ID!
 
-  """
-  List of private metadata items. Requires staff permissions to access.
-  
-  Added in Saleor 3.10.
-  """
+  """List of private metadata items. Requires staff permissions to access."""
   privateMetadata: [MetadataItem!]!
 
   """
@@ -3787,22 +3725,18 @@ type Address implements Node & ObjectWithMetadata @doc(category: "Users") {
   
   Tip: Use GraphQL aliases to fetch multiple keys.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.3.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.3.
   """
   privateMetafields(keys: [String!]): Metadata
 
-  """
-  List of public metadata items. Can be accessed without permissions.
-  
-  Added in Saleor 3.10.
-  """
+  """List of public metadata items. Can be accessed without permissions."""
   metadata: [MetadataItem!]!
 
   """
@@ -3810,14 +3744,14 @@ type Address implements Node & ObjectWithMetadata @doc(category: "Users") {
   
   Tip: Use GraphQL aliases to fetch multiple keys.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.3.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
 
@@ -6752,13 +6686,7 @@ input MetadataFilter {
   value: String
 }
 
-"""
-Where filtering options.
-
-Added in Saleor 3.11.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""Where filtering options."""
 input AttributeWhereInput @doc(category: "Attributes") {
   metadata: [MetadataFilter!]
   ids: [ID!]
@@ -7779,11 +7707,7 @@ input AddressInput {
   """
   phone: String
 
-  """
-  Address public metadata.
-  
-  Added in Saleor 3.15.
-  """
+  """Address public metadata."""
   metadata: [MetadataInput!]
 
   """
@@ -10319,11 +10243,7 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
   """Determine if the user is active."""
   isActive: Boolean!
 
-  """
-  Determines if user has confirmed email.
-  
-  Added in Saleor 3.15.
-  """
+  """Determines if user has confirmed email."""
   isConfirmed: Boolean!
 
   """List of all user's addresses."""
@@ -10344,11 +10264,7 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
     channel: String
   ): [ID!]
 
-  """
-  Returns checkouts assigned to this user.
-  
-  Added in Saleor 3.8.
-  """
+  """Returns checkouts assigned to this user."""
   checkouts(
     """Slug of a channel for which the data should be returned."""
     channel: String
@@ -10428,19 +10344,11 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
 
   """
   List of channels the user has access to. The sum of channels from all user groups. If at least one group has `restrictedAccessToChannels` set to False - all channels are returned.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   accessibleChannels: [Channel!]
 
   """
   Determine if user have restricted access to channels. False if at least one user group has `restrictedAccessToChannels` set to False.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   restrictedAccessToChannels: Boolean!
 
@@ -10483,11 +10391,7 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
   """The default billing address of the user."""
   defaultBillingAddress: Address
 
-  """
-  External ID of this user. 
-  
-  Added in Saleor 3.10.
-  """
+  """External ID of this user."""
   externalReference: String
 
   """The date when the user last time log in to the system."""
@@ -10501,10 +10405,6 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
 
   """
   Returns a list of user's stored payment methods that can be used in provided channel. The field returns a list of stored payment methods by payment apps. When `amount` is not provided, 0 will be used as default value.
-  
-  Added in Saleor 3.15.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   storedPaymentMethods(
     """Slug of a channel for which the data should be returned."""
@@ -12830,22 +12730,10 @@ type Group implements Node @doc(category: "Users") {
   """
   userCanManage: Boolean!
 
-  """
-  List of channels the group has access to.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """List of channels the group has access to."""
   accessibleChannels: [Channel!]
 
-  """
-  Determine if the group have restricted access to channels.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Determine if the group have restricted access to channels."""
   restrictedAccessToChannels: Boolean!
 }
 
@@ -14462,13 +14350,7 @@ type AppInstallation implements Node & Job @doc(category: "Apps") {
   """The URL address of manifest for the app installation."""
   manifestUrl: String!
 
-  """
-  App's brand data.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """App's brand data."""
   brand: AppBrand
 }
 
@@ -18767,10 +18649,6 @@ type Mutation {
   """
   Creates attributes.
   
-  Added in Saleor 3.15.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  
   Triggers the following webhook events:
   - ATTRIBUTE_CREATED (async): An attribute was created.
   """
@@ -18784,10 +18662,6 @@ type Mutation {
 
   """
   Updates attributes.
-  
-  Added in Saleor 3.15.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
   Triggers the following webhook events:
   - ATTRIBUTE_UPDATED (async): An attribute was updated. Optionally called when new attribute value was created or deleted.
@@ -19221,11 +19095,7 @@ type Mutation {
   ): RequestPasswordReset @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, ACCOUNT_SET_PASSWORD_REQUESTED, STAFF_SET_PASSWORD_REQUESTED], syncEvents: [])
 
   """
-  Sends a notification confirmation.
-  
-  Added in Saleor 3.15.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Sends a notification confirmation. 
   
   Requires one of the following permissions: AUTHENTICATED_USER.
   
@@ -19604,11 +19474,7 @@ type Mutation {
   ): CustomerBulkDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_DELETED], syncEvents: [])
 
   """
-  Updates customers.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Updates customers. 
   
   Requires one of the following permissions: MANAGE_USERS.
   
@@ -28851,60 +28717,28 @@ input ChannelCreateInput @doc(category: "Channels") {
   """Determine if channel will be set active or not."""
   isActive: Boolean
 
-  """
-  The channel stock settings.
-  
-  Added in Saleor 3.7.
-  """
+  """The channel stock settings."""
   stockSettings: StockSettingsInput
 
   """List of shipping zones to assign to the channel."""
   addShippingZones: [ID!]
 
-  """
-  List of warehouses to assign to the channel.
-  
-  Added in Saleor 3.5.
-  """
+  """List of warehouses to assign to the channel."""
   addWarehouses: [ID!]
 
-  """
-  The channel order settings
-  
-  Added in Saleor 3.12.
-  """
+  """The channel order settings"""
   orderSettings: OrderSettingsInput
 
-  """
-  Channel public metadata.
-  
-  Added in Saleor 3.15.
-  """
+  """Channel public metadata."""
   metadata: [MetadataInput!]
 
-  """
-  Channel private metadata.
-  
-  Added in Saleor 3.15.
-  """
+  """Channel private metadata."""
   privateMetadata: [MetadataInput!]
 
-  """
-  The channel checkout settings
-  
-  Added in Saleor 3.15.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The channel checkout settings"""
   checkoutSettings: CheckoutSettingsInput
 
-  """
-  The channel payment settings
-  
-  Added in Saleor 3.16.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The channel payment settings"""
   paymentSettings: PaymentSettingsInput
 
   """Name of the channel."""
@@ -28918,8 +28752,6 @@ input ChannelCreateInput @doc(category: "Channels") {
 
   """
   Default country for the channel. Default country can be used in checkout to determine the stock quantities or calculate taxes when the country was not explicitly provided.
-  
-  Added in Saleor 3.1.
   """
   defaultCountry: CountryCode!
 }
@@ -28944,19 +28776,11 @@ input OrderSettingsInput @doc(category: "Orders") {
 
   """
   Expiration time in minutes. Default null - means do not expire any orders. Enter 0 or null to disable.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   expireOrdersAfter: Minute
 
   """
   The time in days after expired orders will be deleted.Allowed range is from 1 to 120.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   deleteExpiredOrdersAfter: Day
 
@@ -28964,19 +28788,11 @@ input OrderSettingsInput @doc(category: "Orders") {
   Determine what strategy will be used to mark the order as paid. Based on the chosen option, the proper object will be created and attached to the order when it's manually marked as paid.
   `PAYMENT_FLOW` - [default option] creates the `Payment` object.
   `TRANSACTION_FLOW` - creates the `TransactionItem` object.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   markAsPaidStrategy: MarkAsPaidStrategyEnum
 
   """
   Determine if it is possible to place unpaid order by calling `checkoutComplete` mutation.
-  
-  Added in Saleor 3.15.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   allowUnpaidOrders: Boolean
 
@@ -28996,8 +28812,6 @@ input CheckoutSettingsInput @doc(category: "Checkout") {
   """
   Default `true`. Determines if the checkout mutations should use legacy error flow. In legacy flow, all mutations can raise an exception unrelated to the requested action - (e.g. out-of-stock exception when updating checkoutShippingAddress.) If `false`, the errors will be aggregated in `checkout.problems` field. Some of the `problems` can block the finalizing checkout process. The legacy flow will be removed in Saleor 4.0. The flow with `checkout.problems` will be the default one. 
   
-  Added in Saleor 3.15.
-  
   DEPRECATED: this field will be removed in Saleor 4.0.
   """
   useLegacyErrorFlow: Boolean
@@ -29013,10 +28827,6 @@ input CheckoutSettingsInput @doc(category: "Checkout") {
 input PaymentSettingsInput @doc(category: "Payments") {
   """
   Determine the transaction flow strategy to be used. Include the selected option in the payload sent to the payment app, as a requested action for the transaction.
-  
-  Added in Saleor 3.16.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   defaultTransactionFlowStrategy: TransactionFlowStrategyEnum
 }
@@ -29043,60 +28853,28 @@ input ChannelUpdateInput @doc(category: "Channels") {
   """Determine if channel will be set active or not."""
   isActive: Boolean
 
-  """
-  The channel stock settings.
-  
-  Added in Saleor 3.7.
-  """
+  """The channel stock settings."""
   stockSettings: StockSettingsInput
 
   """List of shipping zones to assign to the channel."""
   addShippingZones: [ID!]
 
-  """
-  List of warehouses to assign to the channel.
-  
-  Added in Saleor 3.5.
-  """
+  """List of warehouses to assign to the channel."""
   addWarehouses: [ID!]
 
-  """
-  The channel order settings
-  
-  Added in Saleor 3.12.
-  """
+  """The channel order settings"""
   orderSettings: OrderSettingsInput
 
-  """
-  Channel public metadata.
-  
-  Added in Saleor 3.15.
-  """
+  """Channel public metadata."""
   metadata: [MetadataInput!]
 
-  """
-  Channel private metadata.
-  
-  Added in Saleor 3.15.
-  """
+  """Channel private metadata."""
   privateMetadata: [MetadataInput!]
 
-  """
-  The channel checkout settings
-  
-  Added in Saleor 3.15.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The channel checkout settings"""
   checkoutSettings: CheckoutSettingsInput
 
-  """
-  The channel payment settings
-  
-  Added in Saleor 3.16.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The channel payment settings"""
   paymentSettings: PaymentSettingsInput
 
   """Name of the channel."""
@@ -29460,10 +29238,6 @@ input AttributeValueUpdateInput @doc(category: "Attributes") {
 """
 Creates attributes.
 
-Added in Saleor 3.15.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-
 Triggers the following webhook events:
 - ATTRIBUTE_CREATED (async): An attribute was created.
 """
@@ -29511,10 +29285,6 @@ enum AttributeBulkCreateErrorCode @doc(category: "Attributes") {
 
 """
 Updates attributes.
-
-Added in Saleor 3.15.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 
 Triggers the following webhook events:
 - ATTRIBUTE_UPDATED (async): An attribute was updated. Optionally called when new attribute value was created or deleted.
@@ -30064,45 +29834,19 @@ type Manifest @doc(category: "Apps") {
   """
   extensions: [AppManifestExtension!]!
 
-  """
-  List of the app's webhooks.
-  
-  Added in Saleor 3.5.
-  """
+  """List of the app's webhooks."""
   webhooks: [AppManifestWebhook!]!
 
-  """
-  The audience that will be included in all JWT tokens for the app.
-  
-  Added in Saleor 3.8.
-  """
+  """The audience that will be included in all JWT tokens for the app."""
   audience: String
 
-  """
-  Determines the app's required Saleor version as semver range.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Determines the app's required Saleor version as semver range."""
   requiredSaleorVersion: AppManifestRequiredSaleorVersion
 
-  """
-  The App's author name.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """The App's author name."""
   author: String
 
-  """
-  App's brand data.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """App's brand data."""
   brand: AppManifestBrand
 }
 
@@ -30141,58 +29885,22 @@ type AppManifestWebhook @doc(category: "Apps") {
 }
 
 type AppManifestRequiredSaleorVersion @doc(category: "Apps") {
-  """
-  Required Saleor version as semver range.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Required Saleor version as semver range."""
   constraint: String!
 
-  """
-  Informs if the Saleor version matches the required one.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Informs if the Saleor version matches the required one."""
   satisfied: Boolean!
 }
 
-"""
-Represents the app's manifest brand data.
-
-Added in Saleor 3.14.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""Represents the app's manifest brand data."""
 type AppManifestBrand @doc(category: "Apps") {
-  """
-  App's logos details.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """App's logos details."""
   logo: AppManifestBrandLogo!
 }
 
-"""
-Represents the app's manifest brand data.
-
-Added in Saleor 3.14.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
+"""Represents the app's manifest brand data."""
 type AppManifestBrandLogo @doc(category: "Apps") {
-  """
-  Data URL with a base64 encoded logo image.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Data URL with a base64 encoded logo image."""
   default(
     """
     Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
@@ -30433,11 +30141,7 @@ type RequestPasswordReset @doc(category: "Users") @webhookEventsInfo(asyncEvents
 }
 
 """
-Sends a notification confirmation.
-
-Added in Saleor 3.15.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Sends a notification confirmation. 
 
 Requires one of the following permissions: AUTHENTICATED_USER.
 
@@ -30968,11 +30672,7 @@ type CustomerBulkDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: 
 }
 
 """
-Updates customers.
-
-Added in Saleor 3.13.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Updates customers. 
 
 Requires one of the following permissions: MANAGE_USERS.
 
@@ -31285,13 +30985,7 @@ input PermissionGroupCreateInput @doc(category: "Users") {
   """List of users to assign to this group."""
   addUsers: [ID!]
 
-  """
-  List of channels to assign to this group.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """List of channels to assign to this group."""
   addChannels: [ID!]
 
   """Group name."""
@@ -31299,10 +30993,6 @@ input PermissionGroupCreateInput @doc(category: "Users") {
 
   """
   Determine if the group has restricted access to channels.  DEFAULT: False
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   restrictedAccessToChannels: Boolean = false
 }
@@ -31328,13 +31018,7 @@ input PermissionGroupUpdateInput @doc(category: "Users") {
   """List of users to assign to this group."""
   addUsers: [ID!]
 
-  """
-  List of channels to assign to this group.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """List of channels to assign to this group."""
   addChannels: [ID!]
 
   """Group name."""
@@ -31346,22 +31030,10 @@ input PermissionGroupUpdateInput @doc(category: "Users") {
   """List of users to unassign from this group."""
   removeUsers: [ID!]
 
-  """
-  List of channels to unassign from this group.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """List of channels to unassign from this group."""
   removeChannels: [ID!]
 
-  """
-  Determine if the group has restricted access to channels.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Determine if the group has restricted access to channels."""
   restrictedAccessToChannels: Boolean
 }
 

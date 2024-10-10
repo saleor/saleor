@@ -36,10 +36,6 @@ from ..core import ResolveInfo
 from ..core.connection import CountableConnection, create_connection_slice
 from ..core.context import get_database_connection_name
 from ..core.descriptions import (
-    ADDED_IN_38,
-    ADDED_IN_310,
-    ADDED_IN_314,
-    ADDED_IN_315,
     ADDED_IN_319,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
@@ -99,7 +95,7 @@ class AddressInput(BaseInputObjectType):
     )
     metadata = graphene.List(
         graphene.NonNull(MetadataInput),
-        description="Address public metadata." + ADDED_IN_315,
+        description="Address public metadata.",
         required=False,
     )
     skip_validation = graphene.Boolean(
@@ -161,7 +157,6 @@ class Address(ModelObjectType[models.Address]):
         description = "Represents user address data."
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Address
-        metadata_since = ADDED_IN_310
 
     @staticmethod
     def resolve_country(root: models.Address, _info: ResolveInfo):
@@ -333,7 +328,7 @@ class User(ModelObjectType[models.User]):
     )
     is_confirmed = graphene.Boolean(
         required=True,
-        description="Determines if user has confirmed email." + ADDED_IN_315,
+        description="Determines if user has confirmed email.",
     )
     addresses = NonNullList(
         Address, description="List of all user's addresses.", required=True
@@ -363,7 +358,7 @@ class User(ModelObjectType[models.User]):
     )
     checkouts = ConnectionField(
         CheckoutCountableConnection,
-        description="Returns checkouts assigned to this user." + ADDED_IN_38,
+        description="Returns checkouts assigned to this user.",
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
@@ -401,7 +396,7 @@ class User(ModelObjectType[models.User]):
         description=(
             "List of channels the user has access to. The sum of channels from all "
             "user groups. If at least one group has `restrictedAccessToChannels` "
-            "set to False - all channels are returned." + ADDED_IN_314 + PREVIEW_FEATURE
+            "set to False - all channels are returned."
         ),
     )
     restricted_access_to_channels = graphene.Boolean(
@@ -409,9 +404,7 @@ class User(ModelObjectType[models.User]):
         description=(
             "Determine if user have restricted access to channels. False if at least "
             "one user group has `restrictedAccessToChannels` set to False."
-        )
-        + ADDED_IN_314
-        + PREVIEW_FEATURE,
+        ),
     )
     avatar = ThumbnailField(description="The avatar of the user.")
     events = PermissionsField(
@@ -439,7 +432,7 @@ class User(ModelObjectType[models.User]):
         Address, description="The default billing address of the user."
     )
     external_reference = graphene.String(
-        description=f"External ID of this user. {ADDED_IN_310}", required=False
+        description="External ID of this user.", required=False
     )
 
     last_login = DateTime(
@@ -458,7 +451,7 @@ class User(ModelObjectType[models.User]):
             "Returns a list of user's stored payment methods that can be used in "
             "provided channel. The field returns a list of stored payment methods by "
             "payment apps. When `amount` is not provided, 0 will be used as default "
-            "value." + ADDED_IN_315 + PREVIEW_FEATURE
+            "value."
         ),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned.",
@@ -943,16 +936,11 @@ class Group(ModelObjectType[models.Group]):
         ),
     )
     accessible_channels = NonNullList(
-        Channel,
-        description="List of channels the group has access to."
-        + ADDED_IN_314
-        + PREVIEW_FEATURE,
+        Channel, description="List of channels the group has access to."
     )
     restricted_access_to_channels = graphene.Boolean(
         required=True,
-        description="Determine if the group have restricted access to channels."
-        + ADDED_IN_314
-        + PREVIEW_FEATURE,
+        description="Determine if the group have restricted access to channels.",
     )
 
     class Meta:

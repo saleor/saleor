@@ -14,7 +14,6 @@ from ....core.utils import prepare_unique_slug
 from ....permission.enums import PageTypePermissions, ProductTypePermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_315, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ...core.enums import ErrorPolicyEnum
 from ...core.mutations import BaseMutation, ModelMutation
@@ -233,7 +232,7 @@ class AttributeBulkCreate(BaseMutation):
         )
 
     class Meta:
-        description = "Creates attributes." + ADDED_IN_315 + PREVIEW_FEATURE
+        description = "Creates attributes."
         doc_category = DOC_CATEGORY_ATTRIBUTES
         error_type_class = AttributeBulkCreateError
         webhook_events_info = [
