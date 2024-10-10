@@ -15,7 +15,6 @@ from ...core import ResolveInfo, types
 from ...core.connection import CountableConnection, create_connection_slice
 from ...core.context import get_database_connection_name
 from ...core.descriptions import (
-    ADDED_IN_31,
     ADDED_IN_318,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
@@ -152,7 +151,7 @@ class Voucher(ChannelContextTypeWithMetadata[models.Voucher]):
     )
     variants = ConnectionField(
         ProductVariantCountableConnection,
-        description="List of product variants this voucher applies to." + ADDED_IN_31,
+        description="List of product variants this voucher applies to.",
         permissions=[
             DiscountPermissions.MANAGE_DISCOUNTS,
         ],

@@ -26,7 +26,7 @@ from ....warehouse import models as warehouse_models
 from ....webhook.const import APP_ID_PREFIX
 from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_31, ADDED_IN_34, DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
@@ -44,7 +44,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
 
     class Arguments:
         id = graphene.ID(
-            description="The checkout's ID." + ADDED_IN_34,
+            description="The checkout's ID.",
             required=False,
         )
         token = UUID(
@@ -62,7 +62,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             "Updates the delivery method (shipping method or pick up point) "
             "of the checkout. "
             "Updates the checkout shipping_address for click and collect delivery "
-            "for a warehouse address. " + ADDED_IN_31
+            "for a warehouse address. "
         )
         doc_category = DOC_CATEGORY_CHECKOUT
         error_type_class = CheckoutError

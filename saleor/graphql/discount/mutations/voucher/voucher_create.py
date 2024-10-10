@@ -10,7 +10,6 @@ from .....webhook.event_types import WebhookEventAsyncType
 from ....channel import ChannelContext
 from ....core import ResolveInfo
 from ....core.descriptions import (
-    ADDED_IN_31,
     ADDED_IN_318,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
@@ -55,7 +54,7 @@ class VoucherInput(BaseInputObjectType):
     )
     variants = NonNullList(
         graphene.ID,
-        description="Variants discounted by the voucher." + ADDED_IN_31,
+        description="Variants discounted by the voucher.",
         name="variants",
     )
     collections = NonNullList(

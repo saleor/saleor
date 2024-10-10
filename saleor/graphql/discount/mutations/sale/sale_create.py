@@ -13,7 +13,7 @@ from .....permission.enums import DiscountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
 from ....channel import ChannelContext
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_MUTATION
+from ....core.descriptions import DEPRECATED_IN_3X_MUTATION
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import ModelMutation
 from ....core.scalars import DateTime, PositiveDecimal
@@ -38,7 +38,7 @@ class SaleInput(BaseInputObjectType):
     )
     variants = NonNullList(
         graphene.ID,
-        descriptions="Product variant related to the discount." + ADDED_IN_31,
+        descriptions="Product variant related to the discount.",
         name="variants",
     )
     categories = NonNullList(
