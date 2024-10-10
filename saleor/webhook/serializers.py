@@ -1,6 +1,6 @@
+import datetime
 from collections import defaultdict
 from collections.abc import Iterable
-from datetime import date, datetime
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Optional, Union
 
@@ -140,7 +140,10 @@ def serialize_product_attributes(product: "Product") -> list[dict]:
         for attr_value in values_map[attribute.pk]:
             attr_slug = attr_value.slug
             value: dict[
-                str, Optional[Union[str, datetime, date, bool, dict[str, Any]]]
+                str,
+                Optional[
+                    Union[str, datetime.datetime, datetime.date, bool, dict[str, Any]]
+                ],
             ] = {
                 "name": attr_value.name,
                 "slug": attr_slug,
@@ -197,7 +200,10 @@ def serialize_variant_attributes(variant: "ProductVariant") -> list[dict]:
         for attr_value in attr.values.all():
             attr_slug = attr_value.slug
             value: dict[
-                str, Optional[Union[str, datetime, date, bool, dict[str, Any]]]
+                str,
+                Optional[
+                    Union[str, datetime.datetime, datetime.date, bool, dict[str, Any]]
+                ],
             ] = {
                 "name": attr_value.name,
                 "slug": attr_slug,

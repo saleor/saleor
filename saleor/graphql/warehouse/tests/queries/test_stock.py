@@ -1,4 +1,4 @@
-from datetime import timedelta
+import datetime
 
 import graphene
 from django.utils import timezone
@@ -99,7 +99,9 @@ def test_query_stock_with_expired_reservations(
     permission_manage_products,
 ):
     # given
-    Reservation.objects.update(reserved_until=timezone.now() - timedelta(minutes=2))
+    Reservation.objects.update(
+        reserved_until=timezone.now() - datetime.timedelta(minutes=2)
+    )
     staff_api_client.user.user_permissions.add(permission_manage_products)
     stock_id = graphene.Node.to_global_id("Stock", stock.pk)
 

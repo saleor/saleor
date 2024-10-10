@@ -48,7 +48,7 @@ def test_webhook_retry(webhook, event_delivery):
     # given
     attempt = EventDeliveryAttempt(
         id=1,
-        created_at=datetime.datetime.utcnow(),
+        created_at=datetime.datetime.now(tz=datetime.UTC),
         delivery=event_delivery,
         request_headers="",
         task_id="123",
@@ -68,7 +68,7 @@ def test_webhook_retry_404(webhook, event_delivery):
     # given
     attempt = EventDeliveryAttempt(
         id=1,
-        created_at=datetime.datetime.utcnow(),
+        created_at=datetime.datetime.now(tz=datetime.UTC),
         delivery=event_delivery,
         request_headers="",
         task_id="123",
@@ -88,7 +88,7 @@ def test_webhook_retry_redirect(webhook, event_delivery):
     # given
     attempt = EventDeliveryAttempt(
         id=1,
-        created_at=datetime.datetime.utcnow(),
+        created_at=datetime.datetime.now(tz=datetime.UTC),
         delivery=event_delivery,
         request_headers="",
         task_id="123",

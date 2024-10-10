@@ -1,4 +1,4 @@
-from datetime import timedelta
+import datetime
 from decimal import Decimal
 from unittest.mock import patch
 
@@ -182,7 +182,7 @@ def test_checkout_remove_voucher_code_with_inactive_channel(
     checkout_updated_webhook_mock, api_client, checkout_with_voucher
 ):
     # given
-    checkout_with_voucher.price_expiration = timezone.now() + timedelta(days=2)
+    checkout_with_voucher.price_expiration = timezone.now() + datetime.timedelta(days=2)
     checkout_with_voucher.save(update_fields=["price_expiration"])
     previous_checkout_last_change = checkout_with_voucher.last_change
 
@@ -309,7 +309,7 @@ def test_checkout_remove_promo_code_invalid_promo_code(
     checkout_updated_webhook_mock, api_client, checkout_with_item
 ):
     # given
-    checkout_with_item.price_expiration = timezone.now() + timedelta(days=2)
+    checkout_with_item.price_expiration = timezone.now() + datetime.timedelta(days=2)
     checkout_with_item.save(update_fields=["price_expiration"])
     previous_checkout_last_change = checkout_with_item.last_change
     variables = {
@@ -387,7 +387,7 @@ def test_checkout_remove_voucher_code_by_id_wrong_voucher(
     # given
     assert checkout_with_voucher.voucher_code is not None
     checkout_with_voucher.gift_cards.add(gift_card)
-    checkout_with_voucher.price_expiration = timezone.now() + timedelta(days=2)
+    checkout_with_voucher.price_expiration = timezone.now() + datetime.timedelta(days=2)
     checkout_with_voucher.save(update_fields=["price_expiration"])
     previous_checkout_last_change = checkout_with_voucher.last_change
 
@@ -581,7 +581,7 @@ def test_checkout_remove_voucher_code_invalidates_price(
     checkout_updated_webhook_mock, api_client, checkout_with_item, voucher
 ):
     # given
-    checkout_with_item.price_expiration = timezone.now() + timedelta(days=2)
+    checkout_with_item.price_expiration = timezone.now() + datetime.timedelta(days=2)
     checkout_with_item.voucher_code = voucher.code
     checkout_with_item.save(update_fields=["voucher_code", "price_expiration"])
     manager = get_plugins_manager(allow_replica=False)

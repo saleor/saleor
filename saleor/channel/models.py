@@ -1,4 +1,4 @@
-from datetime import timedelta
+import datetime
 
 from django.conf import settings
 from django.db import models
@@ -41,7 +41,7 @@ class Channel(ModelWithMetadata):
     expire_orders_after = models.IntegerField(default=None, null=True, blank=True)
 
     delete_expired_orders_after = models.DurationField(
-        default=timedelta(days=60),
+        default=datetime.timedelta(days=60),
     )
 
     include_draft_order_in_voucher_usage = models.BooleanField(default=False)

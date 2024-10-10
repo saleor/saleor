@@ -1,10 +1,9 @@
-from datetime import datetime, timedelta
+import datetime
 from decimal import Decimal
 from unittest.mock import Mock, patch
 
 import graphene
 import pytest
-import pytz
 from django.test import override_settings
 from prices import Money
 
@@ -2141,7 +2140,7 @@ def test_draft_order_create_with_channel_with_unpublished_product_by_date(
 
     # Ensure no events were created yet
     assert not OrderEvent.objects.exists()
-    next_day = datetime.now(pytz.UTC) + timedelta(days=1)
+    next_day = datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(days=1)
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     variant_0_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
     variant_1 = product_without_shipping.variants.first()

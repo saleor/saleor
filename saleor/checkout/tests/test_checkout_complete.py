@@ -1,4 +1,4 @@
-from datetime import timedelta
+import datetime
 from decimal import Decimal
 from unittest import mock
 
@@ -2463,7 +2463,7 @@ def test_complete_checkout_ensure_prices_are_not_recalculated_in_post_payment_pa
     checkout.shipping_method = shipping_method
     checkout.tracking_code = ""
     checkout.redirect_url = "https://www.example.com"
-    checkout.price_expiration = timezone.now() + timedelta(hours=2)
+    checkout.price_expiration = timezone.now() + datetime.timedelta(hours=2)
     checkout.save()
 
     lines, _ = fetch_checkout_lines(checkout)
@@ -2471,7 +2471,7 @@ def test_complete_checkout_ensure_prices_are_not_recalculated_in_post_payment_pa
 
     def update_price_expiration(*args, **kwargs):
         # Invalidate checkout prices just after processing payment
-        checkout.price_expiration = timezone.now() - timedelta(hours=2)
+        checkout.price_expiration = timezone.now() - datetime.timedelta(hours=2)
         checkout.save(update_fields=["price_expiration"])
 
     # when

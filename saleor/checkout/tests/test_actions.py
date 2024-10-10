@@ -4,7 +4,6 @@ from unittest.mock import call, patch
 
 import before_after
 import pytest
-import pytz
 from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
@@ -335,7 +334,7 @@ def test_transaction_amounts_automatic_checkout_complete_called_once(
 
 @pytest.mark.parametrize(
     "previous_modified_at",
-    [None, datetime.datetime(2018, 5, 31, 12, 0, 0, tzinfo=pytz.UTC)],
+    [None, datetime.datetime(2018, 5, 31, 12, 0, 0, tzinfo=datetime.UTC)],
 )
 @patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
 @freeze_time("2023-05-31 12:00:01")

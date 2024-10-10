@@ -1,16 +1,14 @@
+import datetime
 import json
 import time
 import warnings
-from datetime import datetime, timedelta
 from unittest import mock
 from unittest.mock import MagicMock, Mock, call, patch
 
 import pytest
-import pytz
 import requests
 from authlib.jose import JWTClaims
 from django.core.exceptions import ValidationError
-from django.utils import timezone
 from freezegun import freeze_time
 from requests import Response
 from requests_hardened import HTTPSession
@@ -460,10 +458,9 @@ def test_get_or_create_user_from_payload_different_email(
 @mock.patch("saleor.plugins.openid_connect.utils.cache.set")
 @mock.patch("saleor.plugins.openid_connect.utils.cache.get")
 def test_get_or_create_user_from_payload_with_last_login(
-    mocked_cache_get, mocked_cache_set, customer_user, settings
+    mocked_cache_get, mocked_cache_set, customer_user
 ):
     # given
-    settings.TIME_ZONE = "UTC"
     current_ts = int(time.time())
 
     oauth_url = "https://saleor.io/oauth"
@@ -471,8 +468,8 @@ def test_get_or_create_user_from_payload_with_last_login(
 
     mocked_cache_get.side_effect = lambda cache_key: None
 
-    customer_user.last_login = timezone.make_aware(
-        datetime.fromtimestamp(current_ts - 10), timezone=pytz.timezone("UTC")
+    customer_user.last_login = datetime.datetime.fromtimestamp(
+        current_ts - 10, tz=datetime.UTC
     )
     customer_user.save()
 
@@ -490,8 +487,8 @@ def test_get_or_create_user_from_payload_with_last_login(
         cache_key, customer_user.id, OIDC_CACHE_TIMEOUT
     )
     customer_user.refresh_from_db()
-    assert customer_user.last_login == timezone.make_aware(
-        datetime.fromtimestamp(current_ts), timezone=pytz.timezone("UTC")
+    assert customer_user.last_login == datetime.datetime.fromtimestamp(
+        current_ts, tz=datetime.UTC
     )
     assert user_from_payload.email == customer_user.email
     assert user_from_payload.private_metadata[f"oidc:{oauth_url}"] == sub_id
@@ -565,7 +562,7 @@ def test_get_or_create_user_from_payload_last_login_stays_same(
     mocked_cache_get, mocked_cache_set, customer_user
 ):
     # given
-    last_login = timezone.now() - timedelta(minutes=14)
+    last_login = datetime.datetime.now(tz=datetime.UTC) - datetime.timedelta(minutes=14)
     customer_user.last_login = last_login
     customer_user.save()
     oauth_url = "https://saleor.io/oauth"
@@ -590,7 +587,7 @@ def test_get_or_create_user_from_payload_last_login_modifies(
     mocked_cache_get, mocked_cache_set, customer_user
 ):
     # given
-    last_login = timezone.now() - timedelta(minutes=16)
+    last_login = datetime.datetime.now(tz=datetime.UTC) - datetime.timedelta(minutes=16)
     customer_user.last_login = last_login
     customer_user.save()
     oauth_url = "https://saleor.io/oauth"
@@ -1073,7 +1070,7 @@ def test_update_user_details_nothing_changed(
     customer_user,
 ):
     # given
-    last_login = timezone.now() - timedelta(minutes=14)
+    last_login = datetime.datetime.now(tz=datetime.UTC) - datetime.timedelta(minutes=14)
     customer_user.last_login = last_login
     customer_user.search_document = "abc"
     customer_user.save(update_fields=["search_document", "last_login"])

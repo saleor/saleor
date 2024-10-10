@@ -1,5 +1,5 @@
+import datetime
 import logging
-from datetime import timedelta
 
 from django.conf import settings
 from django.db.models import Exists, F, Func, OuterRef, Subquery, Value
@@ -181,7 +181,7 @@ def delete_expired_orders_task():
     channel_qs = Channel.objects.using(
         settings.DATABASE_CONNECTION_REPLICA_NAME
     ).filter(
-        delete_expired_orders_after__gt=timedelta(),
+        delete_expired_orders_after__gt=datetime.timedelta(),
         id=OuterRef("channel"),
     )
 

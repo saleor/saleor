@@ -1,4 +1,4 @@
-from datetime import date
+import datetime
 
 from django.db import migrations
 
@@ -8,7 +8,9 @@ def set_missing_page_publication_date(apps, schema_editor):
     published_page = Page.objects.filter(
         publication_date__isnull=True, is_published=True
     )
-    published_page.update(publication_date=date.today())
+    published_page.update(
+        publication_date=datetime.datetime.now(tz=datetime.UTC).date()
+    )
 
 
 class Migration(migrations.Migration):

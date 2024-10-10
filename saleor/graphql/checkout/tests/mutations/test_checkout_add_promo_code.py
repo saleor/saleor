@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+import datetime
 from decimal import Decimal
 from unittest import mock
 from unittest.mock import patch
@@ -1078,7 +1078,9 @@ def test_checkout_add_expired_gift_card_code(
     staff_api_client, checkout_with_item, gift_card
 ):
     # given
-    gift_card.expiry_date = date.today() - timedelta(days=10)
+    gift_card.expiry_date = datetime.datetime.now(
+        tz=datetime.UTC
+    ).date() - datetime.timedelta(days=10)
     gift_card.save(update_fields=["expiry_date"])
 
     variables = {
@@ -1229,7 +1231,9 @@ def test_checkout_add_gift_card_code_in_active_gift_card(
 def test_checkout_add_gift_card_code_in_expired_gift_card(
     api_client, checkout_with_item, gift_card
 ):
-    gift_card.expiry_date = date.today() - timedelta(days=1)
+    gift_card.expiry_date = datetime.datetime.now(
+        tz=datetime.UTC
+    ).date() - datetime.timedelta(days=1)
     gift_card.save()
 
     variables = {

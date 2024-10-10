@@ -1,11 +1,10 @@
+import datetime
 import json
-from datetime import datetime, timedelta
 from unittest.mock import ANY, patch
 from uuid import uuid4
 
 import graphene
 import pytest
-import pytz
 from django.conf import settings
 from django.utils.text import slugify
 
@@ -1358,7 +1357,7 @@ def test_update_variant_with_date_attribute(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     sku = "123"
     date_attribute_id = graphene.Node.to_global_id("Attribute", date_attribute.id)
-    date_time_value = datetime(2025, 5, 5, 5, 5, 5, tzinfo=pytz.utc)
+    date_time_value = datetime.datetime(2025, 5, 5, 5, 5, 5, tzinfo=datetime.UTC)
     date_value = date_time_value.date()
     date_values_count = date_attribute.values.count()
 
@@ -1421,7 +1420,7 @@ def test_update_variant_with_date_time_attribute(
     date_time_attribute_id = graphene.Node.to_global_id(
         "Attribute", date_time_attribute.id
     )
-    date_time_value = datetime(2025, 5, 5, 5, 5, 5, tzinfo=pytz.utc)
+    date_time_value = datetime.datetime(2025, 5, 5, 5, 5, 5, tzinfo=datetime.UTC)
     date_time_values_count = date_time_attribute.values.count()
 
     variables = {
@@ -2275,7 +2274,7 @@ def test_update_product_variant_change_preorder_data(
     new_global_threshold = variant.preorder_global_threshold + 5
     assert variant.preorder_end_date is None
     new_preorder_end_date = (
-        (datetime.now() + timedelta(days=3))
+        (datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(days=3))
         .astimezone()
         .replace(microsecond=0)
         .isoformat()

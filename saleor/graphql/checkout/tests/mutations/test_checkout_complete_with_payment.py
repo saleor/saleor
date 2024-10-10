@@ -1,11 +1,10 @@
-from datetime import datetime, timedelta
+import datetime
 from decimal import Decimal
 from unittest.mock import ANY, patch
 
 import before_after
 import graphene
 import pytest
-import pytz
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.db.models.aggregates import Sum
@@ -3018,7 +3017,7 @@ def test_checkout_complete_insufficient_stock_reserved_by_other_user(
         checkout_line=other_checkout_line,
         stock=stock,
         quantity_reserved=quantity_available,
-        reserved_until=timezone.now() + timedelta(minutes=5),
+        reserved_until=timezone.now() + datetime.timedelta(minutes=5),
     )
 
     checkout_line.quantity = 1
@@ -3081,7 +3080,7 @@ def test_checkout_complete_own_reservation(
         checkout_line=checkout_line,
         stock=stock,
         quantity_reserved=quantity_available,
-        reserved_until=timezone.now() + timedelta(minutes=5),
+        reserved_until=timezone.now() + datetime.timedelta(minutes=5),
     )
 
     manager = get_plugins_manager(allow_replica=False)
@@ -4146,7 +4145,8 @@ def test_checkout_complete_product_channel_listing_does_not_exist(
 
 
 @pytest.mark.parametrize(
-    "available_for_purchase", [None, datetime.now(pytz.UTC) + timedelta(days=1)]
+    "available_for_purchase",
+    [None, datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(days=1)],
 )
 def test_checkout_complete_product_channel_listing_not_available_for_purchase(
     user_api_client,
@@ -4644,7 +4644,7 @@ def test_checkout_complete_check_reservations_create(
     reservations = Reservation.objects.all()
     assert len(reservations) == 1
     assert reservations[0].checkout_line.checkout.token == checkout.token
-    assert reservations[0].reserved_until <= timezone.now() + timedelta(
+    assert reservations[0].reserved_until <= timezone.now() + datetime.timedelta(
         seconds=settings.RESERVE_DURATION
     )
     assert Order.objects.count() == orders_count

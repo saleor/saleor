@@ -1,8 +1,8 @@
+import datetime
 from decimal import Decimal
 from unittest import mock
 
 import pytest
-import pytz
 from django.conf import settings
 from django.test import override_settings
 from django.utils import timezone
@@ -2432,7 +2432,7 @@ def test_customer_ip_address_ipv6(
 @freeze_time("2023-03-18 12:00:00")
 @pytest.mark.parametrize(
     "previous_last_transaction_modified_at",
-    [None, timezone.datetime(2020, 1, 1, tzinfo=pytz.UTC)],
+    [None, datetime.datetime(2020, 1, 1, tzinfo=datetime.UTC)],
 )
 @mock.patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
 @mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")

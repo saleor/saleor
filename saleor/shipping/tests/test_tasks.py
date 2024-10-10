@@ -1,4 +1,4 @@
-from datetime import timedelta
+import datetime
 
 from django.utils import timezone
 from freezegun import freeze_time
@@ -20,7 +20,7 @@ def test_drop_invalid_shipping_method_relations(
     channel_PLN,
 ):
     # given
-    valid_time = timezone.now() + timedelta(hours=24)
+    valid_time = timezone.now() + datetime.timedelta(hours=24)
 
     checkout_PLN = checkouts_list[0]
     checkout_PLN.shipping_method = shipping_method

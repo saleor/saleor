@@ -4,8 +4,6 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Optional, Union
 
-import pytz
-
 from ..graphql.channel import ChannelContext
 from ..product.models import ProductChannelListing, ProductVariant
 from ..warehouse.models import Stock
@@ -121,7 +119,7 @@ def get_not_available_lines(
     ],
 ):
     lines_not_available = []
-    now = datetime.datetime.now(pytz.UTC)
+    now = datetime.datetime.now(tz=datetime.UTC)
     for line in lines:
         if line_is_not_available(line, now, product_channel_listings_map):
             lines_not_available.append(line)

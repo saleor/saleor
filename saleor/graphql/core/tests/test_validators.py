@@ -1,4 +1,4 @@
-from datetime import timedelta
+import datetime
 from decimal import Decimal
 
 import pytest
@@ -52,8 +52,8 @@ def test_validate_price_precision_raise_error(value, currency):
 
 
 def test_validate_end_is_after_start_raise_error():
-    start_date = timezone.now() + timedelta(days=365)
-    end_date = timezone.now() - timedelta(days=365)
+    start_date = timezone.now() + datetime.timedelta(days=365)
+    end_date = timezone.now() - datetime.timedelta(days=365)
 
     with pytest.raises(ValidationError) as error:
         validate_end_is_after_start(start_date, end_date)
@@ -63,8 +63,11 @@ def test_validate_end_is_after_start_raise_error():
 @pytest.mark.parametrize(
     ("start_date", "end_date"),
     [
-        (timezone.now() - timedelta(days=365), timezone.now() + timedelta(days=365)),
-        (timezone.now() + timedelta(days=365), None),
+        (
+            timezone.now() - datetime.timedelta(days=365),
+            timezone.now() + datetime.timedelta(days=365),
+        ),
+        (timezone.now() + datetime.timedelta(days=365), None),
     ],
 )
 def test_validate_end_is_after_start(start_date, end_date):

@@ -1,3 +1,4 @@
+import datetime
 import json
 import uuid
 from collections.abc import Mapping
@@ -39,8 +40,6 @@ from .payload_schema import (
 from .sensitive_data import SENSITIVE_GQL_FIELDS
 
 if TYPE_CHECKING:
-    from datetime import datetime
-
     from ...core.models import EventDeliveryAttempt
     from .utils import GraphQLOperationResponse
 
@@ -194,7 +193,7 @@ def generate_api_call_payload(
 @traced_payload_generator
 def generate_event_delivery_attempt_payload(
     attempt: "EventDeliveryAttempt",
-    next_retry: Optional["datetime"],
+    next_retry: Optional[datetime.datetime],
     bytes_limit: int,
 ) -> bytes:
     if not attempt.delivery:

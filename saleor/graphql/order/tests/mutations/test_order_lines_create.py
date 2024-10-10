@@ -1,10 +1,9 @@
-from datetime import datetime
+import datetime
 from decimal import Decimal
 from unittest.mock import patch
 
 import graphene
 import pytest
-import pytz
 from django.db.models import Sum
 from django.test import override_settings
 
@@ -310,7 +309,7 @@ def test_order_lines_create_for_just_published_product(
     order.save(update_fields=["status"])
     variant = variant_with_many_stocks
     product_listing = variant.product.channel_listings.get(channel=order.channel)
-    product_listing.published_at = datetime.now(pytz.utc)
+    product_listing.published_at = datetime.datetime.now(tz=datetime.UTC)
     product_listing.save(update_fields=["published_at"])
 
     quantity = 1

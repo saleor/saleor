@@ -204,14 +204,22 @@ class GiftCardEvent(ModelObjectType[models.GiftCardEvent]):
     def resolve_expiry_date(root: models.GiftCardEvent, _info):
         expiry_date = root.parameters.get("expiry_date")
         return (
-            datetime.datetime.strptime(expiry_date, "%Y-%m-%d") if expiry_date else None
+            datetime.datetime.strptime(expiry_date, "%Y-%m-%d").replace(
+                tzinfo=datetime.UTC
+            )
+            if expiry_date
+            else None
         )
 
     @staticmethod
     def resolve_old_expiry_date(root: models.GiftCardEvent, _info):
         expiry_date = root.parameters.get("old_expiry_date")
         return (
-            datetime.datetime.strptime(expiry_date, "%Y-%m-%d") if expiry_date else None
+            datetime.datetime.strptime(expiry_date, "%Y-%m-%d").replace(
+                tzinfo=datetime.UTC
+            )
+            if expiry_date
+            else None
         )
 
 

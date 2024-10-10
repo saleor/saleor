@@ -1,4 +1,4 @@
-from datetime import timedelta
+import datetime
 from unittest.mock import patch
 
 from ......core.jwt import create_token
@@ -43,7 +43,7 @@ def test_email_update(
     }
     user = user_api_client.user
 
-    token = create_token(payload, timedelta(hours=1))
+    token = create_token(payload, datetime.timedelta(hours=1))
     variables = {"token": token, "channel": channel_PLN.slug}
     response = user_api_client.post_graphql(EMAIL_UPDATE_QUERY, variables)
     content = get_graphql_content(response)
@@ -62,7 +62,7 @@ def test_email_update_to_existing_email(user_api_client, customer_user, staff_us
         "new_email": staff_user.email,
         "user_pk": customer_user.pk,
     }
-    token = create_token(payload, timedelta(hours=1))
+    token = create_token(payload, datetime.timedelta(hours=1))
     variables = {"token": token}
 
     response = user_api_client.post_graphql(EMAIL_UPDATE_QUERY, variables)
@@ -98,7 +98,7 @@ def test_account_email_changed_webhook_event_triggered(
     }
     user = user_api_client.user
 
-    token = create_token(payload, timedelta(hours=1))
+    token = create_token(payload, datetime.timedelta(hours=1))
     variables = {"token": token, "channel": channel_PLN.slug}
 
     # when

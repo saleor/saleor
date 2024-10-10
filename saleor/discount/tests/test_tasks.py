@@ -1,4 +1,4 @@
-from datetime import timedelta
+import datetime
 from decimal import Decimal
 from unittest.mock import ANY, patch
 
@@ -100,52 +100,52 @@ def test_handle_promotion_toggle(
 
     # promotions with start date before current date
     # without notification sent day - should be sent for started
-    promotions[0].start_date = now - timedelta(days=1)
+    promotions[0].start_date = now - datetime.timedelta(days=1)
     promotions[0].last_notification_scheduled_at = None
 
     # with notification sent day after the start date - shouldn't be sent
-    promotions[1].start_date = now - timedelta(days=1)
-    promotions[1].last_notification_scheduled_at = now - timedelta(minutes=2)
+    promotions[1].start_date = now - datetime.timedelta(days=1)
+    promotions[1].last_notification_scheduled_at = now - datetime.timedelta(minutes=2)
 
     # with notification sent day before the start date - should be sent for started
-    promotions[2].start_date = now - timedelta(minutes=2)
-    promotions[2].last_notification_scheduled_at = now - timedelta(minutes=5)
+    promotions[2].start_date = now - datetime.timedelta(minutes=2)
+    promotions[2].last_notification_scheduled_at = now - datetime.timedelta(minutes=5)
 
     # without notification sent day
     # promotions with start date after current date - shouldn't be sent
-    promotions[3].start_date = now + timedelta(days=1)
+    promotions[3].start_date = now + datetime.timedelta(days=1)
     promotions[3].last_notification_scheduled_at = None
 
     # with notification sent day before the start date
-    promotions[4].start_date = now + timedelta(days=1)
-    promotions[4].last_notification_scheduled_at = now - timedelta(minutes=5)
+    promotions[4].start_date = now + datetime.timedelta(days=1)
+    promotions[4].last_notification_scheduled_at = now - datetime.timedelta(minutes=5)
 
     # promotions with end date before current date
     # without notification sent day - should be sent for ended
-    promotions[5].start_date = now - timedelta(days=2)
-    promotions[5].end_date = now - timedelta(days=1)
+    promotions[5].start_date = now - datetime.timedelta(days=2)
+    promotions[5].end_date = now - datetime.timedelta(days=1)
     promotions[5].last_notification_scheduled_at = None
 
     # with notification sent day after the start date - shouldn't be sent
-    promotions[6].start_date = now - timedelta(days=2)
-    promotions[6].end_date = now - timedelta(days=1)
-    promotions[6].last_notification_scheduled_at = now - timedelta(minutes=2)
+    promotions[6].start_date = now - datetime.timedelta(days=2)
+    promotions[6].end_date = now - datetime.timedelta(days=1)
+    promotions[6].last_notification_scheduled_at = now - datetime.timedelta(minutes=2)
 
     # with notification sent day before the start date - should be sent for ended
-    promotions[7].start_date = now - timedelta(days=2)
-    promotions[7].end_date = now - timedelta(minutes=2)
-    promotions[7].last_notification_scheduled_at = now - timedelta(minutes=5)
+    promotions[7].start_date = now - datetime.timedelta(days=2)
+    promotions[7].end_date = now - datetime.timedelta(minutes=2)
+    promotions[7].last_notification_scheduled_at = now - datetime.timedelta(minutes=5)
 
     # promotions with end date after current date
     # without notification sent day
-    promotions[8].start_date = now + timedelta(days=2)
-    promotions[8].end_date = now + timedelta(days=1)
+    promotions[8].start_date = now + datetime.timedelta(days=2)
+    promotions[8].end_date = now + datetime.timedelta(days=1)
     promotions[8].last_notification_scheduled_at = None
 
     # with notification sent day before the start date
-    promotions[9].start_date = now + timedelta(days=2)
-    promotions[9].end_date = now + timedelta(days=1)
-    promotions[9].last_notification_scheduled_at = now - timedelta(minutes=5)
+    promotions[9].start_date = now + datetime.timedelta(days=2)
+    promotions[9].end_date = now + datetime.timedelta(days=1)
+    promotions[9].last_notification_scheduled_at = now - datetime.timedelta(minutes=5)
 
     Promotion.objects.bulk_update(
         promotions,
@@ -197,8 +197,8 @@ def test_handle_promotion_toggle(
 def test_clear_promotion_rule_variants_task(promotion_list):
     # given
     expired_promotion = promotion_list[-1]
-    expired_promotion.start_date = timezone.now() - timedelta(days=5)
-    expired_promotion.end_date = timezone.now() - timedelta(days=1)
+    expired_promotion.start_date = timezone.now() - datetime.timedelta(days=5)
+    expired_promotion.end_date = timezone.now() - datetime.timedelta(days=1)
     expired_promotion.save(update_fields=["start_date", "end_date"])
 
     PromotionRuleVariant = PromotionRule.variants.through
@@ -222,8 +222,8 @@ def test_clear_promotion_rule_variants_task(promotion_list):
 def test_clear_promotion_rule_variants_task_marks_products_as_dirty(promotion_list):
     # given
     expired_promotion = promotion_list[-1]
-    expired_promotion.start_date = timezone.now() - timedelta(days=5)
-    expired_promotion.end_date = timezone.now() - timedelta(days=1)
+    expired_promotion.start_date = timezone.now() - datetime.timedelta(days=5)
+    expired_promotion.end_date = timezone.now() - datetime.timedelta(days=1)
     expired_promotion.save(update_fields=["start_date", "end_date"])
 
     PromotionRuleVariant = PromotionRule.variants.through
@@ -248,7 +248,7 @@ def test_clear_promotion_rule_variants_task_marks_products_as_dirty(promotion_li
 
 def test_set_promotion_rule_variants_task(promotion_list):
     # given
-    Promotion.objects.update(start_date=timezone.now() - timedelta(days=5))
+    Promotion.objects.update(start_date=timezone.now() - datetime.timedelta(days=5))
     PromotionRuleVariant = PromotionRule.variants.through
     PromotionRuleVariant.objects.all().delete()
 

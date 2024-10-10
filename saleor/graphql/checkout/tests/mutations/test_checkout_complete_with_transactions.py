@@ -1,11 +1,10 @@
-from datetime import date, datetime, timedelta
+import datetime
 from decimal import Decimal
 from unittest.mock import ANY, patch
 
 import before_after
 import graphene
 import pytest
-import pytz
 from django.db.models.aggregates import Sum
 from django.utils import timezone
 from prices import TaxedMoney
@@ -1078,7 +1077,9 @@ def test_checkout_with_gift_card_not_applicable(
     transaction_events_generator,
 ):
     # given
-    gift_card.expiry_date = date.today() - timedelta(days=1)
+    gift_card.expiry_date = datetime.datetime.now(
+        tz=datetime.UTC
+    ).date() - datetime.timedelta(days=1)
     gift_card.save(update_fields=["expiry_date"])
 
     checkout = prepare_checkout_for_test(
@@ -3277,7 +3278,7 @@ def test_checkout_complete_insufficient_stock_reserved_by_other_user(
         checkout_line=other_checkout_line,
         stock=stock,
         quantity_reserved=quantity_available,
-        reserved_until=timezone.now() + timedelta(minutes=5),
+        reserved_until=timezone.now() + datetime.timedelta(minutes=5),
     )
 
     checkout_line.quantity = 1
@@ -3325,7 +3326,7 @@ def test_checkout_complete_own_reservation(
         checkout_line=checkout_line,
         stock=stock,
         quantity_reserved=quantity_available,
-        reserved_until=timezone.now() + timedelta(minutes=5),
+        reserved_until=timezone.now() + datetime.timedelta(minutes=5),
     )
 
     variables = {
@@ -4023,7 +4024,8 @@ def test_checkout_complete_product_channel_listing_does_not_exist(
 
 
 @pytest.mark.parametrize(
-    "available_for_purchase", [None, datetime.now(pytz.UTC) + timedelta(days=1)]
+    "available_for_purchase",
+    [None, datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(days=1)],
 )
 def test_checkout_complete_product_channel_listing_not_available_for_purchase(
     user_api_client,

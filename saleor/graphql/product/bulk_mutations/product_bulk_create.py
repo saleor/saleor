@@ -1,8 +1,7 @@
+import datetime
 from collections import defaultdict
-from datetime import datetime
 
 import graphene
-import pytz
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.db.models import F
@@ -351,14 +350,16 @@ class ProductBulkCreate(BaseMutation):
         if is_available_for_purchase is False:
             channel_data["available_for_purchase_at"] = None
         elif is_available_for_purchase is True and not available_for_purchase_at:
-            channel_data["available_for_purchase_at"] = datetime.now(pytz.UTC)
+            channel_data["available_for_purchase_at"] = datetime.datetime.now(
+                tz=datetime.UTC
+            )
         else:
             channel_data["available_for_purchase_at"] = available_for_purchase_at
 
     @staticmethod
     def set_published_at(channel_data):
         if channel_data.get("is_published") and not channel_data.get("published_at"):
-            channel_data["published_at"] = datetime.now(pytz.UTC)
+            channel_data["published_at"] = datetime.datetime.now(tz=datetime.UTC)
 
     @classmethod
     def clean_product_channel_listings(

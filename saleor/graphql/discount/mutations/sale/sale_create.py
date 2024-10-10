@@ -1,7 +1,6 @@
-from datetime import datetime
+import datetime
 
 import graphene
-import pytz
 from django.core.exceptions import ValidationError
 
 from .....core.tracing import traced_atomic_transaction
@@ -144,7 +143,7 @@ class SaleCreate(ModelMutation):
         Send the notification when the start date is before the current date and the
         sale is not already finished.
         """
-        now = datetime.now(pytz.utc)
+        now = datetime.datetime.now(tz=datetime.UTC)
 
         start_date = instance.start_date
         end_date = instance.end_date

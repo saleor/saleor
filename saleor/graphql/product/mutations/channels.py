@@ -1,9 +1,8 @@
+import datetime
 from collections import defaultdict
-from datetime import datetime
 from typing import TYPE_CHECKING
 
 import graphene
-import pytz
 from django.core.exceptions import ValidationError
 from django.db.utils import IntegrityError
 
@@ -263,7 +262,7 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
         if is_available_for_purchase is False:
             return None
         elif is_available_for_purchase is True and not available_for_purchase_date:
-            return datetime.now(pytz.UTC)
+            return datetime.datetime.now(tz=datetime.UTC)
         return available_for_purchase_date
 
     @classmethod

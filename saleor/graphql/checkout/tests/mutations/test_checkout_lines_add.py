@@ -5,7 +5,6 @@ from unittest.mock import patch
 
 import graphene
 import pytest
-import pytz
 from django.test import override_settings
 from django.utils import timezone
 from prices import Money
@@ -1543,7 +1542,7 @@ def test_checkout_lines_add_with_available_for_purchase_from_tomorrow_product(
     variant = stock.product_variant
     product = stock.product_variant.product
     product.channel_listings.update(
-        available_for_purchase_at=datetime.datetime.now(pytz.UTC)
+        available_for_purchase_at=datetime.datetime.now(tz=datetime.UTC)
         + datetime.timedelta(days=1)
     )
 

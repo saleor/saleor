@@ -527,7 +527,7 @@ def create_fake_user(user_password, save=True, generate_id=False):
         "default_shipping_address": address,
         "is_active": True,
         "note": fake.paragraph(),
-        "date_joined": fake.date_time(tzinfo=timezone.get_current_timezone()),
+        "date_joined": fake.date_time(tzinfo=datetime.UTC),
     }
 
     if generate_id:

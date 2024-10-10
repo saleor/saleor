@@ -5,7 +5,6 @@ from typing import Optional
 from uuid import uuid4
 
 import graphene
-import pytz
 from django.conf import settings
 from django.contrib.postgres.indexes import BTreeIndex, GinIndex
 from django.contrib.postgres.search import SearchVectorField
@@ -342,7 +341,7 @@ class ProductChannelListing(PublishableModel):
     def is_available_for_purchase(self):
         return (
             self.available_for_purchase_at is not None
-            and datetime.datetime.now(pytz.UTC) >= self.available_for_purchase_at
+            and datetime.datetime.now(tz=datetime.UTC) >= self.available_for_purchase_at
         )
 
 

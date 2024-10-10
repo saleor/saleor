@@ -1,11 +1,10 @@
-from datetime import datetime
+import datetime
 from decimal import Decimal
 from unittest.mock import patch
 
 import before_after
 import graphene
 import pytest
-import pytz
 from django.core.management import call_command
 from prices import Money
 
@@ -617,7 +616,7 @@ def test_update_discounted_prices_for_promotion_only_dirty_products(
         discounted_price_amount=second_channel_discounted_price,
         currency=channel_PLN.currency_code,
         visible_in_listings=True,
-        available_for_purchase_at=(datetime(1999, 1, 1, tzinfo=pytz.UTC)),
+        available_for_purchase_at=(datetime.datetime(1999, 1, 1, tzinfo=datetime.UTC)),
         discounted_price_dirty=False,
     )
 

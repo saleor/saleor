@@ -1,5 +1,5 @@
 import copy
-from datetime import datetime, timedelta
+import datetime
 from decimal import Decimal
 from unittest.mock import patch
 
@@ -1991,7 +1991,7 @@ def test_order_bulk_create_error_order_future_date(
     orders_count = Order.objects.count()
 
     order = order_bulk_input
-    order["createdAt"] = timezone.now() + timedelta(minutes=MINUTES_DIFF + 1)
+    order["createdAt"] = timezone.now() + datetime.timedelta(minutes=MINUTES_DIFF + 1)
 
     staff_api_client.user.user_permissions.add(
         permission_manage_orders_import,
@@ -2027,7 +2027,9 @@ def test_order_bulk_create_invalid_date_format(
     orders_count = Order.objects.count()
 
     order = order_bulk_input
-    current_time = datetime.now() + timedelta(minutes=MINUTES_DIFF + 1)
+    current_time = datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(
+        minutes=MINUTES_DIFF + 1
+    )
     order["createdAt"] = current_time.strftime("%Y-%m-%dT%H:%M:%S")
 
     staff_api_client.user.user_permissions.add(
@@ -2064,7 +2066,7 @@ def test_order_bulk_create_error_order_line_future_date(
     orders_count = Order.objects.count()
 
     order = order_bulk_input
-    order["lines"][0]["createdAt"] = timezone.now() + timedelta(
+    order["lines"][0]["createdAt"] = timezone.now() + datetime.timedelta(
         minutes=MINUTES_DIFF + 1
     )
 
@@ -2373,7 +2375,9 @@ def test_order_bulk_create_error_note_with_future_date(
     orders_count = Order.objects.count()
 
     order = order_bulk_input
-    order["notes"][0]["date"] = timezone.now() + timedelta(minutes=MINUTES_DIFF + 1)
+    order["notes"][0]["date"] = timezone.now() + datetime.timedelta(
+        minutes=MINUTES_DIFF + 1
+    )
 
     staff_api_client.user.user_permissions.add(
         permission_manage_orders_import,
@@ -3080,7 +3084,7 @@ def test_order_bulk_create_error_invoice_future_date(
     invoice_count = Order.objects.count()
 
     order = order_bulk_input
-    order["invoices"][0]["createdAt"] = timezone.now() + timedelta(
+    order["invoices"][0]["createdAt"] = timezone.now() + datetime.timedelta(
         minutes=MINUTES_DIFF + 1
     )
 

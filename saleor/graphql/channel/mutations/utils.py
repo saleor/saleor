@@ -1,4 +1,4 @@
-from datetime import timedelta
+import datetime
 from typing import Optional
 
 from django.core.exceptions import ValidationError
@@ -24,7 +24,9 @@ def clean_expire_orders_after(expire_orders_after: int) -> Optional[int]:
     return expire_orders_after
 
 
-def clean_delete_expired_orders_after(delete_expired_orders_after: int) -> timedelta:
+def clean_delete_expired_orders_after(
+    delete_expired_orders_after: int,
+) -> datetime.timedelta:
     if (
         delete_expired_orders_after < 1
         or delete_expired_orders_after > DELETE_EXPIRED_ORDERS_MAX_DAYS
@@ -38,7 +40,7 @@ def clean_delete_expired_orders_after(delete_expired_orders_after: int) -> timed
                 )
             }
         )
-    return timedelta(days=delete_expired_orders_after)
+    return datetime.timedelta(days=delete_expired_orders_after)
 
 
 def clean_input_order_settings(

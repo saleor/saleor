@@ -1,5 +1,5 @@
+import datetime
 from collections import defaultdict
-from datetime import timedelta
 from unittest import mock
 
 from django.test import override_settings
@@ -32,7 +32,7 @@ def test_pregenerated_payload_with_selected_tax_app_price_entered_with_tax(
     tax_configuration.prices_entered_with_tax = True
     tax_configuration.tax_app_id = tax_app_global_id
     tax_configuration.save()
-    checkout.price_expiration = timezone.now() - timedelta(days=1)
+    checkout.price_expiration = timezone.now() - datetime.timedelta(days=1)
     checkout.save()
     checkout_global_id = to_global_id_or_none(checkout)
     checkout_total_price_query = """
@@ -84,7 +84,7 @@ def test_pregenerated_payload_with_selected_tax_app_price_entered_without_tax(
     tax_configuration.prices_entered_with_tax = False
     tax_configuration.tax_app_id = tax_app_global_id
     tax_configuration.save()
-    checkout.price_expiration = timezone.now() - timedelta(days=1)
+    checkout.price_expiration = timezone.now() - datetime.timedelta(days=1)
     checkout.save()
     checkout_global_id = to_global_id_or_none(checkout)
     checkout_total_price_query = """
@@ -135,7 +135,7 @@ def test_pregenerated_payload_with_selected_external_tax_app_price_entered_witho
     tax_configuration.prices_entered_with_tax = False
     tax_configuration.tax_app_id = external_tax_app.identifier
     tax_configuration.save()
-    checkout.price_expiration = timezone.now() - timedelta(days=1)
+    checkout.price_expiration = timezone.now() - datetime.timedelta(days=1)
     checkout.save()
     checkout_global_id = to_global_id_or_none(checkout)
     checkout_total_price_query = """
@@ -186,7 +186,7 @@ def test_pregenerated_payload_with_selected_external_tax_app_price_entered_with_
     tax_configuration.prices_entered_with_tax = True
     tax_configuration.tax_app_id = external_tax_app.identifier
     tax_configuration.save()
-    checkout.price_expiration = timezone.now() - timedelta(days=1)
+    checkout.price_expiration = timezone.now() - datetime.timedelta(days=1)
     checkout.save()
     checkout_global_id = to_global_id_or_none(checkout)
     checkout_total_price_query = """
@@ -237,7 +237,7 @@ def test_pregenerated_payload_with_all_apps_price_entered_with_tax(
     tax_configuration.tax_calculation_strategy = TaxCalculationStrategy.TAX_APP
     tax_configuration.prices_entered_with_tax = True
     tax_configuration.save()
-    checkout.price_expiration = timezone.now() - timedelta(days=1)
+    checkout.price_expiration = timezone.now() - datetime.timedelta(days=1)
     checkout.save()
     checkout_global_id = to_global_id_or_none(checkout)
     checkout_total_price_query = """
@@ -289,7 +289,7 @@ def test_pregenerated_payload_with_all_apps_price_entered_without_tax(
     tax_configuration.tax_calculation_strategy = TaxCalculationStrategy.TAX_APP
     tax_configuration.prices_entered_with_tax = False
     tax_configuration.save()
-    checkout.price_expiration = timezone.now() - timedelta(days=1)
+    checkout.price_expiration = timezone.now() - datetime.timedelta(days=1)
     checkout.save()
     checkout_global_id = to_global_id_or_none(checkout)
     checkout_total_price_query = """
@@ -347,7 +347,7 @@ def test_pregenerated_payload_skipped_when_checkout_not_expired(
     tax_configuration.prices_entered_with_tax = True
     tax_configuration.tax_app_id = tax_app_global_id
     tax_configuration.save()
-    checkout.price_expiration = timezone.now() + timedelta(days=1)
+    checkout.price_expiration = timezone.now() + datetime.timedelta(days=1)
     checkout.save()
     checkout_global_id = to_global_id_or_none(checkout)
     checkout_total_price_query = """

@@ -1,5 +1,5 @@
+import datetime
 from collections.abc import Iterable
-from datetime import datetime, timedelta
 from typing import Any, Optional
 
 import graphene
@@ -29,9 +29,9 @@ JWT_OWNER_FIELD = "owner"
 
 
 def jwt_base_payload(
-    exp_delta: Optional[timedelta], token_owner: str
+    exp_delta: Optional[datetime.timedelta], token_owner: str
 ) -> dict[str, Any]:
-    utc_now = datetime.utcnow()
+    utc_now = datetime.datetime.now(tz=datetime.UTC)
 
     payload = {
         "iat": utc_now,
@@ -46,7 +46,7 @@ def jwt_base_payload(
 def jwt_user_payload(
     user: User,
     token_type: str,
-    exp_delta: Optional[timedelta],
+    exp_delta: Optional[datetime.timedelta],
     additional_payload: Optional[dict[str, Any]] = None,
     token_owner: str = JWT_SALEOR_OWNER_NAME,
 ) -> dict[str, Any]:
@@ -86,7 +86,7 @@ def jwt_decode(
     return jwt_manager.decode(token, verify_expiration, verify_aud=verify_aud)
 
 
-def create_token(payload: dict[str, Any], exp_delta: timedelta) -> str:
+def create_token(payload: dict[str, Any], exp_delta: datetime.timedelta) -> str:
     payload.update(jwt_base_payload(exp_delta, token_owner=JWT_SALEOR_OWNER_NAME))
     return jwt_encode(payload)
 

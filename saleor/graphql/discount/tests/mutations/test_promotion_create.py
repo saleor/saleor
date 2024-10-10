@@ -1,4 +1,4 @@
-from datetime import timedelta
+import datetime
 from decimal import Decimal
 from unittest.mock import ANY, patch
 
@@ -76,8 +76,8 @@ def test_promotion_create_by_staff_user(
 ):
     # given
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
-    start_date = timezone.now() - timedelta(days=30)
-    end_date = timezone.now() + timedelta(days=30)
+    start_date = timezone.now() - datetime.timedelta(days=30)
+    end_date = timezone.now() + datetime.timedelta(days=30)
 
     rule_1_channel_ids = [graphene.Node.to_global_id("Channel", channel_USD.pk)]
     rule_2_channel_ids = [graphene.Node.to_global_id("Channel", channel_PLN.pk)]
@@ -193,8 +193,8 @@ def test_promotion_create_by_app(
     product,
 ):
     # given
-    start_date = timezone.now() - timedelta(days=30)
-    end_date = timezone.now() + timedelta(days=30)
+    start_date = timezone.now() - datetime.timedelta(days=30)
+    end_date = timezone.now() + datetime.timedelta(days=30)
     channel_ids = [graphene.Node.to_global_id("Channel", channel_USD.pk)]
     promotion_name = "test promotion"
     catalogue_predicate = {
@@ -274,8 +274,8 @@ def test_promotion_create_by_customer(
     category,
 ):
     # given
-    start_date = timezone.now() - timedelta(days=30)
-    end_date = timezone.now() + timedelta(days=30)
+    start_date = timezone.now() - datetime.timedelta(days=30)
+    end_date = timezone.now() + datetime.timedelta(days=30)
     channel_ids = [graphene.Node.to_global_id("Channel", channel_USD.pk)]
     promotion_name = "test promotion"
     catalogue_predicate = {
@@ -326,8 +326,8 @@ def test_promotion_create_with_order_rule(
 ):
     # given
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
-    start_date = timezone.now() - timedelta(days=30)
-    end_date = timezone.now() + timedelta(days=30)
+    start_date = timezone.now() - datetime.timedelta(days=30)
+    end_date = timezone.now() + datetime.timedelta(days=30)
 
     promotion_name = "test promotion"
     order_predicate = {
@@ -388,8 +388,8 @@ def test_promotion_create_fixed_reward_value_multiple_currencies(
     product,
 ):
     # given
-    start_date = timezone.now() - timedelta(days=30)
-    end_date = timezone.now() + timedelta(days=30)
+    start_date = timezone.now() - datetime.timedelta(days=30)
+    end_date = timezone.now() + datetime.timedelta(days=30)
     channel_ids = [
         graphene.Node.to_global_id("Channel", channel.pk)
         for channel in [channel_USD, channel_PLN]
@@ -459,8 +459,8 @@ def test_promotion_create_invalid_price_precision(
     product,
 ):
     # given
-    start_date = timezone.now() - timedelta(days=30)
-    end_date = timezone.now() + timedelta(days=30)
+    start_date = timezone.now() - datetime.timedelta(days=30)
+    end_date = timezone.now() + datetime.timedelta(days=30)
     channel_ids = [graphene.Node.to_global_id("Channel", channel_USD.pk)]
 
     promotion_name = "test promotion"
@@ -526,8 +526,8 @@ def test_promotion_create_invalid_percentage_value(
     product,
 ):
     # given
-    start_date = timezone.now() - timedelta(days=30)
-    end_date = timezone.now() + timedelta(days=30)
+    start_date = timezone.now() - datetime.timedelta(days=30)
+    end_date = timezone.now() + datetime.timedelta(days=30)
     channel_ids = [
         graphene.Node.to_global_id("Channel", channel.pk)
         for channel in [channel_USD, channel_PLN]
@@ -599,7 +599,7 @@ def test_promotion_create_only_name_and_end_date(
     product,
 ):
     # given
-    end_date = timezone.now() + timedelta(days=30)
+    end_date = timezone.now() + datetime.timedelta(days=30)
     promotion_name = "test promotion"
 
     variables = {
@@ -651,8 +651,8 @@ def test_promotion_create_start_date_and_end_date_after_current_date(
 ):
     # given
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
-    start_date = timezone.now() + timedelta(days=10)
-    end_date = timezone.now() + timedelta(days=30)
+    start_date = timezone.now() + datetime.timedelta(days=10)
+    end_date = timezone.now() + datetime.timedelta(days=30)
 
     rule_1_channel_ids = [graphene.Node.to_global_id("Channel", channel_USD.pk)]
     rule_2_channel_ids = [graphene.Node.to_global_id("Channel", channel_PLN.pk)]
@@ -765,8 +765,8 @@ def test_promotion_create_missing_predicate(
 ):
     # given
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
-    start_date = timezone.now() - timedelta(days=30)
-    end_date = timezone.now() + timedelta(days=30)
+    start_date = timezone.now() - datetime.timedelta(days=30)
+    end_date = timezone.now() + datetime.timedelta(days=30)
 
     promotion_name = "test promotion"
     catalogue_predicate = {
@@ -841,8 +841,8 @@ def test_promotion_create_missing_reward_value(
 ):
     # given
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
-    start_date = timezone.now() - timedelta(days=30)
-    end_date = timezone.now() + timedelta(days=30)
+    start_date = timezone.now() - datetime.timedelta(days=30)
+    end_date = timezone.now() + datetime.timedelta(days=30)
 
     promotion_name = "test promotion"
     catalogue_predicate = {
@@ -910,8 +910,8 @@ def test_promotion_create_missing_reward_value_type(
 ):
     # given
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
-    start_date = timezone.now() - timedelta(days=30)
-    end_date = timezone.now() + timedelta(days=30)
+    start_date = timezone.now() - datetime.timedelta(days=30)
+    end_date = timezone.now() + datetime.timedelta(days=30)
 
     promotion_name = "test promotion"
     catalogue_predicate = {
@@ -978,8 +978,8 @@ def test_promotion_create_invalid_channel_id(
 ):
     # given
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
-    start_date = timezone.now() - timedelta(days=30)
-    end_date = timezone.now() + timedelta(days=30)
+    start_date = timezone.now() - datetime.timedelta(days=30)
+    end_date = timezone.now() + datetime.timedelta(days=30)
 
     promotion_name = "test promotion"
     catalogue_predicate = {
@@ -1050,8 +1050,8 @@ def test_promotion_create_mixed_catalogue_and_order_rules(
 ):
     # given
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
-    start_date = timezone.now() - timedelta(days=30)
-    end_date = timezone.now() + timedelta(days=30)
+    start_date = timezone.now() - datetime.timedelta(days=30)
+    end_date = timezone.now() + datetime.timedelta(days=30)
 
     rule_1_channel_ids = [graphene.Node.to_global_id("Channel", channel_USD.pk)]
     rule_2_channel_ids = [graphene.Node.to_global_id("Channel", channel_PLN.pk)]
@@ -1139,8 +1139,8 @@ def test_promotion_create_mixed_currencies_for_price_based_predicate(
 ):
     # given
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
-    start_date = timezone.now() - timedelta(days=30)
-    end_date = timezone.now() + timedelta(days=30)
+    start_date = timezone.now() - datetime.timedelta(days=30)
+    end_date = timezone.now() + datetime.timedelta(days=30)
 
     promotion_name = "test promotion"
     order_predicate = {
@@ -1203,8 +1203,8 @@ def test_promotion_create_multiple_errors(
 ):
     # given
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
-    start_date = timezone.now() - timedelta(days=30)
-    end_date = timezone.now() + timedelta(days=30)
+    start_date = timezone.now() - datetime.timedelta(days=30)
+    end_date = timezone.now() + datetime.timedelta(days=30)
 
     channel_ids = [graphene.Node.to_global_id("Channel", -1)]
     promotion_name = "test promotion"
@@ -1287,8 +1287,8 @@ def test_promotion_create_end_date_before_start_date(
 ):
     # given
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
-    start_date = timezone.now() + timedelta(days=30)
-    end_date = timezone.now() - timedelta(days=30)
+    start_date = timezone.now() + datetime.timedelta(days=30)
+    end_date = timezone.now() - datetime.timedelta(days=30)
 
     promotion_name = "test promotion"
     catalogue_predicate = {
@@ -1358,8 +1358,8 @@ def test_promotion_create_invalid_catalogue_predicate(
 ):
     # given
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
-    start_date = timezone.now() - timedelta(days=30)
-    end_date = timezone.now() + timedelta(days=30)
+    start_date = timezone.now() - datetime.timedelta(days=30)
+    end_date = timezone.now() + datetime.timedelta(days=30)
 
     rule_1_channel_ids = [graphene.Node.to_global_id("Channel", channel_USD.pk)]
     rule_2_channel_ids = [graphene.Node.to_global_id("Channel", channel_PLN.pk)]
@@ -1448,8 +1448,8 @@ def test_promotion_create_exceeds_rules_number_limit(
 ):
     # given
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
-    start_date = timezone.now() - timedelta(days=30)
-    end_date = timezone.now() + timedelta(days=30)
+    start_date = timezone.now() - datetime.timedelta(days=30)
+    end_date = timezone.now() + datetime.timedelta(days=30)
 
     promotion_name = "test promotion"
     order_predicate = {
@@ -1508,8 +1508,8 @@ def test_promotion_create_exceeds_gifts_number_limit(
     # given
     gift_limit = 1
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
-    start_date = timezone.now() - timedelta(days=30)
-    end_date = timezone.now() + timedelta(days=30)
+    start_date = timezone.now() - datetime.timedelta(days=30)
+    end_date = timezone.now() + datetime.timedelta(days=30)
 
     promotion_name = "test promotion"
     order_predicate = {
@@ -1571,8 +1571,8 @@ def test_promotion_create_rules_without_channels_and_percentage_reward(
 ):
     # given
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
-    start_date = timezone.now() - timedelta(days=30)
-    end_date = timezone.now() + timedelta(days=30)
+    start_date = timezone.now() - datetime.timedelta(days=30)
+    end_date = timezone.now() + datetime.timedelta(days=30)
 
     catalogue_predicate = {
         "variantPredicate": {
@@ -2066,8 +2066,8 @@ def test_promotion_create_without_catalogue_predicate(
     product,
 ):
     # given
-    start_date = timezone.now() - timedelta(days=30)
-    end_date = timezone.now() + timedelta(days=30)
+    start_date = timezone.now() - datetime.timedelta(days=30)
+    end_date = timezone.now() + datetime.timedelta(days=30)
     channel_ids = [
         graphene.Node.to_global_id("Channel", channel.pk)
         for channel in [channel_USD, channel_PLN]

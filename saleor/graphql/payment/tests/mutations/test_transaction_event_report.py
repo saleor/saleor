@@ -1,11 +1,10 @@
-from datetime import datetime
+import datetime
 from decimal import Decimal
 from unittest.mock import patch
 from uuid import uuid4
 
 import graphene
 import pytest
-import pytz
 from django.utils import timezone
 from freezegun import freeze_time
 
@@ -1294,7 +1293,7 @@ def test_transaction_event_updates_checkout_payment_statuses(
 
 @pytest.mark.parametrize(
     "current_last_transaction_modified_at",
-    [None, datetime(2000, 5, 31, 12, 0, 0, tzinfo=pytz.UTC)],
+    [None, datetime.datetime(2000, 5, 31, 12, 0, 0, tzinfo=datetime.UTC)],
 )
 @freeze_time("2018-05-31 12:00:01")
 def test_transaction_event_updates_checkout_last_transaction_modified_at(

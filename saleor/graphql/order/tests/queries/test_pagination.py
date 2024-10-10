@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+import datetime
 from decimal import Decimal
 
 import graphene
@@ -142,17 +142,57 @@ QUERY_DRAFT_ORDERS_WITH_PAGINATION = """
         (
             {
                 "created": {
-                    "gte": str(date.today() - timedelta(days=3)),
-                    "lte": str(date.today()),
+                    "gte": str(
+                        datetime.datetime.now(tz=datetime.UTC).date()
+                        - datetime.timedelta(days=3)
+                    ),
+                    "lte": str(datetime.datetime.now(tz=datetime.UTC).date()),
                 }
             },
             [3.0, 2.0],
             3,
         ),
-        ({"created": {"gte": str(date.today() - timedelta(days=3))}}, [3.0, 2.0], 3),
-        ({"created": {"lte": str(date.today())}}, [0.0, 3.0], 4),
-        ({"created": {"lte": str(date.today() - timedelta(days=3))}}, [0.0], 1),
-        ({"created": {"gte": str(date.today() + timedelta(days=1))}}, [], 0),
+        (
+            {
+                "created": {
+                    "gte": str(
+                        datetime.datetime.now(tz=datetime.UTC).date()
+                        - datetime.timedelta(days=3)
+                    )
+                }
+            },
+            [3.0, 2.0],
+            3,
+        ),
+        (
+            {"created": {"lte": str(datetime.datetime.now(tz=datetime.UTC).date())}},
+            [0.0, 3.0],
+            4,
+        ),
+        (
+            {
+                "created": {
+                    "lte": str(
+                        datetime.datetime.now(tz=datetime.UTC).date()
+                        - datetime.timedelta(days=3)
+                    )
+                }
+            },
+            [0.0],
+            1,
+        ),
+        (
+            {
+                "created": {
+                    "gte": str(
+                        datetime.datetime.now(tz=datetime.UTC).date()
+                        + datetime.timedelta(days=1)
+                    )
+                }
+            },
+            [],
+            0,
+        ),
     ],
 )
 def test_order_query_pagination_with_filter_created(
@@ -359,17 +399,57 @@ def test_draft_order_query_pagination_with_filter_customer_fields(
         (
             {
                 "created": {
-                    "gte": str(date.today() - timedelta(days=3)),
-                    "lte": str(date.today()),
+                    "gte": str(
+                        datetime.datetime.now(tz=datetime.UTC).date()
+                        - datetime.timedelta(days=3)
+                    ),
+                    "lte": str(datetime.datetime.now(tz=datetime.UTC).date()),
                 }
             },
             3,
             [3.0, 2.0],
         ),
-        ({"created": {"gte": str(date.today() - timedelta(days=3))}}, 3, [3.0, 2.0]),
-        ({"created": {"lte": str(date.today())}}, 4, [0.0, 3.0]),
-        ({"created": {"lte": str(date.today() - timedelta(days=3))}}, 1, [0.0]),
-        ({"created": {"gte": str(date.today() + timedelta(days=1))}}, 0, []),
+        (
+            {
+                "created": {
+                    "gte": str(
+                        datetime.datetime.now(tz=datetime.UTC).date()
+                        - datetime.timedelta(days=3)
+                    )
+                }
+            },
+            3,
+            [3.0, 2.0],
+        ),
+        (
+            {"created": {"lte": str(datetime.datetime.now(tz=datetime.UTC).date())}},
+            4,
+            [0.0, 3.0],
+        ),
+        (
+            {
+                "created": {
+                    "lte": str(
+                        datetime.datetime.now(tz=datetime.UTC).date()
+                        - datetime.timedelta(days=3)
+                    )
+                }
+            },
+            1,
+            [0.0],
+        ),
+        (
+            {
+                "created": {
+                    "gte": str(
+                        datetime.datetime.now(tz=datetime.UTC).date()
+                        + datetime.timedelta(days=1)
+                    )
+                }
+            },
+            0,
+            [],
+        ),
     ],
 )
 def test_draft_order_query_pagination_with_filter_created(

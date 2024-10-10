@@ -1,7 +1,6 @@
 import datetime
 from unittest.mock import ANY, MagicMock, Mock, patch
 
-import pytz
 from django.core.files import File
 from django.test import override_settings
 from django.utils import timezone
@@ -108,13 +107,13 @@ def test_on_task_failure(send_export_failed_info_mock, user_export_file):
     assert user_export_file.created_at
     previous_updated_at = user_export_file.updated_at
 
-    with freeze_time(datetime.datetime.now()) as frozen_datetime:
+    with freeze_time(datetime.datetime.now(tz=datetime.UTC)):
         # when
         ExportTask().on_failure(exc, task_id, args, kwargs, info)
 
         # then
         user_export_file.refresh_from_db()
-        assert user_export_file.updated_at == pytz.utc.localize(frozen_datetime())
+        assert user_export_file.updated_at == datetime.datetime.now(tz=datetime.UTC)
 
     assert user_export_file.updated_at != previous_updated_at
     assert user_export_file.status == JobStatus.FAILED
@@ -148,13 +147,13 @@ def test_on_task_failure_for_app(send_export_failed_info_mock, app_export_file):
     assert app_export_file.created_at
     previous_updated_at = app_export_file.updated_at
 
-    with freeze_time(datetime.datetime.now()) as frozen_datetime:
+    with freeze_time(datetime.datetime.now(tz=datetime.UTC)):
         # when
         ExportTask().on_failure(exc, task_id, args, kwargs, info)
 
         # then
         app_export_file.refresh_from_db()
-        assert app_export_file.updated_at == pytz.utc.localize(frozen_datetime())
+        assert app_export_file.updated_at == datetime.datetime.now(tz=datetime.UTC)
 
     assert app_export_file.updated_at != previous_updated_at
     assert app_export_file.status == JobStatus.FAILED
@@ -184,13 +183,13 @@ def test_on_task_success(user_export_file):
     assert user_export_file.created_at
     previous_updated_at = user_export_file.updated_at
 
-    with freeze_time(datetime.datetime.now()) as frozen_datetime:
+    with freeze_time(datetime.datetime.now(tz=datetime.UTC)):
         # when
         ExportTask().on_success(None, task_id, args, kwargs)
 
         # then
         user_export_file.refresh_from_db()
-        assert user_export_file.updated_at == pytz.utc.localize(frozen_datetime())
+        assert user_export_file.updated_at == datetime.datetime.now(tz=datetime.UTC)
         assert user_export_file.updated_at != previous_updated_at
 
     assert user_export_file.status == JobStatus.SUCCESS

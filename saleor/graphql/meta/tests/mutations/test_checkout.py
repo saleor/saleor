@@ -1,4 +1,4 @@
-from datetime import timedelta
+import datetime
 from unittest.mock import patch
 
 import graphene
@@ -391,7 +391,7 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_checkout_updated(
     ) = setup_checkout_webhooks(WebhookEventAsyncType.CHECKOUT_UPDATED)
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    checkout.price_expiration = timezone.now() - timedelta(hours=10)
+    checkout.price_expiration = timezone.now() - datetime.timedelta(hours=10)
     checkout.save(update_fields=["price_expiration"])
     # when
     response = execute_update_public_metadata_for_item(
@@ -472,7 +472,7 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_updated_metadata(
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    checkout.price_expiration = timezone.now() - timedelta(hours=10)
+    checkout.price_expiration = timezone.now() - datetime.timedelta(hours=10)
     checkout.save(update_fields=["price_expiration"])
 
     # when

@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+import datetime
 from unittest.mock import ANY, patch
 from uuid import uuid4
 
@@ -653,7 +653,7 @@ def test_product_variant_bulk_create_preorder_channel_listings_input(
 
     global_threshold = 10
     end_date = (
-        (datetime.now() + timedelta(days=3))
+        (datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(days=3))
         .astimezone()
         .replace(microsecond=0)
         .isoformat()

@@ -1,9 +1,9 @@
+import datetime
 import functools
 import logging
 from collections.abc import Generator
 from contextlib import contextmanager
 from dataclasses import dataclass
-from datetime import datetime, timedelta
 from functools import partial
 from time import monotonic
 from typing import TYPE_CHECKING, Callable, Optional
@@ -82,10 +82,10 @@ def get_webhooks(timeout=CACHE_TIMEOUT) -> list[WebhookData]:
         return webhooks_data
 
 
-def task_next_retry_date(retry_error: "Retry") -> Optional[datetime]:
+def task_next_retry_date(retry_error: "Retry") -> Optional[datetime.datetime]:
     if isinstance(retry_error.when, (int, float)):
-        return timezone.now() + timedelta(seconds=retry_error.when)
-    if isinstance(retry_error.when, datetime):
+        return timezone.now() + datetime.timedelta(seconds=retry_error.when)
+    if isinstance(retry_error.when, datetime.datetime):
         return retry_error.when
     return None
 
@@ -188,7 +188,7 @@ def report_view(method):
 
 
 def report_event_delivery_attempt(
-    attempt: "EventDeliveryAttempt", next_retry: Optional["datetime"] = None
+    attempt: "EventDeliveryAttempt", next_retry: Optional[datetime.datetime] = None
 ):
     if not settings.OBSERVABILITY_ACTIVE:
         return

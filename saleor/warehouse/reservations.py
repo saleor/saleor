@@ -1,6 +1,6 @@
+import datetime
 from collections import defaultdict, namedtuple
 from collections.abc import Iterable
-from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Optional
 
 from django.conf import settings
@@ -47,7 +47,7 @@ def reserve_stocks_and_preorders(
         else:
             stock_lines.append(line)
 
-    reserved_until = timezone.now() + timedelta(minutes=length_in_minutes)
+    reserved_until = timezone.now() + datetime.timedelta(minutes=length_in_minutes)
 
     if stock_lines:
         reserve_stocks(
@@ -87,7 +87,7 @@ def reserve_stocks(
     variants: Iterable["ProductVariant"],
     country_code: str,
     channel: "Channel",
-    reserved_until: datetime,
+    reserved_until: datetime.datetime,
     *,
     replace: bool = True,
 ):
@@ -183,7 +183,7 @@ def _create_stock_reservations(
     quantity_allocation_for_stocks: dict,
     quantity_reservation_for_stocks: dict,
     insufficient_stocks: list[InsufficientStockData],
-    reserved_until: datetime,
+    reserved_until: datetime.datetime,
 ) -> tuple[list[InsufficientStockData], list[Reservation]]:
     quantity = line.quantity
     quantity_reserved = 0
@@ -237,7 +237,7 @@ def reserve_preorders(
     variants: Iterable["ProductVariant"],
     country_code: str,
     channel_slug: str,
-    reserved_until: datetime,
+    reserved_until: datetime.datetime,
     *,
     replace: bool = True,
 ):
@@ -324,7 +324,7 @@ def _create_preorder_reservation(
     global_allocations: int,
     listings_reservations: dict[int, int],
     insufficient_stocks: list[InsufficientStockData],
-    reserved_until: datetime,
+    reserved_until: datetime.datetime,
 ):
     if listing.preorder_quantity_threshold is not None:
         available_channel_quantity = listing.available_preorder_quantity  # type: ignore

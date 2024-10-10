@@ -1,4 +1,4 @@
-from datetime import timedelta
+import datetime
 from decimal import Decimal
 
 import graphene
@@ -174,7 +174,7 @@ def test_voucher_queryset_active(voucher, channel_USD):
     vouchers = Voucher.objects.all()
     assert vouchers.count() == 1
     active_vouchers = Voucher.objects.active_in_channel(
-        date=timezone.now() - timedelta(days=1), channel_slug=channel_USD.slug
+        date=timezone.now() - datetime.timedelta(days=1), channel_slug=channel_USD.slug
     )
     assert active_vouchers.count() == 0
 

@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING, Callable, Optional, Union, overload
 from uuid import UUID
 
 import graphene
-import pytz
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Exists, OuterRef, QuerySet
@@ -488,7 +487,7 @@ def _get_available_for_purchase_variant_ids(
     channel: "Channel",
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
-    today = datetime.datetime.now(pytz.UTC)
+    today = datetime.datetime.now(tz=datetime.UTC)
     variants = ProductVariant.objects.using(database_connection_name).filter(
         id__in=available_variant_ids
     )

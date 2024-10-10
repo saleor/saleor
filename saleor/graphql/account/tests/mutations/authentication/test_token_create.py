@@ -1,8 +1,7 @@
-from datetime import datetime, timedelta, timezone
+import datetime
 from unittest.mock import patch
 
 import graphene
-import pytz
 from django.urls import reverse
 from freezegun import freeze_time
 
@@ -69,16 +68,30 @@ def test_create_token(_mocked_cache, api_client, customer_user, settings):
     payload = jwt_decode(token)
     assert payload["email"] == customer_user.email
     assert payload["user_id"] == graphene.Node.to_global_id("User", customer_user.id)
-    assert datetime.fromtimestamp(payload["iat"]) == datetime.utcnow()
-    expected_expiration_datetime = datetime.utcnow() + settings.JWT_TTL_ACCESS
-    assert datetime.fromtimestamp(payload["exp"]) == expected_expiration_datetime
+    assert datetime.datetime.fromtimestamp(
+        payload["iat"], tz=datetime.UTC
+    ) == datetime.datetime.now(tz=datetime.UTC)
+    expected_expiration_datetime = (
+        datetime.datetime.now(tz=datetime.UTC) + settings.JWT_TTL_ACCESS
+    )
+    assert (
+        datetime.datetime.fromtimestamp(payload["exp"], tz=datetime.UTC)
+        == expected_expiration_datetime
+    )
     assert payload["type"] == JWT_ACCESS_TYPE
 
     payload = jwt_decode(refreshToken)
     assert payload["email"] == customer_user.email
-    assert datetime.fromtimestamp(payload["iat"]) == datetime.utcnow()
-    expected_expiration_datetime = datetime.utcnow() + settings.JWT_TTL_REFRESH
-    assert datetime.fromtimestamp(payload["exp"]) == expected_expiration_datetime
+    assert datetime.datetime.fromtimestamp(
+        payload["iat"], tz=datetime.UTC
+    ) == datetime.datetime.now(tz=datetime.UTC)
+    expected_expiration_datetime = (
+        datetime.datetime.now(tz=datetime.UTC) + settings.JWT_TTL_REFRESH
+    )
+    assert (
+        datetime.datetime.fromtimestamp(payload["exp"], tz=datetime.UTC)
+        == expected_expiration_datetime
+    )
     assert payload["type"] == JWT_REFRESH_TYPE
     assert payload["token"] == customer_user.jwt_token_key
     assert payload["iss"] == build_absolute_uri(reverse("api"))
@@ -112,17 +125,31 @@ def test_create_token_with_audience(_mocked_cache, api_client, customer_user, se
     payload = jwt_decode(token)
     assert payload["email"] == customer_user.email
     assert payload["user_id"] == graphene.Node.to_global_id("User", customer_user.id)
-    assert datetime.fromtimestamp(payload["iat"]) == datetime.utcnow()
-    expected_expiration_datetime = datetime.utcnow() + settings.JWT_TTL_ACCESS
-    assert datetime.fromtimestamp(payload["exp"]) == expected_expiration_datetime
+    assert datetime.datetime.fromtimestamp(
+        payload["iat"], tz=datetime.UTC
+    ) == datetime.datetime.now(tz=datetime.UTC)
+    expected_expiration_datetime = (
+        datetime.datetime.now(tz=datetime.UTC) + settings.JWT_TTL_ACCESS
+    )
+    assert (
+        datetime.datetime.fromtimestamp(payload["exp"], tz=datetime.UTC)
+        == expected_expiration_datetime
+    )
     assert payload["type"] == JWT_ACCESS_TYPE
     assert payload["aud"] == f"custom:{audience}"
 
     payload = jwt_decode(refreshToken)
     assert payload["email"] == customer_user.email
-    assert datetime.fromtimestamp(payload["iat"]) == datetime.utcnow()
-    expected_expiration_datetime = datetime.utcnow() + settings.JWT_TTL_REFRESH
-    assert datetime.fromtimestamp(payload["exp"]) == expected_expiration_datetime
+    assert datetime.datetime.fromtimestamp(
+        payload["iat"], tz=datetime.UTC
+    ) == datetime.datetime.now(tz=datetime.UTC)
+    expected_expiration_datetime = (
+        datetime.datetime.now(tz=datetime.UTC) + settings.JWT_TTL_REFRESH
+    )
+    assert (
+        datetime.datetime.fromtimestamp(payload["exp"], tz=datetime.UTC)
+        == expected_expiration_datetime
+    )
     assert payload["type"] == JWT_REFRESH_TYPE
     assert payload["token"] == customer_user.jwt_token_key
     assert payload["aud"] == f"custom:{audience}"
@@ -150,9 +177,11 @@ def test_create_token_sets_cookie(
     )
     refresh_token = response.cookies["refreshToken"]
     assert refresh_token.value == expected_refresh_token
-    expected_expires = datetime.utcnow() + settings.JWT_TTL_REFRESH
-    expected_expires += timedelta(seconds=1)
-    expires = datetime.strptime(refresh_token["expires"], "%a, %d %b %Y  %H:%M:%S %Z")
+    expected_expires = datetime.datetime.now(tz=datetime.UTC) + settings.JWT_TTL_REFRESH
+    expected_expires += datetime.timedelta(seconds=1)
+    expires = datetime.datetime.strptime(
+        refresh_token["expires"], "%a, %d %b %Y  %H:%M:%S %Z"
+    ).replace(tzinfo=datetime.UTC)
     assert expires == expected_expires
     assert refresh_token["httponly"]
     assert refresh_token["secure"]
@@ -240,16 +269,30 @@ def test_create_token_unconfirmed_user_unconfirmed_login_enabled(
     payload = jwt_decode(token)
     assert payload["email"] == customer_user.email
     assert payload["user_id"] == graphene.Node.to_global_id("User", customer_user.id)
-    assert datetime.fromtimestamp(payload["iat"]) == datetime.utcnow()
-    expected_expiration_datetime = datetime.utcnow() + settings.JWT_TTL_ACCESS
-    assert datetime.fromtimestamp(payload["exp"]) == expected_expiration_datetime
+    assert datetime.datetime.fromtimestamp(
+        payload["iat"], tz=datetime.UTC
+    ) == datetime.datetime.now(tz=datetime.UTC)
+    expected_expiration_datetime = (
+        datetime.datetime.now(tz=datetime.UTC) + settings.JWT_TTL_ACCESS
+    )
+    assert (
+        datetime.datetime.fromtimestamp(payload["exp"], tz=datetime.UTC)
+        == expected_expiration_datetime
+    )
     assert payload["type"] == JWT_ACCESS_TYPE
 
     payload = jwt_decode(refreshToken)
     assert payload["email"] == customer_user.email
-    assert datetime.fromtimestamp(payload["iat"]) == datetime.utcnow()
-    expected_expiration_datetime = datetime.utcnow() + settings.JWT_TTL_REFRESH
-    assert datetime.fromtimestamp(payload["exp"]) == expected_expiration_datetime
+    assert datetime.datetime.fromtimestamp(
+        payload["iat"], tz=datetime.UTC
+    ) == datetime.datetime.now(tz=datetime.UTC)
+    expected_expiration_datetime = (
+        datetime.datetime.now(tz=datetime.UTC) + settings.JWT_TTL_REFRESH
+    )
+    assert (
+        datetime.datetime.fromtimestamp(payload["exp"], tz=datetime.UTC)
+        == expected_expiration_datetime
+    )
     assert payload["type"] == JWT_REFRESH_TYPE
     assert payload["token"] == customer_user.jwt_token_key
     assert payload["iss"] == build_absolute_uri(reverse("api"))
@@ -262,7 +305,7 @@ def test_create_token_deactivated_user(_mocked_cache, api_client, customer_user)
     variables = {"email": customer_user.email, "password": customer_user._password}
     customer_user.is_active = False
     customer_user.is_confirmed = True
-    customer_user.last_login = datetime(2020, 3, 18, tzinfo=timezone.utc)
+    customer_user.last_login = datetime.datetime(2020, 3, 18, tzinfo=datetime.UTC)
     customer_user.save()
     expected_error_code = AccountErrorCode.INACTIVE.value.upper()
 
@@ -283,7 +326,7 @@ def test_create_token_active_user_logged_before(
 ):
     # given
     variables = {"email": customer_user.email, "password": customer_user._password}
-    customer_user.last_login = datetime(2020, 3, 18, tzinfo=timezone.utc)
+    customer_user.last_login = datetime.datetime(2020, 3, 18, tzinfo=datetime.UTC)
     customer_user.save()
 
     # when
@@ -303,16 +346,30 @@ def test_create_token_active_user_logged_before(
     payload = jwt_decode(token)
     assert payload["email"] == customer_user.email
     assert payload["user_id"] == graphene.Node.to_global_id("User", customer_user.id)
-    assert datetime.fromtimestamp(payload["iat"]) == datetime.utcnow()
-    expected_expiration_datetime = datetime.utcnow() + settings.JWT_TTL_ACCESS
-    assert datetime.fromtimestamp(payload["exp"]) == expected_expiration_datetime
+    assert datetime.datetime.fromtimestamp(
+        payload["iat"], tz=datetime.UTC
+    ) == datetime.datetime.now(tz=datetime.UTC)
+    expected_expiration_datetime = (
+        datetime.datetime.now(tz=datetime.UTC) + settings.JWT_TTL_ACCESS
+    )
+    assert (
+        datetime.datetime.fromtimestamp(payload["exp"], tz=datetime.UTC)
+        == expected_expiration_datetime
+    )
     assert payload["type"] == JWT_ACCESS_TYPE
 
     payload = jwt_decode(refreshToken)
     assert payload["email"] == customer_user.email
-    assert datetime.fromtimestamp(payload["iat"]) == datetime.utcnow()
-    expected_expiration_datetime = datetime.utcnow() + settings.JWT_TTL_REFRESH
-    assert datetime.fromtimestamp(payload["exp"]) == expected_expiration_datetime
+    assert datetime.datetime.fromtimestamp(
+        payload["iat"], tz=datetime.UTC
+    ) == datetime.datetime.now(tz=datetime.UTC)
+    expected_expiration_datetime = (
+        datetime.datetime.now(tz=datetime.UTC) + settings.JWT_TTL_REFRESH
+    )
+    assert (
+        datetime.datetime.fromtimestamp(payload["exp"], tz=datetime.UTC)
+        == expected_expiration_datetime
+    )
     assert payload["type"] == JWT_REFRESH_TYPE
     assert payload["token"] == customer_user.jwt_token_key
     assert payload["iss"] == build_absolute_uri(reverse("api"))
@@ -346,12 +403,12 @@ def test_create_token_do_not_update_last_login_when_in_threshold(
 ):
     # given
     customer_password = customer_user._password
-    customer_user.last_login = datetime.now(tz=pytz.UTC)
+    customer_user.last_login = datetime.datetime.now(tz=datetime.UTC)
     customer_user.save()
     expected_last_login = customer_user.last_login
     expected_updated_at = customer_user.updated_at
     variables = {"email": customer_user.email, "password": customer_password}
-    time_in_threshold = datetime.now(tz=pytz.UTC) + timedelta(
+    time_in_threshold = datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(
         seconds=settings.TOKEN_UPDATE_LAST_LOGIN_THRESHOLD - 1
     )
 
@@ -372,13 +429,13 @@ def test_create_token_do_update_last_login_when_out_of_threshold(
 ):
     # given
     customer_password = customer_user._password
-    customer_user.last_login = datetime.now(tz=pytz.UTC)
+    customer_user.last_login = datetime.datetime.now(tz=datetime.UTC)
     customer_user.save()
     previous_last_login = customer_user.last_login
     previous_updated_at = customer_user.updated_at
 
     variables = {"email": customer_user.email, "password": customer_password}
-    time_out_of_threshold = datetime.now(tz=pytz.UTC) + timedelta(
+    time_out_of_threshold = datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(
         seconds=settings.TOKEN_UPDATE_LAST_LOGIN_THRESHOLD + 1
     )
 
@@ -404,7 +461,7 @@ def test_create_token_throttling_login_attempt_delay(
     # given
     dummy_cache = {}
     setup_mock_for_cache(dummy_cache, mocked_cache)
-    now = datetime.utcnow()
+    now = datetime.datetime.now(tz=datetime.UTC)
 
     variables = {"email": customer_user.email, "password": "incorrect-password"}
 
@@ -421,7 +478,7 @@ def test_create_token_throttling_login_attempt_delay(
     mocked_cache.set(ip_key, ip_attempts_count, timeout=100)
     mocked_cache.set(ip_user_key, ip_user_attempts_count, timeout=100)
     expected_delay = get_delay_time(ip_attempts_count + 1, ip_user_attempts_count + 1)
-    next_attempt = now + timedelta(seconds=expected_delay)
+    next_attempt = now + datetime.timedelta(seconds=expected_delay)
     mocked_cache.set(block_key, next_attempt, timeout=100)
 
     # when

@@ -1,5 +1,5 @@
+import datetime
 import json
-from datetime import timedelta
 from unittest import mock
 
 import graphene
@@ -704,7 +704,9 @@ def test_channel_create_set_delete_expired_orders_after(
         channel_data["orderSettings"]["deleteExpiredOrdersAfter"]
         == delete_expired_after
     )
-    assert channel.delete_expired_orders_after == timedelta(days=delete_expired_after)
+    assert channel.delete_expired_orders_after == datetime.timedelta(
+        days=delete_expired_after
+    )
 
 
 @pytest.mark.parametrize("delete_expired_after", [-1, 0, 121, 300])

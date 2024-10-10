@@ -25,11 +25,15 @@ def test_deactivate_expired_cards_task(
     gift_card, gift_card_used, gift_card_expiry_date, gift_card_created_by_staff
 ):
     # given
-    gift_card.expiry_date = datetime.date.today() - datetime.timedelta(days=1)
-    gift_card_used.expiry_date = datetime.date.today() - datetime.timedelta(days=10)
-    gift_card_created_by_staff.expiry_date = datetime.date.today() - datetime.timedelta(
-        days=10
-    )
+    gift_card.expiry_date = datetime.datetime.now(
+        tz=datetime.UTC
+    ).date() - datetime.timedelta(days=1)
+    gift_card_used.expiry_date = datetime.datetime.now(
+        tz=datetime.UTC
+    ).date() - datetime.timedelta(days=10)
+    gift_card_created_by_staff.expiry_date = datetime.datetime.now(
+        tz=datetime.UTC
+    ).date() - datetime.timedelta(days=10)
     gift_card_created_by_staff.is_active = False
     gift_cards = [gift_card, gift_card_used]
     GiftCard.objects.bulk_update(

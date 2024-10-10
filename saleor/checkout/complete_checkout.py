@@ -1,6 +1,6 @@
+import datetime
 import logging
 from collections.abc import Iterable
-from datetime import timedelta
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Optional, Union, cast
 from uuid import UUID
@@ -1760,7 +1760,7 @@ def _reserve_stocks_without_availability_check(
                 Reservation(
                     quantity_reserved=line.line.quantity,
                     reserved_until=timezone.now()
-                    + timedelta(seconds=settings.RESERVE_DURATION),
+                    + datetime.timedelta(seconds=settings.RESERVE_DURATION),
                     stock=variants_stocks_map[line.variant.id],
                     checkout_line=line.line,
                 )

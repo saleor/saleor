@@ -1,9 +1,8 @@
-from datetime import datetime, timedelta
+import datetime
 from decimal import Decimal
 from unittest.mock import call, patch
 
 import graphene
-import pytz
 from django.db.models import Sum
 from django.test import override_settings
 from freezegun import freeze_time
@@ -932,7 +931,8 @@ def test_draft_order_complete_unavailable_for_purchase(
 
     product = order.lines.first().variant.product
     product.channel_listings.update(
-        available_for_purchase_at=datetime.now(pytz.UTC) + timedelta(days=5)
+        available_for_purchase_at=datetime.datetime.now(tz=datetime.UTC)
+        + datetime.timedelta(days=5)
     )
 
     order_id = graphene.Node.to_global_id("Order", order.id)

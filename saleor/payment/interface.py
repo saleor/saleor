@@ -1,5 +1,5 @@
+import datetime
 from dataclasses import InitVar, dataclass, field
-from datetime import datetime
 from decimal import Decimal
 from enum import Enum
 from functools import cached_property
@@ -122,7 +122,7 @@ class TransactionRequestEventResponse:
     psp_reference: Optional[str]
     type: str
     amount: Decimal
-    time: Optional[datetime] = None
+    time: Optional[datetime.datetime] = None
     external_url: Optional[str] = ""
     message: Optional[str] = ""
 

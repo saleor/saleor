@@ -1,5 +1,5 @@
+import datetime
 import logging
-from datetime import timedelta
 from unittest.mock import patch
 
 import before_after
@@ -73,7 +73,7 @@ def test_authenticate_successful_first_attempt(
     assert mocked_cache.get(ip_key) is None
     assert mocked_cache.get(ip_user_key) is None
 
-    next_attempt = now + timedelta(seconds=MIN_DELAY)
+    next_attempt = now + datetime.timedelta(seconds=MIN_DELAY)
     mocked_cache.add.assert_called_once_with(block_key, next_attempt, timeout=MIN_DELAY)
     mocked_cache.set.assert_not_called()
     mocked_cache.incr.assert_not_called()
@@ -113,7 +113,7 @@ def test_authenticate_successful_subsequent_attempt(
     assert mocked_cache.get(ip_key) is None
     assert mocked_cache.get(ip_user_key) is None
 
-    next_attempt = now + timedelta(seconds=MIN_DELAY)
+    next_attempt = now + datetime.timedelta(seconds=MIN_DELAY)
     mocked_cache.add.assert_called_once_with(block_key, next_attempt, timeout=MIN_DELAY)
     mocked_cache.set.assert_not_called()
     mocked_cache.incr.assert_not_called()
@@ -150,7 +150,7 @@ def test_authenticate_incorrect_password_non_existing_email_first_attempt(
     ip_attempts_count = mocked_cache.get(ip_key)
     ip_user_attempts_count = mocked_cache.get(ip_user_key)
 
-    assert next_attempt == now + timedelta(seconds=MIN_DELAY)
+    assert next_attempt == now + datetime.timedelta(seconds=MIN_DELAY)
     assert ip_attempts_count == 1
     assert ip_user_attempts_count is None
     mock_incr_arg_set = {arg.args[0] for arg in mocked_cache.incr.call_args_list}
@@ -191,7 +191,7 @@ def test_authenticate_incorrect_password_non_existing_email_subsequent_attempt(
     updated_ip_attempts_count = mocked_cache.get(ip_key)
     ip_user_attempts_count = mocked_cache.get(ip_user_key)
 
-    assert next_attempt == now + timedelta(seconds=expected_delay)
+    assert next_attempt == now + datetime.timedelta(seconds=expected_delay)
     assert updated_ip_attempts_count == ip_attempts_count + 1
     assert ip_user_attempts_count is None
     mock_incr_arg_set = {arg.args[0] for arg in mocked_cache.incr.call_args_list}
@@ -227,7 +227,7 @@ def test_authenticate_incorrect_password_existing_email_first_attempt(
     ip_attempts_count = mocked_cache.get(ip_key)
     ip_user_attempts_count = mocked_cache.get(ip_user_key)
 
-    assert next_attempt == now + timedelta(seconds=MIN_DELAY)
+    assert next_attempt == now + datetime.timedelta(seconds=MIN_DELAY)
     assert ip_attempts_count == 1
     assert ip_user_attempts_count == 1
 
@@ -268,7 +268,7 @@ def test_authenticate_incorrect_password_existing_email_subsequent_attempt(
     updated_ip_attempts_count = mocked_cache.get(ip_key)
     updated_ip_user_attempts_count = mocked_cache.get(ip_user_key)
 
-    assert next_attempt == now + timedelta(seconds=expected_delay)
+    assert next_attempt == now + datetime.timedelta(seconds=expected_delay)
     assert updated_ip_attempts_count == ip_attempts_count + 1
     assert updated_ip_user_attempts_count == ip_user_attempts_count + 1
 
@@ -310,7 +310,7 @@ def test_authenticate_login_attempt_delayed(
     dummy_cache[ip_key] = {"value": ip_attempts_count, "ttl": 100}
     dummy_cache[ip_user_key] = {"value": ip_user_attempts_count, "ttl": 100}
     delay = get_delay_time(ip_attempts_count, ip_user_attempts_count)
-    next_attempt = now + timedelta(seconds=delay)
+    next_attempt = now + datetime.timedelta(seconds=delay)
     dummy_cache[block_key] = {"value": next_attempt, "ttl": delay}
 
     # when & then
@@ -343,7 +343,7 @@ def test_authenticate_race_condition(
     ip_key = get_cache_key_failed_ip(ip)
     ip_user_key = get_cache_key_failed_ip_with_user(ip, customer_user.id)
 
-    next_attempt = now + timedelta(seconds=MIN_DELAY)
+    next_attempt = now + datetime.timedelta(seconds=MIN_DELAY)
 
     # when
     def login_attempt(*args, **kwargs):
@@ -402,7 +402,7 @@ def test_authenticate_incorrect_credentials_max_attempts(
     updated_ip_attempts_count = mocked_cache.get(ip_key)
     updated_ip_user_attempts_count = mocked_cache.get(ip_user_key)
 
-    assert next_attempt == now + timedelta(seconds=expected_delay)
+    assert next_attempt == now + datetime.timedelta(seconds=expected_delay)
     assert updated_ip_attempts_count == ip_attempts_count + 1
     assert updated_ip_user_attempts_count == ip_user_attempts_count + 1
     assert "Unsuccessful logging attempts reached max value." in caplog.text
