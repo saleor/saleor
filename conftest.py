@@ -1,4 +1,5 @@
 import os
+from glob import glob
 
 import dj_database_url
 import django.test
@@ -36,6 +37,9 @@ pytest_plugins = [
     "saleor.graphql.webhook.tests.benchmark.fixtures",
     "saleor.tax.tests.fixtures",
     "saleor.webhook.tests.subscription_webhooks.fixtures",
+] + [
+    fixture_file.replace("/", ".").replace(".py", "")
+    for fixture_file in glob("saleor/**/tests/fixtures/[!__]*.py", recursive=True)
 ]
 
 
