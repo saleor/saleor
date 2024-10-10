@@ -57,7 +57,7 @@ def validate_value(
         )
 
     if not is_swatch_attr and any(
-        [value_data.get(field) for field in ONLY_SWATCH_FIELDS]
+        value_data.get(field) for field in ONLY_SWATCH_FIELDS
     ):
         message = (
             "Cannot define value, file and contentType fields for not "

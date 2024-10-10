@@ -78,10 +78,8 @@ def test_manager_with_default_configuration_for_channel_plugins(
     for _channel_slug, plugins in manager.plugins_per_channel.items():
         assert len(plugins) == 2
         assert all(
-            [
-                isinstance(plugin, (PluginSample, ChannelPluginSample))
-                for plugin in plugins
-            ]
+            isinstance(plugin, (PluginSample, ChannelPluginSample))
+            for plugin in plugins
         )
 
     # global plugin + plugins for each channel

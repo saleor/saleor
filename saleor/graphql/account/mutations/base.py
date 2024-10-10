@@ -95,7 +95,7 @@ class BaseAddressUpdate(ModelMutation, I18nMixin):
         cleaned_input = cls.clean_input(
             info=info, instance=instance, data=data.get("input")
         )
-        cls.update_metadata(instance, cleaned_input.pop("metadata", list()))
+        cls.update_metadata(instance, cleaned_input.pop("metadata", []))
         address = cls.validate_address(cleaned_input, instance=instance, info=info)
         cls.clean_instance(info, address)
         cls.save(info, address, cleaned_input)
@@ -270,7 +270,7 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
         if shipping_address_data:
-            address_metadata = shipping_address_data.pop("metadata", list())
+            address_metadata = shipping_address_data.pop("metadata", [])
             shipping_address = cls.validate_address(
                 shipping_address_data,
                 address_type=AddressType.SHIPPING,
@@ -281,7 +281,7 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
             cleaned_input[SHIPPING_ADDRESS_FIELD] = shipping_address
 
         if billing_address_data:
-            address_metadata = billing_address_data.pop("metadata", list())
+            address_metadata = billing_address_data.pop("metadata", [])
             billing_address = cls.validate_address(
                 billing_address_data,
                 address_type=AddressType.BILLING,

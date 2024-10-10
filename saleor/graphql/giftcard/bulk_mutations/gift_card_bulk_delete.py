@@ -34,7 +34,7 @@ class GiftCardBulkDelete(ModelBulkDeleteMutation):
 
     @classmethod
     def bulk_action(cls, info: ResolveInfo, queryset, /):
-        instances = [card for card in queryset]
+        instances = list(queryset)
         queryset.delete()
         webhooks = get_webhooks_for_event(WebhookEventAsyncType.GIFT_CARD_DELETED)
         manager = get_plugin_manager_promise(info.context).get()

@@ -1849,7 +1849,7 @@ class Order(ModelObjectType[models.Order]):
     def resolve_total_balance(root: models.Order, info):
         def _resolve_total_balance(data):
             granted_refunds, transactions, payments = data
-            if any([p.is_active for p in payments]):
+            if any(p.is_active for p in payments):
                 return root.total_balance
             else:
                 total_granted_refund = sum(

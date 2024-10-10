@@ -748,15 +748,14 @@ def test_transaction_event_report_event_already_exists_updates_available_actions
     response = get_graphql_content(response)
     transaction_report_data = response["data"]["transactionEventReport"]
     assert transaction_report_data["alreadyProcessed"] is True
-    assert set(transaction_report_data["transaction"]["actions"]) == set(
-        [
-            TransactionActionEnum.REFUND.name,
-            TransactionActionEnum.CHARGE.name,
-        ]
-    )
-    assert set(transaction.available_actions) == set(
-        [TransactionActionEnum.REFUND.value, TransactionActionEnum.CHARGE.value]
-    )
+    assert set(transaction_report_data["transaction"]["actions"]) == {
+        TransactionActionEnum.REFUND.name,
+        TransactionActionEnum.CHARGE.name,
+    }
+    assert set(transaction.available_actions) == {
+        TransactionActionEnum.REFUND.value,
+        TransactionActionEnum.CHARGE.value,
+    }
 
 
 def test_event_already_exists_do_not_overwrite_actions_when_not_provided_in_input(
@@ -827,15 +826,14 @@ def test_event_already_exists_do_not_overwrite_actions_when_not_provided_in_inpu
     response = get_graphql_content(response)
     transaction_report_data = response["data"]["transactionEventReport"]
     assert transaction_report_data["alreadyProcessed"] is True
-    assert set(transaction_report_data["transaction"]["actions"]) == set(
-        [
-            TransactionActionEnum.REFUND.name,
-            TransactionActionEnum.CHARGE.name,
-        ]
-    )
-    assert set(transaction.available_actions) == set(
-        [TransactionActionEnum.REFUND.value, TransactionActionEnum.CHARGE.value]
-    )
+    assert set(transaction_report_data["transaction"]["actions"]) == {
+        TransactionActionEnum.REFUND.name,
+        TransactionActionEnum.CHARGE.name,
+    }
+    assert set(transaction.available_actions) == {
+        TransactionActionEnum.REFUND.value,
+        TransactionActionEnum.CHARGE.value,
+    }
 
 
 def test_transaction_event_report_incorrect_amount_for_already_existing(
@@ -2710,9 +2708,7 @@ def test_transaction_event_report_updates_granted_refund_status_when_needed(
     assert granted_refund.status == expected_status
 
 
-@pytest.mark.parametrize(
-    "event_type", [event_type for event_type in OPTIONAL_AMOUNT_EVENTS]
-)
+@pytest.mark.parametrize("event_type", list(OPTIONAL_AMOUNT_EVENTS))
 def test_transaction_event_report_missing_amount(
     event_type,
     transaction_item_generator,

@@ -163,7 +163,7 @@ PROMOTION_EVENT_MAP = {
 
 class PromotionEvent(graphene.Union):
     class Meta:
-        types = [v for v in PROMOTION_EVENT_MAP.values()]
+        types = list(PROMOTION_EVENT_MAP.values())
 
     @classmethod
     def resolve_type(cls, instance: models.PromotionEvent, _info):

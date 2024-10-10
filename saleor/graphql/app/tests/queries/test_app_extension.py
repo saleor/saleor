@@ -198,9 +198,7 @@ def test_app_extension_staff_user_fetching_access_token(
 
     assert extension_data["accessToken"]
     decoded_token = jwt_decode(extension_data["accessToken"])
-    assert set(decoded_token["permissions"]) == set(
-        ["MANAGE_PRODUCTS", "MANAGE_ORDERS"]
-    )
+    assert set(decoded_token["permissions"]) == {"MANAGE_PRODUCTS", "MANAGE_ORDERS"}
 
 
 def test_app_extension_access_token_with_audience(

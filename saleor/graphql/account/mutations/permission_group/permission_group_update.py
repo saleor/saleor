@@ -303,7 +303,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
 
         # check if user with manage staff will be added to the group
         if add_users:
-            if any([user.has_perm(manage_staff_permission) for user in add_users]):
+            if any(user.has_perm(manage_staff_permission) for user in add_users):
                 return True
 
         permissions = get_not_manageable_permissions_after_removing_users_from_group(

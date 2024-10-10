@@ -610,7 +610,7 @@ def where_filter_qs(
 
 
 def contains_filter_operator(input: dict[str, Union[dict, str]]):
-    return any([operator in input for operator in ["AND", "OR", "NOT"]])
+    return any(operator in input for operator in ["AND", "OR", "NOT"])
 
 
 def _handle_and_filter_input(

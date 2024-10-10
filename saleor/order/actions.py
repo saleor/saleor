@@ -1612,7 +1612,7 @@ def create_replace_order(
     """Create draft order with lines to replace."""
 
     replace_order = _populate_replace_order_fields(original_order)
-    order_line_to_create: dict[OrderLineIDType, OrderLine] = dict()
+    order_line_to_create: dict[OrderLineIDType, OrderLine] = {}
     # transaction is needed to ensure data consistency for order lines
     with traced_atomic_transaction():
         # iterate over lines without fulfillment to get the items for replace.
@@ -1772,7 +1772,7 @@ def create_return_fulfillment(
             shipping_refund_amount=shipping_refund_amount,
             manager=manager,
         )
-        returned_lines: dict[OrderLineIDType, tuple[QuantityType, OrderLine]] = dict()
+        returned_lines: dict[OrderLineIDType, tuple[QuantityType, OrderLine]] = {}
         order_lines_with_fulfillment = OrderLine.objects.in_bulk(
             [line_data.line.order_line_id for line_data in fulfillment_lines]
         )
@@ -1982,7 +1982,7 @@ def _process_refund(
     refund_shipping_costs: bool,
     manager: "PluginsManager",
 ):
-    lines_to_refund: dict[OrderLineIDType, tuple[QuantityType, OrderLine]] = dict()
+    lines_to_refund: dict[OrderLineIDType, tuple[QuantityType, OrderLine]] = {}
     refund_data = RefundData(
         order_lines_to_refund=order_lines_to_refund,
         fulfillment_lines_to_refund=fulfillment_lines_to_refund,

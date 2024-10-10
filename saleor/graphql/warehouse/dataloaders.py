@@ -439,7 +439,7 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
                         )
                     )
 
-                    variant_ids = list(set(key[0] for key in keys))
+                    variant_ids = list({key[0] for key in keys})
                     warehouse_ids = {
                         warehouse_id
                         for warehouse_ids in warehouse_ids_by_country_and_channel_map.values()  # noqa: E501
@@ -501,7 +501,7 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
                 self.context
             ).load_many(channel_ids)
 
-            country_codes = list(set(key[1] for key in keys if key[1]))
+            country_codes = list({key[1] for key in keys if key[1]})
             shipping_zones_by_country = ShippingZonesByCountryLoader(
                 self.context
             ).load_many(country_codes)
@@ -510,7 +510,7 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
                 [shipping_zones_by_channel, shipping_zones_by_country]
             ).then(with_shipping_zones)
 
-        channel_slugs = list(set(key[2] for key in keys if key[2]))
+        channel_slugs = list({key[2] for key in keys if key[2]})
         return (
             ChannelBySlugLoader(self.context)
             .load_many(channel_slugs)

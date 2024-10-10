@@ -466,7 +466,7 @@ def test_order_queryset_confirmed(draft_order, channel_USD):
     confirmed_orders = Order.objects.confirmed()
 
     assert draft_order not in confirmed_orders
-    assert all([order in confirmed_orders for order in other_orders])
+    assert all(order in confirmed_orders for order in other_orders)
 
 
 def test_order_queryset_drafts(draft_order, channel_USD):
@@ -482,7 +482,7 @@ def test_order_queryset_drafts(draft_order, channel_USD):
     draft_orders = Order.objects.drafts()
 
     assert draft_order in draft_orders
-    assert all([order not in draft_orders for order in other_orders])
+    assert all(order not in draft_orders for order in other_orders)
 
 
 def test_order_queryset_to_ship(settings, channel_USD):
@@ -530,8 +530,8 @@ def test_order_queryset_to_ship(settings, channel_USD):
 
     orders = Order.objects.ready_to_fulfill()
 
-    assert all([order in orders for order in orders_to_ship])
-    assert all([order not in orders for order in orders_not_to_ship])
+    assert all(order in orders for order in orders_to_ship)
+    assert all(order not in orders for order in orders_not_to_ship)
 
 
 def test_queryset_ready_to_capture(channel_USD):

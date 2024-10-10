@@ -2564,7 +2564,7 @@ def test_query_checkout_lines(
     ]
     assert expected_lines_ids == checkout_lines_ids
     is_gift_flags = [line["node"]["isGift"] for line in lines]
-    assert all([item is False for item in is_gift_flags])
+    assert all(item is False for item in is_gift_flags)
 
 
 def test_query_checkout_lines_with_meta(
@@ -2590,7 +2590,7 @@ def test_query_checkout_lines_with_meta(
     }
     """
     checkout = checkout_with_item
-    items = [item for item in checkout]
+    items = list(checkout)
 
     metadata_key = "md key"
     metadata_value = "md value"

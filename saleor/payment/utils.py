@@ -687,7 +687,7 @@ def get_payment_token(payment: Payment):
 def is_currency_supported(currency: str, gateway_id: str, manager: "PluginsManager"):
     """Return true if the given gateway supports given currency."""
     available_gateways = manager.list_payment_gateways(currency=currency)
-    return any([gateway.id == gateway_id for gateway in available_gateways])
+    return any(gateway.id == gateway_id for gateway in available_gateways)
 
 
 def price_from_minor_unit(value: str, currency: str):

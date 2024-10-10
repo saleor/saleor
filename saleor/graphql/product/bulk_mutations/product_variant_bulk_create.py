@@ -843,9 +843,7 @@ class ProductVariantBulkCreate(BaseMutation):
                 attribute_data[0].type == AttributeType.PRODUCT_TYPE
                 and attribute_data[0].variant_selection
             ):
-                attributes_display.append(
-                    ", ".join([value for value in attribute_data[1].values])
-                )
+                attributes_display.append(", ".join(list(attribute_data[1].values)))
 
         name = " / ".join(sorted(attributes_display))
         if not name:
@@ -917,7 +915,7 @@ class ProductVariantBulkCreate(BaseMutation):
 
     @classmethod
     def post_save_actions(cls, info, instances, product):
-        variant_ids = set([instance.node.id for instance in instances])
+        variant_ids = {instance.node.id for instance in instances}
         channel_ids = set(
             models.ProductVariantChannelListing.objects.filter(
                 variant_id__in=variant_ids

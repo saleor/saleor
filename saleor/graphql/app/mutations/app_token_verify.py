@@ -32,5 +32,5 @@ class AppTokenVerify(BaseMutation):
         tokens = models.AppToken.objects.filter(
             Q(token_last_4=token[-4:]), Exists(apps.filter(pk=OuterRef("app_id")))
         ).values_list("auth_token", flat=True)
-        valid = any([check_password(token, auth_token) for auth_token in tokens])
+        valid = any(check_password(token, auth_token) for auth_token in tokens)
         return AppTokenVerify(valid=valid)

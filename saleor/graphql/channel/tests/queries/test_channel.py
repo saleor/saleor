@@ -205,12 +205,16 @@ def test_query_channel_returns_countries_attached_to_shipping_zone(
     # then
     content = get_graphql_content(response)
     channel_data = content["data"]["channel"]
-    assert set([country["code"] for country in channel_data["countries"]]) == set(
-        ["PL", "DE", "FR"]
-    )
-    assert set([country["country"] for country in channel_data["countries"]]) == set(
-        ["Poland", "Germany", "France"]
-    )
+    assert {country["code"] for country in channel_data["countries"]} == {
+        "PL",
+        "DE",
+        "FR",
+    }
+    assert {country["country"] for country in channel_data["countries"]} == {
+        "Poland",
+        "Germany",
+        "France",
+    }
 
 
 def test_query_channel_returns_supported_shipping_methods(

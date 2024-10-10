@@ -232,9 +232,7 @@ class CheckoutCreateFromOrder(BaseMutation):
         global_quantity_limit: Optional[int],
     ) -> tuple[set[int], list[order_models.OrderLine], list[dict[str, Any]]]:
         variant_errors: list[dict[str, Any]] = []
-        variant_ids_set = set(
-            [line.variant_id for line in order_lines if line.variant_id]
-        )
+        variant_ids_set = {line.variant_id for line in order_lines if line.variant_id}
         channel_id = (order.channel_id,)
         channel_id = cast(int, channel_id)
 
@@ -335,7 +333,7 @@ class CheckoutCreateFromOrder(BaseMutation):
                 item.variant.pk: item for item in e.items if item.variant
             }
             variant_ids_set = variant_ids_set - set(
-                list(variants_with_insufficient_stock.keys())
+                variants_with_insufficient_stock.keys()
             )
             error_codes = CheckoutCreateFromOrderUnavailableVariantErrorCode
             for line in available_order_lines:

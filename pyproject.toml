@@ -191,6 +191,7 @@ target-version = "py39"
   select = [
     "ASYNC",
     "B",
+    "C4",
     "D",
     "E",
     "F",

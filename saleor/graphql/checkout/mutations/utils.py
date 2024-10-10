@@ -484,7 +484,7 @@ def check_permissions_for_custom_prices(app, lines):
     Checkout line custom price can be changed only by app with
     handle checkout permission.
     """
-    if any(["price" in line for line in lines]) and (
+    if any("price" in line for line in lines) and (
         not app or not app.has_perm(CheckoutPermissions.HANDLE_CHECKOUTS)
     ):
         raise PermissionDenied(permissions=[CheckoutPermissions.HANDLE_CHECKOUTS])

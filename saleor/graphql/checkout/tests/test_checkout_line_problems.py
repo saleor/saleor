@@ -230,7 +230,7 @@ def test_lines_with_same_variant(api_client, checkout_with_items_and_shipping):
     assert len(content["data"]["checkout"]["problems"]) == 2
     problems = content["data"]["checkout"]["problems"]
     assert all(
-        [problem["availableQuantity"] == available_quantity for problem in problems]
+        problem["availableQuantity"] == available_quantity for problem in problems
     )
     problem_line_ids = [problem["line"]["id"] for problem in problems]
     problem_variant_ids = [problem["variant"]["id"] for problem in problems]

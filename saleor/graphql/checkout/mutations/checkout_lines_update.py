@@ -142,10 +142,8 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
         # if the requestor is not app, the quantity is required for all lines
         if not app:
             if any(
-                [
-                    line_data.quantity_to_update is False
-                    for line_data in checkout_lines_data
-                ]
+                line_data.quantity_to_update is False
+                for line_data in checkout_lines_data
             ):
                 raise ValidationError(
                     {

@@ -42,9 +42,7 @@ class AttributeData:
 
 
 def get_attribute_data_from_order_lines(lines: Iterable["OrderLine"]) -> AttributeData:
-    product_ids = set(
-        [line.variant.product_id for line in lines if line.variant_id]  # type: ignore
-    )
+    product_ids = {line.variant.product_id for line in lines if line.variant_id}  # type: ignore
     assigned_product_attribute_values = (
         AssignedProductAttributeValue.objects.using(
             settings.DATABASE_CONNECTION_REPLICA_NAME
@@ -62,13 +60,11 @@ def get_attribute_data_from_order_lines(lines: Iterable["OrderLine"]) -> Attribu
         settings.DATABASE_CONNECTION_REPLICA_NAME
     ).in_bulk(attribute_value_ids)
 
-    product_type_ids = set(
-        [
-            line.variant.product.product_type_id  # type: ignore
-            for line in lines
-            if line.variant_id
-        ]
-    )
+    product_type_ids = {
+        line.variant.product.product_type_id  # type: ignore
+        for line in lines
+        if line.variant_id
+    }
 
     attribute_products = AttributeProduct.objects.filter(
         product_type_id__in=product_type_ids

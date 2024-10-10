@@ -55,7 +55,7 @@ def delete_categories(categories_ids: list[Union[str, int]], manager):
     product_channel_listing.update(is_published=False, published_at=None)
     products = list(products)
 
-    category_instances = [cat for cat in categories]
+    category_instances = list(categories)
     categories.delete()
     webhooks = get_webhooks_for_event(WebhookEventAsyncType.CATEGORY_DELETED)
     for category in category_instances:

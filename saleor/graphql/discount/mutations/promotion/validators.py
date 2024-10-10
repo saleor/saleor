@@ -63,7 +63,7 @@ def clean_promotion_rule(
 def _get_gift_ids(cleaned_input, instance):
     """Return the set of gift ids for promotion rule valid after performing mutation."""
     if not instance and not any(
-        [field in cleaned_input for field in ["gifts", "add_gifts", "remove_gifts"]]
+        field in cleaned_input for field in ["gifts", "add_gifts", "remove_gifts"]
     ):
         return
 
@@ -533,7 +533,7 @@ def clean_predicate(predicate, error_class, index=None):
 
 
 def _contains_operator(input: dict[str, Union[dict, str]]):
-    return any([operator in input for operator in ["AND", "OR"]])
+    return any(operator in input for operator in ["AND", "OR"])
 
 
 def clean_fixed_discount_value(

@@ -292,12 +292,12 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         cleaned_input["channel"] = channel
         cleaned_input["currency"] = channel.currency_code
         shipping_address_metadata = (
-            data.get("shipping_address", {}).pop("metadata", list())
+            data.get("shipping_address", {}).pop("metadata", [])
             if data.get("shipping_address")
             else None
         )
         billing_address_metadata = (
-            data.get("billing_address", {}).pop("metadata", list())
+            data.get("billing_address", {}).pop("metadata", [])
             if data.get("billing_address")
             else None
         )

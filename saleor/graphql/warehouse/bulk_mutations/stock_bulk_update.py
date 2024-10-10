@@ -421,7 +421,7 @@ class StockBulkUpdate(BaseMutation):
             cleaned_inputs_map, warehouse_selector, variant_selector, index_error_map
         )
 
-        if any([bool(error) for error in index_error_map.values()]):
+        if any(bool(error) for error in index_error_map.values()):
             if error_policy == ErrorPolicyEnum.REJECT_EVERYTHING.value:
                 results = cls.get_results(instances_data_with_errors_list, True)
                 return StockBulkUpdate(count=0, results=results)

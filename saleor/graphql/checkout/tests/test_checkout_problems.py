@@ -268,7 +268,7 @@ def test_checkout_with_multiple_same_variant_and_out_of_stock(
     assert len(content["data"]["checkout"]["problems"]) == 2
     problems = content["data"]["checkout"]["problems"]
     assert all(
-        [problem["availableQuantity"] == available_quantity for problem in problems]
+        problem["availableQuantity"] == available_quantity for problem in problems
     )
     problem_line_ids = [problem["line"]["id"] for problem in problems]
     problem_variant_ids = [problem["variant"]["id"] for problem in problems]

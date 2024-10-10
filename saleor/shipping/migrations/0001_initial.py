@@ -316,6 +316,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterUniqueTogether(
             name="shippingmethodcountry",
-            unique_together=set([("country_code", "shipping_method")]),
+            unique_together={("country_code", "shipping_method")},
         ),
     ]

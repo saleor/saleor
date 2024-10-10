@@ -188,7 +188,7 @@ def test_handle_promotion_toggle(
     assert PromotionRule.objects.filter(variants_dirty=True).count() == 2
 
     mock_mark_catalogue_promotion_rules_as_dirty.assert_called_once_with(
-        set([promotions[index].id for index in indexes_of_toggle_sales])
+        {promotions[index].id for index in indexes_of_toggle_sales}
     )
 
     mock_clear_promotion_rule_variants_task.assert_called_once()
@@ -268,7 +268,7 @@ def test_decrease_voucher_code_usage_task_multiple_use(
     order_list = draft_order_list_with_multiple_use_voucher
     voucher = voucher_multiple_use
     voucher_codes = voucher.codes.all()[: len(order_list)]
-    assert all([voucher_code.used == 1 for voucher_code in voucher_codes])
+    assert all(voucher_code.used == 1 for voucher_code in voucher_codes)
     voucher_code_ids = [voucher_code.pk for voucher_code in voucher_codes]
 
     # when
@@ -276,7 +276,7 @@ def test_decrease_voucher_code_usage_task_multiple_use(
 
     # then
     voucher_codes = voucher.codes.all()[: len(order_list)]
-    assert all([voucher_code.used == 0 for voucher_code in voucher_codes])
+    assert all(voucher_code.used == 0 for voucher_code in voucher_codes)
 
 
 def test_decrease_voucher_code_usage_task_single_use(
@@ -286,7 +286,7 @@ def test_decrease_voucher_code_usage_task_single_use(
     order_list = draft_order_list_with_single_use_voucher
     voucher = voucher_single_use
     voucher_codes = voucher.codes.all()[: len(order_list)]
-    assert all([voucher_code.is_active is False for voucher_code in voucher_codes])
+    assert all(voucher_code.is_active is False for voucher_code in voucher_codes)
     voucher_code_ids = [voucher_code.pk for voucher_code in voucher_codes]
 
     # when
@@ -294,7 +294,7 @@ def test_decrease_voucher_code_usage_task_single_use(
 
     # then
     voucher_codes = voucher.codes.all()[: len(order_list)]
-    assert all([voucher_code.is_active is True for voucher_code in voucher_codes])
+    assert all(voucher_code.is_active is True for voucher_code in voucher_codes)
 
 
 def test_disconnect_voucher_codes_from_draft_orders(
@@ -306,11 +306,11 @@ def test_disconnect_voucher_codes_from_draft_orders(
     order.lines.add(order_line)
 
     order_list_ids = [order.id for order in order_list]
-    assert all([order.voucher_code for order in order_list])
+    assert all(order.voucher_code for order in order_list)
     for order in order_list:
         order.should_refresh_prices = False
     Order.objects.bulk_update(order_list, ["should_refresh_prices"])
-    assert all([order.should_refresh_prices is False for order in order_list])
+    assert all(order.should_refresh_prices is False for order in order_list)
 
     voucher_code = order.voucher_code
     order_discount = OrderDiscount.objects.create(
@@ -325,8 +325,8 @@ def test_disconnect_voucher_codes_from_draft_orders(
 
     # then
     order_list = Order.objects.filter(id__in=order_list_ids).all()
-    assert all([order.voucher_code is None for order in order_list])
-    assert all([order.should_refresh_prices is True for order in order_list])
+    assert all(order.voucher_code is None for order in order_list)
+    assert all(order.should_refresh_prices is True for order in order_list)
 
     with pytest.raises(line_discount._meta.model.DoesNotExist):
         line_discount.refresh_from_db()

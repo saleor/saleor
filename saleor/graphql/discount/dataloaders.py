@@ -167,7 +167,7 @@ class VoucherInfoByVoucherCodeLoader(DataLoader[str, Optional[VoucherInfo]]):
             .in_bulk(field_name="code")
         )
 
-        vouchers = set([code.voucher for code in voucher_codes_map.values()])
+        vouchers = {code.voucher for code in voucher_codes_map.values()}
         voucher_products = (
             Voucher.products.through.objects.using(self.database_connection_name)
             .filter(voucher__in=vouchers)

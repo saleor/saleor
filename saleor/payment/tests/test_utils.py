@@ -975,7 +975,7 @@ def test_create_transaction_event_from_request_and_webhook_response_full_event(
     # then
     transaction.refresh_from_db()
     assert len(transaction.available_actions) == 2
-    assert set(transaction.available_actions) == set(["charge", "cancel"])
+    assert set(transaction.available_actions) == {"charge", "cancel"}
     assert transaction.events.count() == 2
     request_event.refresh_from_db()
     assert request_event.psp_reference == expected_psp_reference
@@ -2234,7 +2234,7 @@ def test_create_transaction_event_for_transaction_session_success_sets_actions(
     # then
     transaction.refresh_from_db()
     assert len(transaction.available_actions) == 3
-    assert set(transaction.available_actions) == set(["refund", "charge", "cancel"])
+    assert set(transaction.available_actions) == {"refund", "charge", "cancel"}
 
 
 @pytest.mark.parametrize(

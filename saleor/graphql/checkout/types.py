@@ -1012,7 +1012,7 @@ class Checkout(ModelObjectType[models.Checkout]):
             product_ids = [line_info.product.id for line_info in lines]
 
             def with_product_types(product_types):
-                return any([pt.is_shipping_required for pt in product_types])
+                return any(pt.is_shipping_required for pt in product_types)
 
             return (
                 ProductTypeByProductIdLoader(info.context)

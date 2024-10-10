@@ -68,6 +68,4 @@ def test_attributes_query_with_filter(
     expected_flat_attributes_data = list(expected_qs.values_list("slug", flat=True))
 
     assert flat_attributes_data == expected_flat_attributes_data
-    assert any(
-        [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
-    )
+    assert any(str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns)

@@ -468,7 +468,7 @@ def test_allocate_stock_insufficient_stocks_for_multiple_lines(
             manager=get_plugins_manager(allow_replica=False),
         )
 
-    assert set(item.variant for item in exc._excinfo[1].items) == {variant, variant_2}
+    assert {item.variant for item in exc._excinfo[1].items} == {variant, variant_2}
 
     assert not Allocation.objects.filter(
         order_line=order_line, stock__in=stocks

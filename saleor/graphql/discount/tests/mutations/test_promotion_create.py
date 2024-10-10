@@ -959,10 +959,10 @@ def test_promotion_create_missing_reward_value_type(
 
     assert not data["promotion"]
     assert len(errors) == 2
-    error_fields = set([error["field"] for error in errors])
+    error_fields = {error["field"] for error in errors}
     assert len(error_fields) == 1
     assert "rewardValueType" in error_fields
-    error_codes = set([error["code"] for error in errors])
+    error_codes = {error["code"] for error in errors}
     assert len(error_codes) == 1
     assert PromotionCreateErrorCode.REQUIRED.name in error_codes
 
@@ -1713,7 +1713,7 @@ def test_promotion_create_events_by_staff_user(
 
     rule_ids = [event["ruleId"] for event in events if event.get("ruleId")]
     rules = data["promotion"]["rules"]
-    assert all([rule["id"] in rule_ids for rule in rules])
+    assert all(rule["id"] in rule_ids for rule in rules)
 
 
 def test_promotion_create_events_by_app(
@@ -1786,7 +1786,7 @@ def test_promotion_create_events_by_app(
 
     rule_ids = [event["ruleId"] for event in events if event.get("ruleId")]
     rules = data["promotion"]["rules"]
-    assert all([rule["id"] in rule_ids for rule in rules])
+    assert all(rule["id"] in rule_ids for rule in rules)
 
 
 @patch("saleor.product.tasks.update_products_discounted_prices_of_promotion_task.delay")
@@ -1847,7 +1847,7 @@ def test_promotion_create_gift_promotion(
     promotion = Promotion.objects.filter(name=promotion_name).get()
     rules = promotion.rules.all()
     assert len(rules) == 1
-    assert all([gift in product_variant_list for gift in rules[0].gifts.all()])
+    assert all(gift in product_variant_list for gift in rules[0].gifts.all())
     assert rules[0].reward_type == RewardTypeEnum.GIFT.value
 
 
