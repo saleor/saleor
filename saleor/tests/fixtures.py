@@ -86,7 +86,7 @@ from ..discount.utils.voucher import (
 from ..giftcard import GiftCardEvents
 from ..giftcard.models import GiftCard, GiftCardEvent, GiftCardTag
 from ..graphql.core.utils import to_global_id_or_none
-from ..menu.models import Menu, MenuItem, MenuItemTranslation
+from ..menu.models import Menu
 from ..order import OrderOrigin, OrderStatus
 from ..order.actions import cancel_fulfillment, fulfill_order_lines
 from ..order.base_calculations import base_order_subtotal
@@ -6750,37 +6750,6 @@ def collection_list(db, channel_USD):
 
 
 @pytest.fixture
-def menu(db):
-    return Menu.objects.get_or_create(name="test-navbar", slug="test-navbar")[0]
-
-
-@pytest.fixture
-def menu_item(menu):
-    return MenuItem.objects.create(menu=menu, name="Link 1", url="http://example.com/")
-
-
-@pytest.fixture
-def menu_item_list(menu):
-    menu_item_1 = MenuItem.objects.create(menu=menu, name="Link 1")
-    menu_item_2 = MenuItem.objects.create(menu=menu, name="Link 2")
-    menu_item_3 = MenuItem.objects.create(menu=menu, name="Link 3")
-    return menu_item_1, menu_item_2, menu_item_3
-
-
-@pytest.fixture
-def menu_with_items(menu, category, published_collection):
-    menu.items.create(name="Link 1", url="http://example.com/")
-    menu_item = menu.items.create(name="Link 2", url="http://example.com/")
-    menu.items.create(name=category.name, category=category, parent=menu_item)
-    menu.items.create(
-        name=published_collection.name,
-        collection=published_collection,
-        parent=menu_item,
-    )
-    return menu
-
-
-@pytest.fixture
 def translated_attribute(product):
     attribute = product.product_type.product_attributes.first()
     return AttributeTranslation.objects.create(
@@ -6934,13 +6903,6 @@ def promotion_rule_translation_fr(promotion_rule):
         promotion_rule=promotion_rule,
         name="French promotion rule name",
         description=dummy_editorjs("French promotion rule description."),
-    )
-
-
-@pytest.fixture
-def menu_item_translation_fr(menu_item):
-    return MenuItemTranslation.objects.create(
-        language_code="fr", menu_item=menu_item, name="French manu item name"
     )
 
 
