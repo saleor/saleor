@@ -3,26 +3,9 @@ from django.conf import settings
 
 from ....channel import AllocationStrategy
 from ....channel.models import Channel
-from ....tax import TaxCalculationStrategy
-from ....tax.models import TaxConfiguration
-
-
-def _create_channel_tax_configuration(channel):
-    # Use TAX_APP strategy, to enable calculations with plugins by default.
-    tax_configuration = TaxConfiguration.objects.create(
-        channel=channel,
-        metadata={"key": "value"},
-        private_metadata={"key": "value"},
-        tax_calculation_strategy=TaxCalculationStrategy.TAX_APP,
-    )
-    tax_configuration.country_exceptions.create(
-        country="PL",
-        tax_calculation_strategy=TaxCalculationStrategy.TAX_APP,
-    )
-    tax_configuration.country_exceptions.create(
-        country="DE",
-        tax_calculation_strategy=TaxCalculationStrategy.TAX_APP,
-    )
+from ....graphql.channel.tests.benchmark import CHANNEL_COUNT_IN_BENCHMARKS
+from ....tax.tests.fixtures.utils import create_channel_tax_configuration
+from ....warehouse.models import Warehouse
 
 
 @pytest.fixture
@@ -36,7 +19,7 @@ def channel_USD(db):
         is_active=True,
         allocation_strategy=AllocationStrategy.PRIORITIZE_HIGH_STOCK,
     )
-    _create_channel_tax_configuration(channel)
+    create_channel_tax_configuration(channel)
     return channel
 
 
@@ -50,7 +33,7 @@ def other_channel_USD(db):
         is_active=True,
         allocation_strategy=AllocationStrategy.PRIORITIZE_HIGH_STOCK,
     )
-    _create_channel_tax_configuration(channel)
+    create_channel_tax_configuration(channel)
     return channel
 
 
@@ -64,7 +47,7 @@ def channel_PLN(db):
         is_active=True,
         allocation_strategy=AllocationStrategy.PRIORITIZE_HIGH_STOCK,
     )
-    _create_channel_tax_configuration(channel)
+    create_channel_tax_configuration(channel)
     return channel
 
 
@@ -78,5 +61,33 @@ def channel_JPY(db):
         is_active=True,
         allocation_strategy=AllocationStrategy.PRIORITIZE_HIGH_STOCK,
     )
-    _create_channel_tax_configuration(channel)
+    create_channel_tax_configuration(channel)
     return channel
+
+
+@pytest.fixture
+def channels_for_benchmark(address):
+    warehouses = [
+        Warehouse(
+            address=address,
+            name=f"Example Warehouse {i}",
+            slug=f"example-warehouse-{i}",
+            email="test@example.com",
+        )
+        for i in range(CHANNEL_COUNT_IN_BENCHMARKS)
+    ]
+    created_warehouses = Warehouse.objects.bulk_create(warehouses)
+
+    channels = [
+        Channel(
+            name=f"channel {i}",
+            slug=f"channel-{i}",
+        )
+        for i in range(CHANNEL_COUNT_IN_BENCHMARKS)
+    ]
+    created_channels = Channel.objects.bulk_create(channels)
+
+    for channel, warehouse in zip(created_channels, created_warehouses):
+        channel.warehouses.add(warehouse)
+
+    return created_channels

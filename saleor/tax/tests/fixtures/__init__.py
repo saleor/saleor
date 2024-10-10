@@ -1,1 +1,1 @@
-from .tax_class import *  # noqa
+from .tax_class import *  # noqa: F403
