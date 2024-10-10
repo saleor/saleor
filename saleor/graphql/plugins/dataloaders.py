@@ -1,8 +1,10 @@
 from collections import defaultdict
 from functools import partial, wraps
+from typing import Optional
 
 from promise import Promise
 
+from ...app.models import App
 from ...plugins.manager import PluginsManager, get_plugins_manager
 from ...plugins.models import EmailTemplate
 from ..app.dataloaders import get_app_promise
@@ -46,7 +48,9 @@ class AnonymousPluginManagerLoader(DataLoader):
         return [get_plugins_manager(allow_replica, None) for key in keys]
 
 
-def plugin_manager_promise(context: SaleorContext, app) -> Promise[PluginsManager]:
+def plugin_manager_promise(
+    context: SaleorContext, app: Optional[App]
+) -> Promise[PluginsManager]:
     user = context.user
     requestor = app or user
     if requestor is None:
@@ -55,8 +59,9 @@ def plugin_manager_promise(context: SaleorContext, app) -> Promise[PluginsManage
 
 
 def get_plugin_manager_promise(context: SaleorContext) -> Promise[PluginsManager]:
-    app = get_app_promise(context).get()
-    return plugin_manager_promise(context, app)
+    app_promise = get_app_promise(context)
+    # todo: fix typing
+    return app_promise.then(lambda app: plugin_manager_promise(context, app))  # type: ignore
 
 
 def plugin_manager_promise_callback(func):

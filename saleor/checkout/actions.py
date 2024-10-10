@@ -178,6 +178,8 @@ def call_checkout_info_event(
         call_event_including_protected_events(event_func, checkout, webhooks=webhooks)
         return None
 
+    # todo: commented out for testing; this logic should be moved to Celery task which
+    # generates deferred payloads.
     _trigger_checkout_sync_webhooks(
         manager,
         checkout_info,

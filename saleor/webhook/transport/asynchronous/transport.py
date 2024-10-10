@@ -22,6 +22,7 @@ from ....core.utils import get_domain
 from ....graphql.core.dataloaders import DataLoader
 from ....graphql.webhook.subscription_payload import (
     generate_payload_from_subscription,
+    generate_payload_promise_from_subscription,
     get_pre_save_payload_key,
     initialize_request,
 )
@@ -363,15 +364,19 @@ def generate_deferred_payload(event_type: str, webhook: "Webhook", payload_args:
         allow_replica=True,
         request_time=args_obj.request_time,
     )
-    data = generate_payload_from_subscription(
+    data_promise = generate_payload_promise_from_subscription(
         event_type=event_type,
         subscribable_object=subscribable_object,
         subscription_query=webhook.subscription_query,  # type: ignore
         request=request,
         app=webhook.app,
     )
-    if data:
-        return json.dumps({**data})
+
+    if data_promise:
+        data = data_promise.get()
+        if data:
+            return json.dumps({**data})
+
     return None
 
 
