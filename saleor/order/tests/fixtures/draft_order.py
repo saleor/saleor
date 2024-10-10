@@ -5,15 +5,15 @@ import pytest
 from django.conf import settings
 from prices import Money, TaxedMoney, fixed_discount
 
-from .....discount import DiscountType, DiscountValueType
-from .....discount.models import VoucherCode
-from .....discount.utils.voucher import (
+from saleor.discount import DiscountType, DiscountValueType
+from saleor.discount.models import VoucherCode
+from saleor.discount.utils.voucher import (
     create_or_update_discount_object_from_order_level_voucher,
 )
-from .....warehouse.models import Allocation, PreorderAllocation
-from .... import OrderOrigin, OrderStatus
-from ....base_calculations import base_order_subtotal
-from ....models import Order
+from saleor.order import OrderOrigin, OrderStatus
+from saleor.order.base_calculations import base_order_subtotal
+from saleor.order.models import Order
+from saleor.warehouse.models import Allocation, PreorderAllocation
 
 
 @pytest.fixture
@@ -146,3 +146,15 @@ def draft_order_list(order_list):
 
     Order.objects.bulk_update(order_list, ["status", "origin"])
     return order_list
+
+
+@pytest.fixture
+def draft_orders_in_different_channels(
+    draft_order_list, channel_USD, channel_JPY, channel_PLN
+):
+    draft_order_list[0].channel = channel_USD
+    draft_order_list[1].channel = channel_JPY
+    draft_order_list[2].channel = channel_PLN
+
+    Order.objects.bulk_update(draft_order_list, ["channel"])
+    return draft_order_list

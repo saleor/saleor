@@ -3,7 +3,6 @@ from unittest.mock import ANY, call, patch
 
 import pytest
 from django.test import override_settings
-from prices import Money, TaxedMoney
 
 from ...channel import MarkAsPaidStrategy
 from ...core.models import EventDelivery
@@ -60,46 +59,6 @@ from ..notifications import (
     send_payment_confirmation,
 )
 from ..utils import updates_amounts_for_order
-
-
-@pytest.fixture
-def order_with_digital_line(order, digital_content, stock, site_settings):
-    site_settings.automatic_fulfillment_digital_products = True
-    site_settings.save()
-
-    variant = stock.product_variant
-    variant.digital_content = digital_content
-    variant.digital_content.save()
-
-    product_type = variant.product.product_type
-    product_type.is_shipping_required = False
-    product_type.is_digital = True
-    product_type.save()
-
-    quantity = 3
-    product = variant.product
-    channel = order.channel
-    variant_channel_listing = variant.channel_listings.get(channel=channel)
-    net = variant.get_price(variant_channel_listing)
-    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
-    unit_price = TaxedMoney(net=net, gross=gross)
-    line = order.lines.create(
-        product_name=str(product),
-        variant_name=str(variant),
-        product_sku=variant.sku,
-        product_variant_id=variant.get_global_id(),
-        is_shipping_required=variant.is_shipping_required(),
-        is_gift_card=variant.is_gift_card(),
-        quantity=quantity,
-        variant=variant,
-        unit_price=unit_price,
-        total_price=unit_price * quantity,
-        tax_rate=Decimal("0.23"),
-    )
-
-    Allocation.objects.create(order_line=line, stock=stock, quantity_allocated=quantity)
-
-    return order
 
 
 @patch(

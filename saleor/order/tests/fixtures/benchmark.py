@@ -4,11 +4,17 @@ from decimal import Decimal
 import pytest
 from prices import Money, TaxedMoney
 
-from .....account.models import User
-from .....order import OrderEvents, OrderStatus
-from .....order.models import Fulfillment, FulfillmentLine, Order, OrderEvent, OrderLine
-from .....payment import ChargeStatus
-from .....payment.models import Payment, Transaction
+from saleor.account.models import User
+from saleor.order import OrderEvents, OrderStatus
+from saleor.order.models import (
+    Fulfillment,
+    FulfillmentLine,
+    Order,
+    OrderEvent,
+    OrderLine,
+)
+from saleor.payment import ChargeStatus
+from saleor.payment.models import Payment, Transaction
 
 ORDER_COUNT_IN_BENCHMARKS = 10
 EVENTS_PER_ORDER = 5

@@ -1,10 +1,12 @@
 import datetime
+from datetime import timedelta
 from decimal import Decimal
 
 import graphene
 import pytest
 import pytz
 from django.utils import timezone
+from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
 from saleor.checkout.utils import (
@@ -259,6 +261,24 @@ def order_list(customer_user, channel_USD):
     order2 = Order.objects.create(**data)
 
     return [order, order1, order2]
+
+
+@pytest.fixture
+def order_list_with_cc_orders(orders, warehouse_for_cc):
+    order_1 = orders[0]
+    order_1.collection_point = warehouse_for_cc
+    order_1.collection_point_name = warehouse_for_cc.name
+
+    order_2 = orders[1]
+    order_2.collection_point_name = warehouse_for_cc.name
+
+    order_3 = orders[2]
+    order_3.collection_point = warehouse_for_cc
+
+    cc_orders = [order_1, order_2, order_3]
+
+    Order.objects.bulk_update(cc_orders, ["collection_point", "collection_point_name"])
+    return orders
 
 
 @pytest.fixture
@@ -969,3 +989,87 @@ def fulfilled_order_with_all_cancelled_fulfillments(
         get_plugins_manager(allow_replica=False),
     )
     return fulfilled_order
+
+
+@pytest.fixture
+def order_with_digital_line(order, digital_content, stock, site_settings):
+    site_settings.automatic_fulfillment_digital_products = True
+    site_settings.save()
+
+    variant = stock.product_variant
+    variant.digital_content = digital_content
+    variant.digital_content.save()
+
+    product_type = variant.product.product_type
+    product_type.is_shipping_required = False
+    product_type.is_digital = True
+    product_type.save()
+
+    quantity = 3
+    product = variant.product
+    channel = order.channel
+    variant_channel_listing = variant.channel_listings.get(channel=channel)
+    net = variant.get_price(variant_channel_listing)
+    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    unit_price = TaxedMoney(net=net, gross=gross)
+    line = order.lines.create(
+        product_name=str(product),
+        variant_name=str(variant),
+        product_sku=variant.sku,
+        product_variant_id=variant.get_global_id(),
+        is_shipping_required=variant.is_shipping_required(),
+        is_gift_card=variant.is_gift_card(),
+        quantity=quantity,
+        variant=variant,
+        unit_price=unit_price,
+        total_price=unit_price * quantity,
+        tax_rate=Decimal("0.23"),
+    )
+
+    Allocation.objects.create(order_line=line, stock=stock, quantity_allocated=quantity)
+
+    return order
+
+
+@pytest.fixture
+@freeze_time("2021-11-01 12:00:01")
+def preorders(orders, product):
+    variants = [
+        ProductVariant(
+            product=product,
+            is_preorder=True,
+            sku=f"Preorder product variant #{i}",
+        )
+        for i in (1, 2, 3, 4)
+    ]
+    variants[1].preorder_end_date = timezone.now() + timedelta(days=1)
+    variants[2].preorder_end_date = timezone.now()
+    variants[3].preorder_end_date = timezone.now() - timedelta(days=1)
+    ProductVariant.objects.bulk_create(variants)
+
+    lines = [
+        OrderLine(
+            order=order,
+            product_name=str(product),
+            variant_name=str(variant),
+            product_sku=variant.sku,
+            product_variant_id=variant.get_global_id(),
+            is_shipping_required=variant.is_shipping_required(),
+            is_gift_card=variant.is_gift_card(),
+            quantity=1,
+            variant=variant,
+            unit_price_net_amount=Decimal("10.0"),
+            unit_price_gross_amount=Decimal("10.0"),
+            currency="USD",
+            total_price_net_amount=Decimal("10.0"),
+            total_price_gross_amount=Decimal("10.0"),
+            undiscounted_unit_price_net_amount=Decimal("10.0"),
+            undiscounted_unit_price_gross_amount=Decimal("10.0"),
+            undiscounted_total_price_net_amount=Decimal("10.0"),
+            undiscounted_total_price_gross_amount=Decimal("10.0"),
+        )
+        for variant, order in zip(variants, orders)
+    ]
+    OrderLine.objects.bulk_create(lines)
+    preorders = orders[: len(variants) - 1]
+    return preorders

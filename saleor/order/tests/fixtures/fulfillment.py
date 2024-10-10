@@ -3,7 +3,7 @@ from collections import namedtuple
 import graphene
 import pytest
 
-from ....models import FulfillmentLine, FulfillmentStatus, OrderLine
+from saleor.order.models import FulfillmentLine, FulfillmentStatus, OrderLine
 
 
 @pytest.fixture
