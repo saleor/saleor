@@ -1,115 +1,9 @@
-import datetime
-import uuid
-from contextlib import contextmanager
-from decimal import Decimal
-from functools import partial
-from io import BytesIO
-from typing import Callable, Optional
-from unittest.mock import MagicMock
-
-import graphene
 import pytest
-from django.conf import settings
-from django.contrib.sites.models import Site
-from django.core.files.uploadedfile import SimpleUploadedFile
-from django.db import connection
-from django.template.defaultfilters import truncatechars
-from django.test.utils import CaptureQueriesContext as BaseCaptureQueriesContext
-from django.utils import timezone
 from django_countries import countries
-from freezegun import freeze_time
-from PIL import Image
 from prices import Money
 
-from saleor.account.models import Address, Group, StaffNotificationRecipient, User
-from saleor.attribute import AttributeEntityType, AttributeInputType, AttributeType
-from saleor.attribute.models import (
-    Attribute,
-    AttributeTranslation,
-    AttributeValue,
-    AttributeValueTranslation,
-)
-from saleor.attribute.utils import associate_attribute_values_to_instance
-from saleor.checkout import base_calculations
-from saleor.checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from saleor.checkout.models import Checkout, CheckoutLine, CheckoutMetadata
-from saleor.checkout.utils import (
-    add_variant_to_checkout,
-    add_voucher_to_checkout,
-)
-from saleor.core import JobStatus
-from saleor.core.models import EventDelivery, EventDeliveryAttempt, EventPayload
-from saleor.core.payments import PaymentInterface
-from saleor.core.units import MeasurementUnits
-from saleor.core.utils.editorjs import clean_editor_js
-from saleor.csv.events import ExportEvents
-from saleor.csv.models import ExportEvent, ExportFile
-from saleor.discount import (
-    DiscountType,
-    DiscountValueType,
-    PromotionEvents,
-    PromotionType,
-    RewardType,
-    RewardValueType,
-    VoucherType,
-)
-from saleor.discount.interface import VariantPromotionRuleInfo
-from saleor.discount.models import (
-    CheckoutDiscount,
-    CheckoutLineDiscount,
-    Promotion,
-    PromotionEvent,
-    PromotionRule,
-    PromotionRuleTranslation,
-    PromotionTranslation,
-    Voucher,
-    VoucherChannelListing,
-    VoucherCode,
-    VoucherCustomer,
-    VoucherTranslation,
-)
-from saleor.giftcard import GiftCardEvents
-from saleor.giftcard.models import GiftCard, GiftCardEvent, GiftCardTag
-from saleor.menu.models import Menu
-from saleor.payment import ChargeStatus, TransactionKind
-from saleor.payment.interface import (
-    AddressData,
-    GatewayConfig,
-    GatewayResponse,
-    PaymentData,
-)
-from saleor.payment.models import Payment, TransactionEvent, TransactionItem
-from saleor.payment.transaction_item_calculations import recalculate_transaction_amounts
-from saleor.payment.utils import create_manual_adjustment_events
-from saleor.permission.enums import get_permissions
-from saleor.permission.models import Permission
-from saleor.plugins.manager import get_plugins_manager
-from saleor.product.models import (
-    CategoryTranslation,
-    CollectionTranslation,
-    ProductTranslation,
-    ProductVariantChannelListing,
-    ProductVariantTranslation,
-)
-from saleor.product.utils.variants import fetch_variants_for_promotion_rules
-from saleor.shipping.models import (
-    ShippingMethod,
-    ShippingMethodChannelListing,
-    ShippingMethodTranslation,
-    ShippingMethodType,
-    ShippingZone,
-)
-from saleor.shipping.utils import convert_to_shipping_method_data
-from saleor.site.models import SiteSettings
-from saleor.tax import TaxCalculationStrategy
-from saleor.warehouse.models import (
-    PreorderReservation,
-    Reservation,
-    Warehouse,
-)
-from saleor.webhook.event_types import WebhookEventAsyncType
-from saleor.webhook.transport.utils import to_payment_app_id
-from saleor.tests.utils import dummy_editorjs
+from ... import DiscountValueType, VoucherType
+from ...models import Voucher, VoucherChannelListing, VoucherCode, VoucherCustomer
 
 
 @pytest.fixture
@@ -237,3 +131,91 @@ def voucher_single_use(voucher_with_many_codes):
     voucher.single_use = True
     voucher.save(update_fields=["single_use"])
     return voucher
+
+
+@pytest.fixture
+def voucher_with_many_channels_and_countries(voucher_with_many_channels):
+    voucher_with_many_channels.countries = countries
+    voucher_with_many_channels.save(update_fields=["countries"])
+    return voucher_with_many_channels
+
+
+@pytest.fixture
+def voucher_list(channel_USD):
+    [voucher_1, voucher_2, voucher_3] = Voucher.objects.bulk_create(
+        [
+            Voucher(),
+            Voucher(),
+            Voucher(),
+        ]
+    )
+
+    VoucherCode.objects.bulk_create(
+        [
+            VoucherCode(code="voucher-1", voucher=voucher_1),
+            VoucherCode(code="voucher-2", voucher=voucher_1),
+            VoucherCode(code="voucher-3", voucher=voucher_2),
+        ]
+    )
+    VoucherChannelListing.objects.bulk_create(
+        [
+            VoucherChannelListing(
+                voucher=voucher_1,
+                channel=channel_USD,
+                discount_value=1,
+                currency=channel_USD.currency_code,
+            ),
+            VoucherChannelListing(
+                voucher=voucher_2,
+                channel=channel_USD,
+                discount_value=2,
+                currency=channel_USD.currency_code,
+            ),
+            VoucherChannelListing(
+                voucher=voucher_3,
+                channel=channel_USD,
+                discount_value=3,
+                currency=channel_USD.currency_code,
+            ),
+        ]
+    )
+    return voucher_1, voucher_2, voucher_3
+
+
+@pytest.fixture
+def vouchers_list(channel_USD, channel_PLN):
+    vouchers = Voucher.objects.bulk_create(
+        [
+            Voucher(name="Voucher1"),
+            Voucher(name="Voucher2"),
+            Voucher(name="Voucher3"),
+        ]
+    )
+    VoucherCode.objects.bulk_create(
+        [
+            VoucherCode(code="Voucher1", voucher=vouchers[0]),
+            VoucherCode(code="Voucher2", voucher=vouchers[1]),
+            VoucherCode(code="Voucher3", voucher=vouchers[2]),
+        ]
+    )
+    values = [15, 5, 25]
+    voucher_channel_listings = []
+    for voucher, value in zip(vouchers, values):
+        voucher_channel_listings.append(
+            VoucherChannelListing(
+                voucher=voucher,
+                channel=channel_USD,
+                discount_value=value,
+                currency=channel_USD.currency_code,
+            )
+        )
+        voucher_channel_listings.append(
+            VoucherChannelListing(
+                voucher=voucher,
+                channel=channel_PLN,
+                discount_value=value * 2,
+                currency=channel_PLN.currency_code,
+            )
+        )
+    VoucherChannelListing.objects.bulk_create(voucher_channel_listings)
+    return vouchers

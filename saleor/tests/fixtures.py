@@ -46,24 +46,16 @@ from ..discount import (
     DiscountType,
     DiscountValueType,
     PromotionEvents,
-    PromotionType,
     RewardType,
     RewardValueType,
-    VoucherType,
 )
-from ..discount.interface import VariantPromotionRuleInfo
 from ..discount.models import (
     CheckoutDiscount,
     CheckoutLineDiscount,
     Promotion,
     PromotionEvent,
-    PromotionRule,
     PromotionRuleTranslation,
     PromotionTranslation,
-    Voucher,
-    VoucherChannelListing,
-    VoucherCode,
-    VoucherCustomer,
     VoucherTranslation,
 )
 from ..payment import ChargeStatus, TransactionKind
@@ -80,7 +72,6 @@ from ..product.models import (
     ProductVariantChannelListing,
     ProductVariantTranslation,
 )
-from ..product.utils.variants import fetch_variants_for_promotion_rules
 from ..tax import TaxCalculationStrategy
 from ..warehouse.models import (
     PreorderReservation,
