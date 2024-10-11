@@ -1,40 +1,119 @@
+import datetime
+
 import pytest
 
-from .....discount import RewardValueType
-from .....discount.models import Promotion, PromotionRule
-from .....product.models import Category
+from ....attribute.utils import associate_attribute_values_to_instance
+from ...models import Category, Product, ProductChannelListing
 
 
 @pytest.fixture
-def promotion_converted_from_sale_list(channel_USD):
-    promotions = Promotion.objects.bulk_create(
-        [Promotion(name="Sale1"), Promotion(name="Sale2")]
+def category_generator():
+    def create_category(
+        name="Default",
+        slug="default",
+    ):
+        category = Category.objects.create(
+            name=name,
+            slug=slug,
+        )
+        return category
+
+    return create_category
+
+
+@pytest.fixture
+def category(category_generator):  # pylint: disable=W0613
+    return category_generator()
+
+
+@pytest.fixture
+def category_with_image(db, image, media_root):  # pylint: disable=W0613
+    return Category.objects.create(
+        name="Default2", slug="default2", background_image=image
     )
-    for promotion in promotions:
-        promotion.assign_old_sale_id()
 
-    values = [15, 5]
 
-    rules = PromotionRule.objects.bulk_create(
-        [
-            PromotionRule(
-                promotion=promotion,
-                catalogue_predicate={},
-                reward_value_type=RewardValueType.FIXED,
-                reward_value=value,
+@pytest.fixture
+def categories(db):
+    category1 = Category.objects.create(name="Category1", slug="cat1")
+    category2 = Category.objects.create(name="Category2", slug="cat2")
+    return [category1, category2]
+
+
+@pytest.fixture
+def category_list():
+    category_1 = Category.objects.create(name="Category 1", slug="category-1")
+    category_2 = Category.objects.create(name="Category 2", slug="category-2")
+    category_3 = Category.objects.create(name="Category 3", slug="category-3")
+    return category_1, category_2, category_3
+
+
+@pytest.fixture
+def categories_tree(db, product_type, channel_USD):  # pylint: disable=W0613
+    parent = Category.objects.create(name="Parent", slug="parent")
+    parent.children.create(name="Child", slug="child")
+    child = parent.children.first()
+
+    product_attr = product_type.product_attributes.first()
+    attr_value = product_attr.values.first()
+
+    product = Product.objects.create(
+        name="Test product",
+        slug="test-product-10",
+        product_type=product_type,
+        category=child,
+    )
+    ProductChannelListing.objects.create(
+        product=product,
+        channel=channel_USD,
+        is_published=True,
+        visible_in_listings=True,
+    )
+
+    associate_attribute_values_to_instance(product, {product_attr.pk: [attr_value]})
+    return parent
+
+
+@pytest.fixture
+def categories_tree_with_published_products(
+    categories_tree, product, channel_USD, channel_PLN
+):
+    parent = categories_tree
+    parent_product = product
+    parent_product.category = parent
+
+    child = parent.children.first()
+    child_product = child.products.first()
+
+    product_list = [child_product, parent_product]
+
+    ProductChannelListing.objects.filter(product__in=product_list).delete()
+    product_channel_listings = []
+    for product in product_list:
+        product.save()
+        product_channel_listings.append(
+            ProductChannelListing(
+                product=product,
+                channel=channel_USD,
+                published_at=datetime.datetime.now(tz=datetime.UTC),
+                is_published=True,
             )
-            for promotion, value in zip(promotions, values)
-        ]
-    )
-    PromotionRuleChannel = PromotionRule.channels.through
+        )
+        product_channel_listings.append(
+            ProductChannelListing(
+                product=product,
+                channel=channel_PLN,
+                published_at=datetime.datetime.now(tz=datetime.UTC),
+                is_published=True,
+            )
+        )
+    ProductChannelListing.objects.bulk_create(product_channel_listings)
+    return parent
 
-    rules_channels = [
-        PromotionRuleChannel(promotionrule_id=rule.id, channel_id=channel_USD.id)
-        for rule in rules
-    ]
-    PromotionRuleChannel.objects.bulk_create(rules_channels)
 
-    return promotions
+@pytest.fixture
+def non_default_category(db):  # pylint: disable=W0613
+    return Category.objects.create(name="Not default", slug="not-default")
 
 
 @pytest.fixture
@@ -46,7 +125,6 @@ def category_with_products(
     product_with_variant_with_two_attributes,
     product_with_multiple_values_attributes,
     product_without_shipping,
-    promotion_converted_from_sale_list,
 ):
     category = categories_tree
     child = Category.objects.create(name="TestCategory", slug="test-cat")
