@@ -1,5 +1,5 @@
 import json
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 import pytest
 from django.core.exceptions import ValidationError
@@ -7,7 +7,10 @@ from django.core.exceptions import ValidationError
 from ...order.notifications import get_image_payload
 from ..email_common import (
     DEFAULT_EMAIL_CONFIGURATION,
+    EmailConfig,
+    get_plain_text_message_for_email,
     get_product_image_thumbnail,
+    send_email,
     validate_default_email_configuration,
 )
 from ..error_codes import PluginErrorCode
@@ -125,3 +128,63 @@ def test_get_product_image_thumbnail_image_missing(product_with_image):
 
     # then
     assert thumbnail is None
+
+
+@pytest.mark.parametrize(
+    ("html_message", "expected_output"),
+    [
+        (
+            "<html><head>"
+            '<style type="text/css">#outlook a { padding:0; }body { margin:0;padding:0;'
+            "-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%; }table, td { "
+            "border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt; }img "
+            "{ border:0;height:auto;line-height:100%; outline:none;text-decoration:"
+            "none;-ms-interpolation-mode:bicubic; }p { display:block;margin:13px 0; }"
+            "</style></head><body><p>Hello World!</p></body></html>",
+            "Hello World!",
+        ),
+        ("<p>Hello World!</p>", "Hello World!"),
+        ("<html>Hello World!</html>", "Hello World!"),
+        ("", ""),
+        ("Hello World!", "Hello World!"),
+    ],
+)
+def test_get_plain_text_message_for_email(html_message, expected_output):
+    # when
+    output = get_plain_text_message_for_email(
+        html_message,
+    )
+
+    # then
+    assert output == expected_output
+
+
+@patch(
+    "saleor.plugins.email_common.get_plain_text_message_for_email",
+    wraps=get_plain_text_message_for_email,
+)
+@patch("saleor.plugins.email_common.send_mail")
+def test_send_email(mocked_send_mail, mocked_get_plain_text):
+    # given
+    sender_address = "dummy@localhost.com"
+    sender_name = "dummy"
+    config = EmailConfig(sender_name=sender_name, sender_address=sender_address)
+    recipment_list = ["dummy2@localhost.com"]
+
+    email_content = "<html>Hello World!</html>"
+    email_plain_text = "Hello World!"
+    email_subject = "Email subject"
+
+    # when
+    send_email(config, recipment_list, "", email_subject, email_content)
+
+    # then
+    mocked_get_plain_text.assert_called_once_with(email_content)
+    mocked_send_mail.assert_called_once_with(
+        email_subject,
+        email_plain_text,
+        f"{sender_name} <{sender_address}>",
+        recipment_list,
+        html_message=email_content,
+        connection=ANY,
+    )
