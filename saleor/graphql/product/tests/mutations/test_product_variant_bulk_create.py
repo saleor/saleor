@@ -114,7 +114,6 @@ def test_product_variant_bulk_create_by_name(
     permission_manage_products,
     any_webhook,
     settings,
-    django_capture_on_commit_callbacks,
 ):
     # given
     mocked_get_webhooks_for_event.return_value = [any_webhook]
@@ -152,10 +151,9 @@ def test_product_variant_bulk_create_by_name(
 
     # when
     staff_api_client.user.user_permissions.add(permission_manage_products)
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(
-            PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
-        )
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
+    )
     content = get_graphql_content(response, ignore_errors=True)
     data = content["data"]["productVariantBulkCreate"]
 
@@ -191,7 +189,6 @@ def test_product_variant_bulk_create_by_attribute_id(
     permission_manage_products,
     any_webhook,
     settings,
-    django_capture_on_commit_callbacks,
 ):
     # given
     mocked_get_webhooks_for_event.return_value = [any_webhook]
@@ -216,10 +213,9 @@ def test_product_variant_bulk_create_by_attribute_id(
 
     # when
     staff_api_client.user.user_permissions.add(permission_manage_products)
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(
-            PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
-        )
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
+    )
     content = get_graphql_content(response)
     data = content["data"]["productVariantBulkCreate"]
 
@@ -242,7 +238,6 @@ def test_product_variant_bulk_create_by_attribute_external_ref(
     product,
     color_attribute,
     permission_manage_products,
-    django_capture_on_commit_callbacks,
 ):
     # given
     product_variant_count = ProductVariant.objects.count()
@@ -272,10 +267,9 @@ def test_product_variant_bulk_create_by_attribute_external_ref(
 
     # when
     staff_api_client.user.user_permissions.add(permission_manage_products)
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(
-            PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
-        )
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
+    )
     content = get_graphql_content(response)
     data = content["data"]["productVariantBulkCreate"]
 
@@ -298,7 +292,6 @@ def test_product_variant_bulk_create_return_error_when_attribute_external_ref_an
     product,
     color_attribute,
     permission_manage_products,
-    django_capture_on_commit_callbacks,
 ):
     # given
     product.product_type.variant_attributes.add(color_attribute)
@@ -327,10 +320,9 @@ def test_product_variant_bulk_create_return_error_when_attribute_external_ref_an
 
     # when
     staff_api_client.user.user_permissions.add(permission_manage_products)
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(
-            PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
-        )
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
+    )
     content = get_graphql_content(response)
     data = content["data"]["productVariantBulkCreate"]
 
@@ -348,7 +340,6 @@ def test_product_variant_bulk_create_will_create_new_attr_value_and_external_ref
     product,
     color_attribute,
     permission_manage_products,
-    django_capture_on_commit_callbacks,
 ):
     # given
     product.product_type.variant_attributes.add(color_attribute)
@@ -381,10 +372,9 @@ def test_product_variant_bulk_create_will_create_new_attr_value_and_external_ref
 
     # when
     staff_api_client.user.user_permissions.add(permission_manage_products)
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(
-            PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
-        )
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
+    )
     content = get_graphql_content(response)
     data = content["data"]["productVariantBulkCreate"]
 

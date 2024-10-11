@@ -187,7 +187,6 @@ def test_variant_channel_listing_update_as_staff_user(
     permission_manage_products,
     channel_USD,
     channel_PLN,
-    django_capture_on_commit_callbacks,
 ):
     # given
     product_pln_channel_listing = ProductChannelListing.objects.create(
@@ -214,12 +213,11 @@ def test_variant_channel_listing_update_as_staff_user(
     }
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(
-            PRODUCT_VARIANT_CHANNEL_LISTING_UPDATE_MUTATION,
-            variables=variables,
-            permissions=(permission_manage_products,),
-        )
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_products,),
+    )
     content = get_graphql_content(response)
 
     # then
@@ -321,7 +319,6 @@ def test_variant_channel_listing_update_trigger_webhook_product_variant_updated(
     permission_manage_products,
     channel_USD,
     channel_PLN,
-    django_capture_on_commit_callbacks,
 ):
     # given
     ProductChannelListing.objects.create(
@@ -348,12 +345,11 @@ def test_variant_channel_listing_update_trigger_webhook_product_variant_updated(
     }
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(
-            PRODUCT_VARIANT_CHANNEL_LISTING_UPDATE_MUTATION,
-            variables=variables,
-            permissions=(permission_manage_products,),
-        )
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_products,),
+    )
     get_graphql_content(response)
 
     # then

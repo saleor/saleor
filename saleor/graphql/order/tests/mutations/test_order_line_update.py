@@ -59,7 +59,6 @@ def test_order_line_update_with_out_of_stock_webhook_for_two_lines_success_scena
     order_with_lines,
     permission_group_manage_orders,
     staff_api_client,
-    django_capture_on_commit_callbacks,
 ):
     # given
     Stock.objects.update(quantity=5)
@@ -76,11 +75,10 @@ def test_order_line_update_with_out_of_stock_webhook_for_two_lines_success_scena
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        variables = {"lineId": first_line_id, "quantity": new_quantity}
-        staff_api_client.post_graphql(query, variables)
-        variables = {"lineId": second_line_id, "quantity": new_quantity}
-        staff_api_client.post_graphql(query, variables)
+    variables = {"lineId": first_line_id, "quantity": new_quantity}
+    staff_api_client.post_graphql(query, variables)
+    variables = {"lineId": second_line_id, "quantity": new_quantity}
+    staff_api_client.post_graphql(query, variables)
 
     # then
     assert out_of_stock_mock.call_count == 2
@@ -608,7 +606,6 @@ def test_order_line_update_triggers_webhooks(
     permission_group_manage_orders,
     staff_api_client,
     settings,
-    django_capture_on_commit_callbacks,
     status,
     webhook_event,
 ):
@@ -635,8 +632,7 @@ def test_order_line_update_triggers_webhooks(
     variables = {"lineId": first_line_id, "quantity": new_quantity}
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(query, variables)
 
     # then
     content = get_graphql_content(response)

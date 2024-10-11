@@ -561,7 +561,6 @@ def test_order_update_shipping_triggers_webhooks(
     order_with_lines,
     shipping_method,
     settings,
-    django_capture_on_commit_callbacks,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = []
@@ -583,8 +582,7 @@ def test_order_update_shipping_triggers_webhooks(
     variables = {"order": order_id, "shippingMethod": method_id}
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(query, variables)
 
     # then
     content = get_graphql_content(response)

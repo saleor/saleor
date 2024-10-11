@@ -38,7 +38,6 @@ def test_order_refund(
     staff_api_client,
     permission_group_manage_orders,
     payment_txn_captured,
-    django_capture_on_commit_callbacks,
 ):
     # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
@@ -49,8 +48,7 @@ def test_order_refund(
     variables = {"id": order_id, "amount": amount}
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(query, variables)
 
     # then
     content = get_graphql_content(response)
@@ -92,7 +90,6 @@ def test_order_fully_refunded(
     staff_api_client,
     permission_group_manage_orders,
     payment_txn_captured,
-    django_capture_on_commit_callbacks,
 ):
     # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
@@ -107,8 +104,7 @@ def test_order_fully_refunded(
     variables = {"id": order_id, "amount": amount}
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(query, variables)
 
     # then
     content = get_graphql_content(response)
@@ -171,7 +167,6 @@ def test_order_refund_by_app(
     app_api_client,
     permission_manage_orders,
     payment_txn_captured,
-    django_capture_on_commit_callbacks,
 ):
     # given
     order = payment_txn_captured.order
@@ -181,10 +176,9 @@ def test_order_refund_by_app(
     variables = {"id": order_id, "amount": amount}
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        response = app_api_client.post_graphql(
-            query, variables, permissions=(permission_manage_orders,)
-        )
+    response = app_api_client.post_graphql(
+        query, variables, permissions=(permission_manage_orders,)
+    )
 
     # then
     content = get_graphql_content(response)

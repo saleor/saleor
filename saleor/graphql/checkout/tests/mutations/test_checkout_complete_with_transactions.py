@@ -1621,7 +1621,6 @@ def test_checkout_complete_gift_card_bought(
     shipping_method,
     transaction_events_generator,
     transaction_item_generator,
-    django_capture_on_commit_callbacks,
 ):
     # given
     checkout = prepare_checkout_for_test(
@@ -1649,8 +1648,7 @@ def test_checkout_complete_gift_card_bought(
     variables = {"id": to_global_id_or_none(checkout), "redirectUrl": redirect_url}
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
     # then
     content = get_graphql_content(response)

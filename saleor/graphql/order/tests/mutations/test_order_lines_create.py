@@ -1269,7 +1269,6 @@ def test_order_lines_create_triggers_webhooks(
     permission_group_manage_orders,
     staff_api_client,
     settings,
-    django_capture_on_commit_callbacks,
     status,
     webhook_event,
 ):
@@ -1295,8 +1294,7 @@ def test_order_lines_create_triggers_webhooks(
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(query, variables)
 
     # then
     content = get_graphql_content(response)

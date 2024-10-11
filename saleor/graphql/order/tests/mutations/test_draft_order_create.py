@@ -3643,7 +3643,6 @@ def test_draft_order_create_triggers_webhooks(
     channel_PLN,
     graphql_address_data,
     settings,
-    django_capture_on_commit_callbacks,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = []
@@ -3682,10 +3681,9 @@ def test_draft_order_create_triggers_webhooks(
     }
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        response = app_api_client.post_graphql(
-            query, variables, permissions=(permission_manage_orders,)
-        )
+    response = app_api_client.post_graphql(
+        query, variables, permissions=(permission_manage_orders,)
+    )
 
     # then
     content = get_graphql_content(response)
