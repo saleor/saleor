@@ -143,10 +143,10 @@ def format_datetime(this, date, date_format=None):
     return date.strftime(date_format)
 
 
-def get_product_image_thumbnail(this, size: int, image_data):
+def get_product_image_thumbnail(this, size: int, image_data) -> None | str:
     """Use provided size to get a correct image."""
     if image_data is None:
-        return
+        return None
     expected_size = get_thumbnail_size(size)
     return image_data.get("original", {}).get(str(expected_size))
 

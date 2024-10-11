@@ -131,7 +131,7 @@ class AddressForm(forms.ModelForm):
     def clean(self):
         data = super().clean()
         if not data:
-            return
+            return None
         phone = data.get("phone")
         country = data.get("country")
         if phone:
@@ -228,7 +228,7 @@ def get_address_form_class(country_code):
     return COUNTRY_FORMS.get(country_code, AddressForm)
 
 
-def get_form_i18n_lines(form_instance):
+def get_form_i18n_lines(form_instance) -> list[list[BoundField]]:
     country_code = form_instance.i18n_country_code
     try:
         fields_order = i18naddress.get_field_order({"country_code": country_code})
@@ -248,6 +248,7 @@ def get_form_i18n_lines(form_instance):
 
     if fields_order:
         return [_convert_to_bound_fields(form_instance, line) for line in fields_order]
+    return []
 
 
 def update_base_fields(form_class, i18n_rules):

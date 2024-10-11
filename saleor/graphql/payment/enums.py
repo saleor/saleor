@@ -61,15 +61,15 @@ class OrderAction(BaseEnum):
 def description(enum):
     if enum is None:
         return "Enum representing the type of a payment storage in a gateway."
-    elif enum == StorePaymentMethodEnum.NONE:
+    if enum == StorePaymentMethodEnum.NONE:
         return "Storage is disabled. The payment is not stored."
-    elif enum == StorePaymentMethodEnum.ON_SESSION:
+    if enum == StorePaymentMethodEnum.ON_SESSION:
         return (
             "On session storage type. "
             "The payment is stored only to be reused when "
             "the customer is present in the checkout flow."
         )
-    elif enum == StorePaymentMethodEnum.OFF_SESSION:
+    if enum == StorePaymentMethodEnum.OFF_SESSION:
         return (
             "Off session storage type. "
             "The payment is stored to be reused even if the customer is absent."

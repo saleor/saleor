@@ -370,7 +370,7 @@ def get_product_discounts(
 
 def get_discount(sale, sale_channel_listing):
     if not sale_channel_listing:
-        return
+        return None
     if sale.type == "fixed":
         discount_amount = Money(
             sale_channel_listing.discount_value, sale_channel_listing.currency
@@ -382,6 +382,7 @@ def get_discount(sale, sale_channel_listing):
             percentage=sale_channel_listing.discount_value,
             rounding=ROUND_HALF_UP,
         )
+    return None
 
 
 class Migration(migrations.Migration):

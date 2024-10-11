@@ -261,7 +261,7 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
         )
         if is_available_for_purchase is False:
             return None
-        elif is_available_for_purchase is True and not available_for_purchase_date:
+        if is_available_for_purchase is True and not available_for_purchase_date:
             return datetime.datetime.now(tz=datetime.UTC)
         return available_for_purchase_date
 

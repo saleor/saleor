@@ -3,6 +3,7 @@ from typing import Optional
 
 import graphene
 from graphene import relay
+from promise import Promise
 
 from ....permission.enums import ProductPermissions
 from ....product import models
@@ -105,10 +106,10 @@ class Collection(ChannelContextTypeWithMetadata[models.Collection]):
         info: ResolveInfo,
         size: Optional[int] = None,
         format: Optional[str] = None,
-    ):
+    ) -> None | Image | Promise[Image]:
         node = root.node
         if not node.background_image:
-            return
+            return None
 
         alt = node.background_image_alt
         if size == 0:
@@ -163,8 +164,7 @@ class Collection(ChannelContextTypeWithMetadata[models.Collection]):
                 .load(str(root.channel_slug))
                 .then(_resolve_products)
             )
-        else:
-            return _resolve_products(None)
+        return _resolve_products(None)
 
     @staticmethod
     def resolve_channel_listings(root: ChannelContext[models.Collection], info):

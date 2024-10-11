@@ -281,7 +281,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         errors: dict,
         cleaned_input: dict,
         group: models.Group,
-    ):
+    ) -> None:
         """Check if after removing users from group all permissions will be manageable.
 
         After removing users from group, for each permission, there should be
@@ -298,7 +298,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         # check if user with manage staff will be added to the group
         if add_users:
             if any(user.has_perm(manage_staff_permission) for user in add_users):
-                return True
+                return
 
         permissions = get_not_manageable_permissions_after_removing_users_from_group(
             group, remove_users

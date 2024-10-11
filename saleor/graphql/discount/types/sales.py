@@ -162,6 +162,7 @@ class Sale(ChannelContextTypeWithMetadata, ModelObjectType[models.Promotion]):
                 return create_connection_slice(
                     qs, info, kwargs, CategoryCountableConnection
                 )
+            return None
 
         return (
             PredicateByPromotionIdLoader(info.context)
@@ -188,6 +189,7 @@ class Sale(ChannelContextTypeWithMetadata, ModelObjectType[models.Promotion]):
                 return create_connection_slice(
                     qs, info, kwargs, CollectionCountableConnection
                 )
+            return None
 
         return (
             PredicateByPromotionIdLoader(info.context)
@@ -208,6 +210,7 @@ class Sale(ChannelContextTypeWithMetadata, ModelObjectType[models.Promotion]):
                 return create_connection_slice(
                     qs, info, kwargs, ProductCountableConnection
                 )
+            return None
 
         return (
             PredicateByPromotionIdLoader(info.context)
@@ -228,6 +231,7 @@ class Sale(ChannelContextTypeWithMetadata, ModelObjectType[models.Promotion]):
                 return create_connection_slice(
                     qs, info, kwargs, ProductVariantCountableConnection
                 )
+            return None
 
         return (
             PredicateByPromotionIdLoader(info.context)
@@ -245,6 +249,7 @@ class Sale(ChannelContextTypeWithMetadata, ModelObjectType[models.Promotion]):
         def _get_reward_value(rules):
             if rules:
                 return rules[0].reward_value
+            return None
 
         return (
             PromotionRulesByPromotionIdAndChannelSlugLoader(info.context)
@@ -260,6 +265,7 @@ class Sale(ChannelContextTypeWithMetadata, ModelObjectType[models.Promotion]):
         def _get_currency(channel):
             if channel:
                 return channel.currency_code
+            return None
 
         return (
             ChannelBySlugLoader(info.context)

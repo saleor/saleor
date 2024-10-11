@@ -258,10 +258,10 @@ def trigger_webhooks_async(
     retry_kwargs={"max_retries": 5},
 )
 @allow_writer()
-def send_webhook_request_async(self, event_delivery_id):
+def send_webhook_request_async(self, event_delivery_id) -> None:
     delivery = get_delivery_for_webhook(event_delivery_id)
     if not delivery:
-        return None
+        return
 
     webhook = delivery.webhook
     domain = get_domain()

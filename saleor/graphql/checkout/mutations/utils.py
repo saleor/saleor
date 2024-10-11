@@ -189,7 +189,7 @@ def check_lines_quantity(
                 }
             )
 
-        elif allow_zero_quantity and quantity < 0:
+        if allow_zero_quantity and quantity < 0:
             raise ValidationError(
                 {
                     "quantity": ValidationError(
@@ -491,18 +491,18 @@ def check_permissions_for_custom_prices(app, lines):
 
 def find_line_id_when_variant_parameter_used(
     variant_db_id: str, lines_info: list[CheckoutLineInfo]
-):
+) -> None | str:
     """Return line id when variantId parameter was used.
 
     If variant exists in multiple lines error will be returned.
     """
     if not lines_info:
-        return
+        return None
 
     line_info = list(filter(lambda x: (x.variant.pk == int(variant_db_id)), lines_info))
 
     if not line_info:
-        return
+        return None
 
     # if same variant occur in multiple lines `lineId` parameter have to be used
     if len(line_info) > 1:
@@ -526,10 +526,10 @@ def find_line_id_when_variant_parameter_used(
 
 def find_variant_id_when_line_parameter_used(
     line_db_id: str, lines_info: list[CheckoutLineInfo]
-):
+) -> None | str:
     """Return variant id when lineId parameter was used."""
     if not lines_info:
-        return
+        return None
 
     line_info = list(filter(lambda x: (str(x.line.pk) == line_db_id), lines_info))
     return str(line_info[0].line.variant_id)

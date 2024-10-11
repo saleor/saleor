@@ -200,6 +200,7 @@ target-version = "py39"
     "PIE",
     "PT",
     "PYI",
+    "RET",
     "T20",
     "UP",
     "W"
@@ -223,7 +224,8 @@ target-version = "py39"
     "D407", # Missing dashed underline after section
     "E501", # Line too long
     "PT019", # Fixture without value is injected as parameter, use @pytest.mark.usefixtures instead
-    "PYI041" # Use `float` instead of `int | float`
+    "PYI041", # Use `float` instead of `int | float`
+    "RET504" # Unnecessary assignment before return statement
   ]
 
   [tool.ruff.lint.flake8-pytest-style]

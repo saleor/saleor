@@ -48,7 +48,7 @@ def _clean_extension_url_with_only_path(
 ):
     if target == AppExtensionTarget.APP_PAGE:
         return
-    elif manifest_data["appUrl"]:
+    if manifest_data["appUrl"]:
         _clean_app_url(manifest_data["appUrl"])
     else:
         msg = (

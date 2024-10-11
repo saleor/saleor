@@ -130,7 +130,7 @@ def test_filter_input():
         def created_filter(self, queryset, _, value):
             if CreatedEnum.WEEK == value:
                 return queryset
-            elif CreatedEnum.YEAR == value:
+            if CreatedEnum.YEAR == value:
                 return queryset
             return queryset
 

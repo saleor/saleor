@@ -103,9 +103,9 @@ def serialize_checkout_lines_for_tax_calculation(
 def serialize_product_attributes(product: "Product") -> list[dict]:
     data = []
 
-    def _prepare_reference(attribute, attr_value):
+    def _prepare_reference(attribute, attr_value) -> None | str:
         if attribute.input_type != AttributeInputType.REFERENCE:
-            return
+            return None
         if attribute.entity_type == AttributeEntityType.PAGE:
             reference_pk = attr_value.reference_page_id
         elif attribute.entity_type == AttributeEntityType.PRODUCT:
@@ -171,9 +171,9 @@ def serialize_product_attributes(product: "Product") -> list[dict]:
 def serialize_variant_attributes(variant: "ProductVariant") -> list[dict]:
     data = []
 
-    def _prepare_reference(attribute, attr_value):
+    def _prepare_reference(attribute, attr_value) -> None | str:
         if attribute.input_type != AttributeInputType.REFERENCE:
-            return
+            return None
         if attribute.entity_type == AttributeEntityType.PAGE:
             reference_pk = attr_value.reference_page_id
         elif attribute.entity_type == AttributeEntityType.PRODUCT:

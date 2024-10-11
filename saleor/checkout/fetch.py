@@ -134,6 +134,8 @@ class CheckoutInfo:
                 new_shipping_method_id = convert_to_app_id_with_identifier(
                     external_shipping_method_id
                 )
+                if new_shipping_method_id is None:
+                    return None
                 return methods.get(new_shipping_method_id)
 
             delivery_method = _resolve_external_method

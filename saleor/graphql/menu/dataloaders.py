@@ -4,7 +4,7 @@ from ...menu.models import Menu, MenuItem
 from ..core.dataloaders import DataLoader
 
 
-class MenuByIdLoader(DataLoader):
+class MenuByIdLoader(DataLoader[int, Menu]):
     context_key = "menu_by_id"
 
     def batch_load(self, keys):
@@ -12,7 +12,7 @@ class MenuByIdLoader(DataLoader):
         return [menus.get(menu_id) for menu_id in keys]
 
 
-class MenuItemByIdLoader(DataLoader):
+class MenuItemByIdLoader(DataLoader[int, MenuItem]):
     context_key = "menuitem_by_id"
 
     def batch_load(self, keys):
@@ -20,7 +20,7 @@ class MenuItemByIdLoader(DataLoader):
         return [menu_items.get(menu_item_id) for menu_item_id in keys]
 
 
-class MenuItemsByParentMenuLoader(DataLoader):
+class MenuItemsByParentMenuLoader(DataLoader[int, list[MenuItem]]):
     context_key = "menuitems_by_parent_menu"
 
     def batch_load(self, keys):
@@ -33,7 +33,7 @@ class MenuItemsByParentMenuLoader(DataLoader):
         return [items_map[menu_id] for menu_id in keys]
 
 
-class MenuItemChildrenLoader(DataLoader):
+class MenuItemChildrenLoader(DataLoader[int, list[MenuItem]]):
     context_key = "menuitem_children"
 
     def batch_load(self, keys):

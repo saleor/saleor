@@ -943,7 +943,7 @@ class Job(graphene.Interface):
     @traced_resolver
     def resolve_type(cls, instance, _info: "ResolveInfo"):
         """Map a data object to a Graphene type."""
-        return None  # FIXME: why do we have this method?
+        return  # FIXME: why do we have this method?
 
 
 class TimePeriod(graphene.ObjectType):

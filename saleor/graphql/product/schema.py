@@ -1,4 +1,5 @@
 import graphene
+from promise import Promise
 
 from ...permission.enums import ProductPermissions
 from ...permission.utils import has_one_of_permissions
@@ -365,7 +366,7 @@ class ProductQueries(graphene.ObjectType):
         slug=None,
         slug_language_code=None,
         **kwargs,
-    ):
+    ) -> Promise[Category] | None | Category:
         validate_one_of_args_is_in_query("id", id, "slug", slug)
         if id:
             _, id = from_global_id_or_error(id, Category)
@@ -379,6 +380,7 @@ class ProductQueries(graphene.ObjectType):
                     info, slug, slug_language_code
                 )
             return CategoryBySlugLoader(info.context).load(slug)
+        return None
 
     @staticmethod
     @traced_resolver
@@ -502,8 +504,7 @@ class ProductQueries(graphene.ObjectType):
                 .load(str(channel))
                 .then(_resolve_product)
             )
-        else:
-            return _resolve_product(None)
+        return _resolve_product(None)
 
     @staticmethod
     @traced_resolver
@@ -539,8 +540,7 @@ class ProductQueries(graphene.ObjectType):
                 .load(str(channel))
                 .then(_resolve_products)
             )
-        else:
-            return _resolve_products(None)
+        return _resolve_products(None)
 
     @staticmethod
     def resolve_product_type(_root, info: ResolveInfo, *, id):
@@ -601,8 +601,7 @@ class ProductQueries(graphene.ObjectType):
                 .load(str(channel))
                 .then(_resolve_product_variant)
             )
-        else:
-            return _resolve_product_variant(None)
+        return _resolve_product_variant(None)
 
     @staticmethod
     def resolve_product_variants(
@@ -640,8 +639,7 @@ class ProductQueries(graphene.ObjectType):
                 .load(str(channel))
                 .then(_resolve_product_variants)
             )
-        else:
-            return _resolve_product_variants(None)
+        return _resolve_product_variants(None)
 
     @staticmethod
     @traced_resolver

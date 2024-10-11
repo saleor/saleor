@@ -173,8 +173,7 @@ class ShippingZoneMixin:
                         )
                     }
                 )
-            else:
-                cls._extend_shipping_zone_countries(data)
+            cls._extend_shipping_zone_countries(data)
         else:
             data["default"] = False
         return data

@@ -86,7 +86,7 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
         )
 
     @classmethod
-    def get_instance(cls, info: ResolveInfo, **data):
+    def get_instance(cls, info: ResolveInfo, **data) -> models.ProductVariant | None:
         """Prefetch related fields that are needed to process the mutation.
 
         If we are updating an instance and want to update its attributes, prefetch them.
@@ -99,7 +99,7 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
         if attributes:
             # Prefetches needed by AttributeAssignmentMixin and
             # associate_attribute_values_to_instance
-            qs = cls.Meta.model.objects.prefetch_related(
+            qs = models.ProductVariant.objects.prefetch_related(
                 "product__product_type__variant_attributes__values",
                 "product__product_type__attributevariant",
             )
@@ -112,9 +112,9 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
 
         if object_id:
             return cls.get_node_or_error(
-                info, object_id, only_type="ProductVariant", qs=qs
+                info, object_id, only_type=ProductVariant, qs=qs
             )
-        elif object_sku:
+        if object_sku:
             instance = qs.filter(sku=object_sku).first()
             if not instance:
                 raise ValidationError(
@@ -126,6 +126,7 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
                     }
                 )
             return instance
+        return None
 
     @classmethod
     def set_track_inventory(cls, _info, instance, cleaned_input):

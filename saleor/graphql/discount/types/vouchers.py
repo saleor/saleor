@@ -35,8 +35,8 @@ from ...translations.types import VoucherTranslation
 from ..dataloaders import (
     CodeByVoucherIDLoader,
     UsedByVoucherIDLoader,
-    VoucherChannelListingByVoucherIdAndChanneSlugLoader,
-    VoucherChannelListingByVoucherIdLoader,
+    VoucherChannelListingByVoucherIdAndChannelSlugLoader,
+    VoucherChannelListingsByVoucherIdLoader,
 )
 from ..enums import DiscountValueTypeEnum, VoucherTypeEnum
 
@@ -261,7 +261,7 @@ class Voucher(ChannelContextTypeWithMetadata[models.Voucher]):
             return None
 
         return (
-            VoucherChannelListingByVoucherIdAndChanneSlugLoader(info.context)
+            VoucherChannelListingByVoucherIdAndChannelSlugLoader(info.context)
             .load((root.node.id, root.channel_slug))
             .then(
                 lambda channel_listing: channel_listing.discount_value
@@ -276,7 +276,7 @@ class Voucher(ChannelContextTypeWithMetadata[models.Voucher]):
             return None
 
         return (
-            VoucherChannelListingByVoucherIdAndChanneSlugLoader(info.context)
+            VoucherChannelListingByVoucherIdAndChannelSlugLoader(info.context)
             .load((root.node.id, root.channel_slug))
             .then(
                 lambda channel_listing: channel_listing.currency
@@ -291,7 +291,7 @@ class Voucher(ChannelContextTypeWithMetadata[models.Voucher]):
             return None
 
         return (
-            VoucherChannelListingByVoucherIdAndChanneSlugLoader(info.context)
+            VoucherChannelListingByVoucherIdAndChannelSlugLoader(info.context)
             .load((root.node.id, root.channel_slug))
             .then(
                 lambda channel_listing: channel_listing.min_spent
@@ -304,7 +304,7 @@ class Voucher(ChannelContextTypeWithMetadata[models.Voucher]):
     def resolve_channel_listings(
         root: ChannelContext[models.Voucher], info: ResolveInfo
     ):
-        return VoucherChannelListingByVoucherIdLoader(info.context).load(root.node.id)
+        return VoucherChannelListingsByVoucherIdLoader(info.context).load(root.node.id)
 
 
 class VoucherCountableConnection(CountableConnection):

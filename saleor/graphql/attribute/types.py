@@ -91,22 +91,22 @@ class AttributeValue(ModelObjectType[models.AttributeValue]):
         )
 
     @staticmethod
-    def resolve_file(root: models.AttributeValue, _info: ResolveInfo):
+    def resolve_file(root: models.AttributeValue, _info: ResolveInfo) -> None | File:
         if not root.file_url:
-            return
+            return None
         return File(url=root.file_url, content_type=root.content_type)
 
     @staticmethod
     def resolve_reference(root: models.AttributeValue, info: ResolveInfo):
-        def prepare_reference(attribute):
+        def prepare_reference(attribute) -> None | str:
             if attribute.input_type != AttributeInputType.REFERENCE:
-                return
+                return None
             reference_field = AttributeAssignmentMixin.ENTITY_TYPE_MAPPING[
                 attribute.entity_type
             ].value_field
             reference_pk = getattr(root, f"{reference_field}_id", None)
             if reference_pk is None:
-                return
+                return None
             reference_id = graphene.Node.to_global_id(
                 attribute.entity_type, reference_pk
             )

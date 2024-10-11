@@ -226,8 +226,8 @@ class SendgridEmailPlugin(BasePlugin):
         self,
         event: Union[NotifyEventType, str],
         payload_func: Callable[[], dict],
-        previous_value,
-    ):
+        previous_value: None,
+    ) -> None:
         if not self.active:
             return previous_value
 
@@ -254,6 +254,7 @@ class SendgridEmailPlugin(BasePlugin):
             return previous_value
         payload = payload_func()
         event_task.delay(payload, asdict(self.config))
+        return previous_value
 
     @classmethod
     def validate_plugin_configuration(

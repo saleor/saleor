@@ -44,13 +44,14 @@ def _generate_response(
     )
 
 
-def check_payment_supported(payment_information: PaymentData):
+def check_payment_supported(payment_information: PaymentData) -> str | None:
     """Check that a given payment is supported."""
     if payment_information.currency not in SUPPORTED_CURRENCIES:
         return errors.UNSUPPORTED_CURRENCY % {"currency": payment_information.currency}
+    return None
 
 
-def get_error_message_from_razorpay_error(exc: BaseException):
+def get_error_message_from_razorpay_error(exc: BaseException) -> str:
     """Convert a Razorpay error to a user-friendly error message.
 
     It also logs the exception to stderr.
@@ -58,8 +59,7 @@ def get_error_message_from_razorpay_error(exc: BaseException):
     logger.exception(exc)
     if isinstance(exc, razorpay.errors.BadRequestError):
         return errors.INVALID_REQUEST
-    else:
-        return errors.SERVER_ERROR
+    return errors.SERVER_ERROR
 
 
 def clean_razorpay_response(response: dict):

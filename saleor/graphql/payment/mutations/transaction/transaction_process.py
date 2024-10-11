@@ -85,9 +85,8 @@ class TransactionProcess(BaseMutation):
     def get_action(cls, event: payment_models.TransactionEvent, channel: "Channel"):
         if event.type == TransactionEventType.AUTHORIZATION_REQUEST:
             return TransactionFlowStrategy.AUTHORIZATION
-        elif event.type == TransactionEventType.CHARGE_REQUEST:
+        if event.type == TransactionEventType.CHARGE_REQUEST:
             return TransactionFlowStrategy.CHARGE
-
         return channel.default_transaction_flow_strategy
 
     @classmethod

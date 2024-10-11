@@ -20,12 +20,13 @@ class Decimal(graphene.Float):
     """
 
     @staticmethod
-    def parse_literal(node):
+    def parse_literal(node) -> decimal.Decimal | None:
         if isinstance(node, (ast.FloatValue, ast.IntValue)):
             try:
                 return decimal.Decimal(node.value)
             except decimal.DecimalException:
                 return None
+        return None
 
     @staticmethod
     def parse_value(value):
@@ -67,7 +68,7 @@ class JSON(GenericScalar):
                 field.name.value: GenericScalar.parse_literal(field.value)
                 for field in node.fields
             }
-        elif isinstance(node, ast.ListValue):
+        if isinstance(node, ast.ListValue):
             return [GenericScalar.parse_literal(value) for value in node.values]
         return None
 

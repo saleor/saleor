@@ -35,7 +35,7 @@ class ModelObjectType(Generic[MT], BaseObjectType):
                 raise ValueError(
                     "ModelObjectType was declared without 'model' option in it's Meta."
                 )
-            elif not issubclass(options["model"], Model):
+            if not issubclass(options["model"], Model):
                 raise ValueError(
                     "ModelObjectType was declared with invalid 'model' option value "
                     "in it's Meta. Expected subclass of django.db.models.Model, "

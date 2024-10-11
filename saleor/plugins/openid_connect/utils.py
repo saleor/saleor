@@ -645,7 +645,7 @@ def get_incorrect_or_missing_urls(urls: dict) -> list[str]:
     return incorrect_urls
 
 
-def get_incorrect_fields(plugin_configuration: "PluginConfiguration"):
+def get_incorrect_fields(plugin_configuration: "PluginConfiguration") -> list[str]:
     """Return missing or incorrect configuration fields for OpenIDConnectPlugin."""
     configuration = plugin_configuration.configuration
     configuration = {item["name"]: item["value"] for item in configuration}
@@ -662,7 +662,6 @@ def get_incorrect_fields(plugin_configuration: "PluginConfiguration"):
                     "oauth_token_url": configuration["oauth_token_url"],
                 }
             )
-
         elif configuration["user_info_url"]:
             urls_to_validate.update(
                 {
@@ -686,6 +685,7 @@ def get_incorrect_fields(plugin_configuration: "PluginConfiguration"):
         if not configuration["client_secret"]:
             incorrect_fields.append("client_secret")
         return incorrect_fields
+    return []
 
 
 def get_saleor_permissions_qs_from_scope(scope: str) -> QuerySet[Permission]:

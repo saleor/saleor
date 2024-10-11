@@ -427,7 +427,7 @@ def prepare_line_discount_objects_for_voucher(
     updated_fields: list[str] = []
 
     if not lines_info:
-        return
+        return None
 
     for line_info in lines_info:
         line = line_info.line
