@@ -4,7 +4,6 @@ from decimal import Decimal
 
 import graphene
 import pytest
-import pytz
 from django.utils import timezone
 from freezegun import freeze_time
 from prices import Money, TaxedMoney
@@ -183,8 +182,6 @@ def order_generator(customer_user, channel_USD):
         user=customer_user,
         origin=OrderOrigin.CHECKOUT,
         should_refresh_prices=False,
-        metadata={"key": "value"},
-        private_metadata={"secret_key": "secret_value"},
         checkout_token="",
         status=OrderStatus.UNFULFILLED,
         search_vector_class=None,
@@ -198,8 +195,8 @@ def order_generator(customer_user, channel_USD):
             user=user,
             origin=origin,
             should_refresh_prices=should_refresh_prices,
-            metadata=metadata,
-            private_metadata=private_metadata,
+            metadata={"key": "value"},
+            private_metadata={"secret_key": "secret_value"},
             checkout_token=checkout_token,
             status=status,
             undiscounted_base_shipping_price_amount=Decimal("0.0"),
@@ -284,7 +281,7 @@ def order_with_lines(
         channel=channel_USD,
         is_published=True,
         visible_in_listings=True,
-        available_for_purchase_at=datetime.datetime.now(pytz.UTC),
+        available_for_purchase_at=datetime.datetime.now(tz=datetime.UTC),
     )
     variant = ProductVariant.objects.create(product=product, sku="SKU_AA")
     channel_listing = ProductVariantChannelListing.objects.create(
@@ -890,7 +887,7 @@ def fulfilled_order(order_with_lines):
     order.invoices.create(
         url="http://www.example.com/invoice.pdf",
         number="01/12/2020/TEST",
-        created_at=datetime.datetime.now(tz=pytz.utc),
+        created_at=datetime.datetime.now(tz=datetime.UTC),
         status=JobStatus.SUCCESS,
     )
     fulfillment = order.fulfillments.create(tracking_number="123")
