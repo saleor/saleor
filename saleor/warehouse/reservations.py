@@ -1,7 +1,7 @@
 import datetime
-from collections import defaultdict, namedtuple
+from collections import defaultdict
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, NamedTuple, Optional
 
 from django.conf import settings
 from django.db.models import F, Sum
@@ -18,7 +18,10 @@ if TYPE_CHECKING:
     from ..channel.models import Channel
     from ..checkout.fetch import CheckoutLine
 
-StockData = namedtuple("StockData", ["pk", "quantity"])
+
+class StockData(NamedTuple):
+    pk: int
+    quantity: int
 
 
 @traced_atomic_transaction()

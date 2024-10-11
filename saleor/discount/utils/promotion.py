@@ -1,9 +1,9 @@
 import datetime
-from collections import defaultdict, namedtuple
+from collections import defaultdict
 from collections.abc import Iterable, Iterator
 from decimal import Decimal
 from itertools import chain
-from typing import TYPE_CHECKING, Callable, Optional, Union, overload
+from typing import TYPE_CHECKING, Callable, NamedTuple, Optional, Union, overload
 from uuid import UUID
 
 import graphene
@@ -333,8 +333,8 @@ def get_discount_translated_name(rule_info: "VariantPromotionRuleInfo"):
 
 
 def _update_promotion_discount(
-    rule: "PromotionRule",
-    rule_info: "VariantPromotionRuleInfo",
+    rule: PromotionRule,
+    rule_info: VariantPromotionRuleInfo,
     rule_discount_amount: Decimal,
     discount_to_update: Union[
         "CheckoutLineDiscount", "CheckoutDiscount", "OrderLineDiscount", "OrderDiscount"
@@ -367,15 +367,17 @@ def _update_promotion_discount(
 
 
 def get_best_rule(
-    rules: Iterable["PromotionRule"],
+    rules: Iterable[PromotionRule],
     channel: "Channel",
     country: str,
     subtotal: Money,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
-    RuleDiscount = namedtuple(
-        "RuleDiscount", ["rule", "discount_amount", "gift_listing"]
-    )
+    class RuleDiscount(NamedTuple):
+        rule: PromotionRule
+        discount_amount: Money
+        gift_listing: Optional[ProductVariantChannelListing]
+
     currency_code = channel.currency_code
     rule_discounts: list[RuleDiscount] = []
     gift_rules = [rule for rule in rules if rule.reward_type == RewardType.GIFT]

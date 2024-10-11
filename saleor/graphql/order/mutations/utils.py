@@ -1,5 +1,4 @@
-from collections import namedtuple
-from typing import Optional
+from typing import NamedTuple, Optional
 
 import graphene
 from django.conf import settings
@@ -7,7 +6,7 @@ from django.core.exceptions import ValidationError
 
 from ....checkout.fetch import get_variant_channel_listing
 from ....core.taxes import zero_money, zero_taxed_money
-from ....discount.interface import fetch_variant_rules_info
+from ....discount.interface import VariantPromotionRuleInfo, fetch_variant_rules_info
 from ....order import ORDER_EDITABLE_STATUS, OrderStatus, events
 from ....order.actions import call_order_event
 from ....order.error_codes import OrderErrorCode
@@ -190,7 +189,9 @@ def clean_payment(payment: Optional[payment_models.Payment]) -> payment_models.P
     return payment
 
 
-VariantData = namedtuple("VariantData", ["variant", "rules_info"])
+class VariantData(NamedTuple):
+    variant: product_models.ProductVariant
+    rules_info: list[VariantPromotionRuleInfo]
 
 
 def get_variant_rule_info_map(

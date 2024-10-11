@@ -1,9 +1,10 @@
-from collections import namedtuple
+from typing import NamedTuple
 
 import graphene
 import pytest
 
-from ...models import FulfillmentLine, FulfillmentStatus, OrderLine
+from ....warehouse.models import Warehouse
+from ...models import FulfillmentLine, FulfillmentStatus, Order, OrderLine
 
 
 @pytest.fixture
@@ -36,7 +37,11 @@ def fulfillment_awaiting_approval(fulfilled_order):
 
 @pytest.fixture
 def order_fulfill_data(order_with_lines, warehouse, checkout):
-    FulfillmentData = namedtuple("FulfillmentData", "order variables warehouse")
+    class FulfillmentData(NamedTuple):
+        order: Order
+        variables: dict
+        warehouse: Warehouse
+
     order = order_with_lines
     order_id = graphene.Node.to_global_id("Order", order.id)
     order_line, order_line2 = order.lines.all()

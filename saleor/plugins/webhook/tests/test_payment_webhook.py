@@ -1,6 +1,6 @@
 import datetime
 import json
-from collections import namedtuple
+from typing import NamedTuple
 from unittest import mock
 
 import pytest
@@ -54,7 +54,11 @@ def payment_removed_app(payment_dummy):
     return payment_dummy
 
 
-WebhookTestData = namedtuple("WebhookTestData", "secret, event_type, data, message")
+class WebhookTestData(NamedTuple):
+    secret: str
+    event_type: WebhookEventAsyncType
+    data: str
+    message: bytes
 
 
 @pytest.fixture
