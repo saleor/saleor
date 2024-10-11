@@ -1,2 +1,2 @@
 .github/workflows/* @saleor/sre
-/saleor/plugins/openid_connect/ @saleor/cloud-backend
+/saleor/plugins/openid_connect/ @saleor/platform-experience
