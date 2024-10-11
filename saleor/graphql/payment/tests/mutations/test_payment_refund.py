@@ -4,7 +4,6 @@ import graphene
 
 from .....payment import TransactionKind
 from .....payment.models import ChargeStatus
-from .....tests.utils import flush_post_commit_hooks
 from ....core.enums import PaymentErrorCode
 from ....tests.utils import assert_no_permission, get_graphql_content
 
@@ -36,6 +35,7 @@ def test_payment_refund_success(
     permission_group_manage_orders,
     payment_txn_captured,
     order_with_lines,
+    django_capture_on_commit_callbacks,
 ):
     # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
@@ -49,7 +49,8 @@ def test_payment_refund_success(
     variables = {"paymentId": payment_id, "amount": str(payment.total)}
 
     # when
-    response = staff_api_client.post_graphql(REFUND_QUERY, variables)
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(REFUND_QUERY, variables)
 
     # then
     content = get_graphql_content(response)
@@ -61,7 +62,6 @@ def test_payment_refund_success(
     txn = payment.transactions.last()
     assert txn.kind == TransactionKind.REFUND
 
-    flush_post_commit_hooks()
     mock_order_updated.assert_called_once_with(payment.order, webhooks=set())
     mock_order_refunded.assert_called_once_with(payment.order, webhooks=set())
     mock_order_fully_refunded.assert_called_once_with(payment.order, webhooks=set())
@@ -105,6 +105,7 @@ def test_payment_refund_success_by_app(
     app_api_client,
     permission_manage_orders,
     payment_txn_captured,
+    django_capture_on_commit_callbacks,
 ):
     # given
     payment = payment_txn_captured
@@ -116,9 +117,10 @@ def test_payment_refund_success_by_app(
     variables = {"paymentId": payment_id, "amount": str(payment.total)}
 
     # when
-    response = app_api_client.post_graphql(
-        REFUND_QUERY, variables, permissions=(permission_manage_orders,)
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        response = app_api_client.post_graphql(
+            REFUND_QUERY, variables, permissions=(permission_manage_orders,)
+        )
 
     # then
     content = get_graphql_content(response)
@@ -130,7 +132,6 @@ def test_payment_refund_success_by_app(
     txn = payment.transactions.last()
     assert txn.kind == TransactionKind.REFUND
 
-    flush_post_commit_hooks()
     mock_order_updated.assert_called_once_with(payment.order, webhooks=set())
     mock_order_refunded.assert_called_once_with(payment.order, webhooks=set())
     mock_order_fully_refunded.assert_called_once_with(payment.order, webhooks=set())

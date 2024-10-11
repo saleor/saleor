@@ -11,7 +11,6 @@ from ...checkout import CheckoutAuthorizeStatus
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...order import OrderAuthorizeStatus, OrderChargeStatus, OrderGrantedRefundStatus
 from ...plugins.manager import get_plugins_manager
-from ...tests.utils import flush_post_commit_hooks
 from .. import TransactionEventType
 from ..interface import (
     PaymentLineData,
@@ -678,6 +677,7 @@ def test_create_transaction_event_from_request_triggers_webhooks_when_fully_paid
     transaction_item_generator,
     app,
     order_with_lines,
+    django_capture_on_commit_callbacks,
 ):
     # given
     order = order_with_lines
@@ -701,12 +701,12 @@ def test_create_transaction_event_from_request_triggers_webhooks_when_fully_paid
     }
 
     # when
-    create_transaction_event_from_request_and_webhook_response(
-        request_event, app, response_data
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        create_transaction_event_from_request_and_webhook_response(
+            request_event, app, response_data
+        )
 
     # then
-    flush_post_commit_hooks()
     order.refresh_from_db()
     assert order.charge_status == OrderChargeStatus.FULL
     mock_order_fully_paid.assert_called_once_with(order, webhooks=set())
@@ -725,6 +725,7 @@ def test_create_transaction_event_from_request_triggers_webhooks_when_partially_
     transaction_item_generator,
     app,
     order_with_lines,
+    django_capture_on_commit_callbacks,
 ):
     # given
     order = order_with_lines
@@ -748,12 +749,12 @@ def test_create_transaction_event_from_request_triggers_webhooks_when_partially_
     }
 
     # when
-    create_transaction_event_from_request_and_webhook_response(
-        request_event, app, response_data
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        create_transaction_event_from_request_and_webhook_response(
+            request_event, app, response_data
+        )
 
     # then
-    flush_post_commit_hooks()
     order.refresh_from_db()
     assert order_with_lines.charge_status == OrderChargeStatus.PARTIAL
     assert not mock_order_fully_paid.called
@@ -772,6 +773,7 @@ def test_create_transaction_event_from_request_triggers_webhooks_when_fully_refu
     transaction_item_generator,
     app,
     order_with_lines,
+    django_capture_on_commit_callbacks,
 ):
     # given
     order = order_with_lines
@@ -795,12 +797,12 @@ def test_create_transaction_event_from_request_triggers_webhooks_when_fully_refu
     }
 
     # when
-    create_transaction_event_from_request_and_webhook_response(
-        request_event, app, response_data
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        create_transaction_event_from_request_and_webhook_response(
+            request_event, app, response_data
+        )
 
     # then
-    flush_post_commit_hooks()
     order.refresh_from_db()
 
     mock_order_fully_refunded.assert_called_once_with(order, webhooks=set())
@@ -819,6 +821,7 @@ def test_create_transaction_event_from_request_triggers_webhooks_partially_refun
     transaction_item_generator,
     app,
     order_with_lines,
+    django_capture_on_commit_callbacks,
 ):
     # given
     order = order_with_lines
@@ -842,12 +845,12 @@ def test_create_transaction_event_from_request_triggers_webhooks_partially_refun
     }
 
     # when
-    create_transaction_event_from_request_and_webhook_response(
-        request_event, app, response_data
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        create_transaction_event_from_request_and_webhook_response(
+            request_event, app, response_data
+        )
 
     # then
-    flush_post_commit_hooks()
     order.refresh_from_db()
 
     assert not mock_order_fully_refunded.called
@@ -864,6 +867,7 @@ def test_create_transaction_event_from_request_triggers_webhooks_when_authorized
     transaction_item_generator,
     app,
     order_with_lines,
+    django_capture_on_commit_callbacks,
 ):
     # given
     order = order_with_lines
@@ -887,12 +891,12 @@ def test_create_transaction_event_from_request_triggers_webhooks_when_authorized
     }
 
     # when
-    create_transaction_event_from_request_and_webhook_response(
-        request_event, app, response_data
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        create_transaction_event_from_request_and_webhook_response(
+            request_event, app, response_data
+        )
 
     # then
-    flush_post_commit_hooks()
     order.refresh_from_db()
     assert order_with_lines.authorize_status == OrderAuthorizeStatus.FULL
     assert not mock_order_fully_paid.called
@@ -996,6 +1000,7 @@ def test_create_transaction_event_from_request_when_paid(
     transaction_item_generator,
     app,
     checkout_with_prices,
+    django_capture_on_commit_callbacks,
 ):
     # given
     checkout = checkout_with_prices
@@ -1020,12 +1025,12 @@ def test_create_transaction_event_from_request_when_paid(
     }
 
     # when
-    create_transaction_event_from_request_and_webhook_response(
-        request_event, app, response_data
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        create_transaction_event_from_request_and_webhook_response(
+            request_event, app, response_data
+        )
 
     # then
-    flush_post_commit_hooks()
     checkout.refresh_from_db()
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
     mocked_checkout_fully_paid.assert_called_once_with(checkout, webhooks=set())
@@ -1040,6 +1045,7 @@ def test_create_transaction_event_from_request_when_authorized(
     transaction_item_generator,
     app,
     checkout_with_prices,
+    django_capture_on_commit_callbacks,
 ):
     # given
     checkout = checkout_with_prices
@@ -1067,12 +1073,12 @@ def test_create_transaction_event_from_request_when_authorized(
     }
 
     # when
-    create_transaction_event_from_request_and_webhook_response(
-        request_event, app, response_data
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        create_transaction_event_from_request_and_webhook_response(
+            request_event, app, response_data
+        )
 
     # then
-    flush_post_commit_hooks()
     checkout.refresh_from_db()
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
     mocked_checkout_fully_paid.assert_not_called()
@@ -1088,6 +1094,7 @@ def test_create_transaction_event_from_request_when_paid_triggers_checkout_compl
     app,
     checkout_with_prices,
     plugins_manager,
+    django_capture_on_commit_callbacks,
 ):
     # given
     checkout = checkout_with_prices
@@ -1118,12 +1125,12 @@ def test_create_transaction_event_from_request_when_paid_triggers_checkout_compl
     }
 
     # when
-    create_transaction_event_from_request_and_webhook_response(
-        request_event, app, response_data
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        create_transaction_event_from_request_and_webhook_response(
+            request_event, app, response_data
+        )
 
     # then
-    flush_post_commit_hooks()
     checkout.refresh_from_db()
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
     mocked_checkout_fully_paid.assert_called_once_with(checkout, webhooks=set())
@@ -1141,6 +1148,7 @@ def test_create_transaction_event_from_request_when_authorized_triggers_checkout
     app,
     checkout_with_prices,
     plugins_manager,
+    django_capture_on_commit_callbacks,
 ):
     # given
     checkout = checkout_with_prices
@@ -1171,12 +1179,12 @@ def test_create_transaction_event_from_request_when_authorized_triggers_checkout
     }
 
     # when
-    create_transaction_event_from_request_and_webhook_response(
-        request_event, app, response_data
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        create_transaction_event_from_request_and_webhook_response(
+            request_event, app, response_data
+        )
 
     # then
-    flush_post_commit_hooks()
     checkout.refresh_from_db()
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
     mocked_checkout_fully_paid.assert_not_called()
@@ -2135,6 +2143,7 @@ def test_create_transaction_event_for_transaction_session_call_webhook_order_upd
     webhook_app,
     plugins_manager,
     order_with_lines,
+    django_capture_on_commit_callbacks,
 ):
     # given
     expected_amount = Decimal("15")
@@ -2146,16 +2155,16 @@ def test_create_transaction_event_for_transaction_session_call_webhook_order_upd
         transaction=transaction, include_in_calculations=False
     )
     # when
-    create_transaction_event_for_transaction_session(
-        request_event,
-        webhook_app,
-        manager=plugins_manager,
-        transaction_webhook_response=response,
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        create_transaction_event_for_transaction_session(
+            request_event,
+            webhook_app,
+            manager=plugins_manager,
+            transaction_webhook_response=response,
+        )
 
     # then
     order_with_lines.refresh_from_db()
-    flush_post_commit_hooks()
     assert not mock_order_fully_paid.called
     mock_order_updated.assert_called_once_with(order_with_lines, webhooks=set())
 
@@ -2170,6 +2179,7 @@ def test_create_transaction_event_for_transaction_session_call_webhook_for_fully
     webhook_app,
     plugins_manager,
     order_with_lines,
+    django_capture_on_commit_callbacks,
 ):
     # given
     response = transaction_session_response.copy()
@@ -2181,16 +2191,16 @@ def test_create_transaction_event_for_transaction_session_call_webhook_for_fully
     )
 
     # when
-    create_transaction_event_for_transaction_session(
-        request_event,
-        webhook_app,
-        manager=plugins_manager,
-        transaction_webhook_response=response,
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        create_transaction_event_for_transaction_session(
+            request_event,
+            webhook_app,
+            manager=plugins_manager,
+            transaction_webhook_response=response,
+        )
 
     # then
     order_with_lines.refresh_from_db()
-    flush_post_commit_hooks()
     mock_order_fully_paid.assert_called_once_with(order_with_lines, webhooks=set())
     mock_order_updated.assert_called_once_with(order_with_lines, webhooks=set())
 
