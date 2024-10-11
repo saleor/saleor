@@ -196,6 +196,7 @@ target-version = "py39"
     "I",
     "ISC001",
     "ISC002",
+    "LOG",
     "PIE",
     "PT",
     "T20",

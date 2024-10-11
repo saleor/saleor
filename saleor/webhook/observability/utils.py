@@ -99,7 +99,7 @@ def put_event(generate_payload: Callable[[], bytes]):
     except TruncationError as err:
         logger.warning("Observability event dropped. %s", err, extra=err.extra)
     except Exception:
-        logger.error("Observability event dropped.", exc_info=True)
+        logger.exception("Observability event dropped.")
 
 
 def pop_events_with_remaining_size() -> tuple[list[bytes], int]:
@@ -109,7 +109,7 @@ def pop_events_with_remaining_size() -> tuple[list[bytes], int]:
             events, remaining = buffer.pop_events_get_size()
             batch_count = buffer.in_batches(remaining)
         except Exception:
-            logger.error("Could not pop observability events batch.", exc_info=True)
+            logger.exception("Could not pop observability events batch.")
             events, batch_count = [], 0
     return events, batch_count
 
