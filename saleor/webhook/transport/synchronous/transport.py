@@ -63,16 +63,16 @@ def handle_transaction_request_task(self, delivery_id, request_event_id):
     request_event = TransactionEvent.objects.filter(id=request_event_id).first()
     if not request_event:
         logger.error(
-            f"Cannot find the request event with id: {request_event_id} "
-            f"for transaction-request webhook."
+            "Cannot find the request event with id: %s for transaction-request webhook.",
+            request_event_id,
         )
         return None
     delivery = get_delivery_for_webhook(delivery_id)
     if not delivery:
         recalculate_refundable_for_checkout(request_event.transaction, request_event)
         logger.error(
-            f"Cannot find the delivery with id: {delivery_id} "
-            f"for transaction-request webhook."
+            "Cannot find the delivery with id: %s for transaction-request webhook.",
+            delivery_id,
         )
         return None
     attempt = create_attempt(delivery, self.request.id)

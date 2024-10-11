@@ -87,7 +87,7 @@ def api_call(
     try:
         return method(request_data, **kwargs)
     except (Adyen.AdyenError, ValueError, TypeError, ConnectTimeout) as e:
-        logger.warning(f"Unable to process the payment: {e}")
+        logger.warning("Unable to process the payment: %s", e)
         raise PaymentError(f"Unable to process the payment request: {e}.") from e
 
 

@@ -83,8 +83,8 @@ def _bulk_release_voucher_usage(order_ids):
     suspected_codes = [code.code for code in codes if code.used < code.order_count]
     if suspected_codes:
         logger.error(
-            f"Voucher codes: [{','.join(suspected_codes)}] have been used more times "
-            f"than indicated by `code.used` field."
+            "Voucher codes: [%s] have been used more times than indicated by `code.used` field.",
+            ",".join(suspected_codes),
         )
 
     codes.update(used=Greatest(F("used") - F("order_count"), 0))

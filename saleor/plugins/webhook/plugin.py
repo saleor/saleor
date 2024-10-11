@@ -1976,7 +1976,9 @@ class WebhookPlugin(BasePlugin):
                 }
             )
             if event not in NotifyEventType.CHOICES:
-                logger.info(f"Webhook {event_type} triggered for {event} notify event.")
+                logger.info(
+                    "Webhook %s triggered for %s notify event.", event_type, event
+                )
             self.trigger_webhooks_async(data, event_type, webhooks)
 
     def page_created(self, page: "Page", previous_value: Any) -> Any:
@@ -2694,17 +2696,15 @@ class WebhookPlugin(BasePlugin):
                 transaction_data.transaction, transaction_data.event
             )
             logger.warning(
-                f"Transaction request skipped for "
-                f"{transaction_data.transaction.psp_reference}. "
-                f"Missing relation to App."
+                "Transaction request skipped for %s. Missing relation to App.",
+                transaction_data.transaction.psp_reference,
             )
             return None
 
         if not transaction_data.event:
             logger.warning(
-                f"Transaction request skipped for "
-                f"{transaction_data.transaction.psp_reference}. "
-                f"Missing relation to TransactionEvent."
+                "Transaction request skipped for %s. Missing relation to TransactionEvent.",
+                transaction_data.transaction.psp_reference,
             )
             return None
 

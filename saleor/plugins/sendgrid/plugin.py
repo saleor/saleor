@@ -234,7 +234,7 @@ class SendgridEmailPlugin(BasePlugin):
         event_in_notify_event = event in UserNotifyEvent.CHOICES
 
         if not event_in_notify_event:
-            logger.info(f"Send email with event {event} as dynamic template ID.")
+            logger.info("Send email with event %s as dynamic template ID.", event)
             payload = payload_func()
             send_email_with_dynamic_template_id.delay(
                 payload, event, asdict(self.config)
@@ -242,7 +242,7 @@ class SendgridEmailPlugin(BasePlugin):
             return previous_value
 
         if event not in EVENT_MAP:
-            logger.warning(f"Missing handler for event {event}")
+            logger.warning("Missing handler for event %s", event)
             return previous_value
 
         configuration = {item["name"]: item["value"] for item in self.configuration}
