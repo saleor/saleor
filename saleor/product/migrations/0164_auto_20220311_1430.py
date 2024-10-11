@@ -18,6 +18,7 @@ class Migration(migrations.Migration):
                 blank=True, null=True
             ),
         ),
+        # nosemgrep: add-index-concurrently
         migrations.AddIndex(
             model_name="product",
             index=django.contrib.postgres.indexes.GinIndex(

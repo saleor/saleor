@@ -10,6 +10,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        # nosemgrep: add-index-concurrently
         migrations.AddIndex(
             model_name="productchannellisting",
             index=django.contrib.postgres.indexes.BTreeIndex(

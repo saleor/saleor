@@ -32,12 +32,14 @@ class Migration(migrations.Migration):
                 null=True,
             ),
         ),
+        # nosemgrep: add-index-concurrently
         migrations.AddIndex(
             model_name="orderline",
             index=django.contrib.postgres.indexes.GinIndex(
                 fields=["private_metadata"], name="orderline_p_meta_idx"
             ),
         ),
+        # nosemgrep: add-index-concurrently
         migrations.AddIndex(
             model_name="orderline",
             index=django.contrib.postgres.indexes.GinIndex(
