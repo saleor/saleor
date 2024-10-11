@@ -19,7 +19,6 @@ from ...graphql.tests.utils import get_graphql_content
 from ...payment import ChargeStatus
 from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
-from ...tests.fixtures import recalculate_order
 from ...warehouse import WarehouseClickAndCollectOption
 from ...warehouse.models import Stock, Warehouse
 from ...warehouse.tests.utils import get_quantity_allocated_for_stock
@@ -48,6 +47,7 @@ from ..utils import (
     update_order_charge_data,
     update_order_status,
 )
+from .fixtures import recalculate_order
 
 
 def test_total_setter():
