@@ -87,8 +87,6 @@ def to_enum(enum_cls, *, type_name=None, **options) -> graphene.Enum:
     :return:
     """
 
-    # note this won't work until
-    # https://github.com/graphql-python/graphene/issues/956 is fixed
     deprecation_reason = getattr(enum_cls, "__deprecation_reason__", None)
     if deprecation_reason:
         options.setdefault("deprecation_reason", deprecation_reason)
