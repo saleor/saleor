@@ -1,13 +1,9 @@
 import pytest
 
-from saleor.attribute import AttributeType
-from saleor.attribute.models import (
-    Attribute,
-)
-from saleor.product import ProductTypeKind
-from saleor.product.models import (
-    ProductType,
-)
+from ....attribute import AttributeType
+from ....attribute.models import Attribute
+from ... import ProductTypeKind
+from ...models import ProductType
 
 
 @pytest.fixture

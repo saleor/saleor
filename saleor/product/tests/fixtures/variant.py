@@ -4,8 +4,9 @@ from decimal import Decimal
 import pytest
 from django.utils import timezone
 
-from saleor.product import ProductTypeKind
-from saleor.product.models import (
+from ....warehouse.models import Stock
+from ... import ProductTypeKind
+from ...models import (
     Product,
     ProductChannelListing,
     ProductMedia,
@@ -13,9 +14,6 @@ from saleor.product.models import (
     ProductVariant,
     ProductVariantChannelListing,
     VariantMedia,
-)
-from saleor.warehouse.models import (
-    Stock,
 )
 
 
