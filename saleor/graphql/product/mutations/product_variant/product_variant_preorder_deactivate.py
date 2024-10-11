@@ -9,7 +9,6 @@ from .....product.error_codes import ProductErrorCode
 from .....warehouse.management import deactivate_preorder_for_variant
 from ....channel import ChannelContext
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_31
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import BaseMutation
 from ....core.types import ProductError
@@ -31,7 +30,7 @@ class ProductVariantPreorderDeactivate(BaseMutation):
     class Meta:
         description = (
             "Deactivates product variant preorder. "
-            "It changes all preorder allocation into regular allocation." + ADDED_IN_31
+            "It changes all preorder allocation into regular allocation."
         )
         doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)

@@ -17,7 +17,6 @@ from ....order.utils import match_orders_with_new_user
 from ....permission.enums import AccountPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
-from ...core.descriptions import ADDED_IN_313, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.enums import CustomerBulkUpdateErrorCode, ErrorPolicyEnum
 from ...core.mutations import BaseMutation, ModelMutation
@@ -94,7 +93,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
         )
 
     class Meta:
-        description = "Updates customers." + ADDED_IN_313 + PREVIEW_FEATURE
+        description = "Updates customers."
         doc_category = DOC_CATEGORY_USERS
         permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = CustomerBulkUpdateError

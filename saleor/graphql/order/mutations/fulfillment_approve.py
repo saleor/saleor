@@ -12,7 +12,6 @@ from ....permission.enums import OrderPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_31
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
@@ -38,7 +37,7 @@ class FulfillmentApprove(BaseMutation):
         )
 
     class Meta:
-        description = "Approve existing fulfillment." + ADDED_IN_31
+        description = "Approve existing fulfillment."
         doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError

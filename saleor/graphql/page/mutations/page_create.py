@@ -11,7 +11,7 @@ from ....permission.enums import PagePermissions
 from ...attribute.types import AttributeValueInput
 from ...attribute.utils import PageAttributeAssignmentMixin
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_33, DEPRECATED_IN_3X_INPUT, RICH_CONTENT
+from ...core.descriptions import DEPRECATED_IN_3X_INPUT, RICH_CONTENT
 from ...core.doc_category import DOC_CATEGORY_PAGES
 from ...core.fields import JSONString
 from ...core.mutations import ModelMutation
@@ -36,9 +36,7 @@ class PageInput(BaseInputObjectType):
             "Use `publishedAt` field instead."
         )
     )
-    published_at = DateTime(
-        description="Publication date time. ISO 8601 standard." + ADDED_IN_33
-    )
+    published_at = DateTime(description="Publication date time. ISO 8601 standard.")
     seo = SeoInput(description="Search engine optimization fields.")
 
     class Meta:

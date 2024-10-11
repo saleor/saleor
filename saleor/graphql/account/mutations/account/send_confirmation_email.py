@@ -15,7 +15,6 @@ from .....permission.auth_filters import AuthorizationFilters
 from .....webhook.event_types import WebhookEventAsyncType
 from ....channel.utils import clean_channel
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_315, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import BaseMutation
 from ....core.types import SendConfirmationEmailError
@@ -39,9 +38,7 @@ class SendConfirmationEmail(BaseMutation):
         )
 
     class Meta:
-        description = (
-            "Sends a notification confirmation." + ADDED_IN_315 + PREVIEW_FEATURE
-        )
+        description = "Sends a notification confirmation."
         doc_category = DOC_CATEGORY_USERS
         error_type_class = SendConfirmationEmailError
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)

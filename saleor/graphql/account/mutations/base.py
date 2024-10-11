@@ -24,9 +24,6 @@ from ...app.dataloaders import get_app_promise
 from ...channel.utils import clean_channel, validate_channel
 from ...core import ResolveInfo, SaleorContext
 from ...core.descriptions import (
-    ADDED_IN_310,
-    ADDED_IN_314,
-    ADDED_IN_315,
     DEPRECATED_IN_3X_INPUT,
 )
 from ...core.doc_category import DOC_CATEGORY_USERS
@@ -182,14 +179,12 @@ class UserInput(BaseInputObjectType):
     note = graphene.String(description="A note about the user.")
     metadata = NonNullList(
         MetadataInput,
-        description="Fields required to update the user metadata." + ADDED_IN_314,
+        description="Fields required to update the user metadata.",
         required=False,
     )
     private_metadata = NonNullList(
         MetadataInput,
-        description=(
-            "Fields required to update the user private metadata." + ADDED_IN_314
-        ),
+        description="Fields required to update the user private metadata.",
         required=False,
     )
 
@@ -214,10 +209,10 @@ class CustomerInput(UserInput, UserAddressInput):
         LanguageCodeEnum, required=False, description="User language code."
     )
     external_reference = graphene.String(
-        description="External ID of the customer." + ADDED_IN_310, required=False
+        description="External ID of the customer.", required=False
     )
     is_confirmed = graphene.Boolean(
-        required=False, description="User account is confirmed." + ADDED_IN_315
+        required=False, description="User account is confirmed."
     )
 
     class Meta:
@@ -241,7 +236,6 @@ class UserCreateInput(CustomerInput):
         required=False,
         description=(
             "User account is confirmed."
-            + ADDED_IN_315
             + DEPRECATED_IN_3X_INPUT
             + "\n\nThe user will be always set as unconfirmed. "
             "The confirmation will take place when the user sets the password."

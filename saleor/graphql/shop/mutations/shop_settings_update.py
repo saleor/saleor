@@ -7,12 +7,7 @@ from ....permission.enums import SitePermissions
 from ....site.models import DEFAULT_LIMIT_QUANTITY_PER_CHECKOUT
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
-from ...core.descriptions import (
-    ADDED_IN_31,
-    ADDED_IN_314,
-    ADDED_IN_315,
-    DEPRECATED_IN_3X_INPUT,
-)
+from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_SHOP
 from ...core.enums import WeightUnitsEnum
 from ...core.mutations import BaseMutation
@@ -39,12 +34,10 @@ class ShopSettingsInput(graphene.InputObjectType):
         description="Enable automatic fulfillment for all digital products."
     )
     fulfillment_auto_approve = graphene.Boolean(
-        description="Enable automatic approval of all new fulfillments." + ADDED_IN_31
+        description="Enable automatic approval of all new fulfillments."
     )
     fulfillment_allow_unpaid = graphene.Boolean(
-        description=(
-            "Enable ability to approve fulfillments which are unpaid." + ADDED_IN_31
-        )
+        description=("Enable ability to approve fulfillments which are unpaid.")
     )
     default_digital_max_downloads = graphene.Int(
         description="Default number of max downloads per digital content URL."
@@ -64,39 +57,37 @@ class ShopSettingsInput(graphene.InputObjectType):
     reserve_stock_duration_anonymous_user = graphene.Int(
         description=(
             "Default number of minutes stock will be reserved for "
-            "anonymous checkout. Enter 0 or null to disable." + ADDED_IN_31
+            "anonymous checkout. Enter 0 or null to disable."
         )
     )
     reserve_stock_duration_authenticated_user = graphene.Int(
         description=(
             "Default number of minutes stock will be reserved for "
-            "authenticated checkout. Enter 0 or null to disable." + ADDED_IN_31
+            "authenticated checkout. Enter 0 or null to disable."
         )
     )
     limit_quantity_per_checkout = graphene.Int(
         description=(
             "Default number of maximum line quantity "
             "in single checkout. Minimum possible value is 1, default "
-            f"value is {DEFAULT_LIMIT_QUANTITY_PER_CHECKOUT}." + ADDED_IN_31
+            f"value is {DEFAULT_LIMIT_QUANTITY_PER_CHECKOUT}."
         )
     )
 
     enable_account_confirmation_by_email = graphene.Boolean(
-        description="Enable automatic account confirmation by email." + ADDED_IN_314
+        description="Enable automatic account confirmation by email."
     )
     allow_login_without_confirmation = graphene.Boolean(
-        description=(
-            "Enable possibility to login without account confirmation." + ADDED_IN_315
-        )
+        description=("Enable possibility to login without account confirmation.")
     )
     metadata = common_types.NonNullList(
         MetadataInput,
-        description="Shop public metadata." + ADDED_IN_315,
+        description="Shop public metadata.",
         required=False,
     )
     private_metadata = common_types.NonNullList(
         MetadataInput,
-        description="Shop private metadata." + ADDED_IN_315,
+        description="Shop private metadata.",
         required=False,
     )
     # deprecated

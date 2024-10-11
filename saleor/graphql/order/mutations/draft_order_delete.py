@@ -10,7 +10,6 @@ from ....order.error_codes import OrderErrorCode
 from ....permission.enums import OrderPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_310
 from ...core.mutations import (
     ModelDeleteWithRestrictedChannelAccessMutation,
     ModelWithExtRefMutation,
@@ -27,7 +26,7 @@ class DraftOrderDelete(
         id = graphene.ID(required=False, description="ID of a product to delete.")
         external_reference = graphene.String(
             required=False,
-            description=f"External ID of a product to delete. {ADDED_IN_310}",
+            description="External ID of a product to delete.",
         )
 
     class Meta:

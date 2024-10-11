@@ -14,7 +14,6 @@ from ....permission.enums import OrderPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_36
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import BaseInputObjectType, NonNullList, OrderError
@@ -69,7 +68,7 @@ class OrderFulfillInput(BaseInputObjectType):
         default_value=False,
     )
     tracking_number = graphene.String(
-        description="Fulfillment tracking number." + ADDED_IN_36,
+        description="Fulfillment tracking number.",
         required=False,
     )
 

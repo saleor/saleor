@@ -32,12 +32,6 @@ from .....permission.enums import PaymentPermissions
 from .....webhook.event_types import WebhookEventAsyncType
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
-from ....core.descriptions import (
-    ADDED_IN_313,
-    ADDED_IN_314,
-    ADDED_IN_317,
-    PREVIEW_FEATURE,
-)
 from ....core.doc_category import DOC_CATEGORY_PAYMENTS
 from ....core.enums import TransactionEventReportErrorCode
 from ....core.mutations import ModelMutation
@@ -82,8 +76,7 @@ class TransactionEventReport(ModelMutation):
         token = UUID(
             description=(
                 "The token of the transaction. One of field id or token is required."
-            )
-            + ADDED_IN_314,
+            ),
             required=False,
         )
         psp_reference = graphene.String(
@@ -123,25 +116,18 @@ class TransactionEventReport(ModelMutation):
         )
         transaction_metadata = NonNullList(
             MetadataInput,
-            description=(
-                "Fields required to update the transaction metadata." + ADDED_IN_317
-            ),
+            description=("Fields required to update the transaction metadata."),
             required=False,
         )
         transaction_private_metadata = NonNullList(
             MetadataInput,
-            description=(
-                "Fields required to update the transaction private metadata."
-                + ADDED_IN_317
-            ),
+            description=("Fields required to update the transaction private metadata."),
             required=False,
         )
 
     class Meta:
         description = (
             "Report the event for the transaction."
-            + ADDED_IN_313
-            + PREVIEW_FEATURE
             + "\n\nRequires the following permissions: "
             + f"{AuthorizationFilters.OWNER.name} "
             + f"and {PaymentPermissions.HANDLE_PAYMENTS.name} for apps, "

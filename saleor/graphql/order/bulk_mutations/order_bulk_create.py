@@ -48,7 +48,7 @@ from ....warehouse.models import Stock, Warehouse
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_314, ADDED_IN_318, PREVIEW_FEATURE
+from ...core.descriptions import ADDED_IN_318
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.enums import ErrorPolicy, ErrorPolicyEnum, LanguageCodeEnum
 from ...core.mutations import BaseMutation
@@ -615,7 +615,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         )
 
     class Meta:
-        description = "Creates multiple orders." + ADDED_IN_314 + PREVIEW_FEATURE
+        description = "Creates multiple orders."
         permissions = (OrderPermissions.MANAGE_ORDERS_IMPORT,)
         doc_category = DOC_CATEGORY_ORDERS
         error_type_class = OrderBulkCreateError

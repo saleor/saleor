@@ -6,7 +6,6 @@ from ....order.error_codes import OrderErrorCode
 from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_310
 from ...core.mutations import ModelWithExtRefMutation
 from ...core.types import OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -19,7 +18,7 @@ class DraftOrderUpdate(DraftOrderCreate, ModelWithExtRefMutation):
         id = graphene.ID(required=False, description="ID of a draft order to update.")
         external_reference = graphene.String(
             required=False,
-            description=f"External ID of a draft order to update. {ADDED_IN_310}",
+            description="External ID of a draft order to update.",
         )
         input = DraftOrderInput(
             required=True, description="Fields required to update an order."

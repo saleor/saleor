@@ -14,7 +14,6 @@ from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_31
 from ...core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ...core.mutations import BaseMutation
 from ...core.scalars import Date
@@ -63,7 +62,7 @@ class GiftCardBulkCreate(BaseMutation):
         )
 
     class Meta:
-        description = "Create gift cards." + ADDED_IN_31
+        description = "Create gift cards."
         doc_category = DOC_CATEGORY_GIFT_CARDS
         model = models.GiftCard
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)

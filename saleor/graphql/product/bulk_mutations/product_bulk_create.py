@@ -27,7 +27,7 @@ from ....webhook.utils import get_webhooks_for_event
 from ...attribute.types import AttributeValueInput
 from ...attribute.utils import ProductAttributeAssignmentMixin
 from ...channel import ChannelContext
-from ...core.descriptions import ADDED_IN_313, PREVIEW_FEATURE, RICH_CONTENT
+from ...core.descriptions import RICH_CONTENT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.enums import ErrorPolicyEnum
 from ...core.fields import JSONString
@@ -199,7 +199,7 @@ class ProductBulkCreate(BaseMutation):
         )
 
     class Meta:
-        description = "Creates products." + ADDED_IN_313 + PREVIEW_FEATURE
+        description = "Creates products."
         doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductBulkCreateError

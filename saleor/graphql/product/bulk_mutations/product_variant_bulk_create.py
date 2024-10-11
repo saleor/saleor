@@ -22,13 +22,7 @@ from ...attribute.types import (
 )
 from ...attribute.utils import AttributeAssignmentMixin
 from ...channel import ChannelContext
-from ...core.descriptions import (
-    ADDED_IN_311,
-    ADDED_IN_312,
-    ADDED_IN_314,
-    DEPRECATED_IN_3X_FIELD,
-    PREVIEW_FEATURE,
-)
+from ...core.descriptions import DEPRECATED_IN_3X_FIELD
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.enums import ErrorPolicyEnum
 from ...core.fields import JSONString
@@ -126,7 +120,7 @@ class ProductVariantBulkResult(BaseObjectType):
 class BulkAttributeValueInput(BaseInputObjectType):
     id = graphene.ID(description="ID of the selected attribute.", required=False)
     external_reference = graphene.String(
-        description="External ID of this attribute." + ADDED_IN_314, required=False
+        description="External ID of this attribute.", required=False
     )
     values = NonNullList(
         graphene.String,
@@ -139,46 +133,41 @@ class BulkAttributeValueInput(BaseInputObjectType):
     )
     dropdown = AttributeValueSelectableTypeInput(
         required=False,
-        description="Attribute value ID." + ADDED_IN_312,
+        description="Attribute value ID.",
     )
     swatch = AttributeValueSelectableTypeInput(
         required=False,
-        description="Attribute value ID." + ADDED_IN_312,
+        description="Attribute value ID.",
     )
     multiselect = NonNullList(
         AttributeValueSelectableTypeInput,
         required=False,
-        description="List of attribute value IDs." + ADDED_IN_312,
+        description="List of attribute value IDs.",
     )
     numeric = graphene.String(
         required=False,
-        description="Numeric value of an attribute." + ADDED_IN_312,
+        description="Numeric value of an attribute.",
     )
     file = graphene.String(
         required=False,
-        description=(
-            "URL of the file attribute. Every time, a new value is created."
-            + ADDED_IN_312
-        ),
+        description=("URL of the file attribute. Every time, a new value is created."),
     )
     content_type = graphene.String(
         required=False,
-        description="File content type." + ADDED_IN_312,
+        description="File content type.",
     )
     references = NonNullList(
         graphene.ID,
-        description=(
-            "List of entity IDs that will be used as references." + ADDED_IN_312
-        ),
+        description=("List of entity IDs that will be used as references."),
         required=False,
     )
     rich_text = JSONString(
         required=False,
-        description="Text content in JSON format." + ADDED_IN_312,
+        description="Text content in JSON format.",
     )
     plain_text = graphene.String(
         required=False,
-        description="Plain text content." + ADDED_IN_312,
+        description="Plain text content.",
     )
     boolean = graphene.Boolean(
         required=False,
@@ -187,11 +176,9 @@ class BulkAttributeValueInput(BaseInputObjectType):
             "If the passed value is non-existent, it will be created."
         ),
     )
-    date = Date(
-        required=False, description=AttributeValueDescriptions.DATE + ADDED_IN_312
-    )
+    date = Date(required=False, description=AttributeValueDescriptions.DATE)
     date_time = DateTime(
-        required=False, description=AttributeValueDescriptions.DATE_TIME + ADDED_IN_312
+        required=False, description=AttributeValueDescriptions.DATE_TIME
     )
 
     class Meta:
@@ -237,7 +224,7 @@ class ProductVariantBulkCreate(BaseMutation):
         ProductVariantBulkResult,
         required=True,
         default_value=[],
-        description="List of the created variants." + ADDED_IN_311,
+        description="List of the created variants.",
     )
 
     class Arguments:
@@ -256,8 +243,6 @@ class ProductVariantBulkCreate(BaseMutation):
             description=(
                 "Policies of error handling. DEFAULT: "
                 + ErrorPolicyEnum.REJECT_EVERYTHING.name
-                + ADDED_IN_311
-                + PREVIEW_FEATURE
             ),
         )
 

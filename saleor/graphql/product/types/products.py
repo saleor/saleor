@@ -57,10 +57,6 @@ from ...core.connection import (
 )
 from ...core.context import get_database_connection_name
 from ...core.descriptions import (
-    ADDED_IN_31,
-    ADDED_IN_39,
-    ADDED_IN_310,
-    ADDED_IN_312,
     DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_INPUT,
     RICH_CONTENT,
@@ -210,9 +206,7 @@ class VariantPricingInfo(BasePricingInfo):
 
 class ProductPricingInfo(BasePricingInfo):
     display_gross_prices = graphene.Boolean(
-        description=(
-            "Determines whether displayed prices should include taxes." + ADDED_IN_39
-        ),
+        description=("Determines whether displayed prices should include taxes."),
         required=True,
     )
     price_range = graphene.Field(
@@ -398,7 +392,7 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
     preorder = graphene.Field(
         PreorderData,
         required=False,
-        description=("Preorder data for product variant." + ADDED_IN_31),
+        description=("Preorder data for product variant."),
     )
     created = DateTime(
         required=True,
@@ -409,7 +403,7 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
         description="The date and time when the product variant was last updated.",
     )
     external_reference = graphene.String(
-        description=f"External ID of this product. {ADDED_IN_310}",
+        description="External ID of this product.",
         required=False,
     )
 
@@ -915,10 +909,7 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
             description="Slug of the attribute",
             required=True,
         ),
-        description=(
-            f"Get a single attribute attached to product by attribute slug."
-            f"{ADDED_IN_39}"
-        ),
+        description="Get a single attribute attached to product by attribute slug.",
     )
     attributes = NonNullList(
         SelectedAttribute,
@@ -947,7 +938,7 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
         ProductVariant,
         id=graphene.Argument(graphene.ID, description="ID of the variant."),
         sku=graphene.Argument(graphene.String, description="SKU of the variant."),
-        description=f"Get a single variant by SKU or ID. {ADDED_IN_39}",
+        description="Get a single variant by SKU or ID.",
         deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use top-level `variant` query.",
     )
     variants = NonNullList(
@@ -960,9 +951,7 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
     )
     media = NonNullList(
         lambda: ProductMedia,
-        sort_by=graphene.Argument(
-            MediaSortingInput, description=f"Sort media. {ADDED_IN_39}"
-        ),
+        sort_by=graphene.Argument(MediaSortingInput, description="Sort media."),
         description="List of media for the product.",
     )
     images = NonNullList(
@@ -1015,7 +1004,7 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
         ],
     )
     external_reference = graphene.String(
-        description=f"External ID of this product. {ADDED_IN_310}",
+        description="External ID of this product.",
         required=False,
     )
 
@@ -1698,7 +1687,6 @@ class ProductType(ModelObjectType[models.ProductType]):
         AssignedVariantAttribute,
         description=(
             "Variant attributes of that product type with attached variant selection."
-            + ADDED_IN_31
         ),
         variant_selection=graphene.Argument(
             VariantAttributeScope,
@@ -1919,15 +1907,12 @@ class ProductMedia(ModelObjectType[models.ProductMedia]):
     url = ThumbnailField(
         graphene.String, required=True, description="The URL of the media."
     )
-    product_id = graphene.ID(
-        description="Product id the media refers to." + ADDED_IN_312
-    )
+    product_id = graphene.ID(description="Product id the media refers to.")
 
     class Meta:
         description = "Represents a product media."
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.ProductMedia
-        metadata_since = ADDED_IN_312
 
     @staticmethod
     def resolve_url(

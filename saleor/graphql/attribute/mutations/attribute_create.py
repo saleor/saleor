@@ -10,7 +10,7 @@ from ....core.exceptions import PermissionDenied
 from ....permission.enums import PageTypePermissions, ProductTypePermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_310, DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ...core.enums import MeasurementUnitsEnum
 from ...core.fields import JSONString
@@ -44,7 +44,7 @@ class AttributeValueInput(BaseInputObjectType):
     )
     content_type = graphene.String(required=False, description="File content type.")
     external_reference = graphene.String(
-        description="External ID of this attribute value." + ADDED_IN_310,
+        description="External ID of this attribute value.",
         required=False,
     )
 
@@ -93,7 +93,7 @@ class AttributeCreateInput(BaseInputObjectType):
         description=AttributeDescriptions.AVAILABLE_IN_GRID + DEPRECATED_IN_3X_INPUT,
     )
     external_reference = graphene.String(
-        description="External ID of this attribute." + ADDED_IN_310, required=False
+        description="External ID of this attribute.", required=False
     )
 
     class Meta:

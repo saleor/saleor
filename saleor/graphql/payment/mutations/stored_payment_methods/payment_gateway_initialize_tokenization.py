@@ -5,7 +5,6 @@ from .....payment.interface import PaymentGatewayInitializeTokenizationRequestDa
 from .....permission.auth_filters import AuthorizationFilters
 from .....webhook.event_types import WebhookEventSyncType
 from ....channel.utils import validate_channel
-from ....core.descriptions import ADDED_IN_316, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_PAYMENTS
 from ....core.enums import PaymentGatewayInitializeTokenizationErrorCode
 from ....core.mutations import BaseMutation
@@ -44,8 +43,6 @@ class PaymentGatewayInitializeTokenization(BaseMutation):
         doc_category = DOC_CATEGORY_PAYMENTS
         description = (
             "Initializes payment gateway for tokenizing payment method session."
-            + ADDED_IN_316
-            + PREVIEW_FEATURE
         )
         webhook_events_info = [
             WebhookEventInfo(

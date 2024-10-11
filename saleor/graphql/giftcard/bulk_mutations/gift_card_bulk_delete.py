@@ -5,7 +5,6 @@ from ....permission.enums import GiftcardPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_31
 from ...core.mutations import ModelBulkDeleteMutation
 from ...core.types import GiftCardError, NonNullList
 from ...core.utils import WebhookEventInfo
@@ -20,7 +19,7 @@ class GiftCardBulkDelete(ModelBulkDeleteMutation):
         )
 
     class Meta:
-        description = "Delete gift cards." + ADDED_IN_31
+        description = "Delete gift cards."
         model = models.GiftCard
         object_type = GiftCard
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)

@@ -7,7 +7,7 @@ from .....permission.auth_filters import AuthorizationFilters
 from .....webhook.event_types import WebhookEventAsyncType
 from ....account.mixins import AddressMetadataMixin
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_314, ADDED_IN_319
+from ....core.descriptions import ADDED_IN_319
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.types import AccountError, NonNullList
 from ....core.utils import WebhookEventInfo
@@ -27,7 +27,7 @@ class AccountInput(AccountBaseInput):
     )
     metadata = NonNullList(
         MetadataInput,
-        description="Fields required to update the user metadata." + ADDED_IN_314,
+        description="Fields required to update the user metadata.",
         required=False,
     )
 
