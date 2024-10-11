@@ -28,10 +28,6 @@ def is_supported_image_mimetype(mimetype: str) -> bool:
 
 def is_image_url(url: str) -> bool:
     """Check if file URL seems to be an image."""
-    if url.endswith(".webp"):
-        # webp is not recognized by mimetypes as image
-        # https://bugs.python.org/issue38902
-        return True
     filetype = mimetypes.guess_type(url)[0]
     return filetype is not None and is_image_mimetype(filetype)
 
