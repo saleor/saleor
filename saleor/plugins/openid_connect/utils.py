@@ -700,9 +700,9 @@ def get_saleor_permissions_from_list(permissions: list) -> QuerySet[Permission]:
     if not saleor_permissions_str:
         return Permission.objects.none()
 
-    permission_codenames = list(
-        map(lambda perm: perm.replace("saleor:", ""), saleor_permissions_str)
-    )
+    permission_codenames = [
+        perm.replace("saleor:", "") for perm in saleor_permissions_str
+    ]
     permissions = get_permissions_from_codenames(permission_codenames)
     return permissions
 

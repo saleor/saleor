@@ -47,9 +47,7 @@ def test_variant_quantity_available_without_country_code_or_channel(
     content = get_graphql_content(response)
     variant_data = content["data"]["productVariant"]
     assert variant_data["quantityAvailable"] == 7
-    assert any(
-        [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
-    )
+    assert any(str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns)
 
 
 def test_variant_quantity_available_without_country_code_stock_only_in_cc_warehouse(

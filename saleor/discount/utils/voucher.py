@@ -207,9 +207,9 @@ def get_discounted_lines(
             if not line_variant or not line_product:
                 continue
             line_category = line_product.category
-            line_collections = set(
-                [collection.pk for collection in line_info.collections if collection]
-            )
+            line_collections = {
+                collection.pk for collection in line_info.collections if collection
+            }
             if line_info.variant and (
                 line_variant.pk in voucher_info.variant_pks
                 or line_product.pk in voucher_info.product_pks

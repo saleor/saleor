@@ -475,12 +475,12 @@ def test_grant_refund_without_lines_and_amount_and_grant_for_shipping(
     data = content["data"]["orderGrantRefundCreate"]
     errors = data["errors"]
     assert len(errors) == 3
-    assert set([error["field"] for error in errors]) == {
+    assert {error["field"] for error in errors} == {
         "amount",
         "lines",
         "grantRefundForShipping",
     }
-    assert set([error["code"] for error in errors]) == {"REQUIRED"}
+    assert {error["code"] for error in errors} == {"REQUIRED"}
 
 
 def test_grant_refund_with_incorrect_line_id(

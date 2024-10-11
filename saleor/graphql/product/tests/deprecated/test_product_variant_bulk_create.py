@@ -463,7 +463,7 @@ def test_product_variant_bulk_create_stocks_input(
         assert variant_data["sku"] in expected_result
         expected_variant = expected_result[variant_data["sku"]]
         expected_stocks = expected_variant["stocks"]
-        assert all([stock in expected_stocks for stock in variant_data["stocks"]])
+        assert all(stock in expected_stocks for stock in variant_data["stocks"])
 
 
 def test_product_variant_bulk_create_duplicated_warehouses(
@@ -628,10 +628,8 @@ def test_product_variant_bulk_create_channel_listings_input(
         expected_variant = expected_result[variant_data["sku"]]
         expected_channel_listing = expected_variant["channelListings"]
         assert all(
-            [
-                channelListing in expected_channel_listing
-                for channelListing in variant_data["channelListings"]
-            ]
+            channelListing in expected_channel_listing
+            for channelListing in variant_data["channelListings"]
         )
 
 
@@ -744,11 +742,9 @@ def test_product_variant_bulk_create_preorder_channel_listings_input(
             for channel_listing in expected_variant["channelListings"]
         ]
         assert all(
-            [
-                channel_listing["preorderThreshold"]["quantity"]
-                in expected_channel_listing_thresholds
-                for channel_listing in variant_data["channelListings"]
-            ]
+            channel_listing["preorderThreshold"]["quantity"]
+            in expected_channel_listing_thresholds
+            for channel_listing in variant_data["channelListings"]
         )
         preorder_data = variant_data["preorder"]
         assert preorder_data["globalThreshold"] == global_threshold

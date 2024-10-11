@@ -1096,9 +1096,9 @@ def prepare_api_request_data(request: WSGIRequest, data: dict):
     params = data["parameters"]
     request_data: QueryDict = QueryDict("")
 
-    if all([param in request.GET for param in params]):
+    if all(param in request.GET for param in params):
         request_data = request.GET
-    elif all([param in request.POST for param in params]):
+    elif all(param in request.POST for param in params):
         request_data = request.POST
 
     if not request_data:

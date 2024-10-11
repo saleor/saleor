@@ -925,7 +925,7 @@ class AvataxPlugin(BasePlugin):
         ]
 
         all_address_fields = all(
-            [configuration[field] for field in required_from_address_fields]
+            configuration[field] for field in required_from_address_fields
         )
         if not all_address_fields:
             missing_fields.extend(required_from_address_fields)

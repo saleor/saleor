@@ -43,9 +43,7 @@ def set_voucher_code(Order, Voucher, orders):
 
 def get_voucher_id_to_code_map(Voucher, orders):
     vouchers = Voucher.objects.filter(Exists(orders.filter(voucher_id=OuterRef("pk"))))
-    voucher_id_to_code_map = {
-        voucher_id: code for voucher_id, code in vouchers.values_list("id", "code")
-    }
+    voucher_id_to_code_map = dict(vouchers.values_list("id", "code"))
     return voucher_id_to_code_map
 
 

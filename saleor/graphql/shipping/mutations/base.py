@@ -270,9 +270,9 @@ class ShippingZoneMixin:
     def _extend_shipping_zone_countries(cls, data):
         countries = get_countries_without_shipping_zone()
         try:
-            data["countries"].extend([country for country in countries])
+            data["countries"].extend(list(countries))
         except (KeyError, AttributeError):
-            data["countries"] = [country for country in countries]
+            data["countries"] = list(countries)
 
 
 class ShippingPriceMixin:

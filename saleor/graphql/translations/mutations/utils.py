@@ -494,7 +494,7 @@ class BaseBulkTranslateMutation(BaseMutation):
             cleaned_inputs_map, index_error_map
         )
 
-        if any([bool(error) for error in index_error_map.values()]):
+        if any(bool(error) for error in index_error_map.values()):
             if error_policy == ErrorPolicyEnum.REJECT_EVERYTHING.value:
                 results = cls.get_results(instances_data_with_errors_list, True)
                 return cls(count=0, results=results)

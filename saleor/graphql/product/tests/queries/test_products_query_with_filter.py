@@ -187,10 +187,10 @@ def test_products_query_with_filter_numeric_attributes(
     products = content["data"]["products"]["edges"]
 
     assert len(products) == len(expected_products_index)
-    assert set(product["node"]["id"] for product in products) == {
+    assert {product["node"]["id"] for product in products} == {
         products_ids[index] for index in expected_products_index
     }
-    assert set(product["node"]["name"] for product in products) == {
+    assert {product["node"]["name"] for product in products} == {
         products_instances[index].name for index in expected_products_index
     }
 
@@ -257,10 +257,10 @@ def test_products_query_with_filter_boolean_attributes(
     products = content["data"]["products"]["edges"]
 
     assert len(products) == len(expected_products_index)
-    assert set(product["node"]["id"] for product in products) == {
+    assert {product["node"]["id"] for product in products} == {
         products_ids[index] for index in expected_products_index
     }
-    assert set(product["node"]["name"] for product in products) == {
+    assert {product["node"]["name"] for product in products} == {
         products_instances[index].name for index in expected_products_index
     }
 

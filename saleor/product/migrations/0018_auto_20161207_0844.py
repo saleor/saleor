@@ -11,6 +11,6 @@ class Migration(migrations.Migration):
             model_name="stock", old_name="location_link", new_name="location"
         ),
         migrations.AlterUniqueTogether(
-            name="stock", unique_together=set([("variant", "location")])
+            name="stock", unique_together={("variant", "location")}
         ),
     ]

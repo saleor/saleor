@@ -560,7 +560,7 @@ class StripeGatewayPlugin(BasePlugin):
         configuration = {item["name"]: item["value"] for item in configuration}
         required_fields = ["secret_api_key", "public_api_key"]
         all_required_fields_provided = all(
-            [configuration.get(field) for field in required_fields]
+            configuration.get(field) for field in required_fields
         )
         if plugin_configuration.active:
             if not all_required_fields_provided:

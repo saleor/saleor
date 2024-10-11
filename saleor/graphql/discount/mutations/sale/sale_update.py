@@ -147,7 +147,7 @@ class SaleUpdate(ModelMutation):
             for rule in rules:
                 rule.reward_value_type = type
 
-        if any([key in CATALOGUE_FIELDS for key in input.keys()]):
+        if any(key in CATALOGUE_FIELDS for key in input.keys()):
             predicate = cls.create_predicate(input)
             for rule in rules:
                 rule.catalogue_predicate = predicate

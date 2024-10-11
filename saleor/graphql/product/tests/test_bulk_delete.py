@@ -750,7 +750,7 @@ def test_delete_products_with_file_attributes(
     # given
     query = DELETE_PRODUCTS_MUTATION
 
-    values = [value for value in file_attribute.values.all()]
+    values = list(file_attribute.values.all())
     for i, product in enumerate(product_list[: len(values)]):
         product_type = product.product_type
         product_type.product_attributes.add(file_attribute)
@@ -922,7 +922,7 @@ def test_delete_product_types_with_file_attributes(
 ):
     query = PRODUCT_TYPE_BULK_DELETE_MUTATION
 
-    values = [value for value in file_attribute.values.all()]
+    values = list(file_attribute.values.all())
     for i, product_type in enumerate(product_type_list[: len(values)]):
         product_type.product_attributes.add(file_attribute)
         product = product_list[i]
@@ -1519,7 +1519,7 @@ def test_delete_product_variants_with_file_attribute(
         variant_id__in=[variant.id for variant in product_variant_list]
     ).exists()
 
-    values = [value for value in file_attribute.values.all()]
+    values = list(file_attribute.values.all())
     for i, variant in enumerate(product_variant_list[: len(values)]):
         product_type = variant.product.product_type
         product_type.variant_attributes.add(file_attribute)

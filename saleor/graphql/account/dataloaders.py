@@ -169,12 +169,9 @@ class RestrictedChannelAccessByUserIdLoader(DataLoader):
             id__in=user_groups.values("group_id")
         )
 
-        group_id_to_restricted_access = {
-            group_id: restricted_access
-            for group_id, restricted_access in groups.values_list(
-                "id", "restricted_access_to_channels"
-            )
-        }
+        group_id_to_restricted_access = dict(
+            groups.values_list("id", "restricted_access_to_channels")
+        )
 
         user_to_restricted_access: defaultdict[int, bool] = defaultdict(lambda: True)
         for user_id, group_id in user_groups.values_list("user_id", "group_id"):

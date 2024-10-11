@@ -456,7 +456,7 @@ class AttributeAssignmentMixin:
         attr_values: AttrValuesInput,
     ):
         if not attr_values.dropdown:
-            return tuple()
+            return ()
 
         attr_value = attr_values.dropdown.value
         external_ref = attr_values.dropdown.external_reference
@@ -484,7 +484,7 @@ class AttributeAssignmentMixin:
         if attr_value:
             return cls._prepare_attribute_values(attribute, [attr_value])
 
-        return tuple()
+        return ()
 
     @classmethod
     def _pre_save_swatch_value(
@@ -494,7 +494,7 @@ class AttributeAssignmentMixin:
         attr_values: AttrValuesInput,
     ):
         if not attr_values.swatch:
-            return tuple()
+            return ()
 
         attr_value = attr_values.swatch.value
         external_ref = attr_values.swatch.external_reference
@@ -535,7 +535,7 @@ class AttributeAssignmentMixin:
         if attr_value := attr_values.swatch.value:
             return cls._prepare_attribute_values(attribute, [attr_value])
 
-        return tuple()
+        return ()
 
     @classmethod
     def _pre_save_multiselect_values(
@@ -545,7 +545,7 @@ class AttributeAssignmentMixin:
         attr_values_input: AttrValuesInput,
     ):
         if not attr_values_input.multiselect:
-            return tuple()
+            return ()
 
         attribute_values: list[attribute_models.AttributeValue] = []
         for attr_value in attr_values_input.multiselect:
@@ -602,7 +602,7 @@ class AttributeAssignmentMixin:
         elif attr_values.numeric:
             value = attr_values.numeric
         else:
-            return tuple()
+            return ()
 
         defaults = {
             "name": value,
@@ -619,7 +619,7 @@ class AttributeAssignmentMixin:
         """
 
         if not attr_values.values:
-            return tuple()
+            return ()
 
         return cls._prepare_attribute_values(attribute, attr_values.values)
 
@@ -631,7 +631,7 @@ class AttributeAssignmentMixin:
         attr_values: AttrValuesInput,
     ):
         if not attr_values.rich_text:
-            return tuple()
+            return ()
         defaults = {
             "rich_text": attr_values.rich_text,
             "name": truncatechars(
@@ -648,7 +648,7 @@ class AttributeAssignmentMixin:
         attr_values: AttrValuesInput,
     ):
         if not attr_values.plain_text:
-            return tuple()
+            return ()
         defaults = {
             "plain_text": attr_values.plain_text,
             "name": truncatechars(attr_values.plain_text, 200),
@@ -663,7 +663,7 @@ class AttributeAssignmentMixin:
         attr_values: AttrValuesInput,
     ):
         if attr_values.boolean is None:
-            return tuple()
+            return ()
 
         boolean = bool(attr_values.boolean)
         value = {
@@ -732,7 +732,7 @@ class AttributeAssignmentMixin:
         Slug value is generated based on instance and reference entity id.
         """
         if not attr_values.references or not attribute.entity_type:
-            return tuple()
+            return ()
 
         entity_data = cls.ENTITY_TYPE_MAPPING[attribute.entity_type]
         field_name = entity_data.name_field
@@ -774,7 +774,7 @@ class AttributeAssignmentMixin:
         """
         file_url = attr_value.file_url
         if not file_url:
-            return tuple()
+            return ()
         name = file_url.split("/")[-1]
         # don't create new value when assignment already exists
         value = cls._get_assigned_attribute_value_if_exists(

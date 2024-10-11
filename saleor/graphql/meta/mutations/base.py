@@ -259,18 +259,16 @@ class BaseMetadataMutation(BaseMutation):
         """Return a success response."""
         # Wrap the instance with ChannelContext for models that use it.
         use_channel_context = any(
-            [
-                isinstance(instance, Model)
-                for Model in [
-                    discount_models.Voucher,
-                    menu_models.Menu,
-                    menu_models.MenuItem,
-                    product_models.Collection,
-                    product_models.Product,
-                    product_models.ProductVariant,
-                    shipping_models.ShippingMethod,
-                    shipping_models.ShippingZone,
-                ]
+            isinstance(instance, Model)
+            for Model in [
+                discount_models.Voucher,
+                menu_models.Menu,
+                menu_models.MenuItem,
+                product_models.Collection,
+                product_models.Product,
+                product_models.ProductVariant,
+                shipping_models.ShippingMethod,
+                shipping_models.ShippingZone,
             ]
         )
         if use_channel_context:

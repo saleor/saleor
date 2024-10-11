@@ -1371,7 +1371,7 @@ def test_order_query_with_filter_checkout_tokens(
     channel_USD,
 ):
     assert not order.checkout_token
-    assert all([order.checkout_token for order in orders_from_checkout])
+    assert all(order.checkout_token for order in orders_from_checkout)
     # given
     variables = {
         "filter": {
@@ -1402,7 +1402,7 @@ def test_order_query_with_filter_checkout_tokens_empty_list(
     channel_USD,
 ):
     assert not order.checkout_token
-    assert all([order.checkout_token for order in orders_from_checkout])
+    assert all(order.checkout_token for order in orders_from_checkout)
     # given
     variables = {
         "filter": {

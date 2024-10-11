@@ -125,9 +125,7 @@ def test_checkout_create_with_default_channel(
     assert new_checkout.channel == channel_USD
     assert calculate_checkout_quantity(lines) == quantity
 
-    assert any(
-        [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
-    )
+    assert any(str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns)
 
 
 def test_checkout_create_with_inactive_channel(
@@ -266,9 +264,7 @@ def test_checkout_create_with_inactive_default_channel(
 
     assert new_checkout.channel == channel_USD
 
-    assert any(
-        [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
-    )
+    assert any(str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns)
 
 
 def test_checkout_create_with_inactive_and_active_default_channel(
@@ -298,9 +294,7 @@ def test_checkout_create_with_inactive_and_active_default_channel(
 
     assert new_checkout.channel == channel_USD
 
-    assert any(
-        [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
-    )
+    assert any(str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns)
 
 
 def test_checkout_create_with_inactive_and_two_active_default_channel(

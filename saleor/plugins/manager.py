@@ -2839,7 +2839,7 @@ class PluginsManager(PaymentInterface):
         self, plugin_id: str, data: dict, request: SaleorContext
     ) -> tuple[Optional["User"], dict]:
         """Verify the provided authentication data."""
-        default_data: dict[str, str] = dict()
+        default_data: dict[str, str] = {}
         default_user: Optional[User] = None
         default_value = default_user, default_data
         plugin = self.get_plugin(plugin_id)
@@ -2883,7 +2883,7 @@ class PluginsManager(PaymentInterface):
             self.plugins_per_channel[channel_slug] if channel_slug else self.all_plugins
         )
         only_active_plugins = [plugin for plugin in plugins if plugin.active]
-        return any([plugin.is_event_active(event) for plugin in only_active_plugins])
+        return any(plugin.is_event_active(event) for plugin in only_active_plugins)
 
 
 def get_plugins_manager(

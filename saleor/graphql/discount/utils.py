@@ -271,7 +271,7 @@ def _handle_or_data(
 
 
 def contains_filter_operator(input: dict[str, Union[dict, str, list, bool]]) -> bool:
-    return any([operator in input for operator in ["AND", "OR", "NOT"]])
+    return any(operator in input for operator in ["AND", "OR", "NOT"])
 
 
 def _handle_predicate(

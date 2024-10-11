@@ -361,7 +361,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
     @classmethod
     def update_address(cls, info, instance, data, field):
         address = getattr(instance, field) or models.Address()
-        address_metadata = data.pop("metadata", list())
+        address_metadata = data.pop("metadata", [])
         cls.update_metadata(address, address_metadata)
         address = cls.construct_instance(address, data)
         cls.clean_instance(info, address)
@@ -670,7 +670,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
             info, cleaned_inputs_map, index_error_map
         )
 
-        if any([bool(error) for error in index_error_map.values()]):
+        if any(index_error_map.values()):
             if error_policy == ErrorPolicyEnum.REJECT_EVERYTHING.value:
                 results = cls.get_results(instances_data_with_errors_list, True)
                 return CustomerBulkUpdate(count=0, results=results)

@@ -1061,13 +1061,11 @@ def test_handle_transaction_request_task_with_available_actions(
     assert success_event.amount_value == event_amount
 
     transaction.refresh_from_db()
-    assert set(transaction.available_actions) == set(
-        [
-            "charge",
-            "refund",
-            "cancel",
-        ]
-    )
+    assert set(transaction.available_actions) == {
+        "charge",
+        "refund",
+        "cancel",
+    }
 
     mocked_post_request.assert_called_once_with(
         "POST",

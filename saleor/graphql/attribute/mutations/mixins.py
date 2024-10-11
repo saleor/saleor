@@ -98,7 +98,7 @@ class AttributeMixin:
 
     @classmethod
     def validate_non_swatch_attr_value(cls, value_data: dict):
-        if any([value_data.get(field) for field in cls.ONLY_SWATCH_FIELDS]):
+        if any(value_data.get(field) for field in cls.ONLY_SWATCH_FIELDS):
             raise ValidationError(
                 {
                     cls.ATTRIBUTE_VALUES_FIELD: ValidationError(

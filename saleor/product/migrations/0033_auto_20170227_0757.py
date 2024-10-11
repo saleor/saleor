@@ -25,6 +25,6 @@ class Migration(migrations.Migration):
             model_name="productattribute", old_name="display", new_name="name"
         ),
         migrations.AlterUniqueTogether(
-            name="attributechoicevalue", unique_together=set([("name", "attribute")])
+            name="attributechoicevalue", unique_together={("name", "attribute")}
         ),
     ]

@@ -31,10 +31,10 @@ class VoucherInfo:
 def fetch_voucher_info(
     voucher: Voucher, voucher_code: Optional[str] = None
 ) -> VoucherInfo:
-    variant_pks = list(variant.id for variant in voucher.variants.all())
-    product_pks = list(product.id for product in voucher.products.all())
-    category_pks = list(category.id for category in voucher.categories.all())
-    collection_pks = list(collection.id for collection in voucher.collections.all())
+    variant_pks = [variant.id for variant in voucher.variants.all()]
+    product_pks = [product.id for product in voucher.products.all()]
+    category_pks = [category.id for category in voucher.categories.all()]
+    collection_pks = [collection.id for collection in voucher.collections.all()]
 
     return VoucherInfo(
         voucher=voucher,

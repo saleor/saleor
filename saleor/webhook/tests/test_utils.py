@@ -143,7 +143,7 @@ def test_truncation_error_extra_fields(
     error: type[TruncationError], event_type: ObservabilityEventTypes
 ):
     operation, bytes_limit, payload_size = "operation_name", 100, 102
-    kwargs = dict(extra_kwarg_a="a", extra_kwarg_b="b")
+    kwargs = {"extra_kwarg_a": "a", "extra_kwarg_b": "b"}
     err = error(operation, bytes_limit, payload_size, **kwargs)
     assert str(err)
     assert err.extra == {

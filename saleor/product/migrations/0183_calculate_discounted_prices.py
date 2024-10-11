@@ -283,10 +283,7 @@ def _get_product_to_variant_channel_listings_per_channel_map(
     variant_channel_listings = variant_listing_model.objects.filter(
         Exists(variants.filter(id=OuterRef("variant_id"))), price_amount__isnull=False
     )
-    variant_to_product_id = {
-        variant_id: product_id
-        for variant_id, product_id in variants.values_list("id", "product_id")
-    }
+    variant_to_product_id = dict(variants.values_list("id", "product_id"))
 
     price_data = defaultdict(lambda: defaultdict(list))
     for variant_channel_listing in variant_channel_listings:

@@ -1741,7 +1741,7 @@ class BasePlugin:
                 config_item.update([("value", new_value)])
 
         # Get new keys that don't exist in current_config and extend it.
-        current_config_keys = set(c_field["name"] for c_field in current_config)
+        current_config_keys = {c_field["name"] for c_field in current_config}
         missing_keys = set(configuration_to_update_dict.keys()) - current_config_keys
         for missing_key in missing_keys:
             if not config_structure.get(missing_key):
@@ -1850,7 +1850,7 @@ class BasePlugin:
                 continue
             updated_configuration.append(copy(config_field))
 
-        configured_keys = set(d["name"] for d in updated_configuration)
+        configured_keys = {d["name"] for d in updated_configuration}
         missing_keys = desired_config_keys - configured_keys
 
         if not missing_keys:

@@ -715,12 +715,12 @@ def update_rule_variant_relation(
     existing_rules_variants = PromotionRuleVariant.objects.filter(
         Exists(rules.filter(pk=OuterRef("promotionrule_id")))
     ).all()
-    new_rule_variant_set = set(
+    new_rule_variant_set = {
         (rv.promotionrule_id, rv.productvariant_id) for rv in new_rules_variants
-    )
-    existing_rule_variant_set = set(
+    }
+    existing_rule_variant_set = {
         (rv.promotionrule_id, rv.productvariant_id) for rv in existing_rules_variants
-    )
+    }
     # Assign new variants to promotion rules
     rules_variants_to_add = [
         rv

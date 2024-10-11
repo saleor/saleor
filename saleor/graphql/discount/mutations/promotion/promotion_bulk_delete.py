@@ -41,7 +41,7 @@ class PromotionBulkDelete(ModelBulkDeleteMutation):
     @classmethod
     def bulk_action(cls, info: ResolveInfo, queryset, /):
         channel_to_products_map = cls.get_product_and_channel_map(queryset)
-        promotions = [promotion for promotion in queryset]
+        promotions = list(queryset)
         queryset.delete()
         manager = get_plugin_manager_promise(info.context).get()
         webhooks = get_webhooks_for_event(WebhookEventAsyncType.PROMOTION_DELETED)

@@ -878,7 +878,7 @@ class ProductBulkCreate(BaseMutation):
             cls.call_event(manager.product_variant_created, variant, webhooks=webhooks)
 
         if products:
-            channel_ids = set([channel.id for channel in channels])
+            channel_ids = {channel.id for channel in channels}
             cls.call_event(mark_active_catalogue_promotion_rules_as_dirty, channel_ids)
 
     @classmethod
@@ -894,7 +894,7 @@ class ProductBulkCreate(BaseMutation):
         )
 
         # check error policy
-        if any([True if error else False for error in index_error_map.values()]):
+        if any(index_error_map.values()):
             if error_policy == ErrorPolicyEnum.REJECT_EVERYTHING.value:
                 results = get_results(instances_data_with_errors_list, True)
                 return ProductBulkCreate(count=0, results=results)
