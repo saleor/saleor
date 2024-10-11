@@ -39,11 +39,6 @@ from ..fetch import CheckoutLineInfo, fetch_checkout_info, fetch_checkout_lines
 
 
 @pytest.fixture
-def checkout_lines(checkout_with_items):
-    return checkout_with_items.lines.all()
-
-
-@pytest.fixture
 def tax_data(checkout_with_items, checkout_lines):
     checkout = checkout_with_items
     tax_rate = Decimal("23")
