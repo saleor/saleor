@@ -35,6 +35,7 @@ pytest_plugins = [
     "saleor.webhook.tests.subscription_webhooks.fixtures",
     "saleor.tax.tests.fixtures",
     "saleor.channel.tests.fixtures",
+    "saleor.page.tests.fixtures",
 ]
 
 

@@ -107,7 +107,6 @@ from ..order.models import (
 )
 from ..order.search import prepare_order_search_vector_value
 from ..order.utils import get_voucher_discount_assigned_to_order
-from ..page.models import Page, PageTranslation, PageType
 from ..payment import ChargeStatus, TransactionKind
 from ..payment.interface import AddressData, GatewayConfig, GatewayResponse, PaymentData
 from ..payment.model_helpers import get_subtotal
@@ -6754,126 +6753,6 @@ def collection_list(db, channel_USD):
 
 
 @pytest.fixture
-def page(db, page_type, size_page_attribute):
-    data = {
-        "slug": "test-url",
-        "title": "Test page",
-        "content": dummy_editorjs("Test content."),
-        "is_published": True,
-        "page_type": page_type,
-    }
-    page = Page.objects.create(**data)
-
-    # associate attribute value
-    page_attr_value = size_page_attribute.values.get(slug="10")
-    associate_attribute_values_to_instance(
-        page, {size_page_attribute.pk: [page_attr_value]}
-    )
-
-    return page
-
-
-@pytest.fixture
-def page_with_rich_text_attribute(
-    db, page_type_with_rich_text_attribute, rich_text_attribute_page_type
-):
-    data = {
-        "slug": "test-url",
-        "title": "Test page",
-        "content": dummy_editorjs("Test content."),
-        "is_published": True,
-        "page_type": page_type_with_rich_text_attribute,
-    }
-    page = Page.objects.create(**data)
-
-    # associate attribute value
-    page_attr = page_type_with_rich_text_attribute.page_attributes.first()
-    page_attr_value = page_attr.values.first()
-
-    associate_attribute_values_to_instance(page, {page_attr.pk: [page_attr_value]})
-
-    return page
-
-
-@pytest.fixture
-def page_list(db, page_type):
-    data_1 = {
-        "slug": "test-url-1",
-        "title": "Test page",
-        "content": dummy_editorjs("Test content."),
-        "is_published": True,
-        "page_type": page_type,
-    }
-    data_2 = {
-        "slug": "test-url-2",
-        "title": "Test page",
-        "content": dummy_editorjs("Test content."),
-        "is_published": True,
-        "page_type": page_type,
-    }
-    pages = Page.objects.bulk_create([Page(**data_1), Page(**data_2)])
-    return pages
-
-
-@pytest.fixture
-def page_list_unpublished(db, page_type):
-    pages = Page.objects.bulk_create(
-        [
-            Page(
-                slug="page-1", title="Page 1", is_published=False, page_type=page_type
-            ),
-            Page(
-                slug="page-2", title="Page 2", is_published=False, page_type=page_type
-            ),
-            Page(
-                slug="page-3", title="Page 3", is_published=False, page_type=page_type
-            ),
-        ]
-    )
-    return pages
-
-
-@pytest.fixture
-def page_type(db, size_page_attribute, tag_page_attribute):
-    page_type = PageType.objects.create(name="Test page type", slug="test-page-type")
-    page_type.page_attributes.add(size_page_attribute)
-    page_type.page_attributes.add(tag_page_attribute)
-
-    return page_type
-
-
-@pytest.fixture
-def page_type_with_rich_text_attribute(db, rich_text_attribute_page_type):
-    page_type = PageType.objects.create(name="Test page type", slug="test-page-type")
-    page_type.page_attributes.add(rich_text_attribute_page_type)
-    return page_type
-
-
-@pytest.fixture
-def page_type_list(db, tag_page_attribute):
-    page_types = list(
-        PageType.objects.bulk_create(
-            [
-                PageType(name="Test page type 1", slug="test-page-type-1"),
-                PageType(name="Example page type 2", slug="page-type-2"),
-                PageType(name="Example page type 3", slug="page-type-3"),
-            ]
-        )
-    )
-
-    for i, page_type in enumerate(page_types):
-        page_type.page_attributes.add(tag_page_attribute)
-        Page.objects.create(
-            title=f"Test page {i}",
-            slug=f"test-url-{i}",
-            is_published=True,
-            page_type=page_type,
-        )
-
-    return page_types
-
-
-@pytest.fixture
 def menu(db):
     return Menu.objects.get_or_create(name="test-navbar", slug="test-navbar")[0]
 
@@ -7019,16 +6898,6 @@ def category_translation_with_slug_pl(category):
         name="Polish category name",
         slug="polish-category-name",
         description=dummy_editorjs("Polish category description."),
-    )
-
-
-@pytest.fixture
-def page_translation_fr(page):
-    return PageTranslation.objects.create(
-        language_code="fr",
-        page=page,
-        title="French page title",
-        content=dummy_editorjs("French page content."),
     )
 
 
