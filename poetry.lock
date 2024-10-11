@@ -1899,16 +1899,6 @@ lxml = "*"
 dev = ["mock", "pre-commit", "pytest"]
 
 [[package]]
-name = "html2text"
-version = "2024.2.26"
-description = "Turn HTML into equivalent Markdown-structured text."
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "html2text-2024.2.26.tar.gz", hash = "sha256:05f8e367d15aaabc96415376776cdd11afd5127a77fce6e36afc60c563ca2c32"},
-]
-
-[[package]]
 name = "httptools"
 version = "0.6.1"
 description = "A collection of framework independent HTTP protocol utils."
@@ -5165,4 +5155,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.12"
-content-hash = "d8ff6a6f5c04755340631236626ec6d9da3d53fe2819e757bdebe9f51da67093"
+content-hash = "b4ebf16a70f2f9c1f45ae28c17d54d6a8b978247ad9acef63b4d99e7446638dc"
