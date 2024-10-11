@@ -87,6 +87,7 @@ from .utils import (
     get_checkout_metadata,
     get_or_create_checkout_metadata,
     get_voucher_for_checkout_info,
+    log_unknown_discount_reason,
 )
 
 if TYPE_CHECKING:
@@ -477,7 +478,7 @@ def _create_lines_for_order(
         replace=True,
         check_reservations=True,
     )
-    return [
+    order_lines_info = [
         _create_line_for_order(
             manager,
             checkout_info,
@@ -489,6 +490,12 @@ def _create_lines_for_order(
         )
         for checkout_line_info in lines
     ]
+
+    log_unknown_discount_reason(
+        [line_info.line for line_info in order_lines_info], checkout_info, lines, logger
+    )
+
+    return order_lines_info
 
 
 def _prepare_order_data(
