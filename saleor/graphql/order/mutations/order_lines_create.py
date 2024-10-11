@@ -1,4 +1,4 @@
-from collections import defaultdict, namedtuple
+from collections import defaultdict
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -34,8 +34,6 @@ from .utils import (
     call_event_by_order_status,
     get_variant_rule_info_map,
 )
-
-VariantData = namedtuple("VariantData", ["variant", "rules_info"])
 
 
 class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):

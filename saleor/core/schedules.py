@@ -1,13 +1,15 @@
 import datetime
-from collections import namedtuple
-from typing import cast
+from typing import NamedTuple, cast
 
 from celery.utils.time import maybe_timedelta, remaining
 from django.db.models import F, Q
 
 from ..schedulers.customschedule import CustomSchedule
 
-schedstate = namedtuple("schedstate", ("is_due", "next"))
+
+class schedstate(NamedTuple):
+    is_due: bool
+    next: float
 
 
 class promotion_webhook_schedule(CustomSchedule):

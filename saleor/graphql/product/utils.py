@@ -1,6 +1,7 @@
-from collections import defaultdict, namedtuple
+from collections import defaultdict
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, NamedTuple, Optional
+from uuid import UUID
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -97,9 +98,10 @@ def create_stocks(
     return new_stocks
 
 
-DraftOrderLinesData = namedtuple(
-    "DraftOrderLinesData", ["order_to_lines_mapping", "line_pks", "order_pks"]
-)
+class DraftOrderLinesData(NamedTuple):
+    order_to_lines_mapping: dict
+    line_pks: set[UUID]
+    order_pks: set[UUID]
 
 
 def get_draft_order_lines_data_for_variants(

@@ -1,13 +1,13 @@
 import datetime
 import re
-from collections import defaultdict, namedtuple
+from collections import defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, NamedTuple, Optional, Union
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db.models import Q
+from django.db.models import Model, Q
 from django.db.models.expressions import Exists, OuterRef
 from django.template.defaultfilters import truncatechars
 from django.utils.text import slugify
@@ -72,7 +72,11 @@ T_INSTANCE = Union[
 T_INPUT_MAP = list[tuple[attribute_models.Attribute, AttrValuesInput]]
 T_ERROR_DICT = dict[tuple[str, str], list]
 
-EntityTypeData = namedtuple("EntityTypeData", ["model", "name_field", "value_field"])
+
+class EntityTypeData(NamedTuple):
+    model: type[Model]
+    name_field: str
+    value_field: str
 
 
 class AttributeAssignmentMixin:
@@ -226,7 +230,7 @@ class AttributeAssignmentMixin:
         :raises ValidationError: contain the message.
         :return: The resolved data
         """
-        error_class: Union[type[PageErrorCode], type[ProductErrorCode]] = (
+        error_class: type[Union[PageErrorCode, ProductErrorCode]] = (
             PageErrorCode if is_page_attributes else ProductErrorCode
         )
 
