@@ -147,7 +147,6 @@ from ..shipping.utils import convert_to_shipping_method_data
 from ..site.models import SiteSettings
 from ..tax import TaxCalculationStrategy
 from ..tax.utils import calculate_tax_rate, get_tax_class_kwargs_for_order_line
-from ..thumbnail.models import Thumbnail
 from ..warehouse.models import (
     Allocation,
     PreorderAllocation,
@@ -8401,43 +8400,6 @@ def product_media_image(product, image, media_root):
         alt="image",
         type=ProductMediaTypes.IMAGE,
         oembed_data="{}",
-    )
-
-
-@pytest.fixture
-def thumbnail_product_media(product_media_image, image_list, media_root):
-    return Thumbnail.objects.create(
-        product_media=product_media_image,
-        size=128,
-        image=image_list[1],
-    )
-
-
-@pytest.fixture
-def thumbnail_category(category_with_image, image_list, media_root):
-    return Thumbnail.objects.create(
-        category=category_with_image,
-        size=128,
-        image=image_list[1],
-    )
-
-
-@pytest.fixture
-def thumbnail_collection(collection_with_image, image_list, media_root):
-    return Thumbnail.objects.create(
-        collection=collection_with_image,
-        size=128,
-        image=image_list[1],
-    )
-
-
-@pytest.fixture
-def thumbnail_user(customer_user, image_list, media_root):
-    customer_user.avatar = image_list[0]
-    return Thumbnail.objects.create(
-        user=customer_user,
-        size=128,
-        image=image_list[1],
     )
 
 
