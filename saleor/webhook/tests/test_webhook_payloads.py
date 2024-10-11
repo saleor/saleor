@@ -1,6 +1,6 @@
+import datetime
 import json
 from dataclasses import asdict
-from datetime import datetime, timedelta
 from decimal import Decimal
 from itertools import chain
 from unittest import mock
@@ -8,7 +8,6 @@ from unittest.mock import ANY, patch, sentinel
 
 import graphene
 import pytest
-import pytz
 from django.core.serializers.json import DjangoJSONEncoder
 from freezegun import freeze_time
 from measurement.measures import Weight
@@ -100,7 +99,9 @@ def order_for_payload(fulfilled_order, voucher_percentage):
         voucher=voucher_percentage,
     )
 
-    discount.created_at = datetime.now(pytz.utc) + timedelta(days=1)
+    discount.created_at = datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(
+        days=1
+    )
     discount.save(update_fields=["created_at"])
 
     line_without_sku = order.lines.last()

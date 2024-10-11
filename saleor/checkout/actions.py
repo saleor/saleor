@@ -1,5 +1,5 @@
+import datetime
 from collections.abc import Iterable
-from datetime import timedelta
 from decimal import Decimal
 from typing import TYPE_CHECKING, Optional, cast
 
@@ -91,7 +91,7 @@ def _trigger_checkout_sync_webhooks(
     # valid prices. Triggered only when we have active sync tax webhook.
     if webhook_event_map.get(
         WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
-    ) and checkout_info.checkout.price_expiration < timezone.now() + timedelta(
+    ) and checkout_info.checkout.price_expiration < timezone.now() + datetime.timedelta(
         seconds=10
     ):
         fetch_checkout_data(

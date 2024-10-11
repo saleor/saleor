@@ -1,9 +1,8 @@
-from datetime import datetime, timedelta
+import datetime
 from decimal import Decimal
 
 import graphene
 import pytest
-import pytz
 from django.utils import timezone
 
 from .....attribute import AttributeInputType, AttributeType
@@ -477,7 +476,7 @@ def test_products_query_with_filter_date_range_date_attributes(
         attribute=date_attribute,
         name="Third",
         slug="third",
-        date_time=date_value - timedelta(days=1),
+        date_time=date_value - datetime.timedelta(days=1),
     )
 
     associate_attribute_values_to_instance(
@@ -535,7 +534,7 @@ def test_products_query_with_filter_date_range_date_variant_attributes(
         attribute=date_attribute,
         name="First",
         slug="first",
-        date_time=date_value - timedelta(days=1),
+        date_time=date_value - datetime.timedelta(days=1),
     )
     attr_value_2 = AttributeValue.objects.create(
         attribute=date_attribute, name="Second", slug="second", date_time=date_value
@@ -608,7 +607,7 @@ def test_products_query_with_filter_date_range_date_time_attributes(
         attribute=date_time_attribute,
         name="Third",
         slug="third",
-        date_time=date_value - timedelta(days=1),
+        date_time=date_value - datetime.timedelta(days=1),
     )
 
     associate_attribute_values_to_instance(
@@ -666,7 +665,7 @@ def test_products_query_with_filter_date_range_date_time_variant_attributes(
         attribute=date_time_attribute,
         name="First",
         slug="first",
-        date_time=date_value - timedelta(days=1),
+        date_time=date_value - datetime.timedelta(days=1),
     )
     attr_value_2 = AttributeValue.objects.create(
         attribute=date_time_attribute,
@@ -727,26 +726,26 @@ def test_products_query_with_filter_date_time_range_date_time_attributes(
 ):
     # given
     product_type = product_list[0].product_type
-    date_value = datetime.now(tz=pytz.utc)
+    date_value = datetime.datetime.now(tz=datetime.UTC)
     product_type.product_attributes.add(date_time_attribute)
     product_type.variant_attributes.add(date_time_attribute)
     attr_value_1 = AttributeValue.objects.create(
         attribute=date_time_attribute,
         name="First",
         slug="first",
-        date_time=date_value - timedelta(hours=2),
+        date_time=date_value - datetime.timedelta(hours=2),
     )
     attr_value_2 = AttributeValue.objects.create(
         attribute=date_time_attribute,
         name="Second",
         slug="second",
-        date_time=date_value + timedelta(hours=3),
+        date_time=date_value + datetime.timedelta(hours=3),
     )
     attr_value_3 = AttributeValue.objects.create(
         attribute=date_time_attribute,
         name="Third",
         slug="third",
-        date_time=date_value - timedelta(hours=6),
+        date_time=date_value - datetime.timedelta(hours=6),
     )
 
     associate_attribute_values_to_instance(
@@ -768,8 +767,8 @@ def test_products_query_with_filter_date_time_range_date_time_attributes(
                 {
                     "slug": date_time_attribute.slug,
                     "dateTime": {
-                        "gte": date_value - timedelta(hours=4),
-                        "lte": date_value + timedelta(hours=4),
+                        "gte": date_value - datetime.timedelta(hours=4),
+                        "lte": date_value + datetime.timedelta(hours=4),
                     },
                 }
             ],
@@ -1433,7 +1432,7 @@ def test_products_query_with_filter_search_by_date_attribute_value(
     product_type.product_attributes.add(date_attribute)
 
     date_attr_value = date_attribute.values.first()
-    date_attr_value.date_time = datetime(2020, 10, 10, tzinfo=pytz.utc)
+    date_attr_value.date_time = datetime.datetime(2020, 10, 10, tzinfo=datetime.UTC)
     date_attr_value.save(update_fields=["date_time"])
 
     associate_attribute_values_to_instance(
@@ -1482,7 +1481,9 @@ def test_products_query_with_filter_search_by_date_time_attribute_value(
     product_type.product_attributes.add(date_time_attribute)
 
     date_time_attr_value = date_time_attribute.values.first()
-    date_time_attr_value.date_time = datetime(2020, 10, 10, 22, 20, tzinfo=pytz.utc)
+    date_time_attr_value.date_time = datetime.datetime(
+        2020, 10, 10, 22, 20, tzinfo=datetime.UTC
+    )
     date_time_attr_value.save(update_fields=["date_time"])
 
     associate_attribute_values_to_instance(
@@ -1616,19 +1617,19 @@ def test_products_query_with_filter_stock_availability_including_reservations(
                 checkout_line=checkout_line,
                 stock=stocks[0],
                 quantity_reserved=50,
-                reserved_until=timezone.now() + timedelta(minutes=5),
+                reserved_until=timezone.now() + datetime.timedelta(minutes=5),
             ),
             Reservation(
                 checkout_line=checkout_line,
                 stock=stocks[1],
                 quantity_reserved=100,
-                reserved_until=timezone.now() - timedelta(minutes=5),
+                reserved_until=timezone.now() - datetime.timedelta(minutes=5),
             ),
             Reservation(
                 checkout_line=checkout_line,
                 stock=stocks[2],
                 quantity_reserved=50,
-                reserved_until=timezone.now() + timedelta(minutes=5),
+                reserved_until=timezone.now() + datetime.timedelta(minutes=5),
             ),
         ]
     )
@@ -1904,7 +1905,7 @@ def test_products_query_with_filter_has_preordered_variants_before_end_date(
     permission_manage_products,
 ):
     variant = preorder_variant_global_threshold
-    variant.preorder_end_date = timezone.now() + timedelta(days=3)
+    variant.preorder_end_date = timezone.now() + datetime.timedelta(days=3)
     variant.save(update_fields=["preorder_end_date"])
 
     product = preorder_variant_global_threshold.product
@@ -1927,7 +1928,7 @@ def test_products_query_with_filter_has_preordered_variants_after_end_date(
     permission_manage_products,
 ):
     variant = preorder_variant_global_threshold
-    variant.preorder_end_date = timezone.now() - timedelta(days=3)
+    variant.preorder_end_date = timezone.now() - datetime.timedelta(days=3)
     variant.save(update_fields=["preorder_end_date"])
 
     variables = {"filter": {"hasPreorderedVariants": True}}

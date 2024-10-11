@@ -1,4 +1,4 @@
-from datetime import timedelta
+import datetime
 
 import pytest
 from django.utils import timezone
@@ -26,14 +26,14 @@ def test_reserve_stocks(checkout_line, channel_USD):
         [checkout_line.variant],
         COUNTRY_CODE,
         channel_USD,
-        timezone.now() + timedelta(minutes=RESERVATION_LENGTH),
+        timezone.now() + datetime.timedelta(minutes=RESERVATION_LENGTH),
     )
 
     stock.refresh_from_db()
     assert stock.quantity == 10
     reservation = Reservation.objects.get(checkout_line=checkout_line, stock=stock)
     assert reservation.quantity_reserved == 5
-    assert reservation.reserved_until > timezone.now() + timedelta(minutes=1)
+    assert reservation.reserved_until > timezone.now() + datetime.timedelta(minutes=1)
 
 
 def test_stocks_reservation_skips_prev_reservation_delete_if_replace_is_disabled(
@@ -45,7 +45,7 @@ def test_stocks_reservation_skips_prev_reservation_delete_if_replace_is_disabled
             [checkout_line.variant],
             COUNTRY_CODE,
             channel_USD,
-            timezone.now() + timedelta(minutes=RESERVATION_LENGTH),
+            timezone.now() + datetime.timedelta(minutes=RESERVATION_LENGTH),
             replace=False,
         )
 
@@ -55,7 +55,7 @@ def test_stocks_reservation_skips_prev_reservation_delete_if_replace_is_disabled
             [checkout_line.variant],
             COUNTRY_CODE,
             channel_USD,
-            timezone.now() + timedelta(minutes=RESERVATION_LENGTH),
+            timezone.now() + datetime.timedelta(minutes=RESERVATION_LENGTH),
         )
 
 
@@ -88,7 +88,7 @@ def test_multiple_stocks_reserved_if_single_stock_is_not_enough_highest_stock_st
         [checkout_line.variant],
         COUNTRY_CODE,
         channel_USD,
-        timezone.now() + timedelta(minutes=RESERVATION_LENGTH),
+        timezone.now() + datetime.timedelta(minutes=RESERVATION_LENGTH),
     )
 
     stock.refresh_from_db()
@@ -96,13 +96,15 @@ def test_multiple_stocks_reserved_if_single_stock_is_not_enough_highest_stock_st
 
     reservation = Reservation.objects.get(checkout_line=checkout_line, stock=stock)
     assert reservation.quantity_reserved == 3
-    assert reservation.reserved_until > timezone.now() + timedelta(minutes=1)
+    assert reservation.reserved_until > timezone.now() + datetime.timedelta(minutes=1)
 
     second_reservation = Reservation.objects.get(
         checkout_line=checkout_line, stock=secondary_stock
     )
     assert second_reservation.quantity_reserved == 2
-    assert second_reservation.reserved_until > timezone.now() + timedelta(minutes=1)
+    assert second_reservation.reserved_until > timezone.now() + datetime.timedelta(
+        minutes=1
+    )
 
 
 def test_multiple_stocks_reserved_if_single_stock_is_not_enough_sorting_order_strategy(
@@ -155,7 +157,7 @@ def test_multiple_stocks_reserved_if_single_stock_is_not_enough_sorting_order_st
         [checkout_line.variant],
         COUNTRY_CODE,
         channel_USD,
-        timezone.now() + timedelta(minutes=RESERVATION_LENGTH),
+        timezone.now() + datetime.timedelta(minutes=RESERVATION_LENGTH),
     )
 
     # then
@@ -166,11 +168,13 @@ def test_multiple_stocks_reserved_if_single_stock_is_not_enough_sorting_order_st
         checkout_line=checkout_line, stock=secondary_stock
     )
     assert second_reservation.quantity_reserved == secondary_stock_quantity
-    assert second_reservation.reserved_until > timezone.now() + timedelta(minutes=1)
+    assert second_reservation.reserved_until > timezone.now() + datetime.timedelta(
+        minutes=1
+    )
 
     reservation = Reservation.objects.get(checkout_line=checkout_line, stock=stock)
     assert reservation.quantity_reserved == quantity - secondary_stock_quantity
-    assert reservation.reserved_until > timezone.now() + timedelta(minutes=1)
+    assert reservation.reserved_until > timezone.now() + datetime.timedelta(minutes=1)
 
 
 def test_stocks_reservation_removes_previous_reservations_for_checkout(
@@ -187,7 +191,7 @@ def test_stocks_reservation_removes_previous_reservations_for_checkout(
         checkout_line=checkout_line,
         stock=stock,
         quantity_reserved=5,
-        reserved_until=timezone.now() + timedelta(hours=1),
+        reserved_until=timezone.now() + datetime.timedelta(hours=1),
     )
 
     reserve_stocks(
@@ -195,7 +199,7 @@ def test_stocks_reservation_removes_previous_reservations_for_checkout(
         [checkout_line.variant],
         COUNTRY_CODE,
         channel_USD,
-        timezone.now() + timedelta(minutes=RESERVATION_LENGTH),
+        timezone.now() + datetime.timedelta(minutes=RESERVATION_LENGTH),
     )
 
     with pytest.raises(Reservation.DoesNotExist):
@@ -218,7 +222,7 @@ def test_stock_reservation_fails_if_there_is_not_enough_stock_available(
             [checkout_line.variant],
             COUNTRY_CODE,
             channel_USD,
-            timezone.now() + timedelta(minutes=RESERVATION_LENGTH),
+            timezone.now() + datetime.timedelta(minutes=RESERVATION_LENGTH),
         )
 
 
@@ -255,7 +259,7 @@ def test_stock_reservation_accounts_for_order_allocations(
             [variant],
             COUNTRY_CODE,
             channel_USD,
-            timezone.now() + timedelta(minutes=RESERVATION_LENGTH),
+            timezone.now() + datetime.timedelta(minutes=RESERVATION_LENGTH),
         )
 
 
@@ -278,7 +282,7 @@ def test_stock_reservation_accounts_for_order_allocations_and_reservations(
         checkout_line=other_checkout_line,
         stock=variant.stocks.order_by("pk").last(),
         quantity_reserved=2,
-        reserved_until=timezone.now() + timedelta(hours=1),
+        reserved_until=timezone.now() + datetime.timedelta(hours=1),
     )
 
     checkout_line = checkout.lines.create(
@@ -292,5 +296,5 @@ def test_stock_reservation_accounts_for_order_allocations_and_reservations(
             [variant],
             COUNTRY_CODE,
             channel_USD,
-            timezone.now() + timedelta(minutes=RESERVATION_LENGTH),
+            timezone.now() + datetime.timedelta(minutes=RESERVATION_LENGTH),
         )

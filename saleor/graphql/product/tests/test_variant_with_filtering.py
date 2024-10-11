@@ -1,4 +1,4 @@
-from datetime import timedelta
+import datetime
 
 import pytest
 from django.utils import timezone
@@ -105,13 +105,13 @@ def products_for_variant_filtering(product_type, category):
                 product=products[6],
                 sku="Preorder-V2",
                 is_preorder=True,
-                preorder_end_date=timezone.now() + timedelta(days=1),
+                preorder_end_date=timezone.now() + datetime.timedelta(days=1),
             ),
             ProductVariant(
                 product=products[6],
                 sku="Preorder-V3",
                 is_preorder=True,
-                preorder_end_date=timezone.now() - timedelta(days=1),
+                preorder_end_date=timezone.now() - datetime.timedelta(days=1),
             ),
         ]
     )

@@ -34,10 +34,6 @@ SECRET_KEY = "NOTREALLY"
 
 ALLOWED_CLIENT_HOSTS = ["www.example.com"]
 
-TIME_ZONE = "America/Chicago"
-LANGUAGE_CODE = "en"
-
-
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 
 COUNTRIES_ONLY = None

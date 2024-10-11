@@ -1,8 +1,8 @@
+import datetime
 import json
 import logging
 from collections.abc import Iterable
 from dataclasses import dataclass
-from datetime import date
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Optional, Union, cast
 from urllib.parse import urljoin
@@ -487,7 +487,7 @@ def generate_request_data(
         "type": transaction_type,
         "lines": lines,
         "code": transaction_token,
-        "date": str(date.today()),
+        "date": str(datetime.datetime.now(tz=datetime.UTC).date()),
         # https://developer.avalara.com/avatax/dev-guide/transactions/simple-transaction/
         "customerCode": 0,
         # https://developer.avalara.com/avatax/dev-guide/discounts-and-overrides/discounts/

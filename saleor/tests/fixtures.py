@@ -4,7 +4,6 @@ import random
 import uuid
 from collections import namedtuple
 from contextlib import contextmanager
-from datetime import timedelta
 from decimal import Decimal
 from functools import partial
 from io import BytesIO
@@ -13,7 +12,6 @@ from unittest.mock import MagicMock
 
 import graphene
 import pytest
-import pytz
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.files import File
@@ -1131,7 +1129,7 @@ def checkout_with_problems(
 
     second_line = checkout_with_items.lines.last()
 
-    available_at = datetime.datetime.now(pytz.UTC) + datetime.timedelta(days=5)
+    available_at = datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(days=5)
     product = second_line.variant.product
     product.channel_listings.update(
         available_for_purchase_at=available_at, is_published=False
@@ -2093,8 +2091,8 @@ def date_attribute(db):
                 date_time=value,
             )
             for value in [
-                datetime.datetime(2020, 10, 5, tzinfo=pytz.utc),
-                datetime.datetime(2020, 11, 5, tzinfo=pytz.utc),
+                datetime.datetime(2020, 10, 5, tzinfo=datetime.UTC),
+                datetime.datetime(2020, 11, 5, tzinfo=datetime.UTC),
             ]
         ]
     )
@@ -2123,8 +2121,8 @@ def date_time_attribute(db):
                 date_time=value,
             )
             for value in [
-                datetime.datetime(2020, 10, 5, tzinfo=pytz.utc),
-                datetime.datetime(2020, 11, 5, tzinfo=pytz.utc),
+                datetime.datetime(2020, 10, 5, tzinfo=datetime.UTC),
+                datetime.datetime(2020, 11, 5, tzinfo=datetime.UTC),
             ]
         ]
     )
@@ -2722,7 +2720,7 @@ def categories_tree_with_published_products(
             ProductChannelListing(
                 product=product,
                 channel=channel_USD,
-                published_at=datetime.datetime.now(pytz.UTC),
+                published_at=datetime.datetime.now(tz=datetime.UTC),
                 is_published=True,
             )
         )
@@ -2730,7 +2728,7 @@ def categories_tree_with_published_products(
             ProductChannelListing(
                 product=product,
                 channel=channel_PLN,
-                published_at=datetime.datetime.now(pytz.UTC),
+                published_at=datetime.datetime.now(tz=datetime.UTC),
                 is_published=True,
             )
         )
@@ -2906,7 +2904,7 @@ def product(product_type, category, warehouse, channel_USD, default_tax_class):
         discounted_price_amount="10.00",
         currency=channel_USD.currency_code,
         visible_in_listings=True,
-        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
+        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=datetime.UTC),
     )
 
     associate_attribute_values_to_instance(
@@ -2961,7 +2959,7 @@ def shippable_gift_card_product(
         discounted_price_amount="100.00",
         currency=channel_USD.currency_code,
         visible_in_listings=True,
-        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
+        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=datetime.UTC),
     )
 
     variant = ProductVariant.objects.create(
@@ -2999,7 +2997,7 @@ def product_price_0(category, warehouse, channel_USD):
         channel=channel_USD,
         is_published=True,
         visible_in_listings=True,
-        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
+        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=datetime.UTC),
     )
     variant = ProductVariant.objects.create(product=product, sku="SKU_C")
     ProductVariantChannelListing.objects.create(
@@ -3023,7 +3021,7 @@ def product_in_channel_JPY(product, channel_JPY, warehouse_JPY):
         discounted_price_amount="1200",
         currency=channel_JPY.currency_code,
         visible_in_listings=True,
-        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
+        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=datetime.UTC),
     )
     variant = product.variants.get()
     ProductVariantChannelListing.objects.create(
@@ -3057,7 +3055,7 @@ def non_shippable_gift_card_product(
         discounted_price_amount="200.00",
         currency=channel_USD.currency_code,
         visible_in_listings=True,
-        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
+        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=datetime.UTC),
     )
 
     variant = ProductVariant.objects.create(
@@ -3096,7 +3094,7 @@ def product_with_rich_text_attribute(
         discounted_price_amount="10.00",
         currency=channel_USD.currency_code,
         visible_in_listings=True,
-        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
+        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=datetime.UTC),
     )
 
     associate_attribute_values_to_instance(
@@ -3163,7 +3161,7 @@ def product_with_single_variant(product_type, category, warehouse, channel_USD):
         channel=channel_USD,
         is_published=True,
         visible_in_listings=True,
-        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
+        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=datetime.UTC),
     )
     variant = ProductVariant.objects.create(product=product, sku="SKU_SINGLE_VARIANT")
     ProductVariantChannelListing.objects.create(
@@ -3192,7 +3190,7 @@ def product_with_two_variants(product_type, category, warehouse, channel_USD):
         channel=channel_USD,
         is_published=True,
         visible_in_listings=True,
-        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
+        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=datetime.UTC),
     )
 
     variants = [
@@ -3259,7 +3257,7 @@ def product_with_variant_with_two_attributes(
         is_published=True,
         currency=channel_USD.currency_code,
         visible_in_listings=True,
-        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
+        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=datetime.UTC),
     )
 
     variant = ProductVariant.objects.create(product=product, sku="prodVar1")
@@ -3321,7 +3319,7 @@ def product_with_variant_with_external_media(
         is_published=True,
         currency=channel_USD.currency_code,
         visible_in_listings=True,
-        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
+        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=datetime.UTC),
     )
 
     variant = ProductVariant.objects.create(product=product, sku="prodVar1")
@@ -3370,7 +3368,7 @@ def product_with_variant_with_file_attribute(
         is_published=True,
         currency=channel_USD.currency_code,
         visible_in_listings=True,
-        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
+        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=datetime.UTC),
     )
 
     variant = ProductVariant.objects.create(
@@ -3433,7 +3431,7 @@ def product_with_default_variant(
         channel=channel_USD,
         is_published=True,
         visible_in_listings=True,
-        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
+        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=datetime.UTC),
     )
     variant = ProductVariant.objects.create(
         product=product, sku="1234", track_inventory=True
@@ -3471,7 +3469,7 @@ def variant_without_inventory_tracking(
         channel=channel_USD,
         is_published=True,
         visible_in_listings=True,
-        available_for_purchase_at=datetime.datetime.now(pytz.UTC),
+        available_for_purchase_at=datetime.datetime.now(tz=datetime.UTC),
     )
     variant = ProductVariant.objects.create(
         product=product,
@@ -3780,7 +3778,7 @@ def product_without_shipping(category, warehouse, channel_USD):
         channel=channel_USD,
         is_published=True,
         visible_in_listings=True,
-        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
+        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=datetime.UTC),
     )
     variant = ProductVariant.objects.create(product=product, sku="SKU_E")
     ProductVariantChannelListing.objects.create(
@@ -3850,7 +3848,7 @@ def product_list(
                 currency=channel_USD.currency_code,
                 visible_in_listings=True,
                 available_for_purchase_at=(
-                    datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC)
+                    datetime.datetime(1999, 1, 1, tzinfo=datetime.UTC)
                 ),
             ),
             ProductChannelListing(
@@ -3861,7 +3859,7 @@ def product_list(
                 currency=channel_USD.currency_code,
                 visible_in_listings=True,
                 available_for_purchase_at=(
-                    datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC)
+                    datetime.datetime(1999, 1, 1, tzinfo=datetime.UTC)
                 ),
             ),
             ProductChannelListing(
@@ -3872,7 +3870,7 @@ def product_list(
                 currency=channel_USD.currency_code,
                 visible_in_listings=True,
                 available_for_purchase_at=(
-                    datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC)
+                    datetime.datetime(1999, 1, 1, tzinfo=datetime.UTC)
                 ),
             ),
         ]
@@ -4696,7 +4694,7 @@ def checkout_line_with_reservation_in_many_stocks(
         quantity=3,
     )
 
-    reserved_until = timezone.now() + timedelta(minutes=5)
+    reserved_until = timezone.now() + datetime.timedelta(minutes=5)
 
     Reservation.objects.bulk_create(
         [
@@ -4729,7 +4727,7 @@ def checkout_line_with_one_reservation(
         quantity=2,
     )
 
-    reserved_until = timezone.now() + timedelta(minutes=5)
+    reserved_until = timezone.now() + datetime.timedelta(minutes=5)
 
     Reservation.objects.create(
         checkout_line=checkout_line,
@@ -4762,7 +4760,7 @@ def checkout_line_with_reserved_preorder_item(
     add_variant_to_checkout(checkout_info, preorder_variant_channel_threshold, 2)
     checkout_line = checkout.lines.last()
 
-    reserved_until = timezone.now() + timedelta(minutes=5)
+    reserved_until = timezone.now() + datetime.timedelta(minutes=5)
 
     PreorderReservation.objects.create(
         checkout_line=checkout_line,
@@ -4814,7 +4812,8 @@ def gift_card_expiry_date(customer_user):
         created_by_email=customer_user.email,
         initial_balance=Money(20, "USD"),
         current_balance=Money(20, "USD"),
-        expiry_date=datetime.date.today() + datetime.timedelta(days=100),
+        expiry_date=datetime.datetime.now(tz=datetime.UTC).date()
+        + datetime.timedelta(days=100),
     )
     tag = GiftCardTag.objects.create(name="another-tag")
     gift_card.tags.add(tag)
@@ -4986,7 +4985,7 @@ def order_with_lines(
         channel=channel_USD,
         is_published=True,
         visible_in_listings=True,
-        available_for_purchase_at=datetime.datetime.now(pytz.UTC),
+        available_for_purchase_at=datetime.datetime.now(tz=datetime.UTC),
     )
     variant = ProductVariant.objects.create(product=product, sku="SKU_AA")
     channel_listing = ProductVariantChannelListing.objects.create(
@@ -5636,7 +5635,7 @@ def fulfilled_order(order_with_lines):
     order.invoices.create(
         url="http://www.example.com/invoice.pdf",
         number="01/12/2020/TEST",
-        created_at=datetime.datetime.now(tz=pytz.utc),
+        created_at=datetime.datetime.now(tz=datetime.UTC),
         status=JobStatus.SUCCESS,
     )
     fulfillment = order.fulfillments.create(tracking_number="123")
@@ -6008,7 +6007,7 @@ def catalogue_promotion(channel_USD, product, collection):
         name="Promotion",
         type=PromotionType.CATALOGUE,
         description=dummy_editorjs("Test description."),
-        end_date=timezone.now() + timedelta(days=30),
+        end_date=timezone.now() + datetime.timedelta(days=30),
     )
     rules = PromotionRule.objects.bulk_create(
         [
@@ -6053,7 +6052,7 @@ def catalogue_promotion_without_rules(db):
     promotion = Promotion.objects.create(
         name="Promotion",
         description=dummy_editorjs("Test description."),
-        end_date=timezone.now() + timedelta(days=30),
+        end_date=timezone.now() + datetime.timedelta(days=30),
         type=PromotionType.CATALOGUE,
     )
     return promotion
@@ -6064,7 +6063,7 @@ def order_promotion_without_rules(db):
     promotion = Promotion.objects.create(
         name="Promotion",
         description=dummy_editorjs("Test description."),
-        end_date=timezone.now() + timedelta(days=30),
+        end_date=timezone.now() + datetime.timedelta(days=30),
         type=PromotionType.ORDER,
     )
     return promotion
@@ -6114,22 +6113,22 @@ def promotion_list(channel_USD, product, collection):
                 name="Promotion 1",
                 type=PromotionType.CATALOGUE,
                 description=dummy_editorjs("Promotion 1 description."),
-                start_date=timezone.now() + timedelta(days=1),
-                end_date=timezone.now() + timedelta(days=10),
+                start_date=timezone.now() + datetime.timedelta(days=1),
+                end_date=timezone.now() + datetime.timedelta(days=10),
             ),
             Promotion(
                 name="Promotion 2",
                 type=PromotionType.CATALOGUE,
                 description=dummy_editorjs("Promotion 2 description."),
-                start_date=timezone.now() + timedelta(days=5),
-                end_date=timezone.now() + timedelta(days=20),
+                start_date=timezone.now() + datetime.timedelta(days=5),
+                end_date=timezone.now() + datetime.timedelta(days=20),
             ),
             Promotion(
                 name="Promotion 3",
                 type=PromotionType.CATALOGUE,
                 description=dummy_editorjs("TePromotion 3 description."),
-                start_date=timezone.now() + timedelta(days=15),
-                end_date=timezone.now() + timedelta(days=30),
+                start_date=timezone.now() + datetime.timedelta(days=15),
+                end_date=timezone.now() + datetime.timedelta(days=30),
             ),
         ]
     )
@@ -6659,9 +6658,7 @@ def published_collections(db, channel_USD):
                 channel=channel_USD,
                 collection=collection,
                 is_published=True,
-                published_at=datetime.datetime(
-                    2019, 4, 10, tzinfo=timezone.get_current_timezone()
-                ),
+                published_at=datetime.datetime(2019, 4, 10, tzinfo=datetime.UTC),
             )
             for collection in collections
         ]
@@ -7185,7 +7182,7 @@ def digital_content(category, media_root, warehouse, channel_USD) -> DigitalCont
         channel=channel_USD,
         is_published=True,
         visible_in_listings=True,
-        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
+        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=datetime.UTC),
     )
     product_variant = ProductVariant.objects.create(product=product, sku="SKU_554")
     ProductVariantChannelListing.objects.create(
@@ -8387,12 +8384,8 @@ def export_file_list(staff_user):
         )
     )
 
-    updated_date = datetime.datetime(
-        2019, 4, 18, tzinfo=timezone.get_current_timezone()
-    )
-    created_date = datetime.datetime(
-        2019, 4, 10, tzinfo=timezone.get_current_timezone()
-    )
+    updated_date = datetime.datetime(2019, 4, 18, tzinfo=datetime.UTC)
+    created_date = datetime.datetime(2019, 4, 10, tzinfo=datetime.UTC)
     new_created_and_updated_dates = [
         (created_date, updated_date),
         (created_date, updated_date + datetime.timedelta(hours=2)),

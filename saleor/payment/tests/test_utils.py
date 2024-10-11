@@ -1,10 +1,8 @@
-from datetime import datetime, timedelta
+import datetime
 from decimal import Decimal
 from unittest.mock import patch
 
 import pytest
-import pytz
-from django.utils import timezone
 from freezegun import freeze_time
 
 from ...checkout import CheckoutAuthorizeStatus
@@ -256,19 +254,37 @@ def test_parse_transaction_action_data_with_only_psp_reference():
     [
         (
             "2023-10-17T10:18:28.111Z",
-            datetime(2023, 10, 17, 10, 18, 28, 111000, tzinfo=pytz.UTC),
+            datetime.datetime(2023, 10, 17, 10, 18, 28, 111000, tzinfo=datetime.UTC),
         ),
-        ("2011-11-04", datetime(2011, 11, 4, 0, 0)),
-        ("2011-11-04T00:05:23", datetime(2011, 11, 4, 0, 5, 23)),
-        ("2011-11-04T00:05:23Z", datetime(2011, 11, 4, 0, 5, 23, tzinfo=pytz.UTC)),
-        ("20111104T000523", datetime(2011, 11, 4, 0, 5, 23)),
-        ("2011-W01-2T00:05:23.283", datetime(2011, 1, 4, 0, 5, 23, 283000)),
-        ("2011-11-04 00:05:23.283", datetime(2011, 11, 4, 0, 5, 23, 283000)),
+        ("2011-11-04", datetime.datetime(2011, 11, 4, 0, 0, tzinfo=datetime.UTC)),
+        (
+            "2011-11-04T00:05:23",
+            datetime.datetime(2011, 11, 4, 0, 5, 23, tzinfo=datetime.UTC),
+        ),
+        (
+            "2011-11-04T00:05:23Z",
+            datetime.datetime(2011, 11, 4, 0, 5, 23, tzinfo=datetime.UTC),
+        ),
+        (
+            "20111104T000523",
+            datetime.datetime(2011, 11, 4, 0, 5, 23, tzinfo=datetime.UTC),
+        ),
+        (
+            "2011-W01-2T00:05:23.283",
+            datetime.datetime(2011, 1, 4, 0, 5, 23, 283000, tzinfo=datetime.UTC),
+        ),
+        (
+            "2011-11-04 00:05:23.283",
+            datetime.datetime(2011, 11, 4, 0, 5, 23, 283000, tzinfo=datetime.UTC),
+        ),
         (
             "2011-11-04 00:05:23.283+00:00",
-            datetime(2011, 11, 4, 0, 5, 23, 283000, tzinfo=pytz.UTC),
+            datetime.datetime(2011, 11, 4, 0, 5, 23, 283000, tzinfo=datetime.UTC),
         ),
-        ("1994-11-05T13:15:30Z", datetime(1994, 11, 5, 13, 15, 30, tzinfo=pytz.UTC)),
+        (
+            "1994-11-05T13:15:30Z",
+            datetime.datetime(1994, 11, 5, 13, 15, 30, tzinfo=datetime.UTC),
+        ),
     ],
 )
 def test_parse_transaction_action_data_with_provided_time(
@@ -328,7 +344,7 @@ def test_parse_transaction_action_data_with_event_all_fields_provided():
     assert isinstance(parsed_data.event, TransactionRequestEventResponse)
     assert parsed_data.event.psp_reference == expected_psp_reference
     assert parsed_data.event.amount == event_amount
-    assert parsed_data.event.time == datetime.fromisoformat(event_time)
+    assert parsed_data.event.time == datetime.datetime.fromisoformat(event_time)
     assert parsed_data.event.external_url == event_url
     assert parsed_data.event.message == event_cause
     assert parsed_data.event.type == event_type
@@ -386,7 +402,7 @@ def test_parse_transaction_action_data_with_event_only_mandatory_fields():
     assert parsed_data.event.psp_reference == expected_psp_reference
     assert parsed_data.event.type == TransactionEventType.CHARGE_SUCCESS
     assert parsed_data.event.amount == expected_amount
-    assert parsed_data.event.time == timezone.now()
+    assert parsed_data.event.time == datetime.datetime.now(tz=datetime.UTC)
     assert parsed_data.event.external_url == ""
     assert parsed_data.event.message == ""
 
@@ -623,7 +639,7 @@ def test_create_transaction_event_from_request_and_webhook_response_part_event(
     assert event
     assert event.psp_reference == expected_psp_reference
     assert event.amount_value == amount
-    assert event.created_at == timezone.now()
+    assert event.created_at == datetime.datetime.now(tz=datetime.UTC)
     assert event.external_url == ""
     assert event.message == ""
     assert event.type == TransactionEventType.CHARGE_SUCCESS
@@ -986,7 +1002,7 @@ def test_create_transaction_event_from_request_and_webhook_response_full_event(
     assert event
     assert event.psp_reference == expected_psp_reference
     assert event.amount_value == event_amount
-    assert event.created_at == datetime.fromisoformat(event_time)
+    assert event.created_at == datetime.datetime.fromisoformat(event_time)
     assert event.external_url == event_url
     assert event.message == event_cause
     assert event.type == event_type
@@ -2327,7 +2343,7 @@ def test_create_transaction_event_from_request_and_webhook_updates_modified_at(
 
     # when
     with freeze_time("2023-03-18 12:00:00"):
-        calculation_time = datetime.now(pytz.UTC)
+        calculation_time = datetime.datetime.now(tz=datetime.UTC)
         create_transaction_event_from_request_and_webhook_response(
             request_event, app, response_data
         )
@@ -2359,7 +2375,7 @@ def test_create_transaction_event_updates_transaction_modified_at(
 
     # when
     with freeze_time("2023-03-18 12:00:00"):
-        calculation_time = datetime.now(pytz.UTC)
+        calculation_time = datetime.datetime.now(tz=datetime.UTC)
         create_transaction_event_for_transaction_session(
             request_event,
             webhook_app,
@@ -2470,7 +2486,7 @@ def test_create_transaction_event_updates_transaction_modified_at_for_failure(
 
     # when
     with freeze_time("2023-03-18 12:00:00"):
-        calculation_time = datetime.now(pytz.UTC)
+        calculation_time = datetime.datetime.now(tz=datetime.UTC)
         create_transaction_event_for_transaction_session(
             request_event,
             webhook_app,
@@ -2913,7 +2929,7 @@ def test_get_transaction_event_amount_match_the_newest_event(
     )
     newest_event = events[-1]
     for event in events[:-1]:
-        event.created_at = newest_event.created_at - timedelta(minutes=10)
+        event.created_at = newest_event.created_at - datetime.timedelta(minutes=10)
     TransactionEvent.objects.bulk_update(events[:-1], ["created_at"])
 
     # when

@@ -684,7 +684,7 @@ class AttributeAssignmentMixin:
         attr_values: AttrValuesInput,
     ):
         is_date_attr = attribute.input_type == AttributeInputType.DATE
-        tz = datetime.timezone.utc
+        tz = datetime.UTC
         if is_date_attr:
             if not attr_values.date:
                 return ()

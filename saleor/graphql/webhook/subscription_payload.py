@@ -1,5 +1,5 @@
+import datetime
 from collections.abc import Iterable
-from datetime import datetime
 from typing import Any, Optional, Union
 
 from celery.utils.log import get_task_logger
@@ -28,7 +28,7 @@ def initialize_request(
     sync_event=False,
     allow_replica=False,
     event_type: Optional[str] = None,
-    request_time: Optional[datetime] = None,
+    request_time: Optional[datetime.datetime] = None,
     dataloaders: Optional[dict] = None,
 ) -> SaleorContext:
     """Prepare a request object for webhook subscription.
@@ -234,7 +234,7 @@ def generate_pre_save_payloads(
     instances: Iterable[models.Model],
     event_type: str,
     requestor: Union[User, App, None],
-    request_time: datetime,
+    request_time: datetime.datetime,
 ):
     if not settings.ENABLE_LIMITING_WEBHOOKS_FOR_IDENTICAL_PAYLOADS:
         return {}

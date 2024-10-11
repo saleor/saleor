@@ -1,5 +1,5 @@
+import datetime
 import json
-from datetime import timedelta
 from unittest.mock import call, patch
 
 import graphene
@@ -1034,7 +1034,7 @@ def test_channel_update_delete_expired_orders_after(
     channel_USD,
 ):
     # given
-    channel_USD.delete_expired_orders_after = timedelta(days=1)
+    channel_USD.delete_expired_orders_after = datetime.timedelta(days=1)
     channel_USD.save()
 
     delete_expired_after = 10
@@ -1065,7 +1065,7 @@ def test_channel_update_delete_expired_orders_after(
         channel_data["orderSettings"]["deleteExpiredOrdersAfter"]
         == delete_expired_after
     )
-    assert channel_USD.delete_expired_orders_after == timedelta(
+    assert channel_USD.delete_expired_orders_after == datetime.timedelta(
         days=delete_expired_after
     )
 
@@ -1078,7 +1078,7 @@ def test_channel_update_set_incorrect_delete_expired_orders_after(
     channel_USD,
 ):
     # given
-    channel_USD.delete_expired_orders_after = timedelta(days=1)
+    channel_USD.delete_expired_orders_after = datetime.timedelta(days=1)
     channel_USD.save()
 
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)

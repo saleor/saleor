@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+import datetime
 from decimal import Decimal
 
 import graphene
@@ -115,16 +115,49 @@ def test_draft_order_query_with_filter_customer_fields(
         (
             {
                 "created": {
-                    "gte": str(date.today() - timedelta(days=3)),
-                    "lte": str(date.today()),
+                    "gte": str(
+                        datetime.datetime.now(tz=datetime.UTC).date()
+                        - datetime.timedelta(days=3)
+                    ),
+                    "lte": str(datetime.datetime.now(tz=datetime.UTC).date()),
                 }
             },
             1,
         ),
-        ({"created": {"gte": str(date.today() - timedelta(days=3))}}, 1),
-        ({"created": {"lte": str(date.today())}}, 2),
-        ({"created": {"lte": str(date.today() - timedelta(days=3))}}, 1),
-        ({"created": {"gte": str(date.today() + timedelta(days=1))}}, 0),
+        (
+            {
+                "created": {
+                    "gte": str(
+                        datetime.datetime.now(tz=datetime.UTC).date()
+                        - datetime.timedelta(days=3)
+                    )
+                }
+            },
+            1,
+        ),
+        ({"created": {"lte": str(datetime.datetime.now(tz=datetime.UTC).date())}}, 2),
+        (
+            {
+                "created": {
+                    "lte": str(
+                        datetime.datetime.now(tz=datetime.UTC).date()
+                        - datetime.timedelta(days=3)
+                    )
+                }
+            },
+            1,
+        ),
+        (
+            {
+                "created": {
+                    "gte": str(
+                        datetime.datetime.now(tz=datetime.UTC).date()
+                        + datetime.timedelta(days=1)
+                    )
+                }
+            },
+            0,
+        ),
         ({"created": {"gte": None}}, 2),
         ({"created": {"lte": None}}, 2),
     ],

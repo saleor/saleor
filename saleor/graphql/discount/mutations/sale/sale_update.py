@@ -1,7 +1,6 @@
-from datetime import datetime
+import datetime
 
 import graphene
-import pytz
 from django.core.exceptions import ValidationError
 from django.db.models import Exists, OuterRef
 
@@ -235,7 +234,7 @@ class SaleUpdate(ModelMutation):
         and the notification_date is not set or the last notification was sent
         before start or end date.
         """
-        now = datetime.now(pytz.utc)
+        now = datetime.datetime.now(tz=datetime.UTC)
 
         notification_date = instance.last_notification_scheduled_at
         start_date = input.get("start_date")

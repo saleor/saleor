@@ -4559,7 +4559,7 @@ def test_order_confirmed(
                 }
             ],
             "code": str(order.id),
-            "date": datetime.date.today().strftime("%Y-%m-%d"),
+            "date": datetime.datetime.now(tz=datetime.UTC).date().strftime("%Y-%m-%d"),
             "customerCode": 0,
             "discount": None,
             "addresses": {

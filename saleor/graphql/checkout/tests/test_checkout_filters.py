@@ -1,5 +1,5 @@
+import datetime
 import uuid
-from datetime import date, timedelta
 from decimal import Decimal
 
 import graphene
@@ -139,16 +139,49 @@ def test_checkout_query_with_filter_channels_with_empty_channel(
         (
             {
                 "created": {
-                    "gte": str(date.today() - timedelta(days=3)),
-                    "lte": str(date.today()),
+                    "gte": str(
+                        datetime.datetime.now(tz=datetime.UTC).date()
+                        - datetime.timedelta(days=3)
+                    ),
+                    "lte": str(datetime.datetime.now(tz=datetime.UTC).date()),
                 }
             },
             1,
         ),
-        ({"created": {"gte": str(date.today() - timedelta(days=3))}}, 1),
-        ({"created": {"lte": str(date.today())}}, 2),
-        ({"created": {"lte": str(date.today() - timedelta(days=3))}}, 1),
-        ({"created": {"gte": str(date.today() + timedelta(days=1))}}, 0),
+        (
+            {
+                "created": {
+                    "gte": str(
+                        datetime.datetime.now(tz=datetime.UTC).date()
+                        - datetime.timedelta(days=3)
+                    )
+                }
+            },
+            1,
+        ),
+        ({"created": {"lte": str(datetime.datetime.now(tz=datetime.UTC).date())}}, 2),
+        (
+            {
+                "created": {
+                    "lte": str(
+                        datetime.datetime.now(tz=datetime.UTC).date()
+                        - datetime.timedelta(days=3)
+                    )
+                }
+            },
+            1,
+        ),
+        (
+            {
+                "created": {
+                    "gte": str(
+                        datetime.datetime.now(tz=datetime.UTC).date()
+                        + datetime.timedelta(days=1)
+                    )
+                }
+            },
+            0,
+        ),
     ],
 )
 def test_checkout_query_with_filter_created(

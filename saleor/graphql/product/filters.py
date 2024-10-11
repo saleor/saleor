@@ -5,7 +5,6 @@ from typing import Optional, TypedDict
 
 import django_filters
 import graphene
-import pytz
 from django.db.models import Exists, FloatField, OuterRef, Q, Subquery, Sum
 from django.db.models.expressions import ExpressionWrapper
 from django.db.models.fields import IntegerField
@@ -186,13 +185,13 @@ def _clean_product_attributes_date_time_range_filter_input(
         if lte := val_range.get("lte"):
             if not isinstance(lte, datetime.datetime):
                 lte = datetime.datetime.combine(
-                    lte, datetime.datetime.max.time(), tzinfo=pytz.UTC
+                    lte, datetime.datetime.max.time(), tzinfo=datetime.UTC
                 )
             filters["date_time__lte"] = lte
         if gte := val_range.get("gte"):
             if not isinstance(gte, datetime.datetime):
                 gte = datetime.datetime.combine(
-                    gte, datetime.datetime.min.time(), tzinfo=pytz.UTC
+                    gte, datetime.datetime.min.time(), tzinfo=datetime.UTC
                 )
             filters["date_time__gte"] = gte
     return matching_attributes.filter(**filters)
@@ -540,7 +539,7 @@ def _filter_products_is_published(qs, _, value, channel_slug):
 
 def _filter_products_is_available(qs, _, value, channel_slug):
     channel = Channel.objects.using(qs.db).filter(slug=channel_slug).values("pk")
-    now = datetime.datetime.now(pytz.UTC)
+    now = datetime.datetime.now(tz=datetime.UTC)
     if value:
         product_channel_listings = (
             ProductChannelListing.objects.using(qs.db)
@@ -883,7 +882,7 @@ def where_filter_products_is_available(qs, _, value, channel_slug):
     if value is None:
         return qs.none()
     channel = Channel.objects.using(qs.db).filter(slug=channel_slug).values("pk")
-    now = datetime.datetime.now(pytz.UTC)
+    now = datetime.datetime.now(tz=datetime.UTC)
     if value:
         product_channel_listings = (
             ProductChannelListing.objects.using(qs.db)

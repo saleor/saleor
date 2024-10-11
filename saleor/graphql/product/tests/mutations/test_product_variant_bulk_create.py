@@ -1,10 +1,9 @@
+import datetime
 import json
-from datetime import datetime, timedelta
 from unittest.mock import ANY, patch
 from uuid import uuid4
 
 import graphene
-import pytz
 from django.conf import settings
 from freezegun import freeze_time
 
@@ -494,7 +493,7 @@ def test_product_variant_bulk_create_with_plain_text_attribute(
     assert product_variant_count + 1 == ProductVariant.objects.count()
 
 
-@freeze_time(datetime(2020, 5, 5, 5, 5, 5, tzinfo=pytz.utc))
+@freeze_time(datetime.datetime(2020, 5, 5, 5, 5, 5, tzinfo=datetime.UTC))
 def test_product_variant_bulk_create_with_date_attribute(
     staff_api_client, product, date_attribute, permission_manage_products
 ):
@@ -504,7 +503,7 @@ def test_product_variant_bulk_create_with_date_attribute(
 
     product_id = graphene.Node.to_global_id("Product", product.pk)
     attribute_id = graphene.Node.to_global_id("Attribute", date_attribute.pk)
-    date_time_value = datetime.now(tz=pytz.utc)
+    date_time_value = datetime.datetime.now(tz=datetime.UTC)
     date_value = date_time_value.date()
 
     sku = str(uuid4())[:12]
@@ -576,7 +575,7 @@ def test_product_variant_bulk_create_with_file_attribute(
     assert product_variant_count + 1 == ProductVariant.objects.count()
 
 
-@freeze_time(datetime(2020, 5, 5, 5, 5, 5, tzinfo=pytz.utc))
+@freeze_time(datetime.datetime(2020, 5, 5, 5, 5, 5, tzinfo=datetime.UTC))
 def test_product_variant_bulk_create_with_datetime_attribute(
     staff_api_client,
     product,
@@ -590,7 +589,7 @@ def test_product_variant_bulk_create_with_datetime_attribute(
 
     product_id = graphene.Node.to_global_id("Product", product.pk)
     attribute_id = graphene.Node.to_global_id("Attribute", date_time_attribute.pk)
-    date_time_value = datetime.now(tz=pytz.utc)
+    date_time_value = datetime.datetime.now(tz=datetime.UTC)
 
     sku = str(uuid4())[:12]
     variants = [
@@ -1414,7 +1413,7 @@ def test_product_variant_bulk_create_preorder_channel_listings_input(
 
     global_threshold = 10
     end_date = (
-        (datetime.now() + timedelta(days=3))
+        (datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(days=3))
         .astimezone()
         .replace(microsecond=0)
         .isoformat()

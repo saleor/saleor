@@ -1,5 +1,5 @@
+import datetime
 import json
-from datetime import datetime
 from decimal import Decimal
 from functools import partial
 from unittest import mock
@@ -14,7 +14,6 @@ from celery.exceptions import Retry as CeleryTaskRetryError
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.models import Site
 from django.core.serializers import serialize
-from django.utils import timezone
 from freezegun import freeze_time
 from kombu.asynchronous.aws.sqs.connection import AsyncSQSConnection
 from requests import RequestException
@@ -1670,9 +1669,7 @@ def test_notify_user(
     mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager(True, lambda: customer_user)
-    timestamp = timezone.make_aware(
-        datetime.strptime("2020-03-18 12:00", "%Y-%m-%d %H:%M"), timezone.utc
-    ).isoformat()
+    timestamp = datetime.datetime(2020, 3, 18, 12, 0, tzinfo=datetime.UTC).isoformat()
 
     redirect_url = "http://redirect.com/"
     send_account_confirmation(customer_user, redirect_url, manager, channel_USD.slug)

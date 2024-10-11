@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+import datetime
 from decimal import Decimal
 
 import graphene
@@ -258,16 +258,49 @@ def test_order_query_with_filter_gift_card_bought_false(
         (
             {
                 "created": {
-                    "gte": str(date.today() - timedelta(days=3)),
-                    "lte": str(date.today()),
+                    "gte": str(
+                        datetime.datetime.now(tz=datetime.UTC).date()
+                        - datetime.timedelta(days=3)
+                    ),
+                    "lte": str(datetime.datetime.now(tz=datetime.UTC).date()),
                 }
             },
             1,
         ),
-        ({"created": {"gte": str(date.today() - timedelta(days=3))}}, 1),
-        ({"created": {"lte": str(date.today())}}, 2),
-        ({"created": {"lte": str(date.today() - timedelta(days=3))}}, 1),
-        ({"created": {"gte": str(date.today() + timedelta(days=1))}}, 0),
+        (
+            {
+                "created": {
+                    "gte": str(
+                        datetime.datetime.now(tz=datetime.UTC).date()
+                        - datetime.timedelta(days=3)
+                    )
+                }
+            },
+            1,
+        ),
+        ({"created": {"lte": str(datetime.datetime.now(tz=datetime.UTC).date())}}, 2),
+        (
+            {
+                "created": {
+                    "lte": str(
+                        datetime.datetime.now(tz=datetime.UTC).date()
+                        - datetime.timedelta(days=3)
+                    )
+                }
+            },
+            1,
+        ),
+        (
+            {
+                "created": {
+                    "gte": str(
+                        datetime.datetime.now(tz=datetime.UTC).date()
+                        + datetime.timedelta(days=1)
+                    )
+                }
+            },
+            0,
+        ),
     ],
 )
 def test_order_query_with_filter_created(
@@ -536,9 +569,9 @@ def preorders(orders, product):
         )
         for i in (1, 2, 3, 4)
     ]
-    variants[1].preorder_end_date = timezone.now() + timedelta(days=1)
+    variants[1].preorder_end_date = timezone.now() + datetime.timedelta(days=1)
     variants[2].preorder_end_date = timezone.now()
-    variants[3].preorder_end_date = timezone.now() - timedelta(days=1)
+    variants[3].preorder_end_date = timezone.now() - datetime.timedelta(days=1)
     ProductVariant.objects.bulk_create(variants)
 
     lines = [

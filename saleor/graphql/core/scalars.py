@@ -1,8 +1,7 @@
+import datetime
 import decimal
-from datetime import MAXYEAR, MINYEAR, datetime
 
 import graphene
-import pytz
 from graphene.types.generic import GenericScalar
 from graphql.language import ast
 from measurement.measures import Weight
@@ -162,10 +161,10 @@ class DateTime(graphene.DateTime):
     @staticmethod
     def parse_value(value):
         parsed_value = graphene.DateTime.parse_value(value)
-        if parsed_value is not None and isinstance(parsed_value, datetime):
-            if parsed_value.year in [MINYEAR, MAXYEAR]:
+        if parsed_value is not None and isinstance(parsed_value, datetime.datetime):
+            if parsed_value.year in [datetime.MINYEAR, datetime.MAXYEAR]:
                 try:
-                    parsed_value.astimezone(tz=pytz.UTC)
+                    parsed_value.astimezone(tz=datetime.UTC)
                 except OverflowError:
                     return None
         return parsed_value

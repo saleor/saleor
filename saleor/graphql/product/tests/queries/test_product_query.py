@@ -1,4 +1,4 @@
-from datetime import timedelta
+import datetime
 from unittest.mock import MagicMock
 
 import graphene
@@ -1124,7 +1124,7 @@ def test_product_query_is_available_for_purchase_true(
     user_api_client, product, channel_USD
 ):
     # given
-    available_for_purchase = timezone.now() - timedelta(days=1)
+    available_for_purchase = timezone.now() - datetime.timedelta(days=1)
     product.channel_listings.update(available_for_purchase_at=available_for_purchase)
 
     variables = {
@@ -1150,7 +1150,7 @@ def test_product_query_is_available_for_purchase_false(
     user_api_client, product, channel_USD
 ):
     # given
-    available_for_purchase = timezone.now() + timedelta(days=1)
+    available_for_purchase = timezone.now() + datetime.timedelta(days=1)
     product.channel_listings.update(available_for_purchase_at=available_for_purchase)
 
     variables = {

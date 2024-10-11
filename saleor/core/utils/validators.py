@@ -1,4 +1,4 @@
-from datetime import date
+import datetime
 from typing import Any
 
 import micawber
@@ -37,4 +37,4 @@ def get_oembed_data(url: str, field_name: str) -> tuple[dict[str, Any], str]:
 
 def is_date_in_future(given_date):
     """Return true when the date is in the future."""
-    return given_date > date.today()
+    return given_date > datetime.datetime.now(tz=datetime.UTC).date()

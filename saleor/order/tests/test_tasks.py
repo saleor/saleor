@@ -1,5 +1,5 @@
+import datetime
 import logging
-from datetime import timedelta
 from unittest import mock
 from unittest.mock import call, patch
 
@@ -40,18 +40,18 @@ def test_expire_orders_task_check_voucher(
 
     order_1 = order_list[0]
     order_1.status = OrderStatus.UNCONFIRMED
-    order_1.created_at = now - timezone.timedelta(minutes=10)
+    order_1.created_at = now - datetime.timedelta(minutes=10)
     order_1.voucher_code = code.code
     order_1.save()
 
     order_2 = order_list[1]
     order_2.status = OrderStatus.UNCONFIRMED
-    order_2.created_at = now - timezone.timedelta(minutes=10)
+    order_2.created_at = now - datetime.timedelta(minutes=10)
     order_2.voucher_code = code.code
     order_2.save()
 
     order_3 = order_list[2]
-    order_3.created_at = now - timezone.timedelta(minutes=10)
+    order_3.created_at = now - datetime.timedelta(minutes=10)
     order_3.status = OrderStatus.UNFULFILLED
     order_3.voucher_code = code.code
     order_3.save()
@@ -106,18 +106,18 @@ def test_expire_orders_task_check_multiple_vouchers(
 
     order_1 = order_list[0]
     order_1.status = OrderStatus.UNCONFIRMED
-    order_1.created_at = now - timezone.timedelta(minutes=10)
+    order_1.created_at = now - datetime.timedelta(minutes=10)
     order_1.voucher_code = code.code
     order_1.save()
 
     order_2 = order_list[1]
     order_2.status = OrderStatus.UNCONFIRMED
-    order_2.created_at = now - timezone.timedelta(minutes=10)
+    order_2.created_at = now - datetime.timedelta(minutes=10)
     order_2.voucher_code = code_percentage.code
     order_2.save()
 
     order_3 = order_list[2]
-    order_3.created_at = now - timezone.timedelta(minutes=10)
+    order_3.created_at = now - datetime.timedelta(minutes=10)
     order_3.status = OrderStatus.UNFULFILLED
     order_3.voucher_code = code.code
     order_3.save()
@@ -160,12 +160,12 @@ def test_expire_orders_task_creates_order_events(order_list, allocations, channe
     order_1.save()
 
     order_2 = order_list[1]
-    order_2.created_at = now - timezone.timedelta(minutes=120)
+    order_2.created_at = now - datetime.timedelta(minutes=120)
     order_2.status = OrderStatus.UNCONFIRMED
     order_2.save()
 
     order_3 = order_list[2]
-    order_3.created_at = now - timezone.timedelta(minutes=120)
+    order_3.created_at = now - datetime.timedelta(minutes=120)
     order_3.status = OrderStatus.UNFULFILLED
     order_3.save()
 
@@ -207,16 +207,16 @@ def test_expire_orders_task_with_transaction_item(
 
     order_1 = order_list[0]
     order_1.status = OrderStatus.UNCONFIRMED
-    order_1.created_at = now - timezone.timedelta(minutes=10)
+    order_1.created_at = now - datetime.timedelta(minutes=10)
     order_1.save()
 
     order_2 = order_list[1]
     order_2.status = OrderStatus.UNCONFIRMED
-    order_2.created_at = now - timezone.timedelta(minutes=10)
+    order_2.created_at = now - datetime.timedelta(minutes=10)
     order_2.save()
 
     order_3 = order_list[2]
-    order_3.created_at = now - timezone.timedelta(minutes=10)
+    order_3.created_at = now - datetime.timedelta(minutes=10)
     order_3.status = OrderStatus.UNFULFILLED
     order_3.save()
 
@@ -258,16 +258,16 @@ def test_expire_orders_task_with_payment(
 
     order_1 = order_list[0]
     order_1.status = OrderStatus.UNCONFIRMED
-    order_1.created_at = now - timezone.timedelta(minutes=10)
+    order_1.created_at = now - datetime.timedelta(minutes=10)
     order_1.save()
 
     order_2 = order_list[1]
     order_2.status = OrderStatus.UNCONFIRMED
-    order_2.created_at = now - timezone.timedelta(minutes=10)
+    order_2.created_at = now - datetime.timedelta(minutes=10)
     order_2.save()
 
     order_3 = order_list[2]
-    order_3.created_at = now - timezone.timedelta(minutes=10)
+    order_3.created_at = now - datetime.timedelta(minutes=10)
     order_3.status = OrderStatus.UNFULFILLED
     order_3.save()
 
@@ -351,12 +351,12 @@ def test_expire_orders_task_after(order_list, allocations, channel_USD):
     order_1.save()
 
     order_2 = order_list[1]
-    order_2.created_at = now - timezone.timedelta(minutes=120)
+    order_2.created_at = now - datetime.timedelta(minutes=120)
     order_2.status = OrderStatus.UNCONFIRMED
     order_2.save()
 
     order_3 = order_list[2]
-    order_3.created_at = now - timezone.timedelta(minutes=120)
+    order_3.created_at = now - datetime.timedelta(minutes=120)
     order_3.status = OrderStatus.UNFULFILLED
     order_3.save()
 
@@ -422,12 +422,12 @@ def test_expire_orders_task_do_not_call_sync_webhooks(
     order_1.save()
 
     order_2 = order_list[1]
-    order_2.created_at = now - timezone.timedelta(minutes=120)
+    order_2.created_at = now - datetime.timedelta(minutes=120)
     order_2.status = OrderStatus.UNCONFIRMED
     order_2.save()
 
     order_3 = order_list[2]
-    order_3.created_at = now - timezone.timedelta(minutes=120)
+    order_3.created_at = now - datetime.timedelta(minutes=120)
     order_3.status = OrderStatus.UNFULFILLED
     order_3.save()
 
@@ -467,7 +467,7 @@ def test_expire_orders_task_do_not_call_sync_webhooks(
 @freeze_time("2020-03-18 12:00:00")
 def test_delete_expired_orders_task(order_list, allocations, channel_USD):
     # given
-    channel_USD.delete_expired_orders_after = timedelta(days=3)
+    channel_USD.delete_expired_orders_after = datetime.timedelta(days=3)
     channel_USD.save()
 
     now = timezone.now()
@@ -477,12 +477,12 @@ def test_delete_expired_orders_task(order_list, allocations, channel_USD):
     order_1.save()
 
     order_2 = order_list[1]
-    order_2.expired_at = now - timedelta(days=5)
+    order_2.expired_at = now - datetime.timedelta(days=5)
     order_2.status = OrderStatus.EXPIRED
     order_2.save()
 
     order_3 = order_list[2]
-    order_3.expired_at = now - timedelta(days=7)
+    order_3.expired_at = now - datetime.timedelta(days=7)
     order_3.status = OrderStatus.EXPIRED
     order_3.save()
 
@@ -499,23 +499,23 @@ def test_delete_expired_orders_task_multiple_channels_one_without_delete(
     order_list, allocations, channel_USD, channel_PLN
 ):
     # given
-    channel_USD.delete_expired_orders_after = timedelta(days=3)
+    channel_USD.delete_expired_orders_after = datetime.timedelta(days=3)
     channel_USD.save()
 
     now = timezone.now()
     order_1 = order_list[0]
-    order_1.expired_at = now - timedelta(days=5)
+    order_1.expired_at = now - datetime.timedelta(days=5)
     order_1.status = OrderStatus.EXPIRED
     order_1.channel = channel_PLN
     order_1.save()
 
     order_2 = order_list[1]
-    order_2.expired_at = now - timedelta(days=5)
+    order_2.expired_at = now - datetime.timedelta(days=5)
     order_2.status = OrderStatus.EXPIRED
     order_2.save()
 
     order_3 = order_list[2]
-    order_3.expired_at = now - timedelta(days=7)
+    order_3.expired_at = now - datetime.timedelta(days=7)
     order_3.status = OrderStatus.EXPIRED
     order_3.save()
 
@@ -532,7 +532,7 @@ def test_delete_expired_orders_task_channel_without_delete(
     order_list, allocations, channel_USD
 ):
     # given
-    channel_USD.delete_expired_orders_after = timedelta()
+    channel_USD.delete_expired_orders_after = datetime.timedelta()
     channel_USD.save()
 
     now = timezone.now()
@@ -542,12 +542,12 @@ def test_delete_expired_orders_task_channel_without_delete(
     order_1.save()
 
     order_2 = order_list[1]
-    order_2.expired_at = now - timedelta(days=5)
+    order_2.expired_at = now - datetime.timedelta(days=5)
     order_2.status = OrderStatus.EXPIRED
     order_2.save()
 
     order_3 = order_list[2]
-    order_3.expired_at = now - timedelta(days=7)
+    order_3.expired_at = now - datetime.timedelta(days=7)
     order_3.status = OrderStatus.EXPIRED
     order_3.save()
 
@@ -563,25 +563,25 @@ def test_delete_expired_orders_task_multiple_channels_with_different_deletion_ti
     order_list, allocations, channel_USD, channel_PLN
 ):
     # given
-    channel_USD.delete_expired_orders_after = timedelta(days=3)
+    channel_USD.delete_expired_orders_after = datetime.timedelta(days=3)
     channel_USD.save()
 
-    channel_PLN.delete_expired_orders_after = timedelta(days=5)
+    channel_PLN.delete_expired_orders_after = datetime.timedelta(days=5)
     channel_PLN.save()
 
     now = timezone.now()
     order_1 = order_list[0]
-    order_1.expired_at = now - timedelta(days=2)
+    order_1.expired_at = now - datetime.timedelta(days=2)
     order_1.status = OrderStatus.EXPIRED
     order_1.save()
 
     order_2 = order_list[1]
-    order_2.expired_at = now - timedelta(days=5)
+    order_2.expired_at = now - datetime.timedelta(days=5)
     order_2.status = OrderStatus.EXPIRED
     order_2.save()
 
     order_3 = order_list[2]
-    order_3.expired_at = now - timedelta(days=7)
+    order_3.expired_at = now - datetime.timedelta(days=7)
     order_3.status = OrderStatus.EXPIRED
     order_3.channel = channel_PLN
     order_3.save()
@@ -589,7 +589,7 @@ def test_delete_expired_orders_task_multiple_channels_with_different_deletion_ti
     order_4 = order_3
     order_4.pk = None
     order_4.number = get_order_number()
-    order_4.expired_at = now - timedelta(days=4)
+    order_4.expired_at = now - datetime.timedelta(days=4)
     order_4.status = OrderStatus.EXPIRED
     order_4.channel = channel_PLN
     order_4.save()
@@ -608,7 +608,7 @@ def test_delete_expired_orders_task_orders_with_different_status_than_expired(
     order_list, allocations, channel_USD
 ):
     # given
-    channel_USD.delete_expired_orders_after = timedelta(days=3)
+    channel_USD.delete_expired_orders_after = datetime.timedelta(days=3)
     channel_USD.save()
 
     now = timezone.now()
@@ -618,12 +618,12 @@ def test_delete_expired_orders_task_orders_with_different_status_than_expired(
     order_1.save()
 
     order_2 = order_list[1]
-    order_2.expired_at = now - timedelta(days=5)
+    order_2.expired_at = now - datetime.timedelta(days=5)
     order_2.status = OrderStatus.FULFILLED
     order_2.save()
 
     order_3 = order_list[2]
-    order_3.expired_at = now - timedelta(days=7)
+    order_3.expired_at = now - datetime.timedelta(days=7)
     order_3.status = OrderStatus.RETURNED
     order_3.save()
 
@@ -639,30 +639,30 @@ def test_delete_expired_orders_task_orders_with_payment_objects(
     order_list, payment_dummy, transaction_item_generator, allocations, channel_USD
 ):
     # given
-    channel_USD.delete_expired_orders_after = timedelta(days=3)
+    channel_USD.delete_expired_orders_after = datetime.timedelta(days=3)
     channel_USD.save()
 
     now = timezone.now()
     order_1 = order_list[0]
-    order_1.expired_at = now - timedelta(days=2)
+    order_1.expired_at = now - datetime.timedelta(days=2)
     order_1.status = OrderStatus.EXPIRED
     order_1.save()
     transaction_item_generator(order_id=order_1.pk)
 
     order_2 = order_list[1]
-    order_2.expired_at = now - timedelta(days=5)
+    order_2.expired_at = now - datetime.timedelta(days=5)
     order_2.status = OrderStatus.EXPIRED
     order_2.save()
     transaction_item_generator(order_id=order_2.pk)
 
     order_3 = order_list[2]
-    order_3.expired_at = now - timedelta(days=7)
+    order_3.expired_at = now - datetime.timedelta(days=7)
     order_3.status = OrderStatus.EXPIRED
     order_3.save()
     transaction_item_generator(order_id=order_3.pk)
 
     order_4 = payment_dummy.order
-    order_4.expired_at = now - timedelta(days=4)
+    order_4.expired_at = now - datetime.timedelta(days=4)
     order_4.status = OrderStatus.EXPIRED
     order_4.save()
 
@@ -679,7 +679,7 @@ def test_delete_expired_orders_task_schedule_itself(
     mocked_delay, order_list, allocations, channel_USD
 ):
     # given
-    channel_USD.delete_expired_orders_after = timedelta(days=3)
+    channel_USD.delete_expired_orders_after = datetime.timedelta(days=3)
     channel_USD.save()
 
     now = timezone.now()
@@ -689,12 +689,12 @@ def test_delete_expired_orders_task_schedule_itself(
     order_1.save()
 
     order_2 = order_list[1]
-    order_2.expired_at = now - timedelta(days=5)
+    order_2.expired_at = now - datetime.timedelta(days=5)
     order_2.status = OrderStatus.EXPIRED
     order_2.save()
 
     order_3 = order_list[2]
-    order_3.expired_at = now - timedelta(days=7)
+    order_3.expired_at = now - datetime.timedelta(days=7)
     order_3.status = OrderStatus.EXPIRED
     order_3.save()
 
@@ -754,13 +754,13 @@ def test_bulk_release_voucher_usage_voucher_usage_mismatch(
 
     order_1 = order_list[0]
     order_1.status = OrderStatus.UNCONFIRMED
-    order_1.created_at = now - timezone.timedelta(minutes=10)
+    order_1.created_at = now - datetime.timedelta(minutes=10)
     order_1.voucher_code = code.code
     order_1.save()
 
     order_2 = order_list[1]
     order_2.status = OrderStatus.UNCONFIRMED
-    order_2.created_at = now - timezone.timedelta(minutes=10)
+    order_2.created_at = now - datetime.timedelta(minutes=10)
     order_2.voucher_code = code.code
     order_2.save()
 

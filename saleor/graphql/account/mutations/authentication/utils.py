@@ -1,4 +1,4 @@
-from datetime import timedelta
+import datetime
 
 import jwt
 from django.conf import settings
@@ -63,7 +63,9 @@ def _does_token_match(token: str, csrf_token: str) -> bool:
 
 def update_user_last_login_if_required(user: User):
     time_now = timezone.now()
-    threshold_delta = timedelta(seconds=settings.TOKEN_UPDATE_LAST_LOGIN_THRESHOLD)
+    threshold_delta = datetime.timedelta(
+        seconds=settings.TOKEN_UPDATE_LAST_LOGIN_THRESHOLD
+    )
 
     if not user.last_login or user.last_login + threshold_delta < time_now:
         user.last_login = time_now

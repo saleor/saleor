@@ -1,8 +1,7 @@
+import datetime
 from collections import defaultdict
-from datetime import datetime
 
 import graphene
-import pytz
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -271,7 +270,7 @@ class PromotionCreate(ModelMutation):
         Return true, when the start date is before the current date and the
         promotion is not already finished.
         """
-        now = datetime.now(pytz.utc)
+        now = datetime.datetime.now(tz=datetime.UTC)
         start_date = instance.start_date
         end_date = instance.end_date
 
@@ -302,7 +301,7 @@ class PromotionCreate(ModelMutation):
     ):
         """Send a webhook about starting promotion if it hasn't been sent yet."""
 
-        now = datetime.now(pytz.utc)
+        now = datetime.datetime.now(tz=datetime.UTC)
         cls.call_event(manager.promotion_started, instance)
         instance.last_notification_scheduled_at = now
         instance.save(update_fields=["last_notification_scheduled_at"])

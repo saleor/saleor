@@ -1,6 +1,6 @@
+import datetime
 import json
 import logging
-from datetime import datetime
 from typing import TYPE_CHECKING, Optional
 
 import requests
@@ -111,7 +111,7 @@ def get_user_info_from_cache_or_fetch(
         cache_time = USER_INFO_DEFAULT_CACHE_TIME
 
         if exp_time:
-            now_ts = int(datetime.now().timestamp())
+            now_ts = int(datetime.datetime.now(tz=datetime.UTC).timestamp())
             exp_delta = exp_time - now_ts
             cache_time = exp_delta if exp_delta > 0 else cache_time
 
@@ -490,7 +490,7 @@ def _update_user_details(
 
     if last_login:
         if not user.last_login or user.last_login.timestamp() < last_login:
-            login_time = timezone.make_aware(datetime.fromtimestamp(last_login))
+            login_time = datetime.datetime.fromtimestamp(last_login, tz=datetime.UTC)
             user.last_login = login_time
             fields_to_save.add("last_login")
     else:

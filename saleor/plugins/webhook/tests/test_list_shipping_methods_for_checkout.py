@@ -1,4 +1,4 @@
-from datetime import timedelta
+import datetime
 from decimal import Decimal
 from unittest import mock
 
@@ -222,7 +222,7 @@ def test_ignore_selected_fields_on_generating_cache_key(
     plugin = webhook_plugin()
 
     # when
-    checkout_with_item.last_change = timezone.now() + timedelta(seconds=30)
+    checkout_with_item.last_change = timezone.now() + datetime.timedelta(seconds=30)
     checkout_with_item.save(update_fields=["last_change"])
     new_payload = generate_checkout_payload(checkout_with_item)
     new_key_data = get_cache_data_for_shipping_list_methods_for_checkout(new_payload)

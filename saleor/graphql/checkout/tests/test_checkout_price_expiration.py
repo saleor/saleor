@@ -1,4 +1,4 @@
-from datetime import timedelta
+import datetime
 from unittest import mock
 from unittest.mock import patch
 
@@ -352,7 +352,7 @@ def test_checkout_delivery_method_update_invalidate_prices(
 @freeze_time("2020-12-12 12:00:00")
 def test_invalidate_checkout_with_save(checkout, plugins_manager):
     # given
-    checkout.price_expiration = timezone.now() + timedelta(minutes=5)
+    checkout.price_expiration = timezone.now() + datetime.timedelta(minutes=5)
     checkout.save(update_fields=["price_expiration"])
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
@@ -371,8 +371,8 @@ def test_invalidate_checkout_with_save(checkout, plugins_manager):
 @freeze_time("2020-12-12 12:00:00")
 def test_invalidate_checkout_without_save(checkout, plugins_manager):
     # given
-    original_expiration = checkout.price_expiration = timezone.now() + timedelta(
-        minutes=5
+    original_expiration = checkout.price_expiration = (
+        timezone.now() + datetime.timedelta(minutes=5)
     )
     checkout.save(update_fields=["price_expiration"])
     lines, _ = fetch_checkout_lines(checkout)

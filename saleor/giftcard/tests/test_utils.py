@@ -1,5 +1,5 @@
+import datetime
 import json
-from datetime import date, timedelta
 from unittest.mock import patch
 
 import graphene
@@ -78,7 +78,9 @@ def test_add_gift_card_code_to_checkout_inactive_card(checkout, gift_card):
 
 def test_add_gift_card_code_to_checkout_expired_card(checkout, gift_card):
     # given
-    gift_card.expiry_date = date.today() - timedelta(days=10)
+    gift_card.expiry_date = datetime.datetime.now(
+        tz=datetime.UTC
+    ).date() - datetime.timedelta(days=10)
     gift_card.save(update_fields=["expiry_date"])
 
     assert checkout.gift_cards.count() == 0
@@ -829,7 +831,9 @@ def test_is_gift_card_expired_never_expired_gift_card(gift_card):
 
 def test_is_gift_card_expired_true(gift_card):
     # given
-    gift_card.expiry_date = date.today() - timedelta(days=1)
+    gift_card.expiry_date = datetime.datetime.now(
+        tz=datetime.UTC
+    ).date() - datetime.timedelta(days=1)
     gift_card.save(update_fields=["expiry_date"])
 
     # when
@@ -840,7 +844,8 @@ def test_is_gift_card_expired_true(gift_card):
 
 
 @pytest.mark.parametrize(
-    "expiry_date", [timezone.now().date(), timezone.now().date() + timedelta(days=1)]
+    "expiry_date",
+    [timezone.now().date(), timezone.now().date() + datetime.timedelta(days=1)],
 )
 def test_is_gift_card_expired_false(expiry_date, gift_card):
     # given

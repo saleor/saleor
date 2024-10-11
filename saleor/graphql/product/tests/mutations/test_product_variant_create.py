@@ -1,10 +1,9 @@
+import datetime
 import json
-from datetime import datetime, timedelta
 from unittest.mock import ANY, patch
 from uuid import uuid4
 
 import graphene
-import pytz
 from django.conf import settings
 from django.utils.text import slugify
 from freezegun import freeze_time
@@ -283,7 +282,7 @@ def test_create_variant_preorder(
     variant_value = "test-value"
     global_threshold = 10
     end_date = (
-        (datetime.now() + timedelta(days=3))
+        (datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(days=3))
         .astimezone()
         .replace(microsecond=0)
         .isoformat()
@@ -1591,7 +1590,7 @@ def test_create_variant_with_plain_text_attribute(
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")
-@freeze_time(datetime(2020, 5, 5, 5, 5, 5, tzinfo=pytz.utc))
+@freeze_time(datetime.datetime(2020, 5, 5, 5, 5, 5, tzinfo=datetime.UTC))
 def test_create_variant_with_date_attribute(
     created_webhook_mock,
     permission_manage_products,
@@ -1609,7 +1608,7 @@ def test_create_variant_with_date_attribute(
     sku = "1"
     weight = 10.22
     date_attribute_id = graphene.Node.to_global_id("Attribute", date_attribute.id)
-    date_time_value = datetime.now(tz=pytz.utc)
+    date_time_value = datetime.datetime.now(tz=datetime.UTC)
     date_value = date_time_value.date()
 
     variables = {
@@ -1655,7 +1654,7 @@ def test_create_variant_with_date_attribute(
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")
-@freeze_time(datetime(2020, 5, 5, 5, 5, 5, tzinfo=pytz.utc))
+@freeze_time(datetime.datetime(2020, 5, 5, 5, 5, 5, tzinfo=datetime.UTC))
 def test_create_variant_with_date_time_attribute(
     created_webhook_mock,
     permission_manage_products,
@@ -1675,7 +1674,7 @@ def test_create_variant_with_date_time_attribute(
     date_time_attribute_id = graphene.Node.to_global_id(
         "Attribute", date_time_attribute.id
     )
-    date_time_value = datetime.now(tz=pytz.utc)
+    date_time_value = datetime.datetime.now(tz=datetime.UTC)
 
     variables = {
         "input": {

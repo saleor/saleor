@@ -1,4 +1,4 @@
-from datetime import timedelta
+import datetime
 
 import pytest
 from django.utils import timezone
@@ -28,7 +28,7 @@ QUERY_SALES_WITH_FILTER = """
         (
             {"status": "ACTIVE"},
             timezone.now().replace(year=2015, month=1, day=1),
-            timezone.now() + timedelta(days=365),
+            timezone.now() + datetime.timedelta(days=365),
             2,
         ),
         (
@@ -39,8 +39,8 @@ QUERY_SALES_WITH_FILTER = """
         ),
         (
             {"status": "SCHEDULED"},
-            timezone.now() + timedelta(days=3),
-            timezone.now() + timedelta(days=10),
+            timezone.now() + datetime.timedelta(days=3),
+            timezone.now() + datetime.timedelta(days=10),
             1,
         ),
     ],

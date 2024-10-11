@@ -1,4 +1,4 @@
-from datetime import timedelta
+import datetime
 from decimal import Decimal
 
 import pytest
@@ -24,12 +24,12 @@ def test_reserve_preorders(checkout_line_with_preorder_item, channel_USD):
         [checkout_line.variant],
         COUNTRY_CODE,
         channel_USD.slug,
-        timezone.now() + timedelta(minutes=RESERVATION_LENGTH),
+        timezone.now() + datetime.timedelta(minutes=RESERVATION_LENGTH),
     )
 
     reservation = PreorderReservation.objects.get(checkout_line=checkout_line)
     assert reservation.quantity_reserved == 5
-    assert reservation.reserved_until > timezone.now() + timedelta(minutes=1)
+    assert reservation.reserved_until > timezone.now() + datetime.timedelta(minutes=1)
 
 
 def test_preorder_reservation_skips_prev_reservation_delete_if_replace_is_disabled(
@@ -43,7 +43,7 @@ def test_preorder_reservation_skips_prev_reservation_delete_if_replace_is_disabl
             [checkout_line.variant],
             COUNTRY_CODE,
             channel_USD.slug,
-            timezone.now() + timedelta(minutes=RESERVATION_LENGTH),
+            timezone.now() + datetime.timedelta(minutes=RESERVATION_LENGTH),
             replace=False,
         )
 
@@ -53,7 +53,7 @@ def test_preorder_reservation_skips_prev_reservation_delete_if_replace_is_disabl
             [checkout_line.variant],
             COUNTRY_CODE,
             channel_USD.slug,
-            timezone.now() + timedelta(minutes=RESERVATION_LENGTH),
+            timezone.now() + datetime.timedelta(minutes=RESERVATION_LENGTH),
         )
 
 
@@ -68,7 +68,7 @@ def test_preorder_reservation_removes_previous_reservations_for_checkout(
         checkout_line=checkout_line,
         product_variant_channel_listing=checkout_line.variant.channel_listings.first(),
         quantity_reserved=5,
-        reserved_until=timezone.now() + timedelta(hours=1),
+        reserved_until=timezone.now() + datetime.timedelta(hours=1),
     )
 
     reserve_preorders(
@@ -76,7 +76,7 @@ def test_preorder_reservation_removes_previous_reservations_for_checkout(
         [checkout_line.variant],
         COUNTRY_CODE,
         channel_USD.slug,
-        timezone.now() + timedelta(minutes=RESERVATION_LENGTH),
+        timezone.now() + datetime.timedelta(minutes=RESERVATION_LENGTH),
     )
 
     with pytest.raises(PreorderReservation.DoesNotExist):
@@ -100,7 +100,7 @@ def test_preorder_reservation_fails_if_there_is_not_enough_channel_threshold_ava
             [checkout_line.variant],
             COUNTRY_CODE,
             channel_USD.slug,
-            timezone.now() + timedelta(minutes=RESERVATION_LENGTH),
+            timezone.now() + datetime.timedelta(minutes=RESERVATION_LENGTH),
         )
 
 
@@ -132,7 +132,7 @@ def test_preorder_reservation_fails_if_channel_threshold_was_allocated(
             [checkout_line.variant],
             COUNTRY_CODE,
             channel_USD.slug,
-            timezone.now() + timedelta(minutes=RESERVATION_LENGTH),
+            timezone.now() + datetime.timedelta(minutes=RESERVATION_LENGTH),
         )
 
 
@@ -160,7 +160,7 @@ def test_preorder_reservation_fails_if_channel_threshold_was_reserved(
         checkout_line=other_checkout_line,
         product_variant_channel_listing=product_variant_channel_listing,
         quantity_reserved=other_checkout_line.quantity,
-        reserved_until=timezone.now() + timedelta(minutes=5),
+        reserved_until=timezone.now() + datetime.timedelta(minutes=5),
     )
 
     with pytest.raises(InsufficientStock):
@@ -169,7 +169,7 @@ def test_preorder_reservation_fails_if_channel_threshold_was_reserved(
             [checkout_line.variant],
             COUNTRY_CODE,
             channel_USD.slug,
-            timezone.now() + timedelta(minutes=RESERVATION_LENGTH),
+            timezone.now() + datetime.timedelta(minutes=RESERVATION_LENGTH),
         )
 
 
@@ -209,7 +209,7 @@ def test_preorder_reservation_fails_if_global_threshold_was_allocated(
             [checkout_line.variant],
             COUNTRY_CODE,
             channel_USD.slug,
-            timezone.now() + timedelta(minutes=RESERVATION_LENGTH),
+            timezone.now() + datetime.timedelta(minutes=RESERVATION_LENGTH),
         )
 
 
@@ -246,7 +246,7 @@ def test_preorder_reservation_fails_if_global_threshold_was_reserved(
         checkout_line=other_checkout_line,
         product_variant_channel_listing=product_variant_channel_listing,
         quantity_reserved=other_checkout_line.quantity,
-        reserved_until=timezone.now() + timedelta(minutes=5),
+        reserved_until=timezone.now() + datetime.timedelta(minutes=5),
     )
 
     with pytest.raises(InsufficientStock):
@@ -255,7 +255,7 @@ def test_preorder_reservation_fails_if_global_threshold_was_reserved(
             [checkout_line.variant],
             COUNTRY_CODE,
             channel_USD.slug,
-            timezone.now() + timedelta(minutes=RESERVATION_LENGTH),
+            timezone.now() + datetime.timedelta(minutes=RESERVATION_LENGTH),
         )
 
 
@@ -275,5 +275,5 @@ def test_preorder_reservation_fails_if_there_is_not_enough_global_threshold_avai
             [checkout_line.variant],
             COUNTRY_CODE,
             channel_USD.slug,
-            timezone.now() + timedelta(minutes=RESERVATION_LENGTH),
+            timezone.now() + datetime.timedelta(minutes=RESERVATION_LENGTH),
         )

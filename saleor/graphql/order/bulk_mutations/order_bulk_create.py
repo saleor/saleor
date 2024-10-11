@@ -1,9 +1,9 @@
 import copy
+import datetime
 from collections import defaultdict
 from dataclasses import dataclass
 from dataclasses import field as dataclass_field
 from dataclasses import fields as dataclass_fields
-from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Any, Optional
 from uuid import UUID
@@ -767,14 +767,14 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         return object_storage
 
     @classmethod
-    def is_datetime_valid(cls, date: datetime) -> bool:
+    def is_datetime_valid(cls, date: datetime.datetime) -> bool:
         """We accept future time values with 5 minutes from current time.
 
         Some systems might have incorrect time that is in the future compared to Saleor.
         At the same time, we don't want to create orders that are too far in the future.
         """
         current_time = timezone.now()
-        future_time = current_time + timedelta(minutes=MINUTES_DIFF)
+        future_time = current_time + datetime.timedelta(minutes=MINUTES_DIFF)
         if not date.tzinfo:
             raise ValidationError(
                 message="Input 'date' must be timezone-aware. "
