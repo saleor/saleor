@@ -2,7 +2,7 @@ import pytest
 
 from ...event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...models import Webhook
-from . import subscription_queries as queries
+from ..subscription_webhooks import subscription_queries as queries
 
 
 @pytest.fixture
