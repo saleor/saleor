@@ -193,6 +193,7 @@ target-version = "py39"
     "DTZ",
     "E",
     "F",
+    "G",
     "I",
     "ISC001",
     "ISC002",
