@@ -2,12 +2,12 @@ import json
 
 import pytest
 from django.core.serializers.json import DjangoJSONEncoder
+from django.test import TestCase
 from django.test.client import MULTIPART_CONTENT, Client
 
 from ...account.models import User
 from ...app.models import App
 from ...graphql.tests.fixtures import BaseApiClient
-from ...tests.utils import flush_post_commit_hooks
 
 
 class E2eApiClient(BaseApiClient):
@@ -28,8 +28,8 @@ class E2eApiClient(BaseApiClient):
         data = json.dumps(data, cls=DjangoJSONEncoder)
         kwargs["content_type"] = "application/json"
 
-        result = super(Client, self).post(self.api_path, data, **kwargs)
-        flush_post_commit_hooks()
+        with TestCase.captureOnCommitCallbacks(execute=True):
+            result = super(Client, self).post(self.api_path, data, **kwargs)
         return result
 
     def post_multipart(self, *args, **kwargs):
@@ -40,8 +40,8 @@ class E2eApiClient(BaseApiClient):
         """
         kwargs["content_type"] = MULTIPART_CONTENT
 
-        result = super(Client, self).post(self.api_path, *args, **kwargs)
-        flush_post_commit_hooks()
+        with TestCase.captureOnCommitCallbacks(execute=True):
+            result = super(Client, self).post(self.api_path, *args, **kwargs)
         return result
 
 

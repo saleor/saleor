@@ -39,7 +39,6 @@ def test_product_variant_deactivate_preorder(
     permission_manage_products,
     preorder_variant_global_and_channel_threshold,
     preorder_allocation,
-    django_capture_on_commit_callbacks,
 ):
     variant = preorder_variant_global_and_channel_threshold
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
@@ -48,12 +47,11 @@ def test_product_variant_deactivate_preorder(
         stock__product_variant_id=variant.pk
     ).count()
 
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(
-            QUERY_VARIANT_DEACTIVATE_PREORDER,
-            {"id": variant_id},
-            permissions=[permission_manage_products],
-        )
+    response = staff_api_client.post_graphql(
+        QUERY_VARIANT_DEACTIVATE_PREORDER,
+        {"id": variant_id},
+        permissions=[permission_manage_products],
+    )
     variant.refresh_from_db()
     content = get_graphql_content(response)
     data = content["data"]["productVariantPreorderDeactivate"]["productVariant"]

@@ -234,7 +234,6 @@ def test_order_note_update_user_triggers_webhooks(
     order_with_lines,
     staff_user,
     settings,
-    django_capture_on_commit_callbacks,
     status,
     webhook_event,
 ):
@@ -264,12 +263,11 @@ def test_order_note_update_user_triggers_webhooks(
     variables = {"id": note_id, "message": message}
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(
-            ORDER_NOTE_UPDATE_MUTATION,
-            variables,
-            permissions=[permission_manage_orders],
-        )
+    response = staff_api_client.post_graphql(
+        ORDER_NOTE_UPDATE_MUTATION,
+        variables,
+        permissions=[permission_manage_orders],
+    )
 
     # then
     content = get_graphql_content(response)

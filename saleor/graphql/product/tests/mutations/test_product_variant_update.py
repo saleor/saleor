@@ -98,7 +98,6 @@ def test_update_product_variant_by_id(
     product,
     size_attribute,
     permission_manage_products,
-    django_capture_on_commit_callbacks,
 ):
     query = """
         mutation updateVariant (
@@ -148,10 +147,9 @@ def test_update_product_variant_by_id(
         "externalReference": external_reference,
     }
 
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(
-            query, variables, permissions=[permission_manage_products]
-        )
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
     variant.refresh_from_db()
     content = get_graphql_content(response)
     data = content["data"]["productVariantUpdate"]["productVariant"]
@@ -172,7 +170,6 @@ def test_update_product_variant_marks_prices_as_dirty(
     size_attribute,
     permission_manage_products,
     catalogue_promotion,
-    django_capture_on_commit_callbacks,
 ):
     # given
     query = """
@@ -201,10 +198,9 @@ def test_update_product_variant_marks_prices_as_dirty(
     }
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(
-            query, variables, permissions=[permission_manage_products]
-        )
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
 
     # then
     variant.refresh_from_db()
@@ -258,7 +254,6 @@ def test_update_product_variant_by_sku(
     product,
     size_attribute,
     permission_manage_products,
-    django_capture_on_commit_callbacks,
 ):
     #   given
     variant = product.variants.first()
@@ -276,10 +271,9 @@ def test_update_product_variant_by_sku(
     }
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(
-            UPDATE_VARIANT_BY_SKU, variables, permissions=[permission_manage_products]
-        )
+    response = staff_api_client.post_graphql(
+        UPDATE_VARIANT_BY_SKU, variables, permissions=[permission_manage_products]
+    )
 
     variant.refresh_from_db()
     content = get_graphql_content(response)
@@ -300,7 +294,6 @@ def test_update_product_variant_by_sku_return_error_when_sku_dont_exists(
     product,
     size_attribute,
     permission_manage_products,
-    django_capture_on_commit_callbacks,
 ):
     # given
     variant = product.variants.first()
@@ -318,10 +311,9 @@ def test_update_product_variant_by_sku_return_error_when_sku_dont_exists(
     }
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(
-            UPDATE_VARIANT_BY_SKU, variables, permissions=[permission_manage_products]
-        )
+    response = staff_api_client.post_graphql(
+        UPDATE_VARIANT_BY_SKU, variables, permissions=[permission_manage_products]
+    )
     variant.refresh_from_db()
     content = get_graphql_content(response)
     data = content["data"]["productVariantUpdate"]
@@ -364,7 +356,6 @@ def test_update_product_variant_by_external_reference(
     product,
     size_attribute,
     permission_manage_products,
-    django_capture_on_commit_callbacks,
 ):
     #   given
     query = UPDATE_VARIANT_BY_EXTERNAL_REFERENCE
@@ -381,10 +372,9 @@ def test_update_product_variant_by_external_reference(
     }
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(
-            query, variables, permissions=[permission_manage_products]
-        )
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
     variant.refresh_from_db()
     content = get_graphql_content(response)
     data = content["data"]["productVariantUpdate"]
@@ -2265,7 +2255,6 @@ def test_update_product_variant_change_preorder_data(
     staff_api_client,
     permission_manage_products,
     preorder_variant_global_threshold,
-    django_capture_on_commit_callbacks,
 ):
     variant = preorder_variant_global_threshold
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
@@ -2288,12 +2277,11 @@ def test_update_product_variant_change_preorder_data(
         },
     }
 
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(
-            QUERY_UPDATE_VARIANT_PREORDER,
-            variables,
-            permissions=[permission_manage_products],
-        )
+    response = staff_api_client.post_graphql(
+        QUERY_UPDATE_VARIANT_PREORDER,
+        variables,
+        permissions=[permission_manage_products],
+    )
     variant.refresh_from_db()
     content = get_graphql_content(response)
     data = content["data"]["productVariantUpdate"]["productVariant"]
@@ -2307,7 +2295,6 @@ def test_update_product_variant_can_not_turn_off_preorder(
     staff_api_client,
     permission_manage_products,
     preorder_variant_global_threshold,
-    django_capture_on_commit_callbacks,
 ):
     """Test that preorder cannot be disabled through updating the `preorder` field directly."""
     variant = preorder_variant_global_threshold
@@ -2316,12 +2303,11 @@ def test_update_product_variant_can_not_turn_off_preorder(
 
     variables = {"id": variant_id, "sku": sku, "preorder": None}
 
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(
-            QUERY_UPDATE_VARIANT_PREORDER,
-            variables,
-            permissions=[permission_manage_products],
-        )
+    response = staff_api_client.post_graphql(
+        QUERY_UPDATE_VARIANT_PREORDER,
+        variables,
+        permissions=[permission_manage_products],
+    )
     variant.refresh_from_db()
     content = get_graphql_content(response)
     data = content["data"]["productVariantUpdate"]["productVariant"]

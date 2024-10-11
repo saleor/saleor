@@ -19,17 +19,14 @@ def test_collect_categories_tree_products(categories_tree):
     )
 
 
-def test_delete_categories(
-    categories_tree_with_published_products, django_capture_on_commit_callbacks
-):
+def test_delete_categories(categories_tree_with_published_products):
     # given
     parent = categories_tree_with_published_products
     child = parent.children.first()
     product_list = [child.products.first(), parent.products.first()]
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        delete_categories([parent.pk], manager=get_plugins_manager(allow_replica=False))
+    delete_categories([parent.pk], manager=get_plugins_manager(allow_replica=False))
 
     assert not Category.objects.filter(
         id__in=[category.id for category in [parent, child]]

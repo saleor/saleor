@@ -481,7 +481,6 @@ def test_order_from_checkout_gift_card_bought(
     address,
     shipping_method,
     payment_txn_captured,
-    django_capture_on_commit_callbacks,
 ):
     # given
     checkout = checkout_with_gift_card_items
@@ -525,12 +524,11 @@ def test_order_from_checkout_gift_card_bought(
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        response = app_api_client.post_graphql(
-            MUTATION_ORDER_CREATE_FROM_CHECKOUT,
-            variables,
-            permissions=[permission_handle_checkouts],
-        )
+    response = app_api_client.post_graphql(
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
+        variables,
+        permissions=[permission_handle_checkouts],
+    )
 
     # then
     content = get_graphql_content(response)

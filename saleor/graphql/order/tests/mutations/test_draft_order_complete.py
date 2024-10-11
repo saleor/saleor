@@ -1524,7 +1524,6 @@ def test_draft_order_complete_triggers_webhooks(
     permission_group_manage_orders,
     draft_order,
     settings,
-    django_capture_on_commit_callbacks,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = []
@@ -1552,10 +1551,7 @@ def test_draft_order_complete_triggers_webhooks(
     variables = {"id": order_id}
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(
-            DRAFT_ORDER_COMPLETE_MUTATION, variables
-        )
+    response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
 
     # then
     content = get_graphql_content(response)

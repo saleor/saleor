@@ -659,7 +659,6 @@ def test_order_fulfill_with_gift_cards(
     gift_card_shippable_order_line,
     permission_group_manage_orders,
     warehouse,
-    django_capture_on_commit_callbacks,
 ):
     # given
     query = ORDER_FULFILL_MUTATION
@@ -690,8 +689,7 @@ def test_order_fulfill_with_gift_cards(
     }
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(query, variables)
 
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
@@ -1513,7 +1511,6 @@ def test_order_fulfill_tracking_number_updated_event_triggered(
     warehouse,
     site_settings,
     settings,
-    django_capture_on_commit_callbacks,
 ):
     # given
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
@@ -1545,8 +1542,7 @@ def test_order_fulfill_tracking_number_updated_event_triggered(
         },
     }
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        staff_api_client.post_graphql(query, variables)
+    staff_api_client.post_graphql(query, variables)
 
     # then
     assert mocked_webhooks.call_count == 2
@@ -1620,12 +1616,7 @@ def test_order_fulfill_triggers_webhooks(
         },
     }
     # when
-    with django_capture_on_commit_callbacks(execute=False) as callbacks:
-        response = staff_api_client.post_graphql(query, variables)
-
-    with django_capture_on_commit_callbacks(execute=True):
-        for callback in callbacks:
-            callback()
+    response = staff_api_client.post_graphql(query, variables)
 
     # then
     assert not get_graphql_content(response)["data"]["orderFulfill"]["errors"]

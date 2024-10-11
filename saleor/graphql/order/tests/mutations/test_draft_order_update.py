@@ -2272,7 +2272,6 @@ def test_draft_order_update_triggers_webhooks(
     app_api_client,
     permission_manage_orders,
     draft_order,
-    django_capture_on_commit_callbacks,
     settings,
 ):
     # given
@@ -2305,10 +2304,9 @@ def test_draft_order_update_triggers_webhooks(
     }
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        response = app_api_client.post_graphql(
-            query, variables, permissions=(permission_manage_orders,)
-        )
+    response = app_api_client.post_graphql(
+        query, variables, permissions=(permission_manage_orders,)
+    )
 
     # then
     content = get_graphql_content(response)
@@ -2369,7 +2367,6 @@ def test_draft_order_update_triggers_webhooks_when_tax_webhook_not_needed(
     app_api_client,
     permission_manage_orders,
     draft_order,
-    django_capture_on_commit_callbacks,
     settings,
 ):
     # given
@@ -2392,10 +2389,9 @@ def test_draft_order_update_triggers_webhooks_when_tax_webhook_not_needed(
     }
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        response = app_api_client.post_graphql(
-            query, variables, permissions=(permission_manage_orders,)
-        )
+    response = app_api_client.post_graphql(
+        query, variables, permissions=(permission_manage_orders,)
+    )
 
     # then
     content = get_graphql_content(response)

@@ -1070,7 +1070,6 @@ def test_fulfillment_return_products_calls_order_refunded(
     permission_group_manage_orders,
     fulfilled_order,
     payment_dummy,
-    django_capture_on_commit_callbacks,
 ):
     # given
     payment_dummy.total = fulfilled_order.total_gross_amount
@@ -1129,8 +1128,7 @@ def test_fulfillment_return_products_calls_order_refunded(
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        staff_api_client.post_graphql(ORDER_FULFILL_RETURN_MUTATION, variables)
+    staff_api_client.post_graphql(ORDER_FULFILL_RETURN_MUTATION, variables)
 
     # then
     amount = order_line.unit_price_gross_amount * 2

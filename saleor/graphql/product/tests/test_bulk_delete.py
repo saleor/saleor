@@ -115,7 +115,6 @@ def test_delete_categories_trigger_webhook(
     category_list,
     permission_manage_products,
     settings,
-    django_capture_on_commit_callbacks,
 ):
     # given
     mocked_get_webhooks_for_event.return_value = [any_webhook]
@@ -129,12 +128,11 @@ def test_delete_categories_trigger_webhook(
     }
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(
-            MUTATION_CATEGORY_BULK_DELETE,
-            variables,
-            permissions=[permission_manage_products],
-        )
+    response = staff_api_client.post_graphql(
+        MUTATION_CATEGORY_BULK_DELETE,
+        variables,
+        permissions=[permission_manage_products],
+    )
     content = get_graphql_content(response)
 
     # then
@@ -196,7 +194,6 @@ def test_delete_categories_trigger_product_updated_webhook(
     permission_manage_products,
     any_webhook,
     settings,
-    django_capture_on_commit_callbacks,
 ):
     # given
     mocked_get_webhooks_for_event.return_value = [any_webhook]
@@ -216,12 +213,11 @@ def test_delete_categories_trigger_product_updated_webhook(
             for category in category_list
         ]
     }
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(
-            MUTATION_CATEGORY_BULK_DELETE,
-            variables,
-            permissions=[permission_manage_products],
-        )
+    response = staff_api_client.post_graphql(
+        MUTATION_CATEGORY_BULK_DELETE,
+        variables,
+        permissions=[permission_manage_products],
+    )
     content = get_graphql_content(response)
 
     assert content["data"]["categoryBulkDelete"]["count"] == 3
@@ -401,7 +397,6 @@ def test_delete_collections_trigger_collection_deleted_webhook(
     permission_manage_products,
     any_webhook,
     settings,
-    django_capture_on_commit_callbacks,
 ):
     # given
     mocked_get_webhooks_for_event.return_value = [any_webhook]
@@ -412,12 +407,11 @@ def test_delete_collections_trigger_collection_deleted_webhook(
             for collection in collection_list
         ]
     }
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(
-            MUTATION_COLLECTION_BULK_DELETE,
-            variables,
-            permissions=[permission_manage_products],
-        )
+    response = staff_api_client.post_graphql(
+        MUTATION_COLLECTION_BULK_DELETE,
+        variables,
+        permissions=[permission_manage_products],
+    )
     content = get_graphql_content(response)
 
     assert content["data"]["collectionBulkDelete"]["count"] == 3
@@ -441,7 +435,6 @@ def test_delete_collections_trigger_product_updated_webhook(
     permission_manage_products,
     any_webhook,
     settings,
-    django_capture_on_commit_callbacks,
 ):
     # given
     mocked_get_webhooks_for_event.return_value = [any_webhook]
@@ -454,12 +447,11 @@ def test_delete_collections_trigger_product_updated_webhook(
             for collection in collection_list
         ]
     }
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(
-            MUTATION_COLLECTION_BULK_DELETE,
-            variables,
-            permissions=[permission_manage_products],
-        )
+    response = staff_api_client.post_graphql(
+        MUTATION_COLLECTION_BULK_DELETE,
+        variables,
+        permissions=[permission_manage_products],
+    )
     content = get_graphql_content(response)
 
     assert content["data"]["collectionBulkDelete"]["count"] == 3
@@ -490,7 +482,6 @@ def test_delete_products(
     permission_manage_products,
     order_list,
     channel_USD,
-    django_capture_on_commit_callbacks,
 ):
     # given
     query = DELETE_PRODUCTS_MUTATION
@@ -547,10 +538,9 @@ def test_delete_products(
     }
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(
-            query, variables, permissions=[permission_manage_products]
-        )
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
 
     # then
     content = get_graphql_content(response)
@@ -639,7 +629,6 @@ def test_delete_products_trigger_webhook(
     permission_manage_products,
     channel_USD,
     settings,
-    django_capture_on_commit_callbacks,
 ):
     # given
     mocked_get_webhooks_for_event.return_value = [any_webhook]
@@ -652,10 +641,9 @@ def test_delete_products_trigger_webhook(
             for product in product_list
         ]
     }
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(
-            query, variables, permissions=[permission_manage_products]
-        )
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
     content = get_graphql_content(response)
 
     assert content["data"]["productBulkDelete"]["count"] == 3
@@ -677,7 +665,6 @@ def test_delete_products_without_variants(
     permission_manage_products,
     channel_USD,
     settings,
-    django_capture_on_commit_callbacks,
 ):
     # given
     mocked_get_webhooks_for_event.return_value = [any_webhook]
@@ -693,10 +680,9 @@ def test_delete_products_without_variants(
             for product in product_list
         ]
     }
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(
-            query, variables, permissions=[permission_manage_products]
-        )
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
     content = get_graphql_content(response)
 
     assert content["data"]["productBulkDelete"]["count"] == 3
@@ -980,7 +966,6 @@ def test_delete_product_variants_by_sku(
     permission_manage_products,
     any_webhook,
     settings,
-    django_capture_on_commit_callbacks,
 ):
     # given
     mocked_get_webhooks_for_event.return_value = [any_webhook]
@@ -998,12 +983,11 @@ def test_delete_product_variants_by_sku(
     variables = {"skus": [variant.sku for variant in product_variant_list]}
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(
-            PRODUCT_VARIANT_BULK_DELETE_BY_SKU_MUTATION,
-            variables,
-            permissions=[permission_manage_products],
-        )
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_DELETE_BY_SKU_MUTATION,
+        variables,
+        permissions=[permission_manage_products],
+    )
     content = get_graphql_content(response)
 
     # then
@@ -1033,7 +1017,6 @@ def test_delete_product_variants_by_sku_task_for_recalculate_product_prices_call
     permission_manage_products,
     any_webhook,
     settings,
-    django_capture_on_commit_callbacks,
 ):
     # given
     mocked_get_webhooks_for_event.return_value = [any_webhook]
@@ -1046,12 +1029,11 @@ def test_delete_product_variants_by_sku_task_for_recalculate_product_prices_call
     variables = {"skus": [variant.sku for variant in variants]}
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(
-            PRODUCT_VARIANT_BULK_DELETE_BY_SKU_MUTATION,
-            variables,
-            permissions=[permission_manage_products],
-        )
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_DELETE_BY_SKU_MUTATION,
+        variables,
+        permissions=[permission_manage_products],
+    )
     content = get_graphql_content(response)
 
     # then
@@ -1096,7 +1078,6 @@ def test_delete_product_variants(
     permission_manage_products,
     any_webhook,
     settings,
-    django_capture_on_commit_callbacks,
 ):
     # given
     mocked_get_webhooks_for_event.return_value = [any_webhook]
@@ -1119,10 +1100,9 @@ def test_delete_product_variants(
             for variant in product_variant_list
         ]
     }
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(
-            query, variables, permissions=[permission_manage_products]
-        )
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
     content = get_graphql_content(response)
 
     assert content["data"]["productVariantBulkDelete"]["count"] == 4
@@ -1151,7 +1131,6 @@ def test_delete_product_variants_task_for_recalculate_product_prices_called(
     permission_manage_products,
     any_webhook,
     settings,
-    django_capture_on_commit_callbacks,
 ):
     # given
     mocked_get_webhooks_for_event.return_value = [any_webhook]
@@ -1169,10 +1148,9 @@ def test_delete_product_variants_task_for_recalculate_product_prices_called(
             for variant in variants
         ]
     }
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(
-            query, variables, permissions=[permission_manage_products]
-        )
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
     content = get_graphql_content(response)
 
     assert content["data"]["productVariantBulkDelete"]["count"] == len(variants)
@@ -1220,7 +1198,6 @@ def test_delete_product_variants_removes_checkout_lines(
     checkout,
     product_list,
     permission_manage_products,
-    django_capture_on_commit_callbacks,
 ):
     query = PRODUCT_VARIANT_BULK_DELETE_MUTATION
 
@@ -1245,10 +1222,9 @@ def test_delete_product_variants_removes_checkout_lines(
             for variant in variant_list
         ]
     }
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(
-            query, variables, permissions=[permission_manage_products]
-        )
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
     content = get_graphql_content(response)
 
     assert content["data"]["productVariantBulkDelete"]["count"] == 2
@@ -1281,7 +1257,6 @@ def test_delete_product_variants_with_images(
     media_root,
     any_webhook,
     settings,
-    django_capture_on_commit_callbacks,
 ):
     # given
     mocked_get_webhooks_for_event.return_value = [any_webhook]
@@ -1308,10 +1283,9 @@ def test_delete_product_variants_with_images(
             for variant in product_variant_list
         ]
     }
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(
-            query, variables, permissions=[permission_manage_products]
-        )
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
     content = get_graphql_content(response)
 
     assert content["data"]["productVariantBulkDelete"]["count"] == 4
@@ -1508,7 +1482,6 @@ def test_delete_product_variants_with_file_attribute(
     file_attribute,
     any_webhook,
     settings,
-    django_capture_on_commit_callbacks,
 ):
     # given
     mocked_get_webhooks_for_event.return_value = [any_webhook]
@@ -1534,10 +1507,9 @@ def test_delete_product_variants_with_file_attribute(
             for variant in product_variant_list
         ]
     }
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(
-            query, variables, permissions=[permission_manage_products]
-        )
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
     content = get_graphql_content(response)
 
     assert content["data"]["productVariantBulkDelete"]["count"] == 4
