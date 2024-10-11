@@ -49,7 +49,9 @@ class Command(BaseCommand):
             app_job.permissions.set(permissions)
 
         try:
-            _, token = install_app(app_job, activate)
+            app, token = install_app(app_job, activate)
+            app.is_installed = True
+            app.save(update_fields=["is_installed"])
             app_job.delete()
         except Exception as e:
             app_job.status = JobStatus.FAILED
