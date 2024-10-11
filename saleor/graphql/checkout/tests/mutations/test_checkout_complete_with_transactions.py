@@ -4487,3 +4487,47 @@ def test_checkout_complete_with_invalid_address(
     assert not data["errors"]
     assert order.shipping_address.postal_code == invalid_postal_code
     assert order.billing_address.postal_code == invalid_postal_code
+
+
+@patch("saleor.checkout.complete_checkout._get_unit_discount_reason")
+def test_checkout_complete_log_unknown_discount_reason(
+    mocked_discount_reason,
+    user_api_client,
+    checkout_with_item_and_voucher_specific_products,
+    voucher_specific_product_type,
+    address,
+    shipping_method,
+    transaction_events_generator,
+    transaction_item_generator,
+    caplog,
+):
+    # given
+    mocked_discount_reason.return_value = None
+
+    checkout = prepare_checkout_for_test(
+        checkout_with_item_and_voucher_specific_products,
+        address,
+        address,
+        shipping_method,
+        transaction_item_generator,
+        transaction_events_generator,
+    )
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "redirectUrl": "https://www.example.com",
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+
+    order = Order.objects.first()
+    order_line = order.lines.first()
+    assert not order_line.unit_discount_reason
+    assert "Unknown discount reason" in caplog.text
+    assert caplog.records[0].checkout_id == to_global_id_or_none(checkout)
