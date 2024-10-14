@@ -40,6 +40,7 @@ pytest_plugins = [
     "saleor.thumbnail.tests.fixtures",
     "saleor.order.tests.fixtures",
     "saleor.product.tests.fixtures",
+    "saleor.site.tests.fixtures",
 ]
 
 
