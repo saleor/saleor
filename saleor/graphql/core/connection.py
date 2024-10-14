@@ -224,7 +224,7 @@ def _get_edges_for_connection(edge_type, qs, args, sorting_fields):
 
     matching_records = list(qs)
     if last:
-        matching_records = list(reversed(matching_records))
+        matching_records.reverse()
         if len(matching_records) <= requested_count:
             start_slice = 0
     page_info = _get_page_info(matching_records, cursor, first, last)
