@@ -52,6 +52,21 @@ task_logger = get_task_logger(f"{__name__}.celery")
 OBSERVABILITY_QUEUE_NAME = "observability"
 
 
+class RequestorModelName:
+    # lowercase, as it is returned as such by `model._meta.model_name`
+    APP = "app.app"
+    USER = "account.user"
+
+
+@dataclass
+class DeferredPayloadData:
+    model_name: str
+    model_id: Union[int, UUID]
+    requestor_model_name: Optional[str]
+    requestor_model_id: Optional[Union[int, UUID]]
+    request_time: Optional[datetime.datetime]
+
+
 def create_deliveries_for_subscriptions_deferred_payload(
     event_type: str,
     webhooks: Sequence["Webhook"],
@@ -328,24 +343,10 @@ def trigger_webhooks_async(
         )
 
 
-class RequestorModelName:
-    APP = "app.App"
-    USER = "account.User"
-
-
-@dataclass
-class DeferredPayloadData:
-    model_name: str
-    model_id: Union[int, UUID]
-    requestor_model_name: Optional[str]
-    requestor_model_id: Optional[Union[int, UUID]]
-    request_time: Optional[datetime.datetime]
-
-
 def generate_deferred_payload(event_type: str, webhook: "Webhook", payload_args: dict):
     args_obj = DeferredPayloadData(**payload_args)
     requestor = None
-    if args_obj.requestor_model_name and args_obj.requestor_model_id in (
+    if args_obj.requestor_model_id and args_obj.requestor_model_name in (
         RequestorModelName.APP,
         RequestorModelName.USER,
     ):
