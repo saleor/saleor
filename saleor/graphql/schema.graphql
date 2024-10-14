@@ -24361,6 +24361,27 @@ input OrderBulkCreateOrderLineInput @doc(category: "Orders") {
   """Price of the order line excluding applied discount."""
   undiscountedTotalPrice: TaxedMoneyInput!
 
+  """
+  Reason of the discount on order line.
+  
+  Added in Saleor 3.19.
+  """
+  unitDiscountReason: String
+
+  """
+  Type of the discount: fixed or percent
+  
+  Added in Saleor 3.19.
+  """
+  unitDiscountType: DiscountValueTypeEnum
+
+  """
+  Value of the discount. Can store fixed value or percent value
+  
+  Added in Saleor 3.19.
+  """
+  unitDiscountValue: PositiveDecimal
+
   """The ID of the warehouse, where the line will be allocated."""
   warehouse: ID!
 
