@@ -1,5 +1,5 @@
 from decimal import Decimal
-from unittest.mock import call, patch
+from unittest.mock import patch
 
 import graphene
 import pytest
@@ -2317,16 +2317,10 @@ def test_draft_order_update_triggers_webhooks(
     assert not data["errors"]
     order.refresh_from_db()
 
-    # confirm that event delivery was generated for each webhook.
+    # confirm that event delivery was generated for each async webhook.
     draft_order_updated_delivery = EventDelivery.objects.get(
         webhook_id=draft_order_updated_webhook.id
     )
-    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
-    filter_shipping_delivery = EventDelivery.objects.get(
-        webhook_id=shipping_filter_webhook.id,
-        event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
-    )
-
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={"event_delivery_id": draft_order_updated_delivery.id},
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
@@ -2334,12 +2328,27 @@ def test_draft_order_update_triggers_webhooks(
         retry_backoff=10,
         retry_kwargs={"max_retries": 5},
     )
-    mocked_send_webhook_request_sync.assert_has_calls(
-        [
-            call(tax_delivery),
-            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
-        ]
+
+    # confirm each sync webhook was called without saving event delivery
+    assert mocked_send_webhook_request_sync.call_count == 2
+    assert not EventDelivery.objects.exclude(
+        webhook_id=draft_order_updated_webhook.id
+    ).exists()
+
+    tax_delivery_call, filter_shipping_call = (
+        mocked_send_webhook_request_sync.mock_calls
     )
+
+    tax_delivery = tax_delivery_call.args[0]
+    assert tax_delivery.webhook_id == tax_webhook.id
+
+    filter_shipping_delivery = filter_shipping_call.args[0]
+    assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
+    assert (
+        filter_shipping_delivery.event_type
+        == WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
+    )
+
     assert wrapped_call_order_event.called
 
 
@@ -2395,18 +2404,12 @@ def test_draft_order_update_triggers_webhooks_when_tax_webhook_not_needed(
     assert not data["errors"]
     order.refresh_from_db()
 
-    # confirm that event delivery was generated for each webhook.
+    assert not order.should_refresh_prices
+
+    # confirm that event delivery was generated for each async webhook.
     draft_order_updated_delivery = EventDelivery.objects.get(
         webhook_id=draft_order_updated_webhook.id
     )
-    tax_delivery = EventDelivery.objects.filter(webhook_id=tax_webhook.id)
-    filter_shipping_delivery = EventDelivery.objects.get(
-        webhook_id=shipping_filter_webhook.id,
-        event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
-    )
-
-    assert not tax_delivery
-    assert not order.should_refresh_prices
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={"event_delivery_id": draft_order_updated_delivery.id},
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
@@ -2414,7 +2417,21 @@ def test_draft_order_update_triggers_webhooks_when_tax_webhook_not_needed(
         retry_backoff=10,
         retry_kwargs={"max_retries": 5},
     )
-    mocked_send_webhook_request_sync.assert_called_once_with(
-        filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT
+
+    # confirm each sync webhook was called without saving event delivery
+    mocked_send_webhook_request_sync.assert_called_once()
+    assert not EventDelivery.objects.exclude(
+        webhook_id=draft_order_updated_webhook.id
+    ).exists()
+
+    filter_shipping_call = mocked_send_webhook_request_sync.mock_calls[0]
+
+    filter_shipping_delivery = filter_shipping_call.args[0]
+    assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
+    assert (
+        filter_shipping_delivery.event_type
+        == WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
     )
+    assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
+
     assert wrapped_call_order_event.called

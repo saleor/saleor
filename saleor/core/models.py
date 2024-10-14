@@ -189,6 +189,12 @@ class EventPayload(models.Model):
         file_path = safe_join(prefix, file_name)
         self.payload_file.save(file_path, ContentFile(payload_bytes))
 
+    def save_as_file(self):
+        payload_data = self.payload
+        self.payload = ""
+        self.save()
+        self.save_payload_file(payload_data)
+
 
 class EventDelivery(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)

@@ -228,7 +228,7 @@ def test_order_capture_triggers_webhooks(
     content = get_graphql_content(response)
     assert not content["data"]["orderCapture"]["errors"]
 
-    # confirm that event delivery was generated for each webhook.
+    # confirm that event delivery was generated for each async webhook.
     order_paid_delivery = EventDelivery.objects.get(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_PAID,
@@ -240,11 +240,6 @@ def test_order_capture_triggers_webhooks(
     order_fully_paid_delivery = EventDelivery.objects.get(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_FULLY_PAID,
-    )
-    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
-    filter_shipping_delivery = EventDelivery.objects.get(
-        webhook_id=shipping_filter_webhook.id,
-        event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
     )
 
     order_deliveries = [
@@ -266,10 +261,25 @@ def test_order_capture_triggers_webhooks(
         ],
         any_order=True,
     )
-    mocked_send_webhook_request_sync.assert_has_calls(
-        [
-            call(tax_delivery),
-            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
-        ]
+
+    # confirm each sync webhook was called without saving event delivery
+    assert mocked_send_webhook_request_sync.call_count == 2
+    assert not EventDelivery.objects.exclude(
+        webhook_id=additional_order_webhook.id
+    ).exists()
+
+    tax_delivery_call, filter_shipping_call = (
+        mocked_send_webhook_request_sync.mock_calls
     )
+
+    tax_delivery = tax_delivery_call.args[0]
+    assert tax_delivery.webhook_id == tax_webhook.id
+
+    filter_shipping_delivery = filter_shipping_call.args[0]
+    assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
+    assert (
+        filter_shipping_delivery.event_type
+        == WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
+    )
+
     assert wrapped_call_order_event.called
