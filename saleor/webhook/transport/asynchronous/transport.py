@@ -229,7 +229,6 @@ def trigger_webhooks_async(
     pre_save_payloads=None,
     request_time=None,
     queue=None,
-    defer_payload_generation=False,
 ):
     """Trigger async webhooks - both regular and subscription.
 
@@ -243,8 +242,6 @@ def trigger_webhooks_async(
     :param legacy_data_generator: used to generate payload for regular webhooks.
     :param allow_replica: use a replica database.
     :param queue: defines the queue to which the event should be sent.
-    :param defer_payload_generation: if True, the payload generation is deferred to the
-        Celery task.
     """
     legacy_webhooks, subscription_webhooks = group_webhooks_by_subscription(webhooks)
     deliveries = []
@@ -270,13 +267,17 @@ def trigger_webhooks_async(
                     )
                 )
 
+    is_deferred_payload = WebhookEventAsyncType.EVENT_MAP.get(
+        WebhookEventAsyncType.CHECKOUT_UPDATED, {}
+    ).get("is_deferred_payload", False)
+
     # Subscription webhooks are those that have a subscription query. Depending on the
     # `defer_payload_generation` flag, deliveries are created with or without the
     # payload. If payload generation is deferred, the payload is generated in the Celery
     # task.
     deferred_payload_data = {}
     if subscription_webhooks:
-        if defer_payload_generation:
+        if is_deferred_payload:
             deliveries.extend(
                 create_deliveries_for_subscriptions_deferred_payload(
                     event_type=event_type, webhooks=subscription_webhooks
