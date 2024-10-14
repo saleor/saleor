@@ -1135,6 +1135,7 @@ def _generate_sample_order_payload(event_name):
     if order:
         anonymized_order = anonymize_order(order)
         return generate_order_payload(anonymized_order)
+    return None
 
 
 @allow_writer()

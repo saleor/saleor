@@ -1,4 +1,5 @@
 from collections import defaultdict
+from uuid import UUID
 
 from promise import Promise
 
@@ -19,7 +20,9 @@ from ...translations.dataloaders import (
 from .models import CheckoutByTokenLoader, CheckoutLineByIdLoader
 
 
-class VariantPromotionRuleInfoByCheckoutLineIdLoader(DataLoader):
+class VariantPromotionRuleInfoByCheckoutLineIdLoader(
+    DataLoader[UUID, list[VariantPromotionRuleInfo]]
+):
     context_key = "variant_promotion_rule_info_by_checkout_line_id"
 
     def batch_load(self, keys):

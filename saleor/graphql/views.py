@@ -112,13 +112,11 @@ class GraphQLView(View):
             if settings.PLAYGROUND_ENABLED:
                 return self.render_playground(request)
             return HttpResponseNotAllowed(["OPTIONS", "POST"])
-        elif request.method == "POST":
+        if request.method == "POST":
             return self.handle_query(request)
-        else:
-            if settings.PLAYGROUND_ENABLED:
-                return HttpResponseNotAllowed(["GET", "OPTIONS", "POST"])
-            else:
-                return HttpResponseNotAllowed(["OPTIONS", "POST"])
+        if settings.PLAYGROUND_ENABLED:
+            return HttpResponseNotAllowed(["GET", "OPTIONS", "POST"])
+        return HttpResponseNotAllowed(["OPTIONS", "POST"])
 
     def render_playground(self, request):
         return render(

@@ -82,5 +82,5 @@ class GiftCardSettingsUpdate(BaseMutation):
                     )
                 }
             )
-        elif expiry_type == GiftCardSettingsExpiryType.NEVER_EXPIRE:
+        if expiry_type == GiftCardSettingsExpiryType.NEVER_EXPIRE:
             input["expiry_period"] = None

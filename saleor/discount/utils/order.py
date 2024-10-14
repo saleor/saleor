@@ -68,13 +68,13 @@ def create_order_line_discount_objects(
     lines_info: Iterable["EditableOrderLineInfo"],
     discount_data: tuple[
         list[dict],
-        list["OrderLineDiscount"],
-        list["OrderLineDiscount"],
+        list[OrderLineDiscount],
+        list[OrderLineDiscount],
         list[str],
     ],
-):
+) -> None | list["EditableOrderLineInfo"]:
     if not discount_data or not lines_info:
-        return
+        return None
 
     (
         discounts_to_create_inputs,

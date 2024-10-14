@@ -178,7 +178,7 @@ def prepare_line_discount_objects_for_catalogue_promotions(lines_info):
     updated_fields: list[str] = []
 
     if not lines_info:
-        return
+        return None
 
     for line_info in lines_info:
         line = line_info.line
@@ -403,7 +403,7 @@ def get_best_rule(
             )
 
     if not rule_discounts:
-        return
+        return None
 
     best_rule, best_discount_amount, gift_listing = max(
         rule_discounts, key=lambda x: x.discount_amount
@@ -543,26 +543,25 @@ def _get_defaults_for_gift_line(
             "quantity": 1,
             "currency": order_or_checkout.currency,
         }
-    else:
-        variant = (
-            ProductVariant.objects.filter(id=variant_id)
-            .select_related("product")
-            .only("sku", "product__name")
-            .first()
-        )
-        return {
-            "variant_id": variant_id,
-            "product_name": variant.product.name if variant else "",
-            "product_sku": variant.sku if variant else "",
-            "quantity": 1,
-            "currency": order_or_checkout.currency,
-            "unit_price_net_amount": Decimal(0),
-            "unit_price_gross_amount": Decimal(0),
-            "total_price_net_amount": Decimal(0),
-            "total_price_gross_amount": Decimal(0),
-            "is_shipping_required": True,
-            "is_gift_card": False,
-        }
+    variant = (
+        ProductVariant.objects.filter(id=variant_id)
+        .select_related("product")
+        .only("sku", "product__name")
+        .first()
+    )
+    return {
+        "variant_id": variant_id,
+        "product_name": variant.product.name if variant else "",
+        "product_sku": variant.sku if variant else "",
+        "quantity": 1,
+        "currency": order_or_checkout.currency,
+        "unit_price_net_amount": Decimal(0),
+        "unit_price_gross_amount": Decimal(0),
+        "total_price_net_amount": Decimal(0),
+        "total_price_gross_amount": Decimal(0),
+        "is_shipping_required": True,
+        "is_gift_card": False,
+    }
 
 
 def get_variants_to_promotion_rules_map(

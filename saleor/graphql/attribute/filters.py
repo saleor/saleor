@@ -215,7 +215,7 @@ def filter_with_choices(qs, _, value):
     lookup = Q(input_type__in=AttributeInputType.TYPES_WITH_CHOICES)
     if value is True:
         return qs.filter(lookup)
-    elif value is False:
+    if value is False:
         return qs.exclude(lookup)
     return qs.none()
 

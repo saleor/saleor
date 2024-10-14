@@ -59,14 +59,14 @@ logger = logging.getLogger(__name__)
     retry_kwargs={"max_retries": 5},
 )
 @allow_writer()
-def handle_transaction_request_task(self, delivery_id, request_event_id):
+def handle_transaction_request_task(self, delivery_id, request_event_id) -> None:
     request_event = TransactionEvent.objects.filter(id=request_event_id).first()
     if not request_event:
         logger.error(
             "Cannot find the request event with id: %s for transaction-request webhook.",
             request_event_id,
         )
-        return None
+        return
     delivery = get_delivery_for_webhook(delivery_id)
     if not delivery:
         recalculate_refundable_for_checkout(request_event.transaction, request_event)
@@ -74,7 +74,7 @@ def handle_transaction_request_task(self, delivery_id, request_event_id):
             "Cannot find the delivery with id: %s for transaction-request webhook.",
             delivery_id,
         )
-        return None
+        return
     attempt = create_attempt(delivery, self.request.id)
     response, response_data = _send_webhook_request_sync(delivery, attempt=attempt)
     if response.response_status_code and response.response_status_code >= 500:

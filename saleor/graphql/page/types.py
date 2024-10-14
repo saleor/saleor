@@ -80,10 +80,9 @@ class PageType(ModelObjectType[models.PageType]):
             and requestor.has_perm(PagePermissions.MANAGE_PAGES)
         ):
             return PageAttributesAllByPageTypeIdLoader(info.context).load(root.pk)
-        else:
-            return PageAttributesVisibleInStorefrontByPageTypeIdLoader(
-                info.context
-            ).load(root.pk)
+        return PageAttributesVisibleInStorefrontByPageTypeIdLoader(info.context).load(
+            root.pk
+        )
 
     @staticmethod
     def resolve_available_attributes(
@@ -188,10 +187,9 @@ class Page(ModelObjectType[models.Page]):
             and requestor.has_perm(PagePermissions.MANAGE_PAGES)
         ):
             return SelectedAttributesAllByPageIdLoader(info.context).load(root.id)
-        else:
-            return SelectedAttributesVisibleInStorefrontPageIdLoader(info.context).load(
-                root.id
-            )
+        return SelectedAttributesVisibleInStorefrontPageIdLoader(info.context).load(
+            root.id
+        )
 
 
 class PageCountableConnection(CountableConnection):

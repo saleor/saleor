@@ -9,7 +9,7 @@ from ..attribute.dataloaders import AttributesByAttributeId, AttributeValueByIdL
 from ..core.dataloaders import DataLoader
 
 
-class PageByIdLoader(DataLoader):
+class PageByIdLoader(DataLoader[int, Page]):
     context_key = "page_by_id"
 
     def batch_load(self, keys):
@@ -17,7 +17,7 @@ class PageByIdLoader(DataLoader):
         return [pages.get(page_id) for page_id in keys]
 
 
-class PageTypeByIdLoader(DataLoader):
+class PageTypeByIdLoader(DataLoader[int, PageType]):
     context_key = "page_type_by_id"
 
     def batch_load(self, keys):
@@ -25,7 +25,7 @@ class PageTypeByIdLoader(DataLoader):
         return [page_types.get(page_type_id) for page_type_id in keys]
 
 
-class PagesByPageTypeIdLoader(DataLoader):
+class PagesByPageTypeIdLoader(DataLoader[int, list[Page]]):
     """Loads pages by pages type ID."""
 
     context_key = "pages_by_pagetype"
@@ -42,7 +42,7 @@ class PagesByPageTypeIdLoader(DataLoader):
         return [pagetype_to_pages[key] for key in keys]
 
 
-class BasePageAttributesByPageTypeIdLoader(DataLoader):
+class BasePageAttributesByPageTypeIdLoader(DataLoader[int, list[Attribute]]):
     """Loads page attributes by page type ID."""
 
     context_key = "page_attributes_by_pagetype"
@@ -103,7 +103,7 @@ class PageAttributesVisibleInStorefrontByPageTypeIdLoader(
         )
 
 
-class BaseAttributeValuesByPageIdLoader(DataLoader):
+class BaseAttributeValuesByPageIdLoader(DataLoader[int, list[dict]]):
     def get_page_attributes_dataloader(self):
         raise NotImplementedError()
 
@@ -174,14 +174,14 @@ class AttributeValuesVisibleInStorefrontByPageIdLoader(
         return PageAttributesVisibleInStorefrontByPageTypeIdLoader(self.context)
 
 
-class SelectedAttributesAllByPageIdLoader(DataLoader):
+class SelectedAttributesAllByPageIdLoader(DataLoader[int, list[dict]]):
     context_key = "selectedattributes_all_by_page"
 
     def batch_load(self, page_ids):
         return AttributeValuesAllByPageIdLoader(self.context).load_many(page_ids)
 
 
-class SelectedAttributesVisibleInStorefrontPageIdLoader(DataLoader):
+class SelectedAttributesVisibleInStorefrontPageIdLoader(DataLoader[int, list[dict]]):
     context_key = "selectedattributes_visible_in_storefront_by_page"
 
     def batch_load(self, page_ids):

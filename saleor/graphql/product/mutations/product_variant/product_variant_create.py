@@ -158,8 +158,7 @@ class ProductVariantCreate(ModelMutation):
                 code=ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
                 params={"attributes": attribute_values.keys()},
             )
-        else:
-            used_attribute_values.append(attribute_values)
+        used_attribute_values.append(attribute_values)
 
     @classmethod
     def clean_input(

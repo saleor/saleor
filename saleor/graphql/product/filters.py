@@ -495,8 +495,7 @@ def filter_has_preordered_variants(qs, _, value):
     )
     if value:
         return qs.filter(Exists(variants.filter(product_id=OuterRef("pk"))))
-    else:
-        return qs.filter(~Exists(variants.filter(product_id=OuterRef("pk"))))
+    return qs.filter(~Exists(variants.filter(product_id=OuterRef("pk"))))
 
 
 def filter_collections(qs, _, value):
@@ -1066,8 +1065,7 @@ def where_filter_has_preordered_variants(qs, _, value):
     )
     if value:
         return qs.filter(Exists(variants.filter(product_id=OuterRef("pk"))))
-    else:
-        return qs.filter(~Exists(variants.filter(product_id=OuterRef("pk"))))
+    return qs.filter(~Exists(variants.filter(product_id=OuterRef("pk"))))
 
 
 def where_filter_updated_at_range(qs, _, value):
@@ -1335,7 +1333,7 @@ class CollectionFilter(MetadataFilterBase):
         channel_slug = get_channel_slug_from_filter_data(self.data)
         if value == CollectionPublished.PUBLISHED:
             return _filter_collections_is_published(queryset, name, True, channel_slug)
-        elif value == CollectionPublished.HIDDEN:
+        if value == CollectionPublished.HIDDEN:
             return _filter_collections_is_published(queryset, name, False, channel_slug)
         return queryset
 

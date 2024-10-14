@@ -2,6 +2,7 @@ from typing import Optional
 
 import graphene
 from graphene import relay
+from promise import Promise
 
 from ....permission.utils import has_one_of_permissions
 from ....product import models
@@ -118,9 +119,9 @@ class Category(ModelObjectType[models.Category]):
         info,
         size: Optional[int] = None,
         format: Optional[str] = None,
-    ):
+    ) -> None | Image | Promise[Image]:
         if not root.background_image:
-            return
+            return None
 
         alt = root.background_image_alt
         if size == 0:
@@ -205,8 +206,7 @@ class Category(ModelObjectType[models.Category]):
                 .load(str(channel))
                 .then(_resolve_products)
             )
-        else:
-            return _resolve_products(None)
+        return _resolve_products(None)
 
     @staticmethod
     def __resolve_references(roots: list["Category"], info):

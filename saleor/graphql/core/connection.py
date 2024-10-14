@@ -168,9 +168,9 @@ def _get_sorting_fields(sort_by, qs):
     sorting_attribute = sort_by.get("attribute_id")
     if sorting_fields and not isinstance(sorting_fields, list):
         return [sorting_fields]
-    elif not sorting_fields and sorting_attribute is not None:
+    if not sorting_fields and sorting_attribute is not None:
         return qs.model.sort_by_attribute_fields()
-    elif not sorting_fields:
+    if not sorting_fields:
         raise ValueError("Error while preparing cursor values.")
     return sorting_fields
 

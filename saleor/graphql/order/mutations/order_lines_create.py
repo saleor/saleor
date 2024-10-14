@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 
 from ....core.taxes import TaxError
 from ....core.tracing import traced_atomic_transaction
-from ....order import events
+from ....order import events, models
 from ....order.error_codes import OrderErrorCode
 from ....order.fetch import fetch_order_lines
 from ....order.search import update_order_search_vector
@@ -133,7 +133,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
 
     @staticmethod
     def add_lines_to_order(order, lines_data, user, app, manager):
-        added_lines: list[OrderLine] = []
+        added_lines: list[models.OrderLine] = []
         try:
             for line_data in lines_data:
                 line = add_variant_to_order(
@@ -207,10 +207,10 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         return OrderLinesCreate(order=order, order_lines=added_lines)
 
     @classmethod
-    def _find_line_id_for_variant_if_exist(cls, variant_id, lines_info):
+    def _find_line_id_for_variant_if_exist(cls, variant_id, lines_info) -> None | str:
         """Return line id by using provided variantId parameter."""
         if not lines_info:
-            return
+            return None
 
         line_info = list(
             filter(
@@ -219,6 +219,6 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         )
 
         if not line_info or len(line_info) > 1:
-            return
+            return None
 
         return str(line_info[0].line.id)

@@ -138,7 +138,7 @@ def format_price(price: Decimal, currency: str) -> int:
 def _get_goods_name(line: PaymentLineData, config: "ApiConfig") -> str:
     if not config.sku_as_name:
         return line.product_name
-    elif sku := line.product_sku:
+    if sku := line.product_sku:
         return sku
     return str(line.variant_id)
 

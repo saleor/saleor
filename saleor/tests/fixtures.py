@@ -1164,10 +1164,9 @@ def user_checkout_with_items_for_cc(user_checkout_for_cc, product_list):
 def user_checkouts(request, user_checkout_with_items, user_checkout_with_items_for_cc):
     if request.param == "regular":
         return user_checkout_with_items
-    elif request.param == "click_and_collect":
+    if request.param == "click_and_collect":
         return user_checkout_with_items_for_cc
-    else:
-        raise ValueError("Internal test error")
+    raise ValueError("Internal test error")
 
 
 @pytest.fixture
@@ -3926,6 +3925,7 @@ def delivery_method(request, warehouse_for_cc, shipping_method):
         return warehouse_for_cc
     if request.param == "shipping_method":
         return shipping_method
+    return None
 
 
 @pytest.fixture
@@ -4995,6 +4995,7 @@ def setup_mock_for_cache():
                     {key: {"value": new_value, "ttl": current_data["ttl"]}}
                 )
                 return new_value
+            return None
 
         mocked_get_cache = MagicMock()
         mocked_set_cache = MagicMock()

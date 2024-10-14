@@ -393,7 +393,7 @@ class UserDeleteMixin:
                     )
                 }
             )
-        elif instance.is_superuser:
+        if instance.is_superuser:
             raise ValidationError(
                 {
                     "id": ValidationError(

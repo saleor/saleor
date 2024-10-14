@@ -115,7 +115,7 @@ def validation_error_to_error_type(
 
 def attach_error_params(error, params: Optional[dict], error_class_fields: set):
     if not params:
-        return {}
+        return
     # If some of the params key overlap with error class fields
     # attach param value to the error
     error_fields_in_params = set(params.keys()) & error_class_fields
@@ -228,7 +228,7 @@ class BaseMutation(graphene.Mutation):
         info: ResolveInfo,
         graphene_type: type[ModelObjectType[MT]],
         pk: Union[int, str],
-        qs=None,
+        qs: Optional[QuerySet[MT]] = None,
     ) -> Optional[MT]:
         """Attempt to resolve a node from the given internal ID.
 
@@ -831,6 +831,7 @@ class ModelWithExtRefMutation(ModelMutation):
         if object_id:
             model_type = cls.get_type_for_model()
             return cls.get_node_or_error(info, object_id, only_type=model_type, qs=qs)
+        return None
 
 
 class ModelWithRestrictedChannelAccessMutation(ModelMutation):

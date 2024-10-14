@@ -207,12 +207,11 @@ class JWTManager(JWTManagerBase):
                     "Variable RSA_PRIVATE_KEY is not provided. "
                     "It is required for running in not DEBUG mode."
                 )
-            else:
-                msg = (
-                    "RSA_PRIVATE_KEY is missing. Using temporary key for local "
-                    "development with DEBUG mode."
-                )
-                logger.warning(color_style().WARNING(msg))
+            msg = (
+                "RSA_PRIVATE_KEY is missing. Using temporary key for local "
+                "development with DEBUG mode."
+            )
+            logger.warning(color_style().WARNING(msg))
 
         cls.get_private_key.cache_clear()
         cls.get_public_key.cache_clear()

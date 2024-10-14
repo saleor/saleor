@@ -637,9 +637,9 @@ class User(ModelObjectType[models.User]):
         info: ResolveInfo,
         size: Optional[int] = None,
         format: Optional[str] = None,
-    ):
+    ) -> None | Image | Promise[Image]:
         if not root.avatar:
-            return
+            return None
 
         if size == 0:
             return Image(url=root.avatar.url, alt=None)

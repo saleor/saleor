@@ -418,12 +418,11 @@ class ProductTranslatableContent(ModelObjectType[product_models.Product]):
                 .load(root.id)
                 .then(get_translatable_attribute_values)
             )
-        else:
-            return (
-                SelectedAttributesVisibleInStorefrontByProductIdLoader(info.context)
-                .load(root.id)
-                .then(get_translatable_attribute_values)
-            )
+        return (
+            SelectedAttributesVisibleInStorefrontByProductIdLoader(info.context)
+            .load(root.id)
+            .then(get_translatable_attribute_values)
+        )
 
     @staticmethod
     def resolve_product_id(root: product_models.Product, _info):
@@ -714,12 +713,11 @@ class PageTranslatableContent(ModelObjectType[page_models.Page]):
                 .load(root.id)
                 .then(get_translatable_attribute_values)
             )
-        else:
-            return (
-                SelectedAttributesVisibleInStorefrontPageIdLoader(info.context)
-                .load(root.id)
-                .then(get_translatable_attribute_values)
-            )
+        return (
+            SelectedAttributesVisibleInStorefrontPageIdLoader(info.context)
+            .load(root.id)
+            .then(get_translatable_attribute_values)
+        )
 
     @staticmethod
     def resolve_page_id(root: page_models.Page, _info):

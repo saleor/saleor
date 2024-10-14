@@ -154,7 +154,7 @@ def call_checkout_info_event(
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"] = None,
     webhook_event_map: Optional[dict[str, set["Webhook"]]] = None,
-):
+) -> None:
     checkout = checkout_info.checkout
     if webhook_event_map is None:
         webhook_event_map = get_webhooks_for_multiple_events(
@@ -176,7 +176,7 @@ def call_checkout_info_event(
         possible_sync_events=WebhookEventSyncType.CHECKOUT_EVENTS,
     ):
         call_event_including_protected_events(event_func, checkout, webhooks=webhooks)
-        return None
+        return
 
     _trigger_checkout_sync_webhooks(
         manager,
@@ -187,7 +187,7 @@ def call_checkout_info_event(
     )
 
     call_event_including_protected_events(event_func, checkout, webhooks=webhooks)
-    return None
+    return
 
 
 def update_last_transaction_modified_at_for_checkout(

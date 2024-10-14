@@ -13,7 +13,7 @@ from ..core import SaleorContext
 from ..core.dataloaders import BaseThumbnailBySizeAndFormatLoader, DataLoader
 
 
-class AppByIdLoader(DataLoader):
+class AppByIdLoader(DataLoader[str, App]):
     context_key = "app_by_id"
 
     def batch_load(self, keys):
@@ -25,7 +25,7 @@ class AppByIdLoader(DataLoader):
         return [apps.get(key) for key in keys]
 
 
-class AppExtensionByIdLoader(DataLoader):
+class AppExtensionByIdLoader(DataLoader[str, AppExtension]):
     context_key = "app_extension_by_id"
 
     def batch_load(self, keys):
@@ -35,7 +35,7 @@ class AppExtensionByIdLoader(DataLoader):
         return [extensions.get(key) for key in keys]
 
 
-class AppExtensionByAppIdLoader(DataLoader):
+class AppExtensionByAppIdLoader(DataLoader[str, AppExtension]):
     context_key = "app_extension_by_app_id"
 
     def batch_load(self, keys):
@@ -50,7 +50,7 @@ class AppExtensionByAppIdLoader(DataLoader):
         return [extensions_map.get(app_id, []) for app_id in keys]
 
 
-class ActiveAppsByAppIdentifierLoader(DataLoader):
+class ActiveAppsByAppIdentifierLoader(DataLoader[str, App]):
     context_key = "apps_by_app_identifier"
 
     def batch_load(self, keys):
@@ -63,7 +63,7 @@ class ActiveAppsByAppIdentifierLoader(DataLoader):
         return [apps_map.get(app_identifier, []) for app_identifier in keys]
 
 
-class AppTokensByAppIdLoader(DataLoader):
+class AppTokensByAppIdLoader(DataLoader[str, AppToken]):
     context_key = "app_tokens_by_app_id"
 
     def batch_load(self, keys):
@@ -76,7 +76,7 @@ class AppTokensByAppIdLoader(DataLoader):
         return [tokens_by_app_map.get(app_id, []) for app_id in keys]
 
 
-class AppByTokenLoader(DataLoader):
+class AppByTokenLoader(DataLoader[str, App]):
     context_key = "app_by_token"
 
     def batch_load(self, keys):

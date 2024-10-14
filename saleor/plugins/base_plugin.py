@@ -1689,7 +1689,7 @@ class BasePlugin:
     #
     # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
     # Webhook-related functionality will be moved from the plugin to core modules.
-    event_delivery_retry: Callable[["EventDelivery", Any], EventDelivery]
+    event_delivery_retry: Callable[[EventDelivery, None], None]
 
     def token_is_required_as_payment_input(self, previous_value):
         return previous_value
@@ -1774,7 +1774,7 @@ class BasePlugin:
             new_value = new_value.lower() == "true"
         if item_type == ConfigurationTypeField.OUTPUT:
             # OUTPUT field is read only. No need to update it
-            return
+            return None
         return new_value
 
     @classmethod

@@ -54,12 +54,11 @@ def resolve_sample_payload(info: ResolveInfo, event_name, app):
     )
     if not required_permission:
         return payloads.generate_sample_payload(event_name)
-    else:
-        if app and app.has_perm(required_permission):
-            return payloads.generate_sample_payload(event_name)
-        if user and user.has_perm(required_permission):
-            return payloads.generate_sample_payload(event_name)
-        raise PermissionDenied(permissions=[required_permission])
+    if app and app.has_perm(required_permission):
+        return payloads.generate_sample_payload(event_name)
+    if user and user.has_perm(required_permission):
+        return payloads.generate_sample_payload(event_name)
+    raise PermissionDenied(permissions=[required_permission])
 
 
 def resolve_shipping_methods_for_checkout(

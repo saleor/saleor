@@ -67,7 +67,7 @@ def clean_text_data(text: str):
     """
 
     if not text:
-        return
+        return text
 
     end_of_match = 0
     new_text = ""

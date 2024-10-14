@@ -247,13 +247,10 @@ class DraftOrderCreate(
                         )
                     }
                 )
-            else:
-                channel = cls.get_node_or_error(info, channel_id, only_type=Channel)
-                cleaned_input["channel"] = channel
-                return channel
-
-        else:
-            return instance.channel if hasattr(instance, "channel") else None
+            channel = cls.get_node_or_error(info, channel_id, only_type=Channel)
+            cleaned_input["channel"] = channel
+            return channel
+        return instance.channel if hasattr(instance, "channel") else None
 
     @classmethod
     def clean_voucher_and_voucher_code(cls, voucher, voucher_code):
