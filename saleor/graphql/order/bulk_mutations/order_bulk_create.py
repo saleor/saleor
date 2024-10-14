@@ -425,6 +425,10 @@ class OrderBulkCreateOrderLineInput(BaseInputObjectType):
     )
     variant_name = graphene.String(description="The name of the product variant.")
     product_name = graphene.String(description="The name of the product.")
+    product_sku = graphene.String(
+        required=False,
+        description="The SKU of the product." + ADDED_IN_318,
+    )
     translated_variant_name = graphene.String(
         description="Translation of the product variant name."
     )
@@ -1607,6 +1611,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             translated_variant_name=order_line_input.get("translated_variant_name")
             or "",
             product_variant_id=(variant.get_global_id() if variant else None),
+            product_sku=order_line_input.get("product_sku"),
             created_at=order_line_input["created_at"],
             is_shipping_required=order_line_input["is_shipping_required"],
             is_gift_card=order_line_input["is_gift_card"],
