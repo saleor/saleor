@@ -173,22 +173,6 @@ def assert_max_num_queries(capture_queries):
     return partial(capture_queries, exact=False)
 
 
-@pytest.fixture(autouse=True)
-def setup_dummy_gateways(settings):
-    settings.PLUGINS = [
-        "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin",
-        "saleor.payment.gateways.dummy_credit_card.plugin.DummyCreditCardGatewayPlugin",
-    ]
-    return settings
-
-
-@pytest.fixture
-def _sample_gateway(settings):
-    settings.PLUGINS += [
-        "saleor.plugins.tests.sample_plugins.ActiveDummyPaymentGateway"
-    ]
-
-
 @pytest.fixture
 def checkout(db, channel_USD, settings):
     checkout = Checkout.objects.create(
