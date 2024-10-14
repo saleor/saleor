@@ -185,18 +185,21 @@ class Migration(migrations.Migration):
                 "ordering": ("created_at", "id"),
             },
         ),
+        # nosemgrep: add-index-concurrently
         migrations.AddIndex(
             model_name="checkoutdiscount",
             index=django.contrib.postgres.indexes.BTreeIndex(
                 fields=["promotion_rule"], name="checkoutdiscount_rule_idx"
             ),
         ),
+        # nosemgrep: add-index-concurrently
         migrations.AddIndex(
             model_name="checkoutdiscount",
             index=django.contrib.postgres.indexes.GinIndex(
                 fields=["name", "translated_name"], name="discount_ch_name_64e096_gin"
             ),
         ),
+        # nosemgrep: add-index-concurrently
         migrations.AddIndex(
             model_name="checkoutdiscount",
             index=django.contrib.postgres.indexes.GinIndex(
