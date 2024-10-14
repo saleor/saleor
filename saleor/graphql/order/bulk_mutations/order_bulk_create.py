@@ -25,6 +25,7 @@ from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
 from ....core.weight import zero_weight
 from ....discount.models import OrderDiscount, VoucherCode
+from ....discount.utils.manual_discount import apply_discount_to_value
 from ....giftcard.models import GiftCard
 from ....invoice.models import Invoice
 from ....order import (
@@ -48,7 +49,12 @@ from ....warehouse.models import Stock, Warehouse
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_314, ADDED_IN_318, PREVIEW_FEATURE
+from ...core.descriptions import (
+    ADDED_IN_314,
+    ADDED_IN_318,
+    ADDED_IN_319,
+    PREVIEW_FEATURE,
+)
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.enums import ErrorPolicy, ErrorPolicyEnum, LanguageCodeEnum
 from ...core.mutations import BaseMutation
@@ -56,6 +62,7 @@ from ...core.scalars import DateTime, PositiveDecimal, WeightScalar
 from ...core.types import BaseInputObjectType, BaseObjectType, NonNullList
 from ...core.types.common import OrderBulkCreateError
 from ...core.utils import from_global_id_or_error
+from ...discount.enums import DiscountValueTypeEnum
 from ...meta.inputs import MetadataInput
 from ...payment.mutations.transaction.transaction_create import (
     TransactionCreate,
@@ -274,6 +281,9 @@ class LineAmounts:
     total_net: Decimal
     unit_gross: Decimal
     unit_net: Decimal
+    unit_discount_value: Decimal
+    unit_discount_type: Optional[str]
+    unit_discount_reason: Optional[str]
     undiscounted_total_gross: Decimal
     undiscounted_total_net: Decimal
     undiscounted_unit_gross: Decimal
@@ -481,6 +491,20 @@ class OrderBulkCreateOrderLineInput(BaseInputObjectType):
         TaxedMoneyInput,
         required=True,
         description="Price of the order line excluding applied discount.",
+    )
+    unit_discount_reason = graphene.String(
+        required=False,
+        description="Reason of the discount on order line." + ADDED_IN_319,
+    )
+    unit_discount_type = graphene.Field(
+        DiscountValueTypeEnum,
+        required=False,
+        description="Type of the discount: fixed or percent" + ADDED_IN_319,
+    )
+    unit_discount_value = PositiveDecimal(
+        description="Value of the discount. Can store fixed value or percent value"
+        + ADDED_IN_319,
+        required=False,
     )
     warehouse = graphene.ID(
         required=True,
@@ -1082,6 +1106,11 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         net_amount = line_input["total_price"]["net"]
         undiscounted_gross_amount = line_input["undiscounted_total_price"]["gross"]
         undiscounted_net_amount = line_input["undiscounted_total_price"]["net"]
+
+        unit_discount_reason = line_input.get("unit_discount_reason")
+        unit_discount_type = line_input.get("unit_discount_type")
+        unit_discount_value = line_input.get("unit_discount_value", Decimal(0))
+
         quantity = line_input["quantity"]
         tax_rate = line_input.get("tax_rate", None)
 
@@ -1148,11 +1177,35 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             undiscounted_unit_price_net_amount - unit_price_net_amount
         )
 
+        if (
+            unit_discount_value
+            and unit_discount_type
+            and Money(unit_price_net_amount, currency)
+            != apply_discount_to_value(
+                unit_discount_value,
+                unit_discount_type,
+                currency,
+                Money(undiscounted_unit_price_net_amount, currency),
+            )
+        ):
+            order_data.errors.append(
+                OrderBulkError(
+                    message=(
+                        "Provided discount value doesn't match with provided line amounts."
+                    ),
+                    path=f"lines.{index}.unit_discount_value",
+                    code=OrderBulkCreateErrorCode.PRICE_ERROR,
+                )
+            )
+
         return LineAmounts(
             total_gross=gross_amount,
             total_net=net_amount,
             unit_gross=unit_price_gross_amount,
             unit_net=unit_price_net_amount,
+            unit_discount_reason=unit_discount_reason,
+            unit_discount_type=unit_discount_type,
+            unit_discount_value=unit_discount_value,
             undiscounted_total_gross=undiscounted_gross_amount,
             undiscounted_total_net=undiscounted_net_amount,
             undiscounted_unit_gross=undiscounted_unit_price_gross_amount,
@@ -1634,6 +1687,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             is_gift_card=order_line_input["is_gift_card"],
             currency=order_input["currency"],
             quantity=line_amounts.quantity,
+            unit_discount_reason=line_amounts.unit_discount_reason,
+            unit_discount_type=line_amounts.unit_discount_type,
+            unit_discount_value=line_amounts.unit_discount_value,
             unit_price_net_amount=line_amounts.unit_net,
             unit_price_gross_amount=line_amounts.unit_gross,
             total_price_net_amount=line_amounts.total_net,
