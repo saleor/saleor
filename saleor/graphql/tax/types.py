@@ -5,7 +5,7 @@ from ..channel.dataloaders import ChannelByIdLoader
 from ..channel.types import Channel
 from ..core import ResolveInfo
 from ..core.connection import CountableConnection
-from ..core.descriptions import ADDED_IN_39, ADDED_IN_319
+from ..core.descriptions import ADDED_IN_319
 from ..core.doc_category import DOC_CATEGORY_TAXES
 from ..core.types import BaseObjectType, CountryDisplay, ModelObjectType, NonNullList
 from ..meta.types import ObjectWithMetadata
@@ -63,7 +63,7 @@ class TaxConfiguration(ModelObjectType[models.TaxConfiguration]):
     )
 
     class Meta:
-        description = "Channel-specific tax configuration." + ADDED_IN_39
+        description = "Channel-specific tax configuration."
         interfaces = [graphene.relay.Node, ObjectWithMetadata]
         model = models.TaxConfiguration
 
@@ -119,10 +119,7 @@ class TaxConfigurationPerCountry(ModelObjectType[models.TaxConfigurationPerCount
     )
 
     class Meta:
-        description = (
-            "Country-specific exceptions of a channel's tax configuration."
-            + ADDED_IN_39
-        )
+        description = "Country-specific exceptions of a channel's tax configuration."
         interface = [graphene.relay.Node]
         model = models.TaxConfigurationPerCountry
 
@@ -143,7 +140,7 @@ class TaxClass(ModelObjectType[models.TaxClass]):
         description = (
             "Tax class is a named object used to define tax rates per country. Tax "
             "class can be assigned to product types, products and shipping methods to "
-            "define their tax rates." + ADDED_IN_39
+            "define their tax rates."
         )
         interfaces = [graphene.relay.Node, ObjectWithMetadata]
         model = models.TaxClass
@@ -174,7 +171,7 @@ class TaxClassCountryRate(ModelObjectType[models.TaxClassCountryRate]):
         description = (
             "Tax rate for a country. When tax class is null, it represents the default "
             "tax rate for that country; otherwise it's a country tax rate specific to "
-            "the given tax class." + ADDED_IN_39
+            "the given tax class."
         )
         model = models.TaxClassCountryRate
 
@@ -202,7 +199,7 @@ class TaxCountryConfiguration(BaseObjectType):
     )
 
     class Meta:
-        description = "Tax class rates grouped by country." + ADDED_IN_39
+        description = "Tax class rates grouped by country."
         doc_category = DOC_CATEGORY_TAXES
 
     @staticmethod

@@ -37,7 +37,6 @@ from ..core.doc_category import DOC_CATEGORY_MAP
 from ..core.validators import validate_one_of_args_is_in_mutation
 from ..meta.permissions import PRIVATE_META_PERMISSION_MAP, PUBLIC_META_PERMISSION_MAP
 from ..payment.utils import metadata_contains_empty_key
-from ..plugins.dataloaders import get_plugin_manager_promise
 from ..utils import get_nodes, resolve_global_ids_to_primary_keys
 from . import ResolveInfo
 from .context import disallow_replica_in_context, setup_context_user
@@ -116,7 +115,7 @@ def validation_error_to_error_type(
 
 def attach_error_params(error, params: Optional[dict], error_class_fields: set):
     if not params:
-        return {}
+        return
     # If some of the params key overlap with error class fields
     # attach param value to the error
     error_fields_in_params = set(params.keys()) & error_class_fields
@@ -229,7 +228,7 @@ class BaseMutation(graphene.Mutation):
         info: ResolveInfo,
         graphene_type: type[ModelObjectType[MT]],
         pk: Union[int, str],
-        qs=None,
+        qs: Optional[QuerySet[MT]] = None,
     ) -> Optional[MT]:
         """Attempt to resolve a node from the given internal ID.
 
@@ -266,7 +265,7 @@ class BaseMutation(graphene.Mutation):
         except GraphQLError as e:
             raise ValidationError(
                 {field: ValidationError(str(e), code="graphql_error")}
-            )
+            ) from e
         return pk
 
     @overload
@@ -365,7 +364,7 @@ class BaseMutation(graphene.Mutation):
         except (AssertionError, GraphQLError) as e:
             raise ValidationError(
                 {field: ValidationError(str(e), code="graphql_error")}
-            )
+            ) from e
         else:
             if node is None:
                 raise ValidationError(
@@ -391,7 +390,7 @@ class BaseMutation(graphene.Mutation):
         except GraphQLError as e:
             raise ValidationError(
                 {field: ValidationError(str(e), code="graphql_error")}
-            )
+            ) from e
         return pks
 
     @overload
@@ -413,7 +412,7 @@ class BaseMutation(graphene.Mutation):
         except GraphQLError as e:
             raise ValidationError(
                 {field: ValidationError(str(e), code="graphql_error")}
-            )
+            ) from e
         return instances
 
     @staticmethod
@@ -517,12 +516,6 @@ class BaseMutation(graphene.Mutation):
 
         if not cls.check_permissions(info.context, data=data):
             raise PermissionDenied(permissions=cls._meta.permissions)
-        manager = get_plugin_manager_promise(info.context).get()
-        result = manager.perform_mutation(
-            mutation_cls=cls, root=root, info=info, data=data
-        )
-        if result is not None:
-            return result
 
         try:
             response = cls.perform_mutation(root, info, **data)
@@ -838,6 +831,7 @@ class ModelWithExtRefMutation(ModelMutation):
         if object_id:
             model_type = cls.get_type_for_model()
             return cls.get_node_or_error(info, object_id, only_type=model_type, qs=qs)
+        return None
 
 
 class ModelWithRestrictedChannelAccessMutation(ModelMutation):
@@ -1045,12 +1039,6 @@ class BaseBulkMutation(BaseMutation):
 
         if not cls.check_permissions(info.context):
             raise PermissionDenied(permissions=cls._meta.permissions)
-        manager = get_plugin_manager_promise(info.context).get()
-        result = manager.perform_mutation(
-            mutation_cls=cls, root=root, info=info, data=data
-        )
-        if result is not None:
-            return result
 
         count, errors = cls.perform_mutation(root, info, **data)
         if errors:

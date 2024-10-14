@@ -13,7 +13,6 @@ from typing import (
 )
 
 import graphene
-import pytz
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
@@ -190,7 +189,7 @@ def check_lines_quantity(
                 }
             )
 
-        elif allow_zero_quantity and quantity < 0:
+        if allow_zero_quantity and quantity < 0:
             raise ValidationError(
                 {
                     "quantity": ValidationError(
@@ -220,13 +219,13 @@ def check_lines_quantity(
             )
             for item in e.items
         ]
-        raise ValidationError({"quantity": errors})
+        raise ValidationError({"quantity": errors}) from e
 
 
 def get_not_available_variants_for_purchase(
     variants_id: set, channel_id: int
 ) -> tuple[set[int], set[str]]:
-    today = datetime.datetime.now(pytz.UTC)
+    today = datetime.datetime.now(tz=datetime.UTC)
     is_available_for_purchase = Q(
         available_for_purchase_at__lte=today,
         product__variants__id__in=variants_id,
@@ -310,7 +309,7 @@ def get_checkout_by_token(
         )
     try:
         checkout = qs.get(token=token)
-    except ObjectDoesNotExist:
+    except ObjectDoesNotExist as e:
         raise ValidationError(
             {
                 "token": ValidationError(
@@ -318,7 +317,7 @@ def get_checkout_by_token(
                     code=CheckoutErrorCode.NOT_FOUND.value,
                 )
             }
-        )
+        ) from e
     return checkout
 
 
@@ -484,7 +483,7 @@ def check_permissions_for_custom_prices(app, lines):
     Checkout line custom price can be changed only by app with
     handle checkout permission.
     """
-    if any(["price" in line for line in lines]) and (
+    if any("price" in line for line in lines) and (
         not app or not app.has_perm(CheckoutPermissions.HANDLE_CHECKOUTS)
     ):
         raise PermissionDenied(permissions=[CheckoutPermissions.HANDLE_CHECKOUTS])
@@ -492,18 +491,18 @@ def check_permissions_for_custom_prices(app, lines):
 
 def find_line_id_when_variant_parameter_used(
     variant_db_id: str, lines_info: list[CheckoutLineInfo]
-):
+) -> None | str:
     """Return line id when variantId parameter was used.
 
     If variant exists in multiple lines error will be returned.
     """
     if not lines_info:
-        return
+        return None
 
     line_info = list(filter(lambda x: (x.variant.pk == int(variant_db_id)), lines_info))
 
     if not line_info:
-        return
+        return None
 
     # if same variant occur in multiple lines `lineId` parameter have to be used
     if len(line_info) > 1:
@@ -527,10 +526,10 @@ def find_line_id_when_variant_parameter_used(
 
 def find_variant_id_when_line_parameter_used(
     line_db_id: str, lines_info: list[CheckoutLineInfo]
-):
+) -> None | str:
     """Return variant id when lineId parameter was used."""
     if not lines_info:
-        return
+        return None
 
     line_info = list(filter(lambda x: (str(x.line.pk) == line_db_id), lines_info))
     return str(line_info[0].line.variant_id)

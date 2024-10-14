@@ -60,7 +60,7 @@ class ConfirmEmailChange(BaseMutation):
     def get_token_payload(cls, token):
         try:
             payload = jwt_decode(token)
-        except jwt.PyJWTError:
+        except jwt.PyJWTError as e:
             raise ValidationError(
                 {
                     "token": ValidationError(
@@ -68,7 +68,7 @@ class ConfirmEmailChange(BaseMutation):
                         code=AccountErrorCode.JWT_INVALID_TOKEN.value,
                     )
                 }
-            )
+            ) from e
         return payload
 
     @classmethod

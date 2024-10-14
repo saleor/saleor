@@ -2011,9 +2011,9 @@ def test_handle_order_closed_with_adyen_partial_payments_success_true(
 
     partial_payments = list(payment.order.payments.exclude(id=payment.id))
     assert len(partial_payments) == 2
-    assert all([payment.is_active is False for payment in partial_payments])
-    assert all([payment.partial is True for payment in partial_payments])
-    assert all([payment.is_active is False for payment in partial_payments])
+    assert all(payment.is_active is False for payment in partial_payments)
+    assert all(payment.partial is True for payment in partial_payments)
+    assert all(payment.is_active is False for payment in partial_payments)
     assert any(payment.total == Decimal("29.10") for payment in partial_payments)
     assert any(payment.total == Decimal("41.90") for payment in partial_payments)
     assert any(
@@ -2095,9 +2095,9 @@ def test_handle_order_closed_with_adyen_partial_payments_success_true_without_am
 
     partial_payments = list(payment.order.payments.exclude(id=payment.id))
     assert len(partial_payments) == 2
-    assert all([payment.is_active is False for payment in partial_payments])
-    assert all([payment.partial is True for payment in partial_payments])
-    assert all([payment.is_active is False for payment in partial_payments])
+    assert all(payment.is_active is False for payment in partial_payments)
+    assert all(payment.partial is True for payment in partial_payments)
+    assert all(payment.is_active is False for payment in partial_payments)
     assert any(payment.total == Decimal("29.10") for payment in partial_payments)
     assert any(payment.total == Decimal("50.90") for payment in partial_payments)
     assert any(

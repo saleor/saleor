@@ -32,7 +32,7 @@ from ..core.utils.anonymization import (
     generate_fake_user,
 )
 from ..core.utils.json_serializer import CustomJsonEncoder
-from ..discount import VoucherType
+from ..discount.utils.shared import is_order_level_discount
 from ..discount.utils.voucher import is_order_level_voucher
 from ..order import FulfillmentStatus, OrderStatus
 from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
@@ -1135,6 +1135,7 @@ def _generate_sample_order_payload(event_name):
     if order:
         anonymized_order = anonymize_order(order)
         return generate_order_payload(anonymized_order)
+    return None
 
 
 @allow_writer()
@@ -1333,15 +1334,6 @@ def generate_checkout_payload_for_tax_calculation(
         base_calculations.base_checkout_delivery_price(checkout_info, lines).amount,
         checkout.currency,
     )
-    is_shipping_voucher = (
-        checkout_info.voucher.type == VoucherType.SHIPPING
-        if checkout_info.voucher
-        else False
-    )
-    if is_shipping_voucher:
-        shipping_method_amount = max(
-            shipping_method_amount - discount_amount, Decimal("0.0")
-        )
 
     # Prepare line data
     lines_dict_data = serialize_checkout_lines_for_tax_calculation(checkout_info, lines)
@@ -1434,7 +1426,9 @@ def generate_order_payload_for_tax_calculation(order: "Order"):
     discounts = order.discounts.all()
     discounts_dict = []
     for discount in discounts:
-        if is_order_level_voucher(discount.voucher):
+        # Only order level discounts, like entire order vouchers,
+        # order promotions and manual discounts should be taken into account
+        if not is_order_level_discount(discount):
             continue
         quantize_price_fields(discount, ("amount_value",), order.currency)
         discount_amount = quantize_price(discount.amount_value, order.currency)

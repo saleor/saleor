@@ -1,10 +1,10 @@
 import logging
 from dataclasses import asdict
-from typing import Union
+from typing import Callable, Union
 
 from django.core.exceptions import ValidationError
 
-from ...core.notify_events import NotifyEventType, UserNotifyEvent
+from ...core.notify import NotifyEventType, UserNotifyEvent
 from ...plugins.sendgrid.tasks import send_email_with_dynamic_template_id
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 from ..error_codes import PluginErrorCode
@@ -222,21 +222,27 @@ class SendgridEmailPlugin(BasePlugin):
         configuration = {item["name"]: item["value"] for item in self.configuration}
         self.config = SendgridConfiguration(**configuration)
 
-    def notify(self, event: Union[NotifyEventType, str], payload: dict, previous_value):
+    def notify(
+        self,
+        event: Union[NotifyEventType, str],
+        payload_func: Callable[[], dict],
+        previous_value: None,
+    ) -> None:
         if not self.active:
             return previous_value
 
         event_in_notify_event = event in UserNotifyEvent.CHOICES
 
         if not event_in_notify_event:
-            logger.info(f"Send email with event {event} as dynamic template ID.")
+            logger.info("Send email with event %s as dynamic template ID.", event)
+            payload = payload_func()
             send_email_with_dynamic_template_id.delay(
                 payload, event, asdict(self.config)
             )
             return previous_value
 
         if event not in EVENT_MAP:
-            logger.warning(f"Missing handler for event {event}")
+            logger.warning("Missing handler for event %s", event)
             return previous_value
 
         configuration = {item["name"]: item["value"] for item in self.configuration}
@@ -246,8 +252,9 @@ class SendgridEmailPlugin(BasePlugin):
         if not template_id:
             # the empty fields means that we should not send an email for this event.
             return previous_value
-
+        payload = payload_func()
         event_task.delay(payload, asdict(self.config))
+        return previous_value
 
     @classmethod
     def validate_plugin_configuration(

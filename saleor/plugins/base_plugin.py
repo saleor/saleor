@@ -3,25 +3,15 @@ from collections.abc import Iterable
 from copy import copy
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    Optional,
-    Union,
-)
+from typing import TYPE_CHECKING, Any, Callable, Optional, Union
 
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
 from django.utils.functional import SimpleLazyObject
-from graphene import Mutation
-from graphql import GraphQLError
-from graphql.execution import ExecutionResult
 from prices import TaxedMoney
 from promise.promise import Promise
 
 from ..core.models import EventDelivery
-from ..graphql.core import ResolveInfo
 from ..payment.interface import (
     CustomerSource,
     GatewayResponse,
@@ -51,7 +41,7 @@ if TYPE_CHECKING:
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..checkout.models import Checkout
     from ..core.middleware import Requestor
-    from ..core.notify_events import NotifyEventType
+    from ..core.notify import NotifyEventType
     from ..core.taxes import TaxData, TaxType
     from ..csv.models import ExportFile
     from ..discount.models import Promotion, PromotionRule, Voucher, VoucherCode
@@ -168,12 +158,18 @@ class BasePlugin:
     #
     # Overwrite this method if you need to trigger specific logic after an account
     # is confirmed.
+    #
+    # Note: this method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from plugin to core modules.
     account_confirmed: Callable[["User", None], None]
 
     # Trigger when account confirmation is requested.
     #
     # Overwrite this method if you need to trigger specific logic after an account
     # confirmation is requested.
+    #
+    # Note: this method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from plugin to core modules.
     account_confirmation_requested: Callable[
         ["User", str, str, Optional[str], None], None
     ]
@@ -182,108 +178,160 @@ class BasePlugin:
     #
     # Overwrite this method if you need to trigger specific logic after an account
     # change email is requested.
+    #
+    # Note: this method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from plugin to core modules.
     account_change_email_requested: Callable[["User", str, str, str, str, None], None]
 
     # Trigger when account set password is requested.
     #
     # Overwrite this method if you need to trigger specific logic after an account
     # set password is requested.
+    #
+    # Note: this method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from plugin to core modules.
     account_set_password_requested: Callable[["User", str, str, str, None], None]
 
     # Trigger when account delete is confirmed.
     #
     # Overwrite this method if you need to trigger specific logic after an account
     # delete is confirmed.
+    #
+    # Note: this method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from plugin to core modules.
     account_deleted: Callable[["User", None], None]
 
     # Trigger when account email is changed.
     #
     # Overwrite this method if you need to trigger specific logic after an account
     # email is changed.
+    #
+    # Note: this method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from plugin to core modules.
     account_email_changed: Callable[["User", None], None]
 
     # Trigger when account delete is requested.
     #
     # Overwrite this method if you need to trigger specific logic after an account
     # delete is requested.
+    #
+    # Note: this method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from plugin to core modules.
     account_delete_requested: Callable[["User", str, str, str, None], None]
 
-    # Trigger when address is created.
+    # Triggered when an address is created.
     #
     # Overwrite this method if you need to trigger specific logic after an address is
     # created.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     address_created: Callable[["Address", None], None]
 
-    # Trigger when address is deleted.
+    # Triggered when an address is deleted.
     #
     # Overwrite this method if you need to trigger specific logic after an address is
     # deleted.
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     address_deleted: Callable[["Address", None], None]
 
-    # Trigger when address is updated.
+    # Triggered when an address is updated.
     #
     # Overwrite this method if you need to trigger specific logic after an address is
     # updated.
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     address_updated: Callable[["Address", None], None]
 
     # Trigger when app is installed.
     #
     # Overwrite this method if you need to trigger specific logic after an app is
     # installed.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     app_installed: Callable[["App", None], None]
 
     # Trigger when app is deleted.
     #
     # Overwrite this method if you need to trigger specific logic after an app is
     # deleted.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     app_deleted: Callable[["App", None], None]
 
     # Trigger when app is updated.
     #
     # Overwrite this method if you need to trigger specific logic after an app is
     # updated.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     app_updated: Callable[["App", None], None]
 
     # Trigger when channel status is changed.
     #
     # Overwrite this method if you need to trigger specific logic after an app
     # status is changed.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     app_status_changed: Callable[["App", None], None]
 
     # Trigger when attribute is created.
     #
     # Overwrite this method if you need to trigger specific logic after an attribute is
     # installed.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     attribute_created: Callable[["Attribute", None], None]
 
     # Trigger when attribute is deleted.
     #
     # Overwrite this method if you need to trigger specific logic after an attribute is
     # deleted.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     attribute_deleted: Callable[["Attribute", None, None], None]
 
     # Trigger when attribute is updated.
     #
     # Overwrite this method if you need to trigger specific logic after an attribute is
     # updated.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     attribute_updated: Callable[["Attribute", None, None], None]
 
     # Trigger when attribute value is created.
     #
     # Overwrite this method if you need to trigger specific logic after an attribute
     # value is installed.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     attribute_value_created: Callable[["AttributeValue", None], None]
 
     # Trigger when attribute value is deleted.
     #
     # Overwrite this method if you need to trigger specific logic after an attribute
     # value is deleted.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     attribute_value_deleted: Callable[["AttributeValue", None, None], None]
 
     # Trigger when attribute value is updated.
     #
     # Overwrite this method if you need to trigger specific logic after an attribute
     # value is updated.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     attribute_value_updated: Callable[["AttributeValue", None], None]
 
     # Authenticate user which should be assigned to the request.
@@ -400,48 +448,72 @@ class BasePlugin:
     #
     # Overwrite this method if you need to trigger specific logic after a category is
     # created.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     category_created: Callable[["Category", None], None]
 
     # Trigger when category is deleted.
     #
     # Overwrite this method if you need to trigger specific logic after a category is
     # deleted.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     category_deleted: Callable[["Category", None, None], None]
 
     # Trigger when category is updated.
     #
     # Overwrite this method if you need to trigger specific logic after a category is
     # updated.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     category_updated: Callable[["Category", None], None]
 
     # Trigger when channel is created.
     #
     # Overwrite this method if you need to trigger specific logic after a channel is
     # created.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     channel_created: Callable[["Channel", None], None]
 
     # Trigger when channel is deleted.
     #
     # Overwrite this method if you need to trigger specific logic after a channel is
     # deleted.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     channel_deleted: Callable[["Channel", None], None]
 
     # Trigger when channel is updated.
     #
     # Overwrite this method if you need to trigger specific logic after a channel is
     # updated.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     channel_updated: Callable[["Channel", None, None], None]
 
     # Trigger when channel status is changed.
     #
     # Overwrite this method if you need to trigger specific logic after a channel
     # status is changed.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     channel_status_changed: Callable[["Channel", None], None]
 
     # Trigger when channel metadata is changed.
     #
     # Overwrite this method if you need to trigger specific logic after a channel
     # metadata is changed.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     channel_metadata_updated: Callable[["Channel", None], None]
 
     change_user_address: Callable[
@@ -455,48 +527,72 @@ class BasePlugin:
     #
     # Overwrite this method if you need to trigger specific logic when a checkout is
     # created.
-    checkout_created: Callable[["Checkout", Any], Any]
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
+    checkout_created: Callable[["Checkout", Any, None], Any]
 
     # Trigger when checkout is updated.
     #
     # Overwrite this method if you need to trigger specific logic when a checkout is
     # updated.
-    checkout_updated: Callable[["Checkout", Any], Any]
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
+    checkout_updated: Callable[["Checkout", Any, None], Any]
 
     # Trigger when checkout is fully paid with transactions.
     #
     # Overwrite this method if you need to trigger specific logic when a checkout is
     # updated.
-    checkout_fully_paid: Callable[["Checkout", Any], Any]
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
+    checkout_fully_paid: Callable[["Checkout", Any, None], Any]
 
     # Trigger when checkout metadata is updated.
     #
     # Overwrite this method if you need to trigger specific logic when a checkout
     # metadata is updated.
-    checkout_metadata_updated: Callable[["Checkout", Any], Any]
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
+    checkout_metadata_updated: Callable[["Checkout", Any, None], Any]
 
     # Trigger when collection is created.
     #
     # Overwrite this method if you need to trigger specific logic after a collection is
     # created.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     collection_created: Callable[["Collection", Any], Any]
 
     # Trigger when collection is deleted.
     #
     # Overwrite this method if you need to trigger specific logic after a collection is
     # deleted.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     collection_deleted: Callable[["Collection", Any, None], Any]
 
     # Trigger when collection is updated.
     #
     # Overwrite this method if you need to trigger specific logic after a collection is
     # updated.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     collection_updated: Callable[["Collection", Any], Any]
 
     # Trigger when collection metadata is updated.
     #
     # Overwrite this method if you need to trigger specific logic after a collection
     # metadata is updated.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     collection_metadata_updated: Callable[["Collection", Any], Any]
 
     confirm_payment: Callable[["PaymentData", Any], GatewayResponse]
@@ -505,24 +601,36 @@ class BasePlugin:
     #
     # Overwrite this method if you need to trigger specific logic after a user is
     # created.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     customer_created: Callable[["User", Any], Any]
 
     # Trigger when user is deleted.
     #
     # Overwrite this method if you need to trigger specific logic after a user is
     # deleted.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     customer_deleted: Callable[["User", Any, None], Any]
 
     # Trigger when user is updated.
     #
     # Overwrite this method if you need to trigger specific logic after a user is
     # updated.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     customer_updated: Callable[["User", Any, None], Any]
 
     # Trigger when user metadata is updated.
     #
     # Overwrite this method if you need to trigger specific logic after a user
     # metadata is updated.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     customer_metadata_updated: Callable[["User", Any, None], Any]
 
     # Handle authentication request.
@@ -562,24 +670,36 @@ class BasePlugin:
     #
     # Overwrite this method if you need to trigger specific logic when a fulfillment is
     # created.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     fulfillment_created: Callable[["Fulfillment", bool, Any], Any]
 
     # Trigger when fulfillment is cancelled.
     #
     # Overwrite this method if you need to trigger specific logic when a fulfillment is
     # cancelled.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     fulfillment_canceled: Callable[["Fulfillment", Any], Any]
 
     # Trigger when fulfillment is approved.
     #
     # Overwrite this method if you need to trigger specific logic when a fulfillment is
     # approved.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     fulfillment_approved: Callable[["Fulfillment", Any], Any]
 
     # Trigger when fulfillment metadata is updated.
     #
     # Overwrite this method if you need to trigger specific logic when a fulfillment
     # metadata is updated.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     fulfillment_metadata_updated: Callable[["Fulfillment", Any], Any]
 
     get_checkout_line_tax_rate: Callable[
@@ -603,11 +723,15 @@ class BasePlugin:
         Any,
     ]
 
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     get_taxes_for_checkout: Callable[
         ["CheckoutInfo", Iterable["CheckoutLineInfo"], str, Any, Optional[dict]],
         Optional["TaxData"],
     ]
 
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     get_taxes_for_order: Callable[["Order", str, Any], Optional["TaxData"]]
 
     get_client_token: Callable[[Any, Any], Any]
@@ -620,6 +744,8 @@ class BasePlugin:
     get_order_shipping_tax_rate: Callable[["Order", Any], Any]
     get_payment_config: Callable[[Any], Any]
 
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     get_shipping_methods_for_checkout: Callable[
         ["Checkout", Any], list["ShippingMethodData"]
     ]
@@ -647,37 +773,82 @@ class BasePlugin:
     #
     # Overwrite this method if you need to trigger specific logic after a gift card is
     # created.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     gift_card_created: Callable[["GiftCard", None, None], None]
 
     # Trigger when gift card is deleted.
     #
     # Overwrite this method if you need to trigger specific logic after a gift card is
     # deleted.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     gift_card_deleted: Callable[["GiftCard", None, None], None]
 
     # Trigger when gift card is updated.
     #
     # Overwrite this method if you need to trigger specific logic after a gift card is
     # updated.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     gift_card_updated: Callable[["GiftCard", None], None]
 
     # Trigger when gift card metadata is updated.
     #
     # Overwrite this method if you need to trigger specific logic after a gift card
     # metadata is updated.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     gift_card_metadata_updated: Callable[["GiftCard", None], None]
 
     # Trigger when gift card status is changed.
     #
     # Overwrite this method if you need to trigger specific logic after a gift card
     # status is changed.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     gift_card_status_changed: Callable[["GiftCard", None, None], None]
 
     # Trigger when gift cards export is completed.
     #
     # Overwrite this method if you need to trigger specific logic after a gift cards
     # export is completed.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     gift_card_export_completed: Callable[["ExportFile", None], None]
+
+    # Trigger when draft order is created.
+    #
+    # Overwrite this method if you need to trigger specific logic after an order is
+    # created.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
+    draft_order_created: Callable[["Order", Any, None], Any]
+
+    # Trigger when draft order is updated.
+    #
+    # Overwrite this method if you need to trigger specific logic when an order is
+    # changed.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
+    draft_order_updated: Callable[["Order", Any, None], Any]
+
+    # Trigger when draft order is deleted.
+    #
+    # Overwrite this method if you need to trigger specific logic when an order is
+    # changed.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
+    draft_order_deleted: Callable[["Order", Any, None], Any]
 
     initialize_payment: Callable[
         [dict, Optional[InitializedPaymentResponse]], InitializedPaymentResponse
@@ -687,6 +858,9 @@ class BasePlugin:
     #
     # Perform any extra logic before the invoice gets deleted.
     # Note there is no need to run invoice.delete() as it will happen in mutation.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     invoice_delete: Callable[["Invoice", Any], Any]
 
     # Trigger when invoice creation starts.
@@ -697,15 +871,22 @@ class BasePlugin:
     ]
 
     # Trigger after invoice is sent.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     invoice_sent: Callable[["Invoice", str, Any], Any]
 
     list_payment_sources: Callable[[str, Any], list["CustomerSource"]]
 
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     list_stored_payment_methods: Callable[
         ["ListStoredPaymentMethodsRequestData", list["PaymentMethodData"]],
         list["PaymentMethodData"],
     ]
 
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     stored_payment_method_request_delete: Callable[
         [
             "StoredPaymentMethodRequestDeleteData",
@@ -714,6 +895,8 @@ class BasePlugin:
         "StoredPaymentMethodRequestDeleteResponseData",
     ]
 
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     payment_gateway_initialize_tokenization: Callable[
         [
             "PaymentGatewayInitializeTokenizationRequestData",
@@ -722,6 +905,8 @@ class BasePlugin:
         "PaymentGatewayInitializeTokenizationResponseData",
     ]
 
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     payment_method_initialize_tokenization: Callable[
         [
             "PaymentMethodInitializeTokenizationRequestData",
@@ -730,6 +915,8 @@ class BasePlugin:
         "PaymentMethodTokenizationResponseData",
     ]
 
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     payment_method_process_tokenization: Callable[
         [
             "PaymentMethodProcessTokenizationRequestData",
@@ -742,167 +929,245 @@ class BasePlugin:
     #
     # Overwrite this method if you need to trigger specific logic after a menu is
     # created.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     menu_created: Callable[["Menu", None], None]
 
     # Trigger when menu is deleted.
     #
     # Overwrite this method if you need to trigger specific logic after a menu is
     # deleted.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     menu_deleted: Callable[["Menu", None, None], None]
 
     # Trigger when menu is updated.
     #
     # Overwrite this method if you need to trigger specific logic after a menu is
     # updated.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     menu_updated: Callable[["Menu", None], None]
 
     # Trigger when menu item is created.
     #
     # Overwrite this method if you need to trigger specific logic after a menu item is
     # created.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     menu_item_created: Callable[["MenuItem", None], None]
 
     # Trigger when menu item is deleted.
     #
     # Overwrite this method if you need to trigger specific logic after a menu item is
     # deleted.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     menu_item_deleted: Callable[["MenuItem", None, None], None]
 
     # Trigger when menu item is updated.
     #
     # Overwrite this method if you need to trigger specific logic after a menu item is
     # updated.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     menu_item_updated: Callable[["MenuItem", None], None]
 
     # Handle notification request.
     #
     # Overwrite this method if the plugin is responsible for sending notifications.
-    notify: Callable[["NotifyEventType", dict, Any], Any]
+    notify: Callable[["NotifyEventType", Callable[[], dict], Any], Any]
 
     # Trigger when order is cancelled.
     #
     # Overwrite this method if you need to trigger specific logic when an order is
     # canceled.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     order_cancelled: Callable[["Order", Any, None], Any]
 
     # Trigger when order is expired.
     #
     # Overwrite this method if you need to trigger specific logic when an order is
     # expired.
-    order_expired: Callable[["Order", Any], Any]
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
+    order_expired: Callable[["Order", Any, None], Any]
 
     # Trigger when order is confirmed by staff.
     #
     # Overwrite this method if you need to trigger specific logic after an order is
     # confirmed.
-    order_confirmed: Callable[["Order", Any], Any]
+    order_confirmed: Callable[["Order", Any, None], Any]
 
     # Trigger when order is created.
     #
     # Overwrite this method if you need to trigger specific logic after an order is
     # created.
-    order_created: Callable[["Order", Any], Any]
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
+    order_created: Callable[["Order", Any, None], Any]
 
     # Trigger when order is fulfilled.
     #
     # Overwrite this method if you need to trigger specific logic when an order is
     # fulfilled.
-    order_fulfilled: Callable[["Order", Any], Any]
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
+    order_fulfilled: Callable[["Order", Any, None], Any]
 
     # Trigger when order is fully paid.
     #
     # Overwrite this method if you need to trigger specific logic when an order is
     # fully paid.
-    order_fully_paid: Callable[["Order", Any], Any]
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
+    order_fully_paid: Callable[["Order", Any, None], Any]
 
     # Trigger when order is paid.
     #
     # Overwrite this method if you need to trigger specific logic when an order is
     # received the payment.
-    order_paid: Callable[["Order", Any], Any]
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
+    order_paid: Callable[["Order", Any, None], Any]
 
     # Trigger when order is refunded.
     #
     # Overwrite this method if you need to trigger specific logic when an order is
     # refunded.
-    order_refunded: Callable[["Order", Any], Any]
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
+    order_refunded: Callable[["Order", Any, None], Any]
 
     # Trigger when order is fully refunded.
     #
     # Overwrite this method if you need to trigger specific logic when an order is
     # fully refunded.
-    order_fully_refunded: Callable[["Order", Any], Any]
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
+    order_fully_refunded: Callable[["Order", Any, None], Any]
 
     # Trigger when order is updated.
     #
     # Overwrite this method if you need to trigger specific logic when an order is
     # changed.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     order_updated: Callable[["Order", Any, None], Any]
 
     # Trigger when order metadata is updated.
     #
     # Overwrite this method if you need to trigger specific logic when an order
     # metadata is changed.
-    order_metadata_updated: Callable[["Order", Any], Any]
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
+    order_metadata_updated: Callable[["Order", Any, None], Any]
 
     # Trigger when orders are imported.
     #
     # Overwrite this method if you need to trigger specific logic when an order
     # is imported.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     order_bulk_created: Callable[[list["Order"], Any], Any]
 
     # Trigger when page is created.
     #
     # Overwrite this method if you need to trigger specific logic when a page is
     # created.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     page_created: Callable[["Page", Any], Any]
 
     # Trigger when page is deleted.
     #
     # Overwrite this method if you need to trigger specific logic when a page is
     # deleted.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     page_deleted: Callable[["Page", Any], Any]
 
     # Trigger when page is updated.
     #
     # Overwrite this method if you need to trigger specific logic when a page is
     # updated.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     page_updated: Callable[["Page", Any], Any]
 
     # Trigger when page type is created.
     #
     # Overwrite this method if you need to trigger specific logic when a page type is
     # created.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     page_type_created: Callable[["PageType", Any], Any]
 
     # Trigger when page type is deleted.
     #
     # Overwrite this method if you need to trigger specific logic when a page type is
     # deleted.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     page_type_deleted: Callable[["PageType", Any], Any]
 
     # Trigger when page type is updated.
     #
     # Overwrite this method if you need to trigger specific logic when a page type is
     # updated.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     page_type_updated: Callable[["PageType", Any], Any]
 
     # Trigger when permission group is created.
     #
     # Overwrite this method if you need to trigger specific logic when a permission
     # group is created.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     permission_group_created: Callable[["Group", Any], Any]
 
     # Trigger when permission group type is deleted.
     #
     # Overwrite this method if you need to trigger specific logic when a permission
     # group is deleted.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     permission_group_deleted: Callable[["Group", Any], Any]
 
     # Trigger when permission group is updated.
     #
     # Overwrite this method if you need to trigger specific logic when a permission
     # group is updated.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     permission_group_updated: Callable[["Group", Any], Any]
 
     # Trigger directly before order creation.
@@ -920,12 +1185,20 @@ class BasePlugin:
 
     process_payment: Callable[["PaymentData", Any], Any]
 
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     transaction_charge_requested: Callable[["TransactionActionData", None], None]
 
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     transaction_cancelation_requested: Callable[["TransactionActionData", None], None]
 
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     transaction_refund_requested: Callable[["TransactionActionData", None], None]
 
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     payment_gateway_initialize_session: Callable[
         [
             Decimal,
@@ -936,10 +1209,14 @@ class BasePlugin:
         list["PaymentGatewayData"],
     ]
 
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     transaction_initialize_session: Callable[
         ["TransactionSessionData", None], "TransactionSessionResult"
     ]
 
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     transaction_process_session: Callable[
         ["TransactionSessionData", None], "TransactionSessionResult"
     ]
@@ -948,96 +1225,144 @@ class BasePlugin:
     #
     # Overwrite this method if you need to trigger specific logic when a transaction
     # item metadata is updated.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     transaction_item_metadata_updated: Callable[["TransactionItem", Any], Any]
 
     # Trigger when product is created.
     #
     # Overwrite this method if you need to trigger specific logic after a product is
     # created.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     product_created: Callable[["Product", Any, None], Any]
 
     # Trigger when product is deleted.
     #
     # Overwrite this method if you need to trigger specific logic after a product is
     # deleted.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     product_deleted: Callable[["Product", list[int], Any, None], Any]
 
     # Trigger when product is updated.
     #
     # Overwrite this method if you need to trigger specific logic after a product is
     # updated.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     product_updated: Callable[["Product", Any, None], Any]
 
     # Trigger when product media is created.
     #
     # Overwrite this method if you need to trigger specific logic after a product media
     # is created.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     product_media_created: Callable[["ProductMedia", Any], Any]
 
     # Trigger when product media is updated.
     #
     # Overwrite this method if you need to trigger specific logic after a product media
     # is updated.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     product_media_updated: Callable[["ProductMedia", Any], Any]
 
     # Trigger when product media is created.
     #
     # Overwrite this method if you need to trigger specific logic after a product media
     # is deleted.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     product_media_deleted: Callable[["ProductMedia", Any], Any]
 
     # Trigger when product metadata is updated.
     #
     # Overwrite this method if you need to trigger specific logic after a product
     # metadata is updated.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     product_metadata_updated: Callable[["Product", Any], Any]
 
     # Trigger when product variant is created.
     #
     # Overwrite this method if you need to trigger specific logic after a product
     # variant is created.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     product_variant_created: Callable[["ProductVariant", Any, None], Any]
 
     # Trigger when product variant is deleted.
     #
     # Overwrite this method if you need to trigger specific logic after a product
     # variant is deleted.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     product_variant_deleted: Callable[["ProductVariant", Any, None], Any]
 
     # Trigger when product variant is updated.
     #
     # Overwrite this method if you need to trigger specific logic after a product
     # variant is updated.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     product_variant_updated: Callable[["ProductVariant", Any, None], Any]
 
     # Trigger when product variant metadata is updated.
     #
     # Overwrite this method if you need to trigger specific logic after a product
     # variant metadata is updated.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     product_variant_metadata_updated: Callable[["ProductVariant", Any], Any]
 
     # Trigger when product variant is out of stock.
     #
     # Overwrite this method if you need to trigger specific logic after a product
     # variant is out of stock.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     product_variant_out_of_stock: Callable[["Stock", None, None], Any]
 
     # Trigger when product variant is back in stock.
     #
     # Overwrite this method if you need to trigger specific logic after a product
     # variant is back in stock.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     product_variant_back_in_stock: Callable[["Stock", None, None], Any]
 
     # Trigger when product variant stock is updated.
     #
     # Overwrite this method if you need to trigger specific logic after a product
     # variant stock is updated.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     product_variant_stock_updated: Callable[["Stock", None, None], Any]
 
     # Trigger when a product export is completed.
     #
     # Overwrite this method if you need to trigger specific logic after a product
     # export is completed.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     product_export_completed: Callable[["ExportFile", None], None]
 
     refund_payment: Callable[["PaymentData", Any], GatewayResponse]
@@ -1045,18 +1370,27 @@ class BasePlugin:
     # Trigger when sale is created.
     #
     # Overwrite this method if you need to trigger specific logic after sale is created.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     sale_created: Callable[["Promotion", defaultdict[str, set[str]], Any], Any]
 
     # Trigger when sale is deleted.
     #
     # Overwrite this method if you need to trigger specific logic after
     # a sale is deleted.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     sale_deleted: Callable[["Promotion", defaultdict[str, set[str]], Any], Any]
 
     # Trigger when sale is updated.
     #
     # Overwrite this method if you need to trigger specific logic after
     # a sale is updated.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     sale_updated: Callable[
         ["Promotion", defaultdict[str, set[str]], defaultdict[str, set[str]], Any], Any
     ]
@@ -1065,117 +1399,177 @@ class BasePlugin:
     #
     # Overwrite this method if you need to trigger specific logic after promotion
     # is created.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     promotion_created: Callable[["Promotion", Any], Any]
 
     # Trigger when promotion is deleted.
     #
     # Overwrite this method if you need to trigger specific logic after
     # a promotion is deleted.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     promotion_deleted: Callable[["Promotion", Any, None], Any]
 
     # Trigger when promotion is updated.
     #
     # Overwrite this method if you need to trigger specific logic after
     # a promotion is updated.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     promotion_updated: Callable[["Promotion", Any], Any]
 
     # Trigger when promotion is started.
     #
     # Overwrite this method if you need to trigger specific logic after
     # a promotion is started.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     promotion_started: Callable[["Promotion", Any], Any]
 
     # Trigger when promotion is ended.
     #
     # Overwrite this method if you need to trigger specific logic after
     # a promotion is ended.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     promotion_ended: Callable[["Promotion", Any], Any]
 
     # Trigger when promotion rule is created.
     #
     # Overwrite this method if you need to trigger specific logic after
     # a promotion rule is created.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     promotion_rule_created: Callable[["PromotionRule", Any], Any]
 
     # Trigger when promotion rule is deleted.
     #
     # Overwrite this method if you need to trigger specific logic after
     # a promotion rule is deleted.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     promotion_rule_deleted: Callable[["PromotionRule", Any], Any]
 
     # Trigger when promotion rule is updated.
     #
     # Overwrite this method if you need to trigger specific logic after
     # a promotion rule is updated.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     promotion_rule_updated: Callable[["PromotionRule", Any], Any]
 
     # Trigger when shipping price is created.
     #
     # Overwrite this method if you need to trigger specific logic after a shipping
     # price is created.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     shipping_price_created: Callable[["ShippingMethod", None], None]
 
     # Trigger when shipping price is deleted.
     #
     # Overwrite this method if you need to trigger specific logic after a shipping
     # price is deleted.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     shipping_price_deleted: Callable[["ShippingMethod", None, None], None]
 
     # Trigger when shipping price is updated.
     #
     # Overwrite this method if you need to trigger specific logic after a shipping
     # price is updated.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     shipping_price_updated: Callable[["ShippingMethod", None], None]
 
     # Trigger when shipping zone is created.
     #
     # Overwrite this method if you need to trigger specific logic after a shipping zone
     # is created.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     shipping_zone_created: Callable[["ShippingZone", None], None]
 
     # Trigger when shipping zone is deleted.
     #
     # Overwrite this method if you need to trigger specific logic after a shipping zone
     # is deleted.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     shipping_zone_deleted: Callable[["ShippingZone", None, None], None]
 
     # Trigger when shipping zone is updated.
     #
     # Overwrite this method if you need to trigger specific logic after a shipping zone
     # is updated.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     shipping_zone_updated: Callable[["ShippingZone", None], None]
 
     # Trigger when shipping zone metadata is updated.
     #
     # Overwrite this method if you need to trigger specific logic after a shipping zone
     # metadata is updated.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     shipping_zone_metadata_updated: Callable[["ShippingZone", None], None]
 
     # Trigger when staff user is created.
     #
     # Overwrite this method if you need to trigger specific logic after a staff user is
     # created.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     staff_created: Callable[["User", Any], Any]
 
     # Trigger when staff user is updated.
     #
     # Overwrite this method if you need to trigger specific logic after a staff user is
     # updated.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     staff_updated: Callable[["User", Any], Any]
 
     # Trigger when staff user is deleted.
     #
     # Overwrite this method if you need to trigger specific logic after a staff user is
     # deleted.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     staff_deleted: Callable[["User", Any, None], Any]
 
     # Trigger when setting a password for staff is requested.
     #
     # Overwrite this method if you need to trigger specific logic after set
     # password for staff is requested.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     staff_set_password_requested: Callable[["User", str, str, str, None], None]
 
     # Trigger when thumbnail is updated.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     thumbnail_created: Callable[["Thumbnail", Any], Any]
 
     # Trigger when tracking number is updated.
@@ -1187,68 +1581,103 @@ class BasePlugin:
     #
     # Overwrite this method if you need to trigger specific logic after a warehouse is
     # created.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     warehouse_created: Callable[["Warehouse", None], None]
 
     # Trigger when warehouse is deleted.
     #
     # Overwrite this method if you need to trigger specific logic after a warehouse is
     # deleted.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     warehouse_deleted: Callable[["Warehouse", None], None]
 
     # Trigger when warehouse is updated.
     #
     # Overwrite this method if you need to trigger specific logic after a warehouse is
     # updated.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     warehouse_updated: Callable[["Warehouse", None], None]
 
     # Trigger when warehouse metadata is updated.
     #
     # Overwrite this method if you need to trigger specific logic after a warehouse
     # metadata is updated.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     warehouse_metadata_updated: Callable[["Warehouse", None], None]
 
     # Trigger when voucher is created.
     #
     # Overwrite this method if you need to trigger specific logic after a voucher is
     # created.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     voucher_created: Callable[["Voucher", str, None], None]
 
     # Trigger when voucher is deleted.
     #
     # Overwrite this method if you need to trigger specific logic after a voucher is
     # deleted.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     voucher_deleted: Callable[["Voucher", str, None, None], None]
 
     # Trigger when voucher is updated.
     #
     # Overwrite this method if you need to trigger specific logic after a voucher is
     # updated.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     voucher_updated: Callable[["Voucher", str, None], None]
 
     # Trigger when voucher codes are created.
     #
     # Overwrite this method if you need to trigger specific logic after voucher codes
     # are created.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     voucher_codes_created: Callable[[list["VoucherCode"], None, None], None]
 
     # Trigger when voucher code are deleted.
     #
     # Overwrite this method if you need to trigger specific logic after voucher codes
     # are deleted.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     voucher_codes_deleted: Callable[[list["VoucherCode"], None, None], None]
 
     # Trigger when voucher metadata is updated.
     #
     # Overwrite this method if you need to trigger specific logic after a voucher
     # metadata is updated.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     voucher_metadata_updated: Callable[["Voucher", None], None]
 
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     voucher_code_export_completed: Callable[["ExportFile", None], None]
 
     # Trigger when shop metadata is updated.
     #
     # Overwrite this method if you need to trigger specific logic after a shop
     # metadata is updated.
+    #
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
     shop_metadata_updated: Callable[["SiteSettings", None], None]
 
     # Handle received http request.
@@ -1257,27 +1686,10 @@ class BasePlugin:
     webhook: Callable[[WSGIRequest, str, Any], HttpResponse]
 
     # Triggers retry mechanism for event delivery
-    event_delivery_retry: Callable[["EventDelivery", Any], EventDelivery]
-
-    # Invoked before each mutation is executed
     #
-    # This allows to trigger specific logic before the mutation is executed
-    # but only once the permissions are checked.
-    #
-    # Returns one of:
-    #    - null if the execution shall continue
-    #    - an execution result
-    #    - graphql.GraphQLError
-    perform_mutation: Callable[
-        [
-            Optional[Union[ExecutionResult, GraphQLError]],  # previous value
-            Mutation,  # mutation class
-            Any,  # mutation root
-            ResolveInfo,  # resolve info
-            dict,  # mutation data
-        ],
-        Optional[Union[ExecutionResult, GraphQLError]],
-    ]
+    # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
+    # Webhook-related functionality will be moved from the plugin to core modules.
+    event_delivery_retry: Callable[[EventDelivery, None], None]
 
     def token_is_required_as_payment_input(self, previous_value):
         return previous_value
@@ -1329,7 +1741,7 @@ class BasePlugin:
                 config_item.update([("value", new_value)])
 
         # Get new keys that don't exist in current_config and extend it.
-        current_config_keys = set(c_field["name"] for c_field in current_config)
+        current_config_keys = {c_field["name"] for c_field in current_config}
         missing_keys = set(configuration_to_update_dict.keys()) - current_config_keys
         for missing_key in missing_keys:
             if not config_structure.get(missing_key):
@@ -1362,7 +1774,7 @@ class BasePlugin:
             new_value = new_value.lower() == "true"
         if item_type == ConfigurationTypeField.OUTPUT:
             # OUTPUT field is read only. No need to update it
-            return
+            return None
         return new_value
 
     @classmethod
@@ -1438,7 +1850,7 @@ class BasePlugin:
                 continue
             updated_configuration.append(copy(config_field))
 
-        configured_keys = set(d["name"] for d in updated_configuration)
+        configured_keys = {d["name"] for d in updated_configuration}
         missing_keys = desired_config_keys - configured_keys
 
         if not missing_keys:

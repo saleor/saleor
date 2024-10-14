@@ -128,6 +128,6 @@ class Migration(migrations.Migration):
             options={"db_table": "cart_cartline"},
         ),
         migrations.AlterUniqueTogether(
-            name="cartline", unique_together=set([("cart", "product", "data")])
+            name="cartline", unique_together={("cart", "product", "data")}
         ),
     ]

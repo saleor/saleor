@@ -2,6 +2,7 @@ from functools import partial
 from typing import Union
 
 import graphene
+from prices import Money
 from promise import Promise
 
 from ....checkout import base_calculations
@@ -9,7 +10,9 @@ from ....checkout.models import Checkout, CheckoutLine
 from ....core.prices import quantize_price
 from ....discount import DiscountType
 from ....discount.utils.checkout import has_checkout_order_promotion
+from ....discount.utils.manual_discount import split_manual_discount
 from ....discount.utils.voucher import is_order_level_voucher
+from ....order.base_calculations import base_order_subtotal
 from ....order.models import Order, OrderLine
 from ....order.utils import get_order_country
 from ....tax.utils import get_charge_taxes
@@ -36,9 +39,10 @@ from ...tax.dataloaders import (
     TaxConfigurationByChannelId,
     TaxConfigurationPerCountryByTaxConfigurationIDLoader,
 )
+from ...tax.enums import TaxableObjectDiscountTypeEnum
 from .. import ResolveInfo
 from .common import NonNullList
-from .money import Money
+from .money import Money as MoneyType
 from .order_or_checkout import OrderOrCheckoutBase
 
 
@@ -76,7 +80,7 @@ class TaxableObjectLine(BaseObjectType):
     product_sku = graphene.String(description="The product sku.")
 
     unit_price = graphene.Field(
-        Money,
+        MoneyType,
         description=(
             "Price of the single item in the order line. "
             "The price includes catalogue promotions, specific product "
@@ -86,7 +90,7 @@ class TaxableObjectLine(BaseObjectType):
         required=True,
     )
     total_price = graphene.Field(
-        Money,
+        MoneyType,
         description=(
             "Price of the order line. "
             "The price includes catalogue promotions, specific product "
@@ -181,7 +185,7 @@ class TaxableObjectLine(BaseObjectType):
         if isinstance(root, CheckoutLine):
             checkout = CheckoutByTokenLoader(info.context).load(root.checkout_id)
 
-            def load_channel(checkout):
+            def load_channel_for_checkout(checkout):
                 country_code = checkout.get_country()
                 load_tax_config_with_country = partial(
                     load_tax_configuration, country_code=country_code
@@ -192,22 +196,21 @@ class TaxableObjectLine(BaseObjectType):
                     .then(load_tax_config_with_country)
                 )
 
-            return checkout.then(load_channel)
-        else:
-            order = OrderByIdLoader(info.context).load(root.order_id)
+            return checkout.then(load_channel_for_checkout)
+        order = OrderByIdLoader(info.context).load(root.order_id)
 
-            def load_channel(order):
-                country_code = get_order_country(order)
-                load_tax_config_with_country = partial(
-                    load_tax_configuration, country_code=country_code
-                )
-                return (
-                    ChannelByIdLoader(info.context)
-                    .load(order.channel_id)
-                    .then(load_tax_config_with_country)
-                )
+        def load_channel_for_order(order):
+            country_code = get_order_country(order)
+            load_tax_config_with_country = partial(
+                load_tax_configuration, country_code=country_code
+            )
+            return (
+                ChannelByIdLoader(info.context)
+                .load(order.channel_id)
+                .then(load_tax_config_with_country)
+            )
 
-            return order.then(load_channel)
+        return order.then(load_channel_for_order)
 
     @staticmethod
     def resolve_unit_price(root: Union[CheckoutLine, OrderLine], info: ResolveInfo):
@@ -265,7 +268,12 @@ class TaxableObjectLine(BaseObjectType):
 class TaxableObjectDiscount(BaseObjectType):
     name = graphene.String(description="The name of the discount.")
     amount = graphene.Field(
-        Money, description="The amount of the discount.", required=True
+        MoneyType, description="The amount of the discount.", required=True
+    )
+    type = TaxableObjectDiscountTypeEnum(
+        required=True,
+        default_value=TaxableObjectDiscountTypeEnum.SUBTOTAL,
+        description="Indicates which part of the order the discount should affect: SUBTOTAL or SHIPPING.",
     )
 
     class Meta:
@@ -284,7 +292,7 @@ class TaxableObject(BaseObjectType):
     )
     currency = graphene.String(required=True, description="The currency of the object.")
     shipping_price = graphene.Field(
-        Money,
+        MoneyType,
         required=True,
         description=(
             "The price of shipping method, includes shipping voucher discount "
@@ -372,8 +380,16 @@ class TaxableObject(BaseObjectType):
             def calculate_checkout_discounts(checkout_info):
                 checkout = checkout_info.checkout
                 discount_name = checkout.discount_name
+                # All order level discounts applicable for checkout, like entire order
+                # vouchers and order promotions, reduce subtotal value
                 return (
-                    [{"name": discount_name, "amount": checkout.discount}]
+                    [
+                        {
+                            "name": discount_name,
+                            "amount": checkout.discount,
+                            "type": TaxableObjectDiscountTypeEnum.SUBTOTAL,
+                        }
+                    ]
                     if checkout.discount
                     and (
                         is_order_level_voucher(checkout_info.voucher)
@@ -388,21 +404,51 @@ class TaxableObject(BaseObjectType):
                 .then(calculate_checkout_discounts)
             )
 
-        def map_discounts(discounts):
-            return [
-                {"name": discount.name, "amount": discount.amount}
-                for discount in discounts
-                if (
-                    discount.type in [DiscountType.MANUAL, DiscountType.ORDER_PROMOTION]
-                    or is_order_level_voucher(discount.voucher)
-                )
-            ]
+        discounts = OrderDiscountsByOrderIDLoader(info.context).load(root.id)
+        order_lines = OrderLinesByOrderIdLoader(info.context).load(root.id)
 
-        return (
-            OrderDiscountsByOrderIDLoader(info.context)
-            .load(root.id)
-            .then(map_discounts)
-        )
+        def calculate_order_discounts(results):
+            # Only order level discounts, like entire order vouchers,
+            # order promotions and manual discounts should be taken into account.
+            # Manual discount needs to be split into subtotal and shipping portions.
+            (discounts, order_lines) = results
+            taxable_discounts = []
+            currency = root.currency
+            for discount in discounts:
+                shipping_discount = Money(0, currency)
+                subtotal_discount = Money(0, currency)
+                if discount.type == DiscountType.MANUAL:
+                    subtotal = base_order_subtotal(root, order_lines)
+                    shipping = root.base_shipping_price
+                    subtotal_discount, shipping_discount = split_manual_discount(
+                        discount, subtotal, shipping
+                    )
+                if (
+                    is_order_level_voucher(discount.voucher)
+                    or discount.type == DiscountType.ORDER_PROMOTION
+                ):
+                    subtotal_discount = discount.amount
+
+                if subtotal_discount.amount:
+                    taxable_discounts.append(
+                        {
+                            "name": discount.name,
+                            "amount": subtotal_discount,
+                            "type": TaxableObjectDiscountTypeEnum.SUBTOTAL,
+                        }
+                    )
+                if shipping_discount.amount:
+                    taxable_discounts.append(
+                        {
+                            "name": discount.name,
+                            "amount": shipping_discount,
+                            "type": TaxableObjectDiscountTypeEnum.SHIPPING,
+                        }
+                    )
+
+            return taxable_discounts
+
+        return Promise.all([discounts, order_lines]).then(calculate_order_discounts)
 
     @staticmethod
     def resolve_lines(root: Union[Checkout, Order], info: ResolveInfo):

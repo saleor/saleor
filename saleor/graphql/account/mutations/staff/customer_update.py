@@ -13,7 +13,6 @@ from .....webhook.event_types import WebhookEventAsyncType
 from ....account.types import User
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_310
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import ModelWithExtRefMutation
 from ....core.types import AccountError
@@ -28,7 +27,7 @@ class CustomerUpdate(CustomerCreate, ModelWithExtRefMutation):
         id = graphene.ID(description="ID of a customer to update.", required=False)
         external_reference = graphene.String(
             required=False,
-            description=f"External ID of a customer to update. {ADDED_IN_310}",
+            description="External ID of a customer to update.",
         )
         input = CustomerInput(
             description="Fields required to update a customer.", required=True

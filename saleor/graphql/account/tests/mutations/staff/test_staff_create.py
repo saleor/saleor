@@ -10,7 +10,7 @@ from freezegun import freeze_time
 from ......account.error_codes import AccountErrorCode
 from ......account.models import Group, User
 from ......account.notifications import get_default_user_payload
-from ......core.notify_events import NotifyEventType
+from ......core.notify import NotifyEventType
 from ......core.tests.utils import get_site_context_payload
 from ......core.utils.json_serializer import CustomJsonEncoder
 from ......core.utils.url import prepare_url
@@ -133,11 +133,14 @@ def test_staff_create(
         **get_site_context_payload(site_settings.site),
     }
 
-    mocked_notify.assert_called_once_with(
-        NotifyEventType.ACCOUNT_SET_STAFF_PASSWORD,
-        payload=expected_payload,
-        channel_slug=None,
-    )
+    assert mocked_notify.call_count == 1
+    call_args = mocked_notify.call_args_list[0]
+    called_args = call_args.args
+    called_kwargs = call_args.kwargs
+    assert called_args[0] == NotifyEventType.ACCOUNT_SET_STAFF_PASSWORD
+    assert len(called_kwargs) == 2
+    assert called_kwargs["payload_func"]() == expected_payload
+    assert called_kwargs["channel_slug"] is None
 
 
 @freeze_time("2018-05-31 12:00:01")
@@ -384,11 +387,14 @@ def test_staff_create_out_of_scope_group(
         **get_site_context_payload(site_settings.site),
     }
 
-    mocked_notify.assert_called_once_with(
-        NotifyEventType.ACCOUNT_SET_STAFF_PASSWORD,
-        payload=expected_payload,
-        channel_slug=None,
-    )
+    assert mocked_notify.call_count == 1
+    call_args = mocked_notify.call_args_list[0]
+    called_args = call_args.args
+    called_kwargs = call_args.kwargs
+    assert called_args[0] == NotifyEventType.ACCOUNT_SET_STAFF_PASSWORD
+    assert len(called_kwargs) == 2
+    assert called_kwargs["payload_func"]() == expected_payload
+    assert called_kwargs["channel_slug"] is None
 
 
 @freeze_time("2018-05-31 12:00:01")
@@ -422,11 +428,14 @@ def test_staff_create_send_password_with_url(
         **get_site_context_payload(site_settings.site),
     }
 
-    mocked_notify.assert_called_once_with(
-        NotifyEventType.ACCOUNT_SET_STAFF_PASSWORD,
-        payload=expected_payload,
-        channel_slug=None,
-    )
+    assert mocked_notify.call_count == 1
+    call_args = mocked_notify.call_args_list[0]
+    called_args = call_args.args
+    called_kwargs = call_args.kwargs
+    assert called_args[0] == NotifyEventType.ACCOUNT_SET_STAFF_PASSWORD
+    assert len(called_kwargs) == 2
+    assert called_kwargs["payload_func"]() == expected_payload
+    assert called_kwargs["channel_slug"] is None
 
 
 def test_staff_create_without_send_password(

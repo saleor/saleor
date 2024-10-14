@@ -1,6 +1,6 @@
 import graphene
 
-from ....checkout.actions import call_checkout_event_for_checkout_info
+from ....checkout.actions import call_checkout_info_event
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import (
     fetch_checkout_info,
@@ -12,7 +12,7 @@ from ....warehouse.reservations import get_reservation_length, is_reservation_en
 from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
@@ -42,7 +42,7 @@ class CheckoutLinesAdd(BaseMutation):
 
     class Arguments:
         id = graphene.ID(
-            description="The checkout's ID." + ADDED_IN_34,
+            description="The checkout's ID.",
             required=False,
         )
         token = UUID(
@@ -216,9 +216,8 @@ class CheckoutLinesAdd(BaseMutation):
         update_checkout_external_shipping_method_if_invalid(checkout_info, lines)
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
         invalidate_checkout(checkout_info, lines, manager, save=True)
-        call_checkout_event_for_checkout_info(
+        call_checkout_info_event(
             manager,
-            event_func=manager.checkout_updated,
             event_name=WebhookEventAsyncType.CHECKOUT_UPDATED,
             checkout_info=checkout_info,
             lines=lines,

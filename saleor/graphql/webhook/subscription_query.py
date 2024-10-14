@@ -1,5 +1,5 @@
 from enum import Flag
-from typing import Optional, Union
+from typing import Optional, Union, cast
 
 from django.core.exceptions import ValidationError
 from graphene.utils.str_converters import to_snake_case
@@ -30,7 +30,53 @@ class SubscriptionQuery:
         self.events: list[str] = []
         self.error_code: Optional[str] = None
         self.errors = self.validate_query()
-        self.error_msg: str = ";".join(set([str(err.message) for err in self.errors]))
+        self.error_msg: str = ";".join({str(err.message) for err in self.errors})
+
+    def get_filterable_channel_slugs(self) -> list[str]:
+        """Get filterable channel slugs from the subscription.
+
+        Subscription is filterable if it has arguments provided that can be used to
+        filter out records. If arguments are not provided, the subscription is not
+        filterable, then needs to be treated as normal subscription.
+        """
+        if not self.is_valid:
+            return []
+        subscription = self._get_subscription(self.ast)
+        # subscription is not optional as validation from init already passed
+        subscription = cast(OperationDefinition, subscription)
+
+        field_names = [
+            selection.name.value for selection in subscription.selection_set.selections
+        ]
+        # Skip if there is non-filterable subscription
+        if len(field_names) > 1 or set(field_names) == {"event"}:
+            return []
+
+        selection = subscription.selection_set.selections[0]
+        if not selection.arguments:
+            return []
+        channels = []
+        for arg in selection.arguments:
+            argument_name = arg.name.value
+            argument_values = getattr(arg.value, "values", [])
+            if argument_name == "channels":
+                channels = [value.value for value in argument_values]
+                break
+        return channels
+
+    def _check_if_invalid_top_field_selection(self, subscription: OperationDefinition):
+        """Check if subscription selects only one top field.
+
+        Filterable subscription can select only one top field. If more than one field
+        is selected, the subscription is invalid.
+        """
+        is_invalid = False
+        field_names = [
+            selection.name.value for selection in subscription.selection_set.selections
+        ]
+        if len(field_names) > 1 and set(field_names) != {"event"}:
+            is_invalid = True
+        return is_invalid
 
     def validate_query(self) -> list[Union[GraphQLSyntaxError, ValidationError]]:
         from ..api import schema
@@ -48,8 +94,27 @@ class SubscriptionQuery:
             self.error_code = WebhookErrorCode.GRAPHQL_ERROR.value
             return errors
 
+        subscription = self._get_subscription(self.ast)
+        if not subscription:
+            self.error_code = WebhookErrorCode.MISSING_SUBSCRIPTION.value
+            return [
+                ValidationError(
+                    message="Subscription operation can't be found.",
+                    code=WebhookErrorCode.MISSING_SUBSCRIPTION.value,
+                )
+            ]
+
+        if self._check_if_invalid_top_field_selection(subscription):
+            self.error_code = WebhookErrorCode.INVALID.value
+            return [
+                ValidationError(
+                    message="Subscription must select only one top field.",
+                    code=WebhookErrorCode.INVALID.value,
+                )
+            ]
+
         try:
-            self.events = self.get_events_from_subscription()
+            self.events = self.get_events_from_subscription(subscription)
         except ValidationError as err:
             self.error_code = err.code
             return [err]
@@ -57,13 +122,13 @@ class SubscriptionQuery:
         self.is_valid = True
         return []
 
-    def get_events_from_subscription(self) -> list[str]:
-        subscription = self._get_subscription(self.ast)
-        if not subscription:
-            raise ValidationError(
-                message="Subscription operation can't be found.",
-                code=WebhookErrorCode.MISSING_SUBSCRIPTION.value,
-            )
+    def get_events_from_subscription(self, subscription) -> list[str]:
+        subscription_name = subscription.selection_set.selections[0].name.value
+        if subscription_name != "event":
+            return [
+                to_snake_case(selection.name.value)
+                for selection in subscription.selection_set.selections
+            ]
 
         event_types = self._get_event_types_from_subscription(subscription)
         if not event_types:
@@ -92,7 +157,7 @@ class SubscriptionQuery:
                 code=WebhookErrorCode.MISSING_EVENT.value,
             )
 
-        return sorted(list(map(to_snake_case, events)))
+        return sorted(map(to_snake_case, events))
 
     @staticmethod
     def _get_subscription(ast: Document) -> Optional[OperationDefinition]:

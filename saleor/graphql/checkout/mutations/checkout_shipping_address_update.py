@@ -5,7 +5,7 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....checkout import AddressType, models
-from ....checkout.actions import call_checkout_event_for_checkout_info
+from ....checkout.actions import call_checkout_info_event
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import (
     CheckoutLineInfo,
@@ -23,7 +23,7 @@ from ....warehouse.reservations import is_reservation_enabled
 from ....webhook.event_types import WebhookEventAsyncType
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
-from ...core.descriptions import ADDED_IN_34, ADDED_IN_35, DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
@@ -50,7 +50,7 @@ class CheckoutShippingAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixi
 
     class Arguments:
         id = graphene.ID(
-            description="The checkout's ID." + ADDED_IN_34,
+            description="The checkout's ID.",
             required=False,
         )
         token = UUID(
@@ -71,7 +71,6 @@ class CheckoutShippingAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixi
             required=False,
             description=(
                 "The rules for changing validation for received shipping address data."
-                + ADDED_IN_35
             ),
         )
 
@@ -216,9 +215,8 @@ class CheckoutShippingAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixi
             + invalidate_prices_updated_fields
         )
 
-        call_checkout_event_for_checkout_info(
+        call_checkout_info_event(
             manager,
-            event_func=manager.checkout_updated,
             event_name=WebhookEventAsyncType.CHECKOUT_UPDATED,
             checkout_info=checkout_info,
             lines=lines,

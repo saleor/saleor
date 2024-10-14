@@ -2,7 +2,6 @@ import datetime
 from unittest.mock import patch
 
 import graphene
-import pytz
 from freezegun import freeze_time
 
 from .....product.error_codes import ProductErrorCode
@@ -69,7 +68,7 @@ def test_product_channel_listing_update_as_staff_user(
     channel_PLN,
 ):
     # given
-    publication_date = datetime.date.today()
+    publication_date = datetime.datetime.now(tz=datetime.UTC).date()
     product_id = graphene.Node.to_global_id("Product", product.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
     available_for_purchase_date = datetime.date(2007, 1, 1)
@@ -152,7 +151,7 @@ def test_product_channel_listing_update_trigger_webhook_product_updated(
     channel_PLN,
 ):
     # given
-    publication_date = datetime.date.today()
+    publication_date = datetime.datetime.now(tz=datetime.UTC).date()
     product_id = graphene.Node.to_global_id("Product", product.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
     available_for_purchase_date = datetime.date(2007, 1, 1)
@@ -189,7 +188,7 @@ def test_product_channel_listing_update_add_channel(
     staff_api_client, product, permission_manage_products, channel_USD, channel_PLN
 ):
     # given
-    publication_date = datetime.date.today()
+    publication_date = datetime.datetime.now(tz=datetime.UTC).date()
     product_id = graphene.Node.to_global_id("Product", product.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
     available_for_purchase_date = datetime.date(2007, 1, 1)
@@ -244,7 +243,7 @@ def test_product_channel_listing_update_update_publication_data(
     staff_api_client, product, permission_manage_products, channel_USD
 ):
     # given
-    publication_date = datetime.date.today()
+    publication_date = datetime.datetime.now(tz=datetime.UTC).date()
     product_id = graphene.Node.to_global_id("Product", product.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {
@@ -293,8 +292,8 @@ def test_product_channel_listing_update_update_publication_date_and_published_at
 ):
     """Test that filtering by publication time and date are mutually exclusive."""
     # given
-    publication_date = datetime.date.today()
-    published_at = datetime.datetime.now(pytz.utc)
+    published_at = datetime.datetime.now(tz=datetime.UTC)
+    publication_date = published_at.date()
     product_id = graphene.Node.to_global_id("Product", product.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {
@@ -379,7 +378,9 @@ def test_product_channel_listing_update_update_is_available_for_purchase_future_
     # given
     product_id = graphene.Node.to_global_id("Product", product.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
-    available_for_purchase_date = datetime.date.today() + datetime.timedelta(days=1)
+    available_for_purchase_date = datetime.datetime.now(
+        tz=datetime.UTC
+    ).date() + datetime.timedelta(days=1)
     variables = {
         "id": product_id,
         "input": {
@@ -424,7 +425,9 @@ def test_product_channel_listing_update_update_is_available_for_purchase_false_a
     # given
     product_id = graphene.Node.to_global_id("Product", product.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
-    available_for_purchase_date = datetime.date.today() + datetime.timedelta(days=1)
+    available_for_purchase_date = datetime.datetime.now(
+        tz=datetime.UTC
+    ).date() + datetime.timedelta(days=1)
     variables = {
         "id": product_id,
         "input": {
@@ -461,8 +464,8 @@ def test_product_channel_listing_update_available_for_purchase_both_date_value_g
 ):
     """Test that filtering by availability time and date are mutually exclusive."""
     # given
-    available_for_purchase_date = datetime.date.today()
-    available_for_purchase_at = datetime.datetime.now(pytz.utc)
+    available_for_purchase_date = datetime.datetime.now(tz=datetime.UTC).date()
+    available_for_purchase_at = datetime.datetime.now(tz=datetime.UTC)
     product_id = graphene.Node.to_global_id("Product", product.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {

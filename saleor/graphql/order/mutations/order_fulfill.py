@@ -14,7 +14,6 @@ from ....permission.enums import OrderPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_36
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import BaseInputObjectType, NonNullList, OrderError
@@ -69,7 +68,7 @@ class OrderFulfillInput(BaseInputObjectType):
         default_value=False,
     )
     tracking_number = graphene.String(
-        description="Fulfillment tracking number." + ADDED_IN_36,
+        description="Fulfillment tracking number.",
         required=False,
     )
 
@@ -239,7 +238,10 @@ class OrderFulfill(BaseMutation):
         lines_ids = [line["order_line_id"] for line in lines]
         cls.check_lines_for_duplicates(lines_ids)
         order_lines = cls.get_nodes_or_error(
-            lines_ids, field="lines", only_type=OrderLine
+            lines_ids,
+            field="lines",
+            only_type=OrderLine,
+            qs=order_models.OrderLine.objects.select_related("variant"),
         )
 
         cls.clean_lines(order_lines, quantities_for_lines)
@@ -277,7 +279,6 @@ class OrderFulfill(BaseMutation):
             order,
             field="order",
             only_type=Order,
-            qs=order_models.Order.objects.prefetch_related("lines__variant"),
         )
         if not instance:
             # FIXME: order ID is optional but the code below will not work
@@ -313,8 +314,8 @@ class OrderFulfill(BaseMutation):
                 approved=approved,
                 tracking_number=tracking_number,
             )
-        except InsufficientStock as exc:
-            errors = prepare_insufficient_stock_order_validation_errors(exc)
-            raise ValidationError({"stocks": errors})
+        except InsufficientStock as e:
+            errors = prepare_insufficient_stock_order_validation_errors(e)
+            raise ValidationError({"stocks": errors}) from e
 
         return OrderFulfill(fulfillments=fulfillments, order=instance)

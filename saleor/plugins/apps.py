@@ -23,7 +23,7 @@ class PluginConfig(AppConfig):
         try:
             plugin = import_string(plugin_path)
         except ImportError as e:
-            raise (ImportError(f"Failed to import plugin {plugin_path}: {e}"))
+            raise ImportError(f"Failed to import plugin {plugin_path}: {e}") from e
 
         self.check_plugin_fields(["PLUGIN_ID"], plugin)
 

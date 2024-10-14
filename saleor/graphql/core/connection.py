@@ -15,7 +15,7 @@ from django.db.models import Model as DjangoModel
 from django.db.models import Q, QuerySet
 from graphene.relay import Connection
 from graphql import GraphQLError
-from graphql.language.ast import FragmentSpread
+from graphql.language.ast import FragmentSpread, InlineFragment, SelectionSet
 from graphql_relay.connection.arrayconnection import connection_from_list_slice
 from graphql_relay.connection.connectiontypes import Edge, PageInfo
 from graphql_relay.utils import base64, unbase64
@@ -73,8 +73,8 @@ def _prepare_filter_by_rank_expression(
     try:
         rank = Decimal(cursor[0])
         id = coerce_id(cursor[1])
-    except (InvalidOperation, ValueError, TypeError):
-        raise GraphQLError("Received cursor is invalid.")
+    except (InvalidOperation, ValueError, TypeError) as e:
+        raise GraphQLError("Received cursor is invalid.") from e
 
     # Because rank is float number, it gets mangled by PostgreSQL's query parser
     # making equal comparisons impossible. Instead we compare rank against small
@@ -168,9 +168,9 @@ def _get_sorting_fields(sort_by, qs):
     sorting_attribute = sort_by.get("attribute_id")
     if sorting_fields and not isinstance(sorting_fields, list):
         return [sorting_fields]
-    elif not sorting_fields and sorting_attribute is not None:
+    if not sorting_fields and sorting_attribute is not None:
         return qs.model.sort_by_attribute_fields()
-    elif not sorting_fields:
+    if not sorting_fields:
         raise ValueError("Error while preparing cursor values.")
     return sorting_fields
 
@@ -224,7 +224,7 @@ def _get_edges_for_connection(edge_type, qs, args, sorting_fields):
 
     matching_records = list(qs)
     if last:
-        matching_records = list(reversed(matching_records))
+        matching_records.reverse()
         if len(matching_records) <= requested_count:
             start_slice = 0
     page_info = _get_page_info(matching_records, cursor, first, last)
@@ -270,8 +270,8 @@ def connection_from_queryset_slice(
     cursor = after or before
     try:
         cursor = from_global_cursor(cursor) if cursor else None
-    except ValueError:
-        raise GraphQLError("Received cursor is invalid.")
+    except ValueError as e:
+        raise GraphQLError("Received cursor is invalid.") from e
 
     sort_by = args.get("sort_by", {})
     sorting_fields = _get_sorting_fields(sort_by, qs)
@@ -290,8 +290,8 @@ def connection_from_queryset_slice(
     )
     try:
         filtered_qs = qs.filter(filter_kwargs)
-    except ValueError:
-        raise GraphQLError("Received cursor is invalid.")
+    except ValueError as e:
+        raise GraphQLError("Received cursor is invalid.") from e
     filtered_qs = filtered_qs[:end_margin]
     edges, page_info = _get_edges_for_connection(
         edge_type, filtered_qs, args, sorting_fields
@@ -402,17 +402,20 @@ def _validate_slice_args(
             args["last"] = min(last, max_limit)
 
 
-def _is_first_or_last_required(info):
-    """Disable `enforce_first_or_last` if not querying for `edges`."""
-    selections = info.field_asts[0].selection_set.selections
-    values = [field.name.value for field in selections]
+def _edges_in_selections(selection_set: SelectionSet, info: "ResolveInfo") -> bool:
+    values = [
+        field.name.value
+        for field in selection_set.selections
+        if not isinstance(field, InlineFragment)
+    ]
     if "edges" in values:
         return True
 
     fragments = [
-        field.name.value for field in selections if isinstance(field, FragmentSpread)
+        field.name.value
+        for field in selection_set.selections
+        if isinstance(field, FragmentSpread)
     ]
-
     for fragment in fragments:
         fragment_values = [
             field.name.value
@@ -421,7 +424,22 @@ def _is_first_or_last_required(info):
         if "edges" in fragment_values:
             return True
 
+    sub_selection_sets = [
+        field.selection_set
+        for field in selection_set.selections
+        if isinstance(field, InlineFragment)
+    ]
+    for sub_selection_set in sub_selection_sets:
+        if _edges_in_selections(sub_selection_set, info):
+            return True
+
     return False
+
+
+def _is_first_or_last_required(info: "ResolveInfo") -> bool:
+    """Disable `enforce_first_or_last` if not querying for `edges`."""
+    selection_set = info.field_asts[0].selection_set
+    return _edges_in_selections(selection_set, info)
 
 
 def slice_connection_iterable(
@@ -592,7 +610,7 @@ def where_filter_qs(
 
 
 def contains_filter_operator(input: dict[str, Union[dict, str]]):
-    return any([operator in input for operator in ["AND", "OR", "NOT"]])
+    return any(operator in input for operator in ["AND", "OR", "NOT"])
 
 
 def _handle_and_filter_input(

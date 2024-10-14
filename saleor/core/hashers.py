@@ -18,7 +18,7 @@ class SHA512Base64PBKDF2PasswordHasher(PBKDF2PasswordHasher):
     def encode(self, password, salt, iterations=None):
         symfony_iterations = 5000
         digest = hashlib.sha512(force_bytes(password, encoding="ISO-8859-1")).digest()
-        for i in range(symfony_iterations - 1):
+        for _i in range(symfony_iterations - 1):
             digest = hashlib.sha512(
                 digest + force_bytes(password, encoding="ISO-8859-1")
             ).digest()

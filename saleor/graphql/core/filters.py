@@ -136,14 +136,14 @@ class GlobalIDFormField(Field):
 
         try:
             _type, _id = from_global_id(value)
-        except (TypeError, ValueError):
-            raise ValidationError(self.error_messages["invalid"])
+        except (TypeError, ValueError) as e:
+            raise ValidationError(self.error_messages["invalid"]) from e
 
         try:
             CharField().clean(_id)
             CharField().clean(_type)
-        except ValidationError:
-            raise ValidationError(self.error_messages["invalid"])
+        except ValidationError as e:
+            raise ValidationError(self.error_messages["invalid"]) from e
 
         return value
 

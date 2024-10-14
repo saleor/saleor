@@ -1,11 +1,11 @@
-from collections import defaultdict, namedtuple
+from collections import defaultdict
 
 import graphene
 from django.core.exceptions import ValidationError
 
 from ....core.taxes import TaxError
 from ....core.tracing import traced_atomic_transaction
-from ....order import events
+from ....order import events, models
 from ....order.error_codes import OrderErrorCode
 from ....order.fetch import fetch_order_lines
 from ....order.search import update_order_search_vector
@@ -34,8 +34,6 @@ from .utils import (
     call_event_by_order_status,
     get_variant_rule_info_map,
 )
-
-VariantData = namedtuple("VariantData", ["variant", "rules_info"])
 
 
 class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
@@ -129,13 +127,13 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
             channel = order.channel
             validate_product_is_published_in_channel(variants, channel)
             validate_variant_channel_listings(variants, channel)
-        except ValidationError as error:
-            cls.remap_error_fields(error, cls._meta.errors_mapping)
-            raise ValidationError(error)
+        except ValidationError as e:
+            cls.remap_error_fields(e, cls._meta.errors_mapping)
+            raise ValidationError(e) from e
 
     @staticmethod
     def add_lines_to_order(order, lines_data, user, app, manager):
-        added_lines: list[OrderLine] = []
+        added_lines: list[models.OrderLine] = []
         try:
             for line_data in lines_data:
                 line = add_variant_to_order(
@@ -147,11 +145,11 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
                     allocate_stock=order.is_unconfirmed(),
                 )
                 added_lines.append(line)
-        except TaxError as tax_error:
+        except TaxError as e:
             raise ValidationError(
-                f"Unable to calculate taxes - {str(tax_error)}",
+                f"Unable to calculate taxes - {str(e)}",
                 code=OrderErrorCode.TAX_ERROR.value,
-            )
+            ) from e
         return added_lines
 
     @classmethod
@@ -209,10 +207,10 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         return OrderLinesCreate(order=order, order_lines=added_lines)
 
     @classmethod
-    def _find_line_id_for_variant_if_exist(cls, variant_id, lines_info):
+    def _find_line_id_for_variant_if_exist(cls, variant_id, lines_info) -> None | str:
         """Return line id by using provided variantId parameter."""
         if not lines_info:
-            return
+            return None
 
         line_info = list(
             filter(
@@ -221,6 +219,6 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         )
 
         if not line_info or len(line_info) > 1:
-            return
+            return None
 
         return str(line_info[0].line.id)

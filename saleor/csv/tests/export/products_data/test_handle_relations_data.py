@@ -1,4 +1,4 @@
-from datetime import datetime
+import datetime
 from unittest.mock import patch
 
 from .....attribute.models import (
@@ -1072,7 +1072,7 @@ def test_add_reference_info_to_data_update_attribute_data(product, page):
 def test_add_date_time_attribute_info_to_data(product, date_time_attribute):
     # given
     pk = product.pk
-    date_time = datetime(2021, 7, 15, 2, 3)
+    date_time = datetime.datetime(2021, 7, 15, 2, 3, tzinfo=datetime.UTC)
     attribute_data = AttributeData(
         slug=date_time_attribute.slug,
         value_slug=None,
@@ -1103,7 +1103,7 @@ def test_add_date_time_attribute_info_to_data(product, date_time_attribute):
 def test_add_date_attribute_info_to_data(product, date_attribute):
     # given
     pk = product.pk
-    date = datetime(2021, 8, 10, 5, 3)
+    date = datetime.datetime(2021, 8, 10, 5, 3, tzinfo=datetime.UTC)
     attribute_data = AttributeData(
         slug=date_attribute.slug,
         value_slug=None,

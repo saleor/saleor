@@ -1,5 +1,5 @@
+import datetime
 import logging
-from datetime import timedelta
 from decimal import Decimal
 from unittest.mock import patch
 
@@ -31,7 +31,7 @@ def test_update_variant_relations_for_active_promotion_rules_task(
     collection,
 ):
     # given
-    Promotion.objects.update(start_date=timezone.now() - timedelta(days=1))
+    Promotion.objects.update(start_date=timezone.now() - datetime.timedelta(days=1))
     PromotionRule.objects.update(variants_dirty=True)
     PromotionRuleVariant = PromotionRule.variants.through
     PromotionRuleVariant.objects.all().delete()
@@ -73,7 +73,7 @@ def test_update_variant_relations_for_active_promotion_rules_task_when_not_valid
     promotion = Promotion.objects.create(
         name="Promotion",
         type=PromotionType.CATALOGUE,
-        end_date=timezone.now() + timedelta(days=30),
+        end_date=timezone.now() + datetime.timedelta(days=30),
     )
     rule = promotion.rules.create(
         name="Percentage promotion rule",
@@ -107,7 +107,7 @@ def test_update_variant_relations_for_active_promotion_rules_task_with_order_pre
     order_promotion_rule,
 ):
     # given
-    Promotion.objects.update(start_date=timezone.now() - timedelta(days=1))
+    Promotion.objects.update(start_date=timezone.now() - datetime.timedelta(days=1))
     PromotionRule.objects.update(catalogue_predicate={})
 
     # when
@@ -130,7 +130,7 @@ def test_update_variant_relations_for_active_promotion_rules_with_empty_reward_v
     product_list,
 ):
     # given
-    Promotion.objects.update(start_date=timezone.now() - timedelta(days=1))
+    Promotion.objects.update(start_date=timezone.now() - datetime.timedelta(days=1))
     PromotionRuleVariant = PromotionRule.variants.through
     PromotionRuleVariant.objects.all().delete()
 
@@ -210,9 +210,7 @@ def test_recalculate_discounted_price_for_products_task_updates_only_dirty_listi
 
     # then
     assert update_discounted_prices_for_promotion_mock.called
-    recalculate_discounted_price_for_products_task_mock.called_once_with(
-        listing_marked_as_dirty.product, only_dirty_products=True
-    )
+    recalculate_discounted_price_for_products_task_mock.assert_called_once_with()
 
 
 @patch("saleor.product.tasks.recalculate_discounted_price_for_products_task.delay")
@@ -269,14 +267,14 @@ def test_get_preorder_variants_to_clean(
     preorder_variant_global_and_channel_threshold,
 ):
     preorder_variant_before_end_date = preorder_variant_channel_threshold
-    preorder_variant_before_end_date.preorder_end_date = timezone.now() + timedelta(
-        days=1
+    preorder_variant_before_end_date.preorder_end_date = (
+        timezone.now() + datetime.timedelta(days=1)
     )
     preorder_variant_before_end_date.save(update_fields=["preorder_end_date"])
 
     preorder_variant_after_end_date = preorder_variant_global_and_channel_threshold
-    preorder_variant_after_end_date.preorder_end_date = timezone.now() - timedelta(
-        days=1
+    preorder_variant_after_end_date.preorder_end_date = (
+        timezone.now() - datetime.timedelta(days=1)
     )
     preorder_variant_after_end_date.save(update_fields=["preorder_end_date"])
 

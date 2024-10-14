@@ -5,7 +5,6 @@ from unittest import mock
 import graphene
 import pytest
 from django.core.exceptions import ValidationError
-from django.db.models import Sum
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from django_countries.fields import Country
@@ -235,7 +234,7 @@ def test_checkout_available_payment_gateways_currency_specified_USD(
     api_client,
     checkout_with_item,
     expected_dummy_gateway,
-    _sample_gateway,
+    sample_gateway,
 ):
     checkout_with_item.currency = "USD"
     checkout_with_item.save(update_fields=["currency"])
@@ -254,7 +253,7 @@ def test_checkout_available_payment_gateways_currency_specified_USD(
 
 
 def test_checkout_available_payment_gateways_currency_specified_EUR(
-    api_client, checkout_with_item, expected_dummy_gateway, _sample_gateway
+    api_client, checkout_with_item, expected_dummy_gateway, sample_gateway
 ):
     checkout_with_item.currency = "EUR"
     checkout_with_item.save(update_fields=["currency"])
@@ -888,15 +887,27 @@ def test_available_collection_points_for_preorders_and_regular_variants_in_check
     api_client,
     staff_api_client,
     checkout_with_preorders_and_regular_variant,
+    preorder_variant_with_end_date,
     warehouses_for_cc,
 ):
-    expected_collection_points = [{"name": warehouses_for_cc[1].name}]
+    # given
+    warehouse = warehouses_for_cc[1]
+    Stock.objects.create(
+        warehouse=warehouse,
+        product_variant=preorder_variant_with_end_date,
+        quantity=10,
+    )
+    expected_collection_points = [{"name": warehouse.name}]
+
+    # wne
     response = staff_api_client.post_graphql(
         QUERY_GET_ALL_COLLECTION_POINTS_FROM_CHECKOUT,
         variables={
             "id": to_global_id_or_none(checkout_with_preorders_and_regular_variant)
         },
     )
+
+    # then
     response_content = get_graphql_content(response)
     assert (
         expected_collection_points
@@ -980,27 +991,77 @@ def test_checkout_available_collection_points_two_lines_for_same_checkout(
     assert all(c in expected_collection_points for c in received_collection_points)
 
 
-def test_checkout_avail_collect_points_exceeded_quantity_shows_only_all_warehouse(
-    api_client, checkout_with_items_for_cc, stocks_for_cc
+def test_checkout_avail_collect_points_only_all_warehouse_quantity_collected(
+    api_client, checkout_with_item_for_cc, warehouses_for_cc
 ):
+    # given
     query = GET_CHECKOUT_AVAILABLE_COLLECTION_POINTS
-    line = checkout_with_items_for_cc.lines.last()
-    line.quantity = (
-        Stock.objects.filter(product_variant=line.variant)
-        .aggregate(total_quantity=Sum("quantity"))
-        .get("total_quantity")
-        + 1
-    )
+    line = checkout_with_item_for_cc.lines.first()
+    line.quantity = 5
     line.save(update_fields=["quantity"])
-    checkout_with_items_for_cc.refresh_from_db()
 
-    variables = {"id": to_global_id_or_none(checkout_with_items_for_cc)}
+    all_warehouse = warehouses_for_cc[1]
+    local_warehouse_1 = warehouses_for_cc[2]
+    local_warehouse_2 = warehouses_for_cc[3]
+
+    Stock.objects.bulk_create(
+        [
+            Stock(warehouse=all_warehouse, product_variant=line.variant, quantity=0),
+            Stock(
+                warehouse=local_warehouse_1, product_variant=line.variant, quantity=2
+            ),
+            Stock(
+                warehouse=local_warehouse_2, product_variant=line.variant, quantity=4
+            ),
+        ]
+    )
+
+    variables = {"id": to_global_id_or_none(checkout_with_item_for_cc)}
+
+    # when
     response = api_client.post_graphql(query, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
 
     assert data["availableCollectionPoints"] == [
-        {"address": {"streetAddress1": "Tęczowa 7"}, "name": "Warehouse2"}
+        {"address": {"streetAddress1": "Tęczowa 7"}, "name": all_warehouse.name}
+    ]
+
+
+def test_checkout_avail_collect_points_all_warehouse_quantity_from_disabled_warehouse(
+    api_client, checkout_with_item_for_cc, warehouses_for_cc
+):
+    # given
+    query = GET_CHECKOUT_AVAILABLE_COLLECTION_POINTS
+    line = checkout_with_item_for_cc.lines.first()
+    line.quantity = 5
+    line.save(update_fields=["quantity"])
+
+    all_warehouse = warehouses_for_cc[1]
+    disabled_warehouse = warehouses_for_cc[0]
+
+    Stock.objects.bulk_create(
+        [
+            Stock(warehouse=all_warehouse, product_variant=line.variant, quantity=0),
+            Stock(
+                warehouse=disabled_warehouse, product_variant=line.variant, quantity=10
+            ),
+        ]
+    )
+
+    variables = {"id": to_global_id_or_none(checkout_with_item_for_cc)}
+
+    # when
+    response = api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    assert data["availableCollectionPoints"] == [
+        {"address": {"streetAddress1": "Tęczowa 7"}, "name": all_warehouse.name}
     ]
 
 
@@ -2503,7 +2564,7 @@ def test_query_checkout_lines(
     ]
     assert expected_lines_ids == checkout_lines_ids
     is_gift_flags = [line["node"]["isGift"] for line in lines]
-    assert all([item is False for item in is_gift_flags])
+    assert all(item is False for item in is_gift_flags)
 
 
 def test_query_checkout_lines_with_meta(
@@ -2529,7 +2590,7 @@ def test_query_checkout_lines_with_meta(
     }
     """
     checkout = checkout_with_item
-    items = [item for item in checkout]
+    items = list(checkout)
 
     metadata_key = "md key"
     metadata_value = "md value"

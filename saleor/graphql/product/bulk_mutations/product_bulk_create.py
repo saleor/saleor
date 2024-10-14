@@ -1,8 +1,7 @@
+import datetime
 from collections import defaultdict
-from datetime import datetime
 
 import graphene
-import pytz
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.db.models import F
@@ -27,7 +26,7 @@ from ....webhook.utils import get_webhooks_for_event
 from ...attribute.types import AttributeValueInput
 from ...attribute.utils import ProductAttributeAssignmentMixin
 from ...channel import ChannelContext
-from ...core.descriptions import ADDED_IN_313, PREVIEW_FEATURE, RICH_CONTENT
+from ...core.descriptions import RICH_CONTENT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.enums import ErrorPolicyEnum
 from ...core.fields import JSONString
@@ -199,7 +198,7 @@ class ProductBulkCreate(BaseMutation):
         )
 
     class Meta:
-        description = "Creates products." + ADDED_IN_313 + PREVIEW_FEATURE
+        description = "Creates products."
         doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductBulkCreateError
@@ -351,14 +350,16 @@ class ProductBulkCreate(BaseMutation):
         if is_available_for_purchase is False:
             channel_data["available_for_purchase_at"] = None
         elif is_available_for_purchase is True and not available_for_purchase_at:
-            channel_data["available_for_purchase_at"] = datetime.now(pytz.UTC)
+            channel_data["available_for_purchase_at"] = datetime.datetime.now(
+                tz=datetime.UTC
+            )
         else:
             channel_data["available_for_purchase_at"] = available_for_purchase_at
 
     @staticmethod
     def set_published_at(channel_data):
         if channel_data.get("is_published") and not channel_data.get("published_at"):
-            channel_data["published_at"] = datetime.now(pytz.UTC)
+            channel_data["published_at"] = datetime.datetime.now(tz=datetime.UTC)
 
     @classmethod
     def clean_product_channel_listings(
@@ -697,7 +698,7 @@ class ProductBulkCreate(BaseMutation):
     def create_variants(cls, info, product, variants_inputs, index, index_error_map):
         variants_instances_data = []
 
-        for variant_index, variant_data in enumerate(variants_inputs):
+        for variant_data in variants_inputs:
             if variant_data:
                 try:
                     metadata_list = variant_data.pop("metadata", None)
@@ -878,7 +879,7 @@ class ProductBulkCreate(BaseMutation):
             cls.call_event(manager.product_variant_created, variant, webhooks=webhooks)
 
         if products:
-            channel_ids = set([channel.id for channel in channels])
+            channel_ids = {channel.id for channel in channels}
             cls.call_event(mark_active_catalogue_promotion_rules_as_dirty, channel_ids)
 
     @classmethod
@@ -894,7 +895,7 @@ class ProductBulkCreate(BaseMutation):
         )
 
         # check error policy
-        if any([True if error else False for error in index_error_map.values()]):
+        if any(index_error_map.values()):
             if error_policy == ErrorPolicyEnum.REJECT_EVERYTHING.value:
                 results = get_results(instances_data_with_errors_list, True)
                 return ProductBulkCreate(count=0, results=results)

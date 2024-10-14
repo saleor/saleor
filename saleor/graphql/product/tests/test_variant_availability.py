@@ -1,5 +1,5 @@
+import datetime
 import warnings
-from datetime import timedelta
 
 import graphene
 import pytest
@@ -47,9 +47,7 @@ def test_variant_quantity_available_without_country_code_or_channel(
     content = get_graphql_content(response)
     variant_data = content["data"]["productVariant"]
     assert variant_data["quantityAvailable"] == 7
-    assert any(
-        [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
-    )
+    assert any(str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns)
 
 
 def test_variant_quantity_available_without_country_code_stock_only_in_cc_warehouse(
@@ -650,7 +648,9 @@ def test_variant_quantity_available_with_enabled_expired_reservations(
     checkout_line_with_reservation_in_many_stocks,
     channel_USD,
 ):
-    Reservation.objects.update(reserved_until=timezone.now() - timedelta(minutes=2))
+    Reservation.objects.update(
+        reserved_until=timezone.now() - datetime.timedelta(minutes=2)
+    )
     variant = checkout_line_with_reservation_in_many_stocks.variant
     variables = {
         "id": graphene.Node.to_global_id("ProductVariant", variant.pk),

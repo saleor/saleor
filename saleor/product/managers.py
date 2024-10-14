@@ -1,7 +1,6 @@
 import datetime
 from typing import Optional, Union
 
-import pytz
 from django.contrib.postgres.aggregates import StringAgg
 from django.db import models
 from django.db.models import (
@@ -33,7 +32,7 @@ class ProductsQueryset(models.QuerySet):
 
         if not channel.is_active:
             return self.none()
-        today = datetime.datetime.now(pytz.UTC)
+        today = datetime.datetime.now(tz=datetime.UTC)
         channel_listings = (
             ProductChannelListing.objects.using(self.db)
             .filter(
@@ -46,7 +45,7 @@ class ProductsQueryset(models.QuerySet):
         return self.filter(Exists(channel_listings.filter(product_id=OuterRef("pk"))))
 
     def not_published(self, channel: Channel):
-        today = datetime.datetime.now(pytz.UTC)
+        today = datetime.datetime.now(tz=datetime.UTC)
         return self.annotate_publication_info(channel).filter(
             Q(published_at__gt=today) & Q(is_published=True)
             | Q(is_published=False)
@@ -348,7 +347,7 @@ class ProductVariantQueryset(models.QuerySet):
             channel_listings__price_amount__isnull=False,
         )
 
-        today = datetime.datetime.now(pytz.UTC)
+        today = datetime.datetime.now(tz=datetime.UTC)
         variants = variants.filter(
             Q(product__channel_listings__published_at__lte=today)
             | Q(product__channel_listings__published_at__isnull=True),
@@ -378,7 +377,7 @@ ProductVariantChannelListingManager = models.Manager.from_queryset(
 
 class CollectionsQueryset(models.QuerySet):
     def published(self, channel_slug: str):
-        today = datetime.datetime.now(pytz.UTC)
+        today = datetime.datetime.now(tz=datetime.UTC)
         return self.filter(
             Q(channel_listings__published_at__lte=today)
             | Q(channel_listings__published_at__isnull=True),

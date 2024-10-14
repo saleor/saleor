@@ -1,8 +1,6 @@
 import datetime
-from datetime import timedelta
 from decimal import Decimal
 
-import pytz
 from django.utils import timezone
 from freezegun import freeze_time
 
@@ -235,7 +233,7 @@ def test_with_authorize_success_and_older_failure_events(
     )
     failure_event = events[1]
     assert failure_event.type == TransactionEventType.AUTHORIZATION_FAILURE
-    failure_event.created_at = timezone.now() - timedelta(minutes=5)
+    failure_event.created_at = timezone.now() - datetime.timedelta(minutes=5)
     failure_event.save()
 
     # when
@@ -277,7 +275,7 @@ def test_with_authorize_adjustment(
     # set the newest time for adjustment event
     adjustment_event = events[2]
     assert adjustment_event.type == TransactionEventType.AUTHORIZATION_ADJUSTMENT
-    adjustment_event.created_at = timezone.now() + timedelta(minutes=5)
+    adjustment_event.created_at = timezone.now() + datetime.timedelta(minutes=5)
     adjustment_event.save()
 
     # when
@@ -502,7 +500,7 @@ def test_with_charge_success_and_older_failure_events(
     )
     failure_event = events[1]
     assert failure_event.type == TransactionEventType.CHARGE_FAILURE
-    failure_event.created_at = timezone.now() - timedelta(minutes=5)
+    failure_event.created_at = timezone.now() - datetime.timedelta(minutes=5)
     failure_event.save()
 
     # when
@@ -763,7 +761,7 @@ def test_with_refund_success_and_older_failure_events(
     )
     failure_event = events[1]
     assert failure_event.type == TransactionEventType.REFUND_FAILURE
-    failure_event.created_at = timezone.now() - timedelta(minutes=5)
+    failure_event.created_at = timezone.now() - datetime.timedelta(minutes=5)
     failure_event.save()
 
     # when
@@ -1030,7 +1028,7 @@ def test_with_cancel_success_and_older_failure_events(
     )
     failure_event = events[1]
     assert failure_event.type == TransactionEventType.CANCEL_FAILURE
-    failure_event.created_at = timezone.now() - timedelta(minutes=5)
+    failure_event.created_at = timezone.now() - datetime.timedelta(minutes=5)
     failure_event.save()
 
     # when
@@ -1660,7 +1658,7 @@ def test_recalculate_transaction_amounts_updates_transaction_modified_at(
     )
     # when
     with freeze_time("2023-03-18 12:00:00"):
-        calculation_time = datetime.datetime.now(pytz.UTC)
+        calculation_time = datetime.datetime.now(tz=datetime.UTC)
         recalculate_transaction_amounts(transaction)
 
     # then

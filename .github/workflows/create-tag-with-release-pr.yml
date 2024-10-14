@@ -1,0 +1,84 @@
+name: Create release tag on release PR merge
+on:
+  pull_request:
+    types:
+     - closed
+
+jobs:
+  create-release-tag:
+    runs-on: ubuntu-24.04
+    if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'release')
+    env:
+      GH_REF: ${{ github.event.pull_request.head.ref }}
+      GH_TOKEN: ${{ github.token }}
+    outputs:
+      version: ${{ steps.set-version.outputs.VERSION }}
+    steps:
+      - name: Set version
+        id: set-version
+        run: echo "VERSION=$GH_REF" | sed "s/release-//" >> $GITHUB_OUTPUT
+      - name: Check latest version
+        id: check-latest
+        env:
+          VERSION: ${{ steps.set-version.outputs.VERSION }}
+        run: |
+          latest=$(gh api --jq .name /repos/saleor/saleor/releases/latest)
+          if [ "$VERSION" \> "$latest" ]
+          then
+            echo "IS_LATEST=true" >> $GITHUB_OUTPUT
+          else
+            echo "IS_LATEST=false" >> $GITHUB_OUTPUT
+          fi
+      - name: Create tag
+        uses: actions/github-script@v5
+        env:
+          VERSION: ${{ steps.set-version.outputs.VERSION }}
+        with:
+          script: |
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: `refs/tags/${process.env.VERSION}`,
+              sha: context.sha
+            })
+      - name: Create github release
+        env:
+          VERSION: ${{ steps.set-version.outputs.VERSION }}
+          IS_LATEST: ${{ steps.check-latest.outputs.IS_LATEST }}
+        run: |
+          gh release create "$VERSION" --repo="$GITHUB_REPOSITORY" --latest="$IS_LATEST" --generate-notes --verify-tag
+
+  publish:
+    needs:
+      - create-release-tag
+    uses: ./.github/workflows/publish-containers.yml
+    with:
+      version: ${{ needs.create-release-tag.outputs.version }}
+      ref: ${{ needs.create-release-tag.outputs.version }}
+    secrets:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_CLOUD_CI_WEBHOOK_URL }}
+      SLACK_MENTION_GROUP_ID: ${{ secrets.SLACK_CORE_SUPPORT_GROUP_ID }}
+
+  deploy:
+    runs-on: ubuntu-24.04
+    needs:
+      - publish
+    steps:
+      - name: Trigger staging deployment for tagged release
+        env:
+          VERSION: ${{ needs.publish.outputs.version }}
+        run: |
+          export GITHUB_TOKEN=$( \
+            curl --request GET --url ${{ secrets.VAULT_URL}} --header "Authorization: JWT ${{ secrets.VAULT_JWT }}" | jq -r .token \
+          )
+
+          payload=$(
+              jq --arg version "$VERSION" --null-input '
+                {
+                  "event_type": "deploy-staging",
+                  "client_payload": {"version": $version}
+                }
+              '
+          )
+
+          gh api /repos/saleor/saleor-multitenant/dispatches --input - <<< "$payload"

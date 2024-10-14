@@ -1,5 +1,5 @@
+import datetime
 from collections.abc import Iterable
-from datetime import datetime
 from typing import Any, Optional, Union
 
 from celery.utils.log import get_task_logger
@@ -28,7 +28,7 @@ def initialize_request(
     sync_event=False,
     allow_replica=False,
     event_type: Optional[str] = None,
-    request_time: Optional[datetime] = None,
+    request_time: Optional[datetime.datetime] = None,
     dataloaders: Optional[dict] = None,
 ) -> SaleorContext:
     """Prepare a request object for webhook subscription.
@@ -112,8 +112,8 @@ def generate_payload_promise_from_subscription(
     ):
         if hasattr(results, "errors"):
             logger.warning(
-                "Unable to build a payload for subscription. \n"
-                f"error: {str(results.errors)}",
+                "Unable to build a payload for subscription.\nerror: %s",
+                str(results.errors),
                 extra={"query": subscription_query, "app": app_id},
             )
             return None
@@ -190,7 +190,7 @@ def generate_payload_from_subscription(
     )
     if hasattr(results, "errors"):
         logger.warning(
-            "Unable to build a payload for subscription. \n" "error: %s",
+            "Unable to build a payload for subscription. Error: %s",
             str(results.errors),
             extra={"query": subscription_query, "app": app_id},
         )
@@ -207,7 +207,14 @@ def generate_payload_from_subscription(
         return None
 
     payload_instance = payload[0]
-    event_payload = get_event_payload(payload_instance.data.get("event")) or {}
+    payload_data_keys = payload_instance.data.keys()
+    for key in payload_data_keys:
+        extracted_payload = get_event_payload(payload_instance.data.get(key))
+        payload_instance.data[key] = extracted_payload
+    if "event" in payload_instance.data or not payload_instance.data:
+        event_payload = payload_instance.data.get("event") or {}
+    else:
+        event_payload = {"data": payload_instance.data}
 
     if payload_instance.errors:
         event_payload["errors"] = [
@@ -227,7 +234,7 @@ def generate_pre_save_payloads(
     instances: Iterable[models.Model],
     event_type: str,
     requestor: Union[User, App, None],
-    request_time: datetime,
+    request_time: datetime.datetime,
 ):
     if not settings.ENABLE_LIMITING_WEBHOOKS_FOR_IDENTICAL_PAYLOADS:
         return {}

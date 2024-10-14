@@ -21,7 +21,6 @@ from ....shipping.tasks import (
 from ....webhook.event_types import WebhookEventAsyncType
 from ...account.enums import CountryCodeEnum
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_31, ADDED_IN_35
 from ...core.doc_category import DOC_CATEGORY_CHANNELS
 from ...core.mutations import ModelMutation
 from ...core.types import ChannelError, NonNullList
@@ -45,7 +44,7 @@ class ChannelUpdateInput(ChannelInput):
         description=(
             "Default country for the channel. Default country can be "
             "used in checkout to determine the stock quantities or calculate taxes "
-            "when the country was not explicitly provided." + ADDED_IN_31
+            "when the country was not explicitly provided."
         )
     )
     remove_shipping_zones = NonNullList(
@@ -55,7 +54,7 @@ class ChannelUpdateInput(ChannelInput):
     )
     remove_warehouses = NonNullList(
         graphene.ID,
-        description="List of warehouses to unassign from the channel." + ADDED_IN_35,
+        description="List of warehouses to unassign from the channel.",
         required=False,
     )
 

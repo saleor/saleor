@@ -24,9 +24,6 @@ from ...app.dataloaders import get_app_promise
 from ...channel.utils import clean_channel, validate_channel
 from ...core import ResolveInfo, SaleorContext
 from ...core.descriptions import (
-    ADDED_IN_310,
-    ADDED_IN_314,
-    ADDED_IN_315,
     DEPRECATED_IN_3X_INPUT,
 )
 from ...core.doc_category import DOC_CATEGORY_USERS
@@ -95,7 +92,7 @@ class BaseAddressUpdate(ModelMutation, I18nMixin):
         cleaned_input = cls.clean_input(
             info=info, instance=instance, data=data.get("input")
         )
-        cls.update_metadata(instance, cleaned_input.pop("metadata", list()))
+        cls.update_metadata(instance, cleaned_input.pop("metadata", []))
         address = cls.validate_address(cleaned_input, instance=instance, info=info)
         cls.clean_instance(info, address)
         cls.save(info, address, cleaned_input)
@@ -182,14 +179,12 @@ class UserInput(BaseInputObjectType):
     note = graphene.String(description="A note about the user.")
     metadata = NonNullList(
         MetadataInput,
-        description="Fields required to update the user metadata." + ADDED_IN_314,
+        description="Fields required to update the user metadata.",
         required=False,
     )
     private_metadata = NonNullList(
         MetadataInput,
-        description=(
-            "Fields required to update the user private metadata." + ADDED_IN_314
-        ),
+        description="Fields required to update the user private metadata.",
         required=False,
     )
 
@@ -214,10 +209,10 @@ class CustomerInput(UserInput, UserAddressInput):
         LanguageCodeEnum, required=False, description="User language code."
     )
     external_reference = graphene.String(
-        description="External ID of the customer." + ADDED_IN_310, required=False
+        description="External ID of the customer.", required=False
     )
     is_confirmed = graphene.Boolean(
-        required=False, description="User account is confirmed." + ADDED_IN_315
+        required=False, description="User account is confirmed."
     )
 
     class Meta:
@@ -241,7 +236,6 @@ class UserCreateInput(CustomerInput):
         required=False,
         description=(
             "User account is confirmed."
-            + ADDED_IN_315
             + DEPRECATED_IN_3X_INPUT
             + "\n\nThe user will be always set as unconfirmed. "
             "The confirmation will take place when the user sets the password."
@@ -270,7 +264,7 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
         if shipping_address_data:
-            address_metadata = shipping_address_data.pop("metadata", list())
+            address_metadata = shipping_address_data.pop("metadata", [])
             shipping_address = cls.validate_address(
                 shipping_address_data,
                 address_type=AddressType.SHIPPING,
@@ -281,7 +275,7 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
             cleaned_input[SHIPPING_ADDRESS_FIELD] = shipping_address
 
         if billing_address_data:
-            address_metadata = billing_address_data.pop("metadata", list())
+            address_metadata = billing_address_data.pop("metadata", [])
             billing_address = cls.validate_address(
                 billing_address_data,
                 address_type=AddressType.BILLING,
@@ -294,10 +288,10 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
         if cleaned_input.get("redirect_url"):
             try:
                 validate_storefront_url(cleaned_input.get("redirect_url"))
-            except ValidationError as error:
+            except ValidationError as e:
                 raise ValidationError(
-                    {"redirect_url": error}, code=AccountErrorCode.INVALID.value
-                )
+                    {"redirect_url": e}, code=AccountErrorCode.INVALID.value
+                ) from e
 
         email = cleaned_input.get("email")
         if email:
@@ -399,7 +393,7 @@ class UserDeleteMixin:
                     )
                 }
             )
-        elif instance.is_superuser:
+        if instance.is_superuser:
             raise ValidationError(
                 {
                     "id": ValidationError(

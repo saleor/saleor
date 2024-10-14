@@ -9,10 +9,10 @@ from ...core.enums import LanguageCodeEnum
 from ...core.types import TranslationError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...product.types import Product
-from .utils import BaseTranslateMutation, TranslationInput
+from .utils import BaseTranslateMutationWithSlug, TranslationInput
 
 
-class ProductTranslate(BaseTranslateMutation):
+class ProductTranslate(BaseTranslateMutationWithSlug):
     class Arguments:
         id = graphene.ID(
             required=True,
@@ -40,6 +40,7 @@ class ProductTranslate(BaseTranslateMutation):
         node_id = cls.clean_node_id(id)[0]
         instance = cls.get_node_or_error(info, node_id, only_type=Product)
         cls.validate_input(input)
+        input = cls.pre_update_or_create(instance, input, language_code)
         manager = get_plugin_manager_promise(info.context).get()
         with traced_atomic_transaction():
             translation, created = instance.translations.update_or_create(

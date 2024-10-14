@@ -112,7 +112,7 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
         old_listing_ids = PromotionRule.get_old_channel_listing_ids(
             len(rules_to_create)
         )
-        for idx, (channel, rule) in enumerate(rules_to_create):
+        for idx, (_channel, rule) in enumerate(rules_to_create):
             rule.old_channel_listing_id = old_listing_ids[idx][0]
 
         cls.save_promotion_rules(rules_to_create, rules_to_update)

@@ -1,6 +1,6 @@
+import datetime
 import json
 import logging
-from datetime import datetime
 from typing import TYPE_CHECKING, Optional
 
 import requests
@@ -72,17 +72,21 @@ def fetch_jwks(jwks_url) -> Optional[dict]:
         response = HTTPClient.send_request("GET", jwks_url, allow_redirects=False)
         response.raise_for_status()
         jwks = response.json()
-    except requests.exceptions.RequestException:
+    except requests.exceptions.RequestException as e:
         logger.exception("Unable to fetch jwks from %s", jwks_url)
-        raise AuthenticationError("Unable to finalize the authentication process.")
-    except json.JSONDecodeError:
+        raise AuthenticationError(
+            "Unable to finalize the authentication process."
+        ) from e
+    except json.JSONDecodeError as e:
         content = response.content if response else "Unable to find the response"
         logger.exception(
             "Unable to decode the response from auth service with jwks. "
             "Response: %s",
             content,
         )
-        raise AuthenticationError("Unable to finalize the authentication process.")
+        raise AuthenticationError(
+            "Unable to finalize the authentication process."
+        ) from e
     keys = jwks.get("keys", [])
     if not keys:
         logger.warning("List of JWKS keys is empty")
@@ -107,7 +111,7 @@ def get_user_info_from_cache_or_fetch(
         cache_time = USER_INFO_DEFAULT_CACHE_TIME
 
         if exp_time:
-            now_ts = int(datetime.now().timestamp())
+            now_ts = int(datetime.datetime.now(tz=datetime.UTC).timestamp())
             exp_delta = exp_time - now_ts
             cache_time = exp_delta if exp_delta > 0 else cache_time
 
@@ -132,19 +136,19 @@ def get_user_info(user_info_url, access_token) -> Optional[dict]:
     except requests.exceptions.HTTPError as e:
         logger.warning(
             "Fetching OIDC user info failed. HTTP error occurred",
-            extra={"user_info_url": user_info_url, "error": e},
+            extra={"user_info_url": user_info_url, "error": str(e)},
         )
         return None
     except requests.exceptions.RequestException as e:
         logger.warning(
             "Fetching OIDC user info failed",
-            extra={"user_info_url": user_info_url, "error": e},
+            extra={"user_info_url": user_info_url, "error": str(e)},
         )
         return None
     except json.JSONDecodeError as e:
         logger.warning(
             "Invalid OIDC user info response",
-            extra={"user_info_url": user_info_url, "error": e},
+            extra={"user_info_url": user_info_url, "error": str(e)},
         )
         return None
 
@@ -154,7 +158,8 @@ def decode_access_token(token, jwks_url):
         return get_decoded_token(token, jwks_url)
     except (JoseError, ValueError) as e:
         logger.info(
-            "Invalid OIDC access token format", extra={"error": e, "jwks_url": jwks_url}
+            "Invalid OIDC access token format",
+            extra={"error": str(e), "jwks_url": jwks_url},
         )
         return None
 
@@ -173,7 +178,7 @@ def get_user_from_oauth_access_token_in_jwt_format(
     except (JoseError, ValueError) as e:
         logger.info(
             "OIDC access token validation failed",
-            extra={"error": e, "user_info_url": user_info_url},
+            extra={"error": str(e), "user_info_url": user_info_url},
         )
         return None
 
@@ -196,7 +201,7 @@ def get_user_from_oauth_access_token_in_jwt_format(
             last_login=token_payload.get("iat"),
         )
     except AuthenticationError as e:
-        logger.info("Unable to create a user object", extra={"error": e})
+        logger.info("Unable to create a user object", extra={"error": str(e)})
         return None
 
     scope = token_payload.get("scope")
@@ -376,12 +381,12 @@ def get_parsed_id_token(token_data, jwks_url) -> CodeIDToken:
         decoded_token = get_decoded_token(id_token, jwks_url, CodeIDToken)
         decoded_token.validate()
         return decoded_token
-    except DecodeError:
+    except DecodeError as e:
         logger.warning("Unable to decode provided token", exc_info=True)
-        raise AuthenticationError("Unable to decode provided token")
-    except (JoseError, ValueError):
+        raise AuthenticationError("Unable to decode provided token") from e
+    except (JoseError, ValueError) as e:
         logger.warning("Token validation failed", exc_info=True)
-        raise AuthenticationError("Token validation failed")
+        raise AuthenticationError("Token validation failed") from e
 
 
 def get_or_create_user_from_payload(
@@ -485,7 +490,7 @@ def _update_user_details(
 
     if last_login:
         if not user.last_login or user.last_login.timestamp() < last_login:
-            login_time = timezone.make_aware(datetime.fromtimestamp(last_login))
+            login_time = datetime.datetime.fromtimestamp(last_login, tz=datetime.UTC)
             user.last_login = login_time
             fields_to_save.add("last_login")
     else:
@@ -588,7 +593,7 @@ def validate_refresh_token(refresh_token, data):
 
     try:
         refresh_payload = jwt_decode(refresh_token, verify_expiration=True)
-    except PyJWTError:
+    except PyJWTError as e:
         raise ValidationError(
             {
                 "refreshToken": ValidationError(
@@ -596,7 +601,7 @@ def validate_refresh_token(refresh_token, data):
                     code=PluginErrorCode.INVALID.value,
                 )
             }
-        )
+        ) from e
 
     if not data.get("refreshToken"):
         if not refresh_payload.get(CSRF_FIELD):
@@ -640,7 +645,7 @@ def get_incorrect_or_missing_urls(urls: dict) -> list[str]:
     return incorrect_urls
 
 
-def get_incorrect_fields(plugin_configuration: "PluginConfiguration"):
+def get_incorrect_fields(plugin_configuration: "PluginConfiguration") -> list[str]:
     """Return missing or incorrect configuration fields for OpenIDConnectPlugin."""
     configuration = plugin_configuration.configuration
     configuration = {item["name"]: item["value"] for item in configuration}
@@ -657,7 +662,6 @@ def get_incorrect_fields(plugin_configuration: "PluginConfiguration"):
                     "oauth_token_url": configuration["oauth_token_url"],
                 }
             )
-
         elif configuration["user_info_url"]:
             urls_to_validate.update(
                 {
@@ -681,6 +685,7 @@ def get_incorrect_fields(plugin_configuration: "PluginConfiguration"):
         if not configuration["client_secret"]:
             incorrect_fields.append("client_secret")
         return incorrect_fields
+    return []
 
 
 def get_saleor_permissions_qs_from_scope(scope: str) -> QuerySet[Permission]:
@@ -695,9 +700,9 @@ def get_saleor_permissions_from_list(permissions: list) -> QuerySet[Permission]:
     if not saleor_permissions_str:
         return Permission.objects.none()
 
-    permission_codenames = list(
-        map(lambda perm: perm.replace("saleor:", ""), saleor_permissions_str)
-    )
+    permission_codenames = [
+        perm.replace("saleor:", "") for perm in saleor_permissions_str
+    ]
     permissions = get_permissions_from_codenames(permission_codenames)
     return permissions
 

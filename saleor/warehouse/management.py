@@ -1,7 +1,7 @@
 import math
-from collections import defaultdict, namedtuple
+from collections import defaultdict
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Any, Optional, cast
+from typing import TYPE_CHECKING, Any, NamedTuple, Optional, cast
 from uuid import UUID
 
 from django.db import transaction
@@ -38,7 +38,9 @@ if TYPE_CHECKING:
     from ..order.models import Order
 
 
-StockData = namedtuple("StockData", ["pk", "quantity"])
+class StockData(NamedTuple):
+    pk: int
+    quantity: int
 
 
 @traced_atomic_transaction()
@@ -241,7 +243,7 @@ def _create_allocations(
     stocks_allocations: dict,
     stocks_reservations: dict,
     insufficient_stock: list[InsufficientStockData],
-):
+) -> tuple[list[InsufficientStockData], list[Any]]:
     quantity = line_info.quantity
     quantity_allocated = 0
     allocations = []
@@ -275,6 +277,7 @@ def _create_allocations(
             )
         )
         return insufficient_stock, []
+    return [], allocations
 
 
 def deallocate_stock(

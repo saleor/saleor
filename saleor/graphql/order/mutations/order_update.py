@@ -13,7 +13,6 @@ from ....permission.enums import OrderPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...account.types import AddressInput
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_310
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import ModelWithExtRefMutation
 from ...core.types import BaseInputObjectType, OrderError
@@ -27,7 +26,7 @@ class OrderUpdateInput(BaseInputObjectType):
     user_email = graphene.String(description="Email address of the customer.")
     shipping_address = AddressInput(description="Shipping address of the customer.")
     external_reference = graphene.String(
-        description="External ID of this order." + ADDED_IN_310, required=False
+        description="External ID of this order.", required=False
     )
 
     class Meta:
@@ -39,7 +38,7 @@ class OrderUpdate(DraftOrderCreate, ModelWithExtRefMutation):
         id = graphene.ID(required=False, description="ID of an order to update.")
         external_reference = graphene.String(
             required=False,
-            description=f"External ID of an order to update. {ADDED_IN_310}",
+            description="External ID of an order to update.",
         )
         input = OrderUpdateInput(
             required=True, description="Fields required to update an order."
@@ -109,7 +108,6 @@ class OrderUpdate(DraftOrderCreate, ModelWithExtRefMutation):
             instance.save()
             call_order_event(
                 manager,
-                manager.order_updated,
                 WebhookEventAsyncType.ORDER_UPDATED,
                 instance,
             )

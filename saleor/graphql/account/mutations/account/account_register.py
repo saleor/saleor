@@ -109,7 +109,7 @@ class AccountRegister(ModelMutation):
         site = get_site_promise(info.context).get()
         if not site.settings.enable_account_confirmation_by_email:
             return super().clean_input(info, instance, data, **kwargs)
-        elif not data.get("redirect_url"):
+        if not data.get("redirect_url"):
             raise ValidationError(
                 {
                     "redirect_url": ValidationError(
@@ -120,14 +120,14 @@ class AccountRegister(ModelMutation):
 
         try:
             validate_storefront_url(data["redirect_url"])
-        except ValidationError as error:
+        except ValidationError as e:
             raise ValidationError(
                 {
                     "redirect_url": ValidationError(
-                        error.message, code=AccountErrorCode.INVALID.value
+                        e.message, code=AccountErrorCode.INVALID.value
                     )
                 }
-            )
+            ) from e
 
         data["channel"] = clean_channel(
             data.get("channel"), error_class=AccountErrorCode, allow_replica=False
@@ -138,8 +138,8 @@ class AccountRegister(ModelMutation):
         password = data["password"]
         try:
             password_validation.validate_password(password, instance)
-        except ValidationError as error:
-            raise ValidationError({"password": error})
+        except ValidationError as e:
+            raise ValidationError({"password": e}) from e
 
         data["language_code"] = data.get("language_code", settings.LANGUAGE_CODE)
         return super().clean_input(info, instance, data, **kwargs)

@@ -24,10 +24,8 @@ def populate_refund_amounts_in_fulfillments(apps, schema_editor):
             [Decimal(event.parameters.get("amount", 0)) for event in refunded_events]
         )
         included_shipping_costs = any(
-            [
-                event.parameters.get("shipping_costs_included", False)
-                for event in refunded_events
-            ]
+            event.parameters.get("shipping_costs_included", False)
+            for event in refunded_events
         )
 
         fulfillment_count = fulfillments.count()

@@ -1,10 +1,11 @@
-from datetime import timedelta
+import datetime
 
 from django.core.files.storage import default_storage
 from django.utils import timezone
 from freezegun import freeze_time
 
 from ...webhook.event_types import WebhookEventAsyncType
+from .. import private_storage
 from ..models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ..tasks import (
     delete_event_payloads_task,
@@ -38,17 +39,19 @@ def test_delete_from_storage_task_file_that_not_exists(media_root):
 def test_delete_event_payloads_task(webhook, settings):
     delete_period = settings.EVENT_PAYLOAD_DELETE_PERIOD
     start_time = timezone.now()
-    before_delete_period = start_time - delete_period - timedelta(seconds=1)
-    after_delete_period = start_time - delete_period + timedelta(seconds=1)
+    before_delete_period = start_time - delete_period - datetime.timedelta(seconds=1)
+    after_delete_period = start_time - delete_period + datetime.timedelta(seconds=1)
+    payload_files = {}
     for creation_time in [before_delete_period, after_delete_period]:
         with freeze_time(creation_time):
-            payload = EventPayload.objects.create(payload='{"key": "data"}')
+            payload = EventPayload.objects.create_with_payload_file(payload="dummy")
+            payload_files[creation_time] = payload.payload_file.name
             delivery = EventDelivery.objects.create(
                 event_type=WebhookEventAsyncType.ANY,
                 payload=payload,
                 webhook=webhook,
             )
-        with freeze_time(creation_time + timedelta(seconds=2)):
+        with freeze_time(creation_time + datetime.timedelta(seconds=2)):
             EventDeliveryAttempt.objects.create(delivery=delivery)
 
     with freeze_time(start_time):
@@ -57,6 +60,9 @@ def test_delete_event_payloads_task(webhook, settings):
     assert EventPayload.objects.count() == 1
     assert EventDelivery.objects.count() == 1
     assert EventDeliveryAttempt.objects.count() == 1
+
+    assert private_storage.exists(payload_files[after_delete_period])
+    assert not private_storage.exists(payload_files[before_delete_period])
 
 
 def test_delete_files_from_storage_task(

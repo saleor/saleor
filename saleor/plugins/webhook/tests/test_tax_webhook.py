@@ -7,11 +7,10 @@ from freezegun import freeze_time
 
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....core import EventDeliveryStatus
-from ....core.models import EventDelivery, EventPayload
+from ....core.models import EventDelivery
 from ....core.taxes import TaxType
 from ....graphql.webhook.utils import get_subscription_query_hash
 from ....webhook.event_types import WebhookEventSyncType
-from ....webhook.models import Webhook
 from ....webhook.payloads import generate_order_payload_for_tax_calculation
 from ....webhook.transport.utils import (
     DEFAULT_TAX_CODE,
@@ -51,28 +50,32 @@ def test_get_taxes_for_order(
     mock_fetch,
     permission_handle_taxes,
     webhook_plugin,
-    tax_order_webhook,
     tax_data_response,
     order,
-    tax_app_with_webhooks,
+    tax_app,
 ):
     # given
     mock_request.return_value = tax_data_response
     plugin = webhook_plugin()
     app_identifier = None
+    webhook = tax_app.webhooks.get(name="tax-webhook-1")
+    webhook.subscription_query = None
+    webhook.save(update_fields=["subscription_query"])
 
     # when
     tax_data = plugin.get_taxes_for_order(order, app_identifier, None)
 
     # then
-    payload = EventPayload.objects.get()
-    assert payload.payload == generate_order_payload_for_tax_calculation(order)
-    delivery = EventDelivery.objects.get()
+    mock_request.assert_called_once()
+    assert not EventDelivery.objects.exists()
+
+    delivery = mock_request.mock_calls[0].args[0]
+    assert delivery.payload.get_payload() == generate_order_payload_for_tax_calculation(
+        order
+    )
     assert delivery.status == EventDeliveryStatus.PENDING
     assert delivery.event_type == WebhookEventSyncType.ORDER_CALCULATE_TAXES
-    assert delivery.payload == payload
-    assert delivery.webhook == tax_order_webhook
-    mock_request.assert_called_once_with(delivery)
+    assert delivery.webhook == webhook
     mock_fetch.assert_not_called()
     assert tax_data == parse_tax_data(tax_data_response)
 
@@ -120,15 +123,15 @@ def test_get_tax_code_from_object_meta_no_app(
 
 def test_get_tax_code_from_object_meta(
     webhook_plugin,
-    tax_app_with_webhooks,
+    tax_app,
     tax_type,
     product,
 ):
     # given
     plugin = webhook_plugin()
     product.metadata = {
-        f"{tax_app_with_webhooks.identifier}.code": tax_type.code,
-        f"{tax_app_with_webhooks.identifier}.description": tax_type.description,
+        f"{tax_app.identifier}.code": tax_type.code,
+        f"{tax_app.identifier}.description": tax_type.description,
     }
 
     # when
@@ -140,7 +143,7 @@ def test_get_tax_code_from_object_meta(
 
 def test_get_tax_code_from_object_meta_default_code(
     webhook_plugin,
-    tax_app_with_webhooks,
+    tax_app,
     product,
 ):
     # given
@@ -170,29 +173,27 @@ def test_get_taxes_for_order_with_sync_subscription(
     # given
     mock_request.return_value = tax_data_response
     plugin = webhook_plugin()
-    webhook = Webhook.objects.create(
-        name="Tax checkout webhook",
-        app=tax_app,
-        target_url="https://localhost:8888/tax-order",
-        subscription_query=(
-            "subscription{event{... on CalculateTaxes{taxBase{currency}}}}"
-        ),
+    webhook = tax_app.webhooks.get(name="tax-webhook-1")
+    webhook.subscription_query = (
+        "subscription{event{... on CalculateTaxes{taxBase{currency}}}}"
     )
-    webhook.events.create(event_type=WebhookEventSyncType.ORDER_CALCULATE_TAXES)
+    webhook.save(update_fields=["subscription_query"])
     app_identifier = None
 
     # when
     tax_data = plugin.get_taxes_for_order(order, app_identifier, None)
 
     # then
-    payload = EventPayload.objects.get()
-    assert payload.payload == json.dumps({"taxBase": {"currency": "USD"}})
-    delivery = EventDelivery.objects.get()
+    mock_request.assert_called_once()
+    assert not EventDelivery.objects.exists()
+
+    delivery = mock_request.mock_calls[0].args[0]
+    assert delivery.payload.get_payload() == json.dumps(
+        {"taxBase": {"currency": "USD"}}
+    )
     assert delivery.status == EventDeliveryStatus.PENDING
     assert delivery.event_type == WebhookEventSyncType.ORDER_CALCULATE_TAXES
-    assert delivery.payload == payload
     assert delivery.webhook == webhook
-    mock_request.assert_called_once_with(delivery)
     mock_fetch.assert_not_called()
     assert tax_data == parse_tax_data(tax_data_response)
 
@@ -221,13 +222,9 @@ def test_get_taxes_for_checkout_with_sync_subscription(
     mock_request.return_value = tax_data_response
     mock_generate_payload.return_value = expected_payload
     plugin = webhook_plugin()
-    webhook = Webhook.objects.create(
-        name="Tax checkout webhook",
-        app=tax_app,
-        target_url="https://localhost:8888/tax-order",
-        subscription_query=subscription_query,
-    )
-    webhook.events.create(event_type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES)
+    webhook = tax_app.webhooks.get(name="tax-webhook-1")
+    webhook.subscription_query = subscription_query
+    webhook.save(update_fields=["subscription_query"])
     app_identifier = None
 
     # when
@@ -241,14 +238,14 @@ def test_get_taxes_for_checkout_with_sync_subscription(
         request=ANY,  # SaleorContext,
         app=tax_app,
     )
-    payload = EventPayload.objects.get()
-    assert payload.payload == json.dumps(expected_payload)
-    delivery = EventDelivery.objects.get()
+    mock_request.assert_called_once()
+    assert not EventDelivery.objects.exists()
+
+    delivery = mock_request.mock_calls[0].args[0]
+    assert delivery.payload.get_payload() == json.dumps(expected_payload)
     assert delivery.status == EventDeliveryStatus.PENDING
     assert delivery.event_type == WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
-    assert delivery.payload == payload
     assert delivery.webhook == webhook
-    mock_request.assert_called_once_with(delivery)
     mock_fetch.assert_not_called()
     assert tax_data == parse_tax_data(tax_data_response)
 
@@ -277,16 +274,12 @@ def test_get_taxes_for_checkout_with_sync_subscription_with_pregenerated_payload
     )
     mock_request.return_value = tax_data_response
     plugin = webhook_plugin()
-    webhook = Webhook.objects.create(
-        name="Tax checkout webhook",
-        app=tax_app,
-        target_url="https://localhost:8888/tax-order",
-        subscription_query=subscription_query,
-    )
-    webhook.events.create(event_type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES)
+    webhook = tax_app.webhooks.get(name="tax-webhook-1")
+    webhook.subscription_query = subscription_query
+    webhook.save(update_fields=["subscription_query"])
     app_identifier = None
     pregenerated_subscription_payloads = {
-        tax_app.id: {subscription_query_hash: expected_payload}
+        webhook.app.id: {subscription_query_hash: expected_payload}
     }
 
     # when
@@ -300,13 +293,13 @@ def test_get_taxes_for_checkout_with_sync_subscription_with_pregenerated_payload
 
     # then
     mock_generate_payload.assert_not_called()
-    payload = EventPayload.objects.get()
-    assert payload.payload == json.dumps(expected_payload)
-    delivery = EventDelivery.objects.get()
+    mock_request.assert_called_once()
+    assert not EventDelivery.objects.exists()
+
+    delivery = mock_request.mock_calls[0].args[0]
+    assert delivery.payload.get_payload() == json.dumps(expected_payload)
     assert delivery.status == EventDeliveryStatus.PENDING
     assert delivery.event_type == WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
-    assert delivery.payload == payload
     assert delivery.webhook == webhook
-    mock_request.assert_called_once_with(delivery)
     mock_fetch.assert_not_called()
     assert tax_data == parse_tax_data(tax_data_response)

@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 from ....permission.auth_filters import AuthorizationFilters
 from ....permission.enums import AppPermission
 from ....webhook import models
+from ....webhook.const import MAX_FILTERABLE_CHANNEL_SLUGS_LIMIT
 from ....webhook.error_codes import WebhookErrorCode
 from ....webhook.validators import (
     HEADERS_LENGTH_LIMIT,
@@ -15,12 +16,7 @@ from ....webhook.validators import (
 from ...app.dataloaders import get_app_promise
 from ...app.utils import validate_app_is_not_removed
 from ...core import ResolveInfo
-from ...core.descriptions import (
-    ADDED_IN_32,
-    ADDED_IN_312,
-    DEPRECATED_IN_3X_INPUT,
-    PREVIEW_FEATURE,
-)
+from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_WEBHOOKS
 from ...core.fields import JSONString
 from ...core.mutations import ModelMutation
@@ -64,17 +60,14 @@ class WebhookCreateInput(BaseInputObjectType):
         required=False,
     )
     query = graphene.String(
-        description="Subscription query used to define a webhook payload."
-        + ADDED_IN_32,
+        description="Subscription query used to define a webhook payload.",
         required=False,
     )
     custom_headers = JSONString(
         description=f"Custom headers, which will be added to HTTP request. "
         f"There is a limitation of {HEADERS_NUMBER_LIMIT} headers per webhook "
         f"and {HEADERS_LENGTH_LIMIT} characters per header."
-        f"Only `X-*`, `Authorization*`, and `BrokerProperties` keys are allowed."
-        + ADDED_IN_312
-        + PREVIEW_FEATURE,
+        f"Only `X-*`, `Authorization*`, and `BrokerProperties` keys are allowed.",
         required=False,
     )
 
@@ -136,6 +129,17 @@ class WebhookCreate(ModelMutation, NotifyUserEventValidationMixin):
                     code=subscription_query.error_code,
                 )
             instance.subscription_query = query
+            filterable_channel_slugs = subscription_query.get_filterable_channel_slugs()
+            if len(filterable_channel_slugs) > MAX_FILTERABLE_CHANNEL_SLUGS_LIMIT:
+                raise_validation_error(
+                    field="query",
+                    message=(
+                        "Too many channels provided in the filter, the maximum number "
+                        f"is {MAX_FILTERABLE_CHANNEL_SLUGS_LIMIT}"
+                    ),
+                    code=WebhookErrorCode.INVALID,
+                )
+            cleaned_data["filterable_channel_slugs"] = filterable_channel_slugs
 
         if headers := cleaned_data.get("custom_headers"):
             try:

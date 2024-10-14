@@ -12,8 +12,6 @@ from ....attribute.utils import AttrValuesInput, ProductAttributeAssignmentMixin
 from ....channel import ChannelContext
 from ....core import ResolveInfo
 from ....core.descriptions import (
-    ADDED_IN_38,
-    ADDED_IN_310,
     DEPRECATED_IN_3X_INPUT,
     RICH_CONTENT,
 )
@@ -68,18 +66,16 @@ class ProductInput(BaseInputObjectType):
     rating = graphene.Float(description="Defines the product rating value.")
     metadata = NonNullList(
         MetadataInput,
-        description=("Fields required to update the product metadata." + ADDED_IN_38),
+        description=("Fields required to update the product metadata."),
         required=False,
     )
     private_metadata = NonNullList(
         MetadataInput,
-        description=(
-            "Fields required to update the product private metadata." + ADDED_IN_38
-        ),
+        description=("Fields required to update the product private metadata."),
         required=False,
     )
     external_reference = graphene.String(
-        description="External ID of this product." + ADDED_IN_310, required=False
+        description="External ID of this product.", required=False
     )
 
     class Meta:
@@ -183,17 +179,17 @@ class ProductCreate(ModelMutation):
             cleaned_input = validate_slug_and_generate_if_needed(
                 instance, "name", cleaned_input
             )
-        except ValidationError as error:
-            error.code = ProductErrorCode.REQUIRED.value
-            raise ValidationError({"slug": error})
+        except ValidationError as e:
+            e.code = ProductErrorCode.REQUIRED.value
+            raise ValidationError({"slug": e}) from e
 
         if attributes and product_type:
             try:
                 cleaned_input["attributes"] = cls.clean_attributes(
                     attributes, product_type
                 )
-            except ValidationError as exc:
-                raise ValidationError({"attributes": exc})
+            except ValidationError as e:
+                raise ValidationError({"attributes": e}) from e
 
         clean_tax_code(cleaned_input)
 

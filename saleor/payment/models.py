@@ -342,10 +342,8 @@ class Payment(ModelWithMetadata):
         # There is no authorized amount anymore when capture is succeeded
         # since capture can only be made once, even it is a partial capture
         if any(
-            [
-                txn.kind == TransactionKind.CAPTURE and txn.is_success
-                for txn in transactions
-            ]
+            txn.kind == TransactionKind.CAPTURE and txn.is_success
+            for txn in transactions
         ):
             return money
 
@@ -376,12 +374,10 @@ class Payment(ModelWithMetadata):
     @property
     def is_authorized(self):
         return any(
-            [
-                txn.kind == TransactionKind.AUTH
-                and txn.is_success
-                and not txn.action_required
-                for txn in self.transactions.all()
-            ]
+            txn.kind == TransactionKind.AUTH
+            and txn.is_success
+            and not txn.action_required
+            for txn in self.transactions.all()
         )
 
     @property
@@ -447,6 +443,12 @@ class Transaction(models.Model):
 
     class Meta:
         ordering = ("pk",)
+        indexes = [
+            GinIndex(
+                name="token_idx",
+                fields=["token"],
+            ),
+        ]
 
     def __repr__(self):
         return (

@@ -1,5 +1,5 @@
+import datetime
 import json
-from datetime import date, timedelta
 from unittest import mock
 
 import graphene
@@ -161,7 +161,9 @@ def test_activate_expired_gift_card(
 ):
     # given
     gift_card.is_active = False
-    gift_card.expiry_date = date.today() - timedelta(days=1)
+    gift_card.expiry_date = datetime.datetime.now(
+        tz=datetime.UTC
+    ).date() - datetime.timedelta(days=1)
     gift_card.save(update_fields=["expiry_date", "is_active"])
 
     variables = {"id": graphene.Node.to_global_id("GiftCard", gift_card.id)}

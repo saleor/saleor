@@ -7,7 +7,7 @@ from ....plugins import PLUGIN_IDENTIFIER_PREFIX
 from ....tax import error_codes, models
 from ...account.enums import CountryCodeEnum
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_39, ADDED_IN_319
+from ...core.descriptions import ADDED_IN_319
 from ...core.doc_category import DOC_CATEGORY_TAXES
 from ...core.mutations import ModelMutation
 from ...core.types import BaseInputObjectType, Error, NonNullList
@@ -126,7 +126,7 @@ class TaxConfigurationUpdate(ModelMutation):
         )
 
     class Meta:
-        description = "Update tax configuration for a channel." + ADDED_IN_39
+        description = "Update tax configuration for a channel."
         error_type_class = TaxConfigurationUpdateError
         model = models.TaxConfiguration
         object_type = TaxConfiguration
@@ -205,8 +205,10 @@ class TaxConfigurationUpdate(ModelMutation):
         info: ResolveInfo,
         app_identifier,
         active_tax_app_identifiers,
-        country_codes=[],
+        country_codes=None,
     ):
+        if country_codes is None:
+            country_codes = []
         if app_identifier not in active_tax_app_identifiers:
             message = "Did not found Tax App with provided taxAppId."
             code = error_codes.TaxConfigurationUpdateErrorCode.NOT_FOUND.value

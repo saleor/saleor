@@ -27,7 +27,7 @@ class CoreAppConfig(AppConfig):
         try:
             jwt_manager = import_string(jwt_manager_path)
         except ImportError as e:
-            raise ImportError(f"Failed to import JWT manager: {e}.")
+            raise ImportError(f"Failed to import JWT manager: {e}.") from e
 
         validate_method: Optional[Callable[[], None]] = getattr(
             jwt_manager, "validate_configuration", None

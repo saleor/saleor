@@ -14,7 +14,9 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-def get_product_image_thumbnail_url(product_media: Optional["ProductMedia"], size: int):
+def get_product_image_thumbnail_url(
+    product_media: Optional["ProductMedia"], size: int
+) -> str:
     """Return product media image thumbnail or placeholder if there is no image."""
     size = get_thumbnail_size(size)
     if not product_media or not product_media.image:

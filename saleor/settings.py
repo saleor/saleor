@@ -1,8 +1,8 @@
+import datetime
 import logging
 import os
 import os.path
 import warnings
-from datetime import timedelta
 from typing import Optional
 from urllib.parse import urlparse
 
@@ -16,6 +16,7 @@ import sentry_sdk
 import sentry_sdk.utils
 from celery.schedules import crontab
 from django.conf import global_settings
+from django.core.cache import CacheKeyWarning
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.utils import get_random_secret_key
 from django.core.validators import URLValidator
@@ -169,7 +170,10 @@ ENABLE_SSL: bool = get_bool_from_env("ENABLE_SSL", False)
 PUBLIC_URL: Optional[str] = get_url_from_env("PUBLIC_URL", schemes=["http", "https"])
 if PUBLIC_URL:
     if os.environ.get("ENABLE_SSL") is not None:
-        warnings.warn("ENABLE_SSL is ignored on URL generation if PUBLIC_URL is set.")
+        warnings.warn(
+            "ENABLE_SSL is ignored on URL generation if PUBLIC_URL is set.",
+            stacklevel=1,
+        )
     ENABLE_SSL = urlparse(PUBLIC_URL).scheme.lower() == "https"
 
 if ENABLE_SSL:
@@ -231,7 +235,9 @@ PASSWORD_HASHERS = [
 ]
 
 if not SECRET_KEY and DEBUG:
-    warnings.warn("SECRET_KEY not configured, using a random temporary key.")
+    warnings.warn(
+        "SECRET_KEY not configured, using a random temporary key.", stacklevel=1
+    )
     SECRET_KEY = get_random_secret_key()
 
 RSA_PRIVATE_KEY = os.environ.get("RSA_PRIVATE_KEY", None)
@@ -317,7 +323,7 @@ if ENABLE_DEBUG_TOOLBAR:
             f"{exc} -- Install the missing dependencies by "
             f"running `poetry install --no-root`"
         )
-        warnings.warn(msg)
+        warnings.warn(msg, stacklevel=1)
     else:
         INSTALLED_APPS += ["django.forms", "debug_toolbar", "graphiql_debug_toolbar"]
         MIDDLEWARE.append("saleor.graphql.middleware.DebugToolbarMiddleware")
@@ -470,6 +476,7 @@ AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
 AWS_LOCATION = os.environ.get("AWS_LOCATION", "")
 AWS_MEDIA_BUCKET_NAME = os.environ.get("AWS_MEDIA_BUCKET_NAME")
 AWS_MEDIA_CUSTOM_DOMAIN = os.environ.get("AWS_MEDIA_CUSTOM_DOMAIN")
+AWS_MEDIA_PRIVATE_BUCKET_NAME = os.environ.get("AWS_MEDIA_PRIVATE_BUCKET_NAME")
 AWS_QUERYSTRING_AUTH = get_bool_from_env("AWS_QUERYSTRING_AUTH", False)
 AWS_QUERYSTRING_EXPIRE = get_bool_from_env("AWS_QUERYSTRING_EXPIRE", 3600)
 AWS_S3_CUSTOM_DOMAIN = os.environ.get("AWS_STATIC_CUSTOM_DOMAIN")
@@ -484,14 +491,18 @@ AWS_S3_FILE_OVERWRITE = get_bool_from_env("AWS_S3_FILE_OVERWRITE", True)
 # See https://django-storages.readthedocs.io/en/latest/backends/gcloud.html
 GS_PROJECT_ID = os.environ.get("GS_PROJECT_ID")
 GS_BUCKET_NAME = os.environ.get("GS_BUCKET_NAME")
+GS_BUCKET_NAME = os.environ.get("GS_BUCKET_NAME")
 GS_LOCATION = os.environ.get("GS_LOCATION", "")
 GS_CUSTOM_ENDPOINT = os.environ.get("GS_CUSTOM_ENDPOINT")
 GS_MEDIA_BUCKET_NAME = os.environ.get("GS_MEDIA_BUCKET_NAME")
+GS_MEDIA_PRIVATE_BUCKET_NAME = os.environ.get("GS_MEDIA_BUCKET_NAME")
 GS_AUTO_CREATE_BUCKET = get_bool_from_env("GS_AUTO_CREATE_BUCKET", False)
 GS_QUERYSTRING_AUTH = get_bool_from_env("GS_QUERYSTRING_AUTH", False)
 GS_DEFAULT_ACL = os.environ.get("GS_DEFAULT_ACL", None)
 GS_MEDIA_CUSTOM_ENDPOINT = os.environ.get("GS_MEDIA_CUSTOM_ENDPOINT", None)
-GS_EXPIRATION = timedelta(seconds=parse(os.environ.get("GS_EXPIRATION", "1 day")))
+GS_EXPIRATION = datetime.timedelta(
+    seconds=parse(os.environ.get("GS_EXPIRATION", "1 day"))
+)
 GS_FILE_OVERWRITE = get_bool_from_env("GS_FILE_OVERWRITE", True)
 
 # If GOOGLE_APPLICATION_CREDENTIALS is set there is no need to load OAuth token
@@ -504,6 +515,7 @@ if "GOOGLE_APPLICATION_CREDENTIALS" not in os.environ:
 AZURE_ACCOUNT_NAME = os.environ.get("AZURE_ACCOUNT_NAME")
 AZURE_ACCOUNT_KEY = os.environ.get("AZURE_ACCOUNT_KEY")
 AZURE_CONTAINER = os.environ.get("AZURE_CONTAINER")
+AZURE_CONTAINER_PRIVATE = os.environ.get("AZURE_CONTAINER_PRIVATE")
 AZURE_SSL = os.environ.get("AZURE_SSL")
 
 if AWS_STORAGE_BUCKET_NAME:
@@ -517,6 +529,14 @@ elif GS_MEDIA_BUCKET_NAME:
     DEFAULT_FILE_STORAGE = "saleor.core.storages.GCSMediaStorage"
 elif AZURE_CONTAINER:
     DEFAULT_FILE_STORAGE = "saleor.core.storages.AzureMediaStorage"
+
+PRIVATE_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
+if AWS_MEDIA_PRIVATE_BUCKET_NAME:
+    PRIVATE_FILE_STORAGE = "saleor.core.storages.S3MediaPrivateStorage"
+elif GS_MEDIA_PRIVATE_BUCKET_NAME:
+    PRIVATE_FILE_STORAGE = "saleor.core.storages.GCSMediaPrivateStorage"
+elif AZURE_CONTAINER_PRIVATE:
+    PRIVATE_FILE_STORAGE = "saleor.core.storages.AzureMediaPrivateStorage"
 
 PLACEHOLDER_IMAGES = {
     32: "images/placeholder32.png",
@@ -536,18 +556,18 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # Expired checkouts settings - defines after what time checkouts will be deleted
-ANONYMOUS_CHECKOUTS_TIMEDELTA = timedelta(
+ANONYMOUS_CHECKOUTS_TIMEDELTA = datetime.timedelta(
     seconds=parse(os.environ.get("ANONYMOUS_CHECKOUTS_TIMEDELTA", "30 days"))
 )
-USER_CHECKOUTS_TIMEDELTA = timedelta(
+USER_CHECKOUTS_TIMEDELTA = datetime.timedelta(
     seconds=parse(os.environ.get("USER_CHECKOUTS_TIMEDELTA", "90 days"))
 )
-EMPTY_CHECKOUTS_TIMEDELTA = timedelta(
+EMPTY_CHECKOUTS_TIMEDELTA = datetime.timedelta(
     seconds=parse(os.environ.get("EMPTY_CHECKOUTS_TIMEDELTA", "6 hours"))
 )
 
 # Exports settings - defines after what time exported files will be deleted
-EXPORT_FILES_TIMEDELTA = timedelta(
+EXPORT_FILES_TIMEDELTA = datetime.timedelta(
     seconds=parse(os.environ.get("EXPORT_FILES_TIMEDELTA", "30 days"))
 )
 
@@ -561,10 +581,12 @@ CELERY_RESULT_SERIALIZER = "json"
 CELERY_TASK_ALWAYS_EAGER = not CELERY_BROKER_URL
 CELERY_TASK_SERIALIZER = "json"
 CELERY_TIMEZONE = TIME_ZONE
-CELERY_WORKER_PREFETCH_MULTIPLIER = 1
+CELERY_WORKER_PREFETCH_MULTIPLIER = int(
+    os.environ.get("CELERY_WORKER_PREFETCH_MULTIPLIER", 1)
+)
 
 # Expire orders task setting
-BEAT_EXPIRE_ORDERS_AFTER_TIMEDELTA = timedelta(
+BEAT_EXPIRE_ORDERS_AFTER_TIMEDELTA = datetime.timedelta(
     seconds=parse(os.environ.get("BEAT_EXPIRE_ORDERS_AFTER_TIMEDELTA", "5 minutes"))
 )
 
@@ -589,15 +611,15 @@ BEAT_PRICE_RECALCULATION_SCHEDULE_EXPIRE_AFTER_SEC = BEAT_PRICE_RECALCULATION_SC
 CELERY_BEAT_SCHEDULE = {
     "delete-empty-allocations": {
         "task": "saleor.warehouse.tasks.delete_empty_allocations_task",
-        "schedule": timedelta(days=1),
+        "schedule": datetime.timedelta(days=1),
     },
     "deactivate-preorder-for-variants": {
         "task": "saleor.product.tasks.deactivate_preorder_for_variants_task",
-        "schedule": timedelta(hours=1),
+        "schedule": datetime.timedelta(hours=1),
     },
     "delete-expired-reservations": {
         "task": "saleor.warehouse.tasks.delete_expired_reservations_task",
-        "schedule": timedelta(days=1),
+        "schedule": datetime.timedelta(days=1),
     },
     "delete-expired-checkouts": {
         "task": "saleor.checkout.tasks.delete_expired_checkouts",
@@ -609,7 +631,7 @@ CELERY_BEAT_SCHEDULE = {
     },
     "delete-outdated-event-data": {
         "task": "saleor.core.tasks.delete_event_payloads_task",
-        "schedule": timedelta(days=1),
+        "schedule": datetime.timedelta(days=1),
     },
     "deactivate-expired-gift-cards": {
         "task": "saleor.giftcard.tasks.deactivate_expired_cards_task",
@@ -629,12 +651,12 @@ CELERY_BEAT_SCHEDULE = {
     },
     "update-products-search-vectors": {
         "task": "saleor.product.tasks.update_products_search_vector_task",
-        "schedule": timedelta(seconds=BEAT_UPDATE_SEARCH_SEC),
+        "schedule": datetime.timedelta(seconds=BEAT_UPDATE_SEARCH_SEC),
         "options": {"expires": BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC},
     },
     "update-gift-cards-search-vectors": {
         "task": "saleor.giftcard.tasks.update_gift_cards_search_vector_task",
-        "schedule": timedelta(seconds=BEAT_UPDATE_SEARCH_SEC),
+        "schedule": datetime.timedelta(seconds=BEAT_UPDATE_SEARCH_SEC),
         "options": {"expires": BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC},
     },
     "expire-orders": {
@@ -647,19 +669,19 @@ CELERY_BEAT_SCHEDULE = {
     },
     "release-funds-for-abandoned-checkouts": {
         "task": "saleor.payment.tasks.transaction_release_funds_for_checkout_task",
-        "schedule": timedelta(minutes=10),
+        "schedule": datetime.timedelta(minutes=10),
     },
     "recalculate-promotion-rules": {
         "task": (
             "saleor.product.tasks"
             ".update_variant_relations_for_active_promotion_rules_task"
         ),
-        "schedule": timedelta(seconds=BEAT_PRICE_RECALCULATION_SCHEDULE),
+        "schedule": datetime.timedelta(seconds=BEAT_PRICE_RECALCULATION_SCHEDULE),
         "options": {"expires": BEAT_PRICE_RECALCULATION_SCHEDULE_EXPIRE_AFTER_SEC},
     },
     "recalculate-discounted-price-for-products": {
         "task": "saleor.product.tasks.recalculate_discounted_price_for_products_task",
-        "schedule": timedelta(seconds=BEAT_PRICE_RECALCULATION_SCHEDULE),
+        "schedule": datetime.timedelta(seconds=BEAT_PRICE_RECALCULATION_SCHEDULE),
         "options": {"expires": BEAT_PRICE_RECALCULATION_SCHEDULE_EXPIRE_AFTER_SEC},
     },
 }
@@ -669,17 +691,19 @@ CELERY_BEAT_SCHEDULE = {
 # is_due() calls
 CELERY_BEAT_MAX_LOOP_INTERVAL = 300  # 5 minutes
 
-EVENT_PAYLOAD_DELETE_PERIOD = timedelta(
+EVENT_PAYLOAD_DELETE_PERIOD = datetime.timedelta(
     seconds=parse(os.environ.get("EVENT_PAYLOAD_DELETE_PERIOD", "14 days"))
 )
-EVENT_PAYLOAD_DELETE_TASK_TIME_LIMIT = timedelta(
+EVENT_PAYLOAD_DELETE_TASK_TIME_LIMIT = datetime.timedelta(
     seconds=parse(os.environ.get("EVENT_PAYLOAD_DELETE_TASK_TIME_LIMIT", "1 hour"))
 )
 # Time between marking app "to remove" and removing the app from the database.
 # App is not visible for the user after removing, but it still exists in the database.
 # Saleor needs time to process sending `APP_DELETED` webhook and possible retrying,
 # so we need to wait for some time before removing the App from the database.
-DELETE_APP_TTL = timedelta(seconds=parse(os.environ.get("DELETE_APP_TTL", "1 day")))
+DELETE_APP_TTL = datetime.timedelta(
+    seconds=parse(os.environ.get("DELETE_APP_TTL", "1 day"))
+)
 
 
 # Observability settings
@@ -697,10 +721,10 @@ OBSERVABILITY_BUFFER_SIZE_LIMIT = int(
 OBSERVABILITY_BUFFER_BATCH_SIZE = int(
     os.environ.get("OBSERVABILITY_BUFFER_BATCH_SIZE", 100)
 )
-OBSERVABILITY_REPORT_PERIOD = timedelta(
+OBSERVABILITY_REPORT_PERIOD = datetime.timedelta(
     seconds=parse(os.environ.get("OBSERVABILITY_REPORT_PERIOD", "20 seconds"))
 )
-OBSERVABILITY_BUFFER_TIMEOUT = timedelta(
+OBSERVABILITY_BUFFER_TIMEOUT = datetime.timedelta(
     seconds=parse(os.environ.get("OBSERVABILITY_BUFFER_TIMEOUT", "5 minutes"))
 )
 if OBSERVABILITY_ACTIVE:
@@ -712,7 +736,8 @@ if OBSERVABILITY_ACTIVE:
     if OBSERVABILITY_BUFFER_TIMEOUT < OBSERVABILITY_REPORT_PERIOD * 2:
         warnings.warn(
             "OBSERVABILITY_REPORT_PERIOD is too big compared to "
-            "OBSERVABILITY_BUFFER_TIMEOUT. That can lead to a loss of events."
+            "OBSERVABILITY_BUFFER_TIMEOUT. That can lead to a loss of events.",
+            stacklevel=1,
         )
 
 # Change this value if your application is running behind a proxy,
@@ -774,7 +799,6 @@ BUILTIN_PLUGINS = [
     "saleor.payment.gateways.adyen.plugin.AdyenGatewayPlugin",
     "saleor.payment.gateways.authorize_net.plugin.AuthorizeNetGatewayPlugin",
     "saleor.payment.gateways.np_atobarai.plugin.NPAtobaraiGatewayPlugin",
-    "saleor.plugins.invoicing.plugin.InvoicingPlugin",
     "saleor.plugins.user_email.plugin.UserEmailPlugin",
     "saleor.plugins.admin_email.plugin.AdminEmailPlugin",
     "saleor.plugins.sendgrid.plugin.SendgridEmailPlugin",
@@ -842,22 +866,26 @@ CACHES = {"default": django_cache_url.config()}
 CACHES["default"]["TIMEOUT"] = parse(os.environ.get("CACHE_TIMEOUT", "7 days"))
 
 JWT_EXPIRE = True
-JWT_TTL_ACCESS = timedelta(seconds=parse(os.environ.get("JWT_TTL_ACCESS", "5 minutes")))
-JWT_TTL_APP_ACCESS = timedelta(
+JWT_TTL_ACCESS = datetime.timedelta(
+    seconds=parse(os.environ.get("JWT_TTL_ACCESS", "5 minutes"))
+)
+JWT_TTL_APP_ACCESS = datetime.timedelta(
     seconds=parse(os.environ.get("JWT_TTL_APP_ACCESS", "5 minutes"))
 )
-JWT_TTL_REFRESH = timedelta(seconds=parse(os.environ.get("JWT_TTL_REFRESH", "30 days")))
+JWT_TTL_REFRESH = datetime.timedelta(
+    seconds=parse(os.environ.get("JWT_TTL_REFRESH", "30 days"))
+)
 
 
-JWT_TTL_REQUEST_EMAIL_CHANGE = timedelta(
+JWT_TTL_REQUEST_EMAIL_CHANGE = datetime.timedelta(
     seconds=parse(os.environ.get("JWT_TTL_REQUEST_EMAIL_CHANGE", "1 hour")),
 )
 
-CHECKOUT_PRICES_TTL = timedelta(
+CHECKOUT_PRICES_TTL = datetime.timedelta(
     seconds=parse(os.environ.get("CHECKOUT_PRICES_TTL", "1 hour"))
 )
 
-CHECKOUT_TTL_BEFORE_RELEASING_FUNDS = timedelta(
+CHECKOUT_TTL_BEFORE_RELEASING_FUNDS = datetime.timedelta(
     seconds=parse(os.environ.get("CHECKOUT_TTL_BEFORE_RELEASING_FUNDS", "6 hours"))
 )
 CHECKOUT_BATCH_FOR_RELEASING_FUNDS = os.environ.get(
@@ -920,6 +948,11 @@ COLLECTION_PRODUCT_UPDATED_QUEUE_NAME = os.environ.get(
     "COLLECTION_PRODUCT_UPDATED_QUEUE_NAME", None
 )
 
+# Queue name for execution of automatic checkout completion
+AUTOMATIC_CHECKOUT_COMPLETION_QUEUE_NAME = os.environ.get(
+    "AUTOMATIC_CHECKOUT_COMPLETION_QUEUE_NAME", None
+)
+
 # Lock time for request password reset mutation per user (seconds)
 RESET_PASSWORD_LOCK_TIME = parse(
     os.environ.get("RESET_PASSWORD_LOCK_TIME", "15 minutes")
@@ -974,3 +1007,8 @@ ENABLE_LIMITING_WEBHOOKS_FOR_IDENTICAL_PAYLOADS = get_bool_from_env(
 # Transaction items limit for PaymentGatewayInitialize / TransactionInitialize.
 # That setting limits the allowed number of transaction items for single entity.
 TRANSACTION_ITEMS_LIMIT = 100
+
+
+# Disable Django warnings regarding too long cache keys being incompatible with
+# memcached to avoid leaking key values.
+warnings.filterwarnings("ignore", category=CacheKeyWarning)

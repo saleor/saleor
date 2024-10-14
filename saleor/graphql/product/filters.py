@@ -5,7 +5,6 @@ from typing import Optional, TypedDict
 
 import django_filters
 import graphene
-import pytz
 from django.db.models import Exists, FloatField, OuterRef, Q, Subquery, Sum
 from django.db.models.expressions import ExpressionWrapper
 from django.db.models.fields import IntegerField
@@ -35,7 +34,6 @@ from ...product.models import (
 from ...product.search import search_products
 from ...warehouse.models import Allocation, Reservation, Stock, Warehouse
 from ..channel.filters import get_channel_slug_from_filter_data
-from ..core.descriptions import ADDED_IN_38, ADDED_IN_317
 from ..core.doc_category import DOC_CATEGORY_PRODUCTS
 from ..core.filters import (
     BooleanWhereFilter,
@@ -187,13 +185,13 @@ def _clean_product_attributes_date_time_range_filter_input(
         if lte := val_range.get("lte"):
             if not isinstance(lte, datetime.datetime):
                 lte = datetime.datetime.combine(
-                    lte, datetime.datetime.max.time(), tzinfo=pytz.UTC
+                    lte, datetime.datetime.max.time(), tzinfo=datetime.UTC
                 )
             filters["date_time__lte"] = lte
         if gte := val_range.get("gte"):
             if not isinstance(gte, datetime.datetime):
                 gte = datetime.datetime.combine(
-                    gte, datetime.datetime.min.time(), tzinfo=pytz.UTC
+                    gte, datetime.datetime.min.time(), tzinfo=datetime.UTC
                 )
             filters["date_time__gte"] = gte
     return matching_attributes.filter(**filters)
@@ -497,8 +495,7 @@ def filter_has_preordered_variants(qs, _, value):
     )
     if value:
         return qs.filter(Exists(variants.filter(product_id=OuterRef("pk"))))
-    else:
-        return qs.filter(~Exists(variants.filter(product_id=OuterRef("pk"))))
+    return qs.filter(~Exists(variants.filter(product_id=OuterRef("pk"))))
 
 
 def filter_collections(qs, _, value):
@@ -541,7 +538,7 @@ def _filter_products_is_published(qs, _, value, channel_slug):
 
 def _filter_products_is_available(qs, _, value, channel_slug):
     channel = Channel.objects.using(qs.db).filter(slug=channel_slug).values("pk")
-    now = datetime.datetime.now(pytz.UTC)
+    now = datetime.datetime.now(tz=datetime.UTC)
     if value:
         product_channel_listings = (
             ProductChannelListing.objects.using(qs.db)
@@ -752,20 +749,20 @@ class ProductFilter(MetadataFilterBase):
     published_from = ObjectTypeFilter(
         input_class=DateTime,
         method="filter_published_from",
-        help_text=f"Filter by the publication date. {ADDED_IN_38}",
+        help_text="Filter by the publication date.",
     )
     is_available = django_filters.BooleanFilter(
         method="filter_is_available",
-        help_text=f"Filter by availability for purchase. {ADDED_IN_38}",
+        help_text="Filter by availability for purchase.",
     )
     available_from = ObjectTypeFilter(
         input_class=DateTime,
         method="filter_available_from",
-        help_text=f"Filter by the date of availability for purchase. {ADDED_IN_38}",
+        help_text="Filter by the date of availability for purchase.",
     )
     is_visible_in_listing = django_filters.BooleanFilter(
         method="filter_listed",
-        help_text=f"Filter by visibility in product listings. {ADDED_IN_38}",
+        help_text="Filter by visibility in product listings.",
     )
     collections = GlobalIDMultipleChoiceFilter(method=filter_collections)
     categories = GlobalIDMultipleChoiceFilter(method=filter_categories)
@@ -884,7 +881,7 @@ def where_filter_products_is_available(qs, _, value, channel_slug):
     if value is None:
         return qs.none()
     channel = Channel.objects.using(qs.db).filter(slug=channel_slug).values("pk")
-    now = datetime.datetime.now(pytz.UTC)
+    now = datetime.datetime.now(tz=datetime.UTC)
     if value:
         product_channel_listings = (
             ProductChannelListing.objects.using(qs.db)
@@ -1068,8 +1065,7 @@ def where_filter_has_preordered_variants(qs, _, value):
     )
     if value:
         return qs.filter(Exists(variants.filter(product_id=OuterRef("pk"))))
-    else:
-        return qs.filter(~Exists(variants.filter(product_id=OuterRef("pk"))))
+    return qs.filter(~Exists(variants.filter(product_id=OuterRef("pk"))))
 
 
 def where_filter_updated_at_range(qs, _, value):
@@ -1337,7 +1333,7 @@ class CollectionFilter(MetadataFilterBase):
         channel_slug = get_channel_slug_from_filter_data(self.data)
         if value == CollectionPublished.PUBLISHED:
             return _filter_collections_is_published(queryset, name, True, channel_slug)
-        elif value == CollectionPublished.HIDDEN:
+        if value == CollectionPublished.HIDDEN:
             return _filter_collections_is_published(queryset, name, False, channel_slug)
         return queryset
 
@@ -1360,7 +1356,7 @@ class CategoryFilter(MetadataFilterBase):
     updated_at = ObjectTypeFilter(
         input_class=DateTimeRangeInput,
         method=filter_updated_at_range,
-        help_text=f"Filter by when was the most recent update. {ADDED_IN_317}",
+        help_text="Filter by when was the most recent update.",
     )
 
     class Meta:

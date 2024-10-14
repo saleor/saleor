@@ -43,6 +43,7 @@ def test_apps_for_federation_query_count(
         ],
     }
 
+    staff_api_client.ensure_access_token()
     with django_assert_num_queries(4):
         response = staff_api_client.post_graphql(
             query,

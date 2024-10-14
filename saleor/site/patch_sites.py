@@ -33,7 +33,7 @@ def new_get_current(self, request=None):
                 )
                 THREADED_SITE_CACHE[site_id] = site
         return THREADED_SITE_CACHE[site_id]
-    elif request:
+    if request:
         host = request.get_host()
         try:
             # First attempt to look up the site by host with or without port.

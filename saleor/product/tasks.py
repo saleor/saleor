@@ -39,7 +39,7 @@ VARIANTS_UPDATE_BATCH = 500
 # Results in update time ~0.2s
 DISCOUNTED_PRODUCT_BATCH = 2000
 # Results in update time ~2s when 600 channels exist
-PROMOTION_RULE_BATCH_SIZE = 100
+PROMOTION_RULE_BATCH_SIZE = 50
 
 
 def _variants_in_batches(variants_qs):
@@ -90,7 +90,7 @@ def update_variants_names(product_type_pk: int, saved_attributes_ids: list[int])
             settings.DATABASE_CONNECTION_REPLICA_NAME
         ).get(pk=product_type_pk)
     except ObjectDoesNotExist:
-        logging.warning(f"Cannot find product type with id: {product_type_pk}.")
+        logging.warning("Cannot find product type with id: %s.", product_type_pk)
         return
     saved_attributes = Attribute.objects.using(
         settings.DATABASE_CONNECTION_REPLICA_NAME
@@ -110,9 +110,9 @@ def update_products_discounted_prices_of_promotion_task(promotion_pk: UUID):
 
 
 def _get_channel_to_products_map(rule_to_variant_list):
-    variant_ids = set(
-        [rule_to_variant.productvariant_id for rule_to_variant in rule_to_variant_list]
-    )
+    variant_ids = {
+        rule_to_variant.productvariant_id for rule_to_variant in rule_to_variant_list
+    }
     variant_id_with_product_id_qs = (
         ProductVariant.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
         .filter(id__in=variant_ids)
@@ -122,9 +122,9 @@ def _get_channel_to_products_map(rule_to_variant_list):
     for variant_id, product_id in variant_id_with_product_id_qs:
         variant_id_to_product_id_map[variant_id] = product_id
 
-    rule_ids = set(
-        [rule_to_variant.promotionrule_id for rule_to_variant in rule_to_variant_list]
-    )
+    rule_ids = {
+        rule_to_variant.promotionrule_id for rule_to_variant in rule_to_variant_list
+    }
     PromotionChannel = PromotionRule.channels.through
     promotion_channel_qs = (
         PromotionChannel.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
@@ -139,7 +139,12 @@ def _get_channel_to_products_map(rule_to_variant_list):
     for rule_to_variant in rule_to_variant_list:
         channel_ids = rule_to_channels_map[rule_to_variant.promotionrule_id]
         for channel_id in channel_ids:
-            product_id = variant_id_to_product_id_map[rule_to_variant.productvariant_id]
+            try:
+                product_id = variant_id_to_product_id_map[
+                    rule_to_variant.productvariant_id
+                ]
+            except KeyError:
+                continue
             channel_to_products_map[channel_id].add(product_id)
 
     return channel_to_products_map
@@ -241,8 +246,8 @@ def recalculate_discounted_price_for_products_task():
         "id",
         "product_id",
     )
-    products_ids = set([product_id for _, product_id in listing_details])
-    listing_ids = set([listing_id for listing_id, _ in listing_details])
+    products_ids = {product_id for _, product_id in listing_details}
+    listing_ids = {listing_id for listing_id, _ in listing_details}
     if products_ids:
         products = Product.objects.using(
             settings.DATABASE_CONNECTION_REPLICA_NAME

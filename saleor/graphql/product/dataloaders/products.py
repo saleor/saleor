@@ -472,8 +472,10 @@ class MediaByProductVariantIdLoader(DataLoader):
         )
 
         variant_media_pairs = defaultdict(list)
+        media_ids = set()
         for variant_id, media_id in variant_media.iterator():
             variant_media_pairs[variant_id].append(media_id)
+            media_ids.add(media_id)
 
         def map_variant_media(variant_media):
             media_map = {media.id: media for media in variant_media}
@@ -484,7 +486,7 @@ class MediaByProductVariantIdLoader(DataLoader):
 
         return (
             ProductMediaByIdLoader(self.context)
-            .load_many(set(media_id for variant_id, media_id in variant_media))
+            .load_many(media_ids)
             .then(map_variant_media)
         )
 
@@ -515,7 +517,7 @@ class ImagesByProductVariantIdLoader(DataLoader):
 
         return (
             ProductMediaByIdLoader(self.context)
-            .load_many(set(media_id for variant_id, media_id in variant_media))
+            .load_many({media_id for variant_id, media_id in variant_media})
             .then(map_variant_media)
         )
 
@@ -555,7 +557,7 @@ class CollectionsByProductIdLoader(DataLoader):
 
         return (
             CollectionByIdLoader(self.context)
-            .load_many(set(cid for pid, cid in product_collection_pairs))
+            .load_many({cid for pid, cid in product_collection_pairs})
             .then(map_collections)
         )
 

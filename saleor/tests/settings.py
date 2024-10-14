@@ -19,9 +19,8 @@ def lazy_re_compile(regex, flags=0):
         # Compile the regex if it was not passed pre-compiled.
         if isinstance(regex, str):
             return re.compile(regex, flags)
-        else:
-            assert not flags, "flags must be empty if regex is passed pre-compiled"
-            return regex
+        assert not flags, "flags must be empty if regex is passed pre-compiled"
+        return regex
 
     return SimpleLazyObject(_compile)
 
@@ -33,10 +32,6 @@ CELERY_TASK_ALWAYS_EAGER = True
 SECRET_KEY = "NOTREALLY"
 
 ALLOWED_CLIENT_HOSTS = ["www.example.com"]
-
-TIME_ZONE = "America/Chicago"
-LANGUAGE_CODE = "en"
-
 
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 
@@ -104,3 +99,6 @@ ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME = "order_events_queue"
 # Raise error when using writer DB in Celery tasks, without explicit "allow_writer"
 # context manager.
 CELERY_RESTRICT_WRITER_METHOD = "saleor.core.db.connection.restrict_writer"
+
+PRIVATE_FILE_STORAGE = "saleor.tests.storages.PrivateFileSystemStorage"
+PRIVATE_MEDIA_ROOT: str = os.path.join(PROJECT_ROOT, "private-media")  # noqa: F405

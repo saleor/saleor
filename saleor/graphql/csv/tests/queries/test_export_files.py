@@ -2,7 +2,6 @@ import datetime
 
 import graphene
 import pytest
-from django.utils import timezone
 
 from .....account.models import User
 from .....app.models import App
@@ -90,7 +89,7 @@ def test_filter_export_files_by_status(
     ("created_at_filter", "count"),
     [
         ({"createdAt": {"gte": "2019-04-10T00:00:00+00:00"}}, 3),
-        ({"createdAt": {"lte": "2019-04-10T00:00:00+00:00"}}, 2),
+        ({"createdAt": {"lte": "2019-04-10T00:00:00+00:00"}}, 4),
     ],
 )
 def test_filter_export_files_by_created_at_date(
@@ -119,7 +118,7 @@ def test_filter_export_files_by_created_at_date(
     ("ended_at_filter", "count"),
     [
         ({"updatedAt": {"gte": "2019-04-18T00:00:00+00:00"}}, 3),
-        ({"updatedAt": {"lte": "2019-04-18T00:00:00+00:00"}}, 2),
+        ({"updatedAt": {"lte": "2019-04-18T00:00:00+00:00"}}, 4),
     ],
 )
 def test_filter_export_files_by_ended_at_date(
@@ -254,9 +253,7 @@ def test_sort_export_files_query_by_updated_at_date(
     permission_manage_apps,
     staff_user,
 ):
-    user_export_file.updated_at = datetime.datetime(
-        2010, 2, 19, tzinfo=timezone.get_current_timezone()
-    )
+    user_export_file.updated_at = datetime.datetime(2010, 2, 19, tzinfo=datetime.UTC)
     user_export_file.save()
 
     second_export_file = ExportFile.objects.create(user=staff_user)

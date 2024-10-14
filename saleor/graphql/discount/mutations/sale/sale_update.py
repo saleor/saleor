@@ -1,7 +1,6 @@
-from datetime import datetime
+import datetime
 
 import graphene
-import pytz
 from django.core.exceptions import ValidationError
 from django.db.models import Exists, OuterRef
 
@@ -126,9 +125,9 @@ class SaleUpdate(ModelMutation):
         end_date = input.get("end_date") or instance.end_date
         try:
             validate_end_is_after_start(start_date, end_date)
-        except ValidationError as error:
-            error.code = DiscountErrorCode.INVALID.value
-            raise ValidationError({"end_date": error})
+        except ValidationError as e:
+            e.code = DiscountErrorCode.INVALID.value
+            raise ValidationError({"end_date": e}) from e
 
     @classmethod
     def update_fields(
@@ -147,7 +146,7 @@ class SaleUpdate(ModelMutation):
             for rule in rules:
                 rule.reward_value_type = type
 
-        if any([key in CATALOGUE_FIELDS for key in input.keys()]):
+        if any(key in CATALOGUE_FIELDS for key in input.keys()):
             predicate = cls.create_predicate(input)
             for rule in rules:
                 rule.catalogue_predicate = predicate
@@ -235,7 +234,7 @@ class SaleUpdate(ModelMutation):
         and the notification_date is not set or the last notification was sent
         before start or end date.
         """
-        now = datetime.now(pytz.utc)
+        now = datetime.datetime.now(tz=datetime.UTC)
 
         notification_date = instance.last_notification_scheduled_at
         start_date = input.get("start_date")

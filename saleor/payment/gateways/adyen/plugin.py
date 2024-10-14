@@ -258,7 +258,7 @@ class AdyenGatewayPlugin(BasePlugin):
         config = self._get_gateway_config()
         if path.startswith(WEBHOOK_PATH):
             return handle_webhook(request, config)
-        elif path.startswith(ADDITIONAL_ACTION_PATH):
+        if path.startswith(ADDITIONAL_ACTION_PATH):
             with opentracing.global_tracer().start_active_span(
                 "adyen.checkout.payment_details"
             ) as scope:
@@ -407,8 +407,10 @@ class AdyenGatewayPlugin(BasePlugin):
             return previous_value
         try:
             payment = Payment.objects.get(pk=payment_information.payment_id)
-        except ObjectDoesNotExist:
-            raise PaymentError("Payment cannot be performed. Payment does not exists.")
+        except ObjectDoesNotExist as e:
+            raise PaymentError(
+                "Payment cannot be performed. Payment does not exists."
+            ) from e
 
         checkout = payment.checkout
         if checkout is None:
@@ -815,7 +817,7 @@ class AdyenGatewayPlugin(BasePlugin):
                     request_data=request_data,
                     certificate=apple_certificate,
                 )
-            except SSLError:
+            except SSLError as e:
                 raise ValidationError(
                     {
                         "apple-pay-cert": ValidationError(
@@ -823,6 +825,6 @@ class AdyenGatewayPlugin(BasePlugin):
                             code=PluginErrorCode.INVALID.value,
                         )
                     }
-                )
+                ) from e
             except Exception:
                 pass

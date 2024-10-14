@@ -6,7 +6,7 @@ from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.error_codes import ProductErrorCode
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_38, RICH_CONTENT
+from ....core.descriptions import RICH_CONTENT
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.fields import JSONString
 from ....core.mutations import ModelMutation
@@ -33,14 +33,12 @@ class CategoryInput(BaseInputObjectType):
     background_image_alt = graphene.String(description="Alt text for a product media.")
     metadata = NonNullList(
         MetadataInput,
-        description=("Fields required to update the category metadata." + ADDED_IN_38),
+        description=("Fields required to update the category metadata."),
         required=False,
     )
     private_metadata = NonNullList(
         MetadataInput,
-        description=(
-            "Fields required to update the category private metadata." + ADDED_IN_38
-        ),
+        description=("Fields required to update the category private metadata."),
         required=False,
     )
 
@@ -82,9 +80,9 @@ class CategoryCreate(ModelMutation):
             cleaned_input = validate_slug_and_generate_if_needed(
                 instance, "name", cleaned_input
             )
-        except ValidationError as error:
-            error.code = ProductErrorCode.REQUIRED.value
-            raise ValidationError({"slug": error})
+        except ValidationError as e:
+            e.code = ProductErrorCode.REQUIRED.value
+            raise ValidationError({"slug": e}) from e
         parent_id = data["parent_id"]
         if parent_id:
             parent = cls.get_node_or_error(

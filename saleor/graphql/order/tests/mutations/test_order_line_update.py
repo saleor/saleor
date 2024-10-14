@@ -1,5 +1,5 @@
 from decimal import Decimal
-from unittest.mock import call, patch
+from unittest.mock import patch
 
 import graphene
 import pytest
@@ -13,7 +13,6 @@ from .....order.actions import call_order_event
 from .....order.error_codes import OrderErrorCode
 from .....order.models import OrderEvent
 from .....product.models import ProductVariant
-from .....tests.utils import flush_post_commit_hooks
 from .....warehouse.models import Allocation, Stock
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -61,6 +60,7 @@ def test_order_line_update_with_out_of_stock_webhook_for_two_lines_success_scena
     permission_group_manage_orders,
     staff_api_client,
 ):
+    # given
     Stock.objects.update(quantity=5)
     query = ORDER_LINE_UPDATE_MUTATION
     order = order_with_lines
@@ -74,12 +74,13 @@ def test_order_line_update_with_out_of_stock_webhook_for_two_lines_success_scena
 
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
+    # when
     variables = {"lineId": first_line_id, "quantity": new_quantity}
     staff_api_client.post_graphql(query, variables)
-    flush_post_commit_hooks()
     variables = {"lineId": second_line_id, "quantity": new_quantity}
     staff_api_client.post_graphql(query, variables)
 
+    # then
     assert out_of_stock_mock.call_count == 2
     out_of_stock_mock.assert_called_with(Stock.objects.last())
 
@@ -605,7 +606,6 @@ def test_order_line_update_triggers_webhooks(
     permission_group_manage_orders,
     staff_api_client,
     settings,
-    django_capture_on_commit_callbacks,
     status,
     webhook_event,
 ):
@@ -632,21 +632,14 @@ def test_order_line_update_triggers_webhooks(
     variables = {"lineId": first_line_id, "quantity": new_quantity}
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(query, variables)
 
     # then
     content = get_graphql_content(response)
     assert not content["data"]["orderLineUpdate"]["errors"]
 
-    # confirm that event delivery was generated for each webhook.
+    # confirm that event delivery was generated for each async webhook.
     order_delivery = EventDelivery.objects.get(webhook_id=order_webhook.id)
-    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
-    filter_shipping_delivery = EventDelivery.objects.get(
-        webhook_id=shipping_filter_webhook.id,
-        event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
-    )
-
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={"event_delivery_id": order_delivery.id},
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
@@ -654,10 +647,23 @@ def test_order_line_update_triggers_webhooks(
         retry_backoff=10,
         retry_kwargs={"max_retries": 5},
     )
-    mocked_send_webhook_request_sync.assert_has_calls(
-        [
-            call(tax_delivery),
-            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
-        ]
+
+    # confirm each sync webhook was called without saving event delivery
+    assert mocked_send_webhook_request_sync.call_count == 2
+    assert not EventDelivery.objects.exclude(webhook_id=order_webhook.id).exists()
+
+    tax_delivery_call, filter_shipping_call = (
+        mocked_send_webhook_request_sync.mock_calls
     )
+
+    tax_delivery = tax_delivery_call.args[0]
+    assert tax_delivery.webhook_id == tax_webhook.id
+
+    filter_shipping_delivery = filter_shipping_call.args[0]
+    assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
+    assert (
+        filter_shipping_delivery.event_type
+        == WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
+    )
+
     assert wrapped_call_order_event.called

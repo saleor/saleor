@@ -2,6 +2,7 @@ from collections.abc import Iterable
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.db.models import Exists, OuterRef, Subquery
 from django.db.models.fields import IntegerField
 from django.db.models.functions import Coalesce
@@ -21,7 +22,6 @@ from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_38
 from ...core.mutations import ModelBulkDeleteMutation
 from ...core.types import NonNullList, ProductError
 from ...core.validators import validate_one_of_args_is_in_mutation
@@ -40,7 +40,7 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
         skus = NonNullList(
             graphene.String,
             required=False,
-            description="List of product variant SKUs to delete." + ADDED_IN_38,
+            description="List of product variant SKUs to delete.",
         )
 
     class Meta:
@@ -87,43 +87,59 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
 
         draft_order_lines_data = get_draft_order_lines_data_for_variants(pks)
 
-        product_pks = list(
+        # we want db to perform distinct, distinct is not supported with
+        # select_for_update
+        product_pks = tuple(
             models.Product.objects.filter(variants__in=pks)
             .distinct()
             .values_list("pk", flat=True)
         )
-
-        # Get cached variants with related fields to fully populate webhook payload.
-        variants = list(
-            models.ProductVariant.objects.filter(id__in=pks).prefetch_related(
-                "channel_listings",
-                "attributes__values",
-                "variant_media",
+        with transaction.atomic():
+            # Get cached variants with related fields to fully populate webhook payload.
+            variants = tuple(
+                models.ProductVariant.objects.order_by("pk")
+                .select_for_update()
+                .filter(id__in=pks)
+                .prefetch_related(
+                    "channel_listings",
+                    "attributes__values",
+                    "variant_media",
+                )
             )
-        )
-
-        cls.delete_assigned_attribute_values(pks)
-        cls.delete_product_channel_listings_without_available_variants(product_pks, pks)
-        response = super().perform_mutation(_root, info, ids=ids, **data)
-
-        # delete order lines for deleted variants
-        order_models.OrderLine.objects.filter(
-            pk__in=draft_order_lines_data.line_pks
-        ).delete()
-
-        app = get_app_promise(info.context).get()
-        # run order event for deleted lines
-        for order, order_lines in draft_order_lines_data.order_to_lines_mapping.items():
-            order_events.order_line_variant_removed_event(
-                order, info.context.user, app, order_lines
+            product_pks = tuple(
+                models.Product.objects.order_by("pk")
+                .select_for_update(of=("self",))
+                .filter(pk__in=product_pks)
+                .values_list("pk", flat=True)
             )
+
+            cls.delete_assigned_attribute_values(pks)
+            cls.delete_product_channel_listings_without_available_variants(
+                product_pks, pks
+            )
+            response = super().perform_mutation(_root, info, ids=ids, **data)
+
+            # delete order lines for deleted variants, they are ordered by Meta
+            order_models.OrderLine.objects.select_for_update(of=("self",)).filter(
+                pk__in=draft_order_lines_data.line_pks
+            ).delete()
+
+            app = get_app_promise(info.context).get()
+            # run order event for deleted lines
+            for (
+                order,
+                order_lines,
+            ) in draft_order_lines_data.order_to_lines_mapping.items():
+                order_events.order_line_variant_removed_event(
+                    order, info.context.user, app, order_lines
+                )
 
         order_pks = draft_order_lines_data.order_pks
         if order_pks:
             recalculate_orders_task.delay(list(order_pks))
 
         # set new product default variant if any has been removed
-        products = models.Product.objects.filter(
+        products = models.Product.objects.order_by("pk").filter(
             pk__in=product_pks, default_variant__isnull=True
         )
         for product in products:
@@ -163,20 +179,29 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
         ).exclude(id__in=variant_pks)
 
         variant_subquery = Subquery(
-            queryset=variants.filter(id=OuterRef("variant_id")).values("product_id"),
+            queryset=variants.filter(id=OuterRef("variant_id"))
+            .order_by("pk")
+            .values("product_id"),
             output_field=IntegerField(),
         )
         variant_channel_listings = models.ProductVariantChannelListing.objects.annotate(
             product_id=Coalesce(variant_subquery, 0)
         )
 
-        invalid_product_channel_listings = models.ProductChannelListing.objects.filter(
-            product_id__in=product_pks
-        ).exclude(
-            Exists(
-                variant_channel_listings.filter(
-                    channel_id=OuterRef("channel_id"), product_id=OuterRef("product_id")
+        invalid_product_channel_listings_pks = tuple(
+            models.ProductChannelListing.objects.order_by("pk")
+            .select_for_update()
+            .filter(product_id__in=product_pks)
+            .exclude(
+                Exists(
+                    variant_channel_listings.filter(
+                        channel_id=OuterRef("channel_id"),
+                        product_id=OuterRef("product_id"),
+                    )
                 )
             )
+            .values_list("id", flat=True)
         )
-        invalid_product_channel_listings.delete()
+        models.ProductChannelListing.objects.filter(
+            pk__in=invalid_product_channel_listings_pks
+        ).delete()

@@ -1,4 +1,4 @@
-from unittest.mock import call, patch
+from unittest.mock import patch
 
 import graphene
 from django.test import override_settings
@@ -85,7 +85,7 @@ def test_order_update(
     assert order.user is None
     assert order.status == OrderStatus.UNFULFILLED
     assert order.external_reference == external_reference
-    order_updated_webhook_mock.assert_called_once_with(order)
+    order_updated_webhook_mock.assert_called_once_with(order, webhooks=set())
 
 
 def test_order_update_by_user_no_channel_access(
@@ -171,7 +171,7 @@ def test_order_update_by_app(
     assert order.user is None
     assert order.status == OrderStatus.UNFULFILLED
     assert order.external_reference == external_reference
-    order_updated_webhook_mock.assert_called_once_with(order)
+    order_updated_webhook_mock.assert_called_once_with(order, webhooks=set())
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
@@ -535,7 +535,6 @@ def test_order_update_triggers_webhooks(
     order_with_lines,
     graphql_address_data,
     settings,
-    django_capture_on_commit_callbacks,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = []
@@ -557,21 +556,14 @@ def test_order_update_triggers_webhooks(
     }
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(ORDER_UPDATE_MUTATION, variables)
+    response = staff_api_client.post_graphql(ORDER_UPDATE_MUTATION, variables)
 
     # then
     content = get_graphql_content(response)
     assert not content["data"]["orderUpdate"]["errors"]
 
-    # confirm that event delivery was generated for each webhook.
+    # confirm that event delivery was generated for each async webhook.
     order_delivery = EventDelivery.objects.get(webhook_id=order_webhook.id)
-    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
-    filter_shipping_delivery = EventDelivery.objects.get(
-        webhook_id=shipping_filter_webhook.id,
-        event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
-    )
-
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={"event_delivery_id": order_delivery.id},
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
@@ -579,10 +571,23 @@ def test_order_update_triggers_webhooks(
         retry_backoff=10,
         retry_kwargs={"max_retries": 5},
     )
-    mocked_send_webhook_request_sync.assert_has_calls(
-        [
-            call(tax_delivery),
-            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
-        ]
+
+    # confirm each sync webhook was called without saving event delivery
+    assert mocked_send_webhook_request_sync.call_count == 2
+    assert not EventDelivery.objects.exclude(webhook_id=order_webhook.id).exists()
+
+    tax_delivery_call, filter_shipping_call = (
+        mocked_send_webhook_request_sync.mock_calls
     )
+
+    tax_delivery = tax_delivery_call.args[0]
+    assert tax_delivery.webhook_id == tax_webhook.id
+
+    filter_shipping_delivery = filter_shipping_call.args[0]
+    assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
+    assert (
+        filter_shipping_delivery.event_type
+        == WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
+    )
+
     assert wrapped_call_order_event.called

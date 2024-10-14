@@ -49,7 +49,7 @@ class ConfirmAccount(BaseMutation):
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         try:
             user = models.User.objects.get(email=data["email"])
-        except ObjectDoesNotExist:
+        except ObjectDoesNotExist as e:
             raise ValidationError(
                 {
                     "email": ValidationError(
@@ -57,7 +57,7 @@ class ConfirmAccount(BaseMutation):
                         code=AccountErrorCode.NOT_FOUND.value,
                     )
                 }
-            )
+            ) from e
 
         if not default_token_generator.check_token(user, data["token"]):
             raise ValidationError(

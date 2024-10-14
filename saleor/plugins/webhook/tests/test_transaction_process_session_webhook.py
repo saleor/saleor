@@ -104,14 +104,13 @@ def _assert_with_static_payload(
 
 def _assert_fields(payload, webhook, expected_response, response, mock_request):
     webhook_app = webhook.app
-    event_payload = EventPayload.objects.get()
-    assert json.loads(event_payload.payload) == payload
-    delivery = EventDelivery.objects.get()
+    mock_request.assert_called_once()
+    assert not EventDelivery.objects.exists()
+    delivery = mock_request.mock_calls[0].args[0]
+    assert json.loads(delivery.payload.get_payload()) == payload
     assert delivery.status == EventDeliveryStatus.PENDING
     assert delivery.event_type == WebhookEventSyncType.TRANSACTION_PROCESS_SESSION
-    assert delivery.payload == event_payload
     assert delivery.webhook == webhook
-    mock_request.assert_called_once_with(delivery)
     assert response == TransactionSessionResult(
         app_identifier=webhook_app.identifier, response=expected_response, error=None
     )

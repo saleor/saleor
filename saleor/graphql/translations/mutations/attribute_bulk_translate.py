@@ -5,7 +5,6 @@ from graphql.error import GraphQLError
 from ....attribute import models
 from ....permission.enums import SitePermissions
 from ...attribute.types import AttributeTranslation
-from ...core.descriptions import ADDED_IN_314, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ...core.enums import AttributeTranslateErrorCode, LanguageCodeEnum
 from ...core.types import (
@@ -70,11 +69,7 @@ class AttributeBulkTranslate(BaseBulkTranslateMutation):
         )
 
     class Meta:
-        description = (
-            "Creates/updates translations for attributes."
-            + ADDED_IN_314
-            + PREVIEW_FEATURE
-        )
+        description = "Creates/updates translations for attributes."
         base_model = models.Attribute
         translation_model = models.AttributeTranslation
         translation_fields = ["name"]

@@ -1,5 +1,5 @@
+import datetime
 import logging
-from datetime import timedelta
 
 from django.conf import settings
 from django.db.models import Exists, F, Func, OuterRef, Subquery, Value
@@ -17,7 +17,7 @@ from ..warehouse.management import deallocate_stock_for_orders
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..webhook.utils import get_webhooks_for_multiple_events
 from . import OrderEvents, OrderStatus
-from .actions import call_order_event
+from .actions import call_order_event, call_order_events
 from .models import Order, OrderEvent
 from .utils import invalidate_order_prices
 
@@ -55,7 +55,6 @@ def send_order_updated(order_ids):
     for order in Order.objects.filter(id__in=order_ids):
         call_order_event(
             manager,
-            manager.order_updated,
             WebhookEventAsyncType.ORDER_UPDATED,
             order,
             webhook_event_map=webhook_event_map,
@@ -84,8 +83,8 @@ def _bulk_release_voucher_usage(order_ids):
     suspected_codes = [code.code for code in codes if code.used < code.order_count]
     if suspected_codes:
         logger.error(
-            f"Voucher codes: [{','.join(suspected_codes)}] have been used more times "
-            f"than indicated by `code.used` field."
+            "Voucher codes: [%s] have been used more times than indicated by `code.used` field.",
+            ",".join(suspected_codes),
         )
 
     codes.update(used=Greatest(F("used") - F("order_count"), 0))
@@ -110,21 +109,16 @@ def _call_expired_order_events(order_ids, manager):
         [
             WebhookEventAsyncType.ORDER_EXPIRED,
             WebhookEventAsyncType.ORDER_UPDATED,
-            # *WebhookEventSyncType.ORDER_EVENTS,
+            *WebhookEventSyncType.ORDER_EVENTS,
         ]
     )
     for order in orders:
-        call_order_event(
+        call_order_events(
             manager,
-            manager.order_expired,
-            WebhookEventAsyncType.ORDER_EXPIRED,
-            order,
-            webhook_event_map=webhook_event_map,
-        )
-        call_order_event(
-            manager,
-            manager.order_updated,
-            WebhookEventAsyncType.ORDER_UPDATED,
+            [
+                WebhookEventAsyncType.ORDER_EXPIRED,
+                WebhookEventAsyncType.ORDER_UPDATED,
+            ],
             order,
             webhook_event_map=webhook_event_map,
         )
@@ -187,7 +181,7 @@ def delete_expired_orders_task():
     channel_qs = Channel.objects.using(
         settings.DATABASE_CONNECTION_REPLICA_NAME
     ).filter(
-        delete_expired_orders_after__gt=timedelta(),
+        delete_expired_orders_after__gt=datetime.timedelta(),
         id=OuterRef("channel"),
     )
 

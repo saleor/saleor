@@ -8,6 +8,7 @@ from urllib.parse import urlparse
 from celery import group
 from celery.utils.log import get_task_logger
 from django.conf import settings
+from django.db import transaction
 
 from ....celeryconf import app
 from ....core import EventDeliveryStatus
@@ -75,6 +76,7 @@ def create_deliveries_for_subscriptions(
         return []
 
     event_payloads = []
+    event_payloads_data = []
     event_deliveries = []
 
     # Dataloaders are shared between calls to generate_payload_from_subscription to
@@ -121,7 +123,9 @@ def create_deliveries_for_subscriptions(
                 )
                 continue
 
-        event_payload = EventPayload(payload=json.dumps({**data}))
+        payload_data = json.dumps({**data})
+        event_payloads_data.append(payload_data)
+        event_payload = EventPayload()
         event_payloads.append(event_payload)
         event_deliveries.append(
             EventDelivery(
@@ -133,8 +137,12 @@ def create_deliveries_for_subscriptions(
         )
 
     with allow_writer():
-        EventPayload.objects.bulk_create(event_payloads)
-        return EventDelivery.objects.bulk_create(event_deliveries)
+        # Use transaction to ensure EventPayload and EventDelivery are created together, preventing inconsistent DB state.
+        with transaction.atomic():
+            EventPayload.objects.bulk_create_with_payload_files(
+                event_payloads, event_payloads_data
+            )
+            return EventDelivery.objects.bulk_create(event_deliveries)
 
 
 def group_webhooks_by_subscription(webhooks):
@@ -208,14 +216,16 @@ def trigger_webhooks_async(
             raise NotImplementedError("No payload was provided for regular webhooks.")
 
         with allow_writer():
-            payload = EventPayload.objects.create(payload=data)
-            deliveries.extend(
-                create_event_delivery_list_for_webhooks(
-                    webhooks=regular_webhooks,
-                    event_payload=payload,
-                    event_type=event_type,
+            # Use transaction to ensure EventPayload and EventDelivery are created together, preventing inconsistent DB state.
+            with transaction.atomic():
+                payload = EventPayload.objects.create_with_payload_file(data)
+                deliveries.extend(
+                    create_event_delivery_list_for_webhooks(
+                        webhooks=regular_webhooks,
+                        event_payload=payload,
+                        event_type=event_type,
+                    )
                 )
-            )
     if subscription_webhooks:
         deliveries.extend(
             create_deliveries_for_subscriptions(
@@ -248,10 +258,10 @@ def trigger_webhooks_async(
     retry_kwargs={"max_retries": 5},
 )
 @allow_writer()
-def send_webhook_request_async(self, event_delivery_id):
+def send_webhook_request_async(self, event_delivery_id) -> None:
     delivery = get_delivery_for_webhook(event_delivery_id)
     if not delivery:
-        return None
+        return
 
     webhook = delivery.webhook
     domain = get_domain()
@@ -262,7 +272,7 @@ def send_webhook_request_async(self, event_delivery_id):
             raise ValueError(
                 f"Event delivery id: %{event_delivery_id}r has no payload."
             )
-        data = delivery.payload.payload
+        data = delivery.payload.get_payload()
         with webhooks_opentracing_trace(delivery.event_type, domain, app=webhook.app):
             response = send_webhook_using_scheme_method(
                 webhook.target_url,

@@ -68,5 +68,5 @@ def get_multipart_request_body_with_multiple_files(query, variables, files, map_
             {"query": query, "variables": variables}, cls=DjangoJSONEncoder
         ),
         "map": json.dumps(map_dict, cls=DjangoJSONEncoder),
-        **{index: file for index, file in enumerate(files)},
+        **dict(enumerate(files)),
     }

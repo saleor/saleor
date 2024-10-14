@@ -1,7 +1,7 @@
 import graphene
 from django.forms import ValidationError
 
-from ....checkout.actions import call_checkout_event_for_checkout
+from ....checkout.actions import call_checkout_event
 from ....checkout.error_codes import CheckoutErrorCode
 from ....core.exceptions import PermissionDenied
 from ....permission.auth_filters import AuthorizationFilters
@@ -9,7 +9,7 @@ from ....permission.enums import AccountPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...account.types import User
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
@@ -26,7 +26,7 @@ class CheckoutCustomerAttach(BaseMutation):
 
     class Arguments:
         id = graphene.ID(
-            description="The checkout's ID." + ADDED_IN_34,
+            description="The checkout's ID.",
             required=False,
         )
         token = UUID(
@@ -118,9 +118,8 @@ class CheckoutCustomerAttach(BaseMutation):
         checkout.save(update_fields=["email", "user", "last_change"])
         manager = get_plugin_manager_promise(info.context).get()
 
-        call_checkout_event_for_checkout(
+        call_checkout_event(
             manager,
-            event_func=manager.checkout_updated,
             event_name=WebhookEventAsyncType.CHECKOUT_UPDATED,
             checkout=checkout,
         )

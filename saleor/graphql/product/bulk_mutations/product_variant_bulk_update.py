@@ -3,7 +3,7 @@ from typing import cast
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db.models import F
+from django.db.models import F, Subquery
 from django.utils import timezone
 from graphene.utils.str_converters import to_camel_case
 
@@ -16,7 +16,6 @@ from ....warehouse import models as warehouse_models
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
 from ...attribute.utils import AttributeAssignmentMixin
-from ...core.descriptions import ADDED_IN_311, ADDED_IN_312, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.enums import ErrorPolicyEnum
 from ...core.mutations import BaseMutation, ModelMutation
@@ -102,18 +101,18 @@ class ProductVariantBulkUpdateInput(ProductVariantBulkCreateInput):
     )
     stocks = graphene.Field(
         ProductVariantStocksUpdateInput,
-        description="Stocks input." + ADDED_IN_312 + PREVIEW_FEATURE,
+        description="Stocks input.",
         required=False,
     )
 
     channel_listings = graphene.Field(
         ProductVariantChannelListingUpdateInput,
-        description="Channel listings input." + ADDED_IN_312 + PREVIEW_FEATURE,
+        description="Channel listings input.",
         required=False,
     )
 
     class Meta:
-        description = "Input fields to update product variants." + ADDED_IN_311
+        description = "Input fields to update product variants."
         doc_category = DOC_CATEGORY_PRODUCTS
 
 
@@ -150,9 +149,7 @@ class ProductVariantBulkUpdate(BaseMutation):
         )
 
     class Meta:
-        description = (
-            "Update multiple product variants." + ADDED_IN_311 + PREVIEW_FEATURE
-        )
+        description = "Update multiple product variants."
         doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductVariantBulkError
@@ -636,7 +633,7 @@ class ProductVariantBulkUpdate(BaseMutation):
 
     @classmethod
     @traced_atomic_transaction()
-    def save_variants(cls, variants_data_with_errors_list):
+    def save_variants(cls, variants_data_with_errors_list, error_policy):
         variants_to_update: list = []
         stocks_to_create: list = []
         stocks_to_update: list = []
@@ -686,7 +683,12 @@ class ProductVariantBulkUpdate(BaseMutation):
                 "external_reference",
             ],
         )
-        warehouse_models.Stock.objects.bulk_create(stocks_to_create)
+        if error_policy == ErrorPolicyEnum.REJECT_EVERYTHING.value:
+            warehouse_models.Stock.objects.bulk_create(stocks_to_create)
+        else:
+            warehouse_models.Stock.objects.bulk_create(
+                stocks_to_create, ignore_conflicts=True
+            )
         warehouse_models.Stock.objects.bulk_update(stocks_to_update, ["quantity"])
         models.ProductVariantChannelListing.objects.bulk_create(listings_to_create)
         models.ProductVariantChannelListing.objects.bulk_update(
@@ -699,8 +701,15 @@ class ProductVariantBulkUpdate(BaseMutation):
             ],
         )
         warehouse_models.Stock.objects.filter(id__in=stocks_to_remove).delete()
+        locked_ids = (
+            models.ProductVariantChannelListing.objects.filter(
+                id__in=listings_to_remove
+            )
+            .select_for_update(of=("self",))
+            .order_by("pk")
+        )
         models.ProductVariantChannelListing.objects.filter(
-            id__in=listings_to_remove
+            id__in=Subquery(locked_ids.values("pk"))
         ).delete()
 
     @classmethod
@@ -803,7 +812,7 @@ class ProductVariantBulkUpdate(BaseMutation):
         )
 
         # check error policy
-        if any([bool(error) for error in index_error_map.values()]):
+        if any(bool(error) for error in index_error_map.values()):
             if error_policy == ErrorPolicyEnum.REJECT_EVERYTHING.value:
                 results = get_results(instances_data_with_errors_list, True)
                 return ProductVariantBulkUpdate(count=0, results=results)
@@ -814,7 +823,7 @@ class ProductVariantBulkUpdate(BaseMutation):
                         data["instance"] = None
 
         # save all objects
-        cls.save_variants(instances_data_with_errors_list)
+        cls.save_variants(instances_data_with_errors_list, error_policy)
 
         # prepare and return data
         results = get_results(instances_data_with_errors_list)

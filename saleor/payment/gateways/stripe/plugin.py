@@ -179,10 +179,9 @@ class StripeGatewayPlugin(BasePlugin):
     ) -> Optional[str]:
         if store_payment_method == StorePaymentMethodEnum.ON_SESSION:
             return "on_session"
-        elif store_payment_method == StorePaymentMethodEnum.OFF_SESSION:
+        if store_payment_method == StorePaymentMethodEnum.OFF_SESSION:
             return "off_session"
-        else:
-            return None
+        return None
 
     def process_payment(
         self, payment_information: "PaymentData", previous_value
@@ -560,7 +559,7 @@ class StripeGatewayPlugin(BasePlugin):
         configuration = {item["name"]: item["value"] for item in configuration}
         required_fields = ["secret_api_key", "public_api_key"]
         all_required_fields_provided = all(
-            [configuration.get(field) for field in required_fields]
+            configuration.get(field) for field in required_fields
         )
         if plugin_configuration.active:
             if not all_required_fields_provided:

@@ -28,8 +28,10 @@ class Command(BaseCommand):
         url_validator = AppURLValidator()
         try:
             url_validator(manifest_url)
-        except ValidationError:
-            raise CommandError(f"Incorrect format of manifest-url: {manifest_url}")
+        except ValidationError as e:
+            raise CommandError(
+                f"Incorrect format of manifest-url: {manifest_url}"
+            ) from e
 
     def handle(self, *args: Any, **options: Any) -> Optional[str]:
         activate = options["activate"]
@@ -47,7 +49,9 @@ class Command(BaseCommand):
             app_job.permissions.set(permissions)
 
         try:
-            _, token = install_app(app_job, activate)
+            app, token = install_app(app_job, activate)
+            app.is_installed = True
+            app.save(update_fields=["is_installed"])
             app_job.delete()
         except Exception as e:
             app_job.status = JobStatus.FAILED

@@ -87,8 +87,8 @@ def api_call(
     try:
         return method(request_data, **kwargs)
     except (Adyen.AdyenError, ValueError, TypeError, ConnectTimeout) as e:
-        logger.warning(f"Unable to process the payment: {e}")
-        raise PaymentError(f"Unable to process the payment request: {e}.")
+        logger.warning("Unable to process the payment: %s", e)
+        raise PaymentError(f"Unable to process the payment request: {e}.") from e
 
 
 def prepare_address_request_data(address: Optional["AddressData"]) -> Optional[dict]:

@@ -1,5 +1,5 @@
+import datetime
 import logging
-from datetime import timedelta
 from unittest import mock
 from unittest.mock import call, patch
 
@@ -13,7 +13,7 @@ from ...discount.models import VoucherCustomer
 from ...warehouse.models import Allocation
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from .. import OrderEvents, OrderStatus
-from ..actions import call_order_event
+from ..actions import call_order_event, call_order_events
 from ..models import Order, OrderEvent, get_order_number
 from ..tasks import (
     _bulk_release_voucher_usage,
@@ -40,18 +40,18 @@ def test_expire_orders_task_check_voucher(
 
     order_1 = order_list[0]
     order_1.status = OrderStatus.UNCONFIRMED
-    order_1.created_at = now - timezone.timedelta(minutes=10)
+    order_1.created_at = now - datetime.timedelta(minutes=10)
     order_1.voucher_code = code.code
     order_1.save()
 
     order_2 = order_list[1]
     order_2.status = OrderStatus.UNCONFIRMED
-    order_2.created_at = now - timezone.timedelta(minutes=10)
+    order_2.created_at = now - datetime.timedelta(minutes=10)
     order_2.voucher_code = code.code
     order_2.save()
 
     order_3 = order_list[2]
-    order_3.created_at = now - timezone.timedelta(minutes=10)
+    order_3.created_at = now - datetime.timedelta(minutes=10)
     order_3.status = OrderStatus.UNFULFILLED
     order_3.voucher_code = code.code
     order_3.save()
@@ -106,18 +106,18 @@ def test_expire_orders_task_check_multiple_vouchers(
 
     order_1 = order_list[0]
     order_1.status = OrderStatus.UNCONFIRMED
-    order_1.created_at = now - timezone.timedelta(minutes=10)
+    order_1.created_at = now - datetime.timedelta(minutes=10)
     order_1.voucher_code = code.code
     order_1.save()
 
     order_2 = order_list[1]
     order_2.status = OrderStatus.UNCONFIRMED
-    order_2.created_at = now - timezone.timedelta(minutes=10)
+    order_2.created_at = now - datetime.timedelta(minutes=10)
     order_2.voucher_code = code_percentage.code
     order_2.save()
 
     order_3 = order_list[2]
-    order_3.created_at = now - timezone.timedelta(minutes=10)
+    order_3.created_at = now - datetime.timedelta(minutes=10)
     order_3.status = OrderStatus.UNFULFILLED
     order_3.voucher_code = code.code
     order_3.save()
@@ -160,12 +160,12 @@ def test_expire_orders_task_creates_order_events(order_list, allocations, channe
     order_1.save()
 
     order_2 = order_list[1]
-    order_2.created_at = now - timezone.timedelta(minutes=120)
+    order_2.created_at = now - datetime.timedelta(minutes=120)
     order_2.status = OrderStatus.UNCONFIRMED
     order_2.save()
 
     order_3 = order_list[2]
-    order_3.created_at = now - timezone.timedelta(minutes=120)
+    order_3.created_at = now - datetime.timedelta(minutes=120)
     order_3.status = OrderStatus.UNFULFILLED
     order_3.save()
 
@@ -207,16 +207,16 @@ def test_expire_orders_task_with_transaction_item(
 
     order_1 = order_list[0]
     order_1.status = OrderStatus.UNCONFIRMED
-    order_1.created_at = now - timezone.timedelta(minutes=10)
+    order_1.created_at = now - datetime.timedelta(minutes=10)
     order_1.save()
 
     order_2 = order_list[1]
     order_2.status = OrderStatus.UNCONFIRMED
-    order_2.created_at = now - timezone.timedelta(minutes=10)
+    order_2.created_at = now - datetime.timedelta(minutes=10)
     order_2.save()
 
     order_3 = order_list[2]
-    order_3.created_at = now - timezone.timedelta(minutes=10)
+    order_3.created_at = now - datetime.timedelta(minutes=10)
     order_3.status = OrderStatus.UNFULFILLED
     order_3.save()
 
@@ -258,16 +258,16 @@ def test_expire_orders_task_with_payment(
 
     order_1 = order_list[0]
     order_1.status = OrderStatus.UNCONFIRMED
-    order_1.created_at = now - timezone.timedelta(minutes=10)
+    order_1.created_at = now - datetime.timedelta(minutes=10)
     order_1.save()
 
     order_2 = order_list[1]
     order_2.status = OrderStatus.UNCONFIRMED
-    order_2.created_at = now - timezone.timedelta(minutes=10)
+    order_2.created_at = now - datetime.timedelta(minutes=10)
     order_2.save()
 
     order_3 = order_list[2]
-    order_3.created_at = now - timezone.timedelta(minutes=10)
+    order_3.created_at = now - datetime.timedelta(minutes=10)
     order_3.status = OrderStatus.UNFULFILLED
     order_3.save()
 
@@ -351,12 +351,12 @@ def test_expire_orders_task_after(order_list, allocations, channel_USD):
     order_1.save()
 
     order_2 = order_list[1]
-    order_2.created_at = now - timezone.timedelta(minutes=120)
+    order_2.created_at = now - datetime.timedelta(minutes=120)
     order_2.status = OrderStatus.UNCONFIRMED
     order_2.save()
 
     order_3 = order_list[2]
-    order_3.created_at = now - timezone.timedelta(minutes=120)
+    order_3.created_at = now - datetime.timedelta(minutes=120)
     order_3.status = OrderStatus.UNFULFILLED
     order_3.save()
 
@@ -381,10 +381,93 @@ def test_expire_orders_task_after(order_list, allocations, channel_USD):
     ).exists()
 
 
+@patch(
+    "saleor.order.tasks.call_order_events",
+    wraps=call_order_events,
+)
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_expire_orders_task_do_not_call_sync_webhooks(
+    mocked_send_webhook_request_async,
+    mocked_send_webhook_request_sync,
+    wrapped_call_order_events,
+    setup_order_webhooks,
+    order_list,
+    channel_USD,
+    settings,
+    django_capture_on_commit_callbacks,
+):
+    # given
+    (
+        tax_webhook,
+        shipping_filter_webhook,
+        additional_order_webhook,
+    ) = setup_order_webhooks(
+        [
+            WebhookEventAsyncType.ORDER_UPDATED,
+            WebhookEventAsyncType.ORDER_EXPIRED,
+        ]
+    )
+
+    channel_USD.expire_orders_after = 60
+    channel_USD.save()
+
+    now = timezone.now()
+    order_1 = order_list[0]
+    order_1.created_at = now
+    order_1.status = OrderStatus.UNCONFIRMED
+    order_1.save()
+
+    order_2 = order_list[1]
+    order_2.created_at = now - datetime.timedelta(minutes=120)
+    order_2.status = OrderStatus.UNCONFIRMED
+    order_2.save()
+
+    order_3 = order_list[2]
+    order_3.created_at = now - datetime.timedelta(minutes=120)
+    order_3.status = OrderStatus.UNFULFILLED
+    order_3.save()
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        expire_orders_task()
+
+    # then
+    order_expired_delivery = EventDelivery.objects.get(
+        webhook_id=additional_order_webhook.id,
+        event_type=WebhookEventAsyncType.ORDER_EXPIRED,
+    )
+    order_updated_delivery = EventDelivery.objects.get(
+        webhook_id=additional_order_webhook.id,
+        event_type=WebhookEventAsyncType.ORDER_UPDATED,
+    )
+    order_deliveries = [order_updated_delivery, order_expired_delivery]
+
+    mocked_send_webhook_request_async.assert_has_calls(
+        [
+            call(
+                kwargs={"event_delivery_id": delivery.id},
+                queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+                bind=True,
+                retry_backoff=10,
+                retry_kwargs={"max_retries": 5},
+            )
+            for delivery in order_deliveries
+        ],
+        any_order=True,
+    )
+
+    assert not mocked_send_webhook_request_sync.called
+    assert wrapped_call_order_events.called
+
+
 @freeze_time("2020-03-18 12:00:00")
 def test_delete_expired_orders_task(order_list, allocations, channel_USD):
     # given
-    channel_USD.delete_expired_orders_after = timedelta(days=3)
+    channel_USD.delete_expired_orders_after = datetime.timedelta(days=3)
     channel_USD.save()
 
     now = timezone.now()
@@ -394,12 +477,12 @@ def test_delete_expired_orders_task(order_list, allocations, channel_USD):
     order_1.save()
 
     order_2 = order_list[1]
-    order_2.expired_at = now - timedelta(days=5)
+    order_2.expired_at = now - datetime.timedelta(days=5)
     order_2.status = OrderStatus.EXPIRED
     order_2.save()
 
     order_3 = order_list[2]
-    order_3.expired_at = now - timedelta(days=7)
+    order_3.expired_at = now - datetime.timedelta(days=7)
     order_3.status = OrderStatus.EXPIRED
     order_3.save()
 
@@ -416,23 +499,23 @@ def test_delete_expired_orders_task_multiple_channels_one_without_delete(
     order_list, allocations, channel_USD, channel_PLN
 ):
     # given
-    channel_USD.delete_expired_orders_after = timedelta(days=3)
+    channel_USD.delete_expired_orders_after = datetime.timedelta(days=3)
     channel_USD.save()
 
     now = timezone.now()
     order_1 = order_list[0]
-    order_1.expired_at = now - timedelta(days=5)
+    order_1.expired_at = now - datetime.timedelta(days=5)
     order_1.status = OrderStatus.EXPIRED
     order_1.channel = channel_PLN
     order_1.save()
 
     order_2 = order_list[1]
-    order_2.expired_at = now - timedelta(days=5)
+    order_2.expired_at = now - datetime.timedelta(days=5)
     order_2.status = OrderStatus.EXPIRED
     order_2.save()
 
     order_3 = order_list[2]
-    order_3.expired_at = now - timedelta(days=7)
+    order_3.expired_at = now - datetime.timedelta(days=7)
     order_3.status = OrderStatus.EXPIRED
     order_3.save()
 
@@ -449,7 +532,7 @@ def test_delete_expired_orders_task_channel_without_delete(
     order_list, allocations, channel_USD
 ):
     # given
-    channel_USD.delete_expired_orders_after = timedelta()
+    channel_USD.delete_expired_orders_after = datetime.timedelta()
     channel_USD.save()
 
     now = timezone.now()
@@ -459,12 +542,12 @@ def test_delete_expired_orders_task_channel_without_delete(
     order_1.save()
 
     order_2 = order_list[1]
-    order_2.expired_at = now - timedelta(days=5)
+    order_2.expired_at = now - datetime.timedelta(days=5)
     order_2.status = OrderStatus.EXPIRED
     order_2.save()
 
     order_3 = order_list[2]
-    order_3.expired_at = now - timedelta(days=7)
+    order_3.expired_at = now - datetime.timedelta(days=7)
     order_3.status = OrderStatus.EXPIRED
     order_3.save()
 
@@ -480,25 +563,25 @@ def test_delete_expired_orders_task_multiple_channels_with_different_deletion_ti
     order_list, allocations, channel_USD, channel_PLN
 ):
     # given
-    channel_USD.delete_expired_orders_after = timedelta(days=3)
+    channel_USD.delete_expired_orders_after = datetime.timedelta(days=3)
     channel_USD.save()
 
-    channel_PLN.delete_expired_orders_after = timedelta(days=5)
+    channel_PLN.delete_expired_orders_after = datetime.timedelta(days=5)
     channel_PLN.save()
 
     now = timezone.now()
     order_1 = order_list[0]
-    order_1.expired_at = now - timedelta(days=2)
+    order_1.expired_at = now - datetime.timedelta(days=2)
     order_1.status = OrderStatus.EXPIRED
     order_1.save()
 
     order_2 = order_list[1]
-    order_2.expired_at = now - timedelta(days=5)
+    order_2.expired_at = now - datetime.timedelta(days=5)
     order_2.status = OrderStatus.EXPIRED
     order_2.save()
 
     order_3 = order_list[2]
-    order_3.expired_at = now - timedelta(days=7)
+    order_3.expired_at = now - datetime.timedelta(days=7)
     order_3.status = OrderStatus.EXPIRED
     order_3.channel = channel_PLN
     order_3.save()
@@ -506,7 +589,7 @@ def test_delete_expired_orders_task_multiple_channels_with_different_deletion_ti
     order_4 = order_3
     order_4.pk = None
     order_4.number = get_order_number()
-    order_4.expired_at = now - timedelta(days=4)
+    order_4.expired_at = now - datetime.timedelta(days=4)
     order_4.status = OrderStatus.EXPIRED
     order_4.channel = channel_PLN
     order_4.save()
@@ -525,7 +608,7 @@ def test_delete_expired_orders_task_orders_with_different_status_than_expired(
     order_list, allocations, channel_USD
 ):
     # given
-    channel_USD.delete_expired_orders_after = timedelta(days=3)
+    channel_USD.delete_expired_orders_after = datetime.timedelta(days=3)
     channel_USD.save()
 
     now = timezone.now()
@@ -535,12 +618,12 @@ def test_delete_expired_orders_task_orders_with_different_status_than_expired(
     order_1.save()
 
     order_2 = order_list[1]
-    order_2.expired_at = now - timedelta(days=5)
+    order_2.expired_at = now - datetime.timedelta(days=5)
     order_2.status = OrderStatus.FULFILLED
     order_2.save()
 
     order_3 = order_list[2]
-    order_3.expired_at = now - timedelta(days=7)
+    order_3.expired_at = now - datetime.timedelta(days=7)
     order_3.status = OrderStatus.RETURNED
     order_3.save()
 
@@ -556,30 +639,30 @@ def test_delete_expired_orders_task_orders_with_payment_objects(
     order_list, payment_dummy, transaction_item_generator, allocations, channel_USD
 ):
     # given
-    channel_USD.delete_expired_orders_after = timedelta(days=3)
+    channel_USD.delete_expired_orders_after = datetime.timedelta(days=3)
     channel_USD.save()
 
     now = timezone.now()
     order_1 = order_list[0]
-    order_1.expired_at = now - timedelta(days=2)
+    order_1.expired_at = now - datetime.timedelta(days=2)
     order_1.status = OrderStatus.EXPIRED
     order_1.save()
     transaction_item_generator(order_id=order_1.pk)
 
     order_2 = order_list[1]
-    order_2.expired_at = now - timedelta(days=5)
+    order_2.expired_at = now - datetime.timedelta(days=5)
     order_2.status = OrderStatus.EXPIRED
     order_2.save()
     transaction_item_generator(order_id=order_2.pk)
 
     order_3 = order_list[2]
-    order_3.expired_at = now - timedelta(days=7)
+    order_3.expired_at = now - datetime.timedelta(days=7)
     order_3.status = OrderStatus.EXPIRED
     order_3.save()
     transaction_item_generator(order_id=order_3.pk)
 
     order_4 = payment_dummy.order
-    order_4.expired_at = now - timedelta(days=4)
+    order_4.expired_at = now - datetime.timedelta(days=4)
     order_4.status = OrderStatus.EXPIRED
     order_4.save()
 
@@ -596,7 +679,7 @@ def test_delete_expired_orders_task_schedule_itself(
     mocked_delay, order_list, allocations, channel_USD
 ):
     # given
-    channel_USD.delete_expired_orders_after = timedelta(days=3)
+    channel_USD.delete_expired_orders_after = datetime.timedelta(days=3)
     channel_USD.save()
 
     now = timezone.now()
@@ -606,12 +689,12 @@ def test_delete_expired_orders_task_schedule_itself(
     order_1.save()
 
     order_2 = order_list[1]
-    order_2.expired_at = now - timedelta(days=5)
+    order_2.expired_at = now - datetime.timedelta(days=5)
     order_2.status = OrderStatus.EXPIRED
     order_2.save()
 
     order_3 = order_list[2]
-    order_3.expired_at = now - timedelta(days=7)
+    order_3.expired_at = now - datetime.timedelta(days=7)
     order_3.status = OrderStatus.EXPIRED
     order_3.save()
 
@@ -671,13 +754,13 @@ def test_bulk_release_voucher_usage_voucher_usage_mismatch(
 
     order_1 = order_list[0]
     order_1.status = OrderStatus.UNCONFIRMED
-    order_1.created_at = now - timezone.timedelta(minutes=10)
+    order_1.created_at = now - datetime.timedelta(minutes=10)
     order_1.voucher_code = code.code
     order_1.save()
 
     order_2 = order_list[1]
     order_2.status = OrderStatus.UNCONFIRMED
-    order_2.created_at = now - timezone.timedelta(minutes=10)
+    order_2.created_at = now - datetime.timedelta(minutes=10)
     order_2.voucher_code = code.code
     order_2.save()
 
@@ -735,18 +818,11 @@ def test_send_order_updated(
         send_order_updated([order.pk])
 
     # then
-    # confirm that event delivery was generated for each webhook.
+    # confirm that event delivery was generated for each async webhook.
     order_updated_delivery = EventDelivery.objects.get(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_UPDATED,
     )
-
-    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
-    filter_shipping_delivery = EventDelivery.objects.get(
-        webhook_id=shipping_filter_webhook.id,
-        event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
-    )
-
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={"event_delivery_id": order_updated_delivery.id},
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
@@ -754,10 +830,25 @@ def test_send_order_updated(
         retry_backoff=10,
         retry_kwargs={"max_retries": 5},
     )
-    mocked_send_webhook_request_sync.assert_has_calls(
-        [
-            call(tax_delivery),
-            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
-        ]
+
+    # confirm each sync webhook was called without saving event delivery
+    assert mocked_send_webhook_request_sync.call_count == 2
+    assert not EventDelivery.objects.exclude(
+        webhook_id=additional_order_webhook.id
+    ).exists()
+
+    tax_delivery_call, filter_shipping_call = (
+        mocked_send_webhook_request_sync.mock_calls
     )
+
+    tax_delivery = tax_delivery_call.args[0]
+    assert tax_delivery.webhook_id == tax_webhook.id
+
+    filter_shipping_delivery = filter_shipping_call.args[0]
+    assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
+    assert (
+        filter_shipping_delivery.event_type
+        == WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
+    )
+
     assert wrapped_call_order_event.called

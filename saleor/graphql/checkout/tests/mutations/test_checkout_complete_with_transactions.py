@@ -1,11 +1,10 @@
-from datetime import date, datetime, timedelta
+import datetime
 from decimal import Decimal
 from unittest.mock import ANY, patch
 
 import before_after
 import graphene
 import pytest
-import pytz
 from django.db.models.aggregates import Sum
 from django.utils import timezone
 from prices import TaxedMoney
@@ -30,7 +29,6 @@ from .....payment.model_helpers import get_subtotal
 from .....payment.transaction_item_calculations import recalculate_transaction_amounts
 from .....plugins.manager import PluginsManager, get_plugins_manager
 from .....product.models import VariantChannelListingPromotionRule
-from .....tests.utils import flush_post_commit_hooks
 from .....warehouse.models import Reservation, Stock, WarehouseClickAndCollectOption
 from .....warehouse.tests.utils import get_available_quantity_for_stock
 from ....core.utils import to_global_id_or_none
@@ -598,6 +596,9 @@ def test_checkout_price_override(
     assert order_line.tax_class_metadata == line_tax_class.metadata
     assert order_line.tax_class_private_metadata == line_tax_class.private_metadata
     assert order_line.is_price_overridden is True
+    assert (
+        order_line.undiscounted_unit_price_gross_amount == checkout_line.price_override
+    )
 
     assert order.shipping_address == address
     assert order.shipping_method == checkout.shipping_method
@@ -1076,7 +1077,9 @@ def test_checkout_with_gift_card_not_applicable(
     transaction_events_generator,
 ):
     # given
-    gift_card.expiry_date = date.today() - timedelta(days=1)
+    gift_card.expiry_date = datetime.datetime.now(
+        tz=datetime.UTC
+    ).date() - datetime.timedelta(days=1)
     gift_card.save(update_fields=["expiry_date"])
 
     checkout = prepare_checkout_for_test(
@@ -1295,12 +1298,15 @@ def test_checkout_complete(
     assert not Checkout.objects.filter(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
-    order_confirmed_mock.assert_called_once_with(order)
+    order_confirmed_mock.assert_called_once_with(order, webhooks=set())
     recalculate_with_plugins_mock.assert_not_called()
 
     assert not len(Reservation.objects.all())
 
-    assert str(checkout_info.checkout.pk) == caplog.records[0].checkout_id
+    assert (
+        graphene.Node.to_global_id("Checkout", checkout_info.checkout.pk)
+        == caplog.records[0].checkout_id
+    )
     assert gift_card.initial_balance_amount == Decimal(
         caplog.records[0].gift_card_compensation
     )
@@ -1372,7 +1378,7 @@ def test_checkout_complete_with_metadata(
     assert not Checkout.objects.filter(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
-    order_confirmed_mock.assert_called_once_with(order)
+    order_confirmed_mock.assert_called_once_with(order, webhooks=set())
 
 
 @pytest.mark.integration
@@ -1488,7 +1494,7 @@ def test_checkout_complete_with_metadata_checkout_without_metadata(
     assert not Checkout.objects.filter(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
-    order_confirmed_mock.assert_called_once_with(order)
+    order_confirmed_mock.assert_called_once_with(order, webhooks=set())
 
 
 @pytest.mark.integration
@@ -1650,12 +1656,10 @@ def test_checkout_complete_gift_card_bought(
     data = content["data"]["checkoutComplete"]
     assert not data["errors"]
 
-    flush_post_commit_hooks()
     assert Order.objects.count() == 1
     order = Order.objects.first()
     assert order.status == OrderStatus.PARTIALLY_FULFILLED
 
-    flush_post_commit_hooks()
     gift_card = GiftCard.objects.get()
     assert GiftCardEvent.objects.filter(gift_card=gift_card, type=GiftCardEvents.BOUGHT)
     send_notification_mock.assert_called_once_with(
@@ -1668,7 +1672,7 @@ def test_checkout_complete_gift_card_bought(
         checkout.channel.slug,
         resending=False,
     )
-    order_confirmed_mock.assert_called_once_with(order)
+    order_confirmed_mock.assert_called_once_with(order, webhooks=set())
     assert Fulfillment.objects.count() == 1
 
 
@@ -1792,7 +1796,7 @@ def test_checkout_complete_with_shipping_voucher_and_gift_card(
     assert not Checkout.objects.filter(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
-    order_confirmed_mock.assert_called_once_with(order)
+    order_confirmed_mock.assert_called_once_with(order, webhooks=set())
 
     assert not len(Reservation.objects.all())
 
@@ -2435,7 +2439,7 @@ def test_checkout_complete_with_shipping_voucher(
     assert not Checkout.objects.filter(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
-    order_confirmed_mock.assert_called_once_with(order)
+    order_confirmed_mock.assert_called_once_with(order, webhooks=set())
 
     assert not len(Reservation.objects.all())
 
@@ -3272,7 +3276,7 @@ def test_checkout_complete_insufficient_stock_reserved_by_other_user(
         checkout_line=other_checkout_line,
         stock=stock,
         quantity_reserved=quantity_available,
-        reserved_until=timezone.now() + timedelta(minutes=5),
+        reserved_until=timezone.now() + datetime.timedelta(minutes=5),
     )
 
     checkout_line.quantity = 1
@@ -3320,7 +3324,7 @@ def test_checkout_complete_own_reservation(
         checkout_line=checkout_line,
         stock=stock,
         quantity_reserved=quantity_available,
-        reserved_until=timezone.now() + timedelta(minutes=5),
+        reserved_until=timezone.now() + datetime.timedelta(minutes=5),
     )
 
     variables = {
@@ -3812,7 +3816,7 @@ def test_checkout_complete_with_preorder_variant(
     assert not Checkout.objects.filter(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
-    order_confirmed_mock.assert_called_once_with(order)
+    order_confirmed_mock.assert_called_once_with(order, webhooks=set())
 
 
 def test_checkout_complete_with_click_collect_preorder_fails_for_disabled_warehouse(
@@ -4018,7 +4022,8 @@ def test_checkout_complete_product_channel_listing_does_not_exist(
 
 
 @pytest.mark.parametrize(
-    "available_for_purchase", [None, datetime.now(pytz.UTC) + timedelta(days=1)]
+    "available_for_purchase",
+    [None, datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(days=1)],
 )
 def test_checkout_complete_product_channel_listing_not_available_for_purchase(
     user_api_client,
@@ -4482,3 +4487,47 @@ def test_checkout_complete_with_invalid_address(
     assert not data["errors"]
     assert order.shipping_address.postal_code == invalid_postal_code
     assert order.billing_address.postal_code == invalid_postal_code
+
+
+@patch("saleor.checkout.complete_checkout._get_unit_discount_reason")
+def test_checkout_complete_log_unknown_discount_reason(
+    mocked_discount_reason,
+    user_api_client,
+    checkout_with_item_and_voucher_specific_products,
+    voucher_specific_product_type,
+    address,
+    shipping_method,
+    transaction_events_generator,
+    transaction_item_generator,
+    caplog,
+):
+    # given
+    mocked_discount_reason.return_value = None
+
+    checkout = prepare_checkout_for_test(
+        checkout_with_item_and_voucher_specific_products,
+        address,
+        address,
+        shipping_method,
+        transaction_item_generator,
+        transaction_events_generator,
+    )
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "redirectUrl": "https://www.example.com",
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+
+    order = Order.objects.first()
+    order_line = order.lines.first()
+    assert not order_line.unit_discount_reason
+    assert "Unknown discount reason" in caplog.text
+    assert caplog.records[0].checkout_id == to_global_id_or_none(checkout)

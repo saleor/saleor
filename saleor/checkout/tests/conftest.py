@@ -1,4 +1,4 @@
-from datetime import timedelta
+import datetime
 from decimal import Decimal
 
 import pytest
@@ -48,7 +48,7 @@ def priced_checkout_factory():
         checkout.subtotal_gross_amount *= tax
         checkout.total_gross_amount *= tax
         # Cache prices until invalidated by force
-        checkout.price_expiration = timezone.now() + timedelta(days=1)
+        checkout.price_expiration = timezone.now() + datetime.timedelta(days=1)
         checkout.save()
 
         return checkout

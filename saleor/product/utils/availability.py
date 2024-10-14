@@ -83,8 +83,7 @@ def _calculate_product_price_with_taxes(
     # support for apps will be added in the future.
     if tax_calculation_strategy == TaxCalculationStrategy.FLAT_RATES:
         return calculate_flat_rate_tax(price, tax_rate, prices_entered_with_tax)
-    else:
-        return TaxedMoney(price, price)
+    return TaxedMoney(price, price)
 
 
 def get_product_availability(

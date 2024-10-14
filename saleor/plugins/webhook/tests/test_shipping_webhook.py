@@ -7,6 +7,7 @@ import pytest
 
 from ....core.models import EventDelivery
 from ....graphql.tests.utils import get_graphql_content
+from ....order import OrderStatus
 from ....webhook.const import CACHE_EXCLUDED_SHIPPING_TIME
 from ....webhook.event_types import WebhookEventSyncType
 from ....webhook.models import Webhook
@@ -435,6 +436,8 @@ def test_order_shipping_methods(
     settings,
 ):
     # given
+    order_with_lines.status = OrderStatus.UNCONFIRMED
+    order_with_lines.save(update_fields=["status"])
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     webhook_reason = "spanish-inquisition"
     excluded_shipping_method_id = order_with_lines.shipping_method.id
@@ -452,6 +455,97 @@ def test_order_shipping_methods(
     assert len(shipping_methods) == 1
     assert not shipping_methods[0]["active"]
     assert shipping_methods[0]["message"] == webhook_reason
+
+
+@mock.patch(
+    "saleor.plugins.webhook.plugin.WebhookPlugin.excluded_shipping_methods_for_order"
+)
+def test_draft_order_shipping_methods(
+    mocked_webhook,
+    staff_api_client,
+    order_with_lines,
+    permission_group_manage_orders,
+    settings,
+):
+    # given
+    order_with_lines.status = OrderStatus.DRAFT
+    order_with_lines.save(update_fields=["status"])
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    webhook_reason = "spanish-inquisition"
+    excluded_shipping_method_id = order_with_lines.shipping_method.id
+    mocked_webhook.return_value = [
+        ExcludedShippingMethod(excluded_shipping_method_id, webhook_reason)
+    ]
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    query = """
+      query DraftOrdersQuery {
+       draftOrders(first: 1) {
+         edges {
+           node {
+             shippingMethods {
+               id
+               name
+               active
+               message
+             }
+           }
+         }
+       }
+      }
+    """
+    # when
+    response = staff_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    order_data = content["data"]["draftOrders"]["edges"][0]["node"]
+
+    shipping_methods = order_data["shippingMethods"]
+    # then
+    assert len(shipping_methods) == 1
+    assert not shipping_methods[0]["active"]
+    assert shipping_methods[0]["message"] == webhook_reason
+
+
+@pytest.mark.parametrize(
+    "order_status",
+    [
+        OrderStatus.UNFULFILLED,
+        OrderStatus.PARTIALLY_FULFILLED,
+        OrderStatus.FULFILLED,
+        OrderStatus.CANCELED,
+        OrderStatus.EXPIRED,
+        OrderStatus.RETURNED,
+        OrderStatus.PARTIALLY_RETURNED,
+    ],
+)
+@mock.patch(
+    "saleor.plugins.webhook.plugin.WebhookPlugin.excluded_shipping_methods_for_order"
+)
+def test_order_shipping_methods_skips_sync_webhook_for_non_editable_statuses(
+    mocked_webhook,
+    order_status,
+    staff_api_client,
+    order_with_lines,
+    permission_group_manage_orders,
+    settings,
+):
+    # given
+    order_with_lines.status = order_status
+    order_with_lines.save(update_fields=["status"])
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_QUERY_SHIPPING_METHOD)
+    content = get_graphql_content(response)
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+
+    shipping_methods = order_data["shippingMethods"]
+
+    # then
+    assert not mocked_webhook.called
+    assert len(shipping_methods) == 1
+    assert shipping_methods[0]["active"]
 
 
 @pytest.mark.parametrize(
@@ -472,6 +566,8 @@ def test_order_available_shipping_methods(
 ):
     # given
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    order_with_lines.status = OrderStatus.UNCONFIRMED
+    order_with_lines.save(update_fields=["status"])
     shipping_method = order_with_lines.shipping_method
 
     def respond(*args, **kwargs):
@@ -585,8 +681,8 @@ def test_trigger_webhook_sync(mock_request, shipping_app):
     trigger_webhook_sync(
         WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT, data, webhook, False
     )
-    event_delivery = EventDelivery.objects.first()
-    mock_request.assert_called_once_with(event_delivery)
+    mock_request.assert_called_once()
+    assert not EventDelivery.objects.exists()
 
 
 @mock.patch("saleor.webhook.transport.synchronous.transport.cache.set")
@@ -1076,3 +1172,62 @@ def test_parse_list_shipping_methods_with_metadata(app):
     # then
     assert response[0].metadata == response_data_with_meta[0]["metadata"]
     assert response[0].description == response_data_with_meta[0]["description"]
+
+
+def test_parse_list_shipping_methods_with_metadata_in_incorrect_format(app):
+    # given
+    response_data_with_meta = [
+        {
+            "id": 123,
+            "amount": 10,
+            "currency": "USD",
+            "name": "shipping",
+            "description": "Description",
+            "maximum_delivery_days": 10,
+            "minimum_delivery_days": 2,
+            "metadata": {"field": None},
+        }
+    ]
+    # when
+    response = parse_list_shipping_methods_response(response_data_with_meta, app)
+    # then
+    assert response[0].metadata == {}
+
+
+def test_parse_list_shipping_methods_metadata_absent_in_response(app):
+    # given
+    response_data_with_meta = [
+        {
+            "id": 123,
+            "amount": 10,
+            "currency": "USD",
+            "name": "shipping",
+            "description": "Description",
+            "maximum_delivery_days": 10,
+            "minimum_delivery_days": 2,
+        }
+    ]
+    # when
+    response = parse_list_shipping_methods_response(response_data_with_meta, app)
+    # then
+    assert response[0].metadata == {}
+
+
+def test_parse_list_shipping_methods_metadata_is_none(app):
+    # given
+    response_data_with_meta = [
+        {
+            "id": 123,
+            "amount": 10,
+            "currency": "USD",
+            "name": "shipping",
+            "description": "Description",
+            "maximum_delivery_days": 10,
+            "minimum_delivery_days": 2,
+            "metadata": None,
+        }
+    ]
+    # when
+    response = parse_list_shipping_methods_response(response_data_with_meta, app)
+    # then
+    assert response[0].metadata == {}

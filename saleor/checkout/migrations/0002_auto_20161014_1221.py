@@ -16,6 +16,6 @@ class Migration(migrations.Migration):
             model_name="cartline", old_name="product", new_name="variant"
         ),
         migrations.AlterUniqueTogether(
-            name="cartline", unique_together=set([("cart", "variant", "data")])
+            name="cartline", unique_together={("cart", "variant", "data")}
         ),
     ]

@@ -1,12 +1,12 @@
-from datetime import timedelta
-from unittest.mock import call, patch
+import datetime
+from unittest.mock import patch
 
 import graphene
 from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
 
-from .....checkout.actions import call_checkout_event_for_checkout_info
+from .....checkout.actions import call_checkout_events
 from .....core.models import EventDelivery
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from . import PRIVATE_KEY, PRIVATE_VALUE, PUBLIC_KEY, PUBLIC_VALUE
@@ -234,7 +234,7 @@ def test_add_metadata_for_checkout_triggers_checkout_updated_hook(
 
     # then
     assert response["data"]["updateMetadata"]["errors"] == []
-    mock_checkout_updated.assert_called_once_with(checkout)
+    mock_checkout_updated.assert_called_once_with(checkout, webhooks=set())
 
 
 def test_add_private_metadata_for_checkout(
@@ -364,8 +364,8 @@ def test_update_public_metadata_for_checkout_line(api_client, checkout_line):
 
 @freeze_time("2023-05-31 12:00:01")
 @patch(
-    "saleor.graphql.meta.extra_methods.call_checkout_event_for_checkout_info",
-    wraps=call_checkout_event_for_checkout_info,
+    "saleor.graphql.meta.extra_methods.call_checkout_events",
+    wraps=call_checkout_events,
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
@@ -375,7 +375,7 @@ def test_update_public_metadata_for_checkout_line(api_client, checkout_line):
 def test_add_metadata_for_checkout_triggers_webhooks_with_checkout_updated(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
-    wrapped_call_checkout_event_for_checkout,
+    wrapped_call_checkout_events,
     setup_checkout_webhooks,
     settings,
     api_client,
@@ -391,7 +391,7 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_checkout_updated(
     ) = setup_checkout_webhooks(WebhookEventAsyncType.CHECKOUT_UPDATED)
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    checkout.price_expiration = timezone.now() - timedelta(hours=10)
+    checkout.price_expiration = timezone.now() - datetime.timedelta(hours=10)
     checkout.save(update_fields=["price_expiration"])
     # when
     response = execute_update_public_metadata_for_item(
@@ -401,20 +401,10 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_checkout_updated(
     # then
     assert response["data"]["updateMetadata"]["errors"] == []
 
-    # confirm that event delivery was generated for each webhook.
+    # confirm that event delivery was generated for each async webhook.
     checkout_update_delivery = EventDelivery.objects.get(
         webhook_id=checkout_updated_webhook.id
     )
-    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
-    shipping_methods_delivery = EventDelivery.objects.get(
-        webhook_id=shipping_webhook.id,
-        event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
-    )
-    filter_shipping_delivery = EventDelivery.objects.get(
-        webhook_id=shipping_filter_webhook.id,
-        event_type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
-    )
-
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={"event_delivery_id": checkout_update_delivery.id},
         queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
@@ -422,20 +412,40 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_checkout_updated(
         retry_backoff=10,
         retry_kwargs={"max_retries": 5},
     )
-    mocked_send_webhook_request_sync.assert_has_calls(
-        [
-            call(shipping_methods_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
-            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
-            call(tax_delivery),
-        ]
+
+    # confirm each sync webhook con was called without saving event delivery
+    assert mocked_send_webhook_request_sync.call_count == 3
+    assert not EventDelivery.objects.exclude(
+        webhook_id=checkout_updated_webhook.id
+    ).exists()
+
+    shipping_methods_call, filter_shipping_call, tax_delivery_call = (
+        mocked_send_webhook_request_sync.mock_calls
     )
-    assert wrapped_call_checkout_event_for_checkout.called
+    shipping_methods_delivery = shipping_methods_call.args[0]
+    assert shipping_methods_delivery.webhook_id == shipping_webhook.id
+    assert (
+        shipping_methods_delivery.event_type
+        == WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
+    )
+
+    filter_shipping_delivery = filter_shipping_call.args[0]
+    assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
+    assert (
+        filter_shipping_delivery.event_type
+        == WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
+    )
+
+    tax_delivery = tax_delivery_call.args[0]
+    assert tax_delivery.webhook_id == tax_webhook.id
+
+    assert wrapped_call_checkout_events.called
 
 
 @freeze_time("2023-05-31 12:00:01")
 @patch(
-    "saleor.graphql.meta.extra_methods.call_checkout_event_for_checkout_info",
-    wraps=call_checkout_event_for_checkout_info,
+    "saleor.graphql.meta.extra_methods.call_checkout_events",
+    wraps=call_checkout_events,
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
@@ -445,7 +455,7 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_checkout_updated(
 def test_add_metadata_for_checkout_triggers_webhooks_with_updated_metadata(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
-    wrapped_call_checkout_event_for_checkout,
+    wrapped_call_checkout_events,
     setup_checkout_webhooks,
     settings,
     api_client,
@@ -462,7 +472,7 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_updated_metadata(
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    checkout.price_expiration = timezone.now() - timedelta(hours=10)
+    checkout.price_expiration = timezone.now() - datetime.timedelta(hours=10)
     checkout.save(update_fields=["price_expiration"])
 
     # when
@@ -473,20 +483,10 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_updated_metadata(
     # then
     assert response["data"]["updateMetadata"]["errors"] == []
 
-    # confirm that event delivery was generated for each webhook.
+    # confirm that event delivery was generated for each async webhook.
     checkout_metadata_updated_delivery = EventDelivery.objects.get(
         webhook_id=checkout_metadata_updated_webhook.id
     )
-    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
-    shipping_methods_delivery = EventDelivery.objects.get(
-        webhook_id=shipping_webhook.id,
-        event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
-    )
-    filter_shipping_delivery = EventDelivery.objects.get(
-        webhook_id=shipping_filter_webhook.id,
-        event_type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
-    )
-
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={"event_delivery_id": checkout_metadata_updated_delivery.id},
         queue=None,
@@ -494,11 +494,31 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_updated_metadata(
         retry_backoff=10,
         retry_kwargs={"max_retries": 5},
     )
-    mocked_send_webhook_request_sync.assert_has_calls(
-        [
-            call(shipping_methods_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
-            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
-            call(tax_delivery),
-        ]
+
+    # confirm each sync webhook con was called without saving event delivery
+    assert mocked_send_webhook_request_sync.call_count == 3
+    assert not EventDelivery.objects.exclude(
+        webhook_id=checkout_metadata_updated_webhook.id
+    ).exists()
+
+    shipping_methods_call, filter_shipping_call, tax_delivery_call = (
+        mocked_send_webhook_request_sync.mock_calls
     )
-    assert wrapped_call_checkout_event_for_checkout.called
+    shipping_methods_delivery = shipping_methods_call.args[0]
+    assert shipping_methods_delivery.webhook_id == shipping_webhook.id
+    assert (
+        shipping_methods_delivery.event_type
+        == WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
+    )
+
+    filter_shipping_delivery = filter_shipping_call.args[0]
+    assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
+    assert (
+        filter_shipping_delivery.event_type
+        == WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
+    )
+
+    tax_delivery = tax_delivery_call.args[0]
+    assert tax_delivery.webhook_id == tax_webhook.id
+
+    assert wrapped_call_checkout_events.called

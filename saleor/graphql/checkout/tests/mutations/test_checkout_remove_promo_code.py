@@ -1,6 +1,6 @@
-from datetime import timedelta
+import datetime
 from decimal import Decimal
-from unittest.mock import call, patch
+from unittest.mock import patch
 
 import graphene
 from django.test import override_settings
@@ -8,7 +8,7 @@ from django.utils import timezone
 from prices import Money
 
 from .....checkout import base_calculations
-from .....checkout.actions import call_checkout_event_for_checkout_info
+from .....checkout.actions import call_checkout_info_event
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....core.models import EventDelivery
@@ -86,7 +86,9 @@ def test_checkout_remove_voucher_code(
     assert data["checkout"]["voucherCode"] is None
     assert checkout_with_voucher.voucher_code is None
     assert checkout_with_voucher.last_change != previous_checkout_last_change
-    checkout_updated_webhook_mock.assert_called_once_with(checkout_with_voucher)
+    checkout_updated_webhook_mock.assert_called_once_with(
+        checkout_with_voucher, webhooks=set()
+    )
 
 
 @patch("saleor.plugins.manager.PluginsManager.checkout_updated")
@@ -117,7 +119,9 @@ def test_checkout_remove_voucher_code_from_voucher_with_multiple_codes(
     assert data["checkout"]["voucherCode"] is None
     assert checkout_with_voucher.voucher_code is None
     assert checkout_with_voucher.last_change != previous_checkout_last_change
-    checkout_updated_webhook_mock.assert_called_once_with(checkout_with_voucher)
+    checkout_updated_webhook_mock.assert_called_once_with(
+        checkout_with_voucher, webhooks=set()
+    )
 
 
 @patch("saleor.plugins.manager.PluginsManager.checkout_updated")
@@ -178,7 +182,7 @@ def test_checkout_remove_voucher_code_with_inactive_channel(
     checkout_updated_webhook_mock, api_client, checkout_with_voucher
 ):
     # given
-    checkout_with_voucher.price_expiration = timezone.now() + timedelta(days=2)
+    checkout_with_voucher.price_expiration = timezone.now() + datetime.timedelta(days=2)
     checkout_with_voucher.save(update_fields=["price_expiration"])
     previous_checkout_last_change = checkout_with_voucher.last_change
 
@@ -228,7 +232,9 @@ def test_checkout_remove_gift_card_code(
     assert not checkout_with_gift_card.gift_cards.all().exists()
     checkout_with_gift_card.refresh_from_db()
     assert checkout_with_gift_card.last_change != previous_checkout_last_change
-    checkout_updated_webhook_mock.assert_called_once_with(checkout_with_gift_card)
+    checkout_updated_webhook_mock.assert_called_once_with(
+        checkout_with_gift_card, webhooks=set()
+    )
 
 
 @patch("saleor.plugins.manager.PluginsManager.checkout_updated")
@@ -293,7 +299,9 @@ def test_checkout_remove_one_of_gift_cards(
     assert not checkout_gift_cards.filter(code=gift_card_first.code).exists()
     checkout_with_gift_card.refresh_from_db()
     assert checkout_with_gift_card.last_change != previous_checkout_last_change
-    checkout_updated_webhook_mock.assert_called_once_with(checkout_with_gift_card)
+    checkout_updated_webhook_mock.assert_called_once_with(
+        checkout_with_gift_card, webhooks=set()
+    )
 
 
 @patch("saleor.plugins.manager.PluginsManager.checkout_updated")
@@ -301,7 +309,7 @@ def test_checkout_remove_promo_code_invalid_promo_code(
     checkout_updated_webhook_mock, api_client, checkout_with_item
 ):
     # given
-    checkout_with_item.price_expiration = timezone.now() + timedelta(days=2)
+    checkout_with_item.price_expiration = timezone.now() + datetime.timedelta(days=2)
     checkout_with_item.save(update_fields=["price_expiration"])
     previous_checkout_last_change = checkout_with_item.last_change
     variables = {
@@ -362,7 +370,9 @@ def test_checkout_remove_voucher_code_by_id(
     assert data["checkout"]["voucherCode"] is None
     assert len(data["checkout"]["giftCards"]) == 1
     assert checkout_with_voucher.voucher_code is None
-    checkout_updated_webhook_mock.assert_called_once_with(checkout_with_voucher)
+    checkout_updated_webhook_mock.assert_called_once_with(
+        checkout_with_voucher, webhooks=set()
+    )
 
 
 @patch("saleor.plugins.manager.PluginsManager.checkout_updated")
@@ -377,7 +387,7 @@ def test_checkout_remove_voucher_code_by_id_wrong_voucher(
     # given
     assert checkout_with_voucher.voucher_code is not None
     checkout_with_voucher.gift_cards.add(gift_card)
-    checkout_with_voucher.price_expiration = timezone.now() + timedelta(days=2)
+    checkout_with_voucher.price_expiration = timezone.now() + datetime.timedelta(days=2)
     checkout_with_voucher.save(update_fields=["price_expiration"])
     previous_checkout_last_change = checkout_with_voucher.last_change
 
@@ -440,7 +450,9 @@ def test_checkout_remove_voucher_with_multiple_codes_by_id(
     assert data["checkout"]["voucherCode"] is None
     assert len(data["checkout"]["giftCards"]) == 1
     assert checkout_with_voucher.voucher_code is None
-    checkout_updated_webhook_mock.assert_called_once_with(checkout_with_voucher)
+    checkout_updated_webhook_mock.assert_called_once_with(
+        checkout_with_voucher, webhooks=set()
+    )
 
 
 @patch("saleor.plugins.manager.PluginsManager.checkout_updated")
@@ -473,7 +485,9 @@ def test_checkout_remove_gift_card_by_id(
     assert gift_cards[0]["id"] == graphene.Node.to_global_id(
         "GiftCard", gift_card_expiry_date.pk
     )
-    checkout_updated_webhook_mock.assert_called_once_with(checkout_with_voucher)
+    checkout_updated_webhook_mock.assert_called_once_with(
+        checkout_with_voucher, webhooks=set()
+    )
 
 
 @patch("saleor.plugins.manager.PluginsManager.checkout_updated")
@@ -567,7 +581,7 @@ def test_checkout_remove_voucher_code_invalidates_price(
     checkout_updated_webhook_mock, api_client, checkout_with_item, voucher
 ):
     # given
-    checkout_with_item.price_expiration = timezone.now() + timedelta(days=2)
+    checkout_with_item.price_expiration = timezone.now() + datetime.timedelta(days=2)
     checkout_with_item.voucher_code = voucher.code
     checkout_with_item.save(update_fields=["voucher_code", "price_expiration"])
     manager = get_plugins_manager(allow_replica=False)
@@ -591,7 +605,9 @@ def test_checkout_remove_voucher_code_invalidates_price(
     assert not data["errors"]
     assert data["checkout"]["subtotalPrice"]["gross"]["amount"] == subtotal.amount
     assert data["checkout"]["totalPrice"]["gross"]["amount"] == expected_total
-    checkout_updated_webhook_mock.assert_called_once_with(checkout_with_item)
+    checkout_updated_webhook_mock.assert_called_once_with(
+        checkout_with_item, webhooks=set()
+    )
 
 
 @patch("saleor.plugins.manager.PluginsManager.checkout_updated")
@@ -629,7 +645,9 @@ def test_checkout_remove_voucher_code_order_promotion_discount_applied(
     assert checkout.discount_amount == reward_value
     assert checkout.last_change != previous_checkout_last_change
     assert checkout.discounts.count() == 1
-    checkout_updated_webhook_mock.assert_called_once_with(checkout_with_voucher)
+    checkout_updated_webhook_mock.assert_called_once_with(
+        checkout_with_voucher, webhooks=set()
+    )
 
 
 @patch("saleor.plugins.manager.PluginsManager.checkout_updated")
@@ -668,7 +686,9 @@ def test_checkout_remove_voucher_code_gift_reward_applied(
     assert checkout.lines.count() == lines_count + 1 == len(data["checkout"]["lines"])
     gift_line = checkout.lines.get(is_gift=True)
     assert gift_line.discounts.count() == 1
-    checkout_updated_webhook_mock.assert_called_once_with(checkout_with_voucher)
+    checkout_updated_webhook_mock.assert_called_once_with(
+        checkout_with_voucher, webhooks=set()
+    )
 
 
 @patch("saleor.plugins.manager.PluginsManager.checkout_updated")
@@ -704,12 +724,14 @@ def test_with_active_problems_flow(
 
     # then
     assert not content["data"]["checkoutRemovePromoCode"]["errors"]
-    checkout_updated_webhook_mock.assert_called_once_with(checkout_with_problems)
+    checkout_updated_webhook_mock.assert_called_once_with(
+        checkout_with_problems, webhooks=set()
+    )
 
 
 @patch(
-    "saleor.graphql.checkout.mutations.checkout_remove_promo_code.call_checkout_event_for_checkout_info",
-    wraps=call_checkout_event_for_checkout_info,
+    "saleor.graphql.checkout.mutations.checkout_remove_promo_code.call_checkout_info_event",
+    wraps=call_checkout_info_event,
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
@@ -719,7 +741,7 @@ def test_with_active_problems_flow(
 def test_checkout_remove_triggers_webhooks(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
-    wrapped_call_checkout_event_for_checkout,
+    wrapped_call_checkout_info_event,
     setup_checkout_webhooks,
     settings,
     api_client,
@@ -745,20 +767,12 @@ def test_checkout_remove_triggers_webhooks(
     # then
     assert not content["errors"]
 
-    # confirm that event delivery was generated for each webhook.
+    assert wrapped_call_checkout_info_event.called
+
+    # confirm that event delivery was generated for each async webhook.
     checkout_update_delivery = EventDelivery.objects.get(
         webhook_id=checkout_updated_webhook.id
     )
-    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
-    shipping_methods_delivery = EventDelivery.objects.get(
-        webhook_id=shipping_webhook.id,
-        event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
-    )
-    filter_shipping_delivery = EventDelivery.objects.get(
-        webhook_id=shipping_filter_webhook.id,
-        event_type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
-    )
-
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={"event_delivery_id": checkout_update_delivery.id},
         queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
@@ -766,11 +780,31 @@ def test_checkout_remove_triggers_webhooks(
         retry_backoff=10,
         retry_kwargs={"max_retries": 5},
     )
-    mocked_send_webhook_request_sync.assert_has_calls(
-        [
-            call(shipping_methods_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
-            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
-            call(tax_delivery),
-        ]
+
+    # confirm each sync webhook was called without saving event delivery
+    assert mocked_send_webhook_request_sync.call_count == 3
+    assert not EventDelivery.objects.exclude(
+        webhook_id=checkout_updated_webhook.id
+    ).exists()
+
+    shipping_methods_call, filter_shipping_call, tax_delivery_call = (
+        mocked_send_webhook_request_sync.mock_calls
     )
-    assert wrapped_call_checkout_event_for_checkout.called
+    shipping_methods_delivery = shipping_methods_call.args[0]
+    assert shipping_methods_delivery.webhook_id == shipping_webhook.id
+    assert (
+        shipping_methods_delivery.event_type
+        == WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
+    )
+    assert shipping_methods_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
+
+    filter_shipping_delivery = filter_shipping_call.args[0]
+    assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
+    assert (
+        filter_shipping_delivery.event_type
+        == WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
+    )
+    assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
+
+    tax_delivery = tax_delivery_call.args[0]
+    assert tax_delivery.webhook_id == tax_webhook.id

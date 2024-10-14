@@ -1,5 +1,4 @@
-from collections import namedtuple
-from typing import Optional
+from typing import NamedTuple, Optional
 
 import graphene
 from django.conf import settings
@@ -7,7 +6,7 @@ from django.core.exceptions import ValidationError
 
 from ....checkout.fetch import get_variant_channel_listing
 from ....core.taxes import zero_money, zero_taxed_money
-from ....discount.interface import fetch_variant_rules_info
+from ....discount.interface import VariantPromotionRuleInfo, fetch_variant_rules_info
 from ....order import ORDER_EDITABLE_STATUS, OrderStatus, events
 from ....order.actions import call_order_event
 from ....order.error_codes import OrderErrorCode
@@ -150,14 +149,11 @@ def call_event_by_order_status(order, manager):
     if order.status == OrderStatus.DRAFT:
         call_order_event(
             manager,
-            manager.draft_order_updated,
             WebhookEventAsyncType.DRAFT_ORDER_UPDATED,
             order,
         )
     else:
-        call_order_event(
-            manager, manager.order_updated, WebhookEventAsyncType.ORDER_UPDATED, order
-        )
+        call_order_event(manager, WebhookEventAsyncType.ORDER_UPDATED, order)
 
 
 def try_payment_action(order, user, app, payment, func, *args, **kwargs):
@@ -177,7 +173,7 @@ def try_payment_action(order, user, app, payment, func, *args, **kwargs):
                     message, code=OrderErrorCode.PAYMENT_ERROR.value
                 )
             }
-        )
+        ) from e
 
 
 def clean_payment(payment: Optional[payment_models.Payment]) -> payment_models.Payment:
@@ -193,7 +189,9 @@ def clean_payment(payment: Optional[payment_models.Payment]) -> payment_models.P
     return payment
 
 
-VariantData = namedtuple("VariantData", ["variant", "rules_info"])
+class VariantData(NamedTuple):
+    variant: product_models.ProductVariant
+    rules_info: list[VariantPromotionRuleInfo]
 
 
 def get_variant_rule_info_map(

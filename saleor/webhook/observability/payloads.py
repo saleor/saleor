@@ -1,3 +1,4 @@
+import datetime
 import json
 import uuid
 from collections.abc import Mapping
@@ -39,8 +40,6 @@ from .payload_schema import (
 from .sensitive_data import SENSITIVE_GQL_FIELDS
 
 if TYPE_CHECKING:
-    from datetime import datetime
-
     from ...core.models import EventDeliveryAttempt
     from .utils import GraphQLOperationResponse
 
@@ -194,7 +193,7 @@ def generate_api_call_payload(
 @traced_payload_generator
 def generate_event_delivery_attempt_payload(
     attempt: "EventDeliveryAttempt",
-    next_retry: Optional["datetime"],
+    next_retry: Optional[datetime.datetime],
     bytes_limit: int,
 ) -> bytes:
     if not attempt.delivery:
@@ -207,6 +206,7 @@ def generate_event_delivery_attempt_payload(
             f"EventDelivery {attempt.delivery.id} do not have "
             "payload set. Can't generate payload."
         )
+    payload_data = attempt.delivery.payload.get_payload()
     response_body = attempt.response or ""
     payload = EventDeliveryAttemptPayload(
         id=graphene.Node.to_global_id("EventDeliveryAttempt", attempt.pk),
@@ -230,7 +230,7 @@ def generate_event_delivery_attempt_payload(
             event_type=attempt.delivery.event_type,
             event_sync=attempt.delivery.event_type in WebhookEventSyncType.ALL,
             payload=EventDeliveryPayload(
-                content_length=len(attempt.delivery.payload.payload.encode("utf-8")),
+                content_length=len(payload_data.encode("utf-8")),
                 body=TRUNC_PLACEHOLDER,
             ),
         ),
@@ -262,7 +262,7 @@ def generate_event_delivery_attempt_payload(
     payload["response"]["body"] = JsonTruncText.truncate(response_body, remaining // 2)
     remaining -= payload["response"]["body"].byte_size
 
-    event_delivery_payload = json.loads(attempt.delivery.payload.payload)
+    event_delivery_payload = json.loads(payload_data)
     event_delivery_payload = anonymize_event_payload(
         subscription_query,
         attempt.delivery.event_type,

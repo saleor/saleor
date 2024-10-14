@@ -295,7 +295,7 @@ def format_error(error, handled_exceptions, query=None):
     # the API. This prevents from leaking internals that might be included in Python
     # exceptions' error messages.
     is_allowed_err = type(exc) in ALLOWED_ERRORS or any(
-        [isinstance(exc, allowed_err) for allowed_err in ALLOWED_ERRORS]
+        isinstance(exc, allowed_err) for allowed_err in ALLOWED_ERRORS
     )
     if not is_allowed_err and not settings.DEBUG:
         result["message"] = INTERNAL_ERROR_MESSAGE

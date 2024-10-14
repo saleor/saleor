@@ -45,6 +45,4 @@ def test_collections_query_with_default_channel_slug(
         collection_data["products"]["totalCount"]
         == published_collection.products.count()
     )
-    assert any(
-        [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
-    )
+    assert any(str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns)

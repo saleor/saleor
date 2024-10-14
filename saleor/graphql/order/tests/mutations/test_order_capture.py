@@ -4,7 +4,7 @@ import graphene
 from django.test import override_settings
 
 from .....core.models import EventDelivery
-from .....core.notify_events import NotifyEventType
+from .....core.notify import NotifyEventType
 from .....core.tests.utils import get_site_context_payload
 from .....order import OrderStatus
 from .....order import events as order_events
@@ -105,11 +105,15 @@ def test_order_capture(
         **get_site_context_payload(site_settings.site),
     }
 
-    mocked_notify.assert_called_once_with(
-        NotifyEventType.ORDER_PAYMENT_CONFIRMATION,
-        expected_payment_payload,
-        channel_slug=order.channel.slug,
-    )
+    assert mocked_notify.call_count == 1
+    call_args = mocked_notify.call_args_list[0]
+    called_args = call_args.args
+    called_kwargs = call_args.kwargs
+    assert called_args[0] == NotifyEventType.ORDER_PAYMENT_CONFIRMATION
+    assert len(called_kwargs) == 2
+    assert called_kwargs["payload_func"]() == expected_payment_payload
+    assert called_kwargs["channel_slug"] == order.channel.slug
+
     fulfill_non_shippable_gift_cards_mock.assert_called_once_with(
         order, list(order.lines.all()), site_settings, staff_api_client.user, None, ANY
     )
@@ -191,7 +195,6 @@ def test_order_capture_triggers_webhooks(
     payment_txn_preauth,
     staff_user,
     settings,
-    django_capture_on_commit_callbacks,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = []
@@ -217,14 +220,13 @@ def test_order_capture_triggers_webhooks(
     variables = {"id": order_id, "amount": amount}
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(ORDER_CAPTURE_MUTATION, variables)
+    response = staff_api_client.post_graphql(ORDER_CAPTURE_MUTATION, variables)
 
     # then
     content = get_graphql_content(response)
     assert not content["data"]["orderCapture"]["errors"]
 
-    # confirm that event delivery was generated for each webhook.
+    # confirm that event delivery was generated for each async webhook.
     order_paid_delivery = EventDelivery.objects.get(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_PAID,
@@ -236,11 +238,6 @@ def test_order_capture_triggers_webhooks(
     order_fully_paid_delivery = EventDelivery.objects.get(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_FULLY_PAID,
-    )
-    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
-    filter_shipping_delivery = EventDelivery.objects.get(
-        webhook_id=shipping_filter_webhook.id,
-        event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
     )
 
     order_deliveries = [
@@ -262,10 +259,25 @@ def test_order_capture_triggers_webhooks(
         ],
         any_order=True,
     )
-    mocked_send_webhook_request_sync.assert_has_calls(
-        [
-            call(tax_delivery),
-            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
-        ]
+
+    # confirm each sync webhook was called without saving event delivery
+    assert mocked_send_webhook_request_sync.call_count == 2
+    assert not EventDelivery.objects.exclude(
+        webhook_id=additional_order_webhook.id
+    ).exists()
+
+    tax_delivery_call, filter_shipping_call = (
+        mocked_send_webhook_request_sync.mock_calls
     )
+
+    tax_delivery = tax_delivery_call.args[0]
+    assert tax_delivery.webhook_id == tax_webhook.id
+
+    filter_shipping_delivery = filter_shipping_call.args[0]
+    assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
+    assert (
+        filter_shipping_delivery.event_type
+        == WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
+    )
+
     assert wrapped_call_order_event.called

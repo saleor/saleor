@@ -6,6 +6,7 @@ from urllib.parse import urlparse
 
 from django.conf import settings
 from django.core.cache import cache
+from django.db import transaction
 
 from ....celeryconf import app
 from ....core import EventDeliveryStatus
@@ -39,6 +40,7 @@ from ..utils import (
     generate_cache_key_for_webhook,
     get_delivery_for_webhook,
     handle_webhook_retry,
+    save_unsuccessful_delivery_attempt,
     send_webhook_using_http,
 )
 
@@ -57,22 +59,22 @@ logger = logging.getLogger(__name__)
     retry_kwargs={"max_retries": 5},
 )
 @allow_writer()
-def handle_transaction_request_task(self, delivery_id, request_event_id):
+def handle_transaction_request_task(self, delivery_id, request_event_id) -> None:
     request_event = TransactionEvent.objects.filter(id=request_event_id).first()
     if not request_event:
         logger.error(
-            f"Cannot find the request event with id: {request_event_id} "
-            f"for transaction-request webhook."
+            "Cannot find the request event with id: %s for transaction-request webhook.",
+            request_event_id,
         )
-        return None
+        return
     delivery = get_delivery_for_webhook(delivery_id)
     if not delivery:
         recalculate_refundable_for_checkout(request_event.transaction, request_event)
         logger.error(
-            f"Cannot find the delivery with id: {delivery_id} "
-            f"for transaction-request webhook."
+            "Cannot find the delivery with id: %s for transaction-request webhook.",
+            delivery_id,
         )
-        return None
+        return
     attempt = create_attempt(delivery, self.request.id)
     response, response_data = _send_webhook_request_sync(delivery, attempt=attempt)
     if response.response_status_code and response.response_status_code >= 500:
@@ -89,7 +91,7 @@ def _send_webhook_request_sync(
     delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT, attempt=None
 ) -> tuple[WebhookResponse, Optional[dict[Any, Any]]]:
     event_payload = delivery.payload
-    data = event_payload.payload
+    data = event_payload.get_payload()
     webhook = delivery.webhook
     parts = urlparse(webhook.target_url)
     domain = get_domain()
@@ -106,7 +108,7 @@ def _send_webhook_request_sync(
         delivery.event_type,
     )
     if attempt is None:
-        attempt = create_attempt(delivery=delivery, task_id=None)
+        attempt = create_attempt(delivery=delivery, task_id=None, with_save=False)
     response = WebhookResponse(content="")
     response_data = None
 
@@ -154,6 +156,7 @@ def _send_webhook_request_sync(
     attempt_update(attempt, response)
     delivery_update(delivery, response.status)
     observability.report_event_delivery_attempt(attempt)
+    save_unsuccessful_delivery_attempt(attempt)
     clear_successful_delivery(delivery)
     return response, response_data
 
@@ -215,6 +218,7 @@ def create_delivery_for_subscription_sync_event(
     request=None,
     allow_replica=False,
     pregenerated_payload: Optional[dict] = None,
+    with_save=True,
 ) -> Optional[EventDelivery]:
     """Generate webhook payload based on subscription query and create delivery object.
 
@@ -261,15 +265,19 @@ def create_delivery_for_subscription_sync_event(
         # Return None so if subscription query returns no data Saleor will not crash but
         # log the issue and continue without creating a delivery.
         return None
-
     with allow_writer():
-        event_payload = EventPayload.objects.create(payload=json.dumps({**data}))
-        event_delivery = EventDelivery.objects.create(
-            status=EventDeliveryStatus.PENDING,
-            event_type=event_type,
-            payload=event_payload,
-            webhook=webhook,
-        )
+        # Use transaction to ensure EventPayload and EventDelivery are created together, preventing inconsistent DB state.
+        with transaction.atomic():
+            event_payload = EventPayload(payload=json.dumps({**data}))
+            event_delivery = EventDelivery(
+                status=EventDeliveryStatus.PENDING,
+                event_type=event_type,
+                payload=event_payload,
+                webhook=webhook,
+            )
+            if with_save:
+                event_payload.save_as_file()
+                event_delivery.save()
     return event_delivery
 
 
@@ -294,18 +302,17 @@ def trigger_webhook_sync(
             request=request,
             allow_replica=allow_replica,
             pregenerated_payload=pregenerated_subscription_payload,
+            with_save=False,
         )
         if not delivery:
             return None
     else:
-        with allow_writer():
-            event_payload = EventPayload.objects.create(payload=payload)
-            delivery = EventDelivery.objects.create(
-                status=EventDeliveryStatus.PENDING,
-                event_type=event_type,
-                payload=event_payload,
-                webhook=webhook,
-            )
+        delivery = EventDelivery(
+            status=EventDeliveryStatus.PENDING,
+            event_type=event_type,
+            payload=EventPayload(payload=payload),
+            webhook=webhook,
+        )
 
     kwargs = {}
     if timeout:
@@ -321,7 +328,7 @@ def trigger_all_webhooks_sync(
     subscribable_object=None,
     requestor=None,
     allow_replica=False,
-    pregenerated_subscription_payloads: Optional[dict] = {},
+    pregenerated_subscription_payloads: Optional[dict] = None,
 ) -> Optional[R]:
     """Send all synchronous webhook request for given event type.
 
@@ -331,6 +338,9 @@ def trigger_all_webhooks_sync(
     If no webhook responds with expected response,
     this function returns None.
     """
+    if pregenerated_subscription_payloads is None:
+        pregenerated_subscription_payloads = {}
+
     webhooks = get_webhooks_for_event(event_type)
     request_context = None
     event_payload = None
@@ -355,21 +365,19 @@ def trigger_all_webhooks_sync(
                 request=request_context,
                 requestor=requestor,
                 pregenerated_payload=pregenerated_payload,
+                with_save=False,
             )
             if not delivery:
                 return None
         else:
-            with allow_writer():
-                if event_payload is None:
-                    event_payload = EventPayload.objects.create(
-                        payload=generate_payload()
-                    )
-                delivery = EventDelivery.objects.create(
-                    status=EventDeliveryStatus.PENDING,
-                    event_type=event_type,
-                    payload=event_payload,
-                    webhook=webhook,
-                )
+            if event_payload is None:
+                event_payload = EventPayload(payload=generate_payload())
+            delivery = EventDelivery(
+                status=EventDeliveryStatus.PENDING,
+                event_type=event_type,
+                payload=event_payload,
+                webhook=webhook,
+            )
 
         response_data = send_webhook_request_sync(delivery)
         if parsed_response := parse_response(response_data):

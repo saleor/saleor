@@ -100,8 +100,10 @@ class GraphQLView(View):
             module_path, class_name = ".".join(parts[:-1]), parts[-1]
             module = importlib.import_module(module_path)
             return getattr(module, class_name)
-        except (ImportError, AttributeError):
-            raise ImportError(f"Cannot import '{middleware_name}' graphene middleware!")
+        except (ImportError, AttributeError) as e:
+            raise ImportError(
+                f"Cannot import '{middleware_name}' graphene middleware!"
+            ) from e
 
     @observability.report_view
     def dispatch(self, request, *args, **kwargs):
@@ -110,13 +112,11 @@ class GraphQLView(View):
             if settings.PLAYGROUND_ENABLED:
                 return self.render_playground(request)
             return HttpResponseNotAllowed(["OPTIONS", "POST"])
-        elif request.method == "POST":
+        if request.method == "POST":
             return self.handle_query(request)
-        else:
-            if settings.PLAYGROUND_ENABLED:
-                return HttpResponseNotAllowed(["GET", "OPTIONS", "POST"])
-            else:
-                return HttpResponseNotAllowed(["OPTIONS", "POST"])
+        if settings.PLAYGROUND_ENABLED:
+            return HttpResponseNotAllowed(["GET", "OPTIONS", "POST"])
+        return HttpResponseNotAllowed(["OPTIONS", "POST"])
 
     def render_playground(self, request):
         return render(
@@ -161,6 +161,7 @@ class GraphQLView(View):
         # Add `child_of=span_ontext` to `start_active_span`
         with tracer.start_active_span("http") as scope:
             span = scope.span
+            span.set_tag("resource.name", request.path)
             span.set_tag(opentracing.tags.COMPONENT, "http")
             span.set_tag(opentracing.tags.HTTP_METHOD, request.method)
             span.set_tag(
@@ -277,6 +278,7 @@ class GraphQLView(View):
             _query_identifier = query_identifier(document)
             self._query = _query_identifier
             raw_query_string = document.document_string
+            span.set_tag("resource.name", raw_query_string)
             span.set_tag("graphql.query", raw_query_string)
             span.set_tag("graphql.query_identifier", _query_identifier)
             span.set_tag("graphql.query_fingerprint", query_fingerprint(document))

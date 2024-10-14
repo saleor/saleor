@@ -60,10 +60,10 @@ class AccountRequestDeletion(BaseMutation):
         user = info.context.user
         try:
             validate_storefront_url(redirect_url)
-        except ValidationError as error:
+        except ValidationError as e:
             raise ValidationError(
-                {"redirect_url": error}, code=AccountErrorCode.INVALID.value
-            )
+                {"redirect_url": e}, code=AccountErrorCode.INVALID.value
+            ) from e
         channel_slug = clean_channel(
             channel, error_class=AccountErrorCode, allow_replica=False
         ).slug

@@ -2,7 +2,6 @@ import graphene
 
 from ....permission.enums import CheckoutPermissions
 from ....tax import error_codes, models
-from ...core.descriptions import ADDED_IN_39
 from ...core.doc_category import DOC_CATEGORY_TAXES
 from ...core.mutations import ModelDeleteMutation
 from ...core.types import Error
@@ -28,7 +27,7 @@ class TaxClassDelete(ModelDeleteMutation):
             "Delete a tax class. After deleting the tax class any products, "
             "product types or shipping methods using it are updated to use the "
             "default tax class."
-        ) + ADDED_IN_39
+        )
         error_type_class = TaxClassDeleteError
         model = models.TaxClass
         object_type = TaxClass

@@ -1,9 +1,8 @@
-from datetime import datetime, timedelta
+import datetime
 from decimal import Decimal
 from unittest.mock import call, patch
 
 import graphene
-import pytz
 from django.db.models import Sum
 from django.test import override_settings
 from freezegun import freeze_time
@@ -932,7 +931,8 @@ def test_draft_order_complete_unavailable_for_purchase(
 
     product = order.lines.first().variant.product
     product.channel_listings.update(
-        available_for_purchase_at=datetime.now(pytz.UTC) + timedelta(days=5)
+        available_for_purchase_at=datetime.datetime.now(tz=datetime.UTC)
+        + datetime.timedelta(days=5)
     )
 
     order_id = graphene.Node.to_global_id("Order", order.id)
@@ -1113,9 +1113,11 @@ def test_draft_order_complete_fails_with_invalid_tax_app(
 
 @freeze_time()
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+@patch("saleor.order.calculations.validate_tax_data")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_draft_order_complete_force_tax_calculation_when_tax_error_was_saved(
     mock_request,
+    mock_validate_tax_data,
     staff_api_client,
     permission_group_manage_orders,
     draft_order,
@@ -1125,6 +1127,7 @@ def test_draft_order_complete_force_tax_calculation_when_tax_error_was_saved(
 ):
     # given
     mock_request.return_value = tax_data_response
+    mock_validate_tax_data.return_value = False
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     order = draft_order
@@ -1145,11 +1148,11 @@ def test_draft_order_complete_force_tax_calculation_when_tax_error_was_saved(
     get_graphql_content(response)
 
     # then
-    delivery = EventDelivery.objects.get()
+    mock_request.assert_called_once()
+    delivery = mock_request.mock_calls[0].args[0]
     assert delivery.status == EventDeliveryStatus.PENDING
     assert delivery.event_type == WebhookEventSyncType.ORDER_CALCULATE_TAXES
     assert delivery.webhook.app == tax_app
-    mock_request.assert_called_once_with(delivery)
 
     order.refresh_from_db()
     assert not order.should_refresh_prices
@@ -1158,9 +1161,11 @@ def test_draft_order_complete_force_tax_calculation_when_tax_error_was_saved(
 
 @freeze_time()
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+@patch("saleor.order.calculations.validate_tax_data")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_draft_order_complete_calls_correct_tax_app(
     mock_request,
+    mock_validate_tax_data,
     staff_api_client,
     permission_group_manage_orders,
     draft_order,
@@ -1170,6 +1175,7 @@ def test_draft_order_complete_calls_correct_tax_app(
 ):
     # given
     mock_request.return_value = tax_data_response
+    mock_validate_tax_data.return_value = False
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     order = draft_order
@@ -1189,11 +1195,11 @@ def test_draft_order_complete_calls_correct_tax_app(
     get_graphql_content(response)
 
     # then
-    delivery = EventDelivery.objects.get()
+    mock_request.assert_called_once()
+    delivery = mock_request.mock_calls[0].args[0]
     assert delivery.status == EventDeliveryStatus.PENDING
     assert delivery.event_type == WebhookEventSyncType.ORDER_CALCULATE_TAXES
     assert delivery.webhook.app == tax_app
-    mock_request.assert_called_once_with(delivery)
 
     order.refresh_from_db()
     assert not order.should_refresh_prices
@@ -1211,9 +1217,11 @@ def test_draft_order_complete_calls_failing_plugin(
     channel_USD,
 ):
     # given
+    tax_error_message = "Test error"
+
     def side_effect(order, *args, **kwargs):
         price = Money("10.0", order.currency)
-        order.tax_error = "Test error"
+        order.tax_error = tax_error_message
         return OrderTaxedPricesData(
             price_with_discounts=TaxedMoney(price, price),
             undiscounted_price=TaxedMoney(price, price),
@@ -1247,7 +1255,7 @@ def test_draft_order_complete_calls_failing_plugin(
 
     order.refresh_from_db()
     assert not order.should_refresh_prices
-    assert order.tax_error == "Empty tax data."
+    assert order.tax_error == tax_error_message
 
 
 DRAFT_ORDER_COMPLETE_WITH_DISCOUNTS_MUTATION = """
@@ -1516,7 +1524,6 @@ def test_draft_order_complete_triggers_webhooks(
     permission_group_manage_orders,
     draft_order,
     settings,
-    django_capture_on_commit_callbacks,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = []
@@ -1544,16 +1551,13 @@ def test_draft_order_complete_triggers_webhooks(
     variables = {"id": order_id}
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(
-            DRAFT_ORDER_COMPLETE_MUTATION, variables
-        )
+    response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
 
     # then
     content = get_graphql_content(response)
     assert not content["data"]["draftOrderComplete"]["errors"]
 
-    # confirm that event delivery was generated for each webhook.
+    # confirm that event delivery was generated for each async webhook.
     order_confirmed_delivery = EventDelivery.objects.get(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_CONFIRMED,
@@ -1562,12 +1566,6 @@ def test_draft_order_complete_triggers_webhooks(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_CREATED,
     )
-    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
-    filter_shipping_delivery = EventDelivery.objects.get(
-        webhook_id=shipping_filter_webhook.id,
-        event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
-    )
-
     order_deliveries = [
         order_confirmed_delivery,
         order_updated_delivery,
@@ -1586,10 +1584,25 @@ def test_draft_order_complete_triggers_webhooks(
         ],
         any_order=True,
     )
-    mocked_send_webhook_request_sync.assert_has_calls(
-        [
-            call(tax_delivery),
-            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
-        ]
+
+    # confirm each sync webhook was called without saving event delivery
+    assert mocked_send_webhook_request_sync.call_count == 2
+    assert not EventDelivery.objects.exclude(
+        webhook_id=additional_order_webhook.id
+    ).exists()
+
+    tax_delivery_call, filter_shipping_call = (
+        mocked_send_webhook_request_sync.mock_calls
     )
+
+    tax_delivery = tax_delivery_call.args[0]
+    assert tax_delivery.webhook_id == tax_webhook.id
+
+    filter_shipping_delivery = filter_shipping_call.args[0]
+    assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
+    assert (
+        filter_shipping_delivery.event_type
+        == WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
+    )
+
     assert wrapped_call_order_event.called

@@ -1,12 +1,11 @@
+import datetime
 import json
-from datetime import datetime
 from unittest.mock import patch
 from uuid import UUID
 
 import graphene
 import pytest
 from django.http import JsonResponse
-from django.utils import timezone
 
 from ....core import EventDeliveryStatus
 from ....webhook.event_types import WebhookEventAsyncType
@@ -250,7 +249,7 @@ def test_generate_api_call_payload(app, rf, gql_operation_factory, site_settings
     request = rf.post(
         "/graphql", data={"request": "data"}, content_type="application/json"
     )
-    request.request_time = datetime(1914, 6, 28, 10, 50, tzinfo=timezone.utc)
+    request.request_time = datetime.datetime(1914, 6, 28, 10, 50, tzinfo=datetime.UTC)
     request.app = app
     response = JsonResponse({"response": "data"})
     query_a = "query FirstQuery { shop { name } }"
@@ -328,7 +327,7 @@ def test_generate_api_call_payload_skip_operations_when_size_limit_too_low(
     request = rf.post(
         "/graphql", data={"request": "data"}, content_type="application/json"
     )
-    request.request_time = datetime(1914, 6, 28, 10, 50, tzinfo=timezone.utc)
+    request.request_time = datetime.datetime(1914, 6, 28, 10, 50, tzinfo=datetime.UTC)
     request.app = app
     response = JsonResponse({"response": "data"})
     query = "query FirstQuery { shop { name } } query SecondQuery { shop { name } }"
@@ -356,7 +355,7 @@ def test_generate_api_call_payload_when_too_low_bytes_limit(app, rf):
     request = rf.post(
         "/graphql", data={"request": "data"}, content_type="application/json"
     )
-    request.request_time = datetime(1914, 6, 28, 10, 50, tzinfo=timezone.utc)
+    request.request_time = datetime.datetime(1914, 6, 28, 10, 50, tzinfo=datetime.UTC)
     request.app = app
     response = JsonResponse({"response": "data"})
     payload = generate_api_call_payload(request, response, [], 1024)
@@ -366,7 +365,7 @@ def test_generate_api_call_payload_when_too_low_bytes_limit(app, rf):
 
 
 def test_generate_event_delivery_attempt_payload(event_attempt):
-    created_at = datetime(1914, 6, 28, 10, 50, tzinfo=timezone.utc)
+    created_at = datetime.datetime(1914, 6, 28, 10, 50, tzinfo=datetime.UTC)
     event_attempt.created_at = created_at
     delivery = event_attempt.delivery
     webhook = delivery.webhook
@@ -399,7 +398,7 @@ def test_generate_event_delivery_attempt_payload(event_attempt):
                 payload=EventDeliveryPayload(
                     content_length=32,
                     body=JsonTruncText(
-                        pretty_json(json.loads(delivery.payload.payload)), False
+                        pretty_json(json.loads(delivery.payload.get_payload())), False
                     ),
                 ),
             ),
@@ -443,12 +442,12 @@ def test_generate_event_delivery_attempt_payload_raises_error_when_no_payload(
 def test_generate_event_delivery_attempt_payload_with_next_retry_date(
     event_attempt,
 ):
-    next_retry_date = datetime(1914, 6, 28, 10, 50, tzinfo=timezone.utc)
+    next_retry_date = datetime.datetime(2004, 5, 1, 0, 0, tzinfo=datetime.UTC)
     payload = generate_event_delivery_attempt_payload(
         event_attempt, next_retry_date, 1024
     )
 
-    assert json.loads(payload)["nextRetry"] == "1914-06-28T10:50:00Z"
+    assert json.loads(payload)["nextRetry"] == "2004-05-01T00:00:00Z"
 
 
 def test_generate_event_delivery_attempt_payload_with_non_empty_headers(event_attempt):

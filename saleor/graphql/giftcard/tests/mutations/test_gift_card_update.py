@@ -1,5 +1,5 @@
+import datetime
 import json
-from datetime import date, timedelta
 from unittest import mock
 
 import graphene
@@ -107,7 +107,9 @@ def test_update_gift_card(
 
     initial_balance = 100.0
     currency = gift_card.currency
-    date_value = date.today() + timedelta(days=365)
+    date_value = datetime.datetime.now(tz=datetime.UTC).date() + datetime.timedelta(
+        days=365
+    )
     old_tag = gift_card.tags.first().name
     new_tag = "new-gift-card-tag"
     tags_count = GiftCardTag.objects.count()
@@ -228,7 +230,9 @@ def test_update_gift_card_by_app(
 
     initial_balance = 100.0
     currency = gift_card.currency
-    date_value = date.today() + timedelta(days=365)
+    date_value = datetime.datetime.now(tz=datetime.UTC).date() + datetime.timedelta(
+        days=365
+    )
     new_tag = gift_card_tag_list[0].name
     tags_count = GiftCardTag.objects.count()
     variables = {
@@ -496,7 +500,9 @@ def test_update_used_gift_card_to_expiry_date(
 ):
     # given
     gift_card = gift_card_used
-    date_value = date.today() + timedelta(days=365)
+    date_value = datetime.datetime.now(tz=datetime.UTC).date() + datetime.timedelta(
+        days=365
+    )
 
     variables = {
         "id": graphene.Node.to_global_id("GiftCard", gift_card.pk),
@@ -576,7 +582,9 @@ def test_update_gift_card_date_in_past(
     permission_manage_apps,
 ):
     # given
-    date_value = date.today() - timedelta(days=365)
+    date_value = datetime.datetime.now(tz=datetime.UTC).date() - datetime.timedelta(
+        days=365
+    )
     variables = {
         "id": graphene.Node.to_global_id("GiftCard", gift_card.pk),
         "input": {
@@ -614,7 +622,9 @@ def test_update_gift_card_expired_card(
     permission_manage_apps,
 ):
     # given
-    gift_card.expiry_date = date.today() - timedelta(days=1)
+    gift_card.expiry_date = datetime.datetime.now(
+        tz=datetime.UTC
+    ).date() - datetime.timedelta(days=1)
     gift_card.save(update_fields=["expiry_date"])
 
     variables = {
@@ -753,7 +763,9 @@ def test_update_gift_card_trigger_webhook(
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
 
     initial_balance = 100.0
-    date_value = date.today() + timedelta(days=365)
+    date_value = datetime.datetime.now(tz=datetime.UTC).date() + datetime.timedelta(
+        days=365
+    )
     new_tag = "new-gift-card-tag"
     variables = {
         "id": graphene.Node.to_global_id("GiftCard", gift_card.pk),

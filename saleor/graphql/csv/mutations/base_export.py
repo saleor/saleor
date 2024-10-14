@@ -26,7 +26,7 @@ class BaseExportMutation(BaseMutation):
         scope = input["scope"]
         if scope == ExportScope.IDS.value:  # type: ignore[attr-defined] # mypy does not understand graphene enums # noqa: E501
             return cls.clean_ids(input, only_type)
-        elif scope == ExportScope.FILTER.value:  # type: ignore[attr-defined] # mypy does not understand graphene enums # noqa: E501
+        if scope == ExportScope.FILTER.value:  # type: ignore[attr-defined] # mypy does not understand graphene enums # noqa: E501
             return cls.clean_filter(input)
         return {"all": ""}
 

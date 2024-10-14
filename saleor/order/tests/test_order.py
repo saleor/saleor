@@ -19,7 +19,6 @@ from ...graphql.tests.utils import get_graphql_content
 from ...payment import ChargeStatus
 from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
-from ...tests.fixtures import recalculate_order
 from ...warehouse import WarehouseClickAndCollectOption
 from ...warehouse.models import Stock, Warehouse
 from ...warehouse.tests.utils import get_quantity_allocated_for_stock
@@ -48,6 +47,7 @@ from ..utils import (
     update_order_charge_data,
     update_order_status,
 )
+from .fixtures import recalculate_order
 
 
 def test_total_setter():
@@ -466,7 +466,7 @@ def test_order_queryset_confirmed(draft_order, channel_USD):
     confirmed_orders = Order.objects.confirmed()
 
     assert draft_order not in confirmed_orders
-    assert all([order in confirmed_orders for order in other_orders])
+    assert all(order in confirmed_orders for order in other_orders)
 
 
 def test_order_queryset_drafts(draft_order, channel_USD):
@@ -482,7 +482,7 @@ def test_order_queryset_drafts(draft_order, channel_USD):
     draft_orders = Order.objects.drafts()
 
     assert draft_order in draft_orders
-    assert all([order not in draft_orders for order in other_orders])
+    assert all(order not in draft_orders for order in other_orders)
 
 
 def test_order_queryset_to_ship(settings, channel_USD):
@@ -530,8 +530,8 @@ def test_order_queryset_to_ship(settings, channel_USD):
 
     orders = Order.objects.ready_to_fulfill()
 
-    assert all([order in orders for order in orders_to_ship])
-    assert all([order not in orders for order in orders_not_to_ship])
+    assert all(order in orders for order in orders_to_ship)
+    assert all(order not in orders for order in orders_not_to_ship)
 
 
 def test_queryset_ready_to_capture(channel_USD):
@@ -782,11 +782,15 @@ def test_send_fulfillment_order_lines_mails_by_user(
     expected_payload = get_default_fulfillment_payload(order, fulfillment)
     expected_payload["requester_user_id"] = to_global_id_or_none(staff_user)
     expected_payload["requester_app_id"] = None
-    mocked_notify.assert_called_once_with(
-        "order_fulfillment_confirmation",
-        payload=expected_payload,
-        channel_slug=fulfilled_order.channel.slug,
-    )
+
+    assert mocked_notify.call_count == 1
+    call_args = mocked_notify.call_args_list[0]
+    called_args = call_args.args
+    called_kwargs = call_args.kwargs
+    assert called_args[0] == "order_fulfillment_confirmation"
+    assert len(called_kwargs) == 2
+    assert called_kwargs["payload_func"]() == expected_payload
+    assert called_kwargs["channel_slug"] == fulfilled_order.channel.slug
 
 
 @patch("saleor.plugins.manager.PluginsManager.notify")
@@ -826,11 +830,15 @@ def test_send_fulfillment_order_lines_mails_by_app(
     expected_payload = get_default_fulfillment_payload(order, fulfillment)
     expected_payload["requester_user_id"] = None
     expected_payload["requester_app_id"] = to_global_id_or_none(app)
-    mocked_notify.assert_called_once_with(
-        "order_fulfillment_confirmation",
-        payload=expected_payload,
-        channel_slug=fulfilled_order.channel.slug,
-    )
+
+    assert mocked_notify.call_count == 1
+    call_args = mocked_notify.call_args_list[0]
+    called_args = call_args.args
+    called_kwargs = call_args.kwargs
+    assert called_args[0] == "order_fulfillment_confirmation"
+    assert len(called_kwargs) == 2
+    assert called_kwargs["payload_func"]() == expected_payload
+    assert called_kwargs["channel_slug"] == fulfilled_order.channel.slug
 
 
 @pytest.mark.parametrize(
