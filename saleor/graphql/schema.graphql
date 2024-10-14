@@ -26768,6 +26768,13 @@ input OrderBulkCreateOrderLineInput @doc(category: "Orders") {
   """The name of the product."""
   productName: String
 
+  """
+  The SKU of the product.
+  
+  Added in Saleor 3.18.
+  """
+  productSku: String
+
   """Translation of the product variant name."""
   translatedVariantName: String
 
