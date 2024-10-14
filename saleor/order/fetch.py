@@ -30,7 +30,7 @@ class OrderInfo:
     customer_email: "str"
     channel: "Channel"
     payment: Optional["Payment"]
-    lines_data: Iterable["OrderLineInfo"]
+    lines_data: list["OrderLineInfo"]
 
 
 @dataclass

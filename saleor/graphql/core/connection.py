@@ -54,9 +54,9 @@ def from_global_cursor(cursor) -> list[str]:
 def get_field_value(instance: DjangoModel, field_name: str):
     """Get field value for given field in filter format 'field__foreign_key_field'."""
     field_path = field_name.split("__")
-    attr = instance
+    attr: Any = instance
     for elem in field_path:
-        attr = getattr(attr, elem, None)  # type:ignore
+        attr = getattr(attr, elem, None)
 
     if callable(attr):
         return f"{attr()}"

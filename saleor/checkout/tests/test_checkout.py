@@ -1251,7 +1251,7 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
         quantity=total_quantity,
         spec=Checkout,
         channel=channel_USD,
-        get_value_from_private_metadata=Mock(return_value=None),
+        metadata_storage=Mock(get_value_from_private_metadata=Mock(return_value=None)),
     )
 
     voucher = Voucher.objects.create(

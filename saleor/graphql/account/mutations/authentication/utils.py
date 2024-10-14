@@ -3,7 +3,7 @@ import datetime
 import jwt
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.middleware.csrf import (  # type: ignore
+from django.middleware.csrf import (  # type: ignore[attr-defined]
     _get_new_csrf_string,
     _mask_cipher_secret,
     _unmask_cipher_token,

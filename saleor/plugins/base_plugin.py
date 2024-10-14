@@ -1,5 +1,4 @@
 from collections import defaultdict
-from collections.abc import Iterable
 from copy import copy
 from dataclasses import dataclass
 from decimal import Decimal
@@ -716,7 +715,7 @@ class BasePlugin:
     get_checkout_shipping_tax_rate: Callable[
         [
             "CheckoutInfo",
-            Iterable["CheckoutLineInfo"],
+            list["CheckoutLineInfo"],
             Union["Address", None],
             Any,
         ],
@@ -726,7 +725,7 @@ class BasePlugin:
     # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
     # Webhook-related functionality will be moved from the plugin to core modules.
     get_taxes_for_checkout: Callable[
-        ["CheckoutInfo", Iterable["CheckoutLineInfo"], str, Any, Optional[dict]],
+        ["CheckoutInfo", list["CheckoutLineInfo"], str, Any, Optional[dict]],
         Optional["TaxData"],
     ]
 
@@ -1177,7 +1176,7 @@ class BasePlugin:
     preprocess_order_creation: Callable[
         [
             "CheckoutInfo",
-            Union[Iterable["CheckoutLineInfo"], None],
+            Union[list["CheckoutLineInfo"], None],
             Any,
         ],
         Any,
@@ -1698,7 +1697,7 @@ class BasePlugin:
         self,
         currency: Optional[str],
         checkout_info: Optional["CheckoutInfo"],
-        checkout_lines: Optional[Iterable["CheckoutLineInfo"]],
+        checkout_lines: Optional[list["CheckoutLineInfo"]],
         previous_value,
     ) -> list["PaymentGateway"]:
         payment_config = (
@@ -1834,11 +1833,8 @@ class BasePlugin:
             else:
                 fields_without_structure.append(configuration_field)
 
-        if fields_without_structure:
-            [
-                configuration.remove(field)  # type: ignore
-                for field in fields_without_structure
-            ]
+        for field in fields_without_structure:
+            configuration.remove(field)
 
     @classmethod
     def _update_configuration_structure(cls, configuration: PluginConfigurationType):

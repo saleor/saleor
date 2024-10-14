@@ -1,4 +1,3 @@
-from collections.abc import Iterable
 from typing import Optional
 
 import graphene
@@ -237,7 +236,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         cls,
         manager,
         checkout_info: "CheckoutInfo",
-        lines: Iterable["CheckoutLineInfo"],
+        lines: list["CheckoutLineInfo"],
         *,
         shipping_method: Optional[ShippingMethod],
         external_shipping_method: Optional[shipping_interface.ShippingMethodData],

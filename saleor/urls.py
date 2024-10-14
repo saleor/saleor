@@ -68,7 +68,7 @@ if settings.DEBUG:
         )
     else:
         urlpatterns += [
-            re_path(r"^__debug__/", include(debug_toolbar.urls))  # type: ignore
+            re_path(r"^__debug__/", include(debug_toolbar.urls))  # type: ignore[list-item]
         ]
 
     urlpatterns += static("/media/", document_root=settings.MEDIA_ROOT) + [

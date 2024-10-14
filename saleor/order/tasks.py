@@ -197,7 +197,7 @@ def delete_expired_orders_task():
             ~Exists(Payment.objects.filter(order=OuterRef("pk"))),
             expired_at__isnull=False,
             status=OrderStatus.EXPIRED,
-            expired_at__lte=now - F("delete_expired_orders_after"),  # type:ignore
+            expired_at__lte=now - F("delete_expired_orders_after"),  # type:ignore[operator]
         )
     )
     ids_batch = qs.values_list("pk", flat=True)[:DELETE_EXPIRED_ORDER_BATCH_SIZE]

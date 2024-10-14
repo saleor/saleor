@@ -247,7 +247,7 @@ class SendgridEmailPlugin(BasePlugin):
 
         configuration = {item["name"]: item["value"] for item in self.configuration}
 
-        event_task, event_template = EVENT_MAP.get(event)  # type: ignore
+        event_task, event_template = EVENT_MAP.get(event)  # type: ignore[arg-type,misc]
         template_id = configuration.get(event_template)
         if not template_id:
             # the empty fields means that we should not send an email for this event.

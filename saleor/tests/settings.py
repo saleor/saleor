@@ -9,7 +9,7 @@ from django.utils.functional import SimpleLazyObject
 # without this line pytest will start sending traces to Jaeger agent.
 os.environ["JAEGER_AGENT_HOST"] = ""
 
-from ..settings import *  # noqa
+from ..settings import *  # noqa: F403
 
 
 def lazy_re_compile(regex, flags=0):

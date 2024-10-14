@@ -287,7 +287,7 @@ class Warehouse(ModelWithMetadata, ModelWithExternalReference):
         ordering = ("-slug",)
         indexes = [
             *ModelWithMetadata.Meta.indexes,
-            BTreeIndex(  # type: ignore
+            BTreeIndex(
                 name="click_and_collect_option_idx",
                 fields=["click_and_collect_option"],
             ),

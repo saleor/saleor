@@ -399,11 +399,12 @@ def get_or_create_user_from_payload(
     if not user_email:
         raise AuthenticationError("Missing user's email.")
 
-    sub = payload.get("sub")
+    sub: str | None = payload.get("sub")
     get_kwargs = {"private_metadata__contains": {oidc_metadata_key: sub}}
     if not sub:
         get_kwargs = {"email": user_email}
         logger.warning("Missing sub section in OIDC payload")
+        raise AuthenticationError("Missing subject identifier.")
 
     defaults_create = {
         "is_active": True,
@@ -414,7 +415,7 @@ def get_or_create_user_from_payload(
         "private_metadata": {oidc_metadata_key: sub},
         "password": make_password(None),
     }
-    cache_key = oidc_metadata_key + ":" + str(sub)
+    cache_key = oidc_metadata_key + ":" + sub
     user_id = cache.get(cache_key)
     if user_id:
         get_kwargs = {"id": user_id}
@@ -448,7 +449,7 @@ def get_or_create_user_from_payload(
         user_email=user_email,
         user_first_name=defaults_create["first_name"],
         user_last_name=defaults_create["last_name"],
-        sub=sub,  # type: ignore
+        sub=sub,
         last_login=last_login,
     )
 

@@ -246,7 +246,7 @@ class WebhookPlugin(BasePlugin):
             )
 
     def trigger_webhooks_async(self, *args, **kwargs):
-        return trigger_webhooks_async(*args, **kwargs, allow_replica=self.allow_replica)  # type: ignore
+        return trigger_webhooks_async(*args, **kwargs, allow_replica=self.allow_replica)  # type: ignore[misc]
 
     def account_confirmed(self, user: "User", previous_value: None) -> None:
         if not self.active:
@@ -3157,7 +3157,7 @@ class WebhookPlugin(BasePlugin):
         self,
         currency: Optional[str],
         checkout_info: Optional["CheckoutInfo"],
-        checkout_lines: Optional[Iterable["CheckoutLineInfo"]],
+        checkout_lines: Optional[list["CheckoutLineInfo"]],
         previous_value,
         **kwargs,
     ) -> list["PaymentGateway"]:

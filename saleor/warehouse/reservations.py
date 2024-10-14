@@ -282,7 +282,7 @@ def reserve_preorders(
 
     variants_global_allocations = {
         variant_id: sum(
-            channel_listing.preorder_quantity_allocated  # type: ignore
+            channel_listing.preorder_quantity_allocated  # type: ignore[attr-defined]
             for channel_listing in channel_listings
         )
         for variant_id, channel_listings in variant_channels.items()
@@ -330,7 +330,7 @@ def _create_preorder_reservation(
     reserved_until: datetime.datetime,
 ):
     if listing.preorder_quantity_threshold is not None:
-        available_channel_quantity = listing.available_preorder_quantity  # type: ignore
+        available_channel_quantity = listing.available_preorder_quantity  # type: ignore[attr-defined]
         available_channel_quantity = max(
             available_channel_quantity - listings_reservations[listing.id], 0
         )

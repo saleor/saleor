@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from collections.abc import Iterable
 from typing import TYPE_CHECKING, Optional
 
 from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
@@ -20,7 +19,7 @@ class PaymentInterface(ABC):
         self,
         currency: Optional[str] = None,
         checkout_info: Optional["CheckoutInfo"] = None,
-        checkout_lines: Optional[Iterable["CheckoutLineInfo"]] = None,
+        checkout_lines: Optional[list["CheckoutLineInfo"]] = None,
         channel_slug: Optional[str] = None,
         active_only: bool = True,
     ) -> list["PaymentGateway"]:

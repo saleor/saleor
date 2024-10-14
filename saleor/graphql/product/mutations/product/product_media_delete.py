@@ -30,7 +30,7 @@ class ProductMediaDelete(BaseMutation):
         cls, _root, info: ResolveInfo, /, *, id: str
     ):
         media_obj = cls.get_node_or_error(info, id, only_type=ProductMedia)
-        product = models.Product.objects.get(pk=media_obj.product_id)  # type: ignore
+        product = models.Product.objects.get(pk=media_obj.product_id)  # type: ignore[misc]
         media_id = media_obj.id
         media_obj.delete()
         media_obj.id = media_id

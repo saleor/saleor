@@ -119,7 +119,7 @@ def generate_requestor(requestor: Optional["RequestorOrLazyObject"] = None):
         return {"id": None, "type": None}
     if isinstance(requestor, User):
         return {"id": graphene.Node.to_global_id("User", requestor.id), "type": "user"}
-    return {"id": requestor.name, "type": "app"}  # type: ignore
+    return {"id": requestor.name, "type": "app"}  # type: ignore[union-attr]
 
 
 def generate_meta(*, requestor_data: dict[str, Any], camel_case=False, **kwargs):
@@ -1282,7 +1282,7 @@ def generate_excluded_shipping_methods_for_checkout_payload(
 @traced_payload_generator
 def generate_checkout_payload_for_tax_calculation(
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
 ):
     checkout = checkout_info.checkout
     tax_configuration = checkout_info.tax_configuration

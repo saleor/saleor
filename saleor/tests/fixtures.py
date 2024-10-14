@@ -83,7 +83,7 @@ from .utils import dummy_editorjs
 
 
 class CaptureQueriesContext(BaseCaptureQueriesContext):
-    IGNORED_QUERIES = settings.PATTERNS_IGNORED_IN_QUERY_CAPTURES  # type: ignore
+    IGNORED_QUERIES = settings.PATTERNS_IGNORED_IN_QUERY_CAPTURES  # type: ignore[misc]
 
     @property
     def captured_queries(self):

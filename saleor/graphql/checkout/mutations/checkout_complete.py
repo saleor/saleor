@@ -1,5 +1,3 @@
-from collections.abc import Iterable
-
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -172,7 +170,7 @@ class CheckoutComplete(BaseMutation, I18nMixin):
     def validate_checkout_addresses(
         cls,
         checkout_info: CheckoutInfo,
-        lines: Iterable[CheckoutLineInfo],
+        lines: list[CheckoutLineInfo],
     ):
         """Validate checkout addresses.
 

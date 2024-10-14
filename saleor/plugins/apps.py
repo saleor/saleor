@@ -27,8 +27,8 @@ class PluginConfig(AppConfig):
 
         self.check_plugin_fields(["PLUGIN_ID"], plugin)
 
-    def check_plugin_fields(self, fields: list[str], plugin_class: "BasePlugin"):
-        name = plugin_class.__name__  # type: ignore
+    def check_plugin_fields(self, fields: list[str], plugin_class: type["BasePlugin"]):
+        name = plugin_class.__name__
 
         for field in fields:
             if not getattr(plugin_class, field, None):

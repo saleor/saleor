@@ -1,6 +1,5 @@
 import datetime
 from collections import defaultdict
-from collections.abc import Iterable
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Optional, Union
 
@@ -80,7 +79,7 @@ def _get_checkout_line_payload_data(line_info: "CheckoutLineInfo") -> dict[str, 
 
 def serialize_checkout_lines_for_tax_calculation(
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
 ) -> list[dict]:
     charge_taxes = get_charge_taxes_for_checkout(checkout_info, lines)
     return [

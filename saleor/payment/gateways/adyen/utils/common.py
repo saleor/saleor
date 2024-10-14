@@ -1,6 +1,5 @@
 import json
 import logging
-from collections.abc import Iterable
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Callable, Optional
 
@@ -338,7 +337,7 @@ def get_shopper_locale_value(country_code: str):
 
 def request_data_for_gateway_config(
     checkout_info: "CheckoutInfo",
-    lines: Optional[Iterable[CheckoutLineInfo]],
+    lines: Optional[list[CheckoutLineInfo]],
     merchant_account,
 ) -> dict[str, Any]:
     manager = get_plugins_manager(allow_replica=False)

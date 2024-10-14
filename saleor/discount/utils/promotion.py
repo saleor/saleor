@@ -157,7 +157,7 @@ def get_product_discount_on_promotion(
 
 @overload
 def prepare_line_discount_objects_for_catalogue_promotions(
-    lines_info: Iterable["CheckoutLineInfo"],
+    lines_info: list["CheckoutLineInfo"],
 ) -> tuple[
     list[dict], list["CheckoutLineDiscount"], list["CheckoutLineDiscount"], list[str]
 ]: ...
@@ -165,7 +165,7 @@ def prepare_line_discount_objects_for_catalogue_promotions(
 
 @overload
 def prepare_line_discount_objects_for_catalogue_promotions(
-    lines_info: Iterable["EditableOrderLineInfo"],
+    lines_info: list["EditableOrderLineInfo"],
 ) -> tuple[
     list[dict], list["OrderLineDiscount"], list["OrderLineDiscount"], list[str]
 ]: ...
@@ -509,12 +509,12 @@ def _get_available_for_purchase_variant_ids(
 @allow_writer()
 def delete_gift_line(
     order_or_checkout: Union[Checkout, Order],
-    lines_info: Iterable[Union["CheckoutLineInfo", "EditableOrderLineInfo"]],
+    lines_info: Union[list["CheckoutLineInfo"], list["EditableOrderLineInfo"]],
 ):
     if gift_line_infos := [line for line in lines_info if line.line.is_gift]:
         order_or_checkout.lines.filter(is_gift=True).delete()  # type: ignore[misc]
         for gift_line_info in gift_line_infos:
-            lines_info.remove(gift_line_info)  # type: ignore[attr-defined]
+            lines_info.remove(gift_line_info)  # type: ignore[arg-type]
 
 
 def create_gift_line(order_or_checkout: Union[Checkout, Order], variant_id: int):
@@ -766,7 +766,7 @@ def update_rule_variant_relation(
 
 def create_discount_objects_for_order_promotions(
     order_or_checkout: Union[Checkout, Order],
-    lines_info: Union[Iterable["EditableOrderLineInfo"], Iterable["CheckoutLineInfo"]],
+    lines_info: Union[list["EditableOrderLineInfo"], list["CheckoutLineInfo"]],
     subtotal: Money,
     channel: "Channel",
     country: str,
@@ -843,7 +843,7 @@ def create_discount_objects_for_order_promotions(
 @allow_writer()
 def _handle_order_promotion(
     order_or_checkout: Union[Order, Checkout],
-    lines_info: Union[Iterable["EditableOrderLineInfo"], Iterable["CheckoutLineInfo"]],
+    lines_info: Union[list["EditableOrderLineInfo"], list["CheckoutLineInfo"]],
     discount_object_defaults: dict,
     rule_info: VariantPromotionRuleInfo,
 ):
@@ -872,7 +872,7 @@ def _handle_order_promotion(
 @allow_writer()
 def _handle_gift_reward(
     order_or_checkout: Union[Order, Checkout],
-    lines_info: Union[Iterable["EditableOrderLineInfo"], Iterable["CheckoutLineInfo"]],
+    lines_info: Union[list[EditableOrderLineInfo], list[CheckoutLineInfo]],
     gift_listing: ProductVariantChannelListing,
     channel: "Channel",
     discount_object_defaults: dict,
@@ -926,11 +926,12 @@ def _handle_gift_reward(
             "voucher": None,
             "voucher_code": None,
         }
+        gift_line_info: CheckoutLineInfo | EditableOrderLineInfo
         if isinstance(order_or_checkout, Checkout):
             gift_line_info = CheckoutLineInfo(**init_values)
         else:
-            gift_line_info = EditableOrderLineInfo(**init_values)  # type: ignore
-        lines_info.append(gift_line_info)  # type: ignore
+            gift_line_info = EditableOrderLineInfo(**init_values)
+        lines_info.append(gift_line_info)  # type: ignore[arg-type]
     else:
         line_info = next(
             line_info for line_info in lines_info if line_info.line.pk == line.id

@@ -1,5 +1,5 @@
 import logging
-from typing import Optional
+from typing import Optional, cast
 
 from authlib.common.errors import AuthlibBaseError
 from django.core import signing
@@ -391,7 +391,8 @@ class OpenIDConnectPlugin(BasePlugin):
         refresh_token = data.get("refreshToken") or refresh_token
 
         validate_refresh_token(refresh_token, data)
-        saleor_refresh_token = jwt_decode(refresh_token)  # type: ignore
+        refresh_token = cast(str, refresh_token)
+        saleor_refresh_token = jwt_decode(refresh_token)
         token_endpoint = self.config.token_url
         try:
             token_data = self.oauth.refresh_token(

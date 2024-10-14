@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
 def clean_checkout_shipping(
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     error_code: Union[
         type[CheckoutErrorCode],
         type[PaymentErrorCode],
@@ -85,7 +85,7 @@ def clean_billing_address(
 def clean_checkout_payment(
     manager: PluginsManager,
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     error_code: type[CheckoutErrorCode],
     last_payment: Optional[payment_models.Payment],
 ):
@@ -122,7 +122,7 @@ def _validate_gift_cards(checkout: Checkout):
 
 def validate_checkout(
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     unavailable_variant_pks: Iterable[int],
     manager: "PluginsManager",
 ):

@@ -175,7 +175,7 @@ def _process_shipping_data_for_order(
     base_shipping_price: Money,
     shipping_price: TaxedMoney,
     manager: "PluginsManager",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
 ) -> dict[str, Any]:
     """Fetch, process and return shipping data from checkout."""
     delivery_method_info = checkout_info.delivery_method_info
@@ -234,7 +234,7 @@ def _process_user_data_for_order(checkout_info: "CheckoutInfo", manager):
 def _create_line_for_order(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
     products_translation: dict[int, Optional[str]],
     variants_translation: dict[int, Optional[str]],
@@ -430,7 +430,7 @@ def _get_sale_id(line_discounts: list[OrderLineDiscount]):
 def _create_lines_for_order(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     prices_entered_with_tax: bool,
 ) -> Iterable[OrderLineInfo]:
     """Create a lines for the given order.
@@ -503,7 +503,7 @@ def _prepare_order_data(
     *,
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     prices_entered_with_tax: bool,
 ) -> dict:
     """Run checks and return all the data from a given checkout to create an order.
@@ -618,7 +618,7 @@ def _prepare_order_data(
 def _create_order(
     *,
     checkout_info: "CheckoutInfo",
-    checkout_lines: Iterable["CheckoutLineInfo"],
+    checkout_lines: list["CheckoutLineInfo"],
     order_data: dict,
     user: User,
     app: Optional["App"],
@@ -761,7 +761,7 @@ def _create_order(
 def _prepare_checkout(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     redirect_url,
 ):
     """Prepare checkout object to complete the checkout process."""
@@ -797,7 +797,7 @@ def _prepare_checkout(
 def _prepare_checkout_with_transactions(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     redirect_url: Optional[str],
 ):
     """Prepare checkout object with transactions to complete the checkout process."""
@@ -842,7 +842,7 @@ def _prepare_checkout_with_transactions(
 def _prepare_checkout_with_payment(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     redirect_url: Optional[str],
     payment: Optional[Payment],
 ):
@@ -865,7 +865,7 @@ def _prepare_checkout_with_payment(
 def _get_order_data(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     site_settings: "SiteSettings",
 ) -> dict:
     """Prepare data that will be converted to order and its lines."""
@@ -939,7 +939,7 @@ def _process_payment(
 def complete_checkout_pre_payment_part(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     user,
     site_settings=None,
     redirect_url=None,
@@ -985,7 +985,7 @@ def complete_checkout_pre_payment_part(
 def complete_checkout_post_payment_part(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     payment: Optional[Payment],
     txn: Optional[Transaction],
     order_data,
@@ -1491,7 +1491,7 @@ def assign_checkout_user(
 def complete_checkout(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     payment_data: dict[Any, Any],
     store_source: bool,
     user: Optional["User"],
@@ -1570,7 +1570,7 @@ def complete_checkout(
 def complete_checkout_with_transaction(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     user: Optional["User"],
     app: Optional["App"],
     redirect_url: Optional[str] = None,
@@ -1746,7 +1746,7 @@ def complete_checkout_with_payment(
 
 def _reserve_stocks_without_availability_check(
     checkout_info: CheckoutInfo,
-    lines: Iterable[CheckoutLineInfo],
+    lines: list[CheckoutLineInfo],
 ):
     """Add additional temporary reservation for stock.
 
