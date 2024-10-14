@@ -271,7 +271,7 @@ def test_requestor_is_superuser_for_app(app):
 def test_get_oembed_data(url, expected_media_type):
     oembed_data, media_type = get_oembed_data(url, "media_url")
 
-    assert oembed_data is not {}
+    assert oembed_data != {}
     assert media_type == expected_media_type
 
 
