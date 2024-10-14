@@ -343,7 +343,13 @@ def trigger_webhooks_async(
         )
 
 
-def generate_deferred_payload(event_type: str, webhook: "Webhook", payload_args: dict):
+def _generate_deferred_payload(
+    event_type: str,
+    webhook: "Webhook",
+    payload_args: dict,
+    delivery: "EventDelivery",
+    logger_obj: "logging.Logger",
+):
     args_obj = DeferredPayloadData(**payload_args)
     requestor = None
     if args_obj.requestor_model_id and args_obj.requestor_model_name in (
@@ -353,11 +359,21 @@ def generate_deferred_payload(event_type: str, webhook: "Webhook", payload_args:
         model = apps.get_model(args_obj.requestor_model_name)
         requestor = model.objects.filter(pk=args_obj.requestor_model_id).first()
 
-    # todo: handle invalid model name
-    # todo: handle object not found
     subscribable_object = (
         apps.get_model(args_obj.model_name).objects.filter(pk=args_obj.model_id).first()
     )
+    if not subscribable_object:
+        logger_obj.error(
+            (
+                "[Webhook ID:%r] Failed to get the subscribable_object for deferred "
+                "payload; event: %s, model name: %s, model ID: %r, delivery ID: %r"
+            ),
+            webhook.id,
+            event_type,
+            args_obj.model_name,
+            args_obj.model_id,
+            delivery.id,
+        )
 
     request = initialize_request(
         requestor,
@@ -397,18 +413,21 @@ def send_webhook_request_async(self, event_delivery_id, deferred_payload_data=No
     domain = get_domain()
     attempt = create_attempt(delivery, self.request.id)
     delivery_status = EventDeliveryStatus.SUCCESS
+    data = None
+
     try:
         if delivery.payload:
             data = delivery.payload.get_payload()
         elif deferred_payload_data:
-            # todo: handle null data
-            data = generate_deferred_payload(
+            data = _generate_deferred_payload(
                 event_type=delivery.event_type,
                 webhook=webhook,
                 payload_args=deferred_payload_data,
+                delivery=delivery,
+                logger_obj=task_logger,
             )
-        else:
-            # todo: move this out of the try...except block
+
+        if data is None:
             raise ValueError(
                 f"Event delivery id: %{event_delivery_id}r has no payload."
             )
@@ -440,6 +459,7 @@ def send_webhook_request_async(self, event_delivery_id, deferred_payload_data=No
         response = WebhookResponse(content=str(e), status=EventDeliveryStatus.FAILED)
         attempt_update(attempt, response)
         delivery_update(delivery=delivery, status=EventDeliveryStatus.FAILED)
+
     observability.report_event_delivery_attempt(attempt)
     clear_successful_delivery(delivery)
 
