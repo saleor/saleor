@@ -11,6 +11,7 @@ from .....account.models import Address
 from .....core import JobStatus
 from .....core.prices import quantize_price
 from .....discount.models import OrderDiscount
+from .....discount.utils import DiscountValueType
 from .....invoice.models import Invoice
 from .....order import (
     OrderAuthorizeStatus,
@@ -90,6 +91,9 @@ ORDER_BULK_CREATE = """
                         unitDiscount {
                             amount
                         }
+                        unitDiscountValue
+                        unitDiscountReason
+                        unitDiscountType
                         totalPrice {
                             gross {
                                 amount
@@ -489,6 +493,126 @@ def order_bulk_input_with_multiple_order_lines_and_fulfillments(
     order["fulfillments"] = [fulfillment_1, fulfillment_2]
 
     return order
+
+
+@pytest.mark.parametrize(
+    ("discount_type_enum", "discount_type", "discount_value"),
+    [
+        (DiscountValueTypeEnum.FIXED, DiscountValueType.FIXED, Decimal("10")),
+        (DiscountValueTypeEnum.PERCENTAGE, DiscountValueType.PERCENTAGE, Decimal("50")),
+    ],
+)
+def test_order_bulk_create_unit_discount(
+    discount_type_enum,
+    discount_type,
+    discount_value,
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    permission_manage_users,
+    order_bulk_input,
+    channel_PLN,
+    variant,
+):
+    # given
+    discount_reason = "test"
+
+    order = order_bulk_input
+    order["externalReference"] = "ext-ref-1"
+    order["lines"][0]["unitDiscountValue"] = discount_value
+    order["lines"][0]["unitDiscountType"] = discount_type_enum.name
+    order["lines"][0]["unitDiscountReason"] = discount_reason
+
+    order["lines"][0]["totalPrice"]["net"] = 50
+    order["lines"][0]["totalPrice"]["gross"] = 60
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+        permission_manage_users,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 1
+    data = content["data"]["orderBulkCreate"]["results"]
+    assert not data[0]["errors"]
+
+    order = data[0]["order"]
+    assert order["externalReference"] == "ext-ref-1"
+    assert order["created"]
+    assert order["status"] == OrderStatus.DRAFT.upper()
+    db_order = Order.objects.get()
+    assert db_order.external_reference == "ext-ref-1"
+    assert db_order.created_at
+    assert db_order.status == OrderStatus.DRAFT
+
+    order_line = order["lines"][0]
+    assert order_line["variant"]["id"] == graphene.Node.to_global_id(
+        "ProductVariant", variant.id
+    )
+    assert order_line["unitDiscountType"] == discount_type_enum.name
+    assert order_line["unitDiscountValue"] == discount_value
+    assert order_line["unitDiscountReason"] == discount_reason
+    db_order_line = OrderLine.objects.get()
+    assert db_order_line.variant == variant
+    assert db_order_line.unit_discount_type == discount_type
+    assert db_order_line.unit_discount_value == discount_value
+    assert db_order_line.unit_discount_reason == discount_reason
+    assert db_order.lines.first() == db_order_line
+
+
+def test_order_bulk_create_unit_discount_mismatched_discount(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    permission_manage_users,
+    order_bulk_input,
+    channel_PLN,
+    variant,
+):
+    # given
+    discount_reason = "test"
+
+    order = order_bulk_input
+    order["externalReference"] = "ext-ref-1"
+    order["lines"][0]["unitDiscountValue"] = 50
+    order["lines"][0]["unitDiscountType"] = DiscountValueTypeEnum.FIXED.name
+    order["lines"][0]["unitDiscountReason"] = discount_reason
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+        permission_manage_users,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 0
+    errors = content["data"]["orderBulkCreate"]["results"][0]["errors"]
+    assert len(errors) == 1
+
+    error0 = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
+    assert (
+        error0["message"]
+        == "Provided discount value doesn't match with provided line amounts."
+    )
+    assert error0["path"] == "lines.0.unit_discount_value"
+    assert error0["code"] == OrderBulkCreateErrorCode.PRICE_ERROR.name
 
 
 def test_order_bulk_create(
