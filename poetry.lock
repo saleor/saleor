@@ -4704,18 +4704,21 @@ test = ["Cython (>=0.29.36,<0.30.0)", "aiohttp (==3.9.0b0)", "aiohttp (>=3.8.1)"
 
 [[package]]
 name = "vcrpy"
-version = "6.0.1"
+version = "6.0.2"
 description = "Automatically mock your HTTP interactions to simplify and speed up testing"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "vcrpy-6.0.1-py2.py3-none-any.whl", hash = "sha256:621c3fb2d6bd8aa9f87532c688e4575bcbbde0c0afeb5ebdb7e14cac409edfdd"},
-    {file = "vcrpy-6.0.1.tar.gz", hash = "sha256:9e023fee7f892baa0bbda2f7da7c8ac51165c1c6e38ff8688683a12a4bde9278"},
+    {file = "vcrpy-6.0.2-py2.py3-none-any.whl", hash = "sha256:40370223861181bc76a5e5d4b743a95058bb1ad516c3c08570316ab592f56cad"},
+    {file = "vcrpy-6.0.2.tar.gz", hash = "sha256:88e13d9111846745898411dbc74a75ce85870af96dd320d75f1ee33158addc09"},
 ]
 
 [package.dependencies]
 PyYAML = "*"
-urllib3 = {version = "<2", markers = "platform_python_implementation == \"PyPy\""}
+urllib3 = [
+    {version = "*", markers = "platform_python_implementation != \"PyPy\" and python_version >= \"3.10\""},
+    {version = "<2", markers = "platform_python_implementation == \"PyPy\""},
+]
 wrapt = "*"
 yarl = "*"
 
