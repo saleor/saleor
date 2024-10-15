@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.staticfiles.views import serve
-from django.urls import include, re_path
+from django.urls import re_path
 from django.views.decorators.csrf import csrf_exempt
 
 from .core.views import jwks
@@ -54,22 +54,7 @@ urlpatterns = [
 ]
 
 if settings.DEBUG:
-    import warnings
-
     from .core import views
-
-    try:
-        import debug_toolbar
-    except ImportError:
-        warnings.warn(
-            "The debug toolbar was not installed. Ignore the error. \
-            settings.py should already have warned the user about it.",
-            stacklevel=1,
-        )
-    else:
-        urlpatterns += [
-            re_path(r"^__debug__/", include(debug_toolbar.urls))  # type: ignore
-        ]
 
     urlpatterns += static("/media/", document_root=settings.MEDIA_ROOT) + [
         re_path(r"^static/(?P<path>.*)$", serve),
