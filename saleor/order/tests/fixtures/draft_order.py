@@ -1,16 +1,19 @@
 from decimal import Decimal
 from functools import partial
 
+import graphene
 import pytest
 from django.conf import settings
 from prices import Money, TaxedMoney, fixed_discount
 
-from ....discount import DiscountType, DiscountValueType
+from ....core.taxes import zero_money
+from ....discount import DiscountType, DiscountValueType, RewardType, RewardValueType
 from ....discount.models import VoucherCode
 from ....discount.utils.voucher import (
     create_or_update_discount_object_from_order_level_voucher,
 )
-from ....warehouse.models import Allocation, PreorderAllocation
+from ....product.models import VariantChannelListingPromotionRule
+from ....warehouse.models import Allocation, PreorderAllocation, Stock
 from ... import OrderOrigin, OrderStatus
 from ...base_calculations import base_order_subtotal
 from ...models import Order
@@ -158,3 +161,80 @@ def draft_orders_in_different_channels(
 
     Order.objects.bulk_update(draft_order_list, ["channel"])
     return draft_order_list
+
+
+@pytest.fixture
+def draft_order_and_promotions(
+    order_with_lines,
+    order_promotion_without_rules,
+    catalogue_promotion_without_rules,
+    channel_USD,
+):
+    # given
+    order = order_with_lines
+    line_1 = order.lines.get(quantity=3)
+    line_2 = order.lines.get(quantity=2)
+
+    # prepare catalogue promotions
+    catalogue_promotion = catalogue_promotion_without_rules
+    variant_1 = line_1.variant
+    variant_2 = line_2.variant
+    rule_catalogue = catalogue_promotion.rules.create(
+        name="Catalogue rule fixed",
+        catalogue_predicate={
+            "variantPredicate": {
+                "ids": [graphene.Node.to_global_id("ProductVariant", variant_2.id)]
+            }
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=Decimal(3),
+    )
+    rule_catalogue.channels.add(channel_USD)
+
+    listing = variant_2.channel_listings.first()
+    listing.discounted_price_amount = Decimal(17)
+    listing.save(update_fields=["discounted_price_amount"])
+
+    currency = order.currency
+    VariantChannelListingPromotionRule.objects.create(
+        variant_channel_listing=listing,
+        promotion_rule=rule_catalogue,
+        discount_amount=Decimal(3),
+        currency=currency,
+    )
+
+    # prepare order promotion - subtotal
+    order_promotion = order_promotion_without_rules
+    rule_total = order_promotion.rules.create(
+        name="Fixed subtotal rule",
+        order_predicate={
+            "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 10}}}
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=Decimal(25),
+        reward_type=RewardType.SUBTOTAL_DISCOUNT,
+    )
+    rule_total.channels.add(channel_USD)
+
+    # prepare order promotion - gift
+    rule_gift = order_promotion.rules.create(
+        name="Gift subtotal rule",
+        order_predicate={
+            "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 10}}}
+        },
+        reward_type=RewardType.GIFT,
+    )
+    rule_gift.channels.add(channel_USD)
+    rule_gift.gifts.set([variant_1, variant_2])
+    Stock.objects.update(quantity=100)
+
+    # reset prices
+    order.total = TaxedMoney(net=zero_money(currency), gross=zero_money(currency))
+    order.subtotal = TaxedMoney(net=zero_money(currency), gross=zero_money(currency))
+    order.undiscounted_total = TaxedMoney(
+        net=zero_money(currency), gross=zero_money(currency)
+    )
+    order.status = OrderStatus.DRAFT
+    order.save()
+
+    return order, rule_catalogue, rule_total, rule_gift

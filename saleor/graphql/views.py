@@ -3,6 +3,7 @@ import importlib
 import json
 from inspect import isclass
 from typing import Any, Optional, Union
+from urllib.parse import urljoin
 
 import opentracing
 import opentracing.tags
@@ -119,12 +120,19 @@ class GraphQLView(View):
         return HttpResponseNotAllowed(["OPTIONS", "POST"])
 
     def render_playground(self, request):
+        if settings.PUBLIC_URL:
+            api_url = urljoin(settings.PUBLIC_URL, str(API_PATH))
+            plugins_url = urljoin(settings.PUBLIC_URL, "/plugins/")
+        else:
+            api_url = request.build_absolute_uri(str(API_PATH))
+            plugins_url = request.build_absolute_uri("/plugins/")
+
         return render(
             request,
             "graphql/playground.html",
             {
-                "api_url": request.build_absolute_uri(str(API_PATH)),
-                "plugins_url": request.build_absolute_uri("/plugins/"),
+                "api_url": api_url,
+                "plugins_url": plugins_url,
             },
         )
 

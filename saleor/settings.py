@@ -313,31 +313,6 @@ if ENABLE_DJANGO_EXTENSIONS:
         "django_extensions",
     ]
 
-ENABLE_DEBUG_TOOLBAR = get_bool_from_env("ENABLE_DEBUG_TOOLBAR", False)
-if ENABLE_DEBUG_TOOLBAR:
-    # Ensure the graphiql debug toolbar is actually installed before adding it
-    try:
-        __import__("graphiql_debug_toolbar")
-    except ImportError as exc:
-        msg = (
-            f"{exc} -- Install the missing dependencies by "
-            f"running `poetry install --no-root`"
-        )
-        warnings.warn(msg, stacklevel=1)
-    else:
-        INSTALLED_APPS += ["django.forms", "debug_toolbar", "graphiql_debug_toolbar"]
-        MIDDLEWARE.append("saleor.graphql.middleware.DebugToolbarMiddleware")
-
-        DEBUG_TOOLBAR_PANELS = [
-            "ddt_request_history.panels.request_history.RequestHistoryPanel",
-            "debug_toolbar.panels.timer.TimerPanel",
-            "debug_toolbar.panels.headers.HeadersPanel",
-            "debug_toolbar.panels.request.RequestPanel",
-            "debug_toolbar.panels.sql.SQLPanel",
-            "debug_toolbar.panels.profiling.ProfilingPanel",
-        ]
-        DEBUG_TOOLBAR_CONFIG = {"RESULTS_CACHE_SIZE": 100}
-
 # Make the `logging` Python module capture `warnings.warn()` calls
 # This is needed in order to log them as JSON when DEBUG=False
 logging.captureWarnings(True)
