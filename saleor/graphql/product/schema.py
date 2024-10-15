@@ -537,8 +537,7 @@ class ProductQueries(graphene.ObjectType):
             qs = filter_connection_queryset(
                 qs, kwargs, allow_replica=info.context.allow_replica
             )
-            if not qs.exists():
-                raise GraphQLError(f"No products found for channel '{channel}'")
+            # Do not raise an error here; return empty if no products found
             return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
 
         if channel:
