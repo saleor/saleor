@@ -355,8 +355,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
     def _get_customer(cls, customer_id, external_ref):
         if customer_id:
             return lambda customer: str(customer.id) == customer_id
-        else:
-            return lambda customer: customer.external_reference == external_ref
+        return lambda customer: customer.external_reference == external_ref
 
     @classmethod
     def update_address(cls, info, instance, data, field):

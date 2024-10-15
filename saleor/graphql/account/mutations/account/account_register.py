@@ -109,7 +109,7 @@ class AccountRegister(ModelMutation):
         site = get_site_promise(info.context).get()
         if not site.settings.enable_account_confirmation_by_email:
             return super().clean_input(info, instance, data, **kwargs)
-        elif not data.get("redirect_url"):
+        if not data.get("redirect_url"):
             raise ValidationError(
                 {
                     "redirect_url": ValidationError(

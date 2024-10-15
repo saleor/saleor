@@ -472,7 +472,7 @@ def save_unsuccessful_delivery_attempt(attempt: "EventDeliveryAttempt"):
 
 def trigger_transaction_request(
     transaction_data: "TransactionActionData", event_type: str, requestor
-):
+) -> None:
     from ..payloads import generate_transaction_action_request_payload
     from .synchronous.transport import (
         create_delivery_for_subscription_sync_event,
@@ -490,7 +490,7 @@ def trigger_transaction_request(
         recalculate_refundable_for_checkout(
             transaction_data.transaction, transaction_data.event
         )
-        return None
+        return
     webhook = get_webhooks_for_event(
         event_type, apps_ids=[transaction_data.transaction_app_owner.pk]
     ).first()
@@ -502,7 +502,7 @@ def trigger_transaction_request(
         recalculate_refundable_for_checkout(
             transaction_data.transaction, transaction_data.event
         )
-        return None
+        return
 
     if webhook.subscription_query:
         delivery = None
@@ -522,7 +522,7 @@ def trigger_transaction_request(
             recalculate_refundable_for_checkout(
                 transaction_data.transaction, transaction_data.event
             )
-            return None
+            return
     else:
         payload = generate_transaction_action_request_payload(
             transaction_data, requestor
@@ -542,7 +542,6 @@ def trigger_transaction_request(
         delivery.id,
         transaction_data.event.id,
     )
-    return None
 
 
 def parse_tax_data(

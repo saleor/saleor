@@ -19,9 +19,8 @@ def lazy_re_compile(regex, flags=0):
         # Compile the regex if it was not passed pre-compiled.
         if isinstance(regex, str):
             return re.compile(regex, flags)
-        else:
-            assert not flags, "flags must be empty if regex is passed pre-compiled"
-            return regex
+        assert not flags, "flags must be empty if regex is passed pre-compiled"
+        return regex
 
     return SimpleLazyObject(_compile)
 

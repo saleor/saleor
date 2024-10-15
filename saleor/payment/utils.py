@@ -144,7 +144,7 @@ def create_payment_lines_information(
 
     if checkout:
         return create_checkout_payment_lines_information(checkout, manager)
-    elif order:
+    if order:
         return create_order_payment_lines_information(order)
 
     return PaymentLinesData(
@@ -976,11 +976,11 @@ def get_failed_transaction_event_type_for_request_event(
 ):
     if request_event.type == TransactionEventType.AUTHORIZATION_REQUEST:
         return TransactionEventType.AUTHORIZATION_FAILURE
-    elif request_event.type == TransactionEventType.CHARGE_REQUEST:
+    if request_event.type == TransactionEventType.CHARGE_REQUEST:
         return TransactionEventType.CHARGE_FAILURE
-    elif request_event.type == TransactionEventType.REFUND_REQUEST:
+    if request_event.type == TransactionEventType.REFUND_REQUEST:
         return TransactionEventType.REFUND_FAILURE
-    elif request_event.type == TransactionEventType.CANCEL_REQUEST:
+    if request_event.type == TransactionEventType.CANCEL_REQUEST:
         return TransactionEventType.CANCEL_FAILURE
     return None
 
@@ -994,17 +994,17 @@ def get_failed_type_based_on_event(event: TransactionEvent):
         TransactionEventType.AUTHORIZATION_ADJUSTMENT,
     ]:
         return TransactionEventType.AUTHORIZATION_FAILURE
-    elif event.type in [
+    if event.type in [
         TransactionEventType.CHARGE_BACK,
         TransactionEventType.CHARGE_SUCCESS,
     ]:
         return TransactionEventType.CHARGE_FAILURE
-    elif event.type in [
+    if event.type in [
         TransactionEventType.REFUND_REVERSE,
         TransactionEventType.REFUND_SUCCESS,
     ]:
         return TransactionEventType.REFUND_FAILURE
-    elif event.type == TransactionEventType.CANCEL_SUCCESS:
+    if event.type == TransactionEventType.CANCEL_SUCCESS:
         return TransactionEventType.CANCEL_FAILURE
     return event.type
 

@@ -800,13 +800,13 @@ class Checkout(ModelObjectType[models.Checkout]):
     @staticmethod
     def resolve_shipping_address(root: models.Checkout, info: ResolveInfo):
         if not root.shipping_address_id:
-            return
+            return None
         return AddressByIdLoader(info.context).load(root.shipping_address_id)
 
     @staticmethod
     def resolve_billing_address(root: models.Checkout, info: ResolveInfo):
         if not root.billing_address_id:
-            return
+            return None
         return AddressByIdLoader(info.context).load(root.billing_address_id)
 
     @staticmethod
@@ -833,7 +833,7 @@ class Checkout(ModelObjectType[models.Checkout]):
             if not delivery_method or not isinstance(
                 delivery_method, ShippingMethodData
             ):
-                return
+                return None
             return delivery_method
 
         return (

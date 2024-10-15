@@ -25,12 +25,9 @@ prepare_test_db_connections()
 pytest_plugins = [
     "saleor.tests.fixtures",
     "saleor.app.tests.fixtures",
-    "saleor.discount.tests.test_utils.fixtures",
     "saleor.plugins.tests.fixtures",
     "saleor.graphql.tests.fixtures",
-    "saleor.graphql.checkout.tests.benchmark.fixtures",
     "saleor.graphql.account.tests.benchmark.fixtures",
-    "saleor.graphql.giftcard.tests.benchmark.fixtures",
     "saleor.webhook.tests.fixtures",
     "saleor.tax.tests.fixtures",
     "saleor.channel.tests.fixtures",
@@ -40,6 +37,13 @@ pytest_plugins = [
     "saleor.thumbnail.tests.fixtures",
     "saleor.order.tests.fixtures",
     "saleor.product.tests.fixtures",
+    "saleor.site.tests.fixtures",
+    "saleor.shipping.tests.fixtures",
+    "saleor.permission.tests.fixtures",
+    "saleor.giftcard.tests.fixtures",
+    "saleor.discount.tests.fixtures",
+    "saleor.checkout.tests.fixtures",
+    "saleor.attribute.tests.fixtures",
 ]
 
 

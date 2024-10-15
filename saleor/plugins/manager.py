@@ -2680,7 +2680,7 @@ class PluginsManager(PaymentInterface):
 
     def save_plugin_configuration(
         self, plugin_id, channel_slug: Optional[str], cleaned_data: dict
-    ):
+    ) -> None | PluginConfiguration:
         if channel_slug:
             plugins = self.get_plugins(channel_slug=channel_slug)
             channel = (
@@ -2709,6 +2709,7 @@ class PluginsManager(PaymentInterface):
                 plugin.active = configuration.active
                 plugin.configuration = configuration.configuration
                 return configuration
+        return None
 
     def get_plugin(
         self, plugin_id: str, channel_slug: Optional[str] = None
@@ -2893,6 +2894,5 @@ def get_plugins_manager(
     with opentracing.global_tracer().start_active_span("get_plugins_manager"):
         if allow_replica:
             return PluginsManager(settings.PLUGINS, requestor_getter, allow_replica)
-        else:
-            with allow_writer():
-                return PluginsManager(settings.PLUGINS, requestor_getter, allow_replica)
+        with allow_writer():
+            return PluginsManager(settings.PLUGINS, requestor_getter, allow_replica)

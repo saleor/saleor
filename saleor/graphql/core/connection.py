@@ -168,9 +168,9 @@ def _get_sorting_fields(sort_by, qs):
     sorting_attribute = sort_by.get("attribute_id")
     if sorting_fields and not isinstance(sorting_fields, list):
         return [sorting_fields]
-    elif not sorting_fields and sorting_attribute is not None:
+    if not sorting_fields and sorting_attribute is not None:
         return qs.model.sort_by_attribute_fields()
-    elif not sorting_fields:
+    if not sorting_fields:
         raise ValueError("Error while preparing cursor values.")
     return sorting_fields
 
@@ -224,7 +224,7 @@ def _get_edges_for_connection(edge_type, qs, args, sorting_fields):
 
     matching_records = list(qs)
     if last:
-        matching_records = list(reversed(matching_records))
+        matching_records.reverse()
         if len(matching_records) <= requested_count:
             start_slice = 0
     page_info = _get_page_info(matching_records, cursor, first, last)

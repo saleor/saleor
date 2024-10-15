@@ -88,7 +88,7 @@ class WebhookTrigger(BaseMutation):
         event_name = (
             event_type[0].upper() + to_camel_case(event_type)[1:] if event_type else ""
         )
-        raise_validation_error(
+        return raise_validation_error(
             message=(
                 f"Event type: {event_name}, "
                 f"which was parsed from webhook's "

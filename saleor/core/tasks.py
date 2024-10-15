@@ -34,7 +34,7 @@ class RestrictWriterDBTask(Task):
 
         func_path = settings.CELERY_RESTRICT_WRITER_METHOD
         if not func_path:
-            return
+            return None
 
         try:
             wrapper_fun = import_string(func_path)

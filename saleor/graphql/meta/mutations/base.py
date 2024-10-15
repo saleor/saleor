@@ -89,6 +89,7 @@ class BaseMetadataMutation(BaseMutation):
             return None
         if qs and "token" in [field.name for field in qs.model._meta.get_fields()]:
             return qs.filter(token=object_id).first()
+        return None
 
     @classmethod
     def get_old_sale_instance(cls, global_id, old_sale_id):
@@ -96,14 +97,13 @@ class BaseMetadataMutation(BaseMutation):
             old_sale_id=old_sale_id
         ).first():
             return instance
-        else:
-            raise ValidationError(
-                {
-                    "id": ValidationError(
-                        f"Couldn't resolve to a node: {global_id}", code="not_found"
-                    )
-                }
-            )
+        raise ValidationError(
+            {
+                "id": ValidationError(
+                    f"Couldn't resolve to a node: {global_id}", code="not_found"
+                )
+            }
+        )
 
     @classmethod
     def validate_model_is_model_with_metadata(cls, model, object_id):

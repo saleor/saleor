@@ -243,7 +243,7 @@ def _create_allocations(
     stocks_allocations: dict,
     stocks_reservations: dict,
     insufficient_stock: list[InsufficientStockData],
-):
+) -> tuple[list[InsufficientStockData], list[Any]]:
     quantity = line_info.quantity
     quantity_allocated = 0
     allocations = []
@@ -277,6 +277,7 @@ def _create_allocations(
             )
         )
         return insufficient_stock, []
+    return [], allocations
 
 
 def deallocate_stock(

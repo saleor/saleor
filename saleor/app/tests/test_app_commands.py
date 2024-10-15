@@ -21,6 +21,7 @@ def test_creates_app_from_manifest():
 
     tokens = app.tokens.all()
     assert len(tokens) == 1
+    assert app.is_installed
     assert not app.is_active
     assert app.uuid is not None
 
@@ -34,6 +35,7 @@ def test_creates_app_from_manifest_activate_app():
 
     tokens = app.tokens.all()
     assert len(tokens) == 1
+    assert app.is_installed
     assert app.is_active
 
 

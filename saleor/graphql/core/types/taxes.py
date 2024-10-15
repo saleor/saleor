@@ -185,7 +185,7 @@ class TaxableObjectLine(BaseObjectType):
         if isinstance(root, CheckoutLine):
             checkout = CheckoutByTokenLoader(info.context).load(root.checkout_id)
 
-            def load_channel(checkout):
+            def load_channel_for_checkout(checkout):
                 country_code = checkout.get_country()
                 load_tax_config_with_country = partial(
                     load_tax_configuration, country_code=country_code
@@ -196,22 +196,21 @@ class TaxableObjectLine(BaseObjectType):
                     .then(load_tax_config_with_country)
                 )
 
-            return checkout.then(load_channel)
-        else:
-            order = OrderByIdLoader(info.context).load(root.order_id)
+            return checkout.then(load_channel_for_checkout)
+        order = OrderByIdLoader(info.context).load(root.order_id)
 
-            def load_channel(order):
-                country_code = get_order_country(order)
-                load_tax_config_with_country = partial(
-                    load_tax_configuration, country_code=country_code
-                )
-                return (
-                    ChannelByIdLoader(info.context)
-                    .load(order.channel_id)
-                    .then(load_tax_config_with_country)
-                )
+        def load_channel_for_order(order):
+            country_code = get_order_country(order)
+            load_tax_config_with_country = partial(
+                load_tax_configuration, country_code=country_code
+            )
+            return (
+                ChannelByIdLoader(info.context)
+                .load(order.channel_id)
+                .then(load_tax_config_with_country)
+            )
 
-            return order.then(load_channel)
+        return order.then(load_channel_for_order)
 
     @staticmethod
     def resolve_unit_price(root: Union[CheckoutLine, OrderLine], info: ResolveInfo):

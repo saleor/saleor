@@ -557,9 +557,7 @@ AVAILABLE_PAYMENT_GATEWAYS_QUERY = """
 """
 
 
-def test_query_available_payment_gateways(
-    user_api_client, _sample_gateway, channel_USD
-):
+def test_query_available_payment_gateways(user_api_client, sample_gateway, channel_USD):
     # given
     query = AVAILABLE_PAYMENT_GATEWAYS_QUERY
 
@@ -580,7 +578,7 @@ def test_query_available_payment_gateways(
 
 
 def test_query_available_payment_gateways_specified_currency_USD(
-    user_api_client, _sample_gateway, channel_USD
+    user_api_client, sample_gateway, channel_USD
 ):
     # given
     query = AVAILABLE_PAYMENT_GATEWAYS_QUERY
@@ -602,7 +600,7 @@ def test_query_available_payment_gateways_specified_currency_USD(
 
 
 def test_query_available_payment_gateways_specified_currency_EUR(
-    user_api_client, _sample_gateway, channel_USD
+    user_api_client, sample_gateway, channel_USD
 ):
     # given
     query = AVAILABLE_PAYMENT_GATEWAYS_QUERY

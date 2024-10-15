@@ -595,6 +595,7 @@ class App(ModelObjectType[models.App]):
     def resolve_brand(root: models.App, _info: ResolveInfo):
         if root.brand_logo_default:
             return root
+        return None
 
 
 class AppCountableConnection(CountableConnection):
@@ -623,3 +624,4 @@ class AppInstallation(ModelObjectType[models.AppInstallation]):
     def resolve_brand(root: models.AppInstallation, _info: ResolveInfo):
         if root.brand_logo_default:
             return root
+        return None

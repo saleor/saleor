@@ -23,6 +23,7 @@ class Migration(migrations.Migration):
                 blank=True, db_index=True, default="", max_length=128, region=None
             ),
         ),
+        # nosemgrep: add-index-concurrently
         migrations.AddIndex(
             model_name="address",
             index=django.contrib.postgres.indexes.GinIndex(
@@ -36,6 +37,7 @@ class Migration(migrations.Migration):
                 ],
             ),
         ),
+        # nosemgrep: add-index-concurrently
         migrations.AddIndex(
             model_name="user",
             index=django.contrib.postgres.indexes.GinIndex(

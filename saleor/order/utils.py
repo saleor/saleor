@@ -198,7 +198,7 @@ def create_order_line(
     line_data,
     manager,
     allocate_stock=False,
-):
+) -> OrderLine:
     channel = order.channel
     variant = line_data.variant
     quantity = line_data.quantity
@@ -348,7 +348,7 @@ def add_variant_to_order(
     app,
     manager,
     allocate_stock=False,
-):
+) -> OrderLine:
     """Add total_quantity of variant to order.
 
     Returns an order line the variant was added to.
@@ -397,13 +397,12 @@ def add_variant_to_order(
 
         return line
 
-    if line_data.variant_id:
-        return create_order_line(
-            order,
-            line_data,
-            manager,
-            allocate_stock,
-        )
+    return create_order_line(
+        order,
+        line_data,
+        manager,
+        allocate_stock,
+    )
 
 
 def update_line_base_unit_prices_with_custom_price(

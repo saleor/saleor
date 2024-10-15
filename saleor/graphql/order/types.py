@@ -44,7 +44,7 @@ from ...permission.enums import (
     ProductPermissions,
 )
 from ...permission.utils import has_one_of_permissions
-from ...product.models import ALL_PRODUCTS_PERMISSIONS, ProductMediaTypes
+from ...product.models import ALL_PRODUCTS_PERMISSIONS, ProductMedia, ProductMediaTypes
 from ...shipping.interface import ShippingMethodData
 from ...shipping.utils import convert_to_shipping_method_data
 from ...tax.utils import get_display_gross_prices
@@ -732,6 +732,7 @@ class Fulfillment(ModelObjectType[models.Fulfillment]):
                     .load(stock_id)
                     .then(_resolve_stock_warehouse)
                 )
+            return None
 
         return (
             FulfillmentLinesByFulfillmentIdLoader(info.context)
@@ -930,16 +931,17 @@ class OrderLine(ModelObjectType[models.OrderLine]):
                 .then(_resolve_url)
             )
 
-        def _get_first_variant_image(all_medias):
-            if image := next(
+        def _get_first_variant_image(
+            all_medias: list[ProductMedia],
+        ) -> ProductMedia | None:
+            return next(
                 (
                     media
                     for media in all_medias
                     if media.type == ProductMediaTypes.IMAGE
                 ),
                 None,
-            ):
-                return image
+            )
 
         def _get_first_product_image(images):
             return _get_image_from_media(images[0]) if images else None
@@ -1647,7 +1649,7 @@ class Order(ModelObjectType[models.Order]):
             return obfuscate_address(address)
 
         if not root.billing_address_id:
-            return
+            return None
 
         if root.user_id:
             user = UserByUserIdLoader(info.context).load(root.user_id)
@@ -1676,7 +1678,7 @@ class Order(ModelObjectType[models.Order]):
             return obfuscate_address(address)
 
         if not root.shipping_address_id:
-            return
+            return None
 
         if root.user_id:
             user = UserByUserIdLoader(info.context).load(root.user_id)
@@ -1851,20 +1853,18 @@ class Order(ModelObjectType[models.Order]):
             granted_refunds, transactions, payments = data
             if any(p.is_active for p in payments):
                 return root.total_balance
-            else:
-                total_granted_refund = sum(
-                    [granted_refund.amount for granted_refund in granted_refunds],
-                    zero_money(root.currency),
-                )
-                total_charged = prices.Money(Decimal(0), root.currency)
 
-                for transaction in transactions:
-                    total_charged += transaction.amount_charged
-                    total_charged += transaction.amount_charge_pending
-                order_granted_refunds_difference = (
-                    root.total.gross - total_granted_refund
-                )
-                return total_charged - order_granted_refunds_difference
+            total_granted_refund = sum(
+                [granted_refund.amount for granted_refund in granted_refunds],
+                zero_money(root.currency),
+            )
+            total_charged = prices.Money(Decimal(0), root.currency)
+
+            for transaction in transactions:
+                total_charged += transaction.amount_charged
+                total_charged += transaction.amount_charge_pending
+            order_granted_refunds_difference = root.total.gross - total_granted_refund
+            return total_charged - order_granted_refunds_difference
 
         granted_refunds = OrderGrantedRefundsByOrderIdLoader(info.context).load(root.id)
         transactions = TransactionItemsByOrderIDLoader(info.context).load(root.id)

@@ -138,7 +138,7 @@ class AppQueries(graphene.ObjectType):
             _, app_id = from_global_id_or_error(id, only_type="App")
             if int(app_id) == app.id:
                 return app
-            elif not app.has_perm(AppPermission.MANAGE_APPS):
+            if not app.has_perm(AppPermission.MANAGE_APPS):
                 raise PermissionDenied(permissions=[AppPermission.MANAGE_APPS])
         return resolve_app(info, id)
 

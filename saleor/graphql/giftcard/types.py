@@ -404,6 +404,7 @@ class GiftCard(ModelObjectType[models.GiftCard]):
                 requestor, user, AccountPermissions.MANAGE_USERS
             ):
                 return user
+            return None
 
         if not root.used_by_id:
             return _resolve_used_by(None)
@@ -548,6 +549,7 @@ class GiftCard(ModelObjectType[models.GiftCard]):
                 requestor, user, AccountPermissions.MANAGE_USERS
             ):
                 return user
+            return None
 
         if not root.created_by_id:
             return _resolve_user(None)

@@ -233,7 +233,7 @@ def handle_not_created_order(notification, payment, checkout, kind, manager):
         ChargeStatus.PARTIALLY_CHARGED,
         ChargeStatus.FULLY_CHARGED,
     }:
-        return
+        return None
 
     transaction = create_new_transaction(
         notification, payment, TransactionKind.ACTION_TO_CONFIRM
@@ -586,11 +586,11 @@ def handle_failed_refund(notification: dict[str, Any], gateway_config: GatewayCo
         # we don't know anything about refund so we have to skip the notification about
         # failed refund.
         return
-
     if refund_transaction.kind == TransactionKind.REFUND_FAILED:
         # The failed refund is already saved
         return
-    elif refund_transaction.kind == TransactionKind.REFUND_ONGOING:
+
+    if refund_transaction.kind == TransactionKind.REFUND_ONGOING:
         # create new failed transaction which will allows us to discover duplicated
         # notification
         create_new_transaction(notification, payment, TransactionKind.REFUND_FAILED)

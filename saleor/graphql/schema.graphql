@@ -24330,6 +24330,13 @@ input OrderBulkCreateOrderLineInput @doc(category: "Orders") {
   """The name of the product."""
   productName: String
 
+  """
+  The SKU of the product.
+  
+  Added in Saleor 3.18.
+  """
+  productSku: String
+
   """Translation of the product variant name."""
   translatedVariantName: String
 
@@ -24353,6 +24360,27 @@ input OrderBulkCreateOrderLineInput @doc(category: "Orders") {
 
   """Price of the order line excluding applied discount."""
   undiscountedTotalPrice: TaxedMoneyInput!
+
+  """
+  Reason of the discount on order line.
+  
+  Added in Saleor 3.19.
+  """
+  unitDiscountReason: String
+
+  """
+  Type of the discount: fixed or percent
+  
+  Added in Saleor 3.19.
+  """
+  unitDiscountType: DiscountValueTypeEnum
+
+  """
+  Value of the discount. Can store fixed value or percent value
+  
+  Added in Saleor 3.19.
+  """
+  unitDiscountValue: PositiveDecimal
 
   """The ID of the warehouse, where the line will be allocated."""
   warehouse: ID!

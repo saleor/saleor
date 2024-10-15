@@ -80,6 +80,7 @@ def get_shipping_method_availability_error(
             "Shipping method cannot be used with this order.",
             code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value,
         )
+    return None
 
 
 def validate_shipping_method(

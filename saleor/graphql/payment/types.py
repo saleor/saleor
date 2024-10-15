@@ -274,6 +274,7 @@ class Payment(ModelObjectType[models.Payment]):
             raise PermissionDenied(permissions=permissions)
         return resolve_metadata(root.metadata)
 
+    @staticmethod
     def resolve_checkout(root: models.Payment, info):
         if not root.checkout_id:
             return None
@@ -382,6 +383,7 @@ class TransactionEvent(ModelObjectType[models.TransactionEvent]):
                     .load(root.app_identifier)
                     .then(get_first_app_by_identifier)
                 )
+            return None
 
         if root.app_id:
             return AppByIdLoader(info.context).load(root.app_id).then(get_active_app)
@@ -533,13 +535,13 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
     @staticmethod
     def resolve_order(root: models.TransactionItem, info):
         if not root.order_id:
-            return
+            return None
         return OrderByIdLoader(info.context).load(root.order_id)
 
     @staticmethod
     def resolve_checkout(root: models.TransactionItem, info):
         if not root.checkout_id:
-            return
+            return None
         return CheckoutByTokenLoader(info.context).load(root.checkout_id)
 
     @staticmethod
@@ -572,6 +574,7 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
                     .load(root.app_identifier)
                     .then(get_first_app_by_identifier)
                 )
+            return None
 
         if root.app_id:
             return AppByIdLoader(info.context).load(root.app_id).then(get_active_app)

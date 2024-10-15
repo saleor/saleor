@@ -51,9 +51,8 @@ def authenticate_with_throttling(request, email, password) -> Optional[models.Us
             clear_cache([ip_key, ip_user_key, block_key])
             return user
 
-        else:
-            # increment failed attempt for known user
-            ip_user_attempts_count = increment_attempt(ip_user_key)
+        # increment failed attempt for known user
+        ip_user_attempts_count = increment_attempt(ip_user_key)
 
     # increment failed attempt for whatever user
     ip_attempts_count = increment_attempt(ip_key)

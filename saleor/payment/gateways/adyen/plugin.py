@@ -258,7 +258,7 @@ class AdyenGatewayPlugin(BasePlugin):
         config = self._get_gateway_config()
         if path.startswith(WEBHOOK_PATH):
             return handle_webhook(request, config)
-        elif path.startswith(ADDITIONAL_ACTION_PATH):
+        if path.startswith(ADDITIONAL_ACTION_PATH):
             with opentracing.global_tracer().start_active_span(
                 "adyen.checkout.payment_details"
             ) as scope:

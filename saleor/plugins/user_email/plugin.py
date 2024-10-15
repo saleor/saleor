@@ -392,8 +392,8 @@ class UserEmailPlugin(BasePlugin):
         self,
         event: Union[NotifyEventType, str],
         payload_func: Callable[[], dict],
-        previous_value,
-    ):
+        previous_value: None,
+    ) -> None:
         if not self.active:
             return previous_value
         event_map = get_user_event_map()
@@ -408,6 +408,7 @@ class UserEmailPlugin(BasePlugin):
         config = asdict(self.config)
         self._add_missing_configuration(config)
         event_func(payload_func, config, self)
+        return previous_value
 
     @classmethod
     def validate_plugin_configuration(

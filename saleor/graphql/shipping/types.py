@@ -84,8 +84,7 @@ class ShippingMethodChannelListing(
     def resolve_minimum_order_price(root: models.ShippingMethodChannelListing, info):
         if root.minimum_order_price_amount is None:
             return None
-        else:
-            return root.minimum_order_price
+        return root.minimum_order_price
 
 
 class ShippingMethodPostalCodeRule(

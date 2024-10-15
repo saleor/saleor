@@ -126,15 +126,14 @@ class VoucherUpdate(VoucherCreate):
                 code_instance = voucher_instance.codes.first()
                 code_instance.code = code
                 return [code_instance]
-            else:
-                raise ValidationError(
-                    {
-                        "code": ValidationError(
-                            "Cannot update code when multiple codes exists.",
-                            code=DiscountErrorCode.INVALID.value,
-                        )
-                    }
-                )
+            raise ValidationError(
+                {
+                    "code": ValidationError(
+                        "Cannot update code when multiple codes exists.",
+                        code=DiscountErrorCode.INVALID.value,
+                    )
+                }
+            )
 
         return []
 

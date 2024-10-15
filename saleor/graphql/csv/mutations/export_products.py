@@ -127,6 +127,6 @@ class ExportProducts(BaseExportMutation):
     def get_items_pks(cls, field, export_info_input, graphene_type):
         ids = export_info_input.get(field)
         if not ids:
-            return
+            return []
         pks = cls.get_global_ids_or_error(ids, only_type=graphene_type, field=field)
         return pks

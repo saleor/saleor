@@ -234,7 +234,7 @@ def test_checkout_available_payment_gateways_currency_specified_USD(
     api_client,
     checkout_with_item,
     expected_dummy_gateway,
-    _sample_gateway,
+    sample_gateway,
 ):
     checkout_with_item.currency = "USD"
     checkout_with_item.save(update_fields=["currency"])
@@ -253,7 +253,7 @@ def test_checkout_available_payment_gateways_currency_specified_USD(
 
 
 def test_checkout_available_payment_gateways_currency_specified_EUR(
-    api_client, checkout_with_item, expected_dummy_gateway, _sample_gateway
+    api_client, checkout_with_item, expected_dummy_gateway, sample_gateway
 ):
     checkout_with_item.currency = "EUR"
     checkout_with_item.save(update_fields=["currency"])

@@ -19,7 +19,7 @@ class SiteByIdLoader(DataLoader[int, Site]):
         return [sites_mapped.get(site_id) for site_id in keys]
 
 
-class SiteByHostLoader(DataLoader):
+class SiteByHostLoader(DataLoader[str, Site]):
     context_key = "site_by_host"
 
     def batch_load(self, keys):

@@ -424,6 +424,7 @@ def _get_sale_id(line_discounts: list[OrderLineDiscount]):
         if discount.type == DiscountType.PROMOTION:
             if rule := discount.promotion_rule:
                 return get_sale_id(rule.promotion)
+    return None
 
 
 def _create_lines_for_order(

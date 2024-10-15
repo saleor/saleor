@@ -179,10 +179,9 @@ class StripeGatewayPlugin(BasePlugin):
     ) -> Optional[str]:
         if store_payment_method == StorePaymentMethodEnum.ON_SESSION:
             return "on_session"
-        elif store_payment_method == StorePaymentMethodEnum.OFF_SESSION:
+        if store_payment_method == StorePaymentMethodEnum.OFF_SESSION:
             return "off_session"
-        else:
-            return None
+        return None
 
     def process_payment(
         self, payment_information: "PaymentData", previous_value
