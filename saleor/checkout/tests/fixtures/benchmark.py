@@ -1,7 +1,7 @@
 import pytest
 from prices import Money, TaxedMoney
 
-from .....checkout.models import Checkout
+from ....checkout.models import Checkout
 
 CHECKOUT_COUNT_IN_BENCHMARKS = 10
 
