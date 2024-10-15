@@ -523,7 +523,6 @@ class ProductQueries(graphene.ObjectType):
                 allow_replica=info.context.allow_replica
             )
 
-        # Move channel existence check here
         if not channel:
             raise GraphQLError(f"Channel with '{channel}' slug does not exist.")
 
@@ -537,7 +536,6 @@ class ProductQueries(graphene.ObjectType):
             qs = filter_connection_queryset(
                 qs, kwargs, allow_replica=info.context.allow_replica
             )
-            # Do not raise an error here; return empty if no products found
             return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
 
         if channel:
@@ -546,8 +544,7 @@ class ProductQueries(graphene.ObjectType):
                 .load(str(channel))
                 .then(_resolve_products)
             )
-        else:
-            return _resolve_products(None)
+        return _resolve_products(None)
 
     @staticmethod
     def resolve_product_type(_root, info: ResolveInfo, *, id):
