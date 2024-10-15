@@ -523,10 +523,11 @@ class ProductQueries(graphene.ObjectType):
                 allow_replica=info.context.allow_replica
             )
 
-        def _resolve_products(channel_obj):
-            if not channel_obj:
-                raise GraphQLError(f"Channel with '{channel}' slug does not exist.")
+        # Move channel existence check here
+        if not channel:
+            raise GraphQLError(f"Channel with '{channel}' slug does not exist.")
 
+        def _resolve_products(channel_obj):
             qs = resolve_products(info, requestor, channel_obj, limited_channel_access)
             if search:
                 qs = ChannelQsContext(
@@ -546,7 +547,8 @@ class ProductQueries(graphene.ObjectType):
                 .load(str(channel))
                 .then(_resolve_products)
             )
-        return _resolve_products(None)
+        else:
+            return _resolve_products(None)
 
     @staticmethod
     def resolve_product_type(_root, info: ResolveInfo, *, id):
