@@ -2889,18 +2889,6 @@ def test_product_tax_class_query_by_staff(staff_api_client, product, channel_USD
     assert data["product"]["taxClass"]["id"]
 
 
-@pytest.fixture
-def channel_USD(db):
-    return Channel.objects.create(name="USD Channel", slug="usd-channel")
-
-
-@pytest.fixture
-def product_in_usd_channel(db, channel_USD):
-    product = Product.objects.create(name="Test Product")
-    product.channel_listings.create(channel=channel_USD, price_amount=10)
-    return product
-
-
 def test_products_invalid_channel_slug(api_client):
     response = api_client.post_graphql(
         """
