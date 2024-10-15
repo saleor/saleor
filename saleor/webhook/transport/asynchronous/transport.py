@@ -393,8 +393,16 @@ def _generate_deferred_payload(
     if data_promise:
         data = data_promise.get()
         if data:
-            return json.dumps({**data})
+            data_json = json.dumps({**data})
 
+            # Save the payload in the EventPayload object for later reuse in case of
+            # automatic or manual retry.
+            with allow_writer():
+                event_payload = EventPayload.objects.create_with_payload_file(data_json)
+                delivery.payload = event_payload
+                delivery.save(update_fields=["payload"])
+
+            return data_json
     return None
 
 
