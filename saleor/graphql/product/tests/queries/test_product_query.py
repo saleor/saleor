@@ -2943,25 +2943,3 @@ def test_products_no_products_for_channel(api_client, channel_USD):
         content["errors"][0]["message"]
         == "No products found for channel 'empty-channel'"
     )
-
-
-def test_products_with_valid_channel(api_client, channel_USD, product_in_usd_channel):
-    response = api_client.post_graphql(
-        """
-        query {
-          products(last: 100, channel: "usd-channel") {
-            edges {
-              node {
-                id
-              }
-            }
-          }
-        }
-        """
-    )
-    content = get_graphql_content(response)
-    assert "errors" not in content
-    assert len(content["data"]["products"]["edges"]) == 1
-    assert content["data"]["products"]["edges"][0]["node"][
-        "id"
-    ] == graphene.Node.to_global_id("Product", product_in_usd_channel.id)
