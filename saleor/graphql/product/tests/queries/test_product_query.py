@@ -12,7 +12,6 @@ from .....attribute.models import AttributeValue
 from .....attribute.utils import associate_attribute_values_to_instance
 from .....core.units import WeightUnits
 from .....product.models import (
-    Channel,
     Product,
     ProductChannelListing,
     ProductTranslation,
