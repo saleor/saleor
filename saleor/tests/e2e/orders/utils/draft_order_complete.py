@@ -52,6 +52,7 @@ mutation DraftOrderComplete($id: ID!) {
         }
       }
       lines {
+        id
         productVariantId
         quantity
         unitDiscount {
