@@ -39,7 +39,7 @@ CHECKOUT_LINE_PK_TYPE = str
 
 
 def get_insufficient_stock_lines(
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     variant_stock_map: dict[
         tuple[
             VARIANT_ID,
@@ -109,7 +109,7 @@ def line_is_not_available(
 
 
 def get_not_available_lines(
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     product_channel_listings_map: dict[
         tuple[
             PRODUCT_ID,
@@ -129,7 +129,7 @@ def get_not_available_lines(
 
 def get_checkout_lines_problems(
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     variant_stock_map: dict[
         tuple[
             VARIANT_ID,

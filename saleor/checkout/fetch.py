@@ -5,7 +5,6 @@ from functools import cached_property, singledispatch
 from typing import (
     TYPE_CHECKING,
     Any,
-    Callable,
     Optional,
     Union,
 )
@@ -68,7 +67,7 @@ class CheckoutInfo:
     shipping_address: Optional["Address"]
     tax_configuration: "TaxConfiguration"
     discounts: list["CheckoutDiscount"]
-    lines: Iterable[CheckoutLineInfo]
+    lines: list[CheckoutLineInfo]
     shipping_channel_listings: list["ShippingMethodChannelListing"]
     shipping_method: Optional["ShippingMethod"] = None
     collection_point: Optional["Warehouse"] = None
@@ -110,7 +109,7 @@ class CheckoutInfo:
         from ..webhook.transport.shipping import convert_to_app_id_with_identifier
         from .utils import get_external_shipping_id
 
-        delivery_method: Optional[Union[ShippingMethodData, Warehouse, Callable]] = None
+        delivery_method: Optional[Union[ShippingMethodData, Warehouse]] = None
 
         if self.shipping_method:
             # Find listing for the currently selected shipping method
@@ -126,19 +125,17 @@ class CheckoutInfo:
                 )
 
         elif external_shipping_method_id := get_external_shipping_id(self.checkout):
-
-            def _resolve_external_method():
-                methods = {method.id: method for method in self.all_shipping_methods}
-                if method := methods.get(external_shipping_method_id):
-                    return method
+            methods = {method.id: method for method in self.all_shipping_methods}
+            if method := methods.get(external_shipping_method_id):
+                delivery_method = method
+            else:
                 new_shipping_method_id = convert_to_app_id_with_identifier(
                     external_shipping_method_id
                 )
                 if new_shipping_method_id is None:
-                    return None
-                return methods.get(new_shipping_method_id)
-
-            delivery_method = _resolve_external_method
+                    delivery_method = None
+                else:
+                    delivery_method = methods.get(new_shipping_method_id)
 
         else:
             delivery_method = self.collection_point
@@ -274,11 +271,9 @@ class CollectionPointInfo(DeliveryMethodBase):
 
 @singledispatch
 def get_delivery_method_info(
-    delivery_method: Optional[Union["ShippingMethodData", "Warehouse", Callable]],
+    delivery_method: Optional[Union["ShippingMethodData", "Warehouse"]],
     address: Optional["Address"] = None,
 ) -> DeliveryMethodBase:
-    if callable(delivery_method):
-        delivery_method = delivery_method()
     if delivery_method is None:
         return DeliveryMethodBase()
     if isinstance(delivery_method, ShippingMethodData):
@@ -299,7 +294,7 @@ def fetch_checkout_lines(
     skip_recalculation: bool = False,
     voucher: Optional["Voucher"] = None,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
-) -> tuple[Iterable[CheckoutLineInfo], Iterable[int]]:
+) -> tuple[list[CheckoutLineInfo], list[int]]:
     """Fetch checkout lines as CheckoutLineInfo objects."""
     from ..discount.utils.voucher import apply_voucher_to_line
     from .utils import get_voucher_for_checkout
@@ -450,7 +445,7 @@ def _get_product_channel_listing(
 
 def fetch_checkout_info(
     checkout: "Checkout",
-    lines: Iterable[CheckoutLineInfo],
+    lines: list[CheckoutLineInfo],
     manager: "PluginsManager",
     shipping_channel_listings: Optional[
         Iterable["ShippingMethodChannelListing"]
@@ -498,7 +493,7 @@ def fetch_checkout_info(
 def get_valid_internal_shipping_method_list_for_checkout_info(
     checkout_info: "CheckoutInfo",
     shipping_address: Optional["Address"],
-    lines: Iterable[CheckoutLineInfo],
+    lines: list[CheckoutLineInfo],
     shipping_channel_listings: Iterable[ShippingMethodChannelListing],
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> list["ShippingMethodData"]:
@@ -569,7 +564,7 @@ def update_delivery_method_lists_for_checkout_info(
     shipping_method: Optional["ShippingMethod"],
     collection_point: Optional["Warehouse"],
     shipping_address: Optional["Address"],
-    lines: Iterable[CheckoutLineInfo],
+    lines: list[CheckoutLineInfo],
     shipping_channel_listings: Iterable[ShippingMethodChannelListing],
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
@@ -594,7 +589,7 @@ def update_delivery_method_lists_for_checkout_info(
 
 
 def find_checkout_line_info(
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     line_id: "UUID",
 ) -> "CheckoutLineInfo":
     """Return checkout line info from lines parameter.

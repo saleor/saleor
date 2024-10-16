@@ -1,3 +1,4 @@
+from typing import cast
 from urllib.parse import urlencode
 
 import graphene
@@ -5,6 +6,7 @@ from django.core.exceptions import ValidationError
 
 from .....account import notifications
 from .....account.error_codes import AccountErrorCode
+from .....account.models import User
 from .....core.tokens import account_delete_token_generator
 from .....core.utils.url import prepare_url, validate_storefront_url
 from .....permission.auth_filters import AuthorizationFilters
@@ -57,7 +59,7 @@ class AccountRequestDeletion(BaseMutation):
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, channel=None, redirect_url
     ):
-        user = info.context.user
+        user = cast(User, info.context.user)
         try:
             validate_storefront_url(redirect_url)
         except ValidationError as e:
@@ -68,7 +70,7 @@ class AccountRequestDeletion(BaseMutation):
             channel, error_class=AccountErrorCode, allow_replica=False
         ).slug
         manager = get_plugin_manager_promise(info.context).get()
-        token = account_delete_token_generator.make_token(user)  # type: ignore
+        token = account_delete_token_generator.make_token(user)
 
         # Notifications will be deprecated in the future
         notifications.send_account_delete_confirmation_notification(

@@ -71,7 +71,7 @@ class CheckoutLineData:
 
 def clean_delivery_method(
     checkout_info: "CheckoutInfo",
-    lines: Iterable[CheckoutLineInfo],
+    lines: list[CheckoutLineInfo],
     method: Optional[
         Union[
             shipping_interface.ShippingMethodData,
@@ -111,14 +111,14 @@ def _is_external_shipping_valid(checkout_info: "CheckoutInfo") -> bool:
 
 
 def update_checkout_external_shipping_method_if_invalid(
-    checkout_info: "CheckoutInfo", lines: Iterable[CheckoutLineInfo]
+    checkout_info: "CheckoutInfo", lines: list[CheckoutLineInfo]
 ):
     if not _is_external_shipping_valid(checkout_info):
         delete_external_shipping_id(checkout_info.checkout, save=True)
 
 
 def update_checkout_shipping_method_if_invalid(
-    checkout_info: "CheckoutInfo", lines: Iterable[CheckoutLineInfo]
+    checkout_info: "CheckoutInfo", lines: list[CheckoutLineInfo]
 ):
     quantity = calculate_checkout_quantity(lines)
 

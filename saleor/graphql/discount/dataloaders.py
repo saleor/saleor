@@ -84,7 +84,7 @@ class UsedByVoucherIDLoader(DataLoader[int, int]):
         )
         vouchers_map: dict[int, int] = {}
         for voucher in vouchers:
-            vouchers_map[voucher.id] = voucher.max_used  # type: ignore
+            vouchers_map[voucher.id] = voucher.max_used  # type: ignore[attr-defined]
         return [vouchers_map.get(voucher_id) for voucher_id in keys]
 
 

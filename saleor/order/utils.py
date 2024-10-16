@@ -89,7 +89,7 @@ def order_line_needs_automatic_fulfillment(line_data: OrderLineInfo) -> bool:
     return False
 
 
-def order_needs_automatic_fulfillment(lines_data: Iterable["OrderLineInfo"]) -> bool:
+def order_needs_automatic_fulfillment(lines_data: list["OrderLineInfo"]) -> bool:
     """Check if order has digital products which should be automatically fulfilled."""
     for line_data in lines_data:
         if line_data.is_digital and order_line_needs_automatic_fulfillment(line_data):
@@ -796,7 +796,7 @@ def create_order_discount_for_order(
 ):
     """Add new order discount and update the prices."""
 
-    current_total = order.undiscounted_total
+    current_total: TaxedMoney = order.undiscounted_total
     currency = order.currency
 
     gross_total = apply_discount_to_value(
@@ -810,7 +810,7 @@ def create_order_discount_for_order(
         value_type=value_type,
         value=value,
         reason=reason,
-        amount=new_amount,  # type: ignore
+        amount=new_amount,  # type: ignore[misc]
         **kwargs,
     )
     return order_discount

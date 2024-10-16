@@ -52,7 +52,7 @@ def prepare_test_db_connections():
     https://docs.djangoproject.com/en/4.2/topics/testing/advanced/#testing-primary-replica-configurations
     """
     replica = settings.DATABASE_CONNECTION_REPLICA_NAME
-    connections[replica] = FakeDbReplicaConnection(connections[replica])  # type: ignore
+    connections[replica] = FakeDbReplicaConnection(connections[replica])  # type: ignore[assignment]
 
 
 def dummy_editorjs(text, json_format=False):

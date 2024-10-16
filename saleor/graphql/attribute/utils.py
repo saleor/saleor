@@ -746,7 +746,7 @@ class AttributeAssignmentMixin:
         for ref in attr_values.references:
             name = getattr(ref, field_name)
             if attribute.entity_type == AttributeEntityType.PRODUCT_VARIANT:
-                name = f"{ref.product.name}: {name}"  # type: ignore
+                name = f"{ref.product.name}: {name}"  # type: ignore[union-attr]
 
             reference_list.append(
                 (
@@ -754,7 +754,7 @@ class AttributeAssignmentMixin:
                     {
                         "attribute": attribute,
                         "slug": slugify(
-                            unidecode(f"{instance.id}_{ref.id}")  # type: ignore
+                            unidecode(f"{instance.id}_{ref.id}")  # type: ignore[union-attr]
                         ),
                         "defaults": {"name": name},
                         attr_value_field: ref,

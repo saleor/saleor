@@ -9,7 +9,7 @@ from django.http.request import split_domain_port
 from ....core.utils import get_domain
 from ....graphql.core.enums import PluginErrorCode
 from ....plugins.base_plugin import BasePlugin, ConfigurationTypeField
-from ... import TransactionKind
+from ... import PaymentError, TransactionKind
 from ...interface import (
     CustomerSource,
     GatewayConfig,
@@ -233,7 +233,7 @@ class StripeGatewayPlugin(BasePlugin):
             payment_method_id=payment_method_id,
             metadata={
                 **payment_information.payment_metadata,
-                "channel": self.channel.slug,  # type: ignore
+                "channel": self.channel.slug,  # type: ignore[union-attr]
                 "payment_id": payment_information.graphql_payment_id,
             },
             setup_future_usage=setup_future_usage,
@@ -368,12 +368,14 @@ class StripeGatewayPlugin(BasePlugin):
         if not self.active:
             return previous_value
         payment_intent_id = payment_information.token
+        if not payment_intent_id:
+            raise PaymentError("Cannot find a payment reference to capture.")
         capture_amount = price_to_minor_unit(
             payment_information.amount, payment_information.currency
         )
         payment_intent, error = capture_payment_intent(
             api_key=self.config.connection_params["secret_api_key"],
-            payment_intent_id=payment_intent_id,  # type: ignore
+            payment_intent_id=payment_intent_id,
             amount_to_capture=capture_amount,
         )
 
@@ -403,12 +405,14 @@ class StripeGatewayPlugin(BasePlugin):
         if not self.active:
             return previous_value
         payment_intent_id = payment_information.token
+        if not payment_intent_id:
+            raise PaymentError("Cannot find a payment reference to refund.")
         refund_amount = price_to_minor_unit(
             payment_information.amount, payment_information.currency
         )
         refund, error = refund_payment_intent(
             api_key=self.config.connection_params["secret_api_key"],
-            payment_intent_id=payment_intent_id,  # type: ignore
+            payment_intent_id=payment_intent_id,
             amount_to_refund=refund_amount,
         )
 
@@ -433,10 +437,12 @@ class StripeGatewayPlugin(BasePlugin):
         if not self.active:
             return previous_value
         payment_intent_id = payment_information.token
+        if not payment_intent_id:
+            raise PaymentError("Cannot find a payment reference to void.")
 
         payment_intent, error = cancel_payment_intent(
             api_key=self.config.connection_params["secret_api_key"],
-            payment_intent_id=payment_intent_id,  # type: ignore
+            payment_intent_id=payment_intent_id,
         )
 
         raw_response = None
@@ -528,7 +534,7 @@ class StripeGatewayPlugin(BasePlugin):
         if not webhook_id and not webhook_secret_data.get("value"):
             webhook = subscribe_webhook(
                 api_key,
-                plugin_configuration.channel.slug,  # type: ignore
+                plugin_configuration.channel.slug,  # type: ignore[arg-type,union-attr]
             )
 
         if not webhook:

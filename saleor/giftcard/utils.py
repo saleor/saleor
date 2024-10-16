@@ -161,7 +161,7 @@ def fulfill_gift_card_lines(
 @traced_atomic_transaction()
 def gift_cards_create(
     order: "Order",
-    gift_card_lines_info: Iterable["GiftCardLineData"],
+    gift_card_lines_info: list["GiftCardLineData"],
     settings: "SiteSettings",
     requestor_user: Optional["User"],
     app: Optional["App"],
@@ -275,7 +275,7 @@ def assign_user_gift_cards(user):
 def is_gift_card_expired(gift_card: GiftCard):
     """Return True when gift card expiry date pass."""
     today = timezone.now().date()
-    return bool(gift_card.expiry_date) and gift_card.expiry_date < today  # type: ignore
+    return bool(gift_card.expiry_date) and gift_card.expiry_date < today  # type: ignore[operator]
 
 
 def get_user_gift_cards(user: "User") -> "QuerySet":

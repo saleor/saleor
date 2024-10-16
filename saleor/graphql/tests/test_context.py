@@ -4,6 +4,7 @@ import graphene
 from django.utils import timezone
 
 from ..context import clear_context, get_context_value
+from ..core.dataloaders import DataLoader
 from .utils import get_graphql_content
 
 QUERY_ORDER_BY_ID = """
@@ -48,7 +49,7 @@ def test_user_is_cached_on_request(
 def test_get_context_value_not_override_dataloaders_if_passed_already(rf):
     # given
     request = rf.request()
-    dataloaders = {}
+    dataloaders: dict[str, DataLoader] = {}
     dataloaders_id = id(dataloaders)
     request.dataloaders = dataloaders
 
@@ -76,7 +77,7 @@ def test_get_context_value_uses_request_time_if_passed_already(rf):
 def test_clear_context(rf):
     # given
     context = get_context_value(rf.request())
-    context.dataloaders = {"key": "value"}  # type: ignore
+    context.dataloaders = {"key": NotImplemented}
 
     # when
     clear_context(context)

@@ -1,5 +1,4 @@
 import datetime
-from collections.abc import Iterable
 from decimal import Decimal
 from typing import TYPE_CHECKING, Optional, cast
 
@@ -81,7 +80,7 @@ def call_checkout_event(
 def _trigger_checkout_sync_webhooks(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     webhook_event_map: dict[str, set["Webhook"]],
     address: Optional["Address"] = None,
 ):
@@ -151,7 +150,7 @@ def call_checkout_info_event(
     manager: "PluginsManager",
     event_name: str,
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     address: Optional["Address"] = None,
     webhook_event_map: Optional[dict[str, set["Webhook"]]] = None,
 ) -> None:

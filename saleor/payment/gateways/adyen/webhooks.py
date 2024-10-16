@@ -949,14 +949,14 @@ def validate_auth_user(headers: HttpHeaders, gateway_config: "GatewayConfig") ->
     username = gateway_config.connection_params["webhook_user"]
     password = gateway_config.connection_params["webhook_user_password"]
     auth_header: Optional[str] = headers.get("Authorization")
-    if not auth_header and not username:
-        return True
-    if auth_header and not username:
+    if not auth_header:
+        if not username:
+            return True
         return False
-    if not auth_header and username:
+    if not username:
         return False
 
-    split_auth = auth_header.split(maxsplit=1)  # type: ignore
+    split_auth = auth_header.split(maxsplit=1)
     prefix = "BASIC"
 
     if len(split_auth) != 2 or split_auth[0].upper() != prefix:

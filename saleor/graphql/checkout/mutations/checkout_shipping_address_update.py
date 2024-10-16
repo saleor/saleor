@@ -1,4 +1,3 @@
-from collections.abc import Iterable
 from typing import TYPE_CHECKING
 
 import graphene
@@ -90,7 +89,7 @@ class CheckoutShippingAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixi
     def process_checkout_lines(
         cls,
         info,
-        lines: Iterable["CheckoutLineInfo"],
+        lines: list["CheckoutLineInfo"],
         country: str,
         channel_slug: str,
         delivery_method_info: "DeliveryMethodBase",

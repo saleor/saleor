@@ -704,7 +704,7 @@ OBSERVABILITY_BUFFER_TIMEOUT = datetime.timedelta(
 )
 if OBSERVABILITY_ACTIVE:
     CELERY_BEAT_SCHEDULE["observability-reporter"] = {
-        "task": "saleor.webhook.transport.asynchronous.transport.observability_reporter_task",  # noqa
+        "task": "saleor.webhook.transport.asynchronous.transport.observability_reporter_task",
         "schedule": OBSERVABILITY_REPORT_PERIOD,
         "options": {"expires": OBSERVABILITY_REPORT_PERIOD.total_seconds()},
     }
@@ -890,7 +890,7 @@ PRODUCT_MAX_INDEXED_VARIANTS = 1000
 # Patch SubscriberExecutionContext class from `graphql-core-legacy` package
 # to fix bug causing not returning errors for subscription queries.
 
-executor.SubscriberExecutionContext = PatchedSubscriberExecutionContext  # type: ignore
+executor.SubscriberExecutionContext = PatchedSubscriberExecutionContext  # type: ignore[assignment,misc]
 
 patch_executor()
 

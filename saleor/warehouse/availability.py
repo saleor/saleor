@@ -146,7 +146,7 @@ def check_stock_and_preorder_quantity_bulk(
     global_quantity_limit: Optional[int],
     delivery_method_info: Optional["DeliveryMethodBase"] = None,
     additional_filter_lookup: Optional[dict[str, Any]] = None,
-    existing_lines: Optional[Iterable["CheckoutLineInfo"]] = None,
+    existing_lines: Optional[list["CheckoutLineInfo"]] = None,
     replace: bool = False,
     check_reservations: bool = False,
 ):
@@ -238,7 +238,7 @@ def check_stock_quantity_bulk(
     global_quantity_limit: Optional[int],
     delivery_method_info: Optional["DeliveryMethodBase"] = None,
     additional_filter_lookup: Optional[dict[str, Any]] = None,
-    existing_lines: Optional[Iterable["CheckoutLineInfo"]] = None,
+    existing_lines: Optional[list["CheckoutLineInfo"]] = None,
     replace=False,
     check_reservations: bool = False,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
@@ -355,7 +355,7 @@ def _get_variants_channel_availability_info(
 
     variants_global_allocations = {
         variant_id: sum(
-            channel_listing.preorder_quantity_allocated  # type: ignore
+            channel_listing.preorder_quantity_allocated  # type: ignore[attr-defined]
             for channel_listing in channel_listings
         )
         for variant_id, channel_listings in variant_channels.items()
@@ -445,7 +445,7 @@ def check_preorder_threshold_bulk(
     quantities: Iterable[int],
     channel_slug: str,
     global_quantity_limit: Optional[int],
-    existing_lines: Optional[Iterable["CheckoutLineInfo"]] = None,
+    existing_lines: Optional[list["CheckoutLineInfo"]] = None,
     replace: bool = False,
     check_reservations: bool = False,
 ):

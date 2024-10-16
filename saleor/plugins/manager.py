@@ -248,7 +248,9 @@ class PluginsManager(PaymentInterface):
         plugin_method = getattr(plugin, method_name, NotImplemented)
         if plugin_method == NotImplemented:
             return previous_value
-        returned_value = plugin_method(*args, **kwargs, previous_value=previous_value)  # type:ignore
+        if not callable(plugin_method):
+            raise ValueError(f"Method {method_name} is not callable")
+        returned_value = plugin_method(*args, **kwargs, previous_value=previous_value)
         if returned_value == NotImplemented:
             return previous_value
         return returned_value
@@ -279,7 +281,7 @@ class PluginsManager(PaymentInterface):
     def calculate_checkout_total(
         self,
         checkout_info: "CheckoutInfo",
-        lines: Iterable["CheckoutLineInfo"],
+        lines: list["CheckoutLineInfo"],
         address: Optional["Address"],
         plugin_ids: Optional[list[str]] = None,
     ) -> TaxedMoney:
@@ -313,7 +315,7 @@ class PluginsManager(PaymentInterface):
     def calculate_checkout_subtotal(
         self,
         checkout_info: "CheckoutInfo",
-        lines: Iterable["CheckoutLineInfo"],
+        lines: list["CheckoutLineInfo"],
         address: Optional["Address"],
         plugin_ids: Optional[list[str]] = None,
     ) -> TaxedMoney:
@@ -337,7 +339,7 @@ class PluginsManager(PaymentInterface):
     def calculate_checkout_shipping(
         self,
         checkout_info: "CheckoutInfo",
-        lines: Iterable["CheckoutLineInfo"],
+        lines: list["CheckoutLineInfo"],
         address: Optional["Address"],
         plugin_ids: Optional[list[str]] = None,
     ) -> TaxedMoney:
@@ -407,7 +409,7 @@ class PluginsManager(PaymentInterface):
     def get_checkout_shipping_tax_rate(
         self,
         checkout_info: "CheckoutInfo",
-        lines: Iterable["CheckoutLineInfo"],
+        lines: list["CheckoutLineInfo"],
         address: Optional["Address"],
         shipping_price: TaxedMoney,
         plugin_ids: Optional[list[str]] = None,
@@ -441,7 +443,7 @@ class PluginsManager(PaymentInterface):
     def calculate_checkout_line_total(
         self,
         checkout_info: "CheckoutInfo",
-        lines: Iterable["CheckoutLineInfo"],
+        lines: list["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         plugin_ids: Optional[list[str]] = None,
@@ -517,7 +519,7 @@ class PluginsManager(PaymentInterface):
     def calculate_checkout_line_unit_price(
         self,
         checkout_info: "CheckoutInfo",
-        lines: Iterable["CheckoutLineInfo"],
+        lines: list["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         plugin_ids: Optional[list[str]] = None,
@@ -597,7 +599,7 @@ class PluginsManager(PaymentInterface):
     def get_checkout_line_tax_rate(
         self,
         checkout_info: "CheckoutInfo",
-        lines: Iterable["CheckoutLineInfo"],
+        lines: list["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         price: TaxedMoney,
@@ -681,7 +683,7 @@ class PluginsManager(PaymentInterface):
     def preprocess_order_creation(
         self,
         checkout_info: "CheckoutInfo",
-        lines: Optional[Iterable["CheckoutLineInfo"]] = None,
+        lines: Optional[list["CheckoutLineInfo"]] = None,
     ):
         default_value = None
         return self.__run_method_on_plugins(
@@ -2518,7 +2520,7 @@ class PluginsManager(PaymentInterface):
         self,
         currency: Optional[str] = None,
         checkout_info: Optional["CheckoutInfo"] = None,
-        checkout_lines: Optional[Iterable["CheckoutLineInfo"]] = None,
+        checkout_lines: Optional[list["CheckoutLineInfo"]] = None,
         channel_slug: Optional[str] = None,
         active_only: bool = True,
     ) -> list["PaymentGateway"]:
@@ -2803,7 +2805,7 @@ class PluginsManager(PaymentInterface):
         self, plugin_id: str, data: dict, request: SaleorContext
     ) -> dict:
         """Handle authentication request."""
-        default_value = {}  # type: ignore
+        default_value: dict = {}
         plugin = self.get_plugin(plugin_id)
         return self.__run_method_on_single_plugin(
             plugin, "external_authentication_url", default_value, data, request

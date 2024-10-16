@@ -1,4 +1,5 @@
 from collections import defaultdict
+from collections.abc import Sequence
 
 from promise import Promise
 
@@ -210,7 +211,9 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
         )
 
 
-class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader[str, list[CheckoutLineInfo]]):
+class CheckoutLinesInfoByCheckoutTokenLoader(
+    DataLoader[str, Sequence[CheckoutLineInfo]]
+):
     context_key = "checkoutlinesinfo_by_checkout"
 
     def batch_load(self, keys):

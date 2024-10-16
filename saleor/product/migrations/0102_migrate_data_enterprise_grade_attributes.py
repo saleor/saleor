@@ -11,7 +11,7 @@ def ensure_attribute_slugs_are_unique_or_fix(apps, schema_editor):
     Instead of being unique within a product type, attributes' slug are now globally
     unique. For that, we look for duplicate slugs and rename them with a new suffix.
     """
-    Attribute = apps.get_model("product", "Attribute")  # noqa
+    Attribute = apps.get_model("product", "Attribute")
     non_unique_slugs = (
         Attribute.objects.values_list("slug", flat=True)
         .annotate(slug_count=Count("slug"))

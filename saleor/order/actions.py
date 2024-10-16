@@ -1,6 +1,5 @@
 import logging
 from collections import defaultdict
-from collections.abc import Iterable
 from copy import deepcopy
 from decimal import Decimal
 from typing import TYPE_CHECKING, Optional, TypedDict
@@ -1053,7 +1052,7 @@ def _increase_order_line_quantity(order_lines_info):
 
 
 def fulfill_order_lines(
-    order_lines_info: Iterable["OrderLineInfo"],
+    order_lines_info: list["OrderLineInfo"],
     manager: "PluginsManager",
     allow_stock_to_be_exceeded: bool = False,
 ):

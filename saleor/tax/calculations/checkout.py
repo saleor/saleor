@@ -1,4 +1,3 @@
-from collections.abc import Iterable
 from decimal import Decimal
 from typing import TYPE_CHECKING, Optional
 
@@ -22,7 +21,7 @@ if TYPE_CHECKING:
 def update_checkout_prices_with_flat_rates(
     checkout: "Checkout",
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     prices_entered_with_tax: bool,
     address: Optional["Address"] = None,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
@@ -83,7 +82,7 @@ def update_checkout_prices_with_flat_rates(
 
 def calculate_checkout_shipping(
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     tax_rate: Decimal,
     prices_entered_with_tax: bool,
 ) -> TaxedMoney:
@@ -98,7 +97,7 @@ def calculate_checkout_shipping(
 
 def calculate_checkout_line_total(
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
     tax_rate: Decimal,
     prices_entered_with_tax: bool,
